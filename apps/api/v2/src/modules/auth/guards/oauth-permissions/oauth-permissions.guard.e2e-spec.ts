@@ -146,7 +146,7 @@ describe("OAuth Permissions Guard E2E", () => {
     oAuthClient = await oAuthClientFixture.create({
       clientId: testClientId,
       name: "Scope E2E Test Client",
-      redirectUri: testRedirectUri,
+      redirectUris: [testRedirectUri],
       clientSecret: hashedSecret,
       clientType: OAuthClientType.CONFIDENTIAL,
       userId: user.id,

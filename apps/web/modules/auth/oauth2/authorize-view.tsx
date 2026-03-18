@@ -64,12 +64,12 @@ export function Authorize() {
   const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
     onSuccess: (data) => {
       window.location.href =
-        data.redirectUrl ?? `${client?.redirectUri}?code=${data.authorizationCode}&state=${state}`;
+        data.redirectUrl ?? `${redirect_uri}?code=${data.authorizationCode}&state=${state}`;
     },
     onError: (error) => {
-      if (client?.redirectUri) {
+      if (redirect_uri) {
         redirectToOAuthError({
-          redirectUri: client.redirectUri,
+          redirectUri: redirect_uri,
           trpcError: error,
           state,
         });
@@ -100,7 +100,7 @@ export function Authorize() {
     if (client?.isTrusted) {
       generateAuthCodeMutation.mutate({
         clientId: client_id as string,
-        redirectUri: client.redirectUri,
+        redirectUri: redirect_uri,
         scopes: effectiveScopes,
         codeChallenge: code_challenge || undefined,
         codeChallengeMethod: (code_challenge_method as "S256") || undefined,
@@ -285,13 +285,13 @@ export function Authorize() {
             className="mr-2"
             color="minimal"
             onClick={() => {
-              const separator = client.redirectUri.includes("?") ? "&" : "?";
+              const separator = redirect_uri.includes("?") ? "&" : "?";
               const params = new URLSearchParams();
               params.set("error", "access_denied");
               if (state) {
                 params.set("state", state);
               }
-              window.location.href = `${client.redirectUri}${separator}${params.toString()}`;
+              window.location.href = `${redirect_uri}${separator}${params.toString()}`;
             }}>
             {t("go_back")}
           </Button>
@@ -300,7 +300,7 @@ export function Authorize() {
               generateAuthCodeMutation.mutate({
                 clientId: client_id as string,
                 scopes: effectiveScopes,
-                redirectUri: client.redirectUri,
+                redirectUri: redirect_uri,
                 teamSlug: selectedAccount?.value.startsWith("team/")
                   ? selectedAccount?.value.substring(5)
                   : undefined, // team account starts with /team/<slug>

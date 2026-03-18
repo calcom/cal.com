@@ -13,6 +13,7 @@ export class OAuthClientRepository {
       },
       select: {
         redirectUri: true,
+        redirectUris: true,
         clientType: true,
         name: true,
         purpose: true,
@@ -34,7 +35,7 @@ export class OAuthClientRepository {
       where: { clientId },
       select: {
         clientId: true,
-        redirectUri: true,
+        redirectUris: true,
         clientSecret: true,
         clientType: true,
         status: true,
@@ -48,7 +49,7 @@ export class OAuthClientRepository {
       where: { clientId },
       select: {
         clientId: true,
-        redirectUri: true,
+        redirectUris: true,
         clientType: true,
         name: true,
         purpose: true,
@@ -76,7 +77,7 @@ export class OAuthClientRepository {
       where: { userId },
       select: {
         clientId: true,
-        redirectUri: true,
+        redirectUris: true,
         name: true,
         purpose: true,
         logo: true,
@@ -92,18 +93,11 @@ export class OAuthClientRepository {
     });
   }
 
-  async findByUserIdAndStatus(userId: number, status: OAuthClientStatus) {
-    return this.prisma.oAuthClient.findMany({
-      where: { userId, status },
-      orderBy: { createdAt: "desc" },
-    });
-  }
-
   async findAll() {
     return this.prisma.oAuthClient.findMany({
       select: {
         clientId: true,
-        redirectUri: true,
+        redirectUris: true,
         name: true,
         purpose: true,
         logo: true,
@@ -131,7 +125,7 @@ export class OAuthClientRepository {
       where: { status },
       select: {
         clientId: true,
-        redirectUri: true,
+        redirectUris: true,
         name: true,
         purpose: true,
         logo: true,
@@ -157,7 +151,7 @@ export class OAuthClientRepository {
   async create(data: {
     name: string;
     purpose: string;
-    redirectUri: string;
+    redirectUris: string[];
     clientSecret?: string;
     logo?: string;
     websiteUrl?: string;
@@ -166,7 +160,7 @@ export class OAuthClientRepository {
     userId?: number;
     status: OAuthClientStatus;
   }) {
-    const { name, purpose, redirectUri, clientSecret, logo, websiteUrl, enablePkce, scopes, userId, status } =
+    const { name, purpose, redirectUris, clientSecret, logo, websiteUrl, enablePkce, scopes, userId, status } =
       data;
 
     const clientId = randomBytes(32).toString("hex");
@@ -175,7 +169,8 @@ export class OAuthClientRepository {
       data: {
         name,
         purpose,
-        redirectUri,
+        redirectUri: redirectUris[0],
+        redirectUris,
         clientId,
         clientType: enablePkce ? "PUBLIC" : "CONFIDENTIAL",
         logo,
@@ -195,7 +190,7 @@ export class OAuthClientRepository {
       clientId: client.clientId,
       name: client.name,
       purpose: client.purpose,
-      redirectUri: client.redirectUri,
+      redirectUris: client.redirectUris,
       logo: client.logo,
       clientType: client.clientType,
       clientSecret: client.clientSecret,
@@ -216,14 +211,28 @@ export class OAuthClientRepository {
     data: {
       name?: string;
       purpose?: string;
+      redirectUris?: string[];
       redirectUri?: string;
-      logo?: string;
-      websiteUrl?: string;
+      logo?: string | null;
+      websiteUrl?: string | null;
+      scopes?: AccessScope[];
+      status?: OAuthClientStatus;
+      rejectionReason?: string | null;
     }
   ) {
     return this.prisma.oAuthClient.update({
       where: { clientId },
       data,
+      select: {
+        clientId: true,
+        name: true,
+        purpose: true,
+        status: true,
+        redirectUris: true,
+        websiteUrl: true,
+        logo: true,
+        rejectionReason: true,
+      },
     });
   }
 

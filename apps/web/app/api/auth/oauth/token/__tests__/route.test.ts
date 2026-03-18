@@ -146,11 +146,22 @@ describe("POST /api/auth/oauth/token", () => {
 
   describe("PUBLIC clients", () => {
     const mockPublicClient = {
-      redirectUri: "https://app.example.com/callback",
+      clientId: "public_client_123",
+      redirectUri: "",
+      redirectUris: ["https://app.example.com/callback"],
       clientSecret: null,
       clientType: "PUBLIC" as const,
+      name: "Test Public Client",
+      purpose: null,
+      logo: null,
+      websiteUrl: null,
+      rejectionReason: null,
+      isTrusted: false,
       status: "APPROVED" as const,
-    } as const;
+      userId: null,
+      scopes: [],
+      createdAt: new Date(),
+    };
 
     const mockAccessCode = {
       userId: 1,
@@ -278,11 +289,22 @@ describe("POST /api/auth/oauth/token", () => {
 
   describe("CONFIDENTIAL clients", () => {
     const mockConfidentialClient = {
-      redirectUri: "https://app.example.com/callback",
+      clientId: "confidential_client_456",
+      redirectUri: "",
+      redirectUris: ["https://app.example.com/callback"],
       clientSecret: "hashed_secret",
       clientType: "CONFIDENTIAL" as const,
+      name: "Test Confidential Client",
+      purpose: null,
+      logo: null,
+      websiteUrl: null,
+      rejectionReason: null,
+      isTrusted: false,
       status: "APPROVED" as const,
-    } as const;
+      userId: null,
+      scopes: [],
+      createdAt: new Date(),
+    };
 
     const mockAccessCode = {
       userId: 1,
@@ -496,10 +518,21 @@ describe("POST /api/auth/oauth/token", () => {
 
     it("should reject mismatched redirect_uri", async () => {
       prismaMock.oAuthClient.findUnique.mockResolvedValue({
-        redirectUri: "https://app.example.com/callback",
+        clientId: "test_client",
+        redirectUri: "",
+        redirectUris: ["https://app.example.com/callback"],
         clientSecret: null,
         clientType: "PUBLIC" as const,
+        name: "Test Client",
+        purpose: null,
+        logo: null,
+        websiteUrl: null,
+        rejectionReason: null,
+        isTrusted: false,
         status: "APPROVED" as const,
+        userId: null,
+        scopes: [],
+        createdAt: new Date(),
       } as Awaited<ReturnType<typeof prismaMock.oAuthClient.findUnique>>);
 
       const tokenRequest = createTokenRequest({
@@ -520,10 +553,21 @@ describe("POST /api/auth/oauth/token", () => {
 
     it("should reject expired authorization code", async () => {
       prismaMock.oAuthClient.findUnique.mockResolvedValue({
-        redirectUri: "https://app.example.com/callback",
+        clientId: "test_client",
+        redirectUri: "",
+        redirectUris: ["https://app.example.com/callback"],
         clientSecret: null,
         clientType: "PUBLIC" as const,
+        name: "Test Client",
+        purpose: null,
+        logo: null,
+        websiteUrl: null,
+        rejectionReason: null,
+        isTrusted: false,
         status: "APPROVED" as const,
+        userId: null,
+        scopes: [],
+        createdAt: new Date(),
       } as Awaited<ReturnType<typeof prismaMock.oAuthClient.findUnique>>);
       prismaMock.accessCode.findFirst.mockResolvedValue(null);
 

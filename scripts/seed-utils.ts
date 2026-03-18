@@ -194,6 +194,7 @@ type OAuthClientInput = {
   name: string;
   purpose: string;
   redirectUri: string;
+  redirectUris: [string];
   websiteUrl: string;
   enablePkce: boolean;
 };

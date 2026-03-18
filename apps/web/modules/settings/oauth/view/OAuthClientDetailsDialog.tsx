@@ -26,7 +26,7 @@ type OAuthClientDetails = {
   clientId: string;
   name: string;
   purpose?: string | null;
-  redirectUri?: string;
+  redirectUris?: string[];
   websiteUrl?: string | null;
   logo?: string | null;
   status?: string;
@@ -61,7 +61,7 @@ const OAuthClientDetailsDialog = ({
     clientId: string;
     name: string;
     purpose: string;
-    redirectUri: string;
+    redirectUris: string[];
     websiteUrl: string;
     logo: string;
     scopes: AccessScope[] | undefined;
@@ -88,7 +88,7 @@ const OAuthClientDetailsDialog = ({
     defaultValues: {
       name: client?.name ?? "",
       purpose: client?.purpose ?? "",
-      redirectUri: client?.redirectUri ?? "",
+      redirectUris: client?.redirectUris?.length ? client.redirectUris : [""],
       websiteUrl: client?.websiteUrl ?? "",
       logo: client?.logo ?? "",
       enablePkce: formEnablePkce,
@@ -198,6 +198,11 @@ const OAuthClientDetailsDialog = ({
             className="space-y-4"
             onSubmit={form.handleSubmit((values) => {
               if (!canEdit) return;
+              const redirectUris = values.redirectUris.map((uri) => uri.trim()).filter(Boolean);
+              if (redirectUris.length === 0) {
+                showToast(t("at_least_one_redirect_uri_required"), "error");
+                return;
+              }
               if (!isLegacy && !values.scopes?.length) {
                 showToast(t("oauth_client_scope_required"), "error");
                 return;
@@ -206,7 +211,7 @@ const OAuthClientDetailsDialog = ({
                 clientId: client.clientId,
                 name: values.name.trim() || "",
                 purpose: values.purpose.trim() || "",
-                redirectUri: values.redirectUri.trim() || "",
+                redirectUris,
                 websiteUrl: values.websiteUrl.trim() || "",
                 logo: values.logo,
                 // note(Lauris): for legacy clients with no scopes selected, omit scopes to leave the DB unchanged.

@@ -1,10 +1,9 @@
-import { expect } from "@playwright/test";
 import { randomBytes } from "node:crypto";
 import process from "node:process";
-
-import { test } from "../lib/fixtures";
 import type { PrismaClient } from "@calcom/prisma";
+import { expect } from "@playwright/test";
 import jwt from "jsonwebtoken";
+import { test } from "../lib/fixtures";
 
 test.describe("OAuth - refresh tokens", () => {
   test.afterEach(async ({ prisma, users }, testInfo) => {
@@ -39,6 +38,7 @@ test.describe("OAuth - refresh tokens", () => {
         clientId,
         name,
         redirectUri: "https://example.com",
+        redirectUris: ["https://example.com"],
         clientSecret: null,
         clientType,
         status,

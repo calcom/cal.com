@@ -37,7 +37,7 @@ describe("Atoms OAuth2 Controller Endpoints", () => {
     await oAuthClientFixture.create({
       clientId: testClientId,
       name: "Test Atoms OAuth Client",
-      redirectUri: testRedirectUri,
+      redirectUris: [testRedirectUri],
     });
   });
 

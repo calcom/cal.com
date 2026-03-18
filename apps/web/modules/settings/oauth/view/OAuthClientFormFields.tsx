@@ -2,10 +2,12 @@
 
 import type { NewAccessScope } from "@calcom/features/oauth/constants";
 import { OAUTH_SCOPE_CATEGORIES } from "@calcom/features/oauth/constants";
+import { MAX_REDIRECT_URIS, validateRedirectUri } from "@calcom/features/oauth/utils/validateRedirectUris";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AccessScope } from "@calcom/prisma/enums";
 import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
 import { CheckboxField, Label, Switch, TextArea, TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
@@ -32,22 +34,7 @@ export const OAuthClientFormFields = ({
   const isFormDisabled = Boolean(isClientReadOnly);
   const allowUploadingLogo = !isFormDisabled;
 
-  const redirectUriValidation: RegisterOptions<OAuthClientCreateFormValues, "redirectUri"> = useMemo(
-    () => ({
-      required: true,
-      validate: (value: string) => {
-        try {
-          new URL(value);
-          return true;
-        } catch {
-          return t("invalid_url");
-        }
-      },
-    }),
-    [t]
-  );
-
-  const websiteUrlValidation: RegisterOptions<OAuthClientCreateFormValues, "websiteUrl"> = useMemo(
+  const websiteUrlValidation = useMemo(
     () => ({
       validate: (value: string) => {
         if (!value) return true;
@@ -91,15 +78,8 @@ export const OAuthClientFormFields = ({
           disabled={isFormDisabled}
         />
       </div>
-      <TextField
-        {...form.register("redirectUri", redirectUriValidation)}
-        label={t("redirect_uri")}
-        type="url"
-        id="redirectUri"
-        placeholder={t("redirect_uri_placeholder")}
-        required
-        disabled={isFormDisabled}
-      />
+
+      <RedirectUriFields form={form} disabled={isFormDisabled} />
 
       <TextField
         {...form.register("websiteUrl", websiteUrlValidation)}
@@ -170,6 +150,76 @@ export const OAuthClientFormFields = ({
     </>
   );
 };
+
+function RedirectUriFields({
+  form,
+  disabled,
+}: {
+  form: UseFormReturn<OAuthClientCreateFormValues>;
+  disabled: boolean;
+}) {
+  const { t } = useLocale();
+  const redirectUris = form.watch("redirectUris");
+  const canAddMore = redirectUris.length < MAX_REDIRECT_URIS;
+
+  return (
+    <div>
+      <Label className="text-emphasis mb-2 block text-sm font-medium">{t("redirect_uris")}</Label>
+      <div className="space-y-2">
+        {redirectUris.map((_uri, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <div className="flex-1">
+              <TextField
+                {...form.register(`redirectUris.${index}`, {
+                  validate: (value: string) => {
+                    if (!value) return true;
+                    const uriError = validateRedirectUri(value);
+                    if (uriError !== true) return uriError;
+                    const isDuplicate = redirectUris.some((uri, i) => i !== index && uri === value);
+                    if (isDuplicate) return t("duplicate_redirect_uri");
+                    return true;
+                  },
+                })}
+                noLabel
+                type="text"
+                id={`redirectUri-${index}`}
+                placeholder={t("redirect_uri_placeholder")}
+                disabled={disabled}
+              />
+              {form.formState.errors.redirectUris?.[index]?.message ? (
+                <p className="text-error mt-1 text-xs">{form.formState.errors.redirectUris[index].message}</p>
+              ) : null}
+            </div>
+            {redirectUris.length > 1 && !disabled ? (
+              <Button
+                type="button"
+                color="destructive"
+                variant="icon"
+                StartIcon="trash"
+                data-testid={`remove-redirect-uri-${index}`}
+                onClick={() => {
+                  const updated = redirectUris.filter((_, i) => i !== index);
+                  form.setValue("redirectUris", updated);
+                }}
+                aria-label={t("remove_redirect_uri")}
+              />
+            ) : null}
+          </div>
+        ))}
+        {!disabled ? (
+          <Button
+            type="button"
+            color="minimal"
+            StartIcon="plus"
+            disabled={!canAddMore}
+            onClick={() => form.setValue("redirectUris", [...redirectUris, ""])}>
+            {canAddMore ? t("add_redirect_uri") : t("max_redirect_uris_reached", { max: MAX_REDIRECT_URIS })}
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 function OAuthScopeCheckboxes({
   form,

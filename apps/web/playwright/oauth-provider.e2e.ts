@@ -1,11 +1,9 @@
-import { expect } from "@playwright/test";
 import { createHash, randomBytes } from "node:crypto";
-
 import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
-
+import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
 
 test.afterEach(async ({ users }) => {
@@ -42,7 +40,7 @@ function generatePKCE() {
 
 test.describe("OAuth Provider", () => {
   test.beforeAll(async () => {
-    client = await createTestCLient();
+    client = await createTestClient();
   });
   test("should create valid access token & refresh token for user", async ({ page, users }) => {
     const user = await users.create({ username: "test user", name: "test user" });
@@ -531,7 +529,7 @@ test.describe("OAuth Provider - PKCE (Public Clients)", () => {
 test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Security)", () => {
   test.beforeAll(async () => {
     // Ensure we have a confidential client for these tests
-    client = await createTestCLient();
+    client = await createTestClient();
   });
 
   test("should accept CONFIDENTIAL client with PKCE for defense in depth", async ({ page, users }) => {
@@ -684,7 +682,7 @@ test.describe("OAuth Provider - PKCE with CONFIDENTIAL Clients (Enhanced Securit
   });
 });
 
-const createTestCLient = async () => {
+const createTestClient = async () => {
   const [hashedSecret, secret] = generateSecret();
   const clientId = randomBytes(32).toString("hex");
 
@@ -694,6 +692,7 @@ const createTestCLient = async () => {
       clientId,
       clientSecret: hashedSecret,
       redirectUri: "https://example.com",
+      redirectUris: ["https://example.com"],
       clientType: "CONFIDENTIAL",
     },
   });
@@ -710,6 +709,7 @@ const createTestPublicClient = async () => {
       clientId,
       clientSecret: null,
       redirectUri: "https://example.com",
+      redirectUris: ["https://example.com"],
       clientType: "PUBLIC",
     },
   });

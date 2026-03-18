@@ -1,4 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
+import { AccessScope } from "@calcom/prisma/enums";
+
 import type { TFunction } from "i18next";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { submitClientForReviewHandler } from "./submitClientForReview.handler";
@@ -9,6 +11,7 @@ const mocks = vi.hoisted(() => {
     sendAdminOAuthClientNotification: vi.fn(),
     getTranslation: vi.fn(),
     generateSecret: vi.fn(),
+    validateRedirectUris: vi.fn(),
     checkIfFreeEmailDomain: vi.fn(),
   };
 });
@@ -30,6 +33,10 @@ vi.mock("@calcom/i18n/server", () => ({
 
 vi.mock("@calcom/features/oauth/utils/generateSecret", () => ({
   generateSecret: mocks.generateSecret,
+}));
+
+vi.mock("@calcom/features/oauth/utils/validateRedirectUris", () => ({
+  validateRedirectUris: mocks.validateRedirectUris,
 }));
 
 vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
@@ -56,7 +63,7 @@ describe("submitClientHandler", () => {
     const input = {
       name: "My Test Client",
       purpose: "My test purpose",
-      redirectUri: "https://example.com/callback",
+      redirectUris: ["https://example.com/callback"],
       logo: "https://example.com/logo.png",
       websiteUrl: "https://example.com",
       enablePkce: false,
@@ -85,7 +92,7 @@ describe("submitClientHandler", () => {
       clientId: "client_123",
       name: "My Test Client",
       purpose: "My test purpose",
-      redirectUri: "https://example.com/callback",
+      redirectUris: ["https://example.com/callback"],
       logo: "https://example.com/logo.png",
       clientType: "CONFIDENTIAL",
       clientSecret: "hashed-secret",
@@ -108,22 +115,26 @@ describe("submitClientHandler", () => {
     const input = {
       name: createdClient.name,
       purpose: createdClient.purpose,
-      redirectUri: createdClient.redirectUri,
+      redirectUris: createdClient.redirectUris,
       logo: createdClient.logo,
       websiteUrl: "https://example.com",
       enablePkce: false,
+      scopes: [AccessScope.BOOKING_READ],
     };
 
     const result = await submitClientForReviewHandler({ ctx, input });
 
+    expect(mocks.validateRedirectUris).toHaveBeenCalledWith(input.redirectUris);
+
     expect(mocks.createOAuthClient).toHaveBeenCalledWith({
       name: input.name,
       purpose: input.purpose,
-      redirectUri: input.redirectUri,
+      redirectUris: input.redirectUris,
       clientSecret: "hashed-secret",
       logo: input.logo,
       websiteUrl: input.websiteUrl,
       enablePkce: input.enablePkce,
+      scopes: input.scopes,
       userId: ctx.user.id,
       status: "PENDING",
     });
@@ -133,7 +144,7 @@ describe("submitClientHandler", () => {
       clientName: createdClient.name,
       purpose: createdClient.purpose,
       clientId: createdClient.clientId,
-      redirectUri: createdClient.redirectUri,
+      redirectUri: "https://example.com/callback",
       submitterEmail: ctx.user.email,
       submitterName: ctx.user.name,
     });
@@ -143,7 +154,7 @@ describe("submitClientHandler", () => {
       name: createdClient.name,
       purpose: createdClient.purpose,
       clientSecret: "plain-secret",
-      redirectUri: createdClient.redirectUri,
+      redirectUris: createdClient.redirectUris,
       logo: createdClient.logo,
       clientType: createdClient.clientType,
       status: createdClient.status,

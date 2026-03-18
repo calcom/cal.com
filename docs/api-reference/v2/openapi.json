@@ -18143,10 +18143,13 @@
             "description": "The OAuth client ID",
             "example": "clxxxxxxxxxxxxxxxx"
           },
-          "redirect_uri": {
-            "type": "string",
-            "description": "The redirect URI for the OAuth client",
-            "example": "https://example.com/callback"
+          "redirect_uris": {
+            "description": "The redirect URIs for the OAuth client",
+            "example": ["https://example.com/callback"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "name": {
             "type": "string",
@@ -18170,7 +18173,7 @@
             "enum": ["CONFIDENTIAL", "PUBLIC"]
           }
         },
-        "required": ["client_id", "redirect_uri", "name", "is_trusted", "client_type"]
+        "required": ["client_id", "redirect_uris", "name", "is_trusted", "client_type"]
       },
       "OAuth2ClientResponseDto": {
         "type": "object",

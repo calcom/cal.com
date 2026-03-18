@@ -1,6 +1,7 @@
 import { sendAdminOAuthClientNotification } from "@calcom/emails/oauth-email-service";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
+import { validateRedirectUris } from "@calcom/features/oauth/utils/validateRedirectUris";
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { getTranslation } from "@calcom/i18n/server";
 import type { PrismaClient } from "@calcom/prisma";
@@ -22,9 +23,10 @@ type SubmitClientOptions = {
 };
 
 export const submitClientForReviewHandler = async ({ ctx, input }: SubmitClientOptions) => {
-  const { name, purpose, redirectUri, logo, websiteUrl, enablePkce, scopes } = input;
+  const { name, purpose, redirectUris, logo, websiteUrl, enablePkce, scopes } = input;
   const userId = ctx.user.id;
 
+  validateRedirectUris(redirectUris);
   const isFreeEmail = await checkIfFreeEmailDomain({ email: ctx.user.email });
   if (isFreeEmail) {
     throw new TRPCError({
@@ -46,7 +48,7 @@ export const submitClientForReviewHandler = async ({ ctx, input }: SubmitClientO
   const client = await oAuthClientRepository.create({
     name,
     purpose,
-    redirectUri,
+    redirectUris,
     clientSecret: hashedSecret,
     logo,
     websiteUrl,
@@ -62,7 +64,7 @@ export const submitClientForReviewHandler = async ({ ctx, input }: SubmitClientO
     clientName: client.name,
     purpose: client.purpose,
     clientId: client.clientId,
-    redirectUri: client.redirectUri,
+    redirectUri: client.redirectUris.join(", "),
     submitterEmail: ctx.user.email,
     submitterName: ctx.user.name,
   });
@@ -72,7 +74,7 @@ export const submitClientForReviewHandler = async ({ ctx, input }: SubmitClientO
     name: client.name,
     purpose: client.purpose,
     clientSecret: plainSecret,
-    redirectUri: client.redirectUri,
+    redirectUris: client.redirectUris,
     logo: client.logo,
     clientType: client.clientType,
     status: client.status,

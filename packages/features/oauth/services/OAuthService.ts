@@ -6,6 +6,7 @@ import type { AccessCodeRepository } from "@calcom/features/oauth/repositories/A
 import type { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import type { OAuthRefreshTokenRepository } from "@calcom/features/oauth/repositories/OAuthRefreshTokenRepository";
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
+import { isRedirectUriRegistered } from "@calcom/features/oauth/utils/validateRedirectUris";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
@@ -17,6 +18,7 @@ import jwt from "jsonwebtoken";
 export interface OAuth2Client {
   clientId: string;
   redirectUri: string;
+  redirectUris: string[];
   name: string;
   logo: string | null;
   isTrusted: boolean;
@@ -84,6 +86,7 @@ export class OAuthService {
     return {
       clientId: client.clientId,
       redirectUri: client.redirectUri,
+      redirectUris: client.redirectUris,
       name: client.name,
       logo: client.logo,
       isTrusted: client.isTrusted,
@@ -104,7 +107,7 @@ export class OAuthService {
       throw new ErrorWithCode(ErrorCode.NotFound, "unauthorized_client", { reason: "client_not_found" });
     }
 
-    this.validateRedirectUri(client.redirectUri, redirectUri);
+    this.validateRedirectUri(client.redirectUris, redirectUri);
 
     this.ensureClientAccessAllowed(client, loggedInUserId);
 
@@ -124,6 +127,7 @@ export class OAuthService {
     return {
       clientId: client.clientId,
       redirectUri: client.redirectUri,
+      redirectUris: client.redirectUris,
       name: client.name,
       logo: client.logo,
       isTrusted: client.isTrusted,
@@ -150,7 +154,7 @@ export class OAuthService {
 
     this.ensureClientAccessAllowed(client, loggedInUserId);
 
-    this.validateRedirectUri(client.redirectUri, redirectUri);
+    this.validateRedirectUri(client.redirectUris, redirectUri);
 
     if (!isLegacyClient(client.scopes)) {
       this.validateRequestedScopes(client.scopes, requestedScopes);
@@ -209,6 +213,7 @@ export class OAuthService {
       client: {
         clientId: client.clientId,
         redirectUri: client.redirectUri,
+        redirectUris: client.redirectUris,
         name: client.name,
         logo: client.logo,
         isTrusted: client.isTrusted,
@@ -242,8 +247,8 @@ export class OAuthService {
     }
   }
 
-  private validateRedirectUri(registeredUri: string, providedUri: string): void {
-    if (providedUri !== registeredUri) {
+  private validateRedirectUri(registeredUris: string[], providedUri: string): void {
+    if (!isRedirectUriRegistered(providedUri, registeredUris)) {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_request", { reason: "redirect_uri_mismatch" });
     }
   }
@@ -347,7 +352,7 @@ export class OAuthService {
       throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", { reason: "client_not_found" });
     }
 
-    if (redirectUri && client.redirectUri !== redirectUri) {
+    if (redirectUri && !isRedirectUriRegistered(redirectUri, client.redirectUris)) {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "redirect_uri_mismatch" });
     }
 
@@ -605,7 +610,7 @@ export const OAUTH_ERROR_REASONS: Record<OAuthErrorReason, string> = {
   client_not_found: "OAuth client with ID not found",
   client_not_approved: "OAuth client is not approved",
   client_rejected: "OAuth client has been rejected",
-  redirect_uri_mismatch: "redirect_uri does not match OAuth client's redirect URI",
+  redirect_uri_mismatch: "redirect_uri does not match any of the OAuth client's registered redirect URIs",
   pkce_required: "code_challenge required for public clients",
   invalid_code_challenge_method: "code_challenge_method must be S256",
   team_not_found_or_no_access: "Team not found or user is not an admin/owner",

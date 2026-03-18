@@ -191,7 +191,7 @@ describe("ApiAuthStrategy", () => {
     await oAuth2ClientFixture.create({
       clientId: thirdPartyClientId,
       name: "Third Party E2E Test Client",
-      redirectUri: thirdPartyRedirectUri,
+      redirectUris: [thirdPartyRedirectUri],
       clientSecret: hashedSecret,
       clientType: OAuthClientType.CONFIDENTIAL,
       userId: validOAuthUser.id,

@@ -13,7 +13,7 @@ import { OAuthClientFormFields } from "../view/OAuthClientFormFields";
 export type OAuthClientCreateFormValues = {
   name: string;
   purpose: string;
-  redirectUri: string;
+  redirectUris: string[];
   websiteUrl: string;
   logo: string;
   enablePkce: boolean;
@@ -41,7 +41,7 @@ export function OAuthClientCreateDialog({
     defaultValues: {
       name: "",
       purpose: "",
-      redirectUri: "",
+      redirectUris: [""],
       websiteUrl: "",
       logo: "",
       enablePkce: false,
@@ -72,6 +72,11 @@ export function OAuthClientCreateDialog({
         <Form
           form={form}
           handleSubmit={(values) => {
+            const redirectUris = values.redirectUris.map((uri) => uri.trim()).filter(Boolean);
+            if (redirectUris.length === 0) {
+              showToast(t("at_least_one_redirect_uri_required"), "error");
+              return;
+            }
             if (!values.scopes || values.scopes.length === 0) {
               showToast(t("oauth_client_scope_required"), "error");
               return;
@@ -79,7 +84,7 @@ export function OAuthClientCreateDialog({
             onSubmit({
               name: values.name.trim() || "",
               purpose: values.purpose.trim() || "",
-              redirectUri: values.redirectUri.trim() || "",
+              redirectUris,
               websiteUrl: values.websiteUrl.trim() || "",
               logo: values.logo,
               enablePkce: values.enablePkce,

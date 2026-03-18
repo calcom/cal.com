@@ -48,7 +48,7 @@ export async function createPendingOAuthClient(
   const form = page.getByTestId("oauth-client-create-form");
   await form.locator("#name").fill(input.name);
   await form.locator("#purpose").fill(input.purpose);
-  await form.locator("#redirectUri").fill(input.redirectUri);
+  await form.locator("#redirectUri-0").fill(input.redirectUri);
   await form.locator("#websiteUrl").fill(input.websiteUrl);
 
   await uploadOAuthClientLogo(page, input.logoFileName);

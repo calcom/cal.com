@@ -122,7 +122,7 @@ describe("OAuthClientsView", async () => {
           clientId: "c1",
           name: "Client 1",
           purpose: "Testing",
-          redirectUri: "https://example.com",
+          redirectUris: ["https://example.com"],
           websiteUrl: "https://example.com",
           logo: null,
           status: "APPROVED",

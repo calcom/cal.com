@@ -24,7 +24,7 @@ describe("generateAuthCodeHandler", () => {
   describe("PUBLIC clients", () => {
     const mockPublicClient = {
       clientId: "public_client_123",
-      redirectUri: "https://app.example.com/callback",
+      redirectUris: ["https://app.example.com/callback"],
       name: "Test Public Client",
       clientType: "PUBLIC" as const,
       status: "APPROVED" as const,
@@ -61,7 +61,7 @@ describe("generateAuthCodeHandler", () => {
 
       expect(result.client).toEqual({
         clientId: mockPublicClient.clientId,
-        redirectUri: mockPublicClient.redirectUri,
+        redirectUris: mockPublicClient.redirectUris,
         name: mockPublicClient.name,
         logo: mockPublicClient.logo,
         isTrusted: mockPublicClient.isTrusted,
@@ -169,7 +169,7 @@ describe("generateAuthCodeHandler", () => {
   describe("CONFIDENTIAL clients", () => {
     const mockConfidentialClient = {
       clientId: "confidential_client_456",
-      redirectUri: "https://app.example.com/callback",
+      redirectUris: ["https://app.example.com/callback"],
       name: "Test Confidential Client",
       clientType: "CONFIDENTIAL" as const,
       isTrusted: false,
@@ -207,7 +207,7 @@ describe("generateAuthCodeHandler", () => {
 
       expect(result.client).toEqual({
         clientId: mockConfidentialClient.clientId,
-        redirectUri: mockConfidentialClient.redirectUri,
+        redirectUris: mockConfidentialClient.redirectUris,
         name: mockConfidentialClient.name,
         logo: mockConfidentialClient.logo,
         isTrusted: mockConfidentialClient.isTrusted,
@@ -320,7 +320,7 @@ describe("generateAuthCodeHandler", () => {
     it("should accept only supported PKCE methods", async () => {
       const mockPublicClient = {
         clientId: "public_client_123",
-        redirectUri: "https://app.example.com/callback",
+        redirectUris: ["https://app.example.com/callback"],
         name: "Test Public Client",
         clientType: "PUBLIC" as const,
         status: "APPROVED" as const,
@@ -396,7 +396,7 @@ describe("generateAuthCodeHandler", () => {
     it("should reject PENDING client", async () => {
       const mockPendingClient = {
         clientId: "pending_client_123",
-        redirectUri: "https://app.example.com/callback",
+        redirectUris: ["https://app.example.com/callback"],
         name: "Test Pending Client",
         clientType: "CONFIDENTIAL" as const,
         status: "PENDING" as const,
@@ -427,7 +427,7 @@ describe("generateAuthCodeHandler", () => {
     it("should reject REJECTED client", async () => {
       const mockRejectedClient = {
         clientId: "rejected_client_123",
-        redirectUri: "https://app.example.com/callback",
+        redirectUris: ["https://app.example.com/callback"],
         name: "Test Rejected Client",
         clientType: "CONFIDENTIAL" as const,
         status: "REJECTED" as const,
@@ -458,7 +458,7 @@ describe("generateAuthCodeHandler", () => {
     it("should reject REJECTED client even when user is the owner", async () => {
       const mockRejectedClientOwnedByUser = {
         clientId: "rejected_client_owned",
-        redirectUri: "https://app.example.com/callback",
+        redirectUris: ["https://app.example.com/callback"],
         name: "Test Rejected Client Owned",
         clientType: "CONFIDENTIAL" as const,
         status: "REJECTED" as const,
@@ -490,7 +490,7 @@ describe("generateAuthCodeHandler", () => {
     it("should allow PENDING client when user is the owner", async () => {
       const mockPendingClientOwnedByUser = {
         clientId: "pending_client_owned",
-        redirectUri: "https://app.example.com/callback",
+        redirectUris: ["https://app.example.com/callback"],
         name: "Test Pending Client Owned",
         clientType: "CONFIDENTIAL" as const,
         status: "PENDING" as const,
@@ -529,7 +529,7 @@ describe("generateAuthCodeHandler", () => {
     it("should allow APPROVED client when user is the owner", async () => {
       const mockApprovedClientOwnedByUser = {
         clientId: "approved_client_owned",
-        redirectUri: "https://app.example.com/callback",
+        redirectUris: ["https://app.example.com/callback"],
         name: "Test Approved Client Owned",
         clientType: "CONFIDENTIAL" as const,
         status: "APPROVED" as const,

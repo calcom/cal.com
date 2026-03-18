@@ -104,7 +104,7 @@ test.describe("OAuth clients admin", () => {
 
     await expect(pendingDetails.locator("#name")).toBeDisabled();
     await expect(pendingDetails.locator("#purpose")).toBeDisabled();
-    await expect(pendingDetails.locator("#redirectUri")).toBeDisabled();
+    await expect(pendingDetails.locator("#redirectUri-0")).toBeDisabled();
     await expect(pendingDetails.locator("#websiteUrl")).toBeDisabled();
 
     // Upload/delete actions should be hidden for admin view

@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { MAX_REDIRECT_URIS } from "@calcom/features/oauth/utils/validateRedirectUris";
 import { AccessScopeSchema } from "@calcom/prisma/zod/inputTypeSchemas";
 import { OAuthClientStatus } from "@calcom/prisma/enums";
 
@@ -9,7 +10,7 @@ export const ZUpdateClientInputSchema = z.object({
   rejectionReason: z.string().min(1).optional(),
   name: z.string().min(1).optional(),
   purpose: z.string().min(1).optional(),
-  redirectUri: z.string().url().optional(),
+  redirectUris: z.array(z.string().min(1)).min(1).max(MAX_REDIRECT_URIS).optional(),
   logo: z.preprocess(
     (value) => (typeof value === "string" && value.trim() === "" ? null : value),
     z.string().nullable().optional()

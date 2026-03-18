@@ -1,6 +1,6 @@
 import path from "node:path";
-
 import { OAUTH_SCOPE_CATEGORIES, OAUTH_SCOPES } from "@calcom/features/oauth/constants";
+import { MAX_REDIRECT_URIS } from "@calcom/features/oauth/utils/validateRedirectUris";
 import type { PrismaClient } from "@calcom/prisma";
 import type { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 import { expect, type Locator, type Page } from "@playwright/test";
@@ -22,7 +22,7 @@ async function loginAsSeededAdminAndGoToOAuthSettings(page: Page) {
 type CreateOAuthClientInput = {
   name: string;
   purpose: string;
-  redirectUri: string;
+  redirectUris: string[];
   websiteUrl?: string;
   enablePkce: boolean;
   logoFileName?: string;
@@ -38,7 +38,7 @@ type UpdateOAuthClientInput = {
   clientId: string;
   name: string;
   purpose: string;
-  redirectUri: string;
+  redirectUris: string[];
   websiteUrl: string;
   logoFileName?: string;
   scopes?: AccessScope[];
@@ -48,7 +48,7 @@ type ExpectedOAuthClientDetails = {
   clientId: string;
   name: string;
   purpose: string;
-  redirectUri: string;
+  redirectUris: string[];
   websiteUrl: string;
   statusLabel: "Approved" | "Rejected" | "Pending";
   pkceEnabled: boolean;
@@ -62,7 +62,7 @@ const TRUTHY: TruthyExpectation = { kind: "truthy" };
 type OAuthClientDbExpectations = {
   name?: string;
   purpose?: string;
-  redirectUri?: string;
+  redirectUris?: string[];
   websiteUrl?: string | null;
   status?: string;
   clientType?: OAuthClientType;
@@ -75,7 +75,7 @@ const oAuthClientSelect = {
   clientId: true,
   name: true,
   purpose: true,
-  redirectUri: true,
+  redirectUris: true,
   websiteUrl: true,
   status: true,
   clientType: true,
@@ -87,11 +87,59 @@ const oAuthClientSelect = {
 async function expandAllScopeCategories(page: Page) {
   for (const category of OAUTH_SCOPE_CATEGORIES) {
     const categoryButton = page.getByTestId(`oauth-scope-category-${category.labelKey}`);
-    const chevron = categoryButton.locator('svg');
+    const chevron = categoryButton.locator("svg");
     const isExpanded = await chevron.evaluate((el) => el.classList.contains("rotate-90"));
     if (!isExpanded) {
       await categoryButton.click();
     }
+  }
+}
+
+function getRedirectUriInputs(container: Locator): Locator {
+  return container.locator('[id^="redirectUri-"]');
+}
+
+function getRedirectUriInput(container: Locator, index: number): Locator {
+  return container.locator(`#redirectUri-${index}`);
+}
+
+function getAddRedirectUriButton(container: Locator): Locator {
+  return container.locator('button:has-text("Add redirect URI"), button:has-text("Maximum")');
+}
+
+function getRedirectUriTrashButton(container: Locator, index: number): Locator {
+  return container.getByTestId(`remove-redirect-uri-${index}`);
+}
+
+async function removeExtraRedirectUriInputs(container: Locator, targetCount: number): Promise<void> {
+  const currentCount = await getRedirectUriInputs(container).count();
+  for (let i = currentCount - 1; i >= 1 && i >= targetCount; i--) {
+    const trashButton = getRedirectUriTrashButton(container, i);
+    if (await trashButton.isVisible()) {
+      await trashButton.click();
+    }
+  }
+}
+
+async function clickAddRedirectUri(container: Locator): Promise<void> {
+  await getAddRedirectUriButton(container).first().click();
+}
+
+async function addRedirectUriInputs(container: Locator, targetCount: number): Promise<void> {
+  const currentCount = await getRedirectUriInputs(container).count();
+  for (let i = currentCount; i < targetCount; i++) {
+    await clickAddRedirectUri(container);
+  }
+}
+
+async function fillRedirectUris(container: Locator, uris: string[]): Promise<void> {
+  await removeExtraRedirectUriInputs(container, uris.length);
+  await addRedirectUriInputs(container, uris.length);
+
+  for (let i = 0; i < uris.length; i++) {
+    const input = getRedirectUriInput(container, i);
+    await input.clear();
+    await input.fill(uris[i]);
   }
 }
 
@@ -106,7 +154,9 @@ async function createOAuthClient(
   const form = getOAuthClientCreateForm(page);
   await getOAuthClientCreateNameInput(form).fill(input.name);
   await getOAuthClientCreatePurposeInput(form).fill(input.purpose);
-  await getOAuthClientCreateRedirectUriInput(form).fill(input.redirectUri);
+
+  await fillRedirectUris(form, input.redirectUris);
+
   if (input.websiteUrl) {
     await getOAuthClientCreateWebsiteUrlInput(form).fill(input.websiteUrl);
   }
@@ -167,7 +217,9 @@ async function updateOAuthClient(page: Page, input: UpdateOAuthClientInput): Pro
   const details = await openOAuthClientDetails(page, input.clientId);
   await getOAuthClientDetailsNameInput(details).fill(input.name);
   await getOAuthClientDetailsPurposeInput(details).fill(input.purpose);
-  await getOAuthClientDetailsRedirectUriInput(details).fill(input.redirectUri);
+
+  await fillRedirectUris(details, input.redirectUris);
+
   await getOAuthClientDetailsWebsiteUrlInput(details).fill(input.websiteUrl);
 
   if (input.logoFileName) {
@@ -265,7 +317,8 @@ async function expectOAuthClientInDb(
 
   if (expected.name !== undefined) expect(dbClient.name).toBe(expected.name);
   if (expected.purpose !== undefined) expect(dbClient.purpose).toBe(expected.purpose);
-  if (expected.redirectUri !== undefined) expect(dbClient.redirectUri).toBe(expected.redirectUri);
+  if (expected.redirectUris !== undefined)
+    expect([...dbClient.redirectUris].sort()).toEqual([...expected.redirectUris].sort());
   if (expected.websiteUrl !== undefined) expect(dbClient.websiteUrl).toBe(expected.websiteUrl);
   if (expected.status !== undefined) expect(dbClient.status).toBe(expected.status);
   if (expected.clientType !== undefined)
@@ -288,7 +341,7 @@ async function expectOAuthClientInDb(
   }
 
   if (expected.scopes !== undefined) {
-    expect(dbClient.scopes.sort()).toEqual(expected.scopes.sort());
+    expect([...dbClient.scopes].sort()).toEqual([...expected.scopes].sort());
   }
 }
 
@@ -300,7 +353,9 @@ async function expectOAuthClientDetails(
   await expect(details.getByTestId("oauth-client-details-client-id")).toHaveText(expected.clientId);
   await expect(getOAuthClientDetailsNameInput(details)).toHaveValue(expected.name);
   await expect(getOAuthClientDetailsPurposeInput(details)).toHaveValue(expected.purpose);
-  await expect(getOAuthClientDetailsRedirectUriInput(details)).toHaveValue(expected.redirectUri);
+
+  await expectRedirectUriValues(details, expected.redirectUris);
+
   await expect(getOAuthClientDetailsWebsiteUrlInput(details)).toHaveValue(expected.websiteUrl);
 
   const pkceToggle = details.page().getByTestId("oauth-client-pkce-toggle");
@@ -319,6 +374,12 @@ async function expectOAuthClientDetails(
         await expect(scopeCheckbox).not.toBeChecked();
       }
     }
+  }
+}
+
+async function expectRedirectUriValues(container: Locator, expectedUris: string[]): Promise<void> {
+  for (let i = 0; i < expectedUris.length; i++) {
+    await expect(container.locator(`#redirectUri-${i}`)).toHaveValue(expectedUris[i]);
   }
 }
 
@@ -360,7 +421,7 @@ test.describe("OAuth client creation", () => {
     await users.deleteAll();
   });
 
-  test("cannot be created without required fields (name, purpose, redirect uri)", async ({ page }) => {
+  test("cannot be created without required fields (name, purpose)", async ({ page }) => {
     await loginAsSeededAdminAndGoToOAuthSettings(page);
 
     await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
@@ -372,17 +433,12 @@ test.describe("OAuth client creation", () => {
 
     const nameInput = form.locator("#name");
     const purposeInput = form.locator("#purpose");
-    const redirectUriInput = form.locator("#redirectUri");
 
     await expect(nameInput).toHaveJSProperty("validationMessage", "Please fill out this field.");
 
     await nameInput.fill("Test OAuth Client");
     await page.getByTestId("oauth-client-create-submit").click();
     await expect(purposeInput).toHaveJSProperty("validationMessage", "Please fill out this field.");
-
-    await purposeInput.fill("Test purpose");
-    await page.getByTestId("oauth-client-create-submit").click();
-    await expect(redirectUriInput).toHaveJSProperty("validationMessage", "Please fill out this field.");
   });
 
   test("creates a private (confidential) OAuth client with minimal fields; submitted modal shows id+secret; list/details/DB reflect values", async ({
@@ -394,13 +450,13 @@ test.describe("OAuth client creation", () => {
     const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
     const clientName = `${testPrefix}private-minimal-${Date.now()}`;
     const purpose = "Used for E2E testing (minimal)";
-    const redirectUri = "https://example.com/callback";
+    const redirectUris = ["https://example.com/callback"];
     const scopes: AccessScope[] = ["BOOKING_READ"];
 
     const { clientId, clientSecret } = await createOAuthClient(page, {
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       enablePkce: false,
       scopes,
     });
@@ -411,7 +467,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       websiteUrl: "",
       statusLabel: "Pending",
       pkceEnabled: false,
@@ -421,7 +477,7 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientInDb(prisma, clientId, {
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       websiteUrl: null,
       status: "PENDING",
       clientType: "CONFIDENTIAL",
@@ -432,14 +488,14 @@ test.describe("OAuth client creation", () => {
 
     const editedName = `${testPrefix}private-minimal-edited-${Date.now()}`;
     const editedPurpose = "Updated purpose (minimal)";
-    const editedRedirectUri = "https://example.com/updated-callback";
+    const editedRedirectUris = ["https://example.com/updated-callback"];
     const editedWebsiteUrl = "https://updated.example.com";
 
     await updateOAuthClient(page, {
       clientId,
       name: editedName,
       purpose: editedPurpose,
-      redirectUri: editedRedirectUri,
+      redirectUris: editedRedirectUris,
       websiteUrl: editedWebsiteUrl,
       logoFileName: "cal2.png",
     });
@@ -449,7 +505,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: editedName,
       purpose: editedPurpose,
-      redirectUri: editedRedirectUri,
+      redirectUris: editedRedirectUris,
       websiteUrl: editedWebsiteUrl,
       statusLabel: "Pending",
       pkceEnabled: false,
@@ -463,7 +519,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: editedName,
       purpose: editedPurpose,
-      redirectUri: editedRedirectUri,
+      redirectUris: editedRedirectUris,
       websiteUrl: editedWebsiteUrl,
       statusLabel: "Pending",
       pkceEnabled: false,
@@ -474,7 +530,7 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientInDb(prisma, clientId, {
       name: editedName,
       purpose: editedPurpose,
-      redirectUri: editedRedirectUri,
+      redirectUris: editedRedirectUris,
       websiteUrl: editedWebsiteUrl,
       status: "PENDING",
       clientType: "CONFIDENTIAL",
@@ -487,7 +543,7 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientDeletedInDb(prisma, clientId);
   });
 
-  test("editing redirect uri of an approved client triggers reapproval (status becomes PENDING)", async ({
+  test("editing redirect URIs of an approved client does NOT trigger reapproval", async ({
     page,
     prisma,
     users,
@@ -500,14 +556,15 @@ test.describe("OAuth client creation", () => {
     const clientName = `${testPrefix}approved-client-${Date.now()}`;
     const clientId = `${testPrefix.replaceAll("-", "")}approved${Date.now()}`;
 
-    const initialRedirectUri = "https://example.com/approved-callback";
+    const initialRedirectUris = ["https://example.com/approved-callback"];
 
     await prisma.oAuthClient.create({
       data: {
         clientId,
         name: clientName,
         purpose: "Approved client for redirectUri reapproval test",
-        redirectUri: initialRedirectUri,
+        redirectUri: "",
+        redirectUris: initialRedirectUris,
         websiteUrl: null,
         logo: null,
         clientType: "PUBLIC",
@@ -524,7 +581,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: clientName,
       purpose: "Approved client for redirectUri reapproval test",
-      redirectUri: initialRedirectUri,
+      redirectUris: initialRedirectUris,
       websiteUrl: "",
       statusLabel: "Approved",
       pkceEnabled: true,
@@ -533,14 +590,14 @@ test.describe("OAuth client creation", () => {
 
     await expectOAuthClientInDb(prisma, clientId, {
       status: "APPROVED",
-      redirectUri: initialRedirectUri,
+      redirectUris: initialRedirectUris,
       clientType: "PUBLIC",
       clientSecret: null,
     });
 
-    const updatedRedirectUri = `https://example.com/approved-updated-${Date.now()}`;
+    const updatedRedirectUris = [`https://example.com/approved-updated-${Date.now()}`];
 
-    await getOAuthClientDetailsRedirectUriInput(detailsBeforeUpdate).fill(updatedRedirectUri);
+    await fillRedirectUris(detailsBeforeUpdate, updatedRedirectUris);
 
     const updateResponsePromise = page.waitForResponse((res) =>
       res.url().includes("/api/trpc/oAuth/updateClient")
@@ -558,17 +615,17 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: clientName,
       purpose: "Approved client for redirectUri reapproval test",
-      redirectUri: updatedRedirectUri,
+      redirectUris: updatedRedirectUris,
       websiteUrl: "",
-      statusLabel: "Pending",
+      statusLabel: "Approved",
       pkceEnabled: true,
       hasLogo: false,
     });
     await closeOAuthClientDetails(page);
 
     await expectOAuthClientInDb(prisma, clientId, {
-      status: "PENDING",
-      redirectUri: updatedRedirectUri,
+      status: "APPROVED",
+      redirectUris: updatedRedirectUris,
       clientType: "PUBLIC",
       clientSecret: null,
     });
@@ -583,14 +640,14 @@ test.describe("OAuth client creation", () => {
     const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
     const clientName = `${testPrefix}private-${Date.now()}`;
     const purpose = "Used for E2E testing";
-    const redirectUri = "https://example.com/callback";
+    const redirectUris = ["https://example.com/callback"];
     const websiteUrl = "https://example.com";
     const scopes: AccessScope[] = ["BOOKING_READ"];
 
     const { clientId, clientSecret } = await createOAuthClient(page, {
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       websiteUrl,
       enablePkce: false,
       logoFileName: "cal.png",
@@ -603,7 +660,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       websiteUrl,
       statusLabel: "Pending",
       pkceEnabled: false,
@@ -613,7 +670,7 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientInDb(prisma, clientId, {
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       websiteUrl,
       status: "PENDING",
       clientType: "CONFIDENTIAL",
@@ -624,14 +681,14 @@ test.describe("OAuth client creation", () => {
 
     const editedName = `${testPrefix}private-edited-${Date.now()}`;
     const editedPurpose = "Updated purpose (full private)";
-    const editedRedirectUri = "https://example.com/full-private-updated";
+    const editedRedirectUris = ["https://example.com/full-private-updated"];
     const editedWebsiteUrl = "https://full-private.example.com";
 
     await updateOAuthClient(page, {
       clientId,
       name: editedName,
       purpose: editedPurpose,
-      redirectUri: editedRedirectUri,
+      redirectUris: editedRedirectUris,
       websiteUrl: editedWebsiteUrl,
       logoFileName: "cal2.png",
     });
@@ -641,7 +698,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: editedName,
       purpose: editedPurpose,
-      redirectUri: editedRedirectUri,
+      redirectUris: editedRedirectUris,
       websiteUrl: editedWebsiteUrl,
       statusLabel: "Pending",
       pkceEnabled: false,
@@ -655,7 +712,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: editedName,
       purpose: editedPurpose,
-      redirectUri: editedRedirectUri,
+      redirectUris: editedRedirectUris,
       websiteUrl: editedWebsiteUrl,
       statusLabel: "Pending",
       pkceEnabled: false,
@@ -666,7 +723,7 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientInDb(prisma, clientId, {
       name: editedName,
       purpose: editedPurpose,
-      redirectUri: editedRedirectUri,
+      redirectUris: editedRedirectUris,
       websiteUrl: editedWebsiteUrl,
       status: "PENDING",
       clientType: "CONFIDENTIAL",
@@ -688,14 +745,14 @@ test.describe("OAuth client creation", () => {
     const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
     const clientName = `${testPrefix}public-${Date.now()}`;
     const purpose = "Used for E2E testing (public)";
-    const redirectUri = "https://example.com/callback";
+    const redirectUris = ["https://example.com/callback"];
     const websiteUrl = "https://example.com";
     const scopes: AccessScope[] = ["BOOKING_READ"];
 
     const { clientId } = await createOAuthClient(page, {
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       websiteUrl,
       enablePkce: true,
       scopes,
@@ -706,7 +763,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       websiteUrl,
       statusLabel: "Pending",
       pkceEnabled: true,
@@ -716,7 +773,7 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientInDb(prisma, clientId, {
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       websiteUrl,
       status: "PENDING",
       clientType: "PUBLIC",
@@ -727,14 +784,14 @@ test.describe("OAuth client creation", () => {
 
     const editedName = `${testPrefix}public-edited-${Date.now()}`;
     const editedPurpose = "Updated purpose (public)";
-    const editedRedirectUri = "https://example.com/public-updated";
+    const editedRedirectUris = ["https://example.com/public-updated"];
     const editedWebsiteUrl = "https://public-updated.example.com";
 
     await updateOAuthClient(page, {
       clientId,
       name: editedName,
       purpose: editedPurpose,
-      redirectUri: editedRedirectUri,
+      redirectUris: editedRedirectUris,
       websiteUrl: editedWebsiteUrl,
       logoFileName: "cal2.png",
     });
@@ -744,7 +801,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: editedName,
       purpose: editedPurpose,
-      redirectUri: editedRedirectUri,
+      redirectUris: editedRedirectUris,
       websiteUrl: editedWebsiteUrl,
       statusLabel: "Pending",
       pkceEnabled: true,
@@ -758,7 +815,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: editedName,
       purpose: editedPurpose,
-      redirectUri: editedRedirectUri,
+      redirectUris: editedRedirectUris,
       websiteUrl: editedWebsiteUrl,
       statusLabel: "Pending",
       pkceEnabled: true,
@@ -769,7 +826,7 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientInDb(prisma, clientId, {
       name: editedName,
       purpose: editedPurpose,
-      redirectUri: editedRedirectUri,
+      redirectUris: editedRedirectUris,
       websiteUrl: editedWebsiteUrl,
       status: "PENDING",
       clientType: "PUBLIC",
@@ -782,19 +839,22 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientDeletedInDb(prisma, clientId);
   });
 
-  test("creates OAuth client with single scope correctly stored in database", async ({ page, prisma }, testInfo) => {
+  test("creates OAuth client with single scope correctly stored in database", async ({
+    page,
+    prisma,
+  }, testInfo) => {
     await loginAsSeededAdminAndGoToOAuthSettings(page);
 
     const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
     const clientName = `${testPrefix}single-scope-${Date.now()}`;
     const purpose = "Testing single scope selection";
-    const redirectUri = "https://example.com/single-scope-callback";
+    const redirectUris = ["https://example.com/single-scope-callback"];
     const selectedScope: AccessScope = "BOOKING_READ";
 
     const { clientId } = await createOAuthClient(page, {
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       enablePkce: true,
       scopes: [selectedScope],
     });
@@ -802,7 +862,7 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientInDb(prisma, clientId, {
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       status: "PENDING",
       clientType: "PUBLIC",
       scopes: [selectedScope],
@@ -812,17 +872,20 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientDeletedInDb(prisma, clientId);
   });
 
-  test("creates OAuth client with all scopes correctly stored in database", async ({ page, prisma }, testInfo) => {
+  test("creates OAuth client with all scopes correctly stored in database", async ({
+    page,
+    prisma,
+  }, testInfo) => {
     await loginAsSeededAdminAndGoToOAuthSettings(page);
 
     const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
     const clientName = `${testPrefix}all-scopes-${Date.now()}`;
     const purpose = "Testing all scopes selection";
-    const redirectUri = "https://example.com/all-scopes-callback";
+    const redirectUris = ["https://example.com/all-scopes-callback"];
     const { clientId } = await createOAuthClient(page, {
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       enablePkce: true,
       scopes: [...OAUTH_SCOPES],
     });
@@ -830,7 +893,7 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientInDb(prisma, clientId, {
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       status: "PENDING",
       clientType: "PUBLIC",
       scopes: [...OAUTH_SCOPES],
@@ -840,19 +903,22 @@ test.describe("OAuth client creation", () => {
     await expectOAuthClientDeletedInDb(prisma, clientId);
   });
 
-  test("updates OAuth client scopes correctly; UI checkboxes reflect state; DB stores updated scopes", async ({ page, prisma }, testInfo) => {
+  test("updates OAuth client scopes correctly; UI checkboxes reflect state; DB stores updated scopes", async ({
+    page,
+    prisma,
+  }, testInfo) => {
     await loginAsSeededAdminAndGoToOAuthSettings(page);
 
     const testPrefix = `e2e-oauth-client-creation-${testInfo.testId}-`;
     const clientName = `${testPrefix}update-scopes-${Date.now()}`;
     const purpose = "Testing scope updates";
-    const redirectUri = "https://example.com/update-scopes-callback";
+    const redirectUris = ["https://example.com/update-scopes-callback"];
     const initialScopes: AccessScope[] = ["EVENT_TYPE_READ", "BOOKING_READ"];
 
     const { clientId } = await createOAuthClient(page, {
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       enablePkce: true,
       scopes: initialScopes,
     });
@@ -866,7 +932,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       websiteUrl: "",
       statusLabel: "Pending",
       pkceEnabled: true,
@@ -881,7 +947,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       websiteUrl: "",
       scopes: updatedScopes,
     });
@@ -895,7 +961,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       websiteUrl: "",
       statusLabel: "Pending",
       pkceEnabled: true,
@@ -911,7 +977,7 @@ test.describe("OAuth client creation", () => {
       clientId,
       name: clientName,
       purpose,
-      redirectUri,
+      redirectUris,
       websiteUrl: "",
       statusLabel: "Pending",
       pkceEnabled: true,
@@ -920,6 +986,416 @@ test.describe("OAuth client creation", () => {
     });
     await closeOAuthClientDetails(page);
 
+    await deleteOAuthClient(page, clientId, clientName);
+    await expectOAuthClientDeletedInDb(prisma, clientId);
+  });
+});
+
+test.describe("OAuth client multiple redirect URIs", () => {
+  test.afterEach(async ({ users, prisma }, testInfo) => {
+    const testPrefix = `e2e-oauth-redirect-uris-${testInfo.testId}-`;
+
+    await prisma.oAuthClient.deleteMany({
+      where: {
+        name: {
+          startsWith: testPrefix,
+        },
+      },
+    });
+
+    await users.deleteAll();
+  });
+
+  test("creates client with 3 redirect URIs; all are correctly stored in DB and displayed in details", async ({
+    page,
+    prisma,
+  }, testInfo) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    const testPrefix = `e2e-oauth-redirect-uris-${testInfo.testId}-`;
+    const clientName = `${testPrefix}multi-uri-${Date.now()}`;
+    const redirectUris = [
+      "https://example.com/callback",
+      "https://staging.example.com/callback",
+      "https://dev.example.com/callback",
+    ];
+    const scopes: AccessScope[] = ["BOOKING_READ"];
+
+    const { clientId } = await createOAuthClient(page, {
+      name: clientName,
+      purpose: "Testing multiple redirect URIs",
+      redirectUris,
+      enablePkce: true,
+      scopes,
+    });
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      redirectUris,
+    });
+
+    const details = await openOAuthClientDetails(page, clientId);
+    await expectOAuthClientDetails(details, {
+      clientId,
+      name: clientName,
+      purpose: "Testing multiple redirect URIs",
+      redirectUris,
+      websiteUrl: "",
+      statusLabel: "Pending",
+      pkceEnabled: true,
+      hasLogo: false,
+    });
+    await closeOAuthClientDetails(page);
+
+    await page.reload();
+
+    const detailsAfterReload = await openOAuthClientDetails(page, clientId);
+    await expectOAuthClientDetails(detailsAfterReload, {
+      clientId,
+      name: clientName,
+      purpose: "Testing multiple redirect URIs",
+      redirectUris,
+      websiteUrl: "",
+      statusLabel: "Pending",
+      pkceEnabled: true,
+      hasLogo: false,
+    });
+    await closeOAuthClientDetails(page);
+
+    await deleteOAuthClient(page, clientId, clientName);
+    await expectOAuthClientDeletedInDb(prisma, clientId);
+  });
+
+  test("can delete a redirect URI and DB/UI update correctly", async ({ page, prisma }, testInfo) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    const testPrefix = `e2e-oauth-redirect-uris-${testInfo.testId}-`;
+    const clientName = `${testPrefix}delete-uri-${Date.now()}`;
+    const initialUris = [
+      "https://example.com/callback-1",
+      "https://example.com/callback-2",
+      "https://example.com/callback-3",
+    ];
+    const scopes: AccessScope[] = ["BOOKING_READ"];
+
+    const { clientId } = await createOAuthClient(page, {
+      name: clientName,
+      purpose: "Testing redirect URI deletion",
+      redirectUris: initialUris,
+      enablePkce: true,
+      scopes,
+    });
+
+    const remainingUris = ["https://example.com/callback-1", "https://example.com/callback-3"];
+
+    await updateOAuthClient(page, {
+      clientId,
+      name: clientName,
+      purpose: "Testing redirect URI deletion",
+      redirectUris: remainingUris,
+      websiteUrl: "",
+    });
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      redirectUris: remainingUris,
+    });
+
+    await page.reload();
+
+    const details = await openOAuthClientDetails(page, clientId);
+    await expectOAuthClientDetails(details, {
+      clientId,
+      name: clientName,
+      purpose: "Testing redirect URI deletion",
+      redirectUris: remainingUris,
+      websiteUrl: "",
+      statusLabel: "Pending",
+      pkceEnabled: true,
+      hasLogo: false,
+    });
+    await closeOAuthClientDetails(page);
+
+    await deleteOAuthClient(page, clientId, clientName);
+    await expectOAuthClientDeletedInDb(prisma, clientId);
+  });
+
+  test("cannot add more than 10 redirect URIs; button shows limit message", async ({ page }, testInfo) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
+
+    const form = getOAuthClientCreateForm(page);
+    await expect(form).toBeVisible();
+
+    for (let i = 1; i < MAX_REDIRECT_URIS; i++) {
+      const addButton = form.locator('button:has-text("Add redirect URI")');
+      await expect(addButton).toBeEnabled();
+      await addButton.click();
+    }
+
+    const addButton = form.locator(
+      `button:has-text("Maximum of ${MAX_REDIRECT_URIS} redirect URIs allowed")`
+    );
+    await expect(addButton).toBeVisible();
+    await expect(addButton).toBeDisabled();
+
+    await expect(form.locator(`#redirectUri-${MAX_REDIRECT_URIS - 1}`)).toBeVisible();
+    await expect(form.locator(`#redirectUri-${MAX_REDIRECT_URIS}`)).toHaveCount(0);
+  });
+
+  test("accepts HTTP redirect URIs for loopback addresses and .local domains", async ({
+    page,
+    prisma,
+  }, testInfo) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    const testPrefix = `e2e-oauth-redirect-uris-${testInfo.testId}-`;
+    const clientName = `${testPrefix}loopback-${Date.now()}`;
+    const redirectUris = [
+      "http://localhost:3000/callback",
+      "http://127.0.0.1:3000/callback",
+      "http://[::1]:3000/callback",
+      "http://app.cal.local:3000/callback",
+    ];
+    const scopes: AccessScope[] = ["BOOKING_READ"];
+
+    const { clientId } = await createOAuthClient(page, {
+      name: clientName,
+      purpose: "Testing loopback redirect URIs",
+      redirectUris,
+      enablePkce: true,
+      scopes,
+    });
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      redirectUris,
+    });
+
+    const details = await openOAuthClientDetails(page, clientId);
+    await expectOAuthClientDetails(details, {
+      clientId,
+      name: clientName,
+      purpose: "Testing loopback redirect URIs",
+      redirectUris,
+      websiteUrl: "",
+      statusLabel: "Pending",
+      pkceEnabled: true,
+      hasLogo: false,
+    });
+    await closeOAuthClientDetails(page);
+
+    await deleteOAuthClient(page, clientId, clientName);
+    await expectOAuthClientDeletedInDb(prisma, clientId);
+  });
+
+  test("shows validation error for HTTP redirect URIs on non-local domains", async ({ page }) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
+
+    const form = getOAuthClientCreateForm(page);
+    await expect(form).toBeVisible();
+
+    await getOAuthClientCreateNameInput(form).fill("Test Invalid URI");
+    await getOAuthClientCreatePurposeInput(form).fill("Testing validation");
+
+    const redirectUriInput = form.locator("#redirectUri-0");
+    await redirectUriInput.fill("http://example.com/callback");
+
+    await expandAllScopeCategories(page);
+    await page.getByTestId("oauth-scope-checkbox-BOOKING_READ").click();
+
+    await page.getByTestId("oauth-client-create-submit").click();
+
+    const errorMessage = form.locator(".text-error", {
+      hasText: "HTTPS is required",
+    });
+    await expect(errorMessage).toBeVisible();
+  });
+
+  test("shows validation error for duplicate redirect URIs", async ({ page }) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
+
+    const form = getOAuthClientCreateForm(page);
+    await expect(form).toBeVisible();
+
+    await getOAuthClientCreateNameInput(form).fill("Test Duplicate URI");
+    await getOAuthClientCreatePurposeInput(form).fill("Testing duplicate validation");
+
+    await form.locator("#redirectUri-0").fill("https://example.com/callback");
+
+    await form.locator('button:has-text("Add redirect URI")').click();
+    await form.locator("#redirectUri-1").fill("https://example.com/callback");
+
+    await expandAllScopeCategories(page);
+    await page.getByTestId("oauth-scope-checkbox-BOOKING_READ").click();
+
+    await page.getByTestId("oauth-client-create-submit").click();
+
+    const errorMessage = form.locator(".text-error").filter({
+      hasText: "already added",
+    });
+    await expect(errorMessage.first()).toBeVisible();
+  });
+
+  test("can add a redirect URI to an existing client", async ({ page, prisma }, testInfo) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    const testPrefix = `e2e-oauth-redirect-uris-${testInfo.testId}-`;
+    const clientName = `${testPrefix}add-uri-${Date.now()}`;
+    const initialUris = ["https://example.com/callback"];
+    const scopes: AccessScope[] = ["BOOKING_READ"];
+
+    const { clientId } = await createOAuthClient(page, {
+      name: clientName,
+      purpose: "Testing adding redirect URIs",
+      redirectUris: initialUris,
+      enablePkce: true,
+      scopes,
+    });
+
+    const expandedUris = ["https://example.com/callback", "https://staging.example.com/callback"];
+
+    await updateOAuthClient(page, {
+      clientId,
+      name: clientName,
+      purpose: "Testing adding redirect URIs",
+      redirectUris: expandedUris,
+      websiteUrl: "",
+    });
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      redirectUris: expandedUris,
+    });
+
+    await page.reload();
+
+    const details = await openOAuthClientDetails(page, clientId);
+    await expectOAuthClientDetails(details, {
+      clientId,
+      name: clientName,
+      purpose: "Testing adding redirect URIs",
+      redirectUris: expandedUris,
+      websiteUrl: "",
+      statusLabel: "Pending",
+      pkceEnabled: true,
+      hasLogo: false,
+    });
+    await closeOAuthClientDetails(page);
+
+    await deleteOAuthClient(page, clientId, clientName);
+    await expectOAuthClientDeletedInDb(prisma, clientId);
+  });
+
+  test("empty redirect URI fields are ignored on save; only filled URIs are stored", async ({
+    page,
+    prisma,
+  }, testInfo) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    const testPrefix = `e2e-oauth-redirect-uris-${testInfo.testId}-`;
+    const clientName = `${testPrefix}empty-fields-${Date.now()}`;
+    const scopes: AccessScope[] = ["BOOKING_READ"];
+
+    await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
+
+    const form = getOAuthClientCreateForm(page);
+    await getOAuthClientCreateNameInput(form).fill(clientName);
+    await getOAuthClientCreatePurposeInput(form).fill("Testing empty field handling");
+
+    await form.locator("#redirectUri-0").fill("https://example.com/callback");
+
+    await clickAddRedirectUri(form);
+    await clickAddRedirectUri(form);
+    await clickAddRedirectUri(form);
+
+    await expect(getRedirectUriInput(form, 3)).toBeVisible();
+
+    await expandAllScopeCategories(page);
+    await page.getByTestId("oauth-scope-checkbox-BOOKING_READ").click();
+
+    await page.getByTestId("oauth-client-create-submit").click();
+
+    const submitted = getOAuthClientSubmittedModal(page);
+    await expect(submitted).toBeVisible();
+
+    const clientId = (
+      (await page.getByTestId("oauth-client-submitted-client-id").textContent()) ?? ""
+    ).trim();
+    await page.getByTestId("oauth-client-submitted-done").click();
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      redirectUris: ["https://example.com/callback"],
+    });
+
+    const details = await openOAuthClientDetails(page, clientId);
+    await expect(details.locator("#redirectUri-0")).toHaveValue("https://example.com/callback");
+    await expect(details.locator("#redirectUri-1")).toHaveCount(0);
+    await closeOAuthClientDetails(page);
+
+    await deleteOAuthClient(page, clientId, clientName);
+    await expectOAuthClientDeletedInDb(prisma, clientId);
+  });
+
+  test("cannot create client when all redirect URI fields are empty", async ({ page }) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
+
+    const form = getOAuthClientCreateForm(page);
+    await expect(form).toBeVisible();
+
+    await getOAuthClientCreateNameInput(form).fill("Test No URIs");
+    await getOAuthClientCreatePurposeInput(form).fill("Testing empty URI validation");
+
+    await form.locator("#redirectUri-0").fill("https://example.com/callback");
+
+    await clickAddRedirectUri(form);
+    await expect(getRedirectUriInput(form, 1)).toBeVisible();
+
+    await getRedirectUriTrashButton(form, 0).click();
+
+    await expandAllScopeCategories(page);
+    await page.getByTestId("oauth-scope-checkbox-BOOKING_READ").click();
+
+    await page.getByTestId("oauth-client-create-submit").click();
+
+    await expect(page.getByTestId("toast-error")).toContainText("At least one redirect URI is required");
+    await expect(getOAuthClientSubmittedModal(page)).toHaveCount(0);
+  });
+
+  test("cannot update client to have zero redirect URIs", async ({ page, prisma }, testInfo) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    const testPrefix = `e2e-oauth-redirect-uris-${testInfo.testId}-`;
+    const clientName = `${testPrefix}zero-uris-${Date.now()}`;
+    const scopes: AccessScope[] = ["BOOKING_READ"];
+
+    const { clientId } = await createOAuthClient(page, {
+      name: clientName,
+      purpose: "Testing zero URI update validation",
+      redirectUris: ["https://example.com/callback"],
+      enablePkce: true,
+      scopes,
+    });
+
+    const details = await openOAuthClientDetails(page, clientId);
+
+    await clickAddRedirectUri(details);
+    await expect(getRedirectUriInput(details, 1)).toBeVisible();
+
+    await getRedirectUriTrashButton(details, 0).click();
+
+    await page.getByTestId("oauth-client-details-save").click();
+
+    await expect(page.getByTestId("toast-error")).toContainText("At least one redirect URI is required");
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      redirectUris: ["https://example.com/callback"],
+    });
+
+    await closeOAuthClientDetails(page);
     await deleteOAuthClient(page, clientId, clientName);
     await expectOAuthClientDeletedInDb(prisma, clientId);
   });
@@ -961,10 +1437,6 @@ function getOAuthClientCreatePurposeInput(form: Locator): Locator {
   return form.locator("#purpose");
 }
 
-function getOAuthClientCreateRedirectUriInput(form: Locator): Locator {
-  return form.locator("#redirectUri");
-}
-
 function getOAuthClientCreateWebsiteUrlInput(form: Locator): Locator {
   return form.locator("#websiteUrl");
 }
@@ -975,10 +1447,6 @@ function getOAuthClientDetailsNameInput(details: Locator): Locator {
 
 function getOAuthClientDetailsPurposeInput(details: Locator): Locator {
   return details.locator("#purpose");
-}
-
-function getOAuthClientDetailsRedirectUriInput(details: Locator): Locator {
-  return details.locator("#redirectUri");
 }
 
 function getOAuthClientDetailsWebsiteUrlInput(details: Locator): Locator {

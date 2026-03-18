@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => {
   return {
     findByClientId: vi.fn(),
     findByClientIdIncludeUser: vi.fn(),
+    update: vi.fn(),
     sendOAuthClientApprovedNotification: vi.fn(),
     sendOAuthClientRejectedNotification: vi.fn(),
     getTranslation: vi.fn(),
@@ -35,6 +36,7 @@ vi.mock("@calcom/features/oauth/repositories/OAuthClientRepository", () => ({
     constructor() {}
     findByClientId = mocks.findByClientId;
     findByClientIdIncludeUser = mocks.findByClientIdIncludeUser;
+    update = mocks.update;
   },
 }));
 
@@ -67,7 +69,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       status: "PENDING",
@@ -77,12 +79,12 @@ describe("updateClientHandler", () => {
       },
     });
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
       status: "APPROVED",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -93,11 +95,7 @@ describe("updateClientHandler", () => {
         id: 1,
         role: UserPermissionRole.ADMIN,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     const input = {
@@ -107,15 +105,10 @@ describe("updateClientHandler", () => {
 
     const result = await updateClientHandler({ ctx, input });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: input.clientId },
-        data: {
-          status: "APPROVED",
-          rejectionReason: null,
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(input.clientId, {
+      status: "APPROVED",
+      rejectionReason: null,
+        });
 
     expect(mocks.getTranslation).toHaveBeenCalledWith("en", "common");
 
@@ -132,7 +125,7 @@ describe("updateClientHandler", () => {
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
       status: "APPROVED",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -154,7 +147,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       status: "PENDING",
@@ -164,12 +157,12 @@ describe("updateClientHandler", () => {
       },
     });
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
       status: "REJECTED",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: REJECTION_REASON_TRIMMED,
@@ -180,11 +173,7 @@ describe("updateClientHandler", () => {
         id: 1,
         role: UserPermissionRole.ADMIN,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     const input = {
@@ -195,15 +184,10 @@ describe("updateClientHandler", () => {
 
     await updateClientHandler({ ctx, input });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: input.clientId },
-        data: {
-          status: "REJECTED",
-          rejectionReason: REJECTION_REASON_TRIMMED,
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(input.clientId, {
+      status: "REJECTED",
+      rejectionReason: REJECTION_REASON_TRIMMED,
+        });
 
     expect(mocks.getTranslation).toHaveBeenCalledWith("en", "common");
 
@@ -223,7 +207,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       status: "PENDING",
@@ -235,11 +219,7 @@ describe("updateClientHandler", () => {
         id: 2,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: vi.fn(),
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     const input = {
@@ -259,7 +239,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       status: "PENDING",
@@ -271,11 +251,7 @@ describe("updateClientHandler", () => {
         id: 1,
         role: UserPermissionRole.ADMIN,
       },
-      prisma: {
-        oAuthClient: {
-          update: vi.fn(),
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await expect(
@@ -299,7 +275,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       status: "PENDING",
@@ -311,11 +287,7 @@ describe("updateClientHandler", () => {
         id: 2,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: vi.fn(),
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await expect(
@@ -338,7 +310,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       status: "PENDING",
@@ -350,11 +322,7 @@ describe("updateClientHandler", () => {
         id: 999,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: vi.fn(),
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await expect(
@@ -377,7 +345,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       scopes: [AccessScope.BOOKING_READ],
@@ -385,12 +353,12 @@ describe("updateClientHandler", () => {
       user: null,
     });
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: "My Client v2",
       purpose: CLIENT_PURPOSE,
       status: "PENDING",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -401,11 +369,7 @@ describe("updateClientHandler", () => {
         id: 42,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await updateClientHandler({
@@ -416,28 +380,23 @@ describe("updateClientHandler", () => {
       },
     });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: CLIENT_ID },
-        data: {
-          name: "My Client v2",
-          status: "PENDING",
-          rejectionReason: null,
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(CLIENT_ID, {
+      name: "My Client v2",
+      status: "PENDING",
+      rejectionReason: null,
+        });
 
     expect(mocks.sendOAuthClientApprovedNotification).not.toHaveBeenCalled();
     expect(mocks.sendOAuthClientRejectedNotification).not.toHaveBeenCalled();
   });
 
-  it("sets status to PENDING when an owner updates redirectUri (reapproval flow)", async () => {
+  it("does not trigger reapproval when an owner updates redirectUris", async () => {
     mocks.findByClientIdIncludeUser.mockResolvedValue({
       clientId: CLIENT_ID,
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       scopes: [AccessScope.BOOKING_READ],
@@ -447,12 +406,12 @@ describe("updateClientHandler", () => {
 
     const updatedRedirectUri = "https://example.com/new-callback";
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      status: "PENDING",
-      redirectUri: updatedRedirectUri,
+      status: "APPROVED",
+      redirectUris: [updatedRedirectUri],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -463,31 +422,21 @@ describe("updateClientHandler", () => {
         id: OWNER_USER_ID,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await updateClientHandler({
       ctx,
       input: {
         clientId: CLIENT_ID,
-        redirectUri: updatedRedirectUri,
+        redirectUris: [updatedRedirectUri],
       },
     });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: CLIENT_ID },
-        data: {
-          redirectUri: updatedRedirectUri,
-          status: "PENDING",
-          rejectionReason: null,
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(CLIENT_ID, {
+      redirectUris: [updatedRedirectUri],
+      redirectUri: updatedRedirectUri,
+    });
   });
 
   it("sets status to PENDING when owner adds a new scope to an approved client", async () => {
@@ -496,7 +445,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       scopes: [AccessScope.BOOKING_READ],
@@ -504,12 +453,12 @@ describe("updateClientHandler", () => {
       user: null,
     });
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
       status: "PENDING",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -520,11 +469,7 @@ describe("updateClientHandler", () => {
         id: OWNER_USER_ID,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await updateClientHandler({
@@ -535,16 +480,11 @@ describe("updateClientHandler", () => {
       },
     });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: CLIENT_ID },
-        data: {
-          scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_READ],
-          status: "PENDING",
-          rejectionReason: null,
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(CLIENT_ID, {
+      scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_READ],
+      status: "PENDING",
+      rejectionReason: null,
+        });
   });
 
   it("does not change status when owner removes a scope from an approved client", async () => {
@@ -553,7 +493,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_READ],
@@ -561,12 +501,12 @@ describe("updateClientHandler", () => {
       user: null,
     });
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
       status: "APPROVED",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -577,11 +517,7 @@ describe("updateClientHandler", () => {
         id: OWNER_USER_ID,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await updateClientHandler({
@@ -592,14 +528,9 @@ describe("updateClientHandler", () => {
       },
     });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: CLIENT_ID },
-        data: {
-          scopes: [AccessScope.BOOKING_READ],
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(CLIENT_ID, {
+      scopes: [AccessScope.BOOKING_READ],
+        });
   });
 
   it("does not change status when owner adds READ alongside existing WRITE for the same resource", async () => {
@@ -608,7 +539,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       scopes: [AccessScope.BOOKING_WRITE],
@@ -616,12 +547,12 @@ describe("updateClientHandler", () => {
       user: null,
     });
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
       status: "APPROVED",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -632,11 +563,7 @@ describe("updateClientHandler", () => {
         id: OWNER_USER_ID,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await updateClientHandler({
@@ -647,14 +574,9 @@ describe("updateClientHandler", () => {
       },
     });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: CLIENT_ID },
-        data: {
-          scopes: [AccessScope.BOOKING_WRITE, AccessScope.BOOKING_READ],
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(CLIENT_ID, {
+      scopes: [AccessScope.BOOKING_WRITE, AccessScope.BOOKING_READ],
+        });
   });
 
   it("does not change status when owner demotes from WRITE to READ for the same resource", async () => {
@@ -663,7 +585,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       scopes: [AccessScope.BOOKING_WRITE],
@@ -671,12 +593,12 @@ describe("updateClientHandler", () => {
       user: null,
     });
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
       status: "APPROVED",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -687,11 +609,7 @@ describe("updateClientHandler", () => {
         id: OWNER_USER_ID,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await updateClientHandler({
@@ -702,14 +620,9 @@ describe("updateClientHandler", () => {
       },
     });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: CLIENT_ID },
-        data: {
-          scopes: [AccessScope.BOOKING_READ],
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(CLIENT_ID, {
+      scopes: [AccessScope.BOOKING_READ],
+        });
   });
 
   it("sets status to PENDING when owner upgrades from READ to WRITE for the same resource", async () => {
@@ -718,7 +631,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       scopes: [AccessScope.BOOKING_READ],
@@ -726,12 +639,12 @@ describe("updateClientHandler", () => {
       user: null,
     });
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
       status: "PENDING",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -742,11 +655,7 @@ describe("updateClientHandler", () => {
         id: OWNER_USER_ID,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await updateClientHandler({
@@ -757,16 +666,11 @@ describe("updateClientHandler", () => {
       },
     });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: CLIENT_ID },
-        data: {
-          scopes: [AccessScope.BOOKING_WRITE],
-          status: "PENDING",
-          rejectionReason: null,
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(CLIENT_ID, {
+      scopes: [AccessScope.BOOKING_WRITE],
+      status: "PENDING",
+      rejectionReason: null,
+        });
   });
 
   it("does not change status when owner demotes WRITE to READ while also removing another scope", async () => {
@@ -775,7 +679,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       scopes: [AccessScope.BOOKING_WRITE, AccessScope.SCHEDULE_READ],
@@ -783,12 +687,12 @@ describe("updateClientHandler", () => {
       user: null,
     });
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
       status: "APPROVED",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -799,11 +703,7 @@ describe("updateClientHandler", () => {
         id: OWNER_USER_ID,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await updateClientHandler({
@@ -814,14 +714,9 @@ describe("updateClientHandler", () => {
       },
     });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: CLIENT_ID },
-        data: {
-          scopes: [AccessScope.BOOKING_READ],
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(CLIENT_ID, {
+      scopes: [AccessScope.BOOKING_READ],
+        });
   });
 
   it("sets status to PENDING when owner demotes one scope but adds an entirely new one", async () => {
@@ -830,7 +725,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       scopes: [AccessScope.BOOKING_WRITE],
@@ -838,12 +733,12 @@ describe("updateClientHandler", () => {
       user: null,
     });
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
       status: "PENDING",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -854,11 +749,7 @@ describe("updateClientHandler", () => {
         id: OWNER_USER_ID,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await updateClientHandler({
@@ -869,16 +760,11 @@ describe("updateClientHandler", () => {
       },
     });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: CLIENT_ID },
-        data: {
-          scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_READ],
-          status: "PENDING",
-          rejectionReason: null,
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(CLIENT_ID, {
+      scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_READ],
+      status: "PENDING",
+      rejectionReason: null,
+        });
   });
 
   it("does not change status when owner adds individual scope to legacy client (empty scopes)", async () => {
@@ -887,7 +773,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       scopes: [],
@@ -895,12 +781,12 @@ describe("updateClientHandler", () => {
       user: null,
     });
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
       status: "APPROVED",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -911,11 +797,7 @@ describe("updateClientHandler", () => {
         id: OWNER_USER_ID,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await updateClientHandler({
@@ -926,14 +808,9 @@ describe("updateClientHandler", () => {
       },
     });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: CLIENT_ID },
-        data: {
-          scopes: [AccessScope.BOOKING_READ],
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(CLIENT_ID, {
+      scopes: [AccessScope.BOOKING_READ],
+        });
   });
 
   it("sets status to PENDING when owner adds org scope to legacy client", async () => {
@@ -942,7 +819,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       scopes: [],
@@ -950,12 +827,12 @@ describe("updateClientHandler", () => {
       user: null,
     });
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
       status: "PENDING",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -966,11 +843,7 @@ describe("updateClientHandler", () => {
         id: OWNER_USER_ID,
         role: UserPermissionRole.USER,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await updateClientHandler({
@@ -981,16 +854,11 @@ describe("updateClientHandler", () => {
       },
     });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: CLIENT_ID },
-        data: {
-          scopes: [AccessScope.ORG_BOOKING_READ],
-          status: "PENDING",
-          rejectionReason: null,
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(CLIENT_ID, {
+      scopes: [AccessScope.ORG_BOOKING_READ],
+      status: "PENDING",
+      rejectionReason: null,
+        });
   });
 
   it("does not trigger reapproval when admin updates scopes", async () => {
@@ -999,7 +867,7 @@ describe("updateClientHandler", () => {
       userId: OWNER_USER_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       scopes: [AccessScope.BOOKING_READ],
@@ -1007,12 +875,12 @@ describe("updateClientHandler", () => {
       user: null,
     });
 
-    const prismaUpdate = vi.fn().mockResolvedValue({
+    mocks.update.mockResolvedValue({
       clientId: CLIENT_ID,
       name: CLIENT_NAME,
       purpose: CLIENT_PURPOSE,
       status: "APPROVED",
-      redirectUri: REDIRECT_URI,
+      redirectUris: [REDIRECT_URI],
       websiteUrl: null,
       logo: null,
       rejectionReason: null,
@@ -1023,11 +891,7 @@ describe("updateClientHandler", () => {
         id: 1,
         role: UserPermissionRole.ADMIN,
       },
-      prisma: {
-        oAuthClient: {
-          update: prismaUpdate,
-        },
-      } as unknown as PrismaClient,
+      prisma: {} as unknown as PrismaClient,
     };
 
     await updateClientHandler({
@@ -1038,13 +902,8 @@ describe("updateClientHandler", () => {
       },
     });
 
-    expect(prismaUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: { clientId: CLIENT_ID },
-        data: {
-          scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_WRITE],
-        },
-      })
-    );
+    expect(mocks.update).toHaveBeenCalledWith(CLIENT_ID, {
+      scopes: [AccessScope.BOOKING_READ, AccessScope.SCHEDULE_WRITE],
+        });
   });
 });

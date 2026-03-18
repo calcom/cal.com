@@ -1,10 +1,11 @@
+import { MAX_REDIRECT_URIS } from "@calcom/features/oauth/utils/validateRedirectUris";
 import { AccessScopeSchema } from "@calcom/prisma/zod/inputTypeSchemas";
 import { z } from "zod";
 
 export type TCreateClientInputSchemaInput = {
   name: string;
   purpose: string;
-  redirectUri: string;
+  redirectUris: string[];
   logo?: string;
   websiteUrl?: string;
   enablePkce?: boolean;
@@ -14,7 +15,7 @@ export type TCreateClientInputSchemaInput = {
 export type TCreateClientInputSchema = {
   name: string;
   purpose: string;
-  redirectUri: string;
+  redirectUris: string[];
   logo?: string;
   websiteUrl?: string;
   enablePkce: boolean;
@@ -28,7 +29,7 @@ export const ZCreateClientInputSchema: z.ZodType<
 > = z.object({
   name: z.string(),
   purpose: z.string().min(1),
-  redirectUri: z.string(),
+  redirectUris: z.array(z.string().min(1)).min(1).max(MAX_REDIRECT_URIS),
   logo: z
     .string()
     .optional()

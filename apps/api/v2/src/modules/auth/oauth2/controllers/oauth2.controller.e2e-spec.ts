@@ -151,6 +151,7 @@ describe("OAuth2 Controller Endpoints", () => {
         clientId: testClientId,
         name: "Test OAuth Client",
         redirectUri: testRedirectUri,
+        redirectUris: [testRedirectUri],
         clientSecret: hashedSecret,
         clientType: OAuthClientType.CONFIDENTIAL,
         userId: clientOwner.id,
@@ -169,6 +170,7 @@ describe("OAuth2 Controller Endpoints", () => {
           expect(response.body.data.client_id).toBe(testClientId);
           expect(response.body.data.name).toBe("Test OAuth Client");
           expect(response.body.data.redirect_uri).toBe(testRedirectUri);
+          expect(response.body.data.redirect_uris).toEqual([testRedirectUri]);
           expect(response.body.data.client_type).toBe(OAuthClientType.CONFIDENTIAL);
           expect(response.body.data.client_secret).toBeUndefined();
         });
@@ -636,7 +638,7 @@ describe("OAuth2 Controller Endpoints", () => {
       pendingClient = await oAuthClientFixture.create({
         clientId: pendingClientId,
         name: "Pending OAuth Client",
-        redirectUri: testRedirectUri,
+        redirectUris: [testRedirectUri],
         clientSecret: hashedSecret,
         clientType: OAuthClientType.CONFIDENTIAL,
         status: OAuthClientStatus.PENDING,
@@ -646,7 +648,7 @@ describe("OAuth2 Controller Endpoints", () => {
       rejectedClient = await oAuthClientFixture.create({
         clientId: rejectedClientId,
         name: "Rejected OAuth Client",
-        redirectUri: testRedirectUri,
+        redirectUris: [testRedirectUri],
         clientSecret: hashedSecret,
         clientType: OAuthClientType.CONFIDENTIAL,
         status: OAuthClientStatus.REJECTED,
@@ -857,7 +859,7 @@ describe("OAuth2 Controller Endpoints", () => {
       await oAuthClientFixture.create({
         clientId: nullScopesClientId,
         name: "Legacy Client NULL Scopes",
-        redirectUri: testRedirectUri,
+        redirectUris: [testRedirectUri],
         clientSecret: hashedSecret,
         clientType: OAuthClientType.CONFIDENTIAL,
       });
@@ -865,7 +867,7 @@ describe("OAuth2 Controller Endpoints", () => {
       await oAuthClientFixture.create({
         clientId: emptyScopesClientId,
         name: "Legacy Client Empty Scopes",
-        redirectUri: testRedirectUri,
+        redirectUris: [testRedirectUri],
         clientSecret: hashedSecret,
         clientType: OAuthClientType.CONFIDENTIAL,
         scopes: [],
@@ -874,7 +876,7 @@ describe("OAuth2 Controller Endpoints", () => {
       await oAuthClientFixture.create({
         clientId: readBookingClientId,
         name: "Legacy Client READ_BOOKING",
-        redirectUri: testRedirectUri,
+        redirectUris: [testRedirectUri],
         clientSecret: hashedSecret,
         clientType: OAuthClientType.CONFIDENTIAL,
         scopes: [AccessScope.READ_BOOKING],
@@ -883,7 +885,7 @@ describe("OAuth2 Controller Endpoints", () => {
       await oAuthClientFixture.create({
         clientId: readBookingReadProfileClientId,
         name: "Legacy Client READ_BOOKING READ_PROFILE",
-        redirectUri: testRedirectUri,
+        redirectUris: [testRedirectUri],
         clientSecret: hashedSecret,
         clientType: OAuthClientType.CONFIDENTIAL,
         scopes: [AccessScope.READ_BOOKING, AccessScope.READ_PROFILE],

@@ -1,10 +1,11 @@
+import { MAX_REDIRECT_URIS } from "@calcom/features/oauth/utils/validateRedirectUris";
 import { AccessScopeSchema } from "@calcom/prisma/zod/inputTypeSchemas";
 import { z } from "zod";
 
 export const ZSubmitClientInputSchema = z.object({
   name: z.string().min(1, "Client name is required"),
   purpose: z.string().min(1, "Purpose is required"),
-  redirectUri: z.string().url("Must be a valid URL"),
+  redirectUris: z.array(z.string().min(1)).min(1).max(MAX_REDIRECT_URIS),
   logo: z
     .string()
     .optional()
@@ -22,7 +23,7 @@ export const ZSubmitClientOutputSchema = z.object({
   name: z.string(),
   purpose: z.string().nullable(),
   clientSecret: z.string().optional(),
-  redirectUri: z.string(),
+  redirectUris: z.array(z.string()),
   logo: z.string().nullable(),
   clientType: z.string(),
   status: z.string(),

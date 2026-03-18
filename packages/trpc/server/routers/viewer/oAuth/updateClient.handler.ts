@@ -8,6 +8,7 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 import type { AccessScope, OAuthClientStatus } from "@calcom/prisma/enums";
 
 import { isLegacyClient, TEAM_SCOPES, ORG_SCOPES } from "@calcom/features/oauth/constants";
+import { validateRedirectUris } from "@calcom/features/oauth/utils/validateRedirectUris";
 import type { NewAccessScope } from "@calcom/features/oauth/constants";
 import { hasScopeExpansion } from "./hasScopeExpansion";
 import type { TUpdateClientInputSchema } from "./updateClient.schema";
@@ -28,7 +29,7 @@ type UpdateClientOutput = {
   name: string;
   purpose: string | null;
   status: OAuthClientStatus;
-  redirectUri: string;
+  redirectUris: string[];
   websiteUrl: string | null;
   logo: string | null;
   rejectionReason: string | null;
@@ -41,11 +42,15 @@ const updateClientHandler = async ({ ctx, input }: UpdateClientOptions): Promise
     rejectionReason,
     name,
     purpose,
-    redirectUri,
+    redirectUris,
     websiteUrl,
     logo,
     scopes,
   } = input;
+
+  if (redirectUris !== undefined) {
+    validateRedirectUris(redirectUris);
+  }
 
   const oAuthClientRepository = new OAuthClientRepository(ctx.prisma);
 
@@ -65,7 +70,7 @@ const updateClientHandler = async ({ ctx, input }: UpdateClientOptions): Promise
     throw new TRPCError({ code: "BAD_REQUEST", message: "Rejection reason is required" });
   }
 
-  const isUpdatingFields = hasAnyFieldsChanged({ name, purpose, redirectUri, websiteUrl, logo, scopes });
+  const isUpdatingFields = hasAnyFieldsChanged({ name, purpose, redirectUris, websiteUrl, logo, scopes });
   const isUpdatingStatus = requestedStatus !== undefined;
 
   if (isUpdatingStatus && !isAdmin) {
@@ -86,14 +91,12 @@ const updateClientHandler = async ({ ctx, input }: UpdateClientOptions): Promise
       name: clientWithUser.name,
       logo: clientWithUser.logo,
       websiteUrl: clientWithUser.websiteUrl,
-      redirectUri: clientWithUser.redirectUri,
       scopes: clientWithUser.scopes,
     },
     proposedUpdates: {
       name,
       logo,
       websiteUrl,
-      redirectUri,
       scopes,
     },
   });
@@ -107,7 +110,7 @@ const updateClientHandler = async ({ ctx, input }: UpdateClientOptions): Promise
   const updateData = buildUpdateClientUpdateData({
     name,
     purpose,
-    redirectUri,
+    redirectUris,
     logo,
     websiteUrl,
     scopes,
@@ -117,20 +120,7 @@ const updateClientHandler = async ({ ctx, input }: UpdateClientOptions): Promise
     currentStatus: clientWithUser.status,
   });
 
-  const updatedClient = await ctx.prisma.oAuthClient.update({
-    where: { clientId },
-    data: updateData,
-    select: {
-      clientId: true,
-      name: true,
-      purpose: true,
-      status: true,
-      redirectUri: true,
-      websiteUrl: true,
-      logo: true,
-      rejectionReason: true,
-    },
-  });
+  const updatedClient = await oAuthClientRepository.update(clientId, updateData);
 
   await notifyOwnerAboutAdminReview({
     isAdmin,
@@ -148,7 +138,7 @@ const updateClientHandler = async ({ ctx, input }: UpdateClientOptions): Promise
     name: updatedClient.name,
     purpose: updatedClient.purpose,
     status: updatedClient.status,
-    redirectUri: updatedClient.redirectUri,
+    redirectUris: updatedClient.redirectUris,
     websiteUrl: updatedClient.websiteUrl,
     logo: updatedClient.logo,
     rejectionReason: updatedClient.rejectionReason,
@@ -167,7 +157,6 @@ type ClientFieldsForReapprovalCheck = {
   name: string;
   logo: string | null;
   websiteUrl: string | null;
-  redirectUri: string;
   scopes: AccessScope[];
 };
 
@@ -179,7 +168,6 @@ function triggersReapprovalForOwnerEdit(params: {
     name: string;
     logo: string | null;
     websiteUrl: string | null;
-    redirectUri: string;
     scopes: AccessScope[];
   }>;
 }) {
@@ -201,13 +189,6 @@ function triggersReapprovalForOwnerEdit(params: {
   if (
     proposedUpdates.websiteUrl !== undefined &&
     toNullableString(proposedUpdates.websiteUrl) !== toNullableString(currentClient.websiteUrl)
-  ) {
-    return true;
-  }
-
-  if (
-    proposedUpdates.redirectUri !== undefined &&
-    proposedUpdates.redirectUri !== currentClient.redirectUri
   ) {
     return true;
   }
@@ -282,6 +263,7 @@ async function notifyOwnerAboutAdminReview(params: NotifyOwnerAboutAdminReviewPa
 type UpdateOAuthClientData = {
   name?: string;
   purpose?: string;
+  redirectUris?: string[];
   redirectUri?: string;
   logo?: string | null;
   websiteUrl?: string | null;
@@ -293,7 +275,7 @@ type UpdateOAuthClientData = {
 function buildUpdateClientUpdateData(params: {
   name: string | undefined;
   purpose: string | undefined;
-  redirectUri: string | undefined;
+  redirectUris: string[] | undefined;
   logo: string | null | undefined;
   websiteUrl: string | null | undefined;
   scopes: AccessScope[] | undefined;
@@ -305,7 +287,7 @@ function buildUpdateClientUpdateData(params: {
   const {
     name,
     purpose,
-    redirectUri,
+    redirectUris,
     logo,
     websiteUrl,
     scopes,
@@ -319,7 +301,10 @@ function buildUpdateClientUpdateData(params: {
 
   if (name !== undefined) updateData.name = name;
   if (purpose !== undefined) updateData.purpose = purpose;
-  if (redirectUri !== undefined) updateData.redirectUri = redirectUri;
+  if (redirectUris !== undefined) {
+    updateData.redirectUris = redirectUris;
+    updateData.redirectUri = redirectUris[0];
+  }
   if (logo !== undefined) updateData.logo = logo;
   if (websiteUrl !== undefined) updateData.websiteUrl = websiteUrl;
   if (scopes !== undefined) updateData.scopes = scopes;

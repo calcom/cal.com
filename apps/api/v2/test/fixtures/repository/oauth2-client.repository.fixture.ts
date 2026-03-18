@@ -15,7 +15,8 @@ export class OAuth2ClientRepositoryFixture {
   async create(data: {
     clientId: string;
     name: string;
-    redirectUri: string;
+    redirectUri?: string;
+    redirectUris: string[];
     clientSecret?: string;
     clientType?: OAuthClientType;
     status?: OAuthClientStatus;
@@ -28,7 +29,8 @@ export class OAuth2ClientRepositoryFixture {
       data: {
         clientId: data.clientId,
         name: data.name,
-        redirectUri: data.redirectUri,
+        redirectUri: data.redirectUri ?? "",
+        redirectUris: data.redirectUris,
         clientSecret: data.clientSecret,
         clientType: data.clientType || OAuthClientType.CONFIDENTIAL,
         status: data.status || OAuthClientStatus.APPROVED,

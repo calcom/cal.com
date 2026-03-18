@@ -40,6 +40,7 @@ GET /v2/calendars/busy-times the 'query' request parameter 'dateFrom' became req
 GET /v2/calendars/busy-times the 'query' request parameter 'dateTo' became required
 GET /v2/calendars/busy-times deleted the 'query' request parameter 'credentialId'
 GET /v2/calendars/busy-times deleted the 'query' request parameter 'externalId'
+GET /v2/auth/oauth2/clients/{clientId} removed the required property 'data/redirect_uri' from the response with the '200' status
 GET /v2/event-types the 'data/items/bookingFields/items/oneOf[#/components/schemas/AddressFieldOutput_2024_06_14]/isDefault' response's property type/format changed from 'object'/'' to 'boolean'/'' for status '200'
 GET /v2/event-types the 'data/items/bookingFields/items/oneOf[#/components/schemas/BooleanFieldOutput_2024_06_14]/isDefault' response's property type/format changed from 'object'/'' to 'boolean'/'' for status '200'
 GET /v2/event-types the 'data/items/bookingFields/items/oneOf[#/components/schemas/CheckboxGroupFieldOutput_2024_06_14]/isDefault' response's property type/format changed from 'object'/'' to 'boolean'/'' for status '200'

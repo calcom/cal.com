@@ -26,12 +26,14 @@ test.describe("OAuth authorize - client approval status", () => {
     status,
     userId,
     scopes,
+    redirectUris = ["https://example.com"],
   }: {
     prisma: PrismaClient;
     name: string;
     status: "PENDING" | "APPROVED" | "REJECTED";
     userId?: number;
     scopes?: AccessScope[];
+    redirectUris?: string[];
   }) {
     const clientId = randomBytes(32).toString("hex");
 
@@ -39,7 +41,8 @@ test.describe("OAuth authorize - client approval status", () => {
       data: {
         clientId,
         name,
-        redirectUri: "https://example.com",
+        redirectUri: "",
+        redirectUris,
         clientSecret: null,
         clientType: "CONFIDENTIAL",
         status,
@@ -67,7 +70,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&state=1234`
     );
 
     await expect(page).not.toHaveURL(/^https:\/\/example\.com/);
@@ -90,7 +93,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&state=1234`
     );
 
     await expect(page).not.toHaveURL(/^https:\/\/example\.com/);
@@ -110,7 +113,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&state=1234`
     );
 
     await page.waitForSelector('[data-testid="allow-button"]');
@@ -155,6 +158,58 @@ test.describe("OAuth authorize - client approval status", () => {
     await expect(page.getByText(OAUTH_ERROR_REASONS["redirect_uri_mismatch"])).toBeVisible();
   });
 
+  test("client with multiple redirect URIs authorizes correctly for each registered URI", async ({
+    page,
+    users,
+    prisma,
+  }, testInfo) => {
+    const user = await users.create({ username: "oauth-authorize-multi-redirect" });
+    await user.apiLogin();
+
+    const testPrefix = `e2e-oauth-authorize-status-${testInfo.testId}-`;
+    const redirectUris = ["https://example.com/callback-a", "https://example.com/callback-b"];
+    const client = await createOAuthClient({
+      prisma,
+      name: `${testPrefix}multi-redirect-${Date.now()}`,
+      status: "APPROVED",
+      redirectUris,
+    });
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${encodeURIComponent(redirectUris[0])}&state=aaa`
+    );
+
+    await page.waitForSelector('[data-testid="allow-button"]');
+    await page.getByTestId("allow-button").click();
+
+    await page.waitForFunction((uri) => window.location.href.startsWith(uri), redirectUris[0]);
+    const urlA = new URL(page.url());
+    expect(urlA.origin + urlA.pathname).toBe(redirectUris[0]);
+    expect(urlA.searchParams.get("code")).toBeTruthy();
+    expect(urlA.searchParams.get("state")).toBe("aaa");
+
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${encodeURIComponent(redirectUris[1])}&state=bbb`
+    );
+
+    await page.waitForSelector('[data-testid="allow-button"]');
+    await page.getByTestId("allow-button").click();
+
+    await page.waitForFunction((uri) => window.location.href.startsWith(uri), redirectUris[1]);
+    const urlB = new URL(page.url());
+    expect(urlB.origin + urlB.pathname).toBe(redirectUris[1]);
+    expect(urlB.searchParams.get("code")).toBeTruthy();
+    expect(urlB.searchParams.get("state")).toBe("bbb");
+
+    const unregisteredUri = "https://example.com/not-registered";
+    await page.goto(
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${encodeURIComponent(unregisteredUri)}&state=ccc`
+    );
+
+    await expect(page).toHaveURL(/\/auth\/oauth2\/authorize/);
+    await expect(page.getByText(OAUTH_ERROR_REASONS["redirect_uri_mismatch"])).toBeVisible();
+  });
+
   test("invalid client_id renders error on authorize page (no redirect)", async ({ page, users }) => {
     const user = await users.create({ username: "oauth-authorize-invalid-client" });
     await user.apiLogin();
@@ -189,7 +244,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&state=1234`
     );
 
     await page.waitForSelector('[data-testid="allow-button"]');
@@ -224,7 +279,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&state=1234`
     );
 
     await expect(page).not.toHaveURL(/^https:\/\/example\.com/);
@@ -249,7 +304,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=BOOKING_READ,SCHEDULE_WRITE&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&scope=BOOKING_READ,SCHEDULE_WRITE&state=1234`
     );
 
     await page.waitForFunction(() => {
@@ -284,7 +339,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=BOOKING_READ%20SCHEDULE_WRITE&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&scope=BOOKING_READ%20SCHEDULE_WRITE&state=1234`
     );
 
     await page.waitForFunction(() => {
@@ -319,7 +374,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=BOOKING_READ&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&scope=BOOKING_READ&state=1234`
     );
 
     await page.waitForSelector('[data-testid="allow-button"]');
@@ -354,7 +409,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=BOOKING_READ,SCHEDULE_READ&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&scope=BOOKING_READ,SCHEDULE_READ&state=1234`
     );
 
     await page.waitForSelector('[data-testid="allow-button"]');
@@ -394,7 +449,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&state=1234`
     );
 
     await page.waitForSelector('[data-testid="allow-button"]');
@@ -420,7 +475,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&state=1234`
     );
 
     await expect(page).toHaveURL(/\/auth\/oauth2\/authorize/);
@@ -444,7 +499,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=blab_blab&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&scope=blab_blab&state=1234`
     );
 
     await page.waitForFunction(() => {
@@ -476,7 +531,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=blab_blab&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&scope=blab_blab&state=1234`
     );
 
     await page.waitForFunction(() => {
@@ -509,7 +564,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=BOOKING_READ,BOOKING_WRITE&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&scope=BOOKING_READ,BOOKING_WRITE&state=1234`
     );
 
     await page.waitForSelector('[data-testid="allow-button"]');
@@ -549,7 +604,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=BOOKING_READ,SCHEDULE_READ,PROFILE_READ&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&scope=BOOKING_READ,SCHEDULE_READ,PROFILE_READ&state=1234`
     );
 
     await page.waitForSelector('[data-testid="allow-button"]');
@@ -580,7 +635,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=TEAM_BOOKING_READ,TEAM_PROFILE_READ&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&scope=TEAM_BOOKING_READ,TEAM_PROFILE_READ&state=1234`
     );
 
     await page.waitForSelector('[data-testid="allow-button"]');
@@ -610,7 +665,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=ORG_BOOKING_READ,ORG_PROFILE_READ&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&scope=ORG_BOOKING_READ,ORG_PROFILE_READ&state=1234`
     );
 
     await page.waitForSelector('[data-testid="allow-button"]');
@@ -640,7 +695,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=BOOKING_READ,SCHEDULE_READ,TEAM_BOOKING_READ,TEAM_PROFILE_READ&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&scope=BOOKING_READ,SCHEDULE_READ,TEAM_BOOKING_READ,TEAM_PROFILE_READ&state=1234`
     );
 
     await page.waitForSelector('[data-testid="allow-button"]');
@@ -678,7 +733,7 @@ test.describe("OAuth authorize - client approval status", () => {
     });
 
     await page.goto(
-      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUri}&scope=BOOKING_READ,TEAM_BOOKING_READ,TEAM_PROFILE_READ,ORG_BOOKING_READ,ORG_PROFILE_READ&state=1234`
+      `auth/oauth2/authorize?client_id=${client.clientId}&redirect_uri=${client.redirectUris[0]}&scope=BOOKING_READ,TEAM_BOOKING_READ,TEAM_PROFILE_READ,ORG_BOOKING_READ,ORG_PROFILE_READ&state=1234`
     );
 
     await page.waitForSelector('[data-testid="allow-button"]');

@@ -30,7 +30,7 @@ export const getClientForAuthorizationHandler = async ({ ctx, input }: GetClient
 
     return {
       clientId: oAuthClient.clientId,
-      redirectUri: oAuthClient.redirectUri,
+      redirectUris: oAuthClient.redirectUris,
       name: oAuthClient.name,
       logo: oAuthClient.logo,
       isTrusted: oAuthClient.isTrusted,

@@ -41,7 +41,7 @@ export default function OAuthClientsAdminView() {
         name: data.name,
         purpose: data.purpose ?? "",
         status: data.status,
-        redirectUri: data.redirectUri,
+        redirectUris: data.redirectUris,
         logo: data.logo || null,
       });
       showToast(t("oauth_client_created"), "success");
@@ -77,7 +77,7 @@ export default function OAuthClientsAdminView() {
     createMutation.mutate({
       name: values.name,
       purpose: values.purpose,
-      redirectUri: values.redirectUri,
+      redirectUris: values.redirectUris,
       websiteUrl: values.websiteUrl,
       logo: values.logo,
       enablePkce: values.enablePkce,
