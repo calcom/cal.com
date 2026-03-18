@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import type { TimeFormat } from "@calcom/lib/timeFormat";
 
 import type { PaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
@@ -17,6 +18,7 @@ export type Invitee = {
   firstName: string;
   lastName: string;
   timeZone: string;
+  timeFormat?: TimeFormat | null;
   phoneNumber?: string;
   language: {
     translate: TFunction;

@@ -1387,6 +1387,7 @@ async function handler(
       firstName: (typeof bookerName === "object" && bookerName.firstName) || "",
       lastName: (typeof bookerName === "object" && bookerName.lastName) || "",
       timeZone: attendeeTimezone,
+      timeFormat: reqBody.timeFormat,
       language: { translate: tAttendees, locale: attendeeLanguage ?? "en" },
     },
   ];
@@ -1430,6 +1431,7 @@ async function handler(
       firstName: "",
       lastName: "",
       timeZone: attendeeTimezone,
+      timeFormat: reqBody.timeFormat,
       language: { translate: tGuests, locale: "en" },
     });
     return guestArray;

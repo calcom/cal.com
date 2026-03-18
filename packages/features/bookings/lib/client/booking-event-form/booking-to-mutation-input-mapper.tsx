@@ -4,6 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { RoutingFormSearchParams } from "@calcom/platform-types";
 
 import type { BookerEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../../types";
@@ -17,6 +18,7 @@ export type BookingOptions = {
   duration: number | undefined | null;
   timeZone: string;
   language: string;
+  timeFormat?: TimeFormat;
   rescheduleUid: string | undefined;
   rescheduledBy: string | undefined;
   username: string;
@@ -42,6 +44,7 @@ export const mapBookingToMutationInput = ({
   duration,
   timeZone,
   language,
+  timeFormat,
   rescheduleUid,
   rescheduledBy,
   username,
@@ -80,6 +83,7 @@ export const mapBookingToMutationInput = ({
     eventTypeSlug: event.slug,
     timeZone: timeZone,
     language: language,
+    timeFormat: timeFormat,
     rescheduleUid,
     rescheduledBy,
     metadata: metadata || {},
