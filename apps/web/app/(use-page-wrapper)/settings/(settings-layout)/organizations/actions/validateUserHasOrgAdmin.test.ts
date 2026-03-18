@@ -1,12 +1,10 @@
-import type { Session } from "next-auth";
-import { redirect } from "next/navigation";
-import { describe, it, vi, expect, beforeEach, type MockedFunction } from "vitest";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { validateUserHasOrgAdmin, type ValidatedOrgAdminSession } from "./validateUserHasOrgAdmin";
+import { redirect } from "next/navigation";
+import type { Session } from "next-auth";
+import { beforeEach, describe, expect, it, type MockedFunction, vi } from "vitest";
+import { type ValidatedOrgAdminSession, validateUserHasOrgAdmin } from "./validateUserHasOrgAdmin";
 
 // Mock the dependencies
 vi.mock("next/navigation", () => ({
@@ -28,6 +26,11 @@ vi.mock("@calcom/features/auth/lib/checkAdminOrOwner", () => ({
 
 vi.mock("@lib/buildLegacyCtx", () => ({
   buildLegacyRequest: vi.fn(() => ({})),
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
 }));
 
 const mockedGetServerSession = getServerSession as MockedFunction<typeof getServerSession>;
