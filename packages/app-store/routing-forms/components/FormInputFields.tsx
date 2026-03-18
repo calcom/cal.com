@@ -173,9 +173,8 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         const isCalendar = field.type === "calendar";
         const isFull = isLayout || isCalendar || (field.uiConfig?.layout ?? "full") === "full";
         const fieldIdentifier = getFieldIdentifier(field);
-        const legacyHideLabel = (field.uiConfig as { hideLabel?: boolean } | undefined)?.hideLabel;
-        const labelText = legacyHideLabel ? "" : field.label.trim();
-        const hideLabel = labelText.length === 0;
+        const labelText = field.label.trim();
+        const isLabelEmpty = labelText.length === 0;
         const currentValue = response[field.id]?.value ?? "";
         const errorMessage = getValidationErrorMessage(field, currentValue);
         const showError = showErrors || (field.required && touched[field.id]);
@@ -328,7 +327,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                   onBlur={() => setTouched((prev) => ({ ...prev, [field.id]: true }))}
                   onCheckedChange={(next) => updateResponse(next ? "true" : "")}
                 />
-                {!hideLabel && <span className="text-muted-foreground">{labelText}</span>}
+                {!isLabelEmpty && <span className="text-muted-foreground">{labelText}</span>}
               </label>
             );
           }
@@ -381,7 +380,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
           return (
             <div key={field.id} className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}>
               <div className="rounded-lg border-2 border-transparent p-3">
-                {!hideLabel && (
+                {!isLabelEmpty && (
                   <label id={`field-label-${field.id}`} className={labelClassName}>
                     {labelText}
                     {field.required && <span className="text-error ml-0.5">*</span>}
@@ -415,7 +414,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         return (
           <div key={field.id} className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}>
             <div className="rounded-lg border-2 border-transparent p-3">
-              {!hideLabel && (
+              {!isLabelEmpty && (
                 <label id={`field-label-${field.id}`} className={labelClassName}>
                   {labelText}
                   {field.required && <span className="text-error ml-0.5">*</span>}

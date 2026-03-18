@@ -128,6 +128,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
 
   const [inputValue, setInputValue] = useState<string>("");
 
+  console.log(`name and placeholder  ${name}, and ${placeholder}`);
+
   return (
     <div className={classNames(containerClassName)}>
       {!!name && !noLabel && (
