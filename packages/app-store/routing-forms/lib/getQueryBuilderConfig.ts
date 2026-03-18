@@ -66,7 +66,7 @@ export function getQueryBuilderConfigForFormFields(form: Pick<RoutingForm, "fiel
       const widgetType = widget.type;
 
       fields[field.id] = {
-        label: field.label,
+        label: field.label.trim() !== "" ? field.label : (field.identifier ?? field.id),
         type: widgetType,
         valueSources: ["value"],
         fieldSettings: {

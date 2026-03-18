@@ -104,13 +104,12 @@ function FieldCard({
 }: FieldCardProps) {
   const { t } = useLocale();
   const isLayout = LAYOUT_ONLY_TYPES.has(field.type);
-  const legacyHideLabel = (field.uiConfig as { hideLabel?: boolean } | undefined)?.hideLabel;
-  const labelText = legacyHideLabel ? "" : field.label.trim();
-  const hideLabel = labelText.length === 0;
+  const labelText = field.label.trim();
+  const isLabelEmpty = labelText.length === 0;
   const validation = field.uiConfig?.validation;
   // For underline style, skip the block label — FieldRenderer shows it inline
-  const showBlockLabel = !isLayout && fieldStyle !== "underline" && !hideLabel;
-  const showInlineLabel = fieldStyle === "underline" && !isLayout && !hideLabel;
+  const showBlockLabel = !isLayout && fieldStyle !== "underline" && !isLabelEmpty;
+  const showInlineLabel = fieldStyle === "underline" && !isLayout && !isLabelEmpty;
 
   const requiredMessage = t("error_required_field");
   const invalidEmailMessage = t("enter_valid_email");

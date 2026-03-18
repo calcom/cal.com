@@ -39,9 +39,8 @@ export function FieldRenderer({
   const options = toUIOptions(field.options);
   const placeholder = field.placeholder || t("form_builder_enter_field_type", { fieldType: field.type });
   const uiConfig: UIFieldConfig = field.uiConfig ?? {};
-  const legacyHideLabel = (uiConfig as { hideLabel?: boolean }).hideLabel;
-  const labelText = legacyHideLabel ? "" : field.label.trim();
-  const hideLabel = labelText.length === 0;
+  const labelText = field.label.trim();
+  const isLabelEmpty = labelText.length === 0;
   const layoutContent = uiConfig.content ?? field.label;
   const inputVariant = isUnderline ? "underline" : "default";
   const inputSize = "md";
@@ -239,7 +238,7 @@ export function FieldRenderer({
             variant={variant}
             style={secondaryColor ? { borderColor: secondaryColor } : undefined}
           />
-          {!hideLabel && <span className="text-muted-foreground">{labelText || t("confirm")}</span>}
+          {!isLabelEmpty && <span className="text-muted-foreground">{labelText || t("confirm")}</span>}
         </label>
       );
     }

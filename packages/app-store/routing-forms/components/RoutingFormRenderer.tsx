@@ -96,8 +96,6 @@ export default function RoutingFormRenderer({
     fontWeight: resolvedFont.fontWeight,
   };
 
-  console.log("Content style: ", contentStyle);
-
   const btnStyle: CSSProperties = {
     borderRadius: `${submitButton.borderRadius}px`,
     ...(submitButton.color ? { backgroundColor: submitButton.color } : {}),
