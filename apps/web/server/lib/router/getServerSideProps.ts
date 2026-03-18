@@ -1,11 +1,10 @@
+import { getRoutedUrl, hasEmbedPath } from "@calcom/features/routing-forms/lib/getRoutedUrl";
+import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { wrapGetServerSidePropsWithSentry } from "@sentry/nextjs";
+import { TRPCError } from "@trpc/server";
 import { isbot } from "isbot";
 import type { GetServerSidePropsContext } from "next";
-
-import { getRoutedUrl, hasEmbedPath } from "@calcom/features/routing-forms/lib/getRoutedUrl";
-import logger from "@calcom/lib/logger";
-
-import { TRPCError } from "@trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["router/getServerSideProps"] });
 
@@ -32,7 +31,10 @@ export const getServerSideProps = wrapGetServerSidePropsWithSentry(async functio
 
     return await getRoutedUrl(context);
   } catch (error) {
-    if (error instanceof TRPCError && error.code === "TOO_MANY_REQUESTS") {
+    if (
+      (error instanceof TRPCError && error.code === "TOO_MANY_REQUESTS") ||
+      (error instanceof HttpError && error.statusCode === 429)
+    ) {
       context.res.statusCode = 429;
       const isEmbed = hasEmbedPath(context.req.url || "");
 
