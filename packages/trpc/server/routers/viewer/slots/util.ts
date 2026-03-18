@@ -41,12 +41,7 @@ import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager, { LimitSources } from "@calcom/lib/intervalLimits/limitManager";
 import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
-import {
-  BookingDateInPastError,
-  calculatePeriodLimits,
-  isTimeOutOfBounds,
-  isTimeViolatingFutureLimit,
-} from "@calcom/lib/isOutOfBounds";
+import { calculatePeriodLimits, isTimeViolatingFutureLimit } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -1578,31 +1573,11 @@ export class AvailableSlotsService {
             periodLimits,
           });
 
-          let isOutOfBounds = false;
-          try {
-            isOutOfBounds = isTimeOutOfBounds({
-              time: slot.time,
-              minimumBookingNotice: eventType.minimumBookingNotice,
-            });
-          } catch (error) {
-            if (error instanceof BookingDateInPastError) {
-              throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: error.message,
-              });
-            }
-            throw error;
-          }
-
           if (isFutureLimitViolationForTheSlot) {
             foundAFutureLimitViolation = true;
           }
 
-          return (
-            !isFutureLimitViolationForTheSlot &&
-            // TODO: Perf Optimization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
-            !isOutOfBounds
-          );
+          return !isFutureLimitViolationForTheSlot;
         });
 
         if (filteredSlots.length) {
