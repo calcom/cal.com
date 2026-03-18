@@ -150,7 +150,7 @@ export default function Signup({
     let level = strengthLevels.weak;
     if (checks.length && checks.noRepeat) {
       if (score >= 4) level = strengthLevels.strong;
-      else if (checks.hasLower && checks.hasLower && checks.hasNumber) level = strengthLevels.acceptable;
+      else if (checks.hasLower && checks.hasUpper && checks.hasNumber) level = strengthLevels.acceptable;
     }
 
     if (watchedPassword.length === 0) level = strengthLevels.empty;
@@ -260,7 +260,7 @@ export default function Signup({
       });
   };
 
-  const [inWebView, setInWebView] = useState(false);
+  const [inWebView, setInWebView] = useState<boolean | null>(null);
 
   useEffect(() => {
     setInWebView(isWebView());

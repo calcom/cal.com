@@ -16,6 +16,7 @@ import { attributesRouter } from "./attributes/_router";
 import { authRouter } from "./auth/_router";
 import { availabilityRouter } from "./availability/_router";
 import { bookingsRouter } from "./bookings/_router";
+import { calIdContactsRouter } from "./calIdContacts/_router";
 import { calVideoRouter } from "./calVideo/_router";
 import { calendarsRouter } from "./calendars/_router";
 import { calIdTeamsRouter } from "./calidTeams/_router";
@@ -88,6 +89,7 @@ export const viewerRouter = router({
   credits: creditsRouter,
   ooo: oooRouter,
   travelSchedules: travelSchedulesRouter,
+  calIdContacts: calIdContactsRouter,
   calidTeams: calIdTeamsRouter,
   appWhatsappBusiness: app_whatsappBusiness,
 });

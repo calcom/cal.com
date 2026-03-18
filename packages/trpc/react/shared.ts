@@ -45,4 +45,5 @@ export const ENDPOINTS = [
   "filterSegments",
   "pbac",
   "calidTeams",
+  "calIdContacts",
 ] as const;

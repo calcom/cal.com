@@ -79,6 +79,7 @@ import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { ensureCalIdContactFromBooking } from "@calcom/lib/server/service/calIdContactFromBooking";
 import { HashedLinkService } from "@calcom/lib/server/service/hashedLinkService";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
@@ -2657,6 +2658,31 @@ async function handler(
         ...(originalRescheduledBooking?.uid && { originalBookingUid: originalRescheduledBooking?.uid }),
       },
     });
+  }
+
+  if (!isDryRun && booking.status === BookingStatus.ACCEPTED && booking.userId) {
+    try {
+      await ensureCalIdContactFromBooking({
+        source: "booking_created",
+        userId: booking.userId,
+        bookingId: booking.id,
+        bookingUid: booking.uid,
+        attendeeName: fullName,
+        attendeeEmail: bookerEmail,
+        attendeePhone: bookerPhoneNumber,
+      });
+    } catch (error) {
+      const parsedError = getErrorFromUnknown(error);
+      loggerWithEventDetails.error(
+        "Error while syncing Cal ID contact from booking creation",
+        safeStringify({
+          bookingId: booking.id,
+          bookingUid: booking.uid,
+          userId: booking.userId,
+          error: parsedError.message,
+        })
+      );
+    }
   }
 
   if (!isDryRun) {

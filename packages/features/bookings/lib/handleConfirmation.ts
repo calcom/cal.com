@@ -15,12 +15,14 @@ import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import type { EventManagerUser } from "@calcom/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { ensureCalIdContactFromBooking } from "@calcom/lib/server/service/calIdContactFromBooking";
 import type { PrismaClient } from "@calcom/prisma";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -307,6 +309,47 @@ export async function handleConfirmation(args: {
   });
 
   updatedBookings.push(updatedBooking);
+
+  if (booking.userId) {
+    const bookingResponse = isPrismaObjOrUndefined(updatedBooking.responses);
+    const firstAttendee = updatedBooking.attendees[0];
+    const attendeeName =
+      firstAttendee?.name ?? (typeof bookingResponse?.name === "string" ? bookingResponse.name : null);
+    const attendeeEmail =
+      firstAttendee?.email ?? (typeof bookingResponse?.email === "string" ? bookingResponse.email : null);
+    const attendeePhone =
+      firstAttendee?.phoneNumber ??
+      (typeof bookingResponse?.attendeePhoneNumber === "string"
+        ? bookingResponse.attendeePhoneNumber
+        : typeof bookingResponse?.smsReminderNumber === "string"
+        ? bookingResponse.smsReminderNumber
+        : typeof bookingResponse?.phone === "string"
+        ? bookingResponse.phone
+        : null);
+
+    try {
+      await ensureCalIdContactFromBooking({
+        source: "booking_confirmed",
+        userId: booking.userId,
+        bookingId: updatedBooking.id,
+        bookingUid: updatedBooking.uid,
+        attendeeName,
+        attendeeEmail,
+        attendeePhone,
+      });
+    } catch (error) {
+      const parsedError = getErrorFromUnknown(error);
+      log.error(
+        "Error while syncing Cal ID contact from booking confirmation",
+        safeStringify({
+          bookingId: updatedBooking.id,
+          bookingUid: updatedBooking.uid,
+          userId: booking.userId,
+          error: parsedError.message,
+        })
+      );
+    }
+  }
 
   const teamId = await getTeamIdFromEventType({
     eventType: {

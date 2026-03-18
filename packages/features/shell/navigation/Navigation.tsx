@@ -37,6 +37,12 @@ const getNavigationItems = (userId: number): NavigationItemType[] => [
     isCurrent: ({ pathname }) => pathname?.startsWith("/bookings") ?? false,
   },
   {
+    name: "contacts",
+    href: "/contacts",
+    icon: "contact",
+    moreOnMobile: true,
+  },
+  {
     name: "availability",
     href: "/availability",
     icon: "clock-2",

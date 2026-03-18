@@ -1,4 +1,6 @@
-{
+{ 
+  "contacts":"Contacts",
+  "contacts_description":"Manage your contacts and schedule meetings",
   "background_jobs": "Background Jobs",
   "background_jobs_description": "Dashboard for monitoring bullmq background jobs",
   "third_party_services": "Third Party Service Providers",
@@ -73,6 +75,7 @@
   "months": "Months",
   "number_of_occurrences": "Number of occurrences",
   "redirecting": "Redirecting...",
+  "open_in_browser":"Open in Browser",
   "open_in_browser_required": "Open in Browser Required",
   "if_browser_did_not_open": "If your browser didn't open automatically, please tap the button below.",
   "for_security_google_sign_in": "For security, Google sign-in must open in your device's browser (Safari, Chrome, etc.).",

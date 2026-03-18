@@ -174,7 +174,7 @@ export default function Login({
     [error]
   );
 
-  const [inWebView, setInWebView] = useState(false);
+  const [inWebView, setInWebView] = useState<boolean | null>(null);
 
   useEffect(() => {
     setInWebView(isWebView());

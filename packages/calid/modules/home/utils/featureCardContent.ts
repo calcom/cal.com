@@ -11,6 +11,13 @@ export type Feature = {
 
 export const newFeatureCardContent: Feature[] = [
   {
+    icon: "calendar-days",
+    title: "Unified Calendar View",
+    description: "View bookings across all your calendars in a unified calendar view.",
+    pageSlug: "/calendar",
+    isNew: true,
+  },
+  {
     icon: "message-circle",
     title: "WhatsApp Business",
     description: "Connect your WhatsApp Business to message bookers using your own templates.",
@@ -18,15 +25,9 @@ export const newFeatureCardContent: Feature[] = [
     isNew: true,
   },
   {
-    icon: "credit-card",
-    title: "Multi-Seat Booking",
-    description: "Collect payment from multiple bookers for a single event.",
-    isNew: true,
-  },
-  {
-    icon: "calendar-days",
-    title: "Unified Calendar View",
-    description: "View bookings across all your calendars in a unified calendar view.",
+    icon: "contact",
+    title: "Contacts",
+    description: "Easily manage and organize all your interactions with people in one place",
     isComingSoon: true,
   },
 ];
