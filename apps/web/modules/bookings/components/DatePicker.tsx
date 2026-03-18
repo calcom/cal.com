@@ -111,7 +111,7 @@ export const DatePicker = ({
     if (dayjs().isBefore(periodStart, "month")) {
       setMonth(periodStart.format("YYYY-MM"));
     }
-  }, [periodStartDate?.toString()]);
+  }, [periodType, periodStartDate?.toString(), setMonth]);
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(slots);
   const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
