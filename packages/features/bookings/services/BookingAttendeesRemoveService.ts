@@ -162,7 +162,9 @@ export class BookingAttendeesRemoveService {
       const email = new AttendeeCancelledEmail(evt, removedAttendeePerson);
       await email.sendEmail();
     } catch (error) {
-      logger.error("Failed to send cancellation email to removed attendee", { error });
+      logger.error("Failed to send cancellation email to removed attendee", {
+        errorName: error instanceof Error ? error.name : "unknown_error",
+      });
     }
   }
 }
