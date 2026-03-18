@@ -1,0 +1,94 @@
+name: Deploy Cal.com to Yandex VM
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker login to Yandex Container Registry
+        env:
+          YC_SA_JSON_CREDENTIALS_B64: ${{ secrets.YC_SA_JSON_CREDENTIALS_B64 }}
+        run: |
+          echo "$YC_SA_JSON_CREDENTIALS_B64" | base64 -d >/tmp/sa.json
+          docker login --username json_key --password-stdin cr.yandex </tmp/sa.json
+          rm -f /tmp/sa.json
+
+      - name: Build and push image
+        env:
+          YC_REGISTRY_ID: ${{ secrets.YC_REGISTRY_ID }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          CALENDSO_ENCRYPTION_KEY: ${{ secrets.CALENDSO_ENCRYPTION_KEY }}
+          NEXT_PUBLIC_WEBAPP_URL: ${{ secrets.NEXT_PUBLIC_WEBAPP_URL }}
+        run: |
+          IMAGE_SHA="cr.yandex/${YC_REGISTRY_ID}/calcom:${GITHUB_SHA}"
+          IMAGE_LATEST="cr.yandex/${YC_REGISTRY_ID}/calcom:latest"
+
+          docker build \
+            --build-arg DATABASE_URL="$DATABASE_URL" \
+            --build-arg NEXTAUTH_SECRET="$NEXTAUTH_SECRET" \
+            --build-arg CALENDSO_ENCRYPTION_KEY="$CALENDSO_ENCRYPTION_KEY" \
+            --build-arg NEXT_PUBLIC_WEBAPP_URL="$NEXT_PUBLIC_WEBAPP_URL" \
+            --build-arg NEXT_PUBLIC_LICENSE_CONSENT="true" \
+            -t "$IMAGE_SHA" \
+            -t "$IMAGE_LATEST" \
+            .
+
+          docker push "$IMAGE_SHA"
+          docker push "$IMAGE_LATEST"
+
+      - name: Deploy on VM over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          IMAGE_LATEST: cr.yandex/${{ secrets.YC_REGISTRY_ID }}/calcom:latest
+          YC_SA_JSON_CREDENTIALS_B64: ${{ secrets.YC_SA_JSON_CREDENTIALS_B64 }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          CALENDSO_ENCRYPTION_KEY: ${{ secrets.CALENDSO_ENCRYPTION_KEY }}
+          NEXT_PUBLIC_WEBAPP_URL: ${{ secrets.NEXT_PUBLIC_WEBAPP_URL }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+        with:
+          host: ${{ secrets.YC_VM_HOST }}
+          username: ${{ secrets.YC_VM_USER }}
+          key: ${{ secrets.YC_VM_SSH_KEY }}
+          script_stop: true
+          envs: IMAGE_LATEST,YC_SA_JSON_CREDENTIALS_B64,DATABASE_URL,DATABASE_HOST,NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL
+          script: |
+            set -e
+
+            echo "$YC_SA_JSON_CREDENTIALS_B64" | base64 -d >/tmp/sa.json
+            sudo docker login --username json_key --password-stdin cr.yandex </tmp/sa.json
+            rm -f /tmp/sa.json
+
+            sudo docker pull "$IMAGE_LATEST"
+            sudo docker rm -f calcom || true
+
+            sudo docker run -d \
+              --name calcom \
+              --restart unless-stopped \
+              -p 3000:3000 \
+              -e NODE_ENV=production \
+              -e DATABASE_URL="$DATABASE_URL" \
+              -e DATABASE_DIRECT_URL="$DATABASE_URL" \
+              -e DATABASE_HOST="$DATABASE_HOST" \
+              -e NEXTAUTH_SECRET="$NEXTAUTH_SECRET" \
+              -e CALENDSO_ENCRYPTION_KEY="$CALENDSO_ENCRYPTION_KEY" \
+              -e NEXT_PUBLIC_WEBAPP_URL="$NEXT_PUBLIC_WEBAPP_URL" \
+              -e NEXTAUTH_URL="$NEXTAUTH_URL" \
+              "$IMAGE_LATEST"
+
+            sleep 8
+            sudo docker ps --filter name=calcom

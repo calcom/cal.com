@@ -7,10 +7,24 @@
     "source.organizeImports.biome": "explicit"
   },
   "typescript.preferences.importModuleSpecifier": "non-relative",
-  "spellright.language": ["en"],
-  "spellright.documentTypes": ["markdown", "typescript", "typescriptreact"],
-  "tailwindCSS.classFunctions": ["cva"],
+  "spellright.language": [
+    "en"
+  ],
+  "spellright.documentTypes": [
+    "markdown",
+    "typescript",
+    "typescriptreact"
+  ],
+  "tailwindCSS.classFunctions": [
+    "cva"
+  ],
   "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome"
+  },
+  "chat.tools.terminal.autoApprove": {
+    "/^which yc docker 2>/dev/null; yc version 2>/dev/null; docker version --format '\\{\\{\\.Client\\.Version\\}\\}' 2>/dev/null; node --version; echo \"---\"; grep -E '\\^\\(DATABASE_URL\\|DATABASE_DIRECT_URL\\|NEXTAUTH_URL\\|NEXT_PUBLIC_WEBAPP_URL\\)=' /Users/m8ig/Git/cal\\.com/\\.env$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
   }
 }
