@@ -19,7 +19,11 @@ import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
-import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
+import {
+  getEventLocationTypeFromVideoProvider,
+  getSuccessPageLocationMessage,
+  guessEventLocationType,
+} from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import {
@@ -139,6 +143,7 @@ export default function Success(props: PageProps) {
     metadata: parsedBookingMetadata,
   };
   const locationVideoCallUrl = bookingWithParsedMetadata.metadata?.videoCallUrl;
+  const resolvedVideoProvider = bookingWithParsedMetadata.metadata?.videoProvider;
 
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
@@ -357,7 +362,9 @@ export default function Success(props: PageProps) {
     bookingInfo.status
   );
 
-  const providerName = guessEventLocationType(location)?.label;
+  const providerName =
+    getEventLocationTypeFromVideoProvider(resolvedVideoProvider)?.label ||
+    guessEventLocationType(location)?.label;
   const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
   const isBookingInPast = new Date(bookingInfo.endTime) < new Date();
   const isReschedulable = !isCancelled;

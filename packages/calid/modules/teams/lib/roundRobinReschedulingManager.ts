@@ -7,7 +7,7 @@ import type { EventType } from "@calcom/features/bookings/lib/getAllCredentialsF
 import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import EventManager from "@calcom/lib/EventManager";
-import type { EventManagerUser,  EventManagerInitParams } from "@calcom/lib/EventManager";
+import type { EventManagerUser, EventManagerInitParams } from "@calcom/lib/EventManager";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
@@ -250,7 +250,14 @@ async function updateBookingRecord(
   logInstance: any
 ) {
   try {
-    const metadataUpdate = videoUrl ? { videoCallUrl: videoUrl } : undefined;
+    const resolvedVideoProvider = calEvent.videoCallData?.type;
+    const metadataUpdate =
+      videoUrl || resolvedVideoProvider
+        ? {
+            ...(videoUrl ? { videoCallUrl: videoUrl } : {}),
+            ...(resolvedVideoProvider ? { videoProvider: resolvedVideoProvider } : {}),
+          }
+        : undefined;
 
     const iCalUIDToStore = eventICalUID !== originalICalUID ? eventICalUID : originalICalUID;
 

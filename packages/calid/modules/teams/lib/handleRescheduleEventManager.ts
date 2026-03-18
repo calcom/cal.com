@@ -108,7 +108,8 @@ export const roundRobinReschedulingManager = async ({
 
       const meetingLink = Array.isArray(calendarProviderResult?.updatedEvent)
         ? calendarProviderResult.updatedEvent[0]?.hangoutLink
-        : calendarProviderResult?.updatedEvent?.hangoutLink ?? calendarProviderResult?.createdEvent?.hangoutLink;
+        : calendarProviderResult?.updatedEvent?.hangoutLink ??
+          calendarProviderResult?.createdEvent?.hangoutLink;
 
       if (meetingLink) {
         rescheduleResults.push({
@@ -134,17 +135,20 @@ export const roundRobinReschedulingManager = async ({
         });
       }
     }
-    
+
     const primaryEventResult = Array.isArray(rescheduleResults[0]?.updatedEvent)
       ? rescheduleResults[0]?.updatedEvent[0]
       : rescheduleResults[0]?.updatedEvent ?? rescheduleResults[0]?.createdEvent;
-    
+
     additionalInfo.hangoutLink = primaryEventResult?.hangoutLink;
     additionalInfo.conferenceData = primaryEventResult?.conferenceData;
     additionalInfo.entryPoints = primaryEventResult?.entryPoints;
 
     finalVideoUrl =
-      additionalInfo.hangoutLink || primaryEventResult?.url || getVideoCallUrlFromCalEvent(evt) || finalVideoUrl;
+      additionalInfo.hangoutLink ||
+      primaryEventResult?.url ||
+      getVideoCallUrlFromCalEvent(evt) ||
+      finalVideoUrl;
 
     const calendarEventResult = rescheduleResults.find((result) => result.type.includes("_calendar"));
 
@@ -152,7 +156,7 @@ export const roundRobinReschedulingManager = async ({
       ? calendarEventResult?.updatedEvent[0]?.iCalUID
       : calendarEventResult?.updatedEvent?.iCalUID || undefined;
   }
-  
+
   const clonedReferences = structuredClone(rescheduleManager.referencesToCreate);
 
   await BookingReferenceRepository.replaceBookingReferences({
@@ -165,11 +169,18 @@ export const roundRobinReschedulingManager = async ({
       finalVideoUrl = bookingLocation;
     }
 
-    const updatedMetadata = finalVideoUrl
-      ? {
-          videoCallUrl: getVideoCallUrlFromCalEvent(evt) || finalVideoUrl,
-        }
-      : undefined;
+    const resolvedVideoProvider = evt.videoCallData?.type;
+    const updatedMetadata =
+      finalVideoUrl || resolvedVideoProvider
+        ? {
+            ...(finalVideoUrl
+              ? {
+                  videoCallUrl: getVideoCallUrlFromCalEvent(evt) || finalVideoUrl,
+                }
+              : {}),
+            ...(resolvedVideoProvider ? { videoProvider: resolvedVideoProvider } : {}),
+          }
+        : undefined;
 
     await prisma.booking.update({
       where: {

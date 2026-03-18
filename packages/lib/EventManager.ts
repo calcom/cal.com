@@ -5,7 +5,7 @@ import { v5 as uuidv5 } from "uuid";
 import type { z } from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { FAKE_JITSI_CREDENTIAL } from "@calcom/app-store/jitsivideo/lib/VideoApiAdapter";
 // import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { appKeysSchema as JitsiVideoKeysSchema } from "@calcom/app-store/jitsivideo/zod";
 import { getLocationFromApp, JitsiLocationType, MeetLocationType } from "@calcom/app-store/locations";
@@ -1033,29 +1033,125 @@ export default class EventManager {
 
     /** @fixme potential bug since Google Meet are saved as `integrations:google:meet` and there are no `google:meet` type in our DB */
     const integrationName = event.location.replace("integrations:", "");
-    let videoCredential;
+    const organizerId =
+      typeof event.organizer === "object" && "id" in event.organizer ? event.organizer.id ?? null : null;
+    const availableVideoCredentials = this.videoCredentials.map((credential) => ({
+      id: credential.id,
+      type: credential.type,
+      appId: credential.appId ?? null,
+      userId: credential.userId ?? null,
+      teamId: credential.teamId ?? null,
+      delegatedToId: credential.delegatedToId ?? null,
+    }));
+
+    const providerTypeCandidates = this.videoCredentials.filter(
+      (credential: CredentialForCalendarService) =>
+        credential.type === integrationName || credential.type.includes(integrationName)
+    );
+
+    const organizerScopedProviderCandidates =
+      organizerId !== null
+        ? providerTypeCandidates.filter((credential) => credential.userId === organizerId)
+        : [];
+
+    const findByProviderType = () => {
+      if (organizerScopedProviderCandidates.length > 0) {
+        return {
+          credential: organizerScopedProviderCandidates[0],
+          source: "organizer_scoped_type_retry" as const,
+        };
+      }
+      if (providerTypeCandidates.length > 0) {
+        return {
+          credential: providerTypeCandidates[0],
+          source: "generic_type_retry" as const,
+        };
+      }
+      return { credential: undefined, source: null };
+    };
+
+    let selectedCredentialSource:
+      | "exact_id"
+      | "organizer_scoped_type_retry"
+      | "generic_type_retry"
+      | "global_fallback_jitsi"
+      | null = null;
+
+    let videoCredential: CredentialForCalendarService | undefined;
     if (event.conferenceCredentialId) {
       videoCredential = this.videoCredentials.find(
         (credential) => credential.id === event.conferenceCredentialId
       );
+      if (videoCredential) {
+        selectedCredentialSource = "exact_id";
+      }
+      if (!videoCredential) {
+        const providerRetry = findByProviderType();
+        videoCredential = providerRetry.credential;
+        selectedCredentialSource = providerRetry.source;
+        log.warn(
+          "Video credential exact-id lookup failed; attempted provider fallback",
+          safeStringify({
+            fallbackReason: "stale_id",
+            requestedLocation: event.location,
+            requestedIntegration: integrationName,
+            conferenceCredentialId: event.conferenceCredentialId,
+            organizerId,
+            scopedProviderCandidateCredentialIds: organizerScopedProviderCandidates.map(
+              (credential) => credential.id
+            ),
+            genericProviderCandidateCredentialIds: providerTypeCandidates.map((credential) => credential.id),
+            selectedCredentialSource,
+            resolvedCredentialId: videoCredential?.id ?? null,
+            resolvedCredentialType: videoCredential?.type ?? null,
+            availableVideoCredentials,
+          })
+        );
+      }
     } else {
-      videoCredential = this.videoCredentials.find((credential: CredentialForCalendarService) =>
-        credential.type.includes(integrationName)
-      );
+      const providerRetry = findByProviderType();
+      videoCredential = providerRetry.credential;
+      selectedCredentialSource = providerRetry.source;
       log.warn(
-        `Could not find conferenceCredentialId for event with location: ${event.location}, trying to use last added video credential`
+        "No conferenceCredentialId on event; resolving video credential by provider",
+        safeStringify({
+          fallbackReason: "missing_conference_credential_id",
+          requestedLocation: event.location,
+          requestedIntegration: integrationName,
+          conferenceCredentialId: null,
+          organizerId,
+          scopedProviderCandidateCredentialIds: organizerScopedProviderCandidates.map(
+            (credential) => credential.id
+          ),
+          genericProviderCandidateCredentialIds: providerTypeCandidates.map((credential) => credential.id),
+          selectedCredentialSource,
+          resolvedCredentialId: videoCredential?.id ?? null,
+          resolvedCredentialType: videoCredential?.type ?? null,
+          availableVideoCredentials,
+        })
       );
     }
 
     /**
-     * This might happen if someone tries to use a location with a missing credential, so we fallback to Cal Video.
+     * This might happen if someone tries to use a location with a missing credential, so we fallback to Jitsi.
      * @todo remove location from event types that has missing credentials
      * */
     if (!videoCredential) {
+      selectedCredentialSource = "global_fallback_jitsi";
       log.warn(
-        `Falling back to "daily" video integration for event with location: ${event.location} because credential is missing for the app`
+        "Falling back to jitsi video integration because no provider credential could be resolved",
+        safeStringify({
+          fallbackReason: "missing_provider_credential",
+          fallbackProvider: "jitsi_video",
+          selectedCredentialSource,
+          requestedLocation: event.location,
+          requestedIntegration: integrationName,
+          conferenceCredentialId: event.conferenceCredentialId ?? null,
+          organizerId,
+          availableVideoCredentials,
+        })
       );
-      videoCredential = { ...FAKE_DAILY_CREDENTIAL };
+      videoCredential = { ...FAKE_JITSI_CREDENTIAL };
     }
 
     return videoCredential;
