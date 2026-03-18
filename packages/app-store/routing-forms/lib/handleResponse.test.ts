@@ -323,4 +323,93 @@ describe("handleResponse", () => {
       })
     ).rejects.toThrow(/Chosen route is a router/);
   });
+
+  it("should save already normalized phone number as received", async () => {
+    const formWithPhone: TargetRoutingFormForResponse = {
+      ...mockForm,
+      fields: [
+        ...mockForm.fields,
+        {
+          id: "phone",
+          label: "Phone",
+          type: "phone" as const,
+          required: true,
+          identifier: "phone",
+          placeholder: undefined,
+          selectText: undefined,
+          deleted: false,
+          uiConfig: { defaultCountryCode: "+1" },
+        },
+      ],
+    };
+    const responseWithNormalizedPhone = {
+      ...mockResponse,
+      phone: { value: "+14155552671", label: "Phone" },
+    };
+    vi.mocked(mockRoutingFormResponseRepository.recordFormResponse).mockResolvedValue({
+      id: 1,
+      formId: formWithPhone.id,
+      response: {
+        ...mockResponse,
+        phone: { value: "+14155552671", label: "Phone" },
+      },
+      chosenRouteId: null,
+      formFillerId: "user1",
+      routedToBookingUid: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any);
+
+    await handleResponse({
+      response: responseWithNormalizedPhone,
+      form: formWithPhone,
+      identifierKeyedResponse: null,
+      formFillerId: "user1",
+      chosenRouteId: null,
+      isPreview: false,
+    });
+
+    expect(mockRoutingFormResponseRepository.recordFormResponse).toHaveBeenCalledWith({
+      formId: formWithPhone.id,
+      response: {
+        ...mockResponse,
+        phone: { value: "+14155552671", label: "Phone" },
+      },
+      chosenRouteId: null,
+    });
+  });
+
+  it("should throw for invalid phone number", async () => {
+    const formWithPhone: TargetRoutingFormForResponse = {
+      ...mockForm,
+      fields: [
+        ...mockForm.fields,
+        {
+          id: "phone",
+          label: "Phone",
+          type: "phone" as const,
+          required: true,
+          identifier: "phone",
+          placeholder: undefined,
+          selectText: undefined,
+          deleted: false,
+          uiConfig: { defaultCountryCode: "+1" },
+        },
+      ],
+    };
+
+    await expect(
+      handleResponse({
+        response: {
+          ...mockResponse,
+          phone: { value: "123", label: "Phone" },
+        },
+        form: formWithPhone,
+        identifierKeyedResponse: null,
+        formFillerId: "user1",
+        chosenRouteId: null,
+        isPreview: false,
+      })
+    ).rejects.toThrow(/should be valid phone/);
+  });
 });

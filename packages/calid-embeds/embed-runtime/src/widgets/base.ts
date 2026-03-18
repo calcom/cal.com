@@ -30,9 +30,12 @@ export class EmbedWidgetBase extends HTMLElement {
   public currentThemeClass!: string;
   public currentLayout!: LayoutOption;
   public skeletonProvider!: SkeletonProvider;
+  public isLoaderVisible = false;
+  public hasLoaderImageFailed = false;
 
   private resizeHandler: () => void;
   private darkSchemeHandler: (e: MediaQueryListEvent) => void;
+  private customLoaderErrorHandler: (() => void) | null = null;
 
   public assertShadow(): asserts this is HTMLElement & { shadowRoot: ShadowWithHost } {
     if (!this.shadowRoot) throw new Error("No shadow root");
@@ -65,6 +68,63 @@ export class EmbedWidgetBase extends HTMLElement {
     return requireEl(this.shadowRoot, ".loader", "loader");
   }
 
+  getCustomLoaderWrapper(): HTMLElement | null {
+    this.assertShadow();
+    return this.shadowRoot.querySelector<HTMLElement>(".custom-loader-wrapper");
+  }
+
+  getCustomLoaderImg(): HTMLImageElement | null {
+    this.assertShadow();
+    return this.shadowRoot.querySelector<HTMLImageElement>(".custom-loader-image");
+  }
+
+  getLoaderUrl(): string | null {
+    const loaderUrl = this.dataset.loaderUrl?.trim();
+    return loaderUrl ? loaderUrl : null;
+  }
+
+  private usesCustomLoader(): boolean {
+    return !!this.getLoaderUrl() && !this.hasLoaderImageFailed;
+  }
+
+  private showLoaderState(visible: boolean): void {
+    const defaultLoader = this.getLoaderEl();
+    const customLoader = this.getCustomLoaderWrapper();
+
+    if (!visible) {
+      defaultLoader.style.display = "none";
+      if (customLoader) customLoader.style.display = "none";
+      return;
+    }
+
+    if (this.usesCustomLoader() && customLoader) {
+      customLoader.style.display = "block";
+      defaultLoader.style.display = "none";
+      return;
+    }
+
+    defaultLoader.style.display = "block";
+    if (customLoader) customLoader.style.display = "none";
+  }
+
+  private installCustomLoader(): void {
+    const url = this.getLoaderUrl();
+    const img = this.getCustomLoaderImg();
+    if (!img || !url) return;
+    if (img.dataset.loaderSetup === "true" && img.src === url) return;
+
+    if (this.customLoaderErrorHandler) img.removeEventListener("error", this.customLoaderErrorHandler);
+
+    img.dataset.loaderSetup = "true";
+    this.hasLoaderImageFailed = false;
+    this.customLoaderErrorHandler = () => {
+      this.hasLoaderImageFailed = true;
+      this.showLoaderState(this.isLoaderVisible);
+    };
+    img.addEventListener("error", this.customLoaderErrorHandler);
+    img.src = url;
+  }
+
   private syncSkeletonHeight(): void {
     const sk = this.getSkeletonEl();
     const container = this.getSkeletonContainer();
@@ -95,16 +155,18 @@ export class EmbedWidgetBase extends HTMLElement {
 
   public toggleLoader(visible: boolean): void {
     const sk = this.getSkeletonEl();
-    const loader = this.getLoaderEl();
     const container = this.getSkeletonContainer();
     const hasSkeleton = this.supportsSkeleton();
+    const hasCustomLoaderUrl = !!this.getLoaderUrl();
+    this.isLoaderVisible = visible;
+    this.installCustomLoader();
 
     if (!hasSkeleton) {
-      loader.style.display = visible ? "block" : "none";
+      this.showLoaderState(visible);
       sk.style.display = "none";
     } else {
       sk.style.display = visible ? "block" : "none";
-      loader.style.display = "none";
+      this.showLoaderState(visible && !hasCustomLoaderUrl);
       if (!this.isModal && !visible) container.style.display = "none";
     }
 
@@ -163,12 +225,16 @@ export class EmbedWidgetBase extends HTMLElement {
   }
 
   connectedCallback(): void {
+    this.installCustomLoader();
     this.toggleLoader(true);
     window.addEventListener("resize", this.resizeHandler);
     addDarkSchemeListener(this.darkSchemeHandler);
   }
 
   disconnectedCallback(): void {
+    const img = this.getCustomLoaderImg();
+    if (img && this.customLoaderErrorHandler) img.removeEventListener("error", this.customLoaderErrorHandler);
+    this.customLoaderErrorHandler = null;
     if (this.skeletonTimer) cancelAnimationFrame(this.skeletonTimer);
     window.removeEventListener("resize", this.resizeHandler);
     removeDarkSchemeListener(this.darkSchemeHandler);

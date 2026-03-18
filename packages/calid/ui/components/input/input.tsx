@@ -28,7 +28,6 @@ export const inputStyles = cva(
     // States
     "hover:border-emphasis",
     "focus:ring-0",
-    "focus:shadow-none",
 
     // Disabled state
     "disabled:bg-subtle",
@@ -48,11 +47,11 @@ export const inputStyles = cva(
         md: "h-8 px-3 py-2 text-sm",
       },
       variant: {
-        default: "",
+        default: "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
         floating: [
           "peer w-full bg-transparent focus:outline-none font-medium",
           "placeholder:opacity-0 focus:placeholder:opacity-100",
-          "border-0 focus:ring-0 shadow-none",
+          "border-0 focus:ring-0 shadow-none focus:shadow-none",
         ],
         underline: [
           "bg-transparent border-0 border-b border-brand-default rounded-none px-0 py-2",

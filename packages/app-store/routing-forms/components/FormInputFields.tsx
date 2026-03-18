@@ -12,6 +12,7 @@ import { LAYOUT_ONLY_TYPES } from "@calcom/features/form-builder/components/buil
 import { Checkbox, DatePicker } from "@calcom/ui/components/form";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
+import { applyDefaultCountryCodeToPhoneValue } from "../lib/phoneUtils";
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfigForFormFields } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
@@ -47,7 +48,15 @@ export const getValidationErrorMessage = (field: any, value: unknown) => {
     }
     if (field.type === "phone") {
       try {
-        validatePhoneInput(String(value), "Invalid phone number");
+        const defaultCountryCode =
+          typeof field.uiConfig?.defaultCountryCode === "string"
+            ? field.uiConfig.defaultCountryCode
+            : undefined;
+        const resolvedPhoneValue = applyDefaultCountryCodeToPhoneValue({
+          value: String(value),
+          defaultCountryCode,
+        });
+        validatePhoneInput(resolvedPhoneValue, "Invalid phone number");
         return null;
       } catch (e) {
         return "Please enter valid phone number";
@@ -335,6 +344,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                 className="w-full"
                 buttonClassName={dateButtonClassName}
                 buttonStyle={underlineStyle}
+                popoverSide="top"
                 placeholder={field.placeholder || "Pick a date"}
                 onBlur={() => setTouched((prev) => ({ ...prev, [field.id]: true }))}
                 variant={field.uiConfig?.datePickerVariant ?? "default"}
@@ -356,6 +366,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                 formContext={calendarFormContext ?? {}}
                 disabled={isDisabled}
                 fieldStyle={fieldStyle}
+                datePickerVariant={field.uiConfig?.datePickerVariant ?? "default"}
                 accentColor={accentColor}
                 secondaryColor={secondaryColor}
               />

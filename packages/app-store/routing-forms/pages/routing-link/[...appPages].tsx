@@ -20,7 +20,7 @@ import { useCalcomTheme } from "@calcom/ui/styles";
 import { getValidationErrorMessage } from "../../components/FormInputFields";
 import RoutingFormRenderer from "../../components/RoutingFormRenderer";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
-import { applyFieldUpdate, resolveEventTypeValue } from "../../lib/calendarIntegrationAdapter";
+import { applyFieldUpdate, parseEventTypeInput, resolveEventTypeValue } from "../../lib/calendarIntegrationAdapter";
 import { getDisplayValueForValue } from "../../lib/transformResponse";
 import {
   attachCommandListener,
@@ -30,6 +30,7 @@ import {
 } from "../../lib/embedIntegration";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { findMatchingRoute } from "../../lib/processRoute";
+import { applyDefaultCountryCodeToPhoneValue } from "../../lib/phoneUtils";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
 import type { NonRouterRoute, FormResponse } from "../../types/types";
@@ -55,6 +56,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   const [customPageMessage, setCustomPageMessage] = useState<NonRouterRoute["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
   const [showErrors, setShowErrors] = useState(false);
+  const [isAwaitingBookingAck, setIsAwaitingBookingAck] = useState(false);
   const isEmbed = useIsEmbed(restProps.isEmbed);
   const [calendarEventType, setCalendarEventType] = useState<string | null>(null);
   const isEmbedAckEnabled =
@@ -68,6 +70,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   });
 
   const [response, setResponse] = usePrefilledResponse(form);
+  const responseRef = useRef(response);
   const pageSearchParams = useCompatSearchParams();
   const isBookingDryRun = pageSearchParams?.get("cal.isBookingDryRun") === "true";
 
@@ -94,6 +97,10 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   );
 
   useEffect(() => {
+    responseRef.current = response;
+  }, [response]);
+
+  useEffect(() => {
     const fromResponse = resolveEventTypeValue(response, form.fields, "event_type");
     if (fromResponse && fromResponse !== calendarEventType) {
       setCalendarEventType(fromResponse);
@@ -107,12 +114,23 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     }
   };
 
-  const handleAck = (submissionId: string, redirectUrl?: string) => {
+  const handleAck = (success: boolean, submissionId: string, redirectUrl?: string, error?: string, successMsg?: string) => {
     console.log("Received ack for submissionId:", submissionId, "with redirectUrl:", redirectUrl);
 
     if (!isEmbedAckEnabled) return;
     if (pendingSubmissionIdRef.current !== submissionId) return;
+
     clearPendingTimeout();
+    setIsAwaitingBookingAck(false);
+
+    if(!success) {
+        return void triggerToast(error ?? "Unknown error", "error");
+    }
+
+    if(success && successMsg) {
+        return void triggerToast(successMsg);
+    }
+
     const finalUrl = redirectUrl;
 
     console.log(
@@ -137,15 +155,34 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         setResponse((prev) => applyFieldUpdate(prev, identifier, value, form.fields));
       },
       onSetCalendarEventType: (eventType, fieldIdentifier) => {
-        setCalendarEventType(eventType);
+        let resolvedEventType = eventType?.trim() ?? "";
+        if (!resolvedEventType) {
+          const latestResponse = responseRef.current;
+          const chosenRoute = findMatchingRoute({ form, response: latestResponse });
+          if (chosenRoute) {
+            const routedValue = substituteVariables(
+              chosenRoute.action.value,
+              latestResponse,
+              form.fields ?? []
+            );
+            const parsed = parseEventTypeInput(routedValue, calendarFormContext);
+            console.log("Parsed event: ", parsed)
+            if (parsed.eventSlug) {
+              resolvedEventType = parsed.fullPath;
+            }
+          }
+        }
+        if (!resolvedEventType) return;
+
+        setCalendarEventType(resolvedEventType);
         const targetIdentifier = fieldIdentifier ?? "event_type";
         const targetField = form.fields?.find(
           (field) => getFieldIdentifier(field) === targetIdentifier
         );
         if (targetField?.type === "calendar") return;
-        setResponse((prev) => applyFieldUpdate(prev, targetIdentifier, eventType, form.fields));
+        setResponse((prev) => applyFieldUpdate(prev, targetIdentifier, resolvedEventType, form.fields));
       },
-      onAck: (submissionId, redirectUrl) => handleAck(submissionId, redirectUrl),
+      onAck: (success, submissionId, redirectUrl, error, successMsg) => handleAck(success, submissionId, redirectUrl, error, successMsg),
     });
   }, [isEmbed, form.fields, isEmbedAckEnabled]);
 
@@ -177,7 +214,29 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   };
 
   const onSubmit = (response: FormResponse) => {
-    const chosenRoute = findMatchingRoute({ form, response });
+    const normalizedResponse = Object.fromEntries(
+      Object.entries(response).map(([fieldId, fieldResponse]) => {
+        const field = form.fields?.find((item) => item.id === fieldId);
+        if (!field || field.type !== "phone" || typeof fieldResponse?.value !== "string") {
+          return [fieldId, fieldResponse];
+        }
+        const defaultCountryCode =
+          typeof field.uiConfig?.defaultCountryCode === "string"
+            ? field.uiConfig.defaultCountryCode
+            : undefined;
+        return [
+          fieldId,
+          {
+            ...fieldResponse,
+            value: applyDefaultCountryCodeToPhoneValue({
+              value: fieldResponse.value,
+              defaultCountryCode,
+            }),
+          },
+        ];
+      })
+    ) as FormResponse;
+    const chosenRoute = findMatchingRoute({ form, response: normalizedResponse });
 
     if (!chosenRoute) {
       // This error should never happen as we ensure that fallback route is always there that matches always
@@ -187,14 +246,14 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     responseMutation.mutate({
       formId: form.id,
       formFillerId,
-      response: response,
+      response: normalizedResponse,
       chosenRouteId: chosenRoute.id,
       isPreview: isBookingDryRun,
     });
 
     chosenRouteWithFormResponseRef.current = {
       route: chosenRoute,
-      response,
+      response: normalizedResponse,
     };
   };
 
@@ -280,13 +339,20 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
             ? `${decidedAction.value}?${allURLSearchParams}`
             : null;
         pendingSubmissionIdRef.current = submissionId;
+        setIsAwaitingBookingAck(true);
         pendingFallbackRef.current = () => setCustomPageMessage(bookingAckTimeoutMessage);
         clearPendingTimeout();
         pendingTimeoutRef.current = window.setTimeout(() => {
           pendingSubmissionIdRef.current = null;
           pendingFallbackRef.current = null;
+          setIsAwaitingBookingAck(false);
           setCustomPageMessage(bookingAckTimeoutMessage);
         }, 20000);
+
+        const resolvedEventTypeForCalendar =
+          calendarEventType ??
+          resolveEventTypeValue(chosenRouteWithFormResponse.response, fields, "event_type") ??
+          null;
 
         const responseWithDisplayValue = Object.fromEntries(
           Object.entries(chosenRouteWithFormResponse.response).map(([fieldId, fieldResponse]) => {
@@ -299,7 +365,13 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
               value: fieldResponse.value,
             });
             if (displayValue === undefined) {
-              return [fieldId, fieldResponse];
+              if (field.type !== "calendar") {
+                return [fieldId, fieldResponse];
+              }
+              return [fieldId, { ...fieldResponse, eventType: resolvedEventTypeForCalendar }];
+            }
+            if (field.type === "calendar") {
+              return [fieldId, { ...fieldResponse, displayValue, eventType: resolvedEventTypeForCalendar }];
             }
             return [fieldId, { ...fieldResponse, displayValue }];
           })
@@ -319,10 +391,12 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       }
 
       runDecidedAction();
+      setIsAwaitingBookingAck(false);
       // We don't want to show this message as it doesn't look good in Embed.
       // triggerToast("Form submitted successfully! Redirecting now ...", "success");
     },
     onError: (e) => {
+      setIsAwaitingBookingAck(false);
       if (e?.message) {
         return void triggerToast(e?.message, "error");
       }
@@ -345,8 +419,13 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     if (hasErrors) {
       return;
     }
+    if (isEmbedAckEnabled) {
+      setIsAwaitingBookingAck(true);
+    }
     onSubmit(response);
   };
+
+  const isSubmitInProgress = responseMutation.isPending || isAwaitingBookingAck;
 
   return (
     <div className={classNames("min-h-screen w-full", isEmbed ? "" : "md:min-h-screen")}>
@@ -359,8 +438,8 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
               form={form}
               response={response}
               setResponse={setResponse}
-              submitLoading={responseMutation.isPending}
-              submitDisabled={responseMutation.isPending}
+              submitLoading={isSubmitInProgress}
+              submitDisabled={isSubmitInProgress}
               showErrors={showErrors}
               className="w-full"
               calendarEventType={calendarEventType}

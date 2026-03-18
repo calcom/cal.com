@@ -44,9 +44,9 @@ export const resolveEventTypeValue = (
 export const parseEventTypeInput = (
   input: string,
   context: EventTypeContext = {}
-): { username: string | null; eventSlug: string | null; isTeamEvent: boolean } => {
+): { username: string | null; eventSlug: string | null; isTeamEvent: boolean; fullPath: string | null } => {
   const raw = input.trim();
-  if (!raw) return { username: null, eventSlug: null, isTeamEvent: false };
+  if (!raw) return { username: null, eventSlug: null, isTeamEvent: false, fullPath: null };
   let path = raw;
   try {
     if (raw.startsWith("http://") || raw.startsWith("https://")) {
@@ -58,18 +58,18 @@ export const parseEventTypeInput = (
   if (path.startsWith("/")) path = path.slice(1);
   const parts = path.split("?")[0].split("#")[0].split("/").filter(Boolean);
   if (parts[0] === "team" && parts.length >= 3) {
-    return { username: parts[1], eventSlug: parts[2], isTeamEvent: true };
+    return { username: parts[1], eventSlug: parts[2], isTeamEvent: true, fullPath: path };
   }
   if (parts.length >= 2) {
-    return { username: parts[0], eventSlug: parts[1], isTeamEvent: false };
+    return { username: parts[0], eventSlug: parts[1], isTeamEvent: false, fullPath: path };
   }
   if (context.teamSlug) {
-    return { username: context.teamSlug, eventSlug: parts[0] ?? raw, isTeamEvent: true };
+    return { username: context.teamSlug, eventSlug: parts[0] ?? raw, isTeamEvent: true, fullPath: path };
   }
   if (context.username) {
-    return { username: context.username, eventSlug: parts[0] ?? raw, isTeamEvent: false };
+    return { username: context.username, eventSlug: parts[0] ?? raw, isTeamEvent: false, fullPath: path };
   }
-  return { username: null, eventSlug: parts[0] ?? raw, isTeamEvent: false };
+  return { username: null, eventSlug: parts[0] ?? raw, isTeamEvent: false, fullPath: path };
 };
 
 export const validateEventOwnership = (
