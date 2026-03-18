@@ -21,7 +21,7 @@ describe("post-message", () => {
         type: "set_calendar_event_type",
         payload: {},
       })
-    ).toBeNull();
+    ).not.toBeNull();
   });
 
   it("validates set_calendar_event_type payload", () => {
@@ -30,7 +30,7 @@ describe("post-message", () => {
         ...baseMessage,
         payload: { eventType: "" },
       })
-    ).toBeNull();
+    ).not.toBeNull();
 
     expect(
       parsePostMessage({

@@ -54,7 +54,7 @@ const baseEnvelopeSchema = z.object({
 });
 
 const setCalendarEventTypePayloadSchema = z.object({
-  eventType: z.string().min(1),
+  eventType: z.string().optional(),
   fieldIdentifier: z.string().optional(),
 });
 

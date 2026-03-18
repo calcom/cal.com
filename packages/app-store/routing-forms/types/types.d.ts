@@ -25,6 +25,7 @@ export type FormResponse = Record<
     identifier?: string;
     optionId?: string | string[];
     displayValue?: string | string[];
+    eventType?: string | null;
   }
 >;
 

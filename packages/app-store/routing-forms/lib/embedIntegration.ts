@@ -33,7 +33,7 @@ export type FormSubmissionPayload = {
 
 export type EmbedCommandHandlers = {
   onSetFieldValue: (fieldIdentifier: string, value: number | string | string[]) => void;
-  onSetCalendarEventType: (eventType: string, fieldIdentifier?: string) => void;
+  onSetCalendarEventType: (eventType: string | undefined, fieldIdentifier?: string) => void;
   onAck: (success: boolean, submissionId: string, redirectUrl?: string, error?: string, successMsg?: string) => void;
 };
 
@@ -70,7 +70,7 @@ export const attachCommandListener = (handlers: EmbedCommandHandlers) => {
     handlers: {
       set_calendar_event_type: (msg) => {
         handlers.onSetCalendarEventType(
-          msg.payload.eventType as string,
+          msg.payload.eventType as string | undefined,
           msg.payload.fieldIdentifier as string | undefined
         );
       },

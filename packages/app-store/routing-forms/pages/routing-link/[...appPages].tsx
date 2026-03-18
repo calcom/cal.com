@@ -20,7 +20,7 @@ import { useCalcomTheme } from "@calcom/ui/styles";
 import { getValidationErrorMessage } from "../../components/FormInputFields";
 import RoutingFormRenderer from "../../components/RoutingFormRenderer";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
-import { applyFieldUpdate, resolveEventTypeValue } from "../../lib/calendarIntegrationAdapter";
+import { applyFieldUpdate, parseEventTypeInput, resolveEventTypeValue } from "../../lib/calendarIntegrationAdapter";
 import { getDisplayValueForValue } from "../../lib/transformResponse";
 import {
   attachCommandListener,
@@ -70,6 +70,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   });
 
   const [response, setResponse] = usePrefilledResponse(form);
+  const responseRef = useRef(response);
   const pageSearchParams = useCompatSearchParams();
   const isBookingDryRun = pageSearchParams?.get("cal.isBookingDryRun") === "true";
 
@@ -94,6 +95,10 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     }),
     [form]
   );
+
+  useEffect(() => {
+    responseRef.current = response;
+  }, [response]);
 
   useEffect(() => {
     const fromResponse = resolveEventTypeValue(response, form.fields, "event_type");
@@ -150,13 +155,32 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         setResponse((prev) => applyFieldUpdate(prev, identifier, value, form.fields));
       },
       onSetCalendarEventType: (eventType, fieldIdentifier) => {
-        setCalendarEventType(eventType);
+        let resolvedEventType = eventType?.trim() ?? "";
+        if (!resolvedEventType) {
+          const latestResponse = responseRef.current;
+          const chosenRoute = findMatchingRoute({ form, response: latestResponse });
+          if (chosenRoute) {
+            const routedValue = substituteVariables(
+              chosenRoute.action.value,
+              latestResponse,
+              form.fields ?? []
+            );
+            const parsed = parseEventTypeInput(routedValue, calendarFormContext);
+            console.log("Parsed event: ", parsed)
+            if (parsed.eventSlug) {
+              resolvedEventType = parsed.fullPath;
+            }
+          }
+        }
+        if (!resolvedEventType) return;
+
+        setCalendarEventType(resolvedEventType);
         const targetIdentifier = fieldIdentifier ?? "event_type";
         const targetField = form.fields?.find(
           (field) => getFieldIdentifier(field) === targetIdentifier
         );
         if (targetField?.type === "calendar") return;
-        setResponse((prev) => applyFieldUpdate(prev, targetIdentifier, eventType, form.fields));
+        setResponse((prev) => applyFieldUpdate(prev, targetIdentifier, resolvedEventType, form.fields));
       },
       onAck: (success, submissionId, redirectUrl, error, successMsg) => handleAck(success, submissionId, redirectUrl, error, successMsg),
     });
@@ -325,6 +349,11 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
           setCustomPageMessage(bookingAckTimeoutMessage);
         }, 20000);
 
+        const resolvedEventTypeForCalendar =
+          calendarEventType ??
+          resolveEventTypeValue(chosenRouteWithFormResponse.response, fields, "event_type") ??
+          null;
+
         const responseWithDisplayValue = Object.fromEntries(
           Object.entries(chosenRouteWithFormResponse.response).map(([fieldId, fieldResponse]) => {
             const field = form.fields?.find((item) => item.id === fieldId);
@@ -336,7 +365,13 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
               value: fieldResponse.value,
             });
             if (displayValue === undefined) {
-              return [fieldId, fieldResponse];
+              if (field.type !== "calendar") {
+                return [fieldId, fieldResponse];
+              }
+              return [fieldId, { ...fieldResponse, eventType: resolvedEventTypeForCalendar }];
+            }
+            if (field.type === "calendar") {
+              return [fieldId, { ...fieldResponse, displayValue, eventType: resolvedEventTypeForCalendar }];
             }
             return [fieldId, { ...fieldResponse, displayValue }];
           })
