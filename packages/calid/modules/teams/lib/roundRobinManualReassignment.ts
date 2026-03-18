@@ -1,7 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
-import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
+import {
+  DefaultFallbackVideoLocationType,
+  OrganizerDefaultConferencingAppType,
+  getLocationValueForDB,
+} from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import {
   sendRoundRobinCancelledEmailsAndSMS as RRCancelledEmailAndSMS,
@@ -271,7 +275,7 @@ async function determineLocationForNewOrganizer(
 
   const targetMeta = userMetadata.safeParse(data.targetHost.user.metadata);
   const defaultApp = targetMeta.success ? targetMeta.data?.defaultConferencingApp?.appLink : undefined;
-  const currentLoc = data.booking.location || "integrations:daily";
+  const currentLoc = data.booking.location || DefaultFallbackVideoLocationType;
 
   return defaultApp || getLocationValueForDB(currentLoc, data.eventType.locations).bookingLocation;
 }
@@ -291,7 +295,7 @@ async function generateBookingTitle(
     eventName: data.eventType.eventName,
     teamName: data.eventType.team?.name,
     host: data.targetHost.user.name || "Nameless",
-    location: location || "integrations:daily",
+    location: location || DefaultFallbackVideoLocationType,
     bookingFields: { ...responses },
     eventDuration: durationMinutes,
     t: targetTranslation,
@@ -451,7 +455,7 @@ async function synchronizeCalendars(
     bookingICalUID: updatedBooking.iCalUID,
     bookingMetadata: updatedBooking.metadata,
   });
-  console.log("Event after sync: ", evtWithAdditionalInfo)
+  console.log("Event after sync: ", evtWithAdditionalInfo);
 
   return evtWithAdditionalInfo;
 }
@@ -641,7 +645,7 @@ async function fetchActiveReminders(booking: BookingSelectResult): Promise<any[]
     WorkflowTriggerEvents.AFTER_EVENT,
   ];
 
-  const bookingUid = booking.uid
+  const bookingUid = booking.uid;
 
   return await prisma.calIdWorkflowReminder.findMany({
     where: {

@@ -648,7 +648,7 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
 
 export const deleteScheduledEmailReminder = async (
   reminderIdentifier: number,
-  referenceIdentifier: string | null
+  referenceIdentifier?: string | null
 ) => {
   try {
     await prisma.calIdWorkflowReminder.update({

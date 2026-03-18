@@ -61,6 +61,8 @@ export const DailyLocationType = "integrations:daily";
 
 export const JitsiLocationType = "integrations:jitsi";
 
+export const DefaultFallbackVideoLocationType = JitsiLocationType;
+
 export const MeetLocationType = "integrations:google:meet";
 
 /**
@@ -280,6 +282,44 @@ const getStaticLinkLocationByValue = (value: string | undefined | null) => {
 
 export const guessEventLocationType = (locationTypeOrValue: string | undefined | null) =>
   getEventLocationType(locationTypeOrValue) || getStaticLinkLocationByValue(locationTypeOrValue);
+
+export const getEventLocationTypeFromVideoProvider = (videoProvider: string | undefined | null) => {
+  if (!videoProvider) {
+    return null;
+  }
+
+  const normalizedProvider = videoProvider.trim();
+  const providerCandidates = new Set<string>([normalizedProvider, `integrations:${normalizedProvider}`]);
+
+  if (normalizedProvider === "daily_video") {
+    providerCandidates.add(DailyLocationType);
+  }
+
+  if (normalizedProvider === "jitsi_video") {
+    providerCandidates.add(JitsiLocationType);
+  }
+
+  if (normalizedProvider === "google_meet_video") {
+    providerCandidates.add(MeetLocationType);
+  }
+
+  if (normalizedProvider.endsWith("_video")) {
+    providerCandidates.add(`integrations:${normalizedProvider.replace(/_video$/, "")}`);
+  }
+
+  if (normalizedProvider.endsWith("_conferencing")) {
+    providerCandidates.add(`integrations:${normalizedProvider.replace(/_conferencing$/, "")}`);
+  }
+
+  for (const candidate of providerCandidates) {
+    const eventLocationType = getEventLocationType(candidate);
+    if (eventLocationType) {
+      return eventLocationType;
+    }
+  }
+
+  return null;
+};
 
 export const LocationType = { ...DefaultEventLocationTypeEnum, ...AppStoreLocationType };
 
