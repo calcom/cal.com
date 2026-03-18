@@ -568,6 +568,7 @@
     },
     "@calcom/prisma#db-reset": {
       "cache": false,
+      "env": ["DATABASE_PORT"],
       "outputs": ["dist/**", "build/**"]
     },
     "@calcom/app-store-cli#build": {
