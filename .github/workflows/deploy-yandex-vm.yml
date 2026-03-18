@@ -60,12 +60,13 @@ jobs:
           CALENDSO_ENCRYPTION_KEY: ${{ secrets.CALENDSO_ENCRYPTION_KEY }}
           NEXT_PUBLIC_WEBAPP_URL: ${{ secrets.NEXT_PUBLIC_WEBAPP_URL }}
           NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          GOOGLE_API_CREDENTIALS: ${{ secrets.GOOGLE_API_CREDENTIALS }}
         with:
           host: ${{ secrets.YC_VM_HOST }}
           username: ${{ secrets.YC_VM_USER }}
           key: ${{ secrets.YC_VM_SSH_KEY }}
           script_stop: true
-          envs: IMAGE_LATEST,YC_SA_JSON_CREDENTIALS_B64,DATABASE_URL,DATABASE_HOST,NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL
+          envs: IMAGE_LATEST,YC_SA_JSON_CREDENTIALS_B64,DATABASE_URL,DATABASE_HOST,NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL,GOOGLE_API_CREDENTIALS
           script: |
             set -e
 
@@ -88,6 +89,7 @@ jobs:
               -e CALENDSO_ENCRYPTION_KEY="$CALENDSO_ENCRYPTION_KEY" \
               -e NEXT_PUBLIC_WEBAPP_URL="$NEXT_PUBLIC_WEBAPP_URL" \
               -e NEXTAUTH_URL="$NEXTAUTH_URL" \
+              -e GOOGLE_API_CREDENTIALS="$GOOGLE_API_CREDENTIALS" \
               "$IMAGE_LATEST"
 
             sleep 8
