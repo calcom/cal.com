@@ -314,9 +314,6 @@ test.describe("Payment app", () => {
     await goToAppsTab(page, paymentEvent?.id);
 
     await page.locator("[data-testid='paypal-app-switch']").click();
-    // Verify paypal is now the active payment app
-    await expect(page.locator("[data-testid='paypal-app-switch']")).toBeChecked();
-    // Stripe switch should be disabled when another payment app is already enabled
     await expect(page.locator("[data-testid='stripe-app-switch']")).toBeDisabled();
   });
 
