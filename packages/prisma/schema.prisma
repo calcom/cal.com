@@ -696,6 +696,7 @@ model CreditPurchaseLog {
   creditBalanceId String
   creditBalance   CreditBalance @relation(fields: [creditBalanceId], references: [id], onDelete: Cascade)
   credits         Int
+  stripeSessionId String?       @unique
   createdAt       DateTime      @default(now())
 }
 

@@ -1,6 +1,8 @@
+import { getCreditPurchaseLogRepository } from "@calcom/features/di/containers/CreditPurchaseLogRepository";
 import { getCreditsRepository } from "@calcom/features/di/containers/CreditsRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import type { SWHMap } from "./__handler";
 import { HttpCode } from "./__handler";
 
@@ -28,16 +30,43 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
     throw new HttpCode(400, "Invalid price ID");
   }
 
+  const creditPurchaseLogRepository = getCreditPurchaseLogRepository();
+
+  const existing = await creditPurchaseLogRepository.findByStripeSessionId(session.id);
+
+  if (existing) {
+    log.info("Credit purchase already processed, skipping", { stripeSessionId: session.id, userId, teamId });
+    return { success: true };
+  }
+
   const creditsRepository = getCreditsRepository();
 
-  const creditBalance = teamId
-    ? await creditsRepository.upsertTeamBalance({ teamId, additionalCredits: nrOfCredits })
-    : await creditsRepository.upsertUserBalance({ userId: userId!, additionalCredits: nrOfCredits });
+  try {
+    await prisma.$transaction(async (tx) => {
+      const creditBalance = teamId
+        ? await creditsRepository.upsertTeamBalance({ teamId, additionalCredits: nrOfCredits }, tx)
+        : await creditsRepository.upsertUserBalance({ userId: userId!, additionalCredits: nrOfCredits }, tx);
 
-  await creditsRepository.createCreditPurchaseLog({
-    credits: nrOfCredits,
-    creditBalanceId: creditBalance.id,
-  });
+      await creditPurchaseLogRepository.create(
+        {
+          credits: nrOfCredits,
+          creditBalanceId: creditBalance.id,
+          stripeSessionId: session.id,
+        },
+        tx
+      );
+    });
+  } catch (error) {
+    log.error("saveToCreditBalance failed", {
+      userId,
+      teamId,
+      nrOfCredits,
+      stripeSessionId: session.id,
+      error:
+        error instanceof Error ? { message: error.message, name: error.name, stack: error.stack } : error,
+    });
+    throw error;
+  }
 
   log.info("Credit purchase completed", { teamId, userId, nrOfCredits });
 

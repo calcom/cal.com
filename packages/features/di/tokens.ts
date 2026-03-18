@@ -83,6 +83,8 @@ export const DI_TOKENS = {
   ASSIGNMENT_REASON_REPOSITORY_MODULE: Symbol("AssignmentReasonRepositoryModule"),
   CREDITS_REPOSITORY: Symbol("PrismaCreditsRepository"),
   CREDITS_REPOSITORY_MODULE: Symbol("PrismaCreditsRepositoryModule"),
+  CREDIT_PURCHASE_LOG_REPOSITORY: Symbol("PrismaCreditPurchaseLogRepository"),
+  CREDIT_PURCHASE_LOG_REPOSITORY_MODULE: Symbol("PrismaCreditPurchaseLogRepositoryModule"),
   CREDENTIAL_REPOSITORY: Symbol("CredentialRepository"),
   CREDENTIAL_REPOSITORY_MODULE: Symbol("CredentialRepositoryModule"),
   DESTINATION_CALENDAR_REPOSITORY: Symbol("DestinationCalendarRepository"),

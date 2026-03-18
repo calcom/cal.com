@@ -2,8 +2,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SWHMap } from "./__handler";
 
-const { customersUpdate, listLineItems, upsertUserBalance, upsertTeamBalance, createCreditPurchaseLog } =
-  vi.hoisted(() => ({
+const {
+  customersUpdate,
+  listLineItems,
+  upsertUserBalance,
+  upsertTeamBalance,
+  createCreditPurchaseLog,
+  findByStripeSessionId,
+  creditPurchaseLogCreate,
+  transactionFn,
+} = vi.hoisted(() => {
+  const creditPurchaseLogCreate = vi.fn().mockResolvedValue({});
+  const transactionFn = vi.fn().mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
+    const tx = {};
+    return fn(tx);
+  });
+  return {
     customersUpdate: vi.fn().mockResolvedValue({}),
     listLineItems: vi.fn().mockResolvedValue({
       data: [{ price: { id: "price_credits" }, quantity: 10 }],
@@ -11,13 +25,24 @@ const { customersUpdate, listLineItems, upsertUserBalance, upsertTeamBalance, cr
     upsertUserBalance: vi.fn().mockResolvedValue({ id: "cb_1" }),
     upsertTeamBalance: vi.fn().mockResolvedValue({ id: "cb_1" }),
     createCreditPurchaseLog: vi.fn().mockResolvedValue({}),
-  }));
+    findByStripeSessionId: vi.fn().mockResolvedValue(null),
+    creditPurchaseLogCreate,
+    transactionFn,
+  };
+});
 
 vi.mock("@calcom/features/ee/payments/server/stripe", () => ({
   default: {
     customers: { update: customersUpdate },
     checkout: { sessions: { listLineItems } },
   },
+}));
+
+vi.mock("@calcom/features/di/containers/CreditPurchaseLogRepository", () => ({
+  getCreditPurchaseLogRepository: () => ({
+    findByStripeSessionId,
+    create: creditPurchaseLogCreate,
+  }),
 }));
 
 vi.mock("@calcom/features/di/containers/CreditsRepository", () => ({
@@ -37,7 +62,11 @@ vi.mock("@calcom/features/calAIPhone/repositories/PrismaAgentRepository", () => 
 vi.mock("@calcom/features/calAIPhone/repositories/PrismaPhoneNumberRepository", () => ({
   PrismaPhoneNumberRepository: vi.fn(),
 }));
-vi.mock("@calcom/prisma", () => ({ prisma: {} }));
+vi.mock("@calcom/prisma", () => ({
+  prisma: {
+    $transaction: transactionFn,
+  },
+}));
 
 import handler from "./_checkout.session.completed";
 
@@ -113,7 +142,7 @@ describe("checkout.session.completed webhook", () => {
   });
 
   describe("credit purchases (payment mode)", () => {
-    it("processes a valid credit purchase", async () => {
+    it("processes a valid credit purchase in a transaction", async () => {
       const data = buildSession({
         mode: "payment",
         amount_total: 5000,
@@ -123,14 +152,36 @@ describe("checkout.session.completed webhook", () => {
       const result = await handler(data);
 
       expect(listLineItems).toHaveBeenCalledWith("cs_123");
-      expect(upsertUserBalance).toHaveBeenCalledWith({
-        userId: 1,
-        additionalCredits: 10,
+      expect(findByStripeSessionId).toHaveBeenCalledWith("cs_123");
+      expect(transactionFn).toHaveBeenCalled();
+      expect(upsertUserBalance).toHaveBeenCalledWith(
+        { userId: 1, additionalCredits: 10 },
+        expect.anything()
+      );
+      expect(creditPurchaseLogCreate).toHaveBeenCalledWith(
+        {
+          credits: 10,
+          creditBalanceId: "cb_1",
+          stripeSessionId: "cs_123",
+        },
+        expect.anything()
+      );
+      expect(result).toEqual({ success: true });
+    });
+
+    it("skips processing when stripe session already processed", async () => {
+      findByStripeSessionId.mockResolvedValueOnce({ id: "existing_log" });
+
+      const data = buildSession({
+        mode: "payment",
+        amount_total: 5000,
+        metadata: { userId: "1" },
       });
-      expect(createCreditPurchaseLog).toHaveBeenCalledWith({
-        credits: 10,
-        creditBalanceId: "cb_1",
-      });
+
+      const result = await handler(data);
+
+      expect(transactionFn).not.toHaveBeenCalled();
+      expect(upsertUserBalance).not.toHaveBeenCalled();
       expect(result).toEqual({ success: true });
     });
 
@@ -173,10 +224,10 @@ describe("checkout.session.completed webhook", () => {
       const result = await handler(data);
 
       expect(listLineItems).toHaveBeenCalledWith("cs_123");
-      expect(upsertUserBalance).toHaveBeenCalledWith({
-        userId: 1,
-        additionalCredits: 10,
-      });
+      expect(upsertUserBalance).toHaveBeenCalledWith(
+        { userId: 1, additionalCredits: 10 },
+        expect.anything()
+      );
       expect(result).toEqual({ success: true });
     });
 
