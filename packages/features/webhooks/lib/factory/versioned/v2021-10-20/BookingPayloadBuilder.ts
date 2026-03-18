@@ -170,6 +170,9 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
       case WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED:
         return this.buildNoShowPayload(dto);
 
+      case WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT:
+        return this.buildWrongAssignmentPayload(dto);
+
       default: {
         const _exhaustiveCheck: never = dto;
         throw new Error(`Unsupported booking trigger: ${JSON.stringify(_exhaustiveCheck)}`);
@@ -265,6 +268,20 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
         bookingId: dto.bookingId,
         attendees: dto.attendees,
         message: dto.message,
+      },
+    };
+  }
+
+  private buildWrongAssignmentPayload(dto: BookingWebhookEventDTO): WebhookPayload {
+    if (dto.triggerEvent !== WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT) {
+      throw new Error("Invalid trigger event for wrong assignment payload");
+    }
+    return {
+      triggerEvent: dto.triggerEvent,
+      createdAt: dto.createdAt,
+      payload: {
+        booking: dto.booking,
+        report: dto.report,
       },
     };
   }

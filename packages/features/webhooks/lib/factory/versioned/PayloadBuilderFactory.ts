@@ -124,7 +124,8 @@ export type BookingTriggerEvents =
   | typeof WebhookTriggerEvents.BOOKING_REQUESTED
   | typeof WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED
   | typeof WebhookTriggerEvents.BOOKING_PAID
-  | typeof WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED;
+  | typeof WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED
+  | typeof WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT;
 
 export type PaymentTriggerEvents =
   | typeof WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED

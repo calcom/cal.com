@@ -3,6 +3,7 @@ import type {
   DelegationCredentialErrorPayloadType,
   EventPayloadType,
   OOOEntryPayloadType,
+  WrongAssignmentReportDTO,
 } from "../dto/types";
 
 export interface FormSubmittedPayload {
@@ -84,6 +85,11 @@ export interface NoShowWebhookPayload {
   };
 }
 
+export interface WrongAssignmentReportPayload {
+  booking: WrongAssignmentReportDTO["booking"];
+  report: WrongAssignmentReportDTO["report"];
+}
+
 export interface WebhookPayload {
   triggerEvent: string;
   createdAt: string;
@@ -96,5 +102,6 @@ export interface WebhookPayload {
     | MeetingPayload
     | InstantMeetingPayload
     | NoShowWebhookPayload
-    | DelegationCredentialErrorPayloadType;
+    | DelegationCredentialErrorPayloadType
+    | WrongAssignmentReportPayload;
 }

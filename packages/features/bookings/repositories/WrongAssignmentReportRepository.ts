@@ -26,6 +26,20 @@ export class WrongAssignmentReportRepository {
     });
   }
 
+  async findById(id: string) {
+    return this.prismaClient.wrongAssignmentReport.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        bookingUid: true,
+        reportedById: true,
+        correctAssignee: true,
+        additionalNotes: true,
+        teamId: true,
+      },
+    });
+  }
+
   async findTeamIdById(id: string): Promise<{ id: string; teamId: number | null } | null> {
     return this.prismaClient.wrongAssignmentReport.findUnique({
       where: { id },

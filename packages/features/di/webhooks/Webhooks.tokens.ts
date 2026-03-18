@@ -31,4 +31,5 @@ export const WEBHOOK_TOKENS = {
   FORM_DATA_FETCHER: Symbol("FormWebhookDataFetcher"),
   RECORDING_DATA_FETCHER: Symbol("RecordingWebhookDataFetcher"),
   OOO_DATA_FETCHER: Symbol("OOOWebhookDataFetcher"),
+  WRONG_ASSIGNMENT_DATA_FETCHER: Symbol("WrongAssignmentWebhookDataFetcher"),
 } as const;

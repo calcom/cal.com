@@ -1,11 +1,9 @@
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
 import { Prisma } from "@calcom/prisma/client";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { WrongAssignmentReportStatus } from "@calcom/prisma/enums";
 
 import { BookingRepository } from "../repositories/BookingRepository";
@@ -73,9 +71,7 @@ export class WrongAssignmentReportService {
       booking,
       teamId,
       orgId,
-      reporter: { id: input.userId, email: input.userEmail, name: input.userName },
-      correctAssignee: input.correctAssignee || null,
-      additionalNotes: input.additionalNotes || null,
+      wrongAssignmentReportId: report.id,
     });
 
     return {
@@ -127,72 +123,23 @@ export class WrongAssignmentReportService {
     >;
     teamId: number | null;
     orgId: number | null;
-    reporter: { id: number; email: string; name: string | null };
-    correctAssignee: string | null;
-    additionalNotes: string | null;
+    wrongAssignmentReportId: string;
   }) {
-    const { booking, teamId, orgId, reporter } = params;
-
-    const webhookPayload = {
-      booking: {
-        uid: booking.uid,
-        id: booking.id,
-        title: booking.title,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        status: booking.status,
-        eventType: booking.eventType
-          ? {
-              id: booking.eventType.id,
-              title: booking.eventType.title,
-              slug: booking.eventType.slug,
-              teamId: teamId,
-            }
-          : null,
-      },
-      report: {
-        reportedBy: reporter,
-        firstAssignmentReason: booking.assignmentReason[0]?.reasonString ?? null,
-        guest: booking.attendees[0]?.email ?? null,
-        host: {
-          email: booking.user?.email ?? null,
-          name: booking.user?.name ?? null,
-        },
-        correctAssignee: params.correctAssignee,
-        additionalNotes: params.additionalNotes,
-      },
-    };
+    const { booking, teamId, orgId } = params;
 
     try {
-      const webhooks = await getWebhooks({
+      await getWebhookProducer().queueWrongAssignmentReportWebhook({
+        bookingUid: booking.uid,
+        wrongAssignmentReportId: params.wrongAssignmentReportId,
         userId: booking.userId,
         teamId,
         orgId,
-        triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
-      });
-
-      const webhookPromises = webhooks.map((webhook) =>
-        sendGenericWebhookPayload({
-          secretKey: webhook.secret,
-          triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
-          createdAt: new Date().toISOString(),
-          webhook,
-          data: webhookPayload,
-        }).catch((error) => {
-          log.error(`Failed to send webhook to ${webhook.subscriberUrl}:`, error);
-          return { ok: false, status: 0 };
-        })
-      );
-
-      await Promise.allSettled(webhookPromises);
-
-      log.info(`Wrong assignment report webhooks sent for booking ${booking.uid}`, {
-        teamId,
-        userId: booking.userId,
-        webhookCount: webhooks.length,
       });
     } catch (error) {
-      log.error("Failed to send wrong assignment webhooks:", error);
+      log.warn("Failed to queue wrong assignment webhook, report was created successfully", {
+        bookingUid: booking.uid,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 }

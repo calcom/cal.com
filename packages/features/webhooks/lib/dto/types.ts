@@ -175,6 +175,32 @@ export interface OOOCreatedDTO extends BaseEventDTO {
   };
 }
 
+export interface WrongAssignmentReportDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT;
+  booking: {
+    uid: string;
+    id: number;
+    title: string;
+    startTime: string | Date;
+    endTime: string | Date;
+    status: string;
+    eventType: {
+      id: number;
+      title: string;
+      slug: string;
+      teamId: number | null;
+    } | null;
+  };
+  report: {
+    reportedBy: { id: number; email: string; name: string | null };
+    firstAssignmentReason: string | null;
+    guest: string | null;
+    host: { email: string | null; name: string | null };
+    correctAssignee: string | null;
+    additionalNotes: string | null;
+  };
+}
+
 export interface FormSubmittedDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.FORM_SUBMITTED;
   form: {
@@ -361,7 +387,8 @@ export type WebhookEventDTO =
   | InstantMeetingDTO
   | AfterHostsNoShowDTO
   | AfterGuestsNoShowDTO
-  | DelegationCredentialErrorDTO;
+  | DelegationCredentialErrorDTO
+  | WrongAssignmentReportDTO;
 
 // Service layer interfaces
 export interface WebhookTriggerArgs {
@@ -598,7 +625,8 @@ export type BookingWebhookEventDTO =
   | BookingPaidDTO
   | BookingPaymentInitiatedDTO
   | BookingRejectedDTO
-  | BookingNoShowDTO;
+  | BookingNoShowDTO
+  | WrongAssignmentReportDTO;
 
 /**
  * Grouped webhooks for UI display with profile and permission metadata

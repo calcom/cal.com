@@ -92,6 +92,64 @@ export const oooWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
 });
 
 /**
+ * Wrong Assignment Report webhook task payload
+ * Used for: WRONG_ASSIGNMENT_REPORT
+ *
+ * Queue metadata is PII-free; the fetcher resolves emails/names from DB.
+ */
+export const wrongAssignmentWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
+  triggerEvent: z.literal(WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT),
+  bookingUid: z.string(),
+  wrongAssignmentReportId: z.string(),
+  userId: z.number().nullable().optional(),
+  teamId: z.number().nullable().optional(),
+  orgId: z.number().nullable().optional(),
+});
+
+/**
+ * Resolved schemas — full shapes used by the consumer to validate fetcher output.
+ */
+export const wrongAssignmentBookingSchema = z.object({
+  uid: z.string(),
+  id: z.number(),
+  title: z.string(),
+  startTime: z.string().or(z.date()),
+  endTime: z.string().or(z.date()),
+  status: z.string(),
+  eventType: z
+    .object({
+      id: z.number(),
+      title: z.string(),
+      slug: z.string(),
+      teamId: z.number().nullable(),
+    })
+    .nullable(),
+});
+
+export const wrongAssignmentReportSchema = z.object({
+  reportedBy: z.object({
+    id: z.number(),
+    email: z.string(),
+    name: z.string().nullable(),
+  }),
+  firstAssignmentReason: z.string().nullable(),
+  guest: z.string().nullable(),
+  host: z.object({
+    email: z.string().nullable(),
+    name: z.string().nullable(),
+  }),
+  correctAssignee: z.string().nullable(),
+  additionalNotes: z.string().nullable(),
+});
+
+export const wrongAssignmentMetadataSchema = z.object({
+  booking: wrongAssignmentBookingSchema,
+  report: wrongAssignmentReportSchema,
+});
+
+export type WrongAssignmentMetadata = z.infer<typeof wrongAssignmentMetadataSchema>;
+
+/**
  * Discriminated union of all webhook task payload schemas
  */
 export const webhookTaskPayloadSchema = z.discriminatedUnion("triggerEvent", [
@@ -100,6 +158,7 @@ export const webhookTaskPayloadSchema = z.discriminatedUnion("triggerEvent", [
   formWebhookTaskPayloadSchema,
   recordingWebhookTaskPayloadSchema,
   oooWebhookTaskPayloadSchema,
+  wrongAssignmentWebhookTaskPayloadSchema,
 ]);
 
 /**
@@ -190,6 +249,7 @@ export type PaymentWebhookTaskPayload = z.infer<typeof paymentWebhookTaskPayload
 export type FormWebhookTaskPayload = z.infer<typeof formWebhookTaskPayloadSchema>;
 export type RecordingWebhookTaskPayload = z.infer<typeof recordingWebhookTaskPayloadSchema>;
 export type OOOWebhookTaskPayload = z.infer<typeof oooWebhookTaskPayloadSchema>;
+export type WrongAssignmentWebhookTaskPayload = z.infer<typeof wrongAssignmentWebhookTaskPayloadSchema>;
 
 /**
  * Union type of all webhook task payloads

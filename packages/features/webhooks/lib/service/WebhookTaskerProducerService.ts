@@ -11,6 +11,7 @@ import type {
   QueueOOOWebhookParams,
   QueuePaymentWebhookParams,
   QueueRecordingWebhookParams,
+  QueueWrongAssignmentWebhookParams,
 } from "../interface/WebhookProducerService";
 import type { WebhookTasker } from "../tasker/WebhookTasker";
 import type { WebhookTaskPayload } from "../types/webhookTask";
@@ -156,6 +157,29 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
       });
       throw error;
     }
+  }
+
+  async queueWrongAssignmentReportWebhook(params: QueueWrongAssignmentWebhookParams): Promise<void> {
+    const operationId = params.operationId || uuidv4();
+
+    this.log.debug("Queueing wrong assignment report webhook task", {
+      operationId,
+      triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+      bookingUid: params.bookingUid,
+    });
+
+    const taskPayload: WebhookTaskPayload = {
+      operationId,
+      triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+      bookingUid: params.bookingUid,
+      wrongAssignmentReportId: params.wrongAssignmentReportId,
+      userId: params.userId,
+      teamId: params.teamId,
+      orgId: params.orgId,
+      timestamp: new Date().toISOString(),
+    };
+
+    await this.queueTask(operationId, taskPayload);
   }
 
   async queueBookingWebhook(

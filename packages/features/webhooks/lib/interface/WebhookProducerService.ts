@@ -121,6 +121,18 @@ export interface QueueOOOWebhookParams extends Omit<BaseQueueWebhookParams, "met
 }
 
 /**
+ * Parameters for queueing wrong assignment report webhooks
+ * Used for: WRONG_ASSIGNMENT_REPORT
+ */
+export interface QueueWrongAssignmentWebhookParams extends BaseQueueWebhookParams {
+  bookingUid: string;
+  wrongAssignmentReportId: string;
+  userId?: number | null;
+  teamId?: number | null;
+  orgId?: number | null;
+}
+
+/**
  * Trigger events that can be queued via queueBookingWebhook.
  */
 export type QueueBookingTriggerEvent =
@@ -175,4 +187,9 @@ export interface IWebhookProducerService {
    * Queue a webhook delivery task for OOO_CREATED event
    */
   queueOOOCreatedWebhook(params: QueueOOOWebhookParams): Promise<void>;
+
+  /**
+   * Queue a webhook delivery task for WRONG_ASSIGNMENT_REPORT event
+   */
+  queueWrongAssignmentReportWebhook(params: QueueWrongAssignmentWebhookParams): Promise<void>;
 }

@@ -1,5 +1,3 @@
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
@@ -39,8 +37,13 @@ vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => {
     TeamRepository: class MockTeamRepository {},
   };
 });
-vi.mock("@calcom/features/webhooks/lib/getWebhooks");
-vi.mock("@calcom/features/webhooks/lib/sendPayload");
+
+const mockQueueWrongAssignmentReportWebhook = vi.fn();
+vi.mock("@calcom/features/di/webhooks/containers/webhook", () => ({
+  getWebhookProducer: () => ({
+    queueWrongAssignmentReportWebhook: mockQueueWrongAssignmentReportWebhook,
+  }),
+}));
 vi.mock("@calcom/prisma", () => ({
   default: {},
 }));
@@ -107,8 +110,7 @@ describe("reportWrongAssignmentHandler", () => {
     vi.clearAllMocks();
     mockExistsByBookingUid.mockResolvedValue(false);
     mockCreateReport.mockResolvedValue({ id: "report-uuid-123" });
-    vi.mocked(getWebhooks).mockResolvedValue([]);
-    vi.mocked(sendGenericWebhookPayload).mockResolvedValue({ ok: true, status: 200 });
+    mockQueueWrongAssignmentReportWebhook.mockResolvedValue(undefined);
     mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
     mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue(mockBooking);
   });
@@ -246,14 +248,11 @@ describe("reportWrongAssignmentHandler", () => {
   });
 
   describe("webhook integration", () => {
-    it("should send webhook with correct payload structure", async () => {
+    it("should queue webhook with correct payload structure", async () => {
       mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
         ...mockBooking,
         userId: mockUser.id,
       });
-      vi.mocked(getWebhooks).mockResolvedValue([
-        { id: "webhook-1", subscriberUrl: "https://example.com/webhook", secret: "secret123" },
-      ] as never);
 
       await reportWrongAssignmentHandler({
         ctx: { user: mockUser },
@@ -264,49 +263,23 @@ describe("reportWrongAssignmentHandler", () => {
         },
       });
 
-      expect(getWebhooks).toHaveBeenCalledWith({
-        userId: mockUser.id,
-        teamId: mockBooking.eventType.team.id,
-        orgId: mockBooking.eventType.team.parentId,
-        triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
-      });
-
-      expect(sendGenericWebhookPayload).toHaveBeenCalledWith(
+      expect(mockQueueWrongAssignmentReportWebhook).toHaveBeenCalledWith(
         expect.objectContaining({
-          triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
-          data: expect.objectContaining({
-            booking: expect.objectContaining({
-              uid: mockBooking.uid,
-              id: mockBooking.id,
-              title: mockBooking.title,
-            }),
-            report: expect.objectContaining({
-              reportedBy: expect.objectContaining({
-                id: mockUser.id,
-                email: mockUser.email,
-              }),
-              firstAssignmentReason: mockBooking.assignmentReason[0].reasonString,
-              guest: mockBooking.attendees[0].email,
-              host: expect.objectContaining({
-                email: mockBooking.user.email,
-              }),
-              correctAssignee: "correct@example.com",
-              additionalNotes: "Wrong assignment notes",
-            }),
-          }),
+          bookingUid: mockBooking.uid,
+          userId: mockUser.id,
+          wrongAssignmentReportId: "report-uuid-123",
+          teamId: mockBooking.eventType.team.id,
+          orgId: mockBooking.eventType.team.parentId,
         })
       );
     });
 
-    it("should handle webhook failures gracefully", async () => {
+    it("should handle webhook queueing failures gracefully", async () => {
       mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
         ...mockBooking,
         userId: mockUser.id,
       });
-      vi.mocked(getWebhooks).mockResolvedValue([
-        { id: "webhook-1", subscriberUrl: "https://example.com/webhook", secret: "secret123" },
-      ] as never);
-      vi.mocked(sendGenericWebhookPayload).mockRejectedValue(new Error("Webhook delivery failed"));
+      mockQueueWrongAssignmentReportWebhook.mockRejectedValue(new Error("Queue failed"));
 
       const result = await reportWrongAssignmentHandler({
         ctx: { user: mockUser },
@@ -315,21 +288,6 @@ describe("reportWrongAssignmentHandler", () => {
 
       expect(result.success).toBe(true);
       expect(result.message).toBe("Wrong assignment reported successfully");
-    });
-
-    it("should not fail when getWebhooks throws", async () => {
-      mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue({
-        ...mockBooking,
-        userId: mockUser.id,
-      });
-      vi.mocked(getWebhooks).mockRejectedValue(new Error("Database error"));
-
-      const result = await reportWrongAssignmentHandler({
-        ctx: { user: mockUser },
-        input: mockInput,
-      });
-
-      expect(result.success).toBe(true);
     });
   });
 
@@ -416,7 +374,7 @@ describe("reportWrongAssignmentHandler", () => {
     it("should persist report even when webhooks fail", async () => {
       mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
       mockFindByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason.mockResolvedValue(mockBooking);
-      vi.mocked(getWebhooks).mockRejectedValue(new Error("Webhook service down"));
+      mockQueueWrongAssignmentReportWebhook.mockRejectedValue(new Error("Webhook service down"));
 
       const result = await reportWrongAssignmentHandler({
         ctx: { user: mockUser },
@@ -438,22 +396,15 @@ describe("reportWrongAssignmentHandler", () => {
         userId: mockUser.id,
         assignmentReason: [],
       });
-      vi.mocked(getWebhooks).mockResolvedValue([
-        { id: "webhook-1", subscriberUrl: "https://example.com/webhook", secret: "secret123" },
-      ] as never);
 
       await reportWrongAssignmentHandler({
         ctx: { user: mockUser },
         input: mockInput,
       });
 
-      expect(sendGenericWebhookPayload).toHaveBeenCalledWith(
+      expect(mockQueueWrongAssignmentReportWebhook).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({
-            report: expect.objectContaining({
-              firstAssignmentReason: null,
-            }),
-          }),
+          wrongAssignmentReportId: "report-uuid-123",
         })
       );
     });
@@ -472,7 +423,7 @@ describe("reportWrongAssignmentHandler", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(getWebhooks).toHaveBeenCalledWith(
+      expect(mockQueueWrongAssignmentReportWebhook).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: null,
         })
@@ -485,28 +436,16 @@ describe("reportWrongAssignmentHandler", () => {
         userId: mockUser.id,
         eventType: null,
       });
-      vi.mocked(getWebhooks).mockResolvedValue([
-        { id: "webhook-1", subscriberUrl: "https://example.com/webhook", secret: "secret123" },
-      ] as never);
 
       await reportWrongAssignmentHandler({
         ctx: { user: mockUser },
         input: mockInput,
       });
 
-      expect(getWebhooks).toHaveBeenCalledWith(
+      expect(mockQueueWrongAssignmentReportWebhook).toHaveBeenCalledWith(
         expect.objectContaining({
           teamId: null,
           orgId: null,
-        })
-      );
-      expect(sendGenericWebhookPayload).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            booking: expect.objectContaining({
-              eventType: null,
-            }),
-          }),
         })
       );
     });
@@ -517,22 +456,15 @@ describe("reportWrongAssignmentHandler", () => {
         userId: mockUser.id,
         attendees: [],
       });
-      vi.mocked(getWebhooks).mockResolvedValue([
-        { id: "webhook-1", subscriberUrl: "https://example.com/webhook", secret: "secret123" },
-      ] as never);
 
       await reportWrongAssignmentHandler({
         ctx: { user: mockUser },
         input: mockInput,
       });
 
-      expect(sendGenericWebhookPayload).toHaveBeenCalledWith(
+      expect(mockQueueWrongAssignmentReportWebhook).toHaveBeenCalledWith(
         expect.objectContaining({
-          data: expect.objectContaining({
-            report: expect.objectContaining({
-              guest: null,
-            }),
-          }),
+          wrongAssignmentReportId: "report-uuid-123",
         })
       );
     });

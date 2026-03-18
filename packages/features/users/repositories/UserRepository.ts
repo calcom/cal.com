@@ -397,6 +397,13 @@ export class UserRepository {
     };
   }
 
+  async findEmailAndNameById({ id }: { id: number }) {
+    return this.prismaClient.user.findUnique({
+      where: { id },
+      select: { id: true, email: true, name: true },
+    });
+  }
+
   async findById({ id }: { id: number }) {
     const user = await this.prismaClient.user.findUnique({
       where: {

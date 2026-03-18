@@ -14,12 +14,15 @@ import { type Container, createContainer } from "@evyweb/ioctopus";
 import { moduleLoader as bookingRepositoryModuleLoader } from "../../modules/Booking";
 import { moduleLoader as oooRepositoryModuleLoader } from "../../modules/Ooo";
 import { moduleLoader as prismaModuleLoader } from "../../modules/Prisma";
+import { moduleLoader as userRepositoryModuleLoader } from "../../modules/User";
+import { moduleLoader as wrongAssignmentReportRepositoryModuleLoader } from "../../modules/WrongAssignmentReport";
 import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
 import { taskerServiceModule } from "../../shared/services/tasker.service";
 import { SHARED_TOKENS } from "../../shared/shared.tokens";
 import { bookingWebhookDataFetcherModule } from "../modules/BookingWebhookDataFetcher.module";
 import { formWebhookDataFetcherModule } from "../modules/FormWebhookDataFetcher.module";
 import { oooWebhookDataFetcherModule } from "../modules/OOOWebhookDataFetcher.module";
+import { wrongAssignmentWebhookDataFetcherModule } from "../modules/WrongAssignmentWebhookDataFetcher.module";
 import { paymentWebhookDataFetcherModule } from "../modules/PaymentWebhookDataFetcher.module";
 import { recordingWebhookDataFetcherModule } from "../modules/RecordingWebhookDataFetcher.module";
 import { webhookModule } from "../modules/Webhook.module";
@@ -33,7 +36,9 @@ const webhookContainer: Container = createContainer();
 loggerModuleLoader.loadModule(webhookContainer);
 prismaModuleLoader.loadModule(webhookContainer);
 bookingRepositoryModuleLoader.loadModule(webhookContainer);
+userRepositoryModuleLoader.loadModule(webhookContainer);
 oooRepositoryModuleLoader.loadModule(webhookContainer);
+wrongAssignmentReportRepositoryModuleLoader.loadModule(webhookContainer);
 webhookContainer.load(SHARED_TOKENS.TASKER, taskerServiceModule);
 
 // Load webhook module (includes cross-table repositories + all webhook services)
@@ -55,6 +60,7 @@ webhookContainer.load(WEBHOOK_TOKENS.PAYMENT_DATA_FETCHER, paymentWebhookDataFet
 webhookContainer.load(WEBHOOK_TOKENS.FORM_DATA_FETCHER, formWebhookDataFetcherModule);
 webhookContainer.load(WEBHOOK_TOKENS.RECORDING_DATA_FETCHER, recordingWebhookDataFetcherModule);
 webhookContainer.load(WEBHOOK_TOKENS.OOO_DATA_FETCHER, oooWebhookDataFetcherModule);
+webhookContainer.load(WEBHOOK_TOKENS.WRONG_ASSIGNMENT_DATA_FETCHER, wrongAssignmentWebhookDataFetcherModule);
 
 // Load Producer/Consumer modules
 // Use moduleLoader pattern for producer service to load WebhookTasker dependencies

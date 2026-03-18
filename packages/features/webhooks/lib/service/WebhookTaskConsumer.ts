@@ -10,6 +10,7 @@ import type {
   OOOCreatedDTO,
   WebhookEventDTO,
   WebhookSubscriber,
+  WrongAssignmentReportDTO,
 } from "../dto/types";
 import type { PayloadBuilderFactory } from "../factory/versioned/PayloadBuilderFactory";
 import type { IWebhookDataFetcher } from "../interface/IWebhookDataFetcher";
@@ -17,7 +18,7 @@ import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import { DEFAULT_WEBHOOK_VERSION } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
 import type { IWebhookService } from "../interface/services";
-import type { BookingWebhookTaskPayload, WebhookTaskPayload } from "../types/webhookTask";
+import type { BookingWebhookTaskPayload, WrongAssignmentMetadata, WebhookTaskPayload } from "../types/webhookTask";
 import { noShowEventDataSchema, oooEntrySchema, oooMetadataSchema } from "../types/webhookTask";
 
 export class WebhookTaskConsumer {
@@ -157,6 +158,10 @@ export class WebhookTaskConsumer {
 
     const { triggerEvent, timestamp } = payload;
 
+    if (triggerEvent === WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT) {
+      return this.buildWrongAssignmentDTO(eventData, timestamp);
+    }
+
     if (triggerEvent === WebhookTriggerEvents.OOO_CREATED) {
       return this.buildOOODTO(eventData, payload);
     }
@@ -267,6 +272,34 @@ export class WebhookTaskConsumer {
         this.log.warn("Unsupported trigger event for DTO building", { triggerEvent });
         return null;
     }
+  }
+
+  private buildWrongAssignmentDTO(
+    eventData: Record<string, unknown>,
+    timestamp: string
+  ): WrongAssignmentReportDTO | null {
+    if (!this.isWrongAssignmentMetadata(eventData)) {
+      this.log.warn("Missing booking or report in wrong assignment event data");
+      return null;
+    }
+
+    return {
+      triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+      createdAt: timestamp,
+      booking: eventData.booking,
+      report: eventData.report,
+    } satisfies WrongAssignmentReportDTO;
+  }
+
+  private isWrongAssignmentMetadata(data: Record<string, unknown>): data is WrongAssignmentMetadata {
+    return (
+      "booking" in data &&
+      data.booking != null &&
+      typeof data.booking === "object" &&
+      "report" in data &&
+      data.report != null &&
+      typeof data.report === "object"
+    );
   }
 
   private buildNoShowDTO(
