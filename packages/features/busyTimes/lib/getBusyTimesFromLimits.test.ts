@@ -46,13 +46,34 @@ vi.mock("@calcom/features/di/containers/BusyTimes", () => ({
 }));
 
 // Import for mocking
-import LimitManager from "@calcom/lib/intervalLimits/limitManager";
+import LimitManager, { LimitSources } from "@calcom/lib/intervalLimits/limitManager";
 import {
   getBusyTimesFromBookingLimits,
   getBusyTimesFromLimits,
   getBusyTimesFromTeamLimits,
 } from "./getBusyTimesFromLimits";
 
+const startOfTomorrow = dayjs().add(1, "day").startOf("day");
+
+describe("LimitSources", () => {
+  it("should return correct title and source for eventBookingLimit", () => {
+    const result = LimitSources.eventBookingLimit({ limit: 5, unit: "day" });
+    expect(result.title).toBe("busy_time.event_booking_limit");
+    expect(result.source).toBe("Event Booking Limit for User: 5 per day");
+  });
+
+  it("should return correct title and source for eventDurationLimit", () => {
+    const result = LimitSources.eventDurationLimit({ limit: 120, unit: "week" });
+    expect(result.title).toBe("busy_time.event_duration_limit");
+    expect(result.source).toBe("Event Duration Limit for User: 120 minutes per week");
+  });
+
+  it("should return correct title and source for teamBookingLimit", () => {
+    const result = LimitSources.teamBookingLimit({ limit: 10, unit: "month" });
+    expect(result.title).toBe("busy_time.team_booking_limit");
+    expect(result.source).toBe("Team Booking Limit: 10 per month");
+  });
+});
 describe("getBusyTimesFromLimits", () => {
   const dateFrom = dayjs("2024-01-15T00:00:00Z");
   const dateTo = dayjs("2024-01-15T23:59:59Z");
@@ -148,6 +169,113 @@ describe("getBusyTimesFromLimits", () => {
 
     expect(Array.isArray(result)).toBe(true);
   });
+
+  it("should return busy times with duration limit source when duration limit is exceeded", async () => {
+    const mockBookings: EventBusyDetails[] = [
+      {
+        start: startOfTomorrow.set("hour", 9).toDate(),
+        end: startOfTomorrow.set("hour", 10).toDate(),
+        title: "Booking 1",
+        source: "eventType-1-booking-1",
+      },
+    ];
+
+    const mockEventType = {
+      id: 1,
+      length: 30,
+      seatsPerTimeSlot: null,
+      hosts: [],
+      users: [],
+    };
+
+    const busyTimes = await getBusyTimesFromLimits(
+      null,
+      { PER_DAY: 60 },
+      startOfTomorrow,
+      startOfTomorrow.endOf("day"),
+      30,
+      mockEventType,
+      mockBookings,
+      "UTC"
+    );
+
+    expect(busyTimes.length).toBe(1);
+    expect(busyTimes[0]).toMatchObject({
+      title: "busy_time.event_duration_limit",
+      source: "Event Duration Limit for User: 60 minutes per day",
+    });
+  });
+
+  it("should return empty array when no limits are exceeded", async () => {
+    const mockEventType = {
+      id: 1,
+      length: 30,
+      seatsPerTimeSlot: null,
+      hosts: [],
+      users: [],
+    };
+
+    const busyTimes = await getBusyTimesFromLimits(
+      { PER_DAY: 10 },
+      null,
+      startOfTomorrow,
+      startOfTomorrow.endOf("day"),
+      30,
+      mockEventType,
+      [],
+      "UTC"
+    );
+
+    expect(busyTimes.length).toBe(0);
+  });
+
+  it("should return busy times with booking limit source when booking limit is reached", async () => {
+    const mockBookings: EventBusyDetails[] = [
+      {
+        start: startOfTomorrow.set("hour", 9).toDate(),
+        end: startOfTomorrow.set("hour", 10).toDate(),
+        title: "Booking 1",
+        source: "eventType-1-booking-1",
+      },
+      {
+        start: startOfTomorrow.set("hour", 11).toDate(),
+        end: startOfTomorrow.set("hour", 12).toDate(),
+        title: "Booking 2",
+        source: "eventType-1-booking-2",
+      },
+      {
+        start: startOfTomorrow.set("hour", 14).toDate(),
+        end: startOfTomorrow.set("hour", 15).toDate(),
+        title: "Booking 3",
+        source: "eventType-1-booking-3",
+      },
+    ];
+
+    const mockEventType = {
+      id: 1,
+      length: 60,
+      seatsPerTimeSlot: null,
+      hosts: [],
+      users: [],
+    };
+
+    const busyTimes = await getBusyTimesFromLimits(
+      { PER_DAY: 3 },
+      null,
+      startOfTomorrow,
+      startOfTomorrow.endOf("day"),
+      60,
+      mockEventType,
+      mockBookings,
+      "UTC"
+    );
+
+    expect(busyTimes.length).toBe(1);
+    expect(busyTimes[0]).toMatchObject({
+      title: "busy_time.event_booking_limit",
+      source: "Event Booking Limit for User: 3 per day",
+    });
+  });
 });
 
 describe("getBusyTimesFromBookingLimits", () => {
@@ -156,6 +284,73 @@ describe("getBusyTimesFromBookingLimits", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("should return busy times with correct source when booking limit is reached", async () => {
+    const limitManager = new LimitManager();
+
+    const mockBookings: EventBusyDetails[] = [
+      {
+        start: startOfTomorrow.set("hour", 9).toDate(),
+        end: startOfTomorrow.set("hour", 10).toDate(),
+        title: "Booking 1",
+        source: "eventType-1-booking-1",
+      },
+      {
+        start: startOfTomorrow.set("hour", 11).toDate(),
+        end: startOfTomorrow.set("hour", 12).toDate(),
+        title: "Booking 2",
+        source: "eventType-1-booking-2",
+      },
+    ];
+
+    await getBusyTimesFromBookingLimits({
+      bookings: mockBookings,
+      bookingLimits: { PER_DAY: 2 },
+      dateFrom: startOfTomorrow,
+      dateTo: startOfTomorrow.endOf("day"),
+      limitManager,
+      eventTypeId: 1,
+      timeZone: "UTC",
+    });
+
+    const busyTimes = limitManager.getBusyTimes();
+    expect(busyTimes.length).toBe(1);
+    expect(busyTimes[0]).toMatchObject({
+      title: "busy_time.event_booking_limit",
+      source: "Event Booking Limit for User: 2 per day",
+    });
+  });
+
+  it("should return busy times with team booking limit source when teamId is provided", async () => {
+    const limitManager = new LimitManager();
+
+    const mockBookings: EventBusyDetails[] = [
+      {
+        start: startOfTomorrow.set("hour", 9).toDate(),
+        end: startOfTomorrow.set("hour", 10).toDate(),
+        title: "Booking 1",
+        source: "eventType-1-booking-1",
+      },
+    ];
+
+    await getBusyTimesFromBookingLimits({
+      bookings: mockBookings,
+      bookingLimits: { PER_DAY: 1 },
+      dateFrom: startOfTomorrow,
+      dateTo: startOfTomorrow.endOf("day"),
+      limitManager,
+      teamId: 1,
+      user: { id: 1, email: "test@example.com" },
+      timeZone: "UTC",
+    });
+
+    const busyTimes = limitManager.getBusyTimes();
+    expect(busyTimes.length).toBe(1);
+    expect(busyTimes[0]).toMatchObject({
+      title: "busy_time.team_booking_limit",
+      source: "Team Booking Limit: 1 per day",
+    });
   });
 
   it("should skip limit keys that have no limit value", async () => {
@@ -268,7 +463,12 @@ describe("getBusyTimesFromBookingLimits", () => {
   it("should skip already busy periods", async () => {
     const limitManager = new LimitManager();
     // Pre-mark the period as busy
-    limitManager.addBusyTime({ start: dateFrom.startOf("day"), unit: "day", title: "test", source: "test" });
+    limitManager.addBusyTime({
+      start: dateFrom.startOf("day"),
+      unit: "day",
+      title: "busy_time.event_booking_limit",
+      source: "Event Booking Limit for User: 1 per day",
+    });
 
     const testBookings: EventBusyDetails[] = [
       {

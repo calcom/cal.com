@@ -1,6 +1,26 @@
 import dayjs from "@calcom/dayjs";
 import { describe, expect, it } from "vitest";
-import LimitManager from "./limitManager";
+import LimitManager, { LimitSources } from "./limitManager";
+
+describe("LimitSources", () => {
+  it("should return correct title and source for eventBookingLimit", () => {
+    const result = LimitSources.eventBookingLimit({ limit: 5, unit: "day" });
+    expect(result.title).toBe("busy_time.event_booking_limit");
+    expect(result.source).toBe("Event Booking Limit for User: 5 per day");
+  });
+
+  it("should return correct title and source for eventDurationLimit", () => {
+    const result = LimitSources.eventDurationLimit({ limit: 120, unit: "week" });
+    expect(result.title).toBe("busy_time.event_duration_limit");
+    expect(result.source).toBe("Event Duration Limit for User: 120 minutes per week");
+  });
+
+  it("should return correct title and source for teamBookingLimit", () => {
+    const result = LimitSources.teamBookingLimit({ limit: 10, unit: "month" });
+    expect(result.title).toBe("busy_time.team_booking_limit");
+    expect(result.source).toBe("Team Booking Limit: 10 per month");
+  });
+});
 
 describe("LimitManager", () => {
   describe("addBusyTime and getBusyTimes", () => {
