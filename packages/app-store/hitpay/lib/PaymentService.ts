@@ -127,7 +127,7 @@ class HitPayPaymentService implements IAbstractPaymentService {
 
       const data = response.data;
 
-      const getRequestUrl = `${hitpayAPIurl}/v1/payment-requests?request_id=${data.id}&is_default=1`;
+      const getRequestUrl = `${hitpayAPIurl}/v1/payment-requests/${data.id}`;
       const getResponse = await axios.get(getRequestUrl, {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
@@ -136,7 +136,7 @@ class HitPayPaymentService implements IAbstractPaymentService {
         },
       });
       const getData = getResponse.data;
-      const defaultLink = getData.data[0].url;
+      const defaultLink = getData.url;
 
       const uid = uuidv4();
 
