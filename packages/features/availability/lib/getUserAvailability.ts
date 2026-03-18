@@ -16,8 +16,9 @@ import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-r
 import { getWorkingHours } from "@calcom/lib/availability";
 import { stringToDayjsZod } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { getHolidayService } from "@calcom/lib/holidays";
 import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
+import { getHolidayService } from "@calcom/lib/holidays/HolidayService";
+import type { Holiday } from "@calcom/lib/holidays/types";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
@@ -100,9 +101,10 @@ type GetUsersAvailabilityProps = {
   users: (GetAvailabilityUser & {
     currentBookings?: GetUserAvailabilityInitialData["currentBookings"];
     outOfOfficeDays?: GetUserAvailabilityInitialData["outOfOfficeDays"];
+    holidayData?: HolidayInitialData | null;
   })[];
   query: GetUsersAvailabilityQuery;
-  initialData?: Omit<GetUserAvailabilityInitialData, "user">;
+  initialData: Omit<GetUserAvailabilityInitialData, "user">;
 };
 
 export type EventType = Awaited<ReturnType<(typeof UserAvailabilityService)["prototype"]["_getEventType"]>>;
@@ -160,15 +162,33 @@ export type GetUserAvailabilityInitialData = {
     bookingLimits?: unknown;
     includeManagedEventsInLimits: boolean;
   } | null;
+  holidayData?: HolidayInitialData | null;
+};
+
+type HolidayInitialData = {
+  settings: { userId: number; countryCode: string | null; disabledIds: string[] } | null;
+  dates: Array<{ date: string; holiday: Holiday }> | null;
 };
 
 export type GetAvailabilityUser = GetUserAvailabilityInitialData["user"];
+
+/**
+ * Type for batch calls (from getUsersAvailability).
+ * holidayData may be explicitly provided (HolidayInitialData | null) or left undefined
+ * to signal that _getUserAvailability should fetch it asynchronously.
+ * Add fields here as more data gets batch-prefetched.
+ */
+type BatchedUserAvailabilityInitialData = GetUserAvailabilityInitialData & {
+  holidayData?: HolidayInitialData | null;
+};
 
 export type CurrentSeats = Awaited<
   ReturnType<(typeof UserAvailabilityService)["prototype"]["_getCurrentSeats"]>
 >;
 
 type UserAvailabilityBusyDetails = Optional<EventBusyDetails, "source">;
+
+type InitialDataItemResult<T> = { provided: false } | { provided: true; value: T };
 
 export type GetUserAvailabilityResult = {
   busy: UserAvailabilityBusyDetails[];
@@ -369,6 +389,19 @@ export class UserAvailabilityService {
     return { bookingLimits, durationLimits };
   }
 
+  /**
+   * Handles tri-state return value for initial data items. Make it obvious for the caller to understand the state of the data.
+   */
+  private getInitialDataItem<K extends keyof GetUserAvailabilityInitialData>(
+    initialData: GetUserAvailabilityInitialData | undefined,
+    key: K
+  ): InitialDataItemResult<GetUserAvailabilityInitialData[K]> {
+    if (initialData === undefined || initialData[key] === undefined) {
+      return { provided: false };
+    }
+    return { provided: true, value: initialData[key] };
+  }
+
   /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
   async _getUserAvailability(
     params: GetUserAvailabilityParams,
@@ -485,12 +518,16 @@ export class UserAvailabilityService {
 
     const datesOutOfOffice: IOutOfOfficeData = this.calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
-    const holidayBlockedDates = await this.calculateHolidayBlockedDates(
-      user.id,
-      dateFrom.toDate(),
-      dateTo.toDate(),
-      availability
-    );
+    const prefetchedHolidayData = this.getInitialDataItem(initialData, "holidayData");
+    const holidayBlockedDates = !prefetchedHolidayData.provided
+      ? await this.fetchAndCalculateHolidayBlockedDates({ userId: user.id, dateFrom, dateTo, availability })
+      : prefetchedHolidayData.value
+        ? this.calculateHolidayBlockedDates(
+            availability,
+            prefetchedHolidayData.value.dates,
+            prefetchedHolidayData.value.settings?.disabledIds ?? []
+          )
+        : {};
 
     for (const [date, holidayData] of Object.entries(holidayBlockedDates)) {
       if (!datesOutOfOffice[date]) {
@@ -792,6 +829,24 @@ export class UserAvailabilityService {
     );
   }
 
+  /**
+   * Type-safe wrapper for batch calls. Requires pre-fetched initial data so that
+   * _getUserAvailability never silently degrades to per-user queries.
+   */
+  private _getUserAvailabilityBatched({
+    params,
+    initialData,
+  }: {
+    params: GetUserAvailabilityParams;
+    initialData: BatchedUserAvailabilityInitialData;
+  }) {
+    return this._getUserAvailability(params, initialData);
+  }
+
+  /**
+   * TODO: We might want to prefetch all data as part of this fn itself instead of expecting callers to pass prefetched data.
+   * We could start by prefetching new data-points here. This would ensure caller of this fn get best performance out of the box.
+   */
   async _getUsersAvailability({ users, query, initialData }: GetUsersAvailabilityProps) {
     if (users.length >= 50) {
       const userIds = users.map(({ id }) => id).join(", ");
@@ -808,81 +863,103 @@ export class UserAvailabilityService {
 
     return await Promise.all(
       users.map((user) =>
-        this._getUserAvailability(
-          {
+        this._getUserAvailabilityBatched({
+          params: {
             ...params,
             userId: user.id,
             username: user.username || "",
           },
-          initialData
-            ? {
-                ...initialData,
-                user,
-                currentBookings: user.currentBookings,
-                outOfOfficeDays: user.outOfOfficeDays,
-              }
-            : undefined
-        )
+          initialData: {
+            ...initialData,
+            user,
+            currentBookings: user.currentBookings,
+            outOfOfficeDays: user.outOfOfficeDays,
+            // undefined → not provided, triggers async fetch in _getUserAvailability
+            // null → explicitly no holiday data for this user
+            // HolidayInitialData → prefetched holiday data
+            holidayData: user.holidayData,
+          },
+        })
       )
     );
   }
 
   getUsersAvailability = withReporting(this._getUsersAvailability.bind(this), "getUsersAvailability");
 
-  async calculateHolidayBlockedDates(
-    userId: number,
-    startDate: Date,
-    endDate: Date,
-    availability: GetUserAvailabilityParamsDTO["availability"]
-  ): Promise<IOutOfOfficeData> {
+  /**
+   * fetches the data required for the user to calculate the holiday blocked dates and then calculates the blocked dates
+   */
+  private async fetchAndCalculateHolidayBlockedDates({
+    userId,
+    dateFrom,
+    dateTo,
+    availability,
+  }: {
+    userId: number;
+    dateFrom: dayjs.Dayjs;
+    dateTo: dayjs.Dayjs;
+    availability: GetUserAvailabilityParamsDTO["availability"];
+  }): Promise<IOutOfOfficeData> {
     const holidaySettings = await this.dependencies.holidayRepo.findUserSettingsSelect({
       userId,
-      select: {
-        countryCode: true,
-        disabledIds: true,
-      },
+      select: { countryCode: true, disabledIds: true },
     });
 
-    if (!holidaySettings || !holidaySettings.countryCode) {
+    if (!holidaySettings?.countryCode) {
       return {};
     }
 
-    // Holidays are stored as midnight UTC (e.g., 2025-12-25T00:00:00Z).
-    // When checking availability for a specific booking slot (e.g., 10:00-11:00),
-    // we need to expand the date range to include the full day so holidays are found.
-    // Otherwise, a booking at 10:00 wouldn't find a holiday stored at 00:00.
-    const startOfDay = dayjs(startDate).utc().startOf("day").toDate();
-    const endOfDay = dayjs(endDate).utc().endOf("day").toDate();
-
-    const holidayService = getHolidayService();
-    const holidayDates = await holidayService.getHolidayDatesInRange(
+    const { start: startOfDay, end: endOfDay } = getHolidayDateRange({
+      start: dateFrom.toDate(),
+      end: dateTo.toDate(),
+    });
+    const holidayDates = await getHolidayService().getHolidayDatesInRange(
       holidaySettings.countryCode,
       holidaySettings.disabledIds,
       startOfDay,
       endOfDay
     );
 
-    if (holidayDates.length === 0) {
+    return this.calculateHolidayBlockedDates(availability, holidayDates, holidaySettings.disabledIds);
+  }
+
+  /**
+   * Raw computation, no async work
+   */
+  calculateHolidayBlockedDates(
+    availability: GetUserAvailabilityParamsDTO["availability"],
+    holidayDatesForCountry: HolidayInitialData["dates"],
+    disabledHolidayIds: string[]
+  ): IOutOfOfficeData {
+    if (!holidayDatesForCountry || holidayDatesForCountry.length === 0) {
       return {};
     }
 
-    // Match OOO pattern: get working days from availability
-    const flattenDays = Array.from(new Set(availability.flatMap((a) => ("days" in a ? a.days : [])))).sort(
+    const disabledSet = new Set(disabledHolidayIds);
+    const enabledHolidayDates =
+      disabledSet.size > 0
+        ? holidayDatesForCountry.filter((h) => !disabledSet.has(h.holiday.id))
+        : holidayDatesForCountry;
+
+    if (enabledHolidayDates.length === 0) {
+      return {};
+    }
+
+    const workingDays = Array.from(new Set(availability.flatMap((a) => ("days" in a ? a.days : [])))).sort(
       (a, b) => a - b
     );
 
     const result: IOutOfOfficeData = {};
 
-    for (const { date, holiday } of holidayDates) {
-      // Match OOO pattern: use dayjs.utc() to parse date string and get day of week
-      const dayOfWeek = dayjs.utc(date).day();
+    for (const { date: utcDateStr, holiday } of enabledHolidayDates) {
+      const dayOfWeek = dayjs.utc(utcDateStr).day();
 
-      if (!flattenDays.includes(dayOfWeek)) {
+      if (!workingDays.includes(dayOfWeek)) {
         continue;
       }
 
-      // Match OOO pattern: key by the date string (already in YYYY-MM-DD UTC format)
-      result[date] = {
+      // Key matches OOO pattern of UTC YYYY-MM-DD
+      result[utcDateStr] = {
         fromUser: null,
         toUser: null,
         reason: holiday.name,

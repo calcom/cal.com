@@ -3,11 +3,12 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getAggregatedAvailability } from "@calcom/features/availability/lib/getAggregatedAvailability/getAggregatedAvailability";
-import type {
-  CurrentSeats,
-  EventType,
-  GetAvailabilityUser,
-  UserAvailabilityService,
+import {
+  getHolidayDateRange,
+  type CurrentSeats,
+  type EventType,
+  type GetAvailabilityUser,
+  type UserAvailabilityService,
 } from "@calcom/features/availability/lib/getUserAvailability";
 import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
@@ -21,6 +22,7 @@ import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembers
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
@@ -35,6 +37,8 @@ import { filterBlockedHosts } from "@calcom/features/watchlist/operations/filter
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
+import { getHolidayService } from "@calcom/lib/holidays/HolidayService";
+import type { HolidayDatesByCountry } from "@calcom/lib/holidays/types";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
@@ -67,6 +71,7 @@ export type GetAvailableSlotsResponse = Awaited<
 
 export interface IAvailableSlotsService {
   oooRepo: PrismaOOORepository;
+  holidayRepo: PrismaHolidayRepository;
   scheduleRepo: ScheduleRepository;
   selectedSlotRepo: ISelectedSlotRepository;
   teamRepo: TeamRepository;
@@ -845,6 +850,34 @@ export class AvailableSlotsService {
 
     return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
   }
+
+  private async fetchHolidayDatesForSettings({
+    holidaySettings,
+    startTimeDate,
+    endTimeDate,
+  }: {
+    holidaySettings: { countryCode: string | null }[];
+    startTimeDate: Date;
+    endTimeDate: Date;
+  }): Promise<HolidayDatesByCountry> {
+    const countryCodes = holidaySettings
+      .map((h) => h.countryCode)
+      .filter((cc): cc is string => cc !== null && cc !== undefined);
+    const uniqueCountryCodes = Array.from(new Set(countryCodes));
+    if (uniqueCountryCodes.length === 0) {
+      return new Map();
+    }
+    const holidayService = getHolidayService();
+
+    const { start: holidayStartOfDay, end: holidayEndOfDay } = getHolidayDateRange({ start: startTimeDate, end: endTimeDate });
+    const holidayDatesByCountry = await holidayService.getHolidayDatesInRangeForCountries({
+      countryCodes: uniqueCountryCodes,
+      startDate: holidayStartOfDay,
+      endDate: holidayEndOfDay,
+    });
+    return holidayDatesByCountry;
+  }
+
   private async calculateHostsAndAvailabilities({
     input,
     eventType,
@@ -896,7 +929,7 @@ export class AvailableSlotsService {
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
     const bookingRepo = this.dependencies.bookingRepo;
-    const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
+    const [currentBookingsAllUsers, outOfOfficeDaysAllUsers, holidaySettingsAllUsers] = await Promise.all([
       bookingRepo.findAllExistingBookingsForEventTypeBetween({
         startDate: startTimeDate,
         endDate: endTimeDate,
@@ -905,7 +938,17 @@ export class AvailableSlotsService {
         userIdAndEmailMap,
       }),
       this.getOOODates(startTimeDate, endTimeDate, allUserIds),
+      this.dependencies.holidayRepo.findManyUserSettings({
+        userIds: allUserIds,
+        select: { countryCode: true, disabledIds: true },
+      }),
     ]);
+
+    const holidayDatesByCountry = await this.fetchHolidayDatesForSettings({
+      holidaySettings: holidaySettingsAllUsers,
+      startTimeDate,
+      endTimeDate,
+    });
 
     const bookingLimits =
       eventType?.bookingLimits &&
@@ -976,9 +1019,11 @@ export class AvailableSlotsService {
         input.rescheduleUid || undefined
       );
     }
+    const holidaySettingsByUserId = new Map(holidaySettingsAllUsers.map((h) => [h.userId, h]));
 
     function _enrichUsersWithData() {
       return usersWithCredentials.map((currentUser) => {
+        const userHolidaySetting = holidaySettingsByUserId.get(currentUser.id) ?? null;
         return {
           ...currentUser,
           currentBookings: currentBookingsAllUsers
@@ -990,6 +1035,14 @@ export class AvailableSlotsService {
               return bookingWithoutAttendees;
             }),
           outOfOfficeDays: outOfOfficeDaysAllUsers.filter((o) => o.user.id === currentUser.id),
+          holidayData: userHolidaySetting
+            ? {
+                settings: userHolidaySetting,
+                dates: userHolidaySetting.countryCode
+                  ? holidayDatesByCountry.get(userHolidaySetting.countryCode) ?? null
+                  : null,
+              }
+            : null,
         };
       });
     }

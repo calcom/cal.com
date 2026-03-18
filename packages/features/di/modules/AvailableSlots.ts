@@ -9,6 +9,7 @@ import { DI_TOKENS } from "../tokens";
 export const availableSlotsModule = createModule();
 availableSlotsModule.bind(DI_TOKENS.AVAILABLE_SLOTS_SERVICE).toClass(AvailableSlotsService, {
   oooRepo: DI_TOKENS.OOO_REPOSITORY,
+  holidayRepo: DI_TOKENS.HOLIDAY_REPOSITORY,
   scheduleRepo: DI_TOKENS.SCHEDULE_REPOSITORY,
   selectedSlotRepo: DI_TOKENS.SELECTED_SLOT_REPOSITORY,
   teamRepo: DI_TOKENS.TEAM_REPOSITORY,

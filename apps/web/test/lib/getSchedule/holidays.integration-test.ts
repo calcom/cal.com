@@ -86,13 +86,17 @@ const createTestSoloEventType = async (userId: number) => {
   });
 };
 
-const createTestTeamWithRoundRobin = async (userIds: number[]) => {
+const createTestTeamEvent = async (
+  userIds: number[],
+  schedulingType: (typeof SchedulingType)["ROUND_ROBIN"] | (typeof SchedulingType)["COLLECTIVE"]
+) => {
   const timestamp = Date.now();
+  const label = schedulingType === SchedulingType.ROUND_ROBIN ? "rr" : "collective";
 
   const team = await prisma.team.create({
     data: {
-      name: `Holiday Team ${timestamp}`,
-      slug: `holiday-team-${timestamp}`,
+      name: `Holiday Team ${label} ${timestamp}`,
+      slug: `holiday-team-${label}-${timestamp}`,
     },
   });
 
@@ -105,19 +109,21 @@ const createTestTeamWithRoundRobin = async (userIds: number[]) => {
     })),
   });
 
+  const isFixed = schedulingType === SchedulingType.COLLECTIVE;
+
   const eventType = await prisma.eventType.create({
     data: {
-      title: `Holiday Team Event ${timestamp}`,
-      slug: `holiday-team-event-${timestamp}`,
+      title: `Holiday Team Event ${label} ${timestamp}`,
+      slug: `holiday-team-event-${label}-${timestamp}`,
       length: 60,
       slotInterval: 60,
       teamId: team.id,
       userId: userIds[0],
-      schedulingType: SchedulingType.ROUND_ROBIN,
+      schedulingType,
       users: { connect: userIds.map((id) => ({ id })) },
       hosts: {
         createMany: {
-          data: userIds.map((userId) => ({ userId, isFixed: false })),
+          data: userIds.map((userId) => ({ userId, isFixed })),
         },
       },
     },
@@ -193,14 +199,18 @@ const getSlots = async (input: {
 
 const holidayDate = "2026-07-01";
 const nonHolidayDate = "2026-07-02";
+// 2026-07-04 is a Saturday — not a working day for the default Mon–Fri schedule
+const holidayOnWeekend = "2026-07-04";
 
 describe("getSchedule holidays (integration)", () => {
   let testData: {
     users: User[];
     schedules: Schedule[];
     soloEventType: EventType;
-    team: Team;
-    teamEventType: EventType;
+    rrTeam: Team;
+    rrEventType: EventType;
+    collectiveTeam: Team;
+    collectiveEventType: EventType;
   };
 
   beforeAll(async () => {
@@ -232,6 +242,15 @@ describe("getSchedule holidays (integration)", () => {
         date: holidayDate,
         year: 2026,
       }),
+      // Holiday that falls on a Saturday (non-working day)
+      createTestHolidayCacheEntry({
+        countryCode: "US",
+        calendarId: "en.usa.official#holiday@group.v.calendar.google.com",
+        eventId: "test_us_holiday_weekend",
+        name: "Test US Weekend Holiday",
+        date: holidayOnWeekend,
+        year: 2026,
+      }),
     ]);
 
     await Promise.all([
@@ -240,20 +259,36 @@ describe("getSchedule holidays (integration)", () => {
     ]);
 
     const soloEventType = await createTestSoloEventType(users[0].id);
-    const { team, eventType: teamEventType } = await createTestTeamWithRoundRobin(users.map((u) => u.id));
+    const { team: rrTeam, eventType: rrEventType } = await createTestTeamEvent(
+      users.map((u) => u.id),
+      SchedulingType.ROUND_ROBIN
+    );
+    const { team: collectiveTeam, eventType: collectiveEventType } = await createTestTeamEvent(
+      users.map((u) => u.id),
+      SchedulingType.COLLECTIVE
+    );
 
-    testData = { users, schedules, soloEventType, team, teamEventType };
+    testData = { users, schedules, soloEventType, rrTeam, rrEventType, collectiveTeam, collectiveEventType };
   });
 
   afterAll(async () => {
     vi.useRealTimers();
     await cleanupTestData({
-      eventTypeIds: [testData.soloEventType?.id, testData.teamEventType?.id].filter(Boolean),
+      eventTypeIds: [
+        testData.soloEventType?.id,
+        testData.rrEventType?.id,
+        testData.collectiveEventType?.id,
+      ].filter(Boolean),
       userIds: testData.users?.map((u) => u.id),
       scheduleIds: testData.schedules?.map((s) => s.id),
-      holidayCacheEventIds: ["test_us_holiday_1", "test_de_holiday_1"],
-      teamId: testData.team?.id,
+      holidayCacheEventIds: ["test_us_holiday_1", "test_de_holiday_1", "test_us_holiday_weekend"],
+      teamId: testData.rrTeam?.id,
     });
+    // Clean up collective team separately since cleanupTestData only takes one teamId
+    if (testData.collectiveTeam?.id) {
+      await prisma.membership.deleteMany({ where: { teamId: testData.collectiveTeam.id } });
+      await prisma.team.delete({ where: { id: testData.collectiveTeam.id } }).catch(() => {});
+    }
   });
 
   test("should mark all slots as away on a holiday for a solo user", async () => {
@@ -286,7 +321,7 @@ describe("getSchedule holidays (integration)", () => {
     vi.setSystemTime("2026-06-25T00:00:00Z");
 
     const schedule = await getSlots({
-      eventTypeId: testData.teamEventType.id,
+      eventTypeId: testData.rrEventType.id,
       startTime: `${holidayDate}T00:00:00.000Z`,
       endTime: `${holidayDate}T23:59:59.999Z`,
       isTeamEvent: true,
@@ -334,7 +369,7 @@ describe("getSchedule holidays (integration)", () => {
 
     try {
       const schedule = await getSlots({
-        eventTypeId: testData.teamEventType.id,
+        eventTypeId: testData.rrEventType.id,
         startTime: `${holidayDate}T00:00:00.000Z`,
         endTime: `${holidayDate}T23:59:59.999Z`,
         isTeamEvent: true,
@@ -355,7 +390,7 @@ describe("getSchedule holidays (integration)", () => {
     vi.setSystemTime("2026-06-25T00:00:00Z");
 
     const schedule = await getSlots({
-      eventTypeId: testData.teamEventType.id,
+      eventTypeId: testData.rrEventType.id,
       startTime: `${holidayDate}T00:00:00.000Z`,
       endTime: `${nonHolidayDate}T23:59:59.999Z`,
       isTeamEvent: true,
@@ -365,6 +400,213 @@ describe("getSchedule holidays (integration)", () => {
     // assert the date is disabled (no slots), not that it's specifically holiday OOO.
     expect(schedule).toHaveDateDisabled({ dateString: holidayDate });
     expect(schedule).toHaveTimeSlots(WEEKDAY_HOURLY_SLOTS, { dateString: nonHolidayDate });
+  });
+
+  // --- Collective scheduling tests ---
+
+  test("collective: should disable date when all hosts are on holiday", async () => {
+    vi.setSystemTime("2026-06-25T00:00:00Z");
+
+    const schedule = await getSlots({
+      eventTypeId: testData.collectiveEventType.id,
+      startTime: `${holidayDate}T00:00:00.000Z`,
+      endTime: `${holidayDate}T23:59:59.999Z`,
+      isTeamEvent: true,
+    });
+
+    // Collective requires ALL hosts to be available (intersection of availabilities).
+    // Both hosts are on holiday (US & DE), so no slots should be available.
+    expect(schedule).toHaveDateDisabled({ dateString: holidayDate });
+  });
+
+  test("collective: should disable date when even one host is on holiday", async () => {
+    vi.setSystemTime("2026-06-25T00:00:00Z");
+
+    // Remove DE holiday so only user1 (US) is on holiday
+    await prisma.userHolidaySettings.update({
+      where: { userId: testData.users[1].id },
+      data: { countryCode: null },
+    });
+
+    try {
+      const schedule = await getSlots({
+        eventTypeId: testData.collectiveEventType.id,
+        startTime: `${holidayDate}T00:00:00.000Z`,
+        endTime: `${holidayDate}T23:59:59.999Z`,
+        isTeamEvent: true,
+      });
+
+      // Collective intersects availability — user1 is on holiday, so the intersection
+      // is empty even though user2 is free. Date should be disabled.
+      expect(schedule).toHaveDateDisabled({ dateString: holidayDate });
+    } finally {
+      await prisma.userHolidaySettings.update({
+        where: { userId: testData.users[1].id },
+        data: { countryCode: "DE" },
+      });
+    }
+  });
+
+  test("collective: should return normal slots on non-holiday date", async () => {
+    vi.setSystemTime("2026-06-25T00:00:00Z");
+
+    const schedule = await getSlots({
+      eventTypeId: testData.collectiveEventType.id,
+      startTime: `${nonHolidayDate}T00:00:00.000Z`,
+      endTime: `${nonHolidayDate}T23:59:59.999Z`,
+      isTeamEvent: true,
+    });
+
+    expect(schedule).toHaveTimeSlots(WEEKDAY_HOURLY_SLOTS, { dateString: nonHolidayDate });
+  });
+
+  test("collective: should return normal slots when both hosts have disabled the holiday", async () => {
+    vi.setSystemTime("2026-06-25T00:00:00Z");
+
+    await Promise.all([
+      prisma.userHolidaySettings.update({
+        where: { userId: testData.users[0].id },
+        data: { disabledIds: ["test_us_holiday_1"] },
+      }),
+      prisma.userHolidaySettings.update({
+        where: { userId: testData.users[1].id },
+        data: { disabledIds: ["test_de_holiday_1"] },
+      }),
+    ]);
+
+    try {
+      const schedule = await getSlots({
+        eventTypeId: testData.collectiveEventType.id,
+        startTime: `${holidayDate}T00:00:00.000Z`,
+        endTime: `${holidayDate}T23:59:59.999Z`,
+        isTeamEvent: true,
+      });
+
+      // Both users disabled their holiday, so both are available → intersection has slots.
+      expect(schedule).toHaveTimeSlots(WEEKDAY_HOURLY_SLOTS, { dateString: holidayDate });
+    } finally {
+      await Promise.all([
+        prisma.userHolidaySettings.update({
+          where: { userId: testData.users[0].id },
+          data: { disabledIds: [] },
+        }),
+        prisma.userHolidaySettings.update({
+          where: { userId: testData.users[1].id },
+          data: { disabledIds: [] },
+        }),
+      ]);
+    }
+  });
+
+  // --- Mixed holiday states across team members ---
+
+  test("should handle mixed holiday states: one user with holidays, one without settings", async () => {
+    vi.setSystemTime("2026-06-25T00:00:00Z");
+
+    // Delete user2's holiday settings entirely (simulates a user who never configured holidays)
+    await prisma.userHolidaySettings.delete({
+      where: { userId: testData.users[1].id },
+    });
+
+    try {
+      const schedule = await getSlots({
+        eventTypeId: testData.rrEventType.id,
+        startTime: `${holidayDate}T00:00:00.000Z`,
+        endTime: `${holidayDate}T23:59:59.999Z`,
+        isTeamEvent: true,
+      });
+
+      // Round-robin: user1 is on US holiday, user2 has no holiday settings at all.
+      // user2 is available, so slots should exist.
+      expect(schedule).toHaveTimeSlots(WEEKDAY_HOURLY_SLOTS, { dateString: holidayDate });
+    } finally {
+      await createTestHolidaySettings(testData.users[1].id, "DE");
+    }
+  });
+
+  test("collective: should disable date when one host has holiday and other has no holiday settings", async () => {
+    vi.setSystemTime("2026-06-25T00:00:00Z");
+
+    await prisma.userHolidaySettings.delete({
+      where: { userId: testData.users[1].id },
+    });
+
+    try {
+      const schedule = await getSlots({
+        eventTypeId: testData.collectiveEventType.id,
+        startTime: `${holidayDate}T00:00:00.000Z`,
+        endTime: `${holidayDate}T23:59:59.999Z`,
+        isTeamEvent: true,
+      });
+
+      // Collective: user1 is on US holiday (unavailable), user2 has no settings (available).
+      // Intersection is empty because user1 is blocked → date disabled.
+      expect(schedule).toHaveDateDisabled({ dateString: holidayDate });
+    } finally {
+      await createTestHolidaySettings(testData.users[1].id, "DE");
+    }
+  });
+
+  // --- Partial disabledIds filtering ---
+
+  test("should only block non-disabled holidays when user has partially disabled holidays", async () => {
+    vi.setSystemTime("2026-06-25T00:00:00Z");
+
+    // Add a second US holiday on nonHolidayDate so we can test partial disabling
+    await createTestHolidayCacheEntry({
+      countryCode: "US",
+      calendarId: "en.usa.official#holiday@group.v.calendar.google.com",
+      eventId: "test_us_holiday_2",
+      name: "Test US Holiday 2",
+      date: nonHolidayDate,
+      year: 2026,
+    });
+
+    // Disable only the first holiday, leave the second enabled
+    await prisma.userHolidaySettings.update({
+      where: { userId: testData.users[0].id },
+      data: { disabledIds: ["test_us_holiday_1"] },
+    });
+
+    try {
+      const schedule = await getSlots({
+        eventTypeId: testData.soloEventType.id,
+        startTime: `${holidayDate}T00:00:00.000Z`,
+        endTime: `${nonHolidayDate}T23:59:59.999Z`,
+        isTeamEvent: false,
+      });
+
+      // holidayDate: test_us_holiday_1 is disabled → normal slots
+      expect(schedule).toHaveTimeSlots(WEEKDAY_HOURLY_SLOTS, { dateString: holidayDate });
+      // nonHolidayDate: test_us_holiday_2 is NOT disabled → holiday OOO
+      expect(schedule).toHaveAllSlotsAsHolidayOOO({
+        dateString: nonHolidayDate,
+        reason: "Test US Holiday 2",
+      });
+    } finally {
+      await prisma.userHolidaySettings.update({
+        where: { userId: testData.users[0].id },
+        data: { disabledIds: [] },
+      });
+      await prisma.holidayCache.deleteMany({ where: { eventId: "test_us_holiday_2" } });
+    }
+  });
+
+  // --- Holiday on non-working day ---
+
+  test("should not affect availability when holiday falls on a non-working day (weekend)", async () => {
+    vi.setSystemTime("2026-06-25T00:00:00Z");
+
+    const schedule = await getSlots({
+      eventTypeId: testData.soloEventType.id,
+      startTime: `${holidayOnWeekend}T00:00:00.000Z`,
+      endTime: `${holidayOnWeekend}T23:59:59.999Z`,
+      isTeamEvent: false,
+    });
+
+    // 2026-07-04 is Saturday — already not a working day (Mon–Fri schedule).
+    // The holiday shouldn't change the behavior; the date is disabled because it's a weekend.
+    expect(schedule).toHaveDateDisabled({ dateString: holidayOnWeekend });
   });
 });
 

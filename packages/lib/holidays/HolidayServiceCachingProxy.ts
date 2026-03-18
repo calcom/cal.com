@@ -1,12 +1,11 @@
 import dayjs from "@calcom/dayjs";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { HolidayRepository } from "@calcom/features/holidays/repositories/HolidayRepository";
-
 import { GOOGLE_HOLIDAY_CALENDARS, HOLIDAY_CACHE_DAYS } from "./constants";
 import {
-  getGoogleCalendarClient,
   type GoogleCalendarClient,
   type GoogleCalendarHoliday,
+  getGoogleCalendarClient,
 } from "./GoogleCalendarClient";
 
 export interface CachedHoliday {
@@ -29,7 +28,6 @@ export class HolidayServiceCachingProxy {
     const staleDate = dayjs().subtract(HOLIDAY_CACHE_DAYS, "days").toDate();
 
     const cachedEntry = await HolidayRepository.findFirstCacheEntry({ countryCode, year });
-
     if (!cachedEntry) {
       return true;
     }
@@ -61,6 +59,30 @@ export class HolidayServiceCachingProxy {
     } catch (error) {
       console.error(`Failed to refresh holiday cache for ${countryCode}:`, error);
     }
+  }
+
+  private async refreshStaleCaches({
+    countryCodes,
+    startYear,
+    endYear,
+  }: {
+    countryCodes: string[];
+    startYear: number;
+    endYear: number;
+  }): Promise<void> {
+    await Promise.all(
+      countryCodes.flatMap((cc) => {
+        const refreshPromises: Promise<void>[] = [];
+        for (let year = startYear; year <= endYear; year++) {
+          refreshPromises.push(
+            this.isCacheStale(cc, year).then((isStale) => {
+              if (isStale) return this.refreshCache(cc, year);
+            })
+          );
+        }
+        return refreshPromises;
+      })
+    );
   }
 
   private toCachedHoliday(h: {
@@ -128,19 +150,7 @@ export class HolidayServiceCachingProxy {
     // TODO: Move cache refresh to a background job (e.g. Trigger.dev cron) so the critical
     // path never pays for a Google Calendar API call. Currently, the unlucky request that
     // hits a stale cache adds ~300ms+ per country per year of external API latency.
-    await Promise.all(
-      countryCodes.flatMap((cc) => {
-        const refreshPromises: Promise<void>[] = [];
-        for (let year = startYear; year <= endYear; year++) {
-          refreshPromises.push(
-            this.isCacheStale(cc, year).then((isStale) => {
-              if (isStale) return this.refreshCache(cc, year);
-            })
-          );
-        }
-        return refreshPromises;
-      })
-    );
+    await this.refreshStaleCaches({ countryCodes, startYear, endYear });
 
     const cached = await HolidayRepository.findCachedHolidaysInRangeForCountries({
       countryCodes,
