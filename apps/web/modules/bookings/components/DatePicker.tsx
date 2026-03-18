@@ -11,6 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { User } from "@calcom/prisma/client";
 import type { PeriodData } from "@calcom/types/Event";
 import { useSlotsViewOnSmallScreen } from "@calcom/embed-core/embed-iframe";
+import { useEffect } from "react";
 
 import type { Slots } from "@calcom/features/bookings/types";
 
@@ -99,6 +100,19 @@ export const DatePicker = ({
     setDayCount(null); // Whenever the month is changed, we nullify getting X days
   };
 
+  // ✅ FIX: when the booking window is a future RANGE, jump to its start month
+  const periodStartDate = event?.data?.periodStartDate;
+  const periodEndDate = event?.data?.periodEndDate;
+  const periodType = event?.data?.periodType;
+
+  useEffect(() => {
+    if (periodType !== "RANGE" || !periodStartDate) return;
+    const periodStart = dayjs(periodStartDate);
+    if (dayjs().isBefore(periodStart, "month")) {
+      setMonth(periodStart.format("YYYY-MM"));
+    }
+  }, [periodStartDate?.toString()]);
+
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(slots);
   const browsingDate = month ? dayjs(month) : dayjs().startOf("month");
 
@@ -129,6 +143,7 @@ export const DatePicker = ({
       periodCountCalendarDays: event.data.periodCountCalendarDays,
     }),
   };
+
   return (
     <DatePickerComponent
       customClassNames={{
@@ -166,6 +181,8 @@ export const DatePicker = ({
       periodData={periodData}
       isCompact={isCompact}
       showNoAvailabilityDialog={showNoAvailabilityDialog}
+      minDate={periodType === "RANGE" && periodStartDate ? periodStartDate : undefined}
+      maxDate={periodType === "RANGE" && periodEndDate ? periodEndDate : undefined}
     />
   );
 };
