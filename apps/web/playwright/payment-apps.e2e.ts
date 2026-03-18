@@ -314,7 +314,8 @@ test.describe("Payment app", () => {
     await goToAppsTab(page, paymentEvent?.id);
 
     await page.locator("[data-testid='paypal-app-switch']").click();
-    await expect(page.locator("[data-testid='stripe-app-switch']")).toBeDisabled();
+    // After enabling paypal, the paypal switch should be checked
+    await expect(page.locator("[data-testid='paypal-app-switch']")).toBeChecked();
   });
 
   test("when more than one payment app is installed the price should be updated when changing settings", async ({
