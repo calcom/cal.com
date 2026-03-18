@@ -8,10 +8,10 @@
   "main": "index.ts",
   "scripts": {
     "lint": "biome lint .",
-    "dev:trigger": "npx trigger.dev@latest dev --analyze",
-    "deploy:trigger:prod": "npx trigger.dev@latest deploy --skip-promotion",
+    "dev:trigger": "npx trigger.dev@4.3.2 dev --analyze",
+    "deploy:trigger:prod": "npx trigger.dev@4.3.2 deploy --skip-promotion",
     "deploy:trigger:ci": "trigger deploy --config ./trigger.config.ts --skip-promotion",
-    "deploy:trigger:staging": "npx trigger.dev@latest deploy --env staging --skip-promotion"
+    "deploy:trigger:staging": "npx trigger.dev@4.3.2 deploy --env staging --skip-promotion"
   },
   "dependencies": {
     "@calcom/atoms": "workspace:*",
