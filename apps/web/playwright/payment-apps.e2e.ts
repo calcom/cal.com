@@ -208,7 +208,7 @@ test.describe("Payment app", () => {
       await page.getByRole("button", { name: "Setup" }).click();
 
       // Expect "Connect with Alby" to be displayed
-      expect(await page.locator("text=Connect with Alby").first()).toBeTruthy();
+      await expect(page).toHaveURL(/\/apps\/alby\/setup/);
     } finally {
       await cleanupAlbyApp();
     }
