@@ -1,10 +1,11 @@
 # this file is a helper to run Cal.com locally
 # starts a postgres 18 instance on port 5450 to use as a local db
+# override DATABASE_PORT if 5450 is already taken (e.g. WSL2 / Docker Desktop port conflict)
 services:
   postgres:
     image: postgres:18
     ports:
-      - "5450:5432" # expose pg on port 5450 to not collide with pg from elsewhere
+      - "${DATABASE_PORT:-5450}:5432" # expose pg on host; override DATABASE_PORT if 5450 is unavailable
     restart: always
     volumes:
       - db_data:/var/lib/postgresql
