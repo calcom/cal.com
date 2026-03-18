@@ -78,29 +78,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ message: "No user found" });
   }
 
-  /**
-   * With this we take care of no duplicate office365_video key for a single user
-   * when creating a video room we only do findFirst so the if they have more than 1
-   * others get ignored
-   * */
+  const installScope = state?.calIdTeamId
+    ? { calIdTeamId: state.calIdTeamId }
+    : state?.teamId
+    ? { teamId: state.teamId }
+    : { userId };
+
   const existingCredentialOfficeVideo = await prisma.credential.findMany({
     select: {
       id: true,
     },
     where: {
       type: "office365_video",
-      userId: req.session?.user.id,
       appId: "msteams",
+      ...installScope,
+    },
+    orderBy: {
+      id: "asc",
     },
   });
 
-  // Making sure we only delete office365_video
-  const credentialIdsToDelete = existingCredentialOfficeVideo.map((item) => item.id);
-  if (credentialIdsToDelete.length > 0) {
-    await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
-  }
+  if (existingCredentialOfficeVideo.length > 0) {
+    const [credentialToKeep, ...duplicateCredentials] = existingCredentialOfficeVideo;
+    await prisma.credential.update({
+      where: { id: credentialToKeep.id },
+      data: { key: responseBody },
+    });
 
-  await createOAuthAppCredential({ appId: "msteams", type: "office365_video" }, responseBody, req);
+    if (duplicateCredentials.length > 0) {
+      await prisma.credential.deleteMany({
+        where: { id: { in: duplicateCredentials.map((credential) => credential.id) } },
+      });
+    }
+  } else {
+    await createOAuthAppCredential({ appId: "msteams", type: "office365_video" }, responseBody, req);
+  }
 
   return res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "conferencing", slug: "msteams" })
