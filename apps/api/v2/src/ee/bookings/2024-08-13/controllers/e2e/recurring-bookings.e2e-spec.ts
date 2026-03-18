@@ -335,6 +335,212 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
   });
 
+  describe("Creating daily recurring bookings", () => {
+    let app: INestApplication;
+    let organization: Team;
+
+    let userRepositoryFixture: UserRepositoryFixture;
+    let bookingsRepositoryFixture: BookingsRepositoryFixture;
+    let schedulesService: SchedulesService_2024_04_15;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let oAuthClient: PlatformOAuthClient;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+
+    const userEmail = `daily-recurring-bookings-2024-08-13-user-${randomString()}@api.com`;
+    let user: User;
+
+    const maxRecurrenceCount = 3;
+    let dailyRecurringEventTypeId: number;
+    const dailyRecurringEventSlug = `daily-recurring-bookings-2024-08-13-event-type-${randomString()}`;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        userEmail,
+        Test.createTestingModule({
+          imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
+        })
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
+
+      organization = await teamRepositoryFixture.create({
+        name: `daily-recurring-bookings-2024-08-13-organization-${randomString()}`,
+      });
+      oAuthClient = await createOAuthClient(organization.id);
+
+      user = await userRepositoryFixture.create({
+        email: userEmail,
+        platformOAuthClients: {
+          connect: {
+            id: oAuthClient.id,
+          },
+        },
+      });
+
+      const userSchedule: CreateScheduleInput_2024_04_15 = {
+        name: `daily-recurring-bookings-2024-08-13-schedule-${randomString()}`,
+        timeZone: "Europe/Rome",
+        isDefault: true,
+      };
+      await schedulesService.createUserSchedule(user.id, userSchedule);
+
+      const dailyRecurringEvent = await eventTypesRepositoryFixture.create(
+        // note: freq 3 means daily, interval 1 means every day and count 3 means 3 days in a row
+        {
+          title: `daily-recurring-bookings-2024-08-13-event-type-${randomString()}`,
+          slug: dailyRecurringEventSlug,
+          length: 60,
+          recurringEvent: { freq: 3, count: maxRecurrenceCount, interval: 1 },
+        },
+        user.id
+      );
+      dailyRecurringEventTypeId = dailyRecurringEvent.id;
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      await app.init();
+    });
+
+    async function createOAuthClient(organizationId: number) {
+      const data = {
+        logo: "logo-url",
+        name: "name",
+        redirectUris: ["http://localhost:5555"],
+        permissions: 32,
+      };
+      const secret = "secret";
+
+      const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+      return client;
+    }
+
+    it("should create a daily recurring booking with all recurrences", async () => {
+      const recurrenceCount = maxRecurrenceCount;
+      const body: CreateRecurringBookingInput_2024_08_13 = {
+        start: new Date(Date.UTC(2030, 1, 4, 13, 0, 0)).toISOString(),
+        eventTypeId: dailyRecurringEventTypeId,
+        attendee: {
+          name: "Mr Proper Daily Recurring",
+          email: "mr_proper_daily_recurring@gmail.com",
+          timeZone: "Europe/Rome",
+          language: "it",
+        },
+        location: "https://meet.google.com/abc-def-ghi",
+        recurrenceCount,
+      };
+
+      return request(app.getHttpServer())
+        .post("/v2/bookings")
+        .send(body)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseDataIsRecurringBooking(responseBody.data)).toBe(true);
+
+          if (responseDataIsRecurringBooking(responseBody.data)) {
+            const data: RecurringBookingOutput_2024_08_13[] = responseBody.data;
+            expect(data.length).toEqual(maxRecurrenceCount);
+
+            const firstBooking = data[0];
+            expect(firstBooking.id).toBeDefined();
+            expect(firstBooking.uid).toBeDefined();
+            expect(firstBooking.hosts[0].id).toEqual(user.id);
+            expect(firstBooking.status).toEqual("accepted");
+            expect(firstBooking.start).toEqual(new Date(Date.UTC(2030, 1, 4, 13, 0, 0)).toISOString());
+            expect(firstBooking.end).toEqual(new Date(Date.UTC(2030, 1, 4, 14, 0, 0)).toISOString());
+            expect(firstBooking.duration).toEqual(60);
+            expect(firstBooking.eventTypeId).toEqual(dailyRecurringEventTypeId);
+            expect(firstBooking.attendees[0]).toEqual({
+              name: body.attendee.name,
+              email: body.attendee.email,
+              displayEmail: body.attendee.email,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+            });
+            expect(firstBooking.location).toEqual(body.location);
+            expect(firstBooking.recurringBookingUid).toBeDefined();
+            expect(firstBooking.absentHost).toEqual(false);
+
+            // note: daily recurrence means bookings are 1 day apart (Feb 4 -> Feb 5)
+            const secondBooking = data[1];
+            expect(secondBooking.id).toBeDefined();
+            expect(secondBooking.uid).toBeDefined();
+            expect(secondBooking.hosts[0].id).toEqual(user.id);
+            expect(secondBooking.status).toEqual("accepted");
+            expect(secondBooking.start).toEqual(new Date(Date.UTC(2030, 1, 5, 13, 0, 0)).toISOString());
+            expect(secondBooking.end).toEqual(new Date(Date.UTC(2030, 1, 5, 14, 0, 0)).toISOString());
+            expect(secondBooking.duration).toEqual(60);
+            expect(secondBooking.eventTypeId).toEqual(dailyRecurringEventTypeId);
+            expect(secondBooking.recurringBookingUid).toBeDefined();
+            expect(secondBooking.attendees[0]).toEqual({
+              name: body.attendee.name,
+              email: body.attendee.email,
+              displayEmail: body.attendee.email,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+            });
+            expect(secondBooking.location).toEqual(body.location);
+            expect(secondBooking.absentHost).toEqual(false);
+
+            // note: daily recurrence means bookings are 1 day apart (Feb 5 -> Feb 6)
+            const thirdBooking = data[2];
+            expect(thirdBooking.id).toBeDefined();
+            expect(thirdBooking.uid).toBeDefined();
+            expect(thirdBooking.hosts[0].id).toEqual(user.id);
+            expect(thirdBooking.status).toEqual("accepted");
+            expect(thirdBooking.start).toEqual(new Date(Date.UTC(2030, 1, 6, 13, 0, 0)).toISOString());
+            expect(thirdBooking.end).toEqual(new Date(Date.UTC(2030, 1, 6, 14, 0, 0)).toISOString());
+            expect(thirdBooking.duration).toEqual(60);
+            expect(thirdBooking.eventTypeId).toEqual(dailyRecurringEventTypeId);
+            expect(thirdBooking.recurringBookingUid).toBeDefined();
+            expect(thirdBooking.attendees[0]).toEqual({
+              name: body.attendee.name,
+              email: body.attendee.email,
+              displayEmail: body.attendee.email,
+              timeZone: body.attendee.timeZone,
+              language: body.attendee.language,
+              absent: false,
+            });
+            expect(thirdBooking.location).toEqual(body.location);
+            expect(thirdBooking.absentHost).toEqual(false);
+          } else {
+            throw new Error(
+              "Invalid response data - expected recurring booking but received non array response"
+            );
+          }
+        });
+    });
+
+    afterEach(async () => {
+      await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
+    });
+
+    afterAll(async () => {
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await teamRepositoryFixture.delete(organization.id);
+      await userRepositoryFixture.deleteByEmail(user.email);
+      await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
+      await app.close();
+    });
+  });
+
   function responseDataIsRecurringBooking(data: any): data is RecurringBookingOutput_2024_08_13[] {
     return Array.isArray(data);
   }

@@ -571,8 +571,10 @@ export class InputBookingsService_2024_08_13 {
         case Frequency.SECONDLY:
           startTime = startTime.plus({ seconds: repeatsEvery });
           break;
-        default:
-          throw new Error("Unsupported timeBetween value");
+        default: {
+          const _exhaustive: never = timeBetween;
+          throw new BadRequestException(`Unsupported recurring frequency: ${_exhaustive}`);
+        }
       }
     }
 
