@@ -12,6 +12,7 @@ import type {
   WebhookSubscriber,
   WrongAssignmentReportDTO,
 } from "../dto/types";
+import type { WebhookPayload } from "../factory/types";
 import type { PayloadBuilderFactory } from "../factory/versioned/PayloadBuilderFactory";
 import type { IWebhookDataFetcher } from "../interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "../interface/IWebhookRepository";
@@ -91,6 +92,65 @@ export class WebhookTaskConsumer {
       });
       throw error;
     }
+  }
+
+  /**
+   * Prepare webhook delivery data without sending.
+   * Returns subscribers and the built webhook payload so the caller can
+   * control per-subscriber delivery (e.g. with per-subscriber retries).
+   */
+  async prepareWebhookDelivery(
+    payload: WebhookTaskPayload,
+    taskId: string
+  ): Promise<{
+    subscribers: WebhookSubscriber[];
+    triggerEvent: WebhookTriggerEvents;
+    webhookPayload: WebhookPayload;
+  } | null> {
+    this.log.debug("Preparing webhook delivery", {
+      operationId: payload.operationId,
+      taskId,
+      triggerEvent: payload.triggerEvent,
+    });
+
+    const fetcher = this.getDataFetcher(payload.triggerEvent);
+
+    if (!fetcher) {
+      throw new Error(`No data fetcher registered for trigger event: ${payload.triggerEvent}`);
+    }
+
+    const subscriberContext = fetcher.getSubscriberContext(payload);
+    const subscribers = await this.webhookRepository.getSubscribers(subscriberContext);
+
+    if (subscribers.length === 0) {
+      this.log.debug("No webhook subscribers found", { operationId: payload.operationId });
+      return null;
+    }
+
+    const eventData = await fetcher.fetchEventData(payload);
+
+    if (!eventData) {
+      this.log.warn("Event data not found", {
+        operationId: payload.operationId,
+        triggerEvent: payload.triggerEvent,
+      });
+      return null;
+    }
+
+    const dto = this.buildDTO(eventData, payload);
+
+    if (!dto) {
+      this.log.warn("Failed to build DTO for webhook", {
+        triggerEvent: payload.triggerEvent,
+        operationId: payload.operationId,
+      });
+      return null;
+    }
+
+    const builder = this.payloadBuilderFactory.getBuilder(DEFAULT_WEBHOOK_VERSION, dto.triggerEvent);
+    const webhookPayload = builder.build(dto);
+
+    return { subscribers, triggerEvent: dto.triggerEvent, webhookPayload };
   }
 
   /**

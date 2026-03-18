@@ -71,7 +71,12 @@ export class WebhookService implements IWebhookService {
     };
   }
 
-  private async sendWebhookDirectly(
+  /**
+   * Send a webhook to a single subscriber directly via HTTP POST.
+   * Throws on network errors or non-OK HTTP responses.
+   * Used by the trigger.dev task for per-subscriber retries.
+   */
+  async sendWebhookDirectly(
     trigger: WebhookTriggerEvents,
     payload: WebhookPayload,
     subscriber: WebhookSubscriber
@@ -79,16 +84,29 @@ export class WebhookService implements IWebhookService {
     const { subscriberUrl } = subscriber;
     if (!subscriberUrl) throw new Error("Missing subscriber URL");
 
-    const result = await sendPayload(
-      subscriber.secret,
-      trigger,
-      payload.createdAt,
-      subscriber,
-      payload.payload as WebhookPayloadType
-    );
+    let result: { ok: boolean; status: number; message?: string };
+    try {
+      result = await sendPayload(
+        subscriber.secret,
+        trigger,
+        payload.createdAt,
+        subscriber,
+        payload.payload as WebhookPayloadType
+      );
+    } catch (error) {
+      throw new Error(
+        `Failed to send webhook to ${subscriberUrl}: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+
+    if (!result.ok) {
+      throw new Error(
+        `Webhook POST to ${subscriberUrl} failed with status ${result.status}: ${result.message ?? ""}`
+      );
+    }
 
     return {
-      ok: result.ok,
+      ok: true,
       status: result.status,
       message: result.message,
       duration: 0,

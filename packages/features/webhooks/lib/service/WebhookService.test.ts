@@ -191,29 +191,65 @@ describe("WebhookService", () => {
       expect(mockTasker.create).not.toHaveBeenCalled();
     });
 
-    it("should handle error from sendWebhookDirectly gracefully", async () => {
-      mockFetch.mockRejectedValue(new Error("Network error"));
+    it("should return error object on network errors when sending directly", async () => {
+      mockFetch.mockRejectedValue(new TypeError("fetch failed"));
       const service = createService();
       const subscriber = createSubscriber();
       const payload = createPayload();
 
       await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber]);
 
+      // sendWebhook catches the error and returns {ok: false}, so processWebhooks logs via 'Webhook failed'
       const subLogger = mockLogger.getSubLogger.mock.results[0].value;
-      expect(subLogger.error).toHaveBeenCalled();
+      expect(subLogger.error).toHaveBeenCalledWith(
+        "Webhook failed",
+        expect.objectContaining({
+          statusCode: 0,
+        })
+      );
     });
 
-    it("should handle error from scheduleWebhook gracefully", async () => {
-      process.env.TASKER_ENABLE_WEBHOOKS = "1";
-      mockTasker.create.mockRejectedValue(new Error("Tasker unavailable"));
+    it("should return error object on non-OK HTTP responses when sending directly", async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: vi.fn().mockResolvedValue("Internal Server Error"),
+      });
       const service = createService();
       const subscriber = createSubscriber();
       const payload = createPayload();
 
       await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber]);
 
+      // sendWebhook catches the error and returns {ok: false}, so processWebhooks logs via 'Webhook failed'
       const subLogger = mockLogger.getSubLogger.mock.results[0].value;
-      expect(subLogger.error).toHaveBeenCalled();
+      expect(subLogger.error).toHaveBeenCalledWith(
+        "Webhook failed",
+        expect.objectContaining({
+          statusCode: 0,
+        })
+      );
+    });
+
+    it("should return error object instead of throwing when TASKER_ENABLE_WEBHOOKS is '1'", async () => {
+      process.env.TASKER_ENABLE_WEBHOOKS = "1";
+      mockTasker.create.mockRejectedValue(new Error("Tasker failed"));
+      const service = createService();
+      const subscriber = createSubscriber();
+      const payload = createPayload();
+
+      await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber]);
+
+      // When TASKER_ENABLE_WEBHOOKS is '1', errors are caught and returned as result objects
+      // so processWebhooks logs via the 'Webhook failed' path, not 'Error sending webhook'
+      const subLogger = mockLogger.getSubLogger.mock.results[0].value;
+      expect(subLogger.error).toHaveBeenCalledWith(
+        "Webhook failed",
+        expect.objectContaining({
+          error: "Tasker failed",
+          statusCode: 0,
+        })
+      );
     });
 
     it("should handle missing tasker when TASKER_ENABLE_WEBHOOKS=1", async () => {
@@ -277,7 +313,7 @@ describe("WebhookService", () => {
       expect(options.headers["X-Cal-Signature-256"]).toBe("no-secret-provided");
     });
 
-    it("should log error when fetch returns non-ok response", async () => {
+    it("should return error object when fetch returns non-ok response", async () => {
       mockFetch.mockResolvedValue({
         ok: false,
         status: 500,
@@ -289,10 +325,13 @@ describe("WebhookService", () => {
 
       await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber]);
 
+      // sendWebhook catches the error and returns {ok: false}, so processWebhooks logs via 'Webhook failed'
       const subLogger = mockLogger.getSubLogger.mock.results[0].value;
       expect(subLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining("Webhook failed"),
-        expect.objectContaining({ statusCode: 500 })
+        "Webhook failed",
+        expect.objectContaining({
+          statusCode: 0,
+        })
       );
     });
 
@@ -305,6 +344,50 @@ describe("WebhookService", () => {
 
       const subLogger = mockLogger.getSubLogger.mock.results[0].value;
       expect(subLogger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe("sendWebhookDirectly", () => {
+    it("should send webhook directly and return result", async () => {
+      const service = createService();
+      const subscriber = createSubscriber();
+      const payload = createPayload();
+
+      const result = await service.sendWebhookDirectly(
+        WebhookTriggerEvents.BOOKING_CREATED,
+        payload,
+        subscriber
+      );
+
+      expect(result.ok).toBe(true);
+      expect(result.status).toBe(200);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("should throw on network errors", async () => {
+      mockFetch.mockRejectedValue(new TypeError("fetch failed"));
+      const service = createService();
+      const subscriber = createSubscriber();
+      const payload = createPayload();
+
+      await expect(
+        service.sendWebhookDirectly(WebhookTriggerEvents.BOOKING_CREATED, payload, subscriber)
+      ).rejects.toThrow("Failed to send webhook to https://example.com/webhook");
+    });
+
+    it("should throw on non-OK HTTP responses", async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 502,
+        text: vi.fn().mockResolvedValue("Bad Gateway"),
+      });
+      const service = createService();
+      const subscriber = createSubscriber();
+      const payload = createPayload();
+
+      await expect(
+        service.sendWebhookDirectly(WebhookTriggerEvents.BOOKING_CREATED, payload, subscriber)
+      ).rejects.toThrow("Webhook POST to https://example.com/webhook failed with status 502: Bad Gateway");
     });
   });
 
@@ -383,10 +466,11 @@ describe("WebhookService", () => {
       await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, subscribers);
 
       const subLogger = mockLogger.getSubLogger.mock.results[0].value;
-      expect(subLogger.error).toHaveBeenCalledTimes(2);
-      for (const call of subLogger.error.mock.calls) {
-        expect(call[0]).toContain("Webhook failed");
-      }
+      // sendWebhook catches errors and returns {ok: false}, so processWebhooks logs via 'Webhook failed'
+      const errorCalls = subLogger.error.mock.calls;
+      expect(errorCalls.length).toBeGreaterThanOrEqual(2);
+      const errorMessages = errorCalls.map((call: [string, ...unknown[]]) => call[0]);
+      expect(errorMessages).toContain("Webhook failed");
     });
 
     it("should log summary with correct success/failure counts", async () => {
@@ -403,6 +487,8 @@ describe("WebhookService", () => {
       await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, subscribers);
 
       const subLogger = mockLogger.getSubLogger.mock.results[0].value;
+      // sendWebhook catches errors and returns {ok: false}, so all promises fulfill
+      // (1 with ok=true logged as success, 1 with ok=false logged as 'Webhook failed')
       expect(subLogger.info).toHaveBeenCalledWith(
         expect.stringContaining("Webhook processing completed"),
         expect.objectContaining({ totalSubscribers: 2, successful: 2, failed: 0 })
@@ -422,9 +508,13 @@ describe("WebhookService", () => {
       await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber]);
 
       const subLogger = mockLogger.getSubLogger.mock.results[0].value;
+      // sendWebhook catches errors and returns {ok: false}, so processWebhooks logs via 'Webhook failed'
       expect(subLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining("Webhook failed"),
-        expect.objectContaining({ webhookId: "wh-fail", statusCode: 502 })
+        "Webhook failed",
+        expect.objectContaining({
+          webhookId: "wh-fail",
+          statusCode: 0,
+        })
       );
     });
   });
@@ -790,10 +880,13 @@ describe("WebhookService", () => {
 
       await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber]);
 
+      // sendWebhook catches the error and returns {ok: false}, so processWebhooks logs via 'Webhook failed'
       const subLogger = mockLogger.getSubLogger.mock.results[0].value;
       expect(subLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining("Webhook failed"),
-        expect.objectContaining({ statusCode: 502 })
+        "Webhook failed",
+        expect.objectContaining({
+          error: expect.stringContaining("failed with status 502"),
+        })
       );
     });
   });

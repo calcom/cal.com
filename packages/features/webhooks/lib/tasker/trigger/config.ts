@@ -7,15 +7,19 @@ export const webhookDeliveryQueue: Queue = queue({
   concurrencyLimit: 25,
 });
 
+export const webhookRetryConfig = {
+  maxAttempts: 3,
+  factor: 2,
+  minTimeoutInMs: 30000,
+  maxTimeoutInMs: 600000,
+  randomize: true,
+};
+
 export const webhookDeliveryTaskConfig: WebhookDeliveryTask = {
   machine: "small-1x",
   queue: webhookDeliveryQueue,
   retry: {
-    maxAttempts: 3,
-    factor: 2,
-    minTimeoutInMs: 30000,
-    maxTimeoutInMs: 600000,
-    randomize: true,
+    ...webhookRetryConfig,
     outOfMemory: {
       machine: "medium-1x",
     },

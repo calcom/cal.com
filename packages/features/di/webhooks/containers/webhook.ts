@@ -80,6 +80,15 @@ export function getWebhookTaskConsumer(): WebhookTaskConsumer {
 }
 
 /**
+ * Get the core Webhook Service (IWebhookService).
+ *
+ * Used by the trigger.dev task for per-subscriber delivery with retries.
+ */
+export function getWebhookService(): IWebhookService {
+  return webhookContainer.get<IWebhookService>(WEBHOOK_TOKENS.WEBHOOK_SERVICE);
+}
+
+/**
  * Get the complete Webhook Feature facade (RECOMMENDED).
  *
  * This is the primary interface for webhook functionality.
