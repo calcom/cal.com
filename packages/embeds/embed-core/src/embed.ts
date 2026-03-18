@@ -953,6 +953,12 @@ class CalApi {
 
     iframe.style.height = "100%";
     iframe.style.width = "100%";
+    // Prevent transient scrollbar from causing layout shift on narrow viewports
+    // when iframe height is being adjusted to match content during day switches.
+    // Inline embeds manage height dynamically via __dimensionChanged, so internal
+    // scrolling is not needed.
+    iframe.setAttribute("scrolling", "no");
+    iframe.style.overflow = "hidden";
 
     containerEl.classList.add("cal-inline-container");
 
