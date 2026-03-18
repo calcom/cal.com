@@ -53,7 +53,6 @@ vi.mock("@calcom/lib/constants", async () => {
     URL_SCANNING_ENABLED: true,
   };
 });
-
 // Import mocked modules for assertions
 import { submitWorkflowStepForUrlScanning } from "../scanWorkflowUrls";
 import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
