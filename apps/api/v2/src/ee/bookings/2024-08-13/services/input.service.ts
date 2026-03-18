@@ -81,7 +81,12 @@ const recurringEventSchema = z.object({
   dtstart: z.string().optional(),
   interval: z.number().int(),
   count: z.number().int(),
-  freq: z.nativeEnum(Frequency),
+  freq: z.union([
+    z.literal(Frequency.YEARLY),
+    z.literal(Frequency.MONTHLY),
+    z.literal(Frequency.WEEKLY),
+    z.literal(Frequency.DAILY),
+  ]),
   until: z.string().optional(),
 });
 
