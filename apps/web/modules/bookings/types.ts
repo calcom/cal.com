@@ -98,6 +98,7 @@ export type WrappedBookerPropsMain = {
   isBookingDryRun?: boolean;
   renderCaptcha?: boolean;
   confirmButtonDisabled?: boolean;
+  isPlatformBookerEmbed?: boolean;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {

@@ -1,24 +1,22 @@
-import { useCallback, useMemo, useRef } from "react";
-
 import dayjs from "@calcom/dayjs";
-import {
-  AvailableTimes,
-  AvailableTimesSkeleton,
-} from "@calcom/web/modules/bookings/components/AvailableTimes";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import type { IUseBookingLoadingStates } from "../hooks/useBookings";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import type { Slot } from "~/schedules/lib/types";
-import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
-import { useSlotsForAvailableDates } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
 import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
-
+import {
+  AvailableTimes,
+  AvailableTimesSkeleton,
+} from "@calcom/web/modules/bookings/components/AvailableTimes";
 import { AvailableTimesHeader } from "@calcom/web/modules/bookings/components/AvailableTimesHeader";
 import type { useScheduleForEventReturnType } from "@calcom/web/modules/schedules/hooks/useEvent";
-import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
+import { useSlotsForAvailableDates } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
+import { useCallback, useMemo, useRef } from "react";
+import type { Slot } from "~/schedules/lib/types";
+import type { IUseBookingLoadingStates } from "../hooks/useBookings";
 
 type AvailableTimeSlotsProps = {
   extraDays?: number;
@@ -54,6 +52,7 @@ type AvailableTimeSlotsProps = {
   confirmButtonDisabled?: boolean;
   onAvailableTimeSlotSelect: (time: string) => void;
   hideAvailableTimesHeader?: boolean;
+  isPlatform?: boolean;
 };
 
 /**
@@ -79,6 +78,7 @@ export const AvailableTimeSlots = ({
   confirmStepClassNames,
   onAvailableTimeSlotSelect,
   hideAvailableTimesHeader = false,
+  isPlatform = false,
   ...props
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStoreContext((state) => state.selectedDate);
@@ -243,6 +243,7 @@ export const AvailableTimeSlots = ({
                 customClassNames={customClassNames?.availableTimes}
                 showTimeFormatToggle={!isColumnView}
                 onTimeSelect={onTimeSelect}
+                isPlatform={isPlatform}
                 onTentativeTimeSelect={onTentativeTimeSelect}
                 unavailableTimeSlots={unavailableTimeSlots}
                 slots={slots.slots}

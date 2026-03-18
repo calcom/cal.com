@@ -1,6 +1,5 @@
 import process from "node:process";
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
-import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBookerEmbed";
 import dayjs from "@calcom/dayjs";
 import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
@@ -95,9 +94,9 @@ const BookerComponent = ({
   hideOrgTeamAvatar,
   showNoAvailabilityDialog,
   TimezoneSelect,
+  isPlatformBookerEmbed = false,
 }: BookerProps & WrappedBookerProps): JSX.Element | null => {
   const searchParams = useCompatSearchParams();
-  const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStoreContext(
     (state) => [state.state, state.setState],
     shallow
@@ -312,7 +311,8 @@ const BookerComponent = ({
           confirmButton: customClassNames?.confirmStep?.confirmButton,
           backButton: customClassNames?.confirmStep?.backButton,
         }}
-        isPlatform={isPlatform}>
+        isPlatform={isPlatform}
+        isPlatformBookerEmbed={isPlatformBookerEmbed}>
         {!isPlatform && (
           <RedirectToInstantMeetingModal
             expiryTime={expiryTime}
@@ -429,6 +429,7 @@ const BookerComponent = ({
                           handleClickNoCalendar={() => {
                             onOverlayClickNoCalendar();
                           }}
+                          isPlatform={isPlatform}
                         />
                       );
                     }}
@@ -570,6 +571,7 @@ const BookerComponent = ({
                 watchedCfToken={watchedCfToken}
                 confirmButtonDisabled={confirmButtonDisabled}
                 confirmStepClassNames={customClassNames?.confirmStep}
+                isPlatform={isPlatform}
               />
             </BookerSection>
           </AnimatePresence>
@@ -646,7 +648,9 @@ const BookerComponent = ({
       </>
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}
-        visible={bookerState === "booking" && shouldShowFormInDialog}>
+        visible={bookerState === "booking" && shouldShowFormInDialog}
+        isPlatform={isPlatform}
+        eventLength={event.data?.length}>
         {EventBooker}
       </BookFormAsModal>
       <Dialog isPlatform={isPlatform} open={isMobile && isSlotSelectionModalVisible}>
@@ -683,6 +687,7 @@ const BookerComponent = ({
             confirmButtonDisabled={confirmButtonDisabled}
             confirmStepClassNames={customClassNames?.confirmStep}
             hideAvailableTimesHeader
+            isPlatform={isPlatform}
           />
         </DialogContent>
       </Dialog>

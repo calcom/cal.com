@@ -1,28 +1,25 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
-import * as HoverCard from "@radix-ui/react-hover-card";
-import { AnimatePresence, m } from "framer-motion";
-import { useMemo } from "react";
 
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import type { IOutOfOfficeData } from "@calcom/features/availability/lib/getUserAvailability";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { OutOfOfficeInSlots } from "./OutOfOfficeInSlots";
-import type { IUseBookingLoadingStates } from "../hooks/useBookings";
-import type { BookerEvent } from "@calcom/features/bookings/types";
-import type { Slot } from "~/schedules/lib/types";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { useCheckOverlapWithOverlay } from "@calcom/features/bookings/lib/useCheckOverlapWithOverlay";
+import type { BookerEvent, Slots } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { CalendarX2Icon } from "@coss/ui/icons";
-
-import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
-import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
-import { useCheckOverlapWithOverlay } from "@calcom/features/bookings/lib/useCheckOverlapWithOverlay";
-import type { Slots } from "@calcom/features/bookings/types";
+import * as HoverCard from "@radix-ui/react-hover-card";
+import { AnimatePresence, m } from "framer-motion";
+import { useMemo } from "react";
+import type { Slot } from "~/schedules/lib/types";
+import type { IUseBookingLoadingStates } from "../hooks/useBookings";
+import { OutOfOfficeInSlots } from "./OutOfOfficeInSlots";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 
 type TOnTimeSelect = (
@@ -51,6 +48,7 @@ export type AvailableTimesProps = {
   // It is called when a slot is selected, but it is not a confirmation and a confirm button will be shown besides it.
   onTentativeTimeSelect?: TOnTentativeTimeSelect;
   unavailableTimeSlots?: string[];
+  isPlatform?: boolean;
 } & Omit<SlotItemProps, "slot">;
 
 type SlotItemProps = {
@@ -264,13 +262,14 @@ export const AvailableTimes = ({
   slots,
   showTimeFormatToggle = true,
   className,
+  isPlatform = false,
   ...props
 }: AvailableTimesProps) => {
   const { t } = useLocale();
 
   const oooAllDay = slots.every((slot) => slot.away);
   if (oooAllDay) {
-    return <OOOSlot {...slots[0]} />;
+    return <OOOSlot {...slots[0]} isPlatform={isPlatform} />;
   }
 
   // Display ooo in slots once but after or before slots
@@ -290,12 +289,14 @@ export const AvailableTimes = ({
             </p>
           </div>
         )}
-        {oooBeforeSlots && !oooAfterSlots && <OOOSlot {...slots[0]} />}
+        {oooBeforeSlots && !oooAfterSlots && <OOOSlot {...slots[0]} isPlatform={isPlatform} />}
         {slots.map((slot) => {
           if (slot.away) return null;
           return <SlotItem key={slot.time} slot={slot} {...props} />;
         })}
-        {oooAfterSlots && !oooBeforeSlots && <OOOSlot {...slots[slots.length - 1]} className="pb-0" />}
+        {oooAfterSlots && !oooBeforeSlots && (
+          <OOOSlot {...slots[slots.length - 1]} className="pb-0" isPlatform={isPlatform} />
+        )}
       </div>
     </div>
   );
@@ -310,11 +311,21 @@ interface IOOOSlotProps {
   showNotePublicly?: boolean;
   time?: string;
   className?: string;
+  isPlatform?: boolean;
 }
 
 const OOOSlot: React.FC<IOOOSlotProps> = (props) => {
-  const isPlatform = useIsPlatform();
-  const { fromUser, toUser, reason, emoji, notes, showNotePublicly, time, className = "" } = props;
+  const {
+    fromUser,
+    toUser,
+    reason,
+    emoji,
+    notes,
+    showNotePublicly,
+    time,
+    className = "",
+    isPlatform = false,
+  } = props;
 
   if (isPlatform) return <></>;
   return (

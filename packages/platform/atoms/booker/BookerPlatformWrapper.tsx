@@ -77,7 +77,8 @@ const BookerPlatformWrapperComponent = (
   } = props;
   const layout = BookerLayouts[view];
 
-  const { clientId } = useAtomsContext();
+  const { clientId, isEmbed } = useAtomsContext();
+  const isPlatformBookerEmbed = Boolean(clientId && isEmbed);
   const teamId: number | undefined = props.isTeamEvent ? props.teamId : undefined;
   const [_bookerState, setBookerState] = useBookerStoreContext(
     (state) => [state.state, state.setState],
@@ -600,6 +601,7 @@ const BookerPlatformWrapperComponent = (
         eventMetaChildren={props.eventMetaChildren}
         roundRobinHideOrgAndTeam={props.roundRobinHideOrgAndTeam}
         hideOrgTeamAvatar={hideOrgTeamAvatar}
+        isPlatformBookerEmbed={isPlatformBookerEmbed}
       />
     </AtomsWrapper>
   );

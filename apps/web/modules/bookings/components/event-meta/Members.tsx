@@ -1,4 +1,3 @@
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
@@ -20,6 +19,7 @@ export interface EventMembersProps {
   isPrivateLink: boolean;
   roundRobinHideOrgAndTeam?: boolean;
   hideOrgTeamAvatar?: boolean;
+  isPlatform?: boolean;
 }
 
 export const EventMembers = ({
@@ -30,11 +30,11 @@ export const EventMembers = ({
   isPrivateLink,
   roundRobinHideOrgAndTeam,
   hideOrgTeamAvatar,
+  isPlatform = false,
 }: EventMembersProps) => {
   const username = useBookerStore((state) => state.username);
   const isDynamic = !!(username && username.indexOf("+") > -1);
   const isEmbed = useIsEmbed();
-  const isPlatform = useIsPlatform();
 
   const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers ? users : [];

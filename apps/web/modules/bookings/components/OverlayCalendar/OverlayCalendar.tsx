@@ -1,7 +1,6 @@
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useOverlayCalendar } from "@calcom/web/modules/bookings/hooks/useOverlayCalendar";
-import type { WrappedBookerPropsMain } from "../../types";
 import { useEffect } from "react";
+import type { WrappedBookerPropsMain } from "../../types";
 import { OverlayCalendarContinueModal } from "./OverlayCalendarContinueModal";
 import { OverlayCalendarSettingsModal } from "./OverlayCalendarSettingsModal";
 import { OverlayCalendarSwitch } from "./OverlayCalendarSwitch";
@@ -14,6 +13,7 @@ type OverlayCalendarProps = Pick<
   hasSession: boolean;
   handleClickContinue: () => void;
   handleSwitchStateChange: (state: boolean) => void;
+  isPlatform?: boolean;
 };
 
 export const OverlayCalendar = ({
@@ -25,8 +25,8 @@ export const OverlayCalendar = ({
   handleSwitchStateChange,
   handleClickContinue,
   hasSession,
+  isPlatform = false,
 }: OverlayCalendarProps): JSX.Element | null => {
-  const isPlatform = useIsPlatform();
   const {
     handleCloseContinueModal,
     handleCloseSettingsModal,
@@ -70,6 +70,7 @@ export const OverlayCalendar = ({
           handleClickNoCalendar();
         }}
         checkIsCalendarToggled={checkIsCalendarToggled}
+        isPlatform={isPlatform}
       />
     </>
   );

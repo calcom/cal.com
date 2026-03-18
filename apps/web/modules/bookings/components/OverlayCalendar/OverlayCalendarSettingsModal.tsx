@@ -1,4 +1,3 @@
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -19,6 +18,7 @@ type IOverlayCalendarSettingsModalProps = {
   onClickNoCalendar?: () => void;
   onToggleConnectedCalendar: (externalCalendarId: string, credentialId: number) => void;
   checkIsCalendarToggled: (externalCalendarId: string, credentialId: number) => boolean;
+  isPlatform?: boolean;
 };
 
 const SkeletonLoader = (): JSX.Element => {
@@ -40,9 +40,9 @@ export function OverlayCalendarSettingsModal({
   onClickNoCalendar,
   onToggleConnectedCalendar,
   checkIsCalendarToggled,
+  isPlatform = false,
 }: IOverlayCalendarSettingsModalProps): JSX.Element {
   const { t } = useLocale();
-  const isPlatform = useIsPlatform();
   const { data, isPending: isLoading } = trpc.viewer.calendars.connectedCalendars.useQuery(undefined, {
     enabled: !!open,
   });
