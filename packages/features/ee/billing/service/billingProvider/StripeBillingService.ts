@@ -194,7 +194,10 @@ export class StripeBillingService implements IBillingProviderService {
     const metadata: { email?: string; userId?: number } = {};
     if (email) metadata.email = email;
     if (userId) metadata.userId = userId;
-    await this.stripe.customers.update(customerId, { metadata });
+    await this.stripe.customers.update(customerId, {
+      ...(email ? { email } : {}),
+      metadata,
+    });
   }
 
   async getPrice(priceId: string) {

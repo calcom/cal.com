@@ -1,6 +1,7 @@
 "use client";
 
-import { Badge } from "@calcom/ui/components/badge";
+import { Badge } from "@coss/ui/components/badge";
+import { Frame, FramePanel } from "@coss/ui/components/frame";
 
 import { formatCyclePosition, formatStrategyName, strategyBadgeVariant } from "./billingUtils";
 import { DetailRow } from "./DetailRow";
@@ -39,7 +40,7 @@ function SeatDetails({
   if (paidSeats === null && minSeats === null && pricePerSeat === null) return null;
 
   return (
-    <div className="mt-2 space-y-1">
+    <>
       {paidSeats !== null && <DetailRow label={t("paid_seats")} value={String(paidSeats)} />}
       {minSeats !== null && <DetailRow label={t("min_seats")} value={String(minSeats)} />}
       {pricePerSeat !== null && (
@@ -56,7 +57,7 @@ function SeatDetails({
           )}
         </>
       )}
-    </div>
+    </>
   );
 }
 
@@ -77,7 +78,7 @@ function SubscriptionDates({
   const cyclePosition = formatCyclePosition(subscriptionStart, subscriptionEnd, billingPeriod, t);
 
   return (
-    <div className="mt-2 space-y-1">
+    <>
       {subscriptionStart && (
         <DetailRow
           label={t("subscription_start")}
@@ -86,12 +87,12 @@ function SubscriptionDates({
       )}
       {subscriptionTrialEnd && (
         <div className="flex items-center justify-between gap-2">
-          <span className="text-subtle text-xs">{t("trial_end")}</span>
+          <span className="text-xs text-muted-foreground">{t("trial_end")}</span>
           <div className="flex items-center gap-1">
-            <span className="text-emphasis text-right text-xs font-medium">
+            <span className="text-right text-xs font-medium">
               {new Date(subscriptionTrialEnd).toLocaleDateString()}
             </span>
-            {isInTrial && <Badge variant="orange">{t("in_trial")}</Badge>}
+            {isInTrial && <Badge variant="warning">{t("in_trial")}</Badge>}
           </div>
         </div>
       )}
@@ -99,7 +100,7 @@ function SubscriptionDates({
         <DetailRow label={t("period_end")} value={new Date(subscriptionEnd).toLocaleDateString()} />
       )}
       {cyclePosition && <DetailRow label={t("cycle_position")} value={cyclePosition} />}
-    </div>
+    </>
   );
 }
 
@@ -110,50 +111,65 @@ export function BillingDetailsSection({
   billing: BillingDetails;
   t: (key: string, opts?: Record<string, unknown>) => string;
 }) {
+  const hasSeatDetails =
+    billing.paidSeats !== null || billing.minSeats !== null || billing.pricePerSeat !== null;
+  const hasSubscriptionDates =
+    billing.subscriptionStart || billing.subscriptionTrialEnd || billing.subscriptionEnd;
+
   return (
-    <div className="border-subtle mt-3 border-t pt-3">
-      <h4 className="text-emphasis mb-2 text-xs font-semibold">{t("billing_details")}</h4>
+    <div className="mt-3 border-t pt-3">
+      <h4 className="mb-2 text-xs font-semibold">{t("billing_details")}</h4>
 
-      <div className="space-y-1">
-        <DetailRow
-          label={t("billing_period")}
-          value={
-            billing.billingPeriod === "MONTHLY"
-              ? t("monthly")
-              : billing.billingPeriod === "ANNUALLY"
-                ? t("annually")
-                : t("not_set")
-          }
-        />
-        <DetailRow
-          label={t("billing_mode")}
-          value={billing.billingMode === "ACTIVE_USERS" ? t("active_users") : t("seats")}
-        />
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-subtle text-xs">{t("billing_strategy")}</span>
-          <Badge variant={strategyBadgeVariant(billing.strategyName)}>
-            {formatStrategyName(billing.strategyName, t)}
-          </Badge>
-        </div>
-      </div>
+      <Frame>
+        <FramePanel className="space-y-1 p-3">
+          <DetailRow
+            label={t("billing_period")}
+            value={
+              billing.billingPeriod === "MONTHLY"
+                ? t("monthly")
+                : billing.billingPeriod === "ANNUALLY"
+                  ? t("annually")
+                  : t("not_set")
+            }
+          />
+          <DetailRow
+            label={t("billing_mode")}
+            value={billing.billingMode === "ACTIVE_USERS" ? t("active_users") : t("seats")}
+          />
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-muted-foreground">{t("billing_strategy")}</span>
+            <Badge variant={strategyBadgeVariant(billing.strategyName)}>
+              {formatStrategyName(billing.strategyName, t)}
+            </Badge>
+          </div>
+        </FramePanel>
 
-      <SeatDetails
-        paidSeats={billing.paidSeats}
-        minSeats={billing.minSeats}
-        pricePerSeat={billing.pricePerSeat}
-        strategyName={billing.strategyName}
-        highWaterMark={billing.highWaterMark}
-        highWaterMarkPeriodStart={billing.highWaterMarkPeriodStart}
-        t={t}
-      />
+        {hasSeatDetails && (
+          <FramePanel className="space-y-1 p-3">
+            <SeatDetails
+              paidSeats={billing.paidSeats}
+              minSeats={billing.minSeats}
+              pricePerSeat={billing.pricePerSeat}
+              strategyName={billing.strategyName}
+              highWaterMark={billing.highWaterMark}
+              highWaterMarkPeriodStart={billing.highWaterMarkPeriodStart}
+              t={t}
+            />
+          </FramePanel>
+        )}
 
-      <SubscriptionDates
-        subscriptionStart={billing.subscriptionStart}
-        subscriptionTrialEnd={billing.subscriptionTrialEnd}
-        subscriptionEnd={billing.subscriptionEnd}
-        billingPeriod={billing.billingPeriod}
-        t={t}
-      />
+        {hasSubscriptionDates && (
+          <FramePanel className="space-y-1 p-3">
+            <SubscriptionDates
+              subscriptionStart={billing.subscriptionStart}
+              subscriptionTrialEnd={billing.subscriptionTrialEnd}
+              subscriptionEnd={billing.subscriptionEnd}
+              billingPeriod={billing.billingPeriod}
+              t={t}
+            />
+          </FramePanel>
+        )}
+      </Frame>
     </div>
   );
 }

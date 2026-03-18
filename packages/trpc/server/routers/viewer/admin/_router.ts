@@ -15,7 +15,10 @@ import { ZResendPurchaseCompleteEmailSchema } from "./resendPurchaseCompleteEmai
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
+import { ZGetTeamOwnersSchema } from "./getTeamOwners.schema";
+import { ZSearchUsersByEmailSchema } from "./searchUsersByEmail.schema";
 import { ZTransferBillingSchema } from "./transferBilling.schema";
+import { ZTransferOwnershipSchema } from "./transferOwnership.schema";
 import { ZAdminUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.schema";
 import { ZUpdateDeploymentBillingSchema } from "./updateDeploymentBilling.schema";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
@@ -146,6 +149,18 @@ export const adminRouter = router({
   }),
   transferBilling: authedAdminProcedure.input(ZTransferBillingSchema).mutation(async (opts) => {
     const { default: handler } = await import("./transferBilling.handler");
+    return handler(opts);
+  }),
+  searchUsersByEmail: authedAdminProcedure.input(ZSearchUsersByEmailSchema).query(async (opts) => {
+    const { default: handler } = await import("./searchUsersByEmail.handler");
+    return handler(opts);
+  }),
+  getTeamOwners: authedAdminProcedure.input(ZGetTeamOwnersSchema).query(async (opts) => {
+    const { default: handler } = await import("./getTeamOwners.handler");
+    return handler(opts);
+  }),
+  transferOwnership: authedAdminProcedure.input(ZTransferOwnershipSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./transferOwnership.handler");
     return handler(opts);
   }),
   abuseRules: abuseRulesRouter,

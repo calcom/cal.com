@@ -2,27 +2,29 @@
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
 import { PanelCard } from "@calcom/ui/components/card";
-import { TextField } from "@calcom/ui/components/form";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { showToast } from "@calcom/ui/components/toast";
+import { Badge } from "@coss/ui/components/badge";
+import { Button } from "@coss/ui/components/button";
+import { Field, FieldLabel } from "@coss/ui/components/field";
+import { Input } from "@coss/ui/components/input";
 import {
   Sheet,
-  SheetBody,
-  SheetContent,
+  SheetClose,
   SheetDescription,
   SheetFooter,
   SheetHeader,
+  SheetPanel,
+  SheetPopup,
   SheetTitle,
-} from "@calcom/ui/components/sheet";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
+} from "@coss/ui/components/sheet";
 import { useState } from "react";
-
 import { BillingDetailsSection } from "./BillingDetailsSection";
+import { dunningBadgeVariant } from "./billingUtils";
 import { DetailRow } from "./DetailRow";
 import { TransferBillingForm } from "./TransferBillingForm";
-import { dunningBadgeVariant } from "./billingUtils";
+import { TransferOwnershipForm } from "./TransferOwnershipForm";
 
 interface CustomerLookupSheetProps {
   open: boolean;
@@ -49,16 +51,14 @@ function CustomerLookupSheet({ open, onOpenChange, customerId }: CustomerLookupS
     },
   });
 
-  const handleClose = () => onOpenChange(false);
-
   return (
-    <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent className="bg-cal-muted">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetPopup variant="inset">
         <SheetHeader>
           <SheetTitle>{t("customer_lookup_title")}</SheetTitle>
           <SheetDescription>{customerId}</SheetDescription>
         </SheetHeader>
-        <SheetBody>
+        <SheetPanel>
           {isPending ? (
             <SkeletonContainer>
               <div className="space-y-3">
@@ -68,25 +68,25 @@ function CustomerLookupSheet({ open, onOpenChange, customerId }: CustomerLookupS
               </div>
             </SkeletonContainer>
           ) : error ? (
-            <p className="text-error text-sm">{error.message}</p>
+            <p className="text-sm text-destructive-foreground">{error.message}</p>
           ) : data ? (
             <div className="space-y-6">
               <section>
-                <h3 className="text-emphasis mb-3 text-sm font-semibold">
+                <h3 className="mb-3 text-sm font-semibold">
                   {t("billing")} ({data.results.length})
                 </h3>
                 {data.results.length === 0 ? (
-                  <p className="text-subtle text-sm">{t("customer_lookup_no_results")}</p>
+                  <p className="text-sm text-muted-foreground">{t("customer_lookup_no_results")}</p>
                 ) : (
                   <div className="space-y-3">
                     {data.results.map((billing) => (
-                      <div key={billing.billingId} className="bg-default border-subtle rounded-lg border p-4">
+                      <div key={billing.billingId} className="rounded-lg border bg-background p-4">
                         <div className="mb-3 flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="text-emphasis text-sm font-semibold">
+                            <span className="text-sm font-semibold">
                               {billing.teamName ?? `Team #${billing.teamId}`}
                             </span>
-                            <Badge variant={billing.isOrganization ? "blue" : "gray"}>
+                            <Badge variant={billing.isOrganization ? "info" : "secondary"}>
                               {billing.isOrganization ? t("organization") : t("team")}
                             </Badge>
                           </div>
@@ -106,11 +106,11 @@ function CustomerLookupSheet({ open, onOpenChange, customerId }: CustomerLookupS
                         <BillingDetailsSection billing={billing} t={t} />
 
                         {billing.dunningStatus !== "CURRENT" && (
-                          <div className="border-subtle mt-3 border-t pt-3">
-                            <h4 className="text-emphasis mb-2 text-xs font-semibold">
-                              {t("dunning_details")}
-                            </h4>
-                            <p className="text-subtle mb-3 text-xs italic">{billing.dunningExplanation}</p>
+                          <div className="mt-3 border-t pt-3">
+                            <h4 className="mb-2 text-xs font-semibold">{t("dunning_details")}</h4>
+                            <p className="mb-3 text-xs italic text-muted-foreground">
+                              {billing.dunningExplanation}
+                            </p>
                             <div className="space-y-1">
                               {billing.dunningFirstFailedAt && (
                                 <DetailRow
@@ -134,9 +134,9 @@ function CustomerLookupSheet({ open, onOpenChange, customerId }: CustomerLookupS
                             </div>
                             <div className="mt-3 flex gap-2">
                               <Button
-                                color="secondary"
+                                variant="outline"
                                 size="sm"
-                                loading={
+                                disabled={
                                   refreshDunningMutation.isPending &&
                                   refreshDunningMutation.variables?.billingId === billing.billingId
                                 }
@@ -150,7 +150,7 @@ function CustomerLookupSheet({ open, onOpenChange, customerId }: CustomerLookupS
                               </Button>
                               {billing.dunningInvoiceUrl && (
                                 <a href={billing.dunningInvoiceUrl} target="_blank" rel="noopener noreferrer">
-                                  <Button color="minimal" size="sm" type="button">
+                                  <Button variant="ghost" size="sm">
                                     {t("view_invoice")}
                                   </Button>
                                 </a>
@@ -159,7 +159,7 @@ function CustomerLookupSheet({ open, onOpenChange, customerId }: CustomerLookupS
                           </div>
                         )}
 
-                        <div className="border-subtle mt-3 border-t pt-3">
+                        <div className="mt-3 border-t pt-3">
                           <TransferBillingForm
                             billingId={billing.billingId}
                             entityType={billing.entityType}
@@ -168,6 +168,19 @@ function CustomerLookupSheet({ open, onOpenChange, customerId }: CustomerLookupS
                             }}
                           />
                         </div>
+
+                        {billing.teamId !== null && (
+                          <div className="mt-3 border-t pt-3">
+                            <TransferOwnershipForm
+                              teamId={billing.teamId}
+                              customerId={billing.customerId}
+                              entityType={billing.entityType}
+                              onComplete={() => {
+                                utils.viewer.admin.lookupBillingCustomer.invalidate({ customerId });
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -175,13 +188,11 @@ function CustomerLookupSheet({ open, onOpenChange, customerId }: CustomerLookupS
               </section>
             </div>
           ) : null}
-        </SheetBody>
+        </SheetPanel>
         <SheetFooter>
-          <Button color="minimal" onClick={handleClose}>
-            {t("close")}
-          </Button>
+          <SheetClose render={<Button variant="outline" />}>{t("close")}</SheetClose>
         </SheetFooter>
-      </SheetContent>
+      </SheetPopup>
     </Sheet>
   );
 }
@@ -205,18 +216,18 @@ export function CustomerLookupSection() {
     <PanelCard title={t("customer_lookup_title")} subtitle={t("customer_lookup_description")}>
       <div className="p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <TextField
-            containerClassName="w-full"
-            label={t("customer_id")}
-            name="customerSearch"
-            placeholder="cus_..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSearch();
-            }}
-          />
-          <Button type="button" disabled={!searchInput.trim()} onClick={handleSearch}>
+          <Field className="w-full">
+            <FieldLabel>{t("customer_id")}</FieldLabel>
+            <Input
+              placeholder="cus_..."
+              value={searchInput}
+              onChange={(e) => setSearchInput((e.target as HTMLInputElement).value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch();
+              }}
+            />
+          </Field>
+          <Button disabled={!searchInput.trim()} onClick={handleSearch}>
             {t("search")}
           </Button>
         </div>

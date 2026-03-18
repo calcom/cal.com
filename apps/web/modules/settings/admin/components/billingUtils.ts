@@ -1,19 +1,19 @@
 export function dunningBadgeVariant(status: string) {
-  if (status === "CURRENT") return "green" as const;
-  if (status === "WARNING") return "orange" as const;
-  return "red" as const;
+  if (status === "CURRENT") return "success" as const;
+  if (status === "WARNING") return "warning" as const;
+  return "error" as const;
 }
 
 export function strategyBadgeVariant(strategy: string | null) {
   switch (strategy) {
     case "HighWaterMark":
-      return "blue" as const;
+      return "info" as const;
     case "MonthlyProration":
-      return "purple" as const;
+      return "secondary" as const;
     case "ActiveUserBilling":
-      return "orange" as const;
+      return "warning" as const;
     default:
-      return "gray" as const;
+      return "outline" as const;
   }
 }
 
