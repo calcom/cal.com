@@ -73,7 +73,7 @@ const availabilitySchema: z.ZodType<GetUserAvailabilityParams, z.ZodTypeDef, unk
   bypassBusyCalendarTimes: z.boolean().optional(),
   silentlyHandleCalendarFailures: z.boolean().optional(),
   shouldServeCache: z.boolean().optional(),
-  mode: z.enum(["slots", "overlay", "booking", "none"]).default("none"),
+  mode: z.enum(["slots", "overlay", "booking", "none", "troubleshooter"]).default("none"),
 });
 
 type GetUserAvailabilityParams = {

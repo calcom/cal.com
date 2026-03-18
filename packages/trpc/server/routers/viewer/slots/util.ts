@@ -1146,8 +1146,7 @@ export class AvailableSlotsService {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    // Use "slots" mode to enable cache when available for getting calendar availability
-    const mode: CalendarFetchMode = "slots";
+    const mode: CalendarFetchMode = input._calendarFetchMode ?? "slots";
     if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
       logger.settings.minLevel = 2;
     }
@@ -1248,12 +1247,10 @@ export class AvailableSlotsService {
         eventType,
         hosts: allHosts,
         loggerWithEventDetails,
-        // adjust start time so we can check for available slots in the first two weeks
         startTime:
           hasFallbackRRHosts && startTime.isBefore(twoWeeksFromNow)
             ? this.getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
             : startTime,
-        // adjust end time so we can check for available slots in the first two weeks
         endTime:
           hasFallbackRRHosts && endTime.isBefore(twoWeeksFromNow)
             ? this.getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)

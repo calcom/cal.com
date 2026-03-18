@@ -1,7 +1,9 @@
 import Link from "next/link";
 
+import { useTroubleshooterStore } from "@calcom/features/troubleshooter/store";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Skeleton } from "@calcom/ui/components/skeleton";
+import { Switch } from "@calcom/ui/components/form";
 import { ArrowLeftIcon } from "@coss/ui/icons";
 
 import { CalendarToggleContainer } from "./CalendarToggleContainer";
@@ -27,6 +29,8 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
 
 export const TroubleshooterSidebar = () => {
   const { t } = useLocale();
+  const bypassCalendarCache = useTroubleshooterStore((state) => state.bypassCalendarCache);
+  const setBypassCalendarCache = useTroubleshooterStore((state) => state.setBypassCalendarCache);
 
   return (
     <div className="relative z-10 hidden h-screen w-full flex-col gap-6 overflow-y-auto py-6 pl-4 pr-6 sm:flex md:pl-0">
@@ -34,6 +38,10 @@ export const TroubleshooterSidebar = () => {
       <EventTypeSelect />
       <EventScheduleItem />
       <CalendarToggleContainer />
+      <div className="flex items-center justify-between px-3">
+        <span className="text-emphasis text-sm font-medium">{t("bypass_calendar_cache")}</span>
+        <Switch checked={bypassCalendarCache} onCheckedChange={setBypassCalendarCache} />
+      </div>
     </div>
   );
 };

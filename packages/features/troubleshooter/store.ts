@@ -34,6 +34,8 @@ export type TroubleshooterStore = {
   initialize: (data: StoreInitializeType) => void;
   calendarToColorMap: Record<string, string>;
   addToCalendarToColorMap: (calendarId: string | undefined, color: string) => void;
+  bypassCalendarCache: boolean;
+  setBypassCalendarCache: (bypass: boolean) => void;
 };
 
 /**
@@ -101,6 +103,8 @@ export const useTroubleshooterStore = create<TroubleshooterStore>((set, get) => 
     }
     //removeQueryParam("layout");
   },
+  bypassCalendarCache: false,
+  setBypassCalendarCache: (bypass: boolean) => set({ bypassCalendarCache: bypass }),
   calendarToColorMap: {},
   addToCalendarToColorMap: (calendarId: string | undefined, color: string) => {
     if (!calendarId) return;

@@ -3185,6 +3185,7 @@
   "troubleshooter_tooltip": "Open the troubleshooter and figure out what is wrong with your schedule",
   "need_help": "Need help?",
   "troubleshooter": "Troubleshooter",
+  "bypass_calendar_cache": "Bypass calendar cache",
   "number_to_call": "Number to call",
   "guest_name": "Guest name",
   "guest_email": "Guest email",

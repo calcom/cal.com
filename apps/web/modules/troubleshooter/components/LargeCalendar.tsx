@@ -20,6 +20,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
   const selectedDate = useTroubleshooterStore((state) => state.selectedDate);
   const event = useTroubleshooterStore((state) => state.event);
   const calendarToColorMap = useTroubleshooterStore((state) => state.calendarToColorMap);
+  const bypassCalendarCache = useTroubleshooterStore((state) => state.bypassCalendarCache);
   const { data: session } = useSession();
   const startDate = selectedDate ? dayjs(selectedDate) : dayjs();
 
@@ -51,6 +52,7 @@ export const LargeCalendar = ({ extraDays }: { extraDays: number }) => {
     month: startDate.format("YYYY-MM"),
     orgSlug: session?.user.org?.slug,
     isTeamEvent,
+    _calendarFetchMode: bypassCalendarCache ? "troubleshooter" : undefined,
   });
 
   const endDate = dayjs(startDate)

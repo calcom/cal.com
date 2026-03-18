@@ -27,6 +27,7 @@ export type UseScheduleWithCacheArgs = {
   teamMemberEmail?: string | null;
   useApiV2?: boolean;
   enabled?: boolean;
+  _calendarFetchMode?: "slots" | "overlay" | "troubleshooter";
   /***
    * Required when prefetching is needed
    */
@@ -66,6 +67,7 @@ export const useSchedule = ({
   useApiV2 = false,
   enabled: enabledProp = true,
   bookerLayout,
+  _calendarFetchMode,
 }: UseScheduleWithCacheArgs) => {
   const bookerState = useBookerStore((state) => state.state);
 
@@ -117,6 +119,7 @@ export const useSchedule = ({
     // Ensures that connectVersion causes a refresh of the data
     ...(embedConnectVersion ? { embedConnectVersion } : {}),
     _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
+    ...(_calendarFetchMode ? { _calendarFetchMode } : {}),
   };
 
   const options = {
