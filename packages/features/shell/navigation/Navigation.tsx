@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import classNames from "@calcom/ui/classNames";
@@ -48,6 +48,11 @@ const getNavigationItems = (userId: number): NavigationItemType[] => [
     icon: "clock-2",
   },
   {
+    name: "calendar",
+    href: "/calendar",
+    icon: "calendar",
+  },
+  {
     name: "Claim Pro",
     href: "/claim",
     icon: "badge-percent",
@@ -67,7 +72,10 @@ const getNavigationItems = (userId: number): NavigationItemType[] => [
     moreOnMobile: true,
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
+      return (
+        (item.href ? path?.startsWith(item.href) ?? false : false) &&
+        !(path?.includes("routing-forms/") ?? false)
+      );
     },
   },
   {

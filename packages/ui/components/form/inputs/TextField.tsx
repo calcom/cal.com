@@ -22,6 +22,7 @@ export const inputStyles = cva(
     "border-default",
     "text-default",
     "placeholder:text-muted",
+    "placeholder:text-sm",
 
     // States
     "hover:border-emphasis",
@@ -126,6 +127,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
   } = props;
 
   const [inputValue, setInputValue] = useState<string>("");
+
+  console.log(`name and placeholder  ${name}, and ${placeholder}`);
 
   return (
     <div className={classNames(containerClassName)}>

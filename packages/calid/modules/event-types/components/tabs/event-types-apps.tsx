@@ -141,9 +141,10 @@ const EventTypeAppCard = ({
 const useAppCategorization = (eventTypeApps: any, hasTeamContext = false, isChildrenManaged = false) => {
   const installedApps = useMemo(() => {
     if (hasTeamContext) {
-      // For team events, only show team-installed apps (not user-installed apps)
-      // Apps installed at the user level should only appear in user event types
-      return eventTypeApps?.items.filter((app: any) => (app.calIdTeams?.length || 0) > 0) || [];
+      // For team events, show team-installed apps and owner_scoped apps
+      return eventTypeApps?.items.filter((app: any) => 
+        (app.calIdTeams?.length || 0) > 0 || (app.userCredentialIds?.length || 0) > 0
+      ) || [];
     }
     if (isChildrenManaged) {
       // For children managed events, only show team apps (from the managed event)

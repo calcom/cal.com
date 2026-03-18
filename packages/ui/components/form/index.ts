@@ -25,6 +25,7 @@ export { Label } from "./inputs/Label";
 export { Select, SelectField, SelectWithValidation, getReactSelectProps } from "./select";
 
 export { DateRangePickerLazy as DateRangePicker } from "./date-range-picker";
+export { Calendar } from "./date-range-picker/Calendar";
 export { Slider } from "./slider";
 export { RangeSlider } from "./slider/RangeSlider";
 export { RangeSliderPopover } from "./slider/RangeSliderPopover";

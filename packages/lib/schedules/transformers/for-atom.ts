@@ -5,7 +5,7 @@ import { getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/dayjs";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
-type ScheduleAvailability = Pick<Availability, "days" | "startTime" | "endTime">[];
+type ScheduleAvailability = Pick<Availability, "days" | "startTime" | "endTime" | "targetTimeZones">[];
 type ScheduleOverride = Pick<Availability, "date" | "startTime" | "endTime">[];
 
 export function transformWorkingHoursForAtom(schedule: {
@@ -75,27 +75,31 @@ export function transformDateOverridesForAtom(
 export const transformScheduleToAvailabilityForAtom = (schedule: { availability: ScheduleAvailability }) => {
   const result = schedule.availability.reduce(
     (schedule: Schedule, availability) => {
+      const timeRange: TimeRange = {
+        start: new Date(
+          Date.UTC(
+            new Date().getUTCFullYear(),
+            new Date().getUTCMonth(),
+            new Date().getUTCDate(),
+            availability.startTime.getUTCHours(),
+            availability.startTime.getUTCMinutes()
+          )
+        ),
+        end: new Date(
+          Date.UTC(
+            new Date().getUTCFullYear(),
+            new Date().getUTCMonth(),
+            new Date().getUTCDate(),
+            availability.endTime.getUTCHours(),
+            availability.endTime.getUTCMinutes()
+          )
+        ),
+      };
+      if (availability.targetTimeZones && availability.targetTimeZones.length > 0) {
+        timeRange.targetTimeZones = availability.targetTimeZones;
+      }
       availability.days.forEach((day) => {
-        schedule[day].push({
-          start: new Date(
-            Date.UTC(
-              new Date().getUTCFullYear(),
-              new Date().getUTCMonth(),
-              new Date().getUTCDate(),
-              availability.startTime.getUTCHours(),
-              availability.startTime.getUTCMinutes()
-            )
-          ),
-          end: new Date(
-            Date.UTC(
-              new Date().getUTCFullYear(),
-              new Date().getUTCMonth(),
-              new Date().getUTCDate(),
-              availability.endTime.getUTCHours(),
-              availability.endTime.getUTCMinutes()
-            )
-          ),
-        });
+        schedule[day].push({ ...timeRange });
       });
       return schedule;
     },

@@ -412,6 +412,7 @@ export default function BookingListItem(booking: BookingItemProps) {
   const bookingLink = buildBookingLink();
 
   const title = booking.title;
+  const displayTitle = booking.eventType?.title?.trim() || title?.trim() || t("untitled");
 
   const isCalVideoLocation =
     !booking.location ||
@@ -745,11 +746,11 @@ export default function BookingListItem(booking: BookingItemProps) {
 
                   <div className="flex cursor-pointer flex-col items-start justify-start pt-6">
                     <div
-                      title={title}
+                      title={displayTitle}
                       className={classNames(
                         "text-emphasis flex w-full flex-wrap items-baseline gap-x-2 gap-y-1 align-top text-base font-semibold leading-6"
                       )}>
-                      <span className={isCancelled ? "line-through" : ""}>{booking.eventType?.title}</span>
+                      <span className={isCancelled ? "line-through" : ""}>{displayTitle}</span>
                       <span className="text-subtle text-xs font-medium">with</span>
                       <span className="!decoration-none text-default text-sm font-medium">
                         {attendeeList[0]?.name}

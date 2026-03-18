@@ -1,17 +1,15 @@
 "use client";
 
-import { Button } from "@calid/features/ui/components/button";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
-import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager, useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 import { trpc } from "@calcom/trpc/react";
@@ -19,10 +17,20 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { useCalcomTheme } from "@calcom/ui/styles";
 
-import FormInputFields from "../../components/FormInputFields";
+import { getValidationErrorMessage } from "../../components/FormInputFields";
+import RoutingFormRenderer from "../../components/RoutingFormRenderer";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
+import { applyFieldUpdate, parseEventTypeInput, resolveEventTypeValue } from "../../lib/calendarIntegrationAdapter";
+import { getDisplayValueForValue } from "../../lib/transformResponse";
+import {
+  attachCommandListener,
+  emitRoutingEvent,
+  isIntegrationEnabled,
+  isSelectableFieldType,
+} from "../../lib/embedIntegration";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { findMatchingRoute } from "../../lib/processRoute";
+import { applyDefaultCountryCodeToPhoneValue } from "../../lib/phoneUtils";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
 import type { NonRouterRoute, FormResponse } from "../../types/types";
@@ -47,7 +55,14 @@ const useBrandColors = ({
 function RoutingForm({ form, profile, ...restProps }: Props) {
   const [customPageMessage, setCustomPageMessage] = useState<NonRouterRoute["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
+  const [showErrors, setShowErrors] = useState(false);
+  const [isAwaitingBookingAck, setIsAwaitingBookingAck] = useState(false);
   const isEmbed = useIsEmbed(restProps.isEmbed);
+  const [calendarEventType, setCalendarEventType] = useState<string | null>(null);
+  const isEmbedAckEnabled =
+    isIntegrationEnabled(!!isEmbed) && !!form.settings?.waitForBookingAcknowledgement;
+  const bookingAckTimeoutMessage =
+    "We couldn't confirm your booking right now. Please try again.";
   useTheme(profile.theme);
   useBrandColors({
     brandColor: profile.brandColor,
@@ -55,6 +70,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   });
 
   const [response, setResponse] = usePrefilledResponse(form);
+  const responseRef = useRef(response);
   const pageSearchParams = useCompatSearchParams();
   const isBookingDryRun = pageSearchParams?.get("cal.isBookingDryRun") === "true";
 
@@ -67,10 +83,160 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     route: NonRouterRoute;
     response: FormResponse;
   }>();
+  const pendingSubmissionIdRef = useRef<string | null>(null);
+  const pendingFallbackRef = useRef<(() => void) | null>(null);
+  const pendingTimeoutRef = useRef<number | null>(null);
   const router = useRouter();
 
+  const calendarFormContext = useMemo(
+    () => ({
+      username: (form as any)?.user?.username ?? (form as any)?.nonOrgUsername ?? null,
+      teamSlug: (form as any)?.team?.slug ?? null,
+    }),
+    [form]
+  );
+
+  useEffect(() => {
+    responseRef.current = response;
+  }, [response]);
+
+  useEffect(() => {
+    const fromResponse = resolveEventTypeValue(response, form.fields, "event_type");
+    if (fromResponse && fromResponse !== calendarEventType) {
+      setCalendarEventType(fromResponse);
+    }
+  }, [response, form.fields, calendarEventType]);
+
+  const clearPendingTimeout = () => {
+    if (pendingTimeoutRef.current) {
+      window.clearTimeout(pendingTimeoutRef.current);
+      pendingTimeoutRef.current = null;
+    }
+  };
+
+  const handleAck = (success: boolean, submissionId: string, redirectUrl?: string, error?: string, successMsg?: string) => {
+    console.log("Received ack for submissionId:", submissionId, "with redirectUrl:", redirectUrl);
+
+    if (!isEmbedAckEnabled) return;
+    if (pendingSubmissionIdRef.current !== submissionId) return;
+
+    clearPendingTimeout();
+    setIsAwaitingBookingAck(false);
+
+    if(!success) {
+        return void triggerToast(error ?? "Unknown error", "error");
+    }
+
+    if(success && successMsg) {
+        return void triggerToast(successMsg);
+    }
+
+    const finalUrl = redirectUrl;
+
+    console.log(
+      "Handle ack: ", {
+      finalUrl,
+      2: pendingFallbackRef.current,
+      }
+    )
+    if (finalUrl) {
+      navigateInTopWindow(finalUrl);
+    } else {
+      // pendingFallbackRef.current?.();
+    }
+    pendingSubmissionIdRef.current = null;
+    pendingFallbackRef.current = null;
+  };
+
+  useEffect(() => {
+    if (!isIntegrationEnabled(!!isEmbed)) return;
+    return attachCommandListener({
+      onSetFieldValue: (identifier, value) => {
+        setResponse((prev) => applyFieldUpdate(prev, identifier, value, form.fields));
+      },
+      onSetCalendarEventType: (eventType, fieldIdentifier) => {
+        let resolvedEventType = eventType?.trim() ?? "";
+        if (!resolvedEventType) {
+          const latestResponse = responseRef.current;
+          const chosenRoute = findMatchingRoute({ form, response: latestResponse });
+          if (chosenRoute) {
+            const routedValue = substituteVariables(
+              chosenRoute.action.value,
+              latestResponse,
+              form.fields ?? []
+            );
+            const parsed = parseEventTypeInput(routedValue, calendarFormContext);
+            console.log("Parsed event: ", parsed)
+            if (parsed.eventSlug) {
+              resolvedEventType = parsed.fullPath;
+            }
+          }
+        }
+        if (!resolvedEventType) return;
+
+        setCalendarEventType(resolvedEventType);
+        const targetIdentifier = fieldIdentifier ?? "event_type";
+        const targetField = form.fields?.find(
+          (field) => getFieldIdentifier(field) === targetIdentifier
+        );
+        if (targetField?.type === "calendar") return;
+        setResponse((prev) => applyFieldUpdate(prev, targetIdentifier, resolvedEventType, form.fields));
+      },
+      onAck: (success, submissionId, redirectUrl, error, successMsg) => handleAck(success, submissionId, redirectUrl, error, successMsg),
+    });
+  }, [isEmbed, form.fields, isEmbedAckEnabled]);
+
+  const handleFieldChange = (args: {
+    field: NonNullable<typeof form.fields>[number];
+    value: number | string | string[];
+    nextResponse: FormResponse;
+  }) => {
+    if (!isIntegrationEnabled(!!isEmbed)) return;
+    if (!isSelectableFieldType(args.field)) return;
+    const responseForField = args.nextResponse[args.field.id];
+    const displayValue = getDisplayValueForValue({
+      field: args.field,
+      value: args.value,
+    });
+    const lastChangedField = {
+      id: args.field.id,
+      identifier: getFieldIdentifier(args.field),
+      label: args.field.label,
+      type: args.field.type,
+      value: responseForField?.value ?? args.value,
+      optionId: responseForField?.optionId,
+      displayValue,
+    };
+    emitRoutingEvent("routing_form_change", {
+      fields: args.nextResponse,
+      lastChangedField,
+    });
+  };
+
   const onSubmit = (response: FormResponse) => {
-    const chosenRoute = findMatchingRoute({ form, response });
+    const normalizedResponse = Object.fromEntries(
+      Object.entries(response).map(([fieldId, fieldResponse]) => {
+        const field = form.fields?.find((item) => item.id === fieldId);
+        if (!field || field.type !== "phone" || typeof fieldResponse?.value !== "string") {
+          return [fieldId, fieldResponse];
+        }
+        const defaultCountryCode =
+          typeof field.uiConfig?.defaultCountryCode === "string"
+            ? field.uiConfig.defaultCountryCode
+            : undefined;
+        return [
+          fieldId,
+          {
+            ...fieldResponse,
+            value: applyDefaultCountryCodeToPhoneValue({
+              value: fieldResponse.value,
+              defaultCountryCode,
+            }),
+          },
+        ];
+      })
+    ) as FormResponse;
+    const chosenRoute = findMatchingRoute({ form, response: normalizedResponse });
 
     if (!chosenRoute) {
       // This error should never happen as we ensure that fallback route is always there that matches always
@@ -80,14 +246,14 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     responseMutation.mutate({
       formId: form.id,
       formFillerId,
-      response: response,
+      response: normalizedResponse,
       chosenRouteId: chosenRoute.id,
       isPreview: isBookingDryRun,
     });
 
     chosenRouteWithFormResponseRef.current = {
       route: chosenRoute,
-      response,
+      response: normalizedResponse,
     };
   };
 
@@ -133,26 +299,104 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         actionType: decidedAction.type,
         actionValue: decidedAction.value,
       });
-      //TODO: Maybe take action after successful mutation
-      if (decidedAction.type === "customPageMessage") {
-        setCustomPageMessage(decidedAction.value);
-      } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        const eventTypeUrlWithResolvedVariables = substituteVariables(decidedAction.value, response, fields);
-        router.push(
-          getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
-            form,
-            eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
-            allURLSearchParams,
-            isEmbed: !!isEmbed,
+      const runDecidedAction = () => {
+        if (decidedAction.type === "customPageMessage") {
+          setCustomPageMessage(decidedAction.value);
+        } else if (decidedAction.type === "eventTypeRedirectUrl") {
+          const eventTypeUrlWithResolvedVariables = substituteVariables(
+            decidedAction.value,
+            chosenRouteWithFormResponse.response,
+            fields
+          );
+          router.push(
+            getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
+              form,
+              eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
+              allURLSearchParams,
+              isEmbed: !!isEmbed,
+            })
+          );
+        } else if (decidedAction.type === "externalRedirectUrl") {
+          navigateInTopWindow(`${decidedAction.value}?${allURLSearchParams}`);
+        }
+      };
+
+      if (isEmbedAckEnabled) {
+        const submissionId = uuidv4();
+        const redirectUrl =
+          decidedAction.type === "eventTypeRedirectUrl"
+            ? getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
+                form,
+                eventTypeRedirectUrl: substituteVariables(
+                  decidedAction.value,
+                  chosenRouteWithFormResponse.response,
+                  fields
+                ),
+                allURLSearchParams,
+                isEmbed: !!isEmbed,
+              })
+            : decidedAction.type === "externalRedirectUrl"
+            ? `${decidedAction.value}?${allURLSearchParams}`
+            : null;
+        pendingSubmissionIdRef.current = submissionId;
+        setIsAwaitingBookingAck(true);
+        pendingFallbackRef.current = () => setCustomPageMessage(bookingAckTimeoutMessage);
+        clearPendingTimeout();
+        pendingTimeoutRef.current = window.setTimeout(() => {
+          pendingSubmissionIdRef.current = null;
+          pendingFallbackRef.current = null;
+          setIsAwaitingBookingAck(false);
+          setCustomPageMessage(bookingAckTimeoutMessage);
+        }, 20000);
+
+        const resolvedEventTypeForCalendar =
+          calendarEventType ??
+          resolveEventTypeValue(chosenRouteWithFormResponse.response, fields, "event_type") ??
+          null;
+
+        const responseWithDisplayValue = Object.fromEntries(
+          Object.entries(chosenRouteWithFormResponse.response).map(([fieldId, fieldResponse]) => {
+            const field = form.fields?.find((item) => item.id === fieldId);
+            if (!field || !isSelectableFieldType(field)) {
+              return [fieldId, fieldResponse];
+            }
+            const displayValue = getDisplayValueForValue({
+              field,
+              value: fieldResponse.value,
+            });
+            if (displayValue === undefined) {
+              if (field.type !== "calendar") {
+                return [fieldId, fieldResponse];
+              }
+              return [fieldId, { ...fieldResponse, eventType: resolvedEventTypeForCalendar }];
+            }
+            if (field.type === "calendar") {
+              return [fieldId, { ...fieldResponse, displayValue, eventType: resolvedEventTypeForCalendar }];
+            }
+            return [fieldId, { ...fieldResponse, displayValue }];
           })
-        );
-      } else if (decidedAction.type === "externalRedirectUrl") {
-        navigateInTopWindow(`${decidedAction.value}?${allURLSearchParams}`);
+        ) as FormResponse;
+
+        emitRoutingEvent("form_submission", {
+          submissionId,
+          formId: form.id,
+          response: responseWithDisplayValue,
+          chosenRouteId: chosenRoute.id,
+          redirectUrl,
+          formResponseId: formResponse?.id ?? null,
+          queuedFormResponseId: queuedFormResponse?.id ?? null,
+        });
+
+        return;
       }
+
+      runDecidedAction();
+      setIsAwaitingBookingAck(false);
       // We don't want to show this message as it doesn't look good in Embed.
       // triggerToast("Form submitted successfully! Redirecting now ...", "success");
     },
     onError: (e) => {
+      setIsAwaitingBookingAck(false);
       if (e?.message) {
         return void triggerToast(e?.message, "error");
       }
@@ -166,46 +410,46 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setShowErrors(true);
+    const hasErrors =
+      form.fields?.some((field) => {
+        const value = response[field.id]?.value ?? "";
+        return !!getValidationErrorMessage(field, value);
+      }) ?? false;
+    if (hasErrors) {
+      return;
+    }
+    if (isEmbedAckEnabled) {
+      setIsAwaitingBookingAck(true);
+    }
     onSubmit(response);
   };
 
-  const { t } = useLocale();
+  const isSubmitInProgress = responseMutation.isPending || isAwaitingBookingAck;
 
   return (
-    <div>
-      <div>
-        {!customPageMessage ? (
-          <>
-            <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
-              <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-                <div className="main border-booker md:border-booker-width dark:bg-muted bg-default mx-0 rounded-md p-4 py-6 shadow-md sm:-mx-4 sm:px-8">
-                  <Toaster position="bottom-right" />
+    <div className={classNames("min-h-screen w-full", isEmbed ? "" : "md:min-h-screen")}>
 
-                  <form onSubmit={handleOnSubmit}>
-                    <div className="mb-8">
-                      <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold tracking-wide">
-                        {form.name}
-                      </h1>
-                      {form.description ? (
-                        <p className="text-subtle min-h-10 text-sm ltr:mr-4 rtl:ml-4">{form.description}</p>
-                      ) : null}
-                    </div>
-                    <FormInputFields form={form} response={response} setResponse={setResponse} />
-                    <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-                      <Button
-                        className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast dark:border-transparent"
-                        loading={responseMutation.isPending}
-                        type="submit"
-                        color="primary">
-                        {t("continue")}
-                      </Button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </>
-        ) : (
+      {!customPageMessage ? (
+        <>
+          <Toaster position="bottom-right" />
+          <form onSubmit={handleOnSubmit} className="min-h-screen w-full">
+            <RoutingFormRenderer
+              form={form}
+              response={response}
+              setResponse={setResponse}
+              submitLoading={isSubmitInProgress}
+              submitDisabled={isSubmitInProgress}
+              showErrors={showErrors}
+              className="w-full"
+              calendarEventType={calendarEventType}
+              calendarFormContext={calendarFormContext}
+              onFieldChange={handleFieldChange}
+            />
+          </form>
+        </>
+      ) : (
+        <div className="min-h-screen w-full">
           <div className="mx-auto my-0 max-w-3xl md:my-24">
             <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
               <div className="main sm:border-subtle bg-default -mx-4 rounded-md border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
@@ -213,8 +457,8 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

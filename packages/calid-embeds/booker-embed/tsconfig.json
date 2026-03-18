@@ -1,0 +1,22 @@
+{
+    "extends": "@calcom/tsconfig/react-library.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "jsx": "react-jsx",
+        "resolveJsonModule": true,
+        "outDir": "./dist",
+        "types": [
+            "vite/client"
+        ]
+    },
+    "include": [
+        "index.ts",
+        "BookerEmbed.tsx"
+    ],
+    "exclude": [
+        "dist",
+        "node_modules"
+    ]
+}

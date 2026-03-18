@@ -50,6 +50,18 @@ export class TeamService extends BaseService {
     }
   }
 
+  // Team CRUD operations
+  async getTeamBySlug(userId: number, slug: string): Promise<TeamResponse> {
+    this.logOperation("getTeamBySlug", { userId, slug });
+    try {
+      const team = await this.teamRepository.findByUserIdAndTeamSlugOrThrow(userId, slug);
+      return this.mapTeamToResponse(team);
+    } catch (error) {
+      this.logError("getTeamById", error);
+      throw error;
+    }
+  }
+
   async getTeams(
     userId: number,
     filters: Omit<Prisma.CalIdTeamWhereInput, 'members'> = {},
@@ -182,14 +194,37 @@ export class TeamService extends BaseService {
     }
   }
 
-  async getTeamEventTypeById(userId: number, teamId: number, eventTypeId: number): Promise<EventTypeResponse> {
+  async getTeamEventTypeById(userId: number, teamId: number, eventTypeId?: number, eventTypeSlug?: string): Promise<EventTypeResponse> {
     this.logOperation("getTeamEventTypeById", { userId, teamId, eventTypeId });
 
     try {
       // Check if user has access to the team
       await this.teamRepository.findByUserIdAndTeamIdOrThrow(userId, teamId);
 
-      const eventType = await this.teamRepository.findEventTypeByTeamIdAndEventTypeIdOrThrow(teamId, eventTypeId);
+      const eventType = await this.teamRepository.findEventTypeByTeamIdAndEventTypeIdentifierOrThrow(teamId, eventTypeId);
+      return this.mapEventTypeToResponse(eventType);
+    } catch (error) {
+      this.logError("getTeamEventTypeById", error);
+      throw error;
+    }
+  }
+
+    /**
+   * Finds an event type by full slug.
+   * Accepted formats:
+   * - User event: "<username>/<event_slug>"
+   * - Team event: "team/<team_name>/<event_slug>"
+   *
+   * For team events, the user must be an OWNER or ADMIN in the team.
+   */
+  async getTeamEventTypeBySlug(userId: number, teamSlug: string, eventTypeSlug?: string): Promise<EventTypeResponse> {
+    this.logOperation("getTeamEventTypeBySlug", { userId, teamSlug, eventTypeSlug });
+
+    try {
+      // Check if user has access to the team
+      const team = await this.teamRepository.findByUserIdAndTeamSlugOrThrow(userId, teamSlug);
+
+      const eventType = await this.teamRepository.findEventTypeByTeamIdAndEventTypeIdentifierOrThrow(team.id, undefined, eventTypeSlug);
       return this.mapEventTypeToResponse(eventType);
     } catch (error) {
       this.logError("getTeamEventTypeById", error);
@@ -255,7 +290,7 @@ export class TeamService extends BaseService {
       await this.teamRepository.findByUserIdAndTeamIdOrThrow(userId, teamId);
 
       // Check if event type exists and belongs to team
-      const existingEventType = await this.teamRepository.findEventTypeByTeamIdAndEventTypeIdOrThrow(teamId, eventTypeId);
+      const existingEventType = await this.teamRepository.findEventTypeByTeamIdAndEventTypeIdentifierOrThrow(teamId, eventTypeId);
 
       // Check if slug already exists for another event type
       if (input.slug && input.slug !== existingEventType.slug) {
@@ -288,7 +323,7 @@ export class TeamService extends BaseService {
       await this.teamRepository.findByUserIdAndTeamIdOrThrow(userId, teamId);
 
       // Check if event type exists and belongs to team
-      await this.teamRepository.findEventTypeByTeamIdAndEventTypeIdOrThrow(teamId, eventTypeId);
+      await this.teamRepository.findEventTypeByTeamIdAndEventTypeIdentifierOrThrow(teamId, eventTypeId);
 
       await this.eventTypeRepository.delete(eventTypeId);
     } catch (error) {

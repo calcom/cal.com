@@ -1,6 +1,6 @@
 import type { EventTypePaginationQuery } from "@/schema/event-type.schema";
 import type { TeamPaginationQuery, MembershipPaginationQuery } from "@/schema/team.schema";
-import { NotFoundError } from "@/utils/error";
+import { AppError, NotFoundError } from "@/utils/error";
 
 import type { PrismaClient } from "@calcom/prisma/client";
 import type { Prisma, CalIdTeam, CalIdMembership, EventType } from "@calcom/prisma/client";
@@ -102,6 +102,40 @@ export class TeamRepository extends BaseRepository<CalIdTeam> {
     }
   }
 
+  async findByUserIdAndTeamSlug(userId: number, teamSlug: string): Promise<CalIdTeam | null> {
+    try {
+      return await this.prisma.calIdTeam.findFirst({
+        where: {
+          slug: teamSlug,
+          members: {
+            some: {
+              userId,
+            },
+          },
+        },
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  username: true,
+                  avatarUrl: true,
+                  timeZone: true,
+                },
+              },
+            },
+          },
+          eventTypes: true,
+        },
+      });
+    } catch (error) {
+      this.handleDatabaseError(error, "find team by user id and team slug");
+    }
+  }
+
   async findByUserIdAndTeamId(userId: number, teamId: number): Promise<CalIdTeam | null> {
     try {
       return await this.prisma.calIdTeam.findFirst({
@@ -138,6 +172,15 @@ export class TeamRepository extends BaseRepository<CalIdTeam> {
 
   async findByUserIdAndTeamIdOrThrow(userId: number, teamId: number): Promise<CalIdTeam> {
     const team = await this.findByUserIdAndTeamId(userId, teamId);
+    if (!team) {
+      throw new NotFoundError("CalIdTeam");
+    }
+
+    return team;
+  }
+
+  async findByUserIdAndTeamSlugOrThrow(userId: number, slug: string): Promise<CalIdTeam> {
+    const team = await this.findByUserIdAndTeamSlug(userId, slug);
     if (!team) {
       throw new NotFoundError("CalIdTeam");
     }
@@ -504,21 +547,45 @@ export class TeamRepository extends BaseRepository<CalIdTeam> {
     );
   }
 
-  async findEventTypeByTeamIdAndEventTypeId(teamId: number, eventTypeId: number): Promise<EventType | null> {
+  async findEventTypeByTeamIdAndEventTypeIdentifier(
+    teamId: number,
+    eventTypeId?: number,
+    eventTypeSlug?: string
+  ): Promise<EventType | null> {
+    if (!eventTypeId && !eventTypeSlug) {
+      throw new AppError("Either event type ID or slug must be provided");
+    }
+
+    if (!eventTypeId && eventTypeSlug) {
+      const parts = eventTypeSlug.split("/").filter(Boolean);
+      if (parts.length > 1) {
+        throw new AppError(`Invalid event type slug format: ${eventTypeSlug}`);
+      }
+    }
+
     try {
       return await this.prisma.eventType.findFirst({
         where: {
-          id: eventTypeId,
-          teamId,
+          ...{ ...(eventTypeId ? { id: eventTypeId } : {}) },
+          ...{ ...(eventTypeSlug ? { slug: eventTypeSlug } : {}) },
+          calIdTeamId: teamId,
         },
       });
     } catch (error) {
-      this.handleDatabaseError(error, "find event type by team id and event type id");
+      this.handleDatabaseError(error, "find event type by team id and event type identifier");
     }
   }
 
-  async findEventTypeByTeamIdAndEventTypeIdOrThrow(teamId: number, eventTypeId: number): Promise<EventType> {
-    const eventType = await this.findEventTypeByTeamIdAndEventTypeId(teamId, eventTypeId);
+  async findEventTypeByTeamIdAndEventTypeIdentifierOrThrow(
+    teamId: number,
+    eventTypeId?: number,
+    eventTypeSlug?: string
+  ): Promise<EventType> {
+    const eventType = await this.findEventTypeByTeamIdAndEventTypeIdentifier(
+      teamId,
+      eventTypeId,
+      eventTypeSlug
+    );
     if (!eventType) {
       throw new NotFoundError("EventType");
     }
