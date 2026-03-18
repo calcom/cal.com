@@ -126,15 +126,7 @@ type TeamBookingsParamsWithCount = TeamBookingsParamsBase & {
 
 type TeamBookingsParamsWithoutCount = TeamBookingsParamsBase;
 
-const buildWhereClauseForActiveBookings = ({
-  eventTypeId,
-  startDate,
-  endDate,
-  users,
-  virtualQueuesData,
-  includeNoShowInRRCalculation = false,
-  rrTimestampBasis,
-}: {
+type ActiveBookingsParams = {
   eventTypeId: number;
   startDate?: Date;
   endDate?: Date;
@@ -148,54 +140,79 @@ const buildWhereClauseForActiveBookings = ({
   } | null;
   includeNoShowInRRCalculation: boolean;
   rrTimestampBasis: RRTimestampBasis;
-}): Prisma.BookingWhereInput => ({
-  OR: [
-    {
-      userId: {
-        in: users.map((user) => user.id),
-      },
-      ...(!includeNoShowInRRCalculation
-        ? {
-            OR: [{ noShowHost: false }, { noShowHost: null }],
-          }
-        : {}),
-    },
-    {
-      attendees: {
-        some: {
-          email: {
-            in: users.map((user) => user.email),
-          },
-        },
-      },
-    },
-  ],
-  ...(!includeNoShowInRRCalculation ? { attendees: { some: { noShow: false } } } : {}),
-  status: BookingStatus.ACCEPTED,
+};
+
+/**
+ * Builds a raw SQL UNION query to efficiently fetch booking IDs for round-robin calculations.
+ * Uses UNION (not UNION ALL) for automatic deduplication at the DB level.
+ *
+ * Branch 1: Bookings where one of the users is the organizer (userId)
+ * Branch 2: Bookings where one of the users is an attendee (email)
+ */
+const buildRoundRobinBookingIdsQuery = ({
+  users,
   eventTypeId,
-  ...(startDate || endDate
-    ? rrTimestampBasis === RRTimestampBasis.CREATED_AT
-      ? {
-          createdAt: {
-            ...(startDate ? { gte: startDate } : {}),
-            ...(endDate ? { lte: endDate } : {}),
-          },
-        }
-      : {
-          startTime: {
-            ...(startDate ? { gte: startDate } : {}),
-            ...(endDate ? { lte: endDate } : {}),
-          },
-        }
-    : {}),
-  ...(virtualQueuesData
-    ? {
-        routedFromRoutingFormReponse: {
-          chosenRouteId: virtualQueuesData.chosenRouteId,
-        },
-      }
-    : {}),
-});
+  startDate,
+  endDate,
+  includeNoShowInRRCalculation,
+  rrTimestampBasis,
+  virtualQueuesData,
+}: ActiveBookingsParams): Prisma.Sql => {
+  const userIds = users.map((u) => u.id);
+  const userEmails = users.map((u) => u.email);
+
+  // Date filter conditions
+  const dateConditions: Prisma.Sql[] = [];
+  if (startDate || endDate) {
+    const dateColumn =
+      rrTimestampBasis === RRTimestampBasis.CREATED_AT
+        ? Prisma.sql`b."createdAt"`
+        : Prisma.sql`b."startTime"`;
+    if (startDate) dateConditions.push(Prisma.sql`AND ${dateColumn} >= ${startDate}`);
+    if (endDate) dateConditions.push(Prisma.sql`AND ${dateColumn} <= ${endDate}`);
+  }
+  const dateSql =
+    dateConditions.length > 0 ? Prisma.join(dateConditions, " ") : Prisma.sql``;
+
+  // Virtual queues: JOIN + WHERE on chosenRouteId
+  const virtualQueuesJoin = virtualQueuesData
+    ? Prisma.sql`INNER JOIN "App_RoutingForms_FormResponse" r ON r."routedToBookingUid" = b."uid"`
+    : Prisma.sql``;
+  const virtualQueuesCondition = virtualQueuesData
+    ? Prisma.sql`AND r."chosenRouteId" = ${virtualQueuesData.chosenRouteId}`
+    : Prisma.sql``;
+
+  // NoShow conditions differ per branch
+  const userIdNoShowCondition = !includeNoShowInRRCalculation
+    ? Prisma.sql`AND EXISTS (SELECT 1 FROM "Attendee" a2 WHERE a2."bookingId" = b."id" AND a2."noShow" = false) AND (b."noShowHost" = false OR b."noShowHost" IS NULL)`
+    : Prisma.sql``;
+
+  const attendeeNoShowCondition = !includeNoShowInRRCalculation
+    ? Prisma.sql`AND EXISTS (SELECT 1 FROM "Attendee" a2 WHERE a2."bookingId" = b."id" AND a2."noShow" = false)`
+    : Prisma.sql``;
+
+  return Prisma.sql`
+    SELECT b."id" FROM "Booking" b
+    ${virtualQueuesJoin}
+    WHERE b."status" = 'accepted'::"BookingStatus"
+    AND b."eventTypeId" = ${eventTypeId}
+    AND b."userId" IN (${Prisma.join(userIds)})
+    ${dateSql}
+    ${userIdNoShowCondition}
+    ${virtualQueuesCondition}
+
+    UNION
+
+    SELECT b."id" FROM "Booking" b
+    INNER JOIN "Attendee" a ON a."bookingId" = b."id" AND a."email" IN (${Prisma.join(userEmails)})
+    ${virtualQueuesJoin}
+    WHERE b."status" = 'accepted'::"BookingStatus"
+    AND b."eventTypeId" = ${eventTypeId}
+    ${dateSql}
+    ${attendeeNoShowCondition}
+    ${virtualQueuesCondition}
+  `;
+};
 
 const selectStatementToGetBookingForCalEventBuilder = {
   id: true,
@@ -961,8 +978,14 @@ export class BookingRepository implements IBookingRepository {
     includeNoShowInRRCalculation: boolean;
     rrTimestampBasis: RRTimestampBasis;
   }) {
-    const allBookings = await this.prismaClient.booking.findMany({
-      where: buildWhereClauseForActiveBookings({
+    // Guard: Prisma.join() requires a non-empty array, and there's nothing to query anyway.
+    if (users.length === 0) return [];
+
+    // Step 1: Get matching booking IDs via a single raw SQL UNION query.
+    // This is faster than parallel Prisma queries: single DB round-trip,
+    // DB-level deduplication (UNION), and each branch gets its own optimized plan.
+    const bookingIdsResult = await this.prismaClient.$queryRaw<{ id: number }[]>(
+      buildRoundRobinBookingIdsQuery({
         eventTypeId,
         startDate,
         endDate,
@@ -970,19 +993,30 @@ export class BookingRepository implements IBookingRepository {
         virtualQueuesData,
         includeNoShowInRRCalculation,
         rrTimestampBasis,
-      }),
+      })
+    );
+
+    const bookingIds = bookingIdsResult.map((r) => r.id);
+
+    if (bookingIds.length === 0) return [];
+
+    // Step 2: Fetch full records with relations via Prisma (simple id IN (...) query).
+    const allBookings = await this.prismaClient.booking.findMany({
+      where: { id: { in: bookingIds } },
       select: {
         id: true,
-        attendees: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
         userId: true,
         createdAt: true,
         status: true,
         startTime: true,
         routedFromRoutingFormReponse: true,
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
     });
 
     let queueBookings = allBookings;
