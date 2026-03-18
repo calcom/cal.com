@@ -3,13 +3,10 @@ import { v4 as uuidv4 } from "uuid";
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails/workflow-email-service";
-import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
+import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -226,28 +223,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   if (!resultRedirect) {
     return;
   }
-  const toUser = toUserId
-    ? await prisma.user.findUnique({
-        where: {
-          id: toUserId,
-        },
-        select: {
-          name: true,
-          username: true,
-          timeZone: true,
-          email: true,
-        },
-      })
-    : null;
-  const reason = await prisma.outOfOfficeReason.findUnique({
-    where: {
-      id: input.reasonId,
-    },
-    select: {
-      reason: true,
-      emoji: true,
-    },
-  });
   if (toUserId) {
     // await send email to notify user
     const userToNotify = await prisma.user.findUnique({
@@ -331,67 +306,22 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
 
   const teamIds = memberships.map((membership) => membership.teamId);
 
-  // Send webhook to notify other services
-  const subscriberOptions: GetSubscriberOptions = {
-    userId: oooUserId,
-    teamId: teamIds,
-    orgId: oooUserOrgId,
-    triggerEvent: WebhookTriggerEvents.OOO_CREATED,
-  };
-
-  const subscribers = await getWebhooks(subscriberOptions);
-
-  const payload: OOOEntryPayloadType = {
-    oooEntry: {
-      id: createdOrUpdatedOutOfOffice.id,
-      start: dayjs(createdOrUpdatedOutOfOffice.start)
-        .tz(oooUserTimeZone, true)
-        .format("YYYY-MM-DDTHH:mm:ssZ"),
-      end: dayjs(createdOrUpdatedOutOfOffice.end).tz(oooUserTimeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
-      createdAt: createdOrUpdatedOutOfOffice.createdAt.toISOString(),
-      updatedAt: createdOrUpdatedOutOfOffice.updatedAt.toISOString(),
-      notes: createdOrUpdatedOutOfOffice.notes,
-      reason: {
-        emoji: reason?.emoji,
-        reason: reason?.reason,
+  try {
+    await getWebhookProducer().queueOOOCreatedWebhook({
+      oooEntryId: createdOrUpdatedOutOfOffice.id,
+      userId: oooUserId,
+      teamId: null,
+      metadata: {
+        teamIds,
+        orgId: oooUserOrgId,
       },
-      reasonId: input.reasonId,
-      user: {
-        id: oooUserId,
-        name: oooUserFullName,
-        username: oooUserName,
-        email: oooUserEmail,
-        timeZone: oooUserTimeZone,
-      },
-      toUser: toUserId
-        ? {
-            id: toUserId,
-            name: toUser?.name,
-            username: toUser?.username,
-            email: toUser?.email,
-            timeZone: toUser?.timeZone,
-          }
-        : null,
-      uuid: createdOrUpdatedOutOfOffice.uuid,
-    },
-  };
-
-  await Promise.all(
-    subscribers.map(async (subscriber) => {
-      sendPayload(
-        subscriber.secret,
-        WebhookTriggerEvents.OOO_CREATED,
-        dayjs().toISOString(),
-        {
-          appId: subscriber.appId,
-          subscriberUrl: subscriber.subscriberUrl,
-          payloadTemplate: subscriber.payloadTemplate,
-          version: subscriber.version,
-        },
-        payload
-      );
-    })
-  );
+    });
+  } catch (error) {
+    logger.warn("Failed to queue OOO webhook, OOO entry was created successfully", {
+      oooEntryId: createdOrUpdatedOutOfOffice.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
 
   return {};
 };

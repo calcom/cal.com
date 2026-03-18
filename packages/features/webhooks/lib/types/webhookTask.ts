@@ -103,6 +103,54 @@ export const webhookTaskPayloadSchema = z.discriminatedUnion("triggerEvent", [
 ]);
 
 /**
+ * OOO entry shape returned by the data fetcher after DB lookup.
+ * Used by the consumer to validate the fetcher output before building the DTO.
+ */
+export const oooEntrySchema = z.object({
+  id: z.number(),
+  start: z.string(),
+  end: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  notes: z.string().nullable(),
+  reason: z.object({
+    emoji: z.string().optional(),
+    reason: z.string().optional(),
+  }),
+  reasonId: z.number(),
+  user: z.object({
+    id: z.number(),
+    name: z.string().nullable(),
+    username: z.string().nullable(),
+    timeZone: z.string(),
+    email: z.string(),
+  }),
+  toUser: z
+    .object({
+      id: z.number(),
+      name: z.string().nullable().optional(),
+      username: z.string().nullable().optional(),
+      timeZone: z.string().optional(),
+      email: z.string().optional(),
+    })
+    .nullable(),
+  uuid: z.string(),
+});
+
+/**
+ * OOO webhook metadata — only non-PII identifiers queued; fetcher resolves PII from DB.
+ */
+export const oooMetadataSchema = z.object({
+  teamIds: z.array(z.number()).optional(),
+  orgId: z.number().nullable().optional(),
+});
+
+export type OOOMetadata = {
+  teamIds?: number[];
+  orgId?: number | null;
+};
+
+/**
  * Webhook Task Payload Types
  *
  * These are the minimal payload structures queued by WebhookTaskerProducerService

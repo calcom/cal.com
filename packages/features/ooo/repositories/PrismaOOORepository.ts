@@ -1,7 +1,46 @@
 import type { PrismaClient } from "@calcom/prisma";
 
+export type OOOEntryForWebhook = NonNullable<
+  Awaited<ReturnType<PrismaOOORepository["findByIdForWebhook"]>>
+>;
+
 export class PrismaOOORepository {
   constructor(private prismaClient: PrismaClient) {}
+
+  async findByIdForWebhook(id: number) {
+    return this.prismaClient.outOfOfficeEntry.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        uuid: true,
+        start: true,
+        end: true,
+        createdAt: true,
+        updatedAt: true,
+        notes: true,
+        reasonId: true,
+        reason: { select: { emoji: true, reason: true } },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+            timeZone: true,
+          },
+        },
+        toUser: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            email: true,
+            timeZone: true,
+          },
+        },
+      },
+    });
+  }
 
   async findManyOOO({
     startTimeDate,

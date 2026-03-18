@@ -3,9 +3,11 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type {
   BookingCreatedDTO,
+  BookingNoShowDTO,
   BookingRejectedDTO,
   BookingRequestedDTO,
   BookingRescheduledDTO,
+  OOOCreatedDTO,
   WebhookEventDTO,
   WebhookSubscriber,
 } from "../dto/types";
@@ -15,10 +17,8 @@ import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import { DEFAULT_WEBHOOK_VERSION } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
 import type { IWebhookService } from "../interface/services";
-import type {
-  BookingWebhookTaskPayload,
-  WebhookTaskPayload,
-} from "../types/webhookTask";
+import type { BookingWebhookTaskPayload, WebhookTaskPayload } from "../types/webhookTask";
+import { oooEntrySchema, oooMetadataSchema } from "../types/webhookTask";
 
 export class WebhookTaskConsumer {
   private readonly log: ILogger;
@@ -153,6 +153,14 @@ export class WebhookTaskConsumer {
   private buildDTO(eventData: Record<string, unknown>, payload: WebhookTaskPayload): WebhookEventDTO | null {
     const { triggerEvent, timestamp } = payload;
 
+    if (triggerEvent === WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED) {
+      return this.buildNoShowDTO(eventData, payload);
+    }
+
+    if (triggerEvent === WebhookTriggerEvents.OOO_CREATED) {
+      return this.buildOOODTO(eventData, payload);
+    }
+
     const calendarEvent = eventData.calendarEvent as CalendarEvent | undefined;
     const booking = eventData.booking as BookingForCalEventBuilder | undefined;
     const eventType = booking?.eventType;
@@ -259,5 +267,61 @@ export class WebhookTaskConsumer {
         this.log.warn("Unsupported trigger event for DTO building", { triggerEvent });
         return null;
     }
+  }
+
+  private buildNoShowDTO(
+    eventData: Record<string, unknown>,
+    payload: WebhookTaskPayload
+  ): BookingNoShowDTO | null {
+    const message = eventData.noShowMessage as string | undefined;
+    const attendees = eventData.noShowAttendees as { email: string; noShow: boolean }[] | undefined;
+    const bookingUid = eventData.bookingUid as string | undefined;
+    const bookingId = eventData.bookingId as number | undefined;
+
+    if (!message || !attendees || !bookingUid) {
+      this.log.warn("Missing required fields for no-show DTO", {
+        hasMessage: !!message,
+        hasAttendees: !!attendees,
+        hasBookingUid: !!bookingUid,
+      });
+      return null;
+    }
+
+    const bookingPayload = payload as BookingWebhookTaskPayload;
+    return {
+      triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+      createdAt: payload.timestamp,
+      bookingUid,
+      bookingId,
+      message,
+      attendees,
+      userId: bookingPayload.userId ?? null,
+      teamId: bookingPayload.teamId ?? null,
+      orgId: bookingPayload.orgId,
+      platformClientId: bookingPayload.platformClientId ?? bookingPayload.oAuthClientId,
+    } satisfies BookingNoShowDTO;
+  }
+
+  private buildOOODTO(eventData: Record<string, unknown>, payload: WebhookTaskPayload): OOOCreatedDTO | null {
+    if (payload.triggerEvent !== WebhookTriggerEvents.OOO_CREATED) {
+      return null;
+    }
+
+    const entryParsed = oooEntrySchema.safeParse(eventData.oooEntry);
+    if (!entryParsed.success) {
+      this.log.warn("Missing oooEntry for OOO DTO");
+      return null;
+    }
+
+    const subscriberMeta = oooMetadataSchema.safeParse(payload.metadata);
+
+    return {
+      triggerEvent: WebhookTriggerEvents.OOO_CREATED,
+      createdAt: payload.timestamp,
+      oooEntry: entryParsed.data,
+      userId: payload.userId ?? null,
+      teamId: payload.teamId ?? null,
+      orgId: subscriberMeta.success ? subscriberMeta.data.orgId : undefined,
+    } satisfies OOOCreatedDTO;
   }
 }

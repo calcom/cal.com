@@ -225,4 +225,124 @@ describe("BookingWebhookDataFetcher", () => {
       expect(context.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_CANCELLED);
     });
   });
+
+  describe("fetchNoShowData (via fetchEventData with BOOKING_NO_SHOW_UPDATED)", () => {
+    it("should return noShow data when metadata has message and attendees", async () => {
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+        bookingUid: "booking-noshow-1",
+        metadata: {
+          message: "Host marked attendees as no-show",
+          attendees: [
+            { email: "attendee1@example.com", noShow: true },
+            { email: "attendee2@example.com", noShow: false },
+          ],
+          bookingId: 999,
+        },
+      } as Partial<BookingWebhookTaskPayload>);
+
+      const result = await fetcher.fetchEventData(payload);
+
+      expect(result).toEqual({
+        noShowMessage: "Host marked attendees as no-show",
+        noShowAttendees: [
+          { email: "attendee1@example.com", noShow: true },
+          { email: "attendee2@example.com", noShow: false },
+        ],
+        bookingId: 999,
+        bookingUid: "booking-noshow-1",
+      });
+      // Should NOT call bookingRepository since no-show is metadata-driven
+      expect(mockBookingRepository.getBookingForCalEventBuilderFromUid).not.toHaveBeenCalled();
+    });
+
+    it("should return null when metadata is missing message", async () => {
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+        bookingUid: "booking-noshow-2",
+        metadata: {
+          attendees: [{ email: "a@b.com", noShow: true }],
+        },
+      } as Partial<BookingWebhookTaskPayload>);
+
+      const result = await fetcher.fetchEventData(payload);
+
+      expect(result).toBeNull();
+      expect(mockLogger.warn).toHaveBeenCalledWith("Missing message or attendees in no-show metadata", {
+        bookingUid: "booking-noshow-2",
+      });
+    });
+
+    it("should return null when metadata is missing attendees", async () => {
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+        bookingUid: "booking-noshow-3",
+        metadata: {
+          message: "No show",
+        },
+      } as Partial<BookingWebhookTaskPayload>);
+
+      const result = await fetcher.fetchEventData(payload);
+
+      expect(result).toBeNull();
+      expect(mockLogger.warn).toHaveBeenCalledWith("Missing message or attendees in no-show metadata", {
+        bookingUid: "booking-noshow-3",
+      });
+    });
+
+    it("should return null when metadata is undefined", async () => {
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+        bookingUid: "booking-noshow-4",
+        metadata: undefined,
+      } as Partial<BookingWebhookTaskPayload>);
+
+      const result = await fetcher.fetchEventData(payload);
+
+      expect(result).toBeNull();
+      expect(mockLogger.warn).toHaveBeenCalledWith("Missing message or attendees in no-show metadata", {
+        bookingUid: "booking-noshow-4",
+      });
+    });
+
+    it("should include bookingId from metadata when present", async () => {
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+        bookingUid: "booking-noshow-5",
+        metadata: {
+          message: "No show update",
+          attendees: [{ email: "a@b.com", noShow: true }],
+          bookingId: 456,
+        },
+      } as Partial<BookingWebhookTaskPayload>);
+
+      const result = await fetcher.fetchEventData(payload);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          bookingId: 456,
+        })
+      );
+    });
+
+    it("should handle missing bookingId in metadata gracefully", async () => {
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+        bookingUid: "booking-noshow-6",
+        metadata: {
+          message: "No show update",
+          attendees: [{ email: "a@b.com", noShow: true }],
+        },
+      } as Partial<BookingWebhookTaskPayload>);
+
+      const result = await fetcher.fetchEventData(payload);
+
+      expect(result).toEqual(
+        expect.objectContaining({
+          bookingId: undefined,
+          bookingUid: "booking-noshow-6",
+        })
+      );
+    });
+  });
 });

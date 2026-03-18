@@ -129,7 +129,33 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
       timestamp: new Date().toISOString(),
     };
 
-    await this.queueTask(operationId, taskPayload);
+    // OOO uses teamIds array from metadata (user can be in multiple teams).
+    // The generic queueTask would use taskPayload.teamId (null) and miss team-level subscribers.
+    try {
+      const subscribers = await this.deps.webhookRepository.getSubscribers({
+        triggerEvent: WebhookTriggerEvents.OOO_CREATED,
+        userId: params.userId,
+        teamId: params.metadata.teamIds ?? params.teamId ?? undefined,
+        orgId: params.metadata.orgId,
+        oAuthClientId: params.oAuthClientId,
+      });
+
+      if (subscribers.length === 0) {
+        this.log.debug("No OOO webhook subscribers found, skipping task queue", {
+          operationId,
+        });
+        return;
+      }
+
+      const result = await this.deps.webhookTasker.deliverWebhook(taskPayload);
+      this.log.debug("Webhook delivery task queued", { operationId, taskId: result.taskId });
+    } catch (error) {
+      this.log.error("Failed to queue OOO webhook delivery task", {
+        operationId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
   }
 
   async queueBookingWebhook(

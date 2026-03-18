@@ -32,6 +32,10 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
       return null;
     }
 
+    if (payload.triggerEvent === WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED) {
+      return this.fetchNoShowData(payload);
+    }
+
     try {
       // Fetch complete booking data with all related entities
       const booking = await this.bookingRepository.getBookingForCalEventBuilderFromUid(bookingUid);
@@ -92,6 +96,32 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
       teamId: payload.teamId,
       orgId: payload.orgId,
       oAuthClientId: payload.oAuthClientId,
+    };
+  }
+
+  /**
+   * No-show payloads are metadata-driven: message and attendees are computed at the
+   * call site and passed through the task payload. No CalendarEvent is needed.
+   */
+  private fetchNoShowData(
+    payload: BookingWebhookTaskPayload
+  ): Record<string, unknown> | null {
+    const meta = payload.metadata as
+      | { message?: string; attendees?: { email: string; noShow: boolean }[]; bookingId?: number }
+      | undefined;
+
+    if (!meta?.message || !meta?.attendees) {
+      this.logger.warn("Missing message or attendees in no-show metadata", {
+        bookingUid: payload.bookingUid,
+      });
+      return null;
+    }
+
+    return {
+      noShowMessage: meta.message,
+      noShowAttendees: meta.attendees,
+      bookingId: meta.bookingId,
+      bookingUid: payload.bookingUid,
     };
   }
 }

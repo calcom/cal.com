@@ -332,6 +332,10 @@ describe("WebhookTaskerProducerService", () => {
       await producer.queueOOOCreatedWebhook({
         oooEntryId: 123,
         userId: 456,
+        metadata: {
+          teamIds: [10, 20],
+          orgId: 1,
+        },
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
         expect.objectContaining({ triggerEvent: WebhookTriggerEvents.OOO_CREATED })

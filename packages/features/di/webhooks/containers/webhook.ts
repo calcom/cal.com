@@ -12,6 +12,7 @@ import type { IWebhookNotifier } from "@calcom/features/webhooks/lib/interface/w
 import type { WebhookTaskConsumer } from "@calcom/features/webhooks/lib/service/WebhookTaskConsumer";
 import { type Container, createContainer } from "@evyweb/ioctopus";
 import { moduleLoader as bookingRepositoryModuleLoader } from "../../modules/Booking";
+import { moduleLoader as oooRepositoryModuleLoader } from "../../modules/Ooo";
 import { moduleLoader as prismaModuleLoader } from "../../modules/Prisma";
 import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
 import { taskerServiceModule } from "../../shared/services/tasker.service";
@@ -32,6 +33,7 @@ const webhookContainer: Container = createContainer();
 loggerModuleLoader.loadModule(webhookContainer);
 prismaModuleLoader.loadModule(webhookContainer);
 bookingRepositoryModuleLoader.loadModule(webhookContainer);
+oooRepositoryModuleLoader.loadModule(webhookContainer);
 webhookContainer.load(SHARED_TOKENS.TASKER, taskerServiceModule);
 
 // Load webhook module (includes cross-table repositories + all webhook services)

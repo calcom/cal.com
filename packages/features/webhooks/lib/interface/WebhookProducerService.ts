@@ -1,4 +1,5 @@
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { OOOMetadata } from "../types/webhookTask";
 
 /**
  * Base parameters common to all webhook queue operations
@@ -102,7 +103,7 @@ export interface QueueRecordingWebhookParams extends BaseQueueWebhookParams {
  * Parameters for queueing OOO-related webhooks
  * Used for: OOO_CREATED
  */
-export interface QueueOOOWebhookParams extends BaseQueueWebhookParams {
+export interface QueueOOOWebhookParams extends Omit<BaseQueueWebhookParams, "metadata"> {
   /** OOO Entry ID (required) */
   oooEntryId: number;
 
@@ -114,6 +115,9 @@ export interface QueueOOOWebhookParams extends BaseQueueWebhookParams {
 
   /** OAuth Client ID (for platform webhooks) */
   oAuthClientId?: string | null;
+
+  /** Non-PII metadata (teamIds, orgId); fetcher resolves PII from DB */
+  metadata: OOOMetadata;
 }
 
 /**

@@ -3,7 +3,9 @@ import type { Container } from "@evyweb/ioctopus";
 import type { ModuleLoader } from "@calcom/features/di/di";
 import type { WebhookTaskConsumer } from "@calcom/features/webhooks/lib/service/WebhookTaskConsumer";
 
+import { moduleLoader as bookingRepositoryModuleLoader } from "../../modules/Booking";
 import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
+import { moduleLoader as oooRepositoryModuleLoader } from "../../modules/Ooo";
 import { moduleLoader as prismaModuleLoader } from "../../modules/Prisma";
 import { taskerServiceModule } from "../../shared/services/tasker.service";
 import { SHARED_TOKENS } from "../../shared/shared.tokens";
@@ -21,6 +23,8 @@ const token = WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER;
 const loadModule = (container: Container) => {
   loggerModuleLoader.loadModule(container);
   prismaModuleLoader.loadModule(container);
+  bookingRepositoryModuleLoader.loadModule(container);
+  oooRepositoryModuleLoader.loadModule(container);
   container.load(SHARED_TOKENS.TASKER, taskerServiceModule);
 
   container.load(WEBHOOK_TOKENS.WEBHOOK_EVENT_TYPE_REPOSITORY, webhookModule);
