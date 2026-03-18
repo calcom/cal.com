@@ -44,7 +44,7 @@ export const Select = <
   const hasMultiLastIcons = props.isMulti || props.isLoading || props.isClearable;
   const resolvedSize = size;
   const inputVariant = variant === "underline" ? "underline" : "default";
-  const showFocusRing = false;
+  const showFocusRing = variant !== "underline" ;
   const disabledBgClass = props.isDisabled
     ? variant === "underline"
       ? "bg-transparent"

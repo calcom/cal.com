@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import React from "react";
 
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 
 export const Root = RadioGroupPrimitive.Root;
 
@@ -14,41 +13,19 @@ export const Radio = (props: RadioGroupPrimitive.RadioGroupItemProps & { childre
   <RadioGroupPrimitive.Item
     {...props}
     className={classNames(
-      "hover:bg-subtle border-default dark:checked:bg-brand-default dark:hover:bg-subtle dark:checked:hover:bg-brand-default focus:ring-brand-default hover:border-emphasis me-1.5 mt-0.5 flex-shrink-0 border text-[--cal-brand] transition focus:border-0 focus:ring-1",
-      props.disabled && "opacity-60",
-      props.className
+      "hover:bg-subtle border-default dark:checked:bg-brand-default dark:hover:bg-subtle dark:checked:hover:bg-brand-default focus:ring-brand-default hover:border-emphasis me-1.5 mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border text-[--cal-brand] transition focus:border-0 focus:ring-1",
+      props.disabled && "opacity-60"
     )}>
     {props.children}
   </RadioGroupPrimitive.Item>
 );
-export const Indicator = ({
-  disabled,
-  accentColor,
-  variant = "default",
-}: {
-  disabled?: boolean;
-  accentColor?: string;
-  variant?: "default" | "largeSquare";
-}) => (
+export const Indicator = ({ disabled }: { disabled?: boolean }) => (
   <RadioGroupPrimitive.Indicator
     className={classNames(
-      "relative flex h-full w-full items-center justify-center",
-      variant === "largeSquare" ? "" : "rounded-full",
-      disabled
-        ? "text-muted"
-        : accentColor
-        ? variant === "default"
-          ? "bg-[var(--cal-radio-accent)]"
-          : "text-[var(--cal-radio-accent)]"
-        : "text-brand"
+      "after:bg-default dark:after:bg-brand-accent bg-brand-default relative flex h-full w-full items-center justify-center rounded-full after:h-[6px] after:w-[6px] after:rounded-full after:content-['']",
+      disabled ? "after:bg-muted" : "bg-brand-default"
     )}
-    style={accentColor ? { ["--cal-radio-accent" as string]: accentColor } : undefined}>
-    {variant === "largeSquare" ? (
-      <Icon name="check" className="h-3.5 w-3.5" />
-    ) : (
-      <span className="h-[6px] w-[6px] rounded-full bg-primary" />
-    )}
-  </RadioGroupPrimitive.Indicator>
+  />
 );
 
 export const Label = (props: JSX.IntrinsicElements["label"] & { disabled?: boolean }) => (
@@ -68,8 +45,6 @@ export const RadioField = ({
   value,
   className,
   withPadding,
-  accentColor,
-  variant = "default",
 }: {
   label: string | ReactNode;
   disabled?: boolean;
@@ -77,8 +52,6 @@ export const RadioField = ({
   value: string;
   className?: string;
   withPadding?: boolean;
-  accentColor?: string;
-  variant?: "default" | "largeSquare";
 }) => (
   <div
     className={classNames(
@@ -86,15 +59,8 @@ export const RadioField = ({
       withPadding && "hover:bg-subtle cursor-pointer rounded-lg p-1.5",
       className
     )}>
-    <Radio
-      value={value}
-      disabled={disabled}
-      id={id}
-      className={classNames(
-        variant === "largeSquare" ? "h-5 w-5" : "h-4 w-4 rounded-full",
-        accentColor ? "data-[state=checked]:bg-transparent" : undefined
-      )}>
-      <Indicator disabled={disabled} accentColor={accentColor} variant={variant} />
+    <Radio value={value} disabled={disabled} id={id}>
+      <Indicator disabled={disabled} />
     </Radio>
     <Label htmlFor={id} disabled={disabled}>
       {label}

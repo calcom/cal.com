@@ -220,7 +220,7 @@ export const frameActions = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   connect: async function ({ config, params }: { config: any; params: ParamSet }): Promise<void> {
     activeBus?.publish("__connectInitiated", {});
-    const { iframeAttrs: _a, "cal.embed.noSlotsFetchOnConnect": noFetch, ...rest } = config;
+    const { iframeAttrs: _a, loaderUrl: _loaderUrl, "cal.embed.noSlotsFetchOnConnect": noFetch, ...rest } = config;
 
     iframeState.parentNotified = false;
     if (noFetch !== "true") iframeState.connectVersion++;

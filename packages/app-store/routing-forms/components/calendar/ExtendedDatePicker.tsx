@@ -18,6 +18,7 @@ type ExtendedDatePickerProps = {
   disabled?: boolean;
   loading?: boolean;
   variant?: "default" | "underline";
+  calendarVariant?: "default" | "compact";
   underlineColor?: string;
   accentColor?: string;
   placeholder?: string;
@@ -32,6 +33,7 @@ export default function ExtendedDatePicker({
   disabled,
   loading,
   variant = "default",
+  calendarVariant = "default",
   underlineColor,
   accentColor,
   placeholder,
@@ -86,6 +88,7 @@ export default function ExtendedDatePicker({
         <Popover.Content
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
+          side="top"
           sideOffset={4}
         >
           <Calendar
@@ -97,6 +100,7 @@ export default function ExtendedDatePicker({
             onDayClick={(day) => onChange(toDateString(day))}
             numberOfMonths={1}
             disabled={isDateDisabled}
+            variant={calendarVariant}
             accentColor={accentColor}
           />
         </Popover.Content>

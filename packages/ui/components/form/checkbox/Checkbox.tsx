@@ -33,8 +33,8 @@ const Checkbox = React.forwardRef<
   <CheckboxPrimitive.Root
     ref={ref}
     className={classNames(
-      "border-brand-default data-[state=checked]:border-brand-default data-[state=checked]:bg-brand-default data-[state=checked]:text-brand peer shrink-0 border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed",
-      variant === "largeSquare" ? "h-5 w-5 rounded-none" : "h-4 w-4 rounded-[4px]",
+      "border-default data-[state=checked]:border-brand-default data-[state=checked]:bg-brand-default data-[state=checked]:text-brand peer shrink-0 border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed",
+      variant === "largeSquare" ? "border-brand-default h-5 w-5 rounded-none" : "h-4 w-4 rounded-[4px]",
       className
     )}
     {...props}>

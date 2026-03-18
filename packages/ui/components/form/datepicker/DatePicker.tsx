@@ -19,6 +19,7 @@ type Props = {
   onBlur?: React.FocusEventHandler<HTMLButtonElement>;
   variant?: "default" | "compact";
   accentColor?: string;
+  popoverSide?: "top" | "right" | "bottom" | "left";
 };
 
 const DatePicker = ({
@@ -33,6 +34,7 @@ const DatePicker = ({
   onBlur,
   variant = "default",
   accentColor,
+  popoverSide,
 }: Props) => {
   function handleDayClick(newDate: Date) {
     onDatesChange?.(newDate ?? new Date());
@@ -80,6 +82,7 @@ const DatePicker = ({
         <Popover.Content
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
+          side={popoverSide}
           sideOffset={4}>
           {calender}
         </Popover.Content>

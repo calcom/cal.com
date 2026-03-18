@@ -80,6 +80,7 @@ type EventMap = {
         value: number | string | string[];
         label: string;
         identifier?: string;
+        eventType?: string | null;
       }
     >;
     chosenRouteId?: string;
@@ -87,9 +88,9 @@ type EventMap = {
     formResponseId?: number | null;
     queuedFormResponseId?: number | null;
   };
-  set_calendar_event_type: { eventType: string; fieldIdentifier?: string };
+  set_calendar_event_type: { eventType?: string; fieldIdentifier?: string };
   set_field_value: { fieldIdentifier: string; value: number | string | string[] };
-  booking_acknowledgement: { submissionId: string; redirect_url?: string };
+  form_submission_acknowledgement: { success: boolean, submissionId?: string; redirect_url?: string, error?: string, successMsg?: string };
   "*": Record<string, unknown>;
   __routeChanged: Record<string, never>;
   __windowLoadComplete: Record<string, never>;
