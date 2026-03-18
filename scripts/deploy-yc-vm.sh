@@ -6,22 +6,58 @@ VM_USER="${VM_USER:-yc-user}"
 SSH_KEY_PATH="${SSH_KEY_PATH:-/tmp/calcom-deploy}"
 IMAGE="${IMAGE:-calcom.docker.scarf.sh/calcom/cal.com:latest}"
 
-DATABASE_URL_VALUE='postgresql://neondb_owner:npg_D2ETKr4UFSZh@ep-soft-violet-alhebtnu.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
-DATABASE_HOST_VALUE='ep-soft-violet-alhebtnu.c-3.eu-central-1.aws.neon.tech:5432'
-NEXT_PUBLIC_WEBAPP_URL_VALUE='http://158.160.42.20:3000'
-NEXTAUTH_URL_VALUE='http://158.160.42.20:3000'
+get_env_value() {
+  local key="$1"
+  local value="${!key:-}"
+  if [[ -n "$value" ]]; then
+    printf "%s" "$value"
+    return 0
+  fi
 
-NEXTAUTH_SECRET_VALUE=$(grep '^NEXTAUTH_SECRET=' .env | head -n1 | cut -d= -f2-)
-NEXTAUTH_SECRET_VALUE=${NEXTAUTH_SECRET_VALUE%\"}
-NEXTAUTH_SECRET_VALUE=${NEXTAUTH_SECRET_VALUE#\"}
-NEXTAUTH_SECRET_VALUE=${NEXTAUTH_SECRET_VALUE%\'}
-NEXTAUTH_SECRET_VALUE=${NEXTAUTH_SECRET_VALUE#\'}
+  if [[ ! -f .env ]]; then
+    return 1
+  fi
 
-CALENDSO_ENCRYPTION_KEY_VALUE=$(grep '^CALENDSO_ENCRYPTION_KEY=' .env | head -n1 | cut -d= -f2-)
-CALENDSO_ENCRYPTION_KEY_VALUE=${CALENDSO_ENCRYPTION_KEY_VALUE%\"}
-CALENDSO_ENCRYPTION_KEY_VALUE=${CALENDSO_ENCRYPTION_KEY_VALUE#\"}
-CALENDSO_ENCRYPTION_KEY_VALUE=${CALENDSO_ENCRYPTION_KEY_VALUE%\'}
-CALENDSO_ENCRYPTION_KEY_VALUE=${CALENDSO_ENCRYPTION_KEY_VALUE#\'}
+  value=$(grep "^${key}=" .env | head -n1 | cut -d= -f2-)
+  value=${value%\"}
+  value=${value#\"}
+  value=${value%\'}
+  value=${value#\'}
+  printf "%s" "$value"
+}
+
+DATABASE_URL_VALUE=$(get_env_value DATABASE_URL)
+if [[ -z "$DATABASE_URL_VALUE" ]]; then
+  echo "DATABASE_URL is required (set it in environment or .env)" >&2
+  exit 1
+fi
+
+DATABASE_HOST_VALUE=$(get_env_value DATABASE_HOST)
+if [[ -z "$DATABASE_HOST_VALUE" ]]; then
+  DATABASE_HOST_VALUE=$(printf "%s" "$DATABASE_URL_VALUE" | sed -E 's#^[^@]*@([^/?]+).*$#\1#')
+fi
+
+NEXT_PUBLIC_WEBAPP_URL_VALUE=$(get_env_value NEXT_PUBLIC_WEBAPP_URL)
+if [[ -z "$NEXT_PUBLIC_WEBAPP_URL_VALUE" ]]; then
+  NEXT_PUBLIC_WEBAPP_URL_VALUE="http://${VM_HOST}:3000"
+fi
+
+NEXTAUTH_URL_VALUE=$(get_env_value NEXTAUTH_URL)
+if [[ -z "$NEXTAUTH_URL_VALUE" ]]; then
+  NEXTAUTH_URL_VALUE="$NEXT_PUBLIC_WEBAPP_URL_VALUE"
+fi
+
+NEXTAUTH_SECRET_VALUE=$(get_env_value NEXTAUTH_SECRET)
+if [[ -z "$NEXTAUTH_SECRET_VALUE" ]]; then
+  echo "NEXTAUTH_SECRET is required (set it in environment or .env)" >&2
+  exit 1
+fi
+
+CALENDSO_ENCRYPTION_KEY_VALUE=$(get_env_value CALENDSO_ENCRYPTION_KEY)
+if [[ -z "$CALENDSO_ENCRYPTION_KEY_VALUE" ]]; then
+  echo "CALENDSO_ENCRYPTION_KEY is required (set it in environment or .env)" >&2
+  exit 1
+fi
 
 ssh -o StrictHostKeyChecking=no -i "$SSH_KEY_PATH" "$VM_USER@$VM_HOST" bash <<EOF
 set -euo pipefail
