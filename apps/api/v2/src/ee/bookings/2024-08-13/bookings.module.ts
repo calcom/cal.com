@@ -30,6 +30,7 @@ import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_0
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { BookingAttendeesModule } from "@/lib/modules/booking-attendees.module";
 import { BookingEventHandlerModule } from "@/lib/modules/booking-event-handler.module";
 import { InstantBookingModule } from "@/lib/modules/instant-booking.module";
 import { RecurringBookingModule } from "@/lib/modules/recurring-booking.module";
@@ -80,6 +81,7 @@ import { UsersModule } from "@/modules/users/users.module";
     RecurringBookingModule,
     InstantBookingModule,
     BookingEventHandlerModule,
+    BookingAttendeesModule,
   ],
   providers: [
     TokensRepository,
