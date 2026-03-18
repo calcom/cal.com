@@ -82,15 +82,16 @@ vi.mock("@calcom/features/bookings/services/BookingAccessService", () => ({
   BookingAccessService: MockBookingAccessService,
 }));
 
-const { mockWebhookServiceInit, mockSendPayload } = vi.hoisted(() => ({
-  mockWebhookServiceInit: vi.fn(),
-  mockSendPayload: vi.fn(),
-}));
+const { mockQueueBookingNoShowUpdatedWebhook, mockGetWebhookProducer } = vi.hoisted(() => {
+  const mockQueueBookingNoShowUpdatedWebhook = vi.fn().mockResolvedValue(undefined);
+  const mockGetWebhookProducer = vi.fn().mockReturnValue({
+    queueBookingNoShowUpdatedWebhook: mockQueueBookingNoShowUpdatedWebhook,
+  });
+  return { mockQueueBookingNoShowUpdatedWebhook, mockGetWebhookProducer };
+});
 
-vi.mock("@calcom/features/webhooks/lib/WebhookService", () => ({
-  WebhookService: {
-    init: mockWebhookServiceInit,
-  },
+vi.mock("@calcom/features/di/webhooks/containers/webhook", () => ({
+  getWebhookProducer: mockGetWebhookProducer,
 }));
 
 const { mockOnNoShowUpdated, mockGetBookingEventHandlerService } = vi.hoisted(() => {
@@ -417,8 +418,7 @@ describe("handleMarkNoShow", () => {
 
     mockDoesUserIdHaveAccessToBooking.mockResolvedValue(true);
 
-    mockWebhookServiceInit.mockResolvedValue({ sendPayload: mockSendPayload });
-    mockSendPayload.mockResolvedValue(undefined);
+    mockQueueBookingNoShowUpdatedWebhook.mockResolvedValue(undefined);
 
     mockOnNoShowUpdated.mockResolvedValue(undefined);
   });
@@ -604,7 +604,7 @@ describe("handleMarkNoShow", () => {
   });
 
   describe("Integrations", () => {
-    it("should call WebhookService.sendPayload for attendee updates", async () => {
+    it("should call webhook producer for attendee updates", async () => {
       const bookingUid = "test-booking-webhook";
       createMockBooking({ uid: bookingUid });
       createMockAttendee({ bookingUid, email: "attendee@example.com" });
@@ -617,8 +617,14 @@ describe("handleMarkNoShow", () => {
         actionSource: "WEBAPP",
       });
 
-      expect(mockWebhookServiceInit).toHaveBeenCalled();
-      expect(mockSendPayload).toHaveBeenCalledWith(expect.objectContaining({ bookingUid }));
+      expect(mockQueueBookingNoShowUpdatedWebhook).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookingUid,
+          metadata: expect.objectContaining({
+            attendeeIds: expect.arrayContaining([expect.any(Number)]),
+          }),
+        })
+      );
     });
 
     it("should call BookingEventHandlerService.onNoShowUpdated with correct args", async () => {

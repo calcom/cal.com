@@ -103,6 +103,33 @@ export const webhookTaskPayloadSchema = z.discriminatedUnion("triggerEvent", [
 ]);
 
 /**
+ * Metadata schema for BOOKING_NO_SHOW_UPDATED webhooks.
+ * Only non-PII identifiers are queued; the fetcher resolves emails from DB.
+ */
+export const noShowMetadataSchema = z.object({
+  attendeeIds: z.array(z.number()),
+  bookingId: z.number().optional(),
+  locale: z.string().optional(),
+});
+
+export type NoShowMetadata = {
+  attendeeIds: number[];
+  bookingId?: number;
+  locale?: string;
+};
+
+/**
+ * Shape returned by BookingWebhookDataFetcher.fetchNoShowData().
+ * Used by the consumer to avoid `as` casts on the generic eventData bag.
+ */
+export const noShowEventDataSchema = z.object({
+  noShowMessage: z.string(),
+  noShowAttendees: z.array(z.object({ email: z.string(), noShow: z.boolean() })),
+  bookingId: z.number().optional(),
+  bookingUid: z.string(),
+});
+
+/**
  * OOO entry shape returned by the data fetcher after DB lookup.
  * Used by the consumer to validate the fetcher output before building the DTO.
  */

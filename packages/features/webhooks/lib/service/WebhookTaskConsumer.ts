@@ -18,7 +18,7 @@ import { DEFAULT_WEBHOOK_VERSION } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
 import type { IWebhookService } from "../interface/services";
 import type { BookingWebhookTaskPayload, WebhookTaskPayload } from "../types/webhookTask";
-import { oooEntrySchema, oooMetadataSchema } from "../types/webhookTask";
+import { noShowEventDataSchema, oooEntrySchema, oooMetadataSchema } from "../types/webhookTask";
 
 export class WebhookTaskConsumer {
   private readonly log: ILogger;
@@ -151,11 +151,11 @@ export class WebhookTaskConsumer {
    * expected by PayloadBuilders.
    */
   private buildDTO(eventData: Record<string, unknown>, payload: WebhookTaskPayload): WebhookEventDTO | null {
-    const { triggerEvent, timestamp } = payload;
-
-    if (triggerEvent === WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED) {
+    if (payload.triggerEvent === WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED) {
       return this.buildNoShowDTO(eventData, payload);
     }
+
+    const { triggerEvent, timestamp } = payload;
 
     if (triggerEvent === WebhookTriggerEvents.OOO_CREATED) {
       return this.buildOOODTO(eventData, payload);
@@ -271,34 +271,28 @@ export class WebhookTaskConsumer {
 
   private buildNoShowDTO(
     eventData: Record<string, unknown>,
-    payload: WebhookTaskPayload
+    payload: BookingWebhookTaskPayload
   ): BookingNoShowDTO | null {
-    const message = eventData.noShowMessage as string | undefined;
-    const attendees = eventData.noShowAttendees as { email: string; noShow: boolean }[] | undefined;
-    const bookingUid = eventData.bookingUid as string | undefined;
-    const bookingId = eventData.bookingId as number | undefined;
+    const parsed = noShowEventDataSchema.safeParse(eventData);
 
-    if (!message || !attendees || !bookingUid) {
+    if (!parsed.success) {
       this.log.warn("Missing required fields for no-show DTO", {
-        hasMessage: !!message,
-        hasAttendees: !!attendees,
-        hasBookingUid: !!bookingUid,
+        errors: parsed.error.issues.map((i) => i.message),
       });
       return null;
     }
 
-    const bookingPayload = payload as BookingWebhookTaskPayload;
     return {
       triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
       createdAt: payload.timestamp,
-      bookingUid,
-      bookingId,
-      message,
-      attendees,
-      userId: bookingPayload.userId ?? null,
-      teamId: bookingPayload.teamId ?? null,
-      orgId: bookingPayload.orgId,
-      platformClientId: bookingPayload.platformClientId ?? bookingPayload.oAuthClientId,
+      bookingUid: parsed.data.bookingUid,
+      bookingId: parsed.data.bookingId,
+      message: parsed.data.noShowMessage,
+      attendees: parsed.data.noShowAttendees,
+      userId: payload.userId ?? null,
+      teamId: payload.teamId ?? null,
+      orgId: payload.orgId,
+      platformClientId: payload.platformClientId ?? payload.oAuthClientId,
     } satisfies BookingNoShowDTO;
   }
 

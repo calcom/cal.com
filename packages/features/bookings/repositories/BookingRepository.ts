@@ -413,6 +413,18 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  async findAttendeeNoShowByIds({
+    ids,
+  }: {
+    ids: number[];
+  }): Promise<{ id: number; email: string; noShow: boolean }[]> {
+    const rows = await this.prismaClient.attendee.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, email: true, noShow: true },
+    });
+    return rows.map((r) => ({ id: r.id, email: r.email, noShow: r.noShow ?? false }));
+  }
+
   async findByUidIncludeEventTypeAttendeesAndUser({ bookingUid }: { bookingUid: string }) {
     return await this.prismaClient.booking.findUnique({
       where: { uid: bookingUid },

@@ -191,7 +191,7 @@ describe("BOOKING_NO_SHOW_UPDATED Trigger", () => {
 
       expect(mockLogger.warn).toHaveBeenCalledWith(
         "Missing required fields for no-show DTO",
-        expect.objectContaining({ hasMessage: false })
+        expect.objectContaining({ errors: expect.arrayContaining([expect.stringContaining("Required")]) })
       );
       expect(mockWebhookService.processWebhooks).not.toHaveBeenCalled();
     });
@@ -215,7 +215,7 @@ describe("BOOKING_NO_SHOW_UPDATED Trigger", () => {
 
       expect(mockLogger.warn).toHaveBeenCalledWith(
         "Missing required fields for no-show DTO",
-        expect.objectContaining({ hasAttendees: false })
+        expect.objectContaining({ errors: expect.arrayContaining([expect.stringContaining("Required")]) })
       );
       expect(mockWebhookService.processWebhooks).not.toHaveBeenCalled();
     });
@@ -239,7 +239,7 @@ describe("BOOKING_NO_SHOW_UPDATED Trigger", () => {
 
       expect(mockLogger.warn).toHaveBeenCalledWith(
         "Missing required fields for no-show DTO",
-        expect.objectContaining({ hasBookingUid: false })
+        expect.objectContaining({ errors: expect.arrayContaining([expect.stringContaining("Required")]) })
       );
       expect(mockWebhookService.processWebhooks).not.toHaveBeenCalled();
     });

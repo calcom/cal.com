@@ -43,6 +43,7 @@ export class AttendeeRepository implements IAttendeeRepository {
     });
   }
 
+
   async findByBookingIdAndSeatReference({
     bookingId,
     seatReferenceUid,

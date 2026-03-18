@@ -21,14 +21,14 @@ import {
   type EventTypeBrandingData,
   getEventTypeService,
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
-import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, type PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { TFunction } from "i18next";
 import { z } from "zod";
@@ -61,19 +61,6 @@ export type TNoShowInputSchema = z.infer<typeof ZNoShowInputSchema>;
 import handleSendingAttendeeNoShowDataToApps from "./noShow/handleSendingAttendeeNoShowDataToApps";
 
 export type NoShowAttendees = { email: string; noShow: boolean }[];
-
-type GetWebhooksServiceArgs = {
-  platformClientId?: string;
-  orgId: number | undefined;
-  booking: {
-    id: number;
-    eventType: {
-      id: number;
-      teamId: number | null;
-      userId: number | null;
-    } | null;
-  } | null;
-};
 
 type HandleMarkHostNoShowArgs = {
   bookingUid: string;
@@ -302,19 +289,31 @@ const handleMarkNoShow = async ({
         emailToAttendeeMap,
       });
       successfullyUpdatedAttendees = payload.attendees;
-      const { webhooks, bookingId } = await getWebhooksService({
-        platformClientId: platformClientParams?.platformClientId,
-        orgId,
-        booking,
-      });
 
-      await webhooks.sendPayload({
-        ...payload,
-        /** We send webhook message pre-translated, on client we already handle this */
-        bookingUid,
-        bookingId,
-        ...(platformClientParams ? platformClientParams : {}),
-      });
+      const updatedAttendeeIds = payload.attendees
+        .map((a) => emailToAttendeeMap[a.email]?.id)
+        .filter((id): id is number => id != null);
+
+      try {
+        await getWebhookProducer().queueBookingNoShowUpdatedWebhook({
+          bookingUid,
+          eventTypeId: booking.eventType?.id,
+          teamId: booking.eventType?.teamId || booking.eventType?.parent?.teamId,
+          userId: booking.eventType?.userId ?? undefined,
+          orgId,
+          oAuthClientId: platformClientParams?.platformClientId,
+          metadata: {
+            attendeeIds: updatedAttendeeIds,
+            bookingId: booking?.id,
+            locale: locale ?? "en",
+          },
+        });
+      } catch (error) {
+        logger.warn("Failed to queue no-show webhook, no-show status was updated successfully", {
+          bookingUid,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
 
       if (booking.eventType) {
         const workflows = await getAllWorkflowsFromEventType(booking.eventType, userId);
@@ -492,19 +491,6 @@ const updateAttendees = async ({
     .map((x) => (x as PromiseFulfilledResult<{ noShow: boolean; email: string } | null>).value)
     .filter((x): x is { noShow: boolean; email: string } => x !== null)
     .map((x) => ({ email: x.email, noShow: x.noShow }));
-};
-
-const getWebhooksService = async ({ platformClientId, orgId, booking }: GetWebhooksServiceArgs) => {
-  const webhooks = await WebhookService.init({
-    teamId: booking?.eventType?.teamId,
-    userId: booking?.eventType?.userId,
-    eventTypeId: booking?.eventType?.id,
-    orgId,
-    triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
-    oAuthClientId: platformClientId,
-  });
-
-  return { webhooks, bookingId: booking?.id };
 };
 
 const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {

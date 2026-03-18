@@ -1,9 +1,11 @@
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { getTranslation } from "@calcom/i18n/server";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { IWebhookDataFetcher, SubscriberContext } from "../../interface/IWebhookDataFetcher";
 import type { ILogger } from "../../interface/infrastructure";
 import type { BookingWebhookTaskPayload } from "../../types/webhookTask";
+import { noShowMetadataSchema } from "../../types/webhookTask";
 
 export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
   private readonly BOOKING_TRIGGERS = new Set([
@@ -100,28 +102,59 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
   }
 
   /**
-   * No-show payloads are metadata-driven: message and attendees are computed at the
-   * call site and passed through the task payload. No CalendarEvent is needed.
+   * Resolves attendee PII from DB using only the attendeeIds passed through the queue.
+   * By the time this runs the attendee.noShow flags have already been persisted.
    */
-  private fetchNoShowData(
+  private async fetchNoShowData(
     payload: BookingWebhookTaskPayload
-  ): Record<string, unknown> | null {
-    const meta = payload.metadata as
-      | { message?: string; attendees?: { email: string; noShow: boolean }[]; bookingId?: number }
-      | undefined;
+  ): Promise<Record<string, unknown> | null> {
+    const parsed = noShowMetadataSchema.safeParse(payload.metadata);
 
-    if (!meta?.message || !meta?.attendees) {
-      this.logger.warn("Missing message or attendees in no-show metadata", {
+    if (!parsed.success) {
+      this.logger.warn("Missing attendeeIds in no-show metadata", {
         bookingUid: payload.bookingUid,
       });
       return null;
     }
 
-    return {
-      noShowMessage: meta.message,
-      noShowAttendees: meta.attendees,
-      bookingId: meta.bookingId,
-      bookingUid: payload.bookingUid,
-    };
+    const { attendeeIds, bookingId, locale } = parsed.data;
+
+    try {
+      const attendees = await this.bookingRepository.findAttendeeNoShowByIds({ ids: attendeeIds });
+
+      if (attendees.length === 0) {
+        this.logger.warn("No attendees found for no-show webhook", {
+          bookingUid: payload.bookingUid,
+          attendeeIds,
+        });
+        return null;
+      }
+
+      const t = await getTranslation(locale ?? "en", "common");
+      let message: string;
+      if (attendees.length === 1) {
+        const [attendee] = attendees;
+        message = t(attendee.noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show", {
+          x: attendee.email ?? "User",
+        });
+      } else {
+        message = t("no_show_updated");
+      }
+
+      const noShowAttendees = attendees.map((a) => ({ email: a.email, noShow: a.noShow }));
+
+      return {
+        noShowMessage: message,
+        noShowAttendees,
+        bookingId,
+        bookingUid: payload.bookingUid,
+      };
+    } catch (error) {
+      this.logger.error("Error fetching no-show data for webhook", {
+        bookingUid: payload.bookingUid,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
   }
 }
