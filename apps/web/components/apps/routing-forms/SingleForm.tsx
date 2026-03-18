@@ -1,22 +1,25 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { useFormContext } from "react-hook-form";
-import type { UseFormReturn } from "react-hook-form";
-
 import { InfoLostWarningDialog } from "@calcom/app-store/routing-forms/components/InfoLostWarningDialog";
-import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import type { AnalyzeRoutesResult } from "@calcom/app-store/routing-forms/lib/analyzeRoutes";
+import { analyzeRoutes } from "@calcom/app-store/routing-forms/lib/analyzeRoutes";
+import type {
+  NonRouterRoute,
+  RoutingFormWithResponseCount,
+} from "@calcom/app-store/routing-forms/types/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
 import { Form } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-
 import type { getServerSidePropsForSingleFormView } from "@lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
-
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import { AnalyzeRoutesDialog } from "./AnalyzeRoutesDialog";
 import type { NewFormDialogState } from "./FormActions";
 import { FormActionsProvider } from "./FormActions";
 import { Header } from "./Header";
@@ -103,6 +106,7 @@ function SingleForm({
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const [showInfoLostDialog, setShowInfoLostDialog] = useState(false);
+  const [routeAnalysisResult, setRouteAnalysisResult] = useState<AnalyzeRoutesResult | null>(null);
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
   const { isDesktop } = useBreakPoints();
 
@@ -135,6 +139,20 @@ function SingleForm({
       const currentValues = hookForm.getValues();
       hookForm.reset(currentValues);
       showToast(t("form_updated_successfully"), "success");
+
+      // Check for unreachable routes on save (client-side, no API call)
+      const routes = (currentValues.routes ?? []).filter(
+        (route): route is NonRouterRoute => route !== null && !("isRouter" in route)
+      );
+      const fields = currentValues.fields ?? [];
+      const nonFallbackRoutes = routes.filter((route) => !route.isFallback);
+
+      if (nonFallbackRoutes.length > 1 && fields.length > 0) {
+        const result = analyzeRoutes(routes, fields);
+        if (result.hasIssues) {
+          setRouteAnalysisResult(result);
+        }
+      }
     },
     onError(e) {
       if (e.message) {
@@ -239,6 +257,15 @@ function SingleForm({
             goToRoute={`${appUrl}/route-builder/${form?.id}`}
             isOpenInfoLostDialog={showInfoLostDialog}
             setIsOpenInfoLostDialog={setShowInfoLostDialog}
+          />
+        )}
+        {routeAnalysisResult && (
+          <AnalyzeRoutesDialog
+            isOpen={!!routeAnalysisResult}
+            onOpenChange={(open) => {
+              if (!open) setRouteAnalysisResult(null);
+            }}
+            result={routeAnalysisResult}
           />
         )}
       </Form>
