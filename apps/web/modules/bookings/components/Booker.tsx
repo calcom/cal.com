@@ -265,8 +265,13 @@ const BookerComponent = ({
   const slot = getQueryParam("slot");
 
   useEffect(() => {
-    setSelectedTimeslot(slot || null);
-  }, [slot, setSelectedTimeslot]);
+    const newSlot = slot || null;
+    // Only update if the value actually changed to avoid redundant re-renders
+    // that cause layout flicker when clicking "Back" from the booking form.
+    if (newSlot !== selectedTimeslot) {
+      setSelectedTimeslot(newSlot);
+    }
+  }, [slot, setSelectedTimeslot, selectedTimeslot]);
 
   const onSubmit = (timeSlot?: string) =>
     renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
