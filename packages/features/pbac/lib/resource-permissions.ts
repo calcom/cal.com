@@ -1,6 +1,5 @@
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
 import type { CustomAction } from "../domain/types/permission-registry";
@@ -173,7 +172,7 @@ export async function getRoutingFormPermissions({
 
   let isParentOrgAdmin = false;
   if (!membership && formTeamParentId) {
-    const parentOrgMembership = await PrismaMembershipRepository.getAdminOrOwnerMembership(
+    const parentOrgMembership = await getMembershipRepository().getAdminOrOwnerMembership(
       userId,
       formTeamParentId
     );

@@ -1,19 +1,18 @@
 import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import type { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
 import type { TeamAccessUseCase } from "../teamAccessUseCase";
 import {
-  shouldListUserEvents,
-  shouldIncludeTeamMembership,
   createTeamSlug,
   type FilterContext,
+  shouldIncludeTeamMembership,
+  shouldListUserEvents,
 } from "../utils/filterUtils";
 import { buildTeamPermissionsMap, getEffectiveRole, type TeamPermissions } from "../utils/permissionUtils";
-import { createUserEventGroup, createTeamEventGroup, type EventTypeGroup } from "../utils/transformUtils";
+import { createTeamEventGroup, createUserEventGroup, type EventTypeGroup } from "../utils/transformUtils";
 
 export interface EventGroupBuilderDependencies {
-  membershipRepository: typeof PrismaMembershipRepository;
+  membershipRepository: PrismaMembershipRepository;
   profileRepository: typeof ProfileRepository;
   teamAccessUseCase: TeamAccessUseCase;
 }

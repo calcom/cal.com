@@ -1,11 +1,10 @@
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TSkipTeamTrialsInputSchema } from "./skipTeamTrials.schema";
 
 const log = logger.getSubLogger({ prefix: ["skipTeamTrials"] });
@@ -31,7 +30,8 @@ export const skipTeamTrialsHandler = async ({ ctx }: SkipTeamTrialsOptions) => {
       },
     });
 
-    const ownedTeams = await PrismaMembershipRepository.findAllAcceptedTeamMemberships(ctx.user.id, {
+    const membershipRepository = getMembershipRepository();
+    const ownedTeams = await membershipRepository.findAllAcceptedTeamMemberships(ctx.user.id, {
       role: "OWNER",
     });
 

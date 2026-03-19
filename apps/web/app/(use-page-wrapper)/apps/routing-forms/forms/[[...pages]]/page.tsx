@@ -1,5 +1,5 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { FullscreenUpgradeBannerForRoutingFormPage } from "@calcom/web/modules/billing/upgrade-banners/FullscreenUpgradeBannerForRoutingFormPage";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { _generateMetadata } from "app/_utils";
@@ -21,7 +21,8 @@ export const generateMetadata = async ({ params }: { params: Promise<{ pages: st
 const ServerPage = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const userId = session?.user?.id;
-  const hasTeamPlan = userId && (await PrismaMembershipRepository.hasAnyAcceptedMembershipByUserId(userId));
+  const membershipRepository = getMembershipRepository();
+  const hasTeamPlan = userId && (await membershipRepository.hasAnyAcceptedMembershipByUserId(userId));
 
   if (!hasTeamPlan) {
     return <FullscreenUpgradeBannerForRoutingFormPage />;

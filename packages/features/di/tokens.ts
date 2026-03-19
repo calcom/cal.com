@@ -93,6 +93,8 @@ export const DI_TOKENS = {
   MANAGED_EVENT_REASSIGNMENT_SERVICE_MODULE: Symbol("ManagedEventReassignmentServiceModule"),
   ORG_MEMBERSHIP_LOOKUP: Symbol("OrgMembershipLookup"),
   ORG_MEMBERSHIP_LOOKUP_MODULE: Symbol("OrgMembershipLookupModule"),
+  ORG_MEMBERSHIP_REPOSITORY: Symbol("OrgMembershipRepository"),
+  ORG_MEMBERSHIP_REPOSITORY_MODULE: Symbol("OrgMembershipRepositoryModule"),
   // Booking service tokens
   ...BOOKING_AUDIT_DI_TOKENS,
   ...BOOKING_REPORT_DI_TOKENS,

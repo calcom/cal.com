@@ -1,5 +1,5 @@
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import type { IEventTypesRepository } from "@calcom/features/eventtypes/eventtypes.repository.interface";
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import type { UserWithLegacySelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
@@ -828,7 +828,7 @@ export class EventTypeRepository implements IEventTypesRepository {
     } satisfies Prisma.EventTypeSelect;
 
     // This is more efficient than using a complex join with team.members in the query
-    const userTeamIds = await PrismaMembershipRepository.findUserTeamIds({ userId });
+    const userTeamIds = await getMembershipRepository().findUserTeamIds({ userId });
 
     return await this.prismaClient.eventType.findFirst({
       where: {

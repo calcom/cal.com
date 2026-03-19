@@ -1,9 +1,7 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
-
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { PrismaMembershipRepository } from "./PrismaMembershipRepository";
 
 const ts = Date.now();
@@ -271,11 +269,9 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
     });
   });
 
-  // === STATIC METHODS ===
-
   describe("create", () => {
     it("creates a new membership record", async () => {
-      const membership = await PrismaMembershipRepository.create({
+      const membership = await repository.create({
         userId: user1.id,
         teamId: team1.id,
         role: MembershipRole.MEMBER,
@@ -290,7 +286,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
 
     it("sets createdAt automatically", async () => {
       const before = new Date();
-      const membership = await PrismaMembershipRepository.create({
+      const membership = await repository.create({
         userId: user1.id,
         teamId: team1.id,
         role: MembershipRole.MEMBER,
@@ -305,7 +301,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
 
   describe("createMany", () => {
     it("creates multiple membership records", async () => {
-      const result = await PrismaMembershipRepository.createMany([
+      const result = await repository.createMany([
         { userId: user1.id, teamId: team1.id, role: MembershipRole.MEMBER, accepted: true },
         { userId: user2.id, teamId: team1.id, role: MembershipRole.ADMIN, accepted: true },
       ]);
@@ -323,7 +319,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
     it("returns true when an accepted membership for a team with a slug exists", async () => {
       await createMembership(user1.id, team1.id, { accepted: true });
 
-      const result = await PrismaMembershipRepository.hasAnyAcceptedMembershipByUserId(user1.id);
+      const result = await repository.hasAnyAcceptedMembershipByUserId(user1.id);
       expect(result).toBe(true);
     });
 
@@ -331,7 +327,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
       const noSlugTeam = await createTestTeam("noslug", { slug: null });
       await createMembership(user1.id, noSlugTeam.id, { accepted: true });
 
-      const result = await PrismaMembershipRepository.hasAnyAcceptedMembershipByUserId(user1.id);
+      const result = await repository.hasAnyAcceptedMembershipByUserId(user1.id);
       expect(result).toBe(false);
     });
   });
@@ -341,7 +337,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
       await createMembership(user1.id, team1.id, { accepted: true });
       await createMembership(user2.id, team1.id, { accepted: true });
 
-      const result = await PrismaMembershipRepository.findAcceptedMembershipsByUserIdsInTeam({
+      const result = await repository.findAcceptedMembershipsByUserIdsInTeam({
         userIds: [user1.id, user2.id],
         teamId: team1.id,
       });
@@ -352,7 +348,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
       await createMembership(user1.id, team1.id, { accepted: true });
       await createMembership(user2.id, team1.id, { accepted: false });
 
-      const result = await PrismaMembershipRepository.findAcceptedMembershipsByUserIdsInTeam({
+      const result = await repository.findAcceptedMembershipsByUserIdsInTeam({
         userIds: [user1.id, user2.id],
         teamId: team1.id,
       });
@@ -365,28 +361,28 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
     it("returns membership when user is ADMIN", async () => {
       await createMembership(user1.id, team1.id, { role: MembershipRole.ADMIN, accepted: true });
 
-      const result = await PrismaMembershipRepository.getAdminOrOwnerMembership(user1.id, team1.id);
+      const result = await repository.getAdminOrOwnerMembership(user1.id, team1.id);
       expect(result).not.toBeNull();
     });
 
     it("returns membership when user is OWNER", async () => {
       await createMembership(user1.id, team1.id, { role: MembershipRole.OWNER, accepted: true });
 
-      const result = await PrismaMembershipRepository.getAdminOrOwnerMembership(user1.id, team1.id);
+      const result = await repository.getAdminOrOwnerMembership(user1.id, team1.id);
       expect(result).not.toBeNull();
     });
 
     it("returns null when user is only MEMBER", async () => {
       await createMembership(user1.id, team1.id, { role: MembershipRole.MEMBER, accepted: true });
 
-      const result = await PrismaMembershipRepository.getAdminOrOwnerMembership(user1.id, team1.id);
+      const result = await repository.getAdminOrOwnerMembership(user1.id, team1.id);
       expect(result).toBeNull();
     });
 
     it("returns null for non-accepted admin membership", async () => {
       await createMembership(user1.id, team1.id, { role: MembershipRole.ADMIN, accepted: false });
 
-      const result = await PrismaMembershipRepository.getAdminOrOwnerMembership(user1.id, team1.id);
+      const result = await repository.getAdminOrOwnerMembership(user1.id, team1.id);
       expect(result).toBeNull();
     });
   });
@@ -395,7 +391,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
     it("returns team IDs for accepted memberships of teams with slugs", async () => {
       await createMembership(user1.id, team1.id, { accepted: true });
 
-      const result = await PrismaMembershipRepository.findAllAcceptedPublishedTeamMemberships(user1.id);
+      const result = await repository.findAllAcceptedPublishedTeamMemberships(user1.id);
       const teamIds = result.map((r) => r.teamId);
       expect(teamIds).toContain(team1.id);
     });
@@ -404,7 +400,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
       const noSlugTeam = await createTestTeam("noslug2", { slug: null });
       await createMembership(user1.id, noSlugTeam.id, { accepted: true });
 
-      const result = await PrismaMembershipRepository.findAllAcceptedPublishedTeamMemberships(user1.id);
+      const result = await repository.findAllAcceptedPublishedTeamMemberships(user1.id);
       const teamIds = result.map((r) => r.teamId);
       expect(teamIds).not.toContain(noSlugTeam.id);
     });
@@ -412,7 +408,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
     it("excludes non-accepted memberships", async () => {
       await createMembership(user1.id, team1.id, { accepted: false });
 
-      const result = await PrismaMembershipRepository.findAllAcceptedPublishedTeamMemberships(user1.id);
+      const result = await repository.findAllAcceptedPublishedTeamMemberships(user1.id);
       const teamIds = result.map((r) => r.teamId);
       expect(teamIds).not.toContain(team1.id);
     });
@@ -423,7 +419,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
       await createMembership(user1.id, team1.id, { accepted: true });
       await createMembership(user1.id, team2.id, { accepted: true });
 
-      const result = await PrismaMembershipRepository.findUserTeamIds({ userId: user1.id });
+      const result = await repository.findUserTeamIds({ userId: user1.id });
       expect(result).toContain(team1.id);
       expect(result).toContain(team2.id);
     });
@@ -431,12 +427,12 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
     it("excludes non-accepted memberships", async () => {
       await createMembership(user1.id, team1.id, { accepted: false });
 
-      const result = await PrismaMembershipRepository.findUserTeamIds({ userId: user1.id });
+      const result = await repository.findUserTeamIds({ userId: user1.id });
       expect(result).not.toContain(team1.id);
     });
 
     it("returns empty array for user with no memberships", async () => {
-      const result = await PrismaMembershipRepository.findUserTeamIds({ userId: user1.id });
+      const result = await repository.findUserTeamIds({ userId: user1.id });
       expect(result).toEqual([]);
     });
   });
@@ -446,7 +442,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
       await createMembership(user1.id, team1.id, { accepted: true });
       await createMembership(user2.id, team2.id, { accepted: true });
 
-      const result = await PrismaMembershipRepository.findAllByTeamIds({
+      const result = await repository.findAllByTeamIds({
         teamIds: [team1.id, team2.id],
       });
       const userIds = result.map((r) => r.userId);
@@ -457,7 +453,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
     it("excludes non-accepted memberships", async () => {
       await createMembership(user1.id, team1.id, { accepted: false });
 
-      const result = await PrismaMembershipRepository.findAllByTeamIds({
+      const result = await repository.findAllByTeamIds({
         teamIds: [team1.id],
       });
       const userIds = result.map((r) => r.userId);
@@ -469,7 +465,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
     it("returns teams where user has accepted membership", async () => {
       await createMembership(user1.id, team1.id, { accepted: true });
 
-      const result = await PrismaMembershipRepository.findAllAcceptedTeamMemberships(user1.id);
+      const result = await repository.findAllAcceptedTeamMemberships(user1.id);
       const teamIds = result.map((r) => r.id);
       expect(teamIds).toContain(team1.id);
     });
@@ -477,7 +473,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
     it("excludes non-accepted memberships", async () => {
       await createMembership(user1.id, team1.id, { accepted: false });
 
-      const result = await PrismaMembershipRepository.findAllAcceptedTeamMemberships(user1.id);
+      const result = await repository.findAllAcceptedTeamMemberships(user1.id);
       const teamIds = result.map((r) => r.id);
       expect(teamIds).not.toContain(team1.id);
     });
@@ -487,7 +483,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
     it("returns true when user has a non-org team membership", async () => {
       await createMembership(user1.id, team1.id);
 
-      const result = await PrismaMembershipRepository.hasAnyTeamMembershipByUserId({ userId: user1.id });
+      const result = await repository.hasAnyTeamMembershipByUserId({ userId: user1.id });
       expect(result).toBe(true);
     });
 
@@ -495,19 +491,19 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
       const orgTeam = await createTestTeam("org", { isOrganization: true });
       await createMembership(user1.id, orgTeam.id);
 
-      const result = await PrismaMembershipRepository.hasAnyTeamMembershipByUserId({ userId: user1.id });
+      const result = await repository.hasAnyTeamMembershipByUserId({ userId: user1.id });
       expect(result).toBe(false);
     });
 
     it("returns false when user has no memberships", async () => {
-      const result = await PrismaMembershipRepository.hasAnyTeamMembershipByUserId({ userId: user1.id });
+      const result = await repository.hasAnyTeamMembershipByUserId({ userId: user1.id });
       expect(result).toBe(false);
     });
 
     it("returns true for pending memberships too", async () => {
       await createMembership(user1.id, team1.id, { accepted: false });
 
-      const result = await PrismaMembershipRepository.hasAnyTeamMembershipByUserId({ userId: user1.id });
+      const result = await repository.hasAnyTeamMembershipByUserId({ userId: user1.id });
       expect(result).toBe(true);
     });
   });
@@ -516,19 +512,19 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
     it("returns true when user has a pending invite", async () => {
       await createMembership(user1.id, team1.id, { accepted: false });
 
-      const result = await PrismaMembershipRepository.hasPendingInviteByUserId({ userId: user1.id });
+      const result = await repository.hasPendingInviteByUserId({ userId: user1.id });
       expect(result).toBe(true);
     });
 
     it("returns false when all memberships are accepted", async () => {
       await createMembership(user1.id, team1.id, { accepted: true });
 
-      const result = await PrismaMembershipRepository.hasPendingInviteByUserId({ userId: user1.id });
+      const result = await repository.hasPendingInviteByUserId({ userId: user1.id });
       expect(result).toBe(false);
     });
 
     it("returns false when user has no memberships", async () => {
-      const result = await PrismaMembershipRepository.hasPendingInviteByUserId({ userId: user1.id });
+      const result = await repository.hasPendingInviteByUserId({ userId: user1.id });
       expect(result).toBe(false);
     });
 
@@ -536,7 +532,7 @@ describe("PrismaMembershipRepository (Integration Tests)", () => {
       await createMembership(user1.id, team1.id, { accepted: true });
       await createMembership(user1.id, team2.id, { accepted: false });
 
-      const result = await PrismaMembershipRepository.hasPendingInviteByUserId({ userId: user1.id });
+      const result = await repository.hasPendingInviteByUserId({ userId: user1.id });
       expect(result).toBe(true);
     });
   });

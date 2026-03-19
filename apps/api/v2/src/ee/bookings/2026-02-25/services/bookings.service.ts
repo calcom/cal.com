@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
+import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
-import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { OutputBookingsService_2026_02_25 } from "@/ee/bookings/2026-02-25/services/output.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { PrismaOrgMembershipRepository } from "@/lib/repositories/prisma-org-membership.repository";
 import { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
 import { RecurringBookingService } from "@/lib/services/recurring-booking.service";
 import { RegularBookingService } from "@/lib/services/regular-booking.service";
@@ -45,7 +46,8 @@ export class BookingsService_2026_02_25 extends BookingsService_2024_08_13 {
     regularBookingService: RegularBookingService,
     recurringBookingService: RecurringBookingService,
     instantBookingCreateService: InstantBookingCreateService,
-    eventTypeAccessService: EventTypeAccessService
+    eventTypeAccessService: EventTypeAccessService,
+    orgMembershipRepository: PrismaOrgMembershipRepository
   ) {
     super(
       inputService,
@@ -68,7 +70,8 @@ export class BookingsService_2026_02_25 extends BookingsService_2024_08_13 {
       regularBookingService,
       recurringBookingService,
       instantBookingCreateService,
-      eventTypeAccessService
+      eventTypeAccessService,
+      orgMembershipRepository
     );
   }
 }

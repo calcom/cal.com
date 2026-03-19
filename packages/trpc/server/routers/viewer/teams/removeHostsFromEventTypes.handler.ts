@@ -1,10 +1,8 @@
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 
@@ -30,7 +28,8 @@ export async function removeHostsFromEventTypesHandler({ ctx, input }: RemoveHos
   if (!hasEventTypeUpdatePermission) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // verify that all userIds are members of the team
-  const teamMemberIds = await PrismaMembershipRepository.findAcceptedMembershipsByUserIdsInTeam({
+  const membershipRepository = getMembershipRepository();
+  const teamMemberIds = await membershipRepository.findAcceptedMembershipsByUserIdsInTeam({
     userIds,
     teamId,
   });

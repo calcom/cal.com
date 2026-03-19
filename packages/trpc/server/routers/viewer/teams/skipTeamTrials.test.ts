@@ -1,9 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { prisma } from "@calcom/prisma";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { skipTeamTrialsHandler } from "./skipTeamTrials.handler";
 
 // Instead of completely mocking the handler, we'll use the real implementation
@@ -44,10 +41,12 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
-vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository", () => ({
-  PrismaMembershipRepository: {
-    findAllAcceptedTeamMemberships: vi.fn(),
-  },
+const mockFindAllAcceptedTeamMemberships = vi.fn();
+
+vi.mock("@calcom/features/di/containers/MembershipRepository", () => ({
+  getMembershipRepository: vi.fn(() => ({
+    findAllAcceptedTeamMemberships: mockFindAllAcceptedTeamMemberships,
+  })),
 }));
 
 const mockGetSubscriptionStatus = vi.fn();
@@ -77,7 +76,7 @@ describe("skipTeamTrialsHandler", () => {
   });
 
   it("should set user's trialEndsAt to null", async () => {
-    vi.mocked(PrismaMembershipRepository.findAllAcceptedTeamMemberships).mockResolvedValueOnce([]);
+    mockFindAllAcceptedTeamMemberships.mockResolvedValueOnce([]);
 
     // @ts-expect-error - simplified context for testing
     await skipTeamTrialsHandler({ ctx: mockCtx, input: {} });
@@ -99,7 +98,7 @@ describe("skipTeamTrialsHandler", () => {
       { id: 102, name: "Team 2", isOrganization: false, parentId: null, metadata: null },
     ];
 
-    vi.mocked(PrismaMembershipRepository.findAllAcceptedTeamMemberships).mockResolvedValueOnce(mockTeams);
+    mockFindAllAcceptedTeamMemberships.mockResolvedValueOnce(mockTeams);
 
     mockGetSubscriptionStatus
       .mockResolvedValueOnce(SubscriptionStatus.TRIALING) // First team is in trial
@@ -110,7 +109,7 @@ describe("skipTeamTrialsHandler", () => {
 
     expect(prisma.user.update).toHaveBeenCalled();
 
-    expect(PrismaMembershipRepository.findAllAcceptedTeamMemberships).toHaveBeenCalledWith(mockCtx.user.id, {
+    expect(mockFindAllAcceptedTeamMemberships).toHaveBeenCalledWith(mockCtx.user.id, {
       role: "OWNER",
     });
 

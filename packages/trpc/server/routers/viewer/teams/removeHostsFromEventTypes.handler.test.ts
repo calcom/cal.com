@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, beforeEach, vi, expect } from "vitest";
 
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import prisma from "@calcom/prisma";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TrpcSessionUser } from "../../../types";
 import removeHostsFromEventTypesHandler from "./removeHostsFromEventTypes.handler";
 
@@ -20,10 +18,12 @@ vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
   PermissionCheckService: vi.fn(),
 }));
 
-vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository", () => ({
-  PrismaMembershipRepository: {
-    findAcceptedMembershipsByUserIdsInTeam: vi.fn(),
-  },
+const mockFindAcceptedMembershipsByUserIdsInTeam = vi.fn();
+
+vi.mock("@calcom/features/di/containers/MembershipRepository", () => ({
+  getMembershipRepository: vi.fn(() => ({
+    findAcceptedMembershipsByUserIdsInTeam: mockFindAcceptedMembershipsByUserIdsInTeam,
+  })),
 }));
 
 describe("removeHostsFromEventTypesHandler", () => {
@@ -66,7 +66,7 @@ describe("removeHostsFromEventTypesHandler", () => {
       fallbackRoles: ["OWNER", "ADMIN"],
     });
 
-    expect(PrismaMembershipRepository.findAcceptedMembershipsByUserIdsInTeam).not.toHaveBeenCalled();
+    expect(mockFindAcceptedMembershipsByUserIdsInTeam).not.toHaveBeenCalled();
     expect(prisma.host.deleteMany).not.toHaveBeenCalled();
   });
 
@@ -79,10 +79,7 @@ describe("removeHostsFromEventTypesHandler", () => {
     });
 
     // Mock that all userIds are valid team members
-    (PrismaMembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([
-      { userId: 101 },
-      { userId: 102 },
-    ]);
+    mockFindAcceptedMembershipsByUserIdsInTeam.mockResolvedValue([{ userId: 101 }, { userId: 102 }]);
 
     const mockDeleteResult = { count: 3 };
     (prisma.host.deleteMany as any).mockResolvedValue(mockDeleteResult);
@@ -101,7 +98,7 @@ describe("removeHostsFromEventTypesHandler", () => {
       fallbackRoles: ["OWNER", "ADMIN"],
     });
 
-    expect(PrismaMembershipRepository.findAcceptedMembershipsByUserIdsInTeam).toHaveBeenCalledWith({
+    expect(mockFindAcceptedMembershipsByUserIdsInTeam).toHaveBeenCalledWith({
       userIds: mockInput.userIds,
       teamId: mockInput.teamId,
     });
@@ -130,7 +127,7 @@ describe("removeHostsFromEventTypesHandler", () => {
     });
 
     // Mock that only userId 101 is a team member, 102 is not
-    (PrismaMembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([{ userId: 101 }]);
+    mockFindAcceptedMembershipsByUserIdsInTeam.mockResolvedValue([{ userId: 101 }]);
 
     const mockDeleteResult = { count: 1 };
     (prisma.host.deleteMany as any).mockResolvedValue(mockDeleteResult);
@@ -142,7 +139,7 @@ describe("removeHostsFromEventTypesHandler", () => {
 
     expect(result).toEqual(mockDeleteResult);
 
-    expect(PrismaMembershipRepository.findAcceptedMembershipsByUserIdsInTeam).toHaveBeenCalledWith({
+    expect(mockFindAcceptedMembershipsByUserIdsInTeam).toHaveBeenCalledWith({
       userIds: mockInput.userIds,
       teamId: mockInput.teamId,
     });
@@ -172,7 +169,7 @@ describe("removeHostsFromEventTypesHandler", () => {
     });
 
     // Empty array means no memberships to validate
-    (PrismaMembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([]);
+    mockFindAcceptedMembershipsByUserIdsInTeam.mockResolvedValue([]);
 
     const mockDeleteResult = { count: 0 };
     (prisma.host.deleteMany as any).mockResolvedValue(mockDeleteResult);
@@ -213,10 +210,7 @@ describe("removeHostsFromEventTypesHandler", () => {
     });
 
     // Mock that all userIds are valid team members
-    (PrismaMembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([
-      { userId: 101 },
-      { userId: 102 },
-    ]);
+    mockFindAcceptedMembershipsByUserIdsInTeam.mockResolvedValue([{ userId: 101 }, { userId: 102 }]);
 
     const mockDeleteResult = { count: 0 };
     (prisma.host.deleteMany as any).mockResolvedValue(mockDeleteResult);
@@ -257,10 +251,7 @@ describe("removeHostsFromEventTypesHandler", () => {
     });
 
     // Mock that all userIds are valid team members
-    (PrismaMembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([
-      { userId: 101 },
-      { userId: 102 },
-    ]);
+    mockFindAcceptedMembershipsByUserIdsInTeam.mockResolvedValue([{ userId: 101 }, { userId: 102 }]);
 
     const mockDeleteResult = { count: 0 };
     (prisma.host.deleteMany as any).mockResolvedValue(mockDeleteResult);
@@ -282,7 +273,7 @@ describe("removeHostsFromEventTypesHandler", () => {
     });
 
     // User 999 is a valid team member
-    (PrismaMembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([{ userId: 999 }]);
+    mockFindAcceptedMembershipsByUserIdsInTeam.mockResolvedValue([{ userId: 999 }]);
 
     // But they're not a host on any of the event types
     const mockDeleteResult = { count: 0 };
@@ -324,10 +315,7 @@ describe("removeHostsFromEventTypesHandler", () => {
     });
 
     // Mock that all userIds are valid team members
-    (PrismaMembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([
-      { userId: 101 },
-      { userId: 102 },
-    ]);
+    mockFindAcceptedMembershipsByUserIdsInTeam.mockResolvedValue([{ userId: 101 }, { userId: 102 }]);
 
     // Event types belong to a different team, so no hosts should be deleted
     const mockDeleteResult = { count: 0 };

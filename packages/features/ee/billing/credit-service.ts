@@ -1,8 +1,8 @@
 import dayjs from "@calcom/dayjs";
 import type { PrismaCreditsRepository } from "@calcom/features/credits/repositories/PrismaCreditsRepository";
 import { getCreditsRepository } from "@calcom/features/di/containers/CreditsRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
@@ -264,7 +264,8 @@ export class CreditService {
     If user does not belong to an organization, team credits are checked
   */
   protected async _getTeamWithAvailableCredits({ userId, tx }: { userId: number; tx: PrismaTransaction }) {
-    const memberships = await PrismaMembershipRepository.findAllAcceptedPublishedTeamMemberships(userId, tx);
+    const membershipRepository = getMembershipRepository();
+    const memberships = await membershipRepository.findAllAcceptedPublishedTeamMemberships(userId, tx);
 
     if (!memberships || memberships.length === 0) {
       return null;

@@ -6,6 +6,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import { Inject, Injectable } from "@nestjs/common";
 import { WEBHOOK_PRODUCER } from "@/lib/modules/regular-booking.tokens";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
+import { PrismaOrgMembershipRepository } from "@/lib/repositories/prisma-org-membership.repository";
 import { PrismaTeamFeatureRepository } from "@/lib/repositories/prisma-team-feature.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { BookingEventHandlerService } from "@/lib/services/booking-event-handler.service";
@@ -27,7 +28,8 @@ export class RegularBookingService extends BaseRegularBookingService {
     bookingEmailAndSmsTasker: BookingEmailAndSmsTasker,
     bookingEventHandler: BookingEventHandlerService,
     @Inject(WEBHOOK_PRODUCER) webhookProducer: IWebhookProducerService,
-    teamFeatureRepository: PrismaTeamFeatureRepository
+    teamFeatureRepository: PrismaTeamFeatureRepository,
+    orgMembershipRepository: PrismaOrgMembershipRepository
   ) {
     super({
       checkBookingAndDurationLimitsService,
@@ -40,6 +42,7 @@ export class RegularBookingService extends BaseRegularBookingService {
       teamFeatureRepository: teamFeatureRepository,
       bookingEventHandler,
       webhookProducer,
+      orgMembershipRepository,
     });
   }
 }

@@ -9,10 +9,10 @@ const mockInit: Mock = vi.fn();
 const mockPlatformBillingFindUnique: Mock = vi.fn();
 const mockFindBillingPeriodByTeamId: Mock = vi.fn();
 
-vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository", () => ({
-  PrismaMembershipRepository: {
+vi.mock("@calcom/features/di/containers/MembershipRepository", () => ({
+  getMembershipRepository: vi.fn(() => ({
     findAllAcceptedTeamMemberships: (...args: unknown[]) => mockFindAllAcceptedTeamMemberships(...args),
-  },
+  })),
 }));
 
 vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({

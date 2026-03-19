@@ -1,10 +1,8 @@
-import { orderBy } from "lodash";
-
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -17,8 +15,8 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithUntypedApps, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { orderBy } from "lodash";
 
 const log = logger.getSubLogger({ prefix: ["viewer.eventTypes.getByViewer"] });
 
@@ -68,7 +66,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
 
   const eventTypeRepo = new EventTypeRepository(prisma);
   const [profileMemberships, profileEventTypes] = await Promise.all([
-    PrismaMembershipRepository.findAllByUpIdIncludeTeamWithMembersAndEventTypes(
+    getMembershipRepository().findAllByUpIdIncludeTeamWithMembersAndEventTypes(
       {
         upId: userProfile.upId,
       },

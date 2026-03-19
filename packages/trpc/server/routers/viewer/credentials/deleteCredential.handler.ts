@@ -1,9 +1,7 @@
 import handleDeleteCredential from "@calcom/features/credentials/handleDeleteCredential";
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TDeleteCredentialInputSchema } from "./deleteCredential.schema";
 
 type DeleteCredentialOptions = {
@@ -18,7 +16,8 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
   const { id, teamId } = input;
 
   if (teamId) {
-    const membership = await PrismaMembershipRepository.getAdminOrOwnerMembership(user.id, teamId);
+    const membershipRepository = getMembershipRepository();
+    const membership = await membershipRepository.getAdminOrOwnerMembership(user.id, teamId);
     if (!membership) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }

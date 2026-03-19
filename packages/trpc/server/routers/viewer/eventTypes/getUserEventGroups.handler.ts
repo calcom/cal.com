@@ -1,12 +1,10 @@
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TEventTypeInputSchema } from "./getByViewer.schema";
 import { TeamAccessUseCase } from "./teamAccessUseCase";
@@ -39,7 +37,7 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
 
   // Initialize dependencies
   const dependencies = {
-    membershipRepository: PrismaMembershipRepository,
+    membershipRepository: getMembershipRepository(),
     profileRepository: ProfileRepository,
     teamAccessUseCase: new TeamAccessUseCase(),
   };

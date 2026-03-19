@@ -1,9 +1,13 @@
-import { BookingAuditTaskerModule } from "@/lib/modules/booking-audit-tasker.module";
+import { getWebhookProducer } from "@calcom/platform-libraries/bookings";
+import { Module, Scope } from "@nestjs/common";
+import { WEBHOOK_PRODUCER } from "./regular-booking.tokens";
 import { Logger } from "@/lib/logger.bridge";
+import { BookingAuditTaskerModule } from "@/lib/modules/booking-audit-tasker.module";
 import { PrismaAttributeRepository } from "@/lib/repositories/prisma-attribute.repository";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaHostRepository } from "@/lib/repositories/prisma-host.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
+import { PrismaOrgMembershipRepository } from "@/lib/repositories/prisma-org-membership.repository";
 import { PrismaTeamFeatureRepository } from "@/lib/repositories/prisma-team-feature.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { BookingAuditProducerService } from "@/lib/services/booking-audit-producer.service";
@@ -19,10 +23,6 @@ import { BookingEmailAndSmsTaskService } from "@/lib/services/tasker/booking-ema
 import { BookingEmailAndSmsTasker } from "@/lib/services/tasker/booking-emails-sms-tasker.service";
 import { BookingEmailAndSmsTriggerTaskerService } from "@/lib/services/tasker/booking-emails-sms-trigger-tasker.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { Module, Scope } from "@nestjs/common";
-
-import { getWebhookProducer } from "@calcom/platform-libraries/bookings";
-import { WEBHOOK_PRODUCER } from "./regular-booking.tokens";
 
 @Module({
   imports: [PrismaModule, BookingAuditTaskerModule],
@@ -44,6 +44,7 @@ import { WEBHOOK_PRODUCER } from "./regular-booking.tokens";
       useFactory: () => getWebhookProducer(),
     },
     PrismaTeamFeatureRepository,
+    PrismaOrgMembershipRepository,
     BookingAuditProducerService,
     BookingEventHandlerService,
     CheckBookingAndDurationLimitsService,
@@ -57,6 +58,11 @@ import { WEBHOOK_PRODUCER } from "./regular-booking.tokens";
     BookingEmailAndSmsTasker,
     RegularBookingService,
   ],
-  exports: [RegularBookingService, WEBHOOK_PRODUCER, PrismaTeamFeatureRepository],
+  exports: [
+    RegularBookingService,
+    WEBHOOK_PRODUCER,
+    PrismaTeamFeatureRepository,
+    PrismaOrgMembershipRepository,
+  ],
 })
 export class RegularBookingModule {}

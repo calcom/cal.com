@@ -1,6 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
@@ -52,7 +52,8 @@ export async function checkOnboardingRedirect(
   const featureRepository = getFeatureRepository();
 
   if (options?.checkEmailVerification) {
-    const emailVerificationEnabled = await featureRepository.checkIfFeatureIsEnabledGlobally("email-verification");
+    const emailVerificationEnabled =
+      await featureRepository.checkIfFeatureIsEnabledGlobally("email-verification");
 
     if (!user.emailVerified && user.identityProvider === "CAL" && emailVerificationEnabled) {
       // User needs email verification, redirect to verification page
@@ -62,7 +63,8 @@ export async function checkOnboardingRedirect(
 
   // Check for any team membership (pending or accepted) to handle users who signed up via invite token
   // When users sign up with an invite token, the membership is auto-accepted
-  const hasTeamMembership = await PrismaMembershipRepository.hasAnyTeamMembershipByUserId({ userId });
+  const membershipRepository = getMembershipRepository();
+  const hasTeamMembership = await membershipRepository.hasAnyTeamMembershipByUserId({ userId });
 
   if (hasTeamMembership) {
     return "/onboarding/personal/settings";

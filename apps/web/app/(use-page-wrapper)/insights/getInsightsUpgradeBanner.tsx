@@ -1,10 +1,11 @@
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { FullscreenUpgradeBannerForInsightsPage } from "@calcom/web/modules/billing/upgrade-banners/FullscreenUpgradeBannerForInsightsPage";
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import Shell from "~/shell/Shell";
 
 export async function getInsightsUpgradeBanner(userId: number) {
-  const hasMembership = await PrismaMembershipRepository.hasAnyAcceptedMembershipByUserId(userId);
+  const membershipRepository = getMembershipRepository();
+  const hasMembership = await membershipRepository.hasAnyAcceptedMembershipByUserId(userId);
 
   if (hasMembership) return null;
 

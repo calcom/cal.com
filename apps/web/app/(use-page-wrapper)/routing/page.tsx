@@ -3,7 +3,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { FullscreenUpgradeBannerForRoutingFormPage } from "@calcom/web/modules/billing/upgrade-banners/FullscreenUpgradeBannerForRoutingFormPage";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
@@ -27,7 +27,8 @@ const ServerPage = async () => {
     redirect("/auth/login");
   }
 
-  const hasTeamPlan = await PrismaMembershipRepository.hasAnyAcceptedMembershipByUserId(session.user.id);
+  const membershipRepository = getMembershipRepository();
+  const hasTeamPlan = await membershipRepository.hasAnyAcceptedMembershipByUserId(session.user.id);
 
   if (!hasTeamPlan) {
     return <FullscreenUpgradeBannerForRoutingFormPage />;

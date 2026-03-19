@@ -1,7 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
-import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -24,7 +23,7 @@ const rescheduleSeatedBooking = async (
   resultBooking: HandleSeatsResultBooking | null,
   loggerWithEventDetails: ReturnType<typeof createLoggerWithEventDetails>
 ) => {
-  const { evt, eventType, allCredentials, organizerUser, bookerEmail, tAttendees, bookingSeat, reqUserId } =
+  const { evt, eventType, allCredentials, organizerUser, bookerEmail, tAttendees, bookingSeat, reqUserId, deps } =
     rescheduleSeatedBookingObject;
 
   const { originalRescheduledBooking } = rescheduleSeatedBookingObject;
@@ -101,7 +100,7 @@ const rescheduleSeatedBooking = async (
     const isOrgAdmin =
       reqUserId &&
       seatedBooking.user &&
-      (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
+      (await deps.orgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
         reqUserId,
         seatedBooking.user?.id
       ));

@@ -8,7 +8,7 @@ import {
   roundRobinManualReassignment,
   roundRobinReassignment,
 } from "@calcom/platform-libraries";
-import { makeUserActor, PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
+import { makeUserActor } from "@calcom/platform-libraries/bookings";
 import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
 import {
   BookingOutput_2024_08_13,
@@ -48,6 +48,7 @@ import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/servi
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { getPagination } from "@/lib/pagination/pagination";
+import { PrismaOrgMembershipRepository } from "@/lib/repositories/prisma-org-membership.repository";
 import { InstantBookingCreateService } from "@/lib/services/instant-booking-create.service";
 import { RecurringBookingService } from "@/lib/services/recurring-booking.service";
 import { RegularBookingService } from "@/lib/services/regular-booking.service";
@@ -114,7 +115,8 @@ export class BookingsService_2024_08_13 {
     private readonly regularBookingService: RegularBookingService,
     private readonly recurringBookingService: RecurringBookingService,
     private readonly instantBookingCreateService: InstantBookingCreateService,
-    private readonly eventTypeAccessService: EventTypeAccessService
+    private readonly eventTypeAccessService: EventTypeAccessService,
+    private readonly orgMembershipRepository: PrismaOrgMembershipRepository
   ) {}
 
   async createBooking(request: Request, body: CreateBookingInput, authUser: AuthOptionalUser) {
@@ -940,7 +942,7 @@ export class BookingsService_2024_08_13 {
       throw new Error(`No user found for booking`);
     }
 
-    const isOrgAdmin = await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
+    const isOrgAdmin = await this.orgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
       authUserId,
       bookingUserId
     );

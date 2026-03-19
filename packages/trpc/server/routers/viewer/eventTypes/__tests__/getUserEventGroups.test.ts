@@ -1,10 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getUserEventGroups } from "../getUserEventGroups.handler";
 
 // Mock dependencies
@@ -17,15 +14,15 @@ const { mockFindAllByUpIdIncludeTeam, MockMembershipRepository } = vi.hoisted(()
   const mockFindUniqueByUserIdAndTeamId = vi.fn();
 
   class MockMembershipRepository {
-    static findAllByUpIdIncludeTeam = mockFindAllByUpIdIncludeTeam;
+    findAllByUpIdIncludeTeam = mockFindAllByUpIdIncludeTeam;
     findUniqueByUserIdAndTeamId = mockFindUniqueByUserIdAndTeamId;
   }
 
   return { mockFindAllByUpIdIncludeTeam, MockMembershipRepository };
 });
 
-vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository", () => ({
-  PrismaMembershipRepository: MockMembershipRepository,
+vi.mock("@calcom/features/di/containers/MembershipRepository", () => ({
+  getMembershipRepository: () => new MockMembershipRepository(),
 }));
 
 vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
@@ -162,7 +159,7 @@ describe("getUserEventGroups", () => {
       } as unknown as NonNullable<
         Awaited<
           ReturnType<
-            typeof import("@calcom/features/membership/repositories/PrismaMembershipRepository").PrismaMembershipRepository.findAllByUpIdIncludeTeam
+            import("@calcom/features/membership/repositories/PrismaMembershipRepository").PrismaMembershipRepository["findAllByUpIdIncludeTeam"]
           >
         >
       >[0];
@@ -221,7 +218,7 @@ describe("getUserEventGroups", () => {
       } as unknown as NonNullable<
         Awaited<
           ReturnType<
-            typeof import("@calcom/features/membership/repositories/PrismaMembershipRepository").PrismaMembershipRepository.findAllByUpIdIncludeTeam
+            import("@calcom/features/membership/repositories/PrismaMembershipRepository").PrismaMembershipRepository["findAllByUpIdIncludeTeam"]
           >
         >
       >[0];
@@ -274,7 +271,7 @@ describe("getUserEventGroups", () => {
       } as unknown as NonNullable<
         Awaited<
           ReturnType<
-            typeof import("@calcom/features/membership/repositories/PrismaMembershipRepository").PrismaMembershipRepository.findAllByUpIdIncludeTeam
+            import("@calcom/features/membership/repositories/PrismaMembershipRepository").PrismaMembershipRepository["findAllByUpIdIncludeTeam"]
           >
         >
       >[0];
@@ -357,7 +354,7 @@ describe("getUserEventGroups", () => {
       } as unknown as NonNullable<
         Awaited<
           ReturnType<
-            typeof import("@calcom/features/membership/repositories/PrismaMembershipRepository").PrismaMembershipRepository.findAllByUpIdIncludeTeam
+            import("@calcom/features/membership/repositories/PrismaMembershipRepository").PrismaMembershipRepository["findAllByUpIdIncludeTeam"]
           >
         >
       >[0];

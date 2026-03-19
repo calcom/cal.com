@@ -1,11 +1,10 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { APP_NAME } from "@calcom/lib/constants";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-
 import { OnboardingView } from "~/onboarding/getting-started/onboarding-view";
 
 export const generateMetadata = async () => {
@@ -27,7 +26,8 @@ const ServerPage = async () => {
 
   // If user has any team membership (pending or accepted), redirect them directly to personal onboarding
   // This handles the case where users sign up with an invite token (membership is auto-accepted)
-  const hasTeamMembership = await PrismaMembershipRepository.hasAnyTeamMembershipByUserId({
+  const membershipRepository = getMembershipRepository();
+  const hasTeamMembership = await membershipRepository.hasAnyTeamMembershipByUserId({
     userId: session.user.id,
   });
   if (hasTeamMembership) {

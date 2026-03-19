@@ -4,7 +4,7 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import { PrismaMembershipRepository as MembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
+import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
@@ -39,6 +39,7 @@ describe("BookingDetailsService (Integration Tests)", () => {
   const userRepo = new UserRepository(prisma);
   const eventTypeRepo = new EventTypeRepository(prisma);
   const teamRepo = new TeamRepository(prisma);
+  const membershipRepo = new PrismaMembershipRepository(prisma);
 
   // Users
   let bookingOwnerId: number;
@@ -169,28 +170,28 @@ describe("BookingDetailsService (Integration Tests)", () => {
     createdUserIds.push(regularUser.id);
 
     // 5. Create memberships via MembershipRepository
-    await MembershipRepository.create({
+    await membershipRepo.create({
       userId: bookingOwnerId,
       teamId: orgId,
       role: MembershipRole.MEMBER,
       accepted: true,
     });
 
-    await MembershipRepository.create({
+    await membershipRepo.create({
       userId: bookingOwnerId,
       teamId: teamId,
       role: MembershipRole.MEMBER,
       accepted: true,
     });
 
-    await MembershipRepository.create({
+    await membershipRepo.create({
       userId: orgAdminId,
       teamId: orgId,
       role: MembershipRole.ADMIN,
       accepted: true,
     });
 
-    await MembershipRepository.create({
+    await membershipRepo.create({
       userId: teamAdminId,
       teamId: teamId,
       role: MembershipRole.ADMIN,

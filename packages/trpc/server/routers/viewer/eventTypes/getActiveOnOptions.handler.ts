@@ -1,16 +1,14 @@
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
+import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { PrismaRoutingFormRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormRepository";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
+import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import { listOtherTeamHandler } from "../organizations/listOtherTeams.handler";
 import type { TGetActiveOnOptionsSchema } from "./getActiveOnOptions.schema";
@@ -29,7 +27,7 @@ type Option = {
 };
 
 type MembershipEventType = Awaited<
-  ReturnType<typeof PrismaMembershipRepository.findAllByUpIdIncludeMinimalEventTypes>
+  ReturnType<PrismaMembershipRepository["findAllByUpIdIncludeMinimalEventTypes"]>
 >[number]["team"]["eventTypes"][number];
 
 type EventType = Omit<MembershipEventType, "forwardParamsSuccessRedirect"> & {
@@ -70,7 +68,7 @@ const fetchEventTypeGroups = async ({
   const eventTypeRepo = new EventTypeRepository(ctx.prisma);
 
   const [profileMemberships, profileEventTypes] = await Promise.all([
-    PrismaMembershipRepository.findAllByUpIdIncludeMinimalEventTypes(
+    getMembershipRepository().findAllByUpIdIncludeMinimalEventTypes(
       {
         upId: userProfile.upId,
       },

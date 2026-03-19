@@ -1,9 +1,16 @@
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-export class PrismaOrgMembershipRepository {
-  static async getOrgIdsWhereAdmin(loggedInUserId: number) {
-    const loggedInUserOrgMemberships = await prisma.membership.findMany({
+export interface IOrgMembershipRepository {
+  getOrgIdsWhereAdmin(loggedInUserId: number): Promise<number[]>;
+  isLoggedInUserOrgAdminOfBookingHost(loggedInUserId: number, bookingUserId: number): Promise<boolean>;
+}
+
+export class PrismaOrgMembershipRepository implements IOrgMembershipRepository {
+  constructor(private prismaClient: PrismaClient) {}
+
+  async getOrgIdsWhereAdmin(loggedInUserId: number) {
+    const loggedInUserOrgMemberships = await this.prismaClient.membership.findMany({
       where: {
         userId: loggedInUserId,
         role: {
@@ -21,14 +28,14 @@ export class PrismaOrgMembershipRepository {
     return loggedInUserOrgMemberships.map((m) => m.teamId);
   }
 
-  static async isLoggedInUserOrgAdminOfBookingHost(loggedInUserId: number, bookingUserId: number) {
+  async isLoggedInUserOrgAdminOfBookingHost(loggedInUserId: number, bookingUserId: number) {
     const orgIdsWhereLoggedInUserAdmin = await this.getOrgIdsWhereAdmin(loggedInUserId);
 
     if (orgIdsWhereLoggedInUserAdmin.length === 0) {
       return false;
     }
 
-    const bookingUserOrgMembership = await prisma.membership.findFirst({
+    const bookingUserOrgMembership = await this.prismaClient.membership.findFirst({
       where: {
         userId: bookingUserId,
         teamId: {
@@ -45,7 +52,7 @@ export class PrismaOrgMembershipRepository {
 
     if (bookingUserOrgMembership) return true;
 
-    const bookingUserOrgTeamMembership = await prisma.membership.findFirst({
+    const bookingUserOrgTeamMembership = await this.prismaClient.membership.findFirst({
       where: {
         userId: bookingUserId,
         team: {

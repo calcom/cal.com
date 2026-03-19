@@ -1,6 +1,6 @@
 "use server";
 
-import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
 import { revalidateTag, unstable_cache } from "next/cache";
 
@@ -10,7 +10,8 @@ const CACHE_TAGS = {
 
 export const getCachedHasTeamPlan = unstable_cache(
   async (userId: number) => {
-    const hasTeamPlan = await PrismaMembershipRepository.hasAnyAcceptedMembershipByUserId(userId);
+    const membershipRepository = getMembershipRepository();
+    const hasTeamPlan = await membershipRepository.hasAnyAcceptedMembershipByUserId(userId);
 
     return { hasTeamPlan: !!hasTeamPlan };
   },

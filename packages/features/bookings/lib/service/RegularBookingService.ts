@@ -54,6 +54,7 @@ import { getEventName, updateHostInEventName } from "@calcom/features/eventtypes
 import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
+import type { IOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { getRoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
@@ -492,6 +493,7 @@ export interface IBookingServiceDependencies {
   teamFeatureRepository: ITeamFeatureRepository;
   bookingEventHandler: BookingEventHandlerService;
   webhookProducer: IWebhookProducerService;
+  orgMembershipRepository: IOrgMembershipRepository;
 }
 
 export async function validateRescheduleRestrictions({

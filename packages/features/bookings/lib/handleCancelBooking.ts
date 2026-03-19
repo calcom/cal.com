@@ -17,6 +17,7 @@ import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/payment/processNoShowFeeOnCancellation";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
+import { getOrgMembershipRepository } from "@calcom/features/di/containers/OrgMembershipRepository";
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -27,7 +28,6 @@ import {
   type EventTypeBrandingData,
   getEventTypeService,
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
-import { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -51,8 +51,6 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-
-import { isCancellationReasonRequired } from "./cancellationReason";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { bookingCancelInput, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -60,6 +58,7 @@ import { v4 as uuidv4 } from "uuid";
 import type { z } from "zod";
 import { BookingRepository } from "../repositories/BookingRepository";
 import { PrismaBookingAttendeeRepository } from "../repositories/PrismaBookingAttendeeRepository";
+import { isCancellationReasonRequired } from "./cancellationReason";
 import type {
   CancelBookingMeta,
   CancelRegularBookingData,
@@ -223,7 +222,12 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     isCancellationUserHost
   );
 
-  if (!platformClientId && !cancellationReason?.trim() && isReasonRequired && !skipCancellationReasonValidation) {
+  if (
+    !platformClientId &&
+    !cancellationReason?.trim() &&
+    isReasonRequired &&
+    !skipCancellationReasonValidation
+  ) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required",
@@ -247,7 +251,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
 
     const userIsOrgAdminOfBookingUser =
       userId &&
-      (await PrismaOrgMembershipRepository.isLoggedInUserOrgAdminOfBookingHost(
+      (await getOrgMembershipRepository().isLoggedInUserOrgAdminOfBookingHost(
         userId,
         bookingToDelete.userId
       ));

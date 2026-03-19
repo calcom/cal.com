@@ -5,6 +5,7 @@ import type { TraceContext } from "@calcom/lib/tracing";
 import type { Prisma } from "@calcom/prisma/client";
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
+import type { IOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
 import type { BookingEventHandlerService } from "../../onBookingEvents/BookingEventHandlerService";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import type { Booking } from "../handleNewBooking/createBooking";
@@ -67,6 +68,7 @@ export type NewSeatedBookingObject = {
   traceContext: TraceContext;
   deps: {
     bookingEventHandler: BookingEventHandlerService;
+    orgMembershipRepository: IOrgMembershipRepository;
   }
 };
 
