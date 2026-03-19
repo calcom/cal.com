@@ -237,7 +237,10 @@ export const AvailableTimeSlots = ({
         {!isLoading &&
           slotsPerDay.length > 0 &&
           slotsPerDay.map((slots) => (
-            <div key={slots.date} className="no-scrollbar overflow-x-hidden! h-full w-full overflow-y-auto">
+            <div
+              key={slots.date}
+              className="no-scrollbar overflow-x-hidden! h-full w-full overflow-y-auto"
+              style={{ scrollbarGutter: "stable" }}>
               <AvailableTimes
                 className={customClassNames?.availableTimeSlotsContainer}
                 customClassNames={customClassNames?.availableTimes}
