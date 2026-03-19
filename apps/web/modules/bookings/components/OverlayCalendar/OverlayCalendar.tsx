@@ -1,4 +1,4 @@
-import { useOverlayCalendar } from "@calcom/web/modules/bookings/hooks/useOverlayCalendar";
+import { useOverlayCalendar } from "@calcom/features/bookings/Booker/hooks/useOverlayCalendar";
 import { useEffect } from "react";
 import type { WrappedBookerPropsMain } from "../../types";
 import { OverlayCalendarContinueModal } from "./OverlayCalendarContinueModal";

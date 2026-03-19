@@ -1,9 +1,9 @@
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useShouldShowArrows } from "@calcom/features/bookings/Booker/hooks/useShouldShowArrows";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { useShouldShowArrows } from "@calcom/web/modules/apps/components/AllApps";
 import { ChevronLeftIcon, ChevronRightIcon } from "@coss/ui/icons";
 import type { TFunction } from "i18next";
 import { useEffect, useRef } from "react";
