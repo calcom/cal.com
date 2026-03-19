@@ -66,7 +66,7 @@ type OAuthClientDbExpectations = {
   websiteUrl?: string | null;
   status?: string;
   clientType?: OAuthClientType;
-  clientSecret?: string | null | TruthyExpectation;
+  clientSecretsCount?: number;
   logo?: string | null | TruthyExpectation;
   scopes?: AccessScope[];
 };
@@ -79,8 +79,8 @@ const oAuthClientSelect = {
   websiteUrl: true,
   status: true,
   clientType: true,
-  clientSecret: true,
   logo: true,
+  _count: { select: { clientSecrets: true } },
   scopes: true,
 } as const;
 
@@ -324,12 +324,8 @@ async function expectOAuthClientInDb(
   if (expected.clientType !== undefined)
     expect(dbClient.clientType as OAuthClientType).toBe(expected.clientType);
 
-  if (expected.clientSecret !== undefined) {
-    if (typeof expected.clientSecret === "object" && expected.clientSecret?.kind === "truthy") {
-      expect(dbClient.clientSecret).toBeTruthy();
-    } else {
-      expect(dbClient.clientSecret).toBe(expected.clientSecret);
-    }
+  if (expected.clientSecretsCount !== undefined) {
+    expect(dbClient._count.clientSecrets).toBe(expected.clientSecretsCount);
   }
 
   if (expected.logo !== undefined) {
@@ -481,7 +477,7 @@ test.describe("OAuth client creation", () => {
       websiteUrl: null,
       status: "PENDING",
       clientType: "CONFIDENTIAL",
-      clientSecret: TRUTHY,
+      clientSecretsCount: 1,
       logo: null,
       scopes,
     });
@@ -534,7 +530,7 @@ test.describe("OAuth client creation", () => {
       websiteUrl: editedWebsiteUrl,
       status: "PENDING",
       clientType: "CONFIDENTIAL",
-      clientSecret: TRUTHY,
+      clientSecretsCount: 1,
       logo: TRUTHY,
     });
 
@@ -592,7 +588,7 @@ test.describe("OAuth client creation", () => {
       status: "APPROVED",
       redirectUris: initialRedirectUris,
       clientType: "PUBLIC",
-      clientSecret: null,
+      clientSecretsCount: 0,
     });
 
     const updatedRedirectUris = [`https://example.com/approved-updated-${Date.now()}`];
@@ -627,7 +623,7 @@ test.describe("OAuth client creation", () => {
       status: "APPROVED",
       redirectUris: updatedRedirectUris,
       clientType: "PUBLIC",
-      clientSecret: null,
+      clientSecretsCount: 0,
     });
   });
 
@@ -674,7 +670,7 @@ test.describe("OAuth client creation", () => {
       websiteUrl,
       status: "PENDING",
       clientType: "CONFIDENTIAL",
-      clientSecret: TRUTHY,
+      clientSecretsCount: 1,
       logo: TRUTHY,
       scopes,
     });
@@ -727,7 +723,7 @@ test.describe("OAuth client creation", () => {
       websiteUrl: editedWebsiteUrl,
       status: "PENDING",
       clientType: "CONFIDENTIAL",
-      clientSecret: TRUTHY,
+      clientSecretsCount: 1,
       logo: TRUTHY,
     });
 
@@ -777,7 +773,7 @@ test.describe("OAuth client creation", () => {
       websiteUrl,
       status: "PENDING",
       clientType: "PUBLIC",
-      clientSecret: null,
+      clientSecretsCount: 0,
       logo: null,
       scopes,
     });
@@ -830,7 +826,7 @@ test.describe("OAuth client creation", () => {
       websiteUrl: editedWebsiteUrl,
       status: "PENDING",
       clientType: "PUBLIC",
-      clientSecret: null,
+      clientSecretsCount: 0,
       logo: TRUTHY,
     });
 
@@ -1398,6 +1394,150 @@ test.describe("OAuth client multiple redirect URIs", () => {
     await closeOAuthClientDetails(page);
     await deleteOAuthClient(page, clientId, clientName);
     await expectOAuthClientDeletedInDb(prisma, clientId);
+  });
+});
+
+test.describe("OAuth client secrets", () => {
+  test.afterEach(async ({ users, prisma }, testInfo) => {
+    const testPrefix = `e2e-oauth-client-secrets-${testInfo.testId}-`;
+
+    await prisma.oAuthClient.deleteMany({
+      where: { name: { startsWith: testPrefix } },
+    });
+
+    await users.deleteAll();
+  });
+
+  test("cannot delete the only secret of a confidential client", async ({ page, prisma }, testInfo) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    const testPrefix = `e2e-oauth-client-secrets-${testInfo.testId}-`;
+    const clientName = `${testPrefix}single-secret-${Date.now()}`;
+
+    const { clientId } = await createOAuthClient(page, {
+      name: clientName,
+      purpose: "Test single secret delete prevention",
+      redirectUris: ["https://example.com/callback"],
+      enablePkce: false,
+      scopes: ["BOOKING_READ"],
+    });
+
+    const details = await openOAuthClientDetails(page, clientId);
+
+    const secretsSection = details.getByTestId("oauth-client-secrets-section");
+    await expect(secretsSection).toBeVisible();
+
+    const secretRows = secretsSection.locator("[data-testid^='oauth-client-secret-row-']");
+    await expect(secretRows).toHaveCount(1);
+
+    const deleteButtons = secretsSection.locator("[data-testid^='oauth-client-secret-delete-']");
+    await expect(deleteButtons).toHaveCount(0);
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      clientSecretsCount: 1,
+      clientType: "CONFIDENTIAL",
+    });
+  });
+
+  test("cannot create a third secret when 2 already exist", async ({ page, prisma }, testInfo) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    const testPrefix = `e2e-oauth-client-secrets-${testInfo.testId}-`;
+    const clientName = `${testPrefix}max-secrets-${Date.now()}`;
+
+    const { clientId } = await createOAuthClient(page, {
+      name: clientName,
+      purpose: "Test max secrets limit",
+      redirectUris: ["https://example.com/callback"],
+      enablePkce: false,
+      scopes: ["BOOKING_READ"],
+    });
+
+    const details = await openOAuthClientDetails(page, clientId);
+    const secretsSection = details.getByTestId("oauth-client-secrets-section");
+    await expect(secretsSection).toBeVisible();
+
+    const generateButton = secretsSection.getByTestId("oauth-client-generate-secret");
+    await expect(generateButton).toBeVisible();
+    await expect(generateButton).toBeEnabled();
+
+    const createResponsePromise = page.waitForResponse((res) =>
+      res.url().includes("/api/trpc/oAuth/createClientSecret")
+    );
+    await generateButton.click();
+    const createResponse = await createResponsePromise;
+    expect(createResponse.ok()).toBe(true);
+
+    await page.getByTestId("oauth-client-new-secret-done").click();
+
+    const secretRows = secretsSection.locator("[data-testid^='oauth-client-secret-row-']");
+    await expect(secretRows).toHaveCount(2);
+
+    const deleteButtons = secretsSection.locator("[data-testid^='oauth-client-secret-delete-']");
+    await expect(deleteButtons).toHaveCount(2);
+
+    await expect(generateButton).toHaveCount(0);
+    await expect(secretsSection.getByTestId("oauth-client-max-secrets-reached")).toBeVisible();
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      clientSecretsCount: 2,
+      clientType: "CONFIDENTIAL",
+    });
+  });
+
+  test("can delete one of two secrets and only one remains", async ({ page, prisma }, testInfo) => {
+    await loginAsSeededAdminAndGoToOAuthSettings(page);
+
+    const testPrefix = `e2e-oauth-client-secrets-${testInfo.testId}-`;
+    const clientName = `${testPrefix}delete-secret-${Date.now()}`;
+
+    const { clientId } = await createOAuthClient(page, {
+      name: clientName,
+      purpose: "Test secret deletion",
+      redirectUris: ["https://example.com/callback"],
+      enablePkce: false,
+      scopes: ["BOOKING_READ"],
+    });
+
+    const details = await openOAuthClientDetails(page, clientId);
+    const secretsSection = details.getByTestId("oauth-client-secrets-section");
+    await expect(secretsSection).toBeVisible();
+
+    const generateButton = secretsSection.getByTestId("oauth-client-generate-secret");
+    const createResponsePromise = page.waitForResponse((res) =>
+      res.url().includes("/api/trpc/oAuth/createClientSecret")
+    );
+    await generateButton.click();
+    const createResponse = await createResponsePromise;
+    expect(createResponse.ok()).toBe(true);
+
+    await page.getByTestId("oauth-client-new-secret-done").click();
+
+    const secretRows = secretsSection.locator("[data-testid^='oauth-client-secret-row-']");
+    await expect(secretRows).toHaveCount(2);
+
+    const deleteButtons = secretsSection.locator("[data-testid^='oauth-client-secret-delete-']");
+    await expect(deleteButtons).toHaveCount(2);
+
+    await deleteButtons.first().click();
+
+    await expect(page.getByTestId("oauth-client-secret-delete-confirm")).toBeVisible();
+
+    const deleteResponsePromise = page.waitForResponse((res) =>
+      res.url().includes("/api/trpc/oAuth/deleteClientSecret")
+    );
+    await page.getByTestId("oauth-client-secret-delete-confirm").click();
+    const deleteResponse = await deleteResponsePromise;
+    expect(deleteResponse.ok()).toBe(true);
+
+    await expect(secretRows).toHaveCount(1);
+    await expect(deleteButtons).toHaveCount(0);
+    await expect(generateButton).toBeVisible();
+
+    await expectOAuthClientInDb(prisma, clientId, {
+      clientSecretsCount: 1,
+      clientType: "CONFIDENTIAL",
+    });
   });
 });
 

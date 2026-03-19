@@ -5,7 +5,7 @@ import { ALL_KNOWN_SCOPES, isLegacyClient, OAUTH_SCOPES, parseScopeParam, SCOPE_
 import type { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 import type { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import type { OAuthRefreshTokenRepository } from "@calcom/features/oauth/repositories/OAuthRefreshTokenRepository";
-import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
+import { hashSecretKey } from "@calcom/features/oauth/utils/generateSecret";
 import { isRedirectUriRegistered } from "@calcom/features/oauth/utils/validateRedirectUris";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
@@ -343,11 +343,11 @@ export class OAuthService {
   async exchangeCodeForTokens(
     clientId: string,
     code: string,
-    clientSecret?: string,
+    plainClientSecret?: string,
     redirectUri?: string,
     codeVerifier?: string
   ): Promise<OAuth2Tokens> {
-    const client = await this.oAuthClientRepository.findByClientIdWithSecret(clientId);
+    const client = await this.oAuthClientRepository.findByClientIdWithSecrets(clientId);
     if (!client) {
       throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", { reason: "client_not_found" });
     }
@@ -356,7 +356,7 @@ export class OAuthService {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "redirect_uri_mismatch" });
     }
 
-    if (!this.validateClient(client, clientSecret)) {
+    if (!this.validateClientSecret(client, plainClientSecret)) {
       throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", {
         reason: "invalid_client_credentials",
       });
@@ -400,15 +400,15 @@ export class OAuthService {
   async refreshAccessToken(
     clientId: string,
     refreshToken: string,
-    clientSecret?: string
+    plainClientSecret?: string
   ): Promise<OAuth2Tokens> {
-    const client = await this.oAuthClientRepository.findByClientIdWithSecret(clientId);
+    const client = await this.oAuthClientRepository.findByClientIdWithSecrets(clientId);
 
     if (!client) {
       throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", { reason: "client_not_found" });
     }
 
-    if (!this.validateClient(client, clientSecret)) {
+    if (!this.validateClientSecret(client, plainClientSecret)) {
       throw new ErrorWithCode(ErrorCode.Unauthorized, "invalid_client", {
         reason: "invalid_client_credentials",
       });
@@ -463,15 +463,27 @@ export class OAuthService {
     return tokens;
   }
 
-  private validateClient(
-    client: { clientType: string; clientSecret?: string | null },
-    clientSecret?: string
+  private validateClientSecret(
+    client: {
+      clientType: string;
+      clientSecret?: string | null;
+      clientSecrets: { hashedSecret: string }[];
+    },
+    plainClientSecret?: string
   ): boolean {
     if (client.clientType === "CONFIDENTIAL") {
-      if (!clientSecret) return false;
+      if (!plainClientSecret) return false;
 
-      const [hashedSecret] = generateSecret(clientSecret);
-      if (client.clientSecret !== hashedSecret) return false;
+      const hashedInput = hashSecretKey(plainClientSecret);
+
+      if (client.clientSecrets.length > 0) {
+        return client.clientSecrets.some((s) => s.hashedSecret === hashedInput);
+      }
+
+      // note(Lauris): this is a legacy fallback: after the migration all existing clients will have at least one
+      // entry in clientSecrets, so this branch is effectively dead code post-migration.
+      // Safe to remove once the migration has been verified in production.
+      return client.clientSecret === hashedInput;
     }
     return true;
   }

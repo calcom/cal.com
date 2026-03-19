@@ -1,7 +1,10 @@
 import { randomBytes } from "node:crypto";
 
-import type { PrismaClient } from "@calcom/prisma";
+import { ErrorWithCode } from "@calcom/lib/errors";
+import type { PrismaClient, PrismaTransaction } from "@calcom/prisma";
 import type { AccessScope, OAuthClientStatus } from "@calcom/prisma/enums";
+
+export const CANNOT_DELETE_LAST_SECRET = "Cannot delete the last secret of a confidential client.";
 
 export class OAuthClientRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -30,7 +33,7 @@ export class OAuthClientRepository {
     });
   }
 
-  async findByClientIdWithSecret(clientId: string) {
+  async findByClientIdWithSecrets(clientId: string) {
     return this.prisma.oAuthClient.findUnique({
       where: { clientId },
       select: {
@@ -40,8 +43,85 @@ export class OAuthClientRepository {
         clientType: true,
         status: true,
         userId: true,
+        clientSecrets: {
+          select: {
+            id: true,
+            hashedSecret: true,
+            secretHint: true,
+            createdAt: true,
+          },
+        },
       },
     });
+  }
+
+  async getClientSecrets(clientId: string) {
+    return this.prisma.oAuthClientSecret.findMany({
+      where: { clientId },
+      select: {
+        id: true,
+        secretHint: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: "asc" },
+    });
+  }
+
+  async createClientSecret(data: { clientId: string; hashedSecret: string; secretHint: string }) {
+    return this.prisma.oAuthClientSecret.create({
+      data: {
+        clientId: data.clientId,
+        hashedSecret: data.hashedSecret,
+        secretHint: data.secretHint,
+      },
+      select: {
+        id: true,
+        secretHint: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  async deleteClientSecretIfNotLast(secretId: number, clientId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      await this.lockClient(tx, clientId);
+      const count = await tx.oAuthClientSecret.count({ where: { clientId } });
+      if (count <= 1) {
+        throw ErrorWithCode.Factory.BadRequest(CANNOT_DELETE_LAST_SECRET);
+      }
+      return tx.oAuthClientSecret.delete({
+        where: { id: secretId, clientId },
+      });
+    });
+  }
+
+  async createClientSecretIfUnderLimit(
+    data: { clientId: string; hashedSecret: string; secretHint: string },
+    maxSecrets: number
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      await this.lockClient(tx, data.clientId);
+      const count = await tx.oAuthClientSecret.count({ where: { clientId: data.clientId } });
+      if (count >= maxSecrets) {
+        throw ErrorWithCode.Factory.BadRequest(`Maximum of ${maxSecrets} secrets allowed.`);
+      }
+      return tx.oAuthClientSecret.create({
+        data: {
+          clientId: data.clientId,
+          hashedSecret: data.hashedSecret,
+          secretHint: data.secretHint,
+        },
+        select: {
+          id: true,
+          secretHint: true,
+          createdAt: true,
+        },
+      });
+    });
+  }
+
+  private async lockClient(tx: PrismaTransaction, clientId: string) {
+    await tx.$queryRaw`SELECT "clientId" FROM "OAuthClient" WHERE "clientId" = ${clientId} FOR UPDATE`;
   }
 
   async findByClientIdIncludeUser(clientId: string) {
@@ -152,7 +232,7 @@ export class OAuthClientRepository {
     name: string;
     purpose: string;
     redirectUris: string[];
-    clientSecret?: string;
+    secret?: { hashedSecret: string; secretHint: string };
     logo?: string;
     websiteUrl?: string;
     enablePkce?: boolean;
@@ -160,7 +240,7 @@ export class OAuthClientRepository {
     userId?: number;
     status: OAuthClientStatus;
   }) {
-    const { name, purpose, redirectUris, clientSecret, logo, websiteUrl, enablePkce, scopes, userId, status } =
+    const { name, purpose, redirectUris, secret, logo, websiteUrl, enablePkce, scopes, userId, status } =
       data;
 
     const clientId = randomBytes(32).toString("hex");
@@ -176,11 +256,18 @@ export class OAuthClientRepository {
         logo,
         websiteUrl,
         status,
-        clientSecret,
         ...(scopes && { scopes }),
         ...(userId && {
           user: {
             connect: { id: userId },
+          },
+        }),
+        ...(secret && {
+          clientSecrets: {
+            create: {
+              hashedSecret: secret.hashedSecret,
+              secretHint: secret.secretHint,
+            },
           },
         }),
       },
@@ -193,7 +280,6 @@ export class OAuthClientRepository {
       redirectUris: client.redirectUris,
       logo: client.logo,
       clientType: client.clientType,
-      clientSecret: client.clientSecret,
       isPkceEnabled: enablePkce,
       status: client.status,
     };

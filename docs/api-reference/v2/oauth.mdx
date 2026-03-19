@@ -486,6 +486,42 @@ Public clients do not use a `client_secret`. All parameters are required:
   </Accordion>
 </AccordionGroup>
 
+## 5. Client Secret Rotation
+
+Cal.com supports rotating client secrets with zero downtime. You can have up to **2 active secrets** at a time, allowing you to deploy a new secret before revoking the old one.
+
+### Why rotate secrets?
+
+- A secret may have been accidentally exposed or compromised
+- Your security policy requires periodic credential rotation
+- An employee with access to the secret has left your organization
+
+### How it works
+
+1. **Generate a new secret** from your [OAuth client settings](https://app.cal.com/settings/developer/oauth). Your old secret continues to work — both secrets are valid simultaneously.
+2. **Update your application** to use the new secret in all token exchange and refresh requests.
+3. **Verify** that your application works correctly with the new secret.
+4. **Revoke the old secret** from the settings page. Any requests using the old secret will immediately fail.
+
+### Important notes
+
+- You can have a **maximum of 2 secrets** per client. To generate a new one when you already have 2, revoke an existing secret first.
+- New secrets are shown **only once** when generated. Copy and store them securely.
+- Revoking a secret takes effect **immediately** — there is no grace period.
+- **Existing access and refresh tokens remain valid** after secret rotation. Rotation only affects token exchange and refresh requests that require `client_secret`.
+- Secret rotation applies only to **confidential clients**. Public clients (PKCE) do not use client secrets.
+
+### What needs to change in your code
+
+When you rotate a secret, update the `client_secret` parameter in these requests:
+
+| Request | Affected? |
+|---------|-----------|
+| Authorization redirect (Step 2) | No — uses only `client_id` |
+| Exchange code for tokens (Step 3) | **Yes** — update `client_secret` |
+| Refresh access token (Step 4) | **Yes** — update `client_secret` |
+| API calls with Bearer token (Step 5) | No — uses access token |
+
 ## Legacy Client Migration
 
 If your OAuth client was created before scopes were introduced, it is considered a **legacy client**. A client is treated as legacy if it has no scopes configured, or if it only has the old legacy scope values (`READ_BOOKING` and/or `READ_PROFILE`). Access tokens issued by legacy clients can access any resource on behalf of the authorizing user — scopes are not enforced.
@@ -512,6 +548,10 @@ After this step, the client is no longer treated as a legacy client. Scope valid
   Do **not** update the client scopes before updating your authorization URL. Doing so will immediately break the authorization flow for any user who visits the old URL without a `scope` parameter.
 </Warning>
 
+### Existing tokens
+
+Tokens issued before the migration continue to work until users re-authorize. There is no forced invalidation of existing tokens during the migration.
+
 ### Re-approval
 
 Changing properties below will trigger a re-review by Cal.com admins and set client to a "pending" state:
@@ -529,13 +569,7 @@ Changing properties below will NOT trigger a re-review and client will remain in
 - Purpose description change
 - Updating scopes on a legacy client, as long as only user-level scopes are added — adding `TEAM_` or `ORG_` scopes to a legacy client will trigger re-approval. See [Legacy Client Migration](#legacy-client-migration) for details.
 
-### Existing tokens
-
-Tokens issued before the migration continue to work until users re-authorize. There is no forced invalidation of existing tokens during the migration.
-
----
-
-## 5. Verify Access Token
+## 6. Verify Access Token
 
 To verify the correct setup and functionality of OAuth credentials, use the following endpoint:
 

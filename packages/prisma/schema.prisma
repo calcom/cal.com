@@ -1924,8 +1924,20 @@ model OAuthClient {
   createdAt       DateTime          @default(now())
 
   refreshTokens OAuthRefreshToken[]
+  clientSecrets OAuthClientSecret[]
 
   @@index([userId])
+}
+
+model OAuthClientSecret {
+  id           Int         @id @default(autoincrement())
+  hashedSecret String
+  secretHint   String
+  clientId     String
+  client       OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  createdAt    DateTime    @default(now())
+
+  @@index([clientId])
 }
 
 model AccessCode {

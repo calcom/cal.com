@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => {
     sendAdminOAuthClientNotification: vi.fn(),
     getTranslation: vi.fn(),
     generateSecret: vi.fn(),
+    getSecretHint: vi.fn(),
     validateRedirectUris: vi.fn(),
     checkIfFreeEmailDomain: vi.fn(),
   };
@@ -33,6 +34,7 @@ vi.mock("@calcom/i18n/server", () => ({
 
 vi.mock("@calcom/features/oauth/utils/generateSecret", () => ({
   generateSecret: mocks.generateSecret,
+  getSecretHint: mocks.getSecretHint,
 }));
 
 vi.mock("@calcom/features/oauth/utils/validateRedirectUris", () => ({
@@ -87,6 +89,7 @@ describe("submitClientHandler", () => {
 
     mocks.getTranslation.mockResolvedValue(t);
     mocks.generateSecret.mockReturnValue(["hashed-secret", "plain-secret"]);
+    mocks.getSecretHint.mockReturnValue("cret");
 
     const createdClient = {
       clientId: "client_123",
@@ -130,7 +133,7 @@ describe("submitClientHandler", () => {
       name: input.name,
       purpose: input.purpose,
       redirectUris: input.redirectUris,
-      clientSecret: "hashed-secret",
+      secret: { hashedSecret: "hashed-secret", secretHint: "cret" },
       logo: input.logo,
       websiteUrl: input.websiteUrl,
       enablePkce: input.enablePkce,

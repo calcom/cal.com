@@ -1,6 +1,6 @@
 import { sendAdminOAuthClientNotification } from "@calcom/emails/oauth-email-service";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
-import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
+import { generateSecret, getSecretHint } from "@calcom/features/oauth/utils/generateSecret";
 import { validateRedirectUris } from "@calcom/features/oauth/utils/validateRedirectUris";
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { getTranslation } from "@calcom/i18n/server";
@@ -38,18 +38,18 @@ export const submitClientForReviewHandler = async ({ ctx, input }: SubmitClientO
   const oAuthClientRepository = new OAuthClientRepository(ctx.prisma);
 
   let plainSecret: string | undefined;
-  let hashedSecret: string | undefined;
+  let secret: { hashedSecret: string; secretHint: string } | undefined;
   if (!enablePkce) {
-    const [hashed, plain] = generateSecret();
-    hashedSecret = hashed;
+    const [hashedSecret, plain] = generateSecret();
     plainSecret = plain;
+    secret = { hashedSecret, secretHint: getSecretHint(plain) };
   }
 
   const client = await oAuthClientRepository.create({
     name,
     purpose,
     redirectUris,
-    clientSecret: hashedSecret,
+    secret,
     logo,
     websiteUrl,
     enablePkce,

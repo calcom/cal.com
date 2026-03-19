@@ -5,6 +5,9 @@ import { ZDeleteClientInputSchema } from "./deleteClient.schema";
 import { ZGenerateAuthCodeInputSchema } from "./generateAuthCode.schema";
 import { ZGetClientForAuthorizationInputSchema } from "./getClientForAuthorization.schema";
 import { ZListClientsInputSchema } from "./listClients.schema";
+import { ZCreateClientSecretInputSchema } from "./secrets/create/schema";
+import { ZDeleteClientSecretInputSchema } from "./secrets/delete/schema";
+import { ZGetClientSecretsInputSchema } from "./secrets/get/schema";
 import { ZSubmitClientInputSchema, ZSubmitClientOutputSchema } from "./submitClientForReview.schema";
 import { ZUpdateClientInputSchema } from "./updateClient.schema";
 
@@ -84,4 +87,35 @@ export const oAuthRouter = router({
       input,
     });
   }),
+
+  getClientSecrets: authedProcedure.input(ZGetClientSecretsInputSchema).query(async ({ ctx, input }) => {
+    const { getClientSecretsHandler } = await import("./secrets/get/handler");
+
+    return getClientSecretsHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  createClientSecret: authedProcedure
+    .input(ZCreateClientSecretInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { createClientSecretHandler } = await import("./secrets/create/handler");
+
+      return createClientSecretHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  deleteClientSecret: authedProcedure
+    .input(ZDeleteClientSecretInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { deleteClientSecretHandler } = await import("./secrets/delete/handler");
+
+      return deleteClientSecretHandler({
+        ctx,
+        input,
+      });
+    }),
 });

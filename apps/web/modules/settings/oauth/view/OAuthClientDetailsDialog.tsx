@@ -20,6 +20,7 @@ import { Tooltip } from "@calcom/ui/components/tooltip";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { OAuthClientCreateFormValues } from "../create/OAuthClientCreateModal";
+import { ClientSecretsSection } from "./ClientSecretsSection";
 import { OAuthClientFormFields } from "./OAuthClientFormFields";
 
 type OAuthClientDetails = {
@@ -110,6 +111,8 @@ const OAuthClientDetailsDialog = ({
   const isFormDisabled = showAdminActions;
   const canEdit = Boolean(onUpdate) && !isFormDisabled;
   const canDelete = Boolean(onDelete) && !showAdminActions;
+  const isConfidentialClient = client?.clientType === "CONFIDENTIAL";
+  const showSecretsSection = canEdit && isConfidentialClient;
 
   const handleConfirmReject = () => {
     if (!client) return;
@@ -282,6 +285,10 @@ const OAuthClientDetailsDialog = ({
                 </Tooltip>
               </div>
             </div>
+
+            {showSecretsSection && clientId ? (
+              <ClientSecretsSection clientId={clientId} />
+            ) : null}
 
             {client.user?.email ? (
               <div>
