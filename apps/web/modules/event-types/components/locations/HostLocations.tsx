@@ -820,15 +820,6 @@ const useMassApplyMutation = (
   return { handleMassApply, isPending: mutation.isPending };
 };
 
-const UpgradeBadge = () => {
-  const { t } = useLocale();
-  return (
-    <a href="/enterprise" className="hover:underline">
-      <Badge variant="gray">{t("upgrade")}</Badge>
-    </a>
-  );
-};
-
 export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsProps) => {
   const { t } = useLocale();
   const session = useSession();

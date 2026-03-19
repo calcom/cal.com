@@ -942,7 +942,7 @@ export const EventAdvancedTab = ({
               descriptionClassName={customClassNames?.bookingRedirect?.description}
               Badge={
                 !isPlatform && !isRedirectUrlGrandfathered ? (
-                  <UpgradeTeamsBadge checkForActiveStatus />
+                  <UpgradeTeamsBadge checkForActiveStatus tracking="redirect-url" />
                 ) : undefined
               }
               title={t("redirect_success_booking")}

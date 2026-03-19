@@ -56,7 +56,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                     checked={value}
                     disabled={!hasTeamPlan}
                     onCheckedChange={onChange}
-                    Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    Badge={<UpgradeTeamsBadge checkForActiveStatus tracking="cal-video-settings" />}
                   />
                 );
               }}
@@ -74,7 +74,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                     checked={value}
                     disabled={!hasTeamPlan}
                     onCheckedChange={onChange}
-                    Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    Badge={<UpgradeTeamsBadge checkForActiveStatus tracking="cal-video-settings" />}
                   />
                 );
               }}
@@ -93,7 +93,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                       checked={value}
                       disabled={!hasTeamPlan}
                       onCheckedChange={onChange}
-                      Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                      Badge={<UpgradeTeamsBadge checkForActiveStatus tracking="cal-video-settings" />}
                     />
                   );
                 }}
@@ -112,7 +112,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                     checked={value}
                     disabled={!hasTeamPlan}
                     onCheckedChange={onChange}
-                    Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    Badge={<UpgradeTeamsBadge checkForActiveStatus tracking="cal-video-settings" />}
                   />
                 );
               }}
@@ -131,7 +131,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                       checked={value}
                       disabled={!hasTeamPlan}
                       onCheckedChange={onChange}
-                      Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                      Badge={<UpgradeTeamsBadge checkForActiveStatus tracking="cal-video-settings" />}
                     />
                   );
                 }}
@@ -150,7 +150,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                       checked={value}
                       disabled={!hasTeamPlan}
                       onCheckedChange={onChange}
-                      Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                      Badge={<UpgradeTeamsBadge checkForActiveStatus tracking="cal-video-settings" />}
                     />
                   );
                 }}
@@ -169,7 +169,7 @@ const CalVideoSettings = ({ calVideoSettings }: { calVideoSettings?: CalVideoSet
                     checked={value}
                     disabled={!hasTeamPlan}
                     onCheckedChange={onChange}
-                    Badge={<UpgradeTeamsBadge checkForActiveStatus />}
+                    Badge={<UpgradeTeamsBadge checkForActiveStatus tracking="cal-video-settings" />}
                   />
                 );
               }}
