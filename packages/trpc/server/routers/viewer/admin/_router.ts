@@ -2,6 +2,7 @@ import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 import { ZBillingPortalLinkSchema } from "./billingPortalLink.schema";
+import { ZCreateCustomAppointmentSchema } from "./createCustomAppointment.schema";
 import { ZCreateCouponSchema } from "./createCoupon.schema";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
@@ -60,6 +61,11 @@ export const adminRouter = router({
       const { default: handler } = await import("./createSelfHostedLicenseKey.handler");
       return handler(opts);
     }),
+  createCustomAppointment: authedAdminProcedure.input(ZCreateCustomAppointmentSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./createCustomAppointment.handler");
+    return handler(opts);
+  }),
+
   createCoupon: authedAdminProcedure.input(ZCreateCouponSchema).mutation(async (opts) => {
     const { default: handler } = await import("./createCoupon.handler");
     return handler(opts);
