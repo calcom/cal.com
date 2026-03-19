@@ -10,6 +10,26 @@ interface RecordFormResponseInput {
 export class RoutingFormResponseRepository {
   constructor(private prismaClient: PrismaClient) {}
 
+  findByIdIncludeForm(id: number) {
+    return this.prismaClient.app_RoutingForms_FormResponse.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        response: true,
+        form: {
+          select: {
+            fields: true,
+            name: true,
+            description: true,
+            userId: true,
+            teamId: true,
+          },
+        },
+      },
+    });
+  }
+
   private generateCreateFormResponseData(
     input: RecordFormResponseInput & { queuedFormResponseId?: string | null }
   ) {
