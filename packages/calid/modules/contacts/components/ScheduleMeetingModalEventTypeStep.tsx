@@ -37,7 +37,7 @@ export const ScheduleMeetingModalEventTypeStep = ({
   isNextDisabled,
 }: ScheduleMeetingModalEventTypeStepProps) => {
   return (
-    <div className="space-y-2 pt-2">
+    <div className="flex min-h-0 flex-col space-y-2 pt-2">
       <Label>Select Event Type</Label>
       {isEventTypesLoading ? (
         <div className="text-muted-foreground flex items-center gap-2 py-3 text-sm">
@@ -59,7 +59,7 @@ export const ScheduleMeetingModalEventTypeStep = ({
         </p>
       ) : null}
       {!isEventTypesLoading && !eventTypesErrorMessage ? (
-        <div className="space-y-2">
+        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
           {eventTypes.map((eventType) => (
             <button
               key={eventType.id}

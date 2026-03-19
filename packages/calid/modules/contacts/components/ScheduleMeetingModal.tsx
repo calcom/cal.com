@@ -8,7 +8,12 @@ import { Loader2, Video } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 
-import { isAttendeeInputRequired } from "@calcom/app-store/locations";
+import {
+  getEventLocationType,
+  getTranslatedLocation,
+  isAttendeeInputRequired,
+  JitsiLocationType,
+} from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { BookingFields } from "@calcom/features/bookings/Booker/components/BookEventForm/BookingFields";
 import {
@@ -27,11 +32,7 @@ import { trpc } from "@calcom/trpc/react";
 
 import type { Contact } from "../types";
 import { MeetingStepIndicator } from "./MeetingStepIndicator";
-import {
-  DEFAULT_STEPS,
-  HANDLED_BOOKING_FIELD_NAMES,
-  STEPS_WITH_BOOKING_FIELDS,
-} from "./ScheduleMeetingModal.constants";
+import { HANDLED_BOOKING_FIELD_NAMES } from "./ScheduleMeetingModal.constants";
 import {
   getIssueFieldName,
   isFieldVisibleInBookingView,
@@ -42,6 +43,7 @@ import { ScheduleMeetingModalConfirmStep } from "./ScheduleMeetingModalConfirmSt
 import { ScheduleMeetingModalDateTimeStep } from "./ScheduleMeetingModalDateTimeStep";
 import { ScheduleMeetingModalEventTypeStep } from "./ScheduleMeetingModalEventTypeStep";
 import { ScheduleMeetingModalGuestsStep } from "./ScheduleMeetingModalGuestsStep";
+import { ScheduleMeetingModalLocationStep } from "./ScheduleMeetingModalLocationStep";
 
 interface ScheduleMeetingModalProps {
   open: boolean;
@@ -61,6 +63,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
 
   const [step, setStep] = useState(1);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const [selectedLocationType, setSelectedLocationType] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
   const [selectedSlotTime, setSelectedSlotTime] = useState<string | null>(null);
@@ -103,6 +106,13 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
   const recurringEventConfig = selectedEventDetail?.recurringEvent ?? null;
   const isRecurringEventType = recurringEventConfig !== null && typeof recurringEventConfig.freq === "number";
   const recurringMaxCount = recurringEventConfig?.count ?? null;
+  const selectedEventLocations = useMemo(
+    () =>
+      Array.isArray(selectedEventDetail?.locations) && selectedEventDetail.locations.length > 0
+        ? selectedEventDetail.locations
+        : [{ type: JitsiLocationType }],
+    [selectedEventDetail?.locations]
+  );
 
   const bookingFieldsStepSource = useMemo(() => {
     if (!selectedEventDetail) {
@@ -132,13 +142,38 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
   );
 
   const hasExtendedBookingFields = bookingFieldsStepSource.length > 0;
+  const hasLocationSelectionStep = selectedEventLocations.length > 1;
+  const locationOptions = useMemo(
+    () =>
+      selectedEventLocations.map((location) => {
+        const locationType = getEventLocationType(location.type);
+        const locationLabel = getTranslatedLocation(location, locationType, t) ?? location.type;
+        return {
+          type: location.type,
+          label: locationLabel,
+        };
+      }),
+    [selectedEventLocations, t]
+  );
+  const stepLabels = useMemo(() => {
+    const labels = ["Event Type"];
+    if (hasLocationSelectionStep) {
+      labels.push("Location");
+    }
+    labels.push("Date & Time");
+    if (hasExtendedBookingFields) {
+      labels.push("Booking Fields");
+    }
+    labels.push("Guests", "Confirm");
+    return labels;
+  }, [hasExtendedBookingFields, hasLocationSelectionStep]);
 
-  const steps = hasExtendedBookingFields ? STEPS_WITH_BOOKING_FIELDS : DEFAULT_STEPS;
   const EVENT_TYPE_STEP = 1;
-  const DATE_TIME_STEP = 2;
-  const BOOKING_FIELDS_STEP = 3;
-  const GUESTS_STEP = hasExtendedBookingFields ? 4 : 3;
-  const CONFIRM_STEP = hasExtendedBookingFields ? 5 : 4;
+  const LOCATION_STEP = hasLocationSelectionStep ? 2 : null;
+  const DATE_TIME_STEP = hasLocationSelectionStep ? 3 : 2;
+  const BOOKING_FIELDS_STEP = hasExtendedBookingFields ? DATE_TIME_STEP + 1 : null;
+  const GUESTS_STEP = hasExtendedBookingFields ? (BOOKING_FIELDS_STEP as number) + 1 : DATE_TIME_STEP + 1;
+  const CONFIRM_STEP = GUESTS_STEP + 1;
   const BACK_FROM_GUESTS_STEP = hasExtendedBookingFields ? BOOKING_FIELDS_STEP : DATE_TIME_STEP;
 
   const defaultBookingFieldResponses = useMemo(() => {
@@ -169,6 +204,26 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     setRecurringEventCountInput(String(defaultRecurringCount));
     setRecurringEventCountWarning(null);
   }, [isRecurringEventType, recurringMaxCount, selectedEventId]);
+
+  useEffect(() => {
+    if (!selectedEventId) {
+      setSelectedLocationType(null);
+      return;
+    }
+
+    const defaultLocationType = selectedEventLocations.at(0)?.type ?? null;
+    if (!defaultLocationType) {
+      setSelectedLocationType(null);
+      return;
+    }
+
+    const isSelectedLocationStillValid = selectedEventLocations.some(
+      (location) => location.type === selectedLocationType
+    );
+    if (!selectedLocationType || !isSelectedLocationStillValid) {
+      setSelectedLocationType(defaultLocationType);
+    }
+  }, [selectedEventId, selectedEventLocations, selectedLocationType]);
 
   const selectedDateKey = selectedDate ? format(selectedDate, "yyyy-MM-dd") : null;
 
@@ -247,6 +302,32 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     }
     return getFrequencyText(recurringEventConfig.freq, recurringEventConfig.interval || 1);
   }, [isRecurringEventType, recurringEventConfig, t]);
+
+  const selectedLocation = useMemo(() => {
+    if (!selectedLocationType) {
+      return selectedEventLocations.at(0) ?? null;
+    }
+    return selectedEventLocations.find((location) => location.type === selectedLocationType) ?? null;
+  }, [selectedEventLocations, selectedLocationType]);
+
+  const selectedLocationLabel = useMemo(() => {
+    if (!selectedLocation) {
+      return null;
+    }
+
+    const eventLocationType = getEventLocationType(selectedLocation.type);
+    return getTranslatedLocation(selectedLocation, eventLocationType, t);
+  }, [selectedLocation, t]);
+
+  const locationFallbackNotice = useMemo(() => {
+    if (
+      !selectedEventDetail ||
+      (Array.isArray(selectedEventDetail.locations) && selectedEventDetail.locations.length > 0)
+    ) {
+      return null;
+    }
+    return "This event type has no configured location. Jitsi will be used by default.";
+  }, [selectedEventDetail]);
 
   const recurringSummaryText = useMemo(() => {
     if (
@@ -338,14 +419,8 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     const locationField = selectedEventDetail.bookingFields.find(
       (field) => field && field.name === SystemField.Enum.location && field.required && !field.hidden
     );
-    if (locationField) {
-      const primaryLocation = selectedEventDetail.locations.at(0);
-
-      if (!primaryLocation) {
-        return "This event type requires a location, but no location is configured.";
-      }
-
-      const attendeeInputType = isAttendeeInputRequired(primaryLocation.type);
+    if (locationField && selectedLocation) {
+      const attendeeInputType = isAttendeeInputRequired(selectedLocation.type);
 
       if (attendeeInputType === "phone" && !contact.phone.trim()) {
         return "This event type requires attendee phone, but this contact has no phone number.";
@@ -357,7 +432,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     }
 
     return null;
-  }, [contact, selectedEventDetail]);
+  }, [contact, selectedEventDetail, selectedLocation]);
 
   const createBookingMutation = useMutation({
     mutationFn: createBooking,
@@ -395,6 +470,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     if (!nextOpen) {
       setStep(EVENT_TYPE_STEP);
       setSelectedEventId(null);
+      setSelectedLocationType(null);
       setSelectedDate(undefined);
       setSelectedDuration(null);
       setSelectedSlotTime(null);
@@ -556,17 +632,17 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     }
 
     const locationField = selectedEventDetail?.bookingFields.find(
-      (field) => field.name === SystemField.Enum.location && !field.hidden
+      (field) => field?.name === SystemField.Enum.location && !field.hidden
     );
-    const primaryLocation = selectedEventDetail?.locations.at(0);
-    if (locationField && primaryLocation) {
-      const attendeeInputType = isAttendeeInputRequired(primaryLocation.type);
+    if (locationField && selectedLocation) {
+      const attendeeInputType = isAttendeeInputRequired(selectedLocation.type);
+
       const attendeePhoneValueForLocation =
         typeof responses[SystemField.Enum.attendeePhoneNumber] === "string"
           ? responses[SystemField.Enum.attendeePhoneNumber]
           : contact.phone.trim();
       responses[SystemField.Enum.location] = {
-        value: primaryLocation.type,
+        value: selectedLocation.type,
         optionValue: attendeeInputType === "phone" ? attendeePhoneValueForLocation : "",
       };
     }
@@ -586,7 +662,9 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
             type: "manual",
             message: issueMessage,
           });
-          setStep(BOOKING_FIELDS_STEP);
+          if (BOOKING_FIELDS_STEP) {
+            setStep(BOOKING_FIELDS_STEP);
+          }
         }
 
         setBookingErrorMessage("Please complete the required booking fields before confirming.");
@@ -596,8 +674,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
       responses = parsedResponses.data;
     }
 
-    const username = selectedEventDetail?.users.at(0)?.username || undefined;
-
+    const username = selectedEventDetail?.users?.at(0)?.username || undefined;
     try {
       if (isRecurringEventType && recurringEventConfig) {
         const finalRecurringCount =
@@ -670,6 +747,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
 
   const handleSelectEventType = (eventTypeId: number) => {
     setSelectedEventId(eventTypeId);
+    setSelectedLocationType(null);
     setSelectedDate(undefined);
     setSelectedDuration(null);
     setSelectedSlotTime(null);
@@ -680,7 +758,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
 
   return (
     <Dialog open={open} onOpenChange={resetAndClose}>
-      <DialogContent size="md" enableOverflow className="max-h-[90vh]">
+      <DialogContent size="md" className="flex max-h-[90vh] max-h-[90vh] flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base font-semibold">
             <Video className="h-4 w-4" />
@@ -688,7 +766,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
           </DialogTitle>
         </DialogHeader>
 
-        <MeetingStepIndicator step={step} steps={steps} />
+        <MeetingStepIndicator step={step} steps={stepLabels} />
 
         {step === EVENT_TYPE_STEP ? (
           <ScheduleMeetingModalEventTypeStep
@@ -709,6 +787,28 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
               selectedEventQuery.isError ||
               Boolean(unsupportedReason)
             }
+            onNext={() => {
+              setBookingErrorMessage(null);
+              if (LOCATION_STEP) {
+                setStep(LOCATION_STEP);
+                return;
+              }
+              setStep(DATE_TIME_STEP);
+            }}
+          />
+        ) : null}
+
+        {LOCATION_STEP && step === LOCATION_STEP ? (
+          <ScheduleMeetingModalLocationStep
+            locationOptions={locationOptions}
+            selectedLocationType={selectedLocationType}
+            onSelectLocationType={setSelectedLocationType}
+            fallbackNotice={locationFallbackNotice}
+            unsupportedReason={unsupportedReason}
+            onBack={() => {
+              setBookingErrorMessage(null);
+              setStep(EVENT_TYPE_STEP);
+            }}
             onNext={() => {
               setBookingErrorMessage(null);
               setStep(DATE_TIME_STEP);
@@ -758,11 +858,11 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
             canContinue={Boolean(selectedDate && selectedDuration && selectedSlotTime)}
             onBack={() => {
               setBookingErrorMessage(null);
-              setStep(EVENT_TYPE_STEP);
+              setStep(LOCATION_STEP ?? EVENT_TYPE_STEP);
             }}
             onNext={() => {
               setBookingErrorMessage(null);
-              setStep(hasExtendedBookingFields ? BOOKING_FIELDS_STEP : GUESTS_STEP);
+              setStep(BOOKING_FIELDS_STEP ?? GUESTS_STEP);
             }}
           />
         ) : null}
@@ -801,7 +901,9 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
             bookingErrorMessage={bookingErrorMessage}
             onBack={() => {
               setBookingErrorMessage(null);
-              setStep(BACK_FROM_GUESTS_STEP);
+              if (BACK_FROM_GUESTS_STEP) {
+                setStep(BACK_FROM_GUESTS_STEP);
+              }
             }}
             onNext={() => {
               setBookingErrorMessage(null);
@@ -813,6 +915,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
         {step === CONFIRM_STEP ? (
           <ScheduleMeetingModalConfirmStep
             selectedEventTitle={selectedEventInfo?.title}
+            selectedLocation={selectedLocationLabel}
             selectedDate={selectedDate}
             selectedSlotTime={selectedSlotTime}
             selectedDuration={selectedDuration ?? selectedEventDetail?.length ?? 0}

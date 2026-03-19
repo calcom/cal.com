@@ -6,6 +6,7 @@ import type { TimeFormat } from "@calcom/lib/timeFormat";
 
 interface ScheduleMeetingModalConfirmStepProps {
   selectedEventTitle?: string;
+  selectedLocation?: string | null;
   selectedDate?: Date;
   selectedSlotTime: string | null;
   selectedDuration: number;
@@ -24,6 +25,7 @@ interface ScheduleMeetingModalConfirmStepProps {
 
 export const ScheduleMeetingModalConfirmStep = ({
   selectedEventTitle,
+  selectedLocation,
   selectedDate,
   selectedSlotTime,
   selectedDuration,
@@ -62,6 +64,12 @@ export const ScheduleMeetingModalConfirmStep = ({
             <span className="text-muted-foreground">Duration</span>
             <span className="font-medium">{selectedDuration} min</span>
           </div>
+          {selectedLocation ? (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Location</span>
+              <span className="text-right  font-medium">{selectedLocation}</span>
+            </div>
+          ) : null}
           {isRecurringEventType ? (
             <>
               <div className="flex justify-between">
