@@ -108,6 +108,7 @@ export const getEventTypesFromDB = async (id: number) => {
       schedulingType: true,
       periodStartDate: true,
       periodEndDate: true,
+      shouldMergePhoneSystemFields: true,
       parent: {
         select: {
           teamId: true,
@@ -168,7 +169,7 @@ export const handleSeatsEventTypeOnBooking = async (
   seatReferenceUid?: string,
   isHost?: boolean
 ) => {
-  bookingInfo["responses"] = {};
+  bookingInfo.responses = {};
   type seatAttendee = {
     attendee: {
       email: string;
@@ -203,8 +204,8 @@ export const handleSeatsEventTypeOnBooking = async (
       description?: string;
       responses: Prisma.JsonValue;
     };
-    bookingInfo["description"] = seatAttendeeData.description ?? null;
-    bookingInfo["responses"] = bookingResponsesDbSchema.parse(seatAttendeeData.responses ?? {});
+    bookingInfo.description = seatAttendeeData.description ?? null;
+    bookingInfo.responses = bookingResponsesDbSchema.parse(seatAttendeeData.responses ?? {});
   }
 
   if (!eventType.seatsShowAttendees && !isHost) {
@@ -215,9 +216,9 @@ export const handleSeatsEventTypeOnBooking = async (
           (a.phoneNumber && a.phoneNumber === seatAttendee?.attendee?.phoneNumber)
         );
       });
-      bookingInfo["attendees"] = attendee ? [attendee] : [];
+      bookingInfo.attendees = attendee ? [attendee] : [];
     } else {
-      bookingInfo["attendees"] = [];
+      bookingInfo.attendees = [];
     }
   }
 

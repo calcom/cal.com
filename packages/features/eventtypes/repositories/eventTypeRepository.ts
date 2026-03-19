@@ -742,6 +742,7 @@ export class EventTypeRepository implements IEventTypesRepository {
         },
       },
       enablePerHostLocations: true,
+      shouldMergePhoneSystemFields: true,
       userId: true,
       price: true,
       children: {
@@ -1059,6 +1060,7 @@ export class EventTypeRepository implements IEventTypesRepository {
         },
       },
       enablePerHostLocations: true,
+      shouldMergePhoneSystemFields: true,
       userId: true,
       price: true,
       children: {
@@ -1909,8 +1911,8 @@ export class EventTypeRepository implements IEventTypesRepository {
     }
 
     if (teamId && !isAll) {
-      membershipWhereConditional["teamId"] = teamId;
-      membershipWhereConditional["userId"] = user.id;
+      membershipWhereConditional.teamId = teamId;
+      membershipWhereConditional.userId = user.id;
     }
 
     // I'm not using unique here since when userId comes from input we should look for every
@@ -1926,7 +1928,7 @@ export class EventTypeRepository implements IEventTypesRepository {
     const eventTypeWhereConditional: Prisma.EventTypeWhereInput = {};
 
     if (teamId && !isAll) {
-      eventTypeWhereConditional["teamId"] = teamId;
+      eventTypeWhereConditional.teamId = teamId;
     }
 
     let isMember = membership?.role === "MEMBER";
@@ -1935,7 +1937,7 @@ export class EventTypeRepository implements IEventTypesRepository {
     }
 
     if (isMember) {
-      eventTypeWhereConditional["OR"] = [{ userId: user.id }, { users: { some: { id: user.id } } }];
+      eventTypeWhereConditional.OR = [{ userId: user.id }, { users: { some: { id: user.id } } }];
       // @TODO this is not working as expected
       // hosts: { some: { id: user.id } },
     }

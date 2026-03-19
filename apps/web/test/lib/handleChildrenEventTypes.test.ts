@@ -150,6 +150,7 @@ describe("handleChildrenEventTypes", () => {
         instantMeetingScheduleId,
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
+        shouldMergePhoneSystemFields,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -178,6 +179,7 @@ describe("handleChildrenEventTypes", () => {
         instantMeetingScheduleId,
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
+        shouldMergePhoneSystemFields,
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
@@ -241,6 +243,7 @@ describe("handleChildrenEventTypes", () => {
         instantMeetingScheduleId,
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
+        shouldMergePhoneSystemFields,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -369,6 +372,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
+        shouldMergePhoneSystemFields,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -398,6 +402,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
+        shouldMergePhoneSystemFields,
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
@@ -463,6 +468,7 @@ describe("handleChildrenEventTypes", () => {
         useEventLevelSelectedCalendars,
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
+        shouldMergePhoneSystemFields,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -539,6 +545,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
+        shouldMergePhoneSystemFields,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -575,6 +582,7 @@ describe("handleChildrenEventTypes", () => {
         assignRRMembersUsingSegment,
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
+        shouldMergePhoneSystemFields,
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
@@ -602,6 +610,7 @@ describe("handleChildrenEventTypes", () => {
         includeNoShowInRRCalculation: false,
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
+        shouldMergePhoneSystemFields,
         ...evType,
       };
 
@@ -609,7 +618,7 @@ describe("handleChildrenEventTypes", () => {
         ...mockUpdatedEventType,
         createdAt: new Date(),
         updatedAt: new Date(),
-      });
+      } as EventType);
 
       // Mock workflowsOnEventTypes.findMany to return empty array (no existing workflow links for old event types)
       // This is needed because the new implementation uses findMany + createMany instead of upsert

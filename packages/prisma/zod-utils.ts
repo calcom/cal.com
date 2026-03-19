@@ -102,7 +102,7 @@ const raqbChildren1Schema = z.record(raqbChildSchema).superRefine((children1, ct
 
     const value = rule.properties.value || [];
     const valueSrc = rule.properties.valueSrc;
-    if (!(value instanceof Array) || !(valueSrc instanceof Array)) {
+    if (!Array.isArray(value) || !Array.isArray(valueSrc)) {
       return;
     }
 
@@ -342,8 +342,8 @@ export const stringToDate = z.string().transform((a) => new Date(a));
 
 export const stringOrNumber = z.union([
   z.string().transform((v, ctx) => {
-    const parsed = parseInt(v);
-    if (isNaN(parsed)) {
+    const parsed = parseInt(v, 10);
+    if (Number.isNaN(parsed)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Not a number",
@@ -1133,6 +1133,35 @@ export const variantsConfigSchema = z.object({
   ),
 });
 
+/**
+ * Represents a source that contributes a booking field.
+ * Multiple sources can reference the same field (e.g. a workflow and a location both need a phone number).
+ *
+ * NOTE: Static properties like bookerInfo, icons, and display labels are NOT stored in the DB.
+ * They are derived at read-time from SOURCES_CONFIG based on type/subType.
+ * See: packages/features/form-builder/staticConfig.ts
+ */
+export const fieldSourceSchema = z.object({
+  /** Unique ID scoped to the source type. For workflows this is the workflow ID. */
+  id: z.string(),
+  /** The category of source: "default" (code-defined), "workflow", "location", "user", or "system". */
+  type: z.union([z.literal("user"), z.literal("system"), z.string()]),
+  /** Human-readable label shown in the form builder UI (e.g. workflow name). */
+  label: z.string(),
+  /** Optional link to edit the source (e.g. /workflows/123). */
+  editUrl: z.string().optional(),
+  /** Whether this source requires the field to be filled in. Aggregated across sources to set field.required. */
+  fieldRequired: z.boolean().optional(),
+  /**
+   * Sub-classification within the source type.
+   * Auto-populated from workflow step action type (e.g. "sms", "calai").
+   * Used to derive static config properties at read-time.
+   */
+  subType: z.enum(["sms", "calai"]).optional(),
+});
+
+export type FieldSource = z.infer<typeof fieldSourceSchema>;
+
 export const fieldSchema = baseFieldSchema.merge(
   z.object({
     variant: z.string().optional(),
@@ -1154,19 +1183,7 @@ export const fieldSchema = baseFieldSchema.merge(
 
     hidden: z.boolean().optional(),
     editable: EditableSchema.default("user").optional(),
-    sources: z
-      .array(
-        z.object({
-          // Unique ID for the `type`. If type is workflow, it's the workflow ID
-          id: z.string(),
-          type: z.union([z.literal("user"), z.literal("system"), z.string()]),
-          label: z.string(),
-          editUrl: z.string().optional(),
-          // Mark if a field is required by this source or not. This allows us to set `field.required` based on all the sources' fieldRequired value
-          fieldRequired: z.boolean().optional(),
-        })
-      )
-      .optional(),
+    sources: z.array(fieldSourceSchema).optional(),
     disableOnPrefill: z.boolean().default(false).optional(),
   })
 );

@@ -101,6 +101,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     calVideoSettings,
     hostGroups,
     enablePerHostLocations,
+    shouldMergePhoneSystemFields,
     ...rest
   } = input;
 
@@ -269,6 +270,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     seatsPerTimeSlot,
     maxLeadThreshold: isLoadBalancingDisabled ? null : rest.maxLeadThreshold,
     ...(enablePerHostLocations !== undefined && { enablePerHostLocations }),
+    ...(shouldMergePhoneSystemFields !== undefined && { shouldMergePhoneSystemFields }),
   };
   data.locations = locations ?? undefined;
 

@@ -157,6 +157,7 @@ const commons = {
   updatedAt: null,
   rrHostSubsetEnabled: false,
   enablePerHostLocations: false,
+  shouldMergePhoneSystemFields: true,
   redirectUrlOnNoRoutingFormResponse: null,
 };
 

@@ -1,19 +1,33 @@
-import type { z } from "zod";
-
+import type { LocationObject } from "@calcom/app-store/locations";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
-import { SMS_REMINDER_NUMBER_FIELD, CAL_AI_AGENT_PHONE_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
+import { CAL_AI_AGENT_PHONE_NUMBER_FIELD, SMS_REMINDER_NUMBER_FIELD } from "@calcom/lib/bookings/SystemField";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import slugify from "@calcom/lib/slugify";
-import type { EventTypeCustomInput, EventType } from "@calcom/prisma/client";
+import type { EventType, EventTypeCustomInput } from "@calcom/prisma/client";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 import {
   BookingFieldTypeEnum,
   customInputSchema,
-  eventTypeBookingFields,
   EventTypeMetaDataSchema,
+  eventTypeBookingFields,
+  type FieldSource,
 } from "@calcom/prisma/zod-utils";
+import type { z } from "zod";
+import {
+  getAIAgentCallPhoneNumberField,
+  getAIAgentCallPhoneNumberSource,
+  getAttendeePhoneNumberField,
+  getAttendeePhoneNumberSource,
+  getSmsReminderNumberField,
+  getSmsReminderNumberSource,
+} from "./unified-phone-fields/fieldSources";
+import {
+  mergePhoneFieldSources,
+  SUB_TYPE_MAP,
+  splitPhoneFieldSources,
+} from "./unified-phone-fields/managePhoneFields";
 
 export type Fields = z.infer<typeof eventTypeBookingFields>;
 
@@ -29,51 +43,29 @@ function upperCaseToCamelCase(upperCaseString: string) {
   return upperCaseString[0].toUpperCase() + upperCaseString.slice(1).toLowerCase();
 }
 
-export const getSmsReminderNumberField = () =>
-  ({
-    name: SMS_REMINDER_NUMBER_FIELD,
-    type: "phone",
-    defaultLabel: "number_text_notifications",
-    defaultPlaceholder: "enter_phone_number",
-    editable: "system",
-  }) as const;
+export {
+  getSmsReminderNumberField,
+  getSmsReminderNumberSource,
+  getAIAgentCallPhoneNumberField,
+  getAIAgentCallPhoneNumberSource,
+  getAttendeePhoneNumberField,
+  getAttendeePhoneNumberSource,
+};
 
-export const getSmsReminderNumberSource = ({
-  workflowId,
-  isSmsReminderNumberRequired,
+/**
+ * DB sources take precedence (by id), but code-defined sources not present in
+ * DB are appended so that newly introduced sources in code survive the merge.
+ */
+function mergeFieldSources({
+  codeSources,
+  dbSources,
 }: {
-  workflowId: Workflow["id"];
-  isSmsReminderNumberRequired: boolean;
-}) => ({
-  id: `${workflowId}`,
-  type: "workflow",
-  label: "Workflow",
-  fieldRequired: isSmsReminderNumberRequired,
-  editUrl: `/workflows/${workflowId}`,
-});
-
-export const getAIAgentCallPhoneNumberField = () =>
-  ({
-    name: CAL_AI_AGENT_PHONE_NUMBER_FIELD,
-    type: "phone",
-    defaultLabel: "phone_number_for_ai_call",
-    defaultPlaceholder: "enter_phone_number",
-    editable: "system",
-  }) as const;
-
-export const getAIAgentCallPhoneNumberSource = ({
-  workflowId,
-  isAIAgentCallPhoneNumberRequired,
-}: {
-  workflowId: Workflow["id"];
-  isAIAgentCallPhoneNumberRequired: boolean;
-}) => ({
-  id: `${workflowId}`,
-  type: "workflow",
-  label: "Workflow",
-  fieldRequired: isAIAgentCallPhoneNumberRequired,
-  editUrl: `/workflows/${workflowId}`,
-});
+  codeSources: FieldSource[];
+  dbSources: FieldSource[];
+}): FieldSource[] {
+  const newCodeSources = codeSources.filter((codeSrc) => !dbSources.some((dbSrc) => dbSrc.id === codeSrc.id));
+  return [...dbSources, ...newCodeSources];
+}
 
 /**
  * This fn is the key to ensure on the fly mapping of customInputs to bookingFields and ensuring that all the systems fields are present and correctly ordered in bookingFields
@@ -86,6 +78,8 @@ export const getBookingFieldsWithSystemFields = ({
   customInputs,
   metadata,
   workflows,
+  shouldMergePhoneSystemFields,
+  locations = [],
 }: {
   bookingFields: Fields | EventType["bookingFields"];
   disableGuests: boolean;
@@ -96,10 +90,13 @@ export const getBookingFieldsWithSystemFields = ({
   workflows: {
     workflow: Workflow;
   }[];
+  shouldMergePhoneSystemFields?: boolean | null;
+  locations?: EventType["locations"] | LocationObject[];
 }) => {
   const parsedMetaData = EventTypeMetaDataSchema.parse(metadata || {});
   const parsedBookingFields = eventTypeBookingFields.parse(bookingFields || []);
   const parsedCustomInputs = customInputSchema.array().parse(customInputs || []);
+  const parsedLocations = (Array.isArray(locations) ? locations : []) as LocationObject[];
   workflows = workflows || [];
   return ensureBookingInputsHaveSystemFields({
     bookingFields: parsedBookingFields,
@@ -109,7 +106,21 @@ export const getBookingFieldsWithSystemFields = ({
     additionalNotesRequired: parsedMetaData?.additionalNotesRequired || false,
     customInputs: parsedCustomInputs,
     workflows,
+    shouldMergePhoneSystemFields,
+    locations: parsedLocations,
   });
+};
+
+/**
+ * Returns booking fields with system fields but with phone fields kept as separate/split fields
+ * (attendeePhoneNumber, smsReminderNumber, calAIAgentPhoneNumber) instead of unified.
+ * Use this only when you need to manipulate individual phone fields (e.g., upserting workflow sources).
+ * For all other cases, use `getBookingFieldsWithSystemFields` which applies unification based on the event type setting.
+ */
+export const getBookingFieldsSplit = (
+  params: Omit<Parameters<typeof getBookingFieldsWithSystemFields>[0], "shouldMergePhoneSystemFields">
+) => {
+  return getBookingFieldsWithSystemFields({ ...params, shouldMergePhoneSystemFields: null });
 };
 
 export const ensureBookingInputsHaveSystemFields = ({
@@ -120,6 +131,8 @@ export const ensureBookingInputsHaveSystemFields = ({
   additionalNotesRequired,
   customInputs,
   workflows,
+  shouldMergePhoneSystemFields,
+  locations = [],
 }: {
   bookingFields: Fields;
   disableGuests: boolean;
@@ -130,6 +143,8 @@ export const ensureBookingInputsHaveSystemFields = ({
   workflows: {
     workflow: Workflow;
   }[];
+  shouldMergePhoneSystemFields?: boolean | null;
+  locations?: LocationObject[];
 }) => {
   // If bookingFields is set already, the migration is done.
   const hideBookingTitle = disableBookingTitle ?? true;
@@ -144,14 +159,22 @@ export const ensureBookingInputsHaveSystemFields = ({
   };
 
   const smsNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
+  const calaiNumberSources = [] as NonNullable<(typeof bookingFields)[number]["sources"]>;
   workflows.forEach((workflow) => {
     workflow.workflow.steps.forEach((step) => {
       if (step.action === "SMS_ATTENDEE" || step.action === "WHATSAPP_ATTENDEE") {
-        const workflowId = workflow.workflow.id;
         smsNumberSources.push(
           getSmsReminderNumberSource({
-            workflowId,
+            workflowId: workflow.workflow.id,
             isSmsReminderNumberRequired: !!step.numberRequired,
+          })
+        );
+      }
+      if (step.action === "CAL_AI_PHONE_CALL") {
+        calaiNumberSources.push(
+          getAIAgentCallPhoneNumberSource({
+            workflowId: workflow.workflow.id,
+            isAIAgentCallPhoneNumberRequired: !!step.numberRequired,
           })
         );
       }
@@ -205,6 +228,15 @@ export const ensureBookingInputsHaveSystemFields = ({
           id: "default",
           type: "default",
         },
+        ...(shouldMergePhoneSystemFields && locations.some((l) => l.type === "phone")
+          ? [
+              {
+                label: "Attendee Location",
+                id: "attendee-location",
+                type: "location" as const,
+              },
+            ]
+          : []),
       ],
     },
     {
@@ -324,30 +356,67 @@ export const ensureBookingInputsHaveSystemFields = ({
       missingSystemBeforeFields.push(field);
     } else {
       // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
+      const dbField = bookingFields[existingBookingFieldIndex];
       bookingFields[existingBookingFieldIndex] = {
         ...field,
-        ...bookingFields[existingBookingFieldIndex],
+        ...dbField,
+        sources: mergeFieldSources({ codeSources: field.sources ?? [], dbSources: dbField.sources ?? [] }),
       };
     }
   }
 
   bookingFields = missingSystemBeforeFields.concat(bookingFields);
 
-  // Backward Compatibility for SMS Reminder Number
-  // Note: We still need workflows in `getBookingFields` due to Backward Compatibility. If we do a one time entry for all event-types, we can remove workflows from `getBookingFields`
-  // Also, note that even if Workflows don't explicitly add smsReminderNumber field to bookingFields, it would be added as a side effect of this backward compatibility logic
-  if (
-    smsNumberSources.length &&
-    !bookingFields.find((f) => getFieldIdentifier(f.name) !== getFieldIdentifier(SMS_REMINDER_NUMBER_FIELD))
-  ) {
-    const indexForLocation = bookingFields.findIndex(
-      (f) => getFieldIdentifier(f.name) === getFieldIdentifier("location")
-    );
-    // Add the SMS Reminder Number field after `location` field always
-    bookingFields.splice(indexForLocation + 1, 0, {
-      ...getSmsReminderNumberField(),
-      sources: smsNumberSources,
+  if (shouldMergePhoneSystemFields === true) {
+    bookingFields = mergePhoneFieldSources(bookingFields, [...smsNumberSources, ...calaiNumberSources]);
+  } else {
+    // 1. Split any merged sources from attendeePhoneNumber into separate fields
+    // If it is null then it means there can't be anything merged, that needs explicit split.
+    // Though ideally splitting an already never merged bookingFields should be no-op, it makes the intent clear and makes things easier to roll out
+    if (shouldMergePhoneSystemFields === false) {
+      bookingFields = splitPhoneFieldSources(bookingFields);
+    }
+
+    // 2. Tag legacy workflow sources with subType for consent footer display
+    //    (needed for old event types created before subType system; no-op for newer ones)
+    bookingFields = bookingFields.map((field) => {
+      const subType = SUB_TYPE_MAP[getFieldIdentifier(field.name)];
+      if (!subType || !field.sources) return field;
+      return {
+        ...field,
+        sources: field.sources.map((s) => (s.type === "workflow" && !s.subType ? { ...s, subType } : s)),
+      };
     });
+
+    // 3. Add missing SMS/calAI fields when active workflows exist
+    // Note: We still need workflows in `getBookingFields` due to Backward Compatibility. If we do a one time entry for all event-types, we can remove workflows from `getBookingFields`
+    if (
+      smsNumberSources.length &&
+      !bookingFields.find((f) => getFieldIdentifier(f.name) !== getFieldIdentifier(SMS_REMINDER_NUMBER_FIELD))
+    ) {
+      const indexForLocation = bookingFields.findIndex(
+        (f) => getFieldIdentifier(f.name) === getFieldIdentifier("location")
+      );
+      bookingFields.splice(indexForLocation + 1, 0, {
+        ...getSmsReminderNumberField(),
+        sources: smsNumberSources,
+      });
+    }
+
+    if (
+      calaiNumberSources.length &&
+      !bookingFields.find(
+        (f) => getFieldIdentifier(f.name) === getFieldIdentifier(CAL_AI_AGENT_PHONE_NUMBER_FIELD)
+      )
+    ) {
+      const indexForLocation = bookingFields.findIndex(
+        (f) => getFieldIdentifier(f.name) === getFieldIdentifier("location")
+      );
+      bookingFields.splice(indexForLocation + 1, 0, {
+        ...getAIAgentCallPhoneNumberField(),
+        sources: calaiNumberSources,
+      });
+    }
   }
 
   // Backward Compatibility: If we are migrating from old system, we need to map `customInputs` to `bookingFields`
@@ -385,10 +454,15 @@ export const ensureBookingInputsHaveSystemFields = ({
     if (existingBookingFieldIndex === -1) {
       missingSystemAfterFields.push(field);
     } else {
+      const dbFieldAfter = bookingFields[existingBookingFieldIndex];
       bookingFields[existingBookingFieldIndex] = {
         // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
         ...field,
-        ...bookingFields[existingBookingFieldIndex],
+        ...dbFieldAfter,
+        sources: mergeFieldSources({
+          codeSources: field.sources ?? [],
+          dbSources: dbFieldAfter.sources ?? [],
+        }),
       };
     }
   }

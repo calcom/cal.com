@@ -6,7 +6,12 @@ import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/children
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
-import type { CancellationReasonRequirement, MembershipRole, PeriodType, SchedulingType } from "@calcom/prisma/enums";
+import type {
+  CancellationReasonRequirement,
+  MembershipRole,
+  PeriodType,
+  SchedulingType,
+} from "@calcom/prisma/enums";
 import type {
   BookerLayoutSettings,
   CustomInputSchema,
@@ -198,6 +203,7 @@ export type FormValues = {
   calVideoSettings?: CalVideoSettings;
   maxActiveBookingPerBookerOfferReschedule: boolean;
   enablePerHostLocations: boolean;
+  shouldMergePhoneSystemFields?: boolean | null;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
@@ -447,6 +453,7 @@ export type EventTypeUpdateInput = {
   multiplePrivateLinks?: (string | HashedLinkInput)[];
   hostGroups?: HostGroupInput[];
   enablePerHostLocations?: boolean;
+  shouldMergePhoneSystemFields?: boolean | null;
 };
 
 export type TabMap = {
