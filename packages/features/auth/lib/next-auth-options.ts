@@ -49,7 +49,7 @@ import type { UserProfile } from "@calcom/types/UserProfile";
 import { calendar_v3 } from "@googleapis/calendar";
 import { waitUntil } from "@vercel/functions";
 import { OAuth2Client } from "googleapis-common";
-import { encode } from "next-auth/jwt";
+import { encode, decode } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
@@ -187,23 +187,60 @@ export async function authorizeCredentials(
 
   const hasTotpOrBackup = !!(credentials.totpCode || credentials.backupCode);
   const passwordMissingOrEmpty = !credentials.password || credentials.password.trim() === "";
-  const isTotpOnlyFlow = user.twoFactorEnabled && hasTotpOrBackup && passwordMissingOrEmpty && user.identityProvider !== IdentityProvider.CAL;
+
+  // Verify that this request is a valid continuation of an OAuth/IdP → TOTP-only redirect
+  // by checking the JWT issued for `/auth/login?totp=...` (if provided as a credential).
+  let isValidTotpJwt = false;
+  if (credentials.totpJwt && process.env.NEXTAUTH_SECRET) {
+    try {
+      const decodedToken = await decode({
+        token: credentials.totpJwt,
+        secret: process.env.NEXTAUTH_SECRET,
+      });
+      if (decodedToken && typeof decodedToken === "object") {
+        // Ensure the token is bound to this user; adapt fields as needed for your JWT payload.
+        if (decodedToken.email === user.email && (decodedToken as any).totp === true) {
+          isValidTotpJwt = true;
+        }
+      }
+    } catch {
+      isValidTotpJwt = false;
+    }
+  }
+
+  const isTotpOnlyFlow =
+    user.twoFactorEnabled &&
+    hasTotpOrBackup &&
+    passwordMissingOrEmpty &&
+    user.identityProvider !== IdentityProvider.CAL &&
+    isValidTotpJwt;
 
   // Users without a password must use their identity provider (Google/SAML) to login.
-  // Exception: OAuth/IdP users with MFA are redirected to TOTP-only form; allow verify via TOTP/backup only.
+  // Exception: OAuth/IdP users with MFA are redirected to TOTP-only form; allow verify via TOTP/backup only
+  // when the request is cryptographically tied to the OAuth/IdP redirect via the TOTP JWT.
   if (!user.password?.hash) {
-    if (!(user.twoFactorEnabled && hasTotpOrBackup && user.identityProvider !== IdentityProvider.CAL)) {
+    if (!isTotpOnlyFlow) {
       throw new Error(ErrorCode.IncorrectEmailPassword);
     }
     // Skip password verification, proceed to 2FA verification below.
-  } else if (!isTotpOnlyFlow) {
-    // User has password and we're not in TOTP-only flow (e.g. OAuth→MFA): verify password.
-    const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
-    if (!isCorrectPassword) {
+  } else {
+    // User has a password.
+    if (passwordMissingOrEmpty && !isTotpOnlyFlow) {
+      // No password provided and not in a verified TOTP-only OAuth/IdP continuation.
       throw new Error(ErrorCode.IncorrectEmailPassword);
     }
+
+    if (!isTotpOnlyFlow) {
+      // User has password and we're not in TOTP-only flow (e.g. standard email/password login):
+      // verify password. At this point, credentials.password is guaranteed to be non-empty.
+      const isCorrectPassword = await verifyPassword(credentials.password, user.password.hash);
+      if (!isCorrectPassword) {
+        throw new Error(ErrorCode.IncorrectEmailPassword);
+      }
+    }
   }
-  // else: TOTP-only flow with user who has password (OAuth→MFA, form only sends email+totp) → skip password, proceed to 2FA.
+  // else: TOTP-only flow (OAuth→MFA, form only sends email+totp) with a valid TOTP JWT →
+  // skip password verification, proceed to 2FA verification below.
 
   if (user.twoFactorEnabled && credentials.backupCode) {
     if (!process.env.CALENDSO_ENCRYPTION_KEY) {
