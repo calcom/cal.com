@@ -1,9 +1,11 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { shouldSkipAttendeeEmailWithSettings, fetchOrganizationEmailSettings } from "./email-manager";
+import renderEmail from "./src/renderEmail";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
 
 const mockGetEmailSettings = vi.fn();
@@ -404,5 +406,45 @@ describe("AttendeeScheduledEmail - Privacy fix for seated events", () => {
         "attendee2@example.com",
       ]);
     });
+  });
+});
+
+describe("AttendeeScheduledEmail - Time format fallback", () => {
+  const createMockPerson = (name: string, email: string): Person => ({
+    name,
+    email,
+    timeZone: "America/New_York",
+    language: {
+      translate: vi.fn((key: string) => key),
+      locale: "en",
+    },
+  });
+
+  it("uses organizer time format when attendee time format is missing", async () => {
+    const recipient = createMockPerson("Booker", "booker@example.com");
+
+    const calEvent = {
+      title: "Test Event",
+      type: "Test Event Type",
+      startTime: "2024-01-01T10:00:00Z",
+      endTime: "2024-01-01T11:00:00Z",
+      organizer: {
+        ...createMockPerson("Organizer", "organizer@example.com"),
+        timeFormat: TimeFormat.TWENTY_FOUR_HOUR,
+      },
+      attendees: [recipient],
+    } as CalendarEvent;
+
+    const email = new AttendeeScheduledEmail(calEvent, recipient);
+    await email.getHtml(calEvent, recipient);
+
+    expect(vi.mocked(renderEmail)).toHaveBeenCalledWith(
+      "AttendeeScheduledEmail",
+      expect.objectContaining({
+        attendee: expect.objectContaining({
+          timeFormat: TimeFormat.TWENTY_FOUR_HOUR,
+        }),
+      })
+    );
   });
 });
