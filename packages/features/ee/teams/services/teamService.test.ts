@@ -6,7 +6,7 @@ import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/cr
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
-import type { Membership, Profile, Team, User, VerificationToken } from "@calcom/prisma/client";
+import type { Team, Membership, Profile, User, VerificationToken } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TeamService } from "./teamService";
@@ -28,6 +28,12 @@ vi.mock("@calcom/features/profile/lib/createAProfileForAnExistingUser");
 vi.mock("@calcom/features/ee/teams/lib/queries");
 vi.mock("@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService", () => ({
   SeatChangeTrackingService: MockSeatChangeTrackingService,
+}));
+const mockMoveCreditsFromTeamToUser = vi.fn().mockResolvedValue(undefined);
+vi.mock("@calcom/features/ee/billing/credit-service", () => ({
+  CreditService: class {
+    moveCreditsFromTeamToUser = mockMoveCreditsFromTeamToUser;
+  },
 }));
 
 vi.mock("@calcom/prisma", () => ({
@@ -52,6 +58,7 @@ describe("TeamService", () => {
     vi.resetAllMocks();
     mockTeamBillingFactory.findAndInit.mockResolvedValue(mockTeamBilling);
     mockTeamBillingFactory.findAndInitMany.mockResolvedValue([mockTeamBilling]);
+    mockMoveCreditsFromTeamToUser.mockResolvedValue(undefined);
 
     const { getTeamBillingServiceFactory } = await import("@calcom/ee/billing/di/containers/Billing");
     vi.mocked(getTeamBillingServiceFactory).mockReturnValue(mockTeamBillingFactory);
@@ -62,7 +69,7 @@ describe("TeamService", () => {
   });
 
   describe("delete", () => {
-    it("should delete team, cancel billing, and clean up", async () => {
+    it("should delete team, cancel billing, transfer credits, and clean up", async () => {
       const mockDeletedTeam = {
         id: 1,
         name: "Deleted Team",
@@ -78,13 +85,40 @@ describe("TeamService", () => {
         return mockTeamRepo;
       });
 
-      const result = await TeamService.delete({ id: 1 });
+      const result = await TeamService.delete({ id: 1, deletedByUserId: 42 });
 
       expect(mockTeamBillingFactory.findAndInit).toHaveBeenCalledWith(1);
       expect(mockTeamBilling.cancel).toHaveBeenCalled();
+      expect(mockMoveCreditsFromTeamToUser).toHaveBeenCalledWith({ teamId: 1, userId: 42 });
       expect(WorkflowService.deleteWorkflowRemindersOfRemovedTeam).toHaveBeenCalledWith(1);
       expect(mockTeamRepo.deleteById).toHaveBeenCalledWith({ id: 1 });
       expect(deleteDomain).toHaveBeenCalledWith("deleted-team");
+      expect(result).toEqual(mockDeletedTeam);
+    });
+
+    it("should continue deletion even if credit transfer fails", async () => {
+      const mockDeletedTeam = {
+        id: 1,
+        name: "Deleted Team",
+        isOrganization: false,
+        slug: null,
+      };
+      mockMoveCreditsFromTeamToUser.mockRejectedValue(new Error("Credit transfer failed"));
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      const mockTeamRepo = {
+        deleteById: vi.fn().mockResolvedValue(mockDeletedTeam),
+      } as Pick<TeamRepository, "deleteById">;
+      vi.mocked(TeamRepository).mockImplementation(function () {
+        return mockTeamRepo;
+      });
+
+      const result = await TeamService.delete({ id: 1, deletedByUserId: 42 });
+
+      // Credit transfer was attempted
+      expect(mockMoveCreditsFromTeamToUser).toHaveBeenCalledWith({ teamId: 1, userId: 42 });
+      // Deletion still proceeded despite credit transfer failure
+      expect(mockTeamRepo.deleteById).toHaveBeenCalledWith({ id: 1 });
       expect(result).toEqual(mockDeletedTeam);
     });
   });

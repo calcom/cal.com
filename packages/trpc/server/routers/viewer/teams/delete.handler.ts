@@ -37,7 +37,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
 
   if (!hasPermission) throw new TRPCError({ code: "FORBIDDEN" });
 
-  return await TeamService.delete({ id: input.teamId });
+  return await TeamService.delete({ id: input.teamId, deletedByUserId: ctx.user.id });
 };
 
 export default deleteHandler;

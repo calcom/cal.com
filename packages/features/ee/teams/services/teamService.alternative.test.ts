@@ -17,6 +17,11 @@ vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
 vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService");
 vi.mock("@calcom/lib/domainManager/organization");
 vi.mock("@calcom/features/ee/teams/lib/removeMember");
+vi.mock("@calcom/features/ee/billing/credit-service", () => ({
+  CreditService: class {
+    moveCreditsFromTeamToUser = vi.fn().mockResolvedValue(undefined);
+  },
+}));
 class Database {
   teams = new Map();
   domains = new Set();
@@ -101,7 +106,7 @@ describe("TeamService", () => {
 
   describe("delete", () => {
     it("should delete team, cancel billing, and clean up", async () => {
-      const result = await TeamService.delete({ id: 1 });
+      const result = await TeamService.delete({ id: 1, deletedByUserId: 42 });
 
       // Verify the team was deleted from the database
       expect(database.teams.has(1)).toBe(false);

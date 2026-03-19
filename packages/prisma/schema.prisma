@@ -732,12 +732,13 @@ enum CreditType {
 
 enum CreditTransferReason {
   TEAM_UPGRADED_TO_ORG
+  TEAM_DELETED
 }
 
 model CreditTransferLog {
   id                  String               @id @default(uuid())
-  fromCreditBalanceId String
-  fromCreditBalance   CreditBalance        @relation("FromCreditBalance", fields: [fromCreditBalanceId], references: [id], onDelete: Cascade)
+  fromCreditBalanceId String?
+  fromCreditBalance   CreditBalance?       @relation("FromCreditBalance", fields: [fromCreditBalanceId], references: [id], onDelete: SetNull)
   toCreditBalanceId   String
   toCreditBalance     CreditBalance        @relation("ToCreditBalance", fields: [toCreditBalanceId], references: [id], onDelete: Cascade)
   credits             Int

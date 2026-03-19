@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
@@ -114,7 +115,7 @@ export class TeamService {
    * Deletes a team and all its associated data in a safe, transactional order.
    * External, critical services like billing are handled first to prevent data inconsistencies.
    */
-  static async delete({ id }: { id: number }) {
+  static async delete({ id, deletedByUserId }: { id: number; deletedByUserId: number }) {
     // Step 1: Cancel the external billing subscription first.
     // If this fails, the entire operation aborts, leaving the team and its data intact.
     // This prevents a state where the user is billed for a deleted team.
@@ -123,21 +124,31 @@ export class TeamService {
     const teamBillingService = await teamBillingServiceFactory.findAndInit(id);
     await teamBillingService.cancel();
 
-    // Step 2: Clean up internal, related data like workflow reminders.
+    // Step 2: Transfer any remaining credits to the user who is deleting the team.
+    try {
+      const creditService = new CreditService();
+      await creditService.moveCreditsFromTeamToUser({ teamId: id, userId: deletedByUserId });
+    } catch (e) {
+      // Log the error, but don't abort the deletion.
+      // Credits are important but not critical enough to prevent team deletion.
+      log.error(`Failed to transfer credits for team ${id} to user ${deletedByUserId}`, e);
+    }
+
+    // Step 3: Clean up internal, related data like workflow reminders.
     try {
       await WorkflowService.deleteWorkflowRemindersOfRemovedTeam(id);
     } catch (e) {
       // Log the error, but don't abort the deletion.
       // It's better to have a deleted team with orphaned reminders than to halt the process
       // after the subscription has already been canceled.
-      logger.error(`Failed to delete workflow reminders for team ${id}`, e);
+      log.error(`Failed to delete workflow reminders for team ${id}`, e);
     }
 
-    // Step 3: Delete the team from the database. This is the core "commit" point.
+    // Step 4: Delete the team from the database. This is the core "commit" point.
     const teamRepo = new TeamRepository(prisma);
     const deletedTeam = await teamRepo.deleteById({ id });
 
-    // Step 4: Clean up any final, non-critical external state.
+    // Step 5: Clean up any final, non-critical external state.
     if (deletedTeam && deletedTeam.isOrganization && deletedTeam.slug) {
       deleteDomain(deletedTeam.slug);
     }

@@ -1,4 +1,5 @@
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { TeamService } from "@calcom/platform-libraries";
 import { TeamOutputDto } from "@calcom/platform-types";
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
@@ -107,8 +108,8 @@ export class TeamsController {
   @ApiOperation({ summary: "Delete a team" })
   @Roles("TEAM_OWNER")
   @OAuthPermissions(["TEAM_PROFILE_WRITE"])
-  async deleteTeam(@Param("teamId", ParseIntPipe) teamId: number): Promise<OrgTeamOutputResponseDto> {
-    const team = await this.teamsRepository.delete(teamId);
+  async deleteTeam(@Param("teamId", ParseIntPipe) teamId: number, @GetUser() user: UserWithProfile): Promise<OrgTeamOutputResponseDto> {
+    const team = await TeamService.delete({ id: teamId, deletedByUserId: user.id });
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(TeamOutputDto, team, { strategy: "excludeAll" }),

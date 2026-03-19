@@ -798,6 +798,70 @@ export class CreditService {
     };
   }
 
+  /**
+   * Transfers credits from a team/user to another team/user.
+   * This is a shared method used by moveCreditsFromTeamToOrg and moveCreditsFromTeamToUser.
+   */
+  private async _transferCredits({
+    from,
+    to,
+    reason,
+    createdById,
+    tx,
+  }: {
+    from: { teamId?: number; userId?: number };
+    to: { teamId?: number; userId?: number };
+    reason: CreditTransferReason;
+    createdById?: number;
+    tx: PrismaTransaction;
+  }): Promise<{ creditsTransferred: number } | null> {
+    const fromCreditBalance = await this.creditsRepository.findCreditBalance(from, tx);
+
+    if (!fromCreditBalance || fromCreditBalance.additionalCredits <= 0) {
+      log.info("No credits to transfer", { from, to, reason });
+      return null;
+    }
+
+    let toCreditBalance = await this.creditsRepository.findCreditBalance(to, tx);
+
+    if (!toCreditBalance) {
+      toCreditBalance = await this.creditsRepository.createCreditBalance(to, tx);
+    }
+
+    const creditsToTransfer = fromCreditBalance.additionalCredits;
+
+    // Zero out source balance
+    await this.creditsRepository.updateCreditBalance(
+      {
+        ...from,
+        data: { additionalCredits: 0 },
+      },
+      tx
+    );
+
+    // Increment destination balance
+    await this.creditsRepository.updateCreditBalance(
+      {
+        ...to,
+        data: { additionalCredits: { increment: creditsToTransfer } },
+      },
+      tx
+    );
+
+    await this.creditsRepository.createCreditTransferLog(
+      {
+        fromCreditBalanceId: fromCreditBalance.id,
+        toCreditBalanceId: toCreditBalance.id,
+        credits: creditsToTransfer,
+        reason,
+        createdById,
+      },
+      tx
+    );
+
+    return { creditsTransferred: creditsToTransfer };
+  }
+
   async moveCreditsFromTeamToOrg({
     teamId,
     orgId,
@@ -809,73 +873,46 @@ export class CreditService {
     createdById?: number;
     tx: PrismaTransaction;
   }) {
-    // Get team's credit balance
-    const teamCreditBalance = await this.creditsRepository.findCreditBalance({ teamId }, tx);
+    const result = await this._transferCredits({
+      from: { teamId },
+      to: { teamId: orgId },
+      reason: CreditTransferReason.TEAM_UPGRADED_TO_ORG,
+      createdById,
+      tx,
+    });
 
-    if (!teamCreditBalance || teamCreditBalance.additionalCredits <= 0) {
-      log.info("No credits to transfer from team to org", { teamId, orgId });
-      return;
-    }
-
-    // Get or create org's credit balance
-    let orgCreditBalance = await this.creditsRepository.findCreditBalance({ teamId: orgId }, tx);
-
-    if (!orgCreditBalance) {
-      orgCreditBalance = await this.creditsRepository.createCreditBalance(
-        {
-          teamId: orgId,
-        },
-        tx
-      );
-    }
-
-    const creditsToTransfer = teamCreditBalance.additionalCredits;
-
-    // Transfer credits from team to org
-    await this.creditsRepository.updateCreditBalance(
-      {
-        teamId,
-        data: {
-          additionalCredits: 0,
-        },
-      },
-      tx
-    );
-
-    await this.creditsRepository.updateCreditBalance(
-      {
-        teamId: orgId,
-        data: {
-          additionalCredits: {
-            increment: creditsToTransfer,
-          },
-        },
-      },
-      tx
-    );
-
-    await this.creditsRepository.createCreditTransferLog(
-      {
-        fromCreditBalanceId: teamCreditBalance.id,
-        toCreditBalanceId: orgCreditBalance.id,
-        credits: creditsToTransfer,
-        reason: CreditTransferReason.TEAM_UPGRADED_TO_ORG,
-        createdById,
-      },
-      tx
-    );
+    if (!result) return;
 
     log.info("Successfully transferred credits from team to org", {
       teamId,
       orgId,
-      creditsTransferred: creditsToTransfer,
+      creditsTransferred: result.creditsTransferred,
     });
 
     return {
-      creditsTransferred: creditsToTransfer,
+      creditsTransferred: result.creditsTransferred,
       teamId,
       orgId,
     };
+  }
+
+  async moveCreditsFromTeamToUser({ teamId, userId }: { teamId: number; userId: number }) {
+    return await prisma.$transaction(async (tx) => {
+      const result = await this._transferCredits({
+        from: { teamId },
+        to: { userId },
+        reason: CreditTransferReason.TEAM_DELETED,
+        tx,
+      });
+
+      if (!result) return;
+
+      return {
+        creditsTransferred: result.creditsTransferred,
+        teamId,
+        userId,
+      };
+    });
   }
 
   private async _getUserIdsWithoutCredits({
