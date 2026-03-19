@@ -1,6 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, test, vi } from "vitest";
 
 import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
+import { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
+import { HolidayService } from "@calcom/lib/holidays/HolidayService";
 import { prisma } from "@calcom/prisma";
 import type { EventType, Schedule, Team, User } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -691,5 +693,235 @@ describe("getSchedule holiday cache refresh (integration)", () => {
     expect(fijiHoliday!.name).toBe("Fiji Independence Day");
 
     expect(result).toHaveAllSlotsAsHolidayOOO({ dateString: holidayDate, reason: "Fiji Independence Day" });
+  });
+});
+
+describe("getSchedule holiday N+1 regression (integration)", () => {
+  let testData: {
+    users: User[];
+    schedules: Schedule[];
+    soloEventType: EventType;
+    rrTeam: Team;
+    rrEventType: EventType;
+    collectiveTeam: Team;
+    collectiveEventType: EventType;
+  };
+
+  // Spies — set up before each test, restored after
+  let findManyUserSettingsSpy: ReturnType<typeof vi.spyOn>;
+  let findUserSettingsSelectSpy: ReturnType<typeof vi.spyOn>;
+  let getHolidayDatesInRangeForCountriesSpy: ReturnType<typeof vi.spyOn>;
+  let getHolidayDatesInRangeSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeAll(async () => {
+    vi.stubEnv("UPSTASH_REDIS_REST_URL", "");
+    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "");
+    vi.stubEnv("GOOGLE_CALENDAR_API_KEY", "test-api-key");
+
+    const users = await Promise.all([
+      createTestUser({ suffix: `n1-us-${Date.now()}` }),
+      createTestUser({ suffix: `n1-de-${Date.now()}` }),
+      createTestUser({ suffix: `n1-us2-${Date.now()}` }),
+      createTestUser({ suffix: `n1-de2-${Date.now()}` }),
+    ]);
+
+    const schedules = await Promise.all(users.map((u) => createTestScheduleWithAvailability(u.id)));
+
+    await Promise.all([
+      createTestHolidayCacheEntry({
+        countryCode: "US",
+        calendarId: "en.usa.official#holiday@group.v.calendar.google.com",
+        eventId: "n1_us_holiday",
+        name: "N1 Test US Holiday",
+        date: holidayDate,
+        year: 2026,
+      }),
+      createTestHolidayCacheEntry({
+        countryCode: "DE",
+        calendarId: "en.german.official#holiday@group.v.calendar.google.com",
+        eventId: "n1_de_holiday",
+        name: "N1 Test DE Holiday",
+        date: holidayDate,
+        year: 2026,
+      }),
+    ]);
+
+    // 2 users in US, 2 users in DE — tests country-level deduplication
+    await Promise.all([
+      createTestHolidaySettings(users[0].id, "US"),
+      createTestHolidaySettings(users[1].id, "DE"),
+      createTestHolidaySettings(users[2].id, "US"),
+      createTestHolidaySettings(users[3].id, "DE"),
+    ]);
+
+    const soloEventType = await createTestSoloEventType(users[0].id);
+    const { team: rrTeam, eventType: rrEventType } = await createTestTeamEvent(
+      users.map((u) => u.id),
+      SchedulingType.ROUND_ROBIN
+    );
+    const { team: collectiveTeam, eventType: collectiveEventType } = await createTestTeamEvent(
+      users.map((u) => u.id),
+      SchedulingType.COLLECTIVE
+    );
+
+    testData = { users, schedules, soloEventType, rrTeam, rrEventType, collectiveTeam, collectiveEventType };
+  });
+
+  afterEach(() => {
+    findManyUserSettingsSpy?.mockRestore();
+    findUserSettingsSelectSpy?.mockRestore();
+    getHolidayDatesInRangeForCountriesSpy?.mockRestore();
+    getHolidayDatesInRangeSpy?.mockRestore();
+  });
+
+  afterAll(async () => {
+    vi.useRealTimers();
+    await cleanupTestData({
+      eventTypeIds: [
+        testData.soloEventType?.id,
+        testData.rrEventType?.id,
+        testData.collectiveEventType?.id,
+      ].filter(Boolean),
+      userIds: testData.users?.map((u) => u.id),
+      scheduleIds: testData.schedules?.map((s) => s.id),
+      holidayCacheEventIds: ["n1_us_holiday", "n1_de_holiday"],
+      teamId: testData.rrTeam?.id,
+    });
+    if (testData.collectiveTeam?.id) {
+      await prisma.membership.deleteMany({ where: { teamId: testData.collectiveTeam.id } });
+      await prisma.team.delete({ where: { id: testData.collectiveTeam.id } }).catch(() => {});
+    }
+  });
+
+  function setupSpies() {
+    findManyUserSettingsSpy = vi.spyOn(PrismaHolidayRepository.prototype, "findManyUserSettings");
+    findUserSettingsSelectSpy = vi.spyOn(PrismaHolidayRepository.prototype, "findUserSettingsSelect");
+    getHolidayDatesInRangeForCountriesSpy = vi.spyOn(
+      HolidayService.prototype,
+      "getHolidayDatesInRangeForCountries"
+    );
+    getHolidayDatesInRangeSpy = vi.spyOn(HolidayService.prototype, "getHolidayDatesInRange");
+  }
+
+  test("round-robin team: should use single batch query for holiday settings, not N per-user queries", async () => {
+    vi.setSystemTime("2026-06-25T00:00:00Z");
+    setupSpies();
+
+    await getSlots({
+      eventTypeId: testData.rrEventType.id,
+      startTime: `${holidayDate}T00:00:00.000Z`,
+      endTime: `${holidayDate}T23:59:59.999Z`,
+      isTeamEvent: true,
+    });
+
+    // Batch path: findManyUserSettings should be called exactly once for all 4 users
+    expect(findManyUserSettingsSpy).toHaveBeenCalledTimes(1);
+    // Per-user fallback path should NOT be used for team events
+    expect(findUserSettingsSelectSpy).not.toHaveBeenCalled();
+  });
+
+  test("collective team: should use single batch query for holiday settings, not N per-user queries", async () => {
+    vi.setSystemTime("2026-06-25T00:00:00Z");
+    setupSpies();
+
+    await getSlots({
+      eventTypeId: testData.collectiveEventType.id,
+      startTime: `${holidayDate}T00:00:00.000Z`,
+      endTime: `${holidayDate}T23:59:59.999Z`,
+      isTeamEvent: true,
+    });
+
+    expect(findManyUserSettingsSpy).toHaveBeenCalledTimes(1);
+    expect(findUserSettingsSelectSpy).not.toHaveBeenCalled();
+  });
+
+  test("team event: should fetch holiday dates once per unique country, not once per user", async () => {
+    vi.setSystemTime("2026-06-25T00:00:00Z");
+    setupSpies();
+
+    await getSlots({
+      eventTypeId: testData.rrEventType.id,
+      startTime: `${holidayDate}T00:00:00.000Z`,
+      endTime: `${holidayDate}T23:59:59.999Z`,
+      isTeamEvent: true,
+    });
+
+    // Batch country fetch should be called exactly once (not 4 times for 4 users)
+    expect(getHolidayDatesInRangeForCountriesSpy).toHaveBeenCalledTimes(1);
+    // The batch call should contain exactly 2 unique country codes (US, DE), not 4
+    const callArgs = getHolidayDatesInRangeForCountriesSpy.mock.calls[0][0];
+    expect(callArgs.countryCodes).toHaveLength(2);
+    expect(callArgs.countryCodes).toEqual(expect.arrayContaining(["US", "DE"]));
+    // Per-user getHolidayDatesInRange should NOT be called for team events
+    expect(getHolidayDatesInRangeSpy).not.toHaveBeenCalled();
+  });
+
+  test("solo event via getSlots: should still use batch path (pre-fetched for all callers)", async () => {
+    vi.setSystemTime("2026-06-25T00:00:00Z");
+    setupSpies();
+
+    await getSlots({
+      eventTypeId: testData.soloEventType.id,
+      startTime: `${holidayDate}T00:00:00.000Z`,
+      endTime: `${holidayDate}T23:59:59.999Z`,
+      isTeamEvent: false,
+    });
+
+    // getSlots always goes through calculateHostsAndAvailabilities which batch-fetches
+    // holiday settings for ALL event types (solo included). The pre-fetched data is
+    // passed via initialData, so the per-user fallback (findUserSettingsSelect) is never
+    // reached. The per-user fallback only activates when getUserAvailability is called
+    // directly without pre-populated data (e.g., API v1, getMemberAvailability).
+    expect(findManyUserSettingsSpy).toHaveBeenCalledTimes(1);
+    expect(findUserSettingsSelectSpy).not.toHaveBeenCalled();
+    // Batch country fetch is used even for a single user
+    expect(getHolidayDatesInRangeForCountriesSpy).toHaveBeenCalledTimes(1);
+    expect(getHolidayDatesInRangeSpy).not.toHaveBeenCalled();
+  });
+
+  test("query count should remain constant regardless of team size", async () => {
+    vi.setSystemTime("2026-06-25T00:00:00Z");
+
+    // First call: 4-member team (existing rrEventType)
+    setupSpies();
+    await getSlots({
+      eventTypeId: testData.rrEventType.id,
+      startTime: `${holidayDate}T00:00:00.000Z`,
+      endTime: `${holidayDate}T23:59:59.999Z`,
+      isTeamEvent: true,
+    });
+    const batchCallsWith4Users = findManyUserSettingsSpy.mock.calls.length;
+    const countryCallsWith4Users = getHolidayDatesInRangeForCountriesSpy.mock.calls.length;
+    findManyUserSettingsSpy.mockRestore();
+    findUserSettingsSelectSpy.mockRestore();
+    getHolidayDatesInRangeForCountriesSpy.mockRestore();
+    getHolidayDatesInRangeSpy.mockRestore();
+
+    // Create a smaller 2-member team for comparison
+    const { team: smallTeam, eventType: smallTeamEventType } = await createTestTeamEvent(
+      testData.users.slice(0, 2).map((u) => u.id),
+      SchedulingType.ROUND_ROBIN
+    );
+
+    try {
+      setupSpies();
+      await getSlots({
+        eventTypeId: smallTeamEventType.id,
+        startTime: `${holidayDate}T00:00:00.000Z`,
+        endTime: `${holidayDate}T23:59:59.999Z`,
+        isTeamEvent: true,
+      });
+      const batchCallsWith2Users = findManyUserSettingsSpy.mock.calls.length;
+      const countryCallsWith2Users = getHolidayDatesInRangeForCountriesSpy.mock.calls.length;
+
+      // Core N+1 assertion: query count is the same for 2-member and 4-member teams
+      expect(batchCallsWith2Users).toBe(batchCallsWith4Users);
+      expect(countryCallsWith2Users).toBe(countryCallsWith4Users);
+    } finally {
+      await cleanupTestData({
+        eventTypeIds: [smallTeamEventType.id],
+        teamId: smallTeam.id,
+      });
+    }
   });
 });
