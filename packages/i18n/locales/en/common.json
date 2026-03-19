@@ -1384,6 +1384,8 @@
   "popular_categories": "Popular categories",
   "number_apps_one": "{{count}} app",
   "number_apps_other": "{{count}} apps",
+  "number_active_one": "{{count}} active",
+  "number_active_other": "{{count}} active",
   "trending_apps": "Trending apps",
   "most_popular": "Most popular",
   "installed_apps": "Installed apps",
