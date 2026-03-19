@@ -2,20 +2,15 @@
 
 import { isSupportedCountry } from "libphonenumber-js";
 import type { CSSProperties } from "react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { useBookerStore, type CountryCode } from "@calcom/features/bookings/Booker/store";
+import { type CountryCode, useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-
-const CUSTOM_PHONE_MASKS = {
-  ci: ".. .. .. .. ..",
-  bj: ".. .. .. .. ..",
-  at: "... ..........",
-};
+import { CUSTOM_PHONE_MASKS } from "./phone-masks";
 
 export type PhoneInputProps = {
   value?: string;

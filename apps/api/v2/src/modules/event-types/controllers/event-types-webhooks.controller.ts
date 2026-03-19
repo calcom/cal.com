@@ -40,6 +40,7 @@ import type { Webhook } from "@calcom/prisma/client";
 @UseGuards(ApiAuthGuard, IsUserEventTypeWebhookGuard)
 @DocsTags("Event Types / Webhooks")
 @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+@ApiParam({ name: "eventTypeId", type: Number, required: true })
 export class EventTypeWebhooksController {
   constructor(
     private readonly webhooksService: WebhooksService,

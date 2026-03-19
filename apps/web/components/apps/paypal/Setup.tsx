@@ -15,10 +15,17 @@ export default function PayPalSetup() {
   const [newSecretKey, setNewSecretKey] = useState("");
   const router = useRouter();
   const { t } = useLocale();
-  const integrations = trpc.viewer.apps.integrations.useQuery({ variant: "payment", appId: "paypal" });
+
+  const integrations = trpc.viewer.apps.integrations.useQuery({
+    variant: "payment",
+    appId: "paypal",
+  });
+
   const [paypalPaymentAppCredentials] = integrations.data?.items || [];
   const [credentialId] = paypalPaymentAppCredentials?.userCredentialIds || [-1];
+
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
+
   const saveKeysMutation = trpc.viewer.apps.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
@@ -39,12 +46,13 @@ export default function PayPalSetup() {
         <div className="bg-default border-subtle m-auto max-w-[43em] overflow-auto rounded border pb-10 md:p-10">
           <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
             <div className="invisible md:visible">
-              <img className="h-11" src="/api/app-store/paypal/icon.svg" alt="Paypal Payment Logo" />
-              <p className="text-default mt-5 text-lg">Paypal</p>
+              <img className="h-11" src="/api/app-store/paypal/icon.svg" alt={t("paypal_payment_logo")} />
+              <p className="text-default mt-5 text-lg">{t("paypal")}</p>
             </div>
+
             <form autoComplete="off" className="mt-5">
               <TextField
-                label="Client Id"
+                label={t("client_id")}
                 type="text"
                 name="client_id"
                 id="client_id"
@@ -55,7 +63,7 @@ export default function PayPalSetup() {
               />
 
               <TextField
-                label="Secret Key"
+                label={t("secret_key")}
                 type="password"
                 name="access_token"
                 id="access_token"
@@ -65,7 +73,6 @@ export default function PayPalSetup() {
                 onChange={(e) => setNewSecretKey(e.target.value)}
               />
 
-              {/* Button to submit */}
               <div className="mt-5 flex flex-row justify-end">
                 <Button
                   color="primary"
@@ -82,43 +89,39 @@ export default function PayPalSetup() {
                 </Button>
               </div>
             </form>
+
             <div>
-              <p className="text-lgf text-default mt-5 font-bold">Getting started with Paypal APP</p>
-              <p className="text-default font-semi mt-2">
-                Here in Cal.com we offer Paypal as one of our payment gateway. You can use your own Paypal
-                Business account to receive payments from your customers enabling and setting up price and
-                currency for each of your event types.
-              </p>
+              <p className="text-lgf text-default mt-5 font-bold">{t("paypal_getting_started")}</p>
+
+              <p className="text-default font-semi mt-2">{t("paypal_description")}</p>
 
               <p className="text-lgf text-default mt-5 inline-flex font-bold">
-                <CircleAlertIcon className="mr-2 mt-1 h-4 w-4" /> Important requirements:
+                <CircleAlertIcon className="mr-2 mt-1 h-4 w-4" />
+                {t("important_requirements")}
               </p>
+
               <ul className="text-default ml-1 mt-2 list-disc pl-2">
-                <li>Paypal Business account</li>
-                <li>Paypal Developer account</li>
+                <li>{t("paypal_business_account")}</li>
+                <li>{t("paypal_developer_account")}</li>
               </ul>
 
-              <p className="text-default mb-2 mt-5 font-bold">Resources:</p>
+              <p className="text-default mb-2 mt-5 font-bold">{t("resources")}</p>
+
               <a
                 className="text-orange-600 underline"
                 target="_blank"
                 href="https://developer.paypal.com/api/rest/#link-getclientidandclientsecret"
                 rel="noreferrer">
-                Link to Paypal developer API REST Setup Guide:
-                https://developer.paypal.com/api/rest/#link-getclientidandclientsecret
+                {t("paypal_rest_setup_guide")}
               </a>
 
-              <p className="text-lgf text-default mt-5 font-bold">Setup instructions</p>
-              <p className="text-default font-semi mt-2">
-                Remember to only proceed with the following steps if your account has already been upgraded to
-                a business account. Also keep in mind that some of the following steps might be different
-                since Paypal offers different experiences based on your country.
-              </p>
+              <p className="text-lgf text-default mt-5 font-bold">{t("paypal_setup_instructions")}</p>
+
+              <p className="text-default font-semi mt-2">{t("paypal_setup_note")}</p>
 
               <ol className="text-default ml-1 mt-5 list-decimal pl-2">
-                {/* @TODO: translate */}
                 <li>
-                  Log into your Paypal Developer account and create a new app{" "}
+                  {t("paypal_step_1")}{" "}
                   <a
                     target="_blank"
                     href="https://developer.paypal.com/dashboard/applications/live"
@@ -128,39 +131,38 @@ export default function PayPalSetup() {
                   </a>
                   .
                 </li>
-                <li>Choose a name for your application.</li>
-                <li>Click on the Create App button</li>
+
+                <li>{t("paypal_step_2")}</li>
+                <li>{t("paypal_step_3")}</li>
 
                 <li>
-                  Go back to{" "}
+                  {t("paypal_step_4_part_1")}{" "}
                   <a
                     className="text-orange-600 underline"
                     href="https://developer.paypal.com/dashboard/applications/live">
-                    dashboard
+                    {t("dashboard")}
                   </a>
-                  , click on new app created.
+                  , {t("paypal_step_4_part_2")}
                 </li>
-                <li>Copy the Client ID and Secret Key using copy buttons one by one.</li>
-                <li>Paste them on the required field and save them.</li>
-                <li>You should be all setup after this.</li>
+
+                <li>{t("paypal_step_5")}</li>
+                <li>{t("paypal_step_6")}</li>
+                <li>{t("paypal_step_7")}</li>
               </ol>
+
               <p className="text-default mt-5 inline-flex font-bold">
                 <CircleAlertIcon className="mr-2 mt-1 h-4 w-4" />
-                Reminder:
+                {t("reminder")}:
               </p>
-              <p className="text-default mt-2">
-                Our integration creates a specific webhook on your Paypal account that we use to report back
-                transactions to our system. If you delete this webhook, we will not be able to report back and
-                you should Uninstall and Install the app again for this to work again. Uninstalling the app
-                won&apos;t delete your current event type price/currency configuration but you would not be
-                able to receive bookings.
-              </p>
+
+              <p className="text-default mt-2">{t("paypal_webhook_reminder")}</p>
             </div>
           </div>
         </div>
       ) : (
         <AppNotInstalledMessage appName="paypal" />
       )}
+
       <Toaster position="bottom-right" />
     </div>
   );

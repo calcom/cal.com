@@ -12,6 +12,7 @@ import { InviteOptions } from "../../components/InviteOptions";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingOrganizationBrowserView } from "../../components/onboarding-organization-browser-view";
+import { useOnboardingQueryParams } from "../../hooks/useOnboardingQueryParams";
 import { useSubmitOnboarding } from "../../hooks/useSubmitOnboarding";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { OrganizationCSVUploadModal } from "./csv-upload-modal";
@@ -24,6 +25,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const router = useRouter();
   const { t } = useLocale();
   const flags = useFlags();
+  const { billingPeriod, getQueryString } = useOnboardingQueryParams();
 
   const store = useOnboardingStore();
   const { setInvites, organizationDetails, organizationBrand } = store;
@@ -37,7 +39,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   };
 
   const handleInviteViaEmail = () => {
-    router.push("/onboarding/organization/invite/email");
+    router.push(`/onboarding/organization/invite/email${getQueryString()}`);
   };
 
   const handleUploadCSV = () => {
@@ -51,11 +53,11 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const handleSkip = async () => {
     posthog.capture("onboarding_organization_invite_skip_clicked");
     setInvites([]);
-    await submitOnboarding(store, userEmail, []);
+    await submitOnboarding(store, userEmail, [], { billingPeriod });
   };
 
   const handleInvite = async () => {
-    await submitOnboarding(store, userEmail, []);
+    await submitOnboarding(store, userEmail, [], { billingPeriod });
   };
 
   return (
@@ -71,7 +73,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
                 className="rounded-[10px]"
                 onClick={() => {
                   posthog.capture("onboarding_organization_invite_back_clicked");
-                  router.push("/onboarding/organization/teams");
+                  router.push(`/onboarding/organization/teams${getQueryString()}`);
                 }}
                 disabled={isSubmitting}>
                 {t("back")}

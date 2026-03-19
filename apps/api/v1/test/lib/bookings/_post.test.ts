@@ -1,24 +1,60 @@
-// TODO: Fix tests (These test were never running due to the vitest workspace config)
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { createMocks } from "node-mocks-http";
-import { describe, expect, test, vi, beforeEach } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { buildBooking, buildEventType, buildWebhook, buildUser } from "@calcom/lib/test/builder";
+import { buildBooking, buildEventType, buildUser, buildWebhook } from "@calcom/lib/test/builder";
 import { prisma } from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
-import { CreationSource, BookingStatus } from "@calcom/prisma/enums";
-
+import { BookingStatus, CreationSource } from "@calcom/prisma/enums";
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import handler from "../../../pages/api/bookings/_post";
 
 vi.mock("@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB", () => ({
   getEventTypesFromDB: vi.fn(),
+}));
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn().mockImplementation(({ hosts }) => hosts),
+  enrichUsersWithDelegationCredentials: vi.fn().mockImplementation(({ users }) => users),
+  enrichUserWithDelegationCredentialsIncludeServiceAccountKey: vi.fn().mockImplementation(({ user }) => user),
+  enrichUserWithDelegationCredentials: vi.fn().mockImplementation(({ user }) => user),
+  enrichUserWithDelegationConferencingCredentialsWithoutOrgId: vi.fn().mockImplementation(({ user }) => user),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn().mockResolvedValue([]),
+  getUsersCredentials: vi.fn().mockResolvedValue([]),
+  getCredentialForSelectedCalendar: vi.fn(),
+  getAllDelegationCredentialsForUserIncludeServiceAccountKey: vi.fn().mockResolvedValue([]),
+  getAllDelegationCredentialsForUser: vi.fn().mockResolvedValue([]),
+  getAllDelegatedCalendarCredentialsForUser: vi.fn().mockResolvedValue([]),
+  getAllDelegationCredentialsForUserByAppType: vi.fn().mockResolvedValue([]),
+  getAllDelegationCredentialsForUserByAppSlug: vi.fn().mockResolvedValue([]),
+  buildAllCredentials: vi.fn().mockImplementation(({ existingCredentials }) => existingCredentials || []),
+  getDelegationCredentialOrFindRegularCredential: vi.fn(),
+  getDelegationCredentialOrRegularCredential: vi.fn(),
+  getFirstDelegationConferencingCredential: vi.fn(),
+  getFirstDelegationConferencingCredentialAppLocation: vi.fn(),
+  findUniqueDelegationCalendarCredential: vi.fn(),
+  assertSuccessfullyConfiguredInWorkspace: vi.fn(),
+}));
+
+vi.mock("@calcom/features/calendars/lib/CalendarManager", () => ({
+  createEvent: vi.fn(),
+  updateEvent: vi.fn(),
+  deleteEvent: vi.fn(),
+  getBusyCalendarTimes: vi.fn(),
+}));
+
+vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
+  checkIfEmailIsBlockedInWatchlist: vi.fn(),
+  isEmailVerified: vi.fn(),
+}));
+
+vi.mock("@calcom/lib/domainManager/organization", () => ({
+  getOrgDomainConfigFromHostname: vi.fn(),
+  subdomainSuffix: vi.fn(),
 }));
 
 const mockEventTypeData = {
@@ -67,9 +103,11 @@ vi.mock("@calcom/features/webhooks/lib/sendOrSchedulePayload", () => ({
 
 const mockFindOriginalRescheduledBooking = vi.fn();
 vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
-  BookingRepository: vi.fn().mockImplementation(function() { return {
-    findOriginalRescheduledBooking: mockFindOriginalRescheduledBooking,
-  }; }),
+  BookingRepository: vi.fn().mockImplementation(function () {
+    return {
+      findOriginalRescheduledBooking: mockFindOriginalRescheduledBooking,
+    };
+  }),
 }));
 
 vi.mock("@calcom/features/watchlist/operations/check-if-users-are-blocked.controller", () => ({
@@ -94,7 +132,7 @@ vi.mock("@calcom/features/di/containers/QualifiedHosts", () => ({
 }));
 
 vi.mock("@calcom/features/bookings/lib/EventManager", () => ({
-  default: vi.fn().mockImplementation(function() {
+  default: vi.fn().mockImplementation(function () {
     return {
       reschedule: vi.fn().mockResolvedValue({
         results: [],
@@ -155,10 +193,12 @@ vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
   },
 }));
 vi.mock("@calcom/features/flags/features.repository", () => ({
-  FeaturesRepository: vi.fn().mockImplementation(function() { return {
-    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
-    checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
-  }; }),
+  FeaturesRepository: vi.fn().mockImplementation(function () {
+    return {
+      checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
+      checkIfTeamHasFeature: vi.fn().mockResolvedValue(false),
+    };
+  }),
 }));
 
 vi.mock("@calcom/features/webhooks/lib/getWebhooks", () => ({
@@ -174,7 +214,7 @@ vi.mock("@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType", () => 
   getAllWorkflowsFromEventType: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock("@calcom/lib/server/i18n", () => {
+vi.mock("@calcom/i18n/server", () => {
   const mockT = (key: string, options?: any) => {
     if (key === "event_between_users") {
       return `${options?.eventName} between ${options?.host} and ${options?.attendeeName}`;

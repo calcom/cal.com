@@ -9,7 +9,7 @@ import type { EventType } from "@calcom/features/bookings/lib/getAllCredentialsF
 import { getVideoCallDetails } from "@calcom/features/bookings/lib/handleNewBooking/getVideoCallDetails";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
 import type { DestinationCalendar } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";

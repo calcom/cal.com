@@ -1,7 +1,5 @@
-import { describe, it, beforeEach, vi, expect } from "vitest";
-
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { toggleDelegationCredentialEnabled } from "./toggleEnabled.handler";
 
 // Mock the repository
@@ -30,6 +28,11 @@ vi.mock("./utils", () => ({
   ensureNoServiceAccountKey: vi.fn((credential) => credential),
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("toggleDelegationCredentialEnabled - Security Fix", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -56,9 +59,9 @@ describe("toggleDelegationCredentialEnabled - Security Fix", () => {
 
     vi.mocked(DelegationCredentialRepository.findById).mockResolvedValue(mockCredential);
 
-    await expect(
-      toggleDelegationCredentialEnabled(userWithoutOrg, input)
-    ).rejects.toThrow("You must be part of an organization to toggle a delegation credential");
+    await expect(toggleDelegationCredentialEnabled(userWithoutOrg, input)).rejects.toThrow(
+      "You must be part of an organization to toggle a delegation credential"
+    );
 
     expect(DelegationCredentialRepository.updateById).not.toHaveBeenCalled();
   });
@@ -84,9 +87,9 @@ describe("toggleDelegationCredentialEnabled - Security Fix", () => {
 
     vi.mocked(DelegationCredentialRepository.findById).mockResolvedValue(org2Credential);
 
-    await expect(
-      toggleDelegationCredentialEnabled(userFromOrg1, input)
-    ).rejects.toThrow("Delegation credential not found");
+    await expect(toggleDelegationCredentialEnabled(userFromOrg1, input)).rejects.toThrow(
+      "Delegation credential not found"
+    );
 
     expect(DelegationCredentialRepository.updateById).not.toHaveBeenCalled();
   });
@@ -146,8 +149,8 @@ describe("toggleDelegationCredentialEnabled - Security Fix", () => {
 
     vi.mocked(DelegationCredentialRepository.findById).mockResolvedValue(null);
 
-    await expect(
-      toggleDelegationCredentialEnabled(user, input)
-    ).rejects.toThrow("Delegation credential not found");
+    await expect(toggleDelegationCredentialEnabled(user, input)).rejects.toThrow(
+      "Delegation credential not found"
+    );
   });
 });

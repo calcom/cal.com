@@ -1,5 +1,4 @@
-import { prisma } from "@calcom/prisma";
-import type { EventTypeTranslation } from "@calcom/prisma/client";
+import type { EventTypeTranslation, PrismaClient } from "@calcom/prisma/client";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
 export type CreateEventTypeTranslation = Omit<
@@ -16,10 +15,12 @@ export type CreateEventTypeTranslation = Omit<
 > & { userId: number };
 
 export class EventTypeTranslationRepository {
-  static async upsertManyTitleTranslations(translations: Array<CreateEventTypeTranslation>) {
+  constructor(private readonly prismaClient: PrismaClient) {}
+
+  async upsertManyTitleTranslations(translations: Array<CreateEventTypeTranslation>) {
     return await Promise.all(
       translations.map(({ userId, ...translation }) => {
-        return prisma.eventTypeTranslation.upsert({
+        return this.prismaClient.eventTypeTranslation.upsert({
           where: {
             eventTypeId_field_targetLocale: {
               eventTypeId: translation.eventTypeId,
@@ -41,10 +42,10 @@ export class EventTypeTranslationRepository {
     );
   }
 
-  static async upsertManyDescriptionTranslations(translations: Array<CreateEventTypeTranslation>) {
+  async upsertManyDescriptionTranslations(translations: Array<CreateEventTypeTranslation>) {
     return await Promise.all(
       translations.map(({ userId, ...translation }) => {
-        return prisma.eventTypeTranslation.upsert({
+        return this.prismaClient.eventTypeTranslation.upsert({
           where: {
             eventTypeId_field_targetLocale: {
               eventTypeId: translation.eventTypeId,
@@ -64,5 +65,17 @@ export class EventTypeTranslationRepository {
         });
       })
     );
+  }
+
+  async findByLocale(eventTypeId: number, field: EventTypeAutoTranslatedField, targetLocale: string) {
+    return this.prismaClient.eventTypeTranslation.findUnique({
+      where: {
+        eventTypeId_field_targetLocale: {
+          eventTypeId,
+          field,
+          targetLocale,
+        },
+      },
+    });
   }
 }
