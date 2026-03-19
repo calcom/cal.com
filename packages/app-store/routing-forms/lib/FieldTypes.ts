@@ -1,4 +1,6 @@
-export const enum RoutingFormFieldType {
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
+
+export enum RoutingFormFieldType {
   TEXT = "text",
   NUMBER = "number",
   TEXTAREA = "textarea",
@@ -8,45 +10,13 @@ export const enum RoutingFormFieldType {
   EMAIL = "email",
 }
 
-export const isValidRoutingFormFieldType = (type: string): type is RoutingFormFieldType => {
-  return [
-    RoutingFormFieldType.TEXT,
-    RoutingFormFieldType.NUMBER,
-    RoutingFormFieldType.TEXTAREA,
-    RoutingFormFieldType.SINGLE_SELECT,
-    RoutingFormFieldType.MULTI_SELECT,
-    RoutingFormFieldType.PHONE,
-    RoutingFormFieldType.EMAIL,
-  ].includes(type as RoutingFormFieldType);
-};
+export const FieldTypes = Object.values(fieldTypesConfigMap)
+  .filter((fieldType) => !fieldType.systemOnly)
+  .map((fieldType) => ({
+    label: fieldType.label,
+    value: fieldType.value,
+  }));
 
-export const FieldTypes = [
-  {
-    label: "Short text",
-    value: RoutingFormFieldType.TEXT,
-  },
-  {
-    label: "Number",
-    value: RoutingFormFieldType.NUMBER,
-  },
-  {
-    label: "Long text",
-    value: RoutingFormFieldType.TEXTAREA,
-  },
-  {
-    label: "Single-choice selection",
-    value: RoutingFormFieldType.SINGLE_SELECT,
-  },
-  {
-    label: "Multiple choice selection",
-    value: RoutingFormFieldType.MULTI_SELECT,
-  },
-  {
-    label: "Phone",
-    value: RoutingFormFieldType.PHONE,
-  },
-  {
-    label: "Email",
-    value: RoutingFormFieldType.EMAIL,
-  },
-] as const;
+export const isValidRoutingFormFieldType = (type: string): type is RoutingFormFieldType => {
+  return FieldTypes.some((f) => f.value === type);
+};

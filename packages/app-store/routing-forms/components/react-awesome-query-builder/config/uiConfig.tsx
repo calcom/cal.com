@@ -111,6 +111,30 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
       ...widgets.text,
       factory: EmailFactory,
     },
+    address: {
+      ...widgets.address,
+      factory: TextFactory,
+    },
+    url: {
+      ...widgets.url,
+      factory: TextFactory,
+    },
+    multiemail: {
+      ...widgets.multiemail,
+      factory: TextFactory,
+    },
+    boolean: {
+      ...widgets.boolean,
+      factory: TextFactory,
+    },
+    checkbox: {
+      ...widgets.checkbox,
+      factory: MultiSelectFactory,
+    } as SelectWidgetType,
+    radio: {
+      ...widgets.radio,
+      factory: SelectFactory,
+    } as SelectWidgetType,
   };
   return widgetsWithFactory;
 }

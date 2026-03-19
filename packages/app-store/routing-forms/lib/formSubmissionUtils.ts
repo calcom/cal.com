@@ -43,7 +43,7 @@ export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
 >;
 
 function isOptionsField(field: Pick<SerializableField, "type" | "options">) {
-  return (field.type === "select" || field.type === "multiselect") && field.options;
+  return (field.type === "select" || field.type === "multiselect" || field.type === "checkbox" || field.type === "radio") && field.options;
 }
 
 export function getFieldResponse({
