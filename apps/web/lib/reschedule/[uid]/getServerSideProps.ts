@@ -182,6 +182,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   destinationUrlSearchParams.set("rescheduleUid", seatReferenceUid || bookingUid);
 
+  const originalBookingDurationInMinutes = Math.round(
+    (booking.endTime.getTime() - booking.startTime.getTime()) / (1000 * 60)
+  );
+
+  if (originalBookingDurationInMinutes > 0) {
+    destinationUrlSearchParams.set("duration", String(originalBookingDurationInMinutes));
+  }
+
   if (allowRescheduleForCancelledBooking) {
     destinationUrlSearchParams.set("allowRescheduleForCancelledBooking", "true");
   }
