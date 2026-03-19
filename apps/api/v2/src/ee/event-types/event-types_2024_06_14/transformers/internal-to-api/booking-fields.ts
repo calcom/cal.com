@@ -307,82 +307,86 @@ const CustomFieldTypeEnum = z.enum([
   "url",
 ]);
 
-const CustomFieldsSchema = z.object({
-  name: z.string(),
-  type: CustomFieldTypeEnum,
-  label: z.string(),
-  labelAsSafeHtml: z.string().optional(),
-  hidden: z.boolean().optional(),
-  sources: z.array(
-    z.object({
-      id: z.literal("user"),
-      type: z.literal("user"),
-      label: z.literal("User"),
-      fieldRequired: z.boolean().optional(),
-    })
-  ),
-  editable: z.enum(["user", "user-readonly"]),
-  required: z.boolean(),
-  placeholder: z.string().optional(),
-  options: z
-    .array(
+const CustomFieldsSchema = z
+  .object({
+    name: z.string(),
+    type: CustomFieldTypeEnum,
+    label: z.string(),
+    labelAsSafeHtml: z.string().optional(),
+    hidden: z.boolean().optional(),
+    sources: z.array(
       z.object({
-        label: z.string(),
-        value: z.string(),
+        id: z.literal("user"),
+        type: z.literal("user"),
+        label: z.literal("User"),
+        fieldRequired: z.boolean().optional(),
       })
-    )
-    .optional(),
-  disableOnPrefill: z.boolean().optional(),
-});
+    ),
+    editable: z.enum(["user", "user-readonly"]),
+    required: z.boolean(),
+    placeholder: z.string().optional(),
+    options: z
+      .array(
+        z.object({
+          label: z.string(),
+          value: z.string(),
+        })
+      )
+      .optional(),
+    disableOnPrefill: z.boolean().optional(),
+  })
+  .passthrough();
 
-const SystemFieldSchema = z.object({
-  defaultLabel: z.string(),
-  label: z.string().optional(),
-  editable: z.enum(["system-but-optional", "system", "user-readonly"]),
-  sources: z.array(
-    z.object({
-      id: z.literal("default"),
-      type: z.literal("default"),
-      label: z.literal("Default"),
-    })
-  ),
-  views: z
-    .array(
+const SystemFieldSchema = z
+  .object({
+    defaultLabel: z.string(),
+    label: z.string().optional(),
+    editable: z.enum(["system-but-optional", "system", "user-readonly"]),
+    sources: z.array(
       z.object({
-        id: z.enum(["reschedule"]),
-        label: z.string(),
+        id: z.literal("default"),
+        type: z.literal("default"),
+        label: z.literal("Default"),
       })
-    )
-    .optional(),
-  defaultPlaceholder: z.enum(["", "share_additional_notes", "email", "reschedule_placeholder"]).optional(),
-  placeholder: z.string().optional(),
-  hidden: z.boolean().optional(),
-  required: z.boolean(),
-  hideWhenJustOneOption: z.boolean().optional(),
-  getOptionsAt: z.enum(["locations"]).optional(),
-  optionsInputs: z
-    .object({
-      attendeeInPerson: z.object({
-        type: z.literal("address"),
-        required: z.boolean(),
-        placeholder: z.string(),
-      }),
-      phone: z.object({
-        type: z.literal("phone"),
-        required: z.boolean(),
-        placeholder: z.string(),
-      }),
-      somewhereElse: z
-        .object({
-          type: z.literal("text"),
+    ),
+    views: z
+      .array(
+        z.object({
+          id: z.enum(["reschedule"]),
+          label: z.string(),
+        })
+      )
+      .optional(),
+    defaultPlaceholder: z.enum(["", "share_additional_notes", "email", "reschedule_placeholder"]).optional(),
+    placeholder: z.string().optional(),
+    hidden: z.boolean().optional(),
+    required: z.boolean(),
+    hideWhenJustOneOption: z.boolean().optional(),
+    getOptionsAt: z.enum(["locations"]).optional(),
+    optionsInputs: z
+      .object({
+        attendeeInPerson: z.object({
+          type: z.literal("address"),
           required: z.boolean(),
           placeholder: z.string(),
-        })
-        .optional(),
-    })
-    .optional(),
-  disableOnPrefill: z.boolean().optional(),
-});
+        }),
+        phone: z.object({
+          type: z.literal("phone"),
+          required: z.boolean(),
+          placeholder: z.string(),
+        }),
+        somewhereElse: z
+          .object({
+            type: z.literal("text"),
+            required: z.boolean(),
+            placeholder: z.string(),
+          })
+          .optional(),
+      })
+      .optional(),
+    disableOnPrefill: z.boolean().optional(),
+  })
+  .passthrough();
 
 const NameSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("name"),
