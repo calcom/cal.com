@@ -31,6 +31,8 @@ export interface QueueBookingWebhookParams extends BaseQueueWebhookParams {
   platformCancelUrl?: string | null;
   /** Platform booking URL */
   platformBookingUrl?: string | null;
+  /** Non-PII seat reference UUID; lets the consumer resolve the correct seat without email-matching */
+  attendeeSeatId?: string;
 }
 
 /**

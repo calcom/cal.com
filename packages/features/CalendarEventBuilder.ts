@@ -1,4 +1,5 @@
 import { ALL_APPS } from "@calcom/app-store/utils";
+import logger from "@calcom/lib/logger";
 import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
@@ -12,7 +13,9 @@ import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
 import type { Attendee, BookingSeat, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
+import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-utils";
+import type { z } from "zod";
 import type { AppsStatus, CalEventResponses, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 import type { TFunction } from "i18next";
@@ -28,6 +31,8 @@ export type BookingMetaOptions = {
   platformRescheduleUrl?: string;
   platformCancelUrl?: string;
   platformBookingUrl?: string;
+  /** Non-PII seat reference UUID passed from the webhook queue; skips the email-matching heuristic */
+  attendeeSeatId?: string;
 };
 
 async function _buildPersonFromUser(
@@ -135,9 +140,34 @@ export class CalendarEventBuilder {
     const parsedBookingResponses = bookingResponsesSchema.safeParse(responses);
     const bookingResponses = parsedBookingResponses.success ? parsedBookingResponses.data : null;
 
+    // When attendeeSeatId is provided (from webhook queue), resolve per-seat responses
+    // instead of using booking.responses which always contains the first attendee's data.
+    let parsedSeatResponses: z.infer<typeof bookingResponsesDbSchema> | undefined;
+    if (meta.attendeeSeatId && attendees.length) {
+      const matchedAttendee = attendees.find(
+        (a) => a.bookingSeat?.referenceUid === meta.attendeeSeatId
+      );
+      if (matchedAttendee?.bookingSeat?.data) {
+        const seatData = matchedAttendee.bookingSeat.data as Record<string, unknown>;
+        if (seatData.responses && typeof seatData.responses === "object") {
+          const parsed = bookingResponsesDbSchema.safeParse(seatData.responses);
+          if (parsed.success) {
+            parsedSeatResponses = parsed.data;
+          }
+        }
+      }
+      if (!parsedSeatResponses) {
+        logger.warn("Could not resolve per-seat responses, falling back to booking-level responses", {
+          bookingUid: uid,
+          attendeeSeatId: meta.attendeeSeatId,
+        });
+      }
+    }
+
     const calEventResponses = getCalEventResponses({
       booking,
       bookingFields: eventType.bookingFields,
+      ...(parsedSeatResponses ? { responses: parsedSeatResponses } : {}),
     });
 
     // custom inputs are the old system to record booking responses
@@ -215,8 +245,12 @@ export class CalendarEventBuilder {
         } satisfies EventTypeBrandingData)
       );
 
-    // Seats
-    if (seatsReferences?.length && bookingResponses) {
+    // Seats — prefer the explicit attendeeSeatId from the webhook queue over the
+    // email-matching heuristic which breaks for multi-seat bookings because
+    // booking.responses always contains the first attendee's data.
+    if (meta.attendeeSeatId) {
+      builder.withAttendeeSeatId(meta.attendeeSeatId);
+    } else if (seatsReferences?.length && bookingResponses) {
       const currentSeat = seatsReferences.find(
         (s) =>
           s.attendee.email === bookingResponses.email ||

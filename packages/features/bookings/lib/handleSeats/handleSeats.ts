@@ -307,6 +307,7 @@ const handleSeats = async (
         orgId: subscriberOptions.orgId ?? undefined,
         oAuthClientId: subscriberOptions.oAuthClientId ?? undefined,
         platformClientId: subscriberOptions.oAuthClientId ?? undefined,
+        attendeeSeatId: resultBooking?.seatReferenceUid ?? undefined,
       });
     } catch (err) {
       loggerWithEventDetails.error(

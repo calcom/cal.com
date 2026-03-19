@@ -2932,6 +2932,7 @@ async function handler(
           platformRescheduleUrl: platformRescheduleUrl ?? undefined,
           platformCancelUrl: platformCancelUrl ?? undefined,
           platformBookingUrl: platformBookingUrl ?? undefined,
+          attendeeSeatId: evt.attendeeSeatId ?? undefined,
         });
       } catch (webhookError) {
         tracingLogger.error(

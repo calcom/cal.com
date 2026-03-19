@@ -49,12 +49,14 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
 
       // Build CalendarEvent using the builder pattern (same pattern used by email/sms tasks)
       // Map oAuthClientId to platformClientId for platform metadata
+      // Pass attendeeSeatId so the builder can resolve the correct seat without email-matching
       const calendarEvent = (
         await CalendarEventBuilder.fromBooking(booking, {
           platformClientId: payload.oAuthClientId ?? undefined,
           platformRescheduleUrl: payload.platformRescheduleUrl ?? undefined,
           platformCancelUrl: payload.platformCancelUrl ?? undefined,
           platformBookingUrl: payload.platformBookingUrl ?? undefined,
+          attendeeSeatId: payload.attendeeSeatId,
         })
       ).build();
 

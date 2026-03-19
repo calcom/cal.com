@@ -178,6 +178,48 @@ describe("BookingWebhookDataFetcher", () => {
         platformRescheduleUrl: "https://example.com/reschedule",
         platformCancelUrl: "https://example.com/cancel",
         platformBookingUrl: "https://example.com/booking",
+        attendeeSeatId: undefined,
+      });
+    });
+
+    it("should pass attendeeSeatId to CalendarEventBuilder when provided in payload", async () => {
+      const mockBooking = { eventType: { id: 10 } };
+      mockBookingRepository.getBookingForCalEventBuilderFromUid.mockResolvedValue(mockBooking);
+      const mockBuilder = { build: vi.fn().mockReturnValue({ title: "Test" }) };
+      vi.mocked(CalendarEventBuilder.fromBooking).mockResolvedValue(mockBuilder as never);
+
+      const payload = createPayload({
+        attendeeSeatId: "seat-ref-uuid-123",
+        oAuthClientId: "oauth-client-1",
+      } as Partial<BookingWebhookTaskPayload>);
+
+      await fetcher.fetchEventData(payload);
+
+      expect(CalendarEventBuilder.fromBooking).toHaveBeenCalledWith(mockBooking, {
+        platformClientId: "oauth-client-1",
+        platformRescheduleUrl: undefined,
+        platformCancelUrl: undefined,
+        platformBookingUrl: undefined,
+        attendeeSeatId: "seat-ref-uuid-123",
+      });
+    });
+
+    it("should pass undefined attendeeSeatId when not provided in payload", async () => {
+      const mockBooking = { eventType: { id: 10 } };
+      mockBookingRepository.getBookingForCalEventBuilderFromUid.mockResolvedValue(mockBooking);
+      const mockBuilder = { build: vi.fn().mockReturnValue({ title: "Test" }) };
+      vi.mocked(CalendarEventBuilder.fromBooking).mockResolvedValue(mockBuilder as never);
+
+      const payload = createPayload();
+
+      await fetcher.fetchEventData(payload);
+
+      expect(CalendarEventBuilder.fromBooking).toHaveBeenCalledWith(mockBooking, {
+        platformClientId: undefined,
+        platformRescheduleUrl: undefined,
+        platformCancelUrl: undefined,
+        platformBookingUrl: undefined,
+        attendeeSeatId: undefined,
       });
     });
 

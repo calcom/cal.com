@@ -34,6 +34,8 @@ export const bookingWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
   platformRescheduleUrl: z.string().nullable().optional(),
   platformCancelUrl: z.string().nullable().optional(),
   platformBookingUrl: z.string().nullable().optional(),
+  /** Non-PII seat reference UUID; lets the consumer resolve the correct seat without email-matching */
+  attendeeSeatId: z.string().optional(),
 });
 
 /**
