@@ -1,16 +1,51 @@
+import type { RoutingFormResponseRepositoryInterface } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository.interface";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { IWebhookDataFetcher, SubscriberContext } from "../../interface/IWebhookDataFetcher";
 import type { ILogger } from "../../interface/infrastructure";
-import type { FormWebhookTaskPayload } from "../../types/webhookTask";
+import type {
+  FormWebhookTaskPayload,
+  RoutingFormFallbackHitWebhookTaskPayload,
+  WebhookTaskPayload,
+} from "../../types/webhookTask";
+import { routingFormFallbackHitMetadataSchema } from "../../types/webhookTask";
 
 export class FormWebhookDataFetcher implements IWebhookDataFetcher {
-  constructor(private readonly logger: ILogger) {}
+  private readonly FORM_TRIGGERS = new Set([
+    WebhookTriggerEvents.FORM_SUBMITTED,
+    WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
+  ]);
+
+  constructor(
+    private readonly logger: ILogger,
+    private readonly routingFormResponseRepository: RoutingFormResponseRepositoryInterface
+  ) {}
 
   canHandle(triggerEvent: WebhookTriggerEvents): boolean {
-    return triggerEvent === WebhookTriggerEvents.FORM_SUBMITTED;
+    return this.FORM_TRIGGERS.has(triggerEvent as never);
   }
 
-  async fetchEventData(payload: FormWebhookTaskPayload): Promise<Record<string, unknown> | null> {
+  async fetchEventData(payload: WebhookTaskPayload): Promise<Record<string, unknown> | null> {
+    if (payload.triggerEvent === WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT) {
+      return this.fetchFallbackHitData(payload as RoutingFormFallbackHitWebhookTaskPayload);
+    }
+
+    return this.fetchFormSubmittedData(payload as FormWebhookTaskPayload);
+  }
+
+  getSubscriberContext(payload: WebhookTaskPayload): SubscriberContext {
+    return {
+      triggerEvent: payload.triggerEvent,
+      userId: ("userId" in payload ? payload.userId : undefined) ?? undefined,
+      eventTypeId: undefined,
+      teamId: "teamId" in payload ? payload.teamId : undefined,
+      orgId: ("orgId" in payload ? payload.orgId : undefined) ?? undefined,
+      oAuthClientId: "oAuthClientId" in payload ? payload.oAuthClientId : undefined,
+    };
+  }
+
+  private async fetchFormSubmittedData(
+    payload: FormWebhookTaskPayload
+  ): Promise<Record<string, unknown> | null> {
     const { formId } = payload;
 
     if (!formId) {
@@ -23,14 +58,46 @@ export class FormWebhookDataFetcher implements IWebhookDataFetcher {
     return { formId, _scaffold: true };
   }
 
-  getSubscriberContext(payload: FormWebhookTaskPayload): SubscriberContext {
-    return {
-      triggerEvent: payload.triggerEvent,
-      userId: payload.userId,
-      eventTypeId: undefined,
-      teamId: payload.teamId,
-      orgId: undefined,
-      oAuthClientId: payload.oAuthClientId,
-    };
+  private async fetchFallbackHitData(
+    payload: RoutingFormFallbackHitWebhookTaskPayload
+  ): Promise<Record<string, unknown> | null> {
+    const { formId, responseId } = payload;
+
+    if (!formId || !responseId) {
+      this.logger.warn("Missing formId or responseId for fallback hit webhook");
+      return null;
+    }
+
+    const parsed = routingFormFallbackHitMetadataSchema.safeParse(payload.metadata);
+    if (!parsed.success) {
+      this.logger.warn("Invalid metadata for fallback hit webhook", {
+        errors: parsed.error.issues.map((i) => i.message),
+      });
+      return null;
+    }
+
+    try {
+      const formResponse = await this.routingFormResponseRepository.findByIdIncludeForm(responseId);
+
+      if (!formResponse) {
+        this.logger.warn("Form response not found for fallback hit webhook", { responseId, formId });
+        return null;
+      }
+
+      return {
+        formId,
+        formName: formResponse.form.name,
+        responseId,
+        fallbackAction: parsed.data.fallbackAction,
+        responses: formResponse.response as Record<string, unknown> | null,
+      };
+    } catch (error) {
+      this.logger.error("Error fetching form response for fallback hit webhook", {
+        responseId,
+        formId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
   }
 }

@@ -1,4 +1,5 @@
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { RoutingFormFallbackHitMetadata } from "../types/webhookTask";
 
 /**
  * Base parameters common to all webhook queue operations
@@ -125,6 +126,33 @@ export interface QueueOOOWebhookParams extends BaseQueueWebhookParams {
 }
 
 /**
+ * Parameters for queueing routing form fallback hit webhooks
+ * Used for: ROUTING_FORM_FALLBACK_HIT
+ */
+export interface QueueRoutingFormFallbackHitWebhookParams extends Omit<BaseQueueWebhookParams, "metadata"> {
+  /** Form ID (required) */
+  formId: string;
+
+  /** Response ID (required) */
+  responseId: number;
+
+  /** Team ID */
+  teamId?: number | null;
+
+  /** User ID */
+  userId?: number;
+
+  /** Organization ID */
+  orgId?: number;
+
+  /** OAuth Client ID (for platform webhooks) */
+  oAuthClientId?: string | null;
+
+  /** PII-free metadata (fallbackAction only); fetcher resolves responses/formName from DB */
+  metadata: RoutingFormFallbackHitMetadata;
+}
+
+/**
  * Parameters for queueing wrong assignment report webhooks
  * Used for: WRONG_ASSIGNMENT_REPORT
  */
@@ -191,6 +219,11 @@ export interface IWebhookProducerService {
    * Queue a webhook delivery task for OOO_CREATED event
    */
   queueOOOCreatedWebhook(params: QueueOOOWebhookParams): Promise<void>;
+
+  /**
+   * Queue a webhook delivery task for ROUTING_FORM_FALLBACK_HIT event
+   */
+  queueRoutingFormFallbackHitWebhook(params: QueueRoutingFormFallbackHitWebhookParams): Promise<void>;
 
   /**
    * Queue a webhook delivery task for WRONG_ASSIGNMENT_REPORT event

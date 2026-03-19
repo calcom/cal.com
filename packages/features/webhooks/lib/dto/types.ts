@@ -243,6 +243,21 @@ export interface FormSubmittedNoEventDTO extends BaseEventDTO {
   };
 }
 
+export interface RoutingFormFallbackHitDTO extends BaseEventDTO {
+  triggerEvent: typeof WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT;
+  form: {
+    id: string;
+    name: string;
+  };
+  responseId: number;
+  fallbackAction?: {
+    type: string;
+    value: string;
+    eventTypeId?: number;
+  };
+  responses: Record<string, unknown> | null;
+}
+
 export interface MeetingStartedDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.MEETING_STARTED;
   booking: {
@@ -380,6 +395,7 @@ export type WebhookEventDTO =
   | OOOCreatedDTO
   | FormSubmittedDTO
   | FormSubmittedNoEventDTO
+  | RoutingFormFallbackHitDTO
   | RecordingReadyDTO
   | TranscriptionGeneratedDTO
   | MeetingStartedDTO

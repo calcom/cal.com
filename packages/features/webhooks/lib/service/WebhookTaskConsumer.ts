@@ -8,6 +8,7 @@ import type {
   BookingRequestedDTO,
   BookingRescheduledDTO,
   OOOCreatedDTO,
+  RoutingFormFallbackHitDTO,
   WebhookEventDTO,
   WebhookSubscriber,
   WrongAssignmentReportDTO,
@@ -19,8 +20,17 @@ import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import { DEFAULT_WEBHOOK_VERSION } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
 import type { IWebhookService } from "../interface/services";
-import type { BookingWebhookTaskPayload, WrongAssignmentMetadata, WebhookTaskPayload } from "../types/webhookTask";
-import { noShowEventDataSchema, oooEntrySchema } from "../types/webhookTask";
+import type {
+  BookingWebhookTaskPayload,
+  RoutingFormFallbackHitWebhookTaskPayload,
+  WrongAssignmentMetadata,
+  WebhookTaskPayload,
+} from "../types/webhookTask";
+import {
+  noShowEventDataSchema,
+  oooEntrySchema,
+  routingFormFallbackHitEventDataSchema,
+} from "../types/webhookTask";
 
 export class WebhookTaskConsumer {
   private readonly log: ILogger;
@@ -226,6 +236,13 @@ export class WebhookTaskConsumer {
       return this.buildOOODTO(eventData, payload);
     }
 
+    if (triggerEvent === WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT) {
+      return this.buildRoutingFormFallbackHitDTO(
+        eventData,
+        payload as RoutingFormFallbackHitWebhookTaskPayload
+      );
+    }
+
     const calendarEvent = eventData.calendarEvent as CalendarEvent | undefined;
     const booking = eventData.booking as BookingForCalEventBuilder | undefined;
     const eventType = booking?.eventType;
@@ -387,6 +404,35 @@ export class WebhookTaskConsumer {
       orgId: payload.orgId,
       platformClientId: payload.platformClientId ?? payload.oAuthClientId,
     } satisfies BookingNoShowDTO;
+  }
+
+  private buildRoutingFormFallbackHitDTO(
+    eventData: Record<string, unknown>,
+    payload: RoutingFormFallbackHitWebhookTaskPayload
+  ): RoutingFormFallbackHitDTO | null {
+    const parsed = routingFormFallbackHitEventDataSchema.safeParse(eventData);
+
+    if (!parsed.success) {
+      this.log.warn("Missing required fields for routing form fallback hit DTO", {
+        errors: parsed.error.issues.map((i) => i.message),
+      });
+      return null;
+    }
+
+    return {
+      triggerEvent: WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
+      createdAt: payload.timestamp,
+      form: {
+        id: parsed.data.formId,
+        name: parsed.data.formName,
+      },
+      responseId: parsed.data.responseId,
+      fallbackAction: parsed.data.fallbackAction,
+      responses: parsed.data.responses,
+      userId: payload.userId ?? null,
+      teamId: payload.teamId ?? null,
+      orgId: payload.orgId,
+    } satisfies RoutingFormFallbackHitDTO;
   }
 
   private buildOOODTO(eventData: Record<string, unknown>, payload: WebhookTaskPayload): OOOCreatedDTO | null {

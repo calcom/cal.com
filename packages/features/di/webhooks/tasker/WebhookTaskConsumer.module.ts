@@ -7,6 +7,7 @@ import { moduleLoader as bookingRepositoryModuleLoader } from "../../modules/Boo
 import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
 import { moduleLoader as oooRepositoryModuleLoader } from "../../modules/Ooo";
 import { moduleLoader as prismaModuleLoader } from "../../modules/Prisma";
+import { routingFormResponseRepositoryModule } from "../../modules/RoutingFormResponse";
 import { moduleLoader as userRepositoryModuleLoader } from "../../modules/User";
 import { moduleLoader as wrongAssignmentReportRepositoryModuleLoader } from "../../modules/WrongAssignmentReport";
 import { taskerServiceModule } from "../../shared/services/tasker.service";
@@ -19,6 +20,7 @@ import { recordingWebhookDataFetcherModule } from "../modules/RecordingWebhookDa
 import { wrongAssignmentWebhookDataFetcherModule } from "../modules/WrongAssignmentWebhookDataFetcher.module";
 import { webhookModule } from "../modules/Webhook.module";
 import { webhookTaskConsumerModule } from "../modules/WebhookTaskConsumer.module";
+import { DI_TOKENS } from "../../tokens";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 
 const token = WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER;
@@ -30,6 +32,7 @@ const loadModule = (container: Container) => {
   userRepositoryModuleLoader.loadModule(container);
   oooRepositoryModuleLoader.loadModule(container);
   wrongAssignmentReportRepositoryModuleLoader.loadModule(container);
+  container.load(DI_TOKENS.ROUTING_FORM_RESPONSE_REPOSITORY, routingFormResponseRepositoryModule);
   container.load(SHARED_TOKENS.TASKER, taskerServiceModule);
 
   container.load(WEBHOOK_TOKENS.WEBHOOK_EVENT_TYPE_REPOSITORY, webhookModule);

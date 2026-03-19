@@ -1,4 +1,6 @@
 import dayjs from "@calcom/dayjs";
+// biome-ignore lint/style/noRestrictedImports: required for webhook producer DI container
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
@@ -185,19 +187,34 @@ export async function _onFormSubmission(
     triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
   };
 
-  const subscriberOptionsFallbackHit = fallbackAction
-    ? {
-        userId,
+  if (fallbackAction) {
+    try {
+      const webhookProducer = getWebhookProducer();
+      await webhookProducer.queueRoutingFormFallbackHitWebhook({
+        formId: form.id,
+        responseId,
         teamId,
-        orgId,
-        triggerEvent: WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
-      }
-    : null;
+        userId: userId ?? undefined,
+        orgId: orgId ?? undefined,
+        metadata: {
+          fallbackAction: {
+            type: fallbackAction.type,
+            value: fallbackAction.value,
+            ...(fallbackAction.eventTypeId ? { eventTypeId: fallbackAction.eventTypeId } : {}),
+          },
+        },
+      });
+    } catch (e) {
+      moduleLogger.error("Error queueing ROUTING_FORM_FALLBACK_HIT webhook", {
+        errorMessage: e instanceof Error ? e.message : "Unknown error",
+        errorName: e instanceof Error ? e.name : "UnknownError",
+      });
+    }
+  }
 
-  const [webhooksFormSubmitted, webhooksFormSubmittedNoEvent, webhooksFallbackHit] = await Promise.all([
+  const [webhooksFormSubmitted, webhooksFormSubmittedNoEvent] = await Promise.all([
     getWebhooks(subscriberOptionsFormSubmitted),
     getWebhooks(subscriberOptionsFormSubmittedNoEvent),
-    subscriberOptionsFallbackHit ? getWebhooks(subscriberOptionsFallbackHit) : Promise.resolve([]),
   ]);
 
   const promisesFormSubmitted = webhooksFormSubmitted.map((webhook) => {
@@ -253,32 +270,7 @@ export async function _onFormSubmission(
         );
       });
 
-      const promisesFallbackHit = webhooksFallbackHit.map((webhook) =>
-        sendGenericWebhookPayload({
-          secretKey: webhook.secret,
-          triggerEvent: "ROUTING_FORM_FALLBACK_HIT",
-          createdAt: new Date().toISOString(),
-          webhook,
-          data: {
-            formId: form.id,
-            formName: form.name,
-            teamId: form.teamId,
-            responseId,
-            fallbackAction: fallbackAction
-              ? {
-                  type: fallbackAction.type,
-                  value: fallbackAction.value,
-                  ...(fallbackAction.eventTypeId ? { eventTypeId: fallbackAction.eventTypeId } : {}),
-                }
-              : undefined,
-            responses: response,
-          },
-        }).catch((e) => {
-          moduleLogger.error(`Error executing ROUTING_FORM_FALLBACK_HIT webhook`, e);
-        })
-      );
-
-      const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent, ...promisesFallbackHit];
+      const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
 
       await Promise.all(promises);
 

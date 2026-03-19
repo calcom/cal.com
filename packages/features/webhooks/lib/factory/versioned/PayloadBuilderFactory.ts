@@ -12,6 +12,7 @@ import type {
   MeetingStartedDTO,
   OOOCreatedDTO,
   RecordingReadyDTO,
+  RoutingFormFallbackHitDTO,
   TranscriptionGeneratedDTO,
   WebhookEventDTO,
 } from "../../dto/types";
@@ -31,8 +32,9 @@ export interface IBookingPayloadBuilder extends IPayloadBuilder<BookingWebhookEv
   build(dto: BookingWebhookEventDTO): WebhookPayload;
 }
 
-export interface IFormPayloadBuilder extends IPayloadBuilder<FormSubmittedDTO | FormSubmittedNoEventDTO> {
-  build(dto: FormSubmittedDTO | FormSubmittedNoEventDTO): WebhookPayload;
+export interface IFormPayloadBuilder
+  extends IPayloadBuilder<FormSubmittedDTO | FormSubmittedNoEventDTO | RoutingFormFallbackHitDTO> {
+  build(dto: FormSubmittedDTO | FormSubmittedNoEventDTO | RoutingFormFallbackHitDTO): WebhookPayload;
 }
 
 export interface IOOOPayloadBuilder extends IPayloadBuilder<OOOCreatedDTO> {

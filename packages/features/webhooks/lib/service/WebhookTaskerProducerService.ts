@@ -11,6 +11,7 @@ import type {
   QueueOOOWebhookParams,
   QueuePaymentWebhookParams,
   QueueRecordingWebhookParams,
+  QueueRoutingFormFallbackHitWebhookParams,
   QueueWrongAssignmentWebhookParams,
 } from "../interface/WebhookProducerService";
 import type { WebhookTasker } from "../tasker/WebhookTasker";
@@ -126,6 +127,32 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
       userId: params.userId,
       teamId: params.teamId,
       teamIds: params.teamIds,
+      orgId: params.orgId,
+      oAuthClientId: params.oAuthClientId,
+      metadata: params.metadata,
+      timestamp: new Date().toISOString(),
+    };
+
+    await this.queueTask(operationId, taskPayload);
+  }
+
+  async queueRoutingFormFallbackHitWebhook(params: QueueRoutingFormFallbackHitWebhookParams): Promise<void> {
+    const operationId = params.operationId || uuidv4();
+
+    this.log.debug("Queueing routing form fallback hit webhook task", {
+      operationId,
+      triggerEvent: WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
+      formId: params.formId,
+      responseId: params.responseId,
+    });
+
+    const taskPayload: WebhookTaskPayload = {
+      operationId,
+      triggerEvent: WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
+      formId: params.formId,
+      responseId: params.responseId,
+      teamId: params.teamId,
+      userId: params.userId,
       orgId: params.orgId,
       oAuthClientId: params.oAuthClientId,
       metadata: params.metadata,

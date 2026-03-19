@@ -96,6 +96,20 @@ export const oooWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
 });
 
 /**
+ * Routing Form Fallback Hit webhook task payload
+ * Used for: ROUTING_FORM_FALLBACK_HIT
+ */
+export const routingFormFallbackHitWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
+  triggerEvent: z.literal(WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT),
+  formId: z.string(),
+  responseId: z.number(),
+  teamId: z.number().nullable().optional(),
+  userId: z.number().optional(),
+  orgId: z.number().optional(),
+  oAuthClientId: z.string().nullable().optional(),
+});
+
+/**
  * Wrong Assignment Report webhook task payload
  * Used for: WRONG_ASSIGNMENT_REPORT
  *
@@ -162,6 +176,7 @@ export const webhookTaskPayloadSchema = z.discriminatedUnion("triggerEvent", [
   formWebhookTaskPayloadSchema,
   recordingWebhookTaskPayloadSchema,
   oooWebhookTaskPayloadSchema,
+  routingFormFallbackHitWebhookTaskPayloadSchema,
   wrongAssignmentWebhookTaskPayloadSchema,
 ]);
 
@@ -229,6 +244,40 @@ export const oooEntrySchema = z.object({
 
 
 /**
+ * Routing Form Fallback Hit metadata — PII-free; only non-sensitive action context.
+ * The consumer fetches response and form name from DB via responseId.
+ */
+export const routingFormFallbackHitMetadataSchema = z.object({
+  fallbackAction: z
+    .object({
+      type: z.string(),
+      value: z.string(),
+      eventTypeId: z.number().optional(),
+    })
+    .optional(),
+});
+
+export type RoutingFormFallbackHitMetadata = z.infer<typeof routingFormFallbackHitMetadataSchema>;
+
+/**
+ * Shape returned by FormWebhookDataFetcher for ROUTING_FORM_FALLBACK_HIT.
+ * Used by the consumer to validate fetcher output before building the DTO.
+ */
+export const routingFormFallbackHitEventDataSchema = z.object({
+  formId: z.string(),
+  formName: z.string(),
+  responseId: z.number(),
+  fallbackAction: z
+    .object({
+      type: z.string(),
+      value: z.string(),
+      eventTypeId: z.number().optional(),
+    })
+    .optional(),
+  responses: z.record(z.unknown()).nullable(),
+});
+
+/**
  * Webhook Task Payload Types
  *
  * These are the minimal payload structures queued by WebhookTaskerProducerService
@@ -241,6 +290,9 @@ export type PaymentWebhookTaskPayload = z.infer<typeof paymentWebhookTaskPayload
 export type FormWebhookTaskPayload = z.infer<typeof formWebhookTaskPayloadSchema>;
 export type RecordingWebhookTaskPayload = z.infer<typeof recordingWebhookTaskPayloadSchema>;
 export type OOOWebhookTaskPayload = z.infer<typeof oooWebhookTaskPayloadSchema>;
+export type RoutingFormFallbackHitWebhookTaskPayload = z.infer<
+  typeof routingFormFallbackHitWebhookTaskPayloadSchema
+>;
 export type WrongAssignmentWebhookTaskPayload = z.infer<typeof wrongAssignmentWebhookTaskPayloadSchema>;
 
 /**
