@@ -1,4 +1,4 @@
-import { WEBSITE_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 
 import type { PreviewState } from "../types";
 import { embedLibUrl } from "./constants";
@@ -6,9 +6,12 @@ import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getA
 import { getDimension } from "./getDimension";
 
 export const doWeNeedCalOriginProp = (embedCalOrigin: string) => {
+  const normalizedOrigin = embedCalOrigin.replace(/\/$/, "");
+  const defaultEmbedOrigins = ["https://app.cal.com", "https://cal.com"];
+
   // If we are self hosted, calOrigin won't be app.cal.com so we need to pass it
-  // If we are not self hosted but it's still different from WEBAPP_URL and WEBSITE_URL, we need to pass it -> It happens for organization booking URL at the moment
-  return IS_SELF_HOSTED || (embedCalOrigin !== WEBAPP_URL && embedCalOrigin !== WEBSITE_URL);
+  // If we are cloud hosted but on a non-default Cal origin (e.g. app.cal.eu), we still need to pass it
+  return IS_SELF_HOSTED || !defaultEmbedOrigins.includes(normalizedOrigin);
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
