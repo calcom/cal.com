@@ -5,7 +5,6 @@ import dayjs from "@calcom/dayjs";
 import type { IWebhookDataFetcher, SubscriberContext } from "../../interface/IWebhookDataFetcher";
 import type { ILogger } from "../../interface/infrastructure";
 import type { OOOWebhookTaskPayload } from "../../types/webhookTask";
-import { oooMetadataSchema } from "../../types/webhookTask";
 
 export class OOOWebhookDataFetcher implements IWebhookDataFetcher {
   constructor(
@@ -72,15 +71,12 @@ export class OOOWebhookDataFetcher implements IWebhookDataFetcher {
   }
 
   getSubscriberContext(payload: OOOWebhookTaskPayload): SubscriberContext {
-    const parsed = oooMetadataSchema.safeParse(payload.metadata);
-    const meta = parsed.success ? parsed.data : undefined;
-
     return {
       triggerEvent: payload.triggerEvent,
       userId: payload.userId,
       eventTypeId: undefined,
-      teamId: meta?.teamIds ?? payload.teamId ?? undefined,
-      orgId: meta?.orgId ?? undefined,
+      teamId: payload.teamIds ?? payload.teamId ?? undefined,
+      orgId: payload.orgId ?? undefined,
       oAuthClientId: payload.oAuthClientId,
     };
   }

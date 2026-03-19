@@ -90,6 +90,8 @@ export const oooWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
   oooEntryId: z.number(),
   userId: z.number(),
   teamId: z.number().nullable().optional(),
+  teamIds: z.array(z.number()).optional(),
+  orgId: z.number().nullable().optional(),
   oAuthClientId: z.string().nullable().optional(),
 });
 
@@ -225,18 +227,6 @@ export const oooEntrySchema = z.object({
   uuid: z.string(),
 });
 
-/**
- * OOO webhook metadata — only non-PII identifiers queued; fetcher resolves PII from DB.
- */
-export const oooMetadataSchema = z.object({
-  teamIds: z.array(z.number()).optional(),
-  orgId: z.number().nullable().optional(),
-});
-
-export type OOOMetadata = {
-  teamIds?: number[];
-  orgId?: number | null;
-};
 
 /**
  * Webhook Task Payload Types

@@ -310,11 +310,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     await getWebhookProducer().queueOOOCreatedWebhook({
       oooEntryId: createdOrUpdatedOutOfOffice.id,
       userId: oooUserId,
-      teamId: null,
-      metadata: {
-        teamIds,
-        orgId: oooUserOrgId,
-      },
+      teamIds,
+      orgId: oooUserOrgId,
     });
   } catch (error) {
     logger.warn("Failed to queue OOO webhook, OOO entry was created successfully", {

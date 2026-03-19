@@ -14,7 +14,7 @@ import type { OOOWebhookTaskPayload } from "../../../types/webhookTask";
  *
  * Tests specific to the OOO_CREATED webhook trigger.
  * This trigger fires when an Out of Office entry is created.
- * The fetcher resolves PII from DB; metadata only contains teamIds/orgId.
+ * The fetcher resolves PII from DB; teamIds/orgId are at root level.
  */
 describe("OOO_CREATED Trigger", () => {
   let consumer: WebhookTaskConsumer;
@@ -116,7 +116,8 @@ describe("OOO_CREATED Trigger", () => {
         teamId: 3,
         oAuthClientId: null,
         timestamp,
-        metadata: { teamIds: [10, 20], orgId: 99 },
+        teamIds: [10, 20],
+        orgId: 99,
       };
 
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
@@ -140,16 +141,16 @@ describe("OOO_CREATED Trigger", () => {
       );
     });
 
-    it("should extract orgId from metadata in DTO", async () => {
+    it("should extract orgId from root payload in DTO", async () => {
       const payload: OOOWebhookTaskPayload = {
         operationId: "op-ooo-org",
         triggerEvent: WebhookTriggerEvents.OOO_CREATED,
         oooEntryId: 42,
         userId: 5,
         teamId: null,
+        orgId: 99,
         oAuthClientId: null,
         timestamp: "2025-12-20T12:00:00.000Z",
-        metadata: { orgId: 99 },
       };
 
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
@@ -165,7 +166,7 @@ describe("OOO_CREATED Trigger", () => {
       );
     });
 
-    it("should set orgId to undefined when metadata has no orgId", async () => {
+    it("should set orgId to undefined when not provided", async () => {
       const payload: OOOWebhookTaskPayload = {
         operationId: "op-ooo-no-org",
         triggerEvent: WebhookTriggerEvents.OOO_CREATED,
@@ -174,7 +175,6 @@ describe("OOO_CREATED Trigger", () => {
         teamId: null,
         oAuthClientId: null,
         timestamp: "2025-12-20T12:00:00.000Z",
-        metadata: {},
       };
 
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
@@ -267,7 +267,6 @@ describe("OOO_CREATED Trigger", () => {
         teamId: 55,
         oAuthClientId: "oauth-ooo",
         timestamp: "2025-12-20T12:00:00.000Z",
-        metadata: {},
       };
 
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
@@ -292,7 +291,6 @@ describe("OOO_CREATED Trigger", () => {
         userId: 5,
         oAuthClientId: null,
         timestamp: "2025-12-20T12:00:00.000Z",
-        metadata: {},
       };
 
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);

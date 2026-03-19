@@ -20,7 +20,7 @@ import { DEFAULT_WEBHOOK_VERSION } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
 import type { IWebhookService } from "../interface/services";
 import type { BookingWebhookTaskPayload, WrongAssignmentMetadata, WebhookTaskPayload } from "../types/webhookTask";
-import { noShowEventDataSchema, oooEntrySchema, oooMetadataSchema } from "../types/webhookTask";
+import { noShowEventDataSchema, oooEntrySchema } from "../types/webhookTask";
 
 export class WebhookTaskConsumer {
   private readonly log: ILogger;
@@ -400,15 +400,13 @@ export class WebhookTaskConsumer {
       return null;
     }
 
-    const subscriberMeta = oooMetadataSchema.safeParse(payload.metadata);
-
     return {
       triggerEvent: WebhookTriggerEvents.OOO_CREATED,
       createdAt: payload.timestamp,
       oooEntry: entryParsed.data,
       userId: payload.userId ?? null,
       teamId: payload.teamId ?? null,
-      orgId: subscriberMeta.success ? subscriberMeta.data.orgId : undefined,
+      orgId: payload.orgId ?? undefined,
     } satisfies OOOCreatedDTO;
   }
 }

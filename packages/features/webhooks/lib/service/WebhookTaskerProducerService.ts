@@ -125,38 +125,14 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
       oooEntryId: params.oooEntryId,
       userId: params.userId,
       teamId: params.teamId,
+      teamIds: params.teamIds,
+      orgId: params.orgId,
       oAuthClientId: params.oAuthClientId,
       metadata: params.metadata,
       timestamp: new Date().toISOString(),
     };
 
-    // OOO uses teamIds array from metadata (user can be in multiple teams).
-    // The generic queueTask would use taskPayload.teamId (null) and miss team-level subscribers.
-    try {
-      const subscribers = await this.deps.webhookRepository.getSubscribers({
-        triggerEvent: WebhookTriggerEvents.OOO_CREATED,
-        userId: params.userId,
-        teamId: params.metadata.teamIds ?? params.teamId ?? undefined,
-        orgId: params.metadata.orgId,
-        oAuthClientId: params.oAuthClientId,
-      });
-
-      if (subscribers.length === 0) {
-        this.log.debug("No OOO webhook subscribers found, skipping task queue", {
-          operationId,
-        });
-        return;
-      }
-
-      const result = await this.deps.webhookTasker.deliverWebhook(taskPayload);
-      this.log.debug("Webhook delivery task queued", { operationId, taskId: result.taskId });
-    } catch (error) {
-      this.log.error("Failed to queue OOO webhook delivery task", {
-        operationId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-      throw error;
-    }
+    await this.queueTask(operationId, taskPayload);
   }
 
   async queueWrongAssignmentReportWebhook(params: QueueWrongAssignmentWebhookParams): Promise<void> {
@@ -256,11 +232,18 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
    */
   private async queueTask(operationId: string, taskPayload: WebhookTaskPayload): Promise<void> {
     try {
+      const teamId =
+        "teamIds" in taskPayload && taskPayload.teamIds
+          ? taskPayload.teamIds
+          : "teamId" in taskPayload
+            ? taskPayload.teamId
+            : undefined;
+
       const subscribers = await this.deps.webhookRepository.getSubscribers({
         triggerEvent: taskPayload.triggerEvent,
         userId: "userId" in taskPayload ? taskPayload.userId : undefined,
         eventTypeId: "eventTypeId" in taskPayload ? taskPayload.eventTypeId : undefined,
-        teamId: "teamId" in taskPayload ? taskPayload.teamId : undefined,
+        teamId,
         orgId: "orgId" in taskPayload ? taskPayload.orgId : undefined,
         oAuthClientId: "oAuthClientId" in taskPayload ? taskPayload.oAuthClientId : undefined,
       });

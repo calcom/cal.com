@@ -332,13 +332,34 @@ describe("WebhookTaskerProducerService", () => {
       await producer.queueOOOCreatedWebhook({
         oooEntryId: 123,
         userId: 456,
-        metadata: {
-          teamIds: [10, 20],
-          orgId: 1,
-        },
+        teamIds: [10, 20],
+        orgId: 1,
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.OOO_CREATED })
+        expect.objectContaining({
+          triggerEvent: WebhookTriggerEvents.OOO_CREATED,
+          oooEntryId: 123,
+          userId: 456,
+          teamIds: [10, 20],
+          orgId: 1,
+        })
+      );
+    });
+
+    it("should pass teamIds to getSubscribers for OOO webhooks", async () => {
+      await producer.queueOOOCreatedWebhook({
+        oooEntryId: 123,
+        userId: 456,
+        teamIds: [10, 20],
+        orgId: 1,
+      });
+      expect(mockWebhookRepository.getSubscribers).toHaveBeenCalledWith(
+        expect.objectContaining({
+          triggerEvent: WebhookTriggerEvents.OOO_CREATED,
+          userId: 456,
+          teamId: [10, 20],
+          orgId: 1,
+        })
       );
     });
   });

@@ -152,12 +152,13 @@ describe("OOOWebhookDataFetcher", () => {
   });
 
   describe("getSubscriberContext", () => {
-    it("should use teamIds from metadata when present", () => {
+    it("should use teamIds and orgId from root payload", () => {
       const payload = createPayload({
         userId: 5,
         teamId: null,
+        teamIds: [10, 20, 30],
+        orgId: 99,
         oAuthClientId: "oauth-1",
-        metadata: { teamIds: [10, 20, 30], orgId: 99 },
       } as Partial<OOOWebhookTaskPayload>);
 
       const context = fetcher.getSubscriberContext(payload);
@@ -172,13 +173,12 @@ describe("OOOWebhookDataFetcher", () => {
       });
     });
 
-    it("should fall back to payload.teamId when metadata has no teamIds", () => {
+    it("should fall back to payload.teamId when teamIds is not set", () => {
       const payload = createPayload({
         userId: 5,
         teamId: 3,
         oAuthClientId: null,
-        metadata: {},
-      } as Partial<OOOWebhookTaskPayload>);
+      });
 
       const context = fetcher.getSubscriberContext(payload);
 
