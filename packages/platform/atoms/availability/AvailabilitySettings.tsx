@@ -348,9 +348,12 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
     }, [isPlatform]);
 
     const saveButtonRef = useRef<HTMLButtonElement>(null);
+    const callbacksRef = useRef<{ onSuccess?: () => void; onError?: (error: Error) => void }>({});
 
     const handleFormSubmit = useCallback(
       (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
+        callbacksRef.current = customCallbacks || {};
+
         if (saveButtonRef.current) {
           saveButtonRef.current.click();
         } else {
@@ -358,9 +361,9 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
             try {
               await handleSubmit(data);
               form.reset(form.getValues());
-              customCallbacks?.onSuccess?.();
+              callbacksRef.current?.onSuccess?.();
             } catch (error) {
-              customCallbacks?.onError?.(error as Error);
+              callbacksRef.current?.onError?.(error as Error);
             }
           })();
         }
@@ -647,8 +650,9 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               try {
                 await handleSubmit(props);
                 form.reset(form.getValues());
-              } catch {
-                // error already handled by parent's onError
+                callbacksRef.current?.onSuccess?.();
+              } catch (error) {
+                callbacksRef.current?.onError?.(error as Error);
               }
             }}
             className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>

@@ -165,7 +165,7 @@ export const AvailabilitySettingsPlatformWrapper = forwardRef<
           }
 
           if (!isDryRun && atomSchedule.id) {
-            handleUpdate(atomSchedule.id, data);
+            await handleUpdate(atomSchedule.id, data);
           }
         }}
         weekStart={me?.data?.weekStart || "Sunday"}
