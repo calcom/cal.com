@@ -1,7 +1,6 @@
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { prisma } from "@calcom/prisma";
@@ -51,16 +50,7 @@ async function getHandler(req: NextRequest) {
         onboarding?.teams &&
         orgOnboardingTeamsSchema.parse(onboarding.teams).some((team) => team.isBeingMigrated);
 
-      // Check if the org owner is an existing user who already completed personal onboarding
-      // (i.e., this is a migration flow even if no teams are being migrated)
-      const userRepository = new UserRepository(prisma);
-      const orgOwner = onboarding?.orgOwnerEmail
-        ? await userRepository.findByEmail(onboarding.orgOwnerEmail)
-        : null;
-      const isMigrationFlow = orgOwner?.completedOnboarding === true;
-
-      if (hasMigratedTeams || isMigrationFlow) {
-        // Migration flow - user already completed onboarding, redirect to event-types
+      if (hasMigratedTeams) {
         const redirectUrl = new URL("/event-types?newOrganizationModal=true", WEBAPP_URL).toString();
         return NextResponse.redirect(redirectUrl);
       }

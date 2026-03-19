@@ -307,7 +307,7 @@ describe("useSubmitOnboarding", () => {
 
   it("should redirect to personal onboarding when not a migration flow and no migrated teams (stripe disabled)", async () => {
     const { useFlagMap } = await import("@calcom/features/flags/context/provider");
-    vi.mocked(useFlagMap).mockReturnValue({ "onboarding-v3": true } as ReturnType<typeof useFlagMap>);
+    vi.mocked(useFlagMap).mockReturnValueOnce({ "onboarding-v3": true } as ReturnType<typeof useFlagMap>);
 
     const hook = useSubmitOnboarding();
     const { submitOnboarding } = hook;
