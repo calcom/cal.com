@@ -6432,6 +6432,9 @@ checksums:
     whatsapp_number_action: e87557d1e1c641100df7b3ddfeca18a6
     whatsapp_attendee_action: e2228eb197bdff521e7f5580de775629
     workflows: b0c9c8615a9ba7d9cb73e767290a7f72
+    booking_fields/workflow_sms_source_label: 0240772c838117f1c837f4913fce9384
+    booking_fields/workflow_calai_source_label: 9d2046883b3a41ce057484775b80b6e4
+    booking_fields/location_source_label: 6f87892f2fdcc33bb37a432f104c1138
     new_workflow_btn: 556be5b31c361973a19d3e2f7375d4f3
     how_would_you_like_to_start: 118de435d9585cb475d85dbae1f331f8
     add_new_workflow: fc34bdfa29921346715ef27d4e520dbd
@@ -7394,16 +7397,16 @@ checksums:
     unlocked_for_members: 0aba99def77ceebd74b0238b872a1d16
     apps_locked_for_members_description: 16448dfa18f8067211889352e8d51f52
     apps_unlocked_for_members_description: 77815313daff897bb5b1fe2fe1afb8cf
-    apps_locked_by_team_admins_description: 5b5390990836bec8a6c9934bd561560f
-    apps_unlocked_by_team_admins_description: 0670587fdf2810e55f9ef2efa990a3ce
+    apps_locked_by_team_admin_description: 5b5390990836bec8a6c9934bd561560f
+    apps_unlocked_by_team_admin_description: 0670587fdf2810e55f9ef2efa990a3ce
     workflows_locked_for_members_description: 27f16d65333da4e1ac3dd801d7f2f93c
     workflows_unlocked_for_members_description: edb59754bf0d771666984d01fcffbaa7
-    workflows_locked_by_team_admins_description: 8bfac6f17bbd494bb130c00ae5fcd4de
-    workflows_unlocked_by_team_admins_description: 457e6dd5da3072aa2fb1f84232bd2dbf
+    workflows_locked_by_team_admin_description: 8bfac6f17bbd494bb130c00ae5fcd4de
+    workflows_unlocked_by_team_admin_description: 457e6dd5da3072aa2fb1f84232bd2dbf
     webhooks_locked_for_members_description: 9b2935a9a3850d82f3165adfe6f84c21
     webhooks_unlocked_for_members_description: f5b5d7cd9110c935a64623a79b6da02b
-    webhooks_locked_by_team_admins_description: 9ff386c2b6ded47b1a0092d9af1175b8
-    webhooks_unlocked_by_team_admins_description: 41bd9c0d1d1393ee54eff5e4f1f84c29
+    webhooks_locked_by_team_admin_description: 9ff386c2b6ded47b1a0092d9af1175b8
+    webhooks_unlocked_by_team_admin_description: 41bd9c0d1d1393ee54eff5e4f1f84c29
     locked_by_team_admin: 539128c9579f340b95d58abbfa0880ef
     app_not_connected: 25c979da79e9f983e6f5e62dcd1c47bb
     connect_now: ca98ba0375aad91861c150bbc0fff9ec
@@ -8617,6 +8620,14 @@ checksums:
     currently_subscribed_to_plan: bb68f22875b656d155a0eb01e385036c
     user_team: 00bce051ce11b20a317b1f867198f79c
     client_secret_copied: 25c001712f0ff63a113988b315fc928c
+    client_secrets: 685bd576d5bae2733732490bbaeefd87
+    generate_new_secret: b30a26bf2894b3f59a7fbc2336dbed9f
+    new_client_secret: c1b097845962099b0a4551e0105aef74
+    no_client_secrets: 05dd0272634b526de65c079ae65155f9
+    oauth_client_max_secrets_reached: 1184b42ee269152e044e537e37dfdf87
+    oauth_client_secret_deleted: f4268794d4713c5b4c4692a05765a449
+    delete_client_secret: 44f84121771ee8ee58ea7441ff98313a
+    confirm_delete_client_secret: e14a693e9bd364f8aaa1d0cfeeb2bfa8
     maintenance_message: 932c85e0855ea613148f4837fa1c13ef
     your_payment_failed: 77d28e867781e91e8ee95c090b64b1d0
     check_your_inbox: e9a430fcd298def74212238df0f680d6
@@ -8660,6 +8671,15 @@ checksums:
     custom_reply_to_email_description: b94178b32d14b7c192aa5b4bb4b282ec
     team_trials_skipped_successfully: c19c7975a048b7fb0be913f5c1482691
     sms_workflow_consent: d5d140beed4e53ad79aa7a659e643731
+    calai_workflow_consent: 5ce2d40e1f43262ea0d4039792107735
+    sms_and_cal_ai_phone_consent: f8ddb3115af53986e85aa6d938359bf4
+    unify_phone_fields: 7717e8b170067254ca17e1a5ea66fb21
+    unify_phone_fields_tooltip: 197a804564700bcbdc59a91a95098663
+    used_by: b437e3b5aaacd77635a37e7d8c7fbc5a
+    used_by_workflows: fdbc2a6a6ad3afafcac943e254232b99
+    sms_workflow: 6f9dd1b9bbded339e66338b4a0c554f7
+    cal_ai_workflow: d29f27fb9cfc405120c6c59a58a5f523
+    attendee_phone_location: 04a11131121b3a6e6701290dca1b09a6
     routing_preview_more_info_found_insights: 8bccc340f8d7e0c85e0c0be29328ff61
     results: 1a8f50c90d0a0d500624dd3a62aab6ee
     view_form: 31b80396918ffbac1b3ae860a2e03ea0
@@ -8975,6 +8995,8 @@ checksums:
     no_description_provided: 3d563b56fbbce83613b26922c4ce97cf
     organization_blocklist: fde8ae061ced2ae2a6f838916a02d4b4
     manage_blocked_emails_and_domains: 82029377b143574ae395e053e75eaea6
+    skip_crm_on_booking_report_title: db0865fb4034482bfafd1ebe18481a5f
+    skip_crm_on_booking_report_description: ffe8b322ac05792ff815be45c94e57c3
     guest_notifications: ed97390cff8d4ea073067ee5f071a88f
     guest_notifications_description: 0ba1bf4ef2306fb0b3029588f10b0f06
     guest_booking_email_notifications: 73b9dc5a1c6757d3debe34c5f29b359d
