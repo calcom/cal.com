@@ -39,6 +39,14 @@ export const createCustomAppointmentHandler = async ({
     });
   }
 
+  // Set up responses payload for downstream consumers
+  const booker = input.attendees[0];
+  const responses = {
+    email: booker.email,
+    name: booker.name,
+    location: input.location || "",
+  };
+
   // Create the booking directly (no event type needed)
   const booking = await prisma.booking.create({
     data: {
@@ -49,17 +57,29 @@ export const createCustomAppointmentHandler = async ({
       endTime: new Date(input.endTime),
       status: "ACCEPTED",
       location: input.location,
-      responses: {},
+      responses,
       attendees: {
         create: input.attendees.map((attendee) => ({
           name: attendee.name,
           email: attendee.email,
-          timeZone: targetUser.timeZone,
+          timeZone: attendee.timeZone,
         })),
       },
     },
-    include: {
-      attendees: true,
+    select: {
+      id: true,
+      uid: true,
+      title: true,
+      startTime: true,
+      endTime: true,
+      status: true,
+      attendees: {
+        select: {
+          name: true,
+          email: true,
+          timeZone: true,
+        },
+      },
     },
   });
 

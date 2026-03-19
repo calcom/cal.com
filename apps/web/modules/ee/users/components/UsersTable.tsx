@@ -164,6 +164,8 @@ function UsersTableBare() {
     fetchMoreOnBottomReached(tableContainerRef.current);
   }, [fetchMoreOnBottomReached]);
 
+  const [userToBookOneOff, setUserToBookOneOff] = useState<number | null>(null);
+
   const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
   return (
@@ -274,6 +276,13 @@ function UsersTableBare() {
                           icon: "check",
                         },
                         {
+                          id: "one-off-appointment",
+                          label: "Create Custom Appointment",
+                          onClick: () => setUserToBookOneOff(user.id),
+                          icon: "calendar",
+                        },
+
+                        {
                           id: "impersonation",
                           label: "Impersonate",
                           onClick: () => {
@@ -311,6 +320,13 @@ function UsersTableBare() {
             if (!userToDelete) return;
             mutation.mutate({ userId: userToDelete });
           }}
+      {userToBookOneOff && (
+        <CreateCustomAppointmentDialog
+          user={userToBookOneOff}
+          onClose={() => setUserToBookOneOff(null)}
+        />
+      )}
+
         />
       </div>
       {showImpersonateModal && selectedUser && (
@@ -361,3 +377,110 @@ const DeleteUserDialog = ({
 };
 
 export const UsersTable = withLicenseRequired(UsersTableBare);
+
+const CreateCustomAppointmentDialog = ({
+  user,
+  onClose,
+}: {
+  user: number | null;
+  onClose: () => void;
+}) => {
+  const { t } = useLocale();
+  const utils = trpc.useUtils();
+
+  const mutation = trpc.viewer.admin.createCustomAppointment.useMutation({
+    onSuccess: () => {
+      showToast(t("appointment_created_successfully"), "success");
+      onClose();
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [attendeeEmail, setAttendeeEmail] = useState("");
+  const [attendeeName, setAttendeeName] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (new Date(endTime) <= new Date(startTime)) {
+      showToast("End time must be after start time", "error");
+      return;
+    }
+
+    e.preventDefault();
+    if (!user || !title || !startTime || !endTime || !attendeeEmail || !attendeeName) return;
+
+    mutation.mutate({
+      targetUserId: user,
+      title,
+      description,
+      startTime: new Date(startTime).toISOString(),
+      endTime: new Date(endTime).toISOString(),
+      attendees: [{ email: attendeeEmail, name: attendeeName, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }],
+    });
+  };
+
+  return (
+    <Dialog open={!!user} onOpenChange={(open) => (open ? () => {} : onClose())}>
+      <DialogContent type="creation" title="Create Custom Appointment" description="Create a one-off appointment for this user without requiring an event type.">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <TextField
+            label="Title"
+            required
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Important Meeting"
+          />
+          <TextField
+            label="Description (optional)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <TextField
+            type="datetime-local"
+            label="Start Time"
+            required
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+          />
+          <TextField
+            type="datetime-local"
+            label="End Time"
+            required
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+          />
+          <div className="flex gap-4">
+            <TextField
+              label="Attendee Name"
+              required
+              value={attendeeName}
+              onChange={(e) => setAttendeeName(e.target.value)}
+              placeholder="John Doe"
+            />
+            <TextField
+              label="Attendee Email"
+              type="email"
+              required
+              value={attendeeEmail}
+              onChange={(e) => setAttendeeEmail(e.target.value)}
+              placeholder="john@example.com"
+            />
+          </div>
+
+          <DialogFooter showDivider className="mt-8">
+            <DialogClose color="secondary" onClick={onClose}>Cancel</DialogClose>
+            <Button color="primary" type="submit" loading={mutation.isLoading}>
+              Create Appointment
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
