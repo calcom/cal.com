@@ -361,7 +361,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
       (customCallbacks?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
         callbacksRef.current = customCallbacks || {};
 
-        if (saveButtonRef.current) {
+        if (saveButtonRef.current && !saveButtonRef.current.disabled) {
           saveButtonRef.current.click();
         } else {
           form.handleSubmit(async (data) => {
