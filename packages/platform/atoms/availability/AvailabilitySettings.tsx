@@ -211,7 +211,7 @@ const DateOverride = ({
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
-  const { getValues } = useFormContext();
+  const { getValues, reset } = useFormContext();
   const excludedDates = useExcludedDates();
   const { t } = useLocale();
 
@@ -220,6 +220,7 @@ const DateOverride = ({
     if (!isDryRun) {
       try {
         await handleSubmit(updatedValues);
+        reset(updatedValues);
       } catch {
         // error already handled by mutation's onError callback
       }
