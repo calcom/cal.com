@@ -375,7 +375,7 @@ export async function getBookings({
         // Simple string match (exact)
         fullQuery = fullQuery
           .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.email", "=", filters.attendeeEmail.trim());
+          .where((eb) => eb(eb.fn("lower", ["Attendee.email"]), "=", filters.attendeeEmail.trim().toLowerCase()));
       } else if (isTextFilterValue(filters.attendeeEmail)) {
         // TODO: write makeWhereClause equivalent for kysely
         fullQuery = addAdvancedAttendeeWhereClause(

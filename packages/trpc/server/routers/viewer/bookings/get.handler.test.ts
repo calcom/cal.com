@@ -475,4 +475,47 @@ describe("getBookings - PBAC Permission Checks", () => {
       expect(mockKysely._mockQueryBuilder.executeTakeFirst).toHaveBeenCalled();
     });
   });
+
+  describe("Attendee email filtering", () => {
+    it("should normalize attendeeEmail to lowercase in simple string filter", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: mockKysely as unknown as Kysely<DB>,
+        bookingListingByStatus: ["upcoming"],
+        filters: {
+          attendeeEmail: "TestUser@Example.com",
+        },
+        take: 10,
+        skip: 0,
+      });
+
+      const whereCalls = mockKysely._mockQueryBuilder.where.mock.calls;
+      const attendeeFilterWhereArg = whereCalls
+        .map(([arg]) => arg)
+        .find((arg) => typeof arg === "function" && arg.toString().includes("Attendee.email"));
+
+      expect(attendeeFilterWhereArg).toBeTypeOf("function");
+
+      const expressionBuilder = Object.assign(
+        (left: string, operator: string, right: string) => ({ left, operator, right }),
+        {
+          fn: vi.fn((name: string, args: string[]) => `${name}(${args[0]})`),
+        }
+      );
+
+      const builtClause = attendeeFilterWhereArg?.(expressionBuilder);
+
+      expect(expressionBuilder.fn).toHaveBeenCalledWith("lower", ["Attendee.email"]);
+      expect(builtClause).toEqual({
+        left: "lower(Attendee.email)",
+        operator: "=",
+        right: "testuser@example.com",
+      });
+    });
+  });
 });
