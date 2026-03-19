@@ -12,6 +12,8 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
       if (key === "no_availability_in_month") return `No availability in ${vars?.month}`;
       if (key === "no_availability_rolling")
         return `Scheduling is only available up to ${vars?.days} in advance. Please check again soon.`;
+      if (key === "no_availability_range_not_started")
+        return `Bookings open on ${vars?.date}. Please check again soon.`;
       if (key === "no_availability_range")
         return `Scheduling ended on ${vars?.date}. Please check again soon.`;
       if (key === "close") return "Close";
@@ -86,6 +88,28 @@ describe("NoAvailabilityOverlay", () => {
     const closeButton = screen.getAllByTestId("close_dialog_button");
     expect(nextMonthButton).toHaveLength(0);
     expect(closeButton).toHaveLength(1);
+  });
+
+  test("Displays booking-open message when period type is RANGE and range start date is in the future", () => {
+    const startDate = dayjs().add(60, "days");
+    const endDate = dayjs().add(180, "days");
+
+    render(
+      <NoAvailabilityDialog
+        {...defaultProps}
+        browsingDate={dayjs()}
+        periodData={{
+          ...defaultProps.periodData,
+          periodType: "RANGE",
+          periodStartDate: startDate.toDate(),
+          periodEndDate: endDate.toDate(),
+        }}
+      />
+    );
+
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      `Bookings open on ${startDate.format("MMMM D YYYY")}. Please check again soon.`
+    );
   });
 
   test("calls nextMonthButton when 'View next month' is clicked", () => {

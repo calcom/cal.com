@@ -42,6 +42,12 @@ const useDescription = (noFutureAvailability: boolean, p: PeriodData) => {
   }
 
   if (p.periodType === "RANGE") {
+    if (p.periodStartDate && dayjs().isBefore(dayjs(p.periodStartDate), "day")) {
+      return t("no_availability_range_not_started", {
+        date: dayjs(p.periodStartDate).format("MMMM D YYYY"),
+      });
+    }
+
     return t("no_availability_range", { date: dayjs(p.periodEndDate).format("MMMM D YYYY") });
   }
 
