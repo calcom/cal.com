@@ -107,22 +107,25 @@ export const AvailabilitySettingsPlatformWrapper = forwardRef<
     await deleteSchedule({ id });
   };
 
-  const handleUpdate = async (id: number, body: AvailabilityFormValues) => {
+  const handleUpdate = async (id: number, body: AvailabilityFormValues): Promise<"saved" | "skipped"> => {
     let canUpdate = true;
 
     if (onBeforeUpdate) {
       canUpdate = await onBeforeUpdate(body);
     }
 
-    if (canUpdate) {
-      await updateSchedule({
-        scheduleId: id,
-        body: {
-          ...body,
-          dateOverrides: body.dateOverrides.flatMap((override) => override.ranges),
-        },
-      });
+    if (!canUpdate) {
+      return "skipped";
     }
+
+    await updateSchedule({
+      scheduleId: id,
+      body: {
+        ...body,
+        dateOverrides: body.dateOverrides.flatMap((override) => override.ranges),
+      },
+    });
+    return "saved";
   };
 
   if (isLoading) {
@@ -162,11 +165,13 @@ export const AvailabilitySettingsPlatformWrapper = forwardRef<
             toast({
               description: "Schedule updated successfully",
             });
+            return "saved";
           }
 
           if (!isDryRun && atomSchedule.id) {
-            await handleUpdate(atomSchedule.id, data);
+            return await handleUpdate(atomSchedule.id, data);
           }
+          return "skipped";
         }}
         weekStart={me?.data?.weekStart || "Sunday"}
         timeFormat={timeFormat}

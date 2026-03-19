@@ -111,7 +111,7 @@ type AvailabilitySettingsProps = {
   timeFormat: number | null;
   weekStart: string;
   backPath: string | boolean;
-  handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
+  handleSubmit: (data: AvailabilityFormValues) => Promise<"saved" | "skipped">;
   isPlatform?: boolean;
   customClassNames?: CustomClassNames;
   disableEditableHeading?: boolean;
@@ -205,7 +205,7 @@ const DateOverride = ({
     description?: string;
     button?: string;
   };
-  handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
+  handleSubmit: (data: AvailabilityFormValues) => Promise<"saved" | "skipped">;
   isDryRun?: boolean;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
@@ -219,8 +219,10 @@ const DateOverride = ({
     const updatedValues = getValues() as AvailabilityFormValues;
     if (!isDryRun) {
       try {
-        await handleSubmit(updatedValues);
-        reset(updatedValues);
+        const result = await handleSubmit(updatedValues);
+        if (result === "saved") {
+          reset(updatedValues);
+        }
       } catch {
         // error already handled by mutation's onError callback
       }
@@ -364,9 +366,11 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
         } else {
           form.handleSubmit(async (data) => {
             try {
-              await handleSubmit(data);
-              form.reset(data);
-              callbacksRef.current?.onSuccess?.();
+              const result = await handleSubmit(data);
+              if (result === "saved") {
+                form.reset(data);
+                callbacksRef.current?.onSuccess?.();
+              }
             } catch (error) {
               callbacksRef.current?.onError?.(error as Error);
             } finally {
@@ -655,9 +659,11 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
             id="availability-form"
             handleSubmit={async (props) => {
               try {
-                await handleSubmit(props);
-                form.reset(props);
-                callbacksRef.current?.onSuccess?.();
+                const result = await handleSubmit(props);
+                if (result === "saved") {
+                  form.reset(props);
+                  callbacksRef.current?.onSuccess?.();
+                }
               } catch (error) {
                 callbacksRef.current?.onError?.(error as Error);
               } finally {

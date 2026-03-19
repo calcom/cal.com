@@ -122,7 +122,7 @@ export const AvailabilitySettingsWebWrapper = ({
       handleSubmit={async ({ dateOverrides, ...values }) => {
         if (!values.name.trim()) {
           showToast(t("schedule_name_cannot_be_empty"), "error");
-          return;
+          return "skipped";
         }
         if (scheduleId) {
           await updateMutation.mutateAsync({
@@ -131,6 +131,7 @@ export const AvailabilitySettingsWebWrapper = ({
             ...values,
           });
         }
+        return "saved";
       }}
       bulkUpdateModalProps={{
         isOpen: isBulkUpdateModalOpen,
