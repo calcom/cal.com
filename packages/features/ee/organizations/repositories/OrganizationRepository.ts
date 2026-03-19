@@ -298,6 +298,7 @@ export class OrganizationRepository {
         disableAttendeeRescheduleRequestEmail: true,
         disableAttendeeLocationChangeEmail: true,
         disableAttendeeNewEventEmail: true,
+        blocklistSkipCrmOnCancel: true,
       },
     });
 
@@ -327,6 +328,7 @@ export class OrganizationRepository {
         disableAttendeeRescheduleRequestEmail: organizationSettings?.disableAttendeeRescheduleRequestEmail,
         disableAttendeeLocationChangeEmail: organizationSettings?.disableAttendeeLocationChangeEmail,
         disableAttendeeNewEventEmail: organizationSettings?.disableAttendeeNewEventEmail,
+        blocklistSkipCrmOnCancel: organizationSettings?.blocklistSkipCrmOnCancel,
       },
       user: {
         role: membership?.role,

@@ -1,8 +1,7 @@
-import { z } from "zod";
-
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 
 /**
  * Optional nullable URL schema with SSRF protections
@@ -60,6 +59,7 @@ export type TUpdateInputSchemaInput = {
   disableAttendeeRescheduleRequestEmail?: boolean;
   disableAttendeeLocationChangeEmail?: boolean;
   disableAttendeeNewEventEmail?: boolean;
+  blocklistSkipCrmOnCancel?: boolean;
 };
 
 export type TUpdateInputSchema = {
@@ -96,6 +96,7 @@ export type TUpdateInputSchema = {
   disableAttendeeRescheduleRequestEmail?: boolean;
   disableAttendeeLocationChangeEmail?: boolean;
   disableAttendeeNewEventEmail?: boolean;
+  blocklistSkipCrmOnCancel?: boolean;
 };
 
 export const ZUpdateInputSchema: z.ZodType<TUpdateInputSchema, z.ZodTypeDef, TUpdateInputSchemaInput> =
@@ -138,4 +139,5 @@ export const ZUpdateInputSchema: z.ZodType<TUpdateInputSchema, z.ZodTypeDef, TUp
     disableAttendeeRescheduleRequestEmail: z.boolean().optional(),
     disableAttendeeLocationChangeEmail: z.boolean().optional(),
     disableAttendeeNewEventEmail: z.boolean().optional(),
+    blocklistSkipCrmOnCancel: z.boolean().optional(),
   });

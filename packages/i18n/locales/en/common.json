@@ -4326,6 +4326,8 @@
   "no_description_provided": "No description provided",
   "organization_blocklist": "Organization blocklist",
   "manage_blocked_emails_and_domains": "Manage blocked emails and domains for your organization",
+  "blocklist_skip_crm_on_cancel_title": "Skip CRM cancellation for blocked bookings",
+  "blocklist_skip_crm_on_cancel_description": "When enabled, silently cancelled bookings from blocklisted emails or domains will not trigger the CRM cancellation flow",
   "guest_notifications": "Guest notifications",
   "guest_notifications_description": "Manage guest booking emails across all event types in your organization",
   "guest_booking_email_notifications": "Guest booking email notifications",

@@ -4,6 +4,7 @@ export interface BlockingResult {
   isBlocked: boolean;
   reason?: WatchlistType;
   watchlistEntry?: Record<string, unknown> | null;
+  skipCrmOnCancel?: boolean;
 }
 
 /**

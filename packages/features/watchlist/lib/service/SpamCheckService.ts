@@ -1,6 +1,5 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
 import type { BlockingResult } from "../interface/IBlockingService";
 import type { GlobalBlockingService } from "./GlobalBlockingService";
 import type { OrganizationBlockingService } from "./OrganizationBlockingService";
@@ -19,8 +18,20 @@ export class SpamCheckService {
     private readonly organizationBlockingService: OrganizationBlockingService
   ) {}
 
-  startCheck({ email, organizationId }: { email: string; organizationId: number | null }): void {
-    this.spamCheckPromise = this.isBlocked(email, organizationId ?? undefined).catch((error) => {
+  startCheck({
+    email,
+    organizationId,
+    blocklistSkipCrmOnCancel,
+  }: {
+    email: string;
+    organizationId: number | null;
+    blocklistSkipCrmOnCancel?: boolean;
+  }): void {
+    this.spamCheckPromise = this.isBlocked(
+      email,
+      organizationId ?? undefined,
+      blocklistSkipCrmOnCancel
+    ).catch((error) => {
       logger.error("Error starting spam check", safeStringify(error));
       return { isBlocked: false };
     });
@@ -39,7 +50,11 @@ export class SpamCheckService {
    * Checks if an email is blocked by global or organization-specific watchlist rules
    * Runs both checks in parallel for better performance
    */
-  private async isBlocked(email: string, organizationId?: number): Promise<BlockingResult> {
+  private async isBlocked(
+    email: string,
+    organizationId?: number,
+    blocklistSkipCrmOnCancel?: boolean
+  ): Promise<BlockingResult> {
     const checks = [this.globalBlockingService.isBlocked(email)];
 
     if (organizationId) {
@@ -55,7 +70,7 @@ export class SpamCheckService {
 
     // Check organization blocking if it was performed
     if (orgResult?.isBlocked) {
-      return orgResult;
+      return { ...orgResult, skipCrmOnCancel: blocklistSkipCrmOnCancel };
     }
 
     return { isBlocked: false };
