@@ -1,8 +1,6 @@
-import React from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { CreationSource } from "@calcom/prisma/enums";
-
+import type React from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { OnboardingState } from "../../store/onboarding-store";
 import { useSubmitOnboarding } from "../useSubmitOnboarding";
 
@@ -234,6 +232,115 @@ describe("useSubmitOnboarding", () => {
         { email: "invite2@example.com", teamId: undefined, teamName: undefined, role: "MEMBER" },
       ],
     });
+  });
+
+  it("should redirect to event-types when isMigrationFlow is true and no migrated teams (stripe disabled)", async () => {
+    const hook = useSubmitOnboarding();
+    const { submitOnboarding } = hook;
+
+    const store = {
+      selectedPlan: "organization",
+      organizationDetails: {
+        name: "Test Org",
+        link: "test-org",
+        bio: "Test bio",
+      },
+      organizationBrand: {
+        color: "#000000",
+        logo: null,
+        banner: null,
+      },
+      teams: [{ id: -1, name: "New Team", slug: null, isBeingMigrated: false }],
+      invites: [],
+      inviteRole: "MEMBER",
+      migratedMembers: [],
+      resetOnboarding: mockResetOnboarding,
+    } as unknown as OnboardingState;
+
+    // No checkoutUrl means stripe is disabled - org created immediately
+    mockMutateAsync.mockResolvedValue({
+      checkoutUrl: null,
+      organizationId: 123,
+    });
+
+    await submitOnboarding(store, "user@example.com", [], { isMigrationFlow: true });
+
+    // Should redirect to event-types, NOT personal onboarding
+    expect(mockResetOnboarding).toHaveBeenCalled();
+    expect(global.window.location.href).toBe("/event-types?newOrganizationModal=true");
+  });
+
+  it("should redirect to event-types when hasMigratedTeams is true (stripe disabled)", async () => {
+    const hook = useSubmitOnboarding();
+    const { submitOnboarding } = hook;
+
+    const store = {
+      selectedPlan: "organization",
+      organizationDetails: {
+        name: "Test Org",
+        link: "test-org",
+        bio: "Test bio",
+      },
+      organizationBrand: {
+        color: "#000000",
+        logo: null,
+        banner: null,
+      },
+      teams: [{ id: 1, name: "Existing Team", slug: "existing-team", isBeingMigrated: true }],
+      invites: [],
+      inviteRole: "MEMBER",
+      migratedMembers: [],
+      resetOnboarding: mockResetOnboarding,
+    } as unknown as OnboardingState;
+
+    mockMutateAsync.mockResolvedValue({
+      checkoutUrl: null,
+      organizationId: 123,
+    });
+
+    await submitOnboarding(store, "user@example.com", []);
+
+    // Should redirect to event-types because teams have isBeingMigrated
+    expect(mockResetOnboarding).toHaveBeenCalled();
+    expect(global.window.location.href).toBe("/event-types?newOrganizationModal=true");
+  });
+
+  it("should redirect to personal onboarding when not a migration flow and no migrated teams (stripe disabled)", async () => {
+    const { useFlagMap } = await import("@calcom/features/flags/context/provider");
+    vi.mocked(useFlagMap).mockReturnValue({ "onboarding-v3": true } as ReturnType<typeof useFlagMap>);
+
+    const hook = useSubmitOnboarding();
+    const { submitOnboarding } = hook;
+
+    const store = {
+      selectedPlan: "organization",
+      organizationDetails: {
+        name: "Test Org",
+        link: "test-org",
+        bio: "Test bio",
+      },
+      organizationBrand: {
+        color: "#000000",
+        logo: null,
+        banner: null,
+      },
+      teams: [{ id: -1, name: "New Team", slug: null, isBeingMigrated: false }],
+      invites: [],
+      inviteRole: "MEMBER",
+      migratedMembers: [],
+      resetOnboarding: mockResetOnboarding,
+    } as unknown as OnboardingState;
+
+    mockMutateAsync.mockResolvedValue({
+      checkoutUrl: null,
+      organizationId: 123,
+    });
+
+    await submitOnboarding(store, "user@example.com", []);
+
+    // Should redirect to personal onboarding since not a migration flow
+    expect(mockResetOnboarding).toHaveBeenCalled();
+    expect(global.window.location.href).toBe("/onboarding/personal/settings");
   });
 
   it("should handle teams with null slugs correctly", async () => {

@@ -1,13 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import posthog from "posthog-js";
-import React from "react";
-
-import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-
+import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
+import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
+import React from "react";
 import { InviteOptions } from "../../components/InviteOptions";
 import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
@@ -23,9 +21,11 @@ type OrganizationInviteViewProps = {
 
 export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProps) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const flags = useFlags();
   const { billingPeriod, getQueryString } = useOnboardingQueryParams();
+  const isMigrationFlow = searchParams?.get("migrate") === "true";
 
   const store = useOnboardingStore();
   const { setInvites, organizationDetails, organizationBrand } = store;
@@ -53,11 +53,11 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const handleSkip = async () => {
     posthog.capture("onboarding_organization_invite_skip_clicked");
     setInvites([]);
-    await submitOnboarding(store, userEmail, [], { billingPeriod });
+    await submitOnboarding(store, userEmail, [], { billingPeriod, isMigrationFlow });
   };
 
   const handleInvite = async () => {
-    await submitOnboarding(store, userEmail, [], { billingPeriod });
+    await submitOnboarding(store, userEmail, [], { billingPeriod, isMigrationFlow });
   };
 
   return (
