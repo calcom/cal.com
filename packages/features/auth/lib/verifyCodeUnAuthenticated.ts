@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { hashEmail } from "@calcom/lib/server/PiiHasher";
 import { totpRawCheck } from "@calcom/lib/totp";
 
@@ -9,13 +10,15 @@ export const verifyCodeUnAuthenticated = async (email: string, code: string) => 
     throw new Error("Email and code are required");
   }
 
+  const baseEmail = extractBaseEmail(email);
+
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
-    identifier: `emailVerifyCode.${hashEmail(email)}`,
+    identifier: `emailVerifyCode.${hashEmail(baseEmail)}`,
   });
 
   const secret = createHash("md5")
-    .update(email + (process.env.CALENDSO_ENCRYPTION_KEY || ""))
+    .update(baseEmail + (process.env.CALENDSO_ENCRYPTION_KEY || ""))
     .digest("hex");
 
   const isValidToken = totpRawCheck(code, secret, { step: 900 });

@@ -134,6 +134,24 @@ describe("checkIfBookerEmailIsBlocked", () => {
     expect(mockVerifyCode).toHaveBeenCalledWith("verified@example.com", "123456");
   });
 
+  it("passes base email (not plus-addressed) to verifyCode when booker uses plus-addressing", async () => {
+    mockFindVerifiedUserByEmail.mockResolvedValue({
+      id: 42,
+      email: "user@example.com",
+      requiresBookerEmailVerification: true,
+    });
+    mockVerifyCode.mockResolvedValue(true);
+
+    const result = await checkIfBookerEmailIsBlocked({
+      bookerEmail: "user+tag@example.com",
+      verificationCode: "123456",
+      isReschedule: false,
+    });
+
+    expect(result).toBe(false);
+    expect(mockVerifyCode).toHaveBeenCalledWith("user@example.com", "123456");
+  });
+
   it("throws InvalidVerificationCode when code is invalid", async () => {
     mockFindVerifiedUserByEmail.mockResolvedValue({
       id: 42,

@@ -9,6 +9,7 @@ import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepo
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { getTranslation } from "@calcom/i18n/server";
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
@@ -102,8 +103,9 @@ export const sendEmailVerificationByCode = async ({
   }
 
   const translation = await getTranslation(language ?? "en", "common");
+  const baseEmail = extractBaseEmail(email);
   const secret = createHash("md5")
-    .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
+    .update(baseEmail + process.env.CALENDSO_ENCRYPTION_KEY)
     .digest("hex");
 
   totp.options = { step: 900 };
