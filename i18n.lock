@@ -8772,7 +8772,7 @@ checksums:
     agplv3_license_description: 82d2bd5b7488ff4819bb51512e9c9703
     enter_license_key: c76b06246169d82ed52215745a7b34a0
     enter_your_license_key: 3262d31a8677134753d4c8f338977717
-    enter_existing_license: 3f162c46ba898b458fd4e0925f616565
+    enter_existing_license: d1cdbc20e602bdb0b61fce9b29d751ea
     enter_license_key_description: 3262d31a8677134753d4c8f338977717
     license_key_placeholder: 9e6c372f3ad766c856901a310fd712cc
     save_license_key: d585a64de25f4608b9770d6714a69ffc
@@ -9119,7 +9119,7 @@ checksums:
     onboarding_plan_team_title: 487aa559b64811adf8a59dfcc2f68c21
     onboarding_plan_team_description: 2c9a8f2522283e9ee1fb04ae20e790f6
     onboarding_plan_organization_title: 729d4c9437a7120697feb5320fa6dd51
-    onboarding_plan_team_badge: 4716176e020af243cbbb8ac4eff43847
+    onboarding_plan_team_badge: 6ed1e037a2fde7485d3f8036e659b2e0
     onboarding_plan_organization_badge: 9a2cf1e1bb69ad6d404004355079a6ac
     onboarding_plan_organization_description: 9e70572229fd0775dfcf4f5bc3c5d105
     view_previous_week: 98e1bd2d0096b9942c69f358d5d6015b
