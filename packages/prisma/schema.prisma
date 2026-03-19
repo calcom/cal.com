@@ -291,7 +291,7 @@ model EventType {
   rrHostSubsetEnabled           Boolean                        @default(false)
   requiresCancellationReason    CancellationReasonRequirement? @default(MANDATORY_HOST_ONLY)
   enablePerHostLocations        Boolean                        @default(false)
-  shouldMergePhoneSystemFields   Boolean?
+  shouldMergePhoneSystemFields  Boolean?
 
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
