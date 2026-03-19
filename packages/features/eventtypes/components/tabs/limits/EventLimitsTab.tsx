@@ -1,4 +1,5 @@
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import type {
   EventTypeSetupProps,
@@ -17,6 +18,7 @@ import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/interval
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
   DateRangePicker,
@@ -28,17 +30,14 @@ import {
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { Badge } from "@calcom/ui/components/badge";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
+import Link from "next/link";
 import type { Key } from "react";
 import React, { useEffect, useState } from "react";
 import type { UseFormRegisterReturn, UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
-import Link from "next/link";
-
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
@@ -113,6 +112,25 @@ const getPeriodTypeFromUiValue = (uiValue: { value: PeriodType; rollingExcludeUn
   return uiValue.value;
 };
 
+/**
+ * Converts a local-time Date (from the DateRangePicker) to UTC midnight for that same calendar date.
+ */
+const toUTCMidnight = (date: Date | undefined): Date | undefined => {
+  if (!date) return undefined;
+  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+};
+
+/**
+ * Converts a UTC midnight Date to local midnight for that same calendar date.
+ * This is needed because dates are stored as UTC midnight, but the DateRangePicker
+ * displays them using local time. Without this conversion, users in timezones behind
+ * UTC would see dates shifted back by one day.
+ */
+const fromUTCMidnight = (date: Date | undefined): Date | undefined => {
+  if (!date) return undefined;
+  return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+};
+
 type RangeLimitCustomClassNames = {
   wrapper?: string;
   datePickerWraper?: string;
@@ -159,16 +177,11 @@ function RangeLimitRadioItem({
             render={({ field: { onChange } }) => (
               <DateRangePicker
                 dates={{
-                  startDate: formMethods.getValues("periodDates").startDate,
-                  endDate: formMethods.getValues("periodDates").endDate,
+                  startDate: fromUTCMidnight(formMethods.getValues("periodDates").startDate),
+                  endDate: fromUTCMidnight(formMethods.getValues("periodDates").endDate),
                 }}
                 disabled={isDisabled}
                 onDatesChange={({ startDate, endDate }) => {
-                  const toUTCMidnight = (date: Date | undefined): Date | undefined => {
-                    if (!date) return undefined;
-                    return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-                  };
-
                   onChange({
                     startDate: toUTCMidnight(startDate),
                     endDate: toUTCMidnight(endDate),
