@@ -2744,6 +2744,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/kv@workspace:packages/infra/adapters/kv":
+  version: 0.0.0-use.local
+  resolution: "@calcom/kv@workspace:packages/infra/adapters/kv"
+  dependencies:
+    "@biomejs/biome": "npm:2.3.10"
+    "@calcom/tsconfig": "workspace:*"
+    "@upstash/redis": "npm:1.37.0"
+    redis: "npm:5.11.0"
+    tsc-absolute: "npm:1.0.0"
+    typescript: "npm:5.9.3"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/kysely@workspace:packages/kysely":
   version: 0.0.0-use.local
   resolution: "@calcom/kysely@workspace:packages/kysely"
@@ -12517,6 +12530,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@redis/bloom@npm:5.11.0":
+  version: 5.11.0
+  resolution: "@redis/bloom@npm:5.11.0"
+  peerDependencies:
+    "@redis/client": ^5.11.0
+  checksum: 10/09a3211166ef68da510c311d8ce93c94041e00cd1075ee190e8654b4af8775ad71879f4d38675886167e8e862bce51d156d6ba18c7fcc091881cc49d0bb39bcf
+  languageName: node
+  linkType: hard
+
 "@redis/client@npm:1.6.0":
   version: 1.6.0
   resolution: "@redis/client@npm:1.6.0"
@@ -12525,6 +12547,20 @@ __metadata:
     generic-pool: "npm:3.9.0"
     yallist: "npm:4.0.0"
   checksum: 10/ad375bd685dc34163304872e611ad31dc09a20f4dc8416e5dd588e8a9d2a42a6882f5c8f83d6388ba04ada71513c461b211c3146bcd8ab4da20b3f7edf08fb63
+  languageName: node
+  linkType: hard
+
+"@redis/client@npm:5.11.0":
+  version: 5.11.0
+  resolution: "@redis/client@npm:5.11.0"
+  dependencies:
+    cluster-key-slot: "npm:1.1.2"
+  peerDependencies:
+    "@node-rs/xxhash": ^1.1.0
+  peerDependenciesMeta:
+    "@node-rs/xxhash":
+      optional: true
+  checksum: 10/34ef7c0fb2ae20dc90a4863ef78948d6b8b8b925b4f381c05e767184301db769ef2117de165ecbc10a310a8e393e0cd05e8f2caf9ec9fd7e1284d4db28773767
   languageName: node
   linkType: hard
 
@@ -12546,6 +12582,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@redis/json@npm:5.11.0":
+  version: 5.11.0
+  resolution: "@redis/json@npm:5.11.0"
+  peerDependencies:
+    "@redis/client": ^5.11.0
+  checksum: 10/b8218bf858415b9e1accaae86136855fb5fccdb6e9240342ba1798e6a949b91cef98cba42393c78b877683d73f2b044f21604b05d0f7e4fee7fb23279c8b248c
+  languageName: node
+  linkType: hard
+
 "@redis/search@npm:1.2.0":
   version: 1.2.0
   resolution: "@redis/search@npm:1.2.0"
@@ -12555,12 +12600,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@redis/search@npm:5.11.0":
+  version: 5.11.0
+  resolution: "@redis/search@npm:5.11.0"
+  peerDependencies:
+    "@redis/client": ^5.11.0
+  checksum: 10/164b8eff19768d037df79b0844fba66235f16fcd66d03c88180f4024b4cfad1308c28a8e3b0a005578b045feaa1b3f1523be603bd04ef7a3ec80fb34e351fc9b
+  languageName: node
+  linkType: hard
+
 "@redis/time-series@npm:1.1.0":
   version: 1.1.0
   resolution: "@redis/time-series@npm:1.1.0"
   peerDependencies:
     "@redis/client": ^1.0.0
   checksum: 10/e1d000eef7f37645f7f4ff94f32dd998384360b12fed1e4d614d828c065b72d7627e27444fab781fac4fdfe301c45f893417550fb1011d3b75237566ff0954e0
+  languageName: node
+  linkType: hard
+
+"@redis/time-series@npm:5.11.0":
+  version: 5.11.0
+  resolution: "@redis/time-series@npm:5.11.0"
+  peerDependencies:
+    "@redis/client": ^5.11.0
+  checksum: 10/f42d1422f54ea8b64f9df180717b3d5e1bc3a299e3be8523b908858b62a8280e38fe8caef98445bb044f095567c282b131212dd65d5161aa053ca9314b2018ed
   languageName: node
   linkType: hard
 
@@ -16243,6 +16306,15 @@ __metadata:
   dependencies:
     uncrypto: "npm:^0.1.3"
   checksum: 10/c862ad12342f87da3dc954f1b29df275d3ea93d77166f351da7665378d92c7ebfdbd10560238dbab9ef2f530773b5bad588b26baa88185469884b8d890289b7c
+  languageName: node
+  linkType: hard
+
+"@upstash/redis@npm:1.37.0":
+  version: 1.37.0
+  resolution: "@upstash/redis@npm:1.37.0"
+  dependencies:
+    uncrypto: "npm:^0.1.3"
+  checksum: 10/05f4ab997a5ad072929848fcc7578da12dd364c55340b631a091fe06b57d1ef21835e16929b584b76feb64b34cdd154d3a3edd087518e5a2dd16e4a78c0aef1a
   languageName: node
   linkType: hard
 
@@ -33734,6 +33806,19 @@ __metadata:
     "@redis/search": "npm:1.2.0"
     "@redis/time-series": "npm:1.1.0"
   checksum: 10/d927a0b1516e2845b7eab67b1466b6f2d0d0695be7a3d4a0a1ffa2f2c60dace98fb9ad01ec0db07519fb9d4d078b99d95b6809508c2a72afe6f814fc8f693188
+  languageName: node
+  linkType: hard
+
+"redis@npm:5.11.0":
+  version: 5.11.0
+  resolution: "redis@npm:5.11.0"
+  dependencies:
+    "@redis/bloom": "npm:5.11.0"
+    "@redis/client": "npm:5.11.0"
+    "@redis/json": "npm:5.11.0"
+    "@redis/search": "npm:5.11.0"
+    "@redis/time-series": "npm:5.11.0"
+  checksum: 10/200b0a29ee0646ed30bc19fccdb8bc61405512b4c17582c01068becce414e8e859848ed2e0fabe3a80ff4042954cdbcaa347c10469dac468bb1444b95715849d
   languageName: node
   linkType: hard
 

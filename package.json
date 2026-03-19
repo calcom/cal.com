@@ -6,6 +6,7 @@
     "apps/*",
     "apps/api/*",
     "packages/*",
+    "packages/infra/adapters/*",
     "packages/embeds/*",
     "packages/features/*",
     "packages/app-store",
