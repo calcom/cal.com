@@ -42,6 +42,11 @@ const useDescription = (noFutureAvailability: boolean, p: PeriodData) => {
   }
 
   if (p.periodType === "RANGE") {
+    // If the current date is before the range start, the booking window hasn't opened yet.
+    // Show an informative "opens on" message rather than the misleading "scheduling ended" copy.
+    if (p.periodStartDate && dayjs().isBefore(dayjs(p.periodStartDate).startOf("day"))) {
+      return t("no_availability_range_future", { date: dayjs(p.periodStartDate).format("MMMM D YYYY") });
+    }
     return t("no_availability_range", { date: dayjs(p.periodEndDate).format("MMMM D YYYY") });
   }
 
