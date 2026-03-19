@@ -215,10 +215,14 @@ const DateOverride = ({
   const excludedDates = useExcludedDates();
   const { t } = useLocale();
 
-  const handleAvailabilityUpdate = () => {
+  const handleAvailabilityUpdate = async () => {
     const updatedValues = getValues() as AvailabilityFormValues;
     if (!isDryRun) {
-      handleSubmit(updatedValues);
+      try {
+        await handleSubmit(updatedValues);
+      } catch {
+        // error already handled by mutation's onError callback
+      }
     }
   };
 
@@ -360,7 +364,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
           form.handleSubmit(async (data) => {
             try {
               await handleSubmit(data);
-              form.reset(form.getValues());
+              form.reset(data);
               callbacksRef.current?.onSuccess?.();
             } catch (error) {
               callbacksRef.current?.onError?.(error as Error);
@@ -651,7 +655,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
             handleSubmit={async (props) => {
               try {
                 await handleSubmit(props);
-                form.reset(form.getValues());
+                form.reset(props);
                 callbacksRef.current?.onSuccess?.();
               } catch (error) {
                 callbacksRef.current?.onError?.(error as Error);
