@@ -23,6 +23,7 @@ export const BlocklistSkipCrmOnCancelSwitch = ({ currentOrg }: BlocklistSkipCrmO
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {
+      setSkipCrmOnCancel(!!currentOrg?.organizationSettings?.blocklistSkipCrmOnCancel);
       showToast(t("error_updating_settings"), "error");
     },
     onSettled: () => {
@@ -38,10 +39,10 @@ export const BlocklistSkipCrmOnCancelSwitch = ({ currentOrg }: BlocklistSkipCrmO
       description={t("blocklist_skip_crm_on_cancel_description")}
       checked={skipCrmOnCancel}
       onCheckedChange={(checked) => {
+        setSkipCrmOnCancel(checked);
         mutation.mutate({
           blocklistSkipCrmOnCancel: checked,
         });
-        setSkipCrmOnCancel(checked);
       }}
       switchContainerClassName="mt-4"
     />
