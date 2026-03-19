@@ -46,4 +46,11 @@ export class BookingsRepositoryFixture {
   async deleteAllBookings(userId: User["id"], userEmail: User["email"]) {
     return this.prismaWriteClient.booking.deleteMany({ where: { userId, userPrimaryEmail: userEmail } });
   }
+
+  async getAttendeesByBookingId(bookingId: Booking["id"]) {
+    return this.prismaReadClient.attendee.findMany({
+      where: { bookingId },
+      orderBy: { id: "asc" },
+    });
+  }
 }
