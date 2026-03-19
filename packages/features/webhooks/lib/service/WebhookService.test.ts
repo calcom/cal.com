@@ -6,7 +6,7 @@ import type { WebhookPayload } from "../factory/types";
 import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import { WebhookVersion } from "../interface/IWebhookRepository";
 import type { ILogger, ITasker } from "../interface/infrastructure";
-import { WebhookService } from "./WebhookService";
+import { WebhookService, isGenericWebhookTrigger } from "./WebhookService";
 
 describe("WebhookService", () => {
   let mockFetch: ReturnType<typeof vi.fn>;
@@ -923,6 +923,252 @@ describe("WebhookService", () => {
 
       const [, options] = mockFetch.mock.calls[0];
       expect(options.headers["Content-Type"]).toBe("application/x-www-form-urlencoded");
+    });
+  });
+
+  describe("isGenericWebhookTrigger", () => {
+    it.each([
+      WebhookTriggerEvents.FORM_SUBMITTED,
+      WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+      WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
+      WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+      WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+      WebhookTriggerEvents.INSTANT_MEETING,
+      WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+    ])("should return true for generic trigger %s", (trigger) => {
+      expect(isGenericWebhookTrigger(trigger)).toBe(true);
+    });
+
+    it.each([
+      WebhookTriggerEvents.BOOKING_CREATED,
+      WebhookTriggerEvents.BOOKING_RESCHEDULED,
+      WebhookTriggerEvents.BOOKING_CANCELLED,
+      WebhookTriggerEvents.BOOKING_REJECTED,
+      WebhookTriggerEvents.BOOKING_REQUESTED,
+      WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+      WebhookTriggerEvents.MEETING_STARTED,
+      WebhookTriggerEvents.MEETING_ENDED,
+      WebhookTriggerEvents.RECORDING_READY,
+      WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
+      WebhookTriggerEvents.OOO_CREATED,
+    ])("should return false for non-generic trigger %s", (trigger) => {
+      expect(isGenericWebhookTrigger(trigger)).toBe(false);
+    });
+  });
+
+  describe("sendGenericWebhookDirectly", () => {
+    it("should send webhook and return result", async () => {
+      const service = createService();
+      const subscriber = createSubscriber();
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+        payload: { booking: { uid: "abc" }, report: { guest: "g@test.com" } },
+      });
+
+      const result = await service.sendGenericWebhookDirectly(
+        WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+        payload,
+        subscriber
+      );
+
+      expect(result.ok).toBe(true);
+      expect(result.status).toBe(200);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("should nest data under payload key in the body", async () => {
+      const service = createService();
+      const subscriber = createSubscriber({ payloadTemplate: null });
+      const innerData = { booking: { uid: "abc" }, report: { guest: "g@test.com" } };
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+        payload: innerData,
+      });
+
+      await service.sendGenericWebhookDirectly(
+        WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+        payload,
+        subscriber
+      );
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.triggerEvent).toBe("WRONG_ASSIGNMENT_REPORT");
+      expect(body.createdAt).toBeDefined();
+      expect(body.payload).toEqual(innerData);
+    });
+
+    it("should apply custom template with nested payload access", async () => {
+      const service = createService();
+      const template = '{"bookingUid": "{{payload.booking.uid}}", "trigger": "{{triggerEvent}}"}';
+      const subscriber = createSubscriber({ payloadTemplate: template });
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+        payload: { booking: { uid: "test-uid-123" }, report: {} },
+      });
+
+      await service.sendGenericWebhookDirectly(
+        WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+        payload,
+        subscriber
+      );
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.bookingUid).toBe("test-uid-123");
+      expect(body.trigger).toBe("WRONG_ASSIGNMENT_REPORT");
+    });
+
+    it("should throw on network errors", async () => {
+      mockFetch.mockRejectedValue(new TypeError("fetch failed"));
+      const service = createService();
+      const subscriber = createSubscriber();
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+        payload: { booking: {}, report: {} },
+      });
+
+      await expect(
+        service.sendGenericWebhookDirectly(
+          WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+          payload,
+          subscriber
+        )
+      ).rejects.toThrow("Failed to send webhook to https://example.com/webhook");
+    });
+
+    it("should throw on non-OK HTTP responses", async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 502,
+        text: vi.fn().mockResolvedValue("Bad Gateway"),
+      });
+      const service = createService();
+      const subscriber = createSubscriber();
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+        payload: { booking: {}, report: {} },
+      });
+
+      await expect(
+        service.sendGenericWebhookDirectly(
+          WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+          payload,
+          subscriber
+        )
+      ).rejects.toThrow("Webhook POST to https://example.com/webhook failed with status 502: Bad Gateway");
+    });
+
+    it("should error when subscriberUrl is empty", async () => {
+      const service = createService();
+      const subscriber = createSubscriber({ subscriberUrl: "" });
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+        payload: { booking: {}, report: {} },
+      });
+
+      await expect(
+        service.sendGenericWebhookDirectly(
+          WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+          payload,
+          subscriber
+        )
+      ).rejects.toThrow("Missing subscriber URL");
+    });
+  });
+
+  describe("sendWebhook routing (via processWebhooks)", () => {
+    it("should route generic triggers through sendGenericWebhookPayload (nested payload)", async () => {
+      const service = createService();
+      const subscriber = createSubscriber({ payloadTemplate: null });
+      const innerData = { formId: "form-1", formName: "Test Form" };
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
+        payload: innerData,
+      });
+
+      await service.processWebhooks(WebhookTriggerEvents.FORM_SUBMITTED, payload, [subscriber]);
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      // sendGenericWebhookPayload nests data under payload key
+      expect(body.triggerEvent).toBe("FORM_SUBMITTED");
+      expect(body.payload).toEqual(innerData);
+    });
+
+    it("should route booking triggers through sendPayload (flat payload)", async () => {
+      const service = createService();
+      const subscriber = createSubscriber({ payloadTemplate: null });
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+        payload: { test: "data", triggerEvent: WebhookTriggerEvents.BOOKING_CREATED },
+      });
+
+      await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber]);
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      // sendPayload wraps in { triggerEvent, createdAt, payload: data } when no template
+      expect(body.triggerEvent).toBe("BOOKING_CREATED");
+      expect(body.payload).toBeDefined();
+    });
+
+    it("should use nested template access for WRONG_ASSIGNMENT_REPORT custom template", async () => {
+      const service = createService();
+      const template = '{"uid": "{{payload.booking.uid}}", "trigger": "{{triggerEvent}}"}';
+      const subscriber = createSubscriber({ payloadTemplate: template });
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+        payload: { booking: { uid: "booking-123" }, report: {} },
+      });
+
+      await service.processWebhooks(WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT, payload, [
+        subscriber,
+      ]);
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.uid).toBe("booking-123");
+      expect(body.trigger).toBe("WRONG_ASSIGNMENT_REPORT");
+    });
+
+    it("should use flat template access for BOOKING_CREATED custom template", async () => {
+      const service = createService();
+      const template = '{"uid": "{{uid}}", "trigger": "{{triggerEvent}}"}';
+      const subscriber = createSubscriber({ payloadTemplate: template });
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+        payload: { uid: "booking-456", triggerEvent: WebhookTriggerEvents.BOOKING_CREATED },
+      });
+
+      await service.processWebhooks(WebhookTriggerEvents.BOOKING_CREATED, payload, [subscriber]);
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.uid).toBe("booking-456");
+      expect(body.trigger).toBe("BOOKING_CREATED");
+    });
+
+    it.each([
+      WebhookTriggerEvents.FORM_SUBMITTED,
+      WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
+      WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+      WebhookTriggerEvents.INSTANT_MEETING,
+      WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+    ])("should use generic path for %s (data nested under payload)", async (trigger) => {
+      const service = createService();
+      const subscriber = createSubscriber({ payloadTemplate: null });
+      const payload = createPayload({
+        triggerEvent: trigger,
+        payload: { someField: "value" },
+      });
+
+      await service.processWebhooks(trigger, payload, [subscriber]);
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.triggerEvent).toBe(trigger);
+      expect(body.payload).toEqual({ someField: "value" });
     });
   });
 

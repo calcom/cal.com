@@ -1,5 +1,6 @@
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { logger, retry, schemaTask, type TaskWithSchema } from "@trigger.dev/sdk";
+import { isGenericWebhookTrigger } from "../../service/WebhookService";
 import type { WebhookTaskPayload } from "../../types/webhookTask";
 import { webhookDeliveryTaskConfig, webhookRetryConfig } from "./config";
 import { webhookDeliveryTaskSchema } from "./schema";
@@ -50,10 +51,14 @@ export const deliverWebhook: TaskWithSchema<
       subscriberCount: subscribers.length,
     });
 
+    const sendFn = isGenericWebhookTrigger(triggerEvent)
+      ? webhookService.sendGenericWebhookDirectly.bind(webhookService)
+      : webhookService.sendWebhookDirectly.bind(webhookService);
+
     const results = await Promise.allSettled(
       subscribers.map(async (subscriber) => {
         await retry.onThrow(async () => {
-          await webhookService.sendWebhookDirectly(triggerEvent, webhookPayload, subscriber);
+          await sendFn(triggerEvent, webhookPayload, subscriber);
         }, webhookRetryConfig);
       })
     );

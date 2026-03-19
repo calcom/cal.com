@@ -47,6 +47,7 @@ describe("WebhookNotificationHandler", () => {
       sendWebhook: vi.fn(),
       scheduleWebhook: vi.fn(),
       sendWebhookDirectly: vi.fn(),
+      sendGenericWebhookDirectly: vi.fn(),
     };
 
     // Mock factory - returns appropriate payload based on trigger event

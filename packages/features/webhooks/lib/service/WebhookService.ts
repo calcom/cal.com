@@ -4,7 +4,32 @@ import type { WebhookPayload } from "../factory/types";
 import type { ILogger, ITasker } from "../interface/infrastructure";
 import type { IWebhookRepository, IWebhookService } from "../interface/services";
 import type { WebhookPayloadType } from "../sendPayload";
-import sendPayload from "../sendPayload";
+import sendPayload, { sendGenericWebhookPayload } from "../sendPayload";
+
+/**
+ * Trigger events that use the generic webhook payload structure.
+ *
+ * These webhooks historically used `sendGenericWebhookPayload` which nests data
+ * under a `payload` key for custom templates: `{ triggerEvent, createdAt, payload: { ... } }`.
+ * This is different from booking webhooks which flatten data for templates:
+ * `{ ...data, triggerEvent, createdAt }`.
+ *
+ * Maintaining this distinction is critical for backward compatibility of custom
+ * Handlebars templates (e.g. `{{payload.formId}}` vs `{{formId}}`).
+ */
+const GENERIC_WEBHOOK_TRIGGERS = new Set<WebhookTriggerEvents>([
+  WebhookTriggerEvents.FORM_SUBMITTED,
+  WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+  WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
+  WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+  WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+  WebhookTriggerEvents.INSTANT_MEETING,
+  WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT,
+]);
+
+export function isGenericWebhookTrigger(trigger: WebhookTriggerEvents): boolean {
+  return GENERIC_WEBHOOK_TRIGGERS.has(trigger);
+}
 
 export class WebhookService implements IWebhookService {
   private readonly log: ILogger;
@@ -26,6 +51,8 @@ export class WebhookService implements IWebhookService {
       // TODO: Ideally we should inject this flag as well. Would be awesome when we would be able to unit test without mocking env variables too. Also with trigger.dev, this would be further worked on, so we can leave this as is for now
       if (process.env.TASKER_ENABLE_WEBHOOKS === "1") {
         return await this.scheduleWebhook(trigger, payload, subscriber);
+      } else if (isGenericWebhookTrigger(trigger)) {
+        return await this.sendGenericWebhookDirectly(trigger, payload, subscriber);
       } else {
         return await this.sendWebhookDirectly(trigger, payload, subscriber);
       }
@@ -93,6 +120,53 @@ export class WebhookService implements IWebhookService {
         subscriber,
         payload.payload as WebhookPayloadType
       );
+    } catch (error) {
+      throw new Error(
+        `Failed to send webhook to ${subscriberUrl}: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+
+    if (!result.ok) {
+      throw new Error(
+        `Webhook POST to ${subscriberUrl} failed with status ${result.status}: ${result.message ?? ""}`
+      );
+    }
+
+    return {
+      ok: true,
+      status: result.status,
+      message: result.message,
+      duration: 0,
+      subscriberUrl,
+      webhookId: subscriber.id,
+    };
+  }
+
+  /**
+   * Send a generic webhook to a single subscriber directly via HTTP POST.
+   *
+   * Uses `sendGenericWebhookPayload` which preserves the nested payload structure
+   * for custom templates: `{ triggerEvent, createdAt, payload: { ... } }`.
+   * This matches the legacy behavior for non-booking webhooks (forms, no-show,
+   * instant meeting, wrong assignment, etc.).
+   */
+  async sendGenericWebhookDirectly(
+    trigger: WebhookTriggerEvents,
+    payload: WebhookPayload,
+    subscriber: WebhookSubscriber
+  ): Promise<WebhookDeliveryResult> {
+    const { subscriberUrl } = subscriber;
+    if (!subscriberUrl) throw new Error("Missing subscriber URL");
+
+    let result: { ok: boolean; status: number; message?: string };
+    try {
+      result = await sendGenericWebhookPayload({
+        secretKey: subscriber.secret,
+        triggerEvent: trigger,
+        createdAt: payload.createdAt,
+        webhook: subscriber,
+        data: payload.payload as Record<string, unknown>,
+      });
     } catch (error) {
       throw new Error(
         `Failed to send webhook to ${subscriberUrl}: ${error instanceof Error ? error.message : String(error)}`
