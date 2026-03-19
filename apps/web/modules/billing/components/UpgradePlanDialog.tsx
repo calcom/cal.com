@@ -109,9 +109,10 @@ export type UpgradePlanDialogProps = {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   children?: React.ReactNode;
+  openLinksInNewTab?: boolean;
 };
 
-export function UpgradePlanDialog({ tracking, target, info, open, onOpenChange, children }: UpgradePlanDialogProps): JSX.Element {
+export function UpgradePlanDialog({ tracking, target, info, open, onOpenChange, children, openLinksInNewTab }: UpgradePlanDialogProps): JSX.Element {
   const { t } = useLocale();
   const [billingPeriod, setBillingPeriod] = useState<"annual" | "monthly">("annual");
 
@@ -221,6 +222,7 @@ export function UpgradePlanDialog({ tracking, target, info, open, onOpenChange, 
                   features={teamFeatures}
                   buttonText={t("upgrade_cta_teams")}
                   buttonHref={teamHref}
+                  buttonTarget={openLinksInNewTab ? "_blank" : undefined}
                   primaryButton={target === "team"}
                   onCtaClick={() =>
                     posthog.capture("upgrade_plan_dialog_cta_clicked", {
@@ -242,6 +244,7 @@ export function UpgradePlanDialog({ tracking, target, info, open, onOpenChange, 
                 features={orgFeatures}
                 buttonText={t("upgrade_cta_orgs")}
                 buttonHref={organizationHref}
+                buttonTarget={openLinksInNewTab ? "_blank" : undefined}
                 primaryButton={target === "organization"}
                 onCtaClick={() =>
                   posthog.capture("upgrade_plan_dialog_cta_clicked", {

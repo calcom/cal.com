@@ -55,6 +55,7 @@ export type WideUpgradeBannerProps = {
   };
   dismissible?: boolean;
   showBadge?: boolean;
+  openLinksInNewTab?: boolean;
 };
 
 export function WideUpgradeBanner({
@@ -68,6 +69,7 @@ export function WideUpgradeBanner({
   learnMoreButton,
   dismissible = true,
   showBadge = true,
+  openLinksInNewTab,
 }: WideUpgradeBannerProps) {
   const { t } = useLocale();
   const [visible, setVisible] = useState(false);
@@ -81,7 +83,7 @@ export function WideUpgradeBanner({
 
   const upgradeButton =
     typeof button === "string" || button === undefined ? (
-      <UpgradePlanDialog tracking={tracking} target={target}>
+      <UpgradePlanDialog tracking={tracking} target={target} openLinksInNewTab={openLinksInNewTab}>
         <Button size={isSmall ? "sm" : "default"} variant="outline">
           {button ?? t("upgrade")}
           <Icon name="arrow-right" />
