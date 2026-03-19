@@ -1,3 +1,4 @@
+import { getPublicVideoCallUrl, isDailyVideoCall } from "@calcom/lib/CalEventParser";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalEventResponses } from "@calcom/types/Calendar";
@@ -245,6 +246,13 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
       destinationCalendar: params.evt.destinationCalendar ?? null,
       ...(params.extra || {}),
     };
+
+    if (payload.videoCallData && isDailyVideoCall(payload.videoCallData)) {
+      payload.videoCallData = {
+        ...payload.videoCallData,
+        url: getPublicVideoCallUrl(params.evt.uid),
+      };
+    }
 
     return {
       triggerEvent: params.triggerEvent,

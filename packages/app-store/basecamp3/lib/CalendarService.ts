@@ -1,3 +1,4 @@
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
@@ -9,7 +10,6 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { refreshAccessToken as getNewTokens } from "./helpers";
 import type { BasecampToken } from "./types";
@@ -95,9 +95,8 @@ class BasecampCalendarService implements Calendar {
       return `${acc}<br/><a target="_blank" rel="noreferrer" class="autolinked" data-behavior="truncate" href="mailto:${attendee.email}">${attendee.email}</a>`;
     }, "")}`;
 
-    const videoString = event.videoCallData
-      ? `<br/>Join on video: ${event.videoCallData.url}</div>`
-      : "</div>";
+    const videoUrl = getVideoCallUrlFromCalEvent(event);
+    const videoString = videoUrl ? `<br/>Join on video: ${videoUrl}</div>` : "</div>";
     return baseString + guestString + videoString;
   }
 

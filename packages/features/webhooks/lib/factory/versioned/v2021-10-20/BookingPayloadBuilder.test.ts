@@ -1,12 +1,7 @@
-import { describe, it, expect, vi } from "vitest";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import type {
-  BookingWebhookEventDTO,
-  EventPayloadType,
-  EventTypeInfo,
-} from "../../../dto/types";
+import { describe, expect, it, vi } from "vitest";
+import type { BookingWebhookEventDTO, EventPayloadType, EventTypeInfo } from "../../../dto/types";
 import { BookingPayloadBuilder } from "./BookingPayloadBuilder";
 
 vi.mock("@calcom/lib/dayjs", () => ({
@@ -420,6 +415,47 @@ describe("v2021-10-20/BookingPayloadBuilder", () => {
 
       expect(p.responses?.name?.label).toBe("name");
       expect(p.responses?.email?.label).toBe("email");
+    });
+
+    it("replaces daily.co URL with Cal.com video URL for daily_video videoCallData", () => {
+      const dto = createMockDTO(WebhookTriggerEvents.BOOKING_CREATED, {
+        evt: {
+          ...mockCalendarEvent,
+          uid: "v7vFid25C6KQqV5vMYKCEC",
+          videoCallData: {
+            type: "daily_video",
+            id: "FYixY2QKXgJUC3rrayWK",
+            password: null,
+            url: "https://meetco.daily.co/FYixY2QKXgJUC3rrayWK",
+          },
+        },
+      });
+      const result = builder.build(dto);
+      const p = result.payload as EventPayloadType;
+
+      expect(p.videoCallData).toBeDefined();
+      expect(p.videoCallData?.type).toBe("daily_video");
+      expect(p.videoCallData?.url).toContain("/video/v7vFid25C6KQqV5vMYKCEC");
+      expect(p.videoCallData?.url).not.toContain("daily.co");
+    });
+
+    it("preserves videoCallData.url for non-daily_video providers", () => {
+      const zoomUrl = "https://zoom.us/j/123456789";
+      const dto = createMockDTO(WebhookTriggerEvents.BOOKING_CREATED, {
+        evt: {
+          ...mockCalendarEvent,
+          videoCallData: {
+            type: "zoom_video",
+            id: "zoom-123",
+            password: "pass123",
+            url: zoomUrl,
+          },
+        },
+      });
+      const result = builder.build(dto);
+      const p = result.payload as EventPayloadType;
+
+      expect(p.videoCallData?.url).toBe(zoomUrl);
     });
   });
 });
