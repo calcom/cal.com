@@ -284,5 +284,23 @@ describe("CredentialsProvider authorize", () => {
         } as any)
       ).rejects.toThrow(ErrorCode.IncorrectTwoFactorCode);
     });
+
+    it("should NOT skip password check for CAL user with 2FA (empty password + TOTP → IncorrectEmailPassword)", async () => {
+      const mockUser = createMockUser({
+        password: { hash: "$2a$10$hashedpassword" },
+        identityProvider: IdentityProvider.CAL,
+        twoFactorEnabled: true,
+        twoFactorSecret: "encrypted-secret",
+        backupCodes: null,
+      });
+      mockFindByEmailAndIncludeProfilesAndPassword.mockResolvedValue(mockUser);
+      await expect(
+        authorizeCredentials({
+          email: "test@example.com",
+          password: "",
+          totpCode: "123456",
+        } as any)
+      ).rejects.toThrow(ErrorCode.IncorrectEmailPassword);
+    });
   });
 });

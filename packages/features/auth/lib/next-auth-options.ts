@@ -173,13 +173,12 @@ export async function authorizeCredentials(
 
   const hasTotpOrBackup = !!(credentials.totpCode || credentials.backupCode);
   const passwordMissingOrEmpty = !credentials.password || credentials.password.trim() === "";
-  const isTotpOnlyFlow =
-    user.twoFactorEnabled && hasTotpOrBackup && passwordMissingOrEmpty;
+  const isTotpOnlyFlow = user.twoFactorEnabled && hasTotpOrBackup && passwordMissingOrEmpty && user.identityProvider !== IdentityProvider.CAL;
 
   // Users without a password must use their identity provider (Google/SAML) to login.
   // Exception: OAuth/IdP users with MFA are redirected to TOTP-only form; allow verify via TOTP/backup only.
   if (!user.password?.hash) {
-    if (!(user.twoFactorEnabled && hasTotpOrBackup)) {
+    if (!(user.twoFactorEnabled && hasTotpOrBackup && user.identityProvider !== IdentityProvider.CAL)) {
       throw new Error(ErrorCode.IncorrectEmailPassword);
     }
     // Skip password verification, proceed to 2FA verification below.
@@ -895,7 +894,7 @@ export const getOptions = ({
       if (account?.provider) {
         const idP: IdentityProvider = mapIdentityProvider(account.provider);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error-error TODO validate email_verified key on profile
+        // @ts-expect-error TODO validate email_verified key on profile
         user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
 
         if (!user.email_verified) {
