@@ -141,7 +141,7 @@ vi.mock("@calcom/prisma", () => ({
   },
 }));
 
-vi.mock("@calcom/lib/server/repository/PrismaTrackingRepository", () => ({
+vi.mock("@calcom/features/bookings/repositories/PrismaTrackingRepository", () => ({
   PrismaTrackingRepository: class {
     findByBookingUid = mockTrackingRepository.findByBookingUid;
   },
@@ -191,6 +191,7 @@ describe("HubspotCalendarService", () => {
         email: "test-user@example.com",
       },
       delegationCredentialId: null,
+      encryptedKey: null,
     };
 
     service = BuildCrmService(mockCredential, {}) as CRM & { getAppOptions: () => AppOptions };

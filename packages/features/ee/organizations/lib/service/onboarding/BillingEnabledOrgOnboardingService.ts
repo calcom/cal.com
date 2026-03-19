@@ -4,7 +4,7 @@ import { OrganizationOnboardingRepository } from "@calcom/features/organizations
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import type { Team, User } from "@calcom/prisma/client";
 import { orgOnboardingInvitedMembersSchema, orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
 

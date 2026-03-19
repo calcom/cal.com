@@ -1,14 +1,13 @@
 "use client";
 
-import { CreateANewLicenseKeyForm } from "@calcom/features/ee/deployment/licensekey/CreateLicenseKeyForm";
-import { WizardLayout } from "@calcom/ui/components/layout";
+import { CreateANewLicenseKeyForm } from "~/ee/deployment/components/CreateLicenseKeyForm";
 
-export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
+export default function SettingsNewView() {
   return (
-    <WizardLayout currentStep={1} maxSteps={2}>
-      {children}
-    </WizardLayout>
+    <div className="bg-default flex min-h-screen items-start justify-center px-4 py-12">
+      <div className="w-full max-w-lg">
+        <CreateANewLicenseKeyForm />
+      </div>
+    </div>
   );
-};
-
-export default CreateANewLicenseKeyForm;
+}

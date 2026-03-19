@@ -30,7 +30,13 @@ export class PrismaAttributeToUserRepository {
     });
   }
 
-  async findManyByOrgMembershipIds({ orgMembershipIds }: { orgMembershipIds: number[] }) {
+  async findManyByOrgMembershipIds({
+    orgMembershipIds,
+    attributeIds,
+  }: {
+    orgMembershipIds: number[];
+    attributeIds?: string[];
+  }) {
     if (!orgMembershipIds.length) {
       return [];
     }
@@ -40,6 +46,14 @@ export class PrismaAttributeToUserRepository {
         memberId: {
           in: orgMembershipIds,
         },
+        // Only filter by attribute IDs if provided
+        ...(attributeIds?.length && {
+          attributeOption: {
+            attributeId: {
+              in: attributeIds,
+            },
+          },
+        }),
       },
     });
 

@@ -21,6 +21,7 @@ export type CancelBookingMeta = {
   platformCancelUrl?: string;
   platformBookingUrl?: string;
   arePlatformEmailsEnabled?: boolean;
+  impersonatedByUserUuid: string | null;
 };
 
 /**
@@ -32,4 +33,5 @@ export type HandleCancelBookingResponse = {
   onlyRemovedAttendee: boolean;
   bookingId: number;
   bookingUid: string;
+  isPlatformManagedUserBooking: boolean;
 };

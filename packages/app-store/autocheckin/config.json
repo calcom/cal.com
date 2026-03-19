@@ -6,11 +6,17 @@
   "logo": "icon.svg",
   "url": "https://autocheckin.app",
   "variant": "automation",
-  "categories": ["automation"],
+  "categories": [
+    "automation"
+  ],
   "publisher": "Patrick Goeler von Ravensburg",
   "email": "patrickvongoeler@gmail.com",
   "description": "You simply paste a [Cal.com](https://cal.com) link of someone, select a frequency and we will take care of the scheduling for you.\r\r",
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "link-as-an-app"
+  "__template": "link-as-an-app",
+  "externalLink": {
+    "url": "https://autocheckin.app",
+    "newTab": true
+  }
 }

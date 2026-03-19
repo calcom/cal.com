@@ -20,29 +20,33 @@ const WEBHOOK_DELIVERY_JOB_ID = "webhook.deliver" as const;
  *
  * Errors are logged and re-thrown to enable trigger.dev's retry mechanism.
  */
-export const deliverWebhook: TaskWithSchema<typeof WEBHOOK_DELIVERY_JOB_ID, typeof webhookDeliveryTaskSchema> =
-  schemaTask({
-    id: WEBHOOK_DELIVERY_JOB_ID,
-    ...webhookDeliveryTaskConfig,
-    schema: webhookDeliveryTaskSchema,
-    run: async (payload: WebhookTaskPayload, { ctx }) => {
-      const { getWebhookTaskConsumer } = await import(
-        "@calcom/features/di/webhooks/containers/webhook"
-      );
+export const deliverWebhook: TaskWithSchema<
+  typeof WEBHOOK_DELIVERY_JOB_ID,
+  typeof webhookDeliveryTaskSchema
+> = schemaTask({
+  id: WEBHOOK_DELIVERY_JOB_ID,
+  ...webhookDeliveryTaskConfig,
+  schema: webhookDeliveryTaskSchema,
+  run: async (payload: WebhookTaskPayload, { ctx }) => {
+    const { getWebhookTaskConsumer } = await import("@calcom/features/di/webhooks/containers/webhook");
 
-      const webhookTaskConsumer = getWebhookTaskConsumer();
-      const taskId = ctx.run.id;
+    const webhookTaskConsumer = getWebhookTaskConsumer();
+    const taskId = ctx.run.id;
 
-      try {
-        await webhookTaskConsumer.processWebhookTask(payload, taskId);
-        logger.info("Webhook delivered successfully", { operationId: payload.operationId, taskId });
-      } catch (error) {
-        if (error instanceof Error || error instanceof ErrorWithCode) {
-          logger.error(error.message, { operationId: payload.operationId, taskId });
-        } else {
-          logger.error("Unknown error in webhook delivery", { error, operationId: payload.operationId, taskId });
-        }
-        throw error;
+    try {
+      await webhookTaskConsumer.processWebhookTask(payload, taskId);
+      logger.info("Webhook delivered successfully", { operationId: payload.operationId, taskId });
+    } catch (error) {
+      if (error instanceof Error || error instanceof ErrorWithCode) {
+        logger.error(error.message, { operationId: payload.operationId, taskId });
+      } else {
+        logger.error("Unknown error in webhook delivery", {
+          error,
+          operationId: payload.operationId,
+          taskId,
+        });
       }
-    },
-  });
+      throw error;
+    }
+  },
+});

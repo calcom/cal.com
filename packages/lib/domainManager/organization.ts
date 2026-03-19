@@ -24,7 +24,6 @@ export const deleteDomain = async (slug: string) => {
     isDnsRecordDeleted = await deleteDnsRecord(domain);
   }
   return isDomainDeleted && isDnsRecordDeleted;
-  return false;
 };
 
 export const createDomain = async (slug: string) => {

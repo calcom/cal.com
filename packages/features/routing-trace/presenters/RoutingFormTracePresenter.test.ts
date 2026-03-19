@@ -66,16 +66,12 @@ describe("RoutingFormTracePresenter", () => {
   });
 
   it("presents route_matched without routeName", () => {
-    const result = RoutingFormTracePresenter.present(
-      makeStep("route_matched", { routeId: "route-1" })
-    );
+    const result = RoutingFormTracePresenter.present(makeStep("route_matched", { routeId: "route-1" }));
     expect(result).toBe('Route matched: "Unnamed route" (ID: route-1)');
   });
 
   it("presents fallback_route_used without routeName", () => {
-    const result = RoutingFormTracePresenter.present(
-      makeStep("fallback_route_used", { routeId: "route-2" })
-    );
+    const result = RoutingFormTracePresenter.present(makeStep("fallback_route_used", { routeId: "route-2" }));
     expect(result).toBe('Fallback route used: "Unnamed route" (ID: route-2)');
   });
 

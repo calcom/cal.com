@@ -65,9 +65,7 @@ export class SamlAccountLinkingService {
   }
 }
 
-export type AccountConversionValidationResult =
-  | { allowed: true }
-  | { allowed: false; errorUrl: string };
+export type AccountConversionValidationResult = { allowed: true } | { allowed: false; errorUrl: string };
 
 export async function validateSamlAccountConversion(
   samlTenant: string | undefined,
@@ -76,7 +74,10 @@ export async function validateSamlAccountConversion(
 ): Promise<AccountConversionValidationResult> {
   if (!samlTenant) {
     // Deny by default - if tenant is missing, we cannot verify IdP authority
-    log.error("SAML conversion blocked - missing tenant", { emailDomain: email.split("@")[1], conversionContext });
+    log.error("SAML conversion blocked - missing tenant", {
+      emailDomain: email.split("@")[1],
+      conversionContext,
+    });
     return { allowed: false, errorUrl: SAML_NOT_AUTHORITATIVE_ERROR_URL };
   }
 

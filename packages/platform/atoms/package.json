@@ -18,6 +18,7 @@
     "dev-off": "git checkout -- package.json vite.config.ts"
   },
   "devDependencies": {
+    "@calcom/i18n": "workspace:*",
     "@rollup/plugin-node-resolve": "15.0.1",
     "@tailwindcss/cli": "4.1.16",
     "@tailwindcss/postcss": "4.1.15",
@@ -69,6 +70,7 @@
     "./hooks/useIsPlatform": "./hooks/useIsPlatform.ts",
     "./hooks/useIsPlatformBookerEmbed": "./hooks/useIsPlatformBookerEmbed.ts",
     "./hooks/event-types/private/useEventTypeById": "./hooks/event-types/private/useEventTypeById.ts",
+    "./hooks/event-types/private/useCreateEventTypeForm": "./hooks/event-types/private/useCreateEventTypeForm.ts",
     "./event-types/hooks/useEventTypeForm": "./event-types/hooks/useEventTypeForm.ts",
     "./event-types/hooks/useHandleRouteChange": "./event-types/hooks/useHandleRouteChange.ts",
     "./event-types/hooks/useTabsNavigations": "./event-types/hooks/useTabsNavigations.tsx",

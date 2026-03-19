@@ -21,6 +21,7 @@ describe("sanitizeAppForViewer", () => {
       delegatedToId: null,
       delegationCredentialId: null,
       team: null,
+      encryptedKey: null,
     };
 
     const mockApp: App & {

@@ -1,10 +1,9 @@
 import type { AppMeta } from "@calcom/types/App";
 
-import _package from "./package.json";
-
 export const metadata = {
-  name: _package.name,
-  description: _package.description,
+  name: "WipeMyCal",
+  description:
+    "Wipe My Cal is a Cal.com exclusive app that redefines what it looks like to reschedule multiple meetings at the same time. Simply install the app, and select 'Wipe' for whatever date you need to mass reschedule. Handle emergencies, unexpected sick days and last minute events with the simple click of a button.",
   installed: true,
   category: "automation",
   categories: ["automation"],

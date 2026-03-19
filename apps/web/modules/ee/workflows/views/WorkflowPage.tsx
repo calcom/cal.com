@@ -34,7 +34,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
 import { Form, Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { PencilIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
@@ -160,13 +160,13 @@ function WorkflowPage({
   };
 
   const handleNameSubmit = () => {
-    form.setValue("name", nameValue);
+    form.setValue("name", nameValue, { shouldDirty: true });
     setIsEditingName(false);
   };
 
   const handleNameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      form.setValue("name", nameValue);
+      form.setValue("name", nameValue, { shouldDirty: true });
       setIsEditingName(false);
     } else if (e.key === "Escape") {
       setNameValue(watchedName || "");
@@ -225,8 +225,8 @@ function WorkflowPage({
         activeOn = isOrg
           ? teamOptions
           : isFormTrigger(workflowData.trigger)
-          ? routingFormOptions
-          : allEventTypeOptions;
+            ? routingFormOptions
+            : allEventTypeOptions;
       } else {
         if (isOrg) {
           activeOn = workflowData.activeOnTeams.flatMap((active) => {
@@ -291,6 +291,7 @@ function WorkflowPage({
       form.setValue("timeUnit", workflowData.timeUnit || undefined);
       form.setValue("activeOn", activeOn || []);
       form.setValue("selectAll", workflowData.isActiveOnAll ?? false);
+      form.reset(form.getValues());
       setNameValue(workflowData.name);
       setIsAllDataLoaded(true);
     }
@@ -300,6 +301,7 @@ function WorkflowPage({
     onSuccess: async ({ workflow }) => {
       utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
       setFormData(workflow);
+      form.reset(form.getValues());
 
       const autoCreateAgent = searchParams?.get("autoCreateAgent");
       if (!autoCreateAgent) {
@@ -318,6 +320,8 @@ function WorkflowPage({
       }
     },
   });
+
+  const isDisabled = permissions.readOnly || updateMutation.isPending || !form.formState.isDirty;
 
   const validateAndSubmitWorkflow = async (values: FormValues): Promise<void> => {
     let isEmpty = false;
@@ -433,7 +437,7 @@ function WorkflowPage({
           await validateAndSubmitWorkflow(values);
         }}>
         <div className="flex h-full min-h-screen w-full flex-col">
-          <div className="bg-default border-muted flex w-full items-center justify-between border-b px-2 py-2 sm:px-4">
+          <div className="bg-default border-muted sticky top-0 z-10 flex w-full items-center justify-between border-b px-2 py-2 sm:px-4">
             <div className="border-muted flex min-w-0 items-center gap-2">
               <Button
                 color="secondary"
@@ -460,12 +464,11 @@ function WorkflowPage({
                   />
                 ) : (
                   <div className="group flex min-w-0 items-center gap-1">
-
-                      <span
-                        className="text-default hover:bg-cal-muted min-w-0 cursor-pointer truncate whitespace-nowrap rounded p-1 text-sm font-semibold leading-none"
-                        onClick={() => setIsEditingName(true)}>
-                        {watchedName ? watchedName : isPending ? t("loading") : t("untitled")}
-                      </span>
+                    <span
+                      className="text-default hover:bg-cal-muted min-w-0 cursor-pointer truncate whitespace-nowrap rounded p-1 text-sm font-semibold leading-none"
+                      onClick={() => setIsEditingName(true)}>
+                      {watchedName ? watchedName : isPending ? t("loading") : t("untitled")}
+                    </span>
                     <Button
                       variant="icon"
                       color="minimal"
@@ -473,7 +476,7 @@ function WorkflowPage({
                       disabled={isPending}
                       onClick={() => setIsEditingName(true)}
                       CustomStartIcon={
-                        <Icon name="pencil" className="text-subtle group-hover:text-default h-3 w-3" />
+                        <PencilIcon className="text-subtle group-hover:text-default h-3 w-3" />
                       }>
                       <span className="sr-only">{t("edit")}</span>
                     </Button>
@@ -509,7 +512,7 @@ function WorkflowPage({
               </Tooltip>
               <Button
                 loading={updateMutation.isPending}
-                disabled={permissions.readOnly || updateMutation.isPending}
+                disabled={isDisabled}
                 data-testid="save-workflow"
                 type="submit"
                 size="sm"
@@ -536,8 +539,8 @@ function WorkflowPage({
                           isOrg
                             ? teamOptions
                             : isFormTrigger(watchedTrigger)
-                            ? routingFormOptions
-                            : allEventTypeOptions
+                              ? routingFormOptions
+                              : allEventTypeOptions
                         }
                         eventTypeOptions={allEventTypeOptions}
                         onSaveWorkflow={handleSaveWorkflow}

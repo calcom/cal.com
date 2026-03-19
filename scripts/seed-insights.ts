@@ -746,6 +746,124 @@ async function seedBookingAssignments() {
 	});
 }
 
+async function seedRoutingTraces() {
+	const bookings = await prisma.booking.findMany({
+		where: {
+			assignmentReason: {
+				some: {},
+			},
+			routedFromRoutingFormReponse: {
+				isNot: null,
+			},
+		},
+		select: {
+			id: true,
+			uid: true,
+			assignmentReason: {
+				select: {
+					id: true,
+					reasonEnum: true,
+				},
+				take: 1,
+			},
+			routedFromRoutingFormReponse: {
+				select: {
+					id: true,
+				},
+			},
+		},
+		take: 200,
+	});
+
+	if (bookings.length === 0) {
+		console.log(
+			"No bookings with both assignment reasons and form responses found - skipping routing traces",
+		);
+		return;
+	}
+
+	const departments = ["Engineering", "Sales", "Marketing", "Product", "Design"];
+	const skills = ["JavaScript", "React", "Node.js", "Python", "Sales"];
+
+	const traceData = [];
+	for (const booking of bookings) {
+		const assignmentReason = booking.assignmentReason[0];
+		const formResponse = booking.routedFromRoutingFormReponse;
+		if (!assignmentReason || !formResponse) continue;
+
+		const now = Date.now();
+		const isFallback =
+			assignmentReason.reasonEnum ===
+			AssignmentReasonEnum.ROUTING_FORM_ROUTING_FALLBACK;
+
+		const steps = isFallback
+			? [
+					{
+						domain: "routing_form",
+						step: "fallback_route_used",
+						timestamp: now - 5000,
+						data: {
+							routeId: `route-fallback-${booking.id}`,
+							routeName: "Fallback Route",
+						},
+					},
+				]
+			: [
+					{
+						domain: "routing_form",
+						step: "route_matched",
+						timestamp: now - 5000,
+						data: {
+							routeId: `route-${booking.id}`,
+							routeName: `Route for booking ${booking.id}`,
+						},
+					},
+					{
+						domain: "routing_form",
+						step: "attribute-logic-evaluated",
+						timestamp: now - 4000,
+						data: {
+							routeId: `route-${booking.id}`,
+							routeName: `Route for booking ${booking.id}`,
+							routeIsFallback: false,
+							attributeRoutingDetails: [
+								{
+									attributeName: "Department",
+									attributeValue:
+										departments[
+											Math.floor(Math.random() * departments.length)
+										],
+								},
+								{
+									attributeName: "Skills",
+									attributeValue:
+										skills[Math.floor(Math.random() * skills.length)],
+								},
+							],
+						},
+					},
+				];
+
+		traceData.push({
+			trace: steps,
+			bookingUid: booking.uid,
+			formResponseId: formResponse.id,
+			assignmentReasonId: assignmentReason.id,
+		});
+	}
+
+	let skipped = 0;
+	if (traceData.length > 0) {
+		for (const data of traceData) {
+			await prisma.routingTrace.create({ data }).catch(() => {
+				skipped++;
+			});
+		}
+	}
+
+	console.log(`Created ${traceData.length - skipped} routing traces (${skipped} skipped due to conflicts)`);
+}
+
 async function main() {
 	// First find the organization we want to add insights to
 	const organization = await prisma.team.findFirst({
@@ -1039,6 +1157,7 @@ async function main() {
 	}
 
 	await seedBookingAssignments();
+	await seedRoutingTraces();
 
 	// Create diverse payment scenarios for testing
 	await createDiversePaymentBookings(organization.id);

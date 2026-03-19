@@ -27,7 +27,7 @@ const getHandler = async <
   T extends {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     default: Function;
-  }
+  },
 >(
   /**
    * The name of the handler in cache. It has to be unique across all routes
@@ -60,6 +60,15 @@ const appRoutingForms = router({
       const handler = await getHandler(
         "getResponseWithFormFields",
         () => import("./getResponseWithFormFields.handler")
+      );
+      return handler({ ctx, input });
+    }),
+  getFormResponseDisplay: authedProcedure
+    .input(ZFormByResponseIdInputSchema)
+    .query(async ({ ctx, input }) => {
+      const handler = await getHandler(
+        "getFormResponseDisplay",
+        () => import("./getFormResponseDisplay.handler")
       );
       return handler({ ctx, input });
     }),

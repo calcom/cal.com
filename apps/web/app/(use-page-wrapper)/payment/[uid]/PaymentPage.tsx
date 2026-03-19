@@ -9,8 +9,8 @@ import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentA
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { PayIcon } from "@calcom/web/modules/bookings/components/event-meta/PayIcon";
-import { Price } from "@calcom/web/modules/bookings/components/event-meta/Price";
+import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
+import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -124,7 +124,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6">
                         {date.locale(i18n.language ?? "en").format("dddd, DD MMMM YYYY")}
                         <br />
-                        {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
+                        {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} {t("minute_timeUnit")}{" "}
                         <span className="text-subtle">({timezone})</span>
                       </div>
                       {props.booking.location && (

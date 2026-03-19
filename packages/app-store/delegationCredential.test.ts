@@ -126,6 +126,7 @@ const buildDelegationCredential = (overrides = {}) => ({
   delegatedTo: {
     serviceAccountKey: mockServiceAccountKey,
   },
+  encryptedKey: null,
   ...overrides,
 });
 
@@ -158,6 +159,7 @@ const buildRegularCredential = (overrides = {}): CredentialForCalendarService =>
   delegatedTo: null,
   // Regular credentials have it set to null always
   delegationCredentialId: null,
+  encryptedKey: null,
   ...overrides,
 });
 

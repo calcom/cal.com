@@ -64,9 +64,6 @@ vi.mock("@calcom/web/modules/shell/Shell", () => ({
   ShellMain: vi.fn(),
 }));
 
-vi.mock("@calcom/lib/hooks/useApp", () => ({
-  default: vi.fn(),
-}));
 /**
  *  Avoids the error due to Formbricks
  */

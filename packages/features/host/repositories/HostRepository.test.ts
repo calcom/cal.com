@@ -14,7 +14,9 @@ vi.mock("@calcom/prisma", () => {
   return {
     __esModule: true,
     default: mockPrisma,
-    PrismaClient: vi.fn().mockImplementation(function() { return mockPrisma; }),
+    PrismaClient: vi.fn().mockImplementation(function () {
+      return mockPrisma;
+    }),
   };
 });
 

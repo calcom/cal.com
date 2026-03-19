@@ -7,9 +7,7 @@ export function getReplyToHeader(
   additionalEmails?: string | string[],
   excludeOrganizerEmail?: boolean
 ) {
-  if (calEvent.hideOrganizerEmail) return {};
-
-  const replyToEmail = getReplyToEmail(calEvent, excludeOrganizerEmail);
+  const replyToEmail = getReplyToEmail(calEvent, excludeOrganizerEmail ?? calEvent.hideOrganizerEmail);
   const emailArray: string[] = [];
 
   if (additionalEmails) {

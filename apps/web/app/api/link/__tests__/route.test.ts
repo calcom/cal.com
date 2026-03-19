@@ -1,7 +1,7 @@
-import type { NextRequest } from "next/server";
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
+import type { NextRequest } from "next/server";
 import type { Mock } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockConfirmHandler = confirmHandler as unknown as Mock<typeof confirmHandler>;
 
@@ -82,9 +82,9 @@ vi.mock("@calcom/features/booking-audit/lib/makeActor", () => ({
   makeUserActor: vi.fn().mockReturnValue({ type: "user", id: "test-uuid" }),
 }));
 
+import prisma from "@calcom/prisma";
 // Import after mocks are set up
 import { GET } from "../route";
-import prisma from "@calcom/prisma";
 
 const createMockRequest = (url: string): NextRequest => {
   const urlObj = new URL(url);
@@ -97,13 +97,16 @@ const createMockRequest = (url: string): NextRequest => {
   } as unknown as NextRequest;
 };
 
+// Vitest sets NEXT_PUBLIC_WEBAPP_URL to http://app.cal.local:3000 (see vitest.config.mts)
+const EXPECTED_REDIRECT_ORIGIN = "http://app.cal.local:3000";
+
 describe("link route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   describe("GET handler - redirect URL construction", () => {
-    it("should redirect to booking page with the same origin as the request", async () => {
+    it("should redirect to booking page using WEBAPP_URL (fixes localhost redirect when behind proxy)", async () => {
       const baseUrl = "https://app.example.com/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
 
@@ -113,11 +116,11 @@ describe("link route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://app.example.com");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(redirectUrl.pathname).toBe("/booking/test-booking-uid");
     });
 
-    it("should preserve custom domain origin in redirect URL", async () => {
+    it("should use WEBAPP_URL for redirects, not request.url (avoids localhost when proxy sends localhost)", async () => {
       const baseUrl = "https://custom-domain.company.com/api/link?action=accept&token=encrypted-token";
       const req = createMockRequest(baseUrl);
 
@@ -127,11 +130,11 @@ describe("link route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://custom-domain.company.com");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(location).not.toContain("localhost");
     });
 
-    it("should preserve self-hosted domain origin in redirect URL", async () => {
+    it("should use WEBAPP_URL for self-hosted deployments", async () => {
       const baseUrl = "https://calcom.internal.company.net/api/link?action=reject&token=encrypted-token";
       const req = createMockRequest(baseUrl);
 
@@ -141,11 +144,11 @@ describe("link route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://calcom.internal.company.net");
-      expect(location).not.toContain("localhost");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
+      expect(redirectUrl.pathname).toBe("/booking/test-booking-uid");
     });
 
-    it("should construct redirect URLs relative to the request URL for various origins", async () => {
+    it("should construct redirect URLs using WEBAPP_URL regardless of request origin", async () => {
       const testOrigins = [
         "https://app.cal.com",
         "https://acme.cal.com",
@@ -164,7 +167,7 @@ describe("link route", () => {
         expect(location).toBeTruthy();
         const redirectUrl = new URL(location!);
 
-        expect(redirectUrl.origin).toBe(origin);
+        expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
         expect(redirectUrl.pathname).toBe("/booking/test-booking-uid");
       }
     });
@@ -174,7 +177,6 @@ describe("link route", () => {
     it("should redirect with error message when confirmHandler throws a TRPCError", async () => {
       const { TRPCError } = await import("@trpc/server");
 
-      // Mock confirmHandler to throw a TRPCError
       mockConfirmHandler.mockRejectedValueOnce(
         new TRPCError({ code: "BAD_REQUEST", message: "Custom error" })
       );
@@ -188,15 +190,14 @@ describe("link route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://app.example.com");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(redirectUrl.pathname).toBe("/booking/test-booking-uid");
       expect(redirectUrl.searchParams.get("error")).toBe("Custom error");
     });
 
-    it("should preserve origin in error redirect URL", async () => {
+    it("should use WEBAPP_URL for error redirects (not localhost when behind proxy)", async () => {
       const { TRPCError } = await import("@trpc/server");
 
-      // Mock confirmHandler to throw a TRPCError
       mockConfirmHandler.mockRejectedValueOnce(new TRPCError({ code: "INTERNAL_SERVER_ERROR" }));
 
       const baseUrl = "https://self-hosted.company.org/api/link?action=accept&token=encrypted-token";
@@ -208,7 +209,7 @@ describe("link route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://self-hosted.company.org");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(location).not.toContain("localhost");
     });
   });

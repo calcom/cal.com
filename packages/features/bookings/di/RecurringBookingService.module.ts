@@ -1,5 +1,6 @@
 import { RecurringBookingService } from "@calcom/features/bookings/lib/service/RecurringBookingService";
 import { createModule, bindModuleToClassOnToken } from "@calcom/features/di/di";
+import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/FeaturesRepository";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 
 import { moduleLoader as regularBookingServiceModuleLoader } from "./RegularBookingService.module";
@@ -17,6 +18,7 @@ const loadModule = bindModuleToClassOnToken({
   depsMap: {
     regularBookingService: regularBookingServiceModuleLoader,
     bookingEventHandler: bookingEventHandlerModuleLoader,
+    featuresRepository: featuresRepositoryModuleLoader,
   },
 });
 

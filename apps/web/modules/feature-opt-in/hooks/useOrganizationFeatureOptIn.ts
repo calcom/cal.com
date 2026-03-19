@@ -86,7 +86,7 @@ export function useOrganizationFeatureOptIn(): UseFeatureOptInResult {
     setAutoOptIn,
     isStateMutationPending: setStateMutation.isPending,
     isAutoOptInMutationPending: setAutoOptInMutation.isPending,
-    toggleLabels: { enabled: t("allow"), disabled: t("block"), inherit: t("let_users_decide") },
+    toggleLabels: { enabled: t("enable"), disabled: t("disable"), inherit: t("let_users_decide") },
     autoOptInDescription: t("auto_opt_in_experimental_description_org"),
     getBlockedWarning: getOrgBlockedWarning,
     isBlockedByHigherLevel: isOrgBlockedByHigherLevel,

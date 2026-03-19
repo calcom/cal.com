@@ -8,7 +8,9 @@ describe("FormPayloadBuilder (v2021-10-20)", () => {
   const builder = new FormPayloadBuilder();
 
   const createMockDTO = (
-    triggerEvent: typeof WebhookTriggerEvents.FORM_SUBMITTED | typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT
+    triggerEvent:
+      | typeof WebhookTriggerEvents.FORM_SUBMITTED
+      | typeof WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT
   ): FormSubmittedDTO | FormSubmittedNoEventDTO =>
     ({
       triggerEvent,

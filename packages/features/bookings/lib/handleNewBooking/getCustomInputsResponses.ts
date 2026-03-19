@@ -16,10 +16,13 @@ type RequestBody = {
 function mapCustomInputs(
   customInputs: { label: string; value: CustomInputs[number]["value"] }[]
 ): Record<string, CustomInputs[number]["value"]> {
-  return customInputs.reduce((acc, { label, value }) => {
-    acc[label] = value;
-    return acc;
-  }, {} as Record<string, CustomInputs[number]["value"]>);
+  return customInputs.reduce(
+    (acc, { label, value }) => {
+      acc[label] = value;
+      return acc;
+    },
+    {} as Record<string, CustomInputs[number]["value"]>
+  );
 }
 
 function mapResponsesToCustomInputs(
@@ -27,13 +30,16 @@ function mapResponsesToCustomInputs(
   eventTypeCustomInputs: getEventTypeResponse["customInputs"]
 ): NonNullable<CalendarEvent["customInputs"]> {
   // Backward Compatibility: Map new `responses` to old `customInputs` format so that webhooks can still receive same values.
-  return Object.entries(responses).reduce((acc, [fieldName, fieldValue]) => {
-    const foundInput = eventTypeCustomInputs.find((input) => slugify(input.label) === fieldName);
-    if (foundInput) {
-      acc[foundInput.label] = fieldValue;
-    }
-    return acc;
-  }, {} as NonNullable<CalendarEvent["customInputs"]>);
+  return Object.entries(responses).reduce(
+    (acc, [fieldName, fieldValue]) => {
+      const foundInput = eventTypeCustomInputs.find((input) => slugify(input.label) === fieldName);
+      if (foundInput) {
+        acc[foundInput.label] = fieldValue;
+      }
+      return acc;
+    },
+    {} as NonNullable<CalendarEvent["customInputs"]>
+  );
 }
 
 export function getCustomInputsResponses(

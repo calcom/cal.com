@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { useColumnFilters } from "@calcom/features/data-table/hooks/useColumnFilters";
-import { useDataTable } from "@calcom/features/data-table/hooks/useDataTable";
+import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
 import {
   getDefaultStartDate,
   getDefaultEndDate,

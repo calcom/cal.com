@@ -204,14 +204,15 @@ export class InsightsRoutingBaseService {
       ORDER BY "dateRange"
     `;
 
-    const results = await this.prisma.$queryRaw<
-      Array<{
-        dateRange: string | null;
-        totalSubmissions: bigint;
-        successfulRoutings: bigint;
-        acceptedBookings: bigint;
-      }>
-    >(query);
+    const results =
+      await this.prisma.$queryRaw<
+        Array<{
+          dateRange: string | null;
+          totalSubmissions: bigint;
+          successfulRoutings: bigint;
+          acceptedBookings: bigint;
+        }>
+      >(query);
 
     // Create a map of results by dateRange for easy lookup
     const resultsMap = new Map(
@@ -379,9 +380,8 @@ export class InsightsRoutingBaseService {
       WHERE (${baseConditions}) AND ("bookingUid" IS NULL)
     `;
 
-    const totalWithoutBookingResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>(
-      totalWithoutBookingQuery
-    );
+    const totalWithoutBookingResult =
+      await this.prisma.$queryRaw<Array<{ count: bigint }>>(totalWithoutBookingQuery);
 
     const total = Number(totalResult[0]?.count || 0);
     const totalWithoutBooking = Number(totalWithoutBookingResult[0]?.count || 0);
@@ -465,14 +465,15 @@ export class InsightsRoutingBaseService {
       ${limit ? Prisma.sql`LIMIT ${limit}` : Prisma.empty}
     `;
 
-    const usersQuery = await this.prisma.$queryRaw<
-      Array<{
-        id: number;
-        name: string | null;
-        email: string | null;
-        avatarUrl: string | null;
-      }>
-    >(usersQuerySql);
+    const usersQuery =
+      await this.prisma.$queryRaw<
+        Array<{
+          id: number;
+          name: string | null;
+          email: string | null;
+          avatarUrl: string | null;
+        }>
+      >(usersQuerySql);
 
     const users = usersQuery;
 
@@ -552,13 +553,14 @@ export class InsightsRoutingBaseService {
       ORDER BY c.period_start ASC, c."userId" ASC
     `;
 
-    const periodStats = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        period_start: Date;
-        total: number;
-      }>
-    >(periodStatsQuery);
+    const periodStats =
+      await this.prisma.$queryRaw<
+        Array<{
+          userId: number;
+          period_start: Date;
+          total: number;
+        }>
+      >(periodStatsQuery);
 
     // Get statistics for the entire period for comparison
     const statsQuerySql = Prisma.sql`
@@ -574,12 +576,13 @@ export class InsightsRoutingBaseService {
       ORDER BY total_bookings ASC
     `;
 
-    const statsQuery = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        total_bookings: number;
-      }>
-    >(statsQuerySql);
+    const statsQuery =
+      await this.prisma.$queryRaw<
+        Array<{
+          userId: number;
+          total_bookings: number;
+        }>
+      >(statsQuerySql);
 
     // Calculate average and median
     const average =
@@ -587,20 +590,26 @@ export class InsightsRoutingBaseService {
     const median = statsQuery[Math.floor(statsQuery.length / 2)]?.total_bookings || 0;
 
     // Create a map of user performance indicators
-    const userPerformance = statsQuery.reduce((acc, stat) => {
-      acc[stat.userId] = {
-        total: stat.total_bookings,
-        performance:
-          stat.total_bookings > average
-            ? "above_average"
-            : stat.total_bookings === median
-            ? "median"
-            : stat.total_bookings < average
-            ? "below_average"
-            : "at_average",
-      };
-      return acc;
-    }, {} as Record<number, { total: number; performance: "above_average" | "at_average" | "below_average" | "median" }>);
+    const userPerformance = statsQuery.reduce(
+      (acc, stat) => {
+        acc[stat.userId] = {
+          total: stat.total_bookings,
+          performance:
+            stat.total_bookings > average
+              ? "above_average"
+              : stat.total_bookings === median
+                ? "median"
+                : stat.total_bookings < average
+                  ? "below_average"
+                  : "at_average",
+        };
+        return acc;
+      },
+      {} as Record<
+        number,
+        { total: number; performance: "above_average" | "at_average" | "below_average" | "median" }
+      >
+    );
 
     return {
       users: {
@@ -702,10 +711,13 @@ export class InsightsRoutingBaseService {
     // Extract specific filters from columnFilters
     // Convert columnFilters array to object for easier access
     const filtersMap =
-      columnFilters.reduce((acc, filter) => {
-        acc[filter.id] = filter;
-        return acc;
-      }, {} as Record<string, TypedColumnFilter<FilterType>>) || {};
+      columnFilters.reduce(
+        (acc, filter) => {
+          acc[filter.id] = filter;
+          return acc;
+        },
+        {} as Record<string, TypedColumnFilter<FilterType>>
+      ) || {};
 
     // Extract booking status order filter
     const bookingStatusOrder = filtersMap["bookingStatusOrder"];
@@ -1033,31 +1045,35 @@ export class InsightsRoutingBaseService {
     ORDER BY count DESC
     `;
 
-    const result = await this.prisma.$queryRaw<
-      {
-        formId: string;
-        formName: string;
-        fieldId: string;
-        fieldLabel: string;
-        optionId: string;
-        optionLabel: string;
-        count: number;
-      }[]
-    >(query);
+    const result =
+      await this.prisma.$queryRaw<
+        {
+          formId: string;
+          formName: string;
+          fieldId: string;
+          fieldLabel: string;
+          optionId: string;
+          optionLabel: string;
+          count: number;
+        }[]
+      >(query);
 
     // First group by form and field
-    const groupedByFormAndField = result.reduce((acc, curr) => {
-      const formKey = curr.formName;
-      acc[formKey] = acc[formKey] || {};
-      const labelKey = curr.fieldLabel;
-      acc[formKey][labelKey] = acc[formKey][labelKey] || [];
-      acc[formKey][labelKey].push({
-        optionId: curr.optionId,
-        count: curr.count,
-        optionLabel: curr.optionLabel,
-      });
-      return acc;
-    }, {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>);
+    const groupedByFormAndField = result.reduce(
+      (acc, curr) => {
+        const formKey = curr.formName;
+        acc[formKey] = acc[formKey] || {};
+        const labelKey = curr.fieldLabel;
+        acc[formKey][labelKey] = acc[formKey][labelKey] || [];
+        acc[formKey][labelKey].push({
+          optionId: curr.optionId,
+          count: curr.count,
+          optionLabel: curr.optionLabel,
+        });
+        return acc;
+      },
+      {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>
+    );
 
     // NOTE: totalCount represents the sum of all response counts across all fields and options for a form
     // For example, if a form has 2 fields with 2 options each:
@@ -1075,10 +1091,13 @@ export class InsightsRoutingBaseService {
       .sort((a, b) => b.totalCount - a.totalCount);
 
     // Convert back to original format
-    const sortedGroupedByFormAndField = sortedEntries.reduce((acc, { formName, fields }) => {
-      acc[formName] = fields;
-      return acc;
-    }, {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>);
+    const sortedGroupedByFormAndField = sortedEntries.reduce(
+      (acc, { formName, fields }) => {
+        acc[formName] = fields;
+        return acc;
+      },
+      {} as Record<string, Record<string, { optionId: string; count: number; optionLabel: string }[]>>
+    );
 
     return sortedGroupedByFormAndField;
   }

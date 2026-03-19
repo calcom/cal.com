@@ -13,7 +13,9 @@ if (timeZoneDependentTestsOnly && !envTZ) {
   throw new Error("TZ environment variable is not set");
 }
 
-// defineWorkspace provides a nice type hinting DX
+// Use pool: "forks" to prevent "Closing rpc while fetch was pending" errors.
+const pool = "forks" as const;
+
 const workspaces = packagedEmbedTestsOnly
   ? [
       {
@@ -21,26 +23,28 @@ const workspaces = packagedEmbedTestsOnly
           name: "PackagedEmbedTests",
           include: ["packages/embeds/**/packaged/**/*.{test,spec}.{ts,js}"],
           environment: "jsdom",
+          pool,
         },
       },
     ]
   : integrationTestsOnly
-  ? [
-      {
-        test: {
-          name: `IntegrationTests`,
-          include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
-          exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
-          setupFiles: ["packages/testing/src/setupVitest.ts"],
-        },
-        resolve: {
-          alias: {
-            "~": new URL("./apps/api/v1", import.meta.url).pathname,
+    ? [
+        {
+          test: {
+            name: `IntegrationTests`,
+            include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
+            exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
+            setupFiles: ["packages/testing/src/setupVitest.ts"],
+            pool,
+          },
+          resolve: {
+            alias: {
+              "~": new URL("./apps/api/v1", import.meta.url).pathname,
+            },
           },
         },
-      },
-    ]
-  : // It doesn't seem to be possible to fake timezone per test, so we rerun the entire suite with different TZ. See https://github.com/vitest-dev/vitest/issues/1575#issuecomment-1439286286
+      ]
+    : // It doesn't seem to be possible to fake timezone per test, so we rerun the entire suite with different TZ. See https://github.com/vitest-dev/vitest/issues/1575#issuecomment-1439286286
   integrationTestsOnly
   ? [
       {
@@ -59,182 +63,198 @@ const workspaces = packagedEmbedTestsOnly
       },
     ]
   : timeZoneDependentTestsOnly
-  ? [
-      {
-        test: {
-          name: `TimezoneDependentTests:${envTZ}`,
-          include: ["packages/**/*.timezone.test.ts", "apps/**/*.timezone.test.ts"],
-          // TODO: Ignore the api until tests are fixed
-          exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
-          setupFiles: ["packages/testing/src/setupVitest.ts"],
-        },
-      },
-    ]
-  : [
-      {
-        test: {
-          include: ["packages/**/*.{test,spec}.{ts,js}", "apps/**/*.{test,spec}.{ts,js}"],
-          exclude: [
-            "**/node_modules/**/*",
-            "**/.next/**/*",
-            "packages/embeds/**/*",
-            "packages/lib/hooks/**/*",
-            "packages/platform/**/*",
-            "apps/api/v1/**/*",
-            "apps/api/v2/**/*",
-          ],
-          name: "@calcom/lib",
-          setupFiles: ["packages/testing/src/setupVitest.ts"],
-        },
-        resolve: {
-          alias: {
-            "@lib": new URL("./apps/web/lib", import.meta.url).pathname,
-            "@server": new URL("./apps/web/server", import.meta.url).pathname,
-            "@components": new URL("./apps/web/components", import.meta.url).pathname,
-            "@pages": new URL("./apps/web/pages", import.meta.url).pathname,
-            "~": new URL("./apps/web/modules", import.meta.url).pathname,
+      ? [
+          {
+            test: {
+              name: `TimezoneDependentTests:${envTZ}`,
+              include: ["packages/**/*.timezone.test.ts", "apps/**/*.timezone.test.ts"],
+              // TODO: Ignore the api until tests are fixed
+              exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
+              setupFiles: ["packages/testing/src/setupVitest.ts"],
+              pool,
+            },
           },
-        },
-      },
-      {
-        test: {
-          include: ["apps/api/v1/**/*.{test,spec}.{ts,js}"],
-          exclude: [
-            "**/node_modules/**/*",
-            "**/.next/**/*",
-            "packages/embeds/**/*",
-            "packages/lib/hooks/**/*",
-            "packages/platform/**/*",
-            "apps/api/v2/**/*",
-          ],
-          name: "@calcom/api",
-          setupFiles: ["packages/testing/src/setupVitest.ts"],
-        },
-        resolve: {
-          alias: {
-            "~": new URL("./apps/api/v1", import.meta.url).pathname,
+        ]
+      : [
+          {
+            test: {
+              include: ["packages/**/*.{test,spec}.{ts,js}", "apps/**/*.{test,spec}.{ts,js}"],
+              exclude: [
+                "**/node_modules/**/*",
+                "**/.next/**/*",
+                "packages/embeds/**/*",
+                "packages/lib/hooks/**/*",
+                "packages/platform/**/*",
+                "apps/api/v1/**/*",
+                "apps/api/v2/**/*",
+              ],
+              name: "@calcom/lib",
+              setupFiles: ["packages/testing/src/setupVitest.ts"],
+              pool,
+            },
+            resolve: {
+              alias: {
+                "@lib": new URL("./apps/web/lib", import.meta.url).pathname,
+                "@server": new URL("./apps/web/server", import.meta.url).pathname,
+                "@components": new URL("./apps/web/components", import.meta.url).pathname,
+                "@pages": new URL("./apps/web/pages", import.meta.url).pathname,
+                "~": new URL("./apps/web/modules", import.meta.url).pathname,
+              },
+            },
           },
-        },
-      },
-      {
-        test: {
-          globals: true,
-          name: "@calcom/features",
-          include: ["packages/features/**/*.{test,spec}.tsx"],
-          exclude: ["packages/features/form-builder/**/*", "packages/features/bookings/**/*"],
-          environment: "jsdom",
-          setupFiles: ["setupVitest.ts", "packages/ui/components/test-setup.tsx"],
-        },
-      },
+          {
+            test: {
+              include: ["apps/api/v1/**/*.{test,spec}.{ts,js}"],
+              exclude: [
+                "**/node_modules/**/*",
+                "**/.next/**/*",
+                "packages/embeds/**/*",
+                "packages/lib/hooks/**/*",
+                "packages/platform/**/*",
+                "apps/api/v2/**/*",
+              ],
+              name: "@calcom/api",
+              setupFiles: ["packages/testing/src/setupVitest.ts"],
+              pool,
+            },
+            resolve: {
+              alias: {
+                "~": new URL("./apps/api/v1", import.meta.url).pathname,
+              },
+            },
+          },
+          {
+            test: {
+              globals: true,
+              name: "@calcom/features",
+              include: ["packages/features/**/*.{test,spec}.tsx"],
+              exclude: ["packages/features/form-builder/**/*", "packages/features/bookings/**/*"],
+              environment: "jsdom",
+              setupFiles: ["setupVitest.ts", "packages/ui/components/test-setup.tsx"],
+              pool,
+            },
+          },
 
-      {
-        test: {
-          name: "@calcom/closecom",
-          include: ["packages/app-store/closecom/**/*.{test,spec}.{ts,js}"],
-          environment: "jsdom",
-          setupFiles: ["packages/app-store/closecom/test/globals.ts"],
-        },
-      },
-      {
-        test: {
-          globals: true,
-          name: "@calcom/app-store-core",
-          include: ["packages/app-store/*.{test,spec}.[jt]s?(x)"],
-          exclude: ["packages/app-store/delegationCredential.test.ts"],
-          environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.tsx"],
-        },
-      },
-      {
-        test: {
-          globals: true,
-          name: "@calcom/app-store-delegation-credential",
-          include: ["packages/app-store/delegationCredential.test.ts"],
-          environment: "node",
-          setupFiles: ["packages/testing/src/setupVitest.ts"],
-        },
-      },
-      {
-        test: {
-          globals: true,
-          name: "@calcom/routing-forms",
-          include: ["packages/app-store/routing-forms/**/*.test.tsx"],
-          environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.tsx"],
-        },
-      },
-      {
-        test: {
-          globals: true,
-          name: "@calcom/ui",
-          include: ["packages/ui/components/**/*.{test,spec}.[jt]s?(x)"],
-          environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.tsx"],
-        },
-      },
-      {
-        test: {
-          globals: true,
-          name: "@calcom/features/form-builder",
-          include: ["packages/features/form-builder/**/*.{test,spec}.[jt]sx"],
-          environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.tsx"],
-        },
-      },
-      {
-        test: {
-          globals: true,
-          name: "@calcom/features/bookings",
-          include: ["packages/features/bookings/**/*.{test,spec}.[jt]sx"],
-          environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.tsx"],
-        },
-      },
-      {
-        test: {
-          globals: true,
-          name: "@calcom/web/components",
-          include: ["apps/web/components/**/*.{test,spec}.[jt]sx"],
-          environment: "jsdom",
-          setupFiles: ["packages/ui/components/test-setup.tsx"],
-        },
-      },
-      {
-        test: {
-          globals: true,
-          name: "EventTypeAppCardInterface components",
-          include: ["packages/app-store/_components/**/*.{test,spec}.[jt]s?(x)"],
-          environment: "jsdom",
-          setupFiles: ["packages/app-store/test-setup.ts"],
-        },
-      },
-      {
-        test: {
-          name: "@calcom/packages/lib/hooks",
-          include: ["packages/lib/hooks/**/*.{test,spec}.{ts,js}"],
-          environment: "jsdom",
-          setupFiles: [],
-        },
-      },
-      {
-        test: {
-          globals: true,
-          environment: "jsdom",
-          name: "@calcom/web/modules/views",
-          include: ["apps/web/modules/**/*.{test,spec}.tsx"],
-          setupFiles: ["apps/web/modules/test-setup.ts"],
-        },
-      },
+          {
+            test: {
+              name: "@calcom/closecom",
+              include: ["packages/app-store/closecom/**/*.{test,spec}.{ts,js}"],
+              environment: "jsdom",
+              setupFiles: ["packages/app-store/closecom/test/globals.ts"],
+              pool,
+            },
+          },
+          {
+            test: {
+              globals: true,
+              name: "@calcom/app-store-core",
+              include: ["packages/app-store/*.{test,spec}.[jt]s?(x)"],
+              exclude: ["packages/app-store/delegationCredential.test.ts"],
+              environment: "jsdom",
+              setupFiles: ["packages/ui/components/test-setup.tsx"],
+              pool,
+            },
+          },
+          {
+            test: {
+              globals: true,
+              name: "@calcom/app-store-delegation-credential",
+              include: ["packages/app-store/delegationCredential.test.ts"],
+              environment: "node",
+              setupFiles: ["packages/testing/src/setupVitest.ts"],
+              pool,
+            },
+          },
+          {
+            test: {
+              globals: true,
+              name: "@calcom/routing-forms",
+              include: ["packages/app-store/routing-forms/**/*.test.tsx"],
+              environment: "jsdom",
+              setupFiles: ["packages/ui/components/test-setup.tsx"],
+              pool,
+            },
+          },
+          {
+            test: {
+              globals: true,
+              name: "@calcom/ui",
+              include: ["packages/ui/components/**/*.{test,spec}.[jt]s?(x)"],
+              environment: "jsdom",
+              setupFiles: ["packages/ui/components/test-setup.tsx"],
+              pool,
+            },
+          },
+          {
+            test: {
+              globals: true,
+              name: "@calcom/features/form-builder",
+              include: ["packages/features/form-builder/**/*.{test,spec}.[jt]sx"],
+              environment: "jsdom",
+              setupFiles: ["packages/ui/components/test-setup.tsx"],
+              pool,
+            },
+          },
+          {
+            test: {
+              globals: true,
+              name: "@calcom/features/bookings",
+              include: ["packages/features/bookings/**/*.{test,spec}.[jt]sx"],
+              environment: "jsdom",
+              setupFiles: ["packages/ui/components/test-setup.tsx"],
+              pool,
+            },
+          },
+          {
+            test: {
+              globals: true,
+              name: "@calcom/web/components",
+              include: ["apps/web/components/**/*.{test,spec}.[jt]sx"],
+              environment: "jsdom",
+              setupFiles: ["packages/ui/components/test-setup.tsx"],
+              pool,
+            },
+          },
+          {
+            test: {
+              globals: true,
+              name: "EventTypeAppCardInterface components",
+              include: ["packages/app-store/_components/**/*.{test,spec}.[jt]s?(x)"],
+              environment: "jsdom",
+              setupFiles: ["packages/app-store/test-setup.ts"],
+              pool,
+            },
+          },
+          {
+            test: {
+              name: "@calcom/packages/lib/hooks",
+              include: ["packages/lib/hooks/**/*.{test,spec}.{ts,js}"],
+              environment: "jsdom",
+              setupFiles: [],
+              pool,
+            },
+          },
+          {
+            test: {
+              globals: true,
+              environment: "jsdom",
+              name: "@calcom/web/modules/views",
+              include: ["apps/web/modules/**/*.{test,spec}.tsx"],
+              setupFiles: ["apps/web/modules/test-setup.ts"],
+              pool,
+            },
+          },
 
-      {
-        test: {
-          globals: true,
-          environment: "jsdom",
-          name: "@calcom/embeds",
-          include: ["packages/embeds/**/*.{test,spec}.{ts,js}"],
-          exclude: ["packages/embeds/**/packaged/**/*.{test,spec}.{ts,js}"],
-        },
-      },
-    ];
+          {
+            test: {
+              globals: true,
+              environment: "jsdom",
+              name: "@calcom/embeds",
+              include: ["packages/embeds/**/*.{test,spec}.{ts,js}"],
+              exclude: ["packages/embeds/**/packaged/**/*.{test,spec}.{ts,js}"],
+              pool,
+            },
+          },
+        ];
 
 export default defineWorkspace(workspaces);

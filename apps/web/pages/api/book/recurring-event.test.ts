@@ -374,9 +374,7 @@ describe("handleNewBooking", () => {
               }),
           });
 
-          await expect(handleRecurringEventBooking(req)).rejects.toThrow(
-            ErrorCode.NoAvailableUsersFound
-          );
+          await expect(handleRecurringEventBooking(req)).rejects.toThrow(ErrorCode.NoAvailableUsersFound);
           // Actually the first booking goes through in this case but the status is still a failure. We should do a dry run to check if booking is possible  for the 2 slots and if yes, then only go for the actual booking otherwise fail the recurring bookign
         },
         timeout

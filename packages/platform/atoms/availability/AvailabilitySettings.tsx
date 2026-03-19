@@ -20,8 +20,8 @@ import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezon
 import type {
   BulkUpdatParams,
   EventTypes,
-} from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
-import { BulkEditDefaultForEventsModal } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
+} from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
+import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
 import {
