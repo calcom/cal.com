@@ -43,8 +43,9 @@ const createTwilioProvider = (): TwilioSmsProvider | null => {
 
 // Initialize ICSMobile provider
 const createIcsMobileProvider = (): IcsMobileSmsProvider | null => {
-  const authKey = process.env.ICSMOBILE_TRANSACTION_AUTH_KEY;
-  const otpAuthKey = process.env.ICSMOBILE_OTP_AUTH_KEY;
+  const authKey = process.env.ICSMOBILE_DOM_AUTH;
+  const otpAuthKey = process.env.ICSMOBILE_OTP_AUTH;
+  const intlAuthKey = process.env.ICSMOBILE_INTL_AUTH;
 
   if (!authKey) {
     console.warn("ICSMobile credentials are not configured. ICSMobile provider will not be available.");
@@ -55,6 +56,7 @@ const createIcsMobileProvider = (): IcsMobileSmsProvider | null => {
     authKey,
     isTestMode,
     otpAuthKey,
+    intlAuthKey,
   });
 };
 

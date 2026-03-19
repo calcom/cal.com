@@ -28,6 +28,7 @@ import type {
 export interface IcsMobileConfig {
   authKey: string; // Base64 encoded authkey for Basic Authorization
   otpAuthKey?: string; // Separate auth key for OTP messages
+  intlAuthKey?: string; // Auth key for international route
   isTestMode?: boolean;
 }
 
@@ -65,6 +66,7 @@ export class IcsMobileSmsProvider implements SmsProvider {
   private readonly BCRYPT_ROUNDS = 10;
 
   private otpAuthKey?: string;
+  private intlAuthKey?: string;
 
   constructor(config: IcsMobileConfig) {
     if (!config.authKey) {
@@ -73,6 +75,7 @@ export class IcsMobileSmsProvider implements SmsProvider {
 
     this.config = config;
     this.otpAuthKey = config.otpAuthKey; // Store OTP-specific auth key
+    this.intlAuthKey = config.intlAuthKey; // Store international auth key
 
     // Create axios instance with default configuration
     this.client = axios.create({
@@ -85,18 +88,68 @@ export class IcsMobileSmsProvider implements SmsProvider {
   }
 
   /**
-   * Format phone number for ICSMobile (expects format: 91xxxxxxxxxx)
+   * Normalize phone number by removing formatting noise.
    */
-  private formatPhoneNumber(phoneNumber: string): string {
-    // Remove any non-digit characters
-    let cleaned = phoneNumber.replace(/\D/g, "");
+  private normalizePhoneNumber(phoneNumber: string): { digits: string; hasPlusPrefix: boolean } {
+    const trimmed = phoneNumber.trim();
+    const digits = trimmed.replace(/\D/g, "");
+    const hasPlusPrefix = trimmed.startsWith("+");
 
-    // If number doesn't start with country code, assume India (91)
-    if (!cleaned.startsWith("91")) {
-      cleaned = `91${cleaned}`;
+    return { digits, hasPlusPrefix };
+  }
+
+  /**
+   * Check whether a number belongs to Indian domestic route.
+   * Accepted domestic inputs:
+   * +91XXXXXXXXXX, 91XXXXXXXXXX, XXXXXXXXXX
+   */
+  private isDomesticIndianNumber(phoneNumber: string): boolean {
+    const { digits, hasPlusPrefix } = this.normalizePhoneNumber(phoneNumber);
+    const isValidIndianMobile = (nationalNumber: string) => /^[6-9]\d{9}$/.test(nationalNumber);
+
+    if (hasPlusPrefix && digits.length === 12 && digits.startsWith("91")) {
+      return isValidIndianMobile(digits.slice(2));
     }
 
-    return cleaned;
+    if (digits.length === 12 && digits.startsWith("91")) {
+      return isValidIndianMobile(digits.slice(2));
+    }
+
+    if (digits.length === 10) {
+      return isValidIndianMobile(digits);
+    }
+
+    return false;
+  }
+
+  /**
+   * Format recipient number for ICSMobile payload.
+   * Domestic India numbers are sent as 91XXXXXXXXXX.
+   * International numbers are sent as digits-only country-code format.
+   */
+  private formatPhoneNumber(phoneNumber: string): string {
+    const { digits } = this.normalizePhoneNumber(phoneNumber);
+
+    if (this.isDomesticIndianNumber(phoneNumber)) {
+      const nationalNumber = digits.length === 10 ? digits : digits.slice(-10);
+      return `91${nationalNumber}`;
+    }
+
+    return digits;
+  }
+
+  /**
+   * Select auth key based on route and message type.
+   */
+  private getAuthKeyForMessage(phoneNumber: string, isOtp: boolean): string {
+    if (this.isDomesticIndianNumber(phoneNumber)) {
+      if (isOtp) {
+        return this.otpAuthKey || this.config.authKey;
+      }
+      return this.config.authKey;
+    }
+
+    return this.intlAuthKey || this.config.authKey;
   }
 
   /**
@@ -217,7 +270,12 @@ export class IcsMobileSmsProvider implements SmsProvider {
 
       this.logger.debug("Sending SMS via ICSMobile", { endpoint, to: options.to });
 
-      const response = await this.client.post<IcsMobileSendResponse[]>(endpoint, requestPayload);
+      const authKey = this.getAuthKeyForMessage(options.to, false);
+      const response = await this.client.post<IcsMobileSendResponse[]>(endpoint, requestPayload, {
+        headers: {
+          Authorization: `Basic ${authKey}`,
+        },
+      });
 
       const responseData = response.data;
 
@@ -356,7 +414,12 @@ export class IcsMobileSmsProvider implements SmsProvider {
         scheduleTime,
       });
 
-      const response = await this.client.post<IcsMobileSendResponse[]>(endpoint, requestPayload);
+      const authKey = this.getAuthKeyForMessage(options.to, false);
+      const response = await this.client.post<IcsMobileSendResponse[]>(endpoint, requestPayload, {
+        headers: {
+          Authorization: `Basic ${authKey}`,
+        },
+      });
 
       const responseData = response.data;
 
@@ -595,17 +658,6 @@ export class IcsMobileSmsProvider implements SmsProvider {
       // Prepare SMS message
       const message = `Your verification code for Cal ID is ${otp}. This code will expire in ${this.OTP_EXPIRY_MINUTES} minutes. Do not share it with anyone.`;
 
-      // Create OTP-specific axios client if otpAuthKey is provided
-      const otpClient = this.otpAuthKey
-        ? axios.create({
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Basic ${this.otpAuthKey}`,
-            },
-            timeout: 30000,
-          })
-        : this.client;
-
       // Prepare request payload for direct API call
       const requestPayload: IcsMobileSendRequest = {
         allowunicode: true,
@@ -624,11 +676,15 @@ export class IcsMobileSmsProvider implements SmsProvider {
       this.logger.debug("Sending OTP SMS via ICSMobile", {
         endpoint,
         to: formattedPhone,
-        usingOtpAuthKey: !!this.otpAuthKey,
+        isDomesticRoute: this.isDomesticIndianNumber(options.phoneNumber),
       });
 
-      // Send SMS directly with OTP-specific auth
-      const response = await otpClient.post<IcsMobileSendResponse[]>(endpoint, requestPayload);
+      const authKey = this.getAuthKeyForMessage(options.phoneNumber, true);
+      const response = await this.client.post<IcsMobileSendResponse[]>(endpoint, requestPayload, {
+        headers: {
+          Authorization: `Basic ${authKey}`,
+        },
+      });
       const responseData = response.data;
 
       // Check if response is an array
