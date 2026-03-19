@@ -25,7 +25,7 @@ import { ZLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 import { ZGetListSchema } from "./list.schema";
 import { ZListInvoicesInputSchema } from "./listInvoices.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
-import { ZListMembersMinimalInputSchema } from "./listMembersMinimal.schema";
+import { ZListMembersForDynamicLinkInputSchema } from "./listMembersForDynamicLink.schema";
 import { ZGetManagedEventUsersToReassignInputSchema } from "./managedEvents/getManagedEventUsersToReassign.schema";
 import { ZManagedEventManualReassignInputSchema } from "./managedEvents/managedEventManualReassign.schema";
 import { ZManagedEventReassignInputSchema } from "./managedEvents/managedEventReassign.schema";
@@ -115,8 +115,8 @@ export const viewerTeamsRouter = router({
     const { default: handler } = await import("./listMembers.handler");
     return handler(opts);
   }),
-  listMembersMinimal: authedProcedure.input(ZListMembersMinimalInputSchema).query(async (opts) => {
-    const { default: handler } = await import("./listMembersMinimal.handler");
+  listMembersForDynamicLink: authedProcedure.input(ZListMembersForDynamicLinkInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./listMembersForDynamicLink.handler");
     return handler(opts);
   }),
   listSimpleMembers: authedProcedure.query(async (opts) => {

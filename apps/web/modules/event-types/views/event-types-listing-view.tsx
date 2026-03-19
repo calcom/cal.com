@@ -927,13 +927,13 @@ const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
 
   const isOrg = !!orgBranding;
 
-  const { data: orgMembers } = trpc.viewer.organizations.listMembersMinimal.useQuery(
+  const { data: orgMembers } = trpc.viewer.organizations.listMembersForDynamicLink.useQuery(
     { limit: 1 },
     { enabled: isOrg }
   );
 
   // Check for team members when not in an organization
-  const { data: teamMembers } = trpc.viewer.teams.listMembersMinimal.useQuery(
+  const { data: teamMembers } = trpc.viewer.teams.listMembersForDynamicLink.useQuery(
     { limit: 1 },
     { enabled: !isOrg }
   );

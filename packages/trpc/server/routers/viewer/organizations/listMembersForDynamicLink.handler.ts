@@ -1,16 +1,16 @@
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "../../../types";
-import type { TListMembersMinimalInput } from "./listMembersMinimal.schema";
+import type { TListMembersForDynamicLinkInput } from "./listMembersForDynamicLink.schema";
 
 type GetOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TListMembersMinimalInput;
+  input: TListMembersForDynamicLinkInput;
 };
 
-export const listMembersMinimalHandler = async ({ ctx, input }: GetOptions) => {
+export const listMembersForDynamicLinkHandler = async ({ ctx, input }: GetOptions) => {
   const organizationId = ctx.user.organizationId ?? ctx.user.profiles[0]?.organizationId;
 
   // Return empty if user is not part of an organization or org is private
@@ -29,6 +29,7 @@ export const listMembersMinimalHandler = async ({ ctx, input }: GetOptions) => {
     user: {
       username: { not: null },
       isPlatformManaged: false,
+      allowDynamicBooking: true,
       ...(cursor && { id: { gt: cursor } }),
       ...(searchTerm && {
         OR: [
@@ -91,4 +92,4 @@ export const listMembersMinimalHandler = async ({ ctx, input }: GetOptions) => {
   };
 };
 
-export default listMembersMinimalHandler;
+export default listMembersForDynamicLinkHandler;

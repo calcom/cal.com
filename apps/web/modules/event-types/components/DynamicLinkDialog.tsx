@@ -59,7 +59,7 @@ export function DynamicLinkDialog({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const orgQuery =
-    trpc.viewer.organizations.listMembersMinimal.useInfiniteQuery(
+    trpc.viewer.organizations.listMembersForDynamicLink.useInfiniteQuery(
       {
         limit: MEMBERS_LIMIT,
         searchTerm: debouncedSearch,
@@ -70,7 +70,7 @@ export function DynamicLinkDialog({
       }
     );
 
-  const teamQuery = trpc.viewer.teams.listMembersMinimal.useInfiniteQuery(
+  const teamQuery = trpc.viewer.teams.listMembersForDynamicLink.useInfiniteQuery(
     {
       limit: MEMBERS_LIMIT,
       searchTerm: debouncedSearch,

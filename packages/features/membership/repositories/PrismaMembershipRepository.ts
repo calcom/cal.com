@@ -880,9 +880,10 @@ export class PrismaMembershipRepository {
   }
 
   /**
-   * Find distinct members from given teams with pagination and optional search
+   * Find distinct members from given teams for dynamic link creation.
+   * Only includes users who have allowDynamicBooking enabled.
    */
-  async findDistinctMembersFromTeams({
+  async findDistinctMembersForDynamicLink({
     teamIds,
     cursor,
     searchTerm,
@@ -899,6 +900,7 @@ export class PrismaMembershipRepository {
       user: {
         username: { not: null },
         isPlatformManaged: false,
+        allowDynamicBooking: true,
         ...(cursor && { id: { gt: cursor } }),
         ...(searchTerm && {
           OR: [

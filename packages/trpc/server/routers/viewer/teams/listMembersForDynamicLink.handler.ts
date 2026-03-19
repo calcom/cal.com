@@ -1,17 +1,18 @@
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 
 import type { TrpcSessionUser } from "../../../types";
-import type { TListMembersMinimalInput } from "./listMembersMinimal.schema";
+import type { TListMembersForDynamicLinkInput } from "./listMembersForDynamicLink.schema";
 
 type GetOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TListMembersMinimalInput;
+  input: TListMembersForDynamicLinkInput;
 };
 
-// Get all members from non-private teams the user belongs to. Excluding organizations.
-export const listMembersMinimalHandler = async ({ ctx, input }: GetOptions) => {
+// Get all members from non-private teams the user belongs to for dynamic link creation.
+// Only includes users who have allowDynamicBooking enabled.
+export const listMembersForDynamicLinkHandler = async ({ ctx, input }: GetOptions) => {
   const userId = ctx.user.id;
   const membershipRepository = getMembershipRepository();
 
@@ -28,7 +29,8 @@ export const listMembersMinimalHandler = async ({ ctx, input }: GetOptions) => {
   const { limit, cursor, searchTerm } = input;
 
   // Fetch members with distinct users (to avoid duplicates across teams)
-  const members = await membershipRepository.findDistinctMembersFromTeams({
+  // Only includes users who have allowDynamicBooking enabled
+  const members = await membershipRepository.findDistinctMembersForDynamicLink({
     teamIds,
     cursor,
     searchTerm,
@@ -55,4 +57,4 @@ export const listMembersMinimalHandler = async ({ ctx, input }: GetOptions) => {
   };
 };
 
-export default listMembersMinimalHandler;
+export default listMembersForDynamicLinkHandler;
