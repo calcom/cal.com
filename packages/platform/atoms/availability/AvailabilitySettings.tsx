@@ -364,6 +364,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               callbacksRef.current?.onSuccess?.();
             } catch (error) {
               callbacksRef.current?.onError?.(error as Error);
+            } finally {
+              callbacksRef.current = {};
             }
           })();
         }
@@ -653,6 +655,8 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
                 callbacksRef.current?.onSuccess?.();
               } catch (error) {
                 callbacksRef.current?.onError?.(error as Error);
+              } finally {
+                callbacksRef.current = {};
               }
             }}
             className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
