@@ -3,6 +3,7 @@ import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooki
 import { isUpcomingBooking } from "@calcom/features/bookings/lib/isUpcomingBooking";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+import type { OrganizationSettingsRepository } from "@calcom/features/organizations/repositories/OrganizationSettingsRepository";
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { extractDomainFromEmail } from "@calcom/features/watchlist/lib/utils/normalization";
 import { ErrorWithCode } from "@calcom/lib/errors";
@@ -35,6 +36,7 @@ export interface CancelReportedBookingsInput {
   userEmail: string;
   userId: number;
   actionSource: ValidActionSource;
+  organizationId?: number | null;
 }
 
 export interface CancelReportedBookingsResult {
@@ -52,6 +54,7 @@ interface Deps {
   bookingRepo: BookingRepository;
   bookingReportRepo: PrismaBookingReportRepository;
   bookingAccessService: BookingAccessService;
+  organizationSettingsRepo: OrganizationSettingsRepository;
 }
 
 export class BookingReportService {
@@ -126,6 +129,7 @@ export class BookingReportService {
       userEmail,
       userId,
       actionSource,
+      organizationId,
     });
 
     // For domain reports, use the domain as bookerEmail so they group together in the admin blocklist
@@ -170,10 +174,16 @@ export class BookingReportService {
   }
 
   async cancelReportedBookings(input: CancelReportedBookingsInput): Promise<CancelReportedBookingsResult> {
-    const { bookingUids, originalBooking, userEmail, userId, actionSource } = input;
+    const { bookingUids, originalBooking, userEmail, userId, actionSource, organizationId } = input;
 
     if (bookingUids.length === 0) {
       return { cancelledUids: new Set() };
+    }
+
+    let skipCrmDeletion = false;
+    if (organizationId) {
+      const blocklistSettings = await this.deps.organizationSettingsRepo.getBlocklistSettings(organizationId);
+      skipCrmDeletion = !!blocklistSettings?.skipCrmOnBookingReport;
     }
 
     // For seated events, find the reporter's seat so we remove only their seat
@@ -199,6 +209,7 @@ export class BookingReportService {
           userId,
           actionSource,
           skipNotifications: true,
+          skipCrmDeletion,
         })
       )
     );

@@ -780,6 +780,7 @@ model OrganizationSettings {
   disableAttendeeRescheduleRequestEmail Boolean @default(false)
   disableAttendeeLocationChangeEmail    Boolean @default(false)
   disableAttendeeNewEventEmail          Boolean @default(false)
+  skipCrmOnBookingReport                Boolean @default(false)
 }
 
 enum MembershipRole {

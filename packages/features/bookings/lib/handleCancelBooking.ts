@@ -89,6 +89,8 @@ export type CancelBookingInput = {
   actionSource: ValidActionSource;
   /** When true, suppresses emails, webhooks, and workflow reminders. Internal use only (e.g. spam report bulk cancellation). */
   skipNotifications?: boolean;
+  /** When true, skips CRM event deletion during cancellation. Used by blocklist silent cancellations. */
+  skipCrmDeletion?: boolean;
 } & PlatformParams;
 
 type Dependencies = {
@@ -665,7 +667,9 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
         bookingToDeleteEventTypeMetadata?.apps
       );
 
-      await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries);
+      await eventManager.cancelEvent(evt, bookingToDelete.references, isBookingInRecurringSeries, {
+        skipCrmDeletion: input.skipCrmDeletion,
+      });
     } catch (error) {
       log.error(`Error deleting integrations`, safeStringify({ error }));
     }

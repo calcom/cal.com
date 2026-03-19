@@ -779,12 +779,14 @@ export default class EventManager {
       BookingReference,
       "uid" | "type" | "externalCalendarId" | "credentialId" | "thirdPartyRecurringEventId"
     >[],
-    isBookingInRecurringSeries?: boolean
+    isBookingInRecurringSeries?: boolean,
+    options?: { skipCrmDeletion?: boolean }
   ) {
     await this.deleteEventsAndMeetings({
       event,
       bookingReferences,
       isBookingInRecurringSeries,
+      skipCrmDeletion: options?.skipCrmDeletion,
     });
   }
 
@@ -792,10 +794,12 @@ export default class EventManager {
     event,
     bookingReferences,
     isBookingInRecurringSeries,
+    skipCrmDeletion,
   }: {
     event: CalendarEvent;
     bookingReferences: PartialReference[];
     isBookingInRecurringSeries?: boolean;
+    skipCrmDeletion?: boolean;
   }) {
     const log = logger.getSubLogger({ prefix: [`[deleteEventsAndMeetings]: ${event?.uid}`] });
     const calendarReferences = [],
@@ -824,7 +828,10 @@ export default class EventManager {
         );
       }
 
-      if (reference.type.includes("_crm") || reference.type.includes("other_calendar")) {
+      if (
+        !skipCrmDeletion &&
+        (reference.type.includes("_crm") || reference.type.includes("other_calendar"))
+      ) {
         crmReferences.push(reference);
         allPromises.push(this.deleteCRMEvent({ reference, event }));
       }

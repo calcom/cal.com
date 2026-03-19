@@ -2,6 +2,7 @@ import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calc
 import { moduleLoader as bookingRepositoryModuleLoader } from "@calcom/features/di/modules/Booking";
 import { moduleLoader as bookingAccessServiceModuleLoader } from "@calcom/features/di/modules/BookingAccessService";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
+import { moduleLoader as organizationSettingsRepositoryModuleLoader } from "@calcom/features/organizations/di/OrganizationSettingsRepository.module";
 import { BookingReportService } from "../services/BookingReportService";
 import { moduleLoader as bookingReportRepositoryModuleLoader } from "./PrismaBookingReportRepository.module";
 
@@ -17,6 +18,7 @@ const loadModule = bindModuleToClassOnToken({
     bookingRepo: bookingRepositoryModuleLoader,
     bookingReportRepo: bookingReportRepositoryModuleLoader,
     bookingAccessService: bookingAccessServiceModuleLoader,
+    organizationSettingsRepo: organizationSettingsRepositoryModuleLoader,
   },
 });
 

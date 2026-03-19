@@ -20,6 +20,15 @@ export class OrganizationSettingsRepository {
     });
   }
 
+  async getBlocklistSettings(organizationId: number) {
+    return await this.prismaClient.organizationSettings.findUnique({
+      where: { organizationId },
+      select: {
+        skipCrmOnBookingReport: true,
+      },
+    });
+  }
+
   // Returns array for future multi-domain support
   async getVerifiedDomains(organizationId: number): Promise<string[]> {
     const settings = await this.prismaClient.organizationSettings.findUnique({

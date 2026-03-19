@@ -1,9 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BookingReportService } from "./BookingReportService";
 
 vi.mock("@calcom/features/bookings/lib/handleCancelBooking");
@@ -35,6 +33,10 @@ describe("BookingReportService", () => {
 
   const mockBookingAccessService = {
     doesUserIdHaveAccessToBooking: vi.fn(),
+  };
+
+  const mockOrganizationSettingsRepo = {
+    getBlocklistSettings: vi.fn(),
   };
 
   let service: BookingReportService;
@@ -70,11 +72,13 @@ describe("BookingReportService", () => {
       bookingRepo: mockBookingRepo as never,
       bookingReportRepo: mockReportRepo as never,
       bookingAccessService: mockBookingAccessService as never,
+      organizationSettingsRepo: mockOrganizationSettingsRepo as never,
     });
 
     mockReportRepo.createReport.mockResolvedValue({ id: "new-report" });
     mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([]);
     mockBookingRepo.findUpcomingByAttendeeDomain.mockResolvedValue([]);
+    mockOrganizationSettingsRepo.getBlocklistSettings.mockResolvedValue(null);
   });
 
   describe("reportBooking", () => {
@@ -267,9 +271,7 @@ describe("BookingReportService", () => {
           seatsReferences: [{ referenceUid: "seat-1", attendee: { email: "booker@spammer.com" } }],
         });
 
-        await expect(
-          service.reportBooking({ ...defaultInput, reportType: "DOMAIN" })
-        ).rejects.toMatchObject({
+        await expect(service.reportBooking({ ...defaultInput, reportType: "DOMAIN" })).rejects.toMatchObject({
           code: ErrorCode.BadRequest,
           message: "Domain reporting is not available for seated events",
         });
@@ -284,9 +286,7 @@ describe("BookingReportService", () => {
         });
         vi.mocked(checkIfFreeEmailDomain).mockResolvedValue(true);
 
-        await expect(
-          service.reportBooking({ ...defaultInput, reportType: "DOMAIN" })
-        ).rejects.toMatchObject({
+        await expect(service.reportBooking({ ...defaultInput, reportType: "DOMAIN" })).rejects.toMatchObject({
           code: ErrorCode.BadRequest,
           message: "Cannot report by domain for free email providers",
         });
@@ -643,9 +643,7 @@ describe("BookingReportService", () => {
     it("should match seat by case-insensitive email", async () => {
       const seatedBooking = {
         ...mockBooking,
-        seatsReferences: [
-          { referenceUid: "seat-ref-1", attendee: { email: "User@Example.COM" } },
-        ],
+        seatsReferences: [{ referenceUid: "seat-ref-1", attendee: { email: "User@Example.COM" } }],
       };
 
       vi.mocked(handleCancelBooking).mockResolvedValue({
@@ -668,6 +666,157 @@ describe("BookingReportService", () => {
           bookingData: expect.objectContaining({
             seatReferenceUid: "seat-ref-1",
           }),
+        })
+      );
+    });
+
+    it("should resolve skipCrmDeletion from org settings when organizationId is provided", async () => {
+      mockOrganizationSettingsRepo.getBlocklistSettings.mockResolvedValue({
+        skipCrmOnBookingReport: true,
+      });
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "uid-1",
+      });
+
+      await service.cancelReportedBookings({
+        bookingUids: ["uid-1"],
+        originalBooking: mockBooking as never,
+        userEmail: "user@example.com",
+        userId: 1,
+        actionSource: "WEBAPP",
+        organizationId: 42,
+      });
+
+      expect(mockOrganizationSettingsRepo.getBlocklistSettings).toHaveBeenCalledWith(42);
+      expect(handleCancelBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skipCrmDeletion: true,
+        })
+      );
+    });
+
+    it("should default skipCrmDeletion to false when organizationId is not provided", async () => {
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "uid-1",
+      });
+
+      await service.cancelReportedBookings({
+        bookingUids: ["uid-1"],
+        originalBooking: mockBooking as never,
+        userEmail: "user@example.com",
+        userId: 1,
+        actionSource: "WEBAPP",
+      });
+
+      expect(mockOrganizationSettingsRepo.getBlocklistSettings).not.toHaveBeenCalled();
+      expect(handleCancelBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skipCrmDeletion: false,
+        })
+      );
+    });
+
+    it("should default skipCrmDeletion to false when org settings not found", async () => {
+      mockOrganizationSettingsRepo.getBlocklistSettings.mockResolvedValue(null);
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "uid-1",
+      });
+
+      await service.cancelReportedBookings({
+        bookingUids: ["uid-1"],
+        originalBooking: mockBooking as never,
+        userEmail: "user@example.com",
+        userId: 1,
+        actionSource: "WEBAPP",
+        organizationId: 42,
+      });
+
+      expect(handleCancelBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skipCrmDeletion: false,
+        })
+      );
+    });
+
+    it("should pass skipCrmDeletion=false when org has skipCrmOnBookingReport disabled", async () => {
+      mockOrganizationSettingsRepo.getBlocklistSettings.mockResolvedValue({
+        skipCrmOnBookingReport: false,
+      });
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "uid-1",
+      });
+
+      await service.cancelReportedBookings({
+        bookingUids: ["uid-1"],
+        originalBooking: mockBooking as never,
+        userEmail: "user@example.com",
+        userId: 1,
+        actionSource: "WEBAPP",
+        organizationId: 42,
+      });
+
+      expect(handleCancelBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skipCrmDeletion: false,
+        })
+      );
+    });
+  });
+
+  describe("skipCrmDeletion integration via reportBooking", () => {
+    beforeEach(() => {
+      mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+    });
+
+    it("should pass organizationId through to cancelReportedBookings which resolves skipCrmDeletion", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      mockOrganizationSettingsRepo.getBlocklistSettings.mockResolvedValue({
+        skipCrmOnBookingReport: true,
+      });
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "test-booking-uid",
+      });
+
+      await service.reportBooking({ ...defaultInput, organizationId: 42 });
+
+      expect(mockOrganizationSettingsRepo.getBlocklistSettings).toHaveBeenCalledWith(42);
+      expect(handleCancelBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skipCrmDeletion: true,
+        })
+      );
+    });
+
+    it("should not fetch org settings when organizationId is null", async () => {
+      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      vi.mocked(handleCancelBooking).mockResolvedValue({
+        success: true,
+        message: "Cancelled",
+        onlyRemovedAttendee: false,
+        bookingUid: "test-booking-uid",
+      });
+
+      await service.reportBooking({ ...defaultInput, organizationId: null });
+
+      expect(mockOrganizationSettingsRepo.getBlocklistSettings).not.toHaveBeenCalled();
+      expect(handleCancelBooking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skipCrmDeletion: false,
         })
       );
     });
