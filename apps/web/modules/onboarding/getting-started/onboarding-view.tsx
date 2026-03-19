@@ -161,7 +161,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
             </div>
           }>
           {/* Card */}
-          <div className="bg-cal-muted border-muted relative flex min-h-0 w-full flex-col overflow-hidden rounded-xl border p-1">
+          <div className="bg-cal-muted border-muted relative flex min-h-0 w-full flex-col overflow-y-auto rounded-xl border p-1">
             <div className="rounded-inherit flex w-full flex-col items-start overflow-clip">
               {/* Plan options */}
               <RadioAreaGroup.Group

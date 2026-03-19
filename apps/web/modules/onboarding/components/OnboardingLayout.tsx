@@ -1,13 +1,12 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/components/button";
+import { Logo } from "@calcom/ui/components/logo";
 import classNames from "classnames";
 import { signOut } from "next-auth/react";
 import { Children, type ReactNode } from "react";
 import { Toaster } from "sonner";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Logo } from "@calcom/ui/components/logo";
 
 type OnboardingLayoutProps = {
   userEmail: string;
@@ -44,7 +43,7 @@ export const OnboardingLayout = ({ userEmail, currentStep, totalSteps, children 
       </div>
 
       {/* Footer with progress dots and sign out */}
-      <div className="flex w-full flex-col items-center justify-center gap-4 px-10 py-8">
+      <div className="flex w-full flex-col items-center justify-center gap-2 sm:gap-4 px-10 pt-2 pb-4 sm:py-8">
         <div className="flex min-h-[6px] items-center gap-1">
           {totalSteps && totalSteps > 0 ? (
             Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => {
