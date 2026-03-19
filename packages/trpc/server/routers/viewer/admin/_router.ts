@@ -18,6 +18,7 @@ import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
 import { ZGetTeamOwnersSchema } from "./getTeamOwners.schema";
 import { ZSearchUsersByEmailSchema } from "./searchUsersByEmail.schema";
 import { ZTransferBillingSchema } from "./transferBilling.schema";
+import { ZRecreateOwnershipSchema } from "./recreateOwnership.schema";
 import { ZTransferOwnershipSchema } from "./transferOwnership.schema";
 import { ZAdminUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.schema";
 import { ZUpdateDeploymentBillingSchema } from "./updateDeploymentBilling.schema";
@@ -161,6 +162,10 @@ export const adminRouter = router({
   }),
   transferOwnership: authedAdminProcedure.input(ZTransferOwnershipSchema).mutation(async (opts) => {
     const { default: handler } = await import("./transferOwnership.handler");
+    return handler(opts);
+  }),
+  recreateOwnership: authedAdminProcedure.input(ZRecreateOwnershipSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./recreateOwnership.handler");
     return handler(opts);
   }),
   abuseRules: abuseRulesRouter,

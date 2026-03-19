@@ -174,6 +174,7 @@ function CustomerLookupSheet({ open, onOpenChange, customerId }: CustomerLookupS
                             <TransferOwnershipForm
                               teamId={billing.teamId}
                               customerId={billing.customerId}
+                              billingId={billing.billingId}
                               entityType={billing.entityType}
                               onComplete={() => {
                                 utils.viewer.admin.lookupBillingCustomer.invalidate({ customerId });

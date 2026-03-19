@@ -21,7 +21,7 @@ import {
   SheetPopup,
   SheetTitle,
 } from "@coss/ui/components/sheet";
-import { ArrowRightIcon, SearchIcon, UserIcon, XIcon } from "lucide-react";
+import { AlertTriangleIcon, ArrowRightIcon, SearchIcon, UserIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type PreviousOwnerAction = "ADMIN" | "MEMBER" | "REMOVE";
@@ -247,14 +247,56 @@ function OwnershipPreview({
   );
 }
 
+function RecreatePreview({
+  previewData,
+  t,
+}: {
+  previewData: {
+    newOwner: { userId: number; email: string; name: string | null };
+    dunningAction: string;
+  };
+  t: (key: string) => string;
+}) {
+  return (
+    <Frame className="mt-3">
+      <FramePanel className="flex items-center justify-between gap-2 p-3">
+        <div className="min-w-0">
+          <span className="text-xs text-muted-foreground">{t("new_owner")}</span>
+          <p className="truncate text-sm font-medium">
+            {previewData.newOwner.name ?? previewData.newOwner.email}
+          </p>
+          {previewData.newOwner.name && (
+            <p className="truncate text-xs text-muted-foreground">{previewData.newOwner.email}</p>
+          )}
+        </div>
+        <Badge variant="success" className="shrink-0">
+          {t("promoted_to_owner")}
+        </Badge>
+      </FramePanel>
+
+      <FramePanel className="flex items-center justify-between gap-2 p-3">
+        <div className="min-w-0">
+          <span className="text-xs text-muted-foreground">{t("status")}</span>
+          <p className="text-sm font-medium">{t("subscription_will_be_cancelled")}</p>
+        </div>
+        <Badge variant="error" className="shrink-0">
+          CANCELLED
+        </Badge>
+      </FramePanel>
+    </Frame>
+  );
+}
+
 export function TransferOwnershipForm({
   teamId,
   customerId,
+  billingId,
   entityType,
   onComplete,
 }: {
   teamId: number;
   customerId: string;
+  billingId: string;
   entityType: "team" | "organization";
   onComplete: () => void;
 }) {
@@ -267,6 +309,9 @@ export function TransferOwnershipForm({
 
   const ownersQuery = trpc.viewer.admin.getTeamOwners.useQuery({ teamId }, { enabled: showForm });
 
+  const hasNoOwners = ownersQuery.data?.owners.length === 0;
+  const isRecreateMode = !!ownersQuery.data && hasNoOwners;
+
   useEffect(() => {
     if (ownersQuery.data?.owners.length === 1 && !selectedPreviousOwner) {
       setSelectedPreviousOwner(String(ownersQuery.data.owners[0].userId));
@@ -274,6 +319,9 @@ export function TransferOwnershipForm({
   }, [ownersQuery.data, selectedPreviousOwner]);
 
   const previewMutation = trpc.viewer.admin.transferOwnership.useMutation();
+  const recreatePreviewMutation = trpc.viewer.admin.recreateOwnership.useMutation();
+
+  const activeMutation = isRecreateMode ? recreatePreviewMutation : previewMutation;
 
   const resetForm = () => {
     setShowForm(false);
@@ -282,6 +330,7 @@ export function TransferOwnershipForm({
     setPreviousOwnerAction("");
     setSelectedNewOwner(null);
     previewMutation.reset();
+    recreatePreviewMutation.reset();
   };
 
   const executeMutation = trpc.viewer.admin.transferOwnership.useMutation({
@@ -296,7 +345,31 @@ export function TransferOwnershipForm({
     },
   });
 
+  const recreateExecuteMutation = trpc.viewer.admin.recreateOwnership.useMutation({
+    onSuccess: () => {
+      showToast(t("recreate_ownership_success"), "success");
+      onComplete();
+      resetForm();
+    },
+    onError: (err) => {
+      setShowConfirmDialog(false);
+      showToast(err.message, "error");
+    },
+  });
+
   const handlePreview = () => {
+    if (isRecreateMode) {
+      if (!selectedNewOwner) return;
+      recreatePreviewMutation.mutate({
+        teamId,
+        newOwnerUserId: selectedNewOwner.id,
+        billingId,
+        entityType,
+        mode: "preview",
+      });
+      return;
+    }
+
     if (!selectedPreviousOwner || !previousOwnerAction || !selectedNewOwner) return;
     previewMutation.mutate({
       teamId,
@@ -309,6 +382,18 @@ export function TransferOwnershipForm({
   };
 
   const handleExecute = () => {
+    if (isRecreateMode) {
+      if (!selectedNewOwner) return;
+      recreateExecuteMutation.mutate({
+        teamId,
+        newOwnerUserId: selectedNewOwner.id,
+        billingId,
+        entityType,
+        mode: "execute",
+      });
+      return;
+    }
+
     if (!selectedPreviousOwner || !previousOwnerAction || !selectedNewOwner) return;
     executeMutation.mutate({
       teamId,
@@ -320,8 +405,24 @@ export function TransferOwnershipForm({
     });
   };
 
-  const previewData = previewMutation.data?.mode === "preview" ? previewMutation.data : null;
-  const canPreview = !!selectedPreviousOwner && !!previousOwnerAction && !!selectedNewOwner;
+  const transferPreviewData = previewMutation.data?.mode === "preview" ? previewMutation.data : null;
+  const recreatePreviewData =
+    recreatePreviewMutation.data?.mode === "preview" ? recreatePreviewMutation.data : null;
+
+  const hasPreview = isRecreateMode ? !!recreatePreviewData : !!transferPreviewData;
+  const canPreview = isRecreateMode
+    ? !!selectedNewOwner
+    : !!selectedPreviousOwner && !!previousOwnerAction && !!selectedNewOwner;
+
+  const sheetTitle = isRecreateMode ? t("recreate_ownership") : t("transfer_ownership");
+  const sheetDescription = isRecreateMode
+    ? t("recreate_ownership_description")
+    : t("transfer_ownership_description");
+  const confirmDescription = isRecreateMode
+    ? t("recreate_ownership_confirm_description")
+    : t("transfer_ownership_confirm_description");
+
+  const activeExecuteMutation = isRecreateMode ? recreateExecuteMutation : executeMutation;
 
   return (
     <>
@@ -332,53 +433,64 @@ export function TransferOwnershipForm({
       <Sheet open={showForm} onOpenChange={setShowForm}>
         <SheetPopup variant="inset">
           <SheetHeader>
-            <SheetTitle>{t("transfer_ownership")}</SheetTitle>
-            <SheetDescription>{t("transfer_ownership_description")}</SheetDescription>
+            <SheetTitle>{sheetTitle}</SheetTitle>
+            <SheetDescription>{sheetDescription}</SheetDescription>
           </SheetHeader>
 
           <SheetPanel>
-            <div className="space-y-4">
-              <Field>
-                <FieldLabel>{t("previous_owner")}</FieldLabel>
-                <Select
-                  value={selectedPreviousOwner}
-                  onValueChange={(value) => setSelectedPreviousOwner(value ?? "")}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("select_previous_owner")}>
-                      {(() => {
-                        const owner = ownersQuery.data?.owners.find(
-                          (o) => String(o.userId) === selectedPreviousOwner
-                        );
-                        if (!owner) return null;
-                        return owner.name ? `${owner.name} (${owner.email})` : owner.email;
-                      })()}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectPopup>
-                    {(ownersQuery.data?.owners ?? []).map((owner) => (
-                      <SelectItem key={owner.userId} value={String(owner.userId)}>
-                        {owner.name ? `${owner.name} (${owner.email})` : owner.email}
-                      </SelectItem>
-                    ))}
-                  </SelectPopup>
-                </Select>
-              </Field>
+            {isRecreateMode && (
+              <div className="mb-4 flex items-start gap-2 rounded-lg border border-warning bg-warning/10 p-3">
+                <AlertTriangleIcon className="mt-0.5 size-4 shrink-0 text-warning" />
+                <p className="text-sm text-warning">{t("no_owners_detected")}</p>
+              </div>
+            )}
 
-              <Field>
-                <FieldLabel>{t("previous_owner_action")}</FieldLabel>
-                <Select
-                  value={previousOwnerAction}
-                  onValueChange={(value) => setPreviousOwnerAction(value ?? "")}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("select_action_for_previous_owner")} />
-                  </SelectTrigger>
-                  <SelectPopup>
-                    <SelectItem value="ADMIN">{t("demote_to_admin")}</SelectItem>
-                    <SelectItem value="MEMBER">{t("demote_to_member")}</SelectItem>
-                    <SelectItem value="REMOVE">{t("remove_from_team")}</SelectItem>
-                  </SelectPopup>
-                </Select>
-              </Field>
+            <div className="space-y-4">
+              {!isRecreateMode && (
+                <>
+                  <Field>
+                    <FieldLabel>{t("previous_owner")}</FieldLabel>
+                    <Select
+                      value={selectedPreviousOwner}
+                      onValueChange={(value) => setSelectedPreviousOwner(value ?? "")}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("select_previous_owner")}>
+                          {(() => {
+                            const owner = ownersQuery.data?.owners.find(
+                              (o) => String(o.userId) === selectedPreviousOwner
+                            );
+                            if (!owner) return null;
+                            return owner.name ? `${owner.name} (${owner.email})` : owner.email;
+                          })()}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectPopup>
+                        {(ownersQuery.data?.owners ?? []).map((owner) => (
+                          <SelectItem key={owner.userId} value={String(owner.userId)}>
+                            {owner.name ? `${owner.name} (${owner.email})` : owner.email}
+                          </SelectItem>
+                        ))}
+                      </SelectPopup>
+                    </Select>
+                  </Field>
+
+                  <Field>
+                    <FieldLabel>{t("previous_owner_action")}</FieldLabel>
+                    <Select
+                      value={previousOwnerAction}
+                      onValueChange={(value) => setPreviousOwnerAction(value ?? "")}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("select_action_for_previous_owner")} />
+                      </SelectTrigger>
+                      <SelectPopup>
+                        <SelectItem value="ADMIN">{t("demote_to_admin")}</SelectItem>
+                        <SelectItem value="MEMBER">{t("demote_to_member")}</SelectItem>
+                        <SelectItem value="REMOVE">{t("remove_from_team")}</SelectItem>
+                      </SelectPopup>
+                    </Select>
+                  </Field>
+                </>
+              )}
 
               <UserAutocomplete
                 teamId={teamId}
@@ -389,18 +501,19 @@ export function TransferOwnershipForm({
               />
             </div>
 
-            {previewMutation.error && (
+            {activeMutation.error && (
               <p className="mt-2 text-xs text-destructive-foreground">
-                {extractErrorMessage(previewMutation.error)}
+                {extractErrorMessage(activeMutation.error)}
               </p>
             )}
 
-            {previewData && <OwnershipPreview previewData={previewData} t={t} />}
+            {transferPreviewData && <OwnershipPreview previewData={transferPreviewData} t={t} />}
+            {recreatePreviewData && <RecreatePreview previewData={recreatePreviewData} t={t} />}
           </SheetPanel>
 
           <SheetFooter>
             <SheetClose render={<Button variant="outline" />}>{t("cancel")}</SheetClose>
-            {!previewData ? (
+            {!hasPreview ? (
               <Button disabled={!canPreview} onClick={handlePreview}>
                 {t("preview_changes")}
               </Button>
@@ -413,12 +526,15 @@ export function TransferOwnershipForm({
             <SheetPopup variant="inset">
               <SheetHeader>
                 <SheetTitle>{t("confirm_transfer")}</SheetTitle>
-                <SheetDescription>{t("transfer_ownership_confirm_description")}</SheetDescription>
+                <SheetDescription>{confirmDescription}</SheetDescription>
               </SheetHeader>
-              <SheetPanel>{previewData && <OwnershipPreview previewData={previewData} t={t} />}</SheetPanel>
+              <SheetPanel>
+                {transferPreviewData && <OwnershipPreview previewData={transferPreviewData} t={t} />}
+                {recreatePreviewData && <RecreatePreview previewData={recreatePreviewData} t={t} />}
+              </SheetPanel>
               <SheetFooter>
                 <SheetClose render={<Button variant="outline" />}>{t("cancel")}</SheetClose>
-                <Button disabled={executeMutation.isPending} onClick={handleExecute}>
+                <Button disabled={activeExecuteMutation.isPending} onClick={handleExecute}>
                   {t("confirm_transfer")}
                 </Button>
               </SheetFooter>

@@ -11,6 +11,7 @@
  *   npx tsx packages/features/ee/billing/seed.ts --active-user
  *   npx tsx packages/features/ee/billing/seed.ts --dunning
  *   npx tsx packages/features/ee/billing/seed.ts --resubscribe
+ *   npx tsx packages/features/ee/billing/seed.ts --recreate-ownership
  *   npx tsx packages/features/ee/billing/seed.ts --trial
  *   npx tsx packages/features/ee/billing/seed.ts --all
  *   npx tsx packages/features/ee/billing/seed.ts --cleanup
@@ -31,6 +32,7 @@ const PRORATION_SCRIPT = "packages/features/ee/billing/service/dueInvoice/seed-p
 const ACTIVE_USER_SCRIPT = "packages/features/ee/billing/active-user/seed-active-user-test.ts";
 const DUNNING_SCRIPT = "packages/features/ee/billing/service/dunning/seed-dunning-test.ts";
 const RESUBSCRIBE_SCRIPT = "packages/features/ee/billing/service/dunning/seed-resubscribe-test.ts";
+const RECREATE_OWNERSHIP_SCRIPT = "packages/features/ee/billing/service/dunning/seed-recreate-ownership-test.ts";
 const TRIAL_SCRIPT = "packages/features/ee/billing/service/trial/seed-trial-test.ts";
 
 const passthrough = process.argv.filter((a) => a === "--skip-stripe");
@@ -82,6 +84,12 @@ async function seedResubscribe(cleanup: boolean) {
   return run(RESUBSCRIBE_SCRIPT, extra);
 }
 
+async function seedRecreateOwnership(cleanup: boolean) {
+  console.log("\n--- Seeding Recreate Ownership test data ---\n");
+  const extra = cleanup ? ["--cleanup"] : [];
+  return run(RECREATE_OWNERSHIP_SCRIPT, extra);
+}
+
 async function seedTrial(cleanup: boolean, trialDays?: number | null) {
   console.log("\n--- Seeding Trial test data ---\n");
   const extra = cleanup ? ["--cleanup"] : [];
@@ -100,6 +108,8 @@ async function seedAll(cleanup: boolean) {
   if (code !== 0) return code;
   code = await seedResubscribe(cleanup);
   if (code !== 0) return code;
+  code = await seedRecreateOwnership(cleanup);
+  if (code !== 0) return code;
   code = await seedTrial(cleanup);
   return code;
 }
@@ -115,6 +125,8 @@ async function cleanupAll() {
   code = await run(DUNNING_SCRIPT, ["--cleanup", "--skip-stripe"]);
   if (code !== 0) return code;
   code = await run(RESUBSCRIBE_SCRIPT, ["--cleanup", "--skip-stripe"]);
+  if (code !== 0) return code;
+  code = await run(RECREATE_OWNERSHIP_SCRIPT, ["--cleanup", "--skip-stripe"]);
   if (code !== 0) return code;
   code = await run(TRIAL_SCRIPT, ["--cleanup", "--skip-stripe"]);
   return code;
@@ -140,12 +152,13 @@ async function interactive() {
   console.log("  3) Seed Active User Billing test data");
   console.log("  4) Seed Dunning Enforcement test data");
   console.log("  5) Seed Resubscribe test data");
-  console.log("  6) Seed Trial test data");
-  console.log("  7) Seed all");
-  console.log("  8) Cleanup all test data");
+  console.log("  6) Seed Recreate Ownership test data");
+  console.log("  7) Seed Trial test data");
+  console.log("  8) Seed all");
+  console.log("  9) Cleanup all test data");
   console.log("  q) Quit\n");
 
-  const choice = await prompt("Choose [1-8, q]: ");
+  const choice = await prompt("Choose [1-9, q]: ");
 
   if (choice === "q" || choice === "") {
     console.log("Bye.");
@@ -153,7 +166,7 @@ async function interactive() {
   }
 
   let cleanup = false;
-  if (["1", "2", "3", "4", "5", "6", "7"].includes(choice)) {
+  if (["1", "2", "3", "4", "5", "6", "7", "8"].includes(choice)) {
     const ans = await prompt("Run cleanup before seeding? [y/N]: ");
     cleanup = ans.toLowerCase() === "y";
   }
@@ -189,12 +202,15 @@ async function interactive() {
       code = await seedResubscribe(cleanup);
       break;
     case "6":
-      code = await seedTrial(cleanup);
+      code = await seedRecreateOwnership(cleanup);
       break;
     case "7":
-      code = await seedAll(cleanup);
+      code = await seedTrial(cleanup);
       break;
     case "8":
+      code = await seedAll(cleanup);
+      break;
+    case "9":
       code = await cleanupAll();
       break;
     default:
@@ -223,6 +239,9 @@ async function main() {
   if (args.includes("--resubscribe")) {
     process.exit(await seedResubscribe(args.includes("--cleanup")));
   }
+  if (args.includes("--recreate-ownership")) {
+    process.exit(await seedRecreateOwnership(args.includes("--cleanup")));
+  }
   if (args.includes("--trial")) {
     process.exit(await seedTrial(args.includes("--cleanup")));
   }
@@ -236,6 +255,7 @@ async function main() {
     !args.includes("--active-user") &&
     !args.includes("--dunning") &&
     !args.includes("--resubscribe") &&
+    !args.includes("--recreate-ownership") &&
     !args.includes("--trial") &&
     !args.includes("--all")
   ) {
