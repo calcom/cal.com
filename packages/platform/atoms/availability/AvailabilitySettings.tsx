@@ -357,13 +357,15 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
         if (saveButtonRef.current) {
           saveButtonRef.current.click();
         } else {
+          const callbacks = callbacksRef.current;
+          callbacksRef.current = {};
           form.handleSubmit(async (data) => {
             try {
               await handleSubmit(data);
               form.reset(form.getValues());
-              callbacksRef.current?.onSuccess?.();
+              callbacks?.onSuccess?.();
             } catch (error) {
-              callbacksRef.current?.onError?.(error as Error);
+              callbacks?.onError?.(error as Error);
             }
           })();
         }
@@ -647,12 +649,14 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
             form={form}
             id="availability-form"
             handleSubmit={async (props) => {
+              const callbacks = callbacksRef.current;
+              callbacksRef.current = {};
               try {
                 await handleSubmit(props);
                 form.reset(form.getValues());
-                callbacksRef.current?.onSuccess?.();
+                callbacks?.onSuccess?.();
               } catch (error) {
-                callbacksRef.current?.onError?.(error as Error);
+                callbacks?.onError?.(error as Error);
               }
             }}
             className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
