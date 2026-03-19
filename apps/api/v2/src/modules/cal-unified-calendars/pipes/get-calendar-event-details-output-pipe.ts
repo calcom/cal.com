@@ -1,10 +1,10 @@
+import { Injectable, PipeTransform } from "@nestjs/common";
 import {
   CalendarEventResponseStatus,
   CalendarEventStatus,
   DateTimeWithZone,
   UnifiedCalendarEventOutput,
 } from "@/modules/cal-unified-calendars/outputs/get-unified-calendar-event.output";
-import { PipeTransform, Injectable } from "@nestjs/common";
 
 export interface GoogleCalendarEventResponse {
   kind: string;
@@ -27,12 +27,14 @@ export interface GoogleCalendarEventResponse {
     self?: boolean;
   };
   start: {
-    dateTime: string;
-    timeZone: string;
+    dateTime?: string;
+    timeZone?: string;
+    date?: string;
   };
   end: {
-    dateTime: string;
-    timeZone: string;
+    dateTime?: string;
+    timeZone?: string;
+    date?: string;
   };
   iCalUID: string;
   sequence: number;
@@ -117,12 +119,22 @@ export class GoogleCalendarEventOutputPipe
   }
 
   private transformDateTimeWithZone(googleDateTime: {
-    dateTime: string;
-    timeZone: string;
+    dateTime?: string;
+    timeZone?: string;
+    date?: string;
   }): DateTimeWithZone {
     const dateTimeWithZone = new DateTimeWithZone();
-    dateTimeWithZone.time = googleDateTime.dateTime;
-    dateTimeWithZone.timeZone = googleDateTime.timeZone;
+    if (googleDateTime.dateTime) {
+      dateTimeWithZone.time = googleDateTime.dateTime;
+      dateTimeWithZone.timeZone = googleDateTime.timeZone ?? "UTC";
+    } else if (googleDateTime.date) {
+      // All-day event: date-only (e.g. "2026-03-20") → midnight UTC
+      dateTimeWithZone.time = `${googleDateTime.date}T00:00:00`;
+      dateTimeWithZone.timeZone = "UTC";
+    } else {
+      dateTimeWithZone.time = "";
+      dateTimeWithZone.timeZone = "UTC";
+    }
     return dateTimeWithZone;
   }
 

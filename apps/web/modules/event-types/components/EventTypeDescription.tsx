@@ -122,7 +122,7 @@ export const EventTypeDescription = ({
             </li>
           )}
           {/* TODO: Maybe add a tool tip to this? */}
-          {eventType.requiresConfirmation || (recurringEvent?.count && recurringEvent.count) ? (
+          {eventType.requiresConfirmation || (recurringEvent?.count) ? (
             <li className="block xl:hidden">
               <Badge variant="gray" startIcon="plus">
                 <p>{[eventType.requiresConfirmation, recurringEvent?.count].filter(Boolean).length}</p>

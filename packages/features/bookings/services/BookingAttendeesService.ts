@@ -1,18 +1,15 @@
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import type { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { BookingAttendeesRemoveService } from "@calcom/features/bookings/services/BookingAttendeesRemoveService";
+import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
-import type {
-  Booking,
-  TUser,
-} from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
+import type { Booking, TUser } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
 import {
   buildCalendarEvent,
   getBooking,
@@ -47,13 +44,28 @@ export type CreatedAttendee = {
   phoneNumber: string | null;
 };
 
+type RemoveAttendeeInput = {
+  bookingId: number;
+  attendeeId: number;
+  user: TUser;
+  emailsEnabled?: boolean;
+  actionSource: ActionSource;
+};
+
+export type BookingAttendeesServiceDeps = {
+  bookingEventHandlerService: BookingEventHandlerService;
+  featuresRepository: FeaturesRepository;
+  bookingRepository: BookingRepository;
+  bookingAttendeesRemoveService: BookingAttendeesRemoveService;
+};
+
 export class BookingAttendeesService {
+  constructor(private readonly deps: BookingAttendeesServiceDeps) {}
+
   async getBookingAttendees(bookingUid: string) {
-    const bookingRepository = new BookingRepository(prisma);
-    const booking =
-      await bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
-        bookingUid,
-      });
+    const booking = await this.deps.bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
+      bookingUid,
+    });
 
     if (!booking) {
       throw new Error(`Booking with uid ${bookingUid} not found`);
@@ -63,11 +75,9 @@ export class BookingAttendeesService {
   }
 
   async getBookingAttendee(bookingUid: string, attendeeId: number) {
-    const bookingRepository = new BookingRepository(prisma);
-    const booking =
-      await bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
-        bookingUid,
-      });
+    const booking = await this.deps.bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
+      bookingUid,
+    });
 
     if (!booking) {
       throw new Error(`Booking with uid ${bookingUid} not found`);
@@ -99,10 +109,7 @@ export class BookingAttendeesService {
 
     const organizer = await getOrganizerData(booking.userId);
 
-    const validatedAttendees = await sanitizeAndFilterGuests(
-      [attendee],
-      booking
-    );
+    const validatedAttendees = await sanitizeAndFilterGuests([attendee], booking);
 
     const newAttendeeDetails = validatedAttendees.map((a) => ({
       name: a.name || "",
@@ -131,17 +138,12 @@ export class BookingAttendeesService {
       await this.sendAttendeeNotification(evt, booking, attendeeEmail);
     }
 
-    const bookingEventHandlerService = getBookingEventHandlerService();
-    const featuresRepository = getFeaturesRepository();
     const organizationId = user.organizationId ?? null;
     const isBookingAuditEnabled = organizationId
-      ? await featuresRepository.checkIfTeamHasFeature(
-          organizationId,
-          "booking-audit"
-        )
+      ? await this.deps.featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
       : false;
 
-    await bookingEventHandlerService.onAttendeeAdded({
+    await this.deps.bookingEventHandlerService.onAttendeeAdded({
       bookingUid: booking.uid,
       actor: makeUserActor(user.uuid),
       organizationId,
@@ -171,6 +173,10 @@ export class BookingAttendeesService {
     };
   }
 
+  async removeAttendee(input: RemoveAttendeeInput) {
+    return this.deps.bookingAttendeesRemoveService.removeAttendee(input);
+  }
+
   private async sendAttendeeNotification(
     evt: CalendarEvent,
     booking: Booking,
@@ -183,12 +189,12 @@ export class BookingAttendeesService {
     await emailsAndSmsHandler.handleAddAttendee({
       evt,
       eventType: {
-        metadata: eventTypeMetaDataSchemaWithTypedApps.parse(
-          booking?.eventType?.metadata
-        ),
+        metadata: eventTypeMetaDataSchemaWithTypedApps.parse(booking?.eventType?.metadata),
         schedulingType: booking.eventType?.schedulingType || null,
       },
       newGuests: [attendeeEmail],
     });
   }
 }
+
+export type { RemovedAttendee } from "@calcom/features/bookings/services/BookingAttendeesRemoveService";
