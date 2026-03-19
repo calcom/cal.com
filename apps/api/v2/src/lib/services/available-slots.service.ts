@@ -3,7 +3,6 @@ import { Injectable } from "@nestjs/common";
 import { UserAvailabilityService } from "./user-availability.service";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
-import { PrismaHolidayRepository } from "@/lib/repositories/prisma-holiday.repository";
 import { PrismaOOORepository } from "@/lib/repositories/prisma-ooo.repository";
 import { PrismaRoutingFormResponseRepository } from "@/lib/repositories/prisma-routing-form-response.repository";
 import { PrismaScheduleRepository } from "@/lib/repositories/prisma-schedule.repository";
@@ -21,7 +20,6 @@ import { RedisService } from "@/modules/redis/redis.service";
 export class AvailableSlotsService extends BaseAvailableSlotsService {
   constructor(
     oooRepoDependency: PrismaOOORepository,
-    holidayRepoDependency: PrismaHolidayRepository,
     scheduleRepoDependency: PrismaScheduleRepository,
     teamRepository: PrismaTeamRepository,
     routingFormResponseRepository: PrismaRoutingFormResponseRepository,
@@ -39,7 +37,6 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
   ) {
     super({
       oooRepo: oooRepoDependency,
-      holidayRepo: holidayRepoDependency,
       scheduleRepo: scheduleRepoDependency,
       teamRepo: teamRepository,
       routingFormResponseRepo: routingFormResponseRepository,

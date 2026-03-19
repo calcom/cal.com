@@ -30,6 +30,7 @@ vi.mock("@calcom/features/di/containers/BusyTimes", () => ({
 vi.mock("@calcom/lib/holidays/HolidayService", () => ({
   getHolidayService: vi.fn().mockReturnValue({
     getHolidayDatesInRange: vi.fn().mockResolvedValue([]),
+    getHolidayDatesInRangeForCountries: vi.fn().mockResolvedValue(new Map()),
   }),
 }));
 
@@ -58,6 +59,7 @@ function createMockDependencies(): IUserAvailabilityService {
     } as unknown as IUserAvailabilityService["redisClient"],
     holidayRepo: {
       findUserSettingsSelect: vi.fn().mockResolvedValue(null),
+      findManyUserSettings: vi.fn().mockResolvedValue([]),
     } as unknown as IUserAvailabilityService["holidayRepo"],
   };
 }
@@ -1204,6 +1206,179 @@ describe("UserAvailabilityService", () => {
           },
         })
       ).rejects.toThrow();
+    });
+  });
+
+  describe("prefetchHolidayData", () => {
+    const params = {
+      dateFrom: dayjs("2024-12-20T00:00:00Z"),
+      dateTo: dayjs("2024-12-31T00:00:00Z"),
+      returnDateOverrides: false as const,
+    };
+
+    it("should return null for all users when no holiday settings exist", async () => {
+      vi.mocked(deps.holidayRepo.findManyUserSettings).mockResolvedValue([]);
+
+      const result = await service.prefetchHolidayData({
+        users: [createMockUser({ id: 1 }), createMockUser({ id: 2 })],
+        params,
+      });
+
+      expect(result.size).toBe(2);
+      expect(result.get(1)).toBeNull();
+      expect(result.get(2)).toBeNull();
+    });
+
+    it("should return null for all users when settings exist but no country codes", async () => {
+      vi.mocked(deps.holidayRepo.findManyUserSettings).mockResolvedValue([
+        { userId: 1, countryCode: null, disabledIds: [] },
+      ]);
+
+      const result = await service.prefetchHolidayData({
+        users: [createMockUser({ id: 1 }), createMockUser({ id: 2 })],
+        params,
+      });
+
+      expect(result.size).toBe(2);
+      // User 1 has settings (even without a country code), so we get { settings, dates: null }
+      expect(result.get(1)).toEqual({
+        settings: { userId: 1, countryCode: null, disabledIds: [] },
+        dates: null,
+      });
+      expect(result.get(2)).toBeNull();
+    });
+
+    it("should not call holiday service when no country codes found", async () => {
+      const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
+      const mockForCountries = vi.fn().mockResolvedValue(new Map());
+      vi.mocked(getHolidayService).mockReturnValue({
+        getHolidayDatesInRange: vi.fn().mockResolvedValue([]),
+        getHolidayDatesInRangeForCountries: mockForCountries,
+      } as never);
+
+      vi.mocked(deps.holidayRepo.findManyUserSettings).mockResolvedValue([]);
+
+      await service.prefetchHolidayData({
+        users: [createMockUser({ id: 1 })],
+        params,
+      });
+
+      expect(mockForCountries).not.toHaveBeenCalled();
+    });
+
+    it("should batch-fetch holiday dates for unique country codes", async () => {
+      const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
+      const mockHolidayDates = [{ date: "2024-12-25", holiday: { id: "xmas", name: "Christmas", date: "2024-12-25", year: 2024 } }];
+
+      vi.mocked(deps.holidayRepo.findManyUserSettings).mockResolvedValue([
+        { userId: 1, countryCode: "US", disabledIds: [] },
+        { userId: 2, countryCode: "US", disabledIds: [] },
+        { userId: 3, countryCode: "DE", disabledIds: [] },
+      ]);
+
+      vi.mocked(getHolidayService).mockReturnValue({
+        getHolidayDatesInRange: vi.fn().mockResolvedValue([]),
+        getHolidayDatesInRangeForCountries: vi.fn().mockResolvedValue(
+          new Map([
+            ["US", mockHolidayDates],
+            ["DE", [{ date: "2024-12-25", holiday: { id: "weihnachten", name: "Weihnachten", date: "2024-12-25", year: 2024 } }]],
+          ])
+        ),
+      } as never);
+
+      const result = await service.prefetchHolidayData({
+        users: [createMockUser({ id: 1 }), createMockUser({ id: 2 }), createMockUser({ id: 3 })],
+        params,
+      });
+
+      expect(vi.mocked(getHolidayService)().getHolidayDatesInRangeForCountries).toHaveBeenCalledWith({
+        countryCodes: ["US", "DE"],
+        startDate: expect.any(Date),
+        endDate: expect.any(Date),
+      });
+
+      expect(result.size).toBe(3);
+      // Both US users get the same holiday dates
+      expect(result.get(1)?.dates).toEqual(mockHolidayDates);
+      expect(result.get(2)?.dates).toEqual(mockHolidayDates);
+      // DE user gets German holidays
+      expect(result.get(3)?.dates?.[0].holiday.id).toBe("weihnachten");
+    });
+
+    it("should return null for users without settings even when others have settings", async () => {
+      const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
+      const mockHolidayDates = [{ date: "2024-12-25", holiday: { id: "xmas", name: "Christmas", date: "2024-12-25", year: 2024 } }];
+
+      vi.mocked(deps.holidayRepo.findManyUserSettings).mockResolvedValue([
+        { userId: 1, countryCode: "US", disabledIds: ["disabled1"] },
+      ]);
+
+      vi.mocked(getHolidayService).mockReturnValue({
+        getHolidayDatesInRange: vi.fn().mockResolvedValue([]),
+        getHolidayDatesInRangeForCountries: vi.fn().mockResolvedValue(
+          new Map([["US", mockHolidayDates]])
+        ),
+      } as never);
+
+      const result = await service.prefetchHolidayData({
+        users: [createMockUser({ id: 1 }), createMockUser({ id: 2 })],
+        params,
+      });
+
+      expect(result.get(1)).toEqual({
+        settings: { userId: 1, countryCode: "US", disabledIds: ["disabled1"] },
+        dates: mockHolidayDates,
+      });
+      expect(result.get(2)).toBeNull();
+    });
+
+    it("should deduplicate country codes across users", async () => {
+      const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
+
+      vi.mocked(deps.holidayRepo.findManyUserSettings).mockResolvedValue([
+        { userId: 1, countryCode: "US", disabledIds: [] },
+        { userId: 2, countryCode: "US", disabledIds: [] },
+        { userId: 3, countryCode: "US", disabledIds: [] },
+      ]);
+
+      vi.mocked(getHolidayService).mockReturnValue({
+        getHolidayDatesInRange: vi.fn().mockResolvedValue([]),
+        getHolidayDatesInRangeForCountries: vi.fn().mockResolvedValue(new Map([["US", []]])),
+      } as never);
+
+      await service.prefetchHolidayData({
+        users: [createMockUser({ id: 1 }), createMockUser({ id: 2 }), createMockUser({ id: 3 })],
+        params,
+      });
+
+      // Should only pass "US" once, not three times
+      expect(vi.mocked(getHolidayService)().getHolidayDatesInRangeForCountries).toHaveBeenCalledWith(
+        expect.objectContaining({ countryCodes: ["US"] })
+      );
+    });
+
+    it("should set dates to null when user has setting but no country code", async () => {
+      const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
+
+      vi.mocked(deps.holidayRepo.findManyUserSettings).mockResolvedValue([
+        { userId: 1, countryCode: "US", disabledIds: [] },
+        { userId: 2, countryCode: null, disabledIds: [] },
+      ]);
+
+      vi.mocked(getHolidayService).mockReturnValue({
+        getHolidayDatesInRange: vi.fn().mockResolvedValue([]),
+        getHolidayDatesInRangeForCountries: vi.fn().mockResolvedValue(new Map([["US", []]])),
+      } as never);
+
+      const result = await service.prefetchHolidayData({
+        users: [createMockUser({ id: 1 }), createMockUser({ id: 2 })],
+        params,
+      });
+
+      expect(result.get(2)).toEqual({
+        settings: { userId: 2, countryCode: null, disabledIds: [] },
+        dates: null,
+      });
     });
   });
 });

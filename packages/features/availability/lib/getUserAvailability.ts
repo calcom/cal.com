@@ -18,7 +18,7 @@ import { stringToDayjsZod } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
 import { getHolidayService } from "@calcom/lib/holidays/HolidayService";
-import type { Holiday } from "@calcom/lib/holidays/types";
+import type { Holiday, HolidayDatesByCountry } from "@calcom/lib/holidays/types";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
@@ -843,10 +843,6 @@ export class UserAvailabilityService {
     return this._getUserAvailability(params, initialData);
   }
 
-  /**
-   * TODO: We might want to prefetch all data as part of this fn itself instead of expecting callers to pass prefetched data.
-   * We could start by prefetching new data-points here. This would ensure caller of this fn get best performance out of the box.
-   */
   async _getUsersAvailability({ users, query, initialData }: GetUsersAvailabilityProps) {
     if (users.length >= 50) {
       const userIds = users.map(({ id }) => id).join(", ");
@@ -861,6 +857,8 @@ export class UserAvailabilityService {
       throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
     }
 
+    const holidayDataByUserId = await this.prefetchHolidayData({ users, params });
+
     return await Promise.all(
       users.map((user) =>
         this._getUserAvailabilityBatched({
@@ -874,10 +872,7 @@ export class UserAvailabilityService {
             user,
             currentBookings: user.currentBookings,
             outOfOfficeDays: user.outOfOfficeDays,
-            // undefined → not provided, triggers async fetch in _getUserAvailability
-            // null → explicitly no holiday data for this user
-            // HolidayInitialData → prefetched holiday data
-            holidayData: user.holidayData,
+            holidayData: holidayDataByUserId.get(user.id) ?? null,
           },
         })
       )
@@ -885,6 +880,76 @@ export class UserAvailabilityService {
   }
 
   getUsersAvailability = withReporting(this._getUsersAvailability.bind(this), "getUsersAvailability");
+
+  /**
+   * Batch-fetches holiday settings and dates for all users
+   */
+  async prefetchHolidayData({
+    users,
+    params,
+  }: {
+    users: GetUsersAvailabilityProps["users"];
+    params: GetUserAvailabilityParams;
+  }): Promise<Map<number, HolidayInitialData | null>> {
+    const allUserIds = users.map((u) => u.id);
+
+    const holidaySettings = await this.dependencies.holidayRepo.findManyUserSettings({
+      userIds: allUserIds,
+      select: { countryCode: true, disabledIds: true },
+    });
+
+    const holidaySettingsByUserId = new Map(holidaySettings.map((h) => [h.userId, h]));
+
+    const countryCodes = holidaySettings
+      .map((h) => h.countryCode)
+      .filter((cc): cc is string => cc !== null && cc !== undefined);
+    const uniqueCountryCodes = Array.from(new Set(countryCodes));
+
+    const getHolidayDataMap = ({
+      userIds,
+      holidayDatesByCountry,
+    }: {
+      userIds: number[];
+      holidayDatesByCountry: HolidayDatesByCountry | null;
+    }) => {
+      return new Map(
+        userIds.map((userId) => {
+          const userSetting = holidaySettingsByUserId.get(userId) ?? null;
+          if (!userSetting) return [userId, null] as const;
+          if (!holidayDatesByCountry)
+            return [
+              userId,
+              {
+                settings: userSetting,
+                dates: null,
+              },
+            ] as const;
+
+          const dates = userSetting.countryCode
+            ? (holidayDatesByCountry.get(userSetting.countryCode) ?? null)
+            : null;
+          return [userId, { settings: userSetting, dates }] as const;
+        })
+      );
+    };
+
+    if (uniqueCountryCodes.length === 0)
+      return getHolidayDataMap({ userIds: allUserIds, holidayDatesByCountry: null });
+
+    const { start: holidayStartOfDay, end: holidayEndOfDay } = getHolidayDateRange({
+      start: params.dateFrom.toDate(),
+      end: params.dateTo.toDate(),
+    });
+
+    const holidayService = getHolidayService();
+    const holidayDatesByCountry = await holidayService.getHolidayDatesInRangeForCountries({
+      countryCodes: uniqueCountryCodes,
+      startDate: holidayStartOfDay,
+      endDate: holidayEndOfDay,
+    });
+
+    return getHolidayDataMap({ userIds: allUserIds, holidayDatesByCountry });
+  }
 
   /**
    * fetches the data required for the user to calculate the holiday blocked dates and then calculates the blocked dates
