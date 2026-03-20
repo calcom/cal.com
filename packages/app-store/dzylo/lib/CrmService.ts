@@ -32,7 +32,7 @@ export default class DzyloCrmService implements CRM {
   private client_secret = "";
   private accessToken = "";
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, _appOptions?: Record<string, unknown>) {
     this.integrationName = "dzylo_crm";
     this.auth = this.dzyloAuth(credential).then((r) => r);
   }
