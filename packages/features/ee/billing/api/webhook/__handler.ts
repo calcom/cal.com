@@ -6,8 +6,9 @@ import logger from "@calcom/lib/logger";
 import { buffer } from "micro";
 import type { NextApiRequest } from "next";
 import type Stripe from "stripe";
+import { getWebhookEventService } from "../../di/containers/WebhookEventService";
 
-const log = logger.getSubLogger({ prefix: ["stripe-webhook-handler"] });
+const log = logger.getSubLogger({ prefix: ["stripe-billing-webhook"] });
 
 /** Stripe Webhook Handler Mappings */
 export type SWHMap = {
@@ -56,6 +57,7 @@ export const stripeWebhookHandler = (handlers: SWHandlers) => async (req: NextAp
     sig,
     STRIPE_WEBHOOK_SECRET
   ) as Stripe.DiscriminatedEvent;
+
   const handlerGetter = handlers[event.type];
   if (!handlerGetter) {
     log.warn("Unhandled Stripe Webhook event type", { eventType: event.type });
@@ -65,7 +67,6 @@ export const stripeWebhookHandler = (handlers: SWHandlers) => async (req: NextAp
     };
   }
   const handler = (await handlerGetter())?.default;
-  // auto catch unsupported Stripe events.
   if (!handler) {
     log.warn("Unhandled Stripe Webhook event type", { eventType: event.type });
     return {
@@ -73,9 +74,53 @@ export const stripeWebhookHandler = (handlers: SWHandlers) => async (req: NextAp
       message: `Unhandled Stripe Webhook event type ${event.type}`,
     };
   }
-  // @ts-expect-error - we know the handler is defined and accepts the data type
-  return await handler(event.data);
+
+  const eventRecord = await tryAcquireWebhookEvent(event.id);
+  if (!eventRecord) {
+    log.info("Duplicate webhook skipped", { eventId: event.id, eventType: event.type });
+    return { success: true, message: "Duplicate event, already processed" };
+  }
+
+  try {
+    // @ts-expect-error - we know the handler is defined and accepts the data type
+    const result = await handler(event.data);
+    await safeMarkCompleted(eventRecord.id);
+    return result;
+  } catch (error) {
+    await safeMarkFailed(eventRecord.id);
+    throw error;
+  }
 };
+
+async function tryAcquireWebhookEvent(externalEventId: string): Promise<{ id: string | null } | null> {
+  try {
+    const service = getWebhookEventService();
+    return await service.tryAcquire(externalEventId);
+  } catch (error) {
+    log.warn("Idempotency check failed, proceeding without deduplication", { externalEventId, error });
+    return { id: null };
+  }
+}
+
+async function safeMarkCompleted(id: string | null): Promise<void> {
+  if (!id) return;
+  try {
+    const service = getWebhookEventService();
+    await service.markCompleted(id);
+  } catch (error) {
+    log.warn("Failed to mark webhook event completed", { id, error });
+  }
+}
+
+async function safeMarkFailed(id: string | null): Promise<void> {
+  if (!id) return;
+  try {
+    const service = getWebhookEventService();
+    await service.markFailed(id);
+  } catch (error) {
+    log.warn("Failed to mark webhook event failed", { id, error });
+  }
+}
 
 /**
  * Routes webhook events to sub-handlers based on the Stripe product ID.

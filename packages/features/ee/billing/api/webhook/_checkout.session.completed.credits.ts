@@ -43,10 +43,30 @@ const handler = async (data: SWHMap["checkout.session.completed"]["data"]) => {
 
   try {
     await prisma.$transaction(async (tx) => {
-      const creditBalance = teamId
-        ? await creditsRepository.upsertTeamBalance({ teamId, additionalCredits: nrOfCredits }, tx)
-        : await creditsRepository.upsertUserBalance({ userId: userId!, additionalCredits: nrOfCredits }, tx);
+      if (teamId) {
+        const creditBalance = await creditsRepository.upsertTeamBalance(
+          { teamId, additionalCredits: nrOfCredits },
+          tx
+        );
+        await creditPurchaseLogRepository.create(
+          {
+            credits: nrOfCredits,
+            creditBalanceId: creditBalance.id,
+            stripeSessionId: session.id,
+          },
+          tx
+        );
+        return;
+      }
 
+      if (!userId) {
+        throw new HttpCode(400, "Team id and user id are missing, but at least one is required");
+      }
+
+      const creditBalance = await creditsRepository.upsertUserBalance(
+        { userId, additionalCredits: nrOfCredits },
+        tx
+      );
       await creditPurchaseLogRepository.create(
         {
           credits: nrOfCredits,

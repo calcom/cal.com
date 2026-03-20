@@ -3632,3 +3632,17 @@ model ExternalAvatar {
   imageUrl  String?
   createdAt DateTime @default(now())
 }
+
+enum WebhookEventStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model WebhookEvent {
+  id              String             @id @default(uuid(7)) @db.Uuid
+  externalEventId String             @unique
+  status          WebhookEventStatus @default(PROCESSING)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}

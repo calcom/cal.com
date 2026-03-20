@@ -256,10 +256,11 @@ export class PrismaCreditsRepository {
     }
   }
 
-  async createCreditPurchaseLog(data: { credits: number; creditBalanceId: string }) {
+  async createCreditPurchaseLog(data: { credits: number; creditBalanceId: string }, tx?: PrismaTransaction) {
     const { credits, creditBalanceId } = data;
+    const client = tx ?? this.prismaClient;
 
-    return this.prismaClient.creditPurchaseLog.create({
+    return client.creditPurchaseLog.create({
       data: {
         credits,
         creditBalanceId,
