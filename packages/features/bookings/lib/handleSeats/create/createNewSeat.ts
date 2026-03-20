@@ -12,6 +12,7 @@ import {
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, PrismaClient } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -146,6 +147,7 @@ const createNewSeat = async (
   const bookingAttendees = seatedBooking.attendees.map((attendee) => {
     return {
       ...attendee,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(attendee.timeFormat),
       language: { translate: tAttendees, locale: attendeeLanguage ?? "en" },
     };
   });

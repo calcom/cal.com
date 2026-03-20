@@ -6,6 +6,7 @@ export const AttendeeRequestEmail = (props: React.ComponentProps<typeof Attendee
 
   return (
     <AttendeeScheduledEmail
+      {...props}
       title={props.calEvent.attendees[0].language.translate(
         props.calEvent.recurringEvent?.count ? "booking_submitted_recurring" : "booking_submitted"
       )}
@@ -24,7 +25,6 @@ export const AttendeeRequestEmail = (props: React.ComponentProps<typeof Attendee
         title: props.calEvent.title,
         date,
       })}
-      {...props}
     />
   );
 };

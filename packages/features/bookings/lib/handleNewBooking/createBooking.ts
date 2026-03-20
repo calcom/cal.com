@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
@@ -206,6 +207,7 @@ function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">) {
     name: attendee.name,
     email: attendee.email,
     timeZone: attendee.timeZone,
+    timeFormat: attendee.timeFormat === TimeFormat.TWENTY_FOUR_HOUR ? 24 : attendee.timeFormat === TimeFormat.TWELVE_HOUR ? 12 : null,
     locale: attendee.language.locale,
     phoneNumber: attendee.phoneNumber,
   }));

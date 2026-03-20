@@ -36,7 +36,6 @@ import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEvent
 import type { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
 import type { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
-import type { BuiltCalendarEvent } from "@calcom/features/CalendarEventBuilder";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -112,6 +111,7 @@ import { getAllCredentialsIncludeServiceAccountKey } from "../getAllCredentialsF
 import { refreshCredentials } from "../getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "../getBookingDataSchema";
 import type { LuckyUserService } from "../getLuckyUser";
+import { addVideoCallDataToEvent } from "../handleNewBooking/addVideoCallDataToEvent";
 import {
   buildBookingCreatedAuditData,
   buildBookingRescheduledAuditData,
@@ -285,34 +285,29 @@ const buildDryRunEventManager = () => {
   };
 };
 
-type TeamMember = {
-  id: number;
-  email: string;
-  name: string;
-  firstName: string;
-  lastName: string;
-  timeZone: string;
-  language: { translate: Awaited<ReturnType<typeof getTranslation>>; locale: string };
-};
-
-export async function computeTeamData({
-  isTeamEventType,
-  schedulingType,
+export const buildEventForTeamEventType = async ({
+  existingEvent: evt,
   users,
-  organizerEmail,
+  organizerUser,
+  schedulingType,
+  team,
 }: {
-  isTeamEventType: boolean;
-  schedulingType: SchedulingType | null;
+  existingEvent: Partial<CalendarEvent>;
   users: (Pick<User, "id" | "name" | "timeZone" | "locale" | "email"> & {
     destinationCalendar: DestinationCalendar | null;
     isFixed?: boolean;
   })[];
-  organizerEmail: string;
-}): Promise<{ teamMembers: TeamMember[]; teamDestinationCalendars: DestinationCalendar[] }> {
-  if (!isTeamEventType || !schedulingType) {
-    return { teamMembers: [], teamDestinationCalendars: [] };
+  organizerUser: { email: string };
+  schedulingType: SchedulingType | null;
+  team?: {
+    id: number;
+    name: string;
+  } | null;
+}) => {
+  // not null assertion.
+  if (!schedulingType) {
+    throw new Error("Scheduling type is required for team event type");
   }
-
   const teamDestinationCalendars: DestinationCalendar[] = [];
   const fixedUsers = users.filter((user) => user.isFixed);
   const nonFixedUsers = users.filter((user) => !user.isFixed);
@@ -321,8 +316,9 @@ export async function computeTeamData({
 
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = filteredUsers
-    .filter((user) => user.email !== organizerEmail)
+    .filter((user) => user.email !== organizerUser.email)
     .map(async (user) => {
+      // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
       // push to teamDestinationCalendars if it's a team event but collective only
       if (schedulingType === "COLLECTIVE" && user.destinationCalendar) {
         teamDestinationCalendars.push({
@@ -330,6 +326,7 @@ export async function computeTeamData({
           externalId: processExternalId(user.destinationCalendar),
         });
       }
+
       return {
         id: user.id,
         email: user.email ?? "",
@@ -345,8 +342,37 @@ export async function computeTeamData({
     });
 
   const teamMembers = await Promise.all(teamMemberPromises);
-  return { teamMembers, teamDestinationCalendars };
-}
+
+  const updatedEvt = CalendarEventBuilder.fromEvent(evt)
+    ?.withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
+    .build();
+
+  if (!updatedEvt) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Failed to build event with destination calendar due to missing required fields",
+    });
+  }
+
+  evt = updatedEvt;
+
+  const teamEvt = CalendarEventBuilder.fromEvent(evt)
+    ?.withTeam({
+      members: teamMembers,
+      name: team?.name || "Nameless",
+      id: team?.id ?? 0,
+    })
+    .build();
+
+  if (!teamEvt) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Failed to build team event due to missing required fields",
+    });
+  }
+
+  return teamEvt;
+};
 
 function buildTroubleshooterData({
   eventType,
@@ -1361,7 +1387,13 @@ async function handler(
       firstName: (typeof bookerName === "object" && bookerName.firstName) || "",
       lastName: (typeof bookerName === "object" && bookerName.lastName) || "",
       timeZone: attendeeTimezone,
-      timeFormat: reqBody.timeFormat,
+      timeFormat: reqBody.timeFormat
+        ? reqBody.timeFormat
+        : (originalRescheduledBooking
+            ? getTimeFormatStringFromUserTimeFormat(
+                originalRescheduledBooking.attendees.find((a) => a.email === bookerEmail)?.timeFormat
+              )
+            : undefined),
       language: { translate: tAttendees, locale: attendeeLanguage ?? "en" },
     },
   ];
@@ -1405,7 +1437,13 @@ async function handler(
       firstName: "",
       lastName: "",
       timeZone: attendeeTimezone,
-      timeFormat: reqBody.timeFormat,
+      timeFormat: reqBody.timeFormat
+        ? reqBody.timeFormat
+        : (originalRescheduledBooking
+            ? getTimeFormatStringFromUserTimeFormat(
+                originalRescheduledBooking.attendees.find((a) => a.email === guest)?.timeFormat
+              )
+            : undefined),
       language: { translate: tGuests, locale: "en" },
     });
     return guestArray;
@@ -1496,43 +1534,18 @@ async function handler(
       optionValue: "",
     };
 
-  // Only attach recurring config when this booking belongs to a recurring series.
-  const computedRecurringEvent =
-    reqBody.recurringEventId && eventType.recurringEvent
-      ? { ...eventType.recurringEvent, count: recurringCount ?? eventType.recurringEvent.count }
-      : undefined;
-
-  const { teamMembers, teamDestinationCalendars } = await computeTeamData({
-    isTeamEventType,
-    schedulingType: eventType.schedulingType,
-    users,
-    organizerEmail: organizerUser.email,
-  });
-
-  const teamInfo = eventType.team;
-
   const eventName = getEventName(eventNameObject);
 
-  let evt: BuiltCalendarEvent = new CalendarEventBuilder({
-    bookerUrl,
-    title: eventName,
-    startTime: dayjs(reqBody.start).utc().format(),
-    endTime: dayjs(reqBody.end).utc().format(),
-    type: eventType.slug,
-    organizer: {
-      id: organizerUser.id,
-      name: organizerUser.name || "Nameless",
-      email: organizerEmail,
-      username: organizerUser.username || undefined,
-      usernameInOrg: organizerOrganizationProfile?.username || undefined,
-      timeZone: organizerUser.timeZone,
-      language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
-      timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
-    },
-    attendees: attendeesList,
-    additionalNotes,
-  })
+  const builtEvt = new CalendarEventBuilder()
+    .withBasicDetails({
+      bookerUrl,
+      title: eventName,
+      startTime: dayjs(reqBody.start).utc().format(),
+      endTime: dayjs(reqBody.end).utc().format(),
+      additionalNotes,
+    })
     .withEventType({
+      slug: eventType.slug,
       description: eventType.description,
       id: eventType.id,
       hideCalendarNotes: eventType.hideCalendarNotes,
@@ -1547,6 +1560,17 @@ async function handler(
       disableRescheduling: eventType.disableRescheduling ?? false,
       disableCancelling: eventType.disableCancelling ?? false,
     })
+    .withOrganizer({
+      id: organizerUser.id,
+      name: organizerUser.name || "Nameless",
+      email: organizerEmail,
+      username: organizerUser.username || undefined,
+      usernameInOrg: organizerOrganizationProfile?.username || undefined,
+      timeZone: organizerUser.timeZone,
+      language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
+      timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
+    })
+    .withAttendees(attendeesList)
     .withMetadataAndResponses({
       additionalNotes,
       customInputs,
@@ -1557,11 +1581,7 @@ async function handler(
       location: platformBookingLocation ?? bookingLocation, // Will be processed by the EventManager later.
       conferenceCredentialId,
     })
-    .withDestinationCalendar(
-      teamDestinationCalendars.length > 0
-        ? [...(destinationCalendar ?? []), ...teamDestinationCalendars]
-        : destinationCalendar
-    )
+    .withDestinationCalendar(destinationCalendar)
     .withIdentifiers({ iCalUID, iCalSequence })
     .withConfirmation({
       requiresConfirmation: !isConfirmedByDefault,
@@ -1575,17 +1595,6 @@ async function handler(
     })
     .withOrganization(organizerOrganizationId)
     .withHashedLink(hasHashedBookingLink ? (reqBody.hashedLink ?? null) : null)
-    .withRecurring(computedRecurringEvent ?? undefined)
-    .withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
-    .withTeam(
-      isTeamEventType
-        ? {
-            members: teamMembers,
-            name: teamInfo?.name || "Nameless",
-            id: teamInfo?.id ?? 0,
-          }
-        : undefined
-    )
     .withHideBranding(
       await getEventTypeService().shouldHideBrandingForEventType(eventType.id, {
         team: eventType.team
@@ -1601,6 +1610,46 @@ async function handler(
       } satisfies EventTypeBrandingData)
     )
     .build();
+
+  if (!builtEvt) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Failed to build calendar event due to missing required fields",
+    });
+  }
+
+  let evt: CalendarEvent = builtEvt;
+
+  if (input.bookingData.thirdPartyRecurringEventId) {
+    const updatedEvt = CalendarEventBuilder.fromEvent(evt)
+      ?.withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
+      .build();
+
+    if (!updatedEvt) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "Failed to build event with recurring event ID due to missing required fields",
+      });
+    }
+
+    evt = updatedEvt;
+  }
+
+  if (isTeamEventType) {
+    const teamEvt = await buildEventForTeamEventType({
+      existingEvent: evt,
+      schedulingType: eventType.schedulingType,
+      users,
+      team: eventType.team,
+      organizerUser,
+    });
+
+    if (!teamEvt) {
+      throw new HttpError({ statusCode: 400, message: "Failed to build team event" });
+    }
+
+    evt = teamEvt;
+  }
 
   // data needed for triggering webhooks
   const eventTypeInfo: EventTypeInfo = {
@@ -1764,7 +1813,7 @@ async function handler(
         rescheduleUid,
         reqBookingUid: reqBody.bookingUid,
         eventType,
-        evt,
+        evt: { ...evt, seatsPerTimeSlot: eventType.seatsPerTimeSlot, bookerUrl },
         invitee,
         allCredentials,
         organizerUser,
@@ -1839,8 +1888,22 @@ async function handler(
         })
         .build();
 
+      if (!updatedEvt) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "Failed to build event with new identifiers due to missing required fields",
+        });
+      }
+
       evt = updatedEvt;
     }
+  }
+
+  if (reqBody.recurringEventId && eventType.recurringEvent) {
+    // Overriding the recurring event configuration count to be the actual number of events booked for
+    // the recurring event (equal or less than recurring event configuration count)
+    eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
+    evt.recurringEvent = eventType.recurringEvent;
   }
 
   const changedOrganizer =
@@ -1953,22 +2016,44 @@ async function handler(
         }
       }
 
-      evt = CalendarEventBuilder.fromEvent(evt)
-        .withUid(booking.uid ?? null)
+      const updatedEvtWithUid = CalendarEventBuilder.fromEvent(evt)
+        ?.withUid(booking.uid ?? null)
         .build();
 
-      evt = CalendarEventBuilder.fromEvent(evt)
-        .withOneTimePassword(booking.oneTimePassword ?? null)
+      if (!updatedEvtWithUid) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "Failed to build event with UID due to missing required fields",
+        });
+      }
+
+      evt = updatedEvtWithUid;
+
+      const updatedEvtWithPassword = CalendarEventBuilder.fromEvent(evt)
+        ?.withOneTimePassword(booking.oneTimePassword ?? null)
         .build();
+
+      if (!updatedEvtWithPassword) {
+        throw new HttpError({
+          statusCode: 400,
+          message: "Failed to build event with one-time password due to missing required fields",
+        });
+      }
+
+      evt = updatedEvtWithPassword;
 
       // Add assignment reason to evt for emails
       if (assignmentReason) {
-        evt = CalendarEventBuilder.fromEvent(evt)
-          .withAssignmentReason({
+        const updatedEvtWithAssignmentReason = CalendarEventBuilder.fromEvent(evt)
+          ?.withAssignmentReason({
             category: getAssignmentReasonCategory(assignmentReason.reasonEnum),
             details: assignmentReason.reasonString ?? null,
           })
           .build();
+
+        if (updatedEvtWithAssignmentReason) {
+          evt = updatedEvtWithAssignmentReason;
+        }
       }
 
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
@@ -2050,9 +2135,7 @@ async function handler(
     // cancel workflow reminders from previous rescheduled booking
     await WorkflowRepository.deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
 
-    evt = CalendarEventBuilder.fromEvent(evt)
-      .withVideoCallDataFromReferences(originalRescheduledBooking.references)
-      .build();
+    evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
     evt.rescheduledBy = reqBody.rescheduledBy;
 
     // If organizer is changed in RR event then we need to delete the previous host destination calendar events

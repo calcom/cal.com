@@ -18,7 +18,7 @@ export type Invitee = {
   firstName: string;
   lastName: string;
   timeZone: string;
-  timeFormat?: TimeFormat | null;
+  timeFormat?: TimeFormat;
   phoneNumber?: string;
   language: {
     translate: TFunction;

@@ -13,6 +13,7 @@ import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -142,6 +143,7 @@ async function cancelAttendeeSeat(
       evt,
       {
         ...attendee,
+        timeFormat: getTimeFormatStringFromUserTimeFormat(attendee.timeFormat),
         language: { translate: tAttendees, locale: attendee.locale ?? "en" },
       },
       eventTypeMetadata
@@ -152,6 +154,7 @@ async function cancelAttendeeSeat(
     ? [
         {
           ...attendee,
+          timeFormat: getTimeFormatStringFromUserTimeFormat(attendee.timeFormat),
           language: {
             translate: await getTranslation(attendee.locale ?? "en", "common"),
             locale: attendee.locale ?? "en",

@@ -222,6 +222,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
       email: true,
       timeZone: true,
       locale: true,
+      timeFormat: true,
       phoneNumber: true,
       bookingSeat: {
         select: {
@@ -493,6 +494,7 @@ export class BookingRepository implements IBookingRepository {
             email: true,
             name: true,
             timeZone: true,
+            timeFormat: true,
             locale: true,
             phoneNumber: true,
             noShow: true,
@@ -1270,6 +1272,7 @@ export class BookingRepository implements IBookingRepository {
             email: true,
             locale: true,
             timeZone: true,
+            timeFormat: true,
             phoneNumber: true,
             ...(seatsEventType && { bookingSeat: true, id: true }),
           },

@@ -58,7 +58,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
       subject: `${this.newSeat ? `${this.t("new_attendee")}: ` : ""}${this.calEvent.title}`,
       html: await this.getHtml(
         clonedCalEvent,
-        this.attendee || this.calEvent.organizer,
+        this.attendee || this.calEvent.attendees[0],
         this.teamMember,
         this.newSeat,
         this.reassigned

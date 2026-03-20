@@ -28,7 +28,7 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
         true
       ),
       subject: `${this.t("awaiting_approval")}: ${this.calEvent.title}`,
-      html: await this.getHtmlRequestEmail(template, this.calEvent, this.calEvent.organizer),
+      html: await this.getHtmlRequestEmail(template, this.calEvent, this.calEvent.attendees[0]),
       text: this.getTextBody("event_awaiting_approval"),
     };
   }

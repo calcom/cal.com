@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import dayjs from "@calcom/dayjs";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
@@ -24,7 +25,7 @@ describe("AttendeeScheduledEmail", () => {
     id: 1,
     name: "Organizer",
     email: "organizer@example.com",
-    timeZone: "Europe/London",
+    timeZone: "UTC",
     language: { translate: (key: string) => key, locale: "en" },
     timeFormat: TimeFormat.TWELVE_HOUR,
   };
@@ -32,7 +33,7 @@ describe("AttendeeScheduledEmail", () => {
   const attendee: Person = {
     name: "Attendee",
     email: "attendee@example.com",
-    timeZone: "Europe/London",
+    timeZone: "UTC",
     language: { translate: (key: string) => key, locale: "en" },
   };
 
@@ -49,19 +50,25 @@ describe("AttendeeScheduledEmail", () => {
   it("should use organizer's 12h time format if attendee has no preference", () => {
     const email = new AttendeeScheduledEmail(calEvent, attendee);
     const formattedDate = email.getFormattedDate();
-    // 10:00am is 12h format
-    expect(formattedDate).toContain("10:00am");
-    expect(formattedDate).toContain("11:00am");
+    
+    const expectedStart = dayjs(calEvent.startTime).tz(attendee.timeZone).format(TimeFormat.TWELVE_HOUR);
+    const expectedEnd = dayjs(calEvent.endTime).tz(attendee.timeZone).format(TimeFormat.TWELVE_HOUR);
+    
+    expect(formattedDate).toContain(expectedStart);
+    expect(formattedDate).toContain(expectedEnd);
   });
 
   it("should use attendee's 24h time format preference", () => {
     const attendeeWith24h = { ...attendee, timeFormat: TimeFormat.TWENTY_FOUR_HOUR };
     const email = new AttendeeScheduledEmail(calEvent, attendeeWith24h);
     const formattedDate = email.getFormattedDate();
-    // 10:00 is 24h format
-    expect(formattedDate).toContain("10:00");
+    
+    const expectedStart = dayjs(calEvent.startTime).tz(attendeeWith24h.timeZone).format(TimeFormat.TWENTY_FOUR_HOUR);
+    const expectedEnd = dayjs(calEvent.endTime).tz(attendeeWith24h.timeZone).format(TimeFormat.TWENTY_FOUR_HOUR);
+    
+    expect(formattedDate).toContain(expectedStart);
+    expect(formattedDate).toContain(expectedEnd);
     expect(formattedDate).not.toContain("am");
-    expect(formattedDate).toContain("11:00");
   });
 
   it("should use attendee's 12h time format preference even if organizer uses 24h", () => {
@@ -72,6 +79,7 @@ describe("AttendeeScheduledEmail", () => {
     const email = new AttendeeScheduledEmail(calEventWith24hOrganizer, attendeeWith12h);
     const formattedDate = email.getFormattedDate();
     
-    expect(formattedDate).toContain("10:00am");
+    const expectedStart = dayjs(calEvent.startTime).tz(attendeeWith12h.timeZone).format(TimeFormat.TWELVE_HOUR);
+    expect(formattedDate).toContain(expectedStart);
   });
 });

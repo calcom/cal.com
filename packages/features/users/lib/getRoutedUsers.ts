@@ -71,6 +71,7 @@ type BaseUser = {
   id: number;
   uuid: string;
   email: string;
+  timeFormat?: number | null;
 };
 
 type BaseHost<User extends BaseUser> = {

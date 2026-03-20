@@ -32,7 +32,7 @@ export const OrganizerScheduledEmail = (
 
   const t = props.teamMember?.language.translate || props.calEvent.organizer.language.translate;
   const locale = props.teamMember?.language.locale || props.calEvent.organizer.language.locale;
-  const timeFormat = props.teamMember?.timeFormat || props.calEvent.organizer?.timeFormat;
+  const timeFormat = props.attendee?.timeFormat || props.teamMember?.timeFormat || props.calEvent.organizer?.timeFormat;
 
   const isTeamEvent =
     props.calEvent.schedulingType === SchedulingType.ROUND_ROBIN ||
@@ -41,11 +41,12 @@ export const OrganizerScheduledEmail = (
 
   return (
     <BaseScheduledEmail
+      {...props}
       locale={locale}
       timeZone={props.teamMember?.timeZone || props.calEvent.organizer.timeZone}
       t={t}
-      subject={t(subject)}
-      title={t(title)}
+      subject={props.subject || subject}
+      title={props.title || title}
       includeAppsStatus
       timeFormat={timeFormat}
       isOrganizer
@@ -64,7 +65,6 @@ export const OrganizerScheduledEmail = (
         )
       }
       reassigned={props.reassigned}
-      {...props}
       attendee={attendee}
     />
   );

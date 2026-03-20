@@ -3,7 +3,9 @@ import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 export function getFormattedDate(calEvent: CalendarEvent, attendee: Person): string {
-  const inviteeTimeFormat = calEvent.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
+  // Use the attendee's own time format preference — they chose 24h/12h on the booking page,
+  // so their confirmation email should reflect that choice, not the organizer's setting.
+  const inviteeTimeFormat = attendee.timeFormat || calEvent.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
   const timezone = attendee.timeZone;
   const locale = attendee.language.locale;
   const t = attendee.language.translate;
