@@ -1,5 +1,6 @@
 import {
   confirmBookingHandler,
+  distributedTracing,
   getAllUserBookings,
   getCalendarLinks,
   getTranslation,
@@ -1240,6 +1241,7 @@ export class BookingsService_2024_08_13 {
           ...requestUser,
           destinationCalendar: userCalendars?.destinationCalendar ?? null,
         },
+        traceContext: distributedTracing.createTrace("api_v2_confirm_booking"),
       },
       input: {
         bookingId: booking.id,
@@ -1275,6 +1277,7 @@ export class BookingsService_2024_08_13 {
           ...requestUser,
           destinationCalendar: userCalendars?.destinationCalendar ?? null,
         },
+        traceContext: distributedTracing.createTrace("api_v2_decline_booking"),
       },
       input: {
         bookingId: booking.id,
