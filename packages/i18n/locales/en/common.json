@@ -1384,6 +1384,8 @@
   "trending_apps": "Trending apps",
   "most_popular": "Most popular",
   "installed_apps": "Installed apps",
+  "apps_count_info_one": "{{count}} app, {{active}} active",
+  "apps_count_info_other": "{{count}} apps, {{active}} active",
   "free_to_use_apps": "Free",
   "no_category_apps": "No {{category}} apps",
   "all_apps": "All apps",

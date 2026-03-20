@@ -216,8 +216,7 @@ function getNavigation({
       name: t("apps"),
       href: `/event-types/${id}?tabName=apps`,
       icon: "grid-3x3",
-      //TODO: Handle proper translation with count handling
-      info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
+      info: t("apps_count_info", { count: installedAppsNumber, active: enabledAppsNumber }),
       "data-testid": "apps",
     },
   ];
