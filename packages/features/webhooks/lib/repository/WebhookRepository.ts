@@ -570,4 +570,12 @@ export class WebhookRepository implements IWebhookRepository {
 
     return WebhookOutputMapper.toWebhookList(webhooks);
   }
+
+  async deactivateWebhook(webhookId: string): Promise<void> {
+    await this.prisma.webhook.update({
+      where: { id: webhookId },
+      data: { active: false },
+      select: { id: true },
+    });
+  }
 }

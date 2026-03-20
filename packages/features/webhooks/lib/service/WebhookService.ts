@@ -7,6 +7,36 @@ import type { WebhookPayloadType } from "../sendPayload";
 import sendPayload, { sendGenericWebhookPayload } from "../sendPayload";
 
 /**
+ * Error thrown when a webhook HTTP POST receives a non-OK response.
+ * Carries the HTTP status code so callers can decide whether to retry.
+ */
+export class WebhookHttpError extends Error {
+  constructor(
+    public readonly statusCode: number,
+    public readonly subscriberUrl: string,
+    message: string
+  ) {
+    super(message);
+    this.name = "WebhookHttpError";
+  }
+}
+
+/**
+ * Error thrown when the HTTP request itself fails (network error, DNS, timeout, etc.)
+ * before receiving any HTTP response. Distinguished from WebhookHttpError which
+ * indicates a response was received but with a non-OK status.
+ */
+export class WebhookSendError extends Error {
+  constructor(
+    public readonly subscriberUrl: string,
+    message: string
+  ) {
+    super(message);
+    this.name = "WebhookSendError";
+  }
+}
+
+/**
  * Trigger events that use the generic webhook payload structure.
  *
  * These webhooks historically used `sendGenericWebhookPayload` which nests data
@@ -121,13 +151,16 @@ export class WebhookService implements IWebhookService {
         payload.payload as WebhookPayloadType
       );
     } catch (error) {
-      throw new Error(
+      throw new WebhookSendError(
+        subscriberUrl,
         `Failed to send webhook to ${subscriberUrl}: ${error instanceof Error ? error.message : String(error)}`
       );
     }
 
     if (!result.ok) {
-      throw new Error(
+      throw new WebhookHttpError(
+        result.status,
+        subscriberUrl,
         `Webhook POST to ${subscriberUrl} failed with status ${result.status}: ${result.message ?? ""}`
       );
     }
@@ -168,13 +201,16 @@ export class WebhookService implements IWebhookService {
         data: payload.payload as Record<string, unknown>,
       });
     } catch (error) {
-      throw new Error(
+      throw new WebhookSendError(
+        subscriberUrl,
         `Failed to send webhook to ${subscriberUrl}: ${error instanceof Error ? error.message : String(error)}`
       );
     }
 
     if (!result.ok) {
-      throw new Error(
+      throw new WebhookHttpError(
+        result.status,
+        subscriberUrl,
         `Webhook POST to ${subscriberUrl} failed with status ${result.status}: ${result.message ?? ""}`
       );
     }

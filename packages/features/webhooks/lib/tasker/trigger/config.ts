@@ -9,8 +9,8 @@ export const webhookDeliveryQueue: Queue = queue({
 
 export const webhookRetryConfig = {
   maxAttempts: 3,
-  factor: 2,
-  minTimeoutInMs: 30000,
+  factor: 1.5,
+  minTimeoutInMs: 10000,
   maxTimeoutInMs: 600000,
   randomize: true,
 };

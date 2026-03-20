@@ -86,4 +86,5 @@ export interface IWebhookRepository {
     }[];
   }>;
   listWebhooks(options: ListWebhooksOptions): Promise<Webhook[]>;
+  deactivateWebhook(webhookId: string): Promise<void>;
 }

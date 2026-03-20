@@ -342,6 +342,7 @@ const _sendPayload = async (
     },
     redirect: "manual",
     body,
+    signal: AbortSignal.timeout(20_000),
   });
 
   const responseText = typeof response.text === "function" ? await response.text() : "";
