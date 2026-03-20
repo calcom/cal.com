@@ -112,7 +112,7 @@ const combineTwoSeatedBookings = async (
   const updatedBookingAttendees = updatedNewBooking.attendees.map((attendee) => {
     const evtAttendee = {
       ...attendee,
-      timeFormat: getTimeFormatStringFromUserTimeFormat(attendee.timeFormat),
+      timeFormat: attendee.timeFormat ? getTimeFormatStringFromUserTimeFormat(attendee.timeFormat) : undefined,
       language: { translate: tAttendees, locale: attendeeLanguage ?? "en" },
     };
     return evtAttendee;

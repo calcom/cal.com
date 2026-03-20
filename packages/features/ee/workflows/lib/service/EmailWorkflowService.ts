@@ -388,9 +388,12 @@ export class EmailWorkflowService {
     const rawTimeFormat = isEmailAttendeeAction
       ? attendeeToBeUsedInMail?.timeFormat || evt.organizer.timeFormat
       : evt.organizer.timeFormat;
-    
+
     // We parse it using the string converter since workflow tasks pull these as raw integers directly from the Database (12/24), which breaks dayjs formatting
-    const timeFormat = getTimeFormatStringFromUserTimeFormat(rawTimeFormat as number | undefined) || TimeFormat.TWELVE_HOUR;
+    const timeFormat =
+      typeof rawTimeFormat === "string"
+        ? (rawTimeFormat as TimeFormat)
+        : getTimeFormatStringFromUserTimeFormat(rawTimeFormat as number | undefined) || TimeFormat.TWELVE_HOUR;
     let defaultTemplates = {
       reminder: { body: null as string | null, subject: null as string | null },
       rating: { body: null as string | null, subject: null as string | null },

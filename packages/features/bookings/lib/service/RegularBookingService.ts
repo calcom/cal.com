@@ -1902,7 +1902,9 @@ async function handler(
   if (reqBody.recurringEventId && eventType.recurringEvent) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
-    eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, { count: recurringCount });
+      eventType.recurringEvent = Object.assign({}, eventType.recurringEvent, {
+        count: recurringCount ?? eventType.recurringEvent.count,
+      });
     evt.recurringEvent = eventType.recurringEvent;
   }
 

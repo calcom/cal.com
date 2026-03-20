@@ -143,7 +143,7 @@ async function cancelAttendeeSeat(
       evt,
       {
         ...attendee,
-        timeFormat: getTimeFormatStringFromUserTimeFormat(attendee.timeFormat),
+        timeFormat: attendee.timeFormat ? getTimeFormatStringFromUserTimeFormat(attendee.timeFormat) : undefined,
         language: { translate: tAttendees, locale: attendee.locale ?? "en" },
       },
       eventTypeMetadata
@@ -154,7 +154,7 @@ async function cancelAttendeeSeat(
     ? [
         {
           ...attendee,
-          timeFormat: getTimeFormatStringFromUserTimeFormat(attendee.timeFormat),
+          timeFormat: attendee.timeFormat ? getTimeFormatStringFromUserTimeFormat(attendee.timeFormat) : undefined,
           language: {
             translate: await getTranslation(attendee.locale ?? "en", "common"),
             locale: attendee.locale ?? "en",

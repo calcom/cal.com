@@ -21,11 +21,10 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
 
   return (
     <OrganizerScheduledEmail
-      {...props}
       title={
-        props.title || props.calEvent.recurringEvent?.count
+        props.title || (props.calEvent.recurringEvent?.count
           ? props.calEvent.organizer.language.translate("event_awaiting_approval_recurring")
-          : props.calEvent.organizer.language.translate("event_awaiting_approval")
+          : props.calEvent.organizer.language.translate("event_awaiting_approval"))
       }
       subtitle={<>{props.calEvent.organizer.language.translate("someone_requested_an_event")}</>}
       headerType="calendarCircle"
@@ -49,6 +48,7 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
           />
         </CallToActionTable>
       }
+      {...props}
     />
   );
 };

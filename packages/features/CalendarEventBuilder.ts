@@ -580,7 +580,9 @@ export class CalendarEventBuilder {
       !this.event.endTime ||
       !this.event.type ||
       !this.event.bookerUrl ||
-      !this.event.title
+      !this.event.title ||
+      !this.event.organizer ||
+      !this.event.attendees?.length
     ) {
       return null;
     }
