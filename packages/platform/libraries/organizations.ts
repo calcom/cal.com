@@ -15,3 +15,6 @@ export type { IBillingProviderService } from "@calcom/features/ee/billing/servic
 
 export { getActiveUserBillingService } from "@calcom/features/ee/billing/active-user/di/ActiveUserBillingService.container";
 export { ActiveUserBillingService } from "@calcom/features/ee/billing/active-user/services/ActiveUserBillingService";
+
+export { getOrganizationWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
+export { OrganizationSettingsRepository } from "@calcom/features/organizations/repositories/OrganizationSettingsRepository";

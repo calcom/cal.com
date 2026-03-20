@@ -87,6 +87,11 @@ export default defineConfig({
         find: "@calcom/platform-constants",
         replacement: path.resolve(__dirname, "packages/platform/constants/index.ts"),
       },
+      // Platform libraries subpath exports (dist/ not built during unit tests)
+      {
+        find: /^@calcom\/platform-libraries\/(.+)$/,
+        replacement: `${path.resolve(__dirname, "packages/platform/libraries")}/$1.ts`,
+      },
       {
         find: "@calcom/embed-react",
         replacement: path.resolve(__dirname, "packages/embeds/embed-react/src/index.ts"),

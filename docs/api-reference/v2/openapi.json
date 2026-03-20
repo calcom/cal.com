@@ -1080,6 +1080,140 @@
         "tags": ["Orgs / Bookings"]
       }
     },
+    "/v2/organizations/{orgId}/bookings/report": {
+      "post": {
+        "operationId": "OrganizationsBookingsController_reportOrgBooking",
+        "summary": "Report an organization booking",
+        "description": "Report a booking within the organization. A booking report is created and the reported booking along with other matching upcoming bookings are silently cancelled.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportOrgBookingInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOrgBookingOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Bookings"]
+      }
+    },
+    "/v2/organizations/{orgId}/bookings/block": {
+      "post": {
+        "operationId": "OrganizationsBookingsController_blockOrgBooking",
+        "summary": "Block an organization booking attendee",
+        "description": "Add the email or domain of a booking attendee to the organization blocklist. All matching upcoming bookings in the organization are silently cancelled.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_, managed user access token, or OAuth access token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-secret-key",
+            "in": "header",
+            "description": "For platform customers - OAuth client secret key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-cal-client-id",
+            "in": "header",
+            "description": "For platform customers - OAuth client ID",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BlockOrgBookingInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockOrgBookingOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Bookings"]
+      }
+    },
     "/v2/organizations/{orgId}/delegation-credentials": {
       "post": {
         "operationId": "OrganizationsDelegationCredentialController_createDelegationCredential",
@@ -34560,6 +34694,140 @@
             "$ref": "#/components/schemas/CalendarEventStatus"
           }
         }
+      },
+      "ReportOrgBookingInput": {
+        "type": "object",
+        "properties": {
+          "bookingUid": {
+            "type": "string",
+            "description": "The UID of the booking to report",
+            "example": "booking-uid-123"
+          },
+          "reason": {
+            "type": "string",
+            "enum": ["SPAM", "DONT_KNOW_PERSON", "OTHER"],
+            "description": "The reason for reporting the booking",
+            "example": "SPAM"
+          },
+          "description": {
+            "type": "string",
+            "description": "Additional description for the report"
+          },
+          "reportType": {
+            "type": "string",
+            "enum": ["EMAIL", "DOMAIN"],
+            "description": "Whether to report by email or domain. EMAIL targets the specific booker email. DOMAIN targets all emails from the same domain.",
+            "example": "EMAIL"
+          }
+        },
+        "required": ["bookingUid", "reason", "reportType"]
+      },
+      "ReportOrgBookingData": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether the operation was successful",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "description": "A human-readable message describing the result",
+            "example": "Booking reported and cancelled successfully"
+          },
+          "bookingUid": {
+            "type": "string",
+            "description": "The UID of the reported booking",
+            "example": "booking-uid-123"
+          },
+          "reportedCount": {
+            "type": "number",
+            "description": "The number of booking reports created",
+            "example": 1
+          },
+          "cancelledCount": {
+            "type": "number",
+            "description": "The number of bookings cancelled",
+            "example": 3
+          }
+        },
+        "required": ["success", "message", "bookingUid", "reportedCount", "cancelledCount"]
+      },
+      "ReportOrgBookingOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReportOrgBookingData"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "BlockOrgBookingInput": {
+        "type": "object",
+        "properties": {
+          "bookingUid": {
+            "type": "string",
+            "description": "The UID of the booking whose attendee should be blocked",
+            "example": "booking-uid-123"
+          },
+          "blockType": {
+            "type": "string",
+            "enum": ["EMAIL", "DOMAIN"],
+            "description": "Whether to block by email or domain. EMAIL blocks the specific booker email. DOMAIN blocks all emails from the same domain.",
+            "example": "EMAIL"
+          }
+        },
+        "required": ["bookingUid", "blockType"]
+      },
+      "BlockOrgBookingData": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether the operation was successful",
+            "example": true
+          },
+          "message": {
+            "type": "string",
+            "description": "A human-readable message describing the result",
+            "example": "Added to blocklist and 3 bookings cancelled"
+          },
+          "bookingUid": {
+            "type": "string",
+            "description": "The UID of the booking whose attendee was blocked",
+            "example": "booking-uid-123"
+          },
+          "cancelledCount": {
+            "type": "number",
+            "description": "The number of bookings cancelled",
+            "example": 3
+          },
+          "blockedValue": {
+            "type": "string",
+            "description": "The email or domain that was added to the blocklist",
+            "example": "spammer@example.com"
+          }
+        },
+        "required": ["success", "message", "bookingUid", "cancelledCount", "blockedValue"]
+      },
+      "BlockOrgBookingOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/BlockOrgBookingData"
+          }
+        },
+        "required": ["status", "data"]
       },
       "RequestEmailVerificationInput": {
         "type": "object",

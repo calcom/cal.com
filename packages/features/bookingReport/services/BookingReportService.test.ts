@@ -23,8 +23,11 @@ vi.mock("@calcom/lib/logger", () => ({
 describe("BookingReportService", () => {
   const mockBookingRepo = {
     findByUidIncludeReport: vi.fn(),
+    findByUidIncludeReportAndEventType: vi.fn(),
     findUpcomingByAttendeeEmail: vi.fn(),
     findUpcomingByAttendeeDomain: vi.fn(),
+    findUpcomingUnreportedOrgBookingsByEmail: vi.fn(),
+    findUpcomingUnreportedOrgBookingsByDomain: vi.fn(),
   };
 
   const mockReportRepo = {
@@ -53,6 +56,8 @@ describe("BookingReportService", () => {
     attendees: [{ email: "booker@spammer.com" }],
     seatsReferences: [],
     report: null,
+    eventType: null,
+    user: { profiles: [] },
   };
 
   const defaultInput = {
@@ -78,6 +83,8 @@ describe("BookingReportService", () => {
     mockReportRepo.createReport.mockResolvedValue({ id: "new-report" });
     mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([]);
     mockBookingRepo.findUpcomingByAttendeeDomain.mockResolvedValue([]);
+    mockBookingRepo.findUpcomingUnreportedOrgBookingsByEmail.mockResolvedValue([]);
+    mockBookingRepo.findUpcomingUnreportedOrgBookingsByDomain.mockResolvedValue([]);
     mockOrganizationSettingsRepo.getBlocklistSettings.mockResolvedValue(null);
   });
 
@@ -98,7 +105,7 @@ describe("BookingReportService", () => {
 
       it("should throw NotFound when booking does not exist", async () => {
         mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(null);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(null);
 
         await expect(service.reportBooking(defaultInput)).rejects.toMatchObject({
           code: ErrorCode.NotFound,
@@ -107,7 +114,7 @@ describe("BookingReportService", () => {
 
       it("should throw BadRequest when booking already has a report", async () => {
         mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
           ...mockBooking,
           report: { id: "existing-report" },
         });
@@ -120,7 +127,7 @@ describe("BookingReportService", () => {
 
       it("should throw BadRequest when booking has no attendees", async () => {
         mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
           ...mockBooking,
           attendees: [],
         });
@@ -130,6 +137,75 @@ describe("BookingReportService", () => {
           message: "Booking has no attendees",
         });
       });
+
+      it("should throw Forbidden when organizationId is provided and booking does not belong to org", async () => {
+        mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
+          ...mockBooking,
+          eventType: { teamId: 99, team: { id: 99, parentId: 999 } },
+          user: { profiles: [{ organizationId: 999 }] },
+        });
+
+        await expect(
+          service.reportBooking({ ...defaultInput, organizationId: 42 })
+        ).rejects.toMatchObject({
+          code: ErrorCode.Forbidden,
+          message: "Booking does not belong to this organization",
+        });
+      });
+
+      it("should skip org check when organizationId is null", async () => {
+        mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
+        vi.mocked(handleCancelBooking).mockResolvedValue({
+          success: true,
+          message: "Cancelled",
+          onlyRemovedAttendee: false,
+          bookingUid: "test-booking-uid",
+        });
+
+        const result = await service.reportBooking({ ...defaultInput, organizationId: null });
+
+        expect(result.success).toBe(true);
+      });
+
+      it("should allow reporting when booking belongs to org via team", async () => {
+        mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
+          ...mockBooking,
+          eventType: { teamId: 42, team: { id: 42, parentId: 100 } },
+          user: { profiles: [] },
+        });
+        vi.mocked(handleCancelBooking).mockResolvedValue({
+          success: true,
+          message: "Cancelled",
+          onlyRemovedAttendee: false,
+          bookingUid: "test-booking-uid",
+        });
+
+        const result = await service.reportBooking({ ...defaultInput, organizationId: 100 });
+
+        expect(result.success).toBe(true);
+      });
+
+      it("should allow reporting when booking belongs to org via personal event type", async () => {
+        mockBookingAccessService.doesUserIdHaveAccessToBooking.mockResolvedValue(true);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
+          ...mockBooking,
+          eventType: null,
+          user: { profiles: [{ organizationId: 42 }] },
+        });
+        vi.mocked(handleCancelBooking).mockResolvedValue({
+          success: true,
+          message: "Cancelled",
+          onlyRemovedAttendee: false,
+          bookingUid: "test-booking-uid",
+        });
+
+        const result = await service.reportBooking({ ...defaultInput, organizationId: 42 });
+
+        expect(result.success).toBe(true);
+      });
     });
 
     describe("EMAIL report type", () => {
@@ -138,7 +214,7 @@ describe("BookingReportService", () => {
       });
 
       it("should query by attendee email and cancel upcoming booking", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
         vi.mocked(handleCancelBooking).mockResolvedValue({
           success: true,
           message: "Cancelled",
@@ -157,7 +233,7 @@ describe("BookingReportService", () => {
       });
 
       it("should use booker email for report creation", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
         vi.mocked(handleCancelBooking).mockResolvedValue({
           success: true,
           message: "Cancelled",
@@ -175,7 +251,7 @@ describe("BookingReportService", () => {
       });
 
       it("should cancel additional bookings from the same email", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
         mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([
           { uid: "additional-1", report: null, attendees: [{ email: "booker@spammer.com" }] },
           { uid: "additional-2", report: null, attendees: [{ email: "booker@spammer.com" }] },
@@ -194,7 +270,7 @@ describe("BookingReportService", () => {
       });
 
       it("should allow EMAIL reporting for seated events", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
           ...mockBooking,
           seatsReferences: [{ referenceUid: "seat-1", attendee: { email: "booker@spammer.com" } }],
         });
@@ -212,7 +288,7 @@ describe("BookingReportService", () => {
       });
 
       it("should query by attendee domain", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
         vi.mocked(handleCancelBooking).mockResolvedValue({
           success: true,
           message: "Cancelled",
@@ -230,7 +306,7 @@ describe("BookingReportService", () => {
       });
 
       it("should use @domain as bookerEmail for report grouping", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
         vi.mocked(handleCancelBooking).mockResolvedValue({
           success: true,
           message: "Cancelled",
@@ -248,7 +324,7 @@ describe("BookingReportService", () => {
       });
 
       it("should cancel bookings from different emails on the same domain", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
         mockBookingRepo.findUpcomingByAttendeeDomain.mockResolvedValue([
           { uid: "domain-match-1", report: null, attendees: [{ email: "other@spammer.com" }] },
         ]);
@@ -266,7 +342,7 @@ describe("BookingReportService", () => {
       });
 
       it("should throw BadRequest for DOMAIN reporting on seated events", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
           ...mockBooking,
           seatsReferences: [{ referenceUid: "seat-1", attendee: { email: "booker@spammer.com" } }],
         });
@@ -280,7 +356,7 @@ describe("BookingReportService", () => {
       });
 
       it("should throw BadRequest for free email domains", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
           ...mockBooking,
           attendees: [{ email: "booker@gmail.com" }],
         });
@@ -303,7 +379,7 @@ describe("BookingReportService", () => {
       });
 
       it("should not cancel past bookings", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
           ...mockBooking,
           startTime: yesterday,
         });
@@ -315,7 +391,7 @@ describe("BookingReportService", () => {
       });
 
       it("should skip already-reported bookings in additional matches", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
         mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([
           { uid: "already-reported", report: { id: "r1" }, attendees: [{ email: "booker@spammer.com" }] },
           { uid: "not-reported", report: null, attendees: [{ email: "booker@spammer.com" }] },
@@ -335,7 +411,7 @@ describe("BookingReportService", () => {
       });
 
       it("should mark cancelled flag only for bookings that were actually cancelled", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
         mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([
           { uid: "additional-1", report: null, attendees: [{ email: "booker@spammer.com" }] },
         ]);
@@ -368,7 +444,7 @@ describe("BookingReportService", () => {
       });
 
       it("should report but not cancel when all cancellations fail", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
         vi.mocked(handleCancelBooking).mockRejectedValue(new Error("Cancellation failed"));
 
         const result = await service.reportBooking(defaultInput);
@@ -378,7 +454,7 @@ describe("BookingReportService", () => {
       });
 
       it("should pass skipNotifications and skipCancellationReasonValidation to handleCancelBooking", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
         vi.mocked(handleCancelBooking).mockResolvedValue({
           success: true,
           message: "Cancelled",
@@ -407,7 +483,7 @@ describe("BookingReportService", () => {
       });
 
       it("should use booking.userId as hostUserId when available", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
           ...mockBooking,
           userId: 99,
         });
@@ -427,7 +503,7 @@ describe("BookingReportService", () => {
       });
 
       it("should fall back to userId when booking.userId is null", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue({
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
           ...mockBooking,
           userId: null,
         });
@@ -453,7 +529,7 @@ describe("BookingReportService", () => {
       });
 
       it("should say 'N bookings reported' when multiple bookings are reported", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
         mockBookingRepo.findUpcomingByAttendeeEmail.mockResolvedValue([
           { uid: "extra-1", report: null, attendees: [{ email: "booker@spammer.com" }] },
           { uid: "extra-2", report: null, attendees: [{ email: "booker@spammer.com" }] },
@@ -472,7 +548,7 @@ describe("BookingReportService", () => {
       });
 
       it("should return 'No reports created' when createReport fails for all bookings", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
         vi.mocked(handleCancelBooking).mockResolvedValue({
           success: true,
           message: "Cancelled",
@@ -495,7 +571,10 @@ describe("BookingReportService", () => {
       });
 
       it("should pass organizationId to createReport", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
+          ...mockBooking,
+          user: { profiles: [{ organizationId: 42 }] },
+        });
         vi.mocked(handleCancelBooking).mockResolvedValue({
           success: true,
           message: "Cancelled",
@@ -515,7 +594,7 @@ describe("BookingReportService", () => {
       });
 
       it("should pass description to createReport when provided", async () => {
-        mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+        mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
         vi.mocked(handleCancelBooking).mockResolvedValue({
           success: true,
           message: "Cancelled",
@@ -531,6 +610,147 @@ describe("BookingReportService", () => {
           })
         );
       });
+    });
+  });
+
+  describe("validateOrgBooking", () => {
+    const orgId = 10;
+
+    const mockOrgBooking = {
+      ...mockBooking,
+      eventType: {
+        teamId: 20,
+        team: { id: 20, parentId: orgId },
+      },
+      user: { profiles: [] },
+    };
+
+    const validateInput = {
+      bookingUid: "test-booking-uid",
+      organizationId: orgId,
+      reportType: "EMAIL" as const,
+    };
+
+    it("should throw NotFound when booking does not exist", async () => {
+      mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(null);
+
+      await expect(service.validateOrgBooking(validateInput)).rejects.toMatchObject({
+        code: ErrorCode.NotFound,
+      });
+    });
+
+    it("should throw Forbidden when booking does not belong to org", async () => {
+      mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
+        ...mockOrgBooking,
+        eventType: { teamId: 99, team: { id: 99, parentId: 999 } },
+        user: { profiles: [{ organizationId: 999 }] },
+      });
+
+      await expect(service.validateOrgBooking(validateInput)).rejects.toMatchObject({
+        code: ErrorCode.Forbidden,
+        message: "Booking does not belong to this organization",
+      });
+    });
+
+    it("should throw Forbidden when booking has no event type team and user not in org", async () => {
+      mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
+        ...mockOrgBooking,
+        eventType: null,
+        user: { profiles: [] },
+      });
+
+      await expect(service.validateOrgBooking(validateInput)).rejects.toMatchObject({
+        code: ErrorCode.Forbidden,
+      });
+    });
+
+    it("should accept personal event type when host user has profile in org", async () => {
+      mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
+        ...mockOrgBooking,
+        eventType: null,
+        user: { profiles: [{ organizationId: orgId }] },
+      });
+
+      const result = await service.validateOrgBooking(validateInput);
+
+      expect(result.booking).toBeDefined();
+      expect(result.bookerEmail).toBe("booker@spammer.com");
+    });
+
+    it("should accept personal event type with no team when user has profile in org", async () => {
+      mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
+        ...mockOrgBooking,
+        eventType: { teamId: null, team: null },
+        user: { profiles: [{ organizationId: orgId }] },
+      });
+
+      const result = await service.validateOrgBooking(validateInput);
+
+      expect(result.booking).toBeDefined();
+      expect(result.bookerEmail).toBe("booker@spammer.com");
+    });
+
+    it("should throw BadRequest when booking has no attendees", async () => {
+      mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
+        ...mockOrgBooking,
+        attendees: [],
+      });
+
+      await expect(service.validateOrgBooking(validateInput)).rejects.toMatchObject({
+        code: ErrorCode.BadRequest,
+        message: "Booking has no attendees",
+      });
+    });
+
+    it("should throw BadRequest for DOMAIN reporting on seated events", async () => {
+      mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
+        ...mockOrgBooking,
+        seatsReferences: [{ referenceUid: "seat-1", attendee: { email: "booker@spammer.com" } }],
+      });
+
+      await expect(
+        service.validateOrgBooking({ ...validateInput, reportType: "DOMAIN" })
+      ).rejects.toMatchObject({
+        code: ErrorCode.BadRequest,
+        message: "Domain reporting is not available for seated events",
+      });
+    });
+
+    it("should throw BadRequest for free email domains with DOMAIN type", async () => {
+      mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
+        ...mockOrgBooking,
+        attendees: [{ email: "booker@gmail.com" }],
+      });
+      vi.mocked(checkIfFreeEmailDomain).mockResolvedValueOnce(true);
+
+      await expect(
+        service.validateOrgBooking({ ...validateInput, reportType: "DOMAIN" })
+      ).rejects.toMatchObject({
+        code: ErrorCode.BadRequest,
+        message: "Cannot report by domain for free email providers",
+      });
+    });
+
+    it("should accept booking that belongs to org directly (team.id = orgId)", async () => {
+      mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
+        ...mockOrgBooking,
+        eventType: { teamId: orgId, team: { id: orgId, parentId: null } },
+        user: { profiles: [] },
+      });
+
+      const result = await service.validateOrgBooking(validateInput);
+
+      expect(result.booking).toBeDefined();
+      expect(result.bookerEmail).toBe("booker@spammer.com");
+    });
+
+    it("should return booking and bookerEmail on success", async () => {
+      mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockOrgBooking);
+
+      const result = await service.validateOrgBooking(validateInput);
+
+      expect(result.booking).toEqual(mockOrgBooking);
+      expect(result.bookerEmail).toBe("booker@spammer.com");
     });
   });
 
@@ -781,7 +1001,10 @@ describe("BookingReportService", () => {
     });
 
     it("should pass organizationId through to cancelReportedBookings which resolves skipCrmDeletion", async () => {
-      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue({
+        ...mockBooking,
+        user: { profiles: [{ organizationId: 42 }] },
+      });
       mockOrganizationSettingsRepo.getBlocklistSettings.mockResolvedValue({
         skipCrmOnBookingReport: true,
       });
@@ -803,7 +1026,7 @@ describe("BookingReportService", () => {
     });
 
     it("should not fetch org settings when organizationId is null", async () => {
-      mockBookingRepo.findByUidIncludeReport.mockResolvedValue(mockBooking);
+      mockBookingRepo.findByUidIncludeReportAndEventType.mockResolvedValue(mockBooking);
       vi.mocked(handleCancelBooking).mockResolvedValue({
         success: true,
         message: "Cancelled",

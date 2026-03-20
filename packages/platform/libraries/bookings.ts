@@ -27,6 +27,16 @@ export { BookingEmailAndSmsTaskService } from "@calcom/features/bookings/lib/tas
 export { BookingEmailAndSmsTriggerDevTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTriggerTasker";
 export { BookingAttendeesService } from "@calcom/features/bookings/services/BookingAttendeesService";
 export { PrismaOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
+export { getBookingReportService } from "@calcom/features/bookingReport/di/BookingReportService.container";
+export { BookingReportService } from "@calcom/features/bookingReport/services/BookingReportService";
+export { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
+export { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+export { isUpcomingBooking } from "@calcom/features/bookings/lib/isUpcomingBooking";
+export { extractDomainFromEmail } from "@calcom/features/watchlist/lib/utils/normalization";
+export { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
+export { OrganizationWatchlistOperationsService } from "@calcom/features/watchlist/lib/service/OrganizationWatchlistOperationsService";
+export { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+
 export { addGuestsHandler } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
 export type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
 export { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";

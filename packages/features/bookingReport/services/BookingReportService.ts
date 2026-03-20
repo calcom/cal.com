@@ -12,6 +12,9 @@ import type { CreateBookingReportInput } from "../repositories/IBookingReportRep
 import type { PrismaBookingReportRepository } from "../repositories/PrismaBookingReportRepository";
 
 type BookingForReport = NonNullable<Awaited<ReturnType<BookingRepository["findByUidIncludeReport"]>>>;
+export type BookingForOrgReport = NonNullable<
+  Awaited<ReturnType<BookingRepository["findByUidIncludeReportAndEventType"]>>
+>;
 
 type AdditionalBooking = {
   uid: string;
@@ -50,6 +53,11 @@ export interface ReportBookingResult {
   reportedCount: number;
 }
 
+export interface ValidateOrgBookingResult {
+  booking: BookingForOrgReport;
+  bookerEmail: string;
+}
+
 interface Deps {
   bookingRepo: BookingRepository;
   bookingReportRepo: PrismaBookingReportRepository;
@@ -75,10 +83,14 @@ export class BookingReportService {
       throw ErrorWithCode.Factory.Forbidden("You don't have access to this booking");
     }
 
-    const booking = await this.deps.bookingRepo.findByUidIncludeReport({ bookingUid });
+    const booking = await this.deps.bookingRepo.findByUidIncludeReportAndEventType({ bookingUid });
 
     if (!booking) {
       throw ErrorWithCode.Factory.NotFound("Booking not found");
+    }
+
+    if (organizationId && !this.bookingBelongsToOrg(booking, organizationId)) {
+      throw ErrorWithCode.Factory.Forbidden("Booking does not belong to this organization");
     }
 
     if (booking.report) {
@@ -224,6 +236,80 @@ export class BookingReportService {
     });
 
     return { cancelledUids };
+  }
+
+  async validateOrgBooking(input: {
+    bookingUid: string;
+    organizationId: number;
+    reportType: "EMAIL" | "DOMAIN";
+  }): Promise<ValidateOrgBookingResult> {
+    const { bookingUid, organizationId, reportType } = input;
+
+    const booking = await this.deps.bookingRepo.findByUidIncludeReportAndEventType({ bookingUid });
+
+    if (!booking) {
+      throw ErrorWithCode.Factory.NotFound("Booking not found");
+    }
+
+    if (!this.bookingBelongsToOrg(booking, organizationId)) {
+      throw ErrorWithCode.Factory.Forbidden("Booking does not belong to this organization");
+    }
+
+    const bookerEmail = booking.attendees[0]?.email;
+    if (!bookerEmail) {
+      throw ErrorWithCode.Factory.BadRequest("Booking has no attendees");
+    }
+
+    if (reportType === "DOMAIN") {
+      if (booking.seatsReferences.length > 0) {
+        throw ErrorWithCode.Factory.BadRequest("Domain reporting is not available for seated events");
+      }
+
+      const isFreeDomain = await checkIfFreeEmailDomain({ email: bookerEmail });
+      if (isFreeDomain) {
+        throw ErrorWithCode.Factory.BadRequest("Cannot report by domain for free email providers");
+      }
+    }
+
+    return { booking, bookerEmail };
+  }
+
+  async createReport(input: CreateBookingReportInput): Promise<void> {
+    await this.deps.bookingReportRepo.createReport(input);
+  }
+
+  private bookingBelongsToOrg(booking: BookingForOrgReport, organizationId: number): boolean {
+    const team = booking.eventType?.team;
+    if (team && (team.id === organizationId || team.parentId === organizationId)) {
+      return true;
+    }
+
+    // Personal event types: check if the host user has a profile in the organization
+    if (booking.user?.profiles?.some((p) => p.organizationId === organizationId)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  async findUpcomingUnreportedOrgBookings({
+    reportType,
+    bookerEmail,
+    organizationId,
+  }: {
+    reportType: "EMAIL" | "DOMAIN";
+    bookerEmail: string;
+    organizationId: number;
+  }): Promise<AdditionalBooking[]> {
+    if (reportType === "DOMAIN") {
+      const domain = extractDomainFromEmail(bookerEmail);
+      return this.deps.bookingRepo.findUpcomingUnreportedOrgBookingsByDomain({ domain, organizationId });
+    }
+
+    return this.deps.bookingRepo.findUpcomingUnreportedOrgBookingsByEmail({
+      email: bookerEmail,
+      organizationId,
+    });
   }
 
   private async findAdditionalBookings({

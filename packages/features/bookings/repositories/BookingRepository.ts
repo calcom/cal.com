@@ -822,6 +822,151 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  async findUpcomingUnreportedOrgBookingsByEmail({
+    email,
+    organizationId,
+  }: {
+    email: string;
+    organizationId: number;
+  }) {
+    return this.findUpcomingUnreportedOrgBookings({
+      attendeeEmailCondition: Prisma.sql`a."email" = ${email}`,
+      organizationId,
+    });
+  }
+
+  async findUpcomingUnreportedOrgBookingsByDomain({
+    domain,
+    organizationId,
+  }: {
+    domain: string;
+    organizationId: number;
+  }) {
+    const pattern = `%@${domain}`;
+    return this.findUpcomingUnreportedOrgBookings({
+      attendeeEmailCondition: Prisma.sql`a."email" LIKE ${pattern}`,
+      organizationId,
+    });
+  }
+
+  private async findUpcomingUnreportedOrgBookings({
+    attendeeEmailCondition,
+    organizationId,
+  }: {
+    attendeeEmailCondition: Prisma.Sql;
+    organizationId: number;
+  }) {
+    const rows = await this.prismaClient.$queryRaw<
+      {
+        id: number;
+        uid: string;
+        title: string;
+        startTime: Date;
+        endTime: Date;
+        status: string;
+        attendeeEmail: string;
+      }[]
+    >(Prisma.sql`
+      SELECT
+        b."id",
+        b."uid",
+        b."title",
+        b."startTime",
+        b."endTime",
+        b."status",
+        a."email" AS "attendeeEmail"
+      FROM "Booking" b
+      INNER JOIN "Attendee" a ON a."bookingId" = b."id"
+      WHERE b."startTime" > NOW()
+        AND b."status" IN ('accepted'::"BookingStatus", 'pending'::"BookingStatus", 'awaiting_host'::"BookingStatus")
+        AND NOT EXISTS (
+          SELECT 1 FROM "BookingReport" br WHERE br."bookingUid" = b."uid"
+        )
+        AND ${attendeeEmailCondition}
+        AND (
+          EXISTS (
+            SELECT 1 FROM "EventType" et
+            INNER JOIN "Team" t ON t."id" = et."teamId"
+            WHERE et."id" = b."eventTypeId"
+              AND (t."id" = ${organizationId} OR t."parentId" = ${organizationId})
+          )
+          OR EXISTS (
+            SELECT 1 FROM "Profile" p
+            WHERE p."userId" = b."userId"
+              AND p."organizationId" = ${organizationId}
+          )
+        )
+      ORDER BY b."startTime" ASC
+    `);
+
+    return rows.map((row) => ({
+      id: row.id,
+      uid: row.uid,
+      title: row.title,
+      startTime: row.startTime,
+      endTime: row.endTime,
+      status: row.status,
+      report: null,
+      attendees: [{ email: row.attendeeEmail }],
+    }));
+  }
+
+  async findByUidIncludeReportAndEventType({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      select: {
+        id: true,
+        uid: true,
+        userId: true,
+        startTime: true,
+        status: true,
+        recurringEventId: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+        seatsReferences: {
+          select: {
+            referenceUid: true,
+            attendee: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        },
+        report: {
+          select: {
+            id: true,
+          },
+        },
+        eventType: {
+          select: {
+            teamId: true,
+            team: {
+              select: {
+                id: true,
+                parentId: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            profiles: {
+              select: {
+                organizationId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async findByRecurringEventIdAndStartTime({
     recurringEventId,
     startTime,
