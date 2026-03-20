@@ -26,6 +26,9 @@ test.describe("Availability", () => {
     await page.locator('[data-testid="Sunday-switch"]').first().click();
     await page.locator('[data-testid="Saturday-switch"]').first().click();
 
+    // Date overrides auto-save when added, so we wait for the API response
+    // instead of clicking the Save button (which is disabled after auto-save)
+    const savePromise = page.waitForResponse("/api/trpc/availability/schedule.update?batch=1");
     await page.getByTestId("add-override").click();
     await page.locator('[id="modal-title"]').waitFor();
     await page.getByTestId("incrementMonth").click();
@@ -34,9 +37,7 @@ test.describe("Availability", () => {
     await page.getByTestId("add-override-submit-btn").click();
     await page.getByTestId("dialog-rejection").click();
     await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
-    await submitAndWaitForResponse(page, "/api/trpc/availability/schedule.update?batch=1", {
-      action: () => page.locator('[form="availability-form"][type="submit"]').click(),
-    });
+    await savePromise;
     const nextMonth = dayjs().add(1, "month").startOf("month");
     const troubleshooterURL = `/availability/troubleshoot?date=${nextMonth.format("YYYY-MM-DD")}`;
     await page.goto(troubleshooterURL);
@@ -45,6 +46,9 @@ test.describe("Availability", () => {
 
   test("it can delete date overrides", async ({ page }) => {
     await page.getByTestId("schedules").first().click();
+
+    // Add first batch of overrides (auto-saves)
+    let savePromise = page.waitForResponse("/api/trpc/availability/schedule.update?batch=1");
     await page.getByTestId("add-override").click();
     await page.locator('[id="modal-title"]').waitFor();
     // always go to the next month so there's enough slots regardless of current time.
@@ -57,8 +61,10 @@ test.describe("Availability", () => {
     await page.getByTestId("add-override-submit-btn").click();
     await page.getByTestId("dialog-rejection").click();
     await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(3);
-    await page.locator('[form="availability-form"][type="submit"]').click();
+    await savePromise;
 
+    // Add another override (auto-saves)
+    savePromise = page.waitForResponse("/api/trpc/availability/schedule.update?batch=1");
     await page.getByTestId("add-override").click();
     await page.locator('[id="modal-title"]').waitFor();
 
@@ -73,16 +79,16 @@ test.describe("Availability", () => {
     const dateOverrideList = page.locator('[data-testid="date-overrides-list"] > li');
 
     await expect(dateOverrideList).toHaveCount(4);
-
-    await page.locator('[form="availability-form"][type="submit"]').click();
+    await savePromise;
 
     const deleteButton = dateOverrideList.nth(1).getByTestId("delete-button");
     // we cannot easily predict the title, as this changes throughout the year.
     const deleteButtonTitle = (await deleteButton.getAttribute("title")) as string;
     // press the delete button (should remove the .nth 1 element & trigger reorder)
+    // Deleting a date override auto-saves
+    savePromise = page.waitForResponse("/api/trpc/availability/schedule.update?batch=1");
     await deleteButton.click();
-
-    await page.locator('[form="availability-form"][type="submit"]').click();
+    await savePromise;
 
     await expect(dateOverrideList).toHaveCount(3);
     await expect(page.getByTitle(deleteButtonTitle)).toBeHidden();
@@ -99,14 +105,15 @@ test.describe("Availability", () => {
     await page.locator("[id=timeZone-lg-viewport]").fill("New");
     await page.getByTestId("select-option-America/New_York").click();
 
-    // Add override for today
+    // Add override for today (auto-saves)
+    const savePromise = page.waitForResponse("/api/trpc/availability/schedule.update?batch=1");
     await page.getByTestId("add-override").click();
     await page.locator('[id="modal-title"]').waitFor();
     await page.locator('[data-testid="day"][data-disabled="false"]').first().click();
     await page.getByTestId("add-override-submit-btn").click();
     await page.getByTestId("dialog-rejection").click();
+    await savePromise;
 
-    await page.locator('[form="availability-form"][type="submit"]').click();
     await page.reload();
     await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
   });
@@ -186,13 +193,20 @@ test.describe("Availability", () => {
     await page.locator("[id=timeZone-lg-viewport]").fill("Braz");
     await page.getByTestId("select-option-America/Sao_Paulo").click();
     await submitAndWaitForResponse(page, "/api/trpc/availability/schedule.update?batch=1");
+
+    // Date overrides auto-save, so we wait for the API response directly
+    let savePromise = page.waitForResponse("/api/trpc/availability/schedule.update?batch=1");
     await page.getByTestId("add-override").click();
     await page.getByTestId("incrementMonth").click();
     await page.getByRole("button", { name: "20" }).click();
     await page.getByTestId("date-override-mark-unavailable").click();
     await page.getByTestId("add-override-submit-btn").click();
     await page.getByTestId("dialog-rejection").click();
+    await savePromise;
+
+    // Deleting a date override also auto-saves
+    savePromise = page.waitForResponse("/api/trpc/availability/schedule.update?batch=1");
     await page.getByTestId("date-overrides-list").getByRole("button").nth(1).click();
-    await submitAndWaitForResponse(page, "/api/trpc/availability/schedule.update?batch=1");
+    await savePromise;
   });
 });
