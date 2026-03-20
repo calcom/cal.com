@@ -219,6 +219,7 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
             additionalNotes: notification.booking.description,
             responses: responses,
             meetingUrl: bookingMetadataSchema.parse(notification.booking.metadata || {})?.videoCallUrl,
+            onlineMeetingUrl: (responses && responses["location"] && responses["location"].value !== 'inPerson' ) ? bookingMetadataSchema.parse(notification.booking.metadata || {})?.videoCallUrl : undefined,
             cancelUrl: `${bookingUrl}/booking/${notification.booking.uid}?cancel=true`,
             rescheduleUrl: `${bookingUrl}/reschedule/${notification.booking.uid}`,
             ratingUrl: `${bookingUrl}/booking/${notification.booking.uid}?rating`,

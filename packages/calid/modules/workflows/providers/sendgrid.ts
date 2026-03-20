@@ -7,6 +7,8 @@ import { v4 as uuidv4 } from "uuid";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { setTestEmail } from "@calcom/lib/testEmails";
 
+import { htmlToPlainText } from "../utils/htmlToPlainText";
+
 interface EmailConfiguration {
   apiKey: string;
   fromAddress: string;
@@ -126,6 +128,7 @@ const executeEmailDelivery = (
     },
     subject: emailData.subject,
     html: enhanceHtmlContent(emailData.html),
+    text: htmlToPlainText(emailData.html ?? ""),
     batchId: emailData.batchId,
     replyTo: emailData.replyTo || configuration.fromAddress,
     attachments: emailData.attachments,

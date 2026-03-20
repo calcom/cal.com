@@ -22,6 +22,7 @@ export type VariablesType = {
   additionalNotes?: string | null;
   responses?: CalEventResponses | null;
   meetingUrl?: string;
+  onlineMeetingUrl?: string;
   cancelUrl?: string;
   rescheduleUrl?: string;
   ratingUrl?: string;
@@ -198,6 +199,83 @@ const processCustomResponseTokens = (
   return processedText;
 };
 
+const convertSnakeCaseToCamelCase = (value: string): string => {
+  return value.replace(/_([a-z0-9])/g, (_, segment: string) => segment.toUpperCase());
+};
+
+const resolveTemplateValue = (value: unknown, timeFormat: TimeFormat): string => {
+  if (value === null || value === undefined) return "";
+  if (dayjs.isDayjs(value)) return value.isValid() ? value.format(timeFormat) : "";
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  return "";
+};
+
+const resolveConditionalValue = (value: unknown): boolean => {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "string") return value.length > 0;
+  if (dayjs.isDayjs(value)) return value.isValid();
+  return Boolean(value);
+};
+
+const resolveValueFromKeyPath = (keyPath: string, variables: VariablesType): unknown => {
+  const [baseKey, ...nestedKeys] = keyPath.split(".");
+  const camelCaseBaseKey = convertSnakeCaseToCamelCase(baseKey);
+
+  const baseValue = variables[camelCaseBaseKey as keyof VariablesType];
+  if (!nestedKeys.length) return baseValue;
+
+  if (!baseValue || typeof baseValue !== "object" || dayjs.isDayjs(baseValue)) return undefined;
+
+  let currentValue: unknown = baseValue as Record<string, unknown>;
+  for (const nestedKey of nestedKeys) {
+    if (!currentValue || typeof currentValue !== "object" || dayjs.isDayjs(currentValue)) return undefined;
+    currentValue = (currentValue as Record<string, unknown>)[nestedKey];
+  }
+
+  return currentValue;
+};
+
+export const resolveSnakeCaseToken = (
+  key: string,
+  variables: VariablesType,
+  timeFormat: TimeFormat
+): string => {
+  const resolvedValue = resolveValueFromKeyPath(key, variables);
+  return resolveTemplateValue(resolvedValue, timeFormat);
+};
+
+export const evaluateConditionals = (text: string, variables: VariablesType): string => {
+  const conditionalPattern =
+    /\{#if\s+([a-z][a-z0-9_]*(?:\.[a-z0-9_]+)*)\}([\s\S]*?)(?:\{else\}([\s\S]*?))?\{\/if\}/g;
+
+  return text.replace(conditionalPattern, (fullMatch, key, truthyBranch, falsyBranch) => {
+    const hasNestedConditional =
+      truthyBranch.includes("{#if") || (typeof falsyBranch === "string" && falsyBranch.includes("{#if"));
+
+    if (hasNestedConditional) {
+      return fullMatch;
+    }
+
+    const conditionalValue = resolveValueFromKeyPath(key, variables);
+    const selectedBranch = resolveConditionalValue(conditionalValue) ? truthyBranch : falsyBranch ?? "";
+    return selectedBranch.trim();
+  });
+};
+
+const processSnakeCaseTokens = (
+  textContent: string,
+  variables: VariablesType,
+  timeFormat: TimeFormat
+): string => {
+  const snakeCaseTokenPattern = /\{([a-z][a-z0-9_]*(?:\.[a-z0-9_]+)*)\}/g;
+
+  return textContent.replace(snakeCaseTokenPattern, (_, token: string) => {
+    return resolveSnakeCaseToken(token, variables, timeFormat);
+  });
+};
+
 const generateBrandingFooter = (suppressBranding?: boolean): string => {
   return suppressBranding ? "" : `<br><br>_<br><br>Scheduling by ${APP_NAME}`;
 };
@@ -245,6 +323,8 @@ const processTemplateContent = (config: ProcessingConfiguration): TemplateOutput
   );
 
   processedText = processCustomResponseTokens(processedText, customTokens, config.dataVariables);
+  processedText = evaluateConditionals(processedText, config.dataVariables);
+  processedText = processSnakeCaseTokens(processedText, config.dataVariables, timeDisplayFormat);
 
   const brandingFooter = generateBrandingFooter(config.brandingSuppressionFlag);
   const htmlOutput = constructHtmlOutput(processedText, brandingFooter);

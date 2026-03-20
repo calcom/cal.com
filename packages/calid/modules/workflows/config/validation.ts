@@ -34,6 +34,7 @@ const workflowFormSchema = z.object({
         .optional()
         .nullable(),
       senderName: z.string().optional().nullable(),
+      variableMapping: z.record(z.any()).optional().nullable(),
     })
     .array(),
   selectAll: z.boolean(),

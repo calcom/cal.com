@@ -45,6 +45,7 @@ export type CalIdWorkflowStep = {
 
   metaTemplateName: string | null;
   metaTemplatePhoneNumberId: string | null;
+  variableMapping?: Prisma.JsonValue | null;
 };
 
 // Workflow with relations
@@ -253,6 +254,7 @@ export type CalIdBookingInfo = {
   endTime: string;
   title: string;
   location?: string | null;
+  locationType?: string | null;
   additionalNotes?: string | null;
   responses?: CalEventResponses | null;
   metadata?: Prisma.JsonValue;

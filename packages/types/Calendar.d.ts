@@ -237,6 +237,7 @@ export interface CalendarEvent {
     id: number;
   };
   location?: string | null;
+  locationType?: string | null;
   conferenceCredentialId?: number;
   conferenceData?: ConferenceData;
   additionalInformation?: AdditionalInformation;
