@@ -232,6 +232,7 @@ describe("CalendarSyncService", () => {
       expect(mockHandleCancelBooking).toHaveBeenCalledWith({
         userId: mockBooking.userId,
         actionSource: "SYSTEM",
+        impersonatedByUserUuid: null,
         bookingData: {
           uid: mockBooking.uid,
           cancellationReason: "Cancelled on user's calendar",
@@ -345,6 +346,7 @@ describe("CalendarSyncService", () => {
           skipCalendarSyncTaskCreation: true,
           skipAvailabilityCheck: true,
           skipEventLimitsCheck: true,
+          impersonatedByUserUuid: null,
         },
       });
       const lastCall = mockCreateBooking.mock.calls.at(-1)!;
@@ -437,6 +439,7 @@ describe("CalendarSyncService", () => {
           skipCalendarSyncTaskCreation: true,
           skipAvailabilityCheck: true,
           skipEventLimitsCheck: true,
+          impersonatedByUserUuid: null,
         },
       });
       const baseCall = mockCreateBooking.mock.calls.at(-1)!;

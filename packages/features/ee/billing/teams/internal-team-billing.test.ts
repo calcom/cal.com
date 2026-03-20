@@ -22,7 +22,6 @@ vi.mock("@calcom/lib/constants", async () => {
 vi.mock("@calcom/features/ee/teams/lib/payments", () => ({
   purchaseTeamOrOrgSubscription: vi.fn(),
 }));
-
 function createMockStrategy(): ISeatBillingStrategy {
   return { onSeatChange: vi.fn() } as unknown as ISeatBillingStrategy;
 }
