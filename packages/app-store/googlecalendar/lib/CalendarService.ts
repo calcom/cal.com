@@ -363,26 +363,35 @@ class GoogleCalendarService implements Calendar {
       }
 
       if (event && event.id && event.hangoutLink) {
-        await calendar.events.patch({
-          // Update the same event but this time we know the hangout link
-          calendarId: selectedCalendar,
-          eventId: event.id || "",
-          requestBody: {
-            description: getRichDescription({
-              ...calEvent,
-              additionalInformation: { hangoutLink: event.hangoutLink },
-            }),
-            location: getLocation({
-              videoCallData: calEvent.videoCallData,
-              additionalInformation: {
-                ...calEvent.additionalInformation,
-                hangoutLink: event.hangoutLink,
-              },
-              location: calEvent.location,
-              uid: calEvent.uid,
-            }),
-          },
-        });
+        // Delay before patching: Google rate-limits quick successive writes to the same event.
+        // See: https://developers.google.com/workspace/calendar/api/guides/quota
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await calendar.events
+          .patch({
+            calendarId: selectedCalendar,
+            eventId: event.id || "",
+            requestBody: {
+              description: getRichDescription({
+                ...calEvent,
+                additionalInformation: { hangoutLink: event.hangoutLink },
+              }),
+              location: getLocation({
+                videoCallData: calEvent.videoCallData,
+                additionalInformation: {
+                  ...calEvent.additionalInformation,
+                  hangoutLink: event.hangoutLink,
+                },
+                location: calEvent.location,
+                uid: calEvent.uid,
+              }),
+            },
+          })
+          .catch((error) => {
+            this.log.info(
+              "Non-critical: failed to update event description with Meet link",
+              safeStringify({ error: error?.message, eventId: event?.id, selectedCalendar })
+            );
+          });
       }
 
       return {
@@ -502,26 +511,35 @@ class GoogleCalendarService implements Calendar {
         evt.data.hangoutLink &&
         event.location === MeetLocationType
       ) {
-        await calendar.events.patch({
-          // Update the same event but this time we know the hangout link
-          calendarId: selectedCalendar,
-          eventId: evt.data.id || "",
-          requestBody: {
-            description: getRichDescription({
-              ...event,
-              additionalInformation: { hangoutLink: evt.data.hangoutLink },
-            }),
-            location: getLocation({
-              videoCallData: event.videoCallData,
-              additionalInformation: {
-                ...event.additionalInformation,
-                hangoutLink: evt.data.hangoutLink,
-              },
-              location: event.location,
-              uid: event.uid,
-            }),
-          },
-        });
+        // Delay before patching: Google rate-limits quick successive writes to the same event.
+        // See: https://developers.google.com/workspace/calendar/api/guides/quota
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await calendar.events
+          .patch({
+            calendarId: selectedCalendar,
+            eventId: evt.data.id || "",
+            requestBody: {
+              description: getRichDescription({
+                ...event,
+                additionalInformation: { hangoutLink: evt.data.hangoutLink },
+              }),
+              location: getLocation({
+                videoCallData: event.videoCallData,
+                additionalInformation: {
+                  ...event.additionalInformation,
+                  hangoutLink: evt.data.hangoutLink,
+                },
+                location: event.location,
+                uid: event.uid,
+              }),
+            },
+          })
+          .catch((error) => {
+            this.log.info(
+              "Non-critical: failed to update event description with Meet link",
+              safeStringify({ error: error?.message, eventId: evt.data.id, selectedCalendar })
+            );
+          });
         return {
           uid: "",
           ...evt.data,
