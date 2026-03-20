@@ -15,6 +15,97 @@ import wordTruncate from "../../utils/getTruncatedString";
 import type { PartialCalIdWorkflowReminder } from "../../utils/getWorkflows";
 import { select } from "../../utils/getWorkflows";
 
+const PROVIDER_CANCELLATION_STATUS = {
+  PENDING: "pending",
+  CANCELLED: "cancelled",
+  NOT_CANCELLABLE: "not_cancellable",
+} as const;
+
+const getProviderResponseStatusCode = (response: SendSmsResponse): number | undefined => {
+  const statusCode = response.response?.statusCode;
+
+  if (typeof statusCode === "number") {
+    return statusCode;
+  }
+
+  if (typeof statusCode === "string") {
+    const parsed = Number(statusCode);
+    if (!Number.isNaN(parsed)) {
+      return parsed;
+    }
+  }
+
+  return undefined;
+};
+
+const getSerializableMessage = (value: unknown): string => {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (!value) {
+    return "";
+  }
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+};
+
+const getProviderResponseMessage = (response: SendSmsResponse): string => {
+  const providerError = getSerializableMessage(response.response?.error);
+  const providerMessage = getSerializableMessage(response.response?.message);
+  const providerData = getSerializableMessage(response.response?.data);
+
+  return [providerError, providerMessage, providerData].filter(Boolean).join(" ").toLowerCase();
+};
+
+const isNotCancellableProviderResponse = (response: SendSmsResponse): boolean => {
+  const statusCode = getProviderResponseStatusCode(response);
+  const message = getProviderResponseMessage(response);
+
+  if ([404, 409, 410, 422].includes(statusCode ?? 0)) {
+    return true;
+  }
+
+  const nonCancellablePatterns = [
+    "already sent",
+    "already delivered",
+    "already processed",
+    "already canceled",
+    "already cancelled",
+    "cannot cancel",
+    "can't cancel",
+    "cannot be cancelled",
+    "cannot be canceled",
+    "cannot update status",
+    "no longer cancellable",
+    "no longer cancelable",
+    "too late",
+    "not found",
+    "invalid mid",
+    "message has already been sent",
+  ];
+
+  return nonCancellablePatterns.some((pattern) => message.includes(pattern));
+};
+
+const classifyProviderCancellationOutcome = (
+  response: SendSmsResponse
+): "cancelled" | "not_cancellable" | "retryable_failure" => {
+  if (response.success) {
+    return "cancelled";
+  }
+
+  if (isNotCancellableProviderResponse(response)) {
+    return "not_cancellable";
+  }
+
+  return "retryable_failure";
+};
+
 const fetchPendingNotifications = async () => {
   return prisma.calIdWorkflowReminder.findMany({
     where: {
@@ -189,6 +280,10 @@ const executeCancellationProcess = async (): Promise<void> => {
       method: WorkflowMethods.SMS,
       scheduled: true,
       cancelled: true,
+      OR: [
+        { providerCancellationStatus: null },
+        { providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.PENDING },
+      ],
       scheduledDate: {
         lte: dayjs().add(1, "hour").toISOString(),
         gte: dayjs().toISOString(),
@@ -196,44 +291,98 @@ const executeCancellationProcess = async (): Promise<void> => {
     },
   });
 
-  const cancellationTasks: Promise<any>[] = [];
-  for (const messageToCancel of messagesToCancel) {
-    if (messageToCancel.referenceId) {
-      const smsProviderRequest = smsService.cancelSMS(messageToCancel.referenceId);
+  const cancellationTasks = messagesToCancel.map(async (messageToCancel) => {
+    if (!messageToCancel.referenceId) {
+      await prisma.calIdWorkflowReminder.update({
+        where: { id: messageToCancel.id },
+        data: {
+          scheduled: false,
+          providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.NOT_CANCELLABLE,
+        },
+      });
+      return;
+    }
 
-      const dbTransaction = prisma
-        .$transaction(async (tx) => {
-          if (messageToCancel.referenceId)
-            await tx.calIdWorkflowInsights.updateMany({
-              where: {
-                msgId: messageToCancel.referenceId,
-                type: WorkflowMethods.SMS,
-                status: WorkflowStatus.QUEUED,
-              },
-              data: {
-                status: WorkflowStatus.CANCELLED,
-              },
-            });
+    let providerResponse: SendSmsResponse;
+    try {
+      providerResponse = await smsService.cancelSMS(messageToCancel.referenceId);
+    } catch (error) {
+      console.log(
+        `SMS cancellation failed with thrown error for reference ID ${messageToCancel.referenceId}: ${error}`
+      );
 
-          await tx.calIdWorkflowReminder.update({
-            where: {
-              id: messageToCancel.id,
+      if (messageToCancel.providerCancellationStatus !== PROVIDER_CANCELLATION_STATUS.PENDING) {
+        await prisma.calIdWorkflowReminder.update({
+          where: { id: messageToCancel.id },
+          data: {
+            providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.PENDING,
+          },
+        });
+      }
+
+      return;
+    }
+
+    const cancellationOutcome = classifyProviderCancellationOutcome(providerResponse);
+
+    if (cancellationOutcome === "cancelled") {
+      await prisma.$transaction(async (tx) => {
+        await tx.calIdWorkflowInsights.updateMany({
+          where: {
+            msgId: messageToCancel.referenceId as string,
+            type: WorkflowMethods.SMS,
+            status: {
+              notIn: [WorkflowStatus.DELIVERED, WorkflowStatus.READ],
             },
-            data: {
-              referenceId: null,
-              scheduled: false,
-            },
-          });
-        })
-        .then(() => {
-          console.log(
-            `Cancelled SMS and updated workflow records for reference ID: ${messageToCancel.referenceId}`
-          );
+          },
+          data: {
+            status: WorkflowStatus.CANCELLED,
+          },
         });
 
-      cancellationTasks.push(smsProviderRequest, dbTransaction);
+        await tx.calIdWorkflowReminder.update({
+          where: {
+            id: messageToCancel.id,
+          },
+          data: {
+            scheduled: false,
+            providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.CANCELLED,
+          },
+        });
+      });
+
+      return;
     }
-  }
+
+    if (cancellationOutcome === "not_cancellable") {
+      await prisma.calIdWorkflowReminder.update({
+        where: {
+          id: messageToCancel.id,
+        },
+        data: {
+          scheduled: false,
+          providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.NOT_CANCELLABLE,
+        },
+      });
+
+      return;
+    }
+
+    if (messageToCancel.providerCancellationStatus !== PROVIDER_CANCELLATION_STATUS.PENDING) {
+      await prisma.calIdWorkflowReminder.update({
+        where: { id: messageToCancel.id },
+        data: {
+          providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.PENDING,
+        },
+      });
+    }
+
+    console.log(
+      `SMS cancellation will be retried for reference ID ${
+        messageToCancel.referenceId
+      }. Response: ${JSON.stringify(providerResponse.response)}`
+    );
+  });
 
   await Promise.all(cancellationTasks);
 };
