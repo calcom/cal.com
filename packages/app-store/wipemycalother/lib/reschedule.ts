@@ -1,19 +1,17 @@
-import type { TFunction } from "i18next";
-
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmailAndSMS } from "@calcom/emails/email-manager";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
+import { getTranslation } from "@calcom/i18n/server";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
 import { CalendarEventDirector } from "@calcom/lib/builders/CalendarEvent/director";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import type { Booking, BookingReference, User } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { Person } from "@calcom/types/Calendar";
-
+import type { TFunction } from "i18next";
 import { getCalendar } from "../../_utils/getCalendar";
 
 type PersonAttendeeCommonFields = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username"> & {
@@ -150,7 +148,10 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
       if (!bookingRef.uid) return;
 
       if (bookingRef.type.endsWith("_calendar")) {
-        const calendar = await getCalendar(credentialsMap.get(bookingRef.type), "booking");
+        const calendar = await getCalendar({
+          credential: credentialsMap.get(bookingRef.type),
+          mode: "booking",
+        });
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent);
       } else if (bookingRef.type.endsWith("_video")) {
         return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);

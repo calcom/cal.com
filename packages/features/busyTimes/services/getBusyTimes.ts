@@ -194,13 +194,13 @@ export class BusyTimesService {
     if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
       const startConnectedCalendarsGet = performance.now();
 
-      const calendarBusyTimesQuery = await getBusyCalendarTimes(
+      const calendarBusyTimesQuery = await getBusyCalendarTimes({
         credentials,
-        startTime,
-        endTime,
+        dateFrom: startTime,
+        dateTo: endTime,
         selectedCalendars,
-        mode
-      );
+        mode,
+      });
 
       if (!calendarBusyTimesQuery.success) {
         if (silentlyHandleCalendarFailures) {

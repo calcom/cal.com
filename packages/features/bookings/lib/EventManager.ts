@@ -1185,7 +1185,7 @@ export default class EventManager {
           const calendarCredential = await CredentialRepository.findCredentialForCalendarServiceById({
             id: oldCalendarEvent.credentialId,
           });
-          const calendar = await getCalendar(calendarCredential, "booking");
+          const calendar = await getCalendar({ credential: calendarCredential, mode: "booking" });
           await calendar?.deleteEvent(oldCalendarEvent.uid, event, oldCalendarEvent.externalCalendarId);
         }
       }

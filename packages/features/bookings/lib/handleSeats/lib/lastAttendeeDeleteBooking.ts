@@ -1,12 +1,13 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { getAllDelegationCredentialsForUserIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
-import { getDelegationCredentialOrFindRegularCredential } from "@calcom/app-store/delegationCredential";
+import {
+  getAllDelegationCredentialsForUserIncludeServiceAccountKey,
+  getDelegationCredentialOrFindRegularCredential,
+} from "@calcom/app-store/delegationCredential";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import prisma from "@calcom/prisma";
 import type { Attendee } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
 import type { OriginalRescheduledBooking } from "../../handleNewBooking/originalRescheduledBookingUtils";
 
 /* Check if the original booking has no more attendees, if so delete the booking
@@ -42,7 +43,7 @@ const lastAttendeeDeleteBooking = async (
             integrationsToDelete.push(deleteMeeting(credential, reference.uid));
           }
           if (reference.type.includes("_calendar") && originalBookingEvt) {
-            const calendar = await getCalendar(credential, "booking");
+            const calendar = await getCalendar({ credential, mode: "booking" });
             if (calendar) {
               integrationsToDelete.push(
                 calendar?.deleteEvent(reference.uid, originalBookingEvt, reference.externalCalendarId)

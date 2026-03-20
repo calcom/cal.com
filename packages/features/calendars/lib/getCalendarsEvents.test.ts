@@ -148,35 +148,35 @@ describe("getCalendarsEvents", () => {
 
   describe("Regular Credentials", () => {
     it("should return empty array if no calendar credentials", async () => {
-      const result = await getCalendarsEvents(
-        [
+      const result = await getCalendarsEvents({
+        credentials: [
           buildRegularCredential({
             ...credential,
             type: "totally_unrelated",
           }),
         ],
-        "2010-12-01",
-        "2010-12-02",
-        [],
-        "slots"
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-02",
+        selectedCalendars: [],
+        mode: "slots",
+      });
 
       expect(result).toEqual([]);
     });
 
     it("should return unknown calendars as empty", async () => {
-      const result = await getCalendarsEvents(
-        [
+      const result = await getCalendarsEvents({
+        credentials: [
           buildRegularCredential({
             ...credential,
             type: "unknown_calendar",
           }),
         ],
-        "2010-12-01",
-        "2010-12-02",
-        [],
-        "slots"
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-02",
+        selectedCalendars: [],
+        mode: "slots",
+      });
 
       expect(result).toEqual([[]]);
     });
@@ -189,18 +189,18 @@ describe("getCalendarsEvents", () => {
         userId: 200,
         id: "id",
       });
-      const result = await getCalendarsEvents(
-        [
+      const result = await getCalendarsEvents({
+        credentials: [
           buildRegularCredential({
             ...credential,
             type: "google_calendar",
           }),
         ],
-        "2010-12-01",
-        "2010-12-02",
-        [selectedCalendar],
-        "slots"
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-02",
+        selectedCalendars: [selectedCalendar],
+        mode: "slots",
+      });
 
       expect(result).toEqual([[]]);
     });
@@ -226,18 +226,18 @@ describe("getCalendarsEvents", () => {
         userId: 200,
         id: "id",
       });
-      const result = await getCalendarsEvents(
-        [
+      const result = await getCalendarsEvents({
+        credentials: [
           buildRegularCredential({
             ...credential,
             type: "google_calendar",
           }),
         ],
-        "2010-12-01",
-        "2010-12-04",
-        [selectedCalendar],
-        "slots"
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedCalendar],
+        mode: "slots",
+      });
 
       expect(mockGoogleGetAvailability).toHaveBeenCalledWith({
         dateFrom: "2010-12-01",
@@ -285,8 +285,8 @@ describe("getCalendarsEvents", () => {
         userId: 200,
         id: "id",
       });
-      const result = await getCalendarsEvents(
-        [
+      const result = await getCalendarsEvents({
+        credentials: [
           buildRegularCredential({
             ...credential,
             type: "google_calendar",
@@ -301,11 +301,11 @@ describe("getCalendarsEvents", () => {
             },
           }),
         ],
-        "2010-12-01",
-        "2010-12-04",
-        [selectedGoogleCalendar, selectedOfficeCalendar],
-        "slots"
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedGoogleCalendar, selectedOfficeCalendar],
+        mode: "slots",
+      });
 
       expect(mockGoogleGetAvailability).toHaveBeenCalledWith({
         dateFrom: "2010-12-01",
@@ -336,13 +336,13 @@ describe("getCalendarsEvents", () => {
     it("should not call getAvailability if selectedCalendars is empty", async () => {
       mockGoogleGetAvailability.mockClear();
 
-      const result = await getCalendarsEvents(
-        [buildRegularCredential(credential)],
-        "2010-12-01",
-        "2010-12-02",
-        [],
-        "slots"
-      );
+      const result = await getCalendarsEvents({
+        credentials: [buildRegularCredential(credential)],
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-02",
+        selectedCalendars: [],
+        mode: "slots",
+      });
 
       expect(mockGoogleGetAvailability).not.toHaveBeenCalled();
       expect(result).toEqual([[]]);
@@ -357,7 +357,7 @@ describe("getCalendarsEvents", () => {
       const credentials = [delegationCredential];
       mockGoogleGetAvailability.mockResolvedValueOnce([]);
 
-      const result = await getCalendarsEvents(credentials, startDate, endDate, [], "slots");
+      const result = await getCalendarsEvents({ credentials, dateFrom: startDate, dateTo: endDate, selectedCalendars: [], mode: "slots" });
 
       expect(mockGoogleGetAvailability).toHaveBeenCalledWith({
         dateFrom: startDate,
@@ -404,33 +404,33 @@ describe("getCalendarsEventsWithTimezones", () => {
 
   describe("Regular Credentials", () => {
     it("should return empty array if no calendar credentials", async () => {
-      const result = await getCalendarsEventsWithTimezones(
-        [
+      const result = await getCalendarsEventsWithTimezones({
+        credentials: [
           buildRegularCredential({
             ...credential,
             type: "totally_unrelated",
           }),
         ],
-        "2010-12-01",
-        "2010-12-02",
-        []
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-02",
+        selectedCalendars: [],
+      });
 
       expect(result).toEqual([]);
     });
 
     it("should return unknown calendars as empty", async () => {
-      const result = await getCalendarsEventsWithTimezones(
-        [
+      const result = await getCalendarsEventsWithTimezones({
+        credentials: [
           buildRegularCredential({
             ...credential,
             type: "unknown_calendar",
           }),
         ],
-        "2010-12-01",
-        "2010-12-02",
-        []
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-02",
+        selectedCalendars: [],
+      });
 
       expect(result).toEqual([]);
     });
@@ -443,17 +443,17 @@ describe("getCalendarsEventsWithTimezones", () => {
         userId: 200,
         id: "id",
       });
-      const result = await getCalendarsEventsWithTimezones(
-        [
+      const result = await getCalendarsEventsWithTimezones({
+        credentials: [
           buildRegularCredential({
             ...credential,
             type: "google_calendar",
           }),
         ],
-        "2010-12-01",
-        "2010-12-02",
-        [selectedCalendar]
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-02",
+        selectedCalendars: [selectedCalendar],
+      });
 
       expect(result).toEqual([[]]);
     });
@@ -481,17 +481,17 @@ describe("getCalendarsEventsWithTimezones", () => {
         userId: 200,
         id: "id",
       });
-      const result = await getCalendarsEventsWithTimezones(
-        [
+      const result = await getCalendarsEventsWithTimezones({
+        credentials: [
           buildRegularCredential({
             ...credential,
             type: "google_calendar",
           }),
         ],
-        "2010-12-01",
-        "2010-12-04",
-        [selectedCalendar]
-      );
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedCalendar],
+      });
 
       expect(mockGoogleGetAvailabilityWithTimeZones).toHaveBeenCalledWith({
         dateFrom: "2010-12-01",
@@ -510,12 +510,12 @@ describe("getCalendarsEventsWithTimezones", () => {
     it("should not call getAvailabilityWithTimezones if selectedCalendars is empty", async () => {
       mockGoogleGetAvailabilityWithTimeZones.mockClear();
 
-      const result = await getCalendarsEventsWithTimezones(
-        [buildRegularCredential(credential)],
-        "2010-12-01",
-        "2010-12-02",
-        []
-      );
+      const result = await getCalendarsEventsWithTimezones({
+        credentials: [buildRegularCredential(credential)],
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-02",
+        selectedCalendars: [],
+      });
 
       expect(mockGoogleGetAvailabilityWithTimeZones).not.toHaveBeenCalled();
       expect(result).toEqual([[]]);
@@ -530,7 +530,7 @@ describe("getCalendarsEventsWithTimezones", () => {
       const credentials = [delegationCredential];
       mockGoogleGetAvailabilityWithTimeZones.mockResolvedValueOnce([]);
 
-      const result = await getCalendarsEventsWithTimezones(credentials, startDate, endDate, []);
+      const result = await getCalendarsEventsWithTimezones({ credentials, dateFrom: startDate, dateTo: endDate, selectedCalendars: [] });
 
       expect(mockGoogleGetAvailabilityWithTimeZones).toHaveBeenCalledWith({
         dateFrom: startDate,
@@ -567,12 +567,12 @@ describe("getCalendarsEventsWithTimezones", () => {
         userId: 200,
         id: "id",
       });
-      const result = await getCalendarsEventsWithTimezones(
-        [buildRegularCredential(credential)],
-        "2010-12-01",
-        "2010-12-04",
-        [selectedCalendar]
-      );
+      const result = await getCalendarsEventsWithTimezones({
+        credentials: [buildRegularCredential(credential)],
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedCalendar],
+      });
 
       expect(result).toEqual([
         [
@@ -608,12 +608,12 @@ describe("getCalendarsEventsWithTimezones", () => {
         userId: 200,
         id: "id",
       });
-      const result = await getCalendarsEventsWithTimezones(
-        [buildRegularCredential(credential)],
-        "2010-12-01",
-        "2010-12-04",
-        [selectedCalendar]
-      );
+      const result = await getCalendarsEventsWithTimezones({
+        credentials: [buildRegularCredential(credential)],
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedCalendar],
+      });
 
       expect(result).toEqual([
         [
@@ -644,12 +644,12 @@ describe("getCalendarsEventsWithTimezones", () => {
         userId: 200,
         id: "id",
       });
-      const result = await getCalendarsEventsWithTimezones(
-        [buildRegularCredential(credential)],
-        "2010-12-01",
-        "2010-12-04",
-        [selectedCalendar]
-      );
+      const result = await getCalendarsEventsWithTimezones({
+        credentials: [buildRegularCredential(credential)],
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedCalendar],
+      });
 
       expect(result).toEqual([
         [
@@ -680,12 +680,12 @@ describe("getCalendarsEventsWithTimezones", () => {
         userId: 200,
         id: "id",
       });
-      const result = await getCalendarsEventsWithTimezones(
-        [buildRegularCredential(credential)],
-        "2010-12-01",
-        "2010-12-04",
-        [selectedCalendar]
-      );
+      const result = await getCalendarsEventsWithTimezones({
+        credentials: [buildRegularCredential(credential)],
+        dateFrom: "2010-12-01",
+        dateTo: "2010-12-04",
+        selectedCalendars: [selectedCalendar],
+      });
 
       expect(result).toEqual([
         [

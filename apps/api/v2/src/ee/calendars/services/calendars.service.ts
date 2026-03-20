@@ -92,12 +92,12 @@ export class CalendarsService {
       calendarsToLoad,
       userId
     );
-    const calendarBusyTimesQuery = await getBusyCalendarTimes(
-      this.buildNonDelegationCredentials(credentials),
+    const calendarBusyTimesQuery = await getBusyCalendarTimes({
+      credentials: this.buildNonDelegationCredentials(credentials),
       dateFrom,
       dateTo,
-      composedSelectedCalendars
-    );
+      selectedCalendars: composedSelectedCalendars,
+    });
     if (!calendarBusyTimesQuery.success) {
       throw new InternalServerErrorException(
         "Unable to fetch connected calendars events. Please try again later."

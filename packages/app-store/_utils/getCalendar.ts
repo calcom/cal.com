@@ -22,10 +22,13 @@ import { CalendarServiceMap } from "../calendar.services.generated";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendar = async (
-  credential: CredentialForCalendarService | null,
-  mode: CalendarFetchMode = "none"
-): Promise<Calendar | null> => {
+export const getCalendar = async ({
+  credential,
+  mode = "none",
+}: {
+  credential: CredentialForCalendarService | null | undefined;
+  mode?: CalendarFetchMode;
+}): Promise<Calendar | null> => {
   if (!credential || !credential.key) return null;
   let { type: calendarType } = credential;
   if (calendarType?.endsWith("_other_calendar")) {

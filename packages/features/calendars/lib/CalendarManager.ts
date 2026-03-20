@@ -87,7 +87,7 @@ export const getCalendarCredentials = (credentials: Array<CredentialForCalendarS
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
-        const calendar = () => getCalendar(credential, "slots");
+        const calendar = () => getCalendar({ credential, mode: "slots" });
         return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
       });
 
@@ -293,33 +293,40 @@ export const deduplicateCredentialsBasedOnSelectedCalendars = ({
   return deduplicatedCredentials.filter((credential) => !credentialIdsToRemove.includes(credential.id));
 };
 
-export const getBusyCalendarTimes = async (
+export const getBusyCalendarTimes = async ({
+  credentials,
+  dateFrom,
+  dateTo,
+  selectedCalendars,
+  mode,
+  includeTimeZone,
+}: {
   /**
-   * withCredentials can possibly have duplicate credential in case DelegationCredential is enabled.
+   * credentials can possibly have duplicate credential in case DelegationCredential is enabled.
    * There is no way to deduplicate that at the moment because a `credential` doesn't directly know to which external_id(or email it is connected to).
    * So, there could be multiple credentials for the same user.
    * 1. Delegated Credential - that fetches events for john@acme.com
    * 2. Regular Credential - that fetches events for john@personal.com
    *
    */
-  withCredentials: CredentialForCalendarService[],
-  dateFrom: string,
-  dateTo: string,
-  selectedCalendars: SelectedCalendar[],
-  mode?: CalendarFetchMode,
-  includeTimeZone?: boolean
-) => {
+  credentials: CredentialForCalendarService[];
+  dateFrom: string;
+  dateTo: string;
+  selectedCalendars: SelectedCalendar[];
+  mode?: CalendarFetchMode;
+  includeTimeZone?: boolean;
+}) => {
   let results: (EventBusyDate & { timeZone?: string })[][] = [];
 
   const deduplicatedCredentials = deduplicateCredentialsBasedOnSelectedCalendars({
-    credentials: withCredentials,
+    credentials,
     selectedCalendars,
   });
 
-  if (deduplicatedCredentials.length !== withCredentials.length) {
+  if (deduplicatedCredentials.length !== credentials.length) {
     log.info(
       "Deduplicated credentials and removed",
-      withCredentials.length - deduplicatedCredentials.length,
+      credentials.length - deduplicatedCredentials.length,
       "duplicates. Total number of credentials now is",
       deduplicatedCredentials.length
     );
@@ -332,20 +339,20 @@ export const getBusyCalendarTimes = async (
   const endDate = dayjs(dateTo).add(14, "hours").format();
   try {
     if (includeTimeZone) {
-      results = await getCalendarsEventsWithTimezones(
-        deduplicatedCredentials,
-        startDate,
-        endDate,
-        selectedCalendars
-      );
-    } else {
-      results = await getCalendarsEvents(
-        deduplicatedCredentials,
-        startDate,
-        endDate,
+      results = await getCalendarsEventsWithTimezones({
+        credentials: deduplicatedCredentials,
+        dateFrom: startDate,
+        dateTo: endDate,
         selectedCalendars,
-        mode ?? "slots"
-      );
+      });
+    } else {
+      results = await getCalendarsEvents({
+        credentials: deduplicatedCredentials,
+        dateFrom: startDate,
+        dateTo: endDate,
+        selectedCalendars,
+        mode: mode ?? "slots",
+      });
     }
   } catch (e) {
     log.warn(`Error getting calendar availability`, {
@@ -365,7 +372,7 @@ export const createEvent = async (
   // Some calendar libraries may edit the original event so let's clone it
   const formattedEvent = formatCalEvent(originalEvent);
   const uid: string = getUid(formattedEvent.uid);
-  const calendar = await getCalendar(credential, "booking");
+  const calendar = await getCalendar({ credential, mode: "booking" });
   let success = true;
   let calError: string | undefined;
 
@@ -464,7 +471,7 @@ export const updateEvent = async (
 
   const calEvent = processEvent(formattedEvent);
   const uid = getUid(calEvent.uid);
-  const calendar = await getCalendar(credential, "booking");
+  const calendar = await getCalendar({ credential, mode: "booking" });
   let success = false;
   let calError: string | undefined;
   let calWarnings: string[] | undefined = [];
@@ -557,7 +564,7 @@ export const deleteEvent = async ({
     );
     return Promise.resolve({});
   }
-  const calendar = await getCalendar(credential, "booking");
+  const calendar = await getCalendar({ credential, mode: "booking" });
   log.debug(
     "Deleting calendar event",
     safeStringify({

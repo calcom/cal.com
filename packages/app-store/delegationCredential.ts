@@ -323,7 +323,7 @@ export async function assertSuccessfullyConfiguredInWorkspace({
     user,
   });
 
-  const calendar = await getCalendar(credential, "none");
+  const calendar = await getCalendar({ credential, mode: "none" });
 
   if (!calendar) {
     throw new Error("Calendar App not found for the workspace platform");

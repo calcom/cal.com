@@ -16,20 +16,25 @@ const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 // only for Google Calendar for now
-export const getCalendarsEventsWithTimezones = async (
-  withCredentials: CredentialForCalendarService[],
-  dateFrom: string,
-  dateTo: string,
-  selectedCalendars: SelectedCalendar[]
-): Promise<(EventBusyDate & { timeZone: string })[][]> => {
-  const calendarCredentials = withCredentials
+export const getCalendarsEventsWithTimezones = async ({
+  credentials,
+  dateFrom,
+  dateTo,
+  selectedCalendars,
+}: {
+  credentials: CredentialForCalendarService[];
+  dateFrom: string;
+  dateTo: string;
+  selectedCalendars: SelectedCalendar[];
+}): Promise<(EventBusyDate & { timeZone: string })[][]> => {
+  const calendarCredentials = credentials
     .filter((credential) => credential.type === "google_calendar")
     // filter out invalid credentials - these won't work.
     .filter((credential) => !credential.invalid);
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      const calendar = await getCalendar(credential, "slots");
+      const calendar = await getCalendar({ credential, mode: "slots" });
       return [calendar, credential] as const;
     })
   );
@@ -88,14 +93,20 @@ export const getCalendarsEventsWithTimezones = async (
   return awaitedResults;
 };
 
-const getCalendarsEvents = async (
-  withCredentials: CredentialForCalendarService[],
-  dateFrom: string,
-  dateTo: string,
-  selectedCalendars: SelectedCalendar[],
-  mode: CalendarFetchMode
-): Promise<EventBusyDate[][]> => {
-  const calendarCredentials = withCredentials
+const getCalendarsEvents = async ({
+  credentials,
+  dateFrom,
+  dateTo,
+  selectedCalendars,
+  mode,
+}: {
+  credentials: CredentialForCalendarService[];
+  dateFrom: string;
+  dateTo: string;
+  selectedCalendars: SelectedCalendar[];
+  mode: CalendarFetchMode;
+}): Promise<EventBusyDate[][]> => {
+  const calendarCredentials = credentials
     .filter((credential) => credential.type.endsWith("_calendar"))
     // filter out invalid credentials - these won't work.
     .filter((credential) => !credential.invalid);
@@ -121,14 +132,14 @@ const getCalendarsEvents = async (
         key = credential.key;
       }
 
-      const calendar = await getCalendar(
-        {
+      const calendar = await getCalendar({
+        credential: {
           ...credential,
           // use encrypted secret to get unencrypted calendar creds
           key,
         },
-        mode
-      );
+        mode,
+      });
       return [calendar, credential] as const;
     })
   );

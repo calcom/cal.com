@@ -3,9 +3,7 @@ import dayjs from "@calcom/dayjs";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import { prisma } from "@calcom/prisma";
 import type { EventBusyDate } from "@calcom/types/Calendar";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TCalendarOverlayInputSchema } from "./calendarOverlay.schema";
 
@@ -86,13 +84,13 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
 
   // get all calendar services
   // Use "overlay" mode to bypass cache for overlay calendar availability
-  const calendarBusyTimesQuery = await getBusyCalendarTimes(
+  const calendarBusyTimesQuery = await getBusyCalendarTimes({
     credentials,
     dateFrom,
     dateTo,
-    composedSelectedCalendars,
-    "overlay"
-  );
+    selectedCalendars: composedSelectedCalendars,
+    mode: "overlay",
+  });
 
   if (!calendarBusyTimesQuery.success) {
     throw new TRPCError({
