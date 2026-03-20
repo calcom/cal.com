@@ -1499,6 +1499,55 @@ export class AvailableSlotsService {
         );
     }
 
+    // When rescheduling, filter out slots where any Cal.com guest attendee is busy
+    if (input.rescheduleUid) {
+      const bookingRepo = this.dependencies.bookingRepo;
+      const bookingToReschedule = await bookingRepo.findByUidIncludeEventTypeAttendeesAndUser({
+        bookingUid: input.rescheduleUid,
+      });
+
+      if (bookingToReschedule?.attendees?.length) {
+        const userRepo = this.dependencies.userRepo;
+        const attendeeUsers = (
+          await Promise.all(
+            bookingToReschedule.attendees.map(async (attendee) => {
+              const user = await userRepo.findByEmail({ email: attendee.email });
+              return user ? { userId: user.id, email: user.email } : null;
+            })
+          )
+        ).filter((u): u is { userId: number; email: string } => u !== null);
+
+        if (attendeeUsers.length > 0) {
+          const eventLength = input.duration || eventType.length;
+          const attendeeBusyTimes = (
+            await Promise.all(
+              attendeeUsers.map(async ({ userId, email }) => {
+                const bookings = await bookingRepo.findAcceptedBookingsByUserIdInDateRange({
+                  userId,
+                  userEmail: email,
+                  startDate: startTime.toDate(),
+                  endDate: endTime.toDate(),
+                  excludeUid: input.rescheduleUid,
+                });
+                return bookings.map((b) => ({ start: b.startTime, end: b.endTime }));
+              })
+            )
+          ).flat();
+
+          if (attendeeBusyTimes.length > 0) {
+            availableTimeSlots = availableTimeSlots.filter(
+              (slot) =>
+                !checkForConflicts({
+                  time: slot.time,
+                  busy: attendeeBusyTimes,
+                  eventLength,
+                })
+            );
+          }
+        }
+      }
+    }
+
     // fr-CA uses YYYY-MM-DD
     const formatter = new Intl.DateTimeFormat("fr-CA", {
       year: "numeric",

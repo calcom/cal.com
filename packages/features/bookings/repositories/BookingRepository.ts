@@ -2213,4 +2213,53 @@ export class BookingRepository implements IBookingRepository {
       },
     });
   }
+
+  async findAcceptedBookingsByUserIdInDateRange({
+    userId,
+    userEmail,
+    startDate,
+    endDate,
+    excludeUid,
+  }: {
+    userId: number;
+    userEmail: string;
+    startDate: Date;
+    endDate: Date;
+    excludeUid?: string | null;
+  }) {
+    const sharedWhere = {
+      status: { in: [BookingStatus.ACCEPTED] as BookingStatus[] },
+      startTime: { lte: endDate },
+      endTime: { gte: startDate },
+      ...(excludeUid ? { uid: { not: excludeUid } } : {}),
+    };
+
+    const bookingSelect = {
+      id: true,
+      uid: true,
+      startTime: true,
+      endTime: true,
+    } satisfies Prisma.BookingSelect;
+
+    const [bookingsAsHost, bookingsAsAttendee] = await Promise.all([
+      this.prismaClient.booking.findMany({
+        where: { ...sharedWhere, userId },
+        select: bookingSelect,
+      }),
+      this.prismaClient.booking.findMany({
+        where: { ...sharedWhere, attendees: { some: { email: userEmail } } },
+        select: bookingSelect,
+      }),
+    ]);
+
+    const seen = new Set<number>();
+    const allBookings = [];
+    for (const booking of [...bookingsAsHost, ...bookingsAsAttendee]) {
+      if (!seen.has(booking.id)) {
+        seen.add(booking.id);
+        allBookings.push(booking);
+      }
+    }
+    return allBookings;
+  }
 }
