@@ -1,4 +1,6 @@
 {
+  "switch_to_rich_editor": "Switch to rich text editor",
+  "switch_to_html_editor": "Switch to html editor",
   "background_jobs": "Background Jobs",
   "background_jobs_description": "Dashboard for monitoring bullmq background jobs",
   "third_party_services": "Third Party Service Providers",

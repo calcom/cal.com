@@ -3,7 +3,12 @@
 import { cn } from "@calid/features/lib/cn";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@calid/features/ui/components/collapsible";
+import { CodeEditor } from "@calid/features/ui/components/code-editor";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@calid/features/ui/components/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -46,7 +51,11 @@ import { Editor } from "@calcom/ui/components/editor";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
 import { Radio, RadioField, RadioGroup, RadioIndicator } from "@calcom/ui/components/radio";
 
-import { DYNAMIC_TEXT_VARIABLES, META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
+import {
+  CAL_ID_HTML_MARKER,
+  DYNAMIC_TEXT_VARIABLES,
+  META_DYNAMIC_TEXT_VARIABLES,
+} from "../config/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../config/utils";
 import {
   isSMSAction,
@@ -106,127 +115,89 @@ type Option = {
 type User = RouterOutputs["viewer"]["me"]["get"];
 
 const PREVIEW_TEMPLATE_KEYS = [
-  "eventTypeName",
-  "eventName",
-  "organizerName",
-  "organizerFirstName",
-  "attendeeName",
-  "attendeeFirstName",
-  "attendeeLastName",
-  "attendeeEmail",
-  "eventDate",
-  "eventStartTime",
-  "eventEndTime",
-  "timezone",
-  "location",
-  "additionalNotes",
-  "meetingUrl",
-  "onlineMeetingUrl",
-  "cancelUrl",
-  "rescheduleUrl",
-  "ratingUrl",
-  "noShowUrl",
-  "attendeeTimezone",
-  "eventStartTimeInAttendeeTimezone",
-  "eventEndTimeInAttendeeTimezone",
-  "eventTime",
-  "cancellationReason",
-  "eventTimeFormatted",
-  "responses",
+  "EVENT_TYPE_NAME",
+  "EVENT_NAME",
+  "ORGANIZER_NAME",
+  "ORGANIZER_FIRST_NAME",
+  "ATTENDEE_NAME",
+  "ATTENDEE_FIRST_NAME",
+  "ATTENDEE_LAST_NAME",
+  "ATTENDEE_EMAIL",
+  "EVENT_DATE",
+  "EVENT_TIME",
+  "START_TIME",
+  "ONLINE_MEETING_URL",
+  "EVENT_END_TIME",
+  "TIMEZONE",
+  "LOCATION",
+  "ADDITIONAL_NOTES",
+  "MEETING_URL",
+  "CANCEL_URL",
+  "RESCHEDULE_URL",
+  "RATING_URL",
+  "NO_SHOW_URL",
+  "ATTENDEE_TIMEZONE",
+  "EVENT_START_TIME_IN_ATTENDEE_TIMEZONE",
+  "EVENT_END_TIME_IN_ATTENDEE_TIMEZONE",
+  "CANCELLATION_REASON",
+  "RESPONSES",
 ] as const;
 
-const normalizeTemplateKey = (key: string): string => key.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+const evaluatePreview = (html: string, variableMapping: Record<string, any>): string => {
+  let result = html;
 
-const snakeToCamel = (value: string): string => {
-  return value.replace(/[_-\s]+([a-zA-Z0-9])/g, (_, segment: string) => segment.toUpperCase());
-};
+  Object.entries(variableMapping).forEach(([key, value]) => {
+    if (key === "RESPONSES") return;
+    if (typeof value === "string") {
+      result = result.replaceAll(`{${key}}`, value);
+    }
+  });
 
-const resolvePreviewValue = (
-  keyPath: string,
-  variables: Record<string, unknown>,
-  isUpperCaseToken = false
-): unknown => {
-  const segments = keyPath.split(".");
-  const [rawBaseKey, ...nestedKeys] = segments;
-  const normalizedBaseKey = isUpperCaseToken
-    ? snakeToCamel(rawBaseKey.toLowerCase())
-    : snakeToCamel(rawBaseKey);
-
-  const tokenAliases: Record<string, string> = {
-    organizer: "organizerName",
-    attendee: "attendeeName",
-    startTime: "eventStartTime",
-  };
-
-  let currentValue: unknown = variables[tokenAliases[normalizedBaseKey] || normalizedBaseKey];
-  for (const nestedKey of nestedKeys) {
-    if (!currentValue || typeof currentValue !== "object") return undefined;
-    currentValue = (currentValue as Record<string, unknown>)[nestedKey];
+  if (variableMapping.RESPONSES && typeof variableMapping.RESPONSES === "object") {
+    const substituteNested = (prefix: string, obj: Record<string, any>) => {
+      Object.entries(obj).forEach(([k, v]) => {
+        const tokenPath = `${prefix}.${k}`;
+        if (typeof v === "string" || typeof v === "number") {
+          result = result.replaceAll(`{${tokenPath}}`, String(v));
+        } else if (v && typeof v === "object") {
+          substituteNested(tokenPath, v);
+        }
+      });
+    };
+    substituteNested("RESPONSES", variableMapping.RESPONSES);
   }
 
-  return currentValue;
-};
-
-const previewValueToString = (value: unknown): string => {
-  if (value === null || value === undefined) return "";
-  if (value instanceof Date) return Number.isNaN(value.getTime()) ? "" : value.toISOString();
-  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
-    return String(value);
-  }
-  return "";
-};
-
-const previewIsTruthy = (value: unknown): boolean => {
-  if (value === null || value === undefined) return false;
-  if (typeof value === "string") return value.length > 0;
-  if (value instanceof Date) return !Number.isNaN(value.getTime());
-  return Boolean(value);
-};
-
-const evaluatePreview = (html: string, variableMapping: Record<string, unknown>): string => {
-  const resolvedVariables: Record<string, unknown> = {};
-  const knownKeys = [...PREVIEW_TEMPLATE_KEYS];
-
-  Object.entries(variableMapping).forEach(([rawKey, rawValue]) => {
-    if (knownKeys.includes(rawKey as (typeof PREVIEW_TEMPLATE_KEYS)[number])) {
-      resolvedVariables[rawKey] = rawValue;
-      return;
+  result = result.replace(
+    /\{#if\s+([A-Z][A-Z0-9_]*(?:\.[a-zA-Z0-9_.]+)*)\}([\s\S]*?)(?:\{else\}([\s\S]*?))?\{\/if\}/g,
+    (fullMatch, key, truthyBranch, falsyBranch) => {
+      if (truthyBranch.includes("{#if")) return fullMatch;
+      const [baseKey, ...nestedKeys] = key.split(".");
+      let value: unknown = variableMapping[baseKey];
+      for (const nk of nestedKeys) {
+        if (!value || typeof value !== "object") {
+          value = undefined;
+          break;
+        }
+        value = (value as Record<string, unknown>)[nk];
+      }
+      const truthy = value !== undefined && value !== null && value !== "";
+      return (truthy ? truthyBranch : falsyBranch ?? "").trim();
     }
+  );
 
-    const camelKey = snakeToCamel(rawKey);
-    if (knownKeys.includes(camelKey as (typeof PREVIEW_TEMPLATE_KEYS)[number])) {
-      resolvedVariables[camelKey] = rawValue;
-      return;
-    }
-
-    const normalizedInput = normalizeTemplateKey(rawKey);
-    const matchingKey = knownKeys.find((knownKey) => normalizeTemplateKey(knownKey) === normalizedInput);
-    if (matchingKey) {
-      resolvedVariables[matchingKey] = rawValue;
-    }
-  });
-
-  const conditionalPattern =
-    /\{#if\s+([a-z][a-z0-9_]*(?:\.[a-z0-9_]+)*)\}([\s\S]*?)(?:\{else\}([\s\S]*?))?\{\/if\}/g;
-
-  let processedHtml = html.replace(conditionalPattern, (full, key, truthyBranch, falsyBranch) => {
-    const hasNestedConditional =
-      truthyBranch.includes("{#if") || (typeof falsyBranch === "string" && falsyBranch.includes("{#if"));
-    if (hasNestedConditional) return full;
-
-    const conditionalValue = resolvePreviewValue(key, resolvedVariables);
-    const selectedBranch = previewIsTruthy(conditionalValue) ? truthyBranch : falsyBranch ?? "";
-    return selectedBranch.trim();
-  });
-
-  processedHtml = processedHtml.replace(/\{([A-Z][A-Z0-9_]*(?:\.[A-Z0-9_]+)*)\}/g, (_, token: string) => {
-    return previewValueToString(resolvePreviewValue(token, resolvedVariables, true));
-  });
-
-  return processedHtml.replace(/\{([a-z][a-z0-9_]*(?:\.[a-z0-9_]+)*)\}/g, (_, token: string) => {
-    return previewValueToString(resolvePreviewValue(token, resolvedVariables));
-  });
+  return result;
 };
+
+const isHtmlMarked = (content: string | null | undefined): boolean =>
+  (content ?? "").trimStart().startsWith(CAL_ID_HTML_MARKER);
+
+const stripHtmlMarker = (content: string | null | undefined): string =>
+  (content ?? "").trimStart().replace(CAL_ID_HTML_MARKER, "");
+
+const isEmailAction = (action: WorkflowActions) =>
+  action === WorkflowActions.EMAIL_ATTENDEE ||
+  action === WorkflowActions.EMAIL_HOST ||
+  action === WorkflowActions.EMAIL_ADDRESS;
 
 const VariableDropdown: React.FC<{
   onSelect: (variable: string) => void;
@@ -295,6 +266,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     name: "steps",
     defaultValue: [],
   }) as WorkflowStep[];
+  const htmlEditorVariables = useMemo(() => [...PREVIEW_TEMPLATE_KEYS], []);
 
   useEffect(() => {
     steps.map((step) => {
@@ -460,7 +432,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     [stepId: string]: string | null;
   }>({});
   const [variableMappingOpen, setVariableMappingOpen] = useState<{ [stepId: string]: boolean }>({});
-  const [rawHtmlEditorContent, setRawHtmlEditorContent] = useState<{ [stepId: string]: string }>({});
   const [previewStepId, setPreviewStepId] = useState<string | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string>("");
 
@@ -745,22 +716,18 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
           }) || [];
 
         const initialVariableMappingJson: { [key: string]: string } = {};
-        const initialRawHtmlEditorContent: { [key: string]: string } = {};
+        const defaultRawHtml: { [key: string]: boolean } = {};
         processedSteps.forEach((step) => {
           const stepId = step.id.toString();
           if (step.variableMapping && typeof step.variableMapping === "object") {
             initialVariableMappingJson[stepId] = JSON.stringify(step.variableMapping, null, 2);
           }
-          const isEmailStep =
-            step.action === WorkflowActions.EMAIL_ATTENDEE ||
-            step.action === WorkflowActions.EMAIL_HOST ||
-            step.action === WorkflowActions.EMAIL_ADDRESS;
-          if (isEmailStep && step.reminderBody) {
-            initialRawHtmlEditorContent[stepId] = step.reminderBody;
+          if (isEmailAction(step.action) && isHtmlMarked(step.reminderBody)) {
+            defaultRawHtml[stepId] = true;
           }
         });
         setVariableMappingJson(initialVariableMappingJson);
-        setRawHtmlEditorContent(initialRawHtmlEditorContent);
+        setUseRawHtmlEditor(defaultRawHtml);
 
         // Use form.reset to set all values at once
 
@@ -1095,10 +1062,6 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         const { [stepIdStr]: removed, ...rest } = prev;
         return rest;
       });
-      setRawHtmlEditorContent((prev) => {
-        const { [stepIdStr]: removed, ...rest } = prev;
-        return rest;
-      });
       if (previewStepId === stepIdStr) {
         setPreviewStepId(null);
         setPreviewHtml("");
@@ -1271,12 +1234,12 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     [form]
   );
 
-  const isEmailAction = (action: WorkflowActions) =>
-    action === WorkflowActions.EMAIL_ATTENDEE ||
-    action === WorkflowActions.EMAIL_HOST ||
-    action === WorkflowActions.EMAIL_ADDRESS;
-
   const isSMSActionType = (action: WorkflowActions) => isSMSAction(action) || isWhatsappAction(action);
+
+  const handleEditorToggle = useCallback((stepId: number) => {
+    const stepIdStr = stepId.toString();
+    setUseRawHtmlEditor((prev) => ({ ...prev, [stepIdStr]: !prev[stepIdStr] }));
+  }, []);
 
   const handleSaveWorkflow = useCallback(async () => {
     let activeOnIds: number[] = [];
@@ -2236,30 +2199,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                             <Button
                                               color="minimal"
                                               size="sm"
-                                              disabled={readOnly || step.template !== WorkflowTemplates.CUSTOM}
-                                              onClick={() => {
-                                                const isInRawMode = !!useRawHtmlEditor[stepId];
-
-                                                if (isInRawMode) {
-                                                  setRawHtmlEditorContent((prev) => ({
-                                                    ...prev,
-                                                    [stepId]: step.reminderBody || "",
-                                                  }));
-                                                } else {
-                                                  const preservedRawHtml = rawHtmlEditorContent[stepId];
-                                                  if (preservedRawHtml !== undefined) {
-                                                    updateAction(step.id, "reminderBody", preservedRawHtml);
-                                                  }
-                                                }
-
-                                                setUseRawHtmlEditor((prev) => ({
-                                                  ...prev,
-                                                  [stepId]: !prev[stepId],
-                                                }));
-                                              }}>
-                                              {useRawHtmlEditor[stepId]
-                                                ? "Switch to rich editor"
-                                                : "Switch to HTML editor"}
+                                              onClick={() => handleEditorToggle(step.id)}
+                                              disabled={readOnly}>
+                                              {useRawHtmlEditor[step.id.toString()]
+                                                ? t("switch_to_rich_editor")
+                                                : t("switch_to_html_editor")}
                                             </Button>
                                             <Button
                                               color="minimal"
@@ -2316,68 +2260,79 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                         )}
                                       </div>
                                     </div>
-                                    {isEnterprise &&
-                                    isEmailAction(step.action) &&
-                                    useRawHtmlEditor[stepId] ? (
-                                      <TextArea
-                                        rows={12}
-                                        disabled={readOnly || step.template !== WorkflowTemplates.CUSTOM}
-                                        className={cn(
-                                          "text-default border-default rounded-md border font-mono text-sm",
-                                          {
-                                            "cursor-not-allowed":
-                                              readOnly || step.template !== WorkflowTemplates.CUSTOM,
+                                    {isEnterprise && isEmailAction(step.action) && (
+                                      <div className={cn({ hidden: !useRawHtmlEditor[step.id.toString()] })}>
+                                        <CodeEditor
+                                          language="html"
+                                          value={stripHtmlMarker(step.reminderBody)}
+                                          onChange={(val) =>
+                                            updateAction(
+                                              step.id,
+                                              "reminderBody",
+                                              `${CAL_ID_HTML_MARKER}${val}`
+                                            )
                                           }
-                                        )}
-                                        value={step.reminderBody || ""}
-                                        onChange={(e) => {
-                                          const newValue = e.target.value;
-                                          setRawHtmlEditorContent((prev) => ({
-                                            ...prev,
-                                            [stepId]: newValue,
-                                          }));
-                                          updateAction(step.id, "reminderBody", newValue);
-                                        }}
-                                      />
-                                    ) : (
-                                      <div
-                                        className={cn("rounded-md border", {
-                                          "cursor-not-allowed":
-                                            readOnly || step.template !== WorkflowTemplates.CUSTOM,
-                                        })}>
-                                        <Editor
-                                          key={`editor-${step.id}-${stepTemplateUpdate}-${step.template}`}
-                                          getText={() => {
-                                            let body = step.reminderBody || "";
+                                          readOnly={readOnly}
+                                          height="300px"
+                                          variables={htmlEditorVariables}
+                                        />
+                                      </div>
+                                    )}
+                                    <div
+                                      className={cn("rounded-md border", {
+                                        hidden:
+                                          isEnterprise &&
+                                          isEmailAction(step.action) &&
+                                          useRawHtmlEditor[step.id.toString()],
+                                        "cursor-not-allowed":
+                                          readOnly || step.template !== WorkflowTemplates.CUSTOM,
+                                      })}>
+                                      <Editor
+                                        key={`editor-${step.id}-${stepTemplateUpdate}-${step.template}`}
+                                        getText={() => {
+                                          if (isEmailAction(step.action) && isHtmlMarked(step.reminderBody)) {
+                                            return (
+                                              getTemplateBodyForAction({
+                                                action: step.action,
+                                                locale: i18n.language,
+                                                t,
+                                                template: step.template,
+                                                timeFormat,
+                                              }) ?? ""
+                                            );
+                                          }
 
-                                            const isWhatsApp =
-                                              step.action === WorkflowActions.WHATSAPP_ATTENDEE ||
-                                              step.action === WorkflowActions.WHATSAPP_NUMBER;
+                                          let body = step.reminderBody || "";
 
-                                            if (!isWhatsApp) return body;
+                                          const isWhatsApp =
+                                            step.action === WorkflowActions.WHATSAPP_ATTENDEE ||
+                                            step.action === WorkflowActions.WHATSAPP_NUMBER;
 
-                                            const isTemplateMatched =
-                                              Boolean(step.metaTemplatePhoneNumberId) ===
-                                              Boolean(step.metaTemplateName);
+                                          if (!isWhatsApp) return body;
 
-                                            // Always take whatsapp body from code not from db record.
-                                            if (isWhatsApp && isTemplateMatched) {
-                                              if (!step.metaTemplateName) {
-                                                body = getTemplateBodyForAction({
-                                                  action: step.action,
-                                                  locale: i18n.language,
-                                                  t,
-                                                  template: step.template,
-                                                  timeFormat,
-                                                });
-                                              }
+                                          const isTemplateMatched =
+                                            Boolean(step.metaTemplatePhoneNumberId) ===
+                                            Boolean(step.metaTemplateName);
+
+                                          // Always take whatsapp body from code not from db record.
+                                          if (isWhatsApp && isTemplateMatched) {
+                                            if (!step.metaTemplateName) {
+                                              body = getTemplateBodyForAction({
+                                                action: step.action,
+                                                locale: i18n.language,
+                                                t,
+                                                template: step.template,
+                                                timeFormat,
+                                              });
                                             }
+                                          }
 
-                                            return isTemplateMatched
-                                              ? convertWhatsAppTemplateForDisplay(body)
-                                              : body;
-                                          }}
-                                          setText={(text: string) => {
+                                          return isTemplateMatched
+                                            ? convertWhatsAppTemplateForDisplay(body)
+                                            : body;
+                                        }}
+                                        setText={(text: string) => {
+                                          if (!useRawHtmlEditor[step.id.toString()]) {
                                             const stepIndex = steps.findIndex((s) => s.id === step.id);
                                             if (stepIndex !== -1) {
                                               form.setValue(`steps.${stepIndex}.reminderBody`, text, {
@@ -2385,20 +2340,20 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                                 shouldValidate: false,
                                               });
                                             }
-                                          }}
-                                          variables={DYNAMIC_TEXT_VARIABLES}
-                                          addVariableButtonTop={isSMSAction(step.action)}
-                                          height="200px"
-                                          editable={!readOnly && step.template === WorkflowTemplates.CUSTOM}
-                                          excludedToolbarItems={
-                                            !isSMSAction(step.action)
-                                              ? []
-                                              : ["blockType", "bold", "italic", "link"]
                                           }
-                                          plainText={isSMSAction(step.action)}
-                                        />
-                                      </div>
-                                    )}
+                                        }}
+                                        variables={DYNAMIC_TEXT_VARIABLES}
+                                        addVariableButtonTop={isSMSAction(step.action)}
+                                        height="200px"
+                                        editable={!readOnly && step.template === WorkflowTemplates.CUSTOM}
+                                        excludedToolbarItems={
+                                          !isSMSAction(step.action)
+                                            ? []
+                                            : ["blockType", "bold", "italic", "link"]
+                                        }
+                                        plainText={isSMSAction(step.action)}
+                                      />
+                                    </div>
 
                                     {isEnterprise && isEmailAction(step.action) && (
                                       <div className="mt-3">
@@ -2415,7 +2370,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                               color="minimal"
                                               size="sm"
                                               disabled={readOnly}
-                                              className="px-0">
+                                              className="pl-2">
+                                              Variable data
                                               <Icon
                                                 name={
                                                   variableMappingOpen[stepId]
@@ -2424,19 +2380,15 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                                 }
                                                 className="mr-1 h-4 w-4"
                                               />
-                                              Variable data (preview)
                                             </Button>
                                           </CollapsibleTrigger>
                                           <CollapsibleContent>
                                             <div className="mt-2 space-y-2">
                                               <Label>JSON variable data</Label>
-                                              <TextArea
-                                                rows={6}
-                                                disabled={readOnly}
-                                                className="font-mono text-sm"
+                                              <CodeEditor
+                                                language="json"
                                                 value={variableMappingJson[stepId] ?? ""}
-                                                onChange={(e) => {
-                                                  const rawJson = e.target.value;
+                                                onChange={(rawJson) => {
                                                   setVariableMappingJson((prev) => ({
                                                     ...prev,
                                                     [stepId]: rawJson,
@@ -2477,6 +2429,9 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                                     }));
                                                   }
                                                 }}
+                                                readOnly={readOnly}
+                                                height="200px"
+                                                placeholder='{ "ATTENDEE_FIRST_NAME": "Priya", "MEETING_URL": "https://...", "RESPONSES": { "store_name": { "value": "..." } } }'
                                               />
                                               {variableMappingError[stepId] && (
                                                 <p className="text-sm text-red-600">
@@ -2582,7 +2537,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
           <DialogHeader>
             <DialogTitle>Preview</DialogTitle>
           </DialogHeader>
-          <iframe srcDoc={previewHtml} className="h-96 w-full rounded border" title="Email preview" />
+          <iframe srcDoc={previewHtml} className="h-full w-full rounded border" title="Email preview" />
           <DialogFooter>
             <Button
               color="secondary"

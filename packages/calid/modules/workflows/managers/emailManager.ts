@@ -19,7 +19,7 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import type { timeUnitLowerCase } from "../config/constants";
+import { CAL_ID_HTML_MARKER, type timeUnitLowerCase } from "../config/constants";
 import type { CalIdScheduleEmailReminderAction } from "../config/types";
 import type { CalIdAttendeeInBookingInfo, CalIdBookingInfo } from "../config/types";
 import { getBatchId, sendSendgridMail } from "../providers/sendgrid";
@@ -180,8 +180,9 @@ const generateEmailContentFromTemplate = (
 ): EmailContentData => {
   const { startTime, endTime } = eventData;
   const { targetName, participantInfo, participantName, targetTimezone } = recipientDetails;
+  const strippedCustomBody = customBody?.replace(CAL_ID_HTML_MARKER, "");
 
-  if (customBody) {
+  if (strippedCustomBody) {
     const templateVariables = constructVariablesForTemplate(
       eventData,
       participantInfo!,
@@ -203,7 +204,7 @@ const generateEmailContentFromTemplate = (
       eventData.organizer.timeFormat
     );
     const processedBody = customTemplate(
-      customBody,
+      strippedCustomBody,
       templateVariables,
       userLocale,
       eventData.organizer.timeFormat,
@@ -294,7 +295,7 @@ const generateEmailContentFromTemplate = (
     default:
       return {
         emailSubject: customSubject,
-        emailBody: `<body style="white-space: pre-wrap;">${customBody}</body>`,
+        emailBody: `<body style="white-space: pre-wrap;">${strippedCustomBody}</body>`,
       };
   }
 };
