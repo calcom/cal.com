@@ -9560,6 +9560,12 @@ checksums:
     transfer_ownership_description: 84cb98226d891d5202e1e2cb4a86241d
     transfer_ownership_confirm_description: 8a8adebd58776a72c5742b4f68f63ecf
     transfer_ownership_success: 87bed8d1a5a2c331b964fe3cf18a52b1
+    recreate_ownership: ab0231727e282e3382bd49bc87de2f06
+    recreate_ownership_description: e0c2c48b3cd04a6279f825cc914f4467
+    recreate_ownership_confirm_description: 60e843da65423b5aba088294783a7975
+    recreate_ownership_success: c69c19818b1f4702fddd937d11238d22
+    no_owners_detected: 26ce8744319ef69a0617a83eb7e3009b
+    subscription_will_be_cancelled: b2c196e324b80c5f7c328aef9fd4f280
     user_already_owner: 86b030ccd573535ec6d37e3014c071d1
     user_not_team_member: 79f97c6ba946e48a674ba05b8a113d95
     abuse_rules: 954c1f25ac6b6d3253d7620fd9982d07
