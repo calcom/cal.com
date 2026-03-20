@@ -10,6 +10,7 @@ describe("AuthSessionService", () => {
   beforeEach(() => {
     mockDeps = {
       googleCalendarService: { autoInstallIfEligible: vi.fn() } as any,
+      outlookCalendarService: { autoInstallIfEligible: vi.fn() } as any,
       prisma: {
         user: { findFirst: vi.fn() },
         membership: { findUnique: vi.fn() },

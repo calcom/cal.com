@@ -5,10 +5,16 @@ import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/
 import { clientSecretVerifier, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
+  OUTLOOK_CLIENT_ID,
+  OUTLOOK_CLIENT_SECRET,
+  OUTLOOK_LOGIN_ENABLED,
+} from "@calcom/features/auth/lib/outlook";
+import {
   GOOGLE_CALENDAR_SCOPES,
   GOOGLE_OAUTH_SCOPES,
   HOSTED_CAL_FEATURES,
   IS_CALCOM,
+  MICROSOFT_CALENDAR_SCOPES,
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -26,6 +32,7 @@ import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
+import AzureADProvider from "next-auth/providers/azure-ad";
 import GoogleProvider from "next-auth/providers/google";
 import { dub } from "./dub";
 import { ErrorCode } from "./ErrorCode";
@@ -251,6 +258,33 @@ if (isSAMLLoginEnabled) {
           profile: userProfile,
           // Pass SAML tenant for domain authority checks in signIn callback (IdP-initiated flow)
           samlTenant: requested?.tenant,
+        };
+      },
+    })
+  );
+}
+
+if (OUTLOOK_LOGIN_ENABLED && OUTLOOK_CLIENT_ID && OUTLOOK_CLIENT_SECRET) {
+  providers.push(
+    AzureADProvider({
+      clientId: OUTLOOK_CLIENT_ID,
+      clientSecret: OUTLOOK_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          scope: ["openid", "profile", "email", ...MICROSOFT_CALENDAR_SCOPES].join(" "),
+          prompt: "consent",
+        },
+      },
+      // Azure AD returns base64-encoded picture data (~9KB) that bloats the JWT cookie.
+      // We exclude it here and fetch the profile photo separately via Microsoft Graph API.
+      profile(profile) {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          email_verified: true,
+          image: null,
         };
       },
     })

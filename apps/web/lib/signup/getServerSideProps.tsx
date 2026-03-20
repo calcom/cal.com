@@ -1,4 +1,5 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { IS_OUTLOOK_LOGIN_ENABLED } from "@calcom/features/auth/lib/outlook";
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { getUserRepository } from "@calcom/features/di/containers/UserRepository";
@@ -74,6 +75,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const props = {
     redirectUrl,
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
+    isOutlookLoginEnabled: IS_OUTLOOK_LOGIN_ENABLED,
     isSAMLLoginEnabled,
     prepopulateFormValues: undefined,
     emailVerificationEnabled,

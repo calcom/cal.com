@@ -6,6 +6,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { TrackingData } from "@calcom/lib/tracking";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
+import { getIdentityProvider } from "../lib/identityProviders";
 import type { AuthAccountLinkingService } from "./AuthAccountLinkingService";
 
 export interface IAuthSignInServiceDeps {
@@ -19,16 +20,6 @@ interface SignInParams {
   profile?: any;
   getTrackingData?: () => TrackingData;
 }
-
-const mapIdentityProvider = (providerName: string): IdentityProvider => {
-  switch (providerName) {
-    case "saml-idp":
-    case "saml":
-      return IdentityProvider.SAML;
-    default:
-      return IdentityProvider.GOOGLE;
-  }
-};
 
 export class AuthSignInService {
   constructor(private readonly deps: IAuthSignInServiceDeps) {}
@@ -89,7 +80,7 @@ export class AuthSignInService {
       return "/auth/error?error=unverified-email";
     }
 
-    const idP = mapIdentityProvider(account.provider);
+    const idP = getIdentityProvider(account.provider) ?? IdentityProvider.GOOGLE;
     const samlTenant = this.extractSamlTenant(user, account, profile);
 
     // Safe: email and name are validated by the guards above

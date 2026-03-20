@@ -2,11 +2,13 @@ import type { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeySer
 import type { AppLogger } from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import { IdentityProvider, type MembershipRole, type UserPermissionRole } from "@calcom/prisma/enums";
+import { type MembershipRole, type UserPermissionRole } from "@calcom/prisma/enums";
 import type { Account, Session, User } from "next-auth";
 import type { AdapterUser } from "next-auth/adapters";
 import type { JWT } from "next-auth/jwt";
+import { getIdentityProvider } from "../lib/identityProviders";
 import type { AuthGoogleCalendarService } from "./AuthGoogleCalendarService";
+import type { AuthOutlookCalendarService } from "./AuthOutlookCalendarService";
 
 type ProfileRepository = {
   findAllProfilesForUserIncludingMovedUser: (user: {
@@ -41,6 +43,7 @@ type SamlIdpUser = {
 
 export interface IAuthSessionServiceDeps {
   googleCalendarService: Pick<AuthGoogleCalendarService, "autoInstallIfEligible">;
+  outlookCalendarService: Pick<AuthOutlookCalendarService, "autoInstallIfEligible">;
   prisma: PrismaClient;
   profileRepository: ProfileRepository;
   licenseKeyService: LicenseKeyService;
@@ -169,7 +172,11 @@ export class AuthSessionService {
       return { ...token, upId: upId ?? token.upId ?? null } as JWT;
     }
 
-    const idP = account.provider === "saml" ? IdentityProvider.SAML : IdentityProvider.GOOGLE;
+    const idP = getIdentityProvider(account.provider);
+
+    if (!idP) {
+      return this.autoMergeIdentities(token);
+    }
 
     const existingUser = await this.deps.prisma.user.findFirst({
       where: {
@@ -181,9 +188,14 @@ export class AuthSessionService {
       return this.autoMergeIdentities(token);
     }
 
-    // Auto-install Google Calendar if eligible
+    // Auto-install calendar integrations if eligible
     const grantedScopes = account.scope?.split(" ") ?? [];
     await this.deps.googleCalendarService.autoInstallIfEligible({
+      userId: Number(user.id),
+      account,
+      grantedScopes,
+    });
+    await this.deps.outlookCalendarService.autoInstallIfEligible({
       userId: Number(user.id),
       account,
       grantedScopes,

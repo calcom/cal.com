@@ -9,7 +9,9 @@ import type { ResolveFunction } from "@evyweb/ioctopus";
 
 import { AuthSessionService } from "../services/AuthSessionService";
 import type { AuthGoogleCalendarService } from "../services/AuthGoogleCalendarService";
+import type { AuthOutlookCalendarService } from "../services/AuthOutlookCalendarService";
 import { moduleLoader as googleCalendarModuleLoader } from "./AuthGoogleCalendarService.module";
+import { moduleLoader as outlookCalendarModuleLoader } from "./AuthOutlookCalendarService.module";
 import { AUTH_DI_TOKENS } from "./tokens";
 
 const thisModule = createModule();
@@ -24,6 +26,9 @@ thisModule
       const googleCalendarService = resolve(
         googleCalendarModuleLoader.token
       ) as AuthGoogleCalendarService;
+      const outlookCalendarService = resolve(
+        outlookCalendarModuleLoader.token
+      ) as AuthOutlookCalendarService;
 
       const log = logger.getSubLogger({ prefix: ["AuthSessionService"] });
       const deploymentRepo = new DeploymentRepository(prisma);
@@ -39,6 +44,7 @@ thisModule
 
       return new AuthSessionService({
         googleCalendarService,
+        outlookCalendarService,
         prisma,
         profileRepository: {
           findAllProfilesForUserIncludingMovedUser:
@@ -55,6 +61,7 @@ thisModule
 const loadModule = (container: Container) => {
   prismaModuleLoader.loadModule(container);
   googleCalendarModuleLoader.loadModule(container);
+  outlookCalendarModuleLoader.loadModule(container);
   container.load(moduleToken, thisModule);
 };
 

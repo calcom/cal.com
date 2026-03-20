@@ -11,6 +11,8 @@ export const AUTH_DI_TOKENS = {
   AUTH_SESSION_SERVICE_MODULE: Symbol("AuthSessionServiceModule"),
   AUTH_GOOGLE_CALENDAR_SERVICE: Symbol("AuthGoogleCalendarService"),
   AUTH_GOOGLE_CALENDAR_SERVICE_MODULE: Symbol("AuthGoogleCalendarServiceModule"),
+  AUTH_OUTLOOK_CALENDAR_SERVICE: Symbol("AuthOutlookCalendarService"),
+  AUTH_OUTLOOK_CALENDAR_SERVICE_MODULE: Symbol("AuthOutlookCalendarServiceModule"),
   AUTH_ACCOUNT_REPOSITORY: Symbol("AuthAccountRepository"),
   AUTH_ACCOUNT_REPOSITORY_MODULE: Symbol("AuthAccountRepositoryModule"),
 };
