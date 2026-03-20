@@ -225,6 +225,16 @@ function Field({
             </div>
           ) : null}
 
+          <div className="mb-3 w-full">
+            <TextField
+              disabled={!!router}
+              label={t("map_to_booking_field")}
+              hint={t("map_to_booking_field_hint")}
+              {...hookForm.register(`${hookFieldNamespace}.mappedBookingField`)}
+              placeholder="e.g. name, email, location, notes"
+            />
+          </div>
+
           <div className="w-[106px]">
             <Controller
               name={`${hookFieldNamespace}.required`}

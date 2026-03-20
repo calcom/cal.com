@@ -84,6 +84,11 @@ export function getUrlSearchParamsToForward({
     }
     paramsFromResponse[getFieldIdentifier(foundField) as keyof typeof paramsFromResponse] =
       valueAsStringOrStringArray;
+
+    if (foundField.mappedBookingField) {
+      paramsFromResponse[foundField.mappedBookingField as keyof typeof paramsFromResponse] =
+        valueAsStringOrStringArray;
+    }
   });
 
   // Build query params from current URL. It excludes route params

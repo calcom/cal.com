@@ -32,6 +32,7 @@ export const zodNonRouterField = z.object({
   selectText: z.string().optional(),
   required: z.boolean().optional(),
   deleted: z.boolean().optional(),
+  mappedBookingField: z.string().optional(),
   options: z
     .array(
       z.object({
