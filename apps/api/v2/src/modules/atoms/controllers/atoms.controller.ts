@@ -47,7 +47,7 @@ export class AtomsController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() query: FindTeamMembersMatchingAttributeQueryDto
   ): Promise<FindTeamMembersMatchingAttributeResponseDto> {
-    const result = await this.attributesService.findTeamMembersMatchingAttribute(teamId, orgId, {
+    const result = await this.attributesService.findTeamMembersMatchingAttribute(teamId, orgId, user.id, {
       attributesQueryValue: query.attributesQueryValue,
       isPreview: query.isPreview,
       enablePerf: query.enablePerf,
