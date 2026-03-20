@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 // eslint-disable-next-line no-restricted-imports
 import dayjs from "@calcom/dayjs";
+import { resolveWorkflowStepStatus } from "@calcom/lib/workflows/resolveWorkflowStepStatus";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 
 export const isIntFilter = (value: unknown): value is Prisma.IntFilter => {
@@ -31,16 +32,6 @@ const normalizeTimeZone = (tz: string) => {
   if (tz === "Asia/Calcutta") return "Asia/Kolkata";
   return tz;
 };
-
-// Helper function to parse UTC timestamp
-export function parseUtcTimestamp(input: string | Date): number {
-  if (input instanceof Date) {
-    return input.getTime();
-  }
-
-  // If timezone is missing, force UTC
-  return Date.parse(!/[zZ]|[+-]\d\d:\d\d$/.test(input) ? `${input}Z` : input);
-}
 
 class CalIdWorkflowEventsInsights {
   static countGroupedWorkflowByStatusForRanges = async (
@@ -164,6 +155,7 @@ class CalIdWorkflowEventsInsights {
         periodStart: Date;
         remindersCount: number;
         cancelled: boolean;
+        providerCancellationStatus: string | null;
         scheduled: boolean;
         scheduledDate: Date;
         bookingUid: string;
@@ -175,6 +167,7 @@ class CalIdWorkflowEventsInsights {
       "periodStart",
       CAST(COUNT(*) AS INTEGER) AS "remindersCount",
       "cancelled",
+      "providerCancellationStatus",
       "scheduled",
       "scheduledDate",
       "bookingUid",
@@ -184,6 +177,7 @@ class CalIdWorkflowEventsInsights {
       SELECT 
         r."scheduledDate" AT TIME ZONE 'UTC' AT TIME ZONE ${safeTimeZone} AS "periodStart",
         r."cancelled",
+        r."providerCancellationStatus",
         r."scheduled",
         r."scheduledDate",
         r."workflowStepId",
@@ -193,7 +187,7 @@ class CalIdWorkflowEventsInsights {
       INNER JOIN "Booking" b ON r."bookingUid" = b."uid"
       WHERE ${Prisma.raw(remindersWhereClause)}
     ) AS filtered_reminders
-    GROUP BY "periodStart", "cancelled", "scheduled", "scheduledDate", "bookingUid", "workflowStepId", "seatReferenceId"
+    GROUP BY "periodStart", "cancelled", "providerCancellationStatus", "scheduled", "scheduledDate", "bookingUid", "workflowStepId", "seatReferenceId"
     ORDER BY "periodStart";
   `;
 
@@ -237,15 +231,13 @@ class CalIdWorkflowEventsInsights {
       }
     );
 
-    // Get current time for comparison
-    const currentTime = Date.now();
-
     // Process reminders data (only those without corresponding insights)
     remindersData.forEach(
       ({
         periodStart,
         remindersCount,
         cancelled,
+        providerCancellationStatus,
         scheduled,
         scheduledDate,
         bookingUid,
@@ -268,16 +260,12 @@ class CalIdWorkflowEventsInsights {
         const key = `${matchingRange.startDate}_${matchingRange.endDate}`;
 
         // 2. Check workflowReminder and determine status
-        const parsedScheduledDate = parseUtcTimestamp(scheduledDate);
-        let resolvedStatus: "DELIVERED" | "CANCELLED" | "QUEUED" = "QUEUED";
-
-        if (scheduled && parsedScheduledDate <= currentTime) {
-          resolvedStatus = "DELIVERED";
-        } else if (cancelled) {
-          resolvedStatus = "CANCELLED";
-        } else if (scheduled && parsedScheduledDate > currentTime) {
-          resolvedStatus = "QUEUED";
-        }
+        const resolvedStatus = resolveWorkflowStepStatus(null, {
+          cancelled,
+          providerCancellationStatus,
+          scheduled,
+          scheduledDate,
+        }) as "DELIVERED" | "CANCELLED" | "QUEUED";
         // 3. Default to QUEUED (already set above)
         aggregate[key][resolvedStatus] += Number(remindersCount);
         aggregate[key]._all += Number(remindersCount);

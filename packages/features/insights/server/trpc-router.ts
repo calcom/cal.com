@@ -1,7 +1,4 @@
-import {
-  CalIdWorkflowEventsInsights,
-  parseUtcTimestamp,
-} from "@calid/features/modules/insights/server/workflow-events";
+import { CalIdWorkflowEventsInsights } from "@calid/features/modules/insights/server/workflow-events";
 import type { CalIdMembership, Prisma } from "@prisma/client";
 import { z } from "zod";
 
@@ -16,6 +13,7 @@ import {
 } from "@calcom/features/insights/server/raw-data.schema";
 import { getInsightsRoutingService } from "@calcom/lib/di/containers/insights-routing";
 import { InsightsBookingService } from "@calcom/lib/server/service/insightsBooking";
+import { resolveWorkflowStepStatus } from "@calcom/lib/workflows/resolveWorkflowStepStatus";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
@@ -1195,6 +1193,7 @@ export const insightsRouter = router({
           scheduled: true,
           scheduledDate: true,
           cancelled: true,
+          providerCancellationStatus: true,
           workflowStepId: true,
           bookingUid: true,
           seatReferenceId: true,
@@ -1208,8 +1207,6 @@ export const insightsRouter = router({
 
       // Create a set of reminder identifiers that have corresponding insights
       const processedReminderKeys = new Set<string>();
-      const currentTime = Date.now();
-
       workflowInsights.forEach((insight) => {
         // Create a key to match reminders with insights
         const reminderKey = `${insight.bookingUid}-${insight.workflowStepId}-${
@@ -1241,13 +1238,18 @@ export const insightsRouter = router({
         if (processedReminderKeys.has(reminderKey)) {
           return;
         }
-        const { scheduled, cancelled } = reminder;
-        const parsedScheduledDate = parseUtcTimestamp(reminder.scheduledDate);
-        if (scheduled && parsedScheduledDate <= currentTime) {
+        const reminderStatus = resolveWorkflowStepStatus(null, {
+          cancelled: reminder.cancelled,
+          providerCancellationStatus: reminder.providerCancellationStatus,
+          scheduled: reminder.scheduled,
+          scheduledDate: reminder.scheduledDate,
+        });
+
+        if (reminderStatus === WorkflowStatus.DELIVERED) {
           stats.deliveredCount += 1;
-        } else if (cancelled) {
+        } else if (reminderStatus === WorkflowStatus.CANCELLED) {
           stats.cancelledCount += 1;
-        } else if (scheduled && parsedScheduledDate > currentTime) {
+        } else if (reminderStatus === WorkflowStatus.QUEUED) {
           stats.queuedCount += 1;
         }
       });
