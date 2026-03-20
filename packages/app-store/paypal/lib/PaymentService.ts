@@ -156,7 +156,7 @@ class PaypalPaymentService implements IAbstractPaymentService {
           },
           amount: payment.amount,
           currency: payment.currency,
-          data: Object.assign({}, preference) as unknown as Prisma.InputJsonValue,
+          data: Object.assign({}, { order: preference }) as unknown as Prisma.InputJsonValue,
           fee: 0,
           refunded: false,
           success: false,

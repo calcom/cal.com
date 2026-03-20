@@ -100,25 +100,24 @@ class Paypal {
       },
     };
 
-    try {
-      const response = await this.fetcher("/v2/checkout/orders", {
-        method: "POST",
-        headers: {
-          "PayPal-Request-Id": uuidv4(),
-        },
-        body: JSON.stringify(createOrderRequestBody),
-      });
+    const response = await this.fetcher("/v2/checkout/orders", {
+      method: "POST",
+      headers: {
+        "PayPal-Request-Id": uuidv4(),
+      },
+      body: JSON.stringify(createOrderRequestBody),
+    });
 
-      if (response.ok) {
-        const createOrderResponse: CreateOrderResponse = await response.json();
-        return createOrderResponse;
-      } else {
-        console.error(`Request failed with status ${response.status}`);
-      }
-    } catch (error) {
-      console.error(error);
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`PayPal order creation failed: ${response.status} ${errorBody}`);
     }
-    return {} as CreateOrderResponse;
+
+    const createOrderResponse: CreateOrderResponse = await response.json();
+    if (!createOrderResponse.id || !createOrderResponse.links?.length) {
+      throw new Error("PayPal order response missing id or links");
+    }
+    return createOrderResponse;
   }
 
   async captureOrder(orderId: string): Promise<boolean> {
