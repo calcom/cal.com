@@ -1,11 +1,13 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/create-organization-attribute.input";
 import { UpdateOrganizationAttributeInput } from "@/modules/organizations/attributes/index/inputs/update-organization-attribute.input";
@@ -38,12 +40,13 @@ import { SkipTakePagination } from "@calcom/platform-types";
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Attributes")
 @ApiHeader(API_KEY_HEADER)
 export class OrganizationsAttributesController {
   constructor(private readonly organizationsAttributesService: OrganizationAttributesService) {}
   // Gets all attributes for an organization
+  @Pbac(["organization.attributes.read"])
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   @Get("/attributes")
@@ -62,6 +65,7 @@ export class OrganizationsAttributesController {
   }
 
   // Gets a single attribute for an organization
+  @Pbac(["organization.attributes.read"])
   @Roles("ORG_MEMBER")
   @PlatformPlan("ESSENTIALS")
   @Get("/attributes/:attributeId")
@@ -78,6 +82,7 @@ export class OrganizationsAttributesController {
   }
 
   // Creates an attribute for an organization
+  @Pbac(["organization.attributes.create"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Post("/attributes")
@@ -97,6 +102,7 @@ export class OrganizationsAttributesController {
   }
 
   // Updates an attribute for an organization
+  @Pbac(["organization.attributes.update"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Patch("/attributes/:attributeId")
@@ -118,6 +124,7 @@ export class OrganizationsAttributesController {
   }
 
   // Deletes an attribute for an organization
+  @Pbac(["organization.attributes.delete"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Delete("/attributes/:attributeId")

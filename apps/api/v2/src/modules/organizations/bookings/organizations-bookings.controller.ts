@@ -8,11 +8,13 @@ import {
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Controller, UseGuards, Get, Param, ParseIntPipe, Query, HttpStatus, HttpCode } from "@nestjs/common";
@@ -25,7 +27,7 @@ import { GetBookingsOutput_2024_08_13, GetOrganizationsBookingsInput } from "@ca
   path: "/v2/organizations/:orgId/bookings",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Bookings")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -35,6 +37,7 @@ export class OrganizationsBookingsController {
 
   @Get("/")
   @ApiOperation({ summary: "Get organization bookings" })
+  @Pbac(["booking.readOrgBookings"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @HttpCode(HttpStatus.OK)

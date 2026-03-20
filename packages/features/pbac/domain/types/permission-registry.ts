@@ -453,6 +453,22 @@ export const PERMISSION_REGISTRY: PermissionRegistry = {
       scope: [Scope.Organization],
       dependsOn: ["organization.read"],
     },
+    [CrudAction.Delete]: {
+      description: "Delete organization",
+      category: "org",
+      i18nKey: "pbac_action_delete",
+      descriptionI18nKey: "pbac_desc_delete_organization",
+      scope: [Scope.Organization],
+      dependsOn: ["organization.read"],
+    },
+    [CustomAction.EditUsers]: {
+      description: "Edit organization users",
+      category: "org",
+      i18nKey: "pbac_action_edit_users",
+      descriptionI18nKey: "pbac_desc_edit_organization_users",
+      scope: [Scope.Organization],
+      dependsOn: ["organization.listMembers"],
+    },
   },
   [Resource.Booking]: {
     _resource: {

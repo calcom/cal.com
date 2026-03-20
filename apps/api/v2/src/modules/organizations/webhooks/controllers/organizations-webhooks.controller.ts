@@ -5,12 +5,14 @@ import {
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { IsWebhookInOrg } from "@/modules/auth/guards/organizations/is-webhook-in-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { OrganizationsWebhooksService } from "@/modules/organizations/webhooks/services/organizations-webhooks.service";
 import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
@@ -47,7 +49,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   path: "/v2/organizations/:orgId/webhooks",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Webhooks")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -59,6 +61,7 @@ export class OrganizationsWebhooksController {
     private webhooksService: WebhooksService
   ) {}
 
+  @Pbac(["webhook.read"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Get("/")
@@ -84,6 +87,7 @@ export class OrganizationsWebhooksController {
     };
   }
 
+  @Pbac(["webhook.create"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Post("/")
@@ -105,6 +109,7 @@ export class OrganizationsWebhooksController {
     };
   }
 
+  @Pbac(["webhook.read"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsWebhookInOrg)
@@ -121,6 +126,7 @@ export class OrganizationsWebhooksController {
     };
   }
 
+  @Pbac(["webhook.delete"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsWebhookInOrg)
@@ -137,6 +143,7 @@ export class OrganizationsWebhooksController {
     };
   }
 
+  @Pbac(["webhook.update"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsWebhookInOrg)

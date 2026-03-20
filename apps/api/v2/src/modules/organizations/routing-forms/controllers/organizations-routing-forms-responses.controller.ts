@@ -1,6 +1,7 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
@@ -8,6 +9,7 @@ import { Or } from "@/modules/auth/guards/or-guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { IsUserRoutingForm } from "@/modules/auth/guards/organizations/is-user-routing-form.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { GetRoutingFormResponsesOutput } from "@/modules/organizations/routing-forms/outputs/get-routing-form-responses.output";
 import { OrganizationsRoutingFormsResponsesService } from "@/modules/organizations/routing-forms/services/organizations-routing-forms-responses.service";
@@ -39,7 +41,7 @@ import { UpdateRoutingFormResponseOutput } from "../outputs/update-routing-form-
   path: "/v2/organizations/:orgId/routing-forms/:routingFormId/responses",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @ApiTags("Orgs / Routing forms")
 @ApiHeader(API_KEY_HEADER)
 export class OrganizationsRoutingFormsResponsesController {
@@ -49,6 +51,7 @@ export class OrganizationsRoutingFormsResponsesController {
 
   @Get("/")
   @ApiOperation({ summary: "Get routing form responses" })
+  @Pbac(["routingForm.read"])
   @Roles("ORG_ADMIN")
   @UseGuards(RolesGuard)
   @PlatformPlan("ESSENTIALS")
@@ -76,6 +79,7 @@ export class OrganizationsRoutingFormsResponsesController {
 
   @Post("/")
   @ApiOperation({ summary: "Create routing form response and get available slots" })
+  @Pbac(["routingForm.create"])
   @Roles("ORG_ADMIN")
   @UseGuards(Or([RolesGuard, IsUserRoutingForm]))
   @PlatformPlan("ESSENTIALS")
@@ -99,6 +103,7 @@ export class OrganizationsRoutingFormsResponsesController {
 
   @Patch("/:responseId")
   @ApiOperation({ summary: "Update routing form response" })
+  @Pbac(["routingForm.update"])
   @Roles("ORG_ADMIN")
   @UseGuards(RolesGuard)
   @PlatformPlan("ESSENTIALS")

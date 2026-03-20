@@ -6,11 +6,13 @@ import {
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { UpdateDelegationCredentialInput } from "@/modules/organizations/delegation-credentials/inputs/update-delegation-credential.input";
 import { CreateDelegationCredentialOutput } from "@/modules/organizations/delegation-credentials/outputs/create-delegation-credential.output";
@@ -40,7 +42,7 @@ import { CreateDelegationCredentialInput } from "./inputs/create-delegation-cred
   path: "/v2/organizations/:orgId/delegation-credentials",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Delegation Credentials")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -50,6 +52,7 @@ export class OrganizationsDelegationCredentialController {
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
+  @Pbac(["organization.update"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
   @ApiOperation({ summary: "Save delegation credentials for your organization" })
@@ -70,6 +73,7 @@ export class OrganizationsDelegationCredentialController {
   }
 
   @Patch("/:credentialId")
+  @Pbac(["organization.update"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("SCALE")
   @ApiOperation({ summary: "Update delegation credentials of your organization" })
