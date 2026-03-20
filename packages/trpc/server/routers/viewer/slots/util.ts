@@ -1506,7 +1506,10 @@ export class AvailableSlotsService {
         bookingUid: input.rescheduleUid,
       });
 
-      if (bookingToReschedule?.attendees?.length) {
+      if (bookingToReschedule?.eventType?.id !== eventType.id) {
+        // Skip guest filtering — booking doesn't belong to the current event type,
+        // so we cannot trust it to suppress slots.
+      } else if (bookingToReschedule?.attendees?.length) {
         const userRepo = this.dependencies.userRepo;
         const attendeeUsers = (
           await Promise.all(
