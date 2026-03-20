@@ -25,14 +25,14 @@ export type DzyloContact = {
 
 const BASE_URL = `https://cal-webhook.dzylo.com/api`;
 
-export default class DzyloCrmService implements CRM {
+class DzyloCrmService implements CRM {
   private integrationName = "";
   private auth: Promise<{ getToken: () => Promise<void> }>;
   private client_id = "";
   private client_secret = "";
   private accessToken = "";
 
-  constructor(credential: CredentialPayload, _appOptions?: Record<string, unknown>) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "dzylo_crm";
     this.auth = this.dzyloAuth(credential).then((r) => r);
   }
@@ -299,3 +299,10 @@ export default class DzyloCrmService implements CRM {
 const toEpochSecondsUTC = (date: Date) => {
   return Math.floor(date.getTime() / 1000);
 };
+
+export default function BuildCrmService(
+  credential: CredentialPayload,
+  _appOptions?: Record<string, unknown>
+): CRM {
+  return new DzyloCrmService(credential);
+}
