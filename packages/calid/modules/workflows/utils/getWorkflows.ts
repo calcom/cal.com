@@ -6,7 +6,7 @@ import { WorkflowMethods } from "@calcom/prisma/enums";
 import type { CalIdWorkflow, CalIdWorkflowStep } from "../config/types";
 
 type PartialCalIdWorkflowStep =
-  | (Partial<CalIdWorkflowStep> & { workflow: { id?: number, userId?: number; calIdTeamId?: number } })
+  | (Partial<CalIdWorkflowStep> & { workflow: { id?: number; userId?: number; calIdTeamId?: number } })
   | null;
 
 type Booking = Prisma.BookingGetPayload<{
@@ -109,13 +109,18 @@ export async function getAllRemindersToDelete(): Promise<RemindersToDeleteType[]
   return candidatesForDeletion;
 }
 
-type RemindersToCancelType = { referenceId: string | null; id: number };
+type RemindersToCancelType = {
+  referenceId: string | null;
+  id: number;
+  providerCancellationStatus: string | null;
+};
 
 export async function getAllRemindersToCancel(): Promise<RemindersToCancelType[]> {
   const cancellationCriteria: Prisma.CalIdWorkflowReminderWhereInput = {
     method: WorkflowMethods.EMAIL,
     cancelled: true,
     scheduled: true,
+    OR: [{ providerCancellationStatus: null }, { providerCancellationStatus: "pending" }],
     scheduledDate: {
       lte: dayjs().add(1, "hour").toISOString(),
       gte: dayjs().toISOString(),
@@ -125,6 +130,7 @@ export async function getAllRemindersToCancel(): Promise<RemindersToCancelType[]
   const requiredFields: Prisma.CalIdWorkflowReminderSelect = {
     referenceId: true,
     id: true,
+    providerCancellationStatus: true,
   };
 
   const candidatesForCancellation = await fetchRemindersBatch(cancellationCriteria, requiredFields);

@@ -634,7 +634,7 @@ async function rescheduleExistingReminders(
       teamId: workflow.calIdTeamId,
     });
 
-    await deleteScheduledEmailReminder(reminder.id);
+    await deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
   }
 }
 
