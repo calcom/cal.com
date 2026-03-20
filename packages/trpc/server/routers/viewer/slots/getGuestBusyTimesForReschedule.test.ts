@@ -1,4 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@calcom/lib/i18n", () => ({
+  locales: ["en"],
+  localeOptions: [{ value: "en", label: "English" }],
+  defaultLocaleOption: { value: "en", label: "English" },
+}));
+
 import type { GuestBusyTimesDeps } from "./util";
 import { getGuestBusyTimesForReschedule } from "./util";
 

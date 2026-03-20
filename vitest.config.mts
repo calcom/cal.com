@@ -68,6 +68,11 @@ export default defineConfig({
           "vitest-mocks/tailwind.generated.css"
         ),
       },
+      // Subpath exports that Vitest cannot resolve via deps.inline
+      {
+        find: "@calcom/i18n/server",
+        replacement: path.resolve(__dirname, "packages/i18n/server.ts"),
+      },
       // Alias Node.js built-ins for jsdom environment
       { find: "crypto", replacement: "node:crypto" },
       // API v1 path alias
