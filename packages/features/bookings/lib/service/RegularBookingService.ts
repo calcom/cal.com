@@ -2475,6 +2475,7 @@ async function handler(
     rescheduledBy: reqBody.rescheduledBy,
     location: webhookLocation,
     ...(assignmentReason ? { assignmentReason: [assignmentReason] } : {}),
+    ...(evt.attendeeSeatId ? { attendeeSeatId: evt.attendeeSeatId } : {}),
   };
 
   if (bookingRequiresPayment) {
