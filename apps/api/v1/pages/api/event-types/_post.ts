@@ -280,8 +280,8 @@ async function postHandler(req: NextApiRequest) {
 
   let data: Prisma.EventTypeCreateArgs["data"] = {
     ...parsedBody,
-    userId: !!parsedBody.teamId ? null : userId,
-    users: !!parsedBody.teamId ? undefined : { connect: { id: userId } },
+    userId: parsedBody.teamId ? null : userId,
+    users: parsedBody.teamId ? undefined : { connect: { id: userId } },
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
     locations: locations === null ? Prisma.DbNull : locations,
@@ -305,6 +305,10 @@ async function postHandler(req: NextApiRequest) {
 
   if (isSystemWideAdmin && userId && parsedBody.teamId === undefined) {
     data = { ...parsedBody, users: { connect: { id: userId } } };
+  }
+
+  if (parsedBody.successRedirectUrl) {
+    data.successRedirectUrlUpdatedAt = new Date();
   }
 
   await checkTeamEventEditPermission(req, parsedBody);

@@ -58,6 +58,7 @@ export const eventTypeSelect = {
   currency: true,
   slotInterval: true,
   successRedirectUrl: true,
+  successRedirectUrlUpdatedAt: true,
   isInstantEvent: true,
   instantMeetingExpiryTimeOffsetInSeconds: true,
   instantMeetingParameters: true,

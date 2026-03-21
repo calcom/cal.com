@@ -5,6 +5,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import { sanitizePaymentDataForClient } from "@calcom/features/ee/payments/pages/sanitizePaymentDataForClient";
 import { shouldHideBrandingForEvent } from "@calcom/features/profile/lib/hideBranding";
+import { shouldSkipRedirectWarning } from "@calcom/features/eventtypes/lib/successRedirectUrlAllowed";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
@@ -78,12 +80,24 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
+  const ownerOrgId = eventType.users[0]?.id
+    ? await ProfileRepository.findFirstOrganizationIdForUser({ userId: eventType.users[0].id })
+    : null;
+  const orgId = eventType.team?.parentId ?? ownerOrgId;
+
+  const skipRedirectWarning = await shouldSkipRedirectWarning({
+    orgId,
+    successRedirectUrl: eventType.successRedirectUrl,
+    successRedirectUrlUpdatedAt: eventType.successRedirectUrlUpdatedAt,
+  });
+
   return {
     props: {
       user: { ...user, orgAwareUsername },
       eventType: {
         ...eventType,
         metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+        skipRedirectWarning,
       },
       booking,
       payment: {

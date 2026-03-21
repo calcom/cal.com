@@ -242,6 +242,13 @@ export async function patchHandler(req: NextApiRequest) {
     if (!redirectUrlCheck.allowed) {
       throw new HttpError({ statusCode: 403, message: redirectUrlCheck.reason });
     }
+    const existing = await prisma.eventType.findUnique({
+      where: { id },
+      select: { successRedirectUrl: true },
+    });
+    if (parsedBody.successRedirectUrl !== existing?.successRedirectUrl) {
+      data.successRedirectUrlUpdatedAt = new Date();
+    }
   }
 
   const eventType = await prisma.eventType.update({ where: { id }, data, select: eventTypeSelect });

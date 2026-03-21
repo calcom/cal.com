@@ -119,6 +119,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           field: true,
         },
       },
+      successRedirectUrl: true,
       isRRWeightsEnabled: true,
       hosts: {
         select: {
@@ -272,6 +273,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     ...(enablePerHostLocations !== undefined && { enablePerHostLocations }),
     ...(shouldMergePhoneSystemFields !== undefined && { shouldMergePhoneSystemFields }),
   };
+  if (rest.successRedirectUrl && rest.successRedirectUrl !== eventType.successRedirectUrl) {
+    data.successRedirectUrlUpdatedAt = new Date();
+  }
+
   data.locations = locations ?? undefined;
 
   if (periodType) {

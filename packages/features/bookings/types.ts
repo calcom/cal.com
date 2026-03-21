@@ -74,6 +74,7 @@ export type BookerEvent = Pick<
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;
   enablePerHostLocations?: boolean;
+  skipRedirectWarning?: boolean;
 } & { profile: BookerEventProfile };
 
 export type EventPrice = { currency: string; price: number; displayAlternateSymbol?: boolean };

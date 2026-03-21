@@ -77,6 +77,7 @@ const commons = {
   schedule: null,
   timeZone: null,
   successRedirectUrl: "",
+  successRedirectUrlUpdatedAt: null,
   forwardParamsSuccessRedirect: true,
   teamId: null,
   scheduleId: null,

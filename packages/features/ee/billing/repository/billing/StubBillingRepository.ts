@@ -3,6 +3,7 @@ import type {
   IBillingRepository,
   IBillingRepositoryCreateArgs,
   IBillingRepositoryUpdateArgs,
+  SubscriptionStatus,
 } from "./IBillingRepository";
 
 export class StubBillingRepository implements IBillingRepository {
@@ -24,6 +25,10 @@ export class StubBillingRepository implements IBillingRepository {
   }
 
   async findByTeamId(_teamId: number): Promise<string | null> {
+    return null;
+  }
+
+  async findStatusByTeamId(_teamId: number): Promise<SubscriptionStatus | null> {
     return null;
   }
 

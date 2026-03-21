@@ -65,6 +65,7 @@ export const paymentDataSelect = {
             select: {
               name: true,
               hideBranding: true,
+              parentId: true,
               parent: {
                 select: {
                   hideBranding: true,
@@ -75,6 +76,7 @@ export const paymentDataSelect = {
           price: true,
           currency: true,
           successRedirectUrl: true,
+          successRedirectUrlUpdatedAt: true,
           forwardParamsSuccessRedirect: true,
         },
       },

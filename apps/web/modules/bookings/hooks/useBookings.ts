@@ -45,6 +45,7 @@ export interface IUseBookings {
           | "length"
           | "recurringEvent"
           | "schedulingType"
+          | "skipRedirectWarning"
         > & {
           subsetOfUsers: Pick<
             BookerEvent["subsetOfUsers"][number],
@@ -185,7 +186,12 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
   );
   const timeslot = useBookerStoreContext((state) => state.selectedTimeslot);
   const { t } = useLocale();
-  const bookingSuccessRedirect = useBookingSuccessRedirect();
+  const {
+    bookingSuccessRedirect,
+    pendingRedirect,
+    confirmRedirect,
+    goBackToSuccessPage,
+  } = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
 
   const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
@@ -391,6 +397,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
           event?.data?.forwardParamsSuccessRedirect === undefined
             ? true
             : event?.data?.forwardParamsSuccessRedirect,
+        skipRedirectWarning: event?.data?.skipRedirectWarning,
       });
     },
     onError: (err) => {
@@ -520,6 +527,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
           event?.data?.forwardParamsSuccessRedirect === undefined
             ? true
             : event?.data?.forwardParamsSuccessRedirect,
+        skipRedirectWarning: event?.data?.skipRedirectWarning,
       });
     },
     onError: (err, _, ctx) => {
@@ -580,5 +588,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, isBookin
     instantVideoMeetingUrl,
     instantConnectCooldownMs,
     bookingUid,
+    pendingRedirect,
+    confirmRedirect,
+    goBackToSuccessPage,
   };
 };

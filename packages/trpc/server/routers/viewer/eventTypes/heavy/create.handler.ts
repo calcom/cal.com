@@ -163,6 +163,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         message: redirectUrlCheck.reason,
       });
     }
+    data.successRedirectUrlUpdatedAt = new Date();
   }
 
   const profile = ctx.user.profile;

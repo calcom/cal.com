@@ -1,4 +1,5 @@
 import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
@@ -184,81 +185,139 @@ export const useBookingSuccessRedirect = () => {
   const router = useRouter();
   const searchParams = useCompatSearchParams();
   const isEmbed = useIsEmbed();
-  const bookingSuccessRedirect = ({
-    successRedirectUrl,
-    query,
-    booking,
-    forwardParamsSuccessRedirect,
-    redirectUrlOnNoRoutingFormResponse,
-  }: {
-    successRedirectUrl: EventType["successRedirectUrl"];
-    forwardParamsSuccessRedirect: EventType["forwardParamsSuccessRedirect"];
-    redirectUrlOnNoRoutingFormResponse?: EventType["redirectUrlOnNoRoutingFormResponse"];
-    query: Record<string, string | null | undefined | boolean>;
-    booking: SuccessRedirectBookingType;
-  }) => {
-    // Ensures that the param is added both to external redirect url and booking success page URL
-    query = {
-      ...query,
-      "cal.rerouting": searchParams.get("cal.rerouting"),
-    };
+  const [pendingRedirect, setPendingRedirect] = useState<{
+    url: string;
+    bookingUid: SuccessRedirectBookingType["uid"];
+  } | null>(null);
 
-    // Check if there's no routing form response and redirect URL is configured
-    const hasRoutingFormResponse =
-      searchParams.get("cal.routingFormResponseId") || searchParams.get("cal.queuedFormResponseId");
+  const initiateRedirect = useCallback(
+    ({
+      finalUrl,
+      bookingUid,
+      skipRedirectWarning,
+    }: {
+      finalUrl: string;
+      bookingUid: SuccessRedirectBookingType["uid"];
+      skipRedirectWarning?: boolean;
+    }) => {
+      if (skipRedirectWarning || isEmbed) {
+        navigateInTopWindow(finalUrl);
+      } else {
+        setPendingRedirect({ url: finalUrl, bookingUid });
+      }
+    },
+    [isEmbed]
+  );
 
-    if (!hasRoutingFormResponse && redirectUrlOnNoRoutingFormResponse) {
-      const url = new URL(redirectUrlOnNoRoutingFormResponse);
-      navigateInTopWindow(url.toString());
-      return;
-    }
+  const bookingSuccessRedirect = useCallback(
+    ({
+      successRedirectUrl,
+      query,
+      booking,
+      forwardParamsSuccessRedirect,
+      redirectUrlOnNoRoutingFormResponse,
+      skipRedirectWarning,
+    }: {
+      successRedirectUrl: EventType["successRedirectUrl"];
+      forwardParamsSuccessRedirect: EventType["forwardParamsSuccessRedirect"];
+      redirectUrlOnNoRoutingFormResponse?: EventType["redirectUrlOnNoRoutingFormResponse"];
+      query: Record<string, string | null | undefined | boolean>;
+      booking: SuccessRedirectBookingType;
+      skipRedirectWarning?: boolean;
+    }) => {
+      // Ensures that the param is added both to external redirect url and booking success page URL
+      query = {
+        ...query,
+        "cal.rerouting": searchParams.get("cal.rerouting"),
+      };
 
-    if (successRedirectUrl) {
-      const url = new URL(successRedirectUrl);
-      // Using parent ensures, Embed iframe would redirect outside of the iframe.
-      if (!forwardParamsSuccessRedirect) {
-        navigateInTopWindow(url.toString());
+      // Check if there's no routing form response and redirect URL is configured
+      const hasRoutingFormResponse =
+        searchParams.get("cal.routingFormResponseId") || searchParams.get("cal.queuedFormResponseId");
+
+      if (!hasRoutingFormResponse && redirectUrlOnNoRoutingFormResponse) {
+        const url = new URL(redirectUrlOnNoRoutingFormResponse);
+        initiateRedirect({
+          finalUrl: url.toString(),
+          bookingUid: booking.uid,
+          skipRedirectWarning,
+        });
         return;
       }
 
-      const bookingExtraParams = getBookingRedirectExtraParams(booking);
-
-      // Filter internal Cal.com params when redirecting to external URLs.
-      // - It prevents leaking internal state.
-      // - Certain websites might break due to the presence of certain params e.g. Wordpress has different meaning for `embed` param and an embed param passed by Cal.com breaks a wordpress webpage
-      const newSearchParams = getNewSearchParams({
-        query: {
-          ...query,
-          ...bookingExtraParams,
-          isEmbed,
-        },
-        searchParams: new URLSearchParams(searchParams.toString()),
-        filterInternalParams: true,
-      });
-
-      newSearchParams.forEach((value, key) => {
-        url.searchParams.append(key, value);
-      });
-
-      navigateInTopWindow(url.toString());
-      return;
-    }
-
-    // TODO: Abstract it out and reuse at other places where we navigate within the embed. Though this is needed only in case of hard navigation happening but we aren't sure where hard navigation happens and where a soft navigation
-    // This is specially true after App Router it seems
-    const headersRelatedSearchParams = searchParams
-      ? {
-          "flag.coep": searchParams.get("flag.coep") ?? "false",
+      if (successRedirectUrl) {
+        const url = new URL(successRedirectUrl);
+        // Using parent ensures, Embed iframe would redirect outside of the iframe.
+        if (!forwardParamsSuccessRedirect) {
+          initiateRedirect({
+            finalUrl: url.toString(),
+            bookingUid: booking.uid,
+            skipRedirectWarning,
+          });
+          return;
         }
-      : undefined;
 
-    // We don't want to forward all search params, as they could possibly break the booking page.
-    const newSearchParams = getNewSearchParams({
-      query,
-      searchParams: new URLSearchParams(headersRelatedSearchParams),
-    });
-    return router.push(`/booking/${booking.uid}${isEmbed ? "/embed" : ""}?${newSearchParams.toString()}`);
-  };
+        const bookingExtraParams = getBookingRedirectExtraParams(booking);
 
-  return bookingSuccessRedirect;
+        // Filter internal Cal.com params when redirecting to external URLs.
+        // - It prevents leaking internal state.
+        // - Certain websites might break due to the presence of certain params e.g. Wordpress has different meaning for `embed` param and an embed param passed by Cal.com breaks a wordpress webpage
+        const newSearchParams = getNewSearchParams({
+          query: {
+            ...query,
+            ...bookingExtraParams,
+            isEmbed,
+          },
+          searchParams: new URLSearchParams(searchParams.toString()),
+          filterInternalParams: true,
+        });
+
+        newSearchParams.forEach((value, key) => {
+          url.searchParams.append(key, value);
+        });
+
+        initiateRedirect({
+          finalUrl: url.toString(),
+          bookingUid: booking.uid,
+          skipRedirectWarning,
+        });
+        return;
+      }
+
+      // TODO: Abstract it out and reuse at other places where we navigate within the embed. Though this is needed only in case of hard navigation happening but we aren't sure where hard navigation happens and where a soft navigation
+      // This is specially true after App Router it seems
+      const headersRelatedSearchParams = searchParams
+        ? {
+            "flag.coep": searchParams.get("flag.coep") ?? "false",
+          }
+        : undefined;
+
+      // We don't want to forward all search params, as they could possibly break the booking page.
+      const newSearchParams = getNewSearchParams({
+        query,
+        searchParams: new URLSearchParams(headersRelatedSearchParams),
+      });
+      return router.push(`/booking/${booking.uid}${isEmbed ? "/embed" : ""}?${newSearchParams.toString()}`);
+    },
+    [searchParams, isEmbed, router, initiateRedirect]
+  );
+
+  const confirmRedirect = useCallback(() => {
+    if (pendingRedirect) {
+      navigateInTopWindow(pendingRedirect.url);
+      setPendingRedirect(null);
+    }
+  }, [pendingRedirect]);
+
+  const goBackToSuccessPage = useCallback(() => {
+    if (pendingRedirect) {
+      if (pendingRedirect.bookingUid) {
+        const embedSuffix = isEmbed ? "/embed" : "";
+        router.push(`/booking/${pendingRedirect.bookingUid}${embedSuffix}`);
+      }
+      setPendingRedirect(null);
+    }
+  }, [router, isEmbed, pendingRedirect]);
+
+  return { bookingSuccessRedirect, pendingRedirect, confirmRedirect, goBackToSuccessPage };
 };

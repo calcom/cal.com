@@ -7,6 +7,7 @@ import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
+import { ExternalRedirectInterstitial } from "@calcom/features/bookings/components/ExternalRedirectInterstitial";
 import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -26,6 +27,7 @@ export type Props = {
     id: number;
     successRedirectUrl: EventType["successRedirectUrl"];
     forwardParamsSuccessRedirect: EventType["forwardParamsSuccessRedirect"];
+    skipRedirectWarning?: boolean;
   };
   user: {
     username: string | null;
@@ -142,7 +144,8 @@ const PaymentForm = (props: Props) => {
   const stripe = useStripe();
   const elements = useElements();
   const paymentOption = props.payment.paymentOption;
-  const bookingSuccessRedirect = useBookingSuccessRedirect();
+  const { bookingSuccessRedirect, pendingRedirect, confirmRedirect, goBackToSuccessPage } =
+    useBookingSuccessRedirect();
 
   const handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
@@ -213,27 +216,36 @@ const PaymentForm = (props: Props) => {
         query: params,
         booking: props.booking,
         forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
+        skipRedirectWarning: props.eventType.skipRedirectWarning,
       });
     }
   };
 
   return (
-    <PaymentFormComponent
-      {...props}
-      elements={elements}
-      paymentOption={paymentOption}
-      state={state}
-      onSubmit={handleSubmit}
-      onCancel={() => {
-        if (orgAwareUsername) {
-          return router.push(`/${orgAwareUsername}`);
-        }
-        return router.back();
-      }}
-      onPaymentElementChange={() => {
-        setState({ status: "idle" });
-      }}
-    />
+    <>
+      <PaymentFormComponent
+        {...props}
+        elements={elements}
+        paymentOption={paymentOption}
+        state={state}
+        onSubmit={handleSubmit}
+        onCancel={() => {
+          if (orgAwareUsername) {
+            return router.push(`/${orgAwareUsername}`);
+          }
+          return router.back();
+        }}
+        onPaymentElementChange={() => {
+          setState({ status: "idle" });
+        }}
+      />
+      <ExternalRedirectInterstitial
+        isOpen={!!pendingRedirect}
+        redirectUrl={pendingRedirect?.url ?? ""}
+        onContinue={confirmRedirect}
+        onGoBack={goBackToSuccessPage}
+      />
+    </>
   );
 };
 

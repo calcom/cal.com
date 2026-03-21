@@ -4,10 +4,12 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { shouldSkipRedirectWarning } from "@calcom/features/eventtypes/lib/successRedirectUrlAllowed";
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getDefaultEvent, getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getOrgOrTeamAvatar, getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -127,6 +129,7 @@ export const getPublicEventSelect = (fetchAllUsers: boolean) => {
       },
     },
     successRedirectUrl: true,
+    successRedirectUrlUpdatedAt: true,
     forwardParamsSuccessRedirect: true,
     redirectUrlOnNoRoutingFormResponse: true,
     workflows: {
@@ -387,6 +390,7 @@ export const getPublicEvent = async (
       showInstantEventConnectNowModal: false,
       autoTranslateDescriptionEnabled: false,
       fieldTranslations: [],
+      skipRedirectWarning: false,
     };
   }
 
@@ -557,6 +561,14 @@ export const getPublicEvent = async (
     isDunningBlocked = !result.allowed;
   }
 
+  const orgId = event.team?.parentId ?? eventWithUserProfiles.owner?.profile?.organization?.id ?? null;
+
+  const skipRedirectWarning = await shouldSkipRedirectWarning({
+    orgId,
+    successRedirectUrl: event.successRedirectUrl,
+    successRedirectUrlUpdatedAt: event.successRedirectUrlUpdatedAt,
+  });
+
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -607,6 +619,7 @@ export const getPublicEvent = async (
     interfaceLanguage: event.interfaceLanguage,
     restrictionScheduleId: event.restrictionScheduleId,
     useBookerTimezone: event.useBookerTimezone,
+    skipRedirectWarning,
   };
 };
 
@@ -768,6 +781,17 @@ export const processEventDataShared = async ({
     });
   }
 
+  const ownerOrgId = eventData.owner?.id
+    ? await ProfileRepository.findFirstOrganizationIdForUser({ userId: eventData.owner.id })
+    : null;
+  const orgId = eventData.team?.parentId ?? ownerOrgId;
+
+  const skipRedirectWarning = await shouldSkipRedirectWarning({
+    orgId,
+    successRedirectUrl: eventData.successRedirectUrl,
+    successRedirectUrlUpdatedAt: eventData.successRedirectUrlUpdatedAt,
+  });
+
   return {
     ...eventData,
     bookerLayouts: bookerLayoutsSchema.parse(metadata?.bookerLayouts || null),
@@ -781,5 +805,6 @@ export const processEventDataShared = async ({
       : null,
     isDynamic: false,
     showInstantEventConnectNowModal,
+    skipRedirectWarning,
   };
 };

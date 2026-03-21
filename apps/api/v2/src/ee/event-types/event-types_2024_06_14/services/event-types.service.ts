@@ -237,7 +237,10 @@ export class EventTypesService_2024_06_14 {
     return await getEventTypesPublic(user.id);
   }
 
-  async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14, authUser?: AuthOptionalUser) {
+  async getEventTypes(
+    queryParams: GetEventTypesQuery_2024_06_14,
+    authUser?: AuthOptionalUser
+  ): Promise<(DatabaseEventType & { ownerId: number })[]> {
     const { username, eventSlug, usernames, orgSlug, orgId, sortCreatedAt } = queryParams;
     if (username && eventSlug) {
       const eventType = await this.getEventTypeByUsernameAndSlug({

@@ -149,6 +149,8 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       eventTypeColor: eventTypeColor ?? undefined,
       customReplyToEmail: customReplyToEmail ?? undefined,
       successRedirectUrl: canUseSuccessRedirectUrl ? successRedirectUrl : null,
+      successRedirectUrlUpdatedAt:
+        canUseSuccessRedirectUrl && successRedirectUrl ? eventType.successRedirectUrlUpdatedAt : null,
       metadata: metadata === null ? Prisma.DbNull : metadata,
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
       rrSegmentQueryValue:

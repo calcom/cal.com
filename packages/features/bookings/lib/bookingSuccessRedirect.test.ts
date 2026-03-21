@@ -8,6 +8,26 @@ import { useBookingSuccessRedirect, getNewSearchParams } from "./bookingSuccessR
 
 const mockPush = vi.fn();
 
+let mockState: { url: string; bookingUid: string } | null | undefined = undefined;
+vi.mock("react", async () => {
+  const actual = await vi.importActual<typeof import("react")>("react");
+  return {
+    ...actual,
+    useState: (initial: unknown) => {
+      if (mockState === undefined) {
+        mockState = initial as typeof mockState;
+      }
+      return [
+        mockState,
+        (val: typeof mockState) => {
+          mockState = typeof val === "function" ? (val as (prev: typeof mockState) => typeof mockState)(mockState) : val;
+        },
+      ];
+    },
+    useCallback: (fn: unknown) => fn,
+  };
+});
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: mockPush,
@@ -287,6 +307,7 @@ describe("getNewSearchParams", () => {
 describe("useBookingSuccessRedirect", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockState = undefined;
     vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams() as any);
     vi.mocked(useIsEmbed).mockReturnValue(false);
   });
@@ -295,8 +316,8 @@ describe("useBookingSuccessRedirect", () => {
 
   describe("external redirects", () => {
     describe("without forwardParamsSuccessRedirect", () => {
-      it("redirects to external URL without any parameters", () => {
-        const bookingSuccessRedirect = useBookingSuccessRedirect();
+      it("sets pendingRedirect for external URL", () => {
+        const { bookingSuccessRedirect } = useBookingSuccessRedirect();
 
         bookingSuccessRedirect({
           successRedirectUrl: "https://example.com/success",
@@ -305,7 +326,8 @@ describe("useBookingSuccessRedirect", () => {
           booking: mockBooking,
         });
 
-        expect(navigateInTopWindow).toHaveBeenCalledWith("https://example.com/success");
+        expect(navigateInTopWindow).not.toHaveBeenCalled();
+        expect(mockState).toEqual({ url: "https://example.com/success", bookingUid: "test-booking-uid" });
       });
     });
 
@@ -353,7 +375,7 @@ describe("useBookingSuccessRedirect", () => {
           vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams(searchParams) as any);
         }
 
-        const bookingSuccessRedirect = useBookingSuccessRedirect();
+        const { bookingSuccessRedirect } = useBookingSuccessRedirect();
 
         bookingSuccessRedirect({
           successRedirectUrl: "https://example.com/success",
@@ -362,15 +384,14 @@ describe("useBookingSuccessRedirect", () => {
           booking: mockBooking,
         });
 
-        const calledUrl = vi.mocked(navigateInTopWindow).mock.calls[0][0];
-        const url = new URL(calledUrl);
+        expect(navigateInTopWindow).not.toHaveBeenCalled();
+        expect(mockState).not.toBeNull();
+        const url = new URL(mockState!.url);
 
-        // Check expected present params (allow for additional booking params)
         Object.entries(expectedPresent).forEach(([key, value]) => {
           expect(url.searchParams.get(key)).toBe(value);
         });
 
-        // Check expected null params
         expectedNull.forEach((param) => {
           expect(url.searchParams.get(param)).toBeNull();
         });
@@ -379,7 +400,7 @@ describe("useBookingSuccessRedirect", () => {
       it("includes cal.rerouting param from searchParams", () => {
         vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams("cal.rerouting=true") as any);
 
-        const bookingSuccessRedirect = useBookingSuccessRedirect();
+        const { bookingSuccessRedirect } = useBookingSuccessRedirect();
 
         bookingSuccessRedirect({
           successRedirectUrl: "https://example.com/success",
@@ -388,8 +409,8 @@ describe("useBookingSuccessRedirect", () => {
           booking: mockBooking,
         });
 
-        const calledUrl = vi.mocked(navigateInTopWindow).mock.calls[0][0];
-        assertUrlSearchParams(calledUrl, { "cal.rerouting": "true" });
+        expect(mockState).not.toBeNull();
+        assertUrlSearchParams(mockState!.url, { "cal.rerouting": "true" });
       });
     });
   });
@@ -402,7 +423,7 @@ describe("useBookingSuccessRedirect", () => {
       ])("redirects to $expectedPath when isEmbed is $isEmbed", ({ isEmbed, expectedPath }) => {
         vi.mocked(useIsEmbed).mockReturnValue(isEmbed);
 
-        const bookingSuccessRedirect = useBookingSuccessRedirect();
+        const { bookingSuccessRedirect } = useBookingSuccessRedirect();
 
         bookingSuccessRedirect({
           successRedirectUrl: null,
@@ -419,7 +440,7 @@ describe("useBookingSuccessRedirect", () => {
       it("preserves ALL params including embed and webapp params (no filtering)", () => {
         vi.mocked(useIsEmbed).mockReturnValue(false);
 
-        const bookingSuccessRedirect = useBookingSuccessRedirect();
+        const { bookingSuccessRedirect } = useBookingSuccessRedirect();
 
         bookingSuccessRedirect({
           successRedirectUrl: null,
@@ -460,7 +481,7 @@ describe("useBookingSuccessRedirect", () => {
       ])("$name", ({ searchParams, expectedParam }) => {
         vi.mocked(useCompatSearchParams).mockReturnValue(new URLSearchParams(searchParams) as any);
 
-        const bookingSuccessRedirect = useBookingSuccessRedirect();
+        const { bookingSuccessRedirect } = useBookingSuccessRedirect();
 
         bookingSuccessRedirect({
           successRedirectUrl: null,
@@ -477,7 +498,7 @@ describe("useBookingSuccessRedirect", () => {
 
   describe("edge cases", () => {
     it("handles null successRedirectUrl correctly", () => {
-      const bookingSuccessRedirect = useBookingSuccessRedirect();
+      const { bookingSuccessRedirect } = useBookingSuccessRedirect();
 
       bookingSuccessRedirect({
         successRedirectUrl: null,
@@ -491,7 +512,7 @@ describe("useBookingSuccessRedirect", () => {
     });
 
     it("handles undefined successRedirectUrl correctly", () => {
-      const bookingSuccessRedirect = useBookingSuccessRedirect();
+      const { bookingSuccessRedirect } = useBookingSuccessRedirect();
 
       bookingSuccessRedirect({
         successRedirectUrl: undefined as any,
@@ -504,8 +525,8 @@ describe("useBookingSuccessRedirect", () => {
       expect(navigateInTopWindow).not.toHaveBeenCalled();
     });
 
-    it("handles empty query object", () => {
-      const bookingSuccessRedirect = useBookingSuccessRedirect();
+    it("sets pendingRedirect for external URL with empty query", () => {
+      const { bookingSuccessRedirect } = useBookingSuccessRedirect();
 
       bookingSuccessRedirect({
         successRedirectUrl: "https://example.com/success",
@@ -514,7 +535,143 @@ describe("useBookingSuccessRedirect", () => {
         booking: mockBooking,
       });
 
+      expect(navigateInTopWindow).not.toHaveBeenCalled();
+      expect(mockState).toEqual({ url: "https://example.com/success", bookingUid: "test-booking-uid" });
+    });
+  });
+
+  describe("external redirect interstitial", () => {
+    it("sets pendingRedirect for external URL", () => {
+      const { bookingSuccessRedirect } = useBookingSuccessRedirect();
+
+      bookingSuccessRedirect({
+        successRedirectUrl: "https://example.com/success",
+        forwardParamsSuccessRedirect: false,
+        query: {},
+        booking: mockBooking,
+      });
+
+      expect(navigateInTopWindow).not.toHaveBeenCalled();
+      expect(mockState).toEqual({ url: "https://example.com/success", bookingUid: "test-booking-uid" });
+    });
+
+    it("sets pendingRedirect with forwarded params", () => {
+      const { bookingSuccessRedirect } = useBookingSuccessRedirect();
+
+      bookingSuccessRedirect({
+        successRedirectUrl: "https://example.com/success",
+        forwardParamsSuccessRedirect: true,
+        query: { test: "value" },
+        booking: mockBooking,
+      });
+
+      expect(navigateInTopWindow).not.toHaveBeenCalled();
+      expect(mockState).not.toBeNull();
+      expect(mockState?.url).toContain("https://example.com/success");
+      expect(mockState?.url).toContain("test=value");
+    });
+
+    it("confirmRedirect navigates to pending URL when state is set", () => {
+      mockState = { url: "https://example.com/success" } as typeof mockState;
+      const { confirmRedirect } = useBookingSuccessRedirect();
+
+      confirmRedirect();
+
       expect(navigateInTopWindow).toHaveBeenCalledWith("https://example.com/success");
+      expect(mockState).toBeNull();
+    });
+
+    it("does not set pendingRedirect when no external redirect URL", () => {
+      const { bookingSuccessRedirect } = useBookingSuccessRedirect();
+
+      bookingSuccessRedirect({
+        successRedirectUrl: "",
+        forwardParamsSuccessRedirect: false,
+        query: {},
+        booking: mockBooking,
+      });
+
+      expect(mockState).toBeNull();
+      expect(mockPush).toHaveBeenCalled();
+    });
+
+    it("sets pendingRedirect for redirectUrlOnNoRoutingFormResponse", () => {
+      const { bookingSuccessRedirect } = useBookingSuccessRedirect();
+
+      bookingSuccessRedirect({
+        successRedirectUrl: "",
+        forwardParamsSuccessRedirect: false,
+        query: {},
+        booking: mockBooking,
+        redirectUrlOnNoRoutingFormResponse: "https://example.com/no-response",
+      });
+
+      expect(navigateInTopWindow).not.toHaveBeenCalled();
+      expect(mockState).toEqual({ url: "https://example.com/no-response", bookingUid: "test-booking-uid" });
+    });
+
+    it("goBackToSuccessPage navigates to booking success page and clears pendingRedirect", () => {
+      const { bookingSuccessRedirect } = useBookingSuccessRedirect();
+
+      bookingSuccessRedirect({
+        successRedirectUrl: "https://example.com/success",
+        forwardParamsSuccessRedirect: false,
+        query: {},
+        booking: mockBooking,
+      });
+
+      expect(mockState).not.toBeNull();
+      const { goBackToSuccessPage } = useBookingSuccessRedirect();
+      goBackToSuccessPage();
+      expect(mockPush).toHaveBeenCalledWith("/booking/test-booking-uid");
+      expect(mockState).toBeNull();
+    });
+
+    it("skipRedirectWarning=true navigates directly without setting pendingRedirect", () => {
+      const { bookingSuccessRedirect } = useBookingSuccessRedirect();
+
+      bookingSuccessRedirect({
+        successRedirectUrl: "https://example.com/success",
+        forwardParamsSuccessRedirect: false,
+        query: {},
+        booking: mockBooking,
+        skipRedirectWarning: true,
+      });
+
+      expect(navigateInTopWindow).toHaveBeenCalledWith("https://example.com/success");
+      expect(mockState).toBeNull();
+    });
+
+    it("skipRedirectWarning=false sets pendingRedirect instead of navigating", () => {
+      const { bookingSuccessRedirect } = useBookingSuccessRedirect();
+
+      bookingSuccessRedirect({
+        successRedirectUrl: "https://example.com/success",
+        forwardParamsSuccessRedirect: false,
+        query: {},
+        booking: mockBooking,
+        skipRedirectWarning: false,
+      });
+
+      expect(navigateInTopWindow).not.toHaveBeenCalled();
+      expect(mockState).toEqual({ url: "https://example.com/success", bookingUid: "test-booking-uid" });
+    });
+
+    it("skipRedirectWarning=true with forwardParamsSuccessRedirect navigates directly", () => {
+      const { bookingSuccessRedirect } = useBookingSuccessRedirect();
+
+      bookingSuccessRedirect({
+        successRedirectUrl: "https://example.com/success",
+        forwardParamsSuccessRedirect: true,
+        query: { bookingId: "123" },
+        booking: mockBooking,
+        skipRedirectWarning: true,
+      });
+
+      expect(navigateInTopWindow).toHaveBeenCalled();
+      const calledUrl = (navigateInTopWindow as ReturnType<typeof vi.fn>).mock.calls[0][0];
+      expect(calledUrl).toContain("https://example.com/success");
+      expect(mockState).toBeNull();
     });
   });
 });

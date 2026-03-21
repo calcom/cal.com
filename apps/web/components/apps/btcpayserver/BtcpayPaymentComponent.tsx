@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import z from "zod";
-
+import { ExternalRedirectInterstitial } from "@calcom/features/bookings/components/ExternalRedirectInterstitial";
 import { useBookingSuccessRedirect } from "@calcom/features/bookings/lib/bookingSuccessRedirect";
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -12,6 +10,8 @@ import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Spinner } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { useEffect, useRef, useState } from "react";
+import z from "zod";
 
 interface IPaymentComponentProps {
   payment: {
@@ -86,9 +86,11 @@ function PaymentChecker(props: PaymentCheckerProps) {
   // TODO: move booking success code to a common lib function
   // TODO: subscribe rather than polling
   const searchParams = useCompatSearchParams();
-  const bookingSuccessRedirect = useBookingSuccessRedirect();
+  const { bookingSuccessRedirect, pendingRedirect, confirmRedirect, goBackToSuccessPage } =
+    useBookingSuccessRedirect();
   const utils = trpc.useUtils();
   const { t } = useLocale();
+  const redirectedRef = useRef(false);
 
   useEffect(() => {
     if (searchParams === null) {
@@ -100,7 +102,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
     const interval = setInterval(() => {
       (async () => {
         try {
-          if (props.booking.status === "ACCEPTED") {
+          if (redirectedRef.current || props.booking.status === "ACCEPTED") {
             return;
           }
           const { booking: bookingResult } = await utils.viewer.bookings.find.fetch({
@@ -108,6 +110,8 @@ function PaymentChecker(props: PaymentCheckerProps) {
           });
 
           if (bookingResult?.paid) {
+            redirectedRef.current = true;
+            clearInterval(interval);
             showToast("Payment successful", "success");
 
             const params: {
@@ -125,6 +129,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
               query: params,
               booking: props.booking,
               forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
+              skipRedirectWarning: props.eventType.skipRedirectWarning,
             });
           }
         } catch (e) {}
@@ -140,11 +145,19 @@ function PaymentChecker(props: PaymentCheckerProps) {
     props.eventType.id,
     props.eventType.successRedirectUrl,
     props.eventType.forwardParamsSuccessRedirect,
+    props.eventType.skipRedirectWarning,
     props.payment.success,
     searchParams,
     t,
     utils.viewer.bookings,
   ]);
 
-  return null;
+  return (
+    <ExternalRedirectInterstitial
+      isOpen={!!pendingRedirect}
+      redirectUrl={pendingRedirect?.url ?? ""}
+      onContinue={confirmRedirect}
+      onGoBack={goBackToSuccessPage}
+    />
+  );
 }

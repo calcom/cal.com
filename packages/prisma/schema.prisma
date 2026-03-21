@@ -241,6 +241,7 @@ model EventType {
   metadata                                 Json?
   /// @zod.import(["import { successRedirectUrl } from '../../zod-utils'"]).custom.use(successRedirectUrl)
   successRedirectUrl                       String?
+  successRedirectUrlUpdatedAt              DateTime?
   forwardParamsSuccessRedirect             Boolean?                  @default(true)
   /// @zod.import(["import { successRedirectUrl } from '../../zod-utils'"]).custom.use(successRedirectUrl)
   redirectUrlOnNoRoutingFormResponse       String?

@@ -30,7 +30,12 @@ vi.mock("@calcom/features/bookings/lib/create-recurring-booking", () => ({
 }));
 
 vi.mock("@calcom/features/bookings/lib/bookingSuccessRedirect", () => ({
-  useBookingSuccessRedirect: () => vi.fn(),
+  useBookingSuccessRedirect: () => ({
+    bookingSuccessRedirect: vi.fn(),
+    pendingRedirect: null,
+    confirmRedirect: vi.fn(),
+    goBackToSuccessPage: vi.fn(),
+  }),
 }));
 
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
@@ -167,6 +172,7 @@ const mockEvent = {
     subsetOfHosts: [],
     isDynamic: false,
     subsetOfUsers: [],
+    skipRedirectWarning: false,
   },
   isSuccess: true,
   isPending: false,

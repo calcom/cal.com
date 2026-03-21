@@ -16,6 +16,7 @@ import type { BookerProps } from "@calcom/features/bookings/Booker/types";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { isTimeSlotAvailable } from "@calcom/features/bookings/Booker/utils/isTimeslotAvailable";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
+import { ExternalRedirectInterstitial } from "@calcom/features/bookings/components/ExternalRedirectInterstitial";
 import { Header } from "@calcom/features/bookings/components/Header";
 import { BookerSection } from "@calcom/features/bookings/components/Section";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -170,6 +171,9 @@ const BookerComponent = ({
     instantVideoMeetingUrl,
     instantConnectCooldownMs,
     bookingUid,
+    pendingRedirect,
+    confirmRedirect,
+    goBackToSuccessPage,
   } = bookings;
 
   const watchedCfToken = bookingForm.watch("cfToken");
@@ -697,6 +701,12 @@ const BookerComponent = ({
         </DialogContent>
       </Dialog>
       <Toaster position="bottom-right" />
+      <ExternalRedirectInterstitial
+        isOpen={!!pendingRedirect}
+        redirectUrl={pendingRedirect?.url ?? ""}
+        onContinue={confirmRedirect}
+        onGoBack={goBackToSuccessPage}
+      />
     </>
   );
 };

@@ -193,7 +193,7 @@ describe("handleChildrenEventTypes", () => {
         profileId: null,
         updatedValues: {},
       });
-      const { createdAt, updatedAt, ...expectedEvType } = evType;
+      const { createdAt, updatedAt, successRedirectUrlUpdatedAt, ...expectedEvType } = evType;
       expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith({
         data: [
           {
@@ -269,7 +269,7 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
         },
       });
-      const { profileId, autoTranslateDescriptionEnabled, createdAt, updatedAt, ...rest } = evType;
+      const { profileId, autoTranslateDescriptionEnabled, successRedirectUrlUpdatedAt, createdAt, updatedAt, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
@@ -417,7 +417,7 @@ describe("handleChildrenEventTypes", () => {
         profileId: null,
         updatedValues: {},
       });
-      const { createdAt, updatedAt, ...expectedEvType } = evType;
+      const { createdAt, updatedAt, successRedirectUrlUpdatedAt, ...expectedEvType } = evType;
       expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith({
         data: [
           {
@@ -495,7 +495,7 @@ describe("handleChildrenEventTypes", () => {
           length: 30,
         },
       });
-      const { profileId, autoTranslateDescriptionEnabled, createdAt, updatedAt, ...rest } = evType;
+      const { profileId, autoTranslateDescriptionEnabled, successRedirectUrlUpdatedAt, createdAt, updatedAt, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
@@ -638,7 +638,7 @@ describe("handleChildrenEventTypes", () => {
         updatedValues: {},
       });
 
-      const { createdAt, updatedAt, ...expectedEvType } = evType;
+      const { createdAt, updatedAt, successRedirectUrlUpdatedAt, ...expectedEvType } = evType;
       if ("workflows" in expectedEvType) delete expectedEvType.workflows;
       // Verify createManyAndReturn was called for new users (user 5)
       // Note: createManyAndReturn doesn't support nested relations like workflows, so they're handled separately
@@ -675,7 +675,7 @@ describe("handleChildrenEventTypes", () => {
         skipDuplicates: true,
       });
 
-      const { profileId, rrSegmentQueryValue, createdAt: _, updatedAt: __, ...rest } = evType;
+      const { profileId, rrSegmentQueryValue, successRedirectUrlUpdatedAt: ___, createdAt: _, updatedAt: __, ...rest } = evType;
       if ("workflows" in rest) delete rest.workflows;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
