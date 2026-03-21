@@ -30,11 +30,11 @@ export const getWebhookPayloadForBooking = ({
     length: booking.eventType?.length,
   };
 
-  const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const payload: EventPayloadType = {
     ...evtWithoutAssignmentReason,
     ...eventTypeInfo,
     bookingId: booking.id,
+    ...(evt.attendeeSeatId ? { attendeeSeatId: evt.attendeeSeatId } : {}),
   };
 
   return payload;
