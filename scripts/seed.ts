@@ -407,8 +407,22 @@ async function createOrganizationAndAddMembersAndTeams({
           };
         } catch (e) {
           if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
-            console.log(`Member ${member.memberData.username} already seeded, skipping`);
-            return null;
+            console.log("Organization member already seeded, skipping");
+            const existingUser = await prisma.user.findUnique({
+              where: {
+                email_username: {
+                  email: member.memberData.email,
+                  username: member.memberData.username,
+                },
+              },
+            });
+            if (!existingUser) throw e;
+            return {
+              ...existingUser,
+              inTeams: member.inTeams,
+              orgMembership: member.orgMembership,
+              orgProfile: member.orgProfile,
+            };
           }
           throw e;
         }
