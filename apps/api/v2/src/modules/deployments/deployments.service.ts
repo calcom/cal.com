@@ -42,6 +42,6 @@ export class DeploymentsService {
     const data = (await response.json()) as LicenseCheckResponse;
     const cacheKey = getLicenseCacheKey(licenseKey);
     this.redisService.redis.set(cacheKey, JSON.stringify(data), "EX", CACHING_TIME);
-    return data.valid;
+    return data.valid ?? data.status ?? false;
   }
 }
