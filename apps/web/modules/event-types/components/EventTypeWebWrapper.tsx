@@ -324,51 +324,42 @@ const EventTypeWeb = ({
   }, [form.formState.isDirty]);
 
   // Intercept in-app navigation when form has unsaved changes
-  const currentPageUrlRef = useRef(typeof window !== "undefined" ? window.location.href : "");
-
   useEffect(() => {
-    const originalPushState = window.history.pushState.bind(window.history);
-    const originalReplaceState = window.history.replaceState.bind(window.history);
-    currentPageUrlRef.current = window.location.href;
+    const handleClick = (e: MouseEvent) => {
+      if (!formIsDirtyRef.current) return;
 
-    window.history.pushState = function (state: unknown, title: string, url?: string | URL | null) {
-      if (formIsDirtyRef.current && url) {
-        unsavedChangesPendingUrl.current = url.toString();
-        setIsOpenUnsavedChangesDialog(true);
-        return;
-      }
-      originalPushState(state, title, url);
-      currentPageUrlRef.current = window.location.href;
-    };
+      const target = (e.target as HTMLElement).closest("a");
+      if (!target) return;
 
-    window.history.replaceState = function (state: unknown, title: string, url?: string | URL | null) {
-      if (formIsDirtyRef.current && url) {
-        const newUrl = new URL(url.toString(), window.location.origin);
-        if (newUrl.pathname !== window.location.pathname) {
-          unsavedChangesPendingUrl.current = url.toString();
-          setIsOpenUnsavedChangesDialog(true);
-          return;
-        }
-      }
-      originalReplaceState(state, title, url);
-      currentPageUrlRef.current = window.location.href;
+      const href = target.getAttribute("href");
+      if (!href || href.startsWith("#") || href.startsWith("http") || href.startsWith("mailto:")) return;
+
+      // Only intercept internal navigation to different pages
+      if (href === window.location.pathname) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      unsavedChangesPendingUrl.current = href;
+      setIsOpenUnsavedChangesDialog(true);
     };
 
     const handlePopState = () => {
       if (formIsDirtyRef.current) {
-        unsavedChangesPendingUrl.current = window.location.href;
-        originalPushState(null, "", currentPageUrlRef.current);
+        // Push current URL back to prevent leaving the page
+        window.history.pushState(null, "", window.location.href);
+        unsavedChangesPendingUrl.current = "/event-types";
         setIsOpenUnsavedChangesDialog(true);
-      } else {
-        currentPageUrlRef.current = window.location.href;
       }
     };
 
+    // Add extra history entry so back button triggers popstate instead of leaving
+    window.history.pushState(null, "", window.location.href);
+
+    document.addEventListener("click", handleClick, true);
     window.addEventListener("popstate", handlePopState);
 
     return () => {
-      window.history.pushState = originalPushState;
-      window.history.replaceState = originalReplaceState;
+      document.removeEventListener("click", handleClick, true);
       window.removeEventListener("popstate", handlePopState);
     };
   }, []);
