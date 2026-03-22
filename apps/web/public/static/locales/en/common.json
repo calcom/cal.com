@@ -1,4 +1,6 @@
-{ 
+{
+  "switch_to_rich_editor": "Switch to rich text editor",
+  "switch_to_html_editor": "Switch to html editor",
   "contacts":"Contacts",
   "contacts_description":"Manage your contacts and schedule meetings",
   "background_jobs": "Background Jobs",

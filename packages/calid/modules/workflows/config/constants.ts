@@ -121,6 +121,8 @@ const FORMATTED_DYNAMIC_TEXT_VARIABLES = [
   "event_start_time_in_attendee_timezone_",
   "event_end_time_in_attendee_timezone_",
 ];
+
+const CAL_ID_HTML_MARKER = "<!-- cal-id:html -->";
 // TODO: Move to separate file (types/workflow-enums.ts)
 enum TimeFormat {
   TWELVE_HOUR = "h:mma",
@@ -144,6 +146,7 @@ export {
   WHATSAPP_WORKFLOW_TEMPLATES,
   DYNAMIC_TEXT_VARIABLES,
   FORMATTED_DYNAMIC_TEXT_VARIABLES,
+  CAL_ID_HTML_MARKER,
   TimeFormat,
   timeUnitLowerCase,
   META_DYNAMIC_TEXT_VARIABLES,

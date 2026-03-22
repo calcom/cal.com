@@ -26,6 +26,13 @@ export const constructVariablesForTemplate = (
       .tz(targetTimezone)
       .locale(eventData?.organizer?.language.locale || "en")
       .format(formatString || "YYYY MMM D");
+  const organizerNameSegments = eventData.organizer.name.trim().split(/\s+/).filter(Boolean);
+  const attendeeNameSegments = participantData.name.trim().split(/\s+/).filter(Boolean);
+  const organizerFirstName = organizerNameSegments[0] || "";
+  const attendeeFirstName = participantData.firstName || attendeeNameSegments[0] || "";
+  const attendeeLastName =
+    participantData.lastName ||
+    (attendeeNameSegments.length > 1 ? attendeeNameSegments[attendeeNameSegments.length - 1] : "");
 
   try {
     const data = {
@@ -35,17 +42,16 @@ export const constructVariablesForTemplate = (
     console.log("Error formatting timestamp", e);
   }
 
+  const responses = eventData.responses;
+
   return {
     eventTypeName: eventData.eventType.title || "",
     eventName: eventData.title || "",
     organizerName: eventData.organizer.name,
-    organizerFirstName: eventData.organizer.name.split(" ")[0],
+    organizerFirstName,
     attendeeName: participantData.name,
-    attendeeFirstName: participantData.firstName || participantData.name.split(" ")[0],
-    attendeeLastName:
-      participantData.lastName || participantData.name.split(" ").length > 1
-        ? participantData.name.split(" ")[1]
-        : "",
+    attendeeFirstName,
+    attendeeLastName,
     attendeeEmail: participantData.email,
     eventDate: formatTimestamp(eventData?.startTime, "DD MMM YYYY"),
     eventStartTime: dayjs(eventStartTime).tz(targetTimezone),
@@ -54,6 +60,10 @@ export const constructVariablesForTemplate = (
     location: eventData.location,
     additionalNotes: eventData.additionalNotes,
     responses: eventData.responses,
+    onlineMeetingUrl:
+      eventData.locationType !== "inPerson"
+        ? bookingMetadataSchema.parse(eventData.metadata || {})?.videoCallUrl
+        : undefined,
     meetingUrl: bookingMetadataSchema.parse(eventData.metadata || {})?.videoCallUrl,
     cancelUrl: `${bookerBaseUrl}/booking/${eventData.uid}?cancel=true`,
     rescheduleUrl: `${bookerBaseUrl}/reschedule/${eventData.uid}`,
