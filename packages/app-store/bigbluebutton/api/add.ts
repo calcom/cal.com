@@ -49,21 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const appType = "bigbluebutton_video";
 
   try {
-    // Check if already installed to prevent duplicates
-    const existingInstallation = await prisma.credential.findFirst({
-      where: {
-        type: appType,
-        ...installForObject,
-      },
-    });
-
-    if (existingInstallation) {
-      return res.status(400).json({ 
-        message: "BigBlueButton is already installed" 
-      });
-    }
-
-    // Test BBB server connection with proper auth validation
+    // Test BBB server connection first before attempting to install
     const bbbApi = new BBBApi({ serverUrl, sharedSecret });
     const isConnected = await bbbApi.testConnection();
 
@@ -73,17 +59,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Create the credential after successful connection test
-    const installation = await prisma.credential.create({
-      data: {
-        type: appType,
-        key: {
-          serverUrl: serverUrl.replace(/\/+$/, ""), // Remove trailing slashes
-          sharedSecret,
+    // Use a transaction to prevent race conditions
+    const installation = await prisma.$transaction(async (tx) => {
+      // Check for existing installation within transaction
+      const existing = await tx.credential.findFirst({
+        where: {
+          type: appType,
+          ...installForObject,
         },
-        ...installForObject,
-        appId: "bigbluebutton",
-      },
+      });
+
+      if (existing) {
+        // Update existing installation instead of creating duplicate
+        return await tx.credential.update({
+          where: { id: existing.id },
+          data: {
+            key: {
+              serverUrl: serverUrl.replace(/\/+$/, ""), // Remove trailing slashes
+              sharedSecret,
+            },
+          },
+        });
+      }
+
+      // Create new installation if none exists
+      return await tx.credential.create({
+        data: {
+          type: appType,
+          key: {
+            serverUrl: serverUrl.replace(/\/+$/, ""), // Remove trailing slashes
+            sharedSecret,
+          },
+          ...installForObject,
+          appId: "bigbluebutton",
+        },
+      });
     });
 
     if (!installation) {

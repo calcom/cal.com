@@ -55,12 +55,8 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
 
         return {
           type: metadata.type,
-          id: meetingID,
-          password: JSON.stringify({ 
-            moderatorPassword, 
-            attendeePassword,
-            serverUrl // Store server URL for meeting operations
-          }),
+          id: `${meetingID}|${moderatorPassword}|${serverUrl}`, // Store structured meeting data
+          password: attendeePassword, // Standard semantic: password for meeting access
           url: attendeeJoinUrl, // Safe attendee URL as canonical URL
         };
       } catch (error) {
@@ -79,24 +75,30 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
       }
 
       try {
-        const appKeys = await getAppKeysFromSlug(metadata.slug);
-        const serverUrl = appKeys.serverUrl as string;
-        const sharedSecret = appKeys.sharedSecret as string;
-
-        if (!serverUrl || !sharedSecret) {
-          console.warn("BigBlueButton configuration missing for meeting deletion");
+        // Parse structured meeting ID: meetingID|moderatorPassword|serverUrl
+        const idParts = bookingRef.meetingId.split("|");
+        if (idParts.length !== 3) {
+          console.warn("Invalid BigBlueButton meeting ID format for deletion");
           return;
         }
 
-        const bbbApi = new BBBApi({ serverUrl, sharedSecret });
+        const [actualMeetingId, moderatorPassword, storedServerUrl] = idParts;
 
-        // Get moderator password from booking reference (now stored as JSON)
-        const passwordData = bookingRef.meetingPassword ? JSON.parse(bookingRef.meetingPassword) : {};
-        const moderatorPassword = passwordData.moderatorPassword;
+        // Get app keys for shared secret (server URL comes from meeting ID)
+        const appKeys = await getAppKeysFromSlug(metadata.slug);
+        const sharedSecret = appKeys.sharedSecret as string;
 
-        if (moderatorPassword) {
-          await bbbApi.endMeeting(bookingRef.meetingId, moderatorPassword);
+        if (!sharedSecret) {
+          console.warn("BigBlueButton shared secret missing for meeting deletion");
+          return;
         }
+
+        const bbbApi = new BBBApi({ 
+          serverUrl: storedServerUrl, 
+          sharedSecret 
+        });
+
+        await bbbApi.endMeeting(actualMeetingId, moderatorPassword);
       } catch (error) {
         console.error("Failed to end BigBlueButton meeting:", error);
         // Don't throw error for deletion failures to avoid blocking booking cancellation
@@ -108,13 +110,13 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
       // BBB meetings are stateless and don't need updating
       
       const meetingId = bookingRef.meetingId as string;
-      const passwordData = bookingRef.meetingPassword as string;
+      const attendeePassword = bookingRef.meetingPassword as string;
       const meetingUrl = bookingRef.meetingUrl as string;
 
       return Promise.resolve({
         type: metadata.type,
         id: meetingId,
-        password: passwordData, // Keep original password data format
+        password: attendeePassword, // Standard attendee password
         url: meetingUrl,
       });
     },
@@ -123,16 +125,20 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
      * Generate attendee join URL for guests
      */
     getGuestJoinUrl: async (
-      meetingId: string,
+      structuredMeetingId: string,
       guestName: string,
-      attendeePassword: string,
-      serverUrl: string,
-      sharedSecret: string
+      attendeePassword: string
     ): Promise<string> => {
+      // Parse structured meeting ID: meetingID|moderatorPassword|serverUrl
+      const [actualMeetingId, , serverUrl] = structuredMeetingId.split("|");
+      
+      const appKeys = await getAppKeysFromSlug(metadata.slug);
+      const sharedSecret = appKeys.sharedSecret as string;
+      
       const bbbApi = new BBBApi({ serverUrl, sharedSecret });
       
       return bbbApi.getJoinUrl({
-        meetingID: meetingId,
+        meetingID: actualMeetingId,
         fullName: guestName || "Guest",
         password: attendeePassword,
         userID: `guest-${Date.now()}`,
@@ -144,12 +150,11 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
      * Generate moderator join URL for organizers
      */
     getModeratorJoinUrl: async (
-      meetingId: string,
-      organizerName: string,
-      passwordData: string
+      structuredMeetingId: string,
+      organizerName: string
     ): Promise<string> => {
-      const parsedData = JSON.parse(passwordData);
-      const { moderatorPassword, serverUrl } = parsedData;
+      // Parse structured meeting ID: meetingID|moderatorPassword|serverUrl
+      const [actualMeetingId, moderatorPassword, serverUrl] = structuredMeetingId.split("|");
       
       const appKeys = await getAppKeysFromSlug(metadata.slug);
       const sharedSecret = appKeys.sharedSecret as string;
@@ -157,7 +162,7 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
       const bbbApi = new BBBApi({ serverUrl, sharedSecret });
       
       return bbbApi.getJoinUrl({
-        meetingID: meetingId,
+        meetingID: actualMeetingId,
         fullName: organizerName || "Host", 
         password: moderatorPassword,
         userID: "moderator",
