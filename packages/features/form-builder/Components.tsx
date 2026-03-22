@@ -390,7 +390,7 @@ export const Components: Record<FieldType, Component> = {
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
-                <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
+                <span className="text-emphasis me-2 ms-2 text-sm">{option.label}</span>
               </label>
             );
           })}
@@ -569,7 +569,7 @@ export const Components: Record<FieldType, Component> = {
             disabled={readOnly}
             description=""
             // Form Builder ensures that it would be safe HTML in here if the field type supports it. So, we can safely use label value in `descriptionAsSafeHtml`
-            descriptionAsSafeHtml={label ?? ""}
+            descriptionAsSafeHtml={label}
           />
         </div>
       );

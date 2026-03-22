@@ -18,7 +18,11 @@ import { flushSync } from "react-dom";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import type { getEventLocationValue } from "@calcom/app-store/locations";
-import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
+import {
+  getEventLocationTypeFromVideoProvider,
+  getSuccessPageLocationMessage,
+  guessEventLocationType,
+} from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import "@calcom/dayjs/locales";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -231,7 +235,9 @@ export default function BookingListItem(booking: BookingItemProps) {
     t,
     booking.status
   );
-  const provider = guessEventLocationType(location);
+  const provider =
+    getEventLocationTypeFromVideoProvider(parsedBooking.metadata?.videoProvider) ||
+    guessEventLocationType(location);
 
   const isDisabledCancelling = booking.eventType.disableCancelling;
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
@@ -412,6 +418,7 @@ export default function BookingListItem(booking: BookingItemProps) {
   const bookingLink = buildBookingLink();
 
   const title = booking.title;
+  const displayTitle = booking.eventType?.title?.trim() || title?.trim() || t("untitled");
 
   const isCalVideoLocation =
     !booking.location ||
@@ -745,11 +752,11 @@ export default function BookingListItem(booking: BookingItemProps) {
 
                   <div className="flex cursor-pointer flex-col items-start justify-start pt-6">
                     <div
-                      title={title}
+                      title={displayTitle}
                       className={classNames(
                         "text-emphasis flex w-full flex-wrap items-baseline gap-x-2 gap-y-1 align-top text-base font-semibold leading-6"
                       )}>
-                      <span className={isCancelled ? "line-through" : ""}>{booking.eventType?.title}</span>
+                      <span className={isCancelled ? "line-through" : ""}>{displayTitle}</span>
                       <span className="text-subtle text-xs font-medium">with</span>
                       <span className="!decoration-none text-default text-sm font-medium">
                         {attendeeList[0]?.name}

@@ -2,15 +2,24 @@ import type { DestinationCalendar } from "@prisma/client";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import EventManager from "./EventManager";
+import { createMeeting } from "./videoClient";
 
 vi.mock("@calcom/lib/crypto", () => ({
   symmetricDecrypt: vi.fn(),
 }));
 
+vi.mock("./videoClient", () => ({
+  createMeeting: vi.fn(),
+  updateMeeting: vi.fn(),
+  deleteMeeting: vi.fn(),
+}));
+
 const mockedSymmetricDecrypt = vi.mocked(symmetricDecrypt);
+const mockedCreateMeeting = vi.mocked(createMeeting);
 
 function buildCalDAVCredential(data: {
   id: number;
@@ -48,6 +57,47 @@ function buildDestinationCalendar(data: {
     updatedAt: new Date(),
     delegationCredentialId: null,
     domainWideDelegationCredentialId: null,
+  };
+}
+
+function buildVideoCredential(data: {
+  id: number;
+  type: string;
+  appId?: string;
+  userId?: number;
+}): CredentialForCalendarService {
+  return {
+    id: data.id,
+    type: data.type,
+    key: {},
+    userId: data.userId ?? 1,
+    user: { email: "video@example.com" },
+    teamId: null,
+    appId: data.appId ?? "msteams",
+    invalid: false,
+    delegatedTo: null,
+    delegationCredentialId: null,
+  };
+}
+
+function buildVideoEvent(data: { location: string; conferenceCredentialId?: number }): CalendarEvent {
+  return {
+    type: "test-event",
+    title: "Test Event",
+    startTime: new Date().toISOString(),
+    endTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    organizer: {
+      id: 1,
+      email: "organizer@example.com",
+      name: "Organizer",
+      username: "organizer",
+      language: { locale: "en", translate: ((key: string) => key) as any },
+      timeZone: "UTC",
+      timeFormat: "h:mma",
+    },
+    attendees: [],
+    location: data.location,
+    conferenceCredentialId: data.conferenceCredentialId,
   };
 }
 
@@ -448,5 +498,122 @@ describe("EventManager CalDAV credential validation", () => {
       const result = (eventManager as any).credentialMatchesDestination(credential, destination);
       expect(result).toBe(false);
     });
+  });
+});
+
+describe("EventManager video credential resolution", () => {
+  it("uses exact conferenceCredentialId when it is available", () => {
+    const teamsCredential = buildVideoCredential({ id: 11, type: "office365_video", appId: "msteams" });
+    const eventManager = new EventManager({
+      credentials: [teamsCredential],
+      destinationCalendar: null,
+    });
+    const event = buildVideoEvent({
+      location: "integrations:office365_video",
+      conferenceCredentialId: 11,
+    });
+
+    const resolved = (eventManager as any).getVideoCredential(event);
+    expect(resolved?.id).toBe(11);
+    expect(resolved?.type).toBe("office365_video");
+  });
+
+  it("falls back to provider type when conferenceCredentialId is stale", () => {
+    const teamsCredential = buildVideoCredential({ id: 22, type: "office365_video", appId: "msteams" });
+    const eventManager = new EventManager({
+      credentials: [teamsCredential],
+      destinationCalendar: null,
+    });
+    const event = buildVideoEvent({
+      location: "integrations:office365_video",
+      conferenceCredentialId: 9999,
+    });
+
+    const resolved = (eventManager as any).getVideoCredential(event);
+    expect(resolved?.id).toBe(22);
+    expect(resolved?.type).toBe("office365_video");
+  });
+
+  it("prefers organizer-scoped provider credential when conferenceCredentialId is stale", () => {
+    const otherHostTeamsCredential = buildVideoCredential({
+      id: 40,
+      type: "office365_video",
+      appId: "msteams",
+      userId: 99,
+    });
+    const organizerTeamsCredential = buildVideoCredential({
+      id: 31,
+      type: "office365_video",
+      appId: "msteams",
+      userId: 1,
+    });
+    const eventManager = new EventManager({
+      credentials: [otherHostTeamsCredential, organizerTeamsCredential],
+      destinationCalendar: null,
+    });
+    const event = buildVideoEvent({
+      location: "integrations:office365_video",
+      conferenceCredentialId: 9999,
+    });
+
+    const resolved = (eventManager as any).getVideoCredential(event);
+    expect(resolved?.id).toBe(31);
+    expect(resolved?.userId).toBe(1);
+    expect(resolved?.type).toBe("office365_video");
+  });
+
+  it("falls back to jitsi only when no provider credential is available", () => {
+    const zoomCredential = buildVideoCredential({ id: 33, type: "zoom_video", appId: "zoom" });
+    const eventManager = new EventManager({
+      credentials: [zoomCredential],
+      destinationCalendar: null,
+    });
+    const event = buildVideoEvent({
+      location: "integrations:office365_video",
+      conferenceCredentialId: 9999,
+    });
+
+    const resolved = (eventManager as any).getVideoCredential(event);
+    expect(resolved?.type).toBe("jitsi_video");
+    expect(resolved?.appId).toBe("jitsi");
+    expect(resolved?.id).toBe(0);
+  });
+
+  it("creates a jitsi meeting URL when fallback credential is used", async () => {
+    const zoomCredential = buildVideoCredential({ id: 44, type: "zoom_video", appId: "zoom" });
+    const eventManager = new EventManager({
+      credentials: [zoomCredential],
+      destinationCalendar: null,
+    });
+    const event = buildVideoEvent({
+      location: "integrations:office365_video",
+      conferenceCredentialId: 9999,
+    });
+
+    mockedCreateMeeting.mockResolvedValueOnce({
+      appName: "jitsi",
+      type: "jitsi_video",
+      uid: "fallback-jitsi-meeting",
+      originalEvent: event,
+      success: true,
+      createdEvent: {
+        type: "jitsi_video",
+        id: "fallback-jitsi-room",
+        password: "",
+        url: "https://meet.jit.si/fallback-jitsi-room",
+      },
+      credentialId: 0,
+    } as Awaited<ReturnType<typeof createMeeting>>);
+
+    const result = await (eventManager as any).createVideoEvent(event);
+
+    expect(mockedCreateMeeting).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "jitsi_video",
+        appId: "jitsi",
+      }),
+      event
+    );
+    expect(result?.createdEvent?.url).toContain("meet.jit.si");
   });
 });

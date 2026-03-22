@@ -23,6 +23,9 @@ export type FormResponse = Record<
     value: number | string | string[];
     label: string;
     identifier?: string;
+    optionId?: string | string[];
+    displayValue?: string | string[];
+    eventType?: string | null;
   }
 >;
 

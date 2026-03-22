@@ -4,7 +4,7 @@ import { Logo } from "@calid/features/ui/components/logo";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";

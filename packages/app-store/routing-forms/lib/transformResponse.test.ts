@@ -141,4 +141,43 @@ describe("getFieldResponseForJsonLogic", () => {
       expect(result).toBe("1");
     });
   });
+
+  describe("radio", () => {
+    it("should handle radio field like select", () => {
+      const field = {
+        type: "radio",
+        options: [
+          { id: "r1", label: "Choice 1" },
+          { id: "r2", label: "Choice 2" },
+        ],
+      };
+      const value = "Choice 1";
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toBe("r1");
+    });
+  });
+
+  describe("checkbox", () => {
+    it("should handle checkbox field like multiselect", () => {
+      const field = {
+        type: "checkbox",
+        options: [
+          { id: "c1", label: "Option 1" },
+          { id: "c2", label: "Option 2" },
+        ],
+      };
+      const value = ["Option 1", "Option 2"];
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toEqual(["c1", "c2"]);
+    });
+  });
+
+  describe("boolean", () => {
+    it("should keep minimal true value for boolean field", () => {
+      const field = { type: "boolean", options: undefined };
+      const value = "true";
+      const result = getFieldResponseForJsonLogic({ field, value });
+      expect(result).toBe("true");
+    });
+  });
 });

@@ -105,10 +105,10 @@ export const tabs = [
             value={`/*  font-mono sure that you have installed the package */
 
 /* If you are using yarn */
-// yarn add @calcom/embed-react
+// yarn add @calid/react-embed
 
 /* If you are using npm */
-// npm install @calcom/embed-react
+// npm install @calid/react-embed
   ${getEmbedTypeSpecificString({
     embedFramework: "react",
     embedType,
@@ -323,7 +323,6 @@ const getInstructionString = ({
 
 function useGetEmbedSnippetString(namespace: string | null) {
   const bookerUrl = useEmbedBookerUrl();
-  // TODO: Import this string from @calcom/embed-snippet
   // Right now the problem is that embed-snippet export is not minified and has comments which makes it unsuitable for giving it to users.
   // If we can minify that during build time and then import the built code here, that could work
   return `(function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if(typeof namespace === "string"){cal.ns[namespace] = cal.ns[namespace] || api;p(cal.ns[namespace], ar);p(cal, ["initNamespace", namespace]);} else p(cal, ar); return;} p(cal, ar); }; })(window, "${embedLibUrl}", "init");

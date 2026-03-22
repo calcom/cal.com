@@ -6,7 +6,11 @@ import { Tooltip } from "@calid/features/ui/components/tooltip";
 import React, { useMemo, useState } from "react";
 
 import type { getEventLocationValue } from "@calcom/app-store/locations";
-import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
+import {
+  getEventLocationTypeFromVideoProvider,
+  getSuccessPageLocationMessage,
+  guessEventLocationType,
+} from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -80,7 +84,9 @@ function transformBookingToMeeting(
     t,
     booking.status
   );
-  const provider = guessEventLocationType(location);
+  const provider =
+    getEventLocationTypeFromVideoProvider(booking.metadata?.videoProvider) ||
+    guessEventLocationType(location);
 
   const isUrl = typeof locationToDisplay === "string" && locationToDisplay.startsWith("http");
 

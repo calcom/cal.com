@@ -14,6 +14,7 @@ vi.mock("next/dynamic", () => ({
       onChange,
       value,
       isMulti,
+      placeholder,
     }: {
       options: { value: string; label: string }[];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,10 +22,12 @@ vi.mock("next/dynamic", () => ({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       value: any;
       isMulti: boolean;
+      placeholder?: string;
     }) {
       return (
         <select
           data-testid="mock-select"
+          data-placeholder={placeholder}
           multiple={isMulti}
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           value={isMulti ? value.map((v: any) => v.value) : value?.value}
@@ -73,6 +76,39 @@ describe("Select Widgets", () => {
       expect(screen.getAllByRole("option")).toHaveLength(3);
       expect(setValue).toHaveBeenCalledWith("");
     });
+
+    it("passes explicit placeholder to select", () => {
+      const setValue = vi.fn();
+      render(
+        <SelectWidget
+          value=""
+          setValue={setValue}
+          listValues={listValues}
+          placeholder="Pick one"
+        />
+      );
+
+      expect(screen.getByTestId("mock-select")).toHaveAttribute("data-placeholder", "Pick one");
+    });
+
+    it("uses valuePlaceholder when placeholder is not provided", () => {
+      const setValue = vi.fn();
+      render(
+        <SelectWidget
+          value=""
+          setValue={setValue}
+          listValues={listValues}
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore runtime prop from RAQB
+          valuePlaceholder="Choose option"
+        />
+      );
+
+      expect(screen.getByTestId("mock-select")).toHaveAttribute(
+        "data-placeholder",
+        "Choose option"
+      );
+    });
   });
 
   describe("MultiSelectWidget", () => {
@@ -98,6 +134,23 @@ describe("Select Widgets", () => {
       render(<MultiSelectWidget value={["4", "5"]} setValue={setValue} listValues={listValues} />);
 
       expect(setValue).toHaveBeenCalledWith([]);
+    });
+
+    it("passes placeholder to multiselect", () => {
+      const setValue = vi.fn();
+      render(
+        <MultiSelectWidget
+          value={[]}
+          setValue={setValue}
+          listValues={listValues}
+          placeholder="Pick multiple"
+        />
+      );
+
+      expect(screen.getByTestId("mock-select")).toHaveAttribute(
+        "data-placeholder",
+        "Pick multiple"
+      );
     });
   });
 });

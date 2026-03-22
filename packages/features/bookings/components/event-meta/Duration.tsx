@@ -3,7 +3,7 @@ import type { TFunction } from "i18next";
 import { useEffect, useRef } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import { useShouldShowArrows } from "@calcom/features/apps/components/AllApps";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";

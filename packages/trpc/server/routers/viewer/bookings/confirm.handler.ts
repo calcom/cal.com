@@ -10,13 +10,17 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { ONEHASH_API_KEY, ONEHASH_CHAT_SYNC_BASE_URL, IS_DEV } from "@calcom/lib/constants";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import isPrismaObj, { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import logger from "@calcom/lib/logger";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/lib/server/getUsersCredentials";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { ensureCalIdContactFromBooking } from "@calcom/lib/server/service/calIdContactFromBooking";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import {
@@ -42,6 +46,8 @@ type ConfirmOptions = {
   };
   input: TConfirmInputSchema;
 };
+
+const log = logger.getSubLogger({ prefix: ["[viewer.bookings.confirm]"] });
 
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const { user } = ctx;
@@ -177,6 +183,47 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         status: BookingStatus.ACCEPTED,
       },
     });
+
+    if (booking.userId) {
+      const bookingResponses = isPrismaObjOrUndefined(booking.responses);
+      const firstAttendee = booking.attendees[0];
+      const attendeeName =
+        firstAttendee?.name ?? (typeof bookingResponses?.name === "string" ? bookingResponses.name : null);
+      const attendeeEmail =
+        firstAttendee?.email ?? (typeof bookingResponses?.email === "string" ? bookingResponses.email : null);
+      const attendeePhone =
+        firstAttendee?.phoneNumber ??
+        (typeof bookingResponses?.attendeePhoneNumber === "string"
+          ? bookingResponses.attendeePhoneNumber
+          : typeof bookingResponses?.smsReminderNumber === "string"
+          ? bookingResponses.smsReminderNumber
+          : typeof bookingResponses?.phone === "string"
+          ? bookingResponses.phone
+          : null);
+
+      try {
+        await ensureCalIdContactFromBooking({
+          source: "booking_confirmed",
+          userId: booking.userId,
+          bookingId: booking.id,
+          bookingUid: booking.uid,
+          attendeeName,
+          attendeeEmail,
+          attendeePhone,
+        });
+      } catch (error) {
+        const parsedError = getErrorFromUnknown(error);
+        log.error(
+          "Error while syncing Cal ID contact from payment-gated confirmation",
+          safeStringify({
+            bookingId: booking.id,
+            bookingUid: booking.uid,
+            userId: booking.userId,
+            error: parsedError.message,
+          })
+        );
+      }
+    }
 
     if (isPrismaObjOrUndefined(user.metadata)?.connectedChatAccounts) {
       await handleOHChatSync({

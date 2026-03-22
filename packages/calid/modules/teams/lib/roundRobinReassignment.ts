@@ -1,7 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
-import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
+import {
+  DefaultFallbackVideoLocationType,
+  OrganizerDefaultConferencingAppType,
+  getLocationValueForDB,
+} from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import {
   sendRoundRobinCancelledEmailsAndSMS,
@@ -13,9 +17,6 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
-import AssignmentReasonHandler, {
-  RRReassignmentType,
-} from "./RRAssignmentReasonHandler";
 import {
   enrichHostsWithDelegationCredentials,
   enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
@@ -33,6 +34,7 @@ import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import AssignmentReasonHandler, { RRReassignmentType } from "./RRAssignmentReasonHandler";
 import { roundRobinReschedulingManager } from "./handleRescheduleEventManager";
 import { handleWorkflowsUpdate } from "./roundRobinManualReassignment";
 import { bookingSelect } from "./utils/bookingSelect";
@@ -133,12 +135,12 @@ export const roundRobinReassignment = async ({
   const candidateUsers = enrichedEventTypeHosts.reduce((accumulated, hostEntry) => {
     const isCurrentAttendee = bookingAttendeeEmails.has(hostEntry.user.email);
     const isCurrentOrganizer = hostEntry.user.email === initialOrganizer.email;
-    
+
     if (!isCurrentAttendee && !isCurrentOrganizer) {
-      accumulated.push({ 
-        ...hostEntry.user, 
-        isFixed: hostEntry.isFixed, 
-        priority: hostEntry?.priority ?? 2 
+      accumulated.push({
+        ...hostEntry.user,
+        isFixed: hostEntry.isFixed,
+        priority: hostEntry?.priority ?? 2,
       });
     }
     return accumulated;
@@ -223,14 +225,17 @@ export const roundRobinReassignment = async ({
         ? newOrganizerMetaParse?.data?.defaultConferencingApp?.appLink
         : undefined;
 
-      const fallbackBookingLocation = retrievedBooking.location || "integrations:daily";
+      const fallbackBookingLocation = retrievedBooking.location || DefaultFallbackVideoLocationType;
 
       meetingLocation =
         derivedLocationUrl ||
         getLocationValueForDB(fallbackBookingLocation, eventTypeData.locations).bookingLocation;
     }
 
-    const eventDurationInMinutes = dayjs(retrievedBooking.endTime).diff(retrievedBooking.startTime, "minutes");
+    const eventDurationInMinutes = dayjs(retrievedBooking.endTime).diff(
+      retrievedBooking.startTime,
+      "minutes"
+    );
 
     const eventNameParams = {
       attendeeName: parsedResponses?.name || "Nameless",
@@ -238,7 +243,7 @@ export const roundRobinReassignment = async ({
       eventName: eventTypeData.eventName,
       teamName: compiledTeamMembers.length > 1 ? eventTypeData.team?.name : null,
       host: effectiveOrganizer.name || "Nameless",
-      location: meetingLocation || "integrations:daily",
+      location: meetingLocation || DefaultFallbackVideoLocationType,
       bookingFields: { ...parsedResponses },
       eventDuration: eventDurationInMinutes,
       t: effectiveOrganizerTranslation,
@@ -391,7 +396,7 @@ export const roundRobinReassignment = async ({
   if (formerRRHost) {
     const cancellationEventCopy = cloneDeep(enhancedCalendarEvent);
     cancellationEventCopy.title = existingBookingTitle;
-    
+
     if (ownershipChanged) {
       cancellationEventCopy.organizer = {
         name: formerRRHost.name || "",
@@ -437,7 +442,7 @@ export const roundRobinReassignment = async ({
 
   if (ownershipChanged) {
     const eventIsInFuture = dayjs(calendarEventObject.startTime).isAfter(dayjs());
-    
+
     if (emailsEnabled && eventIsInFuture) {
       await sendRoundRobinUpdatedEmailsAndSMS({
         calEvent: eventWithoutCancellation,

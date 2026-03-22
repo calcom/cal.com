@@ -1,6 +1,6 @@
 export function isOpenedInWebView(): boolean {
   if (typeof window === "undefined") return false;
-  const ua = navigator.userAgent;
+  const ua = navigator.userAgent || "";
 
   const webViewPatterns = [
     /FBAN|FBAV|FB_IAB/i, // Facebook
@@ -21,18 +21,32 @@ export function isOpenedInWebView(): boolean {
     webViewPatterns.some((pattern) => pattern.test(ua)) ||
     (/iPhone|iPad|iPod/i.test(ua) && /WebKit/i.test(ua) && !/Safari/i.test(ua)) ||
     /Android.*(wv|Version\/[\d.]+.*Chrome\/[.0-9]*)/.test(ua);
+
   return inWebView;
+}
+
+type IOSOpenStrategy = "x-safari" | "safari" | "manual";
+
+const IOS_UA_OPEN_STRATEGIES: Array<{ pattern: RegExp; strategy: IOSOpenStrategy }> = [
+  { pattern: /LinkedIn/i, strategy: "x-safari" },
+  { pattern: /FBAN|FBAV|Instagram|Messenger/i, strategy: "safari" },
+  // These app WebViews are commonly restrictive; prefer immediate manual fallback.
+  { pattern: /Twitter|Snapchat|Reddit|TikTok|WhatsApp|Line\/|Pinterest|MicroMessenger/i, strategy: "manual" },
+];
+
+function getIOSOpenStrategy(ua: string): IOSOpenStrategy {
+  const match = IOS_UA_OPEN_STRATEGIES.find((entry) => entry.pattern.test(ua));
+  return match?.strategy ?? "manual";
 }
 
 export function autoOpenInExternalBrowser(): boolean {
   if (typeof window === "undefined") return false;
 
   const currentUrl = window.location.href;
-  const ua = navigator.userAgent;
+  const ua = navigator.userAgent || "";
   const isIOS = /iPhone|iPad|iPod/i.test(ua);
   const isAndroid = /Android/i.test(ua);
 
-  // Android: Auto-redirect using intent URL
   if (isAndroid) {
     const intentUrl = `intent://${currentUrl.replace(
       /^https?:\/\//,
@@ -40,39 +54,34 @@ export function autoOpenInExternalBrowser(): boolean {
     )}#Intent;scheme=https;package=com.android.chrome;end`;
     window.location.href = intentUrl;
 
-    // Fallback to default browser if Chrome not installed
-    setTimeout(() => {
+    window.setTimeout(() => {
       window.location.href = `intent://${currentUrl.replace(/^https?:\/\//, "")}#Intent;scheme=https;end`;
-    }, 500);
+    }, 700);
 
     return true;
   }
 
-  // iOS: Try different approaches based on the app
   if (isIOS) {
-    // Detect specific apps and use their URL schemes
-    if (/LinkedIn/i.test(ua)) {
-      // LinkedIn-specific: Try to open in Safari
+    const strategy = getIOSOpenStrategy(ua);
+
+    if (strategy === "x-safari") {
       window.location.href = `x-safari-https://${currentUrl.replace(/^https?:\/\//, "")}`;
       return true;
     }
 
-    if (/FBAN|FBAV/i.test(ua)) {
-      // Facebook: Use their external browser scheme
+    if (strategy === "safari") {
       window.location.href = currentUrl.replace(/^https?:\/\//, "safari-https://");
       return true;
     }
 
-    if (/Instagram/i.test(ua)) {
-      // Instagram: Similar approach
-      window.location.href = currentUrl.replace(/^https?:\/\//, "safari-https://");
-      return true;
-    }
-
-    // Generic iOS fallback - this may not work consistently
-    // iOS restricts programmatic browser opening from WebViews
     return false;
   }
 
   return false;
+}
+
+export function openInExternalBrowser(): void {
+  if (typeof window === "undefined") return;
+
+  autoOpenInExternalBrowser();
 }

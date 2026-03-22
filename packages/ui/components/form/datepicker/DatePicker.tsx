@@ -1,6 +1,7 @@
 import { Button } from "@calid/features/ui/components/button";
 import * as Popover from "@radix-ui/react-popover";
 import { format } from "date-fns";
+import type { CSSProperties } from "react";
 
 import classNames from "@calcom/ui/classNames";
 
@@ -10,27 +11,49 @@ type Props = {
   date: Date;
   onDatesChange?: ((date: Date) => void) | undefined;
   className?: string;
+  buttonClassName?: string;
+  buttonStyle?: CSSProperties;
   disabled?: boolean;
   minDate?: Date;
+  placeholder?: string;
+  onBlur?: React.FocusEventHandler<HTMLButtonElement>;
+  variant?: "default" | "compact";
+  accentColor?: string;
+  popoverSide?: "top" | "right" | "bottom" | "left";
 };
 
-const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props) => {
+const DatePicker = ({
+  minDate,
+  disabled,
+  date,
+  onDatesChange,
+  className,
+  buttonClassName,
+  buttonStyle,
+  placeholder,
+  onBlur,
+  variant = "default",
+  accentColor,
+  popoverSide,
+}: Props) => {
   function handleDayClick(newDate: Date) {
     onDatesChange?.(newDate ?? new Date());
   }
   const fromDate = minDate ?? new Date();
   const calender = (
-    <Calendar
-      initialFocus
-      fromDate={minDate === null ? undefined : fromDate}
-      // toDate={maxDate}
-      mode="single"
-      defaultMonth={date}
-      selected={date}
-      onDayClick={(day) => handleDayClick(day)}
-      numberOfMonths={1}
-      disabled={disabled}
-    />
+      <Calendar
+        initialFocus
+        fromDate={minDate === null ? undefined : fromDate}
+        // toDate={maxDate}
+        mode="single"
+        defaultMonth={date}
+        selected={date}
+        onDayClick={(day) => handleDayClick(day)}
+        numberOfMonths={1}
+        disabled={disabled}
+        variant={variant}
+        accentColor={accentColor}
+      />
   );
 
   return (
@@ -41,13 +64,25 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props
             data-testid="pick-date"
             color="secondary"
             EndIcon="calendar"
-            className={classNames("justify-between text-left font-normal", !date && "text-subtle")}>
-            {date ? <>{format(date, "LLL dd, y")}</> : <span>Pick a date</span>}
+            disabled={disabled}
+            onBlur={onBlur}
+            style={buttonStyle}
+            className={classNames(
+              "justify-between text-left font-normal",
+              !date && "text-subtle",
+              buttonClassName
+            )}>
+            {date ? (
+              <>{format(date, "LLL dd, y")}</>
+            ) : (
+              <span className="text-sm text-subtle">{placeholder || "Pick a date"}</span>
+            )}
           </Button>
         </Popover.Trigger>
         <Popover.Content
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
+          side={popoverSide}
           sideOffset={4}>
           {calender}
         </Popover.Content>
