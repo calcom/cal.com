@@ -134,20 +134,25 @@ export class BookingsController_2024_04_15 {
   @UseGuards(ApiAuthGuard)
   @Permissions([BOOKING_READ])
   @ApiQuery({ name: "filters[status]", enum: Status_2024_04_15, required: true })
+  @ApiQuery({ name: "attendeeEmail", type: "string", required: false })
   @ApiQuery({ name: "limit", type: "number", required: false })
   @ApiQuery({ name: "cursor", type: "number", required: false })
   async getBookings(
     @GetUser() user: UserWithProfile,
     @Query() queryParams: GetBookingsInput_2024_04_15
   ): Promise<GetBookingsOutput_2024_04_15> {
-    const { filters, cursor, limit } = queryParams;
+    const { filters, cursor, limit, attendeeEmail } = queryParams;
     const bookingListingByStatus = filters?.status ?? Status_2024_04_15.upcoming;
+    const normalizedFilters = {
+      ...filters,
+      attendeeEmail: attendeeEmail ?? filters?.attendeeEmail,
+    };
     const profile = this.usersService.getUserMainProfile(user);
     const bookings = await getAllUserBookings({
       bookingListingByStatus: [bookingListingByStatus],
       skip: cursor ?? 0,
       take: limit ?? 10,
-      filters,
+      filters: normalizedFilters,
       ctx: {
         user: { email: user.email, id: user.id, orgId: profile?.organizationId },
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,

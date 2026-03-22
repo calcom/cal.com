@@ -44,6 +44,14 @@ class Filters {
   @Type(() => Number)
   @ApiPropertyOptional({ type: [Number] })
   eventTypeIds?: number[];
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: "Filter bookings by the attendee's email address.",
+    example: "example@domain.com",
+  })
+  attendeeEmail?: string;
 }
 
 export class GetBookingsInput_2024_04_15 {
@@ -65,6 +73,14 @@ export class GetBookingsInput_2024_04_15 {
   @IsOptional()
   @ApiPropertyOptional({ description: "Cursor for pagination.", example: 10, nullable: true })
   cursor?: number | null;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: "Filter bookings by the attendee's email address.",
+    example: "example@domain.com",
+  })
+  attendeeEmail?: string;
 }
 
 export class CancelBookingInput_2024_04_15 {
