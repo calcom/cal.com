@@ -57,7 +57,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
         <li>
           <div className="min-w-0">
             <span className="text-default font-semibold ltr:mr-1 rtl:ml-1 truncate block">{title}</span>{" "}
-            <small className="text-subtle hidden font-normal sm:inline truncate block">
+            <small className="text-subtle hidden font-normal sm:block truncate">
               /{team ? team.slug : userName}/{slug}
             </small>
           </div>
