@@ -148,17 +148,28 @@ export class BBBApi {
   }
 
   /**
-   * Test connection to BBB server
+   * Test connection to BBB server and validate authentication
+   * Uses getMeetings which requires a valid checksum (shared secret)
+   * If auth fails, BBB returns FAILED with specific error message
    */
   async testConnection(): Promise<boolean> {
     try {
-      const url = this.buildApiUrl("", {});
+      const url = this.buildApiUrl("getMeetings", {});
       const response = await axios.get(url, {
         timeout: 5000,
       });
+
+      // Check response status and content
+      if (response.status !== 200) return false;
       
-      // If we get any response, the server is reachable
-      return response.status === 200;
+      // BBB returns FAILED for auth errors, SUCCESS for valid auth (even empty meetings)
+      if (response.data.includes("<returncode>FAILED</returncode>")) {
+        return false;
+      }
+      
+      // Valid auth should include returncode SUCCESS or valid XML structure
+      return response.data.includes("<returncode>SUCCESS</returncode>") || 
+             response.data.includes("<meetings>");
     } catch (error) {
       return false;
     }

@@ -49,19 +49,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const appType = "bigbluebutton_video";
 
   try {
-    // Check if already installed
-    const alreadyInstalled = await prisma.credential.findFirst({
+    // Check if already installed to prevent duplicates
+    const existingInstallation = await prisma.credential.findFirst({
       where: {
         type: appType,
         ...installForObject,
       },
     });
 
-    if (alreadyInstalled) {
-      return res.status(400).json({ message: "BigBlueButton is already installed" });
+    if (existingInstallation) {
+      return res.status(400).json({ 
+        message: "BigBlueButton is already installed" 
+      });
     }
 
-    // Test BBB server connection
+    // Test BBB server connection with proper auth validation
     const bbbApi = new BBBApi({ serverUrl, sharedSecret });
     const isConnected = await bbbApi.testConnection();
 
@@ -71,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Create credential
+    // Create the credential after successful connection test
     const installation = await prisma.credential.create({
       data: {
         type: appType,
@@ -94,7 +96,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error: unknown) {
-    console.error("BigBlueButton installation error:", error);
+    // Log safe error message without sensitive credentials
+    console.error("BigBlueButton installation error:", error instanceof Error ? error.message : "Unknown error");
     const httpError = getServerErrorFromUnknown(error);
     return res.status(httpError.statusCode).json({ message: httpError.message });
   }

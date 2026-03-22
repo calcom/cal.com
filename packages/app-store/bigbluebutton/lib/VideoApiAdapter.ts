@@ -44,27 +44,24 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
           maxParticipants: 50,
         });
 
-        // Generate moderator join URL (for organizer)
-        const moderatorJoinUrl = bbbApi.getJoinUrl({
+        // Generate attendee join URL as the canonical meeting URL (safe for sharing)
+        const attendeeJoinUrl = bbbApi.getJoinUrl({
           meetingID,
-          fullName: eventData.organizer.name || "Host",
-          password: moderatorPassword,
-          userID: "moderator",
-          role: "moderator",
+          fullName: "Participant",
+          password: attendeePassword,
+          userID: "participant",
+          role: "viewer",
         });
 
         return {
           type: metadata.type,
           id: meetingID,
-          password: attendeePassword, // Store attendee password for guests
-          url: moderatorJoinUrl, // Moderator URL for organizer
-          // Store both passwords in the meeting data for later use
-          metadata: {
-            moderatorPassword,
+          password: JSON.stringify({ 
+            moderatorPassword, 
             attendeePassword,
-            serverUrl,
-            sharedSecret,
-          },
+            serverUrl // Store server URL for meeting operations
+          }),
+          url: attendeeJoinUrl, // Safe attendee URL as canonical URL
         };
       } catch (error) {
         console.error("Failed to create BigBlueButton meeting:", error);
@@ -93,9 +90,9 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
 
         const bbbApi = new BBBApi({ serverUrl, sharedSecret });
 
-        // Get moderator password from booking reference
-        const metadata = bookingRef.meetingPassword ? JSON.parse(bookingRef.meetingPassword) : {};
-        const moderatorPassword = metadata.moderatorPassword;
+        // Get moderator password from booking reference (now stored as JSON)
+        const passwordData = bookingRef.meetingPassword ? JSON.parse(bookingRef.meetingPassword) : {};
+        const moderatorPassword = passwordData.moderatorPassword;
 
         if (moderatorPassword) {
           await bbbApi.endMeeting(bookingRef.meetingId, moderatorPassword);
@@ -111,13 +108,13 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
       // BBB meetings are stateless and don't need updating
       
       const meetingId = bookingRef.meetingId as string;
-      const attendeePassword = bookingRef.meetingPassword as string;
+      const passwordData = bookingRef.meetingPassword as string;
       const meetingUrl = bookingRef.meetingUrl as string;
 
       return Promise.resolve({
         type: metadata.type,
         id: meetingId,
-        password: attendeePassword,
+        password: passwordData, // Keep original password data format
         url: meetingUrl,
       });
     },
@@ -140,6 +137,31 @@ const BigBlueButtonVideoApiAdapter = (): VideoApiAdapter => {
         password: attendeePassword,
         userID: `guest-${Date.now()}`,
         role: "viewer",
+      });
+    },
+
+    /**
+     * Generate moderator join URL for organizers
+     */
+    getModeratorJoinUrl: async (
+      meetingId: string,
+      organizerName: string,
+      passwordData: string
+    ): Promise<string> => {
+      const parsedData = JSON.parse(passwordData);
+      const { moderatorPassword, serverUrl } = parsedData;
+      
+      const appKeys = await getAppKeysFromSlug(metadata.slug);
+      const sharedSecret = appKeys.sharedSecret as string;
+      
+      const bbbApi = new BBBApi({ serverUrl, sharedSecret });
+      
+      return bbbApi.getJoinUrl({
+        meetingID: meetingId,
+        fullName: organizerName || "Host", 
+        password: moderatorPassword,
+        userID: "moderator",
+        role: "moderator",
       });
     },
   };
