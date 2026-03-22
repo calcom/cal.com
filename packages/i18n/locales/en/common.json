@@ -108,6 +108,7 @@
   "invite_team_member_by_email": "Invite people by email",
   "invite_team_member_by_email_description": "Invite people who are not yet in this team. They'll be added as members and assigned to this event type.",
   "invite_team_member_email_placeholder": "user@example.com, user2@example.com",
+  "enter_emails_to_invite": "Enter one or more email addresses",
   "invite_team_individual_segment": "Invite individual",
   "invite_team_bulk_segment": "Bulk import",
   "invite_team_notifcation_badge": "Inv.",

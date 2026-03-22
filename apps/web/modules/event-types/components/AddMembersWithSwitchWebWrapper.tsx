@@ -24,8 +24,14 @@ const InviteByEmailSection = ({
   const [emailInput, setEmailInput] = useState("");
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
-    onSuccess: () => {
-      showToast(t("invite_team_member"), "success");
+    onSuccess: (_, variables) => {
+      const inviteCount = Array.isArray(variables.usernameOrEmail) ? variables.usernameOrEmail.length : 1;
+      showToast(
+        inviteCount > 1
+          ? t("email_invite_team_bulk", { userCount: inviteCount })
+          : t("email_invite_team", { email: Array.isArray(variables.usernameOrEmail) ? variables.usernameOrEmail[0] : variables.usernameOrEmail }),
+        "success"
+      );
       setEmailInput("");
       onInvited();
     },
@@ -41,22 +47,27 @@ const InviteByEmailSection = ({
 
   const handleInvite = useCallback(() => {
     if (!validEmails.length) {
-      showToast(t("invalid_email_address"), "error");
+      showToast(t("enter_emails_to_invite"), "error");
       return;
     }
 
     if (invalidEmails.length) {
-      showToast(t("invalid_email_address"), "error");
+      showToast(
+        invalidEmails.length === 1
+          ? t("invalid_email_address")
+          : `${t("invalid_email_address")}: ${invalidEmails.join(", ")}`,
+        "error"
+      );
       return;
     }
 
     inviteMemberMutation.mutate({
       teamId,
-      usernameOrEmail: validEmails.length === 1 ? validEmails[0] : validEmails,
+      usernameOrEmail: validEmails,
       language: i18n.language,
       creationSource: CreationSource.WEBAPP,
     });
-  }, [inviteMemberMutation, invalidEmails.length, i18n.language, t, teamId, validEmails]);
+  }, [inviteMemberMutation, invalidEmails, i18n.language, t, teamId, validEmails]);
 
   return (
     <div className="border-subtle mt-3 flex flex-col gap-3 rounded-md border p-3">
@@ -107,7 +118,7 @@ export const AddMembersWithSwitchWebWrapper = ({ ...props }: AddMembersWithSwitc
       utils.viewer.eventTypes.get.invalidate(),
       utils.viewer.eventTypes.getByViewer.invalidate(),
     ]);
-  }, [props.teamId, utils.viewer.eventTypes.get, utils.viewer.eventTypes.getByViewer, utils.viewer.teams.get]);
+  }, [props.teamId, utils]);
 
   return (
     <>
