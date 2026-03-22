@@ -194,13 +194,13 @@ const Item = ({
   const content = (): JSX.Element => (
     <div>
       <span
-        className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
+        className="text-default truncate font-semibold ltr:mr-1 rtl:ml-1"
         data-testid={`event-type-title-${type.id}`}>
         {type.title}
       </span>
       {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
         <small
-          className="text-subtle hidden font-normal leading-4 sm:inline"
+          className="text-subtle hidden truncate font-normal leading-4 sm:inline"
           data-testid={`event-type-slug-${type.id}`}>
           {`/${group.profile.slug}/${type.slug}`}
         </small>
@@ -238,13 +238,13 @@ const Item = ({
           <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
             <div>
               <span
-                className="text-default break-words font-semibold ltr:mr-1 rtl:ml-1"
+                className="text-default truncate font-semibold ltr:mr-1 rtl:ml-1"
                 data-testid={`event-type-title-${type.id}`}>
                 {type.title}
               </span>
               {group.profile.slug && type.schedulingType !== SchedulingType.MANAGED ? (
                 <small
-                  className="text-subtle hidden font-normal leading-4 sm:inline"
+                  className="text-subtle hidden truncate font-normal leading-4 sm:inline"
                   data-testid={`event-type-slug-${type.id}`}>
                   {`/${group.profile.slug}/${type.slug}`}
                 </small>
