@@ -331,6 +331,10 @@ async function prepareCalendarEvent(
   updatedBooking: BookingSelectResult,
   updatedLocation: string | null
 ): Promise<CalendarEvent> {
+  const locationType = isPrismaObjOrUndefined(
+    isPrismaObjOrUndefined(updatedBooking.responses)?.location
+  )?.value;
+
   const effectiveOrganizer = data.requiresOrganizerChange
     ? data.targetHost.user
     : updatedBooking.user ?? data.targetHost.user;
@@ -382,6 +386,7 @@ async function prepareCalendarEvent(
     }),
     customReplyToEmail: data.eventType.customReplyToEmail,
     location: updatedLocation,
+    locationType: locationType?.toString(),
     ...(payload.platformClientParams ? payload.platformClientParams : {}),
   };
 }
@@ -451,7 +456,7 @@ async function synchronizeCalendars(
     bookingICalUID: updatedBooking.iCalUID,
     bookingMetadata: updatedBooking.metadata,
   });
-  console.log("Event after sync: ", evtWithAdditionalInfo)
+  console.log("Event after sync: ", evtWithAdditionalInfo);
 
   return evtWithAdditionalInfo;
 }
@@ -565,6 +570,12 @@ const calIdWorkflowReminderSelect = {
           timeUnit: true,
         },
       },
+      calIdTeam: {
+        select: {
+          id: true,
+          metadata: true,
+        },
+      },
       emailSubject: true,
       reminderBody: true,
       sender: true,
@@ -609,6 +620,7 @@ async function rescheduleExistingReminders(
         ...evt,
         metadata: eventMeta,
         eventType: eventType,
+        cancellationReason: evt.cancellationReason ?? undefined,
         bookerUrl,
       },
       action: WorkflowActions.EMAIL_HOST,
@@ -622,6 +634,9 @@ async function rescheduleExistingReminders(
       emailSubject: reminder.workflowStep.emailSubject || undefined,
       emailBody: reminder.workflowStep.reminderBody || undefined,
       sender: reminder.workflowStep.sender || SENDER_NAME,
+      enterpriseEmailPrefix: isPrismaObjOrUndefined(
+        reminder.calIdTeam?.metadata
+      )?.enterpriseEmailPrefix?.toString(),
       hideBranding: true,
       includeCalendarEvent: reminder.workflowStep.includeCalendarEvent,
       workflowStepId: reminder.workflowStep.id,
@@ -630,7 +645,7 @@ async function rescheduleExistingReminders(
       teamId: workflow.calIdTeamId,
     });
 
-    await deleteScheduledEmailReminder(reminder.id);
+    await deleteScheduledEmailReminder(reminder.id, reminder.referenceIdentifier);
   }
 }
 
@@ -641,7 +656,7 @@ async function fetchActiveReminders(booking: BookingSelectResult): Promise<any[]
     WorkflowTriggerEvents.AFTER_EVENT,
   ];
 
-  const bookingUid = booking.uid
+  const bookingUid = booking.uid;
 
   return await prisma.calIdWorkflowReminder.findMany({
     where: {

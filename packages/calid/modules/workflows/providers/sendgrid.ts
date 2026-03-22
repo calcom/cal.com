@@ -88,7 +88,11 @@ const enhanceHtmlContent = (htmlString?: string): string => {
 
 const executeEmailDelivery = (
   emailData: Partial<MailData>,
-  additionalOptions: { sender?: string | null; includeCalendarEvent?: boolean },
+  additionalOptions: {
+    enterpriseEmailPrefix?: string | null;
+    sender?: string | null;
+    includeCalendarEvent?: boolean;
+  },
   extraParameters?: CustomParameters
 ): Promise<any> => {
   initializeSendgridServices();
@@ -123,7 +127,7 @@ const executeEmailDelivery = (
   const messagePayload = {
     to: emailData.to,
     from: {
-      email: configuration.fromAddress,
+      email: additionalOptions.enterpriseEmailPrefix || configuration.fromAddress,
       name: additionalOptions.sender || SENDER_NAME,
     },
     subject: emailData.subject,
@@ -181,7 +185,7 @@ export async function getBatchId() {
 
 export function sendSendgridMail(
   mailData: Partial<MailData>,
-  addData: { sender?: string | null; includeCalendarEvent?: boolean },
+  addData: { enterpriseEmailPrefix?: string | null; sender?: string | null; includeCalendarEvent?: boolean },
   customArgs?: CustomParameters
 ) {
   return executeEmailDelivery(mailData, addData, customArgs);

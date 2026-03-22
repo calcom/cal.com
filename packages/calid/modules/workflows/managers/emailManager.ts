@@ -53,6 +53,7 @@ interface EmailNotificationParameters extends ScheduleReminderArgs {
   action: CalIdScheduleEmailReminderAction;
   emailSubject?: string;
   emailBody?: string;
+  enterpriseEmailPrefix?: string;
   hideBranding?: boolean;
   includeCalendarEvent?: boolean;
   isMandatoryReminder?: boolean;
@@ -305,6 +306,7 @@ const prepareEmailTransmission = async (
   emailContentData: EmailContentData,
   shouldIncludeCalendar?: boolean,
   customSender?: string | null,
+  enterpriseEmailPrefix?: string,
   batchId?: string
 ) => {
   return async (recipientData: Partial<MailData>, eventTrigger?: WorkflowTriggerEvents) => {
@@ -358,7 +360,7 @@ const prepareEmailTransmission = async (
           : undefined,
         sendAt: recipientData.sendAt,
       },
-      { sender: customSender },
+      { sender: customSender, enterpriseEmailPrefix },
       {
         msgId: batchId,
       }
@@ -560,6 +562,7 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
     timeSpan,
     template,
     sender,
+    enterpriseEmailPrefix,
     workflowStepId,
     seatReferenceUid,
     sendTo,
@@ -601,6 +604,7 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
     emailContentData,
     includeCalendarEvent,
     sender,
+    enterpriseEmailPrefix,
     batchId
   );
 
