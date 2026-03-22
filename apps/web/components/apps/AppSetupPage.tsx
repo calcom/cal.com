@@ -3,6 +3,7 @@ import dynamic from "next/dynamic";
 
 export const AppSetupMap = {
   alby: dynamic(() => import("@calcom/web/components/apps/alby/Setup")),
+  bigbluebutton: dynamic(() => import("@calcom/web/components/apps/bigbluebutton/Setup")),
   "apple-calendar": dynamic(() => import("@calcom/web/components/apps/applecalendar/Setup")),
   exchange: dynamic(() => import("@calcom/web/components/apps/exchangecalendar/Setup")),
   "exchange2013-calendar": dynamic(() => import("@calcom/web/components/apps/exchange2013calendar/Setup")),

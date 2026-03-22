@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "name": "@calcom/bigbluebutton",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "BigBlueButton is an open-source web conferencing system designed for virtual learning and education.",
+  "dependencies": {
+    "@calcom/lib": "workspace:*",
+    "@calcom/prisma": "workspace:*"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*"
+  }
+}
