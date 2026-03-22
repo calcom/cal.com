@@ -3,6 +3,10 @@
 import Link from "next/link";
 import z from "zod";
 
+import logger from "@calcom/lib/logger";
+
+const log = logger.getSubLogger({ prefix: ["PaypalPaymentComponent"] });
+
 interface IPaypalPaymentComponentProps {
   payment: {
     // Will be parsed on render
@@ -38,7 +42,19 @@ export const PaypalPaymentComponent = (props: IPaypalPaymentComponentProps) => {
   );
 
   const parsedData = PaymentPaypalDataSchema.safeParse(data);
-  if (!parsedData.success || !parsedData.data?.order?.links) {
+  if (!parsedData.success) {
+    log.error("Failed to parse PayPal payment data", {
+      error: parsedData.error.format(),
+      rawData: data,
+    });
+    return wrongUrl;
+  }
+  if (!parsedData.data?.order?.links) {
+    log.error("PayPal payment data missing order links", {
+      hasOrder: !!parsedData.data?.order,
+      hasLinks: !!parsedData.data?.order?.links,
+      rawData: data,
+    });
     return wrongUrl;
   }
   const paymentUrl = parsedData.data.order.links.find(

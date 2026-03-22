@@ -6,6 +6,10 @@ import { useEffect, useRef } from "react";
 import { z } from "zod";
 
 import { useHitPayDropIn } from "@calcom/app-store/hitpay/components/HitPayDropIn";
+import logger from "@calcom/lib/logger";
+
+
+const log = logger.getSubLogger({ prefix: ["HitpayPaymentComponent"] });
 
 const PaymentHitpayDataSchema = z.object({
   id: z.string(),
@@ -36,6 +40,13 @@ export const HitpayPaymentComponent = (props: IPaymentComponentProps) => {
   );
 
   const parsedData = PaymentHitpayDataSchema.safeParse(data);
+
+  if (!parsedData.success) {
+    log.error("Failed to parse HitPay payment data", {
+      error: parsedData.error.format(),
+      rawData: data,
+    });
+  }
 
   useEffect(() => {
     if (parsedData.success) {
