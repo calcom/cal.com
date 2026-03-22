@@ -74,10 +74,10 @@ class MyDocument extends Document<Props> {
           <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F9FAFC" />
           <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1F1F" />
           {!IS_PRODUCTION && process.env.VERCEL_ENV === "preview" && (
-            // eslint-disable-next-line @next/next/no-sync-scripts
             <script
-              data-project-id="KjpMrKTnXquJVKfeqmjdTffVPf1a6Unw2LZ58iE4"
-              src="https://snippet.meticulous.ai/v1/stagingMeticulousSnippet.js"
+              data-recording-token="tSiCyhvWRRmej6EdvORFXv2r9whlnDbTEfGtlC7k"
+              data-is-production-environment="false"
+              src="https://snippet.meticulous.ai/v1/meticulous.js"
             />
           )}
         </Head>
