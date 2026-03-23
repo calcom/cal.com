@@ -33,18 +33,18 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     safeStringify({ slug, name, orgOwnerEmail, isPlatform })
   );
 
-  if (IS_SELF_HOSTED) {
-    const deploymentRepo = new DeploymentRepository(prisma);
-    const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
-    const hasValidLicense = await licenseKeyService.checkLicense();
+  // if (IS_SELF_HOSTED) {
+  //   const deploymentRepo = new DeploymentRepository(prisma);
+  //   const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
+  //   const hasValidLicense = await licenseKeyService.checkLicense();
 
-    if (!hasValidLicense) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "License is not valid",
-      });
-    }
-  }
+  //   if (!hasValidLicense) {
+  //     throw new TRPCError({
+  //       code: "BAD_REQUEST",
+  //       message: "License is not valid",
+  //     });
+  //   }
+  // }
 
   const loggedInUser = ctx.user;
   if (!loggedInUser) throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." });

@@ -125,7 +125,8 @@ export class BillingEnabledOrgOnboardingService extends BaseOnboardingService {
         orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
         slug: organizationOnboarding.slug,
         stripeCustomerId: organizationOnboarding.stripeCustomerId,
-      }
+      },
+      input.promoCode
     );
 
     return {

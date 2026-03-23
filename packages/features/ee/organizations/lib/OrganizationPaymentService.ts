@@ -264,7 +264,8 @@ export class OrganizationPaymentService {
     priceId: string,
     config: PaymentConfig,
     organizationOnboardingId: OrganizationOnboardingId,
-    params: URLSearchParams
+    params: URLSearchParams,
+    promoCode?: string
   ) {
     log.debug(
       "Creating subscription",
@@ -296,6 +297,7 @@ export class OrganizationPaymentService {
         billingPeriod: config.billingPeriod,
       },
       subscriptionData,
+      ...(promoCode ? { discounts: [{ promotion_code: promoCode }] } : {}),
     });
   }
 
@@ -305,7 +307,8 @@ export class OrganizationPaymentService {
 
   async createPaymentIntent(
     input: CreatePaymentIntentInput,
-    organizationOnboarding: OrganizationOnboardingForPaymentIntent
+    organizationOnboarding: OrganizationOnboardingForPaymentIntent,
+    promoCode?: string
   ) {
     log.debug("createPaymentIntent", safeStringify(input));
 
@@ -381,7 +384,8 @@ export class OrganizationPaymentService {
       organizationOnboarding.id,
       new URLSearchParams({
         orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
-      })
+      }),
+      promoCode
     );
 
     log.debug("Updating onboarding with stripe details and form data");

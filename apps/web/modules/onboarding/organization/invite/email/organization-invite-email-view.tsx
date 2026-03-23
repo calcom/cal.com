@@ -42,7 +42,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
   const { teams } = useOnboardingStore();
   const migratedTeams = teams.filter((team) => team.isBeingMigrated);
   const isMigrationFlow = searchParams?.get("migrate") === "true";
-  const { billingPeriod } = useOnboardingQueryParams();
+  const { billingPeriod, promoCode } = useOnboardingQueryParams();
 
   const store = useOnboardingStore();
   const usersEmailDomain = userEmail.split("@")[1];
@@ -104,7 +104,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
 
   const handleContinue = async (data: FormValues) => {
     setInvites(data.invites);
-    await submitOnboarding(store, userEmail, data.invites, { billingPeriod });
+    await submitOnboarding(store, userEmail, data.invites, { billingPeriod, promoCode });
   };
 
   const handleBack = () => {
@@ -113,7 +113,7 @@ export const OrganizationInviteEmailView = ({ userEmail }: OrganizationInviteEma
 
   const handleSkip = async () => {
     setInvites([]);
-    await submitOnboarding(store, userEmail, [], { billingPeriod });
+    await submitOnboarding(store, userEmail, [], { billingPeriod, promoCode });
   };
 
   const handleGoogleWorkspaceConnect = () => {

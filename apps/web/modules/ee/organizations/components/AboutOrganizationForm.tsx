@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 
 import { useOnboarding } from "@calcom/web/modules/ee/organizations/lib/onboardingStore";
@@ -16,6 +16,9 @@ import { PlusIcon } from "@coss/ui/icons";
 export const AboutOrganizationForm = () => {
   const { t } = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryString = searchParams?.toString();
+  const queryPrefix = queryString ? `?${queryString}` : "";
 
   const { useOnboardingStore } = useOnboarding();
   const { setLogo, setBio, bio: bioFromStore, logo: logoFromStore } = useOnboardingStore();
@@ -38,7 +41,7 @@ export const AboutOrganizationForm = () => {
         handleSubmit={(values) => {
           setLogo(values.logo);
           setBio(values.bio);
-          router.push(`/settings/organizations/new/add-teams`);
+          router.push(`/settings/organizations/new/add-teams${queryPrefix}`);
         }}>
         <div>
           <Controller

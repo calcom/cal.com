@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -76,6 +77,8 @@ const useOrgCreation = () => {
 
 export const AddNewTeamMembersForm = () => {
   const { t } = useLocale();
+  const searchParams = useSearchParams();
+  const promoCode = searchParams?.get("promo") ?? undefined;
   const { useOnboardingStore, isBillingEnabled } = useOnboarding();
   const {
     addInvitedMember,
@@ -235,6 +238,7 @@ export const AddNewTeamMembersForm = () => {
               bannerUrl,
               teams,
               invitedMembers,
+              ...(promoCode && { promoCode }),
             });
           }}
           loading={orgCreation.isPending}>

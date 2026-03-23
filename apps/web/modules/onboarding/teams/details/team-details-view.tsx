@@ -15,6 +15,7 @@ import { OnboardingCard } from "../../components/OnboardingCard";
 import { OnboardingLayout } from "../../components/OnboardingLayout";
 import { OnboardingBrowserView } from "../../components/onboarding-browser-view";
 import { useCreateTeam } from "../../hooks/useCreateTeam";
+import { useOnboardingQueryParams } from "../../hooks/useOnboardingQueryParams";
 import { useOnboardingStore } from "../../store/onboarding-store";
 import { ValidatedTeamSlug } from "./validated-team-slug";
 
@@ -25,9 +26,10 @@ type TeamDetailsViewProps = {
 export const TeamDetailsView = ({ userEmail }: TeamDetailsViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
+  const { promoCode } = useOnboardingQueryParams();
   const store = useOnboardingStore();
   const { teamDetails, teamBrand, setTeamDetails, setTeamBrand } = store;
-  const { createTeam, isSubmitting } = useCreateTeam();
+  const { createTeam, isSubmitting } = useCreateTeam({ promoCode });
 
   const logoRef = useRef<HTMLInputElement>(null);
   const [teamName, setTeamName] = useState("");

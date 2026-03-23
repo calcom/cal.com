@@ -82,6 +82,7 @@ export const generateTeamCheckoutSession = async ({
   isOnboarding,
   billingPeriod = BillingPeriod.MONTHLY,
   tracking,
+  promoCode,
 }: {
   teamName: string;
   teamSlug: string;
@@ -89,6 +90,7 @@ export const generateTeamCheckoutSession = async ({
   isOnboarding?: boolean;
   billingPeriod?: BillingPeriod;
   tracking?: TrackingData;
+  promoCode?: string;
 }) => {
   const [customer, dubCustomer] = await Promise.all([
     getStripeCustomerIdFromUserId(userId),
@@ -98,18 +100,20 @@ export const generateTeamCheckoutSession = async ({
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
-    ...(dubCustomer?.discount?.couponId
-      ? {
-          discounts: [
-            {
-              coupon:
-                process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
-                  ? dubCustomer.discount.couponTestId
-                  : dubCustomer.discount.couponId,
-            },
-          ],
-        }
-      : { allow_promotion_codes: true }),
+    ...(promoCode
+      ? { discounts: [{ promotion_code: promoCode }] }
+      : dubCustomer?.discount?.couponId
+        ? {
+            discounts: [
+              {
+                coupon:
+                  process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
+                    ? dubCustomer.discount.couponTestId
+                    : dubCustomer.discount.couponId,
+              },
+            ],
+          }
+        : { allow_promotion_codes: true }),
     success_url: `${WEBAPP_URL}/api/teams/create?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
     line_items: [
@@ -174,6 +178,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   pricePerSeat: number | null;
   billingPeriod?: BillingPeriod;
   tracking?: TrackingData;
+  promoCode?: string;
 }) => {
   const {
     teamId,
@@ -184,6 +189,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     pricePerSeat,
     billingPeriod = BillingPeriod.MONTHLY,
     tracking,
+    promoCode,
   } = input;
   const { url } = await checkIfTeamPaymentRequired({ teamId });
   if (url) return { url };
@@ -219,7 +225,9 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
-    allow_promotion_codes: true,
+    ...(promoCode
+      ? { discounts: [{ promotion_code: promoCode }] }
+      : { allow_promotion_codes: true }),
     success_url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
     line_items: [

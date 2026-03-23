@@ -31,6 +31,7 @@ const generateCheckoutSession = async ({
   isOnboarding,
   billingPeriod,
   tracking,
+  promoCode,
 }: {
   teamSlug: string;
   teamName: string;
@@ -38,6 +39,7 @@ const generateCheckoutSession = async ({
   isOnboarding?: boolean;
   billingPeriod?: "MONTHLY" | "ANNUALLY";
   tracking?: TrackingData;
+  promoCode?: string;
 }) => {
   if (!IS_TEAM_BILLING_ENABLED) {
     console.info("Team billing is disabled, not generating a checkout session.");
@@ -51,6 +53,7 @@ const generateCheckoutSession = async ({
     isOnboarding,
     billingPeriod: billingPeriod as BillingPeriodEnum | undefined,
     tracking,
+    promoCode,
   });
 
   if (!checkoutSession.url)
@@ -63,7 +66,7 @@ const generateCheckoutSession = async ({
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { user } = ctx;
-  const { slug, name, bio, isOnboarding, billingPeriod } = input;
+  const { slug, name, bio, isOnboarding, billingPeriod, promoCode } = input;
   const isOrgChildTeam = !!user.profile?.organizationId;
 
   // For orgs we want to create teams under the org
@@ -100,6 +103,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       isOnboarding,
       billingPeriod,
       tracking,
+      promoCode,
     });
 
     // If there is a checkout session, return it. Otherwise, it means it's disabled.

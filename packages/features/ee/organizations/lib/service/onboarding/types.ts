@@ -32,6 +32,7 @@ export type CreateOnboardingIntentInput = {
   teams?: TeamInput[];
   invitedMembers?: InvitedMemberInput[];
   onboardingId?: string;
+  promoCode?: string;
 };
 
 export type OnboardingIntentResult = {
