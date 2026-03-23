@@ -457,6 +457,71 @@ describe("ensureBookingInputsHaveSystemFields - phone field unification", () => 
     });
   });
 
+  it("injects smsReminderNumber field when workflows have SMS_ATTENDEE steps", () => {
+    const result = ensureBookingInputsHaveSystemFields({
+      bookingFields: [],
+      disableGuests: false,
+      isOrgTeamEvent: false,
+      additionalNotesRequired: false,
+      customInputs: [],
+      workflows: [
+        {
+          workflow: {
+            id: 1,
+            steps: [{ action: "SMS_ATTENDEE", numberRequired: true }],
+          },
+        },
+      ] as never,
+    });
+
+    const smsField = result.find((f) => f.name === "smsReminderNumber");
+    expect(smsField).toBeDefined();
+    expect(smsField?.type).toBe("phone");
+  });
+
+  it("does not inject smsReminderNumber field when it already exists in bookingFields", () => {
+    const result = ensureBookingInputsHaveSystemFields({
+      bookingFields: [
+        {
+          name: "smsReminderNumber",
+          type: "phone" as const,
+          editable: "system" as const,
+          required: false,
+          sources: [{ label: "Workflow", id: "1", type: "workflow" as const, fieldRequired: true }],
+        },
+      ],
+      disableGuests: false,
+      isOrgTeamEvent: false,
+      additionalNotesRequired: false,
+      customInputs: [],
+      workflows: [
+        {
+          workflow: {
+            id: 1,
+            steps: [{ action: "SMS_ATTENDEE", numberRequired: true }],
+          },
+        },
+      ] as never,
+    });
+
+    const smsFields = result.filter((f) => f.name === "smsReminderNumber");
+    expect(smsFields).toHaveLength(1);
+  });
+
+  it("does not inject smsReminderNumber field when no SMS workflows exist", () => {
+    const result = ensureBookingInputsHaveSystemFields({
+      bookingFields: [],
+      disableGuests: false,
+      isOrgTeamEvent: false,
+      additionalNotesRequired: false,
+      customInputs: [],
+      workflows: [],
+    });
+
+    const smsField = result.find((f) => f.name === "smsReminderNumber");
+    expect(smsField).toBeUndefined();
+  });
+
   describe("when in legacy mode (shouldMergePhoneSystemFields=null/undefined)", () => {
     it("should not manipulate phone fields when shouldMergePhoneSystemFields is null", () => {
       const testArgs = createBaseTestArgs({

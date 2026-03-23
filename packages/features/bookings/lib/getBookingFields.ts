@@ -389,10 +389,10 @@ export const ensureBookingInputsHaveSystemFields = ({
     });
 
     // 3. Add missing SMS/calAI fields when active workflows exist
-    // Note: We still need workflows in `getBookingFields` due to Backward Compatibility. If we do a one time entry for all event-types, we can remove workflows from `getBookingFields`
+    // Ensures that even if for whatever reason the booking fields don't have smsReminder field but a corresponding workflow is linked, we add the field ourselves
     if (
       smsNumberSources.length &&
-      !bookingFields.find((f) => getFieldIdentifier(f.name) !== getFieldIdentifier(SMS_REMINDER_NUMBER_FIELD))
+      !bookingFields.find((f) => getFieldIdentifier(f.name) === getFieldIdentifier(SMS_REMINDER_NUMBER_FIELD))
     ) {
       const indexForLocation = bookingFields.findIndex(
         (f) => getFieldIdentifier(f.name) === getFieldIdentifier("location")
