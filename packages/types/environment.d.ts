@@ -1,6 +1,5 @@
 declare namespace NodeJS {
   interface ProcessEnv {
-    readonly CALCOM_TELEMETRY_DISABLED: string | undefined;
     readonly CALENDSO_ENCRYPTION_KEY: string | undefined;
     readonly DATABASE_URL: string | undefined;
     readonly GOOGLE_API_CREDENTIALS: string | undefined;
