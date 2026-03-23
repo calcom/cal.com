@@ -2,6 +2,7 @@ import prismock from "@calcom/testing/lib/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
+import { getDubCustomer } from "@calcom/features/auth/lib/dub";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { BillingPeriod } from "@calcom/prisma/zod-utils";
 
@@ -130,6 +131,174 @@ describe("generateTeamCheckoutSession", () => {
         metadata: expect.objectContaining({
           billingPeriod: "ANNUALLY",
         }),
+      })
+    );
+  });
+
+  it("should use allow_promotion_codes when no promoCode and no Dub coupon", async () => {
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    await generateTeamCheckoutSession({
+      teamName: "Test Team",
+      teamSlug: "test-team",
+      userId: 1,
+    });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allow_promotion_codes: true,
+      })
+    );
+    expect(checkoutSessionsCreate).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        discounts: expect.anything(),
+      })
+    );
+  });
+
+  it("should use discounts with promotion_code when promoCode is provided", async () => {
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    await generateTeamCheckoutSession({
+      teamName: "Test Team",
+      teamSlug: "test-team",
+      userId: 1,
+      promoCode: "promo_test123",
+    });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        discounts: [{ promotion_code: "promo_test123" }],
+      })
+    );
+    expect(checkoutSessionsCreate).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        allow_promotion_codes: expect.anything(),
+      })
+    );
+  });
+
+  it("should prioritize promoCode over Dub coupon", async () => {
+    vi.mocked(getDubCustomer).mockResolvedValueOnce({
+      discount: { couponId: "dub_coupon_123", couponTestId: null },
+    } as Awaited<ReturnType<typeof getDubCustomer>>);
+
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    await generateTeamCheckoutSession({
+      teamName: "Test Team",
+      teamSlug: "test-team",
+      userId: 1,
+      promoCode: "promo_test123",
+    });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        discounts: [{ promotion_code: "promo_test123" }],
+      })
+    );
+  });
+
+  it("should use Dub coupon when no promoCode but Dub discount exists", async () => {
+    vi.mocked(getDubCustomer).mockResolvedValueOnce({
+      discount: { couponId: "dub_coupon_123", couponTestId: null },
+    } as Awaited<ReturnType<typeof getDubCustomer>>);
+
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    await generateTeamCheckoutSession({
+      teamName: "Test Team",
+      teamSlug: "test-team",
+      userId: 1,
+    });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        discounts: [{ coupon: "dub_coupon_123" }],
+      })
+    );
+  });
+});
+
+describe("purchaseTeamOrOrgSubscription - promo code", () => {
+  it("should use discounts with promotion_code when promoCode is provided", async () => {
+    const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
+    const user = await prismock.user.create({
+      data: { name: "test", email: "test@email.com" },
+    });
+
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    mockStripeCheckoutSessionRetrieve({ currency: "USD", product: { id: "PRODUCT_ID" } }, [FAKE_PAYMENT_ID]);
+
+    const team = await prismock.team.create({
+      data: {
+        name: "test",
+        metadata: { paymentId: FAKE_PAYMENT_ID },
+      },
+    });
+
+    await purchaseTeamOrOrgSubscription({
+      teamId: team.id,
+      seatsUsed: 5,
+      userId: user.id,
+      isOrg: false,
+      pricePerSeat: null,
+      promoCode: "promo_upgrade456",
+    });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        discounts: [{ promotion_code: "promo_upgrade456" }],
+      })
+    );
+    expect(checkoutSessionsCreate).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        allow_promotion_codes: expect.anything(),
+      })
+    );
+  });
+
+  it("should use allow_promotion_codes when no promoCode is provided", async () => {
+    const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
+    const user = await prismock.user.create({
+      data: { name: "test", email: "test@email.com" },
+    });
+
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    mockStripeCheckoutSessionRetrieve({ currency: "USD", product: { id: "PRODUCT_ID" } }, [FAKE_PAYMENT_ID]);
+
+    const team = await prismock.team.create({
+      data: {
+        name: "test",
+        metadata: { paymentId: FAKE_PAYMENT_ID },
+      },
+    });
+
+    await purchaseTeamOrOrgSubscription({
+      teamId: team.id,
+      seatsUsed: 5,
+      userId: user.id,
+      isOrg: false,
+      pricePerSeat: null,
+    });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allow_promotion_codes: true,
       })
     );
   });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -68,6 +68,9 @@ export const AddNewTeamsForm = () => {
 const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; slug: string | null }[] }) => {
   const { t } = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryString = searchParams?.toString();
+  const queryPrefix = queryString ? `?${queryString}` : "";
   const [counter, setCounter] = useState(1);
   const { useOnboardingStore } = useOnboarding();
   const { slug: orgSlug, setTeams, teams: teamsFromStore } = useOnboardingStore();
@@ -148,7 +151,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
       .filter((team) => team.slug !== "");
 
     setTeams([...teamsBeingMoved, ...newTeams]);
-    router.push(`/settings/organizations/new/onboard-members`);
+    router.push(`/settings/organizations/new/onboard-members${queryPrefix}`);
   };
 
   const moveTeams = watch("moveTeams");

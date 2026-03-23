@@ -14,7 +14,7 @@ import { Button } from "@calcom/ui/components/button";
 import { Form, Label, TextField, ToggleGroup } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { useOnboarding } from "@calcom/web/modules/ee/organizations/lib/onboardingStore";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { SessionContextValue } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -40,6 +40,10 @@ export const CreateANewOrganizationForm = () => {
 const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
   const { t } = useLocale();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const promoCode = searchParams?.get("promo") ?? undefined;
+  const queryString = searchParams?.toString();
+  const queryPrefix = queryString ? `?${queryString}` : "";
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
   // Let self-hosters create an organization with their own email. Hosted's Admin already has an organization for their email
@@ -93,14 +97,11 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       if (data.handoverUrl) {
-        // Admin handover flow - redirect to handover page
-        router.push("/settings/organizations/new/handover");
+        router.push(`/settings/organizations/new/handover${queryPrefix}`);
       } else if (data.organizationId) {
-        // Self-hosted flow - org already created, redirect to organizations list
         router.push("/settings/organizations");
       } else {
-        // Regular flow - continue to next step
-        router.push("/settings/organizations/new/about");
+        router.push(`/settings/organizations/new/about${queryPrefix}`);
       }
     },
     onError: (err) => {
@@ -155,20 +156,31 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
             }
           } else if (!needToCreateOnboarding) {
             // Resuming existing onboarding - just navigate to next step
-            router.push("/settings/organizations/new/about");
+            router.push(`/settings/organizations/new/about${queryPrefix}`);
           } else {
-            // Regular user or admin creating for self - store locally and continue
-            reset({
-              billingPeriod: v.billingPeriod,
-              billingMode: v.billingMode,
-              pricePerSeat: v.pricePerSeat,
-              seats: v.seats,
-              minSeats: v.minSeats,
-              orgOwnerEmail: v.orgOwnerEmail,
-              name: v.name,
-              slug: v.slug,
-            });
-            router.push("/settings/organizations/new/about");
+            // Check if this is admin handover flow based on the submitted form value
+            const isAdminHandoverFlow = isAdmin && v.orgOwnerEmail !== session.data.user.email;
+
+            if (isAdminHandoverFlow) {
+              // Admin creating for someone else - submit immediately with just Step 1 data
+              if (!intentToCreateOrgMutation.isPending) {
+                setServerErrorMessage(null);
+                intentToCreateOrgMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP, ...(promoCode && { promoCode }) });
+              }
+            } else {
+              // Regular user or admin creating for self - store locally and continue
+              reset({
+                billingPeriod: v.billingPeriod,
+                billingMode: v.billingMode,
+                pricePerSeat: v.pricePerSeat,
+                seats: v.seats,
+                minSeats: v.minSeats,
+                orgOwnerEmail: v.orgOwnerEmail,
+                name: v.name,
+                slug: v.slug,
+              });
+              router.push(`/settings/organizations/new/about${queryPrefix}`);
+            }
           }
         }}>
         <div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import React, { useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -16,6 +16,7 @@ import { OnboardingCard } from "~/onboarding/components/OnboardingCard";
 import { OnboardingLayout } from "~/onboarding/components/OnboardingLayout";
 import { OnboardingBrowserView } from "~/onboarding/components/onboarding-browser-view";
 import { useCreateTeam } from "~/onboarding/hooks/useCreateTeam";
+import { useOnboardingQueryParams } from "~/onboarding/hooks/useOnboardingQueryParams";
 import { useOnboardingStore } from "~/onboarding/store/onboarding-store";
 import { ValidatedTeamSlug } from "~/onboarding/teams/details/validated-team-slug";
 
@@ -25,16 +26,15 @@ type CreateNewTeamViewProps = {
 
 export const CreateNewTeamView = ({ userEmail }: CreateNewTeamViewProps) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { t } = useLocale();
+  const { billingPeriod, promoCode } = useOnboardingQueryParams();
   const store = useOnboardingStore();
   const { teamDetails, teamBrand, setTeamDetails, setTeamBrand, resetOnboardingPreservingPlan } = store;
-  const bpParam = searchParams?.get("bp");
-  const billingPeriod = bpParam === "a" ? ("ANNUALLY" as const) : bpParam === "m" ? ("MONTHLY" as const) : undefined;
   const { createTeam, isSubmitting } = useCreateTeam({
     redirectBasePath: "/settings/teams/new",
     isOnboarding: false,
     billingPeriod,
+    promoCode,
   });
 
   const logoRef = useRef<HTMLInputElement>(null);

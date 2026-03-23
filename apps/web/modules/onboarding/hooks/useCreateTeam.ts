@@ -10,6 +10,7 @@ type UseCreateTeamOptions = {
   skipRedirectAfterInvite?: boolean;
   isOnboarding?: boolean;
   billingPeriod?: "MONTHLY" | "ANNUALLY";
+  promoCode?: string;
 };
 
 export function useCreateTeam(options: UseCreateTeamOptions = {}) {
@@ -18,6 +19,7 @@ export function useCreateTeam(options: UseCreateTeamOptions = {}) {
     skipRedirectAfterInvite = false,
     isOnboarding = true,
     billingPeriod,
+    promoCode,
   } = options;
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,6 +51,7 @@ export function useCreateTeam(options: UseCreateTeamOptions = {}) {
         logo: teamBrand.logo,
         isOnboarding,
         ...(billingPeriod && { billingPeriod }),
+        ...(promoCode && { promoCode }),
       });
 
       // If there's a checkout URL, redirect to Stripe payment

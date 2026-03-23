@@ -271,6 +271,7 @@ export class OrganizationPaymentService {
     config: PaymentConfig,
     organizationOnboardingId: OrganizationOnboardingId,
     params: URLSearchParams,
+    promoCode?: string,
     isMigrationFlow?: boolean
   ) {
     log.debug(
@@ -304,6 +305,7 @@ export class OrganizationPaymentService {
         ...(isMigrationFlow ? { isMigrationFlow: "true" } : {}),
       },
       subscriptionData,
+      ...(promoCode ? { discounts: [{ promotion_code: promoCode }] } : {}),
     });
   }
 
@@ -313,7 +315,8 @@ export class OrganizationPaymentService {
 
   async createPaymentIntent(
     input: CreatePaymentIntentInput,
-    organizationOnboarding: OrganizationOnboardingForPaymentIntent
+    organizationOnboarding: OrganizationOnboardingForPaymentIntent,
+    promoCode?: string
   ) {
     log.debug("createPaymentIntent", safeStringify(input));
 
@@ -390,6 +393,7 @@ export class OrganizationPaymentService {
       new URLSearchParams({
         orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
       }),
+      promoCode,
       input.isMigrationFlow
     );
 

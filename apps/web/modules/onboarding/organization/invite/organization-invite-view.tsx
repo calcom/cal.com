@@ -24,7 +24,7 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const router = useRouter();
   const { t } = useLocale();
   const flags = useFlags();
-  const { billingPeriod, getQueryString } = useOnboardingQueryParams();
+  const { billingPeriod, promoCode, getQueryString } = useOnboardingQueryParams();
   const { isMigrationFlow } = useMigrationFlow();
 
   const store = useOnboardingStore();
@@ -53,11 +53,11 @@ export const OrganizationInviteView = ({ userEmail }: OrganizationInviteViewProp
   const handleSkip = async () => {
     posthog.capture("onboarding_organization_invite_skip_clicked");
     setInvites([]);
-    await submitOnboarding(store, userEmail, [], { billingPeriod, isMigrationFlow });
+    await submitOnboarding(store, userEmail, [], { billingPeriod, promoCode, isMigrationFlow });
   };
 
   const handleInvite = async () => {
-    await submitOnboarding(store, userEmail, [], { billingPeriod, isMigrationFlow });
+    await submitOnboarding(store, userEmail, [], { billingPeriod, promoCode, isMigrationFlow });
   };
 
   return (

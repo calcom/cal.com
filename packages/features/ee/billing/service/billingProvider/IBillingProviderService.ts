@@ -41,7 +41,8 @@ export interface IBillingProviderService {
       enabled: boolean;
     };
     discounts?: Array<{
-      coupon: string;
+      coupon?: string;
+      promotion_code?: string;
     }>;
     subscriptionData?: {
       metadata?: Record<string, string | number>;

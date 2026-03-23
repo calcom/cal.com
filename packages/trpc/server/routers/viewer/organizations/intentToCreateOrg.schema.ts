@@ -26,6 +26,7 @@ export const ZIntentToCreateOrgInputSchema = z.object({
   invitedMembers: orgOnboardingInvitedMembersSchema.optional(),
   // Optional onboarding ID for resume flows (admin handover)
   onboardingId: z.string().optional(),
+  promoCode: z.string().optional(),
   // Whether this is a migration flow (user migrating existing teams to an org)
   isMigrationFlow: z.boolean().default(false),
 });

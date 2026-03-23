@@ -10,6 +10,7 @@ export type TCreateInputSchema = {
   bio?: string;
   isOnboarding?: boolean;
   billingPeriod?: BillingPeriod;
+  promoCode?: string;
 };
 
 export const ZCreateInputSchema: z.ZodType<TCreateInputSchema> = z.object({
@@ -23,4 +24,5 @@ export const ZCreateInputSchema: z.ZodType<TCreateInputSchema> = z.object({
   bio: z.string().optional(),
   isOnboarding: z.boolean().optional(),
   billingPeriod: z.enum(["MONTHLY", "ANNUALLY"]).optional(),
+  promoCode: z.string().optional(),
 });

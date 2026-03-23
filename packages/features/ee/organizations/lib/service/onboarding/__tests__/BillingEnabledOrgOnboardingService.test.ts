@@ -148,7 +148,8 @@ describe("BillingEnabledOrgOnboardingService", () => {
             { email: "member2@example.com", name: "Member 2" },
           ]),
         }),
-        expect.anything()
+        expect.anything(),
+        undefined
       );
     });
 
@@ -175,7 +176,8 @@ describe("BillingEnabledOrgOnboardingService", () => {
         expect.objectContaining({
           teams: [{ id: -1, name: "Engineering", isBeingMigrated: false, slug: null }],
         }),
-        expect.anything()
+        expect.anything(),
+        undefined
       );
     });
 
@@ -195,7 +197,8 @@ describe("BillingEnabledOrgOnboardingService", () => {
         expect.objectContaining({
           invitedMembers: [{ email: "member1@example.com", name: "Member 1" }],
         }),
-        expect.anything()
+        expect.anything(),
+        undefined
       );
     });
 

@@ -15,7 +15,7 @@ export const useSubmitOnboarding = () => {
     store: OnboardingState,
     userEmail: string,
     invitesToSubmit: OnboardingState["invites"],
-    options?: { billingPeriod?: "MONTHLY" | "ANNUALLY"; isMigrationFlow?: boolean }
+    options?: { billingPeriod?: "MONTHLY" | "ANNUALLY"; promoCode?: string; isMigrationFlow?: boolean }
   ) => {
     setIsSubmitting(true);
     setError(null);
@@ -94,6 +94,7 @@ export const useSubmitOnboarding = () => {
         teams: teamsData,
         invitedMembers: allInvitedMembers,
         ...(options?.billingPeriod && { billingPeriod: options.billingPeriod }),
+        ...(options?.promoCode && { promoCode: options.promoCode }),
         ...(options?.isMigrationFlow && { isMigrationFlow: true }),
       });
 

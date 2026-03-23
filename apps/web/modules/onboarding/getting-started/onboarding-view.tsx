@@ -17,6 +17,7 @@ import { useHasTeamMembership } from "@calcom/web/modules/billing/hooks/useHasPa
 import { OnboardingCard } from "../components/OnboardingCard";
 import { OnboardingLayout } from "../components/OnboardingLayout";
 import { OnboardingContinuationPrompt } from "../components/onboarding-continuation-prompt";
+import { useOnboardingQueryParams } from "../hooks/useOnboardingQueryParams";
 import { PlanIcon } from "../components/plan-icon";
 import { useOnboardingStore, type PlanType } from "../store/onboarding-store";
 
@@ -26,6 +27,7 @@ type OnboardingViewProps = {
 
 export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const router = useRouter();
+  const { getQueryString } = useOnboardingQueryParams();
   const { t } = useLocale();
   const { selectedPlan, setSelectedPlan, resetOnboardingPreservingPlan } = useOnboardingStore();
   const previousPlanRef = useRef<PlanType | null>(null);
@@ -79,9 +81,9 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     }
     startTransition(() => {
       if (selectedPlan === "organization") {
-        router.push("/onboarding/organization/details");
+        router.push(`/onboarding/organization/details${getQueryString()}`);
       } else if (selectedPlan === "team") {
-        router.push("/onboarding/teams/details");
+        router.push(`/onboarding/teams/details${getQueryString()}`);
       } else if (selectedPlan === "personal") {
         router.push("/onboarding/personal/settings");
       }

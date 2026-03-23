@@ -97,10 +97,9 @@ export class StripeBillingService implements IBillingProviderService {
           quantity,
         },
       ],
-      allow_promotion_codes: allowPromotionCodes,
+      ...(discounts ? { discounts } : { allow_promotion_codes: allowPromotionCodes }),
       customer_update: customerUpdate,
       automatic_tax: automaticTax,
-      discounts,
       subscription_data: subscriptionData,
     });
 
