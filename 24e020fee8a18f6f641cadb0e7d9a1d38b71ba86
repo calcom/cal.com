@@ -1,0 +1,78 @@
+packages/features/ee/teams/lib/payments.test.ts
+  5a0ec9eb4c49854a 5,137-304
+packages/features/ee/billing/service/billingProvider/StripeBillingService.ts
+  5a0ec9eb4c49854a 100
+packages/trpc/server/routers/viewer/teams/create.schema.ts
+  5a0ec9eb4c49854a 13,27
+apps/web/modules/ee/organizations/components/AboutOrganizationForm.tsx
+  5a0ec9eb4c49854a 3,19-21,44
+packages/features/ee/organizations/lib/service/onboarding/BillingEnabledOrgOnboardingService.ts
+  5a0ec9eb4c49854a 128-129
+apps/web/modules/onboarding/getting-started/onboarding-view.tsx
+  661cc954a1e1a9cf 20,30,84,86
+apps/web/modules/onboarding/organization/invite/email/organization-invite-email-view.tsx
+  661cc954a1e1a9cf 45,107,116
+apps/web/modules/onboarding/hooks/useSubmitOnboarding.ts
+  661cc954a1e1a9cf 22,101
+apps/web/modules/onboarding/organization/invite/organization-invite-view.tsx
+  661cc954a1e1a9cf 28,56,60
+apps/web/modules/ee/organizations/new/_components/AddNewTeamsForm.tsx
+  5a0ec9eb4c49854a 3,71-73,154
+apps/web/modules/onboarding/hooks/useOnboardingQueryParams.ts
+  661cc954a1e1a9cf 11-12,18,22
+packages/features/ee/teams/lib/payments.ts
+  5a0ec9eb4c49854a 85,93,103-105,181,192,228-230
+apps/web/modules/ee/organizations/components/CreateANewOrganizationForm.tsx
+  5a0ec9eb4c49854a 17,43-46,94,98,143,152,164
+apps/web/modules/settings/teams/new/create-new-team-view.tsx
+  661cc954a1e1a9cf 3,19,30
+  5a0ec9eb4c49854a 37
+apps/web/modules/onboarding/teams/details/team-details-view.tsx
+  5a0ec9eb4c49854a 32
+  661cc954a1e1a9cf 18,29
+packages/trpc/server/routers/viewer/organizations/intentToCreateOrg.schema.ts
+  5a0ec9eb4c49854a 28
+packages/features/ee/billing/service/billingProvider/IBillingProviderService.ts
+  5a0ec9eb4c49854a 44-45
+apps/web/modules/ee/organizations/new/_components/OnboardMembersView.tsx
+  5a0ec9eb4c49854a 4,80-81,241
+packages/features/ee/organizations/lib/service/onboarding/types.ts
+  5a0ec9eb4c49854a 35
+packages/features/ee/organizations/lib/OrganizationPaymentService.ts
+  5a0ec9eb4c49854a 267-268,300,310-311,387-388
+apps/web/modules/onboarding/hooks/useCreateTeam.ts
+  5a0ec9eb4c49854a 14,23,56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.17",
+  "base_commit_sha": "24e020fee8a18f6f641cadb0e7d9a1d38b71ba86",
+  "prompts": {
+    "5a0ec9eb4c49854a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "13ecca7d-e202-4b60-8555-5cf78190c3ad",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Amit Sharma <74371312+Amit91848@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 251,
+      "total_deletions": 47,
+      "accepted_lines": 224,
+      "overriden_lines": 0
+    },
+    "661cc954a1e1a9cf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "147eec67-7185-4227-b916-63748313956a",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Amit Sharma <74371312+Amit91848@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 29,
+      "total_deletions": 25,
+      "accepted_lines": 23,
+      "overriden_lines": 0
+    }
+  }
+}
