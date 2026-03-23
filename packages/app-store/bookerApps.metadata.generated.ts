@@ -21,6 +21,7 @@ import insihts_config_json from "./insihts/config.json";
 import jelly_config_json from "./jelly/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import kyzonspacevideo_config_json from "./kyzonspacevideo/config.json";
+import lyra_config_json from "./lyra/config.json";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
 import mirotalk_config_json from "./mirotalk/config.json";
@@ -67,6 +68,7 @@ export const appStoreMetadata = {
   jelly: jelly_config_json,
   jitsivideo: jitsivideo__metadata_ts,
   kyzonspacevideo: kyzonspacevideo_config_json,
+  lyra: lyra_config_json,
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,
   mirotalk: mirotalk_config_json,
