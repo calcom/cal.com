@@ -1,11 +1,13 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsRoutingFormInTeam } from "@/modules/auth/guards/routing-forms/is-routing-form-in-team.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
@@ -41,6 +43,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 @UseGuards(
   ApiAuthGuard,
   IsOrgGuard,
+  PbacGuard,
   IsTeamInOrg,
   IsRoutingFormInTeam,
   PlatformPlanGuard,
@@ -58,6 +61,7 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
 
   @Get("/")
   @ApiOperation({ summary: "Get organization team routing form responses" })
+  @Pbac(["routingForm.read"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async getRoutingFormResponses(
@@ -85,6 +89,7 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
 
   @Post("/")
   @ApiOperation({ summary: "Create routing form response and get available slots" })
+  @Pbac(["routingForm.create"])
   @Roles("TEAM_MEMBER")
   @PlatformPlan("ESSENTIALS")
   async createRoutingFormResponse(
@@ -109,6 +114,7 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
 
   @Patch("/:responseId")
   @ApiOperation({ summary: "Update routing form response" })
+  @Pbac(["routingForm.update"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   async updateRoutingFormResponse(

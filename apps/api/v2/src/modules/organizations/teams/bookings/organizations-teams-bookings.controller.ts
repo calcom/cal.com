@@ -13,11 +13,13 @@ import {
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { GetOrganizationsTeamsBookingsInput_2024_08_13 } from "@/modules/organizations/teams/bookings/inputs/get-organizations-teams-bookings.input";
@@ -32,7 +34,7 @@ import { GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
   path: "/v2/organizations/:orgId/teams/:teamId/bookings",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Teams / Bookings")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -47,6 +49,7 @@ export class OrganizationsTeamsBookingsController {
 
   @Get("/")
   @ApiOperation({ summary: "Get organization team bookings" })
+  @Pbac(["booking.readTeamBookings"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @HttpCode(HttpStatus.OK)
@@ -70,6 +73,7 @@ export class OrganizationsTeamsBookingsController {
 
   @Get("/:bookingUid/references")
   @PlatformPlan("SCALE")
+  @Pbac(["booking.readTeamBookings"])
   @Roles("TEAM_ADMIN")
   @Permissions([BOOKING_READ])
   @UseGuards(

@@ -1,11 +1,13 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import {
@@ -69,6 +71,7 @@ export class OrganizationsConferencingController {
     private readonly tokensRepository: TokensRepository
   ) {}
 
+  @Pbac(["team.update"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @ApiParam({
@@ -77,7 +80,7 @@ export class OrganizationsConferencingController {
     enum: [GOOGLE_MEET],
     required: true,
   })
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Post("/teams/:teamId/conferencing/:app/connect")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Connect your conferencing application to a team" })
@@ -95,6 +98,7 @@ export class OrganizationsConferencingController {
     return { status: SUCCESS_STATUS, data: plainToInstance(ConferencingAppsOutputDto, credential) };
   }
 
+  @Pbac(["team.update"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @ApiParam({
@@ -103,7 +107,7 @@ export class OrganizationsConferencingController {
     enum: [ZOOM, OFFICE_365_VIDEO],
     required: true,
   })
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/conferencing/:app/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get OAuth conferencing app's auth URL for a team" })
@@ -136,9 +140,10 @@ export class OrganizationsConferencingController {
     };
   }
 
+  @Pbac(["team.read"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/conferencing")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "List team conferencing applications" })
@@ -155,9 +160,10 @@ export class OrganizationsConferencingController {
     };
   }
 
+  @Pbac(["team.update"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Post("/teams/:teamId/conferencing/:app/default")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Set team default conferencing application" })
@@ -179,9 +185,10 @@ export class OrganizationsConferencingController {
     return { status: SUCCESS_STATUS };
   }
 
+  @Pbac(["team.read"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/conferencing/default")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get team default conferencing application" })
@@ -196,9 +203,10 @@ export class OrganizationsConferencingController {
     return { status: SUCCESS_STATUS, data: defaultConferencingApp };
   }
 
+  @Pbac(["team.update"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Delete("/teams/:teamId/conferencing/:app/disconnect")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Disconnect team conferencing application" })
@@ -222,9 +230,10 @@ export class OrganizationsConferencingController {
     return { status: SUCCESS_STATUS };
   }
 
+  @Pbac(["team.update"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/conferencing/:app/oauth/callback")
   @Redirect(undefined, 301)
   @ApiOperation({ summary: "Save conferencing app OAuth credentials" })

@@ -6,11 +6,13 @@ import {
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { IsEventTypeWorkflowInTeam } from "@/modules/auth/guards/workflows/is-event-type-workflow-in-team";
@@ -52,7 +54,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @ApiTags("Orgs / Teams / Workflows")
-@UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, PlatformPlanGuard, RolesGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, IsTeamInOrg, PlatformPlanGuard, RolesGuard, IsAdminAPIEnabledGuard)
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
@@ -66,6 +68,7 @@ export class OrganizationTeamWorkflowsController {
 
   @Get("/")
   @ApiOperation({ summary: "Get organization team workflows" })
+  @Pbac(["workflow.read"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async getWorkflows(
@@ -82,6 +85,7 @@ export class OrganizationTeamWorkflowsController {
 
   @Get("/routing-form")
   @ApiOperation({ summary: "Get organization team workflows" })
+  @Pbac(["workflow.read"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async getRoutingFormWorkflows(
@@ -99,6 +103,7 @@ export class OrganizationTeamWorkflowsController {
   @Get("/:workflowId")
   @UseGuards(IsEventTypeWorkflowInTeam)
   @ApiOperation({ summary: "Get organization team workflow" })
+  @Pbac(["workflow.read"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async getWorkflowById(
@@ -113,6 +118,7 @@ export class OrganizationTeamWorkflowsController {
   @Get("/:workflowId/routing-form")
   @UseGuards(IsRoutingFormWorkflowInTeam)
   @ApiOperation({ summary: "Get organization team workflow" })
+  @Pbac(["workflow.read"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async getRoutingFormWorkflowById(
@@ -129,6 +135,7 @@ export class OrganizationTeamWorkflowsController {
 
   @Post("/")
   @ApiOperation({ summary: "Create organization team workflow for event-types" })
+  @Pbac(["workflow.create"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async createEventTypeWorkflow(
@@ -142,6 +149,7 @@ export class OrganizationTeamWorkflowsController {
 
   @Post("/routing-form")
   @ApiOperation({ summary: "Create organization team workflow for routing-forms" })
+  @Pbac(["workflow.create"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async createFormWorkflow(
@@ -156,6 +164,7 @@ export class OrganizationTeamWorkflowsController {
   @Patch("/:workflowId")
   @UseGuards(IsEventTypeWorkflowInTeam)
   @ApiOperation({ summary: "Update organization team workflow" })
+  @Pbac(["workflow.update"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async updateWorkflow(
@@ -176,6 +185,7 @@ export class OrganizationTeamWorkflowsController {
   @Patch("/:workflowId/routing-form")
   @UseGuards(IsRoutingFormWorkflowInTeam)
   @ApiOperation({ summary: "Update organization routing form team workflow" })
+  @Pbac(["workflow.update"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async updateRoutingFormWorkflow(
@@ -196,6 +206,7 @@ export class OrganizationTeamWorkflowsController {
   @Delete("/:workflowId")
   @UseGuards(IsEventTypeWorkflowInTeam)
   @ApiOperation({ summary: "Delete organization team workflow" })
+  @Pbac(["workflow.delete"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async deleteWorkflow(
@@ -209,6 +220,7 @@ export class OrganizationTeamWorkflowsController {
   @Delete("/:workflowId/routing-form")
   @UseGuards(IsRoutingFormWorkflowInTeam)
   @ApiOperation({ summary: "Delete organization team routing-form workflow" })
+  @Pbac(["workflow.delete"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("SCALE")
   async deleteRoutingFormWorkflow(

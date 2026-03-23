@@ -1,11 +1,13 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { OrganizationsStripeService } from "@/modules/organizations/stripe/services/organizations-stripe.service";
@@ -61,9 +63,10 @@ export class OrganizationsStripeController {
     private readonly tokensRepository: TokensRepository
   ) {}
 
+  @Pbac(["organization.manageBilling"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/connect")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get Stripe connect URL for a team" })
@@ -100,9 +103,10 @@ export class OrganizationsStripeController {
     };
   }
 
+  @Pbac(["organization.manageBilling"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/check")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Check team Stripe connection" })
@@ -112,9 +116,10 @@ export class OrganizationsStripeController {
     return await this.organizationsStripeService.checkIfTeamStripeAccountConnected(teamId);
   }
 
+  @Pbac(["organization.manageBilling"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/save")
   @Redirect(undefined, 301)
   @ApiOperation({ summary: "Save Stripe credentials" })

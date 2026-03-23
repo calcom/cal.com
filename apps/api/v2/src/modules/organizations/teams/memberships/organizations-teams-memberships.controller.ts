@@ -5,11 +5,13 @@ import {
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { OrganizationMembershipService } from "@/lib/services/organization-membership.service";
@@ -49,7 +51,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   path: "/v2/organizations/:orgId/teams/:teamId/memberships",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Teams / Memberships")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -66,6 +68,7 @@ export class OrganizationsTeamsMembershipsController {
   @Get("/")
   @ApiOperation({ summary: "Get all memberships" })
   @UseGuards()
+  @Pbac(["team.listMembers"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @HttpCode(HttpStatus.OK)
@@ -92,6 +95,7 @@ export class OrganizationsTeamsMembershipsController {
   @Get("/:membershipId")
   @ApiOperation({ summary: "Get a membership" })
   @UseGuards()
+  @Pbac(["team.listMembers"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @HttpCode(HttpStatus.OK)
@@ -111,6 +115,7 @@ export class OrganizationsTeamsMembershipsController {
     };
   }
 
+  @Pbac(["team.remove"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Delete("/:membershipId")
@@ -133,6 +138,7 @@ export class OrganizationsTeamsMembershipsController {
     };
   }
 
+  @Pbac(["team.changeMemberRole"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Patch("/:membershipId")
@@ -173,6 +179,7 @@ export class OrganizationsTeamsMembershipsController {
 
   // TODO: Refactor to use inviteMembersWithNoInviterPermissionCheck when it is moved to a Service
   // See: packages/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler.ts
+  @Pbac(["team.invite"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Post("/")

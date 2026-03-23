@@ -2,11 +2,13 @@ import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { RequestEmailVerificationInput } from "@/modules/verified-resources/inputs/request-email-verification.input";
@@ -47,7 +49,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/verified-resources",
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @ApiTags("Organization Team Verified Resources")
 @ApiParam({ name: "orgId", type: Number, required: true })
 @ApiParam({ name: "teamId", type: Number, required: true })
@@ -57,6 +59,7 @@ export class OrgTeamsVerifiedResourcesController {
     summary: "Request email verification code",
     description: `Sends a verification code to the email`,
   })
+  @Pbac(["team.update"])
   @Roles("TEAM_ADMIN")
   @Throttle({
     limit: 3,
@@ -88,6 +91,7 @@ export class OrgTeamsVerifiedResourcesController {
     description: `Sends a verification code to the phone number`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @Pbac(["team.update"])
   @Roles("TEAM_ADMIN")
   @Throttle({
     limit: 3,
@@ -114,6 +118,7 @@ export class OrgTeamsVerifiedResourcesController {
     description: `Use code to verify an email`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @Pbac(["team.update"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Post("/emails/verification-code/verify")
@@ -140,6 +145,7 @@ export class OrgTeamsVerifiedResourcesController {
     description: `Use code to verify a phone number`,
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @Pbac(["team.update"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Post("/phones/verification-code/verify")
@@ -171,6 +177,7 @@ export class OrgTeamsVerifiedResourcesController {
     summary: "Get list of verified emails of an org team",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @Pbac(["team.read"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Get("/emails")
@@ -194,6 +201,7 @@ export class OrgTeamsVerifiedResourcesController {
     summary: "Get list of verified phone numbers of an org team",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @Pbac(["team.read"])
   @PlatformPlan("ESSENTIALS")
   @Get("/phones")
   @Roles("TEAM_ADMIN")
@@ -219,6 +227,7 @@ export class OrgTeamsVerifiedResourcesController {
     summary: "Get verified email of an org team by id",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @Pbac(["team.read"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Get("/emails/:id")
@@ -238,6 +247,7 @@ export class OrgTeamsVerifiedResourcesController {
     summary: "Get verified phone number of an org team by id",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
+  @Pbac(["team.read"])
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @Get("/phones/:id")
