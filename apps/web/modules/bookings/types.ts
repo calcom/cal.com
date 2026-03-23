@@ -2,11 +2,12 @@ import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/hooks
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
 import type { CustomClassNames, ToggledConnectedCalendars } from "@calcom/features/bookings/Booker/types";
 import type { BookerEventQuery } from "@calcom/features/bookings/types";
+import type { BookerEventForAppData } from "@calcom/features/bookings/types.server";
 import type { DataTableRow } from "@calcom/features/data-table/lib/separator";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { useScheduleForEventReturnType } from "@calcom/web/modules/schedules/hooks/useEvent";
-import type { ComponentType } from "react";
+import type { ComponentType, ReactNode } from "react";
 import type { UseBookingsReturnType } from "./hooks/useBookings";
 import type { UseSlotsReturnType } from "./hooks/useSlots";
 import type { UseVerifyCodeReturnType } from "./hooks/useVerifyCode";
@@ -96,9 +97,10 @@ export type WrappedBookerPropsMain = {
   verifyEmail: UseVerifyEmailReturnType;
   customClassNames?: CustomClassNames;
   isBookingDryRun?: boolean;
-  renderCaptcha?: boolean;
   confirmButtonDisabled?: boolean;
   isPlatformBookerEmbed?: boolean;
+  renderCaptchaElement?: (onVerify: (token: string) => void) => ReactNode;
+  renderTagManager?: (eventData: BookerEventForAppData) => ReactNode;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {

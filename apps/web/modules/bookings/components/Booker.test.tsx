@@ -170,7 +170,6 @@ const defaultProps = {
   userLocale: "en",
   hasValidLicense: true,
   isBookingDryRun: false,
-  renderCaptcha: false,
   onConnectNowInstantMeeting: vi.fn(),
   onGoBackInstantMeeting: vi.fn(),
   onOverlayClickNoCalendar: vi.fn(),

@@ -1,5 +1,4 @@
 import process from "node:process";
-import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import dayjs from "@calcom/dayjs";
 import { useEmbedUiConfig } from "@calcom/embed-core/embed-iframe";
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
@@ -10,6 +9,7 @@ import {
   useBookerResizeAnimation,
 } from "@calcom/features/bookings/Booker/config";
 import framerFeatures from "@calcom/features/bookings/Booker/framer-features";
+import { useIsQuickAvailabilityCheckFeatureEnabled } from "@calcom/features/bookings/Booker/hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import { useNonEmptyScheduleDays } from "@calcom/features/bookings/Booker/hooks/useNonEmptyScheduleDays";
 import { useSkipConfirmStep } from "@calcom/features/bookings/Booker/hooks/useSkipConfirmStep";
 import type { BookerProps } from "@calcom/features/bookings/Booker/types";
@@ -31,14 +31,12 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { DialogContent } from "@calcom/ui/components/dialog";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity";
-import TurnstileCaptcha from "@calcom/web/modules/auth/components/Turnstile";
 import PoweredBy from "@calcom/web/modules/ee/common/components/PoweredBy";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { Toaster } from "sonner";
 import { shallow } from "zustand/shallow";
-import { useIsQuickAvailabilityCheckFeatureEnabled } from "../hooks/useIsQuickAvailabilityCheckFeatureEnabled";
 import type { WrappedBookerProps } from "../types";
 import { AvailableTimeSlots } from "./AvailableTimeSlots";
 import { BookEventForm } from "./BookEventForm";
@@ -86,7 +84,6 @@ const BookerComponent = ({
   userLocale,
   hasValidLicense,
   isBookingDryRun: isBookingDryRunProp,
-  renderCaptcha,
   hashedLink,
   confirmButtonDisabled,
   timeZones,
@@ -96,6 +93,8 @@ const BookerComponent = ({
   showNoAvailabilityDialog,
   TimezoneSelect,
   isPlatformBookerEmbed = false,
+  renderCaptchaElement,
+  renderTagManager,
 }: BookerProps & WrappedBookerProps): JSX.Element | null => {
   const searchParams = useCompatSearchParams();
   const [bookerState, setBookerState] = useBookerStoreContext(
@@ -235,7 +234,7 @@ const BookerComponent = ({
   const isE2E = typeof process !== "undefined" && process.env?.NEXT_PUBLIC_IS_E2E;
   const shouldRenderCaptcha = !!(
     !isE2E &&
-    renderCaptcha &&
+    !!renderCaptchaElement &&
     CLOUDFLARE_SITE_ID &&
     CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1" &&
     (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
@@ -394,7 +393,7 @@ const BookerComponent = ({
 
   return (
     <>
-      {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
+      {event.data && renderTagManager ? renderTagManager(event.data) : <></>}
       {(isBookingDryRunProp || isBookingDryRun(searchParams)) && <DryRunMessage isEmbed={isEmbed} />}
       <div
         className={classNames(
@@ -621,14 +620,11 @@ const BookerComponent = ({
             </div>
           )}
 
-        {shouldRenderCaptcha && (
+        {shouldRenderCaptcha && renderCaptchaElement && (
           <div className="mb-6 mt-auto pt-6">
-            <TurnstileCaptcha
-              appearance="interaction-only"
-              onVerify={(token) => {
-                bookingForm.setValue("cfToken", token);
-              }}
-            />
+            {renderCaptchaElement((token) => {
+              bookingForm.setValue("cfToken", token);
+            })}
           </div>
         )}
 
