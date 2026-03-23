@@ -294,47 +294,47 @@ export const QuickBookingDialog = ({
     setFormError(null);
 
     if (!title.trim()) {
-      setFormError("Event title is required.");
+      setFormError(t("unified_calendar_event_title_required"));
       return;
     }
 
     if (!hasCalendarChoices || !calendarId) {
-      setFormError("Select a target calendar.");
+      setFormError(t("unified_calendar_select_target_calendar"));
       return;
     }
 
     if (!selectedDate) {
-      setFormError("Select a booking date.");
+      setFormError(t("unified_calendar_select_booking_date"));
       return;
     }
 
     if (startMinutes === null || endMinutes === null) {
-      setFormError("Select start and end time.");
+      setFormError(t("unified_calendar_select_start_and_end_time"));
       return;
     }
 
     if (!startDateTime || !endDateTime) {
-      setFormError("Choose a valid start and end time.");
+      setFormError(t("unified_calendar_choose_valid_start_and_end_time"));
       return;
     }
 
     if (startOfDay(startDateTime).getTime() !== startOfDay(endDateTime).getTime()) {
-      setFormError("Start and end must be on the same date.");
+      setFormError(t("unified_calendar_start_end_same_date"));
       return;
     }
 
     if (differenceInMinutes(endDateTime, startDateTime) < MIN_DURATION_MINUTES) {
-      setFormError("End time must be at least 15 minutes after start time.");
+      setFormError(t("unified_calendar_end_time_minimum_gap"));
       return;
     }
 
     if (normalizedAttendees.length === 0) {
-      setFormError("Add at least one attendee email.");
+      setFormError(t("unified_calendar_add_at_least_one_attendee_email"));
       return;
     }
 
     if (attendeesInvalid) {
-      setFormError("One or more attendee emails are invalid.");
+      setFormError(t("unified_calendar_one_or_more_attendee_emails_invalid"));
       return;
     }
 
@@ -344,7 +344,7 @@ export const QuickBookingDialog = ({
     });
 
     if (derivedLocation.requiresInput && !derivedLocation.location) {
-      setFormError("Provide a value for the selected location.");
+      setFormError(t("unified_calendar_provide_value_for_selected_location"));
       return;
     }
 
@@ -364,18 +364,21 @@ export const QuickBookingDialog = ({
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && !isSubmitting && onClose()}>
       <DialogContent className={isMobile ? "max-w-[95vw]" : "sm:max-w-md"}>
         <DialogHeader>
-          <DialogTitle className="text-sm">New Booking</DialogTitle>
+          <DialogTitle className="text-sm">{t("unified_calendar_new_booking")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {(submitError || formError) && (
-            <Alert severity="error" message={submitError ?? formError ?? "Unable to create booking."} />
+            <Alert
+              severity="error"
+              message={submitError ?? formError ?? t("unified_calendar_unable_to_create_booking")}
+            />
           )}
 
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Event title</Label>
+            <Label className="text-muted-foreground text-xs">{t("unified_calendar_event_title")}</Label>
             <Input
-              placeholder="Meeting title"
+              placeholder={t("unified_calendar_meeting_title")}
               value={title}
               onChange={(event: ChangeEvent<HTMLInputElement>) => setTitle(event.target.value)}
               className="h-9"
@@ -384,9 +387,9 @@ export const QuickBookingDialog = ({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Attendees</Label>
+            <Label className="text-muted-foreground text-xs">{t("attendees")}</Label>
             <Input
-              placeholder="john@example.com, jane@example.com"
+              placeholder={t("unified_calendar_attendees_placeholder")}
               value={attendeesInput}
               onChange={(event: ChangeEvent<HTMLInputElement>) => setAttendeesInput(event.target.value)}
               className="h-9"
@@ -395,13 +398,13 @@ export const QuickBookingDialog = ({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Date</Label>
+            <Label className="text-muted-foreground text-xs">{t("date")}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <button
                   type="button"
                   className="bg-default border-border/40 flex h-9 w-full items-center justify-between rounded-md border px-3 text-left text-sm outline-none">
-                  <span>{selectedDate ? format(selectedDate, "PPP") : "Select date"}</span>
+                  <span>{selectedDate ? format(selectedDate, "PPP") : t("unified_calendar_select_date")}</span>
                   <CalendarIcon className="text-muted-foreground h-4 w-4" />
                 </button>
               </PopoverTrigger>
@@ -418,7 +421,7 @@ export const QuickBookingDialog = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">Start time</Label>
+              <Label className="text-muted-foreground text-xs">{t("start_time")}</Label>
               <Select
                 value={
                   startMinutes === null
@@ -434,7 +437,7 @@ export const QuickBookingDialog = ({
                   setStartMinutes(parseMinuteValue(option?.value ?? ""))
                 }
                 options={[
-                  { value: "", label: "Select start time" },
+                  { value: "", label: t("unified_calendar_select_start_time") },
                   ...START_TIME_OPTIONS.map((option) => ({
                     value: String(option.value),
                     label: option.label,
@@ -447,7 +450,7 @@ export const QuickBookingDialog = ({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">End time</Label>
+              <Label className="text-muted-foreground text-xs">{t("end_time")}</Label>
               <Select
                 value={
                   endMinutes === null
@@ -462,7 +465,7 @@ export const QuickBookingDialog = ({
                   setEndMinutes(parseMinuteValue(option?.value ?? ""))
                 }
                 options={[
-                  { value: "", label: "Select end time" },
+                  { value: "", label: t("unified_calendar_select_end_time") },
                   ...endTimeOptions.map((option) => ({
                     value: String(option.value),
                     label: option.label,
@@ -477,36 +480,38 @@ export const QuickBookingDialog = ({
           </div>
 
           <p className="text-muted-foreground text-[11px]">
-            Duration:{" "}
-            {typeof durationMinutes === "number" && durationMinutes >= MIN_DURATION_MINUTES
-              ? formatBookingDuration(durationMinutes)
-              : "Invalid range"}
+            {t("unified_calendar_duration_with_value", {
+              duration:
+                typeof durationMinutes === "number" && durationMinutes >= MIN_DURATION_MINUTES
+                  ? formatBookingDuration(durationMinutes)
+                  : t("unified_calendar_invalid_range"),
+            })}
           </p>
 
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Target calendar</Label>
+            <Label className="text-muted-foreground text-xs">{t("unified_calendar_target_calendar")}</Label>
             <Select
               value={
                 hasCalendarChoices
                   ? calendarOptions.find((option) => option.value === calendarId) ?? null
-                  : { value: "", label: "No writable calendars available" }
+                  : { value: "", label: t("unified_calendar_no_writable_calendars_available") }
               }
               onChange={(option: CalendarSelectOption | null) => setCalendarId(option?.value ?? "")}
               isDisabled={!hasCalendarChoices}
               options={
                 hasCalendarChoices
                   ? calendarOptions
-                  : [{ value: "", label: "No writable calendars available" }]
+                  : [{ value: "", label: t("unified_calendar_no_writable_calendars_available") }]
               }
             />
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Location</Label>
+            <Label className="text-muted-foreground text-xs">{t("location")}</Label>
             <Select
               value={
                 locationOptionsQuery.isPending
-                  ? { value: "", label: "Loading locations..." }
+                  ? { value: "", label: t("unified_calendar_loading_locations") }
                   : flattenedLocationOptions.find((option) => option.value === locationType) ?? null
               }
               onChange={(option: LocationOption | null) => {
@@ -516,16 +521,19 @@ export const QuickBookingDialog = ({
               isDisabled={locationOptionsQuery.isPending || flattenedLocationOptions.length === 0}
               options={
                 locationOptionsQuery.isPending
-                  ? [{ value: "", label: "Loading locations..." }]
+                  ? [{ value: "", label: t("unified_calendar_loading_locations") }]
                   : flattenedLocationOptions.length === 0
-                  ? [{ value: "", label: "No supported location options" }]
+                  ? [{ value: "", label: t("unified_calendar_no_supported_location_options") }]
                   : locationGroups
               }
             />
 
             {selectedLocationType?.organizerInputType && (
               <Input
-                placeholder={selectedLocationType.organizerInputPlaceholder || "Enter location value"}
+                placeholder={
+                  selectedLocationType.organizerInputPlaceholder ||
+                  t("unified_calendar_enter_location_value")
+                }
                 value={locationInput}
                 onChange={(event: ChangeEvent<HTMLInputElement>) => setLocationInput(event.target.value)}
                 className="h-9"
@@ -534,9 +542,9 @@ export const QuickBookingDialog = ({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Booking note</Label>
+            <Label className="text-muted-foreground text-xs">{t("unified_calendar_booking_note")}</Label>
             <TextArea
-              placeholder="Add notes..."
+              placeholder={t("unified_calendar_add_notes")}
               value={notes}
               onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setNotes(event.target.value)}
               rows={2}
@@ -551,7 +559,7 @@ export const QuickBookingDialog = ({
               className="h-8 text-xs"
               onClick={onClose}
               disabled={isSubmitting}>
-              Cancel
+              {t("cancel")}
             </Button>
 
             <Button
@@ -559,7 +567,7 @@ export const QuickBookingDialog = ({
               className="h-8 text-xs"
               disabled={isSubmitting || locationOptionsQuery.isPending}
               onClick={handleSubmit}>
-              {isSubmitting ? "Creating..." : "Create Booking"}
+              {isSubmitting ? t("unified_calendar_creating") : t("unified_calendar_create_booking")}
             </Button>
           </div>
         </div>

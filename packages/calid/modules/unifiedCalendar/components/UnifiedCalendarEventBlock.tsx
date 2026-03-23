@@ -7,7 +7,8 @@ import { format } from "date-fns";
 import { AlertTriangle, Video } from "lucide-react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 
-import { PROVIDER_LABELS } from "../lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import type { UnifiedCalendarEventVM } from "../lib/types";
 
 interface UnifiedCalendarEventBlockProps {
@@ -31,7 +32,8 @@ export const UnifiedCalendarEventBlock = ({
   isRescheduling = false,
   onPointerDown,
 }: UnifiedCalendarEventBlockProps) => {
-  const providerLabel = event.provider ? PROVIDER_LABELS[event.provider] : event.source;
+  const { t } = useLocale();
+  const providerLabel = event.provider ? t(`unified_calendar_provider_label_${event.provider}`) : event.source;
   const statusLabel = event.status === "CONFIRMED" ? "" : event.status.toLowerCase();
   const hasCapabilityActions = event.canReschedule || event.canDelete;
 
@@ -66,19 +68,21 @@ export const UnifiedCalendarEventBlock = ({
               {event.title}
             </span>
             {isConflict && (
-              <Tooltip content="Conflict with another event">
+              <Tooltip content={t("unified_calendar_conflict_with_another_event")}>
                 <AlertTriangle className="text-destructive/70 h-2.5 w-2.5 shrink-0" />
               </Tooltip>
             )}
           </div>
 
           <p className="text-muted-foreground/70 mt-0.5 text-[10px] leading-tight">
-            {event.isAllDay ? "All-day" : `${format(event.start, "h:mm")} – ${format(event.end, "h:mm a")}`}
+            {event.isAllDay
+              ? t("unified_calendar_all_day")
+              : `${format(event.start, "h:mm")} – ${format(event.end, "h:mm a")}`}
           </p>
           <p className="text-muted-foreground/50 mt-0.5 text-[9px] leading-tight">
             {providerLabel}
             {statusLabel ? ` · ${statusLabel}` : ""}
-            {isRescheduling ? " · saving..." : ""}
+            {isRescheduling ? ` · ${t("unified_calendar_saving_lowercase")}` : ""}
           </p>
         </button>
       </PopoverTrigger>
@@ -93,18 +97,18 @@ export const UnifiedCalendarEventBlock = ({
             <p className="text-foreground text-sm font-medium">{event.title}</p>
             <p className="text-muted-foreground mt-0.5 text-xs">
               {event.isAllDay
-                ? "All-day"
+                ? t("unified_calendar_all_day")
                 : `${format(event.start, "h:mm a")} – ${format(event.end, "h:mm a")}`}
             </p>
             <p className="text-muted-foreground/60 mt-0.5 text-[11px]">
-              {event.calendarName || "Calendar"} · {providerLabel}
+              {event.calendarName || t("calendar")} · {providerLabel}
             </p>
           </div>
 
           {isConflict && (
             <div className="text-destructive/80 bg-destructive/5 flex items-center gap-1.5 rounded px-2 py-1 text-[11px]">
               <AlertTriangle className="h-3 w-3" />
-              <span>Scheduling conflict</span>
+              <span>{t("unified_calendar_scheduling_conflict")}</span>
             </div>
           )}
 
@@ -117,7 +121,7 @@ export const UnifiedCalendarEventBlock = ({
                 size="sm"
                 className="text-muted-foreground hover:text-foreground h-7 gap-1 px-2 text-xs"
                 onClick={onClick}>
-                Manage booking
+                {t("unified_calendar_manage_booking")}
               </Button>
             )}
 
@@ -129,12 +133,14 @@ export const UnifiedCalendarEventBlock = ({
                 href={event.meetingUrl}
                 target="_blank"
                 rel="noreferrer">
-                <Video className="h-3 w-3" /> Join
+                <Video className="h-3 w-3" /> {t("unified_calendar_join")}
               </Button>
             )}
 
             {!hasCapabilityActions && event.isReadOnly && !event.meetingUrl && (
-              <p className="text-muted-foreground/60 px-1 text-[11px]">Read-only event</p>
+              <p className="text-muted-foreground/60 px-1 text-[11px]">
+                {t("unified_calendar_read_only_event")}
+              </p>
             )}
           </div>
         </div>
