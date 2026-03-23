@@ -435,7 +435,7 @@ export class EventTypesAtomService {
       booking,
       payment: {
         ...payment,
-        data: sanitizePaymentDataForClient(payment.data),
+        data: sanitizePaymentDataForClient(payment.data, payment.appId ?? undefined),
       },
       clientSecret: getClientSecretFromPayment(payment),
       profile,
