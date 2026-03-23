@@ -171,7 +171,8 @@ const buildRoundRobinBookingIdsQuery = ({
     if (startDate) dateConditions.push(Prisma.sql`AND ${dateColumn} >= ${startDate}`);
     if (endDate) dateConditions.push(Prisma.sql`AND ${dateColumn} <= ${endDate}`);
   }
-  const dateSql = dateConditions.length > 0 ? Prisma.join(dateConditions, " ") : Prisma.sql``;
+  const dateSql =
+    dateConditions.length > 0 ? Prisma.join(dateConditions, " ") : Prisma.sql``;
 
   // Virtual queues: JOIN + WHERE on chosenRouteId
   const virtualQueuesJoin = virtualQueuesData
@@ -354,12 +355,6 @@ const selectStatementToGetBookingForCalEventBuilder = {
             },
           },
         },
-      },
-      hashedLink: {
-        select: {
-          link: true,
-        },
-        take: 1,
       },
     },
   },
@@ -2583,7 +2578,9 @@ export class BookingRepository implements IBookingRepository {
   }): Promise<{ topOrgs: Array<{ organizationId: number; bookingCount: number }>; totalOrgCount: number }> {
     const emailFilter = this.attendeeEmailFilter(params.attendeeWhere);
 
-    const rows = await this.prismaClient.$queryRaw<Array<{ organizationId: number; bookingCount: bigint }>>`
+    const rows = await this.prismaClient.$queryRaw<
+      Array<{ organizationId: number; bookingCount: bigint }>
+    >`
       SELECT u."organizationId" as "organizationId", COUNT(*) as "bookingCount"
       FROM "Booking" b
       JOIN "Attendee" a ON a."bookingId" = b."id"
@@ -2604,7 +2601,9 @@ export class BookingRepository implements IBookingRepository {
     return { topOrgs, totalOrgCount };
   }
 
-  private attendeeEmailFilter(where: { email: string } | { email: { endsWith: string } }): Prisma.Sql {
+  private attendeeEmailFilter(
+    where: { email: string } | { email: { endsWith: string } }
+  ): Prisma.Sql {
     if ("email" in where && typeof where.email === "string") {
       return Prisma.sql`a."email" = ${where.email}`;
     }

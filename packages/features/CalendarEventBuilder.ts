@@ -1,6 +1,6 @@
 import { ALL_APPS } from "@calcom/app-store/utils";
+import logger from "@calcom/lib/logger";
 import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
-import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -8,17 +8,17 @@ import {
   type EventTypeBrandingData,
   getEventTypeService,
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
-import { getTranslation } from "@calcom/i18n/server";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
 import type { Attendee, BookingSeat, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
+import { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-utils";
+import type { z } from "zod";
 import type { AppsStatus, CalEventResponses, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 import type { TFunction } from "i18next";
-import type { z } from "zod";
 
 const APP_TYPE_TO_NAME_MAP = new Map<string, string>(ALL_APPS.map((app) => [app.type, app.name]));
 
@@ -144,7 +144,9 @@ export class CalendarEventBuilder {
     // instead of using booking.responses which always contains the first attendee's data.
     let parsedSeatResponses: z.infer<typeof bookingResponsesDbSchema> | undefined;
     if (meta.attendeeSeatId && attendees.length) {
-      const matchedAttendee = attendees.find((a) => a.bookingSeat?.referenceUid === meta.attendeeSeatId);
+      const matchedAttendee = attendees.find(
+        (a) => a.bookingSeat?.referenceUid === meta.attendeeSeatId
+      );
       if (matchedAttendee?.bookingSeat?.data) {
         const seatData = matchedAttendee.bookingSeat.data as Record<string, unknown>;
         if (seatData.responses && typeof seatData.responses === "object") {
@@ -228,11 +230,6 @@ export class CalendarEventBuilder {
               category: getAssignmentReasonCategory(assignmentReason[0].reasonEnum),
               details: assignmentReason[0].reasonString ?? null,
             }
-          : null
-      )
-      .withHashedLink(
-        eventType.hashedLink?.[0]?.link
-          ? `${bookerUrl}/d/${eventType.hashedLink[0].link}/${eventType.slug}`
           : null
       )
       .withHideBranding(
