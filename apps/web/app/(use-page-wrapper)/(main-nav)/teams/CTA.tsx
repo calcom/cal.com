@@ -15,7 +15,7 @@ export const TeamsCTA = () => {
       size="sm"
       type="button"
       onClick={() => {
-        posthog.capture("add_team_button_clicked")
+        posthog.capture("add_team_button_clicked");
       }}
       href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
       {t("new")}

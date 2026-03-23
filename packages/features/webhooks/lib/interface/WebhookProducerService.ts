@@ -4,7 +4,6 @@
 interface BaseQueueWebhookParams {
   /** Unique identifier for this webhook operation (generated if not provided) */
   operationId?: string;
-
   /** Additional context data (kept minimal) */
   metadata?: Record<string, unknown>;
 }
@@ -15,22 +14,11 @@ interface BaseQueueWebhookParams {
  *           BOOKING_REQUESTED, BOOKING_REJECTED, BOOKING_NO_SHOW_UPDATED
  */
 export interface QueueBookingWebhookParams extends BaseQueueWebhookParams {
-  /** Booking UID (required) */
   bookingUid: string;
-
-  /** Event Type ID */
   eventTypeId?: number;
-
-  /** Team ID */
   teamId?: number | null;
-
-  /** User ID */
   userId?: number;
-
-  /** Organization ID */
   orgId?: number;
-
-  /** OAuth Client ID (for platform webhooks) */
   oAuthClientId?: string | null;
 }
 

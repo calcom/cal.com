@@ -1148,6 +1148,7 @@ describe("roundRobinManualReassignment - Audit Data Verification", () => {
         reassignmentReason: "Test reassignment reason",
         reassignmentType: "manual",
       },
+      isBookingAuditEnabled: false,
     });
   });
 
@@ -1227,6 +1228,7 @@ describe("roundRobinManualReassignment - Audit Data Verification", () => {
     expect(callArgs.actor).toEqual({ identifiedBy: "user", userUuid: reassigningUser.uuid });
     expect(callArgs.organizationId).toBe(null);
     expect(callArgs.source).toBe("WEBAPP");
+    expect(callArgs.isBookingAuditEnabled).toBe(false);
     // organizerUuid should NOT be included when organizer hasn't changed (fixed host scenario)
     expect(callArgs.auditData.organizerUuid).toBeUndefined();
     expect(callArgs.auditData.reassignmentType).toBe("manual");

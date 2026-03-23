@@ -155,9 +155,9 @@ afterEach(async () => {
     },
     select: { id: true },
   });
-  
+
   const testBookingIds = testBookings.map((b) => b.id);
-  
+
   if (testBookingIds.length > 0) {
     await prisma.bookingReference.deleteMany({
       where: { bookingId: { in: testBookingIds } },
@@ -172,7 +172,7 @@ afterEach(async () => {
       where: { id: { in: testBookingIds } },
     });
   }
-  
+
   bookingIds.splice(0, bookingIds.length);
 
   if (eventTypeIds.length > 0) {
@@ -393,7 +393,7 @@ describe("managedEventReassignment - Integration Tests", () => {
     const newBooking = await prisma.booking.findFirst({
       where: { userId: user2.id, startTime },
     });
-    
+
     expect(newBooking).toBeTruthy();
     expect(newBooking?.userId).toBe(user2.id);
   });
@@ -417,4 +417,3 @@ describe("managedEventReassignment - Integration Tests", () => {
     ).rejects.toThrow();
   });
 });
-

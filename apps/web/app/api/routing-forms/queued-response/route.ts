@@ -8,7 +8,7 @@ import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSeri
 import { PrismaPendingRoutingTraceRepository } from "@calcom/features/routing-trace/repositories/PrismaPendingRoutingTraceRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { RoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+import { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import prisma from "@calcom/prisma";
 
 import { defaultResponderForAppDir } from "../../defaultResponderForAppDir";
@@ -72,6 +72,12 @@ export const queuedResponseHandler = async ({
   }
 
   const chosenRoute = serializableForm.routes?.find((r) => r.id === queuedFormResponse.chosenRouteId);
+  const fallbackAction = queuedFormResponse.fallbackAction as {
+    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    value: string;
+    eventTypeId?: number;
+  } | null;
+
   await onSubmissionOfFormResponse({
     form: {
       ...queuedFormResponse.form,
@@ -79,6 +85,7 @@ export const queuedResponseHandler = async ({
     },
     formResponseInDb: formResponse,
     chosenRouteAction: chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : null) : null,
+    fallbackAction,
   });
 
   return {

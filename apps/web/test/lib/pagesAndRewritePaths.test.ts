@@ -1,6 +1,9 @@
 import { it, expect, describe } from "vitest";
 
-import { topLevelRoutesExcludedFromOrgRewrite, topLevelRouteNamesWhitelistedForRewrite } from "../../pagesAndRewritePaths.js";
+import {
+  topLevelRoutesExcludedFromOrgRewrite,
+  topLevelRouteNamesWhitelistedForRewrite,
+} from "../../pagesAndRewritePaths.js";
 
 describe("pagesAndRewritePaths", () => {
   describe("beforeFiles must exclude top-level routes in pages/app router", () => {
@@ -30,7 +33,7 @@ describe("pagesAndRewritePaths", () => {
       "routing-forms",
       "signup",
       "team",
-      "d"
+      "d",
     ];
 
     it("should include all required top-level route names", () => {

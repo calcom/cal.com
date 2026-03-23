@@ -117,7 +117,10 @@ export class OrganizationWatchlistOperationsService extends WatchlistOperationsS
     };
   }
 
-  async dismissReportByEmail(input: { email: string; userId: number }): Promise<{ success: boolean; count: number }> {
+  async dismissReportByEmail(input: {
+    email: string;
+    userId: number;
+  }): Promise<{ success: boolean; count: number }> {
     await this.checkPermission(input.userId, "watchlist.update");
 
     const normalizedEmail = normalizeEmail(input.email);

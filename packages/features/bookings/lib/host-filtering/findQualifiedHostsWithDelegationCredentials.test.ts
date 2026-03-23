@@ -1,12 +1,9 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { vi, it, describe, expect, afterEach } from "vitest";
-import type { Mock } from "vitest";
-
 import { getQualifiedHostsService } from "@calcom/features/di/containers/QualifiedHosts";
 import * as getRoutedUsers from "@calcom/features/users/lib/getRoutedUsers";
 import { RRResetInterval, SchedulingType } from "@calcom/prisma/enums";
-
+import type { Mock } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 
 // Mock the filterHostsByLeadThreshold function
@@ -15,6 +12,12 @@ vi.mock("./filterHostsByLeadThreshold", () => {
     filterHostsByLeadThreshold: vi.fn(),
   };
 });
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn().mockImplementation(({ hosts }) => hosts),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+}));
 
 // Clear call history after each test
 afterEach(() => {

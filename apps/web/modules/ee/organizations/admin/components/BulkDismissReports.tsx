@@ -3,14 +3,10 @@ import { DataTableSelectionBar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import {
-  DialogTrigger,
-  ConfirmationDialogContent,
-} from "@calcom/ui/components/dialog";
+import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
-type BookingReport =
-  RouterOutputs["viewer"]["admin"]["watchlist"]["listReports"]["rows"][number];
+type BookingReport = RouterOutputs["viewer"]["admin"]["watchlist"]["listReports"]["rows"][number];
 
 interface Props {
   reports: BookingReport[];
@@ -21,26 +17,25 @@ export function BulkDismissReports({ reports, onRemove }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const bulkDismissMutation =
-    trpc.viewer.admin.watchlist.bulkDismiss.useMutation({
-      onSuccess: async (data) => {
-        await utils.viewer.admin.watchlist.listReports.invalidate();
-        await utils.viewer.admin.watchlist.pendingReportsCount.invalidate();
-        showToast(
-          data.failed === 0
-            ? t("reports_dismissed_successfully", { count: data.success })
-            : t("reports_dismissed_with_errors", {
-                success: data.success,
-                failed: data.failed,
-              }),
-          data.failed === 0 ? "success" : "warning"
-        );
-        onRemove();
-      },
-      onError: (error) => {
-        showToast(error.message, "error");
-      },
-    });
+  const bulkDismissMutation = trpc.viewer.admin.watchlist.bulkDismiss.useMutation({
+    onSuccess: async (data) => {
+      await utils.viewer.admin.watchlist.listReports.invalidate();
+      await utils.viewer.admin.watchlist.pendingReportsCount.invalidate();
+      showToast(
+        data.failed === 0
+          ? t("reports_dismissed_successfully", { count: data.success })
+          : t("reports_dismissed_with_errors", {
+              success: data.success,
+              failed: data.failed,
+            }),
+        data.failed === 0 ? "success" : "warning"
+      );
+      onRemove();
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
 
   return (
     <Dialog>
@@ -58,11 +53,8 @@ export function BulkDismissReports({ reports, onRemove }: Props) {
           bulkDismissMutation.mutate({
             emails: reports.map((group) => group.bookerEmail),
           });
-        }}
-      >
-        <p className="mt-5">
-          {t("dismiss_reports_confirm", { count: reports.length })}
-        </p>
+        }}>
+        <p className="mt-5">{t("dismiss_reports_confirm", { count: reports.length })}</p>
       </ConfirmationDialogContent>
     </Dialog>
   );

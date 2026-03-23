@@ -1,16 +1,18 @@
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { BillingPeriodRepository } from "@calcom/features/ee/billing/repository/billingPeriod/BillingPeriodRepository";
 import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import type { BillingPeriod } from "@calcom/prisma/enums";
+import type { BillingMode, BillingPeriod } from "@calcom/prisma/enums";
 import type { Logger } from "tslog";
 
 const log = logger.getSubLogger({ prefix: ["BillingPeriodService"] });
 
 export interface BillingPeriodInfo {
   billingPeriod: BillingPeriod | null;
+  billingMode: BillingMode | null;
   subscriptionStart: Date | null;
   subscriptionEnd: Date | null;
   trialEnd: Date | null;
@@ -19,13 +21,21 @@ export interface BillingPeriodInfo {
   isOrganization: boolean;
 }
 
+export interface BillingPeriodServiceDeps {
+  logger?: Logger<unknown>;
+  repository?: BillingPeriodRepository;
+  featuresRepository?: IFeaturesRepository;
+}
+
 export class BillingPeriodService {
   private logger: Logger<unknown>;
   private repository: BillingPeriodRepository;
+  private featuresRepository: IFeaturesRepository;
 
-  constructor(customLogger?: Logger<unknown>, repository?: BillingPeriodRepository) {
-    this.logger = customLogger || log;
-    this.repository = repository || new BillingPeriodRepository();
+  constructor(deps?: BillingPeriodServiceDeps) {
+    this.logger = deps?.logger || log;
+    this.repository = deps?.repository || new BillingPeriodRepository();
+    this.featuresRepository = deps?.featuresRepository || getFeaturesRepository();
   }
 
   async isAnnualPlan(teamId: number): Promise<boolean> {
@@ -40,10 +50,8 @@ export class BillingPeriodService {
 
   async shouldApplyMonthlyProration(teamId: number): Promise<boolean> {
     try {
-      const featuresRepository = new FeaturesRepository(prisma);
-      const isFeatureEnabled = await featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
-
-      if (!isFeatureEnabled) {
+      const isEnabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
+      if (!isEnabled) {
         return false;
       }
 
@@ -56,6 +64,27 @@ export class BillingPeriodService {
     }
   }
 
+  async shouldApplyHighWaterMark(teamId: number): Promise<boolean> {
+    try {
+      const isEnabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("hwm-seating");
+      if (!isEnabled) {
+        return false;
+      }
+
+      const info = await this.getOrCreateBillingPeriodInfo(teamId);
+
+      return info.billingPeriod === "MONTHLY" && !info.isInTrial && info.subscriptionStart !== null;
+    } catch (error) {
+      log.error(`Failed to check if high water mark should apply for team ${teamId}`, { error });
+      return false;
+    }
+  }
+
+  async isMonthlyBilling(teamId: number): Promise<boolean> {
+    const info = await this.getOrCreateBillingPeriodInfo(teamId);
+    return info.billingPeriod === "MONTHLY";
+  }
+
   async getOrCreateBillingPeriodInfo(teamId: number): Promise<BillingPeriodInfo> {
     const team = await prisma.team.findUnique({
       where: { id: teamId },
@@ -65,6 +94,7 @@ export class BillingPeriodService {
           select: {
             id: true,
             billingPeriod: true,
+            billingMode: true,
             subscriptionStart: true,
             subscriptionEnd: true,
             subscriptionTrialEnd: true,
@@ -77,6 +107,7 @@ export class BillingPeriodService {
           select: {
             id: true,
             billingPeriod: true,
+            billingMode: true,
             subscriptionStart: true,
             subscriptionEnd: true,
             subscriptionTrialEnd: true,
@@ -96,6 +127,7 @@ export class BillingPeriodService {
     if (!billing) {
       return {
         billingPeriod: null,
+        billingMode: null,
         subscriptionStart: null,
         subscriptionEnd: null,
         trialEnd: null,
@@ -105,28 +137,55 @@ export class BillingPeriodService {
       };
     }
 
-    if (!billing.billingPeriod && billing.subscriptionId) {
+    const periodIsStale =
+      billing.subscriptionEnd && new Date(billing.subscriptionEnd) < new Date();
+    const needsSync = (!billing.billingPeriod || periodIsStale) && billing.subscriptionId;
+
+    if (needsSync) {
       log.info(
-        `Backfilling missing billing data for team ${teamId} from Stripe subscription ${billing.subscriptionId}`
+        `Syncing billing data for team ${teamId} from Stripe subscription ${billing.subscriptionId}`
       );
 
       try {
         const subscription = await stripe.subscriptions.retrieve(billing.subscriptionId);
-        const { billingPeriod, pricePerSeat, paidSeats } =
+
+        const terminalStatuses = ["canceled", "incomplete_expired"];
+        if (terminalStatuses.includes(subscription.status)) {
+          log.info(
+            `Skipping sync for team ${teamId} — subscription ${billing.subscriptionId} has status "${subscription.status}"`
+          );
+          const now = new Date();
+          const isInTrial = billing.subscriptionTrialEnd
+            ? new Date(billing.subscriptionTrialEnd) > now
+            : false;
+
+          return {
+            billingPeriod: billing.billingPeriod,
+            billingMode: billing.billingMode,
+            subscriptionStart: billing.subscriptionStart,
+            subscriptionEnd: billing.subscriptionEnd,
+            trialEnd: billing.subscriptionTrialEnd,
+            isInTrial,
+            pricePerSeat: billing.pricePerSeat,
+            isOrganization,
+          };
+        }
+
+        const { billingPeriod, pricePerSeat, paidSeats, subscriptionStart, subscriptionEnd } =
           extractBillingDataFromStripeSubscription(subscription);
 
+        const updateData = {
+          billingPeriod,
+          pricePerSeat: pricePerSeat ?? null,
+          paidSeats: paidSeats ?? null,
+          subscriptionStart: subscriptionStart ?? null,
+          subscriptionEnd: subscriptionEnd ?? null,
+        };
+
         if (isOrganization) {
-          await this.repository.updateOrganizationBillingPeriod(billing.id, {
-            billingPeriod,
-            pricePerSeat: pricePerSeat ?? null,
-            paidSeats: paidSeats ?? null,
-          });
+          await this.repository.updateOrganizationBillingPeriod(billing.id, updateData);
         } else {
-          await this.repository.updateTeamBillingPeriod(billing.id, {
-            billingPeriod,
-            pricePerSeat: pricePerSeat ?? null,
-            paidSeats: paidSeats ?? null,
-          });
+          await this.repository.updateTeamBillingPeriod(billing.id, updateData);
         }
 
         const now = new Date();
@@ -134,8 +193,9 @@ export class BillingPeriodService {
 
         return {
           billingPeriod,
-          subscriptionStart: billing.subscriptionStart,
-          subscriptionEnd: billing.subscriptionEnd,
+          billingMode: billing.billingMode,
+          subscriptionStart: subscriptionStart ?? null,
+          subscriptionEnd: subscriptionEnd ?? null,
           trialEnd: billing.subscriptionTrialEnd,
           isInTrial,
           pricePerSeat: pricePerSeat ?? null,
@@ -151,6 +211,7 @@ export class BillingPeriodService {
 
     return {
       billingPeriod: billing.billingPeriod,
+      billingMode: billing.billingMode,
       subscriptionStart: billing.subscriptionStart,
       subscriptionEnd: billing.subscriptionEnd,
       trialEnd: billing.subscriptionTrialEnd,

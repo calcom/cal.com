@@ -30,6 +30,30 @@ export interface OptInFeatureConfig {
    * Use [] if you want the feature defined but not displayed anywhere.
    */
   displayLocations?: OptInFeatureDisplayLocation[];
+  /**
+   * Formbricks feedback configuration for delayed survey triggering after opt-in.
+   * When configured, a custom feedback dialog will be shown after the specified delay
+   * has passed since the user opted in, allowing time for feature usage before collecting feedback.
+   */
+  formbricks?: {
+    /** Number of days to wait after opt-in before showing the feedback dialog */
+    waitAfterDays: number;
+    /** Where to show the feedback dialog: "all" | "desktop" | "mobile". Defaults to "all". */
+    showOn?: "all" | "desktop" | "mobile";
+    /** Formbricks survey ID to submit responses to */
+    surveyId: string;
+    /** Question IDs for the survey fields */
+    questions: {
+      /** Question ID for the rating field */
+      ratingQuestionId: string;
+      /** Question ID for the comment field */
+      commentQuestionId: string;
+    };
+    /** i18n key for the feedback dialog title (defaults to "feedback_dialog_title") */
+    titleKey?: string;
+    /** i18n key for the feedback dialog description (defaults to "feedback_dialog_description") */
+    descriptionKey?: string;
+  };
 }
 
 /**
@@ -50,8 +74,19 @@ export const OPT_IN_FEATURES: OptInFeatureConfig[] = [
       height: 348,
     },
     policy: "permissive",
-    displayLocations: ["settings"],
+    displayLocations: ["banner", "settings"],
     scope: ["org", "team", "user"], // Optional: defaults to all scopes if not specified
+    formbricks: {
+      waitAfterDays: 3,
+      showOn: "desktop",
+      surveyId: "cml6ps4f0psk9ad019a2kzedz",
+      questions: {
+        ratingQuestionId: "ajt82ni0hue3x5qkltj9t359",
+        commentQuestionId: "kwjw0g7vqkgd5w9s61dba8de",
+      },
+      titleKey: "bookings_v3_feedback_title",
+      descriptionKey: "bookings_v3_feedback_description",
+    },
   },
 ];
 

@@ -280,6 +280,9 @@ function BookingListItem(booking: BookingItemProps) {
   const setIsOpenWrongAssignmentDialog = useBookingActionsStoreContext(
     (state) => state.setIsOpenWrongAssignmentDialog
   );
+  const setIsOpenRoutingTraceSheet = useBookingActionsStoreContext(
+    (state) => state.setIsOpenRoutingTraceSheet
+  );
   const reportAction = getReportAction(actionContext);
   const reportActionWithHandler = {
     ...reportAction,
@@ -442,6 +445,36 @@ function BookingListItem(booking: BookingItemProps) {
                   eventTypeHosts={booking.eventType?.hosts}
                 />
               )}
+              {!isPending && (
+                <div className="sm:hidden">
+                  {(provider?.label ||
+                    (typeof locationToDisplay === "string" && locationToDisplay?.startsWith("https://"))) &&
+                    locationToDisplay.startsWith("http") && (
+                      <a
+                        href={locationToDisplay}
+                        onClick={(e) => e.stopPropagation()}
+                        target="_blank"
+                        title={locationToDisplay}
+                        rel="noreferrer"
+                        className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                        <div className="flex items-center gap-2">
+                          {provider?.iconUrl && (
+                            <img
+                              src={provider.iconUrl}
+                              width={16}
+                              height={16}
+                              className="h-4 w-4 rounded-sm"
+                              alt={`${provider?.label} logo`}
+                            />
+                          )}
+                          {provider?.label
+                            ? t("join_event_location", { eventLocationType: provider?.label })
+                            : t("join_meeting")}
+                        </div>
+                      </a>
+                    )}
+                </div>
+              )}
               {isCancelled && booking.rescheduled && (
                 <div className="mt-2 inline-block md:hidden">
                   <RequestSentMessage />
@@ -519,19 +552,14 @@ function BookingListItem(booking: BookingItemProps) {
         userTimeZone={userTimeZone}
         isRescheduled={isRescheduled}
         onAssignmentReasonClick={
-          isBookingFromRoutingForm ? () => setIsOpenWrongAssignmentDialog(true) : undefined
+          booking.assignmentReasonSortedByCreatedAt.length > 0 ? () => setIsOpenRoutingTraceSheet(true) : undefined
         }
       />
       {isBookingFromRoutingForm && (
         <WrongAssignmentDialog
           isOpenDialog={isOpenWrongAssignmentDialog}
           setIsOpenDialog={setIsOpenWrongAssignmentDialog}
-          bookingUid={booking.uid}
-          routingReason={booking.assignmentReason[0]?.reasonString ?? null}
-          guestEmail={booking.attendees[0]?.email ?? ""}
-          hostEmail={booking.user?.email ?? ""}
-          hostName={booking.user?.name ?? null}
-          teamId={booking.eventType?.team?.id ?? null}
+          booking={booking}
         />
       )}
     </div>
@@ -573,7 +601,7 @@ const BookingItemBadges = ({
           </Badge>
         </Tooltip>
       )}
-      {isRejected && !isRescheduled && booking.assignmentReason.length === 0 && (
+      {isRejected && !isRescheduled && booking.assignmentReasonSortedByCreatedAt.length === 0 && (
         <Badge variant="gray" className="ltr:mr-2 rtl:ml-2">
           {t("rejected")}
         </Badge>
@@ -583,9 +611,9 @@ const BookingItemBadges = ({
           {booking.eventType.team.name}
         </Badge>
       )}
-      {booking?.assignmentReason.length > 0 && (
+      {booking?.assignmentReasonSortedByCreatedAt.length > 0 && (
         <AssignmentReasonTooltip
-          assignmentReason={booking.assignmentReason[0]}
+          assignmentReason={booking.assignmentReasonSortedByCreatedAt[booking.assignmentReasonSortedByCreatedAt.length - 1]}
           onClick={onAssignmentReasonClick}
         />
       )}
@@ -771,20 +799,19 @@ const Attendee = (
   const { copyToClipboard, isCopied } = useCopy();
 
   const noShowMutation = trpc.viewer.loggedInViewerRouter.markNoShow.useMutation({
-      onSuccess: async (data) => {
-        showToast(data.message, "success");
-        await utils.viewer.bookings.invalidate();
-      },
-      onError: (err) => {
-        showToast(err.message, "error");
-      },
-    });
+    onSuccess: async (data) => {
+      showToast(data.message, "success");
+      await utils.viewer.bookings.invalidate();
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
 
   const displayName = user?.name || name || user?.email || email;
 
   const isTeamMemberOrHost =
-    email === organizerEmail ||
-    eventTypeHosts?.some((host) => host.user?.email === email);
+    email === organizerEmail || eventTypeHosts?.some((host) => host.user?.email === email);
   const shouldHideEmail = hideOrganizerEmail && isTeamMemberOrHost;
 
   return (
@@ -825,7 +852,7 @@ const Attendee = (
               onClick={(e) => {
                 e.preventDefault();
                 const isEmailCopied = isSmsCalEmail(email);
-                copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
+                copyToClipboard(isEmailCopied ? email : (phoneNumber ?? ""));
                 setOpenDropdown(false);
                 showToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
               }}>
@@ -1069,7 +1096,9 @@ const DisplayAttendees = ({
 
   return (
     <div className="text-emphasis text-sm" onClick={(e) => e.stopPropagation()}>
-      {user && <FirstAttendee user={user} currentEmail={currentEmail} hideOrganizerEmail={hideOrganizerEmail} />}
+      {user && (
+        <FirstAttendee user={user} currentEmail={currentEmail} hideOrganizerEmail={hideOrganizerEmail} />
+      )}
       {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
       <Attendee
         {...attendees[0]}

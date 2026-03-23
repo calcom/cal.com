@@ -29,7 +29,7 @@ const DEFAULT_CONFIG: Required<OverlapLayoutConfig> = {
  * Calculates variable widths for each event in a cascade based on position
  * Leftmost (longest) events get more width, rightmost (shortest) get less width
  * Uses anchor points for 2-4 events and smooth easing curve for 5+ events
- * 
+ *
  * @param groupSize - Number of overlapping events in the group
  * @param minWidthPercent - Minimum width to maintain readability (default 25%)
  * @param curveExponent - Easing curve exponent for width distribution (default 1.3)
@@ -43,11 +43,11 @@ function calculateVariableWidths(
   if (groupSize <= 1) {
     return [100]; // Single event gets full width (100%)
   }
-  
+
   // Define anchor points for first and last widths based on group size
   let wFirst: number;
   let wLast: number;
-  
+
   if (groupSize === 2) {
     wFirst = 80;
     wLast = 50;
@@ -61,7 +61,7 @@ function calculateVariableWidths(
     wFirst = Math.max(30, 40 - 3 * (groupSize - 4));
     wLast = minWidthPercent;
   }
-  
+
   const widths: number[] = [];
   for (let i = 0; i < groupSize; i++) {
     const t = groupSize > 1 ? i / (groupSize - 1) : 0;
@@ -69,7 +69,7 @@ function calculateVariableWidths(
     const width = wLast + (wFirst - wLast) * easedT;
     widths.push(Math.max(minWidthPercent, width));
   }
-  
+
   return widths;
 }
 
@@ -95,11 +95,11 @@ export function sortEvents(events: CalendarEvent[]): CalendarEvent[] {
     const startA = dayjs(a.start);
     const startB = dayjs(b.start);
     const startDiff = startA.diff(startB);
-    
+
     if (startDiff !== 0) {
       return startDiff;
     }
-    
+
     const endA = dayjs(a.end);
     const endB = dayjs(b.end);
     return endB.diff(endA);
@@ -161,10 +161,10 @@ export function calculateEventLayouts(
 
   groups.forEach((group, groupIndex) => {
     const groupSize = group.length;
-    
+
     const widths = calculateVariableWidths(groupSize, minWidthPercent, curveExponent);
     const Rmax = 100 - safetyMarginPercent;
-    
+
     if (groupSize === 1) {
       const width = floor3(Math.min(widths[0], Rmax));
       layouts.push({
@@ -177,13 +177,13 @@ export function calculateEventLayouts(
       });
     } else {
       const Rmin = widths[0];
-      
+
       group.forEach((event, indexInGroup) => {
         const t = indexInGroup / (groupSize - 1);
         const ri = Rmin + (Rmax - Rmin) * t;
         const leftRaw = ri - widths[indexInGroup];
         const left = round3(leftRaw);
-        
+
         const maxWidthCap = Rmax - left;
         const widthCap = Math.min(widths[indexInGroup], maxWidthCap);
         const width = floor3(Math.max(0, widthCap));

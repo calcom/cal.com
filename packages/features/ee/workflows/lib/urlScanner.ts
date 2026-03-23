@@ -295,12 +295,15 @@ async function getScanResult(scanId: string): Promise<UrlScanResult | null> {
   }
 
   try {
-    const response = await fetch(`${CLOUDFLARE_API_BASE}/accounts/${accountId}/urlscanner/v2/result/${scanId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${apiToken}`,
-      },
-    });
+    const response = await fetch(
+      `${CLOUDFLARE_API_BASE}/accounts/${accountId}/urlscanner/v2/result/${scanId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+        },
+      }
+    );
 
     // 404 means scan is still in progress
     if (response.status === 404) {

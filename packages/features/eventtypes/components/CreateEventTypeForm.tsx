@@ -3,7 +3,6 @@ import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import type { CreateEventTypeFormValues } from "@calcom/features/eventtypes/hooks/useCreateEventType";
 import { MAX_EVENT_DURATION_MINUTES, MIN_EVENT_DURATION_MINUTES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -14,6 +13,10 @@ import { Form } from "@calcom/ui/components/form";
 import { TextAreaField } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import type { z } from "zod";
+import { createEventTypeInput } from "@calcom/features/eventtypes/lib/types";
+
+type CreateEventTypeFormValues = z.infer<typeof createEventTypeInput>;
 
 export default function CreateEventTypeForm({
   form,

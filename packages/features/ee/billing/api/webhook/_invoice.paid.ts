@@ -1,13 +1,14 @@
+import process from "node:process";
 import logger from "@calcom/lib/logger";
-
 import type { LazyModule, SWHMap } from "./__handler";
 
 type Data = SWHMap["invoice.paid"]["data"];
 
 type Handlers = Record<`prod_${string}`, () => LazyModule<Data>>;
 
-// We can't crash here if STRIPE_ORG_PRODUCT_ID is not set, because not all self-hosters use Organizations and it might break the build on import of this module.
+// We can't crash here if these are not set, because not all self-hosters use Organizations/Teams and it might break the build on import of this module.
 const STRIPE_ORG_PRODUCT_ID = process.env.STRIPE_ORG_PRODUCT_ID || "";
+const STRIPE_TEAM_PRODUCT_ID = process.env.STRIPE_TEAM_PRODUCT_ID || "";
 
 const log = logger.getSubLogger({ prefix: ["stripe-webhook-invoice-paid"] });
 
@@ -48,4 +49,5 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
 
 export default stripeWebhookProductHandler({
   [STRIPE_ORG_PRODUCT_ID]: () => import("./_invoice.paid.org"),
+  [STRIPE_TEAM_PRODUCT_ID]: () => import("./_invoice.paid.team"),
 });

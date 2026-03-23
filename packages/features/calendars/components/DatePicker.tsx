@@ -82,28 +82,23 @@ const Day = ({
   const buttonContent = (
     <button
       type="button"
-      style={
-        disabled
-          ? { ...disabledDateButtonEmbedStyles }
-          : { ...enabledDateButtonEmbedStyles }
-      }
+      style={disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
       className={classNames(
         "disabled:text-bookinglighter absolute bottom-0 left-0 right-0 top-0 mx-auto w-full rounded-md border-2 border-transparent text-center text-sm font-medium transition disabled:cursor-default disabled:border-transparent disabled:font-light ",
         active
           ? "bg-brand-default text-brand"
           : !disabled
-          ? `${
-              !customClassName?.dayActive
-                ? "hover:border-brand-default text-emphasis bg-emphasis"
-                : `hover:border-brand-default ${customClassName.dayActive}`
-            }`
-          : `${customClassName ? "" : " text-mute"}`
+            ? `${
+                !customClassName?.dayActive
+                  ? "hover:border-brand-default text-emphasis bg-emphasis"
+                  : `hover:border-brand-default ${customClassName.dayActive}`
+              }`
+            : `${customClassName ? "" : " text-mute"}`
       )}
       data-testid="day"
       data-disabled={disabled}
       disabled={disabled}
-      {...props}
-    >
+      {...props}>
       {away && <span data-testid="away-emoji">{emoji}</span>}
       {!away && date.date()}
       {date.isToday() && (
@@ -111,8 +106,7 @@ const Day = ({
           className={classNames(
             "bg-brand-default absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full align-middle sm:translate-y-[12px]",
             active && "bg-brand-accent"
-          )}
-        >
+          )}>
           <span className="sr-only">{t("today")}</span>
         </span>
       )}
@@ -138,8 +132,7 @@ const Day = ({
             fontSize: "10px",
             lineHeight: "13px",
             padding: disabled ? "0 3px" : "3px 3px 3px 4px",
-          }}
-        >
+          }}>
           {date.format("MMM")}
         </div>
       )}
@@ -195,8 +188,7 @@ const Days = ({
   const isSecondWeekOver = today.isAfter(firstDayOfMonth.add(2, "week"));
   let days: (Dayjs | null)[] = [];
 
-  const getPadding = (day: number) =>
-    (browsingDate.set("date", day).day() - weekStart + 7) % 7;
+  const getPadding = (day: number) => (browsingDate.set("date", day).day() - weekStart + 7) % 7;
   const totalDays = daysInMonth(browsingDate);
 
   const showNextMonthDays = isSecondWeekOver && !isCompact;
@@ -229,18 +221,12 @@ const Days = ({
     }
   }
 
-  const [selectedDatesAndTimes] = useBookerStoreContext(
-    (state) => [state.selectedDatesAndTimes],
-    shallow
-  );
+  const [selectedDatesAndTimes] = useBookerStoreContext((state) => [state.selectedDatesAndTimes], shallow);
 
   const isActive = (day: dayjs.Dayjs) => {
     // for selecting a range of dates
     if (Array.isArray(selected)) {
-      return (
-        Array.isArray(selected) &&
-        selected?.some((e) => yyyymmdd(e) === yyyymmdd(day))
-      );
+      return Array.isArray(selected) && selected?.some((e) => yyyymmdd(e) === yyyymmdd(day));
     }
 
     if (selected && yyyymmdd(selected) === yyyymmdd(day)) {
@@ -254,11 +240,9 @@ const Days = ({
       selectedDatesAndTimes[eventSlug as string] &&
       Object.keys(selectedDatesAndTimes[eventSlug as string]).length > 0
     ) {
-      return Object.keys(selectedDatesAndTimes[eventSlug as string]).some(
-        (date) => {
-          return yyyymmdd(dayjs(date)) === yyyymmdd(day);
-        }
-      );
+      return Object.keys(selectedDatesAndTimes[eventSlug as string]).some((date) => {
+        return yyyymmdd(dayjs(date)) === yyyymmdd(day);
+      });
     }
 
     return false;
@@ -272,24 +256,18 @@ const Days = ({
     const oooInfo = daySlots.find((slot) => slot.away) || null;
 
     const isNextMonth = day.month() !== browsingDate.month();
-    const isFirstDayOfNextMonth =
-      isSecondWeekOver && !isCompact && isNextMonth && day.date() === 1;
+    const isFirstDayOfNextMonth = isSecondWeekOver && !isCompact && isNextMonth && day.date() === 1;
 
     const included = includedDates?.includes(dateKey);
     const excluded = excludedDates.includes(dateKey);
 
     const hasAvailableSlots = daySlots.some((slot) => !slot.away);
-    const isOOOAllDay =
-      daySlots.length > 0 && daySlots.every((slot) => slot.away);
+    const isOOOAllDay = daySlots.length > 0 && daySlots.every((slot) => slot.away);
     const away = isOOOAllDay;
 
     // OOO dates are selectable only if there's a redirect user OR the note is public
     const oooIsSelectable = oooInfo?.toUser || oooInfo?.showNotePublicly;
-    const disabled = away
-      ? !oooIsSelectable
-      : isNextMonth
-      ? !hasAvailableSlots
-      : !included || excluded;
+    const disabled = away ? !oooIsSelectable : isNextMonth ? !hasAvailableSlots : !included || excluded;
 
     return {
       day,
@@ -314,13 +292,10 @@ const Days = ({
     if (selected instanceof Array) {
       return;
     }
-    const firstAvailableDateOfTheMonth = daysToRenderForTheMonth.find(
-      (day) => !day.disabled
-    )?.day;
+    const firstAvailableDateOfTheMonth = daysToRenderForTheMonth.find((day) => !day.disabled)?.day;
     const isSelectedDateAvailable = selected
       ? daysToRenderForTheMonth.some(({ day, disabled }) => {
-          if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled)
-            return true;
+          if (day && yyyymmdd(day) === yyyymmdd(selected) && !disabled) return true;
         })
       : false;
     if (!isSelectedDateAvailable && firstAvailableDateOfTheMonth) {
@@ -340,48 +315,38 @@ const Days = ({
 
   return (
     <>
-      {daysToRenderForTheMonth.map(
-        ({ day, disabled, away, emoji, isFirstDayOfNextMonth }, idx) => (
-          <div
-            key={day === null ? `e-${idx}` : `day-${day.format()}`}
-            className="relative w-full pt-[100%]"
-          >
-            {day === null ? (
-              <div key={`e-${idx}`} />
-            ) : props.isLoading ? (
-              <button
-                className="bg-cal-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition"
-                key={`e-${idx}`}
-                disabled
-              >
-                <SkeletonText className="h-8 w-9" />
-              </button>
-            ) : (
-              <DayComponent
-                customClassName={{
-                  dayContainer: customClassName?.datePickerDate,
-                  dayActive: customClassName?.datePickerDateActive,
-                }}
-                date={day}
-                onClick={() => {
-                  props.onChange(day);
-                  props?.scrollToTimeSlots?.();
-                }}
-                disabled={disabled}
-                active={isActive(day)}
-                away={away}
-                emoji={emoji}
-                showMonthTooltip={
-                  showNextMonthDays &&
-                  !disabled &&
-                  day.month() !== browsingDate.month()
-                }
-                isFirstDayOfNextMonth={isFirstDayOfNextMonth}
-              />
-            )}
-          </div>
-        )
-      )}
+      {daysToRenderForTheMonth.map(({ day, disabled, away, emoji, isFirstDayOfNextMonth }, idx) => (
+        <div key={day === null ? `e-${idx}` : `day-${day.format()}`} className="relative w-full pt-[100%]">
+          {day === null ? (
+            <div key={`e-${idx}`} />
+          ) : props.isLoading ? (
+            <button
+              className="bg-cal-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition"
+              key={`e-${idx}`}
+              disabled>
+              <SkeletonText className="h-8 w-9" />
+            </button>
+          ) : (
+            <DayComponent
+              customClassName={{
+                dayContainer: customClassName?.datePickerDate,
+                dayActive: customClassName?.datePickerDateActive,
+              }}
+              date={day}
+              onClick={() => {
+                props.onChange(day);
+                props?.scrollToTimeSlots?.();
+              }}
+              disabled={disabled}
+              active={isActive(day)}
+              away={away}
+              emoji={emoji}
+              showMonthTooltip={showNextMonthDays && !disabled && day.month() !== browsingDate.month()}
+              isFirstDayOfNextMonth={isFirstDayOfNextMonth}
+            />
+          )}
+        </div>
+      ))}
       {!props.isLoading &&
         !isBookingInPast &&
         includedDates &&
@@ -429,18 +394,13 @@ const DatePicker = ({
     scrollToTimeSlots?: () => void;
   }) => {
   const minDate = passThroughProps.minDate;
-  const rawBrowsingDate =
-    passThroughProps.browsingDate || dayjs().startOf("month");
+  const rawBrowsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
   const browsingDate =
-    minDate && rawBrowsingDate.valueOf() < minDate.valueOf()
-      ? dayjs(minDate)
-      : rawBrowsingDate;
+    minDate && rawBrowsingDate.valueOf() < minDate.valueOf() ? dayjs(minDate) : rawBrowsingDate;
 
   const { i18n, t } = useLocale();
   const bookingData = useBookerStoreContext((state) => state.bookingData);
-  const isBookingInPast = bookingData
-    ? new Date(bookingData.endTime) < new Date()
-    : false;
+  const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
   const changeMonth = (newMonth: number) => {
     if (onMonthChange) {
       onMonthChange(browsingDate.add(newMonth, "month"));
@@ -457,24 +417,12 @@ const DatePicker = ({
       <div className="mb-1 flex items-center justify-between text-xl">
         <span className="text-default w-1/2 text-base">
           {browsingDate ? (
-            <time
-              dateTime={browsingDate.format("YYYY-MM")}
-              data-testid="selected-month-label"
-            >
+            <time dateTime={browsingDate.format("YYYY-MM")} data-testid="selected-month-label">
               <strong
-                className={classNames(
-                  `text-emphasis font-semibold`,
-                  customClassNames?.datePickerTitle
-                )}
-              >
+                className={classNames(`text-emphasis font-semibold`, customClassNames?.datePickerTitle)}>
                 {month}
               </strong>{" "}
-              <span
-                className={classNames(
-                  `text-subtle font-medium`,
-                  customClassNames?.datePickerTitle
-                )}
-              >
+              <span className={classNames(`text-subtle font-medium`, customClassNames?.datePickerTitle)}>
                 {browsingDate.format("YYYY")}
               </span>
             </time>
@@ -521,8 +469,7 @@ const DatePicker = ({
             className={classNames(
               `text-emphasis my-4 text-xs font-medium uppercase tracking-widest`,
               customClassNames?.datePickerDays
-            )}
-          >
+            )}>
             {weekDay}
           </div>
         ))}

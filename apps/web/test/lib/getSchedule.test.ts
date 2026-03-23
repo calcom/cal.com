@@ -2829,9 +2829,9 @@ describe("getSchedule", () => {
         });
       }
 
-      expect(availableSlotsInScheduleTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(
-        0
-      );
+      expect(
+        availableSlotsInScheduleTz.filter((slot) => slot.format().startsWith(plus2DateString)).length
+      ).toBe(0);
     });
 
     test("a slot counts as being busy when the eventType is requiresConfirmation and requiresConfirmationWillBlockSlot", async () => {
@@ -3734,12 +3734,9 @@ describe("getSchedule", () => {
         },
       });
 
-      expect(schedule).toHaveTimeSlots(
-        [`03:30:00.000Z`, `04:30:00.000Z`, `05:30:00.000Z`],
-        {
-          dateString: plus2DateString,
-        }
-      );
+      expect(schedule).toHaveTimeSlots([`03:30:00.000Z`, `04:30:00.000Z`, `05:30:00.000Z`], {
+        dateString: plus2DateString,
+      });
     });
 
     test("returns slots only for date overrides when workingHours is empty but multiple date overrides exist", async () => {
@@ -3871,12 +3868,9 @@ describe("getSchedule", () => {
         dateString: plus2DateString,
       });
 
-      expect(schedule).toHaveTimeSlots(
-        [`03:30:00.000Z`, `04:30:00.000Z`, `05:30:00.000Z`],
-        {
-          dateString: plus3DateString,
-        }
-      );
+      expect(schedule).toHaveTimeSlots([`03:30:00.000Z`, `04:30:00.000Z`, `05:30:00.000Z`], {
+        dateString: plus3DateString,
+      });
     });
   });
 });

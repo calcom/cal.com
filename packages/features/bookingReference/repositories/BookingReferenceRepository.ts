@@ -3,7 +3,7 @@ import type { Prisma, PrismaClient } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { PartialReference } from "@calcom/types/EventManager";
 
-import type { IBookingReferenceRepository } from "@calcom/lib/server/repository/dto/IBookingReferenceRepository";
+import type { IBookingReferenceRepository } from "./IBookingReferenceRepository";
 
 const bookingReferenceSelect = {
   id: true,

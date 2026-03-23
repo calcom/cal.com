@@ -19,9 +19,9 @@ import {
   CommandList,
 } from "@calcom/ui/components/command";
 import { Input } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
+import { CheckIcon, ChevronRightIcon } from "@coss/ui/icons";
 
 import type { UserTableUser } from "../types";
 
@@ -138,7 +138,7 @@ function SelectedAttributeToAssign() {
                       "ml-auto flex h-4 w-4 items-center justify-center rounded-sm border"
                     )}>
                     {selectedAttributeOptions?.includes(option.id) ? (
-                      <Icon name="check" className={classNames("h-4 w-4")} />
+                      <CheckIcon className={classNames("h-4 w-4")} />
                     ) : null}
                   </div>
                 </CommandItem>
@@ -195,7 +195,7 @@ function Content({ showMultiSelectWarning }: { showMultiSelectWarning: boolean }
                     <span>{option.name}</span>
                     <div
                       className={classNames("ml-auto flex h-4 w-4 items-center justify-center rounded-sm")}>
-                      <Icon name="chevron-right" className={classNames("h-4 w-4")} />
+                      <ChevronRightIcon className={classNames("h-4 w-4")} />
                     </div>
                   </CommandItem>
                 );

@@ -62,14 +62,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     session?.user?.id
   );
 
-    if (!eventData) {
-      return {
-        notFound: true,
-      } as const;
-    }
-
+  if (!eventData) {
     return {
-      props: {
+      notFound: true,
+    } as const;
+  }
+
+  return {
+    props: {
       eventData,
       entity: eventData.entity,
       eventTypeId: eventData.id,

@@ -1,8 +1,9 @@
+import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import type { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
 import logger from "@calcom/lib/logger";
-import { SystemReportStatus, WatchlistType } from "@calcom/prisma/enums";
-
+import { SystemReportStatus, WatchlistSource, WatchlistType } from "@calcom/prisma/enums";
 import { WatchlistErrors } from "../errors/WatchlistErrors";
 import { extractDomainFromEmail, normalizeEmail } from "../utils/normalization";
 import type {
@@ -53,13 +54,16 @@ export interface BulkDismissReportsByEmailInput {
 type Deps = {
   watchlistRepo: WatchlistRepository;
   bookingReportRepo: PrismaBookingReportRepository;
+  userRepo: UserRepository;
 };
 
 export class AdminWatchlistOperationsService extends WatchlistOperationsService {
   private adminLog = logger.getSubLogger({ prefix: ["AdminWatchlistOperationsService"] });
+  private userRepo: UserRepository;
 
   constructor(deps: Deps) {
     super(deps);
+    this.userRepo = deps.userRepo;
   }
 
   protected getScope(): WatchlistOperationsScope {
@@ -94,6 +98,13 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
       validIds.push(id);
     }
 
+    const signupEmailEntries = validIds
+      .map((id) => entryMap.get(id))
+      .filter(
+        (e): e is NonNullable<typeof e> =>
+          !!e && e.source === WatchlistSource.SIGNUP && e.type === WatchlistType.EMAIL
+      );
+
     let successCount = 0;
     if (validIds.length > 0) {
       const result = await this.deps.watchlistRepo.bulkDeleteEntries({
@@ -102,6 +113,8 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
       });
       successCount = result.deleted;
     }
+
+    await Promise.all(signupEmailEntries.map((entry) => this.unlockSignupUser(entry.value)));
 
     if (successCount === 0 && failed.length > 0) {
       this.adminLog.error("Bulk delete watchlist entries failures", { failed });
@@ -130,6 +143,10 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
     }
 
     await this.deps.watchlistRepo.deleteEntry(input.entryId, input.userId);
+
+    if (entry.source === WatchlistSource.SIGNUP && entry.type === WatchlistType.EMAIL) {
+      await this.unlockSignupUser(entry.value);
+    }
 
     return {
       success: true,
@@ -192,6 +209,20 @@ export class AdminWatchlistOperationsService extends WatchlistOperationsService 
     }
 
     return { success: true, count: result.count };
+  }
+
+  private async unlockSignupUser(email: string): Promise<void> {
+    try {
+      const user = await this.userRepo.unlockByEmail({ email });
+      if (user) {
+        await sendEmailVerification({
+          email: user.email,
+          username: user.username || "",
+        });
+      }
+    } catch (error) {
+      this.adminLog.error("Failed to auto-unlock user after SIGNUP watchlist removal", { error });
+    }
   }
 
   async bulkDismissReportsByEmail(input: BulkDismissReportsByEmailInput): Promise<BulkDismissReportsResult> {

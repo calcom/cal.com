@@ -141,7 +141,7 @@ vi.mock("@calcom/prisma", () => ({
   },
 }));
 
-vi.mock("@calcom/lib/server/repository/PrismaTrackingRepository", () => ({
+vi.mock("@calcom/features/bookings/repositories/PrismaTrackingRepository", () => ({
   PrismaTrackingRepository: class {
     findByBookingUid = mockTrackingRepository.findByBookingUid;
   },

@@ -144,8 +144,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     theme: branding.theme,
     brandColor: branding.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
     avatarUrl: user.avatarUrl,
-    darkBrandColor:
-      branding.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
+    darkBrandColor: branding.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
     allowSEOIndexing: user.allowSEOIndexing ?? true,
     username: user.username,
     organization: user.profile.organization,

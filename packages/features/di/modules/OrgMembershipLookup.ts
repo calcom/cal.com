@@ -1,8 +1,15 @@
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
-import type { OrgMembershipLookup } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { createModule, type Module } from "../di";
 import { DI_TOKENS } from "../tokens";
+
+/**
+ * Minimal capability interface for looking up a user's organization membership.
+ * Used as a fallback when org context can't be determined from request or eventType.
+ */
+export interface OrgMembershipLookup {
+  findFirstOrganizationIdForUser(args: { userId: number }): Promise<number | null>;
+}
 
 /**
  * Adapter that wraps ProfileRepository's static method to satisfy the OrgMembershipLookup interface.

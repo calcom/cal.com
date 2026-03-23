@@ -184,7 +184,7 @@ test.describe("Bookings", () => {
           // Anyone of the teammates could be the Host of the booking.
           const chosenUser = await page.getByTestId("booking-host-name").textContent();
           expect(chosenUser).not.toBeNull();
-           
+
           expect(teamMatesObj.concat([{ name: owner.name! }]).some(({ name }) => name === chosenUser)).toBe(
             true
           );
@@ -248,7 +248,7 @@ test.describe("Bookings", () => {
           // Anyone of the teammates could be the Host of the booking.
           const chosenUser = await page.getByTestId("booking-host-name").textContent();
           expect(chosenUser).not.toBeNull();
-           
+
           expect(teamMatesObj.concat([{ name: owner.name! }]).some(({ name }) => name === chosenUser)).toBe(
             true
           );

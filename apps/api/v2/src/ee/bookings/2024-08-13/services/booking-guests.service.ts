@@ -48,6 +48,7 @@ export class BookingGuestsService_2024_08_13 {
       input: { bookingId: booking.id, guests: input.guests },
       emailsEnabled,
       actionSource: "API_V2",
+      impersonatedByUserUuid: null,
     });
     if (res.message === "Guests added") {
       return await this.bookingsService.getBooking(bookingUid, user);
