@@ -11,6 +11,13 @@ export interface IBillingProviderService {
     membershipCount: number;
     prorationBehavior?: "none" | "create_prorations" | "always_invoice";
   }): Promise<void>;
+  updateSubscriptionPrice(args: {
+    subscriptionId: string;
+    subscriptionItemId: string;
+    newPriceId: string;
+    prorationBehavior?: "none" | "create_prorations" | "always_invoice";
+    endTrial?: boolean;
+  }): Promise<void>;
   handleEndTrial(subscriptionId: string): Promise<void>;
 
   // Customer management

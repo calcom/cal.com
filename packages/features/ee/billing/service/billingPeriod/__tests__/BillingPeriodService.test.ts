@@ -1,7 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { prisma } from "@calcom/prisma";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { BillingPeriodRepository } from "../../../repository/billingPeriod/BillingPeriodRepository";
 import { BillingPeriodService } from "../BillingPeriodService";
 
 vi.mock("@calcom/prisma", () => ({
@@ -35,6 +34,21 @@ const mockFeaturesRepository = {
 vi.mock("@calcom/features/di/containers/FeatureRepository", () => ({
   getFeatureRepository: () => mockFeaturesRepository,
 }));
+
+vi.mock("@calcom/features/ee/billing/constants", () => ({
+  BILLING_PLANS: {
+    TEAMS: "TEAMS",
+    ORGANIZATIONS: "ORGANIZATIONS",
+  },
+  BILLING_PRICING: {
+    TEAMS: { monthly: 1600, annual: 1200 },
+    ORGANIZATIONS: { monthly: 3700, annual: 2800 },
+  },
+}));
+
+const mockBillingProviderService = {
+  updateSubscriptionPrice: vi.fn(),
+};
 
 describe("BillingPeriodService", () => {
   let service: BillingPeriodService;
@@ -431,6 +445,273 @@ describe("BillingPeriodService", () => {
           pricePerSeat: 10000,
         })
       ).rejects.toThrow("No billing record found for team 1");
+    });
+  });
+
+  describe("canSwitchToMonthly", () => {
+    let serviceWithMockRepo: BillingPeriodService;
+    const mockRepository = {
+      getTeamWithBillingInfo: vi.fn(),
+      getTeamForBillingUpdate: vi.fn(),
+      updateTeamBillingPeriod: vi.fn(),
+      updateOrganizationBillingPeriod: vi.fn(),
+      findBillingPeriodByTeamId: vi.fn(),
+    };
+
+    beforeEach(() => {
+      serviceWithMockRepo = new BillingPeriodService({
+        repository: mockRepository as unknown as BillingPeriodRepository,
+        featuresRepository: mockFeaturesRepository as any,
+        billingProviderService: mockBillingProviderService as any,
+      });
+    });
+
+    it("should return allowed=true when within 30-day window of subscription end", async () => {
+      const subscriptionEnd = new Date();
+      subscriptionEnd.setDate(subscriptionEnd.getDate() + 15);
+
+      mockRepository.getTeamWithBillingInfo.mockResolvedValue({
+        isOrganization: false,
+        billing: {
+          id: "billing-1",
+          billingPeriod: "ANNUALLY",
+          subscriptionEnd,
+          subscriptionId: "sub_123",
+          subscriptionItemId: "si_123",
+          subscriptionStart: new Date(),
+          subscriptionTrialEnd: null,
+          pricePerSeat: 1200,
+          paidSeats: 5,
+        },
+      });
+
+      const result = await serviceWithMockRepo.canSwitchToMonthly(1);
+      expect(result.allowed).toBe(true);
+      expect(result.switchDate).toEqual(subscriptionEnd);
+    });
+
+    it("should return allowed=false when outside 30-day window", async () => {
+      const subscriptionEnd = new Date();
+      subscriptionEnd.setDate(subscriptionEnd.getDate() + 60);
+
+      mockRepository.getTeamWithBillingInfo.mockResolvedValue({
+        isOrganization: false,
+        billing: {
+          id: "billing-1",
+          billingPeriod: "ANNUALLY",
+          subscriptionEnd,
+          subscriptionId: "sub_123",
+          subscriptionItemId: "si_123",
+          subscriptionStart: new Date(),
+          subscriptionTrialEnd: null,
+          pricePerSeat: 1200,
+          paidSeats: 5,
+        },
+      });
+
+      const result = await serviceWithMockRepo.canSwitchToMonthly(1);
+      expect(result.allowed).toBe(false);
+    });
+
+    it("should return allowed=false when already on monthly billing", async () => {
+      mockRepository.getTeamWithBillingInfo.mockResolvedValue({
+        isOrganization: false,
+        billing: {
+          id: "billing-1",
+          billingPeriod: "MONTHLY",
+          subscriptionEnd: new Date(),
+          subscriptionId: "sub_123",
+          subscriptionItemId: "si_123",
+          subscriptionStart: new Date(),
+          subscriptionTrialEnd: null,
+          pricePerSeat: 1600,
+          paidSeats: 5,
+        },
+      });
+
+      const result = await serviceWithMockRepo.canSwitchToMonthly(1);
+      expect(result.allowed).toBe(false);
+    });
+
+    it("should return allowed=false when no billing record", async () => {
+      mockRepository.getTeamWithBillingInfo.mockResolvedValue({ isOrganization: false, billing: null });
+
+      const result = await serviceWithMockRepo.canSwitchToMonthly(1);
+      expect(result.allowed).toBe(false);
+    });
+  });
+
+  describe("switchBillingPeriod", () => {
+    let serviceWithMockRepo: BillingPeriodService;
+    const mockRepository = {
+      getTeamWithBillingInfo: vi.fn(),
+      getTeamForBillingUpdate: vi.fn(),
+      updateTeamBillingPeriod: vi.fn(),
+      updateOrganizationBillingPeriod: vi.fn(),
+      findBillingPeriodByTeamId: vi.fn(),
+    };
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+      mockBillingProviderService.updateSubscriptionPrice.mockResolvedValue(undefined);
+      serviceWithMockRepo = new BillingPeriodService({
+        repository: mockRepository as unknown as BillingPeriodRepository,
+        featuresRepository: mockFeaturesRepository as any,
+        billingProviderService: mockBillingProviderService as any,
+      });
+    });
+
+    it("should switch from monthly to annual immediately with proration", async () => {
+      mockRepository.getTeamWithBillingInfo.mockResolvedValue({
+        isOrganization: false,
+        billing: {
+          id: "billing-1",
+          billingPeriod: "MONTHLY",
+          subscriptionId: "sub_123",
+          subscriptionItemId: "si_123",
+          subscriptionEnd: new Date(),
+          subscriptionStart: new Date(),
+          subscriptionTrialEnd: null,
+          pricePerSeat: 1600,
+          paidSeats: 5,
+        },
+      });
+      mockRepository.getTeamForBillingUpdate.mockResolvedValue({
+        isOrganization: false,
+        teamBilling: { id: "billing-1" },
+        organizationBilling: null,
+      });
+      mockRepository.updateTeamBillingPeriod.mockResolvedValue(undefined);
+
+      process.env.STRIPE_TEAM_ANNUAL_PRICE_ID = "price_annual_team";
+
+      const result = await serviceWithMockRepo.switchBillingPeriod(1, "ANNUALLY");
+
+      expect(mockBillingProviderService.updateSubscriptionPrice).toHaveBeenCalledWith({
+        subscriptionId: "sub_123",
+        subscriptionItemId: "si_123",
+        newPriceId: "price_annual_team",
+        prorationBehavior: "create_prorations",
+        endTrial: false,
+      });
+      expect(result.newPeriod).toBe("ANNUALLY");
+      expect(result.newPricePerSeat).toBe(1200);
+      expect(result.effectiveDate).toBeUndefined();
+    });
+
+    it("should schedule annual to monthly switch within 30-day window", async () => {
+      const subscriptionEnd = new Date();
+      subscriptionEnd.setDate(subscriptionEnd.getDate() + 15);
+
+      mockRepository.getTeamWithBillingInfo.mockResolvedValue({
+        isOrganization: false,
+        billing: {
+          id: "billing-1",
+          billingPeriod: "ANNUALLY",
+          subscriptionId: "sub_123",
+          subscriptionItemId: "si_123",
+          subscriptionEnd,
+          subscriptionStart: new Date(),
+          subscriptionTrialEnd: null,
+          pricePerSeat: 1200,
+          paidSeats: 5,
+        },
+      });
+      mockRepository.getTeamForBillingUpdate.mockResolvedValue({
+        isOrganization: false,
+        teamBilling: { id: "billing-1" },
+        organizationBilling: null,
+      });
+      mockRepository.updateTeamBillingPeriod.mockResolvedValue(undefined);
+
+      process.env.STRIPE_TEAM_MONTHLY_PRICE_ID = "price_monthly_team";
+
+      const result = await serviceWithMockRepo.switchBillingPeriod(1, "MONTHLY");
+
+      expect(mockBillingProviderService.updateSubscriptionPrice).toHaveBeenCalledWith({
+        subscriptionId: "sub_123",
+        subscriptionItemId: "si_123",
+        newPriceId: "price_monthly_team",
+        prorationBehavior: "none",
+        endTrial: false,
+      });
+      expect(result.newPeriod).toBe("MONTHLY");
+      expect(result.newPricePerSeat).toBe(1600);
+      expect(result.effectiveDate).toEqual(subscriptionEnd);
+    });
+
+    it("should reject annual to monthly switch outside 30-day window", async () => {
+      const subscriptionEnd = new Date();
+      subscriptionEnd.setDate(subscriptionEnd.getDate() + 60);
+
+      mockRepository.getTeamWithBillingInfo.mockResolvedValue({
+        isOrganization: false,
+        billing: {
+          id: "billing-1",
+          billingPeriod: "ANNUALLY",
+          subscriptionId: "sub_123",
+          subscriptionItemId: "si_123",
+          subscriptionEnd,
+          subscriptionStart: new Date(),
+          subscriptionTrialEnd: null,
+          pricePerSeat: 1200,
+          paidSeats: 5,
+        },
+      });
+
+      await expect(serviceWithMockRepo.switchBillingPeriod(1, "MONTHLY")).rejects.toThrow(
+        "Cannot switch to monthly billing outside the 30-day window before renewal"
+      );
+    });
+
+    it("should throw when already on target period", async () => {
+      mockRepository.getTeamWithBillingInfo.mockResolvedValue({
+        isOrganization: false,
+        billing: {
+          id: "billing-1",
+          billingPeriod: "ANNUALLY",
+          subscriptionId: "sub_123",
+          subscriptionItemId: "si_123",
+          subscriptionEnd: new Date(),
+          subscriptionStart: new Date(),
+          subscriptionTrialEnd: null,
+          pricePerSeat: 1200,
+          paidSeats: 5,
+        },
+      });
+
+      await expect(serviceWithMockRepo.switchBillingPeriod(1, "ANNUALLY")).rejects.toThrow(
+        "Already on the target billing period"
+      );
+    });
+
+    it("should throw when no active subscription", async () => {
+      mockRepository.getTeamWithBillingInfo.mockResolvedValue({
+        isOrganization: false,
+        billing: {
+          id: "billing-1",
+          billingPeriod: "MONTHLY",
+          subscriptionId: "",
+          subscriptionItemId: "si_123",
+          subscriptionEnd: new Date(),
+          subscriptionStart: new Date(),
+          subscriptionTrialEnd: null,
+          pricePerSeat: 1600,
+          paidSeats: 5,
+        },
+      });
+
+      await expect(serviceWithMockRepo.switchBillingPeriod(1, "ANNUALLY")).rejects.toThrow(
+        "No active subscription"
+      );
+    });
+
+    it("should throw when no billing record", async () => {
+      mockRepository.getTeamWithBillingInfo.mockResolvedValue({ isOrganization: false, billing: null });
+
+      await expect(serviceWithMockRepo.switchBillingPeriod(1, "ANNUALLY")).rejects.toThrow(
+        "No billing record found"
+      );
     });
   });
 });

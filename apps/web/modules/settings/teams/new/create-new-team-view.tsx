@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import React, { useEffect, useRef, useState, type FormEvent } from "react";
 
+import { getSafeReturnTo } from "@calcom/lib/getSafeReturnTo";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -27,7 +28,7 @@ type CreateNewTeamViewProps = {
 export const CreateNewTeamView = ({ userEmail }: CreateNewTeamViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
-  const { billingPeriod, promoCode } = useOnboardingQueryParams();
+  const { billingPeriod, returnTo, promoCode } = useOnboardingQueryParams();
   const store = useOnboardingStore();
   const { teamDetails, teamBrand, setTeamDetails, setTeamBrand, resetOnboardingPreservingPlan } = store;
   const { createTeam, isSubmitting } = useCreateTeam({
@@ -113,7 +114,7 @@ export const CreateNewTeamView = ({ userEmail }: CreateNewTeamViewProps) => {
   const handleCancel = () => {
     posthog.capture("settings_team_details_cancel_clicked");
     resetOnboardingPreservingPlan();
-    router.push("/teams");
+    router.push(getSafeReturnTo(returnTo, "/teams"));
   };
 
   return (

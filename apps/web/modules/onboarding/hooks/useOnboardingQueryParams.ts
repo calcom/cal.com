@@ -8,6 +8,7 @@ export const useOnboardingQueryParams = () => {
   const bpParam = searchParams?.get("bp");
   const billingPeriod = bpParam === "a" ? ("ANNUALLY" as const) : ("MONTHLY" as const);
 
+  const returnTo = searchParams?.get("returnTo") ?? null;
   const promoCode = searchParams?.get("promo") ?? undefined;
 
   const getQueryString = () => {
@@ -15,9 +16,10 @@ export const useOnboardingQueryParams = () => {
     const queryParams = new URLSearchParams();
     if (migrateParam) queryParams.set("migrate", migrateParam);
     if (bpParam) queryParams.set("bp", bpParam);
+    if (returnTo) queryParams.set("returnTo", returnTo);
     if (promoCode) queryParams.set("promo", promoCode);
     return queryParams.toString() ? `?${queryParams.toString()}` : "";
   };
 
-  return { billingPeriod, promoCode, getQueryString };
+  return { billingPeriod, returnTo, promoCode, getQueryString };
 };

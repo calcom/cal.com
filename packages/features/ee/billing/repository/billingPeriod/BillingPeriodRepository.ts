@@ -13,6 +13,7 @@ export interface TeamWithBillingInfo {
     pricePerSeat: number | null;
     paidSeats: number | null;
     subscriptionId: string;
+    subscriptionItemId: string;
   } | null;
 }
 
@@ -46,6 +47,7 @@ export class BillingPeriodRepository {
             pricePerSeat: true,
             paidSeats: true,
             subscriptionId: true,
+            subscriptionItemId: true,
           },
         },
         organizationBilling: {
@@ -58,6 +60,7 @@ export class BillingPeriodRepository {
             pricePerSeat: true,
             paidSeats: true,
             subscriptionId: true,
+            subscriptionItemId: true,
           },
         },
       },

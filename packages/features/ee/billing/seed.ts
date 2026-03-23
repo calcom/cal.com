@@ -13,6 +13,7 @@
  *   npx tsx packages/features/ee/billing/seed.ts --resubscribe
  *   npx tsx packages/features/ee/billing/seed.ts --recreate-ownership
  *   npx tsx packages/features/ee/billing/seed.ts --trial
+ *   npx tsx packages/features/ee/billing/seed.ts --plans
  *   npx tsx packages/features/ee/billing/seed.ts --all
  *   npx tsx packages/features/ee/billing/seed.ts --cleanup
  *
@@ -34,6 +35,7 @@ const DUNNING_SCRIPT = "packages/features/ee/billing/service/dunning/seed-dunnin
 const RESUBSCRIBE_SCRIPT = "packages/features/ee/billing/service/dunning/seed-resubscribe-test.ts";
 const RECREATE_OWNERSHIP_SCRIPT = "packages/features/ee/billing/service/dunning/seed-recreate-ownership-test.ts";
 const TRIAL_SCRIPT = "packages/features/ee/billing/service/trial/seed-trial-test.ts";
+const PLANS_SCRIPT = "packages/features/ee/billing/service/plans/seed-plans-test.ts";
 
 const passthrough = process.argv.filter((a) => a === "--skip-stripe");
 
@@ -97,6 +99,12 @@ async function seedTrial(cleanup: boolean, trialDays?: number | null) {
   return run(TRIAL_SCRIPT, extra);
 }
 
+async function seedPlans(cleanup: boolean) {
+  console.log("\n--- Seeding Plans page test data ---\n");
+  const extra = cleanup ? ["--cleanup"] : [];
+  return run(PLANS_SCRIPT, extra);
+}
+
 async function seedAll(cleanup: boolean) {
   let code = await seedHwm(cleanup);
   if (code !== 0) return code;
@@ -111,6 +119,8 @@ async function seedAll(cleanup: boolean) {
   code = await seedRecreateOwnership(cleanup);
   if (code !== 0) return code;
   code = await seedTrial(cleanup);
+  if (code !== 0) return code;
+  code = await seedPlans(cleanup);
   return code;
 }
 
@@ -129,6 +139,8 @@ async function cleanupAll() {
   code = await run(RECREATE_OWNERSHIP_SCRIPT, ["--cleanup", "--skip-stripe"]);
   if (code !== 0) return code;
   code = await run(TRIAL_SCRIPT, ["--cleanup", "--skip-stripe"]);
+  if (code !== 0) return code;
+  code = await run(PLANS_SCRIPT, ["--cleanup", "--skip-stripe"]);
   return code;
 }
 
@@ -154,11 +166,12 @@ async function interactive() {
   console.log("  5) Seed Resubscribe test data");
   console.log("  6) Seed Recreate Ownership test data");
   console.log("  7) Seed Trial test data");
-  console.log("  8) Seed all");
-  console.log("  9) Cleanup all test data");
+  console.log("  8) Seed Plans page test data");
+  console.log("  9) Seed all");
+  console.log("  10) Cleanup all test data");
   console.log("  q) Quit\n");
 
-  const choice = await prompt("Choose [1-9, q]: ");
+  const choice = await prompt("Choose [1-10, q]: ");
 
   if (choice === "q" || choice === "") {
     console.log("Bye.");
@@ -166,7 +179,7 @@ async function interactive() {
   }
 
   let cleanup = false;
-  if (["1", "2", "3", "4", "5", "6", "7", "8"].includes(choice)) {
+  if (["1", "2", "3", "4", "5", "6", "7", "8", "9"].includes(choice)) {
     const ans = await prompt("Run cleanup before seeding? [y/N]: ");
     cleanup = ans.toLowerCase() === "y";
   }
@@ -208,9 +221,12 @@ async function interactive() {
       code = await seedTrial(cleanup);
       break;
     case "8":
-      code = await seedAll(cleanup);
+      code = await seedPlans(cleanup);
       break;
     case "9":
+      code = await seedAll(cleanup);
+      break;
+    case "10":
       code = await cleanupAll();
       break;
     default:
@@ -245,6 +261,9 @@ async function main() {
   if (args.includes("--trial")) {
     process.exit(await seedTrial(args.includes("--cleanup")));
   }
+  if (args.includes("--plans")) {
+    process.exit(await seedPlans(args.includes("--cleanup")));
+  }
   if (args.includes("--all")) {
     process.exit(await seedAll(args.includes("--cleanup")));
   }
@@ -257,6 +276,7 @@ async function main() {
     !args.includes("--resubscribe") &&
     !args.includes("--recreate-ownership") &&
     !args.includes("--trial") &&
+    !args.includes("--plans") &&
     !args.includes("--all")
   ) {
     process.exit(await cleanupAll());

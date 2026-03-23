@@ -31,16 +31,17 @@ import { ZManagedEventManualReassignInputSchema } from "./managedEvents/managedE
 import { ZManagedEventReassignInputSchema } from "./managedEvents/managedEventReassign.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
 import { ZPublishInputSchema } from "./publish.schema";
-import { ZResubscribeInputSchema } from "./resubscribe.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
+import { ZResubscribeInputSchema } from "./resubscribe.schema";
 import { ZGetRoundRobinHostsInputSchema } from "./roundRobin/getRoundRobinHostsToReasign.schema";
 import { ZRoundRobinManualReassignInputSchema } from "./roundRobin/roundRobinManualReassign.schema";
 import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZSkipTeamTrialsInputSchema } from "./skipTeamTrials.schema";
 import { ZSkipTrialForTeamInputSchema } from "./skipTrialForTeam.schema";
+import { ZSwitchBillingPeriodInputSchema } from "./switchBillingPeriod.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
@@ -115,10 +116,12 @@ export const viewerTeamsRouter = router({
     const { default: handler } = await import("./listMembers.handler");
     return handler(opts);
   }),
-  listMembersForDynamicLink: authedProcedure.input(ZListMembersForDynamicLinkInputSchema).query(async (opts) => {
-    const { default: handler } = await import("./listMembersForDynamicLink.handler");
-    return handler(opts);
-  }),
+  listMembersForDynamicLink: authedProcedure
+    .input(ZListMembersForDynamicLinkInputSchema)
+    .query(async (opts) => {
+      const { default: handler } = await import("./listMembersForDynamicLink.handler");
+      return handler(opts);
+    }),
   listSimpleMembers: authedProcedure.query(async (opts) => {
     const { default: handler } = await import("./listSimpleMembers.handler");
     return handler(opts);
@@ -243,6 +246,10 @@ export const viewerTeamsRouter = router({
   }),
   resubscribe: authedProcedure.input(ZResubscribeInputSchema).mutation(async (opts) => {
     const { default: handler } = await import("./resubscribe.handler");
+    return handler(opts);
+  }),
+  switchBillingPeriod: authedProcedure.input(ZSwitchBillingPeriodInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./switchBillingPeriod.handler");
     return handler(opts);
   }),
   getActiveUserBreakdown: authedProcedure.input(ZGetActiveUserBreakdownInputSchema).query(async (opts) => {

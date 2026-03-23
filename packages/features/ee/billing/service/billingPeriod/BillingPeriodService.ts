@@ -1,8 +1,12 @@
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
-import { BillingPeriodRepository } from "@calcom/features/ee/billing/repository/billingPeriod/BillingPeriodRepository";
+import { BillingPeriodPricing } from "@calcom/features/ee/billing/domain/BillingPeriodPricing";
+import { BillingPeriodSwitch, BillingPeriodSwitchError } from "@calcom/features/ee/billing/domain/BillingPeriodSwitch";
 import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
+import { BillingPeriodRepository } from "@calcom/features/ee/billing/repository/billingPeriod/BillingPeriodRepository";
+import type { IBillingProviderService } from "@calcom/features/ee/billing/service/billingProvider/IBillingProviderService";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { BillingMode, BillingPeriod } from "@calcom/prisma/enums";
@@ -26,17 +30,27 @@ export interface BillingPeriodServiceDeps {
   logger?: Logger<unknown>;
   repository?: BillingPeriodRepository;
   featuresRepository?: IFeatureRepository;
+  billingProviderService?: IBillingProviderService;
 }
 
 export class BillingPeriodService {
   private logger: Logger<unknown>;
   private repository: BillingPeriodRepository;
   private featuresRepository: IFeatureRepository;
+  private billingProviderService: IBillingProviderService | null;
 
   constructor(deps?: BillingPeriodServiceDeps) {
     this.logger = deps?.logger || log;
     this.repository = deps?.repository || new BillingPeriodRepository();
     this.featuresRepository = deps?.featuresRepository || getFeatureRepository();
+    this.billingProviderService = deps?.billingProviderService ?? null;
+  }
+
+  private async getBillingProviderService(): Promise<IBillingProviderService> {
+    if (this.billingProviderService) return this.billingProviderService;
+    const { getBillingProviderService } = await import("@calcom/features/ee/billing/di/containers/Billing");
+    this.billingProviderService = getBillingProviderService();
+    return this.billingProviderService;
   }
 
   async isAnnualPlan(teamId: number): Promise<boolean> {
@@ -141,14 +155,11 @@ export class BillingPeriodService {
       };
     }
 
-    const periodIsStale =
-      billing.subscriptionEnd && new Date(billing.subscriptionEnd) < new Date();
+    const periodIsStale = billing.subscriptionEnd && new Date(billing.subscriptionEnd) < new Date();
     const needsSync = (!billing.billingPeriod || periodIsStale) && billing.subscriptionId;
 
     if (needsSync) {
-      log.info(
-        `Syncing billing data for team ${teamId} from Stripe subscription ${billing.subscriptionId}`
-      );
+      log.info(`Syncing billing data for team ${teamId} from Stripe subscription ${billing.subscriptionId}`);
 
       try {
         const subscription = await stripe.subscriptions.retrieve(billing.subscriptionId);
@@ -256,5 +267,91 @@ export class BillingPeriodService {
     } else {
       throw new Error(`No billing record found for team ${teamId}`);
     }
+  }
+
+  async canSwitchToMonthly(teamId: number): Promise<{ allowed: boolean; switchDate?: Date }> {
+    const teamData = await this.repository.getTeamWithBillingInfo(teamId);
+    if (!teamData?.billing) return { allowed: false };
+
+    const domainSwitch = new BillingPeriodSwitch({
+      billingPeriod: teamData.billing.billingPeriod,
+      subscriptionId: teamData.billing.subscriptionId,
+      subscriptionEnd: teamData.billing.subscriptionEnd,
+    });
+
+    const eligibility = domainSwitch.canSwitchTo("MONTHLY");
+    return { allowed: eligibility.allowed, switchDate: eligibility.switchDate };
+  }
+
+  async switchBillingPeriod(
+    teamId: number,
+    targetPeriod: "MONTHLY" | "ANNUALLY"
+  ): Promise<{ newPeriod: BillingPeriod; newPricePerSeat: number; effectiveDate?: Date }> {
+    const teamData = await this.repository.getTeamWithBillingInfo(teamId);
+    if (!teamData?.billing) {
+      throw ErrorWithCode.Factory.NotFound(`No billing record found for team ${teamId}`);
+    }
+
+    const { billing, isOrganization } = teamData;
+
+    const domainSwitch = new BillingPeriodSwitch({
+      billingPeriod: billing.billingPeriod,
+      subscriptionId: billing.subscriptionId,
+      subscriptionEnd: billing.subscriptionEnd,
+    });
+
+    let plan;
+    try {
+      plan = domainSwitch.planSwitchTo(targetPeriod);
+    } catch (error) {
+      if (error instanceof BillingPeriodSwitchError) {
+        throw ErrorWithCode.Factory.BadRequest(error.message);
+      }
+      throw error;
+    }
+
+    const pricing = new BillingPeriodPricing();
+    const { priceId, pricePerSeat } = pricing.resolve(targetPeriod, isOrganization);
+
+    if (!priceId) {
+      throw ErrorWithCode.Factory.BadRequest(
+        `No price ID configured for ${targetPeriod} ${isOrganization ? "organization" : "team"} billing`
+      );
+    }
+
+    const billingProvider = await this.getBillingProviderService();
+
+    const isInTrial =
+      billing.subscriptionTrialEnd != null && new Date(billing.subscriptionTrialEnd) > new Date();
+
+    if (isInTrial) {
+      this.logger.info(`Ending trial for team ${teamId} before switching billing period`);
+    }
+
+    await billingProvider.updateSubscriptionPrice({
+      subscriptionId: billing.subscriptionId,
+      subscriptionItemId: billing.subscriptionItemId,
+      newPriceId: priceId,
+      prorationBehavior: plan.prorationBehavior,
+      endTrial: isInTrial,
+    });
+
+    if (isOrganization) {
+      await this.repository.updateOrganizationBillingPeriod(billing.id, {
+        billingPeriod: targetPeriod,
+        pricePerSeat,
+      });
+    } else {
+      await this.repository.updateTeamBillingPeriod(billing.id, {
+        billingPeriod: targetPeriod,
+        pricePerSeat,
+      });
+    }
+
+    return {
+      newPeriod: targetPeriod,
+      newPricePerSeat: pricePerSeat,
+      effectiveDate: plan.effectiveDate,
+    };
   }
 }

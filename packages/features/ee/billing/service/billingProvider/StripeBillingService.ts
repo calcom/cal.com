@@ -147,6 +147,15 @@ export class StripeBillingService implements IBillingProviderService {
     });
   }
 
+  async updateSubscriptionPrice(args: Parameters<IBillingProviderService["updateSubscriptionPrice"]>[0]) {
+    const { subscriptionId, subscriptionItemId, newPriceId, prorationBehavior, endTrial } = args;
+    await this.stripe.subscriptions.update(subscriptionId, {
+      items: [{ id: subscriptionItemId, price: newPriceId }],
+      proration_behavior: prorationBehavior ?? "create_prorations",
+      ...(endTrial ? { trial_end: "now" as const } : {}),
+    });
+  }
+
   async handleEndTrial(subscriptionId: string) {
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
 

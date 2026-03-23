@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 
+import { getSafeReturnTo } from "@calcom/lib/getSafeReturnTo";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField, TextArea } from "@calcom/ui/components/form";
@@ -33,7 +34,7 @@ const slugify = (text: string): string => {
 export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
-  const { getQueryString } = useOnboardingQueryParams();
+  const { getQueryString, returnTo } = useOnboardingQueryParams();
   const { organizationDetails, setOrganizationDetails, selectedPlan, setSelectedPlan } = useOnboardingStore();
   const { isMigrationFlow, hasTeams } = useMigrationFlow();
 
@@ -107,7 +108,7 @@ export const OrganizationDetailsView = ({ userEmail }: OrganizationDetailsViewPr
               className="rounded-[10px]"
               onClick={() => {
                 posthog.capture("onboarding_organization_details_back_clicked");
-                router.push("/onboarding/getting-started");
+                router.push(getSafeReturnTo(returnTo, "/onboarding/getting-started"));
               }}>
               {t("back")}
             </Button>

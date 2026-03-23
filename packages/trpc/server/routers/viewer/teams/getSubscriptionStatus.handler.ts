@@ -71,6 +71,7 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
       status: subscriptionStatus,
       isTrialing: subscriptionStatus === SubscriptionStatus.TRIALING,
       billingMode: billingInfo.billingMode,
+      billingPeriod: billingInfo.billingPeriod,
     };
   } catch (error) {
     if (error instanceof TRPCError) {
