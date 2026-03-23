@@ -367,6 +367,74 @@ model TravelSchedule {
   @@index([endDate])
 }
 
+//OKBOOMER: custom table for business services menu
+model Service {
+  id         Int      @id @default(autoincrement())
+  businessId Int
+  business   Business @relation(fields: [businessId], references: [id])
+
+  name        String // "Haircut", "Coloring + Treatment"
+  description String?
+  price       Int? // 800
+  duration    Int? // minutes, e.g. 60
+  imageUrl    String? // hosted photo (upload to your server or Cloudinary)
+  isActive    Boolean  @default(true)
+  category    String? // "Hair", "Nails", "Massage"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([businessId, name]) // unique name per business
+  @@index([businessId])
+}
+
+//OKBOOMER: custom table for business linkage
+enum BusinessStatus {
+  ACTIVE
+  INACTIVE
+  PENDING_VERIFICATION
+  SUSPENDED
+}
+
+model Business {
+  id             Int     @id @default(autoincrement())
+  name           String // e.g. "Salon XYZ"
+  slug           String  @unique // e.g. "salon-xyz" — stable identifier for LIFF ?business=...
+  lineUserId     String? // Uxxxxxxxx...
+  smsPhoneNumber String? // optional phone for sms
+  emailAddress   String? // optional notify email
+  businessPhone  String? // Public customer contact (displayed in confirmations, etc.)
+  businessEmail  String? // Public customer email (displayed in confirmations, etc.)
+
+  // Verification
+  lineVerified  Boolean @default(false)
+  smsVerified   Boolean @default(false)
+  emailVerified Boolean @default(false)
+
+  // Notification
+  notifyViaLine  Boolean @default(true)
+  notifyViaSms   Boolean @default(false)
+  notifyViaEmail Boolean @default(true)
+
+  // Time stamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Status (Active/Inactive/Pending/Suspended)
+  status BusinessStatus @default(ACTIVE)
+
+  // Admin who can manage this business (one-to-many)
+  primaryAdmin User?
+  //secondaryAdmin   User?
+
+  // Bookings tagged with this business
+  bookings Booking[] @relation("BusinessBookings")
+
+  // Services offered (one-to-many)
+  services Service[]
+
+  @@index([lineUserId])
+}
+
 // It holds Personal Profiles of a User plus it has email, password and other core things..
 model User {
   id                  Int                  @id @default(autoincrement())
@@ -485,6 +553,10 @@ model User {
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
   holidaySettings                UserHolidaySettings?
+
+  //OKBOOMER: business linkage
+  primaryBusinessId Int?      @unique
+  primaryBusiness   Business? @relation(fields: [primaryBusinessId], references: [id])
 
   autoOptInFeatures Boolean @default(false)
 
@@ -898,6 +970,10 @@ model Booking {
   routingFormResponses         RoutingFormResponseDenormalized[]
   expenseLogs                  CreditExpenseLog[]
   report                       BookingReport?
+
+  //OKBOOMER: business linkage
+  businessId Int?
+  business   Business? @relation("BusinessBookings", fields: [businessId], references: [id])
 
   // @@partial_index([reassignById])
 
