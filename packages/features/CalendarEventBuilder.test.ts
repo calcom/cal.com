@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import { type BookingForCalEventBuilder, CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { Person } from "@calcom/types/Calendar";
 import type { TFunction } from "i18next";
@@ -2090,6 +2091,90 @@ describe("CalendarEventBuilder", () => {
         expect(googleMeetStatus?.appName).not.toBe("google_video");
         expect(googleMeetStatus?.appName).not.toBe("google-video");
       }
+    });
+
+    it("should build hashedLink URL using org custom domain from bookerUrl", async () => {
+      vi.mocked(getBookerBaseUrl).mockResolvedValueOnce("https://acme.cal.com");
+
+      const mockBooking = {
+        uid: "booking-org-hashed-link",
+        metadata: null,
+        title: "Org Hashed Link Event",
+        startTime: new Date(mockStartTime),
+        endTime: new Date(mockEndTime),
+        description: null,
+        location: null,
+        responses: null,
+        customInputs: null,
+        iCalUID: null,
+        iCalSequence: 0,
+        oneTimePassword: null,
+        attendees: [
+          {
+            name: "Attendee",
+            email: "attendee@example.com",
+            timeZone: "UTC",
+            locale: "en",
+            phoneNumber: null,
+          },
+        ],
+        user: {
+          id: 1,
+          name: "Org User",
+          email: "user@acme.com",
+          username: "orguser",
+          timeZone: "UTC",
+          locale: "en",
+          timeFormat: 12,
+          destinationCalendar: null,
+          profiles: [{ organizationId: 10 }],
+        },
+        destinationCalendar: null,
+        eventType: {
+          id: 500,
+          title: "Org Event",
+          slug: "org-event",
+          description: null,
+          hideCalendarNotes: false,
+          hideCalendarEventDetails: false,
+          hideOrganizerEmail: false,
+          schedulingType: null,
+          seatsPerTimeSlot: null,
+          seatsShowAttendees: false,
+          seatsShowAvailabilityCount: false,
+          customReplyToEmail: null,
+          disableRescheduling: false,
+          disableCancelling: false,
+          requiresConfirmation: false,
+          recurringEvent: null,
+          bookingFields: [],
+          metadata: null,
+          eventName: null,
+          team: {
+            id: 20,
+            name: "Acme Team",
+            parentId: 10,
+            members: [],
+          },
+          users: [],
+          hosts: [],
+          workflows: [],
+          hashedLink: [{ link: "custom-domain-uuid" }],
+        },
+        references: [],
+        seatsReferences: [],
+      } satisfies BookingForCalEventBuilder;
+
+      const eventFromBooking = await CalendarEventBuilder.fromBooking(mockBooking);
+      const builtEvent = eventFromBooking.build();
+
+      expect(builtEvent).not.toBeNull();
+      if (builtEvent) {
+        expect(builtEvent.hashedLink).toBe("https://acme.cal.com/d/custom-domain-uuid/org-event");
+        expect(builtEvent.bookerUrl).toBe("https://acme.cal.com");
+      }
+
+      expect(getBookerBaseUrl).toHaveBeenCalledWith(10);
     });
   });
 });
