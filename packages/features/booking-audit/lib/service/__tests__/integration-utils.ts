@@ -1,12 +1,11 @@
+import crypto from "node:crypto";
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import type { FeatureId } from "@calcom/features/flags/config";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
 export const generateUniqueId = () => {
-  const timestamp = Date.now();
-  const randomSuffix = Math.random().toString(36).substring(7);
-  return `${timestamp}-${randomSuffix}`;
+  return crypto.randomUUID();
 };
 
 export const createTestUser = async (overrides?: { email?: string; username?: string; name?: string }) => {
@@ -94,16 +93,9 @@ export const createTestBooking = async (
 };
 
 export const enableFeatureForOrganization = async (organizationId: number, featureSlug: string) => {
-  await prisma.feature.upsert({
-    where: { slug: featureSlug },
-    create: {
-      slug: featureSlug,
-      enabled: true,
-      description: `Test feature: ${featureSlug}`,
-    },
-    update: {
-      enabled: true,
-    },
+  await prisma.feature.createMany({
+    data: [{ slug: featureSlug, enabled: true, description: `Test feature: ${featureSlug}` }],
+    skipDuplicates: true,
   });
 
   const teamFeatureRepository = getTeamFeatureRepository();
@@ -119,43 +111,53 @@ export const cleanupTestData = async (testData: {
   userIds?: number[];
   featureSlug?: string;
 }) => {
-  if (testData.bookingUid) {
-    await prisma.bookingAudit.deleteMany({
-      where: { bookingUid: testData.bookingUid },
-    });
-  }
+  try {
+    if (testData.bookingUid) {
+      await prisma.bookingAudit.deleteMany({
+        where: { bookingUid: testData.bookingUid },
+      });
+    }
+  } catch {}
 
-  if (testData.userUuids?.length || testData.attendeeEmails?.length) {
-    await prisma.auditActor.deleteMany({
-      where: {
-        OR: [
-          ...(testData.userUuids?.map((uuid) => ({ userUuid: uuid })) || []),
-          ...(testData.attendeeEmails?.map((email) => ({ email })) || []),
-        ],
-      },
-    });
-  }
+  try {
+    if (testData.userUuids?.length || testData.attendeeEmails?.length) {
+      await prisma.auditActor.deleteMany({
+        where: {
+          OR: [
+            ...(testData.userUuids?.map((uuid) => ({ userUuid: uuid })) || []),
+            ...(testData.attendeeEmails?.map((email) => ({ email })) || []),
+          ],
+        },
+      });
+    }
+  } catch {}
 
-  if (testData.attendeeEmails?.length) {
-    await prisma.attendee.deleteMany({
-      where: { email: { in: testData.attendeeEmails } },
-    });
-  }
+  try {
+    if (testData.attendeeEmails?.length) {
+      await prisma.attendee.deleteMany({
+        where: { email: { in: testData.attendeeEmails } },
+      });
+    }
+  } catch {}
 
-  if (testData.bookingUid) {
-    await prisma.booking.deleteMany({
-      where: { uid: testData.bookingUid },
-    });
-  }
+  try {
+    if (testData.bookingUid) {
+      await prisma.booking.deleteMany({
+        where: { uid: testData.bookingUid },
+      });
+    }
+  } catch {}
 
-  if (testData.eventTypeId) {
-    await prisma.eventType.deleteMany({
-      where: { id: testData.eventTypeId },
-    });
-  }
+  try {
+    if (testData.eventTypeId) {
+      await prisma.eventType.deleteMany({
+        where: { id: testData.eventTypeId },
+      });
+    }
+  } catch {}
 
-  if (testData.organizationId) {
-    if (testData.featureSlug) {
+  try {
+    if (testData.organizationId && testData.featureSlug) {
       await prisma.teamFeatures.deleteMany({
         where: {
           teamId: testData.organizationId,
@@ -163,17 +165,29 @@ export const cleanupTestData = async (testData: {
         },
       });
     }
-    await prisma.membership.deleteMany({
-      where: { teamId: testData.organizationId },
-    });
-    await prisma.team.deleteMany({
-      where: { id: testData.organizationId },
-    });
-  }
+  } catch {}
 
-  if (testData.userIds?.length) {
-    await prisma.user.deleteMany({
-      where: { id: { in: testData.userIds } },
-    });
-  }
+  try {
+    if (testData.organizationId) {
+      await prisma.membership.deleteMany({
+        where: { teamId: testData.organizationId },
+      });
+    }
+  } catch {}
+
+  try {
+    if (testData.organizationId) {
+      await prisma.team.deleteMany({
+        where: { id: testData.organizationId },
+      });
+    }
+  } catch {}
+
+  try {
+    if (testData.userIds?.length) {
+      await prisma.user.deleteMany({
+        where: { id: { in: testData.userIds } },
+      });
+    }
+  } catch {}
 };
