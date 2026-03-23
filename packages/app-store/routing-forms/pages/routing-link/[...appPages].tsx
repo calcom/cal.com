@@ -1,5 +1,6 @@
 "use client";
 
+import { sdkActionManager, useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
@@ -7,7 +8,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
-import { sdkActionManager, useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -19,9 +19,13 @@ import { useCalcomTheme } from "@calcom/ui/styles";
 
 import { getValidationErrorMessage } from "../../components/FormInputFields";
 import RoutingFormRenderer from "../../components/RoutingFormRenderer";
+import { LAYOUT_ONLY_TYPES } from "@calcom/features/form-builder/components/builderTypes";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
-import { applyFieldUpdate, parseEventTypeInput, resolveEventTypeValue } from "../../lib/calendarIntegrationAdapter";
-import { getDisplayValueForValue } from "../../lib/transformResponse";
+import {
+  applyFieldUpdate,
+  parseEventTypeInput,
+  resolveEventTypeValue,
+} from "../../lib/calendarIntegrationAdapter";
 import {
   attachCommandListener,
   emitRoutingEvent,
@@ -29,9 +33,11 @@ import {
   isSelectableFieldType,
 } from "../../lib/embedIntegration";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
-import { findMatchingRoute } from "../../lib/processRoute";
+import isRouterLinkedField from "../../lib/isRouterLinkedField";
 import { applyDefaultCountryCodeToPhoneValue } from "../../lib/phoneUtils";
+import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
+import { getDisplayValueForValue } from "../../lib/transformResponse";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
 import type { NonRouterRoute, FormResponse } from "../../types/types";
 import type { getServerSideProps } from "./getServerSideProps";
@@ -55,14 +61,12 @@ const useBrandColors = ({
 function RoutingForm({ form, profile, ...restProps }: Props) {
   const [customPageMessage, setCustomPageMessage] = useState<NonRouterRoute["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
-  const [showErrors, setShowErrors] = useState(false);
+  const [submitErrorFieldId, setSubmitErrorFieldId] = useState<string | null>(null);
   const [isAwaitingBookingAck, setIsAwaitingBookingAck] = useState(false);
   const isEmbed = useIsEmbed(restProps.isEmbed);
   const [calendarEventType, setCalendarEventType] = useState<string | null>(null);
-  const isEmbedAckEnabled =
-    isIntegrationEnabled(!!isEmbed) && !!form.settings?.waitForBookingAcknowledgement;
-  const bookingAckTimeoutMessage =
-    "We couldn't confirm your booking right now. Please try again.";
+  const isEmbedAckEnabled = isIntegrationEnabled(!!isEmbed) && !!form.settings?.waitForBookingAcknowledgement;
+  const bookingAckTimeoutMessage = "We couldn't confirm your booking right now. Please try again.";
   useTheme(profile.theme);
   useBrandColors({
     brandColor: profile.brandColor,
@@ -114,7 +118,13 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     }
   };
 
-  const handleAck = (success: boolean, submissionId: string, redirectUrl?: string, error?: string, successMsg?: string) => {
+  const handleAck = (
+    success: boolean,
+    submissionId: string,
+    redirectUrl?: string,
+    error?: string,
+    successMsg?: string
+  ) => {
     console.log("Received ack for submissionId:", submissionId, "with redirectUrl:", redirectUrl);
 
     if (!isEmbedAckEnabled) return;
@@ -123,22 +133,20 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     clearPendingTimeout();
     setIsAwaitingBookingAck(false);
 
-    if(!success) {
-        return void triggerToast(error ?? "Unknown error", "error");
+    if (!success) {
+      return void triggerToast(error ?? "Unknown error", "error");
     }
 
-    if(success && successMsg) {
-        return void triggerToast(successMsg);
+    if (success && successMsg) {
+      return void triggerToast(successMsg);
     }
 
     const finalUrl = redirectUrl;
 
-    console.log(
-      "Handle ack: ", {
+    console.log("Handle ack: ", {
       finalUrl,
       2: pendingFallbackRef.current,
-      }
-    )
+    });
     if (finalUrl) {
       navigateInTopWindow(finalUrl);
     } else {
@@ -166,7 +174,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
               form.fields ?? []
             );
             const parsed = parseEventTypeInput(routedValue, calendarFormContext);
-            console.log("Parsed event: ", parsed)
+            console.log("Parsed event: ", parsed);
             if (parsed.eventSlug) {
               resolvedEventType = parsed.fullPath;
             }
@@ -176,13 +184,12 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
         setCalendarEventType(resolvedEventType);
         const targetIdentifier = fieldIdentifier ?? "event_type";
-        const targetField = form.fields?.find(
-          (field) => getFieldIdentifier(field) === targetIdentifier
-        );
+        const targetField = form.fields?.find((field) => getFieldIdentifier(field) === targetIdentifier);
         if (targetField?.type === "calendar") return;
         setResponse((prev) => applyFieldUpdate(prev, targetIdentifier, resolvedEventType, form.fields));
       },
-      onAck: (success, submissionId, redirectUrl, error, successMsg) => handleAck(success, submissionId, redirectUrl, error, successMsg),
+      onAck: (success, submissionId, redirectUrl, error, successMsg) =>
+        handleAck(success, submissionId, redirectUrl, error, successMsg),
     });
   }, [isEmbed, form.fields, isEmbedAckEnabled]);
 
@@ -191,6 +198,13 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     value: number | string | string[];
     nextResponse: FormResponse;
   }) => {
+    if (submitErrorFieldId === args.field.id) {
+      const nextValue = args.nextResponse[args.field.id]?.value ?? "";
+      if (!getValidationErrorMessage(args.field, nextValue)) {
+        setSubmitErrorFieldId(null);
+      }
+    }
+
     if (!isIntegrationEnabled(!!isEmbed)) return;
     if (!isSelectableFieldType(args.field)) return;
     const responseForField = args.nextResponse[args.field.id];
@@ -410,15 +424,29 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setShowErrors(true);
-    const hasErrors =
-      form.fields?.some((field) => {
-        const value = response[field.id]?.value ?? "";
-        return !!getValidationErrorMessage(field, value);
-      }) ?? false;
-    if (hasErrors) {
+    const firstInvalidFieldId = (form.fields ?? []).reduce<string | null>((acc, rawField) => {
+      if (acc) {
+        return acc;
+      }
+      const field = isRouterLinkedField(rawField) ? ((rawField as any).routerField ?? rawField) : rawField;
+
+      if (LAYOUT_ONLY_TYPES.has(field.type)) {
+        return acc;
+      }
+
+      const value = response[field.id]?.value ?? "";
+      if (getValidationErrorMessage(field, value)) {
+        return field.id;
+      }
+      return acc;
+    }, null);
+
+    if (firstInvalidFieldId) {
+      setSubmitErrorFieldId(firstInvalidFieldId);
       return;
     }
+
+    setSubmitErrorFieldId(null);
     if (isEmbedAckEnabled) {
       setIsAwaitingBookingAck(true);
     }
@@ -429,18 +457,20 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
   return (
     <div className={classNames("min-h-screen w-full", isEmbed ? "" : "md:min-h-screen")}>
-
       {!customPageMessage ? (
         <>
           <Toaster position="bottom-right" />
-          <form onSubmit={handleOnSubmit} className="min-h-screen w-full">
+          <form
+            noValidate
+            onSubmit={handleOnSubmit}
+            className="min-h-screen w-full">
             <RoutingFormRenderer
               form={form}
               response={response}
               setResponse={setResponse}
               submitLoading={isSubmitInProgress}
               submitDisabled={isSubmitInProgress}
-              showErrors={showErrors}
+              errorFieldIds={submitErrorFieldId ? [submitErrorFieldId] : []}
               className="w-full"
               calendarEventType={calendarEventType}
               calendarFormContext={calendarFormContext}

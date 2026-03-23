@@ -12,10 +12,10 @@ import { LAYOUT_ONLY_TYPES } from "@calcom/features/form-builder/components/buil
 import { Checkbox, DatePicker } from "@calcom/ui/components/form";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import { applyDefaultCountryCodeToPhoneValue } from "../lib/phoneUtils";
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfigForFormFields } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
+import { applyDefaultCountryCodeToPhoneValue } from "../lib/phoneUtils";
 import { getUIOptionsForSelect } from "../lib/selectOptions";
 import { getFieldResponseForJsonLogic, getOptionIdForValue } from "../lib/transformResponse";
 import type { SerializableForm, FormResponse } from "../types/types";
@@ -102,6 +102,7 @@ export type FormInputFieldsProps = {
   disabledFields?: string[];
   fieldStyle?: FormLevelConfig["style"]["fieldStyle"];
   showErrors?: boolean;
+  errorFieldIds?: string[];
   accentColor?: string;
   secondaryColor?: string;
   calendarEventType?: string | null;
@@ -121,6 +122,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
     disabledFields = [],
     fieldStyle = "default",
     showErrors = false,
+    errorFieldIds,
     accentColor,
     secondaryColor,
     calendarEventType,
@@ -193,7 +195,8 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         const isLabelEmpty = labelText.length === 0;
         const currentValue = response[field.id]?.value ?? "";
         const errorMessage = getValidationErrorMessage(field, currentValue);
-        const showError = showErrors || (field.required && touched[field.id]);
+        const showError =
+          Boolean(errorFieldIds?.includes(field.id)) || showErrors || (field.required && touched[field.id]);
         const isDisabled = disabledFields?.includes(fieldIdentifier);
 
         if (isLayout) {
@@ -235,6 +238,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
             return (
               <TextField
                 type="url"
+                data-routing-field-id={field.id}
                 value={String(currentValue)}
                 placeholder={field.placeholder ?? ""}
                 disabled={isDisabled}
@@ -251,6 +255,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
             return (
               <TextField
                 type="text"
+                data-routing-field-id={field.id}
                 value={String(currentValue)}
                 placeholder={field.placeholder ?? ""}
                 disabled={isDisabled}
@@ -441,15 +446,12 @@ export default function FormInputFields(props: FormInputFieldsProps) {
               )}
               <Component
                 value={currentValue}
+                data-routing-field-id={field.id}
                 placeholder={widgetPlaceholder}
                 variant={inputVariant}
                 size={inputSize}
                 styles={underlineSelectStyles}
                 style={underlineStyle}
-                // required property isn't accepted by query-builder types
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                /* @ts-ignore */
-                required={!!field.required}
                 listValues={options}
                 disabled={isDisabled}
                 data-testid={`form-field-${fieldIdentifier}`}
