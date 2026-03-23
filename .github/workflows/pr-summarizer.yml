@@ -19,7 +19,7 @@ on:
 
 jobs:
   prepareFilesForSummary:
-    if: ${{ github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main') }}
     runs-on: ubuntu-24.04
     steps:
       - name: Summarize PR
@@ -139,6 +139,7 @@ jobs:
                         - PR description reflects intent → use it for context
                         - If description and code conflict → prioritize file summaries
                         - Ignore low-signal or repetitive changes
+                        - If the PR has no user-level or product-level impact, reply explicitly: "No relevant changes."
 
                         ---
                         
@@ -154,7 +155,7 @@ jobs:
                         - What this means for users or the product
                         - Translate technical changes into outcomes
                         - Focus on value, usability, reliability, or capability
-                        - If no clear user impact, say: "No direct user-facing impact"
+                        - If no clear user impact, say: "No relevant changes"
 
                         ### 2. Classification
                         - Type: (feature | improvement | bugfix | refactor | infra)
