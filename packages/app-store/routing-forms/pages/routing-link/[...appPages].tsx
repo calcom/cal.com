@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
+import { LAYOUT_ONLY_TYPES } from "@calcom/features/form-builder/components/builderTypes";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -19,7 +20,6 @@ import { useCalcomTheme } from "@calcom/ui/styles";
 
 import { getValidationErrorMessage } from "../../components/FormInputFields";
 import RoutingFormRenderer from "../../components/RoutingFormRenderer";
-import { LAYOUT_ONLY_TYPES } from "@calcom/features/form-builder/components/builderTypes";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
 import {
   applyFieldUpdate,
@@ -88,7 +88,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     response: FormResponse;
   }>();
   const pendingSubmissionIdRef = useRef<string | null>(null);
-  const pendingFallbackRef = useRef<(() => void) | null>(null);
   const pendingTimeoutRef = useRef<number | null>(null);
   const router = useRouter();
 
@@ -143,17 +142,11 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
     const finalUrl = redirectUrl;
 
-    console.log("Handle ack: ", {
-      finalUrl,
-      2: pendingFallbackRef.current,
-    });
+    console.log("Handle ack: ", { finalUrl });
     if (finalUrl) {
       navigateInTopWindow(finalUrl);
-    } else {
-      // pendingFallbackRef.current?.();
     }
     pendingSubmissionIdRef.current = null;
-    pendingFallbackRef.current = null;
   };
 
   useEffect(() => {
@@ -354,13 +347,11 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
             : null;
         pendingSubmissionIdRef.current = submissionId;
         setIsAwaitingBookingAck(true);
-        pendingFallbackRef.current = () => setCustomPageMessage(bookingAckTimeoutMessage);
         clearPendingTimeout();
         pendingTimeoutRef.current = window.setTimeout(() => {
           pendingSubmissionIdRef.current = null;
-          pendingFallbackRef.current = null;
           setIsAwaitingBookingAck(false);
-          setCustomPageMessage(bookingAckTimeoutMessage);
+          triggerToast(bookingAckTimeoutMessage, "error");
         }, 20000);
 
         const resolvedEventTypeForCalendar =
@@ -428,7 +419,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       if (acc) {
         return acc;
       }
-      const field = isRouterLinkedField(rawField) ? ((rawField as any).routerField ?? rawField) : rawField;
+      const field = isRouterLinkedField(rawField) ? (rawField as any).routerField ?? rawField : rawField;
 
       if (LAYOUT_ONLY_TYPES.has(field.type)) {
         return acc;
@@ -460,10 +451,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       {!customPageMessage ? (
         <>
           <Toaster position="bottom-right" />
-          <form
-            noValidate
-            onSubmit={handleOnSubmit}
-            className="min-h-screen w-full">
+          <form noValidate onSubmit={handleOnSubmit} className="min-h-screen w-full">
             <RoutingFormRenderer
               form={form}
               response={response}
