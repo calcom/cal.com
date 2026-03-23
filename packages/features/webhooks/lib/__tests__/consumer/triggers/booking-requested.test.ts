@@ -456,6 +456,58 @@ describe("BOOKING_REQUESTED Trigger", () => {
       expect((p.metadata as Record<string, unknown>).videoCallUrl).toBeUndefined();
     });
 
+    it("includes hashedLink from calendar event when present", async () => {
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        calendarEvent: createMockCalendarEvent({
+          hashedLink: "abc123hash",
+        }),
+        booking: createMockBooking(),
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-hashed-link",
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+          bookingUid: "booking-uid-hashed",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-hashed-link"
+      );
+
+      const p = getDeliveredPayload();
+      expect(p.hashedLink).toBe("abc123hash");
+    });
+
+    it("hashedLink defaults to null when not provided in calendar event", async () => {
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        calendarEvent: createMockCalendarEvent(),
+        booking: createMockBooking(),
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-no-hashed-link",
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+          bookingUid: "booking-uid-no-hash",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-no-hashed-link"
+      );
+
+      const p = getDeliveredPayload();
+      expect(p.hashedLink).toBeNull();
+    });
+
     it("paid event payload has PENDING status and correct event type price/currency", async () => {
       vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
         calendarEvent: createMockCalendarEvent(),

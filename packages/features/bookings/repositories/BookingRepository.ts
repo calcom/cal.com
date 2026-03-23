@@ -335,6 +335,12 @@ const selectStatementToGetBookingForCalEventBuilder = {
           },
         },
       },
+      hashedLink: {
+        select: {
+          link: true,
+        },
+        take: 1,
+      },
     },
   },
   references: {
