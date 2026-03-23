@@ -35,19 +35,19 @@ export const UnifiedCalendarWeekView = ({
   onStartDragEvent,
 }: UnifiedCalendarWeekViewProps) => {
   return (
-    <div>
-      <div className="border-border/30 bg-default sticky top-0 z-20">
-        <div className="border-border/30 flex border-b">
+    <div className="border-r">
+      <div className=" bg-default sticky top-0 z-20">
+        <div className=" flex border-b">
           <div className="w-12 shrink-0" />
           {viewDays.map((day) => (
             <div
               key={day.toISOString()}
-              className="border-border/20 hover:bg-muted/20 flex-1 cursor-pointer border-l py-2.5 text-center transition-colors"
+              className=" flex-1 cursor-pointer border-l py-2.5 text-center transition-colors"
               onClick={() => onSelectDay(day)}>
               <p
                 className={cn(
                   "text-muted-foreground/50 text-[10px] font-light uppercase tracking-wider",
-                  isToday(day) && "text-brand-default"
+                  isToday(day) && "text-default"
                 )}>
                 {format(day, "EEE")}
               </p>
@@ -55,7 +55,7 @@ export const UnifiedCalendarWeekView = ({
                 <div
                   className={cn(
                     "flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium",
-                    isToday(day) && "bg-brand-default text-white"
+                    isToday(day) && "bg-emphasis"
                   )}>
                   {format(day, "d")}
                 </div>
@@ -64,7 +64,7 @@ export const UnifiedCalendarWeekView = ({
           ))}
         </div>
 
-        <div className="border-border/20 flex border-b">
+        <div className=" flex border-b">
           <div className="text-muted-foreground/55 flex w-12 shrink-0 items-center justify-center px-2 text-[10px] uppercase tracking-wide">
             Full Day
           </div>
@@ -108,7 +108,7 @@ export const UnifiedCalendarWeekView = ({
 
         <div className="flex flex-1">
           {viewDays.map((day) => (
-            <div key={day.toISOString()} className={cn("border-border/20 flex-1 border-l")}>
+            <div key={day.toISOString()} className={cn("flex-1 border-l")}>
               <UnifiedCalendarDayColumn
                 day={day}
                 filteredEvents={filteredEvents}

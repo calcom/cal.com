@@ -74,19 +74,26 @@ export const UnifiedCalendarDayColumn = ({
       style={{ minHeight: "1440px" }}
       data-unified-time-column="true"
       data-unified-day-start={startOfDay(day).toISOString()}>
-      {HOURS.map((hour) => (
-        <div
-          key={hour}
-          className="border-border/20 hover:bg-muted/20 absolute left-0 right-0 cursor-pointer border-t transition-colors"
-          style={{ top: `${(hour / 24) * 100}%`, height: `${100 / 24}%` }}
-          onClick={() => onQuickBookSlot({ date: day, hour })}
-        />
-      ))}
+      {Array.from({ length: 48 }).map((_, index) => {
+        const hour = Math.floor(index / 2);
+
+        return (
+          <div
+            key={index}
+            className="hover:bg-emphasis absolute left-0 right-0 cursor-pointer border-t transition-colors"
+            style={{
+              top: `${(index / 48) * 100}%`,
+              height: `${100 / 48}%`,
+            }}
+            onClick={() => onQuickBookSlot({ date: day, hour })}
+          />
+        );
+      })}
 
       {HOURS.map((hour) => (
         <div
           key={`half-${hour}`}
-          className="border-border/[0.08] absolute left-0 right-0 border-t"
+          className=" absolute left-0 right-0 border-t"
           style={{ top: `${((hour + 0.5) / 24) * 100}%` }}
         />
       ))}

@@ -243,7 +243,8 @@ export const RescheduleBookingDialog = ({
                     : {
                         value: String(endMinutes),
                         label:
-                          endTimeOptions.find((option) => String(option.value) === String(endMinutes))?.label ?? "",
+                          endTimeOptions.find((option) => String(option.value) === String(endMinutes))
+                            ?.label ?? "",
                       }
                 }
                 onChange={(option: TimeSelectOption | null) =>
@@ -281,7 +282,7 @@ export const RescheduleBookingDialog = ({
               Cancel
             </Button>
             <Button size="sm" className="h-8 text-xs" onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Changes"}
+              {isSubmitting ? "Rescheduling..." : "Reschedule"}
             </Button>
           </div>
         </div>

@@ -29,8 +29,8 @@ export const UnifiedCalendarToolbar = ({
   isMobile,
 }: UnifiedCalendarToolbarProps) => {
   return (
-    <div className="bg-default/95 border-border/30 sticky top-0 z-30 border-b backdrop-blur-sm">
-      <div className="flex flex-wrap items-center gap-2 px-4 py-2">
+    <div className="bg-default sticky top-0 z-30 flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b px-4 py-2 backdrop-blur-sm">
+      <div className="flex  flex-1 items-center gap-2 sm:flex-none" id="info">
         <Button
           variant="icon"
           color="minimal"
@@ -69,38 +69,42 @@ export const UnifiedCalendarToolbar = ({
           </Button>
         </div>
 
-        <span className="text-foreground/80 whitespace-nowrap text-sm font-medium">{headerTitle}</span>
+        <span className="text-foreground/80 truncate whitespace-nowrap text-sm font-medium">
+          {headerTitle}
+        </span>
+      </div>
 
-        <div className="ml-auto flex items-center gap-2">
-          <div className="bg-muted/40 border-border/30 flex rounded-lg border p-0.5 shadow-inner">
-            {(["day", "week", "month"] as ViewMode[]).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                aria-pressed={viewMode === mode}
-                className={cn(
-                  "min-w-[52px] rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-all",
-                  viewMode === mode
-                    ? "bg-default text-foreground border-border/40 border shadow-sm"
-                    : "text-muted-foreground/70 hover:bg-default/60 hover:text-foreground"
-                )}
-                onClick={() => onChangeViewMode(mode)}>
-                {mode}
-              </button>
-            ))}
-          </div>
-
-          {!isMobile && (
-            <Button
-              color="secondary"
-              size="sm"
-              className="h-7 gap-1.5 px-2.5 text-xs"
-              href="/apps?category=calendar">
-              <Plus className="h-3.5 w-3.5" />
-              Add Calendar
-            </Button>
-          )}
+      <div
+        className="flex w-full items-center justify-between gap-2 sm:ml-auto sm:w-auto sm:flex-none"
+        id="toggleView">
+        <div className="flex w-full rounded-lg border p-0.5 shadow-inner">
+          {(["day", "week", "month"] as ViewMode[]).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              aria-pressed={viewMode === mode}
+              className={cn(
+                "w-full rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-all",
+                viewMode === mode
+                  ? "bg-default text-foreground border-border/40 border shadow-sm"
+                  : "text-muted-foreground/70 hover:bg-default/60 hover:text-foreground"
+              )}
+              onClick={() => onChangeViewMode(mode)}>
+              {mode}
+            </button>
+          ))}
         </div>
+
+        {!isMobile && (
+          <Button
+            color="secondary"
+            size="sm"
+            className="h-7 gap-1.5 px-2.5 text-xs"
+            href="/apps?category=calendar">
+            <Plus className="h-3.5 w-3.5" />
+            Add Calendar
+          </Button>
+        )}
       </div>
     </div>
   );

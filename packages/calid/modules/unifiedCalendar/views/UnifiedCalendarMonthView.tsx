@@ -1,5 +1,5 @@
 import { cn } from "@calid/features/lib/cn";
-import { format, isSameMonth, isToday, startOfDay } from "date-fns";
+import { format, isToday, startOfDay } from "date-fns";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
 import { PALETTE, MONTH_VIEW_DAY_LABELS } from "../lib/constants";
@@ -31,7 +31,7 @@ export const UnifiedCalendarMonthView = ({
 }: UnifiedCalendarMonthViewProps) => {
   return (
     <div>
-      <div className="border-border/30 grid grid-cols-7 border-b">
+      <div className="grid grid-cols-7 border-b border-r">
         {MONTH_VIEW_DAY_LABELS.map((dayLabel) => (
           <div
             key={dayLabel}
@@ -45,14 +45,14 @@ export const UnifiedCalendarMonthView = ({
         {viewDays.map((day) => {
           const { allDayEvents, timedEvents } = splitEventsForDay(filteredEvents, day);
           const dayEvents = [...allDayEvents, ...timedEvents];
-          const isCurrentMonth = isSameMonth(day, currentDate);
+          const isCurrentDay = isToday(day);
 
           return (
             <div
               key={day.toISOString()}
               className={cn(
-                "border-border/20 hover:bg-muted/15 min-h-[110px] cursor-pointer border-b border-r p-1.5 transition-colors",
-                !isCurrentMonth && "bg-muted/[0.04]",
+                " hover:bg-emphasis  min-h-[150px] cursor-pointer border-b border-r p-1.5 transition-colors",
+                isCurrentDay && "bg-emphasis",
                 hoveredDayKey === day.toISOString() && "ring-primary/55 bg-primary/[0.05] ring-1 ring-inset"
               )}
               onClick={() => {
@@ -65,9 +65,7 @@ export const UnifiedCalendarMonthView = ({
                 <div
                   className={cn(
                     "flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-medium",
-                    !isCurrentMonth && "text-muted-foreground/30",
-                    isCurrentMonth && "text-foreground/60",
-                    isToday(day) && "bg-brand-default text-white"
+                    isCurrentDay && " text-default "
                   )}>
                   {format(day, "d")}
                 </div>

@@ -973,7 +973,7 @@ const UnifiedCalendarPage = () => {
   };
 
   return (
-    <div className="bg-default min-h-screen" data-query-from={queryRange.from} data-query-to={queryRange.to}>
+    <div className="bg-default max-h-[120px]" data-query-from={queryRange.from} data-query-to={queryRange.to}>
       <UnifiedCalendarToolbar
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((value) => !value)}
@@ -986,9 +986,9 @@ const UnifiedCalendarPage = () => {
         isMobile={isMobile}
       />
 
-      <div className="flex">
+      <div className="flex  border-b">
         {!isMobile && sidebarOpen && (
-          <div className="border-border/20 bg-muted/[0.03] w-54 sticky top-[105px] h-[calc(100vh-105px)] shrink-0 border-r">
+          <div className=" w-54 sticky top-[105px] h-[calc(100vh-105px)] shrink-0   border-r">
             <UnifiedCalendarSidebar
               calendars={sidebarCalendars}
               onToggleSync={handleSyncToggle}
