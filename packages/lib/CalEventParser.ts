@@ -205,9 +205,15 @@ export const getProviderName = (location?: string | null): string => {
     }
     return locationName[0].toUpperCase() + locationName.slice(1);
   }
-  // If location its a url, probably we should be validating it with a custom library
-  if (location && /^https?:\/\//.test(location)) {
-    return location;
+  if (location) {
+    try {
+      const url = new URL(location);
+      if (url.protocol === "http:" || url.protocol === "https:") {
+        return location;
+      }
+    } catch {
+      // Not a valid URL — fall through
+    }
   }
   return "";
 };
