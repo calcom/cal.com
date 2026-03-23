@@ -1,5 +1,4 @@
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
 import type {
   Calendar,
   CalendarEvent,
@@ -11,6 +10,7 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import { getUserId, getUserTimezoneFromDB } from "../../_utils/calendars/icsCalendarUtils";
 import { refreshAccessToken as getNewTokens } from "./helpers";
 import type { BasecampToken } from "./types";
 
@@ -78,7 +78,7 @@ class BasecampCalendarService implements Calendar {
   };
 
   private async getBasecampDescription(event: CalendarEvent): Promise<string> {
-    const timeZone = await this.getUserTimezoneFromDB(event.organizer?.id as number);
+    const timeZone = await getUserTimezoneFromDB(event.organizer?.id as number);
     const date = new Date(event.startTime).toDateString();
     const startTime = new Date(event.startTime).toLocaleTimeString("en-US", {
       hour: "numeric",
@@ -207,36 +207,7 @@ class BasecampCalendarService implements Calendar {
     }
   }
 
-  /**
-   * getUserTimezoneFromDB() retrieves the timezone of a user from the database.
-   *
-   * @param {number} id - The user's unique identifier.
-   * @returns {Promise<string | undefined>} - A Promise that resolves to the user's timezone or "Europe/London" as a default value if the timezone is not found.
-   */
-  getUserTimezoneFromDB = async (id: number): Promise<string | undefined> => {
-    const user = await prisma.user.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        timeZone: true,
-      },
-    });
-    return user?.timeZone;
-  };
 
-  /**
-   * getUserId() extracts the user ID from the first calendar in an array of IntegrationCalendars.
-   *
-   * @param {IntegrationCalendar[]} selectedCalendars - An array of IntegrationCalendars.
-   * @returns {number | null} - The user ID associated with the first calendar in the array, or null if the array is empty or the user ID is not found.
-   */
-  getUserId = (selectedCalendars: IntegrationCalendar[]): number | null => {
-    if (selectedCalendars.length === 0) {
-      return null;
-    }
-    return selectedCalendars[0].userId || null;
-  };
 
   isValidFormat = (url: string): boolean => {
     const allowedExtensions = ["eml", "ics"];

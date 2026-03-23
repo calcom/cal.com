@@ -69,6 +69,7 @@ import { metadata as office365calendar__metadata_ts } from "./office365calendar/
 import office365video_config_json from "./office365video/config.json";
 import paypal_config_json from "./paypal/config.json";
 import ping_config_json from "./ping/config.json";
+import protoncalendar_config_json from "./protoncalendar/config.json";
 import pipedream_config_json from "./pipedream/config.json";
 import pipedrive_crm_config_json from "./pipedrive-crm/config.json";
 import plausible_config_json from "./plausible/config.json";
@@ -181,6 +182,7 @@ export const appStoreMetadata = {
   office365video: office365video_config_json,
   paypal: paypal_config_json,
   ping: ping_config_json,
+    "proton-calendar": protoncalendar_config_json,
   pipedream: pipedream_config_json,
   "pipedrive-crm": pipedrive_crm_config_json,
   plausible: plausible_config_json,

@@ -1,0 +1,15 @@
+{
+  "name": "Proton Calendar",
+  "title": "Proton Calendar",
+  "slug": "proton-calendar",
+  "dirName": "protoncalendar",
+  "type": "proton_calendar",
+  "logo": "icon.svg",
+  "variant": "calendar",
+  "categories": ["calendar"],
+  "publisher": "Cal.com, Inc.",
+  "email": "help@cal.com",
+  "description": "Connect your encrypted [Proton Calendar](https://proton.me/calendar) to Cal.com via a read-only ICS feed URL. Your availability will automatically be checked for conflicts.",
+  "isTemplate": false,
+  "__createdUsingCli": true
+}
