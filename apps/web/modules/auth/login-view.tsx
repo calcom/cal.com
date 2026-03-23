@@ -15,6 +15,7 @@ import AddToHomescreen from "@components/AddToHomescreen";
 import BackupCode from "@components/auth/BackupCode";
 import TwoFactor from "@components/auth/TwoFactor";
 import { Button } from "@coss/ui/components/button";
+import { Card, CardFrame, CardFrameFooter, CardPanel } from "@coss/ui/components/card";
 import { Field, FieldLabel } from "@coss/ui/components/field";
 import { Input } from "@coss/ui/components/input";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@coss/ui/components/input-group";
@@ -200,7 +201,9 @@ export default function Login({
 
       <div className="relative z-10 flex w-full max-w-md flex-col items-center">
         {/* Main Card */}
-        <div className="w-full rounded-xl border border-subtle bg-default p-10 shadow-sm">
+        <CardFrame className="w-full">
+        <Card>
+          <CardPanel className="p-10">
           {/* Logo */}
           <div className="mb-2 text-center">
             <h1 className="font-cal text-xl font-bold text-emphasis">Cal.com</h1>
@@ -383,11 +386,12 @@ export default function Login({
               </div>
             )}
           </FormProvider>
-        </div>
+          </CardPanel>
+        </Card>
 
-        {/* Footer Links */}
-        {!twoFactorRequired && (
-          <div className="mt-6 flex items-center justify-center gap-4 text-center">
+        {/* Card Footer Links */}
+        {!twoFactorRequired && (showSignupLink || displaySSOLogin) && (
+          <CardFrameFooter className="flex items-center justify-center gap-3">
             {showSignupLink && (
               <Link
                 href={
@@ -401,7 +405,9 @@ export default function Login({
             )}
             {displaySSOLogin && (
               <>
-                {showSignupLink && <span className="text-subtle">·</span>}
+                {showSignupLink && (
+                  <span className="text-muted-foreground">·</span>
+                )}
                 <SAMLLogin
                   samlTenantID={samlTenantID}
                   samlProductID={samlProductID}
@@ -412,8 +418,11 @@ export default function Login({
                 />
               </>
             )}
-          </div>
+          </CardFrameFooter>
         )}
+        </CardFrame>
+
+
       </div>
 
       <AddToHomescreen />
