@@ -4578,7 +4578,6 @@
     "host_no_show_updated": "Host no-show updated",
     "attendee_no_show_updated": "Attendee no-show updated",
     "no_show_updated": "No-show updated",
-    "rejected": "Rejected",
     "attendee_removed": "Attendee removed",
     "reassignment": "Reassignment",
     "booking_reassigned_to_host": "Booking reassigned to {{host}}",
@@ -4591,10 +4590,7 @@
     "assignment_type_manual": "Manual",
     "assignment_type_round_robin": "Round robin",
     "actor_impersonated_by": "Impersonator",
-    "source": "Source",
     "error_processing": "Unable to load details - {{actionType}}",
-    "attendees": "Attendees",
-    "host": "Host",
     "attendee_no_show_status_yes": "{{email}}: Yes",
     "attendee_no_show_status_no": "{{email}}: No",
     "host_no_show_status_yes": "{{name}}: Yes",
@@ -4665,8 +4661,7 @@
     "event_booking_limit": "Event Booking Limit",
     "event_duration_limit": "Event Duration Limit",
     "team_booking_limit": "Team Booking Limit",
-    "buffer_time": "Buffer Time",
-    "calendar": "Calendar"
+    "buffer_time": "Buffer Time"
   },
   "invoice_number": "Invoice #",
   "payment_method": "Payment Method",
