@@ -13,6 +13,7 @@
 /packages/features/availability/lib/getUserAvailability.ts @calcom/Foundation
 /packages/features/bookings/lib/getLuckyUser.ts @calcom/Foundation
 /packages/features/schedules/lib/slots.ts @calcom/Foundation
+/packages/infra/**/* @calcom/Foundation
 /packages/prisma/**/* @calcom/Foundation
 /packages/trpc/server/routers/viewer/bookings/confirm.handler.ts @calcom/Foundation
 /packages/trpc/server/routers/viewer/bookings/get.handler.ts @calcom/Foundation
