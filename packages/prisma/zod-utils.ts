@@ -353,6 +353,7 @@ export const userMetadata = z
     stripeCustomerId: z.string().optional(),
     vitalSettings: vitalSettingsUpdateSchema.optional(),
     isPremium: z.boolean().optional(),
+    isEnterprise: z.boolean().optional(),
     isProUser: z
       .object({
         yearClaimed: z.number().optional().default(0),
