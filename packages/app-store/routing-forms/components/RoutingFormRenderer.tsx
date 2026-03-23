@@ -25,6 +25,7 @@ type RoutingFormRendererProps = {
   hideSubmit?: boolean;
   className?: string;
   showErrors?: boolean;
+  errorFieldIds?: string[];
   calendarEventType?: string | null;
   calendarFormContext?: { username?: string | null; teamSlug?: string | null };
   onFieldChange?: (args: {
@@ -46,6 +47,7 @@ export default function RoutingFormRenderer({
   hideSubmit = false,
   className,
   showErrors = false,
+  errorFieldIds,
   calendarEventType,
   calendarFormContext,
   onFieldChange,
@@ -188,6 +190,7 @@ export default function RoutingFormRenderer({
               disabledFields={disabledFields}
               fieldStyle={style.fieldStyle}
               showErrors={showErrors}
+              errorFieldIds={errorFieldIds}
               accentColor={style.accentColor}
               secondaryColor={style.secondaryColor}
               calendarEventType={calendarEventType}
