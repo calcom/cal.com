@@ -14,7 +14,7 @@ import { EventMetaBlock } from "@calcom/web/modules/bookings/components/event-me
 import { SeatsAvailabilityText } from "@calcom/web/modules/bookings/components/SeatsAvailabilityText";
 import { m } from "framer-motion";
 import dynamic from "next/dynamic";
-import type { ComponentType } from "react";
+import { memo, type ComponentType } from "react";
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 import i18nConfigration from "../../../../../i18n.json";
@@ -43,7 +43,7 @@ const getTranslatedField = (
   )?.translatedText;
 };
 
-export const EventMeta = ({
+export const EventMeta = memo(({
   event,
   isPending,
   isPlatform = true,
@@ -275,4 +275,6 @@ export const EventMeta = ({
       )}
     </div>
   );
-};
+});
+
+EventMeta.displayName = "EventMeta";

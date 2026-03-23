@@ -161,6 +161,19 @@ const BookerComponent = ({
 
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
 
+  const eventMetaClassNames = useMemo(
+    () => ({
+      eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
+      eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
+      eventMetaTimezoneSelect: customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
+    }),
+    [
+      customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
+      customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
+      customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
+    ]
+  );
+
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
 
   const {
@@ -461,12 +474,7 @@ const BookerComponent = ({
                 {!hideEventTypeDetails && (
                   <EventMeta
                     selectedTimeslot={selectedTimeslot}
-                    classNames={{
-                      eventMetaContainer: customClassNames?.eventMetaCustomClassNames?.eventMetaContainer,
-                      eventMetaTitle: customClassNames?.eventMetaCustomClassNames?.eventMetaTitle,
-                      eventMetaTimezoneSelect:
-                        customClassNames?.eventMetaCustomClassNames?.eventMetaTimezoneSelect,
-                    }}
+                    classNames={eventMetaClassNames}
                     event={event.data}
                     isPending={event.isPending}
                     isPlatform={isPlatform}
