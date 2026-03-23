@@ -2,6 +2,8 @@ import { cn } from "@calid/features/lib/cn";
 import { differenceInMinutes, format, isSameDay, setHours, startOfDay } from "date-fns";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import { UnifiedCalendarEventBlock } from "../components/UnifiedCalendarEventBlock";
 import { HOURS } from "../lib/constants";
 import type { UnifiedCalendarEventVM } from "../lib/types";
@@ -166,13 +168,14 @@ export const UnifiedCalendarAllDayRow = ({
   filteredEvents,
   onSelectEvent,
 }: UnifiedCalendarAllDayRowProps) => {
+  const { t } = useLocale();
   const { allDayEvents } = splitEventsForDay(filteredEvents, day);
 
   return (
     <div className="bg-default sticky top-0 z-20 border-b">
       <div className="flex h-full  items-start">
         <div className="flex w-12 shrink-0 items-center justify-center border-r px-4 py-2 text-[10px] uppercase tracking-wide">
-          Full Day
+          {t("unified_calendar_full_day")}
         </div>
         <div className="flex flex-1 flex-wrap gap-1.5 p-1.5">
           {allDayEvents.length === 0 && (

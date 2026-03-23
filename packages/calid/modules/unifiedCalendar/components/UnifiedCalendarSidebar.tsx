@@ -11,7 +11,9 @@ import { Switch } from "@calid/features/ui/components/switch";
 import { Search } from "lucide-react";
 import { type ChangeEvent, useMemo } from "react";
 
-import { CALENDAR_COLORS, PROVIDER_LABELS } from "../lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { CALENDAR_COLORS } from "../lib/constants";
 import type { ConnectedCalendarVM } from "../lib/types";
 
 interface UnifiedCalendarSidebarProps {
@@ -35,6 +37,8 @@ export const UnifiedCalendarSidebar = ({
   errorMessage,
   pendingSyncCalendarIds,
 }: UnifiedCalendarSidebarProps) => {
+  const { t } = useLocale();
+
   const groupedCalendars = useMemo(() => {
     const providerGroups = new Map<string, ConnectedCalendarVM[]>();
 
@@ -52,7 +56,7 @@ export const UnifiedCalendarSidebar = ({
         <div className="relative">
           <Search className="text-muted-foreground/60 absolute left-2.5 top-2.5 h-3.5 w-3.5" />
           <Input
-            placeholder="Search events..."
+            placeholder={t("search_events")}
             value={searchQuery}
             onChange={(event: ChangeEvent<HTMLInputElement>) => onSearchChange(event.target.value)}
             className="bg-muted h-8 border-0 pl-8 text-xs focus-visible:ring-1"
@@ -75,8 +79,8 @@ export const UnifiedCalendarSidebar = ({
           {!isLoading && !errorMessage && calendars.length === 0 && (
             <Alert
               severity="info"
-              title="No supported calendars"
-              message="Connect Google or Outlook calendars from integrations to enable sync."
+              title={t("unified_calendar_no_supported_calendars")}
+              message={t("unified_calendar_connect_google_or_outlook_calendars")}
               className="mt-1"
             />
           )}
@@ -86,7 +90,7 @@ export const UnifiedCalendarSidebar = ({
             Array.from(groupedCalendars.entries()).map(([provider, providerCalendars]) => (
               <div key={provider}>
                 <p className="text-muted-foreground/70 mb-2.5 text-[10px] font-semibold uppercase tracking-[0.1em]">
-                  {PROVIDER_LABELS[provider as keyof typeof PROVIDER_LABELS]}
+                  {t(`unified_calendar_provider_label_${provider}`)}
                 </p>
 
                 <div className="space-y-0.5">
@@ -107,7 +111,7 @@ export const UnifiedCalendarSidebar = ({
 
                           <DropdownMenuContent align="start" className="w-auto p-2.5">
                             <p className="text-muted-foreground mb-2 text-[10px] font-medium">
-                              Calendar color
+                              {t("unified_calendar_calendar_color")}
                             </p>
                             <div className="flex gap-2">
                               {CALENDAR_COLORS.map((color) => (
@@ -143,7 +147,9 @@ export const UnifiedCalendarSidebar = ({
                           onCheckedChange={(enabled) => onToggleSync(calendar.id, enabled)}
                           disabled={Boolean(pendingSyncCalendarIds?.has(calendar.id))}
                           className="opacity-90 transition-opacity group-hover:opacity-100"
-                          aria-label={`Toggle sync for ${calendar.name}`}
+                          aria-label={t("unified_calendar_toggle_sync_for_calendar", {
+                            calendarName: calendar.name,
+                          })}
                         />
                       </div>
                     </div>
@@ -156,7 +162,10 @@ export const UnifiedCalendarSidebar = ({
 
       <div className="border-border/40 border-t py-3">
         <p className="text-muted-foreground/50 text-center text-[10px]">
-          {calendars.filter((calendar) => calendar.syncEnabled).length} of {calendars.length} sync enabled
+          {t("unified_calendar_sync_enabled_summary", {
+            enabledCount: calendars.filter((calendar) => calendar.syncEnabled).length,
+            totalCount: calendars.length,
+          })}
         </p>
       </div>
     </div>

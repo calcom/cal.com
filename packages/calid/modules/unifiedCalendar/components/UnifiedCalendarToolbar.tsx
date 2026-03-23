@@ -3,6 +3,8 @@ import { Button } from "@calid/features/ui/components/button";
 import { Separator } from "@calid/features/ui/components/separator";
 import { ChevronLeft, ChevronRight, PanelLeft, PanelLeftClose, Plus } from "lucide-react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import type { ViewMode } from "../lib/types";
 
 interface UnifiedCalendarToolbarProps {
@@ -28,6 +30,8 @@ export const UnifiedCalendarToolbar = ({
   onChangeViewMode,
   isMobile,
 }: UnifiedCalendarToolbarProps) => {
+  const { t } = useLocale();
+
   return (
     <div className="bg-default sticky top-0 z-30 flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b px-4 py-2 backdrop-blur-sm">
       <div className="flex  flex-1 items-center gap-2 sm:flex-none" id="info">
@@ -47,7 +51,7 @@ export const UnifiedCalendarToolbar = ({
           size="sm"
           className="text-muted-foreground hover:text-foreground h-7 rounded-md px-2.5 text-xs"
           onClick={onToday}>
-          Today
+          {t("today_capitalized")}
         </Button>
 
         <div className="flex items-center">
@@ -90,7 +94,7 @@ export const UnifiedCalendarToolbar = ({
                   : "text-muted-foreground/70 hover:bg-default/60 hover:text-foreground"
               )}
               onClick={() => onChangeViewMode(mode)}>
-              {mode}
+              {t(`unified_calendar_view_${mode}`)}
             </button>
           ))}
         </div>
@@ -102,7 +106,7 @@ export const UnifiedCalendarToolbar = ({
             className="h-7 gap-1.5 px-2.5 text-xs"
             href="/apps?category=calendar">
             <Plus className="h-3.5 w-3.5" />
-            Add Calendar
+            {t("add_calendar")}
           </Button>
         )}
       </div>

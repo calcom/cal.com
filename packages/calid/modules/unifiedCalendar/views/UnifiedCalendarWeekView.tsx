@@ -1,6 +1,8 @@
 import { cn } from "@calid/features/lib/cn";
 import { format, isToday } from "date-fns";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import type { UnifiedCalendarEventVM } from "../lib/types";
 import { splitEventsForDay } from "../lib/utils";
 import { UnifiedCalendarDayColumn, UnifiedCalendarTimeLabels } from "./UnifiedCalendarDayView";
@@ -34,6 +36,8 @@ export const UnifiedCalendarWeekView = ({
   dragPreview,
   onStartDragEvent,
 }: UnifiedCalendarWeekViewProps) => {
+  const { t } = useLocale();
+
   return (
     <div className="border-r">
       <div className=" bg-default sticky top-0 z-20">
@@ -66,7 +70,7 @@ export const UnifiedCalendarWeekView = ({
 
         <div className=" flex border-b">
           <div className="text-muted-foreground/55 flex w-12 shrink-0 items-center justify-center px-2 text-[10px] uppercase tracking-wide">
-            Full Day
+            {t("unified_calendar_full_day")}
           </div>
           <div className="flex flex-1">
             {viewDays.map((day) => {
@@ -92,7 +96,7 @@ export const UnifiedCalendarWeekView = ({
                     ))}
                     {allDayEvents.length > 2 && (
                       <p className="text-muted-foreground/40 pl-0.5 text-[10px]">
-                        +{allDayEvents.length - 2} more
+                        {t("unified_calendar_more_count", { count: allDayEvents.length - 2 })}
                       </p>
                     )}
                   </div>

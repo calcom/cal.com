@@ -25,6 +25,7 @@ import {
 import { useState } from "react";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { UnifiedCalendarEventVM } from "../lib/types";
 
@@ -53,11 +54,16 @@ export const UnifiedCalendarEventDetailsPanel = ({
   isReschedulePending,
   isCancelPending,
 }: UnifiedCalendarEventDetailsPanelProps) => {
+  const { t } = useLocale();
   const [isCancelConfirmOpen, setIsCancelConfirmOpen] = useState(false);
   const statusLabel = event.status.charAt(0) + event.status.slice(1).toLowerCase();
   const attendeeEmails = event.attendees ?? [];
-  const providerLabel = event.provider ? (event.provider === "google" ? "Google" : "Outlook") : event.source;
-  const calendarLabel = event.calendarName?.trim() || "Calendar";
+  const providerLabel = event.provider
+    ? event.provider === "google"
+      ? t("unified_calendar_provider_google")
+      : t("unified_calendar_provider_outlook")
+    : event.source;
+  const calendarLabel = event.calendarName?.trim() || t("calendar");
   const subtitleLabel = event.source === "EXTERNAL" ? `${providerLabel} · ${calendarLabel}` : calendarLabel;
   const locationLabel = event.location ? getHumanReadableLocation(event.location) : null;
   // const description = event.description?.trim();
@@ -95,7 +101,11 @@ export const UnifiedCalendarEventDetailsPanel = ({
         {conflicts.length > 0 && (
           <div className="text-destructive/80 bg-destructive/5 border-destructive/10 flex items-center gap-2 rounded-md border px-3 py-2 text-xs">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-            <span>Overlaps with {conflicts.map((conflict) => conflict.title).join(", ")}</span>
+            <span>
+              {t("unified_calendar_overlaps_with_conflicts", {
+                conflicts: conflicts.map((conflict) => conflict.title).join(", "),
+              })}
+            </span>
           </div>
         )}
 
@@ -111,11 +121,11 @@ export const UnifiedCalendarEventDetailsPanel = ({
             <Clock className="text-muted-foreground/60 h-3.5 w-3.5 shrink-0" />
             <span>
               {event.isAllDay
-                ? "All-day"
+                ? t("unified_calendar_all_day")
                 : `${format(event.start, "h:mm a")} – ${format(event.end, "h:mm a")} · ${differenceInMinutes(
                     event.end,
                     event.start
-                  )} min`}
+                  )} ${t("unified_calendar_minutes_abbreviation")}`}
             </span>
           </div>
 
@@ -134,7 +144,7 @@ export const UnifiedCalendarEventDetailsPanel = ({
                 target="_blank"
                 rel="noreferrer"
                 className="text-primary flex items-center gap-1 text-sm hover:underline">
-                Join Meeting <ExternalLink className="h-3 w-3" />
+                {t("join_meeting")} <ExternalLink className="h-3 w-3" />
               </a>
             </div>
           )}
@@ -144,7 +154,9 @@ export const UnifiedCalendarEventDetailsPanel = ({
               <Users className="text-muted-foreground/60 mt-0.5 h-3.5 w-3.5 shrink-0" />
               <div className="space-y-2">
                 <span className="text-muted-foreground/80">
-                  {attendeeEmails.length > 0 ? attendeeEmails.length : event.attendeeCount} attendees
+                  {t("unified_calendar_attendees_count", {
+                    count: attendeeEmails.length > 0 ? attendeeEmails.length : event.attendeeCount,
+                  })}
                 </span>
                 {attendeeEmails.length > 0 && (
                   <div className="flex flex-wrap gap-1.5">
@@ -188,7 +200,8 @@ export const UnifiedCalendarEventDetailsPanel = ({
               className="border-border/60 h-8 gap-1.5 text-xs"
               onClick={onReschedule}
               disabled={isReschedulePending || isCancelPending}>
-              <RefreshCcw className="h-3 w-3" /> {isReschedulePending ? "Saving..." : "Reschedule"}
+              <RefreshCcw className="h-3 w-3" />{" "}
+              {isReschedulePending ? t("unified_calendar_saving") : t("reschedule")}
             </Button>
           )}
 
@@ -199,13 +212,14 @@ export const UnifiedCalendarEventDetailsPanel = ({
               className="text-destructive/70 hover:text-destructive border-border/60 h-8 gap-1.5 text-xs"
               onClick={() => setIsCancelConfirmOpen(true)}
               disabled={isCancelPending || isReschedulePending}>
-              <Trash2 className="h-3 w-3" /> {isCancelPending ? "Cancelling..." : "Cancel Booking"}
+              <Trash2 className="h-3 w-3" />{" "}
+              {isCancelPending ? t("unified_calendar_cancelling") : t("unified_calendar_cancel_booking")}
             </Button>
           )}
 
           {event.isReadOnly && (
             <p className="text-muted-foreground/70 text-xs">
-              This event is managed in the external calendar.
+              {t("unified_calendar_event_managed_in_external_calendar")}
             </p>
           )}
 
@@ -215,7 +229,7 @@ export const UnifiedCalendarEventDetailsPanel = ({
               href={event.meetingUrl}
               target="_blank"
               rel="noreferrer">
-              <Video className="h-3 w-3" /> Join
+              <Video className="h-3 w-3" /> {t("unified_calendar_join")}
             </Button>
           )}
         </div>
@@ -226,15 +240,15 @@ export const UnifiedCalendarEventDetailsPanel = ({
         onOpenChange={(open) => !isCancelPending && setIsCancelConfirmOpen(open)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader showIcon iconName="triangle-alert" iconVariant="warning">
-            <DialogTitle className="text-sm">Cancel Booking</DialogTitle>
-            <DialogDescription>This will cancel the booking. Do you want to continue?</DialogDescription>
+            <DialogTitle className="text-sm">{t("unified_calendar_cancel_booking")}</DialogTitle>
+            <DialogDescription>{t("unified_calendar_cancel_booking_confirmation")}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-6">
             <DialogClose color="secondary" disabled={isCancelPending}>
-              Back
+              {t("back")}
             </DialogClose>
             <Button color="destructive" onClick={onCancel} disabled={isCancelPending || isReschedulePending}>
-              {isCancelPending ? "Cancelling..." : "Cancel"}
+              {isCancelPending ? t("unified_calendar_cancelling") : t("cancel")}
             </Button>
           </DialogFooter>
         </DialogContent>

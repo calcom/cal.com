@@ -9,6 +9,8 @@ import { differenceInMinutes, format, setHours, setMinutes, startOfDay } from "d
 import { Calendar as CalendarIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import { formatBookingDuration } from "../lib/formatBookingDuration";
 import type { UnifiedCalendarEventVM } from "../lib/types";
 
@@ -83,6 +85,7 @@ export const RescheduleBookingDialog = ({
   onClose,
   onSubmit,
 }: RescheduleBookingDialogProps) => {
+  const { t } = useLocale();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [startMinutes, setStartMinutes] = useState<number | null>(null);
   const [endMinutes, setEndMinutes] = useState<number | null>(null);
@@ -140,22 +143,22 @@ export const RescheduleBookingDialog = ({
     setFormError(null);
 
     if (!selectedDate) {
-      setFormError("Select a booking date.");
+      setFormError(t("unified_calendar_select_booking_date"));
       return;
     }
 
     if (startMinutes === null || endMinutes === null || !startDateTime || !endDateTime) {
-      setFormError("Select start and end time.");
+      setFormError(t("unified_calendar_select_start_and_end_time"));
       return;
     }
 
     if (startOfDay(startDateTime).getTime() !== startOfDay(endDateTime).getTime()) {
-      setFormError("Start and end must be on the same date.");
+      setFormError(t("unified_calendar_start_end_same_date"));
       return;
     }
 
     if (differenceInMinutes(endDateTime, startDateTime) < MIN_DURATION_MINUTES) {
-      setFormError("End time must be at least 15 minutes after start time.");
+      setFormError(t("unified_calendar_end_time_minimum_gap"));
       return;
     }
 
@@ -169,27 +172,30 @@ export const RescheduleBookingDialog = ({
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && !isSubmitting && onClose()}>
       <DialogContent className={isMobile ? "max-w-[95vw]" : "sm:max-w-md"}>
         <DialogHeader>
-          <DialogTitle className="text-sm">Reschedule Booking</DialogTitle>
+          <DialogTitle className="text-sm">{t("unified_calendar_reschedule_booking")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           {(submitError || formError) && (
-            <Alert severity="error" message={submitError ?? formError ?? "Unable to reschedule booking."} />
+            <Alert
+              severity="error"
+              message={submitError ?? formError ?? t("unified_calendar_unable_to_reschedule_booking")}
+            />
           )}
 
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Event</Label>
+            <Label className="text-muted-foreground text-xs">{t("event")}</Label>
             <p className="text-sm font-medium">{event.title}</p>
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Date</Label>
+            <Label className="text-muted-foreground text-xs">{t("date")}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <button
                   type="button"
                   className="bg-default border-border/40 flex h-9 w-full items-center justify-between rounded-md border px-3 text-left text-sm outline-none">
-                  <span>{selectedDate ? format(selectedDate, "PPP") : "Select date"}</span>
+                  <span>{selectedDate ? format(selectedDate, "PPP") : t("unified_calendar_select_date")}</span>
                   <CalendarIcon className="text-muted-foreground h-4 w-4" />
                 </button>
               </PopoverTrigger>
@@ -206,7 +212,7 @@ export const RescheduleBookingDialog = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">Start time</Label>
+              <Label className="text-muted-foreground text-xs">{t("start_time")}</Label>
               <Select
                 value={
                   startMinutes === null
@@ -222,7 +228,7 @@ export const RescheduleBookingDialog = ({
                   setStartMinutes(parseMinuteValue(option?.value ?? ""))
                 }
                 options={[
-                  { value: "", label: "Select start time" },
+                  { value: "", label: t("unified_calendar_select_start_time") },
                   ...START_TIME_OPTIONS.map((option) => ({
                     value: String(option.value),
                     label: option.label,
@@ -235,7 +241,7 @@ export const RescheduleBookingDialog = ({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">End time</Label>
+              <Label className="text-muted-foreground text-xs">{t("end_time")}</Label>
               <Select
                 value={
                   endMinutes === null
@@ -251,7 +257,7 @@ export const RescheduleBookingDialog = ({
                   setEndMinutes(parseMinuteValue(option?.value ?? ""))
                 }
                 options={[
-                  { value: "", label: "Select end time" },
+                  { value: "", label: t("unified_calendar_select_end_time") },
                   ...endTimeOptions.map((option) => ({
                     value: String(option.value),
                     label: option.label,
@@ -266,10 +272,12 @@ export const RescheduleBookingDialog = ({
           </div>
 
           <p className="text-muted-foreground text-[11px]">
-            Duration:{" "}
-            {typeof durationMinutes === "number" && durationMinutes >= MIN_DURATION_MINUTES
-              ? formatBookingDuration(durationMinutes)
-              : "Invalid range"}
+            {t("unified_calendar_duration_with_value", {
+              duration:
+                typeof durationMinutes === "number" && durationMinutes >= MIN_DURATION_MINUTES
+                  ? formatBookingDuration(durationMinutes)
+                  : t("unified_calendar_invalid_range"),
+            })}
           </p>
 
           <div className="flex justify-end gap-2 pt-1">
@@ -279,10 +287,10 @@ export const RescheduleBookingDialog = ({
               className="h-8 text-xs"
               onClick={onClose}
               disabled={isSubmitting}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button size="sm" className="h-8 text-xs" onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? "Rescheduling..." : "Reschedule"}
+              {isSubmitting ? t("unified_calendar_rescheduling") : t("reschedule")}
             </Button>
           </div>
         </div>
