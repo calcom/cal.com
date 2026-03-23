@@ -1,11 +1,5 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import posthog from "posthog-js";
-import { useState, useMemo } from "react";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { APP_NAME } from "@calcom/lib/constants";
@@ -21,8 +15,11 @@ import { Button } from "@calcom/ui/components/button";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-import InviteLinkSettingsModal from "@calcom/web/modules/ee/teams/components/InviteLinkSettingsModal";
-
+import { keepPreviousData } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import posthog from "posthog-js";
+import { useMemo, useState } from "react";
 import { MemberInvitationModalWithoutMembers } from "~/ee/teams/components/MemberInvitationModal";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
@@ -51,7 +48,6 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
 
   const showDialog = searchParams?.get("inviteModal") === "true";
   const [memberInviteModal, setMemberInviteModal] = useState(showDialog);
-  const [inviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
   const { data: team, isPending } = trpc.viewer.teams.get.useQuery({ teamId, isOrg }, { enabled: !!teamId });
   const { data: orgMembersNotInThisTeam } = trpc.viewer.organizations.getMembers.useQuery(
@@ -135,24 +131,9 @@ export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg
             orgMembers={orgMembersNotInThisTeam}
             teamId={teamId}
             token={team?.inviteToken?.token}
+            expiresInDays={team?.inviteToken?.expiresInDays ?? undefined}
             hideInvitationModal={() => setMemberInviteModal(false)}
-            onSettingsOpen={() => {
-              setMemberInviteModal(false);
-              setInviteLinkSettingsModal(true);
-            }}
           />
-          {team?.inviteToken && (
-            <InviteLinkSettingsModal
-              isOpen={inviteLinkSettingsModal}
-              teamId={team.id}
-              token={team.inviteToken?.token}
-              expiresInDays={team.inviteToken?.expiresInDays || undefined}
-              onExit={() => {
-                setInviteLinkSettingsModal(false);
-                setMemberInviteModal(true);
-              }}
-            />
-          )}
         </>
       )}
       <hr className="border-subtle my-6" />

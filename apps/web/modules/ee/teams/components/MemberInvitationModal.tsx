@@ -1,35 +1,40 @@
-import { useSession } from "next-auth/react";
-import posthog from "posthog-js";
-import type { FormEvent } from "react";
-import { useMemo, useRef, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
-import TeamInviteFromOrg from "~/ee/organizations/components/TeamInviteFromOrg";
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type { PendingMember } from "@calcom/features/ee/teams/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, MAX_NB_INVITES } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
-import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { TextAreaField } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { ToggleGroup } from "@calcom/ui/components/form";
-import { BuildingIcon, UserIcon, UsersIcon } from "@coss/ui/icons";
-import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-
+import { Button } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "@coss/ui/components/dialog";
+import { Field, FieldError, FieldLabel } from "@coss/ui/components/field";
+import { Input } from "@coss/ui/components/input";
+import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "@coss/ui/components/select";
+import { Tabs, TabsList, TabsPanel, TabsTab } from "@coss/ui/components/tabs";
+import { Textarea } from "@coss/ui/components/textarea";
+import { anchoredToastManager, toastManager } from "@coss/ui/components/toast";
+import { useCopyToClipboard } from "@coss/ui/hooks/use-copy-to-clipboard";
+import { BuildingIcon, CheckIcon, LinkIcon, PaperclipIcon, UserIcon, UsersIcon } from "@coss/ui/icons";
+import { useSession } from "next-auth/react";
+import posthog from "posthog-js";
+import type { FormEvent } from "react";
+import { useMemo, useRef, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import TeamInviteFromOrg from "~/ee/organizations/components/TeamInviteFromOrg";
+import InviteLinkSettingsModal from "./InviteLinkSettingsModal";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
 
 type MemberInvitationModalProps = {
@@ -37,10 +42,10 @@ type MemberInvitationModalProps = {
   onExit: () => void;
   orgMembers?: RouterOutputs["viewer"]["organizations"]["getMembers"];
   onSubmit: (values: NewMemberForm, resetFields: () => void) => void;
-  onSettingsOpen?: () => void;
   teamId: number;
   members?: PendingMember[];
   token?: string;
+  expiresInDays?: number;
   isPending?: boolean;
   disableCopyLink?: boolean;
   isOrg?: boolean;
@@ -68,6 +73,17 @@ function toggleElementInArray(value: string[] | string | undefined, element: str
   return array.includes(element) ? array.filter((item) => item !== element) : [...array, element];
 }
 
+const EXPIRES_DAYS_LABELS: Record<number, string> = {
+  1: "one_day",
+  7: "seven_days",
+  30: "thirty_days",
+};
+
+function getExpiresLabel(days: number | undefined): string {
+  if (days === undefined) return "never_expires";
+  return EXPIRES_DAYS_LABELS[days] ?? "thirty_days";
+}
+
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
   const { disableCopyLink = false, isOrg = false } = props;
@@ -89,6 +105,24 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
     canSeeOrganization ? "ORGANIZATION" : "INDIVIDUAL"
   );
+  const [showInviteLinkSettings, setShowInviteLinkSettings] = useState(false);
+  const copyButtonRef = useRef<HTMLButtonElement>(null);
+  const anchoredToastIdRef = useRef<string | null>(null);
+  const copyToastTimeout = 2000;
+
+  const { copyToClipboard, isCopied } = useCopyToClipboard({
+    onCopy: () => {
+      if (copyButtonRef.current) {
+        anchoredToastIdRef.current = anchoredToastManager.add({
+          data: { tooltipStyle: true },
+          positionerProps: { anchor: copyButtonRef.current },
+          timeout: copyToastTimeout,
+          title: t("invite_link_copied"),
+        });
+      }
+    },
+    timeout: copyToastTimeout,
+  });
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
     async onSuccess() {
@@ -97,7 +131,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       revalidateTeamsList();
     },
     onError: (error) => {
-      showToast(error.message, "error");
+      toastManager.add({ title: error.message, type: "error" });
     },
   });
 
@@ -116,20 +150,20 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     return options;
   }, [t, isOrgAdminOrOwner, isOrg]);
 
-  const toggleGroupOptions = useMemo(() => {
+  const inviteModeTabs = useMemo(() => {
     const array = [
       {
         value: "INDIVIDUAL",
         label: t("invite_team_individual_segment"),
-        iconLeft: <UserIcon />,
+        icon: <UserIcon aria-hidden="true" />,
       },
-      { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <UsersIcon /> },
+      { value: "BULK", label: t("invite_team_bulk_segment"), icon: <UsersIcon aria-hidden="true" /> },
     ];
     if (canSeeOrganization) {
       array.unshift({
         value: "ORGANIZATION",
         label: t("organization"),
-        iconLeft: <BuildingIcon />,
+        icon: <BuildingIcon aria-hidden="true" />,
       });
     }
     return array;
@@ -188,171 +222,176 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     newMemberFormMethods.reset();
     newMemberFormMethods.setValue("emailOrUsername", "");
     newMemberFormMethods.setValue("role", options[0].value);
-    setModalInputMode("INDIVIDUAL");
+    setModalInputMode(canSeeOrganization ? "ORGANIZATION" : "INDIVIDUAL");
   };
 
   const importRef = useRef<HTMLInputElement | null>(null);
 
   return (
     <Dialog
-      name="inviteModal"
       open={props.isOpen}
-      onOpenChange={() => {
-        props.onExit();
-        newMemberFormMethods.reset();
+      onOpenChange={(open) => {
+        if (!open) {
+          props.onExit();
+        }
+      }}
+      onOpenChangeComplete={(open) => {
+        if (!open) {
+          resetFields();
+        }
       }}>
-      <DialogContent
-        enableOverflow
-        type="creation"
-        title={t("invite_team_member")}
-        description={
-          IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
-            <span className="text-subtle text-sm leading-tight">
+      <DialogPopup className="max-w-xl" bottomStickOnMobile={false}>
+        <DialogHeader>
+          <DialogTitle>{t("invite_team_member")}</DialogTitle>
+          {IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
+            <DialogDescription>
               <ServerTrans
                 t={t}
                 i18nKey="invite_new_member_description"
                 components={[
-                  <span key="invite_new_member_description" className="text-emphasis font-medium">
+                  <span key="invite_new_member_description" className="text-foreground font-medium">
                     cost an extra seat ($15/m)
                   </span>,
                 ]}
               />
-            </span>
-          ) : null
-        }>
-        <div className="sm:max-h-9">
-          <Label className="sr-only" htmlFor="role">
-            {t("import_mode")}
-          </Label>
-          <ToggleGroup
-            isFullWidth={true}
-            className="flex-col sm:flex-row"
-            onValueChange={(val) => {
-              setModalInputMode(val as ModalMode);
-              newMemberFormMethods.clearErrors();
-            }}
-            defaultValue={modalImportMode}
-            options={toggleGroupOptions}
-          />
-        </div>
-
-        <Form
-          form={newMemberFormMethods}
-          handleSubmit={(values) => {
+            </DialogDescription>
+          ) : null}
+        </DialogHeader>
+        <form
+          className="contents"
+          onSubmit={newMemberFormMethods.handleSubmit((values) => {
             props.onSubmit(values, resetFields);
             posthog.capture("teams_modal_invite_members_button_clicked");
-          }}>
-          <div className="mb-10 mt-6 space-y-6">
-            {/* Individual Invite */}
-            {modalImportMode === "INDIVIDUAL" && (
-              <Controller
-                name="emailOrUsername"
-                control={newMemberFormMethods.control}
-                rules={{
-                  required: t("enter_email"),
-                  validate: async (value) => {
-                    // orgs can only invite members by email
-                    if (typeof value === "string" && !isEmail(value)) return t("enter_email");
-                    if (typeof value === "string") {
-                      const doesInviteExists = await checkIfMembershipExists(value);
-                      return !doesInviteExists || t("member_already_invited");
-                    }
-                  },
-                }}
-                render={({ field: { onChange }, fieldState: { error } }) => (
-                  <>
-                    <TextField
-                      label={t("email")}
-                      id="inviteUser"
-                      name="inviteUser"
-                      placeholder="email@example.com"
-                      required
-                      onChange={(e) => onChange(e.target.value.trim().toLowerCase())}
-                    />
-                    {error && <span className="text-sm text-red-800">{error.message}</span>}
-                  </>
-                )}
-              />
-            )}
-            {/* Bulk Invite */}
-            {modalImportMode === "BULK" && (
-              <div className="bg-cal-muted flex flex-col rounded-md p-4">
+          })}>
+          <DialogPanel>
+            <Tabs
+              className="gap-6"
+              value={modalImportMode}
+              onValueChange={(val) => {
+                setModalInputMode(val as ModalMode);
+                newMemberFormMethods.clearErrors();
+              }}>
+              <TabsList className="w-full" aria-label={t("import_mode")}>
+                {inviteModeTabs.map((tab) => (
+                  <TabsTab key={tab.value} value={tab.value}>
+                    <span className="max-sm:hidden">{tab.icon}</span>
+                    <span className="max-sm:text-sm">{tab.label}</span>
+                  </TabsTab>
+                ))}
+              </TabsList>
+              <TabsPanel value="INDIVIDUAL">
                 <Controller
                   name="emailOrUsername"
                   control={newMemberFormMethods.control}
                   rules={{
                     required: t("enter_email"),
-                    validate: (value) => {
-                      if (Array.isArray(value) && value.some((email) => !isEmail(email)))
-                        return t("enter_emails");
-                      if (Array.isArray(value) && value.length > MAX_NB_INVITES)
-                        return t("too_many_invites", { nbUsers: MAX_NB_INVITES });
+                    validate: async (value) => {
+                      // orgs can only invite members by email
                       if (typeof value === "string" && !isEmail(value)) return t("enter_email");
+                      if (typeof value === "string") {
+                        const doesInviteExists = await checkIfMembershipExists(value);
+                        return !doesInviteExists || t("member_already_invited");
+                      }
                     },
                   }}
-                  render={({ field: { onChange, value }, fieldState: { error } }) => (
-                    <>
-                      {/* TODO: Make this a fancy email input that styles on a successful email. */}
-                      <TextAreaField
-                        name="emails"
-                        label={t("invite_via_email")}
-                        rows={4}
-                        autoCorrect="off"
-                        placeholder="john@doe.com, alex@smith.com"
+                  render={({
+                    field: { ref, name, value, onBlur, onChange },
+                    fieldState: { invalid, error },
+                  }) => (
+                    <Field name={name} invalid={invalid}>
+                      <FieldLabel>{t("email")}</FieldLabel>
+                      <Input
+                        type="email"
+                        value={typeof value === "string" ? value : ""}
+                        placeholder="email@example.com"
                         required
-                        value={value}
-                        onChange={(e) => {
-                          const targetValues = e.target.value.split(/[\n,]/);
-                          const emails =
-                            targetValues.length === 1
-                              ? targetValues[0].trim().toLocaleLowerCase()
-                              : targetValues.map((email) => email.trim().toLocaleLowerCase());
-
-                          return onChange(emails);
-                        }}
+                        ref={ref}
+                        onBlur={onBlur}
+                        onValueChange={(nextValue) => onChange(nextValue.trim().toLowerCase())}
                       />
-                      {error && <span className="text-sm text-red-800">{error.message}</span>}
-                    </>
+                      <FieldError match={!!error}>{error?.message}</FieldError>
+                    </Field>
                   )}
                 />
+              </TabsPanel>
+              <TabsPanel value="BULK">
+                <div className="bg-muted flex flex-col rounded-xl p-4 gap-2">
+                  <Controller
+                    name="emailOrUsername"
+                    control={newMemberFormMethods.control}
+                    rules={{
+                      required: t("enter_email"),
+                      validate: (value) => {
+                        if (Array.isArray(value) && value.some((email) => !isEmail(email)))
+                          return t("enter_emails");
+                        if (Array.isArray(value) && value.length > MAX_NB_INVITES)
+                          return t("too_many_invites", { nbUsers: MAX_NB_INVITES });
+                        if (typeof value === "string" && !isEmail(value)) return t("enter_email");
+                      },
+                    }}
+                    render={({
+                      field: { ref, name, value, onBlur, onChange },
+                      fieldState: { invalid, error },
+                    }) => (
+                      <Field name={name} invalid={invalid}>
+                        <FieldLabel>{t("invite_via_email")}</FieldLabel>
+                        <Textarea
+                          autoCorrect="off"
+                          placeholder="john@doe.com, alex@smith.com"
+                          required
+                          ref={ref}
+                          onBlur={onBlur}
+                          value={Array.isArray(value) ? value.join(", ") : (value ?? "")}
+                          onChange={(e) => {
+                            const targetValues = e.target.value.split(/[\n,]/);
+                            const emails =
+                              targetValues.length === 1
+                                ? targetValues[0].trim().toLocaleLowerCase()
+                                : targetValues.map((email) => email.trim().toLocaleLowerCase());
 
-                <GoogleWorkspaceInviteButton
-                  onSuccess={(data) => {
-                    newMemberFormMethods.setValue("emailOrUsername", data);
+                            return onChange(emails);
+                          }}
+                        />
+                        <FieldError match={!!error}>{error?.message}</FieldError>
+                      </Field>
+                    )}
+                  />
+
+                  <GoogleWorkspaceInviteButton
+                    onSuccess={(data) => {
+                      newMemberFormMethods.setValue("emailOrUsername", data);
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      if (importRef.current) {
+                        importRef.current.click();
+                      }
+                    }}>
+                    <PaperclipIcon aria-hidden="true" />
+                    {t("upload_csv_file")}
+                  </Button>
+                  <input
+                    ref={importRef}
+                    hidden
+                    id="bulkInvite"
+                    type="file"
+                    accept=".csv"
+                    style={{ display: "none" }}
+                    onChange={handleFileUpload}
+                  />
+                </div>
+              </TabsPanel>
+              <TabsPanel value="ORGANIZATION">
+                <Controller
+                  name="emailOrUsername"
+                  control={newMemberFormMethods.control}
+                  rules={{
+                    required: t("enter_email_or_username"),
                   }}
-                />
-                <Button
-                  type="button"
-                  color="secondary"
-                  onClick={() => {
-                    if (importRef.current) {
-                      importRef.current.click();
-                    }
-                  }}
-                  StartIcon="paperclip"
-                  className="mt-3 justify-center stroke-2">
-                  {t("upload_csv_file")}
-                </Button>
-                <input
-                  ref={importRef}
-                  hidden
-                  id="bulkInvite"
-                  type="file"
-                  accept=".csv"
-                  style={{ display: "none" }}
-                  onChange={handleFileUpload}
-                />
-              </div>
-            )}
-            {modalImportMode === "ORGANIZATION" && (
-              <Controller
-                name="emailOrUsername"
-                control={newMemberFormMethods.control}
-                rules={{
-                  required: t("enter_email_or_username"),
-                }}
-                render={({ field: { onChange, value } }) => (
-                  <>
+                  render={({ field: { onChange, value } }) => (
                     <TeamInviteFromOrg
                       selectedEmails={value}
                       handleOnChecked={(userEmail) => {
@@ -363,116 +402,126 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       }}
                       orgMembers={props.orgMembers}
                     />
-                  </>
+                  )}
+                />
+              </TabsPanel>
+            </Tabs>
+
+            <div className="mt-6 flex flex-col gap-6">
+              <Controller
+                name="role"
+                control={newMemberFormMethods.control}
+                defaultValue={options[0].value}
+                render={({ field: { name, value, onChange } }) => (
+                  <Field name={name}>
+                    <FieldLabel>{t("invite_as")}</FieldLabel>
+                    <Select
+                      items={options}
+                      value={value}
+                      onValueChange={(newValue) => {
+                        if (newValue) onChange(newValue as MembershipRole);
+                      }}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectPopup>
+                        {options.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectPopup>
+                    </Select>
+                  </Field>
                 )}
               />
-            )}
-            <Controller
-              name="role"
-              control={newMemberFormMethods.control}
-              defaultValue={options[0].value}
-              render={({ field: { onChange } }) => (
-                <div>
-                  <Label className="text-emphasis font-medium" htmlFor="role">
-                    {t("invite_as")}
-                  </Label>
-                  <Select
-                    id="role"
-                    defaultValue={options[0]}
-                    options={options}
-                    onChange={(val) => {
-                      if (val) onChange(val.value);
-                    }}
-                  />
+              {(!disableCopyLink || props.token) && (
+                <div className="flex flex-col gap-2">
+                  {!disableCopyLink && (
+                    <Button
+                      ref={copyButtonRef}
+                      type="button"
+                      variant="outline"
+                      className="gap-2 w-fit"
+                      disabled={isCopied || createInviteMutation.isPending}
+                      onClick={async () => {
+                        try {
+                          const { inviteLink } = await createInviteMutation.mutateAsync({
+                            teamId: props.teamId,
+                            token: props.token,
+                          });
+                          copyToClipboard(inviteLink);
+                        } catch (e) {
+                          toastManager.add({ title: t("something_went_wrong_on_our_end"), type: "error" });
+                          console.error(e);
+                        }
+                      }}
+                      data-testid="copy-invite-link-button">
+                      {isCopied ? (
+                        <CheckIcon aria-hidden />
+                      ) : (
+                        <LinkIcon aria-hidden />
+                      )}
+                      {t("copy_invite_link")}
+                    </Button>
+                  )}
+                  {(!disableCopyLink || props.token) && (
+                    <div className="text-muted-foreground text-xs">
+                      <span>
+                        {props.token
+                          ? getExpiresLabel(props.expiresInDays) === "never_expires"
+                            ? t("never_expires")
+                            : `${t("link_expires_after")} ${t(getExpiresLabel(props.expiresInDays))}`
+                          : `${t("link_expires_after")} ${t("seven_days")}`}
+                      </span>
+                      {props.token && (
+                        <>{" "}
+                          <span aria-hidden="true">·</span>{" "}
+                          <button
+                            type="button"
+                            className="text-foreground font-medium underline-offset-4 hover:underline cursor-pointer"
+                            onClick={() => {
+                              if (anchoredToastIdRef.current) {
+                                anchoredToastManager.close(anchoredToastIdRef.current);
+                                anchoredToastIdRef.current = null;
+                              }
+                              setShowInviteLinkSettings(true);
+                            }}
+                            data-testid="edit-invite-link-button">
+                            {t("edit_invite_link")}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
-            />
-            {props.token && (
-              <div className="flex">
-                <Button
-                  type="button"
-                  color="minimal"
-                  className="me-2 ms-2"
-                  onClick={() => {
-                    if (props.onSettingsOpen) {
-                      props.onSettingsOpen();
-                    }
-                    newMemberFormMethods.reset();
-                  }}
-                  data-testid="edit-invite-link-button">
-                  {t("edit_invite_link")}
-                </Button>
-              </div>
-            )}
-          </div>
-          <DialogFooter showDivider>
-            {!disableCopyLink && (
-              <div className="grow">
-                <Button
-                  type="button"
-                  color="minimal"
-                  variant="icon"
-                  onClick={async function () {
-                    try {
-                      // Required for Safari but also works on Chrome
-                      // Credits to https://wolfgangrittner.dev/how-to-use-clipboard-api-in-firefox/
-                      if (typeof ClipboardItem !== "undefined") {
-                        const inviteLinkClipbardItem = new ClipboardItem({
-                          //eslint-disable-next-line no-async-promise-executor
-                          "text/plain": new Promise(async (resolve) => {
-                            // Instead of doing async work and then writing to clipboard, do async work in clipboard API itself
-                            const { inviteLink } = await createInviteMutation.mutateAsync({
-                              teamId: props.teamId,
-                              token: props.token,
-                            });
-                            showToast(t("invite_link_copied"), "success");
-                            resolve(new Blob([inviteLink], { type: "text/plain" }));
-                          }),
-                        });
-                        await navigator.clipboard.write([inviteLinkClipbardItem]);
-                      } else {
-                        // Fallback for browsers that don't support ClipboardItem e.g. Firefox
-                        const { inviteLink } = await createInviteMutation.mutateAsync({
-                          teamId: props.teamId,
-                          token: props.token,
-                        });
-                        await navigator.clipboard.writeText(inviteLink);
-                        showToast(t("invite_link_copied"), "success");
-                      }
-                    } catch (e) {
-                      showToast(t("something_went_wrong_on_our_end"), "error");
-                      console.error(e);
-                    }
-                  }}
-                  className={classNames("gap-2", props.token && "opacity-50")}
-                  StartIcon="link"
-                  data-testid="copy-invite-link-button">
-                  <span className="hidden sm:inline">{t("copy_invite_link")}</span>
-                </Button>
-              </div>
-            )}
+            </div>
+          </DialogPanel>
+          <DialogFooter>
+            <DialogClose render={<Button variant="ghost">{t("cancel")}</Button>} />
             <Button
-              type="button"
-              color="minimal"
-              onClick={() => {
-                props.onExit();
-                resetFields();
-              }}>
-              {t("cancel")}
-            </Button>
-            <Button
-              loading={
+              type="submit"
+              variant="default"
+              loading={props.isPending}
+              disabled={
                 props.isPending || createInviteMutation.isPending || checkIfMembershipExistsMutation.isPending
               }
-              type="submit"
-              color="primary"
-              className="me-2 ms-2"
               data-testid="invite-new-member-button">
               {t("send_invite")}
             </Button>
           </DialogFooter>
-        </Form>
-      </DialogContent>
+        </form>
+      </DialogPopup>
+      {props.token && (
+        <InviteLinkSettingsModal
+          isOpen={showInviteLinkSettings}
+          teamId={props.teamId}
+          token={props.token}
+          expiresInDays={props.expiresInDays}
+          onExit={() => setShowInviteLinkSettings(false)}
+        />
+      )}
     </Dialog>
   );
 }
@@ -482,14 +531,14 @@ export const MemberInvitationModalWithoutMembers = ({
   showMemberInvitationModal,
   teamId,
   token,
-  onSettingsOpen,
+  expiresInDays,
   ...props
 }: Partial<MemberInvitationModalProps> & {
   hideInvitationModal: () => void;
   showMemberInvitationModal: boolean;
   teamId: number;
   token?: string;
-  onSettingsOpen: () => void;
+  expiresInDays?: number;
 }) => {
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
@@ -516,6 +565,7 @@ export const MemberInvitationModalWithoutMembers = ({
       orgMembers={orgMembersNotInThisTeam}
       teamId={teamId}
       token={token}
+      expiresInDays={expiresInDays}
       onExit={hideInvitationModal}
       checkMembershipMutation={true}
       onSubmit={(values, resetFields) => {
@@ -536,31 +586,27 @@ export const MemberInvitationModalWithoutMembers = ({
               hideInvitationModal();
 
               if (Array.isArray(data.usernameOrEmail)) {
-                showToast(
-                  t("email_invite_team_bulk", {
+                toastManager.add({
+                  title: t("email_invite_team_bulk", {
                     userCount: data.numUsersInvited,
                   }),
-                  "success"
-                );
+                  type: "success",
+                });
                 resetFields();
               } else {
-                showToast(
-                  t("email_invite_team", {
+                toastManager.add({
+                  title: t("email_invite_team", {
                     email: data.usernameOrEmail,
                   }),
-                  "success"
-                );
+                  type: "success",
+                });
               }
             },
             onError: (error) => {
-              showToast(error.message, "error");
+              toastManager.add({ title: error.message, type: "error" });
             },
           }
         );
-      }}
-      onSettingsOpen={() => {
-        hideInvitationModal();
-        onSettingsOpen();
       }}
     />
   );

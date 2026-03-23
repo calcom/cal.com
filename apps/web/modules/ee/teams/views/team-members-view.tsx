@@ -1,15 +1,11 @@
 "use client";
 
-import { useState } from "react";
-
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
-
+import { useState } from "react";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { MemberInvitationModalWithoutMembers } from "~/ee/teams/components/MemberInvitationModal";
-import InviteLinkSettingsModal from "~/ee/teams/components/InviteLinkSettingsModal";
-
 import MemberList from "../components/MemberList";
 
 interface TeamMembersViewProps {
@@ -38,7 +34,6 @@ interface TeamMembersViewProps {
 export const TeamMembersView = ({ team, facetedTeamValues, permissions }: TeamMembersViewProps) => {
   const { t } = useLocale();
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
-  const [showInviteLinkSettingsModal, setShowInviteLinkSettingsModal] = useState(false);
 
   // Use PBAC permissions - server-side permission check should be done in parent component
   const canLoggedInUserSeeMembers = permissions?.canListMembers ?? false;
@@ -68,19 +63,7 @@ export const TeamMembersView = ({ team, facetedTeamValues, permissions }: TeamMe
             showMemberInvitationModal={showMemberInvitationModal}
             teamId={team.id}
             token={team.inviteToken?.token}
-            onSettingsOpen={() => setShowInviteLinkSettingsModal(true)}
-          />
-        )}
-        {team?.inviteToken && (
-          <InviteLinkSettingsModal
-            isOpen={showInviteLinkSettingsModal}
-            teamId={team.id}
-            token={team.inviteToken.token}
-            expiresInDays={team.inviteToken.expiresInDays ?? undefined}
-            onExit={() => {
-              setShowInviteLinkSettingsModal(false);
-              setShowMemberInvitationModal(true);
-            }}
+            expiresInDays={team.inviteToken?.expiresInDays ?? undefined}
           />
         )}
       </div>

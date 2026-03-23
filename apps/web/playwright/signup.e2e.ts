@@ -373,7 +373,7 @@ test.describe("Email Signup Flow Test", async () => {
       // TODO: This invite logic should live in a fixture - its used in team and orgs invites (Duplicated from team/org invites)
       const invitedUserEmail = `rick_${Date.now()}@domain-${Date.now()}.com`;
       await page.locator(`button:text("${t("add")}")`).click();
-      await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
+      await page.locator('input[name="emailOrUsername"]').fill(invitedUserEmail);
       await page.locator(`button:text("${t("send_invite")}")`).click();
 
       const inviteLink = await expectInvitationEmailToBeReceived(

@@ -30,7 +30,7 @@ test.describe("Team", () => {
       await page.waitForLoadState("domcontentloaded");
       await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
       await page.getByTestId("new-member-button").click();
-      await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
+      await page.locator('input[name="emailOrUsername"]').fill(invitedUserEmail);
       const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
       await page.getByTestId("invite-new-member-button").click();
       const response = await submitPromise;
@@ -122,7 +122,7 @@ test.describe("Team", () => {
       await page.waitForLoadState("domcontentloaded");
       await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
       await page.getByTestId("new-member-button").click();
-      await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
+      await page.locator('input[name="emailOrUsername"]').fill(invitedUserEmail);
       const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
       await page.getByTestId("invite-new-member-button").click();
       const response = await submitPromise;
@@ -173,7 +173,7 @@ test.describe("Team", () => {
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
     await page.getByTestId("new-member-button").click();
-    await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
+    await page.locator('input[name="emailOrUsername"]').fill(invitedMember.email);
     const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
     await page.getByTestId("invite-new-member-button").click();
     const response = await submitPromise;
@@ -220,7 +220,7 @@ test.describe("Team", () => {
     await page.waitForLoadState("domcontentloaded");
     await page.waitForTimeout(500);
     await page.getByTestId("new-member-button").click();
-    await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
+    await page.locator('input[name="emailOrUsername"]').fill(invitedMember.email);
     const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
     await page.getByTestId("invite-new-member-button").click();
     const response = await submitPromise;
@@ -272,7 +272,7 @@ test.describe("Team", () => {
       await page.waitForLoadState("domcontentloaded");
       await page.waitForTimeout(500);
       await page.getByTestId("new-member-button").click();
-      await page.locator('input[name="inviteUser"]').fill(invitedUser.email);
+      await page.locator('input[name="emailOrUsername"]').fill(invitedUser.email);
       const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
       await page.getByTestId("invite-new-member-button").click();
       const response = await submitPromise;
@@ -339,7 +339,7 @@ test.describe("Team", () => {
       await page.waitForLoadState("domcontentloaded");
       await page.waitForTimeout(500);
       await page.getByTestId("new-member-button").click();
-      await page.locator('input[name="inviteUser"]').fill(invitedUser.email);
+      await page.locator('input[name="emailOrUsername"]').fill(invitedUser.email);
       const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
       await page.getByTestId("invite-new-member-button").click();
       const response = await submitPromise;

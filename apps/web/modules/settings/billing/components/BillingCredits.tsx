@@ -326,9 +326,6 @@ export default function BillingCredits() {
           teamId={teamId}
           showMemberInvitationModal={showMemberInvitationModal}
           hideInvitationModal={() => setShowMemberInvitationModal(false)}
-          onSettingsOpen={() => {
-            return;
-          }}
         />
       )}
     </>

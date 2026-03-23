@@ -1,10 +1,14 @@
 import type { PropsWithChildren } from "react";
 import { useState } from "react";
 
+import { AVATAR_FALLBACK } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { TextField } from "@calcom/ui/components/form";
-import { Avatar } from "@calcom/ui/components/avatar";
-import classNames from "@calcom/ui/classNames";
+import { Avatar, AvatarImage } from "@coss/ui/components/avatar";
+import { Checkbox } from "@coss/ui/components/checkbox";
+import { Label } from "@coss/ui/components/label";
+import { Input } from "@coss/ui/components/input";
+import { ScrollArea } from "@coss/ui/components/scroll-area";
 
 type TeamInviteFromOrgProps = PropsWithChildren<{
   selectedEmails?: string | string[];
@@ -19,6 +23,7 @@ export default function TeamInviteFromOrg({
   selectedEmails,
   orgMembers,
 }: TeamInviteFromOrgProps) {
+  const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
   const filteredMembers = orgMembers?.filter((member) => {
     if (!searchQuery) {
@@ -29,14 +34,23 @@ export default function TeamInviteFromOrg({
   });
 
   return (
-    <div className="bg-cal-muted border-subtle flex flex-col rounded-md border p-4">
-      <div className="-my-1">
-        <TextField placeholder="Search..." onChange={(e) => setSearchQuery(e.target.value)} />
+    <div className="bg-muted rounded-xl">
+      <div className="px-2 pt-2">
+        <Input
+          placeholder="Search..."
+          value={searchQuery}
+          onValueChange={(value) => setSearchQuery(value)}
+        />
       </div>
-      <hr className="border-subtle -mx-4 mt-2" />
-      <div className="scrollbar min-h-48 flex max-h-48 flex-col stack-y-0.5 overflow-y-scroll pt-2">
-        <>
-          {filteredMembers &&
+      <ScrollArea className="h-44" scrollFade>
+        <div className="px-2 py-2 min-h-full flex flex-col">
+          {!filteredMembers?.length ? (
+            <div className="flex-1 flex flex-col justify-center">
+              <p className="text-muted-foreground py-4 text-center text-sm">
+                {t("no_members_found")}
+              </p>
+            </div>
+          ) : (
             filteredMembers.map((member) => {
               const isSelected = Array.isArray(selectedEmails)
                 ? selectedEmails.includes(member.user.email)
@@ -49,9 +63,10 @@ export default function TeamInviteFromOrg({
                   onChange={() => handleOnChecked(member.user.email)}
                 />
               );
-            })}
-        </>
-      </div>
+            })
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 }
@@ -65,33 +80,22 @@ function UserToInviteItem({
   isSelected: boolean;
   onChange: () => void;
 }) {
+  const displayName = member.user.name || member.user.email || "Nameless User";
+
   return (
-    <div
-      key={member.userId}
-      onClick={() => onChange()} // We handle this on click on the div also - for a11y we handle it with label and checkbox below
-      className={classNames(
-        "flex cursor-pointer items-center rounded-md px-2 py-1 transition",
-        isSelected ? "bg-emphasis" : "hover:bg-subtle "
-      )}>
-      <div className="flex items-center space-x-2 rtl:space-x-reverse">
-        <Avatar size="sm" alt="Users avatar" asChild imageSrc={member.user.avatarUrl} />
-        <label
-          htmlFor={`${member.user.id}`}
-          className="text-emphasis cursor-pointer text-sm font-medium leading-none">
-          {member.user.name || member.user.email || "Nameless User"}
-        </label>
-      </div>
-      <div className="ml-auto">
-        <input
-          id={`${member.user.id}`}
-          checked={isSelected}
-          type="checkbox"
-          className="text-emphasis focus:ring-emphasis dark:text-muted border-default hover:bg-subtle inline-flex h-4 w-4 place-self-center justify-self-end rounded transition checked:bg-gray-800"
-          onChange={() => {
-            onChange();
+    <Label
+      className="flex cursor-pointer items-center rounded-lg px-2 py-1 hover:bg-muted">
+      <Checkbox checked={isSelected} onCheckedChange={() => onChange()} />
+      <Avatar className="size-6">
+        <AvatarImage
+          src={member.user.avatarUrl ?? AVATAR_FALLBACK}
+          alt={displayName}
+          onError={(e) => {
+            e.currentTarget.src = AVATAR_FALLBACK;
           }}
         />
-      </div>
-    </div>
+      </Avatar>
+      {displayName}
+    </Label>
   );
 }
