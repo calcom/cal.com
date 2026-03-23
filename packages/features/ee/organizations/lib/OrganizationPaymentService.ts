@@ -25,6 +25,7 @@ type CreatePaymentIntentInput = {
   bannerUrl?: string | null;
   teams?: { id: number; isBeingMigrated: boolean; slug: string | null; name: string }[];
   invitedMembers?: { email: string; name?: string; teamId?: number; teamName?: string }[];
+  isMigrationFlow?: boolean;
 };
 
 type CreateOnboardingInput = {
@@ -269,7 +270,8 @@ export class OrganizationPaymentService {
     priceId: string,
     config: PaymentConfig,
     organizationOnboardingId: OrganizationOnboardingId,
-    params: URLSearchParams
+    params: URLSearchParams,
+    isMigrationFlow?: boolean
   ) {
     log.debug(
       "Creating subscription",
@@ -299,6 +301,7 @@ export class OrganizationPaymentService {
         seats: config.seats,
         pricePerSeat: config.pricePerSeat,
         billingPeriod: config.billingPeriod,
+        ...(isMigrationFlow ? { isMigrationFlow: "true" } : {}),
       },
       subscriptionData,
     });
@@ -386,7 +389,8 @@ export class OrganizationPaymentService {
       organizationOnboarding.id,
       new URLSearchParams({
         orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
-      })
+      }),
+      input.isMigrationFlow
     );
 
     log.debug("Updating onboarding with stripe details and form data");

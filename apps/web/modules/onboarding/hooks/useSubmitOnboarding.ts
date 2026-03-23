@@ -15,7 +15,7 @@ export const useSubmitOnboarding = () => {
     store: OnboardingState,
     userEmail: string,
     invitesToSubmit: OnboardingState["invites"],
-    options?: { billingPeriod?: "MONTHLY" | "ANNUALLY" }
+    options?: { billingPeriod?: "MONTHLY" | "ANNUALLY"; isMigrationFlow?: boolean }
   ) => {
     setIsSubmitting(true);
     setError(null);
@@ -94,6 +94,7 @@ export const useSubmitOnboarding = () => {
         teams: teamsData,
         invitedMembers: allInvitedMembers,
         ...(options?.billingPeriod && { billingPeriod: options.billingPeriod }),
+        ...(options?.isMigrationFlow && { isMigrationFlow: true }),
       });
 
       // If there's a checkout URL, redirect to Stripe (billing enabled flow)
@@ -108,10 +109,11 @@ export const useSubmitOnboarding = () => {
       // Set flag to show welcome modal after redirect
       setShowNewOrgModalFlag();
 
-      // Check if this is a migration flow (user has already completed onboarding)
+      // Check if this is a migration flow
+      const isMigrationFlow = options?.isMigrationFlow ?? false;
       const hasMigratedTeams = teams.some((team) => team.isBeingMigrated);
-      if (hasMigratedTeams) {
-        // Migration flow - user already completed onboarding, redirect to event-types
+      if (isMigrationFlow || hasMigratedTeams) {
+        // Migration flow - skip personal onboarding, redirect to event-types
         resetOnboarding();
         window.location.href = "/event-types?newOrganizationModal=true";
       } else {

@@ -39,12 +39,13 @@ async function getHandler(req: NextRequest) {
     if (organizationOnboardingId) {
       // Check if this is a migration flow (user has already completed onboarding)
       const onboarding = await OrganizationOnboardingRepository.findById(organizationOnboardingId);
+      const isMigrationFlow = checkoutSession.metadata?.isMigrationFlow === "true";
       const hasMigratedTeams =
         onboarding?.teams &&
         orgOnboardingTeamsSchema.parse(onboarding.teams).some((team) => team.isBeingMigrated);
 
-      if (hasMigratedTeams) {
-        // Migration flow - user already completed onboarding, redirect to event-types
+      if (isMigrationFlow || hasMigratedTeams) {
+        // Migration flow - skip personal onboarding, redirect to event-types
         const redirectUrl = new URL("/event-types?newOrganizationModal=true", WEBAPP_URL).toString();
         return NextResponse.redirect(redirectUrl);
       }

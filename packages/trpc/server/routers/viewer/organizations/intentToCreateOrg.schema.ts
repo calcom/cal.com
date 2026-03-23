@@ -1,9 +1,8 @@
-import { z } from "zod";
-
 import { emailSchema } from "@calcom/lib/emailSchema";
 import slugify from "@calcom/lib/slugify";
 import { BillingMode, BillingPeriod, CreationSource } from "@calcom/prisma/enums";
 import { orgOnboardingInvitedMembersSchema, orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 
 export const ZIntentToCreateOrgInputSchema = z.object({
   name: z.string(),
@@ -27,6 +26,8 @@ export const ZIntentToCreateOrgInputSchema = z.object({
   invitedMembers: orgOnboardingInvitedMembersSchema.optional(),
   // Optional onboarding ID for resume flows (admin handover)
   onboardingId: z.string().optional(),
+  // Whether this is a migration flow (user migrating existing teams to an org)
+  isMigrationFlow: z.boolean().default(false),
 });
 
 export type TIntentToCreateOrgInputSchema = z.infer<typeof ZIntentToCreateOrgInputSchema>;
