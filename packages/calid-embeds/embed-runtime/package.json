@@ -11,7 +11,7 @@
   },
   "scripts": {
     "embed-dev": "yarn workspace @calid/embed-runtime dev",
-    "__build": "yarn tailwind && vite build && tsc --emitDeclarationOnly --declarationDir dist && cp -r ../../../apps/web/public/embed ./dist/",
+    "__build": "yarn tailwind && vite build && tsc --emitDeclarationOnly --declarationDir dist && cp -r ../../../apps/web/public/embed-link ./dist/",
     "__dev": "yarn tailwind && vite build --mode development",
     "build": "rm -rf dist && NEXT_PUBLIC_EMBED_FINGER_PRINT=$(git rev-parse --short HEAD) NEXT_PUBLIC_EMBED_VERSION=$(node -p 'require(\"./package.json\").version') yarn __build",
     "build-preview": "PREVIEW_BUILD=1 yarn __build ",
@@ -33,7 +33,7 @@
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
     "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://cal.id/embed-link/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://cal.id' yarn",
     "prepack": "yarn ../../../ lint --filter='@calid/embed-runtime' && yarn withEmbedPublishEnv build",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf ../../../apps/web/public/embed"
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf ../../../apps/web/public/embed-link"
   },
   "files": [
     "dist"
