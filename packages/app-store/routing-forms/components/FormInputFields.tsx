@@ -23,6 +23,22 @@ import CalendarFieldController from "./CalendarFieldController";
 import { ConfigFor, withRaqbSettingsAndWidgets } from "./react-awesome-query-builder/config/uiConfig";
 
 const emailRegex = /^\S+@\S+\.\S+$/;
+type DatePickerRange = "future" | "past" | "all";
+
+const getDatePickerBounds = (datePickerRange?: DatePickerRange) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (datePickerRange === "past") {
+    return { minDate: null as Date | null, maxDate: today };
+  }
+
+  if (datePickerRange === "all") {
+    return { minDate: null as Date | null, maxDate: undefined };
+  }
+
+  return { minDate: today, maxDate: undefined };
+};
 
 const isEmptyValue = (value: unknown) => {
   if (value === undefined || value === null) return true;
@@ -336,6 +352,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
             const rawDate = currentValue ? String(currentValue) : "";
             const parsedDate = rawDate ? new Date(rawDate) : null;
             const dateValue = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : null;
+            const { minDate, maxDate } = getDatePickerBounds(field.uiConfig?.datePickerRange);
             return (
               <DatePicker
                 date={dateValue as Date}
@@ -347,6 +364,8 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                 placeholder={field.placeholder || "Pick a date"}
                 onBlur={() => setTouched((prev) => ({ ...prev, [field.id]: true }))}
                 variant={field.uiConfig?.datePickerVariant ?? "default"}
+                minDate={minDate}
+                maxDate={maxDate}
                 accentColor={accentColor}
                 onDatesChange={(nextDate) => {
                   updateResponse(format(nextDate, "yyyy-MM-dd"));
