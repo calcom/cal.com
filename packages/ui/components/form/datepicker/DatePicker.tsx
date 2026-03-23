@@ -123,7 +123,7 @@ const DatePicker = ({
             className="hover:bg-subtle disabled:text-muted inline-flex h-6 w-6 items-center justify-center rounded transition-colors disabled:cursor-not-allowed">
             <Icon name="chevron-left" className="h-3.5 w-3.5" />
           </button>
-          <span data-testid="datepicker-current-year" className="text-emphasis min-w-[3rem] text-center text-xs font-semibold">
+          <span data-testid="datepicker-current-year" className="text-emphasis text-center text-xs font-semibold">
             {displayMonth.getFullYear()}
           </span>
           <button
@@ -147,7 +147,7 @@ const DatePicker = ({
             className="hover:bg-subtle disabled:text-muted inline-flex h-6 w-6 items-center justify-center rounded transition-colors disabled:cursor-not-allowed">
             <Icon name="chevron-left" className="h-3.5 w-3.5" />
           </button>
-          <span data-testid="datepicker-current-month" className="text-emphasis min-w-[3.5rem] text-center text-xs font-semibold">
+          <span data-testid="datepicker-current-month" className="text-emphasis w-12 text-center text-xs font-semibold">
             {format(displayMonth, "MMMM")}
           </span>
           <button
@@ -162,7 +162,7 @@ const DatePicker = ({
         </div>
       </div>
       <Calendar
-        initialFocus
+        fixedWeeks
         fromDate={minDate === null ? undefined : fromDate}
         toDate={maxDate}
         month={displayMonth}
