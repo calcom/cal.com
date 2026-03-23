@@ -274,7 +274,19 @@ class ProtonCalendarService implements Calendar {
         // SECONDLY events are impractical to iterate (86 400/day) — skip them.
         // HOURLY and MINUTELY are valid busy-time contributors; increase the
         // iteration cap so the window is fully covered without blowing the guard.
-        if (event.getRecurrenceTypes() === "SECONDLY") {
+        //
+        // Use RRULE FREQ directly rather than `event.getRecurrenceTypes()` because
+        // ical.js returns a plain object from that method; strict string equality
+        // against it always evaluates to false regardless of the actual frequency.
+        const rruleFreq = (() => {
+          try {
+            const rrule = event.component.getFirstPropertyValue("rrule") as ICAL.Recur | null;
+            return (rrule?.freq ?? "").toUpperCase();
+          } catch {
+            return "";
+          }
+        })();
+        if (rruleFreq === "SECONDLY") {
           console.error("Won't handle SECONDLY recurrence in Proton Calendar");
           return;
         }
@@ -339,13 +351,13 @@ class ProtonCalendarService implements Calendar {
         // preventing runaway CPU from adversarially dense RRULEs.
         const MAX_SAFE_ITERATIONS = 500_000;
 
-        if (event.getRecurrenceTypes() === "HOURLY") {
+        if (rruleFreq === "HOURLY") {
           // Hours from iterStart to dateTo + 48 h buffer for DST shifts,
           // multiplied by the full sub-period expansion factor so every occurrence
           // within the window is reachable.
           const hours = Math.ceil(dayjs(dateTo).diff(dayjs(iterStart.toJSDate()), "hours") + 48);
           maxIterations = Math.min(hours * getByExpansionFactor("HOURLY"), MAX_SAFE_ITERATIONS);
-        } else if (event.getRecurrenceTypes() === "MINUTELY") {
+        } else if (rruleFreq === "MINUTELY") {
           // Minutes from iterStart to dateTo + 48 h (2 880 min) buffer,
           // multiplied by the BYSECOND expansion factor.
           // Capped at MAX_SAFE_ITERATIONS to prevent high CPU from dense RRULEs
