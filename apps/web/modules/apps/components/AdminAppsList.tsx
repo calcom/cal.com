@@ -1,14 +1,12 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-// eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
-import type { FC } from "react";
-import { useEffect, useReducer, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
-import Image from "next/image";
-
+import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
+import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { AppCategories } from "@calcom/prisma/enums";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -18,19 +16,9 @@ import {
   AlertDialogPopup,
   AlertDialogTitle,
 } from "@coss/ui/components/alert-dialog";
-import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
-import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { AppCategories } from "@calcom/prisma/enums";
-import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@coss/ui/components/badge";
 import { Button } from "@coss/ui/components/button";
-import {
-  Card,
-  CardPanel,
-} from "@coss/ui/components/card";
+import { Card, CardPanel } from "@coss/ui/components/card";
 import {
   Dialog,
   DialogClose,
@@ -40,14 +28,15 @@ import {
   DialogPopup,
   DialogTitle,
 } from "@coss/ui/components/dialog";
-import {
-  Field,
-  FieldControl,
-  FieldError,
-  FieldLabel,
-} from "@coss/ui/components/field";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@coss/ui/components/empty";
+import { Field, FieldError, FieldLabel } from "@coss/ui/components/field";
 import { Form } from "@coss/ui/components/form";
 import { Input } from "@coss/ui/components/input";
+import { Skeleton } from "@coss/ui/components/skeleton";
+import { Switch } from "@coss/ui/components/switch";
+import { toastManager } from "@coss/ui/components/toast";
+import { CircleAlertIcon } from "@coss/ui/icons";
+import { cn } from "@coss/ui/lib/utils";
 import {
   ListItem,
   ListItemActions,
@@ -57,18 +46,14 @@ import {
   ListItemHeader,
   ListItemTitle,
 } from "@coss/ui/shared/list-item";
-import { cn } from "@coss/ui/lib/utils";
-import { Switch } from "@coss/ui/components/switch";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@coss/ui/components/empty";
-import { CircleAlertIcon } from "@coss/ui/icons";
-import { Skeleton } from "@coss/ui/components/skeleton";
-import { toastManager } from "@coss/ui/components/toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+// eslint-disable-next-line no-restricted-imports
+import { noop } from "lodash";
+import Image from "next/image";
+import type { FC } from "react";
+import { useEffect, useReducer, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 type App = RouterOutputs["viewer"]["apps"]["listLocal"][number];
 
@@ -142,14 +127,10 @@ const IntegrationContainer = ({
               <div className="flex flex-wrap items-center gap-2">
                 <ListItemTitle>{app.name}</ListItemTitle>
                 <ListItemBadges>
-                  {app.isTemplate && (
-                    <Badge variant="destructive">Template</Badge>
-                  )}
+                  {app.isTemplate && <Badge variant="destructive">Template</Badge>}
                 </ListItemBadges>
               </div>
-              <ListItemDescription>
-                {app.description}
-              </ListItemDescription>
+              <ListItemDescription>{app.description}</ListItemDescription>
               {app.keys && (
                 <Button
                   aria-label={t("edit_keys")}
@@ -183,18 +164,12 @@ const IntegrationContainer = ({
         <AlertDialogPopup>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("disable_app")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("disable_app_description")}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{t("disable_app_description")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogClose render={<Button variant="ghost" />}>
-              {t("cancel")}
-            </AlertDialogClose>
+            <AlertDialogClose render={<Button variant="ghost" />}>{t("cancel")}</AlertDialogClose>
             <AlertDialogClose
-              onClick={() =>
-                enableAppMutation.mutate({ slug: app.slug, enabled: !app.enabled })
-              }
+              onClick={() => enableAppMutation.mutate({ slug: app.slug, enabled: !app.enabled })}
               render={<Button />}>
               {t("confirm")}
             </AlertDialogClose>
@@ -250,12 +225,11 @@ const AdminAppsList = ({
         classNames={
           classNames
             ? {
-                contentContainer: classNames.appCategoryNavigationContainer,
-                verticalTabsItem: classNames.verticalTabsItem,
-              }
+              contentContainer: classNames.appCategoryNavigationContainer,
+              verticalTabsItem: classNames.verticalTabsItem,
+            }
             : undefined
-        }
-      >
+        }>
         {isEmpty ? (
           <Empty className="rounded-xl border border-dashed">
             <EmptyHeader>
@@ -283,9 +257,7 @@ const AdminAppsList = ({
           <Button type="button" variant="secondary" onClick={nav.onPrev}>
             {t("prev_step")}
           </Button>
-          <Button type="submit">
-            {t("finish")}
-          </Button>
+          <Button type="submit">{t("finish")}</Button>
         </div>
       )}
     </form>
@@ -318,9 +290,7 @@ const EditKeysModal: FC<{
     fromEnabled,
     appName,
   } = props;
-  const appKeySchema =
-    appKeysSchemas[dirName as keyof typeof appKeysSchemas] ??
-    z.record(z.string());
+  const appKeySchema = appKeysSchemas[dirName as keyof typeof appKeysSchemas] ?? z.record(z.string());
 
   const { control, handleSubmit, reset } = useForm({
     resolver: zodResolver(appKeySchema),
@@ -349,10 +319,7 @@ const EditKeysModal: FC<{
 
   const submitForm = (data: Record<string, unknown>) => {
     const keys = Object.fromEntries(
-      Object.entries(data).map(([k, v]) => [
-        k,
-        typeof v === "string" ? v : String(v ?? ""),
-      ])
+      Object.entries(data).map(([k, v]) => [k, typeof v === "string" ? v : String(v ?? "")])
     );
     saveKeysMutation.mutate({
       slug,
@@ -364,10 +331,7 @@ const EditKeysModal: FC<{
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={onOpenChange}
-      onOpenChangeComplete={onOpenChangeComplete}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange} onOpenChangeComplete={onOpenChangeComplete}>
       <DialogPopup showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>{t("edit_keys")}</DialogTitle>
@@ -388,19 +352,9 @@ const EditKeysModal: FC<{
                     field: { ref, value, onBlur, onChange },
                     fieldState: { invalid, isTouched, isDirty, error },
                   }) => (
-                    <Field
-                      dirty={isDirty}
-                      invalid={invalid}
-                      name={key}
-                      touched={isTouched}>
+                    <Field dirty={isDirty} invalid={invalid} name={key} touched={isTouched}>
                       <FieldLabel>{t(key)}</FieldLabel>
-                      <FieldControl
-                        ref={ref}
-                        value={String(value ?? "")}
-                        onBlur={onBlur}
-                        onValueChange={onChange}
-                        render={<Input />}
-                      />
+                      <Input ref={ref} value={String(value ?? "")} onBlur={onBlur} onValueChange={onChange} />
                       <FieldError match={!!error}>{error?.message}</FieldError>
                     </Field>
                   )}
@@ -410,9 +364,7 @@ const EditKeysModal: FC<{
           )}
         </DialogPanel>
         <DialogFooter>
-          <DialogClose render={<Button variant="ghost" />}>
-            {t("close")}
-          </DialogClose>
+          <DialogClose render={<Button variant="ghost" />}>{t("close")}</DialogClose>
           <Button form="edit-keys" type="submit">
             {t("save")}
           </Button>
@@ -431,13 +383,7 @@ interface EditModalState extends Pick<App, "keys"> {
   appName?: string;
 }
 
-const AdminAppsListContainer = ({
-  apps,
-  category,
-}: {
-  apps: App[];
-  category: string;
-}) => {
+const AdminAppsListContainer = ({ apps, category }: { apps: App[]; category: string }) => {
   const [modalState, setModalState] = useReducer(
     (data: EditModalState, partialData: Partial<EditModalState>) => ({ ...data, ...partialData }),
     {

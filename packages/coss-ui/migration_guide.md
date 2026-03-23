@@ -291,7 +291,7 @@ import { DatePickerWithRange as DateRangePicker } from "@calcom/ui/components/fo
 </form>
 ```
 
-Use Base UI `<Form>` only when you need its validation, such as inside a modal with `Field` / `FieldControl` / `FieldError`:
+Use Base UI `<Form>` only when you need its validation, such as inside a modal with `Field` / `FieldError`:
 
 ```tsx
 <Dialog>
@@ -300,7 +300,7 @@ Use Base UI `<Form>` only when you need its validation, such as inside a modal w
       <Form onSubmit={handleSubmit} id="edit-form">
         <Field name="key" invalid={!!error}>
           <FieldLabel>API Key</FieldLabel>
-          <FieldControl render={<Input />} />
+          <Input />
           <FieldError>{error?.message}</FieldError>
         </Field>
       </Form>
@@ -311,3 +311,22 @@ Use Base UI `<Form>` only when you need its validation, such as inside a modal w
   </DialogPopup>
 </Dialog>
 ```
+
+> **`FieldControl` is only for native HTML elements** (`<input>`, `<select>`, `<textarea>`). Never wrap coss-ui components (`Input`, `Textarea`, `Select`, etc.) with `FieldControl` — they already contain `Field.Control` internally and double-wrapping causes duplicate field registration, breaking focus and validation behavior.
+>
+> ```tsx
+> // ✅ Correct — coss-ui components register themselves
+> <Field name="key">
+>   <Input />
+> </Field>
+>
+> // ✅ Correct — FieldControl for a raw native element
+> <Field name="key">
+>   <FieldControl render={<input />} />
+> </Field>
+>
+> // ❌ Wrong — double registration
+> <Field name="key">
+>   <FieldControl render={<Input />} />
+> </Field>
+> ```
