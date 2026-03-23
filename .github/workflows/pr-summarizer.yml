@@ -1,0 +1,227 @@
+name: PR Summarizer
+
+permissions:
+  contents: read
+  models: read
+  pull-requests: write
+  issues: write
+
+on:
+  pull_request:
+    types: [closed]
+
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull Request Number"
+        required: true
+        type: number
+
+jobs:
+  prepareFilesForSummary:
+    if: ${{ github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Summarize PR
+        id: summarize_pr
+        uses: actions/github-script@v8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            let pr;
+            if (context.eventName === "workflow_dispatch") {
+              const prNumber = context.payload.inputs.pr_number;
+
+              const { data } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+              });
+
+              pr = data;
+            } else {
+              pr = context.payload.pull_request;
+            }
+
+            const inferenceEndpoint = "https://models.github.ai/inference/chat/completions";
+
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                per_page: 100,
+              }
+            );
+
+            console.log(`Total files: ${files.length}`);
+
+            const batchSize = 10;
+            const fileSummaries = [];
+
+            for (let i = 0; i < files.length; i += batchSize) {
+              const batch = files.slice(i, i + batchSize);
+
+              const prompt = batch.map(f => `
+                File: ${f.filename}
+                Status: ${f.status}
+                Patch:
+                ${f.patch ?? 'No diff available'}
+              `).join('\n\n');
+
+              const res = await fetch(
+                inferenceEndpoint,
+                {
+                  method: "POST",
+                  headers: {
+                    "Authorization": `Bearer ${process.env.GITHUB_TOKEN}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    model: "gpt-4.1-mini",
+                    messages: [
+                      {
+                        role: "system",
+                        content: "Summarize each file diff in 1–3 concise bullet points."
+                      },
+                      {
+                        role: "user",
+                        content: prompt
+                      }
+                    ],
+                    max_tokens: 800,
+                  }),
+                }
+              );
+
+              const data = await res.json();
+              const summary = data.choices?.[0]?.message?.content || "";
+
+              console.log(summary)
+              fileSummaries.push(summary);
+
+              await new Promise((res) => setTimeout(res, 5 * 1000));
+            }
+
+            const combinedSummaries = fileSummaries.join("\n\n");
+
+            const finalRes = await fetch(
+              inferenceEndpoint,
+              {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${process.env.GITHUB_TOKEN}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  model: "gpt-4.1-mini",
+                  messages: [
+                    {
+                      role: "system",
+                      content: `
+                        You are a senior software engineer and product-minded communicator.
+
+                        You are given:
+                        1. Pull request title
+                        2. Pull request description
+                        3. File-level summaries (derived from code diffs)
+
+                        Your job is to produce a clear, structured PR summary that:
+                        - can be posted as a GitHub PR comment
+                        - can be used as input for a product newsletter
+
+                        ---
+
+                        IMPORTANT:
+                        - File summaries reflect the actual code changes → TRUST THEM MOST
+                        - PR description reflects intent → use it for context
+                        - If description and code conflict → prioritize file summaries
+                        - Ignore low-signal or repetitive changes
+
+                        ---
+                        
+                        TASK:
+                        1. UNDERSTAND THE PR:
+                        - Infer the real purpose of the change
+                        - Connect related file-level changes into a coherent story
+                        - Identify whether this is a feature, improvement, bugfix, or refactor
+
+                        2. PRODUCE TWO SECTIONS:
+
+                        ### 1. Product Impact
+                        - What this means for users or the product
+                        - Translate technical changes into outcomes
+                        - Focus on value, usability, reliability, or capability
+                        - If no clear user impact, say: "No direct user-facing impact"
+
+                        ### 2. Classification
+                        - Type: (feature | improvement | bugfix | refactor | infra)
+                        - Impact Level: (low | medium | high)
+
+                        ---
+
+                        FORMAT (STRICT MARKDOWN):
+
+                        ## 🧠 PR Summary
+
+                        ### ✨ Product Impact
+                        ### 🏷️ Classification
+                        - Type: ...
+                        - Impact Level: ...
+
+                        ---
+
+                        RULES:
+
+                        - Be concise but meaningful
+                        - Do NOT repeat file summaries verbatim
+                        - Do NOT dump raw technical details
+                        - Avoid vague phrases like "enhanced system" or "improved performance" without specifics
+                        - Prefer concrete, high-signal wording
+                        - Do NOT include code blocks
+                        - Do NOT output JSON
+
+                        ---
+
+                        GOAL:
+
+                        The summary should be understandable by product stakeholders
+                      `
+                    },
+                    {
+                      role: "user",
+                      content: `
+                        PR TITLE:
+                        ${pr.title}
+
+                        PR DESCRIPTION:
+                        ${pr.body}
+
+                        FILE SUMMARIES:
+                        ${combinedSummaries}
+
+                        Follow best practices: concise, high-signal, no fluff.
+                      `
+                    }
+                  ],
+                  max_tokens: 1500,
+                }),
+              }
+            );
+
+            const finalData = await finalRes.json();
+            const finalSummary = finalData.choices?.[0]?.message?.content;
+
+            console.log("\n\n\n")
+            console.log(finalSummary)
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: finalSummary,
+            });
+
+            console.log("PR summary posted!");
