@@ -1,0 +1,8 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100" height="100" fill="#0066CC" rx="15"/>
+  <circle cx="30" cy="35" r="8" fill="#FFFFFF"/>
+  <circle cx="70" cy="35" r="8" fill="#FFFFFF"/>
+  <circle cx="50" cy="35" r="8" fill="#FFFFFF"/>
+  <rect x="20" y="55" width="60" height="8" fill="#FFFFFF" rx="4"/>
+  <text x="50" y="85" text-anchor="middle" fill="#FFFFFF" font-family="Arial" font-size="12" font-weight="bold">BBB</text>
+</svg>
