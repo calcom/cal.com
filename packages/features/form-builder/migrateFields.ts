@@ -54,6 +54,14 @@ export function enrichFieldWithUIConfig(rawField: Record<string, any>): BuilderF
   if (existingUIConfig.datePickerVariant && (type === "date" || type === "calendar")) {
     defaults.datePickerVariant = existingUIConfig.datePickerVariant;
   }
+  if (
+    (existingUIConfig.datePickerRange === "future" ||
+      existingUIConfig.datePickerRange === "past" ||
+      existingUIConfig.datePickerRange === "all") &&
+    (type === "date" || type === "calendar")
+  ) {
+    defaults.datePickerRange = existingUIConfig.datePickerRange;
+  }
   if (existingUIConfig.validation?.minChars) {
     defaults.validation = { minChars: existingUIConfig.validation.minChars };
   }

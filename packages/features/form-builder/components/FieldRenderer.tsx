@@ -28,6 +28,23 @@ interface FieldRendererProps {
   secondaryColor?: string;
 }
 
+type DatePickerRange = "future" | "past" | "all";
+
+const getDatePickerBounds = (datePickerRange?: DatePickerRange) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (datePickerRange === "past") {
+    return { minDate: null as Date | null, maxDate: today };
+  }
+
+  if (datePickerRange === "all") {
+    return { minDate: null as Date | null, maxDate: undefined };
+  }
+
+  return { minDate: today, maxDate: undefined };
+};
+
 export function FieldRenderer({
   field,
   fieldStyle = "default",
@@ -128,7 +145,8 @@ export function FieldRenderer({
       );
 
     // ── Date / Time ───────────────────────────────────────────────────────────
-    case "date":
+    case "date": {
+      const { minDate, maxDate } = getDatePickerBounds(uiConfig.datePickerRange);
       return (
         <DatePicker
           date={null as unknown as Date}
@@ -139,8 +157,11 @@ export function FieldRenderer({
           popoverSide="top"
           placeholder={field.placeholder || t("form_builder_pick_a_date")}
           variant={uiConfig.datePickerVariant ?? "default"}
+          minDate={minDate}
+          maxDate={maxDate}
         />
       );
+    }
 
     case "calendar":
       return (

@@ -443,6 +443,23 @@ function FieldTab({
             </div>
           )}
 
+          {field.type === "date" && (
+            <div className="space-y-1">
+              <FieldLabel>Allowed date values</FieldLabel>
+              <SegmentedControl
+                value={uiConfig.datePickerRange ?? "future"}
+                options={[
+                  { label: "Future", value: "future" as const },
+                  { label: "Past", value: "past" as const },
+                  { label: "All", value: "all" as const },
+                ]}
+                onChange={(v) =>
+                  onUpdateUIConfig({ datePickerRange: v === "future" ? undefined : v })
+                }
+              />
+            </div>
+          )}
+
           {/* Required */}
           <div className="flex items-center justify-between py-0.5">
             <FieldLabel className="mb-0">{t("required")}</FieldLabel>
