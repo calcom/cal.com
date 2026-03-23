@@ -1,15 +1,15 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Type, Transform } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
-  ValidateNested,
-  IsNumber,
-  Min,
-  Max,
-  IsOptional,
   IsArray,
-  IsEnum,
   IsBoolean,
+  IsEnum,
+  IsNumber,
+  IsOptional,
   IsString,
+  Max,
+  Min,
+  ValidateNested,
 } from "class-validator";
 
 export enum Status_2024_04_15 {
@@ -65,22 +65,21 @@ export class GetBookingsInput_2024_04_15 {
   @Min(1)
   @Max(100)
   @IsOptional()
-  @ApiPropertyOptional({ description: "Maximum number of bookings to retrieve.", example: 50 })
+  @ApiPropertyOptional({
+    description: "Maximum number of bookings to retrieve.",
+    example: 50,
+  })
   limit?: number;
 
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @IsOptional()
-  @ApiPropertyOptional({ description: "Cursor for pagination.", example: 10, nullable: true })
-  cursor?: number | null;
-
-  @IsString()
-  @IsOptional()
   @ApiPropertyOptional({
-    description: "Filter bookings by the attendee's email address.",
-    example: "example@domain.com",
+    description: "Cursor for pagination.",
+    example: 10,
+    nullable: true,
   })
-  attendeeEmail?: string;
+  cursor?: number | null;
 }
 
 export class CancelBookingInput_2024_04_15 {
