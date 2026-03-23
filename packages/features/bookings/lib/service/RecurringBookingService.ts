@@ -77,6 +77,7 @@ export const handleNewRecurringBooking = async function (
       bookingMeta: {
         hostname: input.hostname || "",
         forcedSlug: input.forcedSlug as string | undefined,
+        impersonatedByUserUuid: input.impersonatedByUserUuid ?? null,
         ...handleBookingMeta,
       },
     });
@@ -120,11 +121,12 @@ export const handleNewRecurringBooking = async function (
       bookingMeta: {
         hostname: input.hostname || "",
         forcedSlug: input.forcedSlug as string | undefined,
+        impersonatedByUserUuid: input.impersonatedByUserUuid ?? null,
         ...handleBookingMeta,
       },
     });
 
-    const eachRecurringBooking = await promiseEachRecurringBooking;
+    const eachRecurringBooking= await promiseEachRecurringBooking;
 
     createdBookings.push(eachRecurringBooking);
 
@@ -148,6 +150,7 @@ export const handleNewRecurringBooking = async function (
       actorUserUuid: input.userUuid ?? null,
       rescheduledBy: firstBooking.rescheduledBy ?? null,
       creationSource,
+      impersonatedByUserUuid: input.impersonatedByUserUuid ?? null,
     });
   }
 
@@ -164,7 +167,7 @@ export interface IRecurringBookingServiceDependencies {
  * Recurring Booking Service takes care of creating/rescheduling recurring bookings.
  */
 export class RecurringBookingService implements IBookingService {
-  constructor(private readonly deps: IRecurringBookingServiceDependencies) {}
+  constructor(private readonly deps: IRecurringBookingServiceDependencies) { }
 
   async fireBookingEvents({
     createdBookings,
@@ -173,6 +176,7 @@ export class RecurringBookingService implements IBookingService {
     actorUserUuid,
     rescheduledBy,
     creationSource,
+    impersonatedByUserUuid,
   }: {
     createdBookings: BookingResponse[];
     eventTypeId: number;
@@ -180,6 +184,7 @@ export class RecurringBookingService implements IBookingService {
     actorUserUuid: string | null;
     rescheduledBy: string | null;
     creationSource: CreationSource | undefined;
+    impersonatedByUserUuid: string | null;
   }) {
     try {
       type ValidBooking = BookingResponse & {
@@ -245,6 +250,8 @@ export class RecurringBookingService implements IBookingService {
         );
       };
 
+      const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
+
       if (isReschedule) {
         const bulkRescheduledBookings = createdBookings.filter(isValidRescheduledBooking).map((booking) => ({
           bookingUid: booking.previousBooking.uid,
@@ -261,11 +268,11 @@ export class RecurringBookingService implements IBookingService {
             organizationId: eventOrganizationId,
             operationId,
             source: actionSource,
+            context: auditContext,
             isBookingAuditEnabled,
           });
         }
       } else {
-        // For new bookings
         const bulkCreatedBookings = createdBookings.filter(isValidBooking).map((booking) => ({
           bookingUid: booking.uid,
           auditData: buildBookingCreatedAuditData({ booking, attendeeSeatId: null }),
@@ -278,6 +285,7 @@ export class RecurringBookingService implements IBookingService {
             organizationId: eventOrganizationId,
             operationId,
             source: actionSource,
+            context: auditContext,
             isBookingAuditEnabled,
           });
         }
@@ -292,7 +300,11 @@ export class RecurringBookingService implements IBookingService {
     bookingMeta?: CreateBookingMeta;
     creationSource: CreationSource;
   }): Promise<BookingResponse[]> {
-    const handlerInput = { bookingData: input.bookingData, ...(input.bookingMeta || {}) };
+    const handlerInput = {
+      bookingData: input.bookingData,
+      ...(input.bookingMeta || {}),
+      impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
+    };
     return handleNewRecurringBooking.bind(this)({
       input: handlerInput,
       deps: this.deps,
@@ -305,7 +317,11 @@ export class RecurringBookingService implements IBookingService {
     bookingMeta?: CreateBookingMeta;
     creationSource: CreationSource;
   }): Promise<BookingResponse[]> {
-    const handlerInput = { bookingData: input.bookingData, ...(input.bookingMeta || {}) };
+    const handlerInput = {
+      bookingData: input.bookingData,
+      ...(input.bookingMeta || {}),
+      impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
+    };
     return handleNewRecurringBooking.bind(this)({
       input: handlerInput,
       deps: this.deps,
