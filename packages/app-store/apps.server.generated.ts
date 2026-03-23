@@ -38,6 +38,7 @@ export const apiHandlers = {
   intercom: import("./intercom/api"),
   jelly: import("./jelly/api"),
   jitsivideo: import("./jitsivideo/api"),
+  bigbluebutton: import("./bigbluebutton/api"),
   larkcalendar: import("./larkcalendar/api"),
   linear: import("./linear/api"),
   lyra: import("./lyra/api"),

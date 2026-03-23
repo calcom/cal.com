@@ -2,6 +2,7 @@ import { DynamicComponent } from "@calcom/app-store/_components/DynamicComponent
 import dynamic from "next/dynamic";
 
 export const AppSetupMap = {
+  bigbluebutton: dynamic(() => import("@calcom/web/components/apps/bigbluebutton/Setup")),
   alby: dynamic(() => import("@calcom/web/components/apps/alby/Setup")),
   "apple-calendar": dynamic(() => import("@calcom/web/components/apps/applecalendar/Setup")),
   exchange: dynamic(() => import("@calcom/web/components/apps/exchangecalendar/Setup")),
