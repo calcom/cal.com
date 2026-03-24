@@ -250,7 +250,10 @@ describe("Created Action Integration", () => {
 
   describe("when multiple bookings are created in bulk", () => {
     it("should create audit records for all bookings with same operation ID", async () => {
+      const now = Date.now();
       const booking2 = await createTestBooking(testData.owner.id, testData.eventType.id, {
+        startTime: new Date(now + 2 * 60 * 60 * 1000),
+        endTime: new Date(now + 3 * 60 * 60 * 1000),
         attendees: [
           {
             email: testData.attendee.email,
@@ -261,6 +264,8 @@ describe("Created Action Integration", () => {
       });
 
       const booking3 = await createTestBooking(testData.owner.id, testData.eventType.id, {
+        startTime: new Date(now + 4 * 60 * 60 * 1000),
+        endTime: new Date(now + 5 * 60 * 60 * 1000),
         attendees: [
           {
             email: testData.attendee.email,

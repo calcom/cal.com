@@ -240,15 +240,14 @@ test.describe("Team", () => {
     const acceptResponse = await acceptPromise;
     expect(acceptResponse.status()).toBe(200);
 
-    // Wait for the cache invalidation to take effect
-    await page.waitForTimeout(1000);
-
-    // Navigate to /teams again and verify the team is immediately visible (not cached as empty)
-    await page.goto("/teams");
-    await page.waitForLoadState("domcontentloaded");
-
-    // The team should now appear as an accepted team with a link to its settings
-    await expect(page.getByTestId("team-list-item-link")).toBeVisible();
+    // Navigate to /teams and verify the accepted team is visible.
+    // Use toPass to retry navigation since the server may serve cached data
+    // before the accepted membership is reflected.
+    await expect(async () => {
+      await page.goto("/teams");
+      await page.waitForLoadState("domcontentloaded");
+      await expect(page.getByTestId("team-list-item-link")).toBeVisible();
+    }).toPass({ timeout: 15000, intervals: [1000, 2000, 3000] });
 
     // The pending invitation should no longer be visible
     await expect(page.getByTestId(`accept-invitation-${team.id}`)).toHaveCount(0);

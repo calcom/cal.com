@@ -115,7 +115,10 @@ describe("BookingAuditTasker Integration", () => {
     });
 
     it("should process bulk audit task and create DB records", async () => {
+      const now = Date.now();
       const booking2 = await createTestBooking(testData.owner.id, testData.eventType.id, {
+        startTime: new Date(now + 2 * 60 * 60 * 1000),
+        endTime: new Date(now + 3 * 60 * 60 * 1000),
         attendees: [
           {
             email: testData.attendee.email,
@@ -126,6 +129,8 @@ describe("BookingAuditTasker Integration", () => {
       });
 
       const booking3 = await createTestBooking(testData.owner.id, testData.eventType.id, {
+        startTime: new Date(now + 4 * 60 * 60 * 1000),
+        endTime: new Date(now + 5 * 60 * 60 * 1000),
         attendees: [
           {
             email: testData.attendee.email,

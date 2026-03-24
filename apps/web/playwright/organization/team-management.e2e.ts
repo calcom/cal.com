@@ -54,8 +54,10 @@ test.describe("Teams", () => {
     });
 
     await test.step("Can navigate to team settings", async () => {
-      // Click on the team to go to settings
-      await page.locator(`text=${user.username}'s Team`).click();
+      // Wait for the team name to be visible before clicking
+      const teamLocator = page.locator(`text=${user.username}'s Team`);
+      await expect(teamLocator).toBeVisible({ timeout: 15000 });
+      await teamLocator.click();
       await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
