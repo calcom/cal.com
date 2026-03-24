@@ -2533,11 +2533,11 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             setPreviewHtml("");
           }
         }}>
-        <DialogContent>
+        <DialogContent size="md">
           <DialogHeader>
             <DialogTitle>Preview</DialogTitle>
           </DialogHeader>
-          <iframe srcDoc={previewHtml} className="h-full w-full rounded border" title="Email preview" />
+          <iframe srcDoc={previewHtml} className="h-[80vh] w-full rounded border" title="Email preview" />
           <DialogFooter>
             <Button
               color="secondary"

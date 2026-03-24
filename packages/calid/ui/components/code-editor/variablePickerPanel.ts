@@ -95,7 +95,7 @@ export function variablePickerPanel(variables: string[]): Extension {
   const toggleEffect = StateEffect.define<boolean>();
 
   const panelState = StateField.define<boolean>({
-    create: () => true,
+    create: () => false,
     update(value, tr) {
       for (const effect of tr.effects) {
         if (effect.is(toggleEffect)) return effect.value;

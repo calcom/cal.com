@@ -257,6 +257,43 @@ const processCancelledNotifications = async (): Promise<number> => {
 
 const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowReminder[]> => {
   const mailDeliveryTasks: Promise<any>[] = [];
+  const enterpriseEmailPrefixCache = new Map<number, Promise<string | undefined>>();
+
+  const getEnterpriseEmailPrefix = async (
+    calIdTeamId: number | null | undefined
+  ): Promise<string | undefined> => {
+    if (!calIdTeamId) {
+      return undefined;
+    }
+
+    if (!enterpriseEmailPrefixCache.has(calIdTeamId)) {
+      enterpriseEmailPrefixCache.set(
+        calIdTeamId,
+        prisma.calIdTeam
+          .findUnique({
+            where: {
+              id: calIdTeamId,
+            },
+            select: {
+              metadata: true,
+            },
+          })
+          .then((team) => {
+            const metadata = team?.metadata;
+
+            if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+              return undefined;
+            }
+
+            const prefix = (metadata as Record<string, unknown>).enterpriseEmailPrefix;
+            return typeof prefix === "string" && prefix.length > 0 ? prefix : undefined;
+          })
+          .catch(() => undefined)
+      );
+    }
+
+    return enterpriseEmailPrefixCache.get(calIdTeamId)!;
+  };
 
   const pendingNotifications: PartialCalIdWorkflowReminder[] = await getAllUnscheduledReminders();
 
@@ -334,6 +371,8 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
             booking: notification.booking,
           });
 
+          const rawResponses = notification.booking.responses;
+
           const organizerProfile = await prisma.profile.findFirst({
             where: {
               userId: notification.booking.user?.id,
@@ -360,7 +399,7 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
             additionalNotes: notification.booking.description,
             responses: responses,
             meetingUrl: bookingMetadataSchema.parse(notification.booking.metadata || {})?.videoCallUrl,
-            onlineMeetingUrl: (responses && responses["location"] && responses["location"].value !== 'inPerson' ) ? bookingMetadataSchema.parse(notification.booking.metadata || {})?.videoCallUrl : undefined,
+            onlineMeetingUrl: (rawResponses && rawResponses["location"] && rawResponses["location"].value !== 'inPerson' ) ? bookingMetadataSchema.parse(notification.booking.metadata || {})?.videoCallUrl : undefined,
             cancelUrl: `${bookingUrl}/booking/${notification.booking.uid}?cancel=true`,
             rescheduleUrl: `${bookingUrl}/reschedule/${notification.booking.uid}`,
             ratingUrl: `${bookingUrl}/booking/${notification.booking.uid}?rating`,
@@ -445,6 +484,9 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
         }
         if (messageContent.emailSubject.length > 0 && !isBodyEmpty && recipientAddress) {
           const batchIdentifier = await getBatchId();
+          const enterpriseEmailPrefix = await getEnterpriseEmailPrefix(
+            notification.workflowStep?.workflow?.calIdTeamId
+          );
           const bookingData = notification.booking;
           const translator = await getTranslation(bookingData.user?.locale ?? "en", "common");
           const attendeeTranslationTasks: Promise<
@@ -514,7 +556,10 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
                       ]
                     : undefined,
                 },
-                { sender: notification.workflowStep?.sender },
+                {
+                  sender: notification.workflowStep?.sender,
+                  enterpriseEmailPrefix,
+                },
                 {
                   msgId: batchIdentifier,
                 }
@@ -585,6 +630,9 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
         });
         if (messageContent.emailSubject.length > 0 && !isBodyEmpty && recipientAddress) {
           const batchIdentifier = await getBatchId();
+          const enterpriseEmailPrefix = await getEnterpriseEmailPrefix(
+            notification.workflowStep?.workflow?.calIdTeamId
+          );
 
           mailDeliveryTasks.push(
             (async () => {
@@ -598,7 +646,10 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
                   sendAt: dayjs(notification.scheduledDate).unix(),
                   replyTo: notification.booking?.userPrimaryEmail ?? notification.booking?.user?.email,
                 },
-                { sender: notification.workflowStep?.sender },
+                {
+                  sender: notification.workflowStep?.sender,
+                  enterpriseEmailPrefix,
+                },
                 {
                   msgId: batchIdentifier,
                 }
