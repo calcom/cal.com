@@ -392,7 +392,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
           formResponseId: formResponse?.id ?? null,
           queuedFormResponseId: queuedFormResponse?.id ?? null,
         });
-
         return;
       }
 
@@ -488,27 +487,61 @@ export default function RoutingLink(props: inferSSRProps<typeof getServerSidePro
 
 const usePrefilledResponse = (form: Props["form"]) => {
   const searchParams = useCompatSearchParams();
-  const prefillResponse: FormResponse = {};
+  const [response, setResponse] = useState<FormResponse>({});
 
-  // Prefill the form from query params
-  form.fields?.forEach((field) => {
-    const valuesFromQuery = searchParams?.getAll(getFieldIdentifier(field)).filter(Boolean) ?? [];
-    const selectOptions = field.type === "select" ? getUIOptionsForSelect(field) : [];
-    const autoSelectedValue =
-      valuesFromQuery.length === 0 && selectOptions.length === 1
-        ? String(selectOptions[0].value)
-        : undefined;
-    // We only want to keep arrays if the field is a multi-select
-    const value =
-      valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0] ?? autoSelectedValue;
-    const optionId = getOptionIdForValue({ field, value });
+  useEffect(() => {
+    if (!form.fields?.length) return;
 
-    prefillResponse[field.id] = {
-      value: getFieldResponseForJsonLogic({ field, value }),
-      label: field.label,
-      ...(optionId !== undefined ? { optionId } : {}),
-    };
-  });
-  const [response, setResponse] = useState<FormResponse>(prefillResponse);
+    const prefilledResponse: FormResponse = {};
+
+    form.fields.forEach((rawField) => {
+      const field = isRouterLinkedField(rawField) ? (rawField as any).routerField ?? rawField : rawField;
+      const valuesFromQuery = searchParams?.getAll(getFieldIdentifier(field)).filter(Boolean) ?? [];
+      const selectOptions = field.type === "select" ? getUIOptionsForSelect(field) : [];
+      const autoSelectedValue =
+        valuesFromQuery.length === 0 && selectOptions.length === 1
+          ? String(selectOptions[0].value)
+          : undefined;
+      // We only want to keep arrays if the field is a multi-select
+      const value =
+        valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0] ?? autoSelectedValue;
+      const optionId = getOptionIdForValue({ field, value });
+
+      prefilledResponse[field.id] = {
+        value: getFieldResponseForJsonLogic({ field, value }),
+        label: field.label,
+        ...(field.identifier ? { identifier: field.identifier } : {}),
+        ...(optionId !== undefined ? { optionId } : {}),
+      };
+    });
+
+    setResponse((prev) => {
+      let changed = false;
+      const next = { ...prev };
+
+      Object.entries(prefilledResponse).forEach(([fieldId, fieldResponse]) => {
+        const currentValue = prev[fieldId]?.value;
+        const prefilledValue = fieldResponse.value;
+        const isCurrentEmpty =
+          currentValue === undefined ||
+          currentValue === null ||
+          currentValue === "" ||
+          (Array.isArray(currentValue) && currentValue.length === 0);
+        const hasPrefilledValue =
+          prefilledValue !== undefined &&
+          prefilledValue !== null &&
+          prefilledValue !== "" &&
+          (!Array.isArray(prefilledValue) || prefilledValue.length > 0);
+
+        if (!(fieldId in prev) || (isCurrentEmpty && hasPrefilledValue)) {
+          next[fieldId] = fieldResponse;
+          changed = true;
+        }
+      });
+
+      return changed ? next : prev;
+    });
+  }, [form.fields, searchParams?.toString()]);
+
   return [response, setResponse] as const;
 };

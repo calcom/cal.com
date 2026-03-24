@@ -57,9 +57,21 @@ export default function FormEditPage({
       <SingleForm
         {...props}
         appUrl={appUrl}
-        Page={({ hookForm, form, uptoDateForm }) => (
-          <FormBuilderPage hookForm={hookForm} form={form} uptoDateForm={uptoDateForm} appUrl={appUrl} />
-        )}
+        Page={({ hookForm, form, uptoDateForm }) => {
+          const watchedId = hookForm.watch("id");
+          const watchedFields = hookForm.watch("fields");
+          const isHookFormInitialized = watchedId === form.id && watchedFields !== undefined;
+
+          return (
+            <FormBuilderPage
+              hookForm={hookForm}
+              form={form}
+              uptoDateForm={uptoDateForm}
+              appUrl={appUrl}
+              showCanvasSkeleton={!isHookFormInitialized}
+            />
+          );
+        }}
       />
     </>
   );
