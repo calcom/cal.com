@@ -66,11 +66,12 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
     const teamBillingService = await teamBillingServiceFactory.findAndInit(teamId);
 
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
+    const isTrialing = subscriptionStatus === SubscriptionStatus.TRIALING;
     const parsedMetadata = teamMetadataStrictSchema.safeParse(team.metadata);
     const subscriptionId = parsedMetadata.success ? parsedMetadata.data?.subscriptionId : null;
     let subscription = null;
 
-    if (subscriptionStatus === SubscriptionStatus.TRIALING && !isNil(subscriptionId)) {
+    if (isTrialing && !isNil(subscriptionId)) {
       try {
         subscription = await getBillingProviderService().getSubscription(subscriptionId);
       } catch (error) {
@@ -85,7 +86,7 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
 
     return {
       status: subscriptionStatus,
-      isTrialing: subscriptionStatus === SubscriptionStatus.TRIALING,
+      isTrialing,
       isCancellationScheduled:
         !isNil(subscription) &&
         (subscription.cancel_at_period_end === true || !isNil(subscription.cancel_at)),
