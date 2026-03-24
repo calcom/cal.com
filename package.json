@@ -165,6 +165,7 @@
     "bn.js": "4.12.3",
     "minimatch@10.0.3": "10.2.4",
     "multer": "2.1.1",
+    "flatted": "3.4.2",
     "socket.io-parser": "4.2.6"
   },
   "packageExtensions": {
