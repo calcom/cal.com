@@ -13,6 +13,12 @@
   <path d="m12 19-7-7 7-7" ></path>
   <path d="M19 12H5" ></path>
 </symbol>
+<symbol class="lucide lucide-arrow-left-right" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="arrow-left-right">
+  <path d="M8 3 4 7l4 4" ></path>
+  <path d="M4 7h16" ></path>
+  <path d="m16 21 4-4-4-4" ></path>
+  <path d="M20 17H4" ></path>
+</symbol>
 <symbol class="lucide lucide-arrow-right" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="arrow-right">
   <path d="M5 12h14" ></path>
   <path d="m12 5 7 7-7 7" ></path>
@@ -394,6 +400,10 @@
   <path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3" ></path>
   <path d="M3 4h8" ></path>
 </symbol>
+<symbol class="lucide lucide-house" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="house">
+  <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" ></path>
+  <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" ></path>
+</symbol>
 <symbol class="lucide lucide-info" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="info">
   <circle cx="12" cy="12" r="10" ></circle>
   <path d="M12 16v-4" ></path>
@@ -419,6 +429,12 @@
   <rect width="7" height="5" x="14" y="3" rx="1" ></rect>
   <rect width="7" height="9" x="14" y="12" rx="1" ></rect>
   <rect width="7" height="5" x="3" y="16" rx="1" ></rect>
+</symbol>
+<symbol class="lucide lucide-layout-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="layout-grid">
+  <rect width="7" height="7" x="3" y="3" rx="1" stroke="currentColor" fill="none" ></rect>
+  <rect width="7" height="7" x="14" y="3" rx="1" stroke="currentColor" fill="none" ></rect>
+  <rect width="7" height="7" x="14" y="14" rx="1" stroke="currentColor" fill="none" ></rect>
+  <rect width="7" height="7" x="3" y="14" rx="1" stroke="currentColor" fill="none" ></rect>
 </symbol>
 <symbol class="lucide lucide-link-2" viewBox="0 0 24 24" fill="inherit" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="link-2">
   <path d="M9 17H7A5 5 0 0 1 7 7h2" ></path>

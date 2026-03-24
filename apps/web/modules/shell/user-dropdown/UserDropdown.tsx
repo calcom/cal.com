@@ -200,7 +200,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                 <UserIcon />
                 {t("my_profile")}
               </MenuItem>
-              <MenuItem render={<Link href="/settings/my-account/general" />}>
+              <MenuItem render={<Link href={isMobile ? "/settings/my-account/profile" : "/settings"} />}>
                 <SettingsIcon />
                 {t("my_settings")}
               </MenuItem>

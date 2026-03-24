@@ -542,11 +542,6 @@ const nextConfig = (phase: string): NextConfig => {
           permanent: false,
         },
         {
-          source: "/settings",
-          destination: "/settings/my-account/profile",
-          permanent: true,
-        },
-        {
           source: "/settings/teams",
           destination: "/teams",
           permanent: true,

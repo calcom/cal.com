@@ -135,7 +135,10 @@ async function writeIfChanged(filepath, newContent) {
     .catch(() => "");
   if (currentContent === newContent) return false;
   await fsExtra.writeFile(filepath, newContent, "utf8");
-  await $`node ${biomeBin} format --write ${filepath}`;
+  // Only run Biome on files it can format (skip SVG files)
+  if (!filepath.endsWith(".svg")) {
+    await $`node ${biomeBin} format --write ${filepath}`;
+  }
   return true;
 }
 

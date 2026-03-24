@@ -84,7 +84,7 @@ export function useBottomNavItems({
       : null,
     {
       name: "settings",
-      href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
+      href: "/settings",
       icon: "settings",
     },
   ].filter(Boolean) as NavigationItemType[];

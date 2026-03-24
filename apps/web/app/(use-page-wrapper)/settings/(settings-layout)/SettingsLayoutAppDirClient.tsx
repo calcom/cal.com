@@ -48,6 +48,10 @@ import type { ComponentProps } from "react";
 import React, { useEffect, useMemo, useState } from "react";
 import Shell from "~/shell/Shell";
 
+/**
+ * When adding a new setting here, also add it to the settings home screen:
+ * apps/web/modules/settings/home/settings-home-data.ts
+ */
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [
     {
@@ -696,9 +700,9 @@ const TeamListCollapsible = ({
                   >
                     <div className="me-3">
                       {teamMenuState[index].teamMenuOpen ? (
-                        <ChevronDownIcon className="h-4 w-4" />
+                        <ChevronDownIcon className="w-4 h-4" />
                       ) : (
-                        <ChevronRightIcon className="h-4 w-4" />
+                        <ChevronRightIcon className="w-4 h-4" />
                       )}
                     </div>
                     {}
@@ -711,7 +715,7 @@ const TeamListCollapsible = ({
                         alt={team.name || "Team logo"}
                       />
                     )}
-                    <p className="w-1/2 truncate leading-normal">{team.name}</p>
+                    <p className="w-1/2 leading-normal truncate">{team.name}</p>
                     {!team.accepted && (
                       <Badge className="ms-3" variant="orange">
                         Inv.
@@ -851,6 +855,7 @@ const SettingsSidebarContainer = ({
   permissions,
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
+  const pathname = usePathname();
   const orgBranding = useOrgBranding();
   const { t } = useLocale();
   const [otherTeamMenuState, setOtherTeamMenuState] = useState<
@@ -914,16 +919,31 @@ const SettingsSidebarContainer = ({
         top: `${bannersHeight}px`,
       }}
       className={classNames(
-        "no-scrollbar bg-cal-muted stack-y-1 fixed bottom-0 left-0 top-0 z-20 flex max-h-screen w-56 flex-col overflow-x-hidden overflow-y-scroll px-2 pb-3 transition-transform max-lg:z-10 lg:sticky lg:flex",
+        "flex overflow-x-hidden overflow-y-scroll fixed top-0 bottom-0 left-0 z-20 flex-col px-2 pb-3 w-56 max-h-screen transition-transform no-scrollbar bg-cal-muted stack-y-1 max-lg:z-10 lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
-          ? "translate-x-0 opacity-100"
-          : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
+          ? "opacity-100 translate-x-0"
+          : "opacity-0 -translate-x-full lg:translate-x-0 lg:opacity-100"
       )}
       aria-label={t("settings_navigation")}
     >
       <>
         <BackButtonInSidebar name={t("back")} />
+        <Link
+          href="/settings"
+          className={classNames(
+            "hover:bg-subtle mb-1 hidden h-7 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition lg:flex",
+            pathname === "/settings" && "bg-emphasis"
+          )}
+        >
+          <Icon
+            name="layout-grid"
+            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3"
+          />
+          <span className="text-sm font-medium text-subtle">
+            {t("overview")}
+          </span>
+        </Link>
         {tabsWithPermissions.map((tab) => {
           return (
             <React.Fragment key={tab.href}>
@@ -950,7 +970,7 @@ const SettingsSidebarContainer = ({
                       <Skeleton
                         title={tab.name}
                         as="p"
-                        className="text-subtle truncate text-sm font-medium leading-5"
+                        className="text-sm font-medium leading-5 truncate text-subtle"
                         loadingClassName="ms-3"
                       >
                         {t(tab.name)}
@@ -959,7 +979,7 @@ const SettingsSidebarContainer = ({
                   </div>
                   <div className="flex flex-col space-y-1">
                     {tab.children?.map((child, index) => (
-                      <div key={child.href} className="flex items-start gap-2">
+                      <div key={child.href} className="flex gap-2 items-start">
                         <VerticalTabItem
                           name={t(child.name)}
                           isExternalLink={child.isExternalLink}
@@ -1001,7 +1021,7 @@ const SettingsSidebarContainer = ({
                         <Skeleton
                           title={tab.name}
                           as="p"
-                          className="text-subtle truncate text-sm font-medium leading-5"
+                          className="text-sm font-medium leading-5 truncate text-subtle"
                           loadingClassName="ms-3"
                         >
                           {t("my_teams")}
@@ -1042,7 +1062,7 @@ const SettingsSidebarContainer = ({
                         <Skeleton
                           title={t("org_admin_other_teams")}
                           as="p"
-                          className="text-subtle truncate text-sm font-medium leading-5"
+                          className="text-sm font-medium leading-5 truncate text-subtle"
                           loadingClassName="ms-3"
                         >
                           {t("org_admin_other_teams")}
@@ -1121,9 +1141,9 @@ const SettingsSidebarContainer = ({
                                 >
                                   <div className="me-3">
                                     {otherTeamMenuState[index].teamMenuOpen ? (
-                                      <ChevronDownIcon className="h-4 w-4" />
+                                      <ChevronDownIcon className="w-4 h-4" />
                                     ) : (
-                                      <ChevronRightIcon className="h-4 w-4" />
+                                      <ChevronRightIcon className="w-4 h-4" />
                                     )}
                                   </div>
                                   {}
@@ -1139,7 +1159,7 @@ const SettingsSidebarContainer = ({
                                       alt={otherTeam.name || "Team logo"}
                                     />
                                   )}
-                                  <p className="w-1/2 truncate leading-normal">
+                                  <p className="w-1/2 leading-normal truncate">
                                     {otherTeam.name}
                                   </p>
                                 </button>
@@ -1207,7 +1227,7 @@ const MobileSettingsContainer = (props: {
 
   return (
     <>
-      <nav className="bg-cal-muted border-muted sticky top-0 z-20 flex w-full items-center justify-between border-b px-2 py-2 sm:relative lg:hidden">
+      <nav className="flex sticky top-0 z-20 justify-between items-center px-2 py-2 w-full border-b bg-cal-muted border-muted sm:relative lg:hidden">
         <div className="flex items-center space-x-3">
           <Button
             StartIcon="menu"
@@ -1219,11 +1239,11 @@ const MobileSettingsContainer = (props: {
           </Button>
 
           <button
-            className="hover:bg-emphasis flex items-center space-x-2 rounded-md px-3 py-1 rtl:space-x-reverse"
+            className="flex items-center px-3 py-1 space-x-2 rounded-md hover:bg-emphasis rtl:space-x-reverse"
             onClick={() => router.back()}
           >
-            <ArrowLeftIcon className="text-default h-4 w-4" />
-            <p className="text-emphasis font-semibold">{t("settings")}</p>
+            <ArrowLeftIcon className="w-4 h-4 text-default" />
+            <p className="font-semibold text-emphasis">{t("settings")}</p>
           </button>
         </div>
       </nav>
@@ -1246,6 +1266,7 @@ function SettingsLayoutAppDirClient({
 }: SettingsLayoutProps) {
   const pathname = usePathname();
   const isFullWidthPage =
+    pathname === "/settings" ||
     (pathname?.includes("/settings/teams/") &&
       (pathname?.includes("/attributes") || pathname?.includes("/roles"))) ||
     pathname?.startsWith("/settings/admin/playground");
@@ -1293,7 +1314,7 @@ function SettingsLayoutAppDirClient({
         <div
           className={classNames(
             "mx-auto justify-center",
-            !isFullWidthPage && "max-w-full lg:max-w-3xl",
+            isFullWidthPage ? "px-4" : "max-w-full lg:max-w-3xl",
             rest.containerClassName
           )}
         >
@@ -1326,7 +1347,7 @@ const SidebarContainerElement = ({
       {sideContainerOpen && (
         <button
           onClick={() => setSideContainerOpen(false)}
-          className="fixed left-0 top-0 z-10 h-full w-full bg-black/50"
+          className="fixed top-0 left-0 z-10 w-full h-full bg-black/50"
         >
           <span className="sr-only">{t("hide_navigation")}</span>
         </button>
