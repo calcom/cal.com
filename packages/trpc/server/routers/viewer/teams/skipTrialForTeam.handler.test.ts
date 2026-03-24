@@ -150,4 +150,17 @@ describe("skipTrialForTeamHandler", () => {
 
     expect(mockEndTrial).not.toHaveBeenCalled();
   });
+
+  it("still ends the trial when the cancellation lookup fails", async () => {
+    mockGetSubscription.mockRejectedValueOnce(new Error("Stripe timeout"));
+
+    const result = await skipTrialForTeamHandler({
+      // @ts-expect-error simplified test context
+      ctx,
+      input,
+    });
+
+    expect(result).toEqual({ success: true });
+    expect(mockEndTrial).toHaveBeenCalled();
+  });
 });

@@ -86,7 +86,13 @@ export const skipTrialForTeamHandler = async ({ ctx, input }: SkipTrialForTeamOp
     const subscriptionId = parsedMetadata.success ? parsedMetadata.data?.subscriptionId : null;
 
     if (!isNil(subscriptionId)) {
-      const subscription = await getBillingProviderService().getSubscription(subscriptionId);
+      let subscription = null;
+
+      try {
+        subscription = await getBillingProviderService().getSubscription(subscriptionId);
+      } catch (error) {
+        log.error("Error getting trial cancellation details", error);
+      }
 
       if (hasScheduledCancellation(subscription)) {
         throw new TRPCError({
