@@ -108,6 +108,21 @@ describe("handleBookingRequested", () => {
     );
   });
 
+  it("passes hashedLink to webhook queue when provided", async () => {
+    const { getWebhookProducer } = await import("@calcom/features/di/webhooks/containers/webhook");
+    await handleBookingRequested({
+      evt: makeEvt() as never,
+      booking: makeBooking() as never,
+      hashedLink: "private-link-uuid",
+    });
+
+    const producer = getWebhookProducer();
+    expect(producer.queueBookingWebhook).toHaveBeenCalledWith(
+      "BOOKING_REQUESTED",
+      expect.objectContaining({ hashedLink: "private-link-uuid" })
+    );
+  });
+
   it("does not throw when webhook queueing fails", async () => {
     const { getWebhookProducer } = await import("@calcom/features/di/webhooks/containers/webhook");
     vi.mocked(getWebhookProducer).mockReturnValue({

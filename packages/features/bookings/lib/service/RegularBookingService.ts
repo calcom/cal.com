@@ -2935,6 +2935,7 @@ async function handler(
           platformCancelUrl: platformCancelUrl ?? undefined,
           platformBookingUrl: platformBookingUrl ?? undefined,
           attendeeSeatId: evt.attendeeSeatId ?? undefined,
+          hashedLink: hasHashedBookingLink ? (reqBody.hashedLink ?? null) : null,
         });
       } catch (webhookError) {
         tracingLogger.error(

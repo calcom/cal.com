@@ -21,6 +21,8 @@ export async function handleBookingRequested(args: {
   evt: CalendarEvent;
   /** When booking is from a platform/OAuth client, pass so platform webhook subscribers are notified */
   oAuthClientId?: string | null;
+  /** The specific hashed-link UUID used when booking via a private link */
+  hashedLink?: string | null;
   booking: {
     smsReminderNumber: string | null;
     eventType: {
@@ -56,7 +58,7 @@ export async function handleBookingRequested(args: {
     id: number;
   };
 }) {
-  const { evt, booking, oAuthClientId } = args;
+  const { evt, booking, oAuthClientId, hashedLink } = args;
 
   log.debug("Emails: Sending booking requested emails");
 
@@ -87,6 +89,7 @@ export async function handleBookingRequested(args: {
           teamId: booking.eventType?.teamId ?? undefined,
           orgId,
           oAuthClientId: oAuthClientId ?? undefined,
+          hashedLink: hashedLink ?? undefined,
         });
       } catch (error) {
         log.error("Error queueing BOOKING_REQUESTED webhook", safeStringify(error));

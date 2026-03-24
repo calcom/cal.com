@@ -534,4 +534,113 @@ describe("BOOKING_CREATED Trigger", () => {
       );
     });
   });
+
+  describe("HashedLink (private booking link)", () => {
+    const realPayloadBuilderFactory = createPayloadBuilderFactory();
+
+    const defaultSubscriber = {
+      id: "sub-1",
+      subscriberUrl: "https://example.com/webhook",
+      payloadTemplate: null,
+      appId: null,
+      secret: "secret",
+      time: null,
+      timeUnit: null,
+      eventTriggers: [WebhookTriggerEvents.BOOKING_CREATED],
+      version: WebhookVersion.V_2021_10_20,
+    };
+
+    function buildConsumerWithRealBuilder() {
+      return new WebhookTaskConsumer(
+        mockWebhookRepository,
+        [mockBookingDataFetcher],
+        realPayloadBuilderFactory,
+        mockWebhookService,
+        mockLogger
+      );
+    }
+
+    function getDeliveredPayload(): Record<string, unknown> {
+      const [, webhookPayload] = vi.mocked(mockWebhookService.processWebhooks).mock.calls[0];
+      return (webhookPayload as { triggerEvent: string; createdAt: string; payload: Record<string, unknown> })
+        .payload;
+    }
+
+    it("includes hashedLink from calendar event when present", async () => {
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        calendarEvent: createMockCalendarEvent({
+          hashedLink: "https://cal.com/d/abc123hash/test-event",
+        }),
+        booking: createMockBooking(),
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-hashed-link",
+          triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+          bookingUid: "booking-uid-hashed",
+          eventTypeId: 456,
+          userId: 789,
+          hashedLink: "abc123hash",
+          timestamp: new Date().toISOString(),
+        },
+        "task-hashed-link"
+      );
+
+      const p = getDeliveredPayload();
+      expect(p.hashedLink).toBe("https://cal.com/d/abc123hash/test-event");
+    });
+
+    it("hashedLink defaults to null when not provided in calendar event", async () => {
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        calendarEvent: createMockCalendarEvent(),
+        booking: createMockBooking(),
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-no-hashed-link",
+          triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+          bookingUid: "booking-uid-no-hash",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-no-hashed-link"
+      );
+
+      const p = getDeliveredPayload();
+      expect(p.hashedLink).toBeNull();
+    });
+
+    it("passes hashedLink through task payload to fetchEventData", async () => {
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-hashed-link-passthrough",
+          triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+          bookingUid: "booking-uid-passthrough",
+          eventTypeId: 456,
+          userId: 789,
+          hashedLink: "private-link-uuid",
+          timestamp: new Date().toISOString(),
+        },
+        "task-hashed-link-passthrough"
+      );
+
+      expect(mockBookingDataFetcher.fetchEventData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          hashedLink: "private-link-uuid",
+        })
+      );
+    });
+  });
 });

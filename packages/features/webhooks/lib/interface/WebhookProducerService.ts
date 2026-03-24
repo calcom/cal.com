@@ -33,6 +33,8 @@ export interface QueueBookingWebhookParams extends BaseQueueWebhookParams {
   platformBookingUrl?: string | null;
   /** Non-PII seat reference UUID; lets the consumer resolve the correct seat without email-matching */
   attendeeSeatId?: string;
+  /** The specific hashed-link UUID used when booking via a private link */
+  hashedLink?: string | null;
 }
 
 /**

@@ -36,6 +36,8 @@ export const bookingWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
   platformBookingUrl: z.string().nullable().optional(),
   /** Non-PII seat reference UUID; lets the consumer resolve the correct seat without email-matching */
   attendeeSeatId: z.string().optional(),
+  /** The specific hashed-link UUID used when booking via a private link */
+  hashedLink: z.string().nullable().optional(),
 });
 
 /**
@@ -241,7 +243,6 @@ export const oooEntrySchema = z.object({
     .nullable(),
   uuid: z.string(),
 });
-
 
 /**
  * Routing Form Fallback Hit metadata — PII-free; only non-sensitive action context.

@@ -2091,5 +2091,239 @@ describe("CalendarEventBuilder", () => {
         expect(googleMeetStatus?.appName).not.toBe("google-video");
       }
     });
+
+    it("should build hashedLink URL from metadata param", async () => {
+      const mockBooking = {
+        uid: "booking-hashed-link-meta",
+        metadata: null,
+        title: "Hashed Link Event",
+        startTime: new Date(mockStartTime),
+        endTime: new Date(mockEndTime),
+        description: null,
+        location: null,
+        responses: null,
+        customInputs: null,
+        iCalUID: null,
+        iCalSequence: 0,
+        oneTimePassword: null,
+        attendees: [
+          {
+            name: "Attendee",
+            email: "attendee@example.com",
+            timeZone: "UTC",
+            locale: "en",
+            phoneNumber: null,
+          },
+        ],
+        user: {
+          id: 1,
+          name: "Host",
+          email: "host@example.com",
+          username: "host",
+          timeZone: "UTC",
+          locale: "en",
+          timeFormat: 12,
+          destinationCalendar: null,
+          profiles: [],
+        },
+        destinationCalendar: null,
+        eventType: {
+          id: 300,
+          title: "Private Event",
+          slug: "private-event",
+          description: null,
+          hideCalendarNotes: false,
+          hideCalendarEventDetails: false,
+          hideOrganizerEmail: false,
+          schedulingType: null,
+          seatsPerTimeSlot: null,
+          seatsShowAttendees: false,
+          seatsShowAvailabilityCount: false,
+          customReplyToEmail: null,
+          disableRescheduling: false,
+          disableCancelling: false,
+          requiresConfirmation: false,
+          recurringEvent: null,
+          bookingFields: [],
+          metadata: null,
+          eventName: null,
+          team: null,
+          users: [],
+          hosts: [],
+          workflows: [],
+        },
+        references: [],
+        seatsReferences: [],
+      } satisfies BookingForCalEventBuilder;
+
+      const eventFromBooking = await CalendarEventBuilder.fromBooking(mockBooking, {
+        hashedLink: "abc-123-uuid",
+      });
+      const builtEvent = eventFromBooking.build();
+
+      expect(builtEvent).not.toBeNull();
+      if (builtEvent) {
+        expect(builtEvent.hashedLink).toBe("https://cal.com/d/abc-123-uuid/private-event");
+      }
+    });
+
+    it("should default hashedLink to null when not provided in metadata", async () => {
+      const mockBooking = {
+        uid: "booking-no-hashed-link",
+        metadata: null,
+        title: "Normal Event",
+        startTime: new Date(mockStartTime),
+        endTime: new Date(mockEndTime),
+        description: null,
+        location: null,
+        responses: null,
+        customInputs: null,
+        iCalUID: null,
+        iCalSequence: 0,
+        oneTimePassword: null,
+        attendees: [
+          {
+            name: "Attendee",
+            email: "attendee@example.com",
+            timeZone: "UTC",
+            locale: "en",
+            phoneNumber: null,
+          },
+        ],
+        user: {
+          id: 1,
+          name: "Host",
+          email: "host@example.com",
+          username: "host",
+          timeZone: "UTC",
+          locale: "en",
+          timeFormat: 12,
+          destinationCalendar: null,
+          profiles: [],
+        },
+        destinationCalendar: null,
+        eventType: {
+          id: 300,
+          title: "Normal Event Type",
+          slug: "normal-event",
+          description: null,
+          hideCalendarNotes: false,
+          hideCalendarEventDetails: false,
+          hideOrganizerEmail: false,
+          schedulingType: null,
+          seatsPerTimeSlot: null,
+          seatsShowAttendees: false,
+          seatsShowAvailabilityCount: false,
+          customReplyToEmail: null,
+          disableRescheduling: false,
+          disableCancelling: false,
+          requiresConfirmation: false,
+          recurringEvent: null,
+          bookingFields: [],
+          metadata: null,
+          eventName: null,
+          team: null,
+          users: [],
+          hosts: [],
+          workflows: [],
+        },
+        references: [],
+        seatsReferences: [],
+      } satisfies BookingForCalEventBuilder;
+
+      const eventFromBooking = await CalendarEventBuilder.fromBooking(mockBooking);
+      const builtEvent = eventFromBooking.build();
+
+      expect(builtEvent).not.toBeNull();
+      if (builtEvent) {
+        expect(builtEvent.hashedLink).toBeNull();
+      }
+    });
+
+    it("should build hashedLink URL using org custom domain from bookerUrl", async () => {
+      const { getBookerBaseUrl } = await import("@calcom/features/ee/organizations/lib/getBookerUrlServer");
+      vi.mocked(getBookerBaseUrl).mockResolvedValueOnce("https://acme.cal.com");
+
+      const mockBooking = {
+        uid: "booking-org-hashed-link",
+        metadata: null,
+        title: "Org Hashed Link Event",
+        startTime: new Date(mockStartTime),
+        endTime: new Date(mockEndTime),
+        description: null,
+        location: null,
+        responses: null,
+        customInputs: null,
+        iCalUID: null,
+        iCalSequence: 0,
+        oneTimePassword: null,
+        attendees: [
+          {
+            name: "Attendee",
+            email: "attendee@example.com",
+            timeZone: "UTC",
+            locale: "en",
+            phoneNumber: null,
+          },
+        ],
+        user: {
+          id: 1,
+          name: "Org User",
+          email: "user@acme.com",
+          username: "orguser",
+          timeZone: "UTC",
+          locale: "en",
+          timeFormat: 12,
+          destinationCalendar: null,
+          profiles: [{ organizationId: 10 }],
+        },
+        destinationCalendar: null,
+        eventType: {
+          id: 500,
+          title: "Org Event",
+          slug: "org-event",
+          description: null,
+          hideCalendarNotes: false,
+          hideCalendarEventDetails: false,
+          hideOrganizerEmail: false,
+          schedulingType: null,
+          seatsPerTimeSlot: null,
+          seatsShowAttendees: false,
+          seatsShowAvailabilityCount: false,
+          customReplyToEmail: null,
+          disableRescheduling: false,
+          disableCancelling: false,
+          requiresConfirmation: false,
+          recurringEvent: null,
+          bookingFields: [],
+          metadata: null,
+          eventName: null,
+          team: {
+            id: 20,
+            name: "Acme Team",
+            parentId: 10,
+            members: [],
+          },
+          users: [],
+          hosts: [],
+          workflows: [],
+        },
+        references: [],
+        seatsReferences: [],
+      } satisfies BookingForCalEventBuilder;
+
+      const eventFromBooking = await CalendarEventBuilder.fromBooking(mockBooking, {
+        hashedLink: "custom-domain-uuid",
+      });
+      const builtEvent = eventFromBooking.build();
+
+      expect(builtEvent).not.toBeNull();
+      if (builtEvent) {
+        expect(builtEvent.hashedLink).toBe("https://acme.cal.com/d/custom-domain-uuid/org-event");
+        expect(builtEvent.bookerUrl).toBe("https://acme.cal.com");
+      }
+
+      expect(getBookerBaseUrl).toHaveBeenCalledWith(10);
+    });
   });
 });

@@ -57,6 +57,7 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
           platformCancelUrl: payload.platformCancelUrl ?? undefined,
           platformBookingUrl: payload.platformBookingUrl ?? undefined,
           attendeeSeatId: payload.attendeeSeatId,
+          hashedLink: payload.hashedLink ?? undefined,
         })
       ).build();
 
@@ -66,7 +67,13 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
       }
 
       // For BOOKING_RESCHEDULED, fetch the original booking's details
-      let previousBooking: { id: number; uid: string; startTime: Date; endTime: Date; rescheduledBy: string | null } | null = null;
+      let previousBooking: {
+        id: number;
+        uid: string;
+        startTime: Date;
+        endTime: Date;
+        rescheduledBy: string | null;
+      } | null = null;
       if (
         payload.triggerEvent === WebhookTriggerEvents.BOOKING_RESCHEDULED &&
         (booking as Record<string, unknown>).fromReschedule
@@ -107,9 +114,7 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
    * Resolves attendee PII from DB using only the attendeeIds passed through the queue.
    * By the time this runs the attendee.noShow flags have already been persisted.
    */
-  private async fetchNoShowData(
-    payload: BookingWebhookTaskPayload
-  ): Promise<Record<string, unknown> | null> {
+  private async fetchNoShowData(payload: BookingWebhookTaskPayload): Promise<Record<string, unknown> | null> {
     const parsed = noShowMetadataSchema.safeParse(payload.metadata);
 
     if (!parsed.success) {
