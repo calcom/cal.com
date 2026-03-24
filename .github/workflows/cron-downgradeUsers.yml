@@ -20,5 +20,5 @@ jobs:
           curl $APP_URL/api/cron/downgradeUsers \
             -X POST \
             -H 'content-type: application/json' \
-            -H 'authorization: $CRON_API_KEY' \
+            -H "authorization: $CRON_API_KEY" \
             -sSf
