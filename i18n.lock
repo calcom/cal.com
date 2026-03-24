@@ -5143,6 +5143,12 @@ checksums:
     booking_submitted_recurring: a234a96648ca23a7ac2f50fe9b0c257e
     booking_confirmed: c0f37f584a0dd5cc3b7f9a1dde5fde14
     booking_confirmed_recurring: 1013d15058c5e1e22dfccbeb835871fe
+    external_redirect_warning: cc6918aecc33e33069d301659823883c
+    external_redirect_title: f54479d50cfeef9dcf8e4355e214ef62
+    redirecting_you_to: be9f5559e76c92ff59bb21d40f284010
+    host_redirecting_to: 0b57730459ea3ee37e3e7180a9976c6b
+    continue_in_seconds: 1a36d0e0bfc0f3f57d083666fb334198
+    stay_on_calcom: 3cd07594294a7807639ad2b1b5e170bf
     warning_recurring_event_payment: 31cc091d07c458b5ea69a4c034d187e7
     warning_payment_recurring_event: a4436448310776893323b26c980226fd
     enter_new_password: c66a365a8b6aa6da45676bfedf0ddb66
@@ -5255,6 +5261,8 @@ checksums:
     allow_seo_indexing: 421a6a2100fd741cbffa8764f5e0e72d
     seo_indexing: e1a289f4535753aaa3c636125f90ee35
     allow_browser_notifications: b4038054a2be403850f844cbfa604362
+    browser_notifications_title: 4483c43e6a7af727264e8709d295bdae
+    browser_notifications_description: 19cb5f2d501c8f079c254a3686dd6d31
     you_have_denied_notifications: 6693a68b32a3baa592bc5b6063ec3c89
     disable_browser_notifications: 79597520cebd788e77f2bbc9aba5c730
     browser_notifications_turned_on: 2aa82eadec8df99fffe69678e90d0096
@@ -6475,6 +6483,7 @@ checksums:
     yes_remove_app: 6e1950c9d8eff7f7b5dc53ab3d2d1c6e
     are_you_sure_you_want_to_remove_this_app: 52cf5b33b2960f09be65971198f54bea
     app_removed_successfully: c3a10d7f9273a570fb199f45207b0bf6
+    remove_workspace_connection: 25dd0dd48902cd34eb296883667b5a88
     error_removing_app: 392d8006399c4f08c7ea98248a2b10cc
     web_conference: 090bdbaa7e3c7c7238c4b6d70e347734
     web_call: bcef1f05d0874af3c1f44f41f11bcfe6
@@ -6692,9 +6701,11 @@ checksums:
     event: 4a04a93ec14995d089bd95d271e288a0
     appearance: cdd8c41c5fb859234e8a603544fce631
     my_account: 4791806fd9fadc33912e3df7e4e3911c
+    personal_settings: 4c2097c04543906c9fb899f47a05bf33
+    organization_settings: 11528aa89ae9935e55dcb54478058775
     general: b891e8f15579fc5d97bcaf3637f5ae59
     calendars: 5c886c639eb89b8593b189ee551c0665
-    2fa_auth: 97a428a54e41d68810a12dbae075f371
+    2fa_auth: 396972e00c1bd7d778a7bf6cd202fcec
     invoices: 2a9cab536b243f033848ec5dfd92b0a7
     invoice_due: 92a2baf8fd3cf22151c94385c6e28d25
     invoice_overdue_blocking: a2760af38d5cec8549efef524aa11118
@@ -7493,12 +7504,14 @@ checksums:
     confirm_your_details: 1f89401de0cfc92f0f75c9f0f5d18ad5
     copy_invite_link: 181840a28f41caec62936fe6f8c4a80d
     edit_invite_link: 77781b6137ece5d6d83ff456c8d57b36
+    invite_link_settings: 61cf828a69569757aff7bdbac54fe1d4
+    invite_link_settings_description: 66b183b278951550515f97f730e74675
     invite_link_copied: 4046f23a78e1cd5166671c3fb8a7ea6e
     invite_link_deleted: cbad4a7a211c04c6c860402068e89ede
     api_key_deleted: a685a621a636249a374345dd60ba1022
     delete_api_key_warning: c2aabd8e8c70562823de11c42d440f5b
     invite_link_updated: d1834e3d59a0a4ef7b1a008772e244e5
-    link_expires_after: 398b822c0aca1c04947095bd9dbc47f6
+    link_expires_after: 31b068bfa28b8b56869a91d1082bb6d9
     one_day: ef1826660893c89de442e0d0c4c327d7
     seven_days: dd1d6ba705adea0c5804178661decf80
     thirty_days: 090dd31e080832d796142ab67744f04f
@@ -9152,7 +9165,6 @@ checksums:
     organization_details: bf7e5008e42e5a296b19aa1a64a7e5a1
     organization_teams: e6bc68a6c4f114d6bb8cc15372d4ca2d
     personal_profile: 715f770ada3d3910576da4755abcf0ac
-    personal_settings: 4c2097c04543906c9fb899f47a05bf33
     customize_team_brand: 90f4ccd14be4b00a852c35ceda52840b
     team_brand: a20a5434cf9b875c9dc67b3e02a5026e
     team_brand_subtitle: 82790febb955a6bf7c2a4c5c99bdbe7b
@@ -9377,6 +9389,43 @@ checksums:
     last_6_months: 1be27ca36359a3a8131f2408827f0f69
     last_12_months: 7e8afbde13511362f8afb8ae1ec7b034
     calendar_events_disabled_video_limitation: f4391a5dbf5643947e9ed8b7c672324c
+    settings_home_profile_description: 06c485d7d7cdd7fd3d6ed32c9bcc2e86
+    settings_home_general_description: 24f591b2856b92fe7c4fb00f9d06d71c
+    settings_home_calendars_description: 5420b2881797c4cd62f4fc6f2fd39f4a
+    settings_home_conferencing_description: dd05a736e3d1e8de057276d67ea45f73
+    settings_home_out_of_office_description: 41924fb2ea7d20042fce2ddfc7eb72c2
+    settings_home_billing_description: e82e24f8e04678dada734b66ca3241d8
+    settings_home_plans_description: 482e6676321dfbd6a48a5a93e883484f
+    settings_home_appearance_description: 7e5136336eed1699030ac3786911edce
+    settings_home_push_notifications_description: 5764243497bca0e54b73d502c646afdf
+    settings_home_password_description: 843f36159c033058b52d370fe05a91c4
+    settings_home_impersonation_description: ea65ee6176dbce48e86302609ce0c37b
+    settings_home_2fa_description: ecdfc7cdaa8a3b078cc17251618848be
+    settings_home_compliance_description: b78cc5d99345e2a0a03f7476b4f3ce11
+    settings_home_org_profile_description: 0bb90632b14438b392756f030b7a6a60
+    settings_home_org_general_description: 81cc62eebf63a0e125356e7bc71597d6
+    settings_home_org_members_description: a6f4088632f6bad841420529d2aba9f7
+    settings_home_org_attributes_description: 665b3560482a5e5f7c8cb8afdd2a4608
+    settings_home_org_privacy_description: 5b9199d44be5a7432f690e6c0a8a462b
+    settings_home_org_guest_notifications_description: 0014066deb4db13cb06e7912804616ad
+    settings_home_org_features_description: 36016752b60991520ece4b4fe23a3d6c
+    settings_home_org_billing_description: a12313dcb218a110fd81a9f81b41ad85
+    settings_home_org_oauth_description: 9a5dafe8b2e82af3ef7ef18c7f10dcaf
+    settings_home_org_sso_description: d68263cb059cf5b0867a0151a168dd1f
+    single_sign_on: b562d4c80c590e48d428cab93c2e69cd
+    settings_home_org_dsync_description: 418caa4473dc329a1611a5fc1a4b7420
+    settings_home_webhooks_description: 2374362d3504219245771a416448147a
+    settings_home_api_keys_description: a37a4f033bdec31310774069dfa92d41
+    settings_home_oauth_description: 6d2140dc5861916c3a27d495563e7a02
+    settings_home_admin_features_description: 8b4de47965b6e17a027c5461f12e6341
+    settings_home_admin_billing_description: cfe0afcca72ffafad995af91c8d5c2ea
+    settings_home_admin_impersonation_description: 09b0877ce9ef8b069c811a8ed56f25fe
+    settings_home_admin_users_description: 229c0d5761ffdb9d136e720bad222b1d
+    settings_home_admin_organizations_description: 39f5ea6a5d261673d65424b0a536ac12
+    settings_home_features_description: 66947d1d9475f9d015fa0b62e06e49c8
+    settings_home_org_roles_description: c33b5cd6576d40d4bf171c33efb0a6aa
+    settings_home: 031d642e207b7c3301a40fceb71b255f
+    settings_home_description: 7165f0cf7f0ab26a0acab5586babc6bc
     upgrade_dialog_title_short: 63c3b52882e0d779859307d672c178c2
     upgrade_dialog_title: 81c9e7a593c0e9290f7078ecdc1c6693
     upgrade_price_per_month_user: 74af701c3c88f9e08b2d6a295ec52f6b
@@ -9399,6 +9448,40 @@ checksums:
     upgrade_cta_teams: 3389abb344444a2a984b6ffdbc7cf148
     upgrade_cta_orgs: 38040495f2281fb780a62dfe91d209c4
     upgrade_cta_enterprise: 35323605e31c113fd664486afc33f3eb
+    plans_page_description: e9426bd63147f0843e7cedc22ad196f3
+    plans_description: aa458f576a59f750d9a4651a87ff898c
+    current_plan: 53ac259fd40a361274861ee7c7498424
+    compare_plans: 7c395faa3c9b9bd51a6a4cf30497be49
+    renews_on_date: e4a9a6fb0617ac900cd5f7e8f1895837
+    billed_annually: c782a8085ffee456bfc56c34ccc5e71c
+    billed_monthly: 793f2728acf06e9f06d6cdc26dfcf0cd
+    switch_to_annual: 2a3b8db4a603ce37a1d0eb5b5a78e015
+    switch_to_monthly: dc4ca8b36aa6d3b6fef9a65c9ade75cf
+    switch_to_monthly_on_date: 64db89ec87fda6c1013311f61ae8a2b1
+    switch_to_monthly_eligible_on: 4499c704a01615d15220613817e11e9c
+    switch_billing_period_confirm_title: 2f631ad0e88c3621d94d00bddbc49a50
+    switch_to_annual_confirm_description: 516afda6c6a17bc8befffa83ea3516b1
+    switch_to_monthly_confirm_description: c3820bb5d8b2f824a9bd612ab69fd337
+    switch_billing_period_trial_warning: 3f235a44a1d17306609a3c670d15d904
+    cancel_pending_switch: b3d7c8725320218e6d8858e6d72c1d25
+    settings_billing_plans_feature_one_team: c42564b79f7a53b411e8733bab4c72b4
+    settings_billing_plans_feature_schedule_as_team: 543905f455e21de083393854bd46471b
+    settings_billing_plans_feature_round_robin: 7adb73af7325ec9a9687327e7e553e00
+    settings_billing_plans_feature_same_day_support: 18c68049b5174f2cb6e94d1a35e1d3ff
+    settings_billing_plans_feature_org_workflows: 6cb47b787b7f2324ab40629820b3e964
+    settings_billing_plans_feature_subdomain: 2a1968ff7c1b479b25b1678ebf82076f
+    settings_billing_plans_feature_compliance: b3420ee75ba5e7ed274122fc612ccbad
+    settings_billing_plans_feature_instant_meetings: dafb6f6cc0e2378912070cb75b6504f2
+    settings_billing_plans_feature_domain_wide_delegation: 585bedb64d9b46881b38c85766ac6b2e
+    settings_billing_plans_feature_member_attributes: 3fddad8ff97285cfb43ff9f48d0b83d3
+    settings_billing_plans_feature_attribute_routing: 40d18359779ff019283810284b3a8864
+    settings_billing_plans_feature_dedicated_database: f044d3fca6f25560edab6c9c058bbca3
+    settings_billing_plans_feature_cal_ai_agents: 5672ac50286ce53059478669e4cb4713
+    settings_billing_plans_feature_active_directory_sync: eb19ccdf9fe842b3d688401a5a362278
+    settings_billing_plans_feature_dedicated_onboarding: 4a01153fab8cfef3c0ba2128b27d1b56
+    settings_billing_plans_feature_enterprise_support: e6a547032d65380a2e043391ceca70b5
+    settings_billing_plans_feature_uptime_sla: 4127c279f35c329de66f16beb69f64d4
+    settings_billing_plans_feature_slack_connect: 5fe9bd9e9d30ef665e8cc527e8b5ba81
     upgrade_info_team_insights_description: 2da0fe35d7552f382a92fbdd4b0cfbe6
     orgs: 5aa22150edc187e4bf8c1c6e30a9a0eb
     available_on: a2ab75f3e2e05c6d608f754665bd924d
