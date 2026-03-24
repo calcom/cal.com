@@ -4,6 +4,7 @@ import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 import { ZBillingPortalLinkSchema } from "./billingPortalLink.schema";
 import { ZCreateCouponSchema } from "./createCoupon.schema";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
+import { ZGetBillingForTeamSchema } from "./getBillingForTeam.schema";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
@@ -14,6 +15,7 @@ import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
 import { ZAdminUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.schema";
+import { ZUpdateBillingForTeamSchema } from "./updateBillingForTeam.schema";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
 import { watchlistRouter } from "./watchlist/_router";
 import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
@@ -123,6 +125,14 @@ export const adminRouter = router({
       const { default: handler } = await import("./workspacePlatform/toggleEnabled.handler");
       return handler(opts);
     }),
+  }),
+  getBillingForTeam: authedAdminProcedure.input(ZGetBillingForTeamSchema).query(async (opts) => {
+    const { default: handler } = await import("./getBillingForTeam.handler");
+    return handler(opts);
+  }),
+  updateBillingForTeam: authedAdminProcedure.input(ZUpdateBillingForTeamSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./updateBillingForTeam.handler");
+    return handler(opts);
   }),
   watchlist: watchlistRouter,
 });
