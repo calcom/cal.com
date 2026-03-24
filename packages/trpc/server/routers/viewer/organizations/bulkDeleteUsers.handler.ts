@@ -1,13 +1,10 @@
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
-import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
+import { CustomAction, Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 
@@ -57,91 +54,69 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const deleteOrganizationMemberships = prisma.membership.deleteMany({
-    where: {
-      teamId: currentUserOrgId,
-      userId: {
-        in: input.userIds,
-      },
-    },
+  const usersToRemove = await prisma.user.findMany({
+    where: { id: { in: input.userIds } },
+    select: { id: true, username: true },
   });
 
-  const deleteSubteamMemberships = prisma.membership.deleteMany({
-    where: {
-      userId: {
-        in: input.userIds,
+  const orgMembershipRemovalCount = await prisma.$transaction(async (tx) => {
+    await tx.profile.deleteMany({
+      where: {
+        userId: { in: input.userIds },
+        organizationId: currentUserOrgId,
       },
-      team: {
-        parentId: currentUserOrgId,
-      },
-    },
-  });
+    });
 
-  const removeOrgrelation = prisma.user.updateMany({
-    where: {
-      id: {
-        in: input.userIds,
+    const { count } = await tx.membership.deleteMany({
+      where: {
+        teamId: currentUserOrgId,
+        userId: { in: input.userIds },
       },
-    },
-    data: {
-      organizationId: null,
-      // Set username to null - to make sure there is no conflicts
-      username: null,
-      // Set completedOnboarding to false - to make sure the user has to complete onboarding again -> Setup a new username
-      completedOnboarding: false,
-    },
-  });
+    });
 
-  const removeManagedEventTypes = prisma.eventType.deleteMany({
-    where: {
-      userId: {
-        in: input.userIds,
+    await tx.membership.deleteMany({
+      where: {
+        userId: { in: input.userIds },
+        team: { parentId: currentUserOrgId },
       },
-      parent: {
-        team: {
-          OR: [
-            {
-              parentId: currentUserOrgId,
-            },
-            { id: currentUserOrgId },
-          ],
+    });
+
+    await Promise.all(
+      usersToRemove.map((user) =>
+        tx.user.update({
+          where: { id: user.id },
+          data: {
+            organizationId: null,
+            username: user.username ? `${user.username}-${user.id}` : null,
+          },
+        })
+      )
+    );
+
+    await tx.eventType.deleteMany({
+      where: {
+        userId: { in: input.userIds },
+        parent: {
+          team: {
+            OR: [{ parentId: currentUserOrgId }, { id: currentUserOrgId }],
+          },
         },
       },
-    },
-  });
+    });
 
-  const removeHostAssignment = prisma.host.deleteMany({
-    where: {
-      userId: {
-        in: input.userIds,
-      },
-      eventType: {
-        team: {
-          OR: [
-            {
-              parentId: currentUserOrgId,
-            },
-            { id: currentUserOrgId },
-          ],
+    await tx.host.deleteMany({
+      where: {
+        userId: { in: input.userIds },
+        eventType: {
+          team: {
+            OR: [{ parentId: currentUserOrgId }, { id: currentUserOrgId }],
+          },
         },
       },
-    },
-  });
+    });
 
-  const removeProfiles = ProfileRepository.deleteMany({
-    userIds: input.userIds,
+    return count;
   });
-
-  // We do this in a transaction to make sure that all memberships are removed before we remove the organization relation from the user
-  // We also do this to make sure that if one of the queries fail, the whole transaction fails
-  const [, { count: orgMembershipRemovalCount }] = await prisma.$transaction([
-    removeProfiles,
-    deleteOrganizationMemberships,
-    deleteSubteamMemberships,
-    removeOrgrelation,
-    removeManagedEventTypes,
-    removeHostAssignment,
-  ]);
 
   if (orgMembershipRemovalCount > 0) {
     const seatTracker = new SeatChangeTrackingService();
