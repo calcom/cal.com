@@ -1,7 +1,14 @@
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import {
+  BILLING_PLANS,
+  BILLING_PRICING,
+} from "@calcom/features/ee/billing/constants";
 import type { PendingMember } from "@calcom/features/ee/teams/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { IS_TEAM_BILLING_ENABLED_CLIENT, MAX_NB_INVITES } from "@calcom/lib/constants";
+import {
+  IS_TEAM_BILLING_ENABLED_CLIENT,
+  MAX_NB_INVITES,
+} from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
@@ -22,17 +29,31 @@ import {
 } from "@coss/ui/components/dialog";
 import { Field, FieldError, FieldLabel } from "@coss/ui/components/field";
 import { Input } from "@coss/ui/components/input";
-import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "@coss/ui/components/select";
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@coss/ui/components/select";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@coss/ui/components/tabs";
 import { Textarea } from "@coss/ui/components/textarea";
 import { anchoredToastManager, toastManager } from "@coss/ui/components/toast";
 import { useCopyToClipboard } from "@coss/ui/hooks/use-copy-to-clipboard";
-import { BuildingIcon, CheckIcon, LinkIcon, PaperclipIcon, UserIcon, UsersIcon } from "@coss/ui/icons";
+import {
+  BuildingIcon,
+  CheckIcon,
+  LinkIcon,
+  PaperclipIcon,
+  UserIcon,
+  UsersIcon,
+} from "@coss/ui/icons";
 import { useSession } from "next-auth/react";
 import posthog from "posthog-js";
 import type { FormEvent } from "react";
 import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { formatCents } from "~/billing/lib/plan-data";
 import TeamInviteFromOrg from "~/ee/organizations/components/TeamInviteFromOrg";
 import InviteLinkSettingsModal from "./InviteLinkSettingsModal";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -68,9 +89,14 @@ interface FileEvent<T = Element> extends FormEvent<T> {
   target: EventTarget & T;
 }
 
-function toggleElementInArray(value: string[] | string | undefined, element: string): string[] {
+function toggleElementInArray(
+  value: string[] | string | undefined,
+  element: string
+): string[] {
   const array = value ? (Array.isArray(value) ? value : [value]) : [];
-  return array.includes(element) ? array.filter((item) => item !== element) : [...array, element];
+  return array.includes(element)
+    ? array.filter((item) => item !== element)
+    : [...array, element];
 }
 
 const EXPIRES_DAYS_LABELS: Record<number, string> = {
@@ -84,23 +110,45 @@ function getExpiresLabel(days: number | undefined): string {
   return EXPIRES_DAYS_LABELS[days] ?? "thirty_days";
 }
 
-export default function MemberInvitationModal(props: MemberInvitationModalProps) {
+export default function MemberInvitationModal(
+  props: MemberInvitationModalProps
+) {
   const { t } = useLocale();
   const { disableCopyLink = false, isOrg = false } = props;
   const trpcContext = trpc.useUtils();
   const session = useSession();
-  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.org,
-  });
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(
+    undefined,
+    {
+      enabled: !!session.data?.user?.org,
+    }
+  );
 
-  const checkIfMembershipExistsMutation = trpc.viewer.teams.checkIfMembershipExists.useMutation();
+  const checkIfMembershipExistsMutation =
+    trpc.viewer.teams.checkIfMembershipExists.useMutation();
+
+  // Fetch billing info to show dynamic seat price (only for standalone teams, not orgs)
+  const showBillingInfo = !!IS_TEAM_BILLING_ENABLED_CLIENT && !isOrg;
+  const { data: subscriptionStatus } =
+    trpc.viewer.teams.getSubscriptionStatus.useQuery(
+      { teamId: props.teamId },
+      { enabled: showBillingInfo }
+    );
+  const billingPeriodKey =
+    subscriptionStatus?.billingPeriod === "ANNUALLY" ? "annual" : "monthly";
+  const seatPrice = `${formatCents(BILLING_PRICING[BILLING_PLANS.TEAMS][billingPeriodKey])}/mo`;
 
   // Check current org role and not team role
-  const isOrgAdminOrOwner = currentOrg && checkAdminOrOwner(currentOrg.user.role);
+  const isOrgAdminOrOwner =
+    currentOrg && checkAdminOrOwner(currentOrg.user.role);
 
   const canSeeOrganization = currentOrg?.isPrivate
     ? isOrgAdminOrOwner
-    : !!(props?.orgMembers && props.orgMembers?.length > 0 && isOrgAdminOrOwner);
+    : !!(
+        props?.orgMembers &&
+        props.orgMembers?.length > 0 &&
+        isOrgAdminOrOwner
+      );
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
     canSeeOrganization ? "ORGANIZATION" : "INDIVIDUAL"
@@ -157,7 +205,11 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         label: t("invite_team_individual_segment"),
         icon: <UserIcon aria-hidden="true" />,
       },
-      { value: "BULK", label: t("invite_team_bulk_segment"), icon: <UsersIcon aria-hidden="true" /> },
+      {
+        value: "BULK",
+        label: t("invite_team_bulk_segment"),
+        icon: <UsersIcon aria-hidden="true" />,
+      },
     ];
     if (canSeeOrganization) {
       array.unshift({
@@ -194,7 +246,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
     if (file) {
       const reader = new FileReader();
-      const emailRegex = /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i;
+      const emailRegex =
+        /^([A-Z0-9_+-]+\.?)*[A-Z0-9_+-]@([A-Z0-9][A-Z0-9-]*\.)+[A-Z]{2,}$/i;
       reader.onload = (e) => {
         const contents = e?.target?.result as string;
         const lines = contents.split("\n");
@@ -239,19 +292,22 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         if (!open) {
           resetFields();
         }
-      }}>
+      }}
+    >
       <DialogPopup className="max-w-xl" bottomStickOnMobile={false}>
         <DialogHeader>
           <DialogTitle>{t("invite_team_member")}</DialogTitle>
-          {IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
+          {showBillingInfo ? (
             <DialogDescription>
               <ServerTrans
                 t={t}
                 i18nKey="invite_new_member_description"
+                values={{ price: seatPrice }}
                 components={[
-                  <span key="invite_new_member_description" className="text-foreground font-medium">
-                    cost an extra seat ($15/m)
-                  </span>,
+                  <span
+                    key="invite_new_member_description"
+                    className="font-medium text-foreground"
+                  />,
                 ]}
               />
             </DialogDescription>
@@ -262,7 +318,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
           onSubmit={newMemberFormMethods.handleSubmit((values) => {
             props.onSubmit(values, resetFields);
             posthog.capture("teams_modal_invite_members_button_clicked");
-          })}>
+          })}
+        >
           <DialogPanel>
             <Tabs
               className="gap-6"
@@ -270,7 +327,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               onValueChange={(val) => {
                 setModalInputMode(val as ModalMode);
                 newMemberFormMethods.clearErrors();
-              }}>
+              }}
+            >
               <TabsList className="w-full" aria-label={t("import_mode")}>
                 {inviteModeTabs.map((tab) => (
                   <TabsTab key={tab.value} value={tab.value}>
@@ -287,9 +345,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     required: t("enter_email"),
                     validate: async (value) => {
                       // orgs can only invite members by email
-                      if (typeof value === "string" && !isEmail(value)) return t("enter_email");
+                      if (typeof value === "string" && !isEmail(value))
+                        return t("enter_email");
                       if (typeof value === "string") {
-                        const doesInviteExists = await checkIfMembershipExists(value);
+                        const doesInviteExists = await checkIfMembershipExists(
+                          value
+                        );
                         return !doesInviteExists || t("member_already_invited");
                       }
                     },
@@ -307,7 +368,9 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                         required
                         ref={ref}
                         onBlur={onBlur}
-                        onValueChange={(nextValue) => onChange(nextValue.trim().toLowerCase())}
+                        onValueChange={(nextValue) =>
+                          onChange(nextValue.trim().toLowerCase())
+                        }
                       />
                       <FieldError match={!!error}>{error?.message}</FieldError>
                     </Field>
@@ -315,18 +378,27 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 />
               </TabsPanel>
               <TabsPanel value="BULK">
-                <div className="bg-muted flex flex-col rounded-xl p-4 gap-2">
+                <div className="flex flex-col gap-2 p-4 rounded-xl bg-muted">
                   <Controller
                     name="emailOrUsername"
                     control={newMemberFormMethods.control}
                     rules={{
                       required: t("enter_email"),
                       validate: (value) => {
-                        if (Array.isArray(value) && value.some((email) => !isEmail(email)))
+                        if (
+                          Array.isArray(value) &&
+                          value.some((email) => !isEmail(email))
+                        )
                           return t("enter_emails");
-                        if (Array.isArray(value) && value.length > MAX_NB_INVITES)
-                          return t("too_many_invites", { nbUsers: MAX_NB_INVITES });
-                        if (typeof value === "string" && !isEmail(value)) return t("enter_email");
+                        if (
+                          Array.isArray(value) &&
+                          value.length > MAX_NB_INVITES
+                        )
+                          return t("too_many_invites", {
+                            nbUsers: MAX_NB_INVITES,
+                          });
+                        if (typeof value === "string" && !isEmail(value))
+                          return t("enter_email");
                       },
                     }}
                     render={({
@@ -341,18 +413,26 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                           required
                           ref={ref}
                           onBlur={onBlur}
-                          value={Array.isArray(value) ? value.join(", ") : (value ?? "")}
+                          value={
+                            Array.isArray(value)
+                              ? value.join(", ")
+                              : value ?? ""
+                          }
                           onChange={(e) => {
                             const targetValues = e.target.value.split(/[\n,]/);
                             const emails =
                               targetValues.length === 1
                                 ? targetValues[0].trim().toLocaleLowerCase()
-                                : targetValues.map((email) => email.trim().toLocaleLowerCase());
+                                : targetValues.map((email) =>
+                                    email.trim().toLocaleLowerCase()
+                                  );
 
                             return onChange(emails);
                           }}
                         />
-                        <FieldError match={!!error}>{error?.message}</FieldError>
+                        <FieldError match={!!error}>
+                          {error?.message}
+                        </FieldError>
                       </Field>
                     )}
                   />
@@ -369,7 +449,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       if (importRef.current) {
                         importRef.current.click();
                       }
-                    }}>
+                    }}
+                  >
                     <PaperclipIcon aria-hidden="true" />
                     {t("upload_csv_file")}
                   </Button>
@@ -407,7 +488,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               </TabsPanel>
             </Tabs>
 
-            <div className="mt-6 flex flex-col gap-6">
+            <div className="flex flex-col gap-6 mt-6">
               <Controller
                 name="role"
                 control={newMemberFormMethods.control}
@@ -420,7 +501,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       value={value}
                       onValueChange={(newValue) => {
                         if (newValue) onChange(newValue as MembershipRole);
-                      }}>
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -446,17 +528,22 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       disabled={isCopied || createInviteMutation.isPending}
                       onClick={async () => {
                         try {
-                          const { inviteLink } = await createInviteMutation.mutateAsync({
-                            teamId: props.teamId,
-                            token: props.token,
-                          });
+                          const { inviteLink } =
+                            await createInviteMutation.mutateAsync({
+                              teamId: props.teamId,
+                              token: props.token,
+                            });
                           copyToClipboard(inviteLink);
                         } catch (e) {
-                          toastManager.add({ title: t("something_went_wrong_on_our_end"), type: "error" });
+                          toastManager.add({
+                            title: t("something_went_wrong_on_our_end"),
+                            type: "error",
+                          });
                           console.error(e);
                         }
                       }}
-                      data-testid="copy-invite-link-button">
+                      data-testid="copy-invite-link-button"
+                    >
                       {isCopied ? (
                         <CheckIcon aria-hidden />
                       ) : (
@@ -466,28 +553,35 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     </Button>
                   )}
                   {(!disableCopyLink || props.token) && (
-                    <div className="text-muted-foreground text-xs">
+                    <div className="text-xs text-muted-foreground">
                       <span>
                         {props.token
-                          ? getExpiresLabel(props.expiresInDays) === "never_expires"
+                          ? getExpiresLabel(props.expiresInDays) ===
+                            "never_expires"
                             ? t("never_expires")
-                            : `${t("link_expires_after")} ${t(getExpiresLabel(props.expiresInDays))}`
+                            : `${t("link_expires_after")} ${t(
+                                getExpiresLabel(props.expiresInDays)
+                              )}`
                           : `${t("link_expires_after")} ${t("seven_days")}`}
                       </span>
                       {props.token && (
-                        <>{" "}
+                        <>
+                          {" "}
                           <span aria-hidden="true">·</span>{" "}
                           <button
                             type="button"
-                            className="text-foreground font-medium underline-offset-4 hover:underline cursor-pointer"
+                            className="font-medium cursor-pointer text-foreground underline-offset-4 hover:underline"
                             onClick={() => {
                               if (anchoredToastIdRef.current) {
-                                anchoredToastManager.close(anchoredToastIdRef.current);
+                                anchoredToastManager.close(
+                                  anchoredToastIdRef.current
+                                );
                                 anchoredToastIdRef.current = null;
                               }
                               setShowInviteLinkSettings(true);
                             }}
-                            data-testid="edit-invite-link-button">
+                            data-testid="edit-invite-link-button"
+                          >
                             {t("edit_invite_link")}
                           </button>
                         </>
@@ -499,15 +593,20 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             </div>
           </DialogPanel>
           <DialogFooter>
-            <DialogClose render={<Button variant="ghost">{t("cancel")}</Button>} />
+            <DialogClose
+              render={<Button variant="ghost">{t("cancel")}</Button>}
+            />
             <Button
               type="submit"
               variant="default"
               loading={props.isPending}
               disabled={
-                props.isPending || createInviteMutation.isPending || checkIfMembershipExistsMutation.isPending
+                props.isPending ||
+                createInviteMutation.isPending ||
+                checkIfMembershipExistsMutation.isPending
               }
-              data-testid="invite-new-member-button">
+              data-testid="invite-new-member-button"
+            >
               {t("send_invite")}
             </Button>
           </DialogFooter>
@@ -553,7 +652,8 @@ export const MemberInvitationModalWithoutMembers = ({
         distinctUser: true,
       },
       {
-        enabled: searchParams !== null && !!teamId && !!showMemberInvitationModal,
+        enabled:
+          searchParams !== null && !!teamId && !!showMemberInvitationModal,
       }
     );
 
