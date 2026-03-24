@@ -1767,4 +1767,75 @@ describe("createEvent", () => {
 
     log.info("createEvent recurring event test passed");
   });
+
+  test("should generate a unique conference requestId per Google request", async () => {
+    const credential = await createCredentialForCalendarService();
+    const calendarService = new CalendarService(credential);
+    setFullMockOAuthManagerRequest();
+
+    const eventsInsertMock = vi.fn().mockResolvedValue({
+      data: {
+        id: "meet-event-id",
+        summary: "Meet Event",
+      },
+    });
+    calendarMock.calendar_v3.Calendar().events.insert = eventsInsertMock;
+
+    const inputRequestId = "deterministic-request-id";
+    const testCalEvent = {
+      type: "test-event-type",
+      uid: "cal-event-uid-456",
+      title: "Meet Event",
+      startTime: "2024-06-15T10:00:00Z",
+      endTime: "2024-06-15T11:00:00Z",
+      organizer: {
+        id: 1,
+        name: "Test Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: {
+          translate: (...args: any[]) => args[0],
+          locale: "en",
+        },
+      },
+      attendees: [],
+      location: "integrations:google:meet",
+      calendarDescription: "Meet event description",
+      destinationCalendar: [
+        {
+          id: 1,
+          integration: "google_calendar",
+          externalId: "primary",
+          primaryEmail: null,
+          userId: credential.userId,
+          eventTypeId: null,
+          credentialId: credential.id,
+          delegationCredentialId: null,
+          domainWideDelegationCredentialId: null,
+          createdAt: new Date("2024-06-15T11:00:00Z"),
+          updatedAt: new Date("2024-06-15T11:00:00Z"),
+        },
+      ],
+      conferenceData: {
+        createRequest: {
+          requestId: inputRequestId,
+          conferenceSolutionKey: {
+            type: "hangoutsMeet",
+          },
+        },
+      },
+    };
+
+    await calendarService.createEvent(testCalEvent, credential.id);
+
+    expect(eventsInsertMock).toHaveBeenCalledTimes(1);
+    const insertCall = eventsInsertMock.mock.calls[0][0];
+    const outboundRequestId = insertCall.requestBody?.conferenceData?.createRequest?.requestId;
+
+    expect(outboundRequestId).toEqual(expect.any(String));
+    expect(outboundRequestId).not.toBe(inputRequestId);
+    expect(insertCall.requestBody?.conferenceData?.createRequest?.conferenceSolutionKey).toEqual({
+      type: "hangoutsMeet",
+    });
+  });
 });
