@@ -15,6 +15,7 @@ import { TRPCError } from "@trpc/server";
 import isNil from "lodash/isNil";
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetSubscriptionStatusInputSchema } from "./getSubscriptionStatus.schema";
+import { hasScheduledCancellation } from "./hasScheduledCancellation";
 
 const log = logger.getSubLogger({ prefix: ["getSubscriptionStatus"] });
 
@@ -87,9 +88,7 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
     return {
       status: subscriptionStatus,
       isTrialing,
-      isCancellationScheduled:
-        !isNil(subscription) &&
-        (subscription.cancel_at_period_end === true || !isNil(subscription.cancel_at)),
+      isCancellationScheduled: hasScheduledCancellation(subscription),
       billingMode: billingInfo.billingMode,
     };
   } catch (error) {

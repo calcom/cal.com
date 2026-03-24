@@ -1,4 +1,7 @@
-import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import {
+  getBillingProviderService,
+  getTeamBillingServiceFactory,
+} from "@calcom/ee/billing/di/containers/Billing";
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
@@ -7,9 +10,11 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
-
+import isNil from "lodash/isNil";
 import type { TrpcSessionUser } from "../../../types";
+import { hasScheduledCancellation } from "./hasScheduledCancellation";
 import type { TSkipTrialForTeamInputSchema } from "./skipTrialForTeam.schema";
 
 const log = logger.getSubLogger({ prefix: ["skipTrialForTeam"] });
@@ -75,6 +80,20 @@ export const skipTrialForTeamHandler = async ({ ctx, input }: SkipTrialForTeamOp
         code: "BAD_REQUEST",
         message: "Team is not currently in trial",
       });
+    }
+
+    const parsedMetadata = teamMetadataStrictSchema.safeParse(team.metadata);
+    const subscriptionId = parsedMetadata.success ? parsedMetadata.data?.subscriptionId : null;
+
+    if (!isNil(subscriptionId)) {
+      const subscription = await getBillingProviderService().getSubscription(subscriptionId);
+
+      if (hasScheduledCancellation(subscription)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Trial is already scheduled to end",
+        });
+      }
     }
 
     await teamBillingService.endTrial();
