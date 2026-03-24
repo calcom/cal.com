@@ -1,4 +1,5 @@
 import logger from "@calcom/lib/logger";
+import type { AbuseScoringReason } from "./tasker/trigger/schema";
 
 const log = logger.getSubLogger({ prefix: ["abuse-scoring:hooks"] });
 
@@ -25,17 +26,13 @@ export async function onSignup(userId: number): Promise<void> {
 /** Gate 2 — Called when an EventType is created or updated. */
 export async function onEventTypeChange(userId: number): Promise<void> {
   try {
-    const { getAbuseScoringService } = await import(
-      "../di/AbuseScoringService.container"
-    );
+    const { getAbuseScoringService } = await import("../di/AbuseScoringService.container");
     const service = getAbuseScoringService();
 
     const shouldCheck = await service.shouldUsersCheckEventType(userId);
     if (!shouldCheck) return;
 
-    const { getAbuseScoringTasker } = await import(
-      "../di/tasker/AbuseScoringTasker.container"
-    );
+    const { getAbuseScoringTasker } = await import("../di/tasker/AbuseScoringTasker.container");
     const tasker = getAbuseScoringTasker();
     await tasker.analyzeUser({
       payload: { userId, reason: "event_type_change" },
@@ -49,7 +46,7 @@ export async function onEventTypeChange(userId: number): Promise<void> {
 }
 
 /** Internal — shared logic for booking event gates (Gate 3 and Gate 4). */
-async function analyzeOnBookingEvent(userId: number, reason: string): Promise<void> {
+async function analyzeOnBookingEvent(userId: number, reason: AbuseScoringReason): Promise<void> {
   const { getAbuseScoringService } = await import("../di/AbuseScoringService.container");
   const service = getAbuseScoringService();
 

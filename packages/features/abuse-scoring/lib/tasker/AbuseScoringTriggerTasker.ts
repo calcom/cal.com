@@ -1,6 +1,5 @@
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
 import type { TriggerOptions } from "@trigger.dev/sdk";
-
 import type { IAbuseScoringTasker } from "./types";
 
 export class AbuseScoringTriggerTasker implements IAbuseScoringTasker {
@@ -11,7 +10,10 @@ export class AbuseScoringTriggerTasker implements IAbuseScoringTasker {
     options?: TriggerOptions
   ): Promise<{ runId: string }> {
     const { analyzeUser } = await import("./trigger/analyze-user");
-    const handle = await analyzeUser.trigger(payload, options);
+    const handle = await analyzeUser.trigger(payload, {
+      ...options,
+      tags: [`user_${payload.userId}`, `reason_${payload.reason}`],
+    });
     return { runId: handle.id };
   }
 }

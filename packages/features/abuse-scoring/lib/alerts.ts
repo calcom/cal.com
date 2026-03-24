@@ -1,5 +1,6 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import type { AbuseScoringReason } from "./tasker/trigger/schema";
 
 const log = logger.getSubLogger({ prefix: ["abuse-scoring"] });
 
@@ -8,7 +9,7 @@ export interface AlertPayload {
   userId: number;
   score: number;
   signals: Array<{ type: string; weight: number; context: string }>;
-  reason: string;
+  reason: AbuseScoringReason;
 }
 
 /** DI interface — swap impl in module to switch from Slack to CF Worker */

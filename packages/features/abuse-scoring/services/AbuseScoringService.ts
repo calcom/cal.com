@@ -1,9 +1,9 @@
 import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import logger from "@calcom/lib/logger";
-
 import type { AbuseAlerter } from "../lib/alerts";
 import { MS_PER_DAY, VELOCITY_GATE_THRESHOLD } from "../lib/constants";
 import { evaluateRules, extractMetrics } from "../lib/scoring";
+import type { AbuseScoringReason } from "../lib/tasker/trigger/schema";
 import type { AbuseScoringRepository } from "../repositories/AbuseScoringRepository";
 
 const log = logger.getSubLogger({ prefix: ["abuse-scoring"] });
@@ -33,7 +33,7 @@ export class AbuseScoringService {
     this.alerter = deps.alerter;
   }
 
-  async analyzeUser(userId: number, reason: string): Promise<void> {
+  async analyzeUser(userId: number, reason: AbuseScoringReason): Promise<void> {
     try {
       const [config, rules] = await Promise.all([
         this.repository.findConfig(),

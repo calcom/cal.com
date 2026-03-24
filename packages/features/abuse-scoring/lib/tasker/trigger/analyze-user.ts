@@ -1,6 +1,5 @@
 import { schemaTask, type TaskWithSchema } from "@trigger.dev/sdk";
 import type { z } from "zod";
-
 import { abuseScoringTaskConfig } from "./config";
 import { abuseScoringTaskSchema } from "./schema";
 
@@ -10,6 +9,7 @@ export const analyzeUser: TaskWithSchema<typeof ANALYZE_USER_JOB_ID, typeof abus
   schemaTask({
     id: ANALYZE_USER_JOB_ID,
     ...abuseScoringTaskConfig,
+    machine: "small-1x",
     schema: abuseScoringTaskSchema,
     run: async (payload: z.infer<typeof abuseScoringTaskSchema>) => {
       const { getAbuseScoringTaskService } = await import(
