@@ -13,20 +13,33 @@ export const advanceSingleTeamDunning: TaskWithSchema<
   ...dunningTaskConfig,
   schema: advanceSingleTeamDunningSchema,
   run: async (payload: z.infer<typeof advanceSingleTeamDunningSchema>) => {
-    const { getDunningServiceFactory } = await import("@calcom/features/ee/billing/di/containers/Billing");
+    const { getDunningServiceFactory } = await import(
+      "@calcom/features/ee/billing/di/containers/Billing"
+    );
+    const { shouldSkipDunningAdvancement } = await import("../shouldSkipDunningAdvancement");
+
     const factory = getDunningServiceFactory();
+
+    const [teamId, planName, currentStatus] = await Promise.all([
+      factory.findTeamIdByBillingId(payload.billingId, payload.entityType),
+      factory.findPlanNameByBillingId(payload.billingId, payload.entityType),
+      factory.getDunningStatus(payload.billingId, payload.entityType),
+    ]);
+
+    if (shouldSkipDunningAdvancement(planName, currentStatus)) {
+      return { advanced: false, skipped: true, reason: "enterprise" };
+    }
+
     const result = await factory.advanceByBillingId(payload.billingId, payload.entityType);
 
-    if (result.advanced && result.to) {
-      const teamId = await factory.findTeamIdByBillingId(payload.billingId, payload.entityType);
-
-      if (teamId && result.to === "SOFT_BLOCKED") {
+    if (result.advanced && result.to && teamId) {
+      if (result.to === "SOFT_BLOCKED") {
         const { sendDunningSoftBlockEmail } = await import("./send-dunning-soft-block-email");
         await sendDunningSoftBlockEmail.trigger({ teamId });
-      } else if (teamId && result.to === "HARD_BLOCKED") {
+      } else if (result.to === "HARD_BLOCKED") {
         const { sendDunningPauseEmail } = await import("./send-dunning-pause-email");
         await sendDunningPauseEmail.trigger({ teamId });
-      } else if (teamId && result.to === "CANCELLED") {
+      } else if (result.to === "CANCELLED") {
         const { sendDunningCancellationEmail } = await import("./send-dunning-cancellation-email");
         await sendDunningCancellationEmail.trigger({ teamId });
       }

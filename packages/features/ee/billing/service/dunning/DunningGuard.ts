@@ -30,7 +30,6 @@ export interface DunningCheckResult {
 export interface IDunningGuardDeps {
   dunningServiceFactory: DunningServiceFactory;
   featuresRepository: IFeatureRepository;
-  enterpriseSlugs: string[];
   seatBillingStrategyFactory: {
     createByTeamId: (teamId: number) => Promise<{ strategyName: string }>;
   };
@@ -62,11 +61,6 @@ export class DunningGuard {
     const team = await this.deps.teamRepository.findTeamSlugById({ id: teamId });
     const billingTeamId = team?.parentId ?? teamId;
 
-    const billingTeam =
-      billingTeamId === teamId
-        ? team
-        : await this.deps.teamRepository.findTeamSlugById({ id: billingTeamId });
-
     const resolved = await this.deps.dunningServiceFactory.forTeam(billingTeamId);
     if (!resolved) {
       return { allowed: true };
@@ -77,7 +71,11 @@ export class DunningGuard {
       return { allowed: true };
     }
 
-    if (billingTeam?.slug && this.deps.enterpriseSlugs.includes(billingTeam.slug)) {
+    const planName = await this.deps.dunningServiceFactory.findPlanNameByBillingId(
+      resolved.billingId,
+      resolved.entityType
+    );
+    if (planName === "ENTERPRISE") {
       return { allowed: true };
     }
 

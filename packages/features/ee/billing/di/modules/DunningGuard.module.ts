@@ -10,7 +10,6 @@ import type { TeamRepository } from "@calcom/features/ee/teams/repositories/Team
 import { FLAGS_DI_TOKENS } from "@calcom/features/flags/di/tokens";
 import { moduleLoader as featureRepositoryModuleLoader } from "@calcom/features/flags/di/CachedFeatureRepository.module";
 import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
-import { ENTERPRISE_SLUGS } from "../../constants";
 import { DunningGuard } from "../../service/dunning/DunningGuard";
 import type { DunningServiceFactory } from "../../service/dunning/DunningServiceFactory";
 import type { SeatBillingStrategyFactory } from "../../service/seatBillingStrategy/SeatBillingStrategyFactory";
@@ -32,7 +31,6 @@ dunningGuardModule.bind(token).toFactory((resolve: ResolveFunction) => {
   return new DunningGuard({
     dunningServiceFactory,
     featuresRepository,
-    enterpriseSlugs: ENTERPRISE_SLUGS,
     seatBillingStrategyFactory,
     teamRepository,
   });

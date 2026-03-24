@@ -1,5 +1,6 @@
-import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
+import type { IBillingRepository, Plan } from "../../repository/billing/IBillingRepository";
 import type { IDunningService } from "./IDunningService";
+import type { DunningStatus } from "./DunningState";
 
 export interface ResolvedDunning {
   service: IDunningService;
@@ -73,4 +74,24 @@ export class DunningServiceFactory {
     return repo.findTeamIdByBillingId(billingId);
   }
 
+  async findPlanNameByBillingId(
+    billingId: string,
+    entityType: "team" | "organization"
+  ): Promise<Plan | null> {
+    const teamId = await this.findTeamIdByBillingId(billingId, entityType);
+    if (!teamId) return null;
+    const repo =
+      entityType === "organization" ? this.deps.orgBillingRepository : this.deps.teamBillingRepository;
+    const record = await repo.findFullByTeamId(teamId);
+    return record?.planName ?? null;
+  }
+
+  async getDunningStatus(
+    billingId: string,
+    entityType: "team" | "organization"
+  ): Promise<DunningStatus> {
+    const service =
+      entityType === "organization" ? this.deps.orgDunningService : this.deps.teamDunningService;
+    return service.getStatus(billingId);
+  }
 }

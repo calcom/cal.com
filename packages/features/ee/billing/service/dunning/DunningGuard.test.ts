@@ -67,7 +67,8 @@ function makeDunningState(
 }
 
 function createMockDunningServiceFactory(
-  findRecordResult: DunningState | null = null
+  findRecordResult: DunningState | null = null,
+  planName: string | null = "TEAM"
 ) {
   const mockService = {
     findRecord: vi.fn().mockResolvedValue(findRecordResult),
@@ -80,13 +81,16 @@ function createMockDunningServiceFactory(
         ? { service: mockService, billingId: "billing_123", entityType: "team" as const }
         : null
     ),
+    findPlanNameByBillingId: vi.fn().mockResolvedValue(planName),
+    findTeamIdByBillingId: vi.fn().mockResolvedValue(100),
     _mockService: mockService,
   };
 }
 
 function createMockDunningServiceFactoryForSubTeam(
   parentTeamId: number,
-  findRecordResult: DunningState | null = null
+  findRecordResult: DunningState | null = null,
+  planName: string | null = "ORGANIZATION"
 ) {
   const mockService = {
     findRecord: vi.fn().mockResolvedValue(findRecordResult),
@@ -104,6 +108,8 @@ function createMockDunningServiceFactoryForSubTeam(
       }
       return Promise.resolve(null);
     }),
+    findPlanNameByBillingId: vi.fn().mockResolvedValue(planName),
+    findTeamIdByBillingId: vi.fn().mockResolvedValue(parentTeamId),
     _mockService: mockService,
   };
 }
@@ -114,13 +120,13 @@ describe("DunningGuard", () => {
   let mockFeaturesRepo: ReturnType<typeof createMockFeaturesRepository>;
   let mockStrategyFactory: ReturnType<typeof createMockStrategyFactory>;
   let mockTeamRepository: { findTeamSlugById: ReturnType<typeof vi.fn> };
-  const enterpriseSlugs = ["enterprise-team", "vip-org"];
 
   function setupGuard(
     findRecordResult: DunningState | null = null,
-    strategyName = "ImmediateUpdate"
+    strategyName = "ImmediateUpdate",
+    planName: string | null = "TEAM"
   ) {
-    mockDunningServiceFactory = createMockDunningServiceFactory(findRecordResult);
+    mockDunningServiceFactory = createMockDunningServiceFactory(findRecordResult, planName);
     mockFeaturesRepo = createMockFeaturesRepository();
     mockStrategyFactory = createMockStrategyFactory(strategyName);
     mockTeamRepository = {
@@ -129,7 +135,6 @@ describe("DunningGuard", () => {
     guard = new DunningGuard({
       dunningServiceFactory: mockDunningServiceFactory as unknown as DunningServiceFactory,
       featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
-      enterpriseSlugs,
       seatBillingStrategyFactory: mockStrategyFactory,
       teamRepository: mockTeamRepository,
     });
@@ -390,7 +395,6 @@ describe("DunningGuard", () => {
         guard = new DunningGuard({
           dunningServiceFactory: mockDunningServiceFactory as unknown as DunningServiceFactory,
           featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
-          enterpriseSlugs,
           seatBillingStrategyFactory: mockStrategyFactory,
           teamRepository: mockTeamRepository,
         });
@@ -401,10 +405,9 @@ describe("DunningGuard", () => {
     });
 
     describe("enterprise exemption", () => {
-      it("allows all actions for enterprise-exempted teams even when SOFT_BLOCKED", async () => {
-        setupGuard(makeDunningState({ status: "SOFT_BLOCKED" }));
+      it("allows all actions for enterprise plan even when SOFT_BLOCKED", async () => {
+        setupGuard(makeDunningState({ status: "SOFT_BLOCKED" }), "ImmediateUpdate", "ENTERPRISE");
         mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
-        mockTeamRepository.findTeamSlugById.mockResolvedValue({ slug: "enterprise-team" });
 
         const actions: BlockableAction[] = [
           "INVITE_MEMBER",
@@ -419,10 +422,9 @@ describe("DunningGuard", () => {
         }
       });
 
-      it("allows all actions for enterprise-exempted teams even when HARD_BLOCKED", async () => {
-        setupGuard(makeDunningState({ status: "HARD_BLOCKED" }));
+      it("allows all actions for enterprise plan even when HARD_BLOCKED", async () => {
+        setupGuard(makeDunningState({ status: "HARD_BLOCKED" }), "ImmediateUpdate", "ENTERPRISE");
         mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
-        mockTeamRepository.findTeamSlugById.mockResolvedValue({ slug: "vip-org" });
 
         const actions: BlockableAction[] = [
           "INVITE_MEMBER",
@@ -437,10 +439,9 @@ describe("DunningGuard", () => {
         }
       });
 
-      it("does not exempt teams whose slug is not in the enterprise list", async () => {
-        setupGuard(makeDunningState({ status: "HARD_BLOCKED" }));
+      it("does not exempt teams on non-enterprise plans", async () => {
+        setupGuard(makeDunningState({ status: "HARD_BLOCKED" }), "ImmediateUpdate", "TEAM");
         mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
-        mockTeamRepository.findTeamSlugById.mockResolvedValue({ slug: "regular-team" });
 
         const result = await guard.canPerformAction(100, "INVITE_MEMBER");
         expect(result.allowed).toBe(false);
@@ -462,11 +463,10 @@ describe("DunningGuard", () => {
       });
     });
 
-    describe("null team slug", () => {
-      it("does not exempt teams with null slug", async () => {
-        setupGuard(makeDunningState({ status: "HARD_BLOCKED" }));
+    describe("null plan name", () => {
+      it("does not exempt teams with null plan name", async () => {
+        setupGuard(makeDunningState({ status: "HARD_BLOCKED" }), "ImmediateUpdate", null);
         mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
-        mockTeamRepository.findTeamSlugById.mockResolvedValue(null);
 
         const result = await guard.canPerformAction(100, "API_ACCESS");
         expect(result.allowed).toBe(false);
@@ -497,7 +497,6 @@ describe("DunningGuard", () => {
         guard = new DunningGuard({
           dunningServiceFactory: mockFactory as unknown as DunningServiceFactory,
           featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
-          enterpriseSlugs,
           seatBillingStrategyFactory: mockStrategyFactory,
           teamRepository: mockTeamRepository,
         });
@@ -528,7 +527,6 @@ describe("DunningGuard", () => {
         guard = new DunningGuard({
           dunningServiceFactory: mockFactory as unknown as DunningServiceFactory,
           featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
-          enterpriseSlugs,
           seatBillingStrategyFactory: mockStrategyFactory,
           teamRepository: mockTeamRepository,
         });
@@ -555,7 +553,6 @@ describe("DunningGuard", () => {
         guard = new DunningGuard({
           dunningServiceFactory: mockFactory as unknown as DunningServiceFactory,
           featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
-          enterpriseSlugs,
           seatBillingStrategyFactory: mockStrategyFactory,
           teamRepository: mockTeamRepository,
         });
@@ -564,10 +561,11 @@ describe("DunningGuard", () => {
         expect(result).toEqual({ allowed: true });
       });
 
-      it("exempts sub-team when parent org slug is in enterprise list", async () => {
+      it("exempts sub-team when parent org has enterprise plan", async () => {
         const mockFactory = createMockDunningServiceFactoryForSubTeam(
           PARENT_ORG_ID,
-          makeDunningState({ status: "HARD_BLOCKED" })
+          makeDunningState({ status: "HARD_BLOCKED" }),
+          "ENTERPRISE"
         );
         mockFeaturesRepo = createMockFeaturesRepository();
         mockFeaturesRepo.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
@@ -577,7 +575,7 @@ describe("DunningGuard", () => {
             if (id === SUB_TEAM_ID)
               return Promise.resolve({ slug: "sub-team", parentId: PARENT_ORG_ID });
             if (id === PARENT_ORG_ID)
-              return Promise.resolve({ slug: "enterprise-team", parentId: null });
+              return Promise.resolve({ slug: "parent-org", parentId: null });
             return Promise.resolve(null);
           }),
         };
@@ -585,7 +583,6 @@ describe("DunningGuard", () => {
         guard = new DunningGuard({
           dunningServiceFactory: mockFactory as unknown as DunningServiceFactory,
           featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
-          enterpriseSlugs,
           seatBillingStrategyFactory: mockStrategyFactory,
           teamRepository: mockTeamRepository,
         });
@@ -614,7 +611,6 @@ describe("DunningGuard", () => {
         guard = new DunningGuard({
           dunningServiceFactory: mockFactory as unknown as DunningServiceFactory,
           featuresRepository: mockFeaturesRepo as unknown as IFeatureRepository,
-          enterpriseSlugs,
           seatBillingStrategyFactory: mockStrategyFactory,
           teamRepository: mockTeamRepository,
         });
