@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Cal ID Embed Playground – Routing Form</title>
+  <script type="text/javascript" src="./playground/lib/playground-init.ts"></script>
+  <script>
+    if (!location.search.includes("nonResponsive")) {
+      document.write('<meta name="viewport" content="width=device-width"/>');
+    }
+
+    (function () {
+      const p = new URLSearchParams(location.search);
+      let dirty = false;
+      const defaults = {
+        only: "ns:routingFormFullPrerender",
+        calOrigin: "http://acme.cal.local:3000",
+        "cal.embed.logging": "1",
+      };
+      for (const [k, v] of Object.entries(defaults)) {
+        if (!p.has(k)) { p.set(k, v); dirty = true; }
+      }
+      if (dirty) location.href = "?" + p.toString();
+    })();
+  </script>
+  <script>
+    (function (C, A, L) {
+      let p = function (a, ar) { a.q.push(ar); };
+      let d = C.document;
+      C.Cal = C.Cal || function () {
+        let cal = C.Cal, ar = arguments;
+        if (!cal.loaded) {
+          cal.ns = {}; cal.q = cal.q || [];
+          d.head.appendChild(d.createElement("script")).src = A;
+          cal.loaded = true;
+        }
+        if (ar[0] === L) {
+          const api = function () { p(api, arguments); };
+          const ns = ar[1];
+          api.q = api.q || [];
+          if (typeof ns === "string") {
+            cal.ns[ns] = cal.ns[ns] || api;
+            p(cal.ns[ns], ar);
+            p(cal, ["initNamespace", ns]);
+          } else p(cal, ar);
+          return;
+        }
+        p(cal, ar);
+      };
+    })(window, window.calOrigin + "/embed-link/embed.js", "init");
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      padding: 32px 24px;
+      font-family: system-ui, sans-serif;
+      font-size: 14px;
+      background: linear-gradient(135deg,
+        rgba(120,116,186,1) 0%,
+        rgba(221,221,255,1) 50%,
+        rgba(148,232,249,1) 100%);
+    }
+
+    header {
+      margin-bottom: 32px;
+    }
+
+    header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2d2060;
+    }
+
+    header p {
+      margin-top: 4px;
+      color: #444;
+    }
+
+    .playground {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 760px) {
+      .playground { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: rgba(255,255,255,0.82);
+      backdrop-filter: blur(8px);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 4px 24px rgba(80,60,160,0.10);
+    }
+
+    .card h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #2d2060;
+      margin-bottom: 4px;
+    }
+
+    .card > a {
+      display: inline-block;
+      font-size: 12px;
+      color: #6655cc;
+      margin-bottom: 16px;
+      text-decoration: underline;
+    }
+
+    .notes {
+      background: rgba(102,85,204,0.07);
+      border-left: 3px solid #9988ee;
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+    }
+
+    .notes li {
+      margin-left: 16px;
+      line-height: 1.7;
+      color: #333;
+    }
+
+    fieldset {
+      border: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-weight: 600;
+      color: #333;
+      font-size: 13px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 7px;
+      font-size: 14px;
+      background: #fff;
+      color: #222;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #8877dd;
+    }
+
+    .btn {
+      margin-top: 8px;
+      padding: 10px 22px;
+      border: none;
+      border-radius: 8px;
+      background: #6655cc;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover { background: #4433aa; }
+
+    .place { min-height: 4px; }
+
+    * { --cal-brand-color: gray; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Cal ID Embed Playground</h1>
+    <p>Routing Form integration demos — prerender and standard modes</p>
+  </header>
+
+  <div class="playground">
+
+    <!-- Without Prerender -->
+    <article class="card" id="cal-booking-place-routingFormWithoutPrerender">
+      <h2>Without Prerender</h2>
+      <a href="?only=ns:routingFormWithoutPrerender">Switch to this demo →</a>
+
+      <form id="cal-booking-place-routingFormWithoutPrerender-form">
+        <fieldset>
+          <label>Name <input type="text" name="name" placeholder="John Doe" /></label>
+          <label>Email <input type="email" name="email" placeholder="john@example.com" /></label>
+          <label>Skills
+            <select name="skills">
+              <option value="JavaScript">JavaScript</option>
+              <option value="Sales">Sales</option>
+            </select>
+          </label>
+        </fieldset>
+      </form>
+
+      <button
+        class="btn"
+        id="cal-booking-place-routingFormWithoutPrerender-submit"
+        data-cal-namespace="routingFormWithoutPrerender"
+        data-cal-config='{"cal.embed.pageType":"team.event.booking.slots","guests":["guest1@example.com","guest2@example.com"]}'>
+        Book Now
+      </button>
+
+      <script>
+        requestAnimationFrame(function tick() {
+          const seededFormAcmeId = "948ae412-d995-4865-885a-48302588de03";
+          const form = document.getElementById("cal-booking-place-routingFormWithoutPrerender-form");
+          const name = form.querySelector("input[name='name']").value;
+          const email = form.querySelector("input[name='email']").value;
+          const skills = form.querySelector("select[name='skills']").value;
+          if (name && email) {
+            document.getElementById("cal-booking-place-routingFormWithoutPrerender-submit")
+              .setAttribute("data-cal-link",
+                `router?form=${seededFormAcmeId}&email=${email}&name=${name}&Location=London&Department=Engineering&Rating=5&skills=${skills}&Email=${email}`);
+          }
+          requestAnimationFrame(tick);
+        });
+      </script>
+    </article>
+
+    <!-- Full Prerender -->
+    <article class="card" id="cal-booking-routingFormFullPrerender">
+      <h2>Full Prerender (Headless Router)</h2>
+      <a href="?only=ns:routingFormFullPrerender&debug=1&param.email=test@example.com">Switch to this demo →</a>
+
+      <ul class="notes">
+        <li>Headless router is prerendered for the email passed as <code>param.email</code> on load.</li>
+        <li>On email blur or select change, a new prerender is triggered.</li>
+        <li>The prerender queues the form response without recording it; recording happens on actual booking.</li>
+        <li>If the CTA is clicked before slots go stale (<code>slotsStaleTimeMs</code>), the prerendered modal opens instantly; otherwise slots are refetched with a skeleton shown.</li>
+        <li>After <code>iframeForceReloadThresholdMs</code>, a fresh headless router request is sent to catch routing form or ownership changes.</li>
+        <li>Demo values: <code>slotsStaleTimeMs = 10s</code>, <code>iframeForceReloadThresholdMs = 30s</code> (defaults: 1 min / 15 min).</li>
+        <li>To avoid forced reloads, re-prerender judiciously as the user interacts.</li>
+      </ul>
+
+      <div class="inline-embed-container">
+        <script>
+          (() => {
+            if (window.only !== "ns:routingFormFullPrerender") return;
+
+            Cal("init", "routingFormFullPrerender", {
+              debug: true,
+              calOrigin: window.calOrigin,
+            });
+
+            window.routingFormFullPrerender = {
+              buildRouterUrl: ({ skills, location, name, email, formId }) =>
+                `router?form=${formId}&skills=${skills}&Location=${location}&name=${name}&Email=${email}&Rating=5`,
+
+              onFormSubmit: (e) => {
+                e.preventDefault();
+                const get = (id) => document.getElementById(id).value;
+                const routerUrl = window.routingFormFullPrerender.buildRouterUrl({
+                  skills:   get("cal-booking-place-routingFormFullPrerender-select-skills"),
+                  location: get("cal-booking-place-routingFormFullPrerender-select-location"),
+                  name:     get("cal-booking-place-routingFormFullPrerender-input-name"),
+                  email:    get("cal-booking-place-routingFormFullPrerender-input-email"),
+                  formId:   window.params.formId,
+                });
+                Cal.ns.routingFormFullPrerender("modal", {
+                  calLink: routerUrl,
+                  calOrigin: window.calOrigin,
+                });
+              },
+            };
+          })();
+        </script>
+
+        <div id="cal-booking-place-routingFormFullPrerender">
+          <div class="place"></div>
+          <form
+            id="cal-booking-place-routingFormFullPrerender-form"
+            onsubmit="window.routingFormFullPrerender.onFormSubmit(event)">
+            <fieldset>
+              <label for="cal-booking-place-routingFormFullPrerender-input-name">Name
+                <input required type="text"
+                  id="cal-booking-place-routingFormFullPrerender-input-name"
+                  placeholder="John Doe" />
+              </label>
+
+              <label for="cal-booking-place-routingFormFullPrerender-input-email">Email
+                <input required type="email"
+                  id="cal-booking-place-routingFormFullPrerender-input-email"
+                  placeholder="john@example.com" />
+              </label>
+
+              <label for="cal-booking-place-routingFormFullPrerender-select-skills">Skills
+                <select required id="cal-booking-place-routingFormFullPrerender-select-skills">
+                  <option value="">Select a skill</option>
+                  <option value="JavaScript">JavaScript</option>
+                  <option value="React">React</option>
+                  <option value="Node.js">Node.js</option>
+                  <option value="Python">Python</option>
+                  <option value="Sales">Sales</option>
+                </select>
+              </label>
+
+              <label for="cal-booking-place-routingFormFullPrerender-select-location">Location
+                <select required id="cal-booking-place-routingFormFullPrerender-select-location">
+                  <option value="">Select a location</option>
+                  <option value="New York">New York</option>
+                  <option value="London">London</option>
+                  <option value="Tokyo">Tokyo</option>
+                  <option value="Berlin">Berlin</option>
+                  <option value="Remote">Remote</option>
+                </select>
+              </label>
+            </fieldset>
+
+            <button type="submit" class="btn" id="cta-routingFormFullPrerender">Book Now</button>
+          </form>
+        </div>
+      </div>
+
+      <script>
+        (() => {
+          const prerender = ({ skills, location, email, formId }) => {
+            Cal.ns.routingFormFullPrerender("prerender", {
+              calLink: window.routingFormFullPrerender.buildRouterUrl({ skills, location, email, formId }),
+              type: "modal",
+              pageType: "team.event.booking.slots",
+              options: {
+                slotsStaleTimeMs: 10 * 1000,
+                iframeForceReloadThresholdMs: 30 * 1000,
+              },
+            });
+          };
+
+          function tryPrerender() {
+            const skills   = document.getElementById("cal-booking-place-routingFormFullPrerender-select-skills").value;
+            const location = document.getElementById("cal-booking-place-routingFormFullPrerender-select-location").value;
+            const email    = document.getElementById("cal-booking-place-routingFormFullPrerender-input-email").value;
+            if (skills && location) prerender({ skills, location, email, formId: window.params.formId });
+          }
+
+          document.getElementById("cal-booking-place-routingFormFullPrerender-select-skills").onchange = tryPrerender;
+          document.getElementById("cal-booking-place-routingFormFullPrerender-select-location").onchange = tryPrerender;
+        })();
+      </script>
+    </article>
+
+  </div>
+
+  <script type="module" src="./playground/lib/playground.ts"></script>
+</body>
+</html>

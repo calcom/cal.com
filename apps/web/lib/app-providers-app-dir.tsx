@@ -14,7 +14,7 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 
-import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import useIsPublicPage from "@lib/hooks/useIsPublicPage";
 import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
 import type { WithLocaleProps } from "@lib/withLocale";
 
@@ -46,7 +46,10 @@ export type AppProps = Omit<
 const getEmbedNamespace = (searchParams: ReadonlyURLSearchParams) => {
   // Mostly embed query param should be available on server. Use that there.
   // Use the most reliable detection on client
-  return typeof window !== "undefined" ? window.getEmbedNamespace() : searchParams.get("embed") ?? null;
+  if (typeof window !== "undefined" && typeof window.getEmbedNamespace === "function") {
+    return window.getEmbedNamespace();
+  }
+  return searchParams.get("embed") ?? null;
 };
 
 type CalcomThemeProps = Readonly<{
@@ -107,7 +110,7 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 
 const AppProviders = (props: PageWrapperProps) => {
   // No need to have intercom on public pages - Good for Page Performance
-  const isBookingPage = useIsBookingPage();
+  const isBookingPage = useIsPublicPage();
   const isThemeSupported = useIsThemeSupported();
 
   const RemainingProviders = (

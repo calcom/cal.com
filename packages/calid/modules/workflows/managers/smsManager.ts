@@ -542,9 +542,42 @@ export const deleteScheduledSMSReminder = async (
   type: WorkflowMethods = WorkflowMethods.SMS
 ): Promise<void> => {
   try {
+    const reminder = await prisma.calIdWorkflowReminder.findFirst({
+      where: {
+        id: reminderIdentifier,
+        method: type,
+        scheduledDate: {
+          gt: new Date(),
+        },
+      },
+      select: {
+        id: true,
+        scheduled: true,
+        referenceId: true,
+        providerCancellationStatus: true,
+      },
+    });
+
+    if (!reminder) {
+      return;
+    }
+
+    const hasProviderReferenceId = Boolean(externalReference ?? reminder.referenceId);
+    const requiresProviderCancellation =
+      type === WorkflowMethods.SMS && reminder.scheduled && hasProviderReferenceId;
+    const hasTerminalProviderCancellationStatus = ["cancelled", "not_cancellable"].includes(
+      reminder.providerCancellationStatus || ""
+    );
+
     await prisma.calIdWorkflowReminder.update({
-      where: { id: reminderIdentifier, scheduledDate: { gt: new Date() } },
-      data: { cancelled: true },
+      where: { id: reminder.id },
+      data: {
+        cancelled: true,
+        ...(requiresProviderCancellation &&
+          !hasTerminalProviderCancellationStatus && {
+            providerCancellationStatus: "pending",
+          }),
+      },
     });
   } catch (exception) {
     moduleLogger.error(`Reminder cancellation failed: ${exception}`);

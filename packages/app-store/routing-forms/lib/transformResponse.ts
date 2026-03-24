@@ -3,6 +3,9 @@ import type { z } from "zod";
 import type { Field, FormResponse } from "../types/types";
 import { areSelectOptionsInLegacyFormat } from "./selectOptions";
 
+const isSingleSelectLike = (type: string) => type === "select" || type === "radio";
+const isMultiSelectLike = (type: string) => type === "multiselect" || type === "checkbox";
+
 /**
  * It takes care of correctly transforming the input to label or id depending on various cases
  * - It allows us to prefill with ID or Label
@@ -52,6 +55,84 @@ function transformSelectValue({
   return idOrLabel;
 }
 
+function resolveOptionLabel({
+  field,
+  idOrLabel,
+}: {
+  field: Pick<Field, "options" | "type">;
+  idOrLabel: string;
+}) {
+  const options = field.options ?? [];
+  const foundOptionById = options.find((option) => option.id === idOrLabel);
+  if (foundOptionById) {
+    return foundOptionById.label;
+  }
+  const foundOptionByLabel = options.find((option) => option.label === idOrLabel);
+  return foundOptionByLabel?.label ?? idOrLabel;
+}
+
+export function getDisplayValueForValue({
+  field,
+  value,
+}: {
+  field: Pick<Field, "options" | "type">;
+  value: FormResponse[string]["value"] | undefined;
+}): string | string[] | undefined {
+  if (!value) {
+    return undefined;
+  }
+  if (!isSingleSelectLike(field.type) && !isMultiSelectLike(field.type)) {
+    return undefined;
+  }
+  const valueArray =
+    value instanceof Array ? value : value.toString().split(",").filter(Boolean);
+  if (valueArray.length === 0) {
+    return undefined;
+  }
+  const resolved = valueArray.map((idOrLabel) =>
+    resolveOptionLabel({ field, idOrLabel: String(idOrLabel).trim() })
+  );
+  return isSingleSelectLike(field.type) ? resolved[0] : resolved;
+}
+
+function resolveOptionId({
+  field,
+  idOrLabel,
+}: {
+  field: Pick<Field, "options" | "type">;
+  idOrLabel: string;
+}) {
+  const options = field.options ?? [];
+  const foundOptionById = options.find((option) => option.id === idOrLabel);
+  if (foundOptionById?.id) {
+    return foundOptionById.id;
+  }
+  const foundOptionByLabel = options.find((option) => option.label === idOrLabel);
+  return foundOptionByLabel?.id ?? idOrLabel;
+}
+
+export function getOptionIdForValue({
+  field,
+  value,
+}: {
+  field: Pick<Field, "options" | "type">;
+  value: FormResponse[string]["value"] | undefined;
+}): string | string[] | undefined {
+  if (!value) {
+    return undefined;
+  }
+  if (!isSingleSelectLike(field.type) && !isMultiSelectLike(field.type)) {
+    return undefined;
+  }
+  const valueArray =
+    value instanceof Array ? value : value.toString().split(",").filter(Boolean);
+  if (valueArray.length === 0) {
+    return undefined;
+  }
+  const resolved = valueArray.map((idOrLabel) => resolveOptionId({ field, idOrLabel: String(idOrLabel).trim() }));
+  return isSingleSelectLike(field.type) ? resolved[0] : resolved;
+}
+
 export function getFieldResponseForJsonLogic({
   field,
   value,
@@ -69,7 +150,7 @@ export function getFieldResponseForJsonLogic({
     }
     return value;
   }
-  if (field.type === "multiselect") {
+  if (isMultiSelectLike(field.type)) {
     // Could be option id(i.e. a UUIDv4) or option label for ease of prefilling
     let valueOrLabelArray = value instanceof Array ? value : value.toString().split(",");
 
@@ -80,7 +161,7 @@ export function getFieldResponseForJsonLogic({
     return valueOrLabelArray;
   }
 
-  if (field.type === "select") {
+  if (isSingleSelectLike(field.type)) {
     const valueAsStringOrStringArray = typeof value === "number" ? String(value) : value;
     const valueAsString =
       valueAsStringOrStringArray instanceof Array

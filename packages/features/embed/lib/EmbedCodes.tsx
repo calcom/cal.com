@@ -32,7 +32,7 @@ export const Codes = {
       const namespaceProp = `${namespace ? `namespace="${namespace}"` : ""}`;
       const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
-import Cal, { getCalApi } from "@calcom/embed-react";
+import Cal, { getCalApi } from "@calid/react-embed";
 import { useEffect } from "react";
 export default function MyApp() {
   useEffect(() => {
@@ -70,7 +70,7 @@ export default function MyApp() {
         ...previewState,
       });
       return code`
-import { getCalApi } from "@calcom/embed-react";
+import { getCalApi } from "@calid/react-embed";
 import { useEffect } from "react";
 export default function MyApp() {
   useEffect(() => {
@@ -97,7 +97,7 @@ export default function MyApp() {
     }) => {
       const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
-import { getCalApi } from "@calcom/embed-react";
+import { getCalApi } from "@calid/react-embed";
 import { useEffect } from "react";
 export default function MyApp() {
   useEffect(() => {

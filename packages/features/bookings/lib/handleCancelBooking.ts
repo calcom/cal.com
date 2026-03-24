@@ -424,6 +424,7 @@ async function handler(input: CancelBookingInput) {
     seatsShowAttendees: !!bookingToDelete.eventType?.seatsShowAttendees,
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     recurringEvent: parseRecurringEvent(bookingToDelete.eventType?.recurringEvent),
+    bookingFields: bookingToDelete.eventType?.bookingFields ?? [],
     ...(teamMembers &&
       teamId && {
         team: {

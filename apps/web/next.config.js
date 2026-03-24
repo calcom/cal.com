@@ -213,6 +213,8 @@ const nextConfig = {
     "@calcom/lib",
     "@calcom/prisma",
     "@calcom/trpc",
+    "@calid/embed-runtime",
+    "@calid/react-embed",
     "@calid/job-dispatcher",
     "@calid/job-engine",
   ],

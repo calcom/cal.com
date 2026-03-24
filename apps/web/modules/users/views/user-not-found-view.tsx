@@ -6,6 +6,7 @@ import { Logo } from "@calid/features/ui/components/logo";
 import Link from "next/link";
 import { useEffect, useRef, useMemo, useState } from "react";
 
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 interface UserNotFoundViewProps {
@@ -286,7 +287,13 @@ export function UserNotFoundView({ slug }: UserNotFoundViewProps) {
     {
       icon: "users" as IconName,
       title: t("claim_username_trusted_by_professionals_title"),
-      description: t("claim_username_trusted_by_professionals_description"),
+      description: (
+        <ServerTrans
+          t={t}
+          i18nKey="claim_username_trusted_by_professionals_description"
+          values={{ count: "100K+" }}
+        />
+      ),
     },
     {
       icon: "shield" as IconName,
@@ -331,13 +338,13 @@ export function UserNotFoundView({ slug }: UserNotFoundViewProps) {
 
             <p className="text-default mb-12 text-sm">{t("claim_username_no_card_required")}</p>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-3">
               {features.map((feature) => (
-                <div key={feature.icon} className="flex items-start justify-center gap-3">
+                <div key={feature.icon} className="flex items-start gap-3 text-left">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100">
                     <Icon name={feature.icon} className="h-5 w-5 text-blue-600" />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h3 className="text-default font-semibold">{feature.title}</h3>
                     <p className="text-default text-sm">{feature.description}</p>
                   </div>

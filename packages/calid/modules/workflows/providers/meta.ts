@@ -1,4 +1,7 @@
 // meta.ts
+import { dispatcher, JobName } from "@calid/job-dispatcher";
+import type { WhatsAppReminderScheduledJobData } from "@calid/job-engine";
+import { QueueName } from "@calid/queue";
 import type { Prisma } from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import timezone from "dayjs/plugin/timezone";
@@ -6,12 +9,11 @@ import utc from "dayjs/plugin/utc";
 
 import dayjs from "@calcom/dayjs";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
-import { INNGEST_ID, META_API_VERSION } from "@calcom/lib/constants";
+import { META_API_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import { SMSLockState, WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
-import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 import { META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import type { VariablesType } from "../templates/customTemplate";
@@ -330,7 +332,7 @@ const getCappedVariables = (
   const suffixLength = calculateSuffixLength(component.text, "event_type_name");
 
   // Calculate max length for event_type_name (accounting for ellipsis)
-  const maxLengthForEventTypeName = maxTotalLength - (suffixLength); /* for ellipsis */
+  const maxLengthForEventTypeName = maxTotalLength - suffixLength; /* for ellipsis */
 
   return {
     ...expandedVariables,
@@ -773,12 +775,12 @@ export const scheduleSMS = async (args: {
   });
 };
 
-export const cancelSMS = async (referenceId: string) => {
-  return cancelMetaScheduledMessage(referenceId);
-};
+// export const cancelSMS = async (referenceId: string) => {
+//   return cancelMetaScheduledMessage(referenceId);
+// };
 
 /**
- * Schedule a WhatsApp message using Inngest instead of in-memory storage for delayed notifications
+ * Schedule a WhatsApp message using the job dispatcher for delayed notifications
  */
 const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) => {
   // Create a reminder record first (if not exists)
@@ -804,7 +806,7 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
         workflowStepId: config.workflowStepId,
         method: "WHATSAPP",
         scheduledDate: config.deliveryTimestamp,
-        scheduled: false, // Will be marked true after Inngest scheduling
+        scheduled: false, // Will be marked true after job scheduling
         ...(config.seatReferenceUid && { seatReferenceId: config.seatReferenceUid }),
       },
     });
@@ -815,79 +817,71 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
   const now = new Date();
   const delay = Math.max(0, config.deliveryTimestamp.getTime() - now.getTime());
 
-  // Determine Inngest environment key
-  const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
+  const payload: WhatsAppReminderScheduledJobData = {
+    action: config.action,
+    eventTypeId: config.eventTypeId!,
+    workflowId: config.workflowId,
+    workflowStepId: config.workflowStepId,
+    recipientNumber: config.recipientNumber,
+    reminderId,
+    bookingUid: config.bookingUid,
+    scheduledDate: config.deliveryTimestamp.toISOString(),
+    variableData: config.variableData,
+    userId: config.accountId,
+    teamId: config.organizationId,
+    template: config.templateType ?? null,
+    metaTemplateName: config.metaTemplateName,
+    metaPhoneNumberId: config.metaPhoneNumberId,
+    seatReferenceUid: config.seatReferenceUid,
+  };
 
-  // Fetch booking details for Inngest event
-  const booking = await prisma.booking.findUnique({
-    where: { uid: config.bookingUid },
-    include: {
-      attendees: true,
-      eventType: true,
-      user: true,
-    },
-  });
-
-  if (!booking) {
-    throw new Error(`Booking ${config.bookingUid} not found`);
-  }
-
-  const workflowStep = await prisma.calIdWorkflowStep.findUnique({
-    where: { id: config.workflowStepId },
-    include: {
-      workflow: true,
-    },
-  });
-
-  if (!workflowStep) {
-    throw new Error(`Workflow step ${config.workflowStepId} not found`);
-  }
-
-  // Schedule with Inngest
+  // Schedule with job dispatcher
   try {
-    const { ids } = await inngestClient.send({
-      name: `whatsapp/reminder.scheduled-${key}`,
-      data: {
-        action: config.action,
-        eventTypeId: config.eventTypeId,
-        workflowId: config.workflowId,
-        workflowStepId: config.workflowStepId,
-        recipientNumber: config.recipientNumber,
-        reminderId,
-        bookingUid: config.bookingUid,
-        scheduledDate: config.deliveryTimestamp.toISOString(),
-        variableData: config.variableData,
-        userId: config.accountId,
-        teamId: config.organizationId,
-        template: config.templateType,
-        metaTemplateName: config.metaTemplateName,
-        metaPhoneNumberId: config.metaPhoneNumberId,
-        seatReferenceUid: config.seatReferenceUid,
+    const { jobId } = await dispatcher.dispatch({
+      queue: QueueName.SCHEDULED,
+      name: JobName.WHATSAPP_REMINDER_SCHEDULED,
+      data: payload,
+      bullmqOptions: {
+        delay,
+        attempts: 2,
+        backoff: {
+          type: "exponential",
+          delay: 5000,
+        },
+        removeOnComplete: {
+          age: 86400,
+          count: 100,
+        },
+        removeOnFail: {
+          age: 604800,
+          count: 1000,
+        },
       },
-      ts: delay > 0 ? now.getTime() + delay : undefined,
+      inngestTs: Date.now() + delay,
     });
 
-    // Mark as scheduled in Inngest
+    // Mark as scheduled
     await prisma.calIdWorkflowReminder.update({
       where: { id: reminderId },
       data: {
         scheduled: true,
-        referenceId: `${ids[0]}`,
+        referenceId: jobId,
       },
     });
 
-    messageLogger.debug(`Scheduled WhatsApp message via Inngest`, {
+    messageLogger.debug(`Scheduled WhatsApp message`, {
       reminderId,
       scheduledDate: config.deliveryTimestamp,
+      jobId,
       delay: delay / 1000 / 60, // minutes
     });
 
     return {
-      sid: ids[0],
+      sid: jobId,
       scheduledId: reminderId,
     };
   } catch (error) {
-    messageLogger.error("Failed to schedule with Inngest", {
+    messageLogger.error("Failed to schedule with dispatcher", {
       reminderId,
       error: error instanceof Error ? error.message : error,
     });
@@ -895,98 +889,81 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
   }
 };
 
-/**
- * Cancel a scheduled message using Inngest cancellation event
- */
-const cancelMetaScheduledMessage = async (scheduledId: string) => {
-  try {
-    // Extract reminder ID from reference
-    const reminderId = scheduledId.startsWith("INNGEST_")
-      ? parseInt(scheduledId.replace("INNGEST_", ""))
-      : parseInt(scheduledId);
+// /**
+//  * Cancel a scheduled message
+//  */
+// const cancelMetaScheduledMessage = async (scheduledId: string) => {
+//   try {
+//     const reminderId = scheduledId.startsWith("INNGEST_")
+//       ? parseInt(scheduledId.replace("INNGEST_", ""))
+//       : parseInt(scheduledId);
 
-    if (isNaN(reminderId)) {
-      messageLogger.warn(`Invalid scheduled ID format: ${scheduledId}`);
-      return;
-    }
+//     if (isNaN(reminderId)) {
+//       messageLogger.warn(`Invalid scheduled ID format: ${scheduledId}`);
+//       return;
+//     }
 
-    const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
+//     // Update reminder status - job will handle non-execution
+//     const reminder = await prisma.calIdWorkflowReminder.update({
+//       where: { id: reminderId },
+//       data: {
+//         cancelled: true,
+//         scheduled: false,
+//         referenceId: "CANCELLED",
+//       },
+//     });
 
-    // Send cancellation event to Inngest
-    await inngestClient.send({
-      name: `whatsapp/reminder.cancelled-${key}`,
-      data: {
-        reminderId,
-      },
-    });
+//     if (reminder && reminder.referenceId && reminder.referenceId !== "CANCELLED") {
+//       await prisma.calIdWorkflowInsights.update({
+//         where: {
+//           msgId: reminder.referenceId,
+//         },
+//         data: {
+//           status: WorkflowStatus.CANCELLED,
+//         },
+//       });
+//     }
 
-    // Update reminder status
-    const reminder = await prisma.calIdWorkflowReminder.update({
-      where: { id: reminderId },
-      data: {
-        scheduled: false,
-        referenceId: "CANCELLED",
-      },
-    });
+//     messageLogger.debug(`Cancelled scheduled WhatsApp message ${reminderId}`);
+//   } catch (error) {
+//     messageLogger.error(`Failed to cancel message ${scheduledId}`, {
+//       error: error instanceof Error ? error.message : error,
+//     });
+//     throw error;
+//   }
+// };
 
-    if (reminder && reminder.referenceId) {
-      await prisma.calIdWorkflowInsights.update({
-        where: {
-          msgId: reminder.referenceId,
-        },
-        data: {
-          status: WorkflowStatus.CANCELLED,
-        },
-      });
-    }
+// export async function deleteMultipleScheduledSMS(referenceIds: string[]) {
+//   await Promise.allSettled(
+//     referenceIds.map(async (referenceId) => {
+//       try {
+//         const reminderId = referenceId.startsWith("INNGEST_")
+//           ? parseInt(referenceId.replace("INNGEST_", ""))
+//           : parseInt(referenceId);
 
-    messageLogger.debug(`Cancelled scheduled Meta WhatsApp message ${reminderId}`);
-  } catch (error) {
-    messageLogger.error(`Failed to cancel message ${scheduledId}`, {
-      error: error instanceof Error ? error.message : error,
-    });
-    throw error;
-  }
-};
+//         if (!isNaN(reminderId)) {
+//           const reminder = await prisma.calIdWorkflowReminder.update({
+//             where: { id: reminderId },
+//             data: {
+//               scheduled: false,
+//               referenceId: "CANCELLED",
+//             },
+//           });
 
-export async function deleteMultipleScheduledSMS(referenceIds: string[]) {
-  const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
-
-  await Promise.allSettled(
-    referenceIds.map(async (referenceId) => {
-      try {
-        const reminderId = referenceId.startsWith("INNGEST_")
-          ? parseInt(referenceId.replace("INNGEST_", ""))
-          : parseInt(referenceId);
-
-        if (!isNaN(reminderId)) {
-          await inngestClient.send({
-            name: `whatsapp/reminder.cancelled-${key}`,
-            data: { reminderId },
-          });
-
-          const reminder = await prisma.calIdWorkflowReminder.update({
-            where: { id: reminderId },
-            data: {
-              scheduled: false,
-              referenceId: "CANCELLED",
-            },
-          });
-
-          if (reminder && reminder.referenceId) {
-            await prisma.calIdWorkflowInsights.update({
-              where: {
-                msgId: reminder.referenceId,
-              },
-              data: {
-                status: WorkflowStatus.CANCELLED,
-              },
-            });
-          }
-        }
-      } catch (error) {
-        messageLogger.error(`Error canceling scheduled WhatsApp with id ${referenceId}`, error);
-      }
-    })
-  );
-}
+//           if (reminder && reminder.referenceId && reminder.referenceId !== "CANCELLED") {
+//             await prisma.calIdWorkflowInsights.update({
+//               where: {
+//                 msgId: reminder.referenceId,
+//               },
+//               data: {
+//                 status: WorkflowStatus.CANCELLED,
+//               },
+//             });
+//           }
+//         }
+//       } catch (error) {
+//         messageLogger.error(`Error canceling scheduled WhatsApp with id ${referenceId}`, error);
+//       }
+//     })
+//   );
+// }

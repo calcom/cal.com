@@ -1,4 +1,4 @@
-name: Build, Push Docker Image, Deploy to EC2
+name: Build WEB, Push Docker Image, Deploy to EC2
 
 on:
   #trigger on push on "deploy" branch

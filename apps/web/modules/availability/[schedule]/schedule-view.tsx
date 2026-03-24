@@ -119,10 +119,11 @@ export const AvailabilitySettingsWebWrapper = ({
       handleDelete={() => {
         scheduleId && deleteMutation.mutate({ scheduleId });
       }}
-      handleSubmit={async ({ dateOverrides, ...values }) => {
+      handleSubmit={async ({ dateOverrides, schedule: formSchedule, ...values }) => {
         scheduleId &&
           updateMutation.mutate({
             scheduleId,
+            schedule: formSchedule,
             dateOverrides: dateOverrides.flatMap((override) => override.ranges),
             ...values,
           });

@@ -143,7 +143,7 @@ export class JobDispatcher {
       );
 
       // For delayed/repeat jobs, successful enqueue = success
-      return { jobName: name, backend: "bullmq", fallback: false, result: job };
+      return { jobId: job.id, jobName: name, backend: "bullmq", fallback: false, result: job };
     }
 
     // ── Step 3: Immediate jobs – monitor for pickup ───────────────────────
@@ -173,7 +173,7 @@ export class JobDispatcher {
     // Start background monitoring (no await)
     void this.monitorAndFallback(job, queueName, name, data, inngestTs);
 
-    return { jobName: name, backend: "bullmq", fallback: false, result: job };
+    return { jobId: job.id, jobName: name, backend: "bullmq", fallback: false, result: job };
   }
 
   /**
@@ -253,7 +253,7 @@ export class JobDispatcher {
           queue: queueName,
           jobId: job.id,
         });
-        return { jobName, backend: "bullmq", fallback: false, result: job };
+        return { jobId: job.id, jobName, backend: "bullmq", fallback: false, result: job };
       }
 
       this.logger.warn(
@@ -407,7 +407,7 @@ export class JobDispatcher {
   ): Promise<DispatchResult> {
     try {
       const result = await sendToInngest(jobName, data, this.logger, inngestTs);
-      return { jobName, backend: "inngest", fallback: true, result };
+      return { jobId: result.ids[0], jobName, backend: "inngest", fallback: true, result };
     } catch (inngestError) {
       this.logger.error("[job-dispatcher] CRITICAL: Both BullMQ and Inngest failed", {
         jobName,

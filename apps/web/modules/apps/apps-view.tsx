@@ -15,9 +15,16 @@ export type PageProps = {
   appStore: AppFrontendPayload[];
   userAdminTeams: number[];
   isAdmin: boolean;
+  selectedCategory: AppCategories | null;
 };
 
-export default function Apps({ isAdmin, categories, appStore, userAdminTeams }: PageProps) {
+export default function Apps({
+  isAdmin,
+  categories,
+  appStore,
+  userAdminTeams,
+  selectedCategory,
+}: PageProps) {
   const { t } = useLocale();
 
   return (
@@ -33,6 +40,7 @@ export default function Apps({ isAdmin, categories, appStore, userAdminTeams }: 
           apps={appStore}
           categories={categories.map((category) => category.name)}
           userAdminTeams={userAdminTeams}
+          selectedCategory={selectedCategory}
         />
       </div>
     </AppsLayout>

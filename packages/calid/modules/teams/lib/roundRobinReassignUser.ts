@@ -1,7 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
-import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
+import {
+  DefaultFallbackVideoLocationType,
+  OrganizerDefaultConferencingAppType,
+  getLocationValueForDB,
+} from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import {
   sendRoundRobinCancelledEmailsAndSMS as RRCancelledEmailAndSMS,
@@ -66,7 +70,7 @@ class BookingReassignmentManager {
     const bookingSnapshot = await this.fetchBookingData();
     const eventTypeConfig = await this.loadEventTypeConfiguration(bookingSnapshot);
     const enrichedHosts = await this.prepareHostsWithCredentials(eventTypeConfig);
-    
+
     const reassignmentContext = await this.analyzeReassignmentContext(
       bookingSnapshot,
       eventTypeConfig,
@@ -148,7 +152,9 @@ class BookingReassignmentManager {
     return record;
   }
 
-  private async loadEventTypeConfiguration(booking: NonNullable<Awaited<ReturnType<typeof this.fetchBookingData>>>) {
+  private async loadEventTypeConfiguration(
+    booking: NonNullable<Awaited<ReturnType<typeof this.fetchBookingData>>>
+  ) {
     const config = await getEventTypesFromDB(booking.eventTypeId!);
 
     if (!config) {
@@ -156,16 +162,17 @@ class BookingReassignmentManager {
       throw new Error("Event type not found");
     }
 
-    const hostRecords = config.hosts.length > 0
-      ? config.hosts
-      : config.users.map((u) => ({
-          user: u,
-          isFixed: false,
-          priority: 2,
-          weight: 100,
-          schedule: null,
-          createdAt: new Date(0),
-        }));
+    const hostRecords =
+      config.hosts.length > 0
+        ? config.hosts
+        : config.users.map((u) => ({
+            user: u,
+            isFixed: false,
+            priority: 2,
+            weight: 100,
+            schedule: null,
+            createdAt: new Date(0),
+          }));
 
     if (hostRecords.length === 0) {
       throw new Error(ErrorCode.EventTypeNoHosts);
@@ -174,7 +181,9 @@ class BookingReassignmentManager {
     return { ...config, hosts: hostRecords };
   }
 
-  private async prepareHostsWithCredentials(eventTypeConfig: Awaited<ReturnType<typeof this.loadEventTypeConfiguration>>) {
+  private async prepareHostsWithCredentials(
+    eventTypeConfig: Awaited<ReturnType<typeof this.loadEventTypeConfiguration>>
+  ) {
     return enrichHostsWithDelegationCredentials({
       orgId: null,
       hosts: eventTypeConfig.hosts,
@@ -382,7 +391,7 @@ class BookingReassignmentManager {
 
       computedLocation =
         appLink ||
-        getLocationValueForDB(booking.location || "integrations:daily", eventTypeConfig.locations)
+        getLocationValueForDB(booking.location || DefaultFallbackVideoLocationType, eventTypeConfig.locations)
           .bookingLocation;
     }
 
@@ -394,7 +403,7 @@ class BookingReassignmentManager {
       eventName: eventTypeConfig.eventName,
       teamName: teamMembers.length > 1 ? eventTypeConfig.team?.name : null,
       host: organizer.name || "Nameless",
-      location: computedLocation || "integrations:daily",
+      location: computedLocation || DefaultFallbackVideoLocationType,
       bookingFields: { ...bookingData },
       eventDuration,
       t: organizerTranslation,
@@ -405,7 +414,7 @@ class BookingReassignmentManager {
 
   private async swapAttendeeIdentity(booking: any, outgoingHost: any, incomingHost: any) {
     const targetAttendee = booking.attendees.find((a) => a.email === outgoingHost.email);
-    
+
     await prisma.attendee.update({
       where: { id: targetAttendee!.id },
       data: {

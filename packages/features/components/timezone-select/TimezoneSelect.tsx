@@ -11,7 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { getReactSelectProps, inputStyles } from "@calcom/ui/components/form";
 
-const SELECT_SEARCH_DATA: Timezones = [
+export const SELECT_SEARCH_DATA: Timezones = [
   { label: "San Francisco", timezone: "America/Los_Angeles" },
   { label: "Sao Francisco do Sul", timezone: "America/Sao_Paulo" },
   { label: "San Francisco de Macoris", timezone: "America/Santo_Domingo" },
@@ -142,6 +142,16 @@ export function TimezoneSelectComponent({
           "Africa/Porto-novo": "Africa/Porto-Novo",
           "Africa/Dar_Es_Salaam": "Africa/Dar_es_Salaam",
         };
+
+        if (Array.isArray(selectedOption)) {
+          props.onChange(
+            selectedOption.map((opt) => ({
+              ...opt,
+              value: corrections[opt.value] || opt.value,
+            }))
+          );
+          return;
+        }
 
         const correctedValue = corrections[selectedOption.value] || selectedOption.value;
         props.onChange({ ...selectedOption, value: correctedValue });

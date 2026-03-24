@@ -32,6 +32,17 @@ export class EventTypeService extends BaseService {
     }
   }
 
+  async getEventTypeUserIdBySlug(userId: number, slug: string): Promise<EventTypeResponse> {
+    this.logOperation("getEventTypeBySlug", { userId, slug });
+    try {
+      const eventType = await this.eventTypeRepository.findBySlug(slug, userId);
+      return this.mapEventTypeToResponse(eventType);
+    } catch (error) {
+      this.logError("getEventTypeById", error);
+      throw error;
+    }
+  }
+
   async getEventTypes(
     userId: number,
     filters: Omit<Prisma.EventTypeWhereInput, 'userId'> = {}, 

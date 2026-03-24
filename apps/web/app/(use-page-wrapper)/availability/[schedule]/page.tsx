@@ -1,11 +1,15 @@
 import { createRouterCaller } from "app/_trpc/context";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { notFound } from "next/navigation";
+import { cookies, headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
 import { travelSchedulesRouter } from "@calcom/trpc/server/routers/viewer/travelSchedules/_router";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
 
@@ -29,6 +33,13 @@ export const generateMetadata = async () => {
 };
 
 const Page = async ({ params }: PageProps) => {
+  const _headers = await headers();
+  const _cookies = await cookies();
+  const session = await getServerSession({ req: buildLegacyRequest(_headers, _cookies) });
+  if (!session?.user?.id) {
+    return redirect("/auth/login");
+  }
+
   const parsed = querySchema.safeParse(await params);
   if (!parsed.success) {
     notFound();
@@ -47,6 +58,9 @@ const Page = async ({ params }: PageProps) => {
 
   if (!scheduleData) {
     notFound();
+  }
+  if (scheduleData.userId !== session.user.id) {
+    return redirect("/availability");
   }
 
   return (

@@ -1,12 +1,13 @@
+import { dispatcher, JobName } from "@calid/job-dispatcher";
+import type { WhatsAppReminderScheduledJobData } from "@calid/job-engine";
+import { QueueName } from "@calid/queue";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { INNGEST_ID } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
-import { inngestClient } from "@calcom/web/pages/api/inngest";
 
 import { constructVariablesForTemplate } from "../../managers/constructTemplateVariable";
 import type { PartialCalIdWorkflowReminder } from "../../utils/getWorkflows";
@@ -15,7 +16,7 @@ import { select } from "../../utils/getWorkflows";
 const log = logger.getSubLogger({ prefix: ["[whatsappQueueHandler]"] });
 
 /**
- * Fetches reminders that need to be scheduled via Inngest
+ * Fetches reminders that need to be scheduled
  * These are reminders that were stored as "scheduled: false" and are now within the 2 hour window
  */
 const fetchPendingMessages = async () => {
@@ -34,9 +35,9 @@ const fetchPendingMessages = async () => {
 };
 
 /**
- * Process messages that need to be scheduled through Inngest
+ * Process messages that need to be scheduled through job dispatcher
  * This handles reminders that were stored for future scheduling
- * NOTE: Workflow insights are NOT created here - they will be created when Inngest sends via meta.ts
+ * NOTE: Workflow insights are NOT created here - they will be created when job sends via meta.ts
  */
 const processMessageQueue = async (): Promise<number> => {
   const pendingMessages = (await fetchPendingMessages()) as PartialCalIdWorkflowReminder[];
@@ -126,37 +127,52 @@ const processMessageQueue = async (): Promise<number> => {
       const scheduledDate = new Date(message.scheduledDate);
       const delay = Math.max(0, scheduledDate.getTime() - now.getTime());
 
-      // Determine Inngest environment key
-      const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
-
-      log.debug(`Scheduling WhatsApp reminder ${message.id} via Inngest`, {
+      log.debug(`Scheduling WhatsApp reminder ${message.id}`, {
         reminderId: message.id,
         scheduledDate: scheduledDate.toISOString(),
         delayMinutes: delay / 1000 / 60,
       });
 
-      // Send to Inngest for scheduling
-      // NOTE: Workflow insight will be created when Inngest handler calls meta.sendSMS
-      const { ids } = await inngestClient.send({
-        name: `whatsapp/reminder.scheduled-${key}`,
-        data: {
-          action: message.workflowStep.action,
-          eventTypeId: message.booking.eventTypeId,
-          workflowId: message.workflowStep.workflow.id,
-          workflowStepId: message.workflowStep.id,
-          recipientNumber,
-          reminderId: message.id,
-          bookingUid: message.booking.uid,
-          scheduledDate: scheduledDate.toISOString(),
-          variableData: templateVariables,
-          userId: workflowUserId,
-          teamId: workflowTeamId,
-          template: message.workflowStep.template,
-          metaTemplateName,
-          metaPhoneNumberId,
-          seatReferenceUid: message.seatReferenceId,
+      const payload: WhatsAppReminderScheduledJobData = {
+        action: message.workflowStep.action,
+        eventTypeId: message.booking.eventTypeId!,
+        workflowId: message.workflowStep.workflow.id,
+        workflowStepId: message.workflowStep.id,
+        recipientNumber,
+        reminderId: message.id,
+        bookingUid: message.booking.uid,
+        scheduledDate: scheduledDate.toISOString(),
+        variableData: templateVariables,
+        userId: workflowUserId,
+        teamId: workflowTeamId,
+        template: message.workflowStep.template,
+        metaTemplateName,
+        metaPhoneNumberId,
+        seatReferenceUid: message.seatReferenceId,
+      };
+
+      // Dispatch to job queue with delay
+      const { jobId } = await dispatcher.dispatch({
+        queue: QueueName.SCHEDULED,
+        name: JobName.WHATSAPP_REMINDER_SCHEDULED,
+        data: payload,
+        bullmqOptions: {
+          delay, // Delay until scheduled time
+          attempts: 2, // Only retry once (MetaError only)
+          backoff: {
+            type: "exponential",
+            delay: 5000,
+          },
+          removeOnComplete: {
+            age: 86400, // 24 hours
+            count: 100,
+          },
+          removeOnFail: {
+            age: 604800, // 7 days
+            count: 1000,
+          },
         },
-        ts: delay > 0 ? now.getTime() + delay : undefined,
+        inngestTs: Date.now() + delay,
       });
 
       // Update reminder as scheduled
@@ -164,14 +180,14 @@ const processMessageQueue = async (): Promise<number> => {
         where: { id: message.id },
         data: {
           scheduled: true,
-          referenceId: ids[0],
+          referenceId: jobId,
         },
       });
 
       // NOTE: Do NOT create workflow insight here
-      // It will be created when Inngest calls meta.sendSMS
+      // It will be created when job calls meta.sendSMS
 
-      log.info(`Successfully scheduled WhatsApp reminder ${message.id} via Inngest`);
+      log.info(`Successfully scheduled WhatsApp reminder ${message.id}`, { jobId });
     } catch (error) {
       log.error(`Failed to schedule WhatsApp reminder ${message.id}`, {
         error: error instanceof Error ? error.message : error,
@@ -185,7 +201,6 @@ const processMessageQueue = async (): Promise<number> => {
 
 /**
  * Handle cancellations for messages that were scheduled but now need to be cancelled
- * This sends cancellation events to Inngest
  */
 const executeCancellationProcess = async (): Promise<void> => {
   const messagesToCancel = await prisma.calIdWorkflowReminder.findMany({
@@ -201,8 +216,6 @@ const executeCancellationProcess = async (): Promise<void> => {
   });
 
   log.info(`Processing ${messagesToCancel.length} WhatsApp reminder cancellations`);
-
-  const key = INNGEST_ID === "onehash-cal" ? "prod" : "stag";
 
   for (const messageToCancel of messagesToCancel) {
     try {
@@ -253,10 +266,9 @@ const cleanupExpiredReminders = async (): Promise<void> => {
 
 /**
  * Main cron handler
- * This cron now primarily handles:
- * 1. Scheduling reminders that were stored for future (2 hours) that are now within window
+ * This cron handles:
+ * 1. Scheduling reminders that are now within 2-hour window
  * 2. Processing cancellations for already-scheduled reminders
- * 3. Cleanup of old reminder records
  */
 export async function POST(request: NextRequest) {
   try {
@@ -268,7 +280,7 @@ export async function POST(request: NextRequest) {
 
     log.info("Starting WhatsApp queue processing");
 
-    // Execute all operations
+    // Execute operations
     await executeCancellationProcess();
     const scheduledCount = await processMessageQueue();
     // await cleanupExpiredReminders();

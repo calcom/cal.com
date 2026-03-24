@@ -32,6 +32,7 @@ export const ENDPOINTS = [
   "teams",
   "organizations",
   "travelSchedules",
+  "unifiedCalendar",
   "users",
   "viewer",
   "webhook",
@@ -45,4 +46,5 @@ export const ENDPOINTS = [
   "filterSegments",
   "pbac",
   "calidTeams",
+  "calIdContacts",
 ] as const;

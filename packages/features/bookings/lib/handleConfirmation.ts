@@ -15,12 +15,14 @@ import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import type { EventManagerUser } from "@calcom/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/lib/EventManager";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { ensureCalIdContactFromBooking } from "@calcom/lib/server/service/calIdContactFromBooking";
 import type { PrismaClient } from "@calcom/prisma";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -42,6 +44,7 @@ export async function handleConfirmation(args: {
   bookingId: number;
   booking: {
     startTime: Date;
+    endTime: Date;
     id: number;
     eventType: {
       currency: string;
@@ -105,9 +108,56 @@ export async function handleConfirmation(args: {
     evt.recurringEvent = bookingRecurringEvent;
   }
 
-  const eventManager = new EventManager(user, apps);
-  const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
-  const scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
+  // Check for conflicts and update booking status atomically before any side effects
+  await prisma.$transaction(async (tx) => {
+    // Lock the USER row - always exists, serializes ALL confirmations for this user
+    await tx.$queryRaw`
+    SELECT id FROM "users"
+    WHERE id = ${booking.userId}
+    FOR UPDATE
+    `;
+    const conflictingBooking = await tx.booking.findFirst({
+      where: {
+        userId: booking.userId,
+        status: BookingStatus.ACCEPTED,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        id: { not: bookingId },
+      },
+      select: { id: true },
+    });
+
+    if (conflictingBooking) {
+      throw new Error("This time slot is already occupied");
+    }
+
+    await tx.booking.update({
+      where: { id: bookingId },
+      data: { status: BookingStatus.ACCEPTED },
+    });
+  });
+
+  let scheduleResult: any;
+
+  try {
+    // External API calls happen after lock is released
+    const eventManager = new EventManager(user, apps);
+    const areCalendarEventsEnabled = platformClientParams?.areCalendarEventsEnabled ?? true;
+    scheduleResult = areCalendarEventsEnabled ? await eventManager.create(evt) : placeholderCreatedEvent;
+
+    if (!scheduleResult) {
+      throw new Error("Booking couldn't be scheduled");
+    }
+  } catch (e) {
+    // If event manager couldnt create event (e.g. due to calendar API failure), revert booking status to PENDING so it can be retried later
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: BookingStatus.PENDING },
+    });
+
+    throw e;
+  }
+
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
   const workflows = await getAllCalIdWorkflowsFromEventType(eventType, booking.userId);
@@ -200,19 +250,20 @@ export async function handleConfirmation(args: {
 
   const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
   const meetingUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
+  const resolvedVideoProvider = evt.videoCallData?.type;
 
   const updatedBooking = await prisma.booking.update({
     where: {
       id: bookingId,
     },
     data: {
-      status: BookingStatus.ACCEPTED,
       references: {
         create: scheduleResult.referencesToCreate,
       },
       metadata: {
         ...(typeof booking.metadata === "object" ? booking.metadata : {}),
-        videoCallUrl: meetingUrl,
+        ...(meetingUrl ? { videoCallUrl: meetingUrl } : {}),
+        ...(resolvedVideoProvider ? { videoProvider: resolvedVideoProvider } : {}),
       },
     },
     select: {
@@ -261,6 +312,47 @@ export async function handleConfirmation(args: {
 
   updatedBookings.push(updatedBooking);
 
+  if (booking.userId) {
+    const bookingResponse = isPrismaObjOrUndefined(updatedBooking.responses);
+    const firstAttendee = updatedBooking.attendees[0];
+    const attendeeName =
+      firstAttendee?.name ?? (typeof bookingResponse?.name === "string" ? bookingResponse.name : null);
+    const attendeeEmail =
+      firstAttendee?.email ?? (typeof bookingResponse?.email === "string" ? bookingResponse.email : null);
+    const attendeePhone =
+      firstAttendee?.phoneNumber ??
+      (typeof bookingResponse?.attendeePhoneNumber === "string"
+        ? bookingResponse.attendeePhoneNumber
+        : typeof bookingResponse?.smsReminderNumber === "string"
+        ? bookingResponse.smsReminderNumber
+        : typeof bookingResponse?.phone === "string"
+        ? bookingResponse.phone
+        : null);
+
+    try {
+      await ensureCalIdContactFromBooking({
+        source: "booking_confirmed",
+        userId: booking.userId,
+        bookingId: updatedBooking.id,
+        bookingUid: updatedBooking.uid,
+        attendeeName,
+        attendeeEmail,
+        attendeePhone,
+      });
+    } catch (error) {
+      const parsedError = getErrorFromUnknown(error);
+      log.error(
+        "Error while syncing Cal ID contact from booking confirmation",
+        safeStringify({
+          bookingId: updatedBooking.id,
+          bookingUid: updatedBooking.uid,
+          userId: booking.userId,
+          error: parsedError.message,
+        })
+      );
+    }
+  }
+
   const teamId = await getTeamIdFromEventType({
     eventType: {
       calIdTeam: { id: eventType?.calIdTeamId ?? null },
@@ -284,7 +376,10 @@ export async function handleConfirmation(args: {
       const evtOfBooking = {
         ...evt,
         rescheduleReason: updatedBookings[index].cancellationReason || null,
-        metadata: { videoCallUrl: meetingUrl },
+        metadata: {
+          ...(meetingUrl ? { videoCallUrl: meetingUrl } : {}),
+          ...(resolvedVideoProvider ? { videoProvider: resolvedVideoProvider } : {}),
+        },
         eventType: {
           id: booking.eventTypeId ?? undefined,
           title: eventTypeTitle,
@@ -431,7 +526,13 @@ export async function handleConfirmation(args: {
       eventTypeId: eventType?.id,
       status: "ACCEPTED",
       smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
+      metadata:
+        meetingUrl || resolvedVideoProvider
+          ? {
+              ...(meetingUrl ? { videoCallUrl: meetingUrl } : {}),
+              ...(resolvedVideoProvider ? { videoProvider: resolvedVideoProvider } : {}),
+            }
+          : undefined,
       ...(platformClientParams ? platformClientParams : {}),
     };
 
