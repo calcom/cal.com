@@ -174,7 +174,7 @@ export const UnifiedCalendarAllDayRow = ({
   return (
     <div className="bg-default sticky top-0 z-20 border-b">
       <div className="flex h-full  items-start">
-        <div className="flex w-12 shrink-0 items-center justify-center border-r px-4 py-2 text-[10px] uppercase tracking-wide">
+        <div className="flex w-10 shrink-0 items-center justify-center border-r px-2 py-2 text-[9px] uppercase tracking-wide sm:w-12 sm:px-4 sm:text-[10px]">
           {t("unified_calendar_full_day")}
         </div>
         <div className="flex flex-1 flex-wrap gap-1.5 p-1.5">
@@ -204,7 +204,7 @@ export const UnifiedCalendarAllDayRow = ({
 
 export const UnifiedCalendarTimeLabels = () => {
   return (
-    <div className="relative w-12 shrink-0" style={{ minHeight: "1440px" }}>
+    <div className="relative w-10 shrink-0 sm:w-12" style={{ minHeight: "1440px" }}>
       {HOURS.map((hour) => (
         <div
           key={hour}

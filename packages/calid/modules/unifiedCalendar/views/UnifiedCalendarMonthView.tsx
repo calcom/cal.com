@@ -48,7 +48,8 @@ export const UnifiedCalendarMonthView = ({
         {monthViewDayLabels.map((dayLabel) => (
           <div
             key={dayLabel}
-            className="text-muted-foreground/50 py-2.5 text-center text-[10px] font-light uppercase tracking-wider">
+            className="text-muted-foreground/50 py-2.5 text-center text-[10px] font-light uppercase tracking-wider sm:text-[12px]">
+            {" "}
             {dayLabel}
           </div>
         ))}
@@ -64,7 +65,7 @@ export const UnifiedCalendarMonthView = ({
             <div
               key={day.toISOString()}
               className={cn(
-                " hover:bg-emphasis  min-h-[150px] cursor-pointer border-b border-r p-1.5 transition-colors",
+                "hover:bg-emphasis min-h-[80px] cursor-pointer border-b border-r p-1 transition-colors sm:min-h-[110px] sm:p-1.5 md:min-h-[150px]",
                 isCurrentDay && "bg-emphasis",
                 hoveredDayKey === day.toISOString() && "ring-primary/55 bg-primary/[0.05] ring-1 ring-inset"
               )}
@@ -102,7 +103,7 @@ export const UnifiedCalendarMonthView = ({
                         onStartDragEvent(event, { x: pointerEvent.clientX, y: pointerEvent.clientY });
                       }}
                       className={cn(
-                        "bg-muted/30 text-foreground/60 hover:bg-muted/50 w-full truncate rounded border-l-2 px-1.5 py-0.5 text-left text-[10px] transition-colors",
+                        "bg-muted/30 text-foreground/60 hover:bg-muted/50 w-full truncate rounded border-l-2 px-1 py-0.5 text-left text-[9px] transition-colors sm:px-1.5 sm:text-[10px]",
                         event.status === "CANCELLED" && "text-muted-foreground/50 line-through",
                         event.status === "TENTATIVE" && "border-dashed",
                         event.canReschedule &&

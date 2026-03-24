@@ -343,9 +343,7 @@ const UnifiedCalendarPage = () => {
       });
 
       showToast(
-        enabled
-          ? t("unified_calendar_sync_enabled_toast")
-          : t("unified_calendar_sync_disabled_toast"),
+        enabled ? t("unified_calendar_sync_enabled_toast") : t("unified_calendar_sync_disabled_toast"),
         "success"
       );
 
@@ -602,7 +600,8 @@ const UnifiedCalendarPage = () => {
         setSelectedEvent((current) => (current?.id === eventId ? null : current));
         void trpcUtils.viewer.unifiedCalendar.list.invalidate();
       } catch (error) {
-        const message = error instanceof Error ? error.message : t("unified_calendar_failed_to_reschedule_booking");
+        const message =
+          error instanceof Error ? error.message : t("unified_calendar_failed_to_reschedule_booking");
         trpcUtils.viewer.unifiedCalendar.list.setData(unifiedCalendarListInput, previousData);
         showToast(message, "error");
       } finally {
@@ -925,7 +924,8 @@ const UnifiedCalendarPage = () => {
       setSelectedEvent(null);
       void trpcUtils.viewer.unifiedCalendar.list.invalidate();
     } catch (error) {
-      const message = error instanceof Error ? error.message : t("unified_calendar_failed_to_reschedule_booking");
+      const message =
+        error instanceof Error ? error.message : t("unified_calendar_failed_to_reschedule_booking");
       trpcUtils.viewer.unifiedCalendar.list.setData(unifiedCalendarListInput, previousData);
       setRescheduleError(message);
       showToast(message, "error");
@@ -975,7 +975,10 @@ const UnifiedCalendarPage = () => {
   };
 
   return (
-    <div className="bg-default max-h-[120px]" data-query-from={queryRange.from} data-query-to={queryRange.to}>
+    <div
+      className="bg-default flex min-h-[80vh] flex-col"
+      data-query-from={queryRange.from}
+      data-query-to={queryRange.to}>
       <UnifiedCalendarToolbar
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((value) => !value)}
@@ -988,9 +991,9 @@ const UnifiedCalendarPage = () => {
         isMobile={isMobile}
       />
 
-      <div className="flex  border-b">
+      <div className="flex flex-1 gap-2 overflow-hidden border-b">
         {!isMobile && sidebarOpen && (
-          <div className=" w-54 sticky top-[105px] h-[calc(100vh-105px)] shrink-0   border-r">
+          <div className="h-[calc(100vh-105px)] w-48 shrink-0 md:w-56">
             <UnifiedCalendarSidebar
               calendars={sidebarCalendars}
               onToggleSync={handleSyncToggle}
@@ -1024,7 +1027,7 @@ const UnifiedCalendarPage = () => {
           </Sheet>
         )}
 
-        <ScrollArea ref={scrollAreaRootRef} className="h-[calc(100vh-105px)] flex-1">
+        <ScrollArea ref={scrollAreaRootRef} className="h-[calc(100vh-105px)] min-w-0 flex-1 border-l">
           <div ref={calendarViewportRef} className="relative min-w-0">
             {dragSession?.isActive && (
               <>
@@ -1140,7 +1143,7 @@ const UnifiedCalendarPage = () => {
 
       {selectedEvent && isMobile && (
         <Dialog open={Boolean(selectedEvent)} onOpenChange={() => setSelectedEvent(null)}>
-          <DialogContent className="bg-default max-w-[95vw]">
+          <DialogContent className="bg-default max-h-[85vh] max-w-[95vw] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-sm">{t("unified_calendar_event_details")}</DialogTitle>
             </DialogHeader>

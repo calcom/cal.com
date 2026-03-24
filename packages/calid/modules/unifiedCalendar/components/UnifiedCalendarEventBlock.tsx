@@ -46,7 +46,7 @@ export const UnifiedCalendarEventBlock = ({
           onPointerDown={onPointerDown}
           onClick={onClick}
           className={cn(
-            "absolute cursor-pointer overflow-hidden rounded-[6px] px-2.5 py-1.5 text-left",
+            "absolute cursor-pointer overflow-hidden rounded-[6px] px-1.5 py-1 text-left sm:px-2.5 sm:py-1.5",
             "bg-default border-border/60 border shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]",
             "hover:border-border transition-all duration-150 hover:shadow-[0_2px_8px_0_rgba(0,0,0,0.08)]",
             "group border-l-[3px]",

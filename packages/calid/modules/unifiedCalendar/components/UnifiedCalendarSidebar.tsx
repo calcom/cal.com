@@ -51,8 +51,8 @@ export const UnifiedCalendarSidebar = ({
   }, [calendars]);
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="w-full pb-3 pr-2 pt-4">
+    <div className="flex h-full flex-col px-3 sm:px-0">
+      <div className="w-full pb-3 pt-4 md:pr-2">
         <div className="relative">
           <Search className="text-muted-foreground/60 absolute left-2.5 top-2.5 h-3.5 w-3.5" />
           <Input
@@ -65,9 +65,9 @@ export const UnifiedCalendarSidebar = ({
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="space-y-5 pb-4">
+        <div className="space-y-5">
           {isLoading && (
-            <div className="space-y-2 py-2 pr-2">
+            <div className="space-y-2 py-2 md:pr-2">
               <div className="bg-muted h-7 animate-pulse rounded-md" />
               <div className="bg-muted h-7 animate-pulse rounded-md" />
               <div className="bg-muted h-7 animate-pulse rounded-md" />
@@ -93,11 +93,11 @@ export const UnifiedCalendarSidebar = ({
                   {t(`unified_calendar_provider_label_${provider}`)}
                 </p>
 
-                <div className="space-y-0.5">
+                <div className="space-y-0.5 ">
                   {providerCalendars.map((calendar) => (
                     <div
                       key={calendar.id}
-                      className="bg-default/30 hover:bg-muted/50 border-border/20 group flex min-w-0 items-center gap-2.5 rounded-md  py-2 pr-2 transition-colors">
+                      className="bg-default border-border group flex min-w-0 items-center gap-1 rounded-md py-2.5 transition-colors sm:py-2 ">
                       <div className="flex min-w-0 flex-1 items-center gap-2.5">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

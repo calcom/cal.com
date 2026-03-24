@@ -33,8 +33,8 @@ export const UnifiedCalendarToolbar = ({
   const { t } = useLocale();
 
   return (
-    <div className="bg-default sticky top-0 z-30 flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b px-4 py-2 backdrop-blur-sm">
-      <div className="flex  flex-1 items-center gap-2 sm:flex-none" id="info">
+    <div className="bg-default sticky top-0 z-30 flex w-full flex-wrap items-center justify-between gap-x-2 gap-y-2 border-b py-2 backdrop-blur-sm sm:gap-x-3 ">
+      <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:flex-none sm:gap-2" id="info">
         <Button
           variant="icon"
           color="minimal"
@@ -73,15 +73,15 @@ export const UnifiedCalendarToolbar = ({
           </Button>
         </div>
 
-        <span className="text-foreground/80 truncate whitespace-nowrap text-sm font-medium">
+        <span className="text-foreground/80 min-w-0 truncate whitespace-nowrap text-xs font-medium sm:text-sm">
           {headerTitle}
         </span>
       </div>
 
       <div
-        className="flex w-full items-center justify-between gap-2 sm:ml-auto sm:w-auto sm:flex-none"
+        className="flex w-full items-center justify-between gap-1.5 sm:ml-auto sm:w-auto sm:flex-none sm:gap-2"
         id="toggleView">
-        <div className="flex w-full rounded-lg border p-0.5 shadow-inner">
+        <div className="flex w-full rounded-lg border p-0.5 shadow-inner sm:w-auto">
           {(["day", "week", "month"] as ViewMode[]).map((mode) => (
             <button
               key={mode}
