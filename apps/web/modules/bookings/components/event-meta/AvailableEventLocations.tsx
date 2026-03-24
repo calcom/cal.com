@@ -3,7 +3,7 @@ import type {
   EventLocationTypeFromApp,
   LocationObject,
 } from "@calcom/app-store/locations";
-import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
+import { getLocationByType, getTranslatedLocation } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import invertLogoOnDark from "@calcom/lib/invertLogoOnDark";
@@ -43,7 +43,7 @@ function RenderLocationTooltip({ locations }: { locations: LocationObject[] }) {
             Omit<LocationObject, "link" | "address">,
           index: number
         ) => {
-          const eventLocationType = getEventLocationType(location.type);
+          const eventLocationType = getLocationByType(location.type);
           if (!eventLocationType) {
             return null;
           }
@@ -70,7 +70,7 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
       location: Pick<Partial<LocationObject>, "link" | "address"> & Omit<LocationObject, "link" | "address">,
       index: number
     ) => {
-      const eventLocationType = getEventLocationType(location.type);
+      const eventLocationType = getLocationByType(location.type);
       if (!eventLocationType) {
         // It's possible that the location app got uninstalled
         return null;
