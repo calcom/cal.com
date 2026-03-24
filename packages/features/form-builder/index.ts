@@ -1,9 +1,3 @@
-/**
- * form-builder/index.ts
- *
- * Public API of the form-builder module.
- * Import from here rather than from individual files.
- */
 export { FormBuilderPage } from "./FormBuilderPage";
 export { FieldLibrary } from "./FieldLibrary";
 export { FormCanvas } from "./FormCanvas";

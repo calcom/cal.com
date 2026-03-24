@@ -48,7 +48,7 @@ const FormSettings = ({
   const formLink = `${orgBranding?.fullDomain ?? WEBSITE_URL}/forms/${form.id}`;
 
   return (
-    <div className="flex w-full py-4">
+    <div className="flex w-full">
       <div className="flex w-full gap-6">
         <div className="flex grid w-full grid-cols-1 justify-between gap-10 sm:grid-cols-2 md:grid-cols-2">
           <div className="bg-default border-subtle gap-3 rounded-md border p-6">

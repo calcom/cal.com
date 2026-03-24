@@ -125,6 +125,20 @@ export default class GoogleCalendarService implements Calendar {
     return attendees;
   };
 
+  private getConferenceDataWithUniqueRequestId(conferenceData?: calendar_v3.Schema$ConferenceData) {
+    if (!conferenceData?.createRequest) {
+      return conferenceData;
+    }
+
+    return {
+      ...conferenceData,
+      createRequest: {
+        ...conferenceData.createRequest,
+        requestId: uuid(),
+      },
+    };
+  }
+
   private async stopWatchingCalendarsInGoogle(
     channels: { googleChannelResourceId: string | null; googleChannelId: string | null }[]
   ) {
@@ -221,7 +235,7 @@ export default class GoogleCalendarService implements Calendar {
       payload["recurrence"] = this.mapRecurrenceToPayload(calEvent.recurringEvent);
     }
     if (calEvent.conferenceData && calEvent.location === MeetLocationType) {
-      payload["conferenceData"] = calEvent.conferenceData;
+      payload["conferenceData"] = this.getConferenceDataWithUniqueRequestId(calEvent.conferenceData);
     }
     const calendar = await this.authedCalendar();
     // Find in formattedCalEvent.destinationCalendar the one with the same credentialId
@@ -278,6 +292,7 @@ export default class GoogleCalendarService implements Calendar {
           sendUpdates: "none",
         });
         event = eventResponse.data;
+        console.log("in_here_eventResponse", event.conferenceData.entryPoints);
         if (event.recurrence) {
           if (event.recurrence.length > 0) {
             recurringEventId = event.id;
@@ -392,7 +407,7 @@ export default class GoogleCalendarService implements Calendar {
     }
 
     if (event.conferenceData && event.location === MeetLocationType) {
-      payload["conferenceData"] = event.conferenceData;
+      payload["conferenceData"] = this.getConferenceDataWithUniqueRequestId(event.conferenceData);
     }
 
     const calendar = await this.authedCalendar();

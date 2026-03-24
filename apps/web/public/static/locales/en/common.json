@@ -212,7 +212,6 @@
   "max_characters": "Max. Characters",
   "min_characters": "Min. Characters",
   "calcom_explained": "{{appName}} provides scheduling infrastructure for absolutely everyone.",
-
   "form_builder_input_fields": "Input Fields",
   "form_builder_selection": "Selection",
   "form_builder_enter_field_type": "Enter {{fieldType}}...",
@@ -282,8 +281,8 @@
   "form_builder_tab_field": "Field",
   "form_builder_tab_header": "Header",
   "form_builder_tab_style": "Style",
-
-
+  "form_builder_add_fields": "Add fields",
+  "form_builder_field_properties": "Field properties",
   "calcom_explained_new_user": "Finish setting up your {{appName}} account! You're just a few steps away from solving all your scheduling problems.",
   "have_any_questions": "Have questions? We're here to help.",
   "reset_password_subject": "{{appName}}: Reset password instructions",

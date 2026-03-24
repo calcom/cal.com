@@ -1277,8 +1277,8 @@ const Routes = ({
   const fieldIdentifiers = fields ? fields.map((field) => field.identifier ?? field.label) : [];
 
   return (
-    <div className="w-full py-4">
-      <div ref={animationRef} className="w-full ltr:mr-2 rtl:ml-2">
+    <div className="w-full min-w-0 max-w-full overflow-x-hidden">
+      <div ref={animationRef} className="w-full min-w-0 max-w-full ltr:mr-2 rtl:ml-2">
         {mainRoutes.map((route, key) => {
           return (
             <Route
