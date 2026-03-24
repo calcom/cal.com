@@ -1,5 +1,6 @@
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getCheckoutSessionExpiresAt } from "@calcom/features/ee/billing/helpers/getCheckoutSessionExpiresAt";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
@@ -129,6 +130,7 @@ const getStripePremiumUsernameUrl = async ({
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "subscription",
+    expires_at: getCheckoutSessionExpiresAt(),
     customer: customer.id,
     line_items: [
       {

@@ -1,15 +1,13 @@
-import type { NextApiRequest } from "next";
-
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getDubCustomer } from "@calcom/features/auth/lib/dub";
+import { getCheckoutSessionExpiresAt } from "@calcom/features/ee/billing/helpers/getCheckoutSessionExpiresAt";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_PRODUCTION, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import type { NextApiRequest } from "next";
 import { schemaMembershipPublic } from "~/lib/validations/membership";
 import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validations/team";
 
@@ -201,6 +199,7 @@ const generateTeamCheckoutSession = async ({
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
+    expires_at: getCheckoutSessionExpiresAt(),
     ...(dubCustomer?.discount?.couponId
       ? {
           discounts: [

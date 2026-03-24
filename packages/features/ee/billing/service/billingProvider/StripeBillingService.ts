@@ -1,5 +1,6 @@
 import logger from "@calcom/lib/logger";
 import type Stripe from "stripe";
+import { getCheckoutSessionExpiresAt } from "../../helpers/getCheckoutSessionExpiresAt";
 import { SubscriptionStatus } from "../../repository/billing/IBillingRepository";
 import type { IBillingProviderService } from "./IBillingProviderService";
 
@@ -51,6 +52,7 @@ export class StripeBillingService implements IBillingProviderService {
     const session = await this.stripe.checkout.sessions.create({
       line_items: [{ price: priceId, quantity }],
       mode: "payment",
+      expires_at: getCheckoutSessionExpiresAt(),
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: metadata,
@@ -90,6 +92,7 @@ export class StripeBillingService implements IBillingProviderService {
       success_url: successUrl,
       cancel_url: cancelUrl,
       mode,
+      expires_at: getCheckoutSessionExpiresAt(),
       metadata,
       line_items: [
         {

@@ -1,3 +1,4 @@
+import { getCheckoutSessionExpiresAt } from "@calcom/platform-libraries";
 import { getActiveUserBillingService } from "@calcom/platform-libraries/organizations";
 import { getIncrementUsageIdempotencyKey, getIncrementUsageJobTag } from "@calcom/platform-libraries/tasker";
 import { InjectQueue } from "@nestjs/bull";
@@ -95,6 +96,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
       success_url: `${this.webAppUrl}/settings/platform/`,
       cancel_url: `${this.webAppUrl}/settings/platform/`,
       mode: "subscription",
+      expires_at: getCheckoutSessionExpiresAt(),
       metadata: {
         teamId: teamId.toString(),
         plan: plan.toString(),
@@ -126,6 +128,7 @@ export class BillingService implements IBillingService, OnModuleDestroy {
       success_url: `${this.webAppUrl}/settings/platform/`,
       cancel_url: `${this.webAppUrl}/settings/platform/plans`,
       mode: "setup",
+      expires_at: getCheckoutSessionExpiresAt(),
       metadata: {
         teamId: teamId.toString(),
         plan: plan.toString(),
@@ -349,7 +352,11 @@ export class BillingService implements IBillingService, OnModuleDestroy {
     }
 
     const activeUserBillingService = getActiveUserBillingService();
-    return activeUserBillingService.getActiveUserCountForPlatformOrg(subscriptionId, invoiceStart, invoiceEnd);
+    return activeUserBillingService.getActiveUserCountForPlatformOrg(
+      subscriptionId,
+      invoiceStart,
+      invoiceEnd
+    );
   }
 
   async updateStripeSubscriptionForTeam(teamId: number, plan: PlatformPlan): Promise<void> {

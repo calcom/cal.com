@@ -2,6 +2,7 @@ import process from "node:process";
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getDubCustomer } from "@calcom/features/auth/lib/dub";
 import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
+import { getCheckoutSessionExpiresAt } from "@calcom/features/ee/billing/helpers/getCheckoutSessionExpiresAt";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import {
   IS_PRODUCTION,
@@ -100,6 +101,7 @@ export const generateTeamCheckoutSession = async ({
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
+    expires_at: getCheckoutSessionExpiresAt(),
     ...(promoCode
       ? { discounts: [{ promotion_code: promoCode }] }
       : dubCustomer?.discount?.couponId
@@ -224,6 +226,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
+    expires_at: getCheckoutSessionExpiresAt(),
     ...(promoCode
       ? { discounts: [{ promotion_code: promoCode }] }
       : { allow_promotion_codes: true }),

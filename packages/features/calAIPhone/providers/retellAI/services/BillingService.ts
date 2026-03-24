@@ -1,15 +1,14 @@
-import { z } from "zod";
-
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import { getPhoneNumberMonthlyPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
+import { getCheckoutSessionExpiresAt } from "@calcom/features/ee/billing/helpers/getCheckoutSessionExpiresAt";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { WEBAPP_URL, IS_PRODUCTION } from "@calcom/lib/constants";
+import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import type { TrackingData } from "@calcom/lib/tracking";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
-
+import { z } from "zod";
 import type { PhoneNumberRepositoryInterface } from "../../interfaces/PhoneNumberRepositoryInterface";
 import type { RetellAIRepository } from "../types";
 
@@ -62,6 +61,7 @@ export class BillingService {
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       mode: "subscription",
+      expires_at: getCheckoutSessionExpiresAt(),
       line_items: [
         {
           price: phoneNumberPriceId,
