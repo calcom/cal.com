@@ -1,38 +1,84 @@
 "use client";
 
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useMemo, useState } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { UserPermissionRole } from "@calcom/prisma/enums";
+import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { SearchIcon } from "@coss/ui/icons";
 
 import type { SettingsItem, SettingsSection } from "./settings-home-data";
 import { settingsSections } from "./settings-home-data";
 
 export default function SettingsHomeView() {
   const { t } = useLocale();
-  const session = useSession();
   const orgBranding = useOrgBranding();
 
-  const hasOrg = !!orgBranding;
-  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedQuery = useDebounce(searchQuery, 300);
 
-  const visibleSections = settingsSections.filter((section) => {
-    if (section.visibility === "org") return hasOrg;
-    if (section.visibility === "admin") return isAdmin;
-    return true;
-  });
+  const hasOrg = !!orgBranding;
+
+  const visibleSections = useMemo(
+    () =>
+      settingsSections.filter((section) => {
+        if (section.visibility === "org") return hasOrg;
+        return true;
+      }),
+    [hasOrg]
+  );
+
+  const filteredSections = useMemo(() => {
+    if (!debouncedQuery || (debouncedQuery?.length ?? 0) < 2) return visibleSections;
+
+    const lowerQuery = debouncedQuery.toLowerCase();
+
+    return visibleSections
+      .map((section) => {
+        const filteredItems = section.items.filter((item) => {
+          const title = t(item.titleKey).toLowerCase();
+          const description = t(item.descriptionKey).toLowerCase();
+          const keywords = item.keywords?.join(" ").toLowerCase() || "";
+
+          return (
+            title.includes(lowerQuery) || description.includes(lowerQuery) || keywords.includes(lowerQuery)
+          );
+        });
+
+        return { ...section, items: filteredItems };
+      })
+      .filter((section) => section.items.length > 0);
+  }, [debouncedQuery, visibleSections, t]);
+
+  const hasNoResults = (debouncedQuery?.length ?? 0) >= 2 && filteredSections.length === 0;
 
   return (
     <div className="py-2">
-      <div className="mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <h1 className="font-cal text-2xl font-semibold text-emphasis">{t("settings")}</h1>
+        <TextField
+          className="w-64"
+          addOnLeading={<SearchIcon className="h-4 w-4 text-subtle" />}
+          containerClassName="w-64"
+          type="search"
+          value={searchQuery}
+          autoComplete="off"
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder={t("search")}
+        />
       </div>
-      {visibleSections.map((section) => (
-        <SectionGroup key={section.sectionTitleKey} section={section} t={t} />
-      ))}
+      {hasNoResults ? (
+        <div className="py-12 text-center">
+          <p className="text-subtle">{t("no_results")}</p>
+        </div>
+      ) : (
+        filteredSections.map((section) => (
+          <SectionGroup key={section.sectionTitleKey} section={section} t={t} />
+        ))
+      )}
     </div>
   );
 }
