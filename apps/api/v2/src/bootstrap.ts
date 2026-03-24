@@ -5,6 +5,8 @@ import {
   API_VERSIONS_ENUM,
   CAL_API_VERSION_HEADER,
   VERSION_2024_04_15,
+  VERSION_2026_02_25,
+  VERSION_2024_08_13,
   X_CAL_CLIENT_ID,
   X_CAL_PLATFORM_EMBED,
   X_CAL_SECRET_KEY,
@@ -33,6 +35,10 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
       extractor: (request: unknown) => {
         const headerVersion = (request as Request)?.headers[CAL_API_VERSION_HEADER] as string | undefined;
         if (headerVersion && API_VERSIONS.includes(headerVersion as API_VERSIONS_ENUM)) {
+          // If cal-api-version is 2026-02-25, then redirect to VERSION_2024_08_13
+          if (headerVersion === VERSION_2026_02_25) {
+            return VERSION_2024_08_13;
+          }
           return headerVersion;
         }
         return VERSION_2024_04_15;
