@@ -1,6 +1,5 @@
 import { BookingReportReason, BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { describe, expect, it } from "vitest";
-
 import {
   type BookingActionContext,
   getActionLabel,
@@ -60,6 +59,9 @@ function createMockContext(overrides: Partial<BookingActionContext> = {}): Booki
         id: 1,
         name: "Organizer",
         email: "organizer@example.com",
+        username: "organizer",
+        avatarUrl: null,
+        timeZone: "America/New_York",
       },
       eventType: {
         id: 1,
@@ -410,6 +412,89 @@ describe("Booking Actions", () => {
       const rescheduleRequestAction = actions.find((a) => a.id === "reschedule_request");
 
       expect(rescheduleAction?.disabled).toBe(true);
+      expect(rescheduleRequestAction?.disabled).toBe(true);
+    });
+
+    it("should disable reschedule_request when user is not organizer and booking does not belong to team", () => {
+      const baseContext = createMockContext();
+      const context = createMockContext({
+        booking: {
+          ...baseContext.booking,
+          user: {
+            id: 1,
+            name: "Organizer",
+            email: "organizer@example.com",
+            username: "organizer",
+            avatarUrl: null,
+            timeZone: "America/New_York",
+          },
+          eventType: {
+            ...baseContext.booking.eventType,
+            teamId: undefined,
+          },
+          loggedInUser: {
+            userId: 2,
+            userTimeZone: "America/New_York",
+            userTimeFormat: 12,
+            userEmail: "other@example.com",
+          },
+        },
+      });
+      const actions = getEditEventActions(context);
+
+      const rescheduleRequestAction = actions.find((a) => a.id === "reschedule_request");
+      expect(rescheduleRequestAction?.disabled).toBe(true);
+    });
+
+    it("should enable reschedule_request when user is organizer", () => {
+      const context = createMockContext();
+      const actions = getEditEventActions(context);
+
+      const rescheduleRequestAction = actions.find((a) => a.id === "reschedule_request");
+      expect(rescheduleRequestAction?.disabled).toBe(false);
+    });
+
+    it("should enable reschedule_request when booking belongs to team even if user is not organizer", () => {
+      const baseContext = createMockContext();
+      const context = createMockContext({
+        booking: {
+          ...baseContext.booking,
+          user: {
+            id: 1,
+            name: "Organizer",
+            email: "organizer@example.com",
+            username: "organizer",
+            avatarUrl: null,
+            timeZone: "America/New_York",
+          },
+          eventType: {
+            ...baseContext.booking.eventType,
+            teamId: 1,
+          },
+          loggedInUser: {
+            userId: 2,
+            userTimeZone: "America/New_York",
+            userTimeFormat: 12,
+            userEmail: "teammate@example.com",
+          },
+        },
+      });
+      const actions = getEditEventActions(context);
+
+      const rescheduleRequestAction = actions.find((a) => a.id === "reschedule_request");
+      expect(rescheduleRequestAction?.disabled).toBe(false);
+    });
+
+    it("should disable reschedule_request for seated event bookings", () => {
+      const context = createMockContext({
+        booking: {
+          ...createMockContext().booking,
+          seatsReferences: [{ referenceUid: "seat-1", attendee: { email: "attendee@example.com" } }],
+        },
+      });
+      const actions = getEditEventActions(context);
+
+      const rescheduleRequestAction = actions.find((a) => a.id === "reschedule_request");
       expect(rescheduleRequestAction?.disabled).toBe(true);
     });
 

@@ -113,6 +113,12 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
   const isReassignable =
     (isReassignableRoundRobin || isManagedChildEvent) && !booking.eventType.disableReassignment;
 
+  const isUserOrganizer =
+    booking.loggedInUser?.userId &&
+    booking.user?.id &&
+    booking.loggedInUser.userId === booking.user.id;
+  const bookingBelongsToTeam = !!booking.eventType?.teamId;
+
   const actions: (ActionType | null)[] = [
     {
       id: "reschedule",
@@ -131,17 +137,19 @@ export function getEditEventActions(context: BookingActionContext): ActionType[]
       }),
     },
     {
-      id: "reschedule_request",
-      icon: "send",
-      iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-      label: t("send_reschedule_request"),
-      disabled:
-        isActionDisabled("reschedule_request", {
-          ...context,
-          booking,
-          isBookingInPast,
-          isDisabledRescheduling,
-        }) || booking.seatsReferences.length > 0,
+          id: "reschedule_request",
+          icon: "send",
+          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+          label: t("send_reschedule_request"),
+          disabled:
+            (!isUserOrganizer && !bookingBelongsToTeam) ||
+            isActionDisabled("reschedule_request", {
+              ...context,
+              booking,
+              isBookingInPast,
+              isDisabledRescheduling,
+            }) ||
+            booking.seatsReferences.length > 0,
     },
     isBookingFromRoutingForm
       ? {
