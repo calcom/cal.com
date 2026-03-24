@@ -5504,7 +5504,7 @@ checksums:
     add_team_members_description: 5d2fa7a267068ccdfbb1ca41de935481
     add_team_member: 82213918a26054eb07adc8fee5975bee
     invite_new_member: 8dcf47570a45020e1399886a08e9e1ab
-    invite_new_member_description: a6b455442f1a2b8dea11349cc43a8882
+    invite_new_member_description: ec5d4c740b7c04a2826dd86d307aad43
     invite_new_team_member: 6dbebf65e5f10f548e23797e8a74fbb8
     upload_csv_file: e80f10537937922dd8535d84224c6bd8
     invite_via_email: fbfbade4d4293501d3ec8183e59afb0f
