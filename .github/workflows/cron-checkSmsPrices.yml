@@ -16,8 +16,8 @@ jobs:
       - name: cURL request
         if: ${{ env.APP_URL && env.CRON_API_KEY }}
         run: |
-          curl ${{ secrets.APP_URL }}/api/cron/checkSmsPrices \
+          curl $APP_URL/api/cron/checkSmsPrices \
             -X POST \
             -H 'content-type: application/json' \
-            -H 'authorization: ${{ secrets.CRON_API_KEY }}' \
+            -H 'authorization: $CRON_API_KEY' \
             --fail

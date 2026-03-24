@@ -26,8 +26,8 @@ jobs:
       - name: cURL request
         if: ${{ env.APP_URL && env.CRON_API_KEY && steps.check-last-day.outputs.is_last_day == 'true' }}
         run: |
-          curl ${{ secrets.APP_URL }}/api/cron/monthlyDigestEmail \
+          curl $APP_URL/api/cron/monthlyDigestEmail \
             -X POST \
             -H 'content-type: application/json' \
-            -H 'authorization: ${{ secrets.CRON_API_KEY }}' \
+            -H 'authorization: $CRON_API_KEY' \
             --fail

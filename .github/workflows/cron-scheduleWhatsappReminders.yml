@@ -12,7 +12,7 @@ jobs:
       APP_URL_EU: ${{ vars.APP_URL_EU }}
       APP_URL_US: ${{ vars.APP_URL_US }}
       CRON_API_KEY_EU: ${{ secrets.CRON_API_KEY_EU }}
-      CRON_API_KEY_US: ${{ secrets.CRON_API_KEY }}
+      CRON_API_KEY_US: ${{ env.CRON_API_KEY }}
     runs-on: ubuntu-latest
     steps:
       - name: cURL request EU

@@ -11,7 +11,7 @@ jobs:
     env:
       APP_URL_US: ${{ vars.APP_URL_US }}
       APP_URL_EU: ${{ vars.APP_URL_EU }}
-      CRON_API_KEY_US: ${{ secrets.CRON_API_KEY }}
+      CRON_API_KEY_US: ${{ env.CRON_API_KEY }}
       CRON_API_KEY_EU: ${{ secrets.CRON_API_KEY_EU }}
     runs-on: ubuntu-latest
     steps:
