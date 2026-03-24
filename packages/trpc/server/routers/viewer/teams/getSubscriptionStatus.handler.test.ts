@@ -186,4 +186,21 @@ describe("getSubscriptionStatusHandler", () => {
       billingMode: "ACTIVE_USERS",
     });
   });
+
+  it("returns billing status when trial cancellation details lookup fails", async () => {
+    mockGetSubscription.mockRejectedValueOnce(new Error("Stripe timeout"));
+
+    const result = await getSubscriptionStatusHandler({
+      // @ts-expect-error simplified test context
+      ctx,
+      input,
+    });
+
+    expect(result).toEqual({
+      status: SubscriptionStatus.TRIALING,
+      isTrialing: true,
+      isCancellationScheduled: false,
+      billingMode: "ACTIVE_USERS",
+    });
+  });
 });

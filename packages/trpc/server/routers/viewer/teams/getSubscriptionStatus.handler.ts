@@ -71,7 +71,11 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
     let subscription = null;
 
     if (subscriptionStatus === SubscriptionStatus.TRIALING && !isNil(subscriptionId)) {
-      subscription = await getBillingProviderService().getSubscription(subscriptionId);
+      try {
+        subscription = await getBillingProviderService().getSubscription(subscriptionId);
+      } catch (error) {
+        log.error("Error getting trial cancellation details", error);
+      }
     }
 
     const billingPeriodService = new BillingPeriodService();
