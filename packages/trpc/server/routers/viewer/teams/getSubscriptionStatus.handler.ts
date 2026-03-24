@@ -1,16 +1,20 @@
-import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import {
+  getBillingProviderService,
+  getTeamBillingServiceFactory,
+} from "@calcom/ee/billing/di/containers/Billing";
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
 import { BillingPeriodService } from "@calcom/features/ee/billing/service/billingPeriod/BillingPeriodService";
+import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetSubscriptionStatusInputSchema } from "./getSubscriptionStatus.schema";
+import isNil from "lodash/isNil";
 
 const log = logger.getSubLogger({ prefix: ["getSubscriptionStatus"] });
 
@@ -62,6 +66,10 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
     const teamBillingService = await teamBillingServiceFactory.findAndInit(teamId);
 
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
+    const parsedMetadata = teamMetadataStrictSchema.safeParse(team.metadata);
+    const subscriptionId = parsedMetadata.success ? parsedMetadata.data?.subscriptionId : null;
+    const subscription =
+      !isNil(subscriptionId) ? await getBillingProviderService().getSubscription(subscriptionId!) : null;
 
     const billingPeriodService = new BillingPeriodService();
     const billingInfo = await billingPeriodService.getBillingPeriodInfo(teamId);
@@ -71,6 +79,8 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
     return {
       status: subscriptionStatus,
       isTrialing: subscriptionStatus === SubscriptionStatus.TRIALING,
+      isCancellationScheduled:
+        subscription?.cancel_at_period_end === true || subscription?.cancel_at !== null,
       billingMode: billingInfo.billingMode,
     };
   } catch (error) {

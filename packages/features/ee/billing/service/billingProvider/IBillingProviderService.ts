@@ -121,6 +121,8 @@ export interface IBillingProviderService {
     current_period_start: number;
     current_period_end: number;
     trial_end: number | null;
+    cancel_at: number | null;
+    cancel_at_period_end: boolean;
   } | null>;
 
   // Invoice listing

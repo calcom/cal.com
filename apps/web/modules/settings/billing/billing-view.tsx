@@ -104,7 +104,8 @@ const BillingView = () => {
     }
   };
 
-  const isTrialing = subscriptionStatus?.isTrialing && teamIdNumber;
+  const isTrialing =
+    subscriptionStatus?.isTrialing && !subscriptionStatus?.isCancellationScheduled && teamIdNumber;
 
   return (
     <>
