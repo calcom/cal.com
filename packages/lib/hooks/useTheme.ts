@@ -13,8 +13,11 @@ import { localStorage } from "@calcom/lib/webstorage";
 // eslint-disable-next-line @typescript-eslint/ban-types
 export default function useTheme(themeToSet: "system" | (string & {}) | undefined | null, getOnly = false) {
   if (typeof window !== "undefined") {
-    const themeFromLocalStorage = localStorage.getItem("app-theme");
-    themeToSet = themeToSet ?? themeFromLocalStorage ?? "system";
+    if (themeToSet === undefined) {
+      themeToSet = localStorage.getItem("app-theme") ?? "system";
+    } else {
+      themeToSet = themeToSet ?? "system";
+    }
   }
   const { resolvedTheme, setTheme, forcedTheme, theme: activeTheme } = useNextTheme();
   const embedTheme = useEmbedTheme();
