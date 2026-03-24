@@ -201,226 +201,225 @@ export default function Login({
 
       <div className="relative z-10 flex w-full max-w-md flex-col items-center">
         {/* Main Card */}
-        <CardFrame className="w-full">
-        <Card>
-          <CardPanel className="p-10">
-          {/* Logo */}
-          <div className="mb-2 text-center">
-            <h1 className="font-cal text-xl font-bold text-emphasis">Cal.com</h1>
-          </div>
-
-          {/* Heading */}
-          <p className="mb-8 text-center text-sm text-subtle" data-testid="login-subtitle">
-            {twoFactorRequired ? t("2fa_code") : t("welcome_back_sign_in")}
-          </p>
-
-          <FormProvider {...methods}>
-            {/* Social Login Buttons */}
-            {!twoFactorRequired && showSocialLogin && (
-              <>
-                <div className="flex flex-col gap-2">
-                  {isGoogleLoginEnabled && (
-                    <Button
-                      className="w-full"
-                      disabled={formState.isSubmitting}
-                      data-testid="google"
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        setLastUsed("google");
-                        await signIn("google", {
-                          callbackUrl,
-                        });
-                      }}>
-                      <GoogleIcon />
-                      <span>{t("signin_with_google")}</span>
-                      {lastUsed === "google" && <LastUsed />}
-                    </Button>
-                  )}
-                  {isOutlookLoginEnabled && (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      data-testid="microsoft"
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        setLastUsed("microsoft");
-                        await signIn("azure-ad", {
-                          callbackUrl,
-                        });
-                      }}>
-                      <MicrosoftIcon />
-                      <span>{t("signin_with_microsoft")}</span>
-                      {lastUsed === "microsoft" && <LastUsed />}
-                    </Button>
-                  )}
+        <FormProvider {...methods}>
+          <CardFrame className="w-full">
+            <Card>
+              <CardPanel className="p-10">
+                {/* Logo */}
+                <div className="mb-2 text-center">
+                  <h1 className="font-cal text-xl font-bold text-emphasis">Cal.com</h1>
                 </div>
 
-                {/* Divider */}
-                <div className="my-6 flex items-center gap-4">
-                  <Separator className="flex-1" />
-                  <span className="text-sm text-zinc-400">{t("or").toLowerCase()}</span>
-                  <Separator className="flex-1" />
-                </div>
-              </>
-            )}
-
-            <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
-              <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
-
-              {!twoFactorRequired && (
-                <div className="space-y-6">
-                  {/* Email Field */}
-                  <Field>
-                    <FieldLabel>{t("email")}</FieldLabel>
-                    <Input
-                      id="email"
-                      type="email"
-                      defaultValue={totpEmail || (searchParams?.get("email") as string)}
-                      autoComplete="email"
-                      {...register("email")}
-                    />
-                    {formState.errors.email && (
-                      <p data-testid="field-error" className="text-destructive-foreground text-xs">
-                        {formState.errors.email.message}
-                      </p>
-                    )}
-                  </Field>
-
-                  {/* Password Field */}
-                  <Field>
-                    <div className="flex w-full items-center justify-between">
-                      <FieldLabel>{t("password")}</FieldLabel>
-                      <Link href="/auth/forgot-password" className="text-sm text-subtle hover:text-emphasis">
-                        {t("forgot")}
-                      </Link>
-                    </div>
-                    <InputGroup className="overflow-hidden">
-                      <InputGroupInput
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        autoComplete="current-password"
-                        {...register("password")}
-                      />
-                      <InputGroupAddon align="inline-end">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-xs"
-                          onClick={() => setShowPassword(!showPassword)}
-                          aria-label={showPassword ? t("hide_password") : t("show_password")}>
-                          {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                        </Button>
-                      </InputGroupAddon>
-                    </InputGroup>
-                    {formState.errors.password && (
-                      <p data-testid="field-error" className="text-destructive-foreground text-xs">
-                        {formState.errors.password.message}
-                      </p>
-                    )}
-                  </Field>
-                </div>
-              )}
-
-              {/* Two Factor */}
-              {twoFactorRequired && (
-                <div className="space-y-4">
-                  {!twoFactorLostAccess ? <TwoFactor center /> : <BackupCode center />}
-                </div>
-              )}
-
-              {/* Error Message */}
-              {errorMessage && <Alert severity="error" title={errorMessage} className="mt-4" />}
-
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                variant="outline"
-                className="mt-8 w-full"
-                disabled={formState.isSubmitting}>
-                {twoFactorRequired ? t("submit") : t("continue")}
-              </Button>
-            </form>
-
-            {/* Two Factor Footer */}
-            {twoFactorRequired && (
-              <div className="mt-4 flex justify-center gap-4">
-                {!totpEmail ? (
+                {/* Heading */}
+                <p className="mb-8 text-center text-sm text-subtle" data-testid="login-subtitle">
+                  {twoFactorRequired ? t("2fa_code") : t("welcome_back_sign_in")}
+                </p>
+                {/* Social Login Buttons */}
+                {!twoFactorRequired && showSocialLogin && (
                   <>
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        if (twoFactorLostAccess) {
-                          setTwoFactorLostAccess(false);
-                          methods.setValue("backupCode", "");
-                        } else {
-                          setTwoFactorRequired(false);
-                          methods.setValue("totpCode", "");
-                        }
-                        setErrorMessage(null);
-                      }}>
-                      <Icon name="arrow-left" className="mr-2 size-4" />
-                      {t("go_back")}
-                    </Button>
-                    {!twoFactorLostAccess && (
+                    <div className="flex flex-col gap-2">
+                      {isGoogleLoginEnabled && (
+                        <Button
+                          className="w-full"
+                          disabled={formState.isSubmitting}
+                          data-testid="google"
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            setLastUsed("google");
+                            await signIn("google", {
+                              callbackUrl,
+                            });
+                          }}>
+                          <GoogleIcon />
+                          <span>{t("signin_with_google")}</span>
+                          {lastUsed === "google" && <LastUsed />}
+                        </Button>
+                      )}
+                      {isOutlookLoginEnabled && (
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          data-testid="microsoft"
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            setLastUsed("microsoft");
+                            await signIn("azure-ad", {
+                              callbackUrl,
+                            });
+                          }}>
+                          <MicrosoftIcon />
+                          <span>{t("signin_with_microsoft")}</span>
+                          {lastUsed === "microsoft" && <LastUsed />}
+                        </Button>
+                      )}
+                    </div>
+
+                    {/* Divider */}
+                    <div className="my-6 flex items-center gap-4">
+                      <Separator className="flex-1" />
+                      <span className="text-sm text-zinc-400">{t("or").toLowerCase()}</span>
+                      <Separator className="flex-1" />
+                    </div>
+                  </>
+                )}
+
+                <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
+                  <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
+
+                  {!twoFactorRequired && (
+                    <div className="space-y-6">
+                      {/* Email Field */}
+                      <Field>
+                        <FieldLabel>{t("email")}</FieldLabel>
+                        <Input
+                          id="email"
+                          type="email"
+                          defaultValue={totpEmail || (searchParams?.get("email") as string)}
+                          autoComplete="email"
+                          {...register("email")}
+                        />
+                        {formState.errors.email && (
+                          <p data-testid="field-error" className="text-destructive-foreground text-xs">
+                            {formState.errors.email.message}
+                          </p>
+                        )}
+                      </Field>
+
+                      {/* Password Field */}
+                      <Field>
+                        <div className="flex w-full items-center justify-between">
+                          <FieldLabel>{t("password")}</FieldLabel>
+                          <Link href="/auth/forgot-password" className="text-sm text-subtle hover:text-emphasis">
+                            {t("forgot")}
+                          </Link>
+                        </div>
+                        <InputGroup className="overflow-hidden">
+                          <InputGroupInput
+                            id="password"
+                            type={showPassword ? "text" : "password"}
+                            autoComplete="current-password"
+                            {...register("password")}
+                          />
+                          <InputGroupAddon align="inline-end">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={() => setShowPassword(!showPassword)}
+                              aria-label={showPassword ? t("hide_password") : t("show_password")}>
+                              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                            </Button>
+                          </InputGroupAddon>
+                        </InputGroup>
+                        {formState.errors.password && (
+                          <p data-testid="field-error" className="text-destructive-foreground text-xs">
+                            {formState.errors.password.message}
+                          </p>
+                        )}
+                      </Field>
+                    </div>
+                  )}
+
+                  {/* Two Factor */}
+                  {twoFactorRequired && (
+                    <div className="space-y-4">
+                      {!twoFactorLostAccess ? <TwoFactor center /> : <BackupCode center />}
+                    </div>
+                  )}
+
+                  {/* Error Message */}
+                  {errorMessage && <Alert severity="error" title={errorMessage} className="mt-4" />}
+
+                  {/* Submit Button */}
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    className="mt-8 w-full"
+                    disabled={formState.isSubmitting}>
+                    {twoFactorRequired ? t("submit") : t("continue")}
+                  </Button>
+                </form>
+
+                {/* Two Factor Footer */}
+                {twoFactorRequired && (
+                  <div className="mt-4 flex justify-center gap-4">
+                    {!totpEmail ? (
+                      <>
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            if (twoFactorLostAccess) {
+                              setTwoFactorLostAccess(false);
+                              methods.setValue("backupCode", "");
+                            } else {
+                              setTwoFactorRequired(false);
+                              methods.setValue("totpCode", "");
+                            }
+                            setErrorMessage(null);
+                          }}>
+                          <Icon name="arrow-left" className="mr-2 size-4" />
+                          {t("go_back")}
+                        </Button>
+                        {!twoFactorLostAccess && (
+                          <Button
+                            variant="ghost"
+                            onClick={() => {
+                              setTwoFactorLostAccess(true);
+                              setErrorMessage(null);
+                              methods.setValue("totpCode", "");
+                            }}>
+                            <Icon name="lock" className="mr-2 size-4" />
+                            {t("lost_access")}
+                          </Button>
+                        )}
+                      </>
+                    ) : (
                       <Button
                         variant="ghost"
                         onClick={() => {
-                          setTwoFactorLostAccess(true);
-                          setErrorMessage(null);
-                          methods.setValue("totpCode", "");
+                          window.location.replace("/");
                         }}>
-                        <Icon name="lock" className="mr-2 size-4" />
-                        {t("lost_access")}
+                        {t("cancel")}
                       </Button>
                     )}
-                  </>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      window.location.replace("/");
-                    }}>
-                    {t("cancel")}
-                  </Button>
+                  </div>
                 )}
-              </div>
-            )}
-          </FormProvider>
-          </CardPanel>
-        </Card>
+              </CardPanel>
+            </Card>
 
-        {/* Card Footer Links */}
-        {!twoFactorRequired && (showSignupLink || displaySSOLogin) && (
-          <CardFrameFooter className="flex items-center justify-center gap-3">
-            {showSignupLink && (
-              <Link
-                href={
-                  callbackUrl
-                    ? `${WEBSITE_URL}/signup?redirect=${encodeURIComponent(callbackUrl)}`
-                    : `${WEBSITE_URL}/signup`
-                }
-                className="text-sm font-medium text-emphasis hover:underline">
-                {t("create_account")}
-              </Link>
-            )}
-            {displaySSOLogin && (
-              <>
+            {/* Card Footer Links */}
+            {!twoFactorRequired && (showSignupLink || displaySSOLogin) && (
+              <CardFrameFooter className="flex items-center justify-center gap-3">
                 {showSignupLink && (
-                  <span className="text-muted-foreground">·</span>
+                  <Link
+                    href={
+                      callbackUrl
+                        ? `${WEBSITE_URL}/signup?redirect=${encodeURIComponent(callbackUrl)}`
+                        : `${WEBSITE_URL}/signup`
+                    }
+                    className="text-sm font-medium text-emphasis hover:underline">
+                    {t("create_account")}
+                  </Link>
                 )}
-                <SAMLLogin
-                  samlTenantID={samlTenantID}
-                  samlProductID={samlProductID}
-                  setErrorMessage={setErrorMessage}
-                  color="minimal"
-                  StartIcon={undefined}
-                  className="text-sm font-medium text-emphasis hover:underline p-0 h-auto"
-                />
-              </>
+                {displaySSOLogin && (
+                  <>
+                    {showSignupLink && (
+                      <span className="text-muted-foreground">·</span>
+                    )}
+                    <SAMLLogin
+                      samlTenantID={samlTenantID}
+                      samlProductID={samlProductID}
+                      setErrorMessage={setErrorMessage}
+                      color="minimal"
+                      StartIcon={undefined}
+                      className="text-sm font-medium text-emphasis hover:underline p-0 h-auto"
+                    />
+                  </>
+                )}
+              </CardFrameFooter>
             )}
-          </CardFrameFooter>
-        )}
-        </CardFrame>
+          </CardFrame>
+        </FormProvider>
 
 
       </div>
