@@ -1345,8 +1345,7 @@ export class InsightsBookingBaseService {
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
         AND "timeStatus" = 'cancelled'
-        AND "cancellationReason" IS NOT NULL
-        AND "cancellationReason" != ''
+        AND NULLIF(BTRIM("cancellationReason"), '') IS NOT NULL
       GROUP BY "cancellationReason"
       ORDER BY "count" DESC
       LIMIT 10
@@ -1370,8 +1369,7 @@ export class InsightsBookingBaseService {
       FROM "BookingTimeStatusDenormalized"
       WHERE ${baseConditions}
         AND "timeStatus" = 'rescheduled'
-        AND "cancellationReason" IS NOT NULL
-        AND "cancellationReason" != ''
+        AND NULLIF(BTRIM("cancellationReason"), '') IS NOT NULL
       GROUP BY "cancellationReason"
       ORDER BY "count" DESC
       LIMIT 10

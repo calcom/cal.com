@@ -73,7 +73,7 @@ describe("InsightsBookingBaseService - Cancellation & Reschedule Reason Stats", 
       const queryString = queryArg.strings.join("");
 
       expect(queryString).toContain('"timeStatus" = \'cancelled\'');
-      expect(queryString).toContain('"cancellationReason" IS NOT NULL');
+      expect(queryString).toContain('NULLIF(BTRIM("cancellationReason")');
       expect(queryString).toContain("GROUP BY");
       expect(queryString).toContain("ORDER BY");
       expect(queryString).toContain("LIMIT 10");
@@ -115,7 +115,7 @@ describe("InsightsBookingBaseService - Cancellation & Reschedule Reason Stats", 
       const queryString = queryArg.strings.join("");
 
       expect(queryString).toContain('"timeStatus" = \'rescheduled\'');
-      expect(queryString).toContain('"cancellationReason" IS NOT NULL');
+      expect(queryString).toContain('NULLIF(BTRIM("cancellationReason")');
       expect(queryString).toContain("GROUP BY");
       expect(queryString).toContain("ORDER BY");
       expect(queryString).toContain("LIMIT 10");
