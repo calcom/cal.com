@@ -68,9 +68,11 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
     const parsedMetadata = teamMetadataStrictSchema.safeParse(team.metadata);
     const subscriptionId = parsedMetadata.success ? parsedMetadata.data?.subscriptionId : null;
-    const subscription = !isNil(subscriptionId)
-      ? await getBillingProviderService().getSubscription(subscriptionId!)
-      : null;
+    let subscription = null;
+
+    if (subscriptionStatus === SubscriptionStatus.TRIALING && !isNil(subscriptionId)) {
+      subscription = await getBillingProviderService().getSubscription(subscriptionId);
+    }
 
     const billingPeriodService = new BillingPeriodService();
     const billingInfo = await billingPeriodService.getBillingPeriodInfo(teamId);

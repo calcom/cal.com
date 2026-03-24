@@ -166,4 +166,24 @@ describe("getSubscriptionStatusHandler", () => {
 
     expect(result.isCancellationScheduled).toBe(false);
   });
+
+  it("does not fetch subscription details when the team is not trialing", async () => {
+    mockFindAndInit.mockResolvedValueOnce({
+      getSubscriptionStatus: vi.fn().mockResolvedValue(SubscriptionStatus.ACTIVE),
+    });
+
+    const result = await getSubscriptionStatusHandler({
+      // @ts-expect-error simplified test context
+      ctx,
+      input,
+    });
+
+    expect(mockGetSubscription).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      status: SubscriptionStatus.ACTIVE,
+      isTrialing: false,
+      isCancellationScheduled: false,
+      billingMode: "ACTIVE_USERS",
+    });
+  });
 });
