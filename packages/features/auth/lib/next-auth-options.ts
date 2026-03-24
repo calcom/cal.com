@@ -4,6 +4,7 @@ import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { serialize } from "cookie";
 import { OAuth2Client } from "googleapis-common";
+import type { NextApiRequest } from "next";
 import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -209,6 +210,77 @@ async function updateUserDeviceDetailsIfNeeded(
     });
   } catch (error) {
     log.error("Failed to update user device details metadata", { userId, error });
+  }
+}
+
+type ParsedDeviceDetails = {
+  browser: string;
+  deviceType: "Mobile" | "Desktop" | "Tablet";
+  deviceOS: string;
+  screenResolution: string;
+};
+
+type ProcessedDeviceDetails = {
+  ip: string;
+  browser: string;
+  deviceType: "Mobile" | "Desktop" | "Tablet";
+  deviceOS: string;
+  screenResolution: string;
+};
+
+function parseDeviceDetailsInput(input?: unknown): ParsedDeviceDetails | null {
+  if (!input) return null;
+
+  let parsed: unknown = input;
+
+  if (typeof input === "string") {
+    try {
+      parsed = JSON.parse(input);
+    } catch {
+      return null;
+    }
+  }
+
+  if (!parsed || typeof parsed !== "object") return null;
+
+  const candidate = parsed as Record<string, unknown>;
+  if (
+    typeof candidate.browser !== "string" ||
+    (candidate.deviceType !== "Mobile" &&
+      candidate.deviceType !== "Desktop" &&
+      candidate.deviceType !== "Tablet") ||
+    typeof candidate.deviceOS !== "string" ||
+    typeof candidate.screenResolution !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    browser: candidate.browser,
+    deviceType: candidate.deviceType,
+    deviceOS: candidate.deviceOS,
+    screenResolution: candidate.screenResolution,
+  };
+}
+
+function processDeviceDetailsWithIP(
+  raw: ParsedDeviceDetails | null,
+  request?: Request | NextApiRequest
+): ProcessedDeviceDetails | null {
+  if (!raw) return null;
+
+  try {
+    const ip = request ? getIP(request) : "Unknown";
+    return {
+      ip: ip || "Unknown",
+      browser: sanitizeDeviceString(raw.browser),
+      deviceType: raw.deviceType,
+      deviceOS: sanitizeDeviceString(raw.deviceOS),
+      screenResolution: sanitizeDeviceString(raw.screenResolution),
+    };
+  } catch (error) {
+    log.error("Failed to process device details with IP", { error });
+    return null;
   }
 }
 
@@ -500,11 +572,16 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
       name: "Google One Tap",
       credentials: {
         credential: { type: "text" },
+        deviceDetails: { type: "text" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.credential) {
           throw new Error(ErrorCode.InternalServerError);
         }
+
+        const rawOneTapDeviceDetails = parseDeviceDetailsInput(credentials.deviceDetails);
+        const processedOneTapDeviceDetails = processDeviceDetailsWithIP(rawOneTapDeviceDetails, req);
+        let isNewUser = false;
 
         // Verify the Google ID token
         const client = new OAuth2Client(GOOGLE_CLIENT_ID);
@@ -600,6 +677,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
                 email,
                 metadata: {
                   signupSource: "google-one-tap",
+                  ...(processedOneTapDeviceDetails && { deviceDetails: processedOneTapDeviceDetails }),
                 },
                 identityProvider: IdentityProvider.GOOGLE,
                 identityProviderId: payload.sub,
@@ -617,6 +695,7 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
                 }),
               },
             });
+            isNewUser = true;
 
             log.info("New user created via Google One Tap", { userId: existingUser.id });
 
@@ -631,6 +710,30 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
           } catch (err) {
             log.error("One Tap user creation failed", { email, error: safeStringify(err) });
             throw new Error("user-creation-error");
+          }
+        }
+
+        if (!isNewUser && processedOneTapDeviceDetails) {
+          const existingMetadata =
+            (isPrismaObjOrUndefined(existingUser.metadata) as Record<string, unknown>) ?? {};
+
+          if (!existingMetadata.deviceDetails) {
+            try {
+              await prisma.user.update({
+                where: { id: existingUser.id },
+                data: {
+                  metadata: {
+                    ...existingMetadata,
+                    deviceDetails: processedOneTapDeviceDetails,
+                  },
+                },
+              });
+            } catch (error) {
+              log.error("Failed to backfill One Tap device details metadata", {
+                userId: existingUser.id,
+                error: safeStringify(error),
+              });
+            }
           }
         }
 
