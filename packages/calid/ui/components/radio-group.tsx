@@ -24,7 +24,6 @@ const RadioGroupItem = React.forwardRef<
     secondaryColor?: string;
   }
 >(({ className, variant = "default", accentColor, secondaryColor, ...props }, ref) => {
-  console.log("Secondary color:", secondaryColor);
 
   const isLargeSquare = variant === "largeSquare";
   const { style, ...rest } = props;
