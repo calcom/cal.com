@@ -92,7 +92,6 @@ export default function ExtendedDatePicker({
           sideOffset={4}
         >
           <Calendar
-            initialFocus
             fromDate={new Date()}
             mode="single"
             defaultMonth={selected ?? new Date()}

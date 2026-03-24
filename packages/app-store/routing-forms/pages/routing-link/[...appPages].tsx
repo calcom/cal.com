@@ -36,9 +36,10 @@ import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import isRouterLinkedField from "../../lib/isRouterLinkedField";
 import { applyDefaultCountryCodeToPhoneValue } from "../../lib/phoneUtils";
 import { findMatchingRoute } from "../../lib/processRoute";
+import { getUIOptionsForSelect } from "../../lib/selectOptions";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getDisplayValueForValue } from "../../lib/transformResponse";
-import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
+import { getFieldResponseForJsonLogic, getOptionIdForValue } from "../../lib/transformResponse";
 import type { NonRouterRoute, FormResponse } from "../../types/types";
 import type { getServerSideProps } from "./getServerSideProps";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
@@ -492,12 +493,20 @@ const usePrefilledResponse = (form: Props["form"]) => {
   // Prefill the form from query params
   form.fields?.forEach((field) => {
     const valuesFromQuery = searchParams?.getAll(getFieldIdentifier(field)).filter(Boolean) ?? [];
+    const selectOptions = field.type === "select" ? getUIOptionsForSelect(field) : [];
+    const autoSelectedValue =
+      valuesFromQuery.length === 0 && selectOptions.length === 1
+        ? String(selectOptions[0].value)
+        : undefined;
     // We only want to keep arrays if the field is a multi-select
-    const value = valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0];
+    const value =
+      valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0] ?? autoSelectedValue;
+    const optionId = getOptionIdForValue({ field, value });
 
     prefillResponse[field.id] = {
       value: getFieldResponseForJsonLogic({ field, value }),
       label: field.label,
+      ...(optionId !== undefined ? { optionId } : {}),
     };
   });
   const [response, setResponse] = useState<FormResponse>(prefillResponse);
