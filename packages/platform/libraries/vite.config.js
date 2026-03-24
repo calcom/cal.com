@@ -20,11 +20,11 @@ export default defineConfig({
     "process.env.USE_POOL": JSON.stringify(usePool),
   },
   esbuild: {
-    target: "node18",
+    target: "node20",
     platform: "node",
   },
   build: {
-    target: "node18",
+    target: "node20",
     platform: "node",
     ssr: true,
     lib: {
