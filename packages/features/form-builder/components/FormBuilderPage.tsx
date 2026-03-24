@@ -20,6 +20,7 @@ import React, { useState, useCallback } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useFieldArray } from "react-hook-form";
 
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import type { RoutingFormWithResponseCount } from "../../types/types";
 import { FieldLibrary } from "./FieldLibrary";
 import { FieldSettingsPanel } from "./FieldSettingsPanel";
@@ -32,9 +33,29 @@ interface FormBuilderPageProps {
   form: any;
   appUrl: string;
   uptoDateForm?: any;
+  showCanvasSkeleton?: boolean;
 }
 
-export function FormBuilderPage({ hookForm, form, appUrl }: FormBuilderPageProps) {
+function FormCanvasSkeleton() {
+  return (
+    <div className="h-full w-full bg-muted/20 p-6">
+      <SkeletonContainer className="bg-default mx-auto h-full w-full max-w-3xl rounded-xl border border-subtle p-6">
+        <div className="space-y-4">
+          <SkeletonText className="h-8 w-56" />
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="rounded-lg border border-subtle p-4">
+              <SkeletonText className="mb-3 h-4 w-40" />
+              <SkeletonText className="h-10 w-full" />
+            </div>
+          ))}
+          <SkeletonText className="h-10 w-36" />
+        </div>
+      </SkeletonContainer>
+    </div>
+  );
+}
+
+export function FormBuilderPage({ hookForm, form, appUrl, showCanvasSkeleton = false }: FormBuilderPageProps) {
   // ── Local UI state ──────────────────────────────────────────────────────
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
@@ -163,16 +184,20 @@ export function FormBuilderPage({ hookForm, form, appUrl }: FormBuilderPageProps
 
       {/* Center: Form Canvas */}
       <div className="flex-1 min-w-0 min-h-0">
-        <FormCanvas
-          fields={fields}
-          selectedFieldIndex={selectedIndex}
-          formConfig={formConfig}
-          onSelectField={setSelectedIndex}
-          onReorder={handleReorder}
-          onDropNewField={(type, atIndex) => handleAddField(type as UIFieldType, atIndex)}
-          onDelete={handleDelete}
-          onDuplicate={handleDuplicate}
-        />
+        {showCanvasSkeleton ? (
+          <FormCanvasSkeleton />
+        ) : (
+          <FormCanvas
+            fields={fields}
+            selectedFieldIndex={selectedIndex}
+            formConfig={formConfig}
+            onSelectField={setSelectedIndex}
+            onReorder={handleReorder}
+            onDropNewField={(type, atIndex) => handleAddField(type as UIFieldType, atIndex)}
+            onDelete={handleDelete}
+            onDuplicate={handleDuplicate}
+          />
+        )}
       </div>
 
       {/* Right: Settings Panel */}
