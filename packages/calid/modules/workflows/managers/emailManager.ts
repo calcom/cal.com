@@ -648,18 +648,44 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
 
 export const deleteScheduledEmailReminder = async (
   reminderIdentifier: number,
-  referenceIdentifier: string | null
+  referenceIdentifier?: string | null
 ) => {
   try {
-    await prisma.calIdWorkflowReminder.update({
+    const reminder = await prisma.calIdWorkflowReminder.findFirst({
       where: {
         id: reminderIdentifier,
         scheduledDate: {
           gt: new Date(),
         },
       },
+      select: {
+        id: true,
+        scheduled: true,
+        referenceId: true,
+        providerCancellationStatus: true,
+      },
+    });
+
+    if (!reminder) {
+      return;
+    }
+
+    const hasProviderReferenceId = Boolean(referenceIdentifier ?? reminder.referenceId);
+    const requiresProviderCancellation = reminder.scheduled && hasProviderReferenceId;
+    const hasTerminalProviderCancellationStatus = ["cancelled", "not_cancellable"].includes(
+      reminder.providerCancellationStatus || ""
+    );
+
+    await prisma.calIdWorkflowReminder.update({
+      where: {
+        id: reminder.id,
+      },
       data: {
         cancelled: true,
+        ...(requiresProviderCancellation &&
+          !hasTerminalProviderCancellationStatus && {
+            providerCancellationStatus: "pending",
+          }),
       },
     });
   } catch (error) {

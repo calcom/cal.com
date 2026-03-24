@@ -41,12 +41,105 @@ import { getAllRemindersToCancel, getAllUnscheduledReminders } from "../../utils
 //   });
 // };
 
+const PROVIDER_CANCELLATION_STATUS = {
+  PENDING: "pending",
+  CANCELLED: "cancelled",
+  NOT_CANCELLABLE: "not_cancellable",
+} as const;
+
+const getProviderErrorStatusCode = (error: unknown): number | undefined => {
+  if (!error || typeof error !== "object") {
+    return undefined;
+  }
+
+  const providerError = error as {
+    code?: number;
+    response?: {
+      statusCode?: number;
+    };
+  };
+
+  return providerError.response?.statusCode ?? providerError.code;
+};
+
+const getProviderErrorMessage = (error: unknown): string => {
+  if (!error || typeof error !== "object") {
+    return "";
+  }
+
+  const providerError = error as {
+    message?: string;
+    response?: {
+      body?: {
+        errors?: { message?: string }[];
+      };
+    };
+  };
+
+  const providerMessages =
+    providerError.response?.body?.errors
+      ?.map((providerMessage) => providerMessage.message)
+      .filter((message): message is string => Boolean(message)) || [];
+
+  return [providerError.message, ...providerMessages].filter(Boolean).join(" ").toLowerCase();
+};
+
+const isNotCancellableProviderError = (error: unknown): boolean => {
+  const statusCode = getProviderErrorStatusCode(error);
+  const message = getProviderErrorMessage(error);
+
+  if (statusCode === 404) {
+    return true;
+  }
+
+  const nonCancellablePatterns = [
+    "already sent",
+    "already processed",
+    "already canceled",
+    "already cancelled",
+    "cannot cancel",
+    "cannot be cancelled",
+    "can't be cancelled",
+    "too late",
+    "past send",
+    "batch id does not exist",
+    "not found",
+  ];
+
+  return nonCancellablePatterns.some((pattern) => message.includes(pattern));
+};
+
 const processCancelledNotifications = async (): Promise<number> => {
-  const notificationsToCancel: { referenceId: string | null; id: number }[] = await getAllRemindersToCancel();
+  const notificationsToCancel: {
+    referenceId: string | null;
+    id: number;
+    providerCancellationStatus: string | null;
+  }[] = await getAllRemindersToCancel();
 
   let cancelledCount = 0;
 
   const cancellationOperations = notificationsToCancel.map(async (notification) => {
+    if (!notification.referenceId) {
+      try {
+        await prisma.calIdWorkflowReminder.update({
+          where: { id: notification.id },
+          data: {
+            scheduled: false,
+            providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.NOT_CANCELLABLE,
+          },
+        });
+      } catch (error) {
+        logger.error(
+          {
+            error,
+            notificationId: notification.id,
+          },
+          "Failed to reconcile cancelled reminder without provider reference ID"
+        );
+      }
+      return;
+    }
+
     try {
       // First, attempt to cancel the scheduled email
       await cancelScheduledEmail(notification.referenceId);
@@ -61,7 +154,9 @@ const processCancelledNotifications = async (): Promise<number> => {
             where: {
               msgId: notification.referenceId,
               type: WorkflowMethods.EMAIL,
-              status: WorkflowStatus.QUEUED,
+              status: {
+                notIn: [WorkflowStatus.DELIVERED, WorkflowStatus.READ],
+              },
             },
             data: {
               status: WorkflowStatus.CANCELLED,
@@ -84,6 +179,7 @@ const processCancelledNotifications = async (): Promise<number> => {
           },
           data: {
             scheduled: false,
+            providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.CANCELLED,
           },
         })
         .then(() => {
@@ -100,6 +196,49 @@ const processCancelledNotifications = async (): Promise<number> => {
       // Increment count only if everything succeeded
       cancelledCount++;
     } catch (error) {
+      if (isNotCancellableProviderError(error)) {
+        try {
+          await prisma.calIdWorkflowReminder.update({
+            where: { id: notification.id },
+            data: {
+              scheduled: false,
+              providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.NOT_CANCELLABLE,
+            },
+          });
+        } catch (updateError) {
+          logger.error(
+            {
+              error: updateError,
+              notificationId: notification.id,
+              referenceId: notification.referenceId,
+            },
+            "Failed to mark reminder as not cancellable"
+          );
+        }
+
+        return;
+      }
+
+      if (notification.providerCancellationStatus !== PROVIDER_CANCELLATION_STATUS.PENDING) {
+        try {
+          await prisma.calIdWorkflowReminder.update({
+            where: { id: notification.id },
+            data: {
+              providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.PENDING,
+            },
+          });
+        } catch (updateError) {
+          logger.error(
+            {
+              error: updateError,
+              notificationId: notification.id,
+              referenceId: notification.referenceId,
+            },
+            "Failed to persist pending provider cancellation status"
+          );
+        }
+      }
+
       logger.error(
         {
           error,
@@ -207,12 +346,14 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
             notification.booking.eventType?.team?.parentId ?? organizerOrgId ?? null
           );
 
+          // TODO: Use `constructVariablesForTemplate` function to construct variables for custom template rendering to avoid duplication of logic
           const templateVariables: VariablesType = {
             eventName: notification.booking.eventType?.title || "",
             organizerName: notification.booking.user?.name || "",
             attendeeName: notification.booking.attendees[0].name,
             attendeeEmail: notification.booking.attendees[0].email,
             eventDate: dayjs(notification.booking.startTime).tz(userTimeZone),
+            eventStartTime: dayjs(notification.booking.startTime).tz(userTimeZone),
             eventEndTime: dayjs(notification.booking?.endTime).tz(userTimeZone),
             timezone: userTimeZone,
             location: notification.booking.location || "",

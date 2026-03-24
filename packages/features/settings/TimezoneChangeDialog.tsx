@@ -26,7 +26,7 @@ function hideDialogFor(hideFor: [number, DayjsManipulateType], toastContent: str
   if (toastContent) triggerToast(toastContent, "success");
 }
 
-const TimezoneChangeDialogContent = () => {
+const TimezoneChangeDialogContent = ({ onClose }: { onClose: () => void }) => {
   const { t, isLocaleReady } = useLocale();
   if (!isLocaleReady) return null;
 
@@ -53,6 +53,7 @@ const TimezoneChangeDialogContent = () => {
   });
 
   const updateTimezone = () => {
+    onClose();
     mutation.mutate({
       timeZone: CURRENT_TIMEZONE,
     });
@@ -73,10 +74,15 @@ const TimezoneChangeDialogContent = () => {
       {/* todo: save this in db and auto-update when timezone changes (be able to disable??? if yes, /settings)
     <Checkbox description="Always update timezone" />
   */}
-      <div className="mb-8" />
+      <div className="mb-2" />
 
-      <DialogFooter className="border-t">
-        <Button onClick={() => hideDialogFor([3, "months"], t("we_wont_show_again"))} color="secondary">
+      <DialogFooter className="border-t pt-2">
+        <Button
+          onClick={() => {
+            hideDialogFor([3, "months"], t("we_wont_show_again"));
+            onClose();
+          }}
+          color="secondary">
           {t("dont_update")}
         </Button>
         <Button onClick={() => updateTimezone()} color="primary">
@@ -119,7 +125,7 @@ function TimezoneChangeDialogContainer() {
     <Dialog open={open} onOpenChange={setOpen}>
       {/* Dismiss dialog for a day on outside interaction */}
       <DialogContent type="creation" onInteractOutside={handleInteractOutside}>
-        <TimezoneChangeDialogContent />
+        <TimezoneChangeDialogContent onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   );

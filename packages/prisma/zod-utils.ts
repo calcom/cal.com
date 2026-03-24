@@ -480,6 +480,7 @@ export const recurringEventSchema = z.object({
 export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
+    videoProvider: z.string().optional(),
     meetingNote: z.string().optional(),
     recurringEvent: recurringEventSchema.optional(),
   })

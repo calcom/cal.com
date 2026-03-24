@@ -42,6 +42,25 @@ const getStatusVariant = (status: string): "default" | "success" | "orange" | "r
   }
 };
 
+const getStatusLabel = (status: string): string => {
+  switch (status) {
+    case "SENT":
+      return "Sent";
+    case "SCHEDULED":
+      return "Scheduled";
+    case "QUEUED":
+      return "Queued";
+    case "BOUNCED":
+      return "Bounced";
+    case "FAILED":
+      return "Failed";
+    case "CANCELLED":
+      return "Cancelled";
+    default:
+      return status;
+  }
+};
+
 const getChannelIcon = (channel: string): IconName => {
   switch (channel) {
     case "EMAIL":
@@ -102,7 +121,7 @@ export const WorkflowStatusDialog = ({
             className="p-0">
             {t("back")}
           </Button>
-          <Badge className="rounded-lg" variant={"gray"} size="sm">
+          <Badge className="rounded-lg" variant="gray" size="sm">
             <div className="flex items-center gap-2">
               <div className="bg-default flex h-5 w-5 items-center justify-center rounded-full">
                 <span className="text-default text-xs font-medium">
@@ -141,7 +160,7 @@ export const WorkflowStatusDialog = ({
                       <span className="text-default text-xs">{step.stepName}</span>
                     </div>
                     <Badge variant={getStatusVariant(step.status)} size="sm">
-                      {step.status}
+                      {getStatusLabel(step.status)}
                     </Badge>
                   </div>
                 );
