@@ -29,6 +29,7 @@
       "@/repositories/*": ["repositories/*"],
       "@/services/*": ["services/*"],
       "@/routes/*": ["routes/*"],
+      "@calid/job-dispatcher": ["../../packages/job-dispatcher/*"],
       "@calcom/lib/*": ["../../packages/lib/*"] // relative path from connector/src
     }
   },

@@ -7,8 +7,8 @@ import { useMemo, useCallback, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
-import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager } from "@calid/embed-runtime/embed-iframe";
+import { useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";

@@ -1,0 +1,53 @@
+{
+  "name": "@calid/react-embed",
+  "sideEffects": false,
+  "version": "0.0.2",
+  "description": "React component for embedding Cal ID scheduling links into your application.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/onehashai/Cal-ID",
+    "directory": "packages/calid-embeds/react-embed"
+  },
+  "scripts": {
+    "dev": "vite --port=3101 --open",
+    "build": "rm -rf dist && vite build && cp ./dist/Cal.es.js ./dist/Cal.es.mjs && tsc --emitDeclarationOnly --declarationDir dist",
+    "preview": "vite preview",
+    "type-check": "tsc --pretty --noEmit",
+    "type-check:ci": "tsc-absolute --pretty --noEmit",
+    "lint": "eslint --ext .ts,.js,.tsx,.jsx ./src",
+    "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://cal.id/embed-link/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://cal.id' yarn",
+    "prepack": "yarn ../../../ lint --filter='@calid/react-embed' && yarn withEmbedPublishEnv build",
+    "embed-dev": "yarn workspace @calid/react-embed dev",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+  },
+  "main": "./dist/Cal.umd.js",
+  "module": "./dist/Cal.es.mjs",
+  "types": "./dist/react-embed/src/index.d.ts",
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/react-embed/src/index.d.ts",
+      "import": "./dist/Cal.es.mjs",
+      "require": "./dist/Cal.umd.js"
+    }
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.3",
+    "@types/react": "18.0.26",
+    "@types/react-dom": "^18.0.9",
+    "@vitejs/plugin-react": "^2.2.0",
+    "eslint": "^8.34.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.7.2",
+    "vite": "^4.5.2"
+  },
+  "dependencies": {
+    "@calid/embed-runtime": "workspace:*"
+  }
+}

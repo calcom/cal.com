@@ -6,7 +6,7 @@ import localFont from "next/font/local";
 import Head from "next/head";
 import Script from "next/script";
 
-import "@calcom/embed-core/src/embed-iframe";
+import "@calid/embed-runtime/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { buildCanonical } from "@calcom/lib/next-seo.config";

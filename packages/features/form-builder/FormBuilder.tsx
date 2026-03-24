@@ -25,7 +25,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import turndown from "@calcom/lib/turndownService";
-import { WorkflowActions } from "@calcom/prisma/client";
+import { WorkflowActions } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Editor } from "@calcom/ui/components/editor";
 import { ToggleGroup } from "@calcom/ui/components/form";
@@ -330,7 +330,7 @@ export const FormBuilder = function FormBuilder({
             }
 
             if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
-              field = { ...field, labelAsSafeHtml: markdownToSafeHTMLClient(field.label ?? "") };
+              field = { ...field, labelAsSafeHtml: markdownToSafeHTMLClient(field.label) };
             }
             const numOptions = options?.length ?? 0;
             const firstOptionInput =

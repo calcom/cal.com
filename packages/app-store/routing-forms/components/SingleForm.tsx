@@ -83,44 +83,6 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
   const { isDesktop } = useBreakPoints();
 
-  // const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = useMemo(() => {
-  //   const queryString = searchParams?.toString() || "";
-
-  //   const baseTabConfigs = [
-  //     {
-  //       name: "upcoming",
-  //       path: "/bookings/upcoming",
-  //       "data-testid": "upcoming",
-  //     },
-  //     {
-  //       name: "unconfirmed",
-  //       path: "/bookings/unconfirmed",
-  //       "data-testid": "unconfirmed",
-  //     },
-  //     {
-  //       name: "recurring",
-  //       path: "/bookings/recurring",
-  //       "data-testid": "recurring",
-  //     },
-  //     {
-  //       name: "past",
-  //       path: "/bookings/past",
-  //       "data-testid": "past",
-  //     },
-  //     {
-  //       name: "cancelled",
-  //       path: "/bookings/cancelled",
-  //       "data-testid": "cancelled",
-  //     },
-  //   ];
-
-  //   return baseTabConfigs.map((tabConfig) => ({
-  //     name: tabConfig.name,
-  //     href: queryString ? `${tabConfig.path}?${queryString}` : tabConfig.path,
-  //     "data-testid": tabConfig["data-testid"],
-  //   }));
-  // }, [searchParams?.toString()]);
-
   useEffect(() => {
     //  The first time a tab is opened, the hookForm copies the form data (saved version, from the backend),
     // and then it is considered the source of truth.
@@ -200,18 +162,21 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
               />
               <div
                 className={classNames(
-                  "bg-default flex-1",
+                  "bg-default flex min-h-0 flex-1 flex-col",
                   isDesktop && "grid gap-8",
                   isDesktop && isTestPreviewOpen && "grid-cols-[1fr,400px]",
                   isDesktop && !isTestPreviewOpen && "grid-cols-1",
                   !isDesktop && "flex flex-col"
                 )}>
                 {isDesktop ? (
-                  <motion.div layout className="w-full" transition={{ duration: 0.3, ease: "easeInOut" }}>
+                  <motion.div
+                    layout
+                    className="flex min-h-0 w-full flex-1 flex-col py-4"
+                    transition={{ duration: 0.3, ease: "easeInOut" }}>
                     <Page uptoDateForm={uptoDateForm} hookForm={hookForm} form={form} appUrl={appUrl} />
                   </motion.div>
                 ) : (
-                  <div className="w-full px-2">
+                  <div className="flex min-h-0 w-full max-w-full flex-1 flex-col px-2">
                     <Page uptoDateForm={uptoDateForm} hookForm={hookForm} form={form} appUrl={appUrl} />
                   </div>
                 )}
