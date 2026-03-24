@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import getIP from "@calcom/lib/getIP";
 import prisma from "@calcom/prisma";
 
 const ALLOWED_ORIGINS = (process.env.ONE_TAP_ALLOWED_ORIGINS ?? "")
@@ -22,6 +23,13 @@ type OneTapErrorResponse = {
 };
 
 type OneTapResponse = OneTapSuccessResponse | OneTapErrorResponse;
+
+type OneTapDeviceDetails = {
+  browser: string;
+  deviceType: "Mobile" | "Desktop" | "Tablet";
+  deviceOS: string;
+  screenResolution: string;
+};
 
 const NEXTAUTH_ERROR_MAP: Record<string, string> = {
   CredentialsSignin: "auth-failed",
@@ -85,6 +93,45 @@ function isSameOrigin(url: string, baseUrl: string): boolean {
   }
 }
 
+function parseOneTapDeviceDetails(input: unknown): OneTapDeviceDetails | null {
+  if (!input) return null;
+
+  let parsed: unknown = input;
+  if (typeof input === "string") {
+    try {
+      parsed = JSON.parse(input);
+    } catch {
+      return null;
+    }
+  }
+
+  if (!parsed || typeof parsed !== "object") return null;
+  const candidate = parsed as Record<string, unknown>;
+
+  if (
+    typeof candidate.browser !== "string" ||
+    (candidate.deviceType !== "Mobile" &&
+      candidate.deviceType !== "Desktop" &&
+      candidate.deviceType !== "Tablet") ||
+    typeof candidate.deviceOS !== "string" ||
+    typeof candidate.screenResolution !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    browser: candidate.browser,
+    deviceType: candidate.deviceType,
+    deviceOS: candidate.deviceOS,
+    screenResolution: candidate.screenResolution,
+  };
+}
+
+function getHeaderValue(value: string | string[] | undefined): string | undefined {
+  if (!value) return undefined;
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<OneTapResponse>
@@ -104,10 +151,18 @@ export default async function handler(
     return void res.status(405).json({ ok: false, error: "Method not allowed" });
   }
 
-  const { credential } = req.body as { credential?: unknown };
+  const { credential, deviceDetails } = req.body as {
+    credential?: unknown;
+    deviceDetails?: unknown;
+  };
 
   if (!credential || typeof credential !== "string" || credential.trim() === "") {
     return void res.status(400).json({ ok: false, error: "Missing or invalid credential" });
+  }
+
+  const parsedDeviceDetails = parseOneTapDeviceDetails(deviceDetails);
+  if (deviceDetails !== undefined && !parsedDeviceDetails) {
+    return void res.status(400).json({ ok: false, error: "Invalid deviceDetails payload" });
   }
 
   const baseUrl = process.env.NEXTAUTH_URL ?? "";
@@ -168,15 +223,25 @@ export default async function handler(
   });
 
   try {
+    const cfConnectingIp = getHeaderValue(req.headers["cf-connecting-ip"]);
+    const xRealIp = getHeaderValue(req.headers["x-real-ip"]);
+    const xForwardedFor = getHeaderValue(req.headers["x-forwarded-for"]);
+    const fallbackIp = getIP(req);
+
     callbackRes = await fetch(`${baseUrl}/api/auth/callback/google-one-tap`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         cookie: cookieHeader,
+        ...(cfConnectingIp ? { "cf-connecting-ip": cfConnectingIp } : {}),
+        ...(xRealIp ? { "x-real-ip": xRealIp } : {}),
+        ...(xForwardedFor ? { "x-forwarded-for": xForwardedFor } : {}),
+        ...(!cfConnectingIp && !xRealIp && fallbackIp ? { "x-real-ip": fallbackIp } : {}),
       },
       body: new URLSearchParams({
         csrfToken,
         credential,
+        ...(parsedDeviceDetails ? { deviceDetails: JSON.stringify(parsedDeviceDetails) } : {}),
         json: "true",
       }),
     });
