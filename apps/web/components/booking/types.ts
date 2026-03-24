@@ -6,6 +6,8 @@ export type BookingListingStatus = NonNullable<
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
+export type BookingAssignmentReason = BookingItem["assignmentReasonSortedByCreatedAt"][number];
+
 export type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;

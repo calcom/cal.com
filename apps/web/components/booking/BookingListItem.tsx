@@ -14,7 +14,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import type { AssignmentReason } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -59,7 +58,7 @@ import {
   getReportAction,
   isActionDisabled,
 } from "./actions/bookingActions";
-import type { BookingItemProps } from "./types";
+import type { BookingAssignmentReason, BookingItemProps } from "./types";
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
 type TeamEvent = Ensure<NonNullable<ParsedBooking["eventType"]>, "team">;
@@ -1151,7 +1150,7 @@ const AssignmentReasonTooltip = ({
   assignmentReason,
   onClick,
 }: {
-  assignmentReason: AssignmentReason;
+  assignmentReason: BookingAssignmentReason;
   onClick?: () => void;
 }) => {
   const { t } = useLocale();

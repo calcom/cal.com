@@ -595,7 +595,7 @@ describe("Booking Actions", () => {
           report: {
             id: "report-1",
             description: null,
-            createdAt: new Date(),
+            createdAt: new Date().toISOString(),
             reason: BookingReportReason.SPAM,
             reportedById: null,
           },
