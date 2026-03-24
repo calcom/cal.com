@@ -73,8 +73,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Recreate the BookingTimeStatusDenormalized view to include cancellationReason
-CREATE OR REPLACE VIEW public."BookingTimeStatusDenormalized" AS
+-- Drop and recreate the BookingTimeStatusDenormalized view to include cancellationReason
+-- (CREATE OR REPLACE VIEW cannot add columns before existing ones)
+DROP VIEW IF EXISTS public."BookingTimeStatusDenormalized";
+CREATE VIEW public."BookingTimeStatusDenormalized" AS
 SELECT
     *,
     CASE
