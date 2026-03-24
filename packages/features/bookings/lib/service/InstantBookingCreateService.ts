@@ -1,7 +1,4 @@
 import { randomBytes } from "node:crypto";
-import short from "short-uuid";
-import { v5 as uuidv5 } from "uuid";
-
 import dayjs from "@calcom/dayjs";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import type {
@@ -11,10 +8,10 @@ import type {
 } from "@calcom/features/bookings/lib/dto/types";
 import getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import { getBookingData } from "@calcom/features/bookings/lib/handleNewBooking/getBookingData";
 import { buildBookingCreatedAuditData } from "@calcom/features/bookings/lib/handleNewBooking/buildBookingEventAuditData";
 import { getAuditActionSource } from "@calcom/features/bookings/lib/handleNewBooking/getAuditActionSource";
 import { getBookingAuditActorForNewBooking } from "@calcom/features/bookings/lib/handleNewBooking/getBookingAuditActorForNewBooking";
+import { getBookingData } from "@calcom/features/bookings/lib/handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "@calcom/features/bookings/lib/handleNewBooking/getCustomInputsResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IBookingCreateService } from "@calcom/features/bookings/lib/interfaces/IBookingCreateService";
@@ -24,18 +21,19 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendNotification } from "@calcom/features/notifications/sendNotification";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import { getTranslation } from "@calcom/i18n/server";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/i18n/server";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import { BookingStatus, CreationSource, WebhookTriggerEvents } from "@calcom/prisma/enums";
-
+import { BookingStatus, type CreationSource, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import short from "short-uuid";
+import { v5 as uuidv5 } from "uuid";
+import type { WebhookVersion } from "../../../webhooks/lib/interface/IWebhookRepository";
 import { instantMeetingSubscriptionSchema as subscriptionSchema } from "../dto/schema";
-import { WebhookVersion } from "../../../webhooks/lib/interface/IWebhookRepository";
 
 interface IInstantBookingCreateServiceDependencies {
   prismaClient: PrismaClient;
@@ -178,7 +176,7 @@ const triggerBrowserNotifications = async (args: {
 };
 
 export async function handler(
-  bookingData: CreateInstantBookingData & Required<Pick<CreateInstantBookingData, "creationSource">>,
+  bookingData: CreateInstantBookingData & { creationSource: CreationSource },
   deps: IInstantBookingCreateServiceDependencies,
   bookingMeta?: CreateBookingMeta
 ) {
@@ -302,6 +300,9 @@ export async function handler(
   const createBookingObj = {
     include: {
       attendees: true,
+      user: {
+        select: { uuid: true },
+      },
     },
     data: newBookingData,
   };
@@ -367,6 +368,7 @@ export async function handler(
     eventType,
     creationSource,
     orgId,
+    hostUserUuid: newBooking.user?.uuid ?? null,
     userUuid: userUuid ?? null,
     deps,
   });
@@ -388,15 +390,24 @@ async function fireBookingEvents({
   eventType,
   creationSource,
   orgId,
+  hostUserUuid,
   userUuid,
   deps,
 }: {
-  booking: { uid: string; startTime: Date; endTime: Date; status: BookingStatus; userId: number | null; attendees?: Array<{ id: number; email: string }> };
+  booking: {
+    uid: string;
+    startTime: Date;
+    endTime: Date;
+    status: BookingStatus;
+    userId: number | null;
+    attendees?: Array<{ id: number; email: string }>;
+  };
   bookerEmail: string;
   bookerName: string;
   eventType: { id: number };
   creationSource: CreationSource;
   orgId: number | null;
+  hostUserUuid: string | null;
   userUuid: string | null;
   deps: IInstantBookingCreateServiceDependencies;
 }) {
@@ -440,7 +451,7 @@ async function fireBookingEvents({
           startTime: booking.startTime,
           endTime: booking.endTime,
           status: booking.status,
-          userUuid: null,
+          userUuid: hostUserUuid,
         },
         attendeeSeatId: null,
       }),
@@ -459,7 +470,10 @@ async function fireBookingEvents({
 export class InstantBookingCreateService implements IBookingCreateService {
   constructor(private readonly deps: IInstantBookingCreateServiceDependencies) {}
 
-  async createBooking(input: { bookingData: CreateInstantBookingData & Required<Pick<CreateInstantBookingData, "creationSource">>; bookingMeta?: CreateBookingMeta }): Promise<InstantBookingCreateResult> {
+  async createBooking(input: {
+    bookingData: CreateInstantBookingData & { creationSource: CreationSource };
+    bookingMeta?: CreateBookingMeta;
+  }): Promise<InstantBookingCreateResult> {
     return handler(input.bookingData, this.deps, input.bookingMeta);
   }
 }
