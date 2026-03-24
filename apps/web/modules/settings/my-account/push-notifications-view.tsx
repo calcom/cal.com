@@ -1,25 +1,31 @@
 "use client";
 
 import { useWebPush } from "@calcom/web/modules/notifications/hooks/useWebPush";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@coss/ui/components/button";
+import { Card, CardFrameDescription, CardFrameHeader, CardFrameTitle, CardPanel } from "@coss/ui/components/card";
 
 const PushNotificationsView = () => {
   const { t } = useLocale();
   const { subscribe, unsubscribe, isSubscribed, isLoading } = useWebPush();
 
   return (
-    <SettingsHeader
-      title={t("push_notifications")}
-      description={t("push_notifications_description")}
-      borderInShellHeader={true}>
-      <div className="border-subtle rounded-b-xl border-x border-b px-4 pb-10 pt-8 sm:px-6">
-        <Button color="primary" onClick={isSubscribed ? unsubscribe : subscribe} disabled={isLoading}>
-          {isSubscribed ? t("disable_browser_notifications") : t("allow_browser_notifications")}
-        </Button>
-      </div>
-    </SettingsHeader>
+    <Card>
+      <CardPanel>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <CardFrameHeader className="p-0">
+            <CardFrameTitle>{t("browser_notifications_title")}</CardFrameTitle>
+            <CardFrameDescription>{t("browser_notifications_description")}</CardFrameDescription>
+          </CardFrameHeader>
+          <Button
+            variant={isSubscribed ? "outline" : "default"}
+            onClick={isSubscribed ? unsubscribe : subscribe}
+            loading={isLoading}>
+            {isSubscribed ? t("disable_browser_notifications") : t("allow_browser_notifications")}
+          </Button>
+        </div>
+      </CardPanel>
+    </Card>
   );
 };
 

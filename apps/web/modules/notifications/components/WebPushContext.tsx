@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
+import { toastManager } from "@coss/ui/components/toast";
 
 interface WebPushContextProps {
   permission: NotificationPermission;
@@ -67,7 +67,7 @@ export function WebPushProvider({ children }: ProviderProps) {
             });
             addSubscription({ subscription: JSON.stringify(subscription) });
             setIsSubscribed(true);
-            showToast("Notifications enabled successfully", "success");
+            toastManager.add({ title: "Notifications enabled successfully", type: "success" });
           }
         } catch (error) {
           console.error("Failed to subscribe:", error);
@@ -76,9 +76,12 @@ export function WebPushProvider({ children }: ProviderProps) {
             error.name === "InvalidAccessError" &&
             error.message.includes("applicationServerKey")
           ) {
-            showToast("Please enable Google services for push messaging and try again", "error");
+            toastManager.add({
+              title: "Please enable Google services for push messaging and try again",
+              type: "error",
+            });
           } else {
-            showToast("Failed to enable notifications", "error");
+            toastManager.add({ title: "Failed to enable notifications", type: "error" });
           }
         } finally {
           setIsLoading(false);
@@ -94,11 +97,11 @@ export function WebPushProvider({ children }: ProviderProps) {
             await subscription.unsubscribe();
             removeSubscription({ subscription: subscriptionJson });
             setIsSubscribed(false);
-            showToast("Notifications disabled successfully", "success");
+            toastManager.add({ title: "Notifications disabled successfully", type: "success" });
           }
         } catch (error) {
           console.error("Failed to unsubscribe:", error);
-          showToast("Failed to disable notifications", "error");
+          toastManager.add({ title: "Failed to disable notifications", type: "error" });
         } finally {
           setIsLoading(false);
         }

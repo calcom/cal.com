@@ -600,6 +600,8 @@
   "allow_seo_indexing": "Allow search engines to access your public content",
   "seo_indexing": "Allow search engine indexing",
   "allow_browser_notifications": "Allow browser notifications",
+  "browser_notifications_title": "Browser notifications",
+  "browser_notifications_description": "Manage whether this browser receives booking alerts.",
   "you_have_denied_notifications": "You have denied notifications. Reset permission in browser settings to enable.",
   "disable_browser_notifications": "Disable browser notifications",
   "browser_notifications_turned_on": "Browser notifications turned on",
