@@ -162,3 +162,21 @@ export function availabilityAsString(
 
   return `${weekSpan(availability)}, ${timeSpan(availability)}`;
 }
+
+export const normalizeEmail = (e: string) => e.trim().toLowerCase();
+
+/** Shared filter to identify valid Cal.com guests with connected calendars */
+export function filterValidGuestUsers<T extends { email: string; credentials?: any[] }>(
+  guestUsers: T[],
+  hostEmails: string[]
+) {
+  const hostEmailSet = new Set(hostEmails.map(normalizeEmail));
+
+  return guestUsers.filter(
+    (gu) =>
+      !hostEmailSet.has(normalizeEmail(gu.email)) &&
+      Array.isArray(gu.credentials) &&
+      gu.credentials.length > 0
+  );
+}
+

@@ -30,6 +30,7 @@ import type { NoSlotsNotificationService } from "@calcom/features/slots/handleNo
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { filterBlockedHosts } from "@calcom/features/watchlist/operations/filter-blocked-hosts.controller";
+import { filterValidGuestUsers } from "@calcom/lib/availability";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
@@ -1237,7 +1238,34 @@ export class AvailableSlotsService {
       ? await filterBlockedHosts(allFallbackRRHosts, organizationId)
       : { eligibleHosts: [] };
 
-    const allHosts = [...eligibleQualifiedRRHosts, ...eligibleFixedHosts];
+    let guestHosts: {
+      isFixed: boolean;
+      user: GetAvailabilityUserWithDelegationCredentials;
+    }[] = [];
+
+    if (input.rescheduleUid) {
+      const originalBooking = await this.dependencies.bookingRepo.findByUidIncludeEventTypeAttendeesAndUser({
+        bookingUid: input.rescheduleUid,
+      });
+
+      if (originalBooking) {
+        const attendeeEmails = originalBooking.attendees.map((a) => a.email);
+        const guestUsers = await this.dependencies.userRepo.findManyByEmailsForAvailability(attendeeEmails);
+        const hostEmails = [...qualifiedRRHosts, ...fixedHosts].map((h) => h.user.email);
+
+        const filteredGuestUsers = filterValidGuestUsers(guestUsers, hostEmails);
+
+        guestHosts = filteredGuestUsers.map((gu) => ({
+          isFixed: true,
+          user: {
+            ...gu,
+            credentials: buildNonDelegationCredentials(gu.credentials),
+          },
+        }));
+      }
+    }
+
+    const allHosts = [...eligibleQualifiedRRHosts, ...eligibleFixedHosts, ...guestHosts];
 
     // If all hosts are blocked, return empty slots
     if (allHosts.length === 0) {
@@ -1291,7 +1319,7 @@ export class AvailableSlotsService {
           const firstTwoWeeksAvailabilities = await this.calculateHostsAndAvailabilities({
             input,
             eventType,
-            hosts: [...eligibleQualifiedRRHosts, ...eligibleFixedHosts],
+            hosts: [...eligibleQualifiedRRHosts, ...eligibleFixedHosts, ...guestHosts],
             loggerWithEventDetails,
             startTime: dayjs(),
             endTime: twoWeeksFromNow,
@@ -1327,7 +1355,7 @@ export class AvailableSlotsService {
           await this.calculateHostsAndAvailabilities({
             input,
             eventType,
-            hosts: [...eligibleFallbackRRHosts, ...eligibleFixedHosts],
+            hosts: [...eligibleFallbackRRHosts, ...eligibleFixedHosts, ...guestHosts],
             loggerWithEventDetails,
             startTime,
             endTime,

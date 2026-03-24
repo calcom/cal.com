@@ -1327,6 +1327,41 @@ export class UserRepository {
     });
   }
 
+  async findManyByEmailsForAvailability(emails: string[]) {
+    if (!emails.length) return [];
+    const normalizedEmails = Array.from(new Set(emails.map((email) => email.toLowerCase().trim())));
+    return this.prismaClient.user.findMany({
+      where: {
+        OR: [
+          {
+            email: {
+              in: normalizedEmails,
+              mode: "insensitive",
+            },
+          },
+          {
+            secondaryEmails: {
+              some: {
+                email: {
+                  in: normalizedEmails,
+                  mode: "insensitive",
+                },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        locked: true,
+        allowDynamicBooking: true,
+        ...availabilityUserSelect,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+      },
+    });
+  }
+
   async findUsersByIds(userIds: number[]) {
     return this.prismaClient.user.findMany({
       where: {

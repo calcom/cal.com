@@ -5,8 +5,10 @@ import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
+import { getUserRepository } from "@calcom/features/di/containers/UserRepository";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { filterValidGuestUsers } from "@calcom/lib/availability";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
@@ -112,6 +114,57 @@ const _ensureAvailableUsers = async (
       busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
     },
   });
+
+  if (input.originalRescheduledBooking) {
+    const attendeeEmails = input.originalRescheduledBooking.attendees.map((a) => a.email);
+    const userRepo = getUserRepository();
+    const guestUsers = await userRepo.findManyByEmailsForAvailability(attendeeEmails);
+
+    if (guestUsers.length > 0) {
+      const hostEmails = eventType.users.map((u) => u.email);
+      const filteredGuestUsers = filterValidGuestUsers(guestUsers, hostEmails);
+
+      if (filteredGuestUsers.length > 0) {
+        const guestAvailabilities = await userAvailabilityService.getUsersAvailability({
+          users: filteredGuestUsers,
+          query: {
+            ...input,
+            eventTypeId: eventType.id,
+            duration: originalBookingDuration,
+            returnDateOverrides: false,
+            dateFrom: startDateTimeUtc.format(),
+            dateTo: endDateTimeUtc.format(),
+            beforeEventBuffer: eventType.beforeEventBuffer,
+            afterEventBuffer: eventType.afterEventBuffer,
+            bypassBusyCalendarTimes: false,
+            mode,
+            withSource: true,
+          },
+          initialData: {
+            eventType,
+            rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
+          },
+        });
+
+        for (const guestAvail of guestAvailabilities) {
+          const { oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes } = guestAvail;
+          if (!dateRanges.length || !hasDateRangeForBooking(dateRanges, startDateTimeUtc, endDateTimeUtc)) {
+            loggerWithEventDetails.error(`Guest user does not have availability at this time.`);
+            throw new Error(ErrorCode.NoAvailableUsersFound);
+          }
+          const foundConflict = checkForConflicts({
+            busy: bufferedBusyTimes,
+            time: startDateTimeUtc,
+            eventLength: duration,
+          });
+          if (foundConflict) {
+            loggerWithEventDetails.error(`Guest user has a conflict at this time.`);
+            throw new Error(ErrorCode.NoAvailableUsersFound);
+          }
+        }
+      }
+    }
+  }
 
   const piiFreeInputDataForLogging = safeStringify({
     startDateTimeUtc,
