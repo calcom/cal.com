@@ -12,9 +12,9 @@ import logger from "@calcom/lib/logger";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
+import isNil from "lodash/isNil";
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetSubscriptionStatusInputSchema } from "./getSubscriptionStatus.schema";
-import isNil from "lodash/isNil";
 
 const log = logger.getSubLogger({ prefix: ["getSubscriptionStatus"] });
 
@@ -68,8 +68,9 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
     const subscriptionStatus = await teamBillingService.getSubscriptionStatus();
     const parsedMetadata = teamMetadataStrictSchema.safeParse(team.metadata);
     const subscriptionId = parsedMetadata.success ? parsedMetadata.data?.subscriptionId : null;
-    const subscription =
-      !isNil(subscriptionId) ? await getBillingProviderService().getSubscription(subscriptionId!) : null;
+    const subscription = !isNil(subscriptionId)
+      ? await getBillingProviderService().getSubscription(subscriptionId!)
+      : null;
 
     const billingPeriodService = new BillingPeriodService();
     const billingInfo = await billingPeriodService.getBillingPeriodInfo(teamId);
@@ -80,7 +81,8 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
       status: subscriptionStatus,
       isTrialing: subscriptionStatus === SubscriptionStatus.TRIALING,
       isCancellationScheduled:
-        subscription?.cancel_at_period_end === true || subscription?.cancel_at !== null,
+        !isNil(subscription) &&
+        (subscription.cancel_at_period_end === true || !isNil(subscription.cancel_at)),
       billingMode: billingInfo.billingMode,
     };
   } catch (error) {

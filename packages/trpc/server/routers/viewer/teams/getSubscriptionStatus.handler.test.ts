@@ -154,4 +154,16 @@ describe("getSubscriptionStatusHandler", () => {
 
     expect(result.isCancellationScheduled).toBe(true);
   });
+
+  it("returns isCancellationScheduled false when no subscription details are returned", async () => {
+    mockGetSubscription.mockResolvedValueOnce(null);
+
+    const result = await getSubscriptionStatusHandler({
+      // @ts-expect-error simplified test context
+      ctx,
+      input,
+    });
+
+    expect(result.isCancellationScheduled).toBe(false);
+  });
 });
