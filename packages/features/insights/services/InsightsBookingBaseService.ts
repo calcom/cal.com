@@ -1,16 +1,12 @@
-import md5 from "md5";
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
-import { ZColumnFilter } from "@calcom/features/data-table/lib/types";
-import { type ColumnFilter } from "@calcom/features/data-table/lib/types";
+import { type ColumnFilter, ZColumnFilter } from "@calcom/features/data-table/lib/types";
 import {
-  isSingleSelectFilterValue,
-  isMultiSelectFilterValue,
-  isTextFilterValue,
-  isNumberFilterValue,
   isDateRangeFilterValue,
+  isMultiSelectFilterValue,
+  isNumberFilterValue,
+  isSingleSelectFilterValue,
+  isTextFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib/bookingUtils";
@@ -20,8 +16,9 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { transformBookingsForCsv, type BookingTimeStatusData } from "./csvDataTransformer";
+import md5 from "md5";
+import { z } from "zod";
+import { type BookingTimeStatusData, transformBookingsForCsv } from "./csvDataTransformer";
 
 // Utility function to build user hash map with avatar URL fallback
 export const buildHashMapForUsers = <
@@ -96,6 +93,7 @@ export const bookingDataSchema = z
     rating: z.number().nullable(),
     noShowHost: z.boolean().nullable(),
     isTeamBooking: z.boolean(),
+    cancellationReason: z.string().nullable(),
     timeStatus: z.string().nullable(),
   })
   .strict();
@@ -1335,6 +1333,56 @@ export class InsightsBookingBaseService {
     });
 
     return result;
+  }
+
+  async getCancellationReasonStats() {
+    const baseConditions = await this.getBaseConditions();
+
+    const query = Prisma.sql`
+      SELECT
+        "cancellationReason" as "reason",
+        COUNT(*)::int as "count"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+        AND "timeStatus" = 'cancelled'
+        AND "cancellationReason" IS NOT NULL
+        AND "cancellationReason" != ''
+      GROUP BY "cancellationReason"
+      ORDER BY "count" DESC
+      LIMIT 10
+    `;
+
+    return await this.prisma.$queryRaw<
+      Array<{
+        reason: string;
+        count: number;
+      }>
+    >(query);
+  }
+
+  async getRescheduleReasonStats() {
+    const baseConditions = await this.getBaseConditions();
+
+    const query = Prisma.sql`
+      SELECT
+        "cancellationReason" as "reason",
+        COUNT(*)::int as "count"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+        AND "timeStatus" = 'rescheduled'
+        AND "cancellationReason" IS NOT NULL
+        AND "cancellationReason" != ''
+      GROUP BY "cancellationReason"
+      ORDER BY "count" DESC
+      LIMIT 10
+    `;
+
+    return await this.prisma.$queryRaw<
+      Array<{
+        reason: string;
+        count: number;
+      }>
+    >(query);
   }
 
   private async isOwnerOrAdmin(userId: number, targetId: number): Promise<boolean> {
