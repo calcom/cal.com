@@ -17,6 +17,10 @@ on:
         required: true
         type: number
 
+concurrency:
+  group: pr-summarizer
+  cancel-in-progress: false
+
 jobs:
   prepareFilesForSummary:
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main') }}
@@ -61,6 +65,30 @@ jobs:
             const batchSize = 10;
             const fileSummaries = [];
 
+            async function fetchWithRetry(url, options, retries=5) {
+              for (let attempt = 0; attempt < retries; attempt++) {
+                const res = await fetch(url, options);
+
+                try {
+                  if (res.status === 429) {
+                    console.log(await res.text());
+                    throw new Error("Too many requests");
+                  }
+
+                  return await res.json();
+
+                } catch (err) {
+                  const waitTime = Math.pow(2, attempt) * 8000;
+                  console.log(err);
+                  console.log(`Rate limited. Retrying in ${waitTime / 1000}s...`);
+
+                  await new Promise(r => setTimeout(r, waitTime));
+                }
+              }
+
+              throw new Error("Max retries exceeded");
+            }
+
             for (let i = 0; i < files.length; i += batchSize) {
               const batch = files.slice(i, i + batchSize);
 
@@ -68,10 +96,10 @@ jobs:
                 File: ${f.filename}
                 Status: ${f.status}
                 Patch:
-                ${f.patch ?? 'No diff available'}
+                ${f.patch?.slice(0, 600) ?? 'No diff available'}
               `).join('\n\n');
 
-              const res = await fetch(
+              const data = await fetchWithRetry(
                 inferenceEndpoint,
                 {
                   method: "POST",
@@ -96,13 +124,12 @@ jobs:
                 }
               );
 
-              const data = await res.json();
               const summary = data.choices?.[0]?.message?.content || "";
 
               console.log(summary)
               fileSummaries.push(summary);
 
-              await new Promise((res) => setTimeout(res, 5 * 1000));
+              await new Promise((res) => setTimeout(res, 8 * 1000));
             }
 
             const combinedSummaries = fileSummaries.join("\n\n");
@@ -121,74 +148,91 @@ jobs:
                     {
                       role: "system",
                       content: `
-                        You are a senior software engineer and product-minded communicator.
-
-                        You are given:
-                        1. Pull request title
-                        2. Pull request description
-                        3. File-level summaries (derived from code diffs)
-
-                        Your job is to produce a clear, structured PR summary that:
-                        - can be posted as a GitHub PR comment
-                        - can be used as input for a product newsletter
+                        You are a senior software engineer and product-focused communicator. Your task is to generate a clear, accurate PR summary based on structured inputs.
 
                         ---
 
-                        IMPORTANT:
-                        - File summaries reflect the actual code changes → TRUST THEM MOST
-                        - PR description reflects intent → use it for context
-                        - If description and code conflict → prioritize file summaries
-                        - Ignore low-signal or repetitive changes
-                        - If the PR has no user-level or product-level impact, reply explicitly: "No relevant changes."
-
-                        ---
-                        
-                        TASK:
-                        1. UNDERSTAND THE PR:
-                        - Infer the real purpose of the change
-                        - Connect related file-level changes into a coherent story
-                        - Identify whether this is a feature, improvement, bugfix, or refactor
-
-                        2. PRODUCE TWO SECTIONS:
-
-                        ### 1. Product Impact
-                        - What this means for users or the product
-                        - Translate technical changes into outcomes
-                        - Focus on value, usability, reliability, or capability
-                        - If no clear user impact, say: "No relevant changes"
-
-                        ### 2. Classification
-                        - Type: (feature | improvement | bugfix | refactor | infra)
-                        - Impact Level: (low | medium | high)
+                        ## INPUTS
+                        You will be given:
+                        1. PR title
+                        2. PR description (explains intent, may be incomplete or outdated)
+                        3. File summaries (derived from code diffs — source of truth)
 
                         ---
 
-                        FORMAT (STRICT MARKDOWN):
+                        ## PRIORITY RULES
+                        - Treat file summaries as the most reliable representation of changes
+                        - Use PR description only for additional context
+                        - If there is any conflict → follow file summaries
+                        - Ignore trivial, repetitive, or low-signal changes
+
+                        ---
+
+                        ## STEP 1: DETERMINE USER IMPACT (MANDATORY)
+
+                        Check whether the changes directly affect:
+                        - End users
+                        - Product behavior
+                        - External APIs
+
+                        If changes are ONLY related to:
+                        - CI/CD, pipelines, build systems
+                        - Tests, mocks, fixtures
+                        - Linting or formatting
+                        - Internal refactoring with no behavior change
+                        - Developer tooling, configs, dependency updates
+                        - Documentation
+
+                        → Then:
+                        - Treat as NO_USER_IMPACT
+                        - Output EXACTLY: "No relevant changes."
+                        - Do NOT mention performance, reliability, maintainability, or indirect benefits
+
+                        If unsure → default to NO_USER_IMPACT
+
+                        ---
+
+                        ## STEP 2: IDENTIFY CHANGE TYPE
+
+                        Classify the PR as one:
+                        - feature (new capability)
+                        - improvement (enhancement to existing behavior)
+                        - bugfix (fixes incorrect behavior)
+                        - refactor (code change without behavior change)
+                        - infra (build, CI/CD, tooling, config)
+
+                        ---
+
+                        ## STEP 3: GENERATE OUTPUT
+
+                        Return ONLY the following structure:
 
                         ## 🧠 PR Summary
 
                         ### ✨ Product Impact
+                        - If there is clear user-visible impact:
+                          Write a concise explanation focused on:
+                          - What changed for the user
+                          - Observable behavior differences
+
+                        - If NO_USER_IMPACT:
+                          Write EXACTLY:
+                          No relevant changes.
+
                         ### 🏷️ Classification
-                        - Type: ...
-                        - Impact Level: ...
+                        - Type: <feature | improvement | bugfix | refactor | infra>
+                        - Impact Level: <low | medium | high>
 
                         ---
 
-                        RULES:
-
-                        - Be concise but meaningful
+                        ## OUTPUT RULES
+                        - Be concise and specific
                         - Do NOT repeat file summaries verbatim
-                        - Do NOT dump raw technical details
-                        - Avoid vague phrases like "enhanced system" or "improved performance" without specifics
-                        - Prefer concrete, high-signal wording
-                        - Do NOT include code blocks
-                        - Do NOT output JSON
-
-                        ---
-
-                        GOAL:
-
-                        The summary should be understandable by product stakeholders
+                        - Do NOT include raw technical diffs
+                        - Do NOT use vague phrases (e.g., "improved system")
+                        - Do NOT infer user impact from internal-only changes
+                        - Internal, CI/CD, or refactor-only PRs MUST result in: "No relevant changes."
+                        - Do NOT include code blocks or JSON in the output
                       `
                     },
                     {
