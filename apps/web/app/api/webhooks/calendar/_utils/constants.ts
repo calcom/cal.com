@@ -1,0 +1,1 @@
+export const DELTA_SYNC_COALESCE_WINDOW_MS = 10_000;

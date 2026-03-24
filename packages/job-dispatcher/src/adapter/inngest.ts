@@ -1,18 +1,14 @@
-import type { Logger } from "inngest";
-import type { createStepTools } from "inngest/components/InngestStepTools";
+import type { Context, Logger } from "inngest";
 
 import type { WorkflowContext } from "./types";
 
 /**
  * Creates a WorkflowContext from Inngest's step and logger
  */
-export function createInngestWorkflowContext(
-  step: ReturnType<typeof createStepTools>,
-  logger?: Logger
-): WorkflowContext {
+export function createInngestWorkflowContext(step: Context["step"], logger?: Logger): WorkflowContext {
   return {
     async run<T>(stepId: string, fn: () => Promise<T>): Promise<T> {
-      return await step.run(stepId, fn);
+      return (await step.run(stepId, fn)) as T;
     },
 
     async sleep(stepId: string, duration: number | string): Promise<void> {

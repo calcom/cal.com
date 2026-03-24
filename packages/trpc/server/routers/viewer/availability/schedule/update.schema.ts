@@ -13,6 +13,7 @@ export const ZUpdateInputSchema = z.object({
         z.object({
           start: z.date(),
           end: z.date(),
+          targetTimeZones: z.array(z.string()).optional(),
         })
       )
     )

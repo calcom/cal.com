@@ -335,6 +335,10 @@ async function prepareCalendarEvent(
   updatedBooking: BookingSelectResult,
   updatedLocation: string | null
 ): Promise<CalendarEvent> {
+  const locationType = isPrismaObjOrUndefined(
+    isPrismaObjOrUndefined(updatedBooking.responses)?.location
+  )?.value;
+
   const effectiveOrganizer = data.requiresOrganizerChange
     ? data.targetHost.user
     : updatedBooking.user ?? data.targetHost.user;
@@ -386,6 +390,7 @@ async function prepareCalendarEvent(
     }),
     customReplyToEmail: data.eventType.customReplyToEmail,
     location: updatedLocation,
+    locationType: locationType?.toString(),
     ...(payload.platformClientParams ? payload.platformClientParams : {}),
   };
 }
@@ -569,6 +574,12 @@ const calIdWorkflowReminderSelect = {
           timeUnit: true,
         },
       },
+      calIdTeam: {
+        select: {
+          id: true,
+          metadata: true,
+        },
+      },
       emailSubject: true,
       reminderBody: true,
       sender: true,
@@ -613,6 +624,7 @@ async function rescheduleExistingReminders(
         ...evt,
         metadata: eventMeta,
         eventType: eventType,
+        cancellationReason: evt.cancellationReason ?? undefined,
         bookerUrl,
       },
       action: WorkflowActions.EMAIL_HOST,
@@ -626,6 +638,9 @@ async function rescheduleExistingReminders(
       emailSubject: reminder.workflowStep.emailSubject || undefined,
       emailBody: reminder.workflowStep.reminderBody || undefined,
       sender: reminder.workflowStep.sender || SENDER_NAME,
+      enterpriseEmailPrefix: isPrismaObjOrUndefined(
+        reminder.calIdTeam?.metadata
+      )?.enterpriseEmailPrefix?.toString(),
       hideBranding: true,
       includeCalendarEvent: reminder.workflowStep.includeCalendarEvent,
       workflowStepId: reminder.workflowStep.id,

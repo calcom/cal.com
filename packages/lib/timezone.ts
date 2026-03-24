@@ -27,6 +27,15 @@ export const addTimezonesToDropdown = (timezones: Timezones) => {
 const formatOffset = (offset: string) =>
   offset.replace(/^([-+])(0)(\d):00$/, (_, sign, _zero, hour) => `${sign}${hour}:00`);
 
+/** Formats a timezone value for display (e.g. "America/New_York" → "America/New York GMT -5:00") */
+export const formatTimezoneOptionLabel = (timezoneValue: string | null | undefined): string => {
+  if (timezoneValue == null) return "";
+  const displayName = timezoneValue.replace(/_/g, " ");
+  const offset = dayjs.tz(undefined, timezoneValue).format("Z");
+  const formattedOffset = formatOffset(offset);
+  return `${displayName} GMT ${formattedOffset}`;
+};
+
 export const handleOptionLabel = (option: ITimezoneOption, timezones: Timezones) => {
   const offsetUnit = option.label.split("-")[0].substring(1);
   const cityName = option.label.split(") ")[1];

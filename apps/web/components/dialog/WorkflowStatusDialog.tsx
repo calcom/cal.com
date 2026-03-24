@@ -230,8 +230,6 @@ export const WorkflowStatusDialog = ({
     </div>
   );
 
-  console.log("Details: ", workflowInsights);
-
   return (
     <Dialog open={isOpenDialog} onOpenChange={handleDialogChange}>
       <DialogContent enableOverflow showCloseButton={true}>

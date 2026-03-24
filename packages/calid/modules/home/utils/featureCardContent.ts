@@ -11,6 +11,13 @@ export type Feature = {
 
 export const newFeatureCardContent: Feature[] = [
   {
+    icon: "calendar-days",
+    title: "Unified Calendar View",
+    description: "View bookings across all your calendars in a unified calendar view.",
+    pageSlug: "/calendar",
+    isNew: true,
+  },
+  {
     icon: "message-circle",
     title: "WhatsApp Business",
     description: "Connect your WhatsApp Business to message bookers using your own templates.",
@@ -18,30 +25,19 @@ export const newFeatureCardContent: Feature[] = [
     isNew: true,
   },
   {
-    icon: "credit-card",
-    title: "Multi-Seat Booking",
-    description: "Collect payment from multiple bookers for a single event.",
-    isNew: true,
-  },
-  {
-    icon: "calendar-days",
-    title: "Unified Calendar View",
-    description: "View bookings across all your calendars in a unified calendar view.",
+    icon: "contact",
+    title: "Contacts",
+    description: "Easily manage and organize all your interactions with people in one place",
     isComingSoon: true,
   },
 ];
 
 export const featureCardContent: Feature[] = [
   {
-    icon: "credit-card",
-    title: "Razorpay Integration",
-    description: "Collect payments from your bookers using Razorpay.",
-    pageSlug: "/apps/razorpay",
-  },
-  {
-    icon: "paperclip",
-    title: "Attachments",
-    description: "Allow your bookers to upload attachments to their bookings.",
+    icon: "download",
+    title: "Import from Calendly",
+    description: "Import your Calendly events and bookings to Cal ID.",
+    pageSlug: "/settings/others/import",
   },
   {
     icon: "paintbrush",
@@ -50,10 +46,9 @@ export const featureCardContent: Feature[] = [
     pageSlug: "/settings/my-account/custom-branding",
   },
   {
-    icon: "download",
-    title: "Import from Calendly",
-    description: "Import your Calendly events and bookings to Cal ID.",
-    pageSlug: "/settings/others/import",
+    icon: "paperclip",
+    title: "Attachments",
+    description: "Allow your bookers to upload attachments to their bookings.",
   },
   {
     icon: "shield",

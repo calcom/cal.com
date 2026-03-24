@@ -121,6 +121,8 @@ const OnboardingPage = ({
   const pathname = usePathname();
   const router = useRouter();
 
+  const isOwnerScopedInstallation = appMetadata.owner_scoped_installation === true;
+
   const STEPS_MAP: StepObj = {
     [AppOnboardingSteps.ACCOUNTS_STEP]: {
       getTitle: () => `${t("select_account_header")}`,
@@ -132,31 +134,35 @@ const OnboardingPage = ({
       getTitle: () => `${t("select_event_types_header")}`,
       getDescription: (appName) =>
         `${t("select_event_types_description", { appName, interpolation: { escapeValue: false } })}`,
-      stepNumber: installableOnTeams ? 2 : 1,
+      stepNumber: installableOnTeams && !isOwnerScopedInstallation ? 2 : 1,
     },
     [AppOnboardingSteps.CONFIGURE_STEP]: {
       getTitle: (appName) =>
         `${t("configure_app_header", { appName, interpolation: { escapeValue: false } })}`,
       getDescription: () => `${t("configure_app_description")}`,
-      stepNumber: installableOnTeams ? 3 : 2,
+      stepNumber: installableOnTeams && !isOwnerScopedInstallation ? 3 : 2,
     },
   } as const;
   const [configureStep, setConfigureStep] = useState(false);
 
   const currentStep: AppOnboardingSteps = useMemo(() => {
+    if (isOwnerScopedInstallation && step === AppOnboardingSteps.ACCOUNTS_STEP) {
+      return AppOnboardingSteps.EVENT_TYPES_STEP;
+    }
     if (step == AppOnboardingSteps.EVENT_TYPES_STEP && configureStep) {
       return AppOnboardingSteps.CONFIGURE_STEP;
     }
     return step;
-  }, [step, configureStep]);
+  }, [step, configureStep, isOwnerScopedInstallation]);
   const stepObj = STEPS_MAP[currentStep];
 
   const maxSteps = useMemo(() => {
     if (!showEventTypesStep) {
       return 1;
     }
-    return installableOnTeams ? STEPS.length : STEPS.length - 1;
-  }, [showEventTypesStep, installableOnTeams]);
+    const supportsTeamInstall = installableOnTeams && !isOwnerScopedInstallation;
+    return supportsTeamInstall ? STEPS.length : STEPS.length - 1;
+  }, [showEventTypesStep, installableOnTeams, isOwnerScopedInstallation]);
 
   const utils = trpc.useContext();
 
@@ -226,7 +232,7 @@ const OnboardingPage = ({
       type: appMetadata.type,
       variant: appMetadata.variant,
       slug: appMetadata.slug,
-      ...(teamId ? { calIdTeamId: teamId } : {}),
+      ...(teamId && !isOwnerScopedInstallation ? { calIdTeamId: teamId } : {}),
       // for oAuth apps
       ...(showEventTypesStep && {
         returnTo: WEBAPP_URL + returnTo,
@@ -299,7 +305,7 @@ const OnboardingPage = ({
                 subtitle={stepObj.getDescription(appMetadata.name)}>
                 <Steps maxSteps={maxSteps} currentStep={stepObj.stepNumber} disableNavigation />
               </StepHeader>
-              {currentStep === AppOnboardingSteps.ACCOUNTS_STEP && (
+              {currentStep === AppOnboardingSteps.ACCOUNTS_STEP && !isOwnerScopedInstallation && (
                 <AccountsStepCard
                   teams={teams}
                   personalAccount={personalAccount}
