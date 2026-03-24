@@ -3,13 +3,14 @@
  *
  * Right panel with four tabs: Field | Header | Style | Submit
  */
-
-import React, { useState } from "react";
-import { Trash2, Copy, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@calid/features/ui/components/input/input";
 import { Switch } from "@calid/features/ui/components/switch/switch";
+import { Trash2, Copy, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
+import React, { useState } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ColorPicker, Select, Slider } from "@calcom/ui/components/form";
+
 import type {
   BuilderField,
   BackendOption,
@@ -44,23 +45,13 @@ type PanelTab = "field" | "header" | "style" | "submit";
 
 // ─── Small reusable atoms ──────────────────────────────────────────────────────
 
-function FieldLabel({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <label className={`block text-xs font-medium text-default mb-1 ${className}`}>
-      {children}
-    </label>
-  );
+function FieldLabel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <label className={`text-default mb-1 block text-xs font-medium ${className}`}>{children}</label>;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted mb-2 mt-4 first:mt-0">
+    <p className="text-muted mb-2 mt-4 text-[10px] font-semibold uppercase tracking-wider first:mt-0">
       {children}
     </p>
   );
@@ -76,7 +67,7 @@ function SegmentedControl<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="flex gap-0.5 p-0.5 bg-subtle border rounded-md">
+    <div className="bg-subtle flex gap-0.5 rounded-md border p-0.5">
       {options.map((opt) => (
         <button
           key={opt.value}
@@ -86,8 +77,7 @@ function SegmentedControl<T extends string>({
             value === opt.value
               ? "bg-default dark:bg-muted text-default shadow-sm"
               : "text-muted hover:text-default"
-          }`}
-        >
+          }`}>
           {opt.label}
         </button>
       ))}
@@ -112,7 +102,7 @@ function ColorRow({
       <ColorPicker
         defaultValue={value || placeholder}
         onChange={onChange}
-        className="h-8 text-xs font-mono"
+        className="h-8 font-mono text-xs"
       />
     </div>
   );
@@ -137,9 +127,12 @@ function SliderRow({
 }) {
   return (
     <div className="space-y-1.5">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <FieldLabel className="mb-0">{label}</FieldLabel>
-        <span className="text-xs text-muted tabular-nums">{value}{unit}</span>
+        <span className="text-muted text-xs tabular-nums">
+          {value}
+          {unit}
+        </span>
       </div>
       <Slider
         min={min}
@@ -231,21 +224,19 @@ function OptionsEditor({
             <button
               type="button"
               onClick={() => toggleExpanded(i)}
-              className="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded border border-default hover:bg-subtle transition-colors"
-              aria-label={t("identifier")}
-            >
+              className="border-default hover:bg-subtle flex h-8 w-8 flex-shrink-0 items-center justify-center rounded border transition-colors"
+              aria-label={t("identifier")}>
               {expandedOptions.has(i) ? (
-                <ChevronUp className="h-3 w-3 text-muted" />
+                <ChevronUp className="text-muted h-3 w-3" />
               ) : (
-                <ChevronDown className="h-3 w-3 text-muted" />
+                <ChevronDown className="text-muted h-3 w-3" />
               )}
             </button>
             <button
               type="button"
               onClick={() => remove(i)}
-              className="h-8 w-8 flex-shrink-0 flex items-center justify-center rounded border border-default hover:bg-error/10 hover:border-error transition-colors"
-            >
-              <X className="h-3 w-3 text-error" />
+              className="border-default hover:bg-error/10 hover:border-error flex h-8 w-8 flex-shrink-0 items-center justify-center rounded border transition-colors">
+              <X className="text-error h-3 w-3" />
             </button>
           </div>
           {expandedOptions.has(i) && (
@@ -262,8 +253,7 @@ function OptionsEditor({
       <button
         type="button"
         onClick={add}
-        className="flex w-full items-center justify-center gap-1.5 rounded border border-dashed border-default py-1.5 text-xs text-muted hover:bg-subtle hover:text-default transition-colors"
-      >
+        className="border-default text-muted hover:bg-subtle hover:text-default flex w-full items-center justify-center gap-1.5 rounded border border-dashed py-1.5 text-xs transition-colors">
         <Plus className="h-3 w-3" />
         {t("add_an_option")}
       </button>
@@ -291,8 +281,8 @@ function FieldTab({
   const { t } = useLocale();
   if (!field) {
     return (
-      <div className="flex flex-1 items-center justify-center p-6">
-        <p className="text-center text-xs text-muted leading-relaxed">
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-4 sm:p-6">
+        <p className="text-muted text-center text-xs leading-relaxed">
           {t("form_builder_select_field")}
           <br />
           {t("form_builder_to_edit_properties")}
@@ -335,14 +325,12 @@ function FieldTab({
     const shouldSync = !currentId || currentId === derived;
     onUpdate({
       label: hasContent ? newLabel : "",
-      ...(shouldSync
-        ? { identifier: hasContent ? labelToIdentifier(newLabel) : undefined }
-        : {}),
+      ...(shouldSync ? { identifier: hasContent ? labelToIdentifier(newLabel) : undefined } : {}),
     });
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+    <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
       {/* Label */}
       {!isTextLayout && (
         <div className="space-y-1">
@@ -368,11 +356,9 @@ function FieldTab({
             }}
             rows={3}
             placeholder={
-              field.type === "heading"
-                ? t("form_builder_section_heading")
-                : t("form_builder_paragraph_body")
+              field.type === "heading" ? t("form_builder_section_heading") : t("form_builder_paragraph_body")
             }
-            className="w-full rounded-md border border-default bg-default px-3 py-2 text-sm text-default placeholder:text-muted resize-none focus:outline-none shadow-outline-gray-rested hover:border-emphasis transition"
+            className="border-default bg-default text-default placeholder:text-muted shadow-outline-gray-rested hover:border-emphasis w-full resize-none rounded-md border px-3 py-2 text-sm transition focus:outline-none"
           />
         </div>
       )}
@@ -381,9 +367,7 @@ function FieldTab({
         <>
           {/* Identifier */}
           <div className="space-y-1">
-            <FieldLabel>
-              {t("identifier")}
-            </FieldLabel>
+            <FieldLabel>{t("identifier")}</FieldLabel>
             <Input
               value={field.identifier ?? ""}
               onChange={(e) => {
@@ -391,7 +375,7 @@ function FieldTab({
                 const normalized = labelToIdentifier(next);
                 onUpdate({ identifier: normalized || undefined });
               }}
-              className="h-8 text-xs font-mono"
+              className="h-8 font-mono text-xs"
             />
           </div>
 
@@ -453,9 +437,7 @@ function FieldTab({
                   { label: "Past", value: "past" as const },
                   { label: "All", value: "all" as const },
                 ]}
-                onChange={(v) =>
-                  onUpdateUIConfig({ datePickerRange: v === "future" ? undefined : v })
-                }
+                onChange={(v) => onUpdateUIConfig({ datePickerRange: v === "future" ? undefined : v })}
               />
             </div>
           )}
@@ -538,9 +520,7 @@ function FieldTab({
                     { label: t("form_builder_large"), value: "largeSquare" as const },
                   ]}
                   onChange={(v) =>
-                    onUpdateUIConfig(
-                      field.type === "checkbox" ? { checkboxVariant: v } : { radioVariant: v }
-                    )
+                    onUpdateUIConfig(field.type === "checkbox" ? { checkboxVariant: v } : { radioVariant: v })
                   }
                 />
               </div>
@@ -573,9 +553,7 @@ function FieldTab({
               <OptionsEditor
                 options={field.options ?? []}
                 onChange={(opts) => onUpdate({ options: opts })}
-                testIdPrefix={
-                  selectedIndex !== null ? `fields.${selectedIndex}.options` : undefined
-                }
+                testIdPrefix={selectedIndex !== null ? `fields.${selectedIndex}.options` : undefined}
               />
             </>
           )}
@@ -583,21 +561,19 @@ function FieldTab({
       )}
 
       {/* Duplicate / Delete */}
-      <div className="pt-2 border-t border-default">
+      <div className="border-default border-t pt-2">
         <div className="flex gap-2">
           <button
             type="button"
             onClick={onDuplicate}
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-md border border-default h-8 text-xs font-medium text-default hover:bg-subtle transition-colors"
-          >
+            className="border-default text-default hover:bg-subtle flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border text-xs font-medium transition-colors">
             <Copy className="h-3 w-3" />
             {t("duplicate")}
           </button>
           <button
             type="button"
             onClick={onDelete}
-            className="flex-1 flex items-center justify-center gap-1.5 rounded-md border border-error/40 h-8 text-xs font-medium text-error hover:bg-error/10 transition-colors"
-          >
+            className="border-error/40 text-error hover:bg-error/10 flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border text-xs font-medium transition-colors">
             <Trash2 className="h-3 w-3" />
             {t("delete")}
           </button>
@@ -618,7 +594,7 @@ function HeaderTab({
 }) {
   const { t } = useLocale();
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+    <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
       <div className="space-y-1">
         <FieldLabel>{t("title")}</FieldLabel>
         <Input
@@ -700,8 +676,7 @@ function StyleTab({
 }) {
   const { t } = useLocale();
   const background = config.background;
-  const selectedFont =
-    FORM_FONT_OPTIONS.find((opt) => opt.label === config.fontLabel) ?? DEFAULT_FORM_FONT;
+  const selectedFont = FORM_FONT_OPTIONS.find((opt) => opt.label === config.fontLabel) ?? DEFAULT_FORM_FONT;
   const backgroundOptions = [
     { label: t("none"), value: "none" as const },
     { label: t("form_builder_color"), value: "color" as const },
@@ -709,7 +684,7 @@ function StyleTab({
   ];
   const selectedBackground = backgroundOptions.find((opt) => opt.value === background.type) ?? null;
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+    <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
       <div className="space-y-1">
         <FieldLabel>{t("form_builder_font_family")}</FieldLabel>
         <Select
@@ -779,9 +754,7 @@ function StyleTab({
             onChange({
               background: {
                 ...background,
-                type:
-                  (option?.value as FormStyleConfig["background"]["type"]) ??
-                  "none",
+                type: (option?.value as FormStyleConfig["background"]["type"]) ?? "none",
               },
             })
           }
@@ -880,7 +853,7 @@ function SubmitTab({
 }) {
   const { t } = useLocale();
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+    <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
       <div className="space-y-1">
         <FieldLabel>{t("form_builder_button_text")}</FieldLabel>
         <Input
@@ -960,21 +933,20 @@ export function FieldSettingsPanel({
   ];
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full min-h-0 flex-col">
       {/* Tab bar */}
-      <div className="border-b border-default flex-shrink-0">
-        <div className="flex">
+      <div className="border-default flex-shrink-0 border-b">
+        <div className="no-scrollbar flex w-full min-w-0 overflow-x-auto">
           {TABS.map((tab) => (
             <button
               key={tab.key}
               type="button"
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 py-2.5 text-[11px] font-medium border-b-2 transition-colors ${
+              className={`min-w-0 flex-1 border-b-2 px-1 py-2.5 text-[10px] font-medium transition-colors sm:text-[11px] ${
                 activeTab === tab.key
                   ? "border-brand text-default"
-                  : "border-transparent text-muted hover:text-default"
-              }`}
-            >
+                  : "text-muted hover:text-default border-transparent"
+              }`}>
               {tab.label}
             </button>
           ))}
@@ -982,7 +954,7 @@ export function FieldSettingsPanel({
       </div>
 
       {/* Content */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {activeTab === "field" && (
           <FieldTab
             field={field}
@@ -996,17 +968,13 @@ export function FieldSettingsPanel({
         {activeTab === "header" && (
           <HeaderTab
             config={formConfig.header}
-            onChange={(u) =>
-              onUpdateFormConfig({ header: { ...formConfig.header, ...u } })
-            }
+            onChange={(u) => onUpdateFormConfig({ header: { ...formConfig.header, ...u } })}
           />
         )}
         {activeTab === "style" && (
           <StyleTab
             config={formConfig.style}
-            onChange={(u) =>
-              onUpdateFormConfig({ style: { ...formConfig.style, ...u } })
-            }
+            onChange={(u) => onUpdateFormConfig({ style: { ...formConfig.style, ...u } })}
           />
         )}
         {activeTab === "submit" && (

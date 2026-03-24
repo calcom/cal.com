@@ -1,6 +1,6 @@
 export function RoutingSkeleton() {
   return (
-    <div className="w-full py-4 lg:py-8">
+    <div className="w-full">
       <div className="flex w-full flex-col rounded-md">
         <div className="bg-muted border-muted rounded-2xl border p-2.5">
           {[1, 2, 3].map((index) => (
