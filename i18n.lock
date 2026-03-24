@@ -1,6 +1,8 @@
 version: 1
 checksums:
   76a1ee1ae6f7c2f515beace0bc21adc7:
+    switch_to_rich_editor: b5e26774323b329d25792a0eeb5bb20c
+    switch_to_html_editor: 437eda33fbccc4e6175f0150d2e33f4f
     contacts: d5b6c3f890b3904eaf5754081945c03d
     contacts_description: 7664695d66e35aac7fb0958a185b80b0
     background_jobs: a93c8e79149100a0cade9e6513069419
@@ -8,6 +10,90 @@ checksums:
     multiple_attendee_comma_separated: 96fd756e1f1c30266e1598d06894a740
     unified_calendar_heading: c056c00daee79370f52dd57a2a81b7d7
     unified_calendar_subtitle: fbaf12aea074ecb0d1e42bd3e8e64165
+    unified_calendar_view_day: cd54048cc134f397cad259e69dda0989
+    unified_calendar_view_week: a220b7dd32511c8c2ae1bb2b8960a228
+    unified_calendar_view_month: 001abb365f085fae1e0b02d207e7b8ca
+    unified_calendar_no_supported_calendars: 805b99e856929e0a667c68b3b0607890
+    unified_calendar_connect_google_or_outlook_calendars: 0a2394de6d99f87c01826cb4ff645615
+    unified_calendar_calendar_color: 156da4019c6dabeaae6e1381c24708b0
+    unified_calendar_toggle_sync_for_calendar: 0452df3bdbae28c71fbc9484a7fe3de7
+    unified_calendar_sync_enabled_summary: 8f83d03f6b20fa5d944a567dacf65f01
+    unified_calendar_provider_google: 6cc462fb53d90d404f48d5a6695c1de1
+    unified_calendar_provider_outlook: 63684f1faa4c84ba7b0b3e2b751a83a3
+    unified_calendar_provider_label_google: aab0513e7431a4a3859e454a04dd934d
+    unified_calendar_provider_label_outlook: 3f9356ca63009356fc05412344393243
+    unified_calendar_month_day_mon: b29e2b72f74643194654961775178fec
+    unified_calendar_month_day_tue: b750502bab403473852a20cea73dcf2c
+    unified_calendar_month_day_wed: 4786ce2a2427ad9183ef1a6f7385fb24
+    unified_calendar_month_day_thu: ce25e3f9bfc6cfdc6017f791045da079
+    unified_calendar_month_day_fri: 4029492def3bd66fa5a9d1c693743b62
+    unified_calendar_month_day_sat: 0f0718f17b758ea9d5167c120c230be6
+    unified_calendar_month_day_sun: 3b32ac0f13383ecdf580b4db09773fda
+    unified_calendar_overlaps_with_conflicts: e4e09f96b3788d5fb51a07cc42f7033c
+    unified_calendar_all_day: f81f59e7d583ac00fd545fe5fd68ad39
+    unified_calendar_minutes_abbreviation: 4bb0271b1aa8ba29083bec371729f331
+    unified_calendar_attendees_count: c87705252e314f83f4ae37c7d4e3a153
+    unified_calendar_saving: 7cb2d8f012d57db8a62187b65ef164dc
+    unified_calendar_cancelling: 6dcf56d1fa7ed307f0f8b41cc351093f
+    unified_calendar_cancel_booking: 131ff083eb864f9a33466de958f3ca0a
+    unified_calendar_event_managed_in_external_calendar: ff00a3219c02d4f794d90ae292fa8e4c
+    unified_calendar_join: ec5c8b4b703f88fb738a51bc0a65a9ec
+    unified_calendar_cancel_booking_confirmation: 8b8a7b2b93ef7686c222c3f5dd8d5d91
+    unified_calendar_conflict_with_another_event: 41d8c34d2abe3687d2c872763f212b86
+    unified_calendar_saving_lowercase: 1150d7b164338f4e87b28ca2721cf6ce
+    unified_calendar_scheduling_conflict: 92973daf22f50c650835343ec78d6990
+    unified_calendar_manage_booking: 636e23fcdae4fadc4ca521eca51494ac
+    unified_calendar_read_only_event: 00cebb6a3dc228be24311bbc16cd1256
+    unified_calendar_event_title_required: b82ed9ea534c9b132f246652041c68d7
+    unified_calendar_select_target_calendar: 52a5f9148fcf3c4a274228f7228faa52
+    unified_calendar_select_booking_date: 59605c16f96fcc146e4679d07a0903aa
+    unified_calendar_select_start_and_end_time: 806d0ce9adf2c610667aa18865ed149d
+    unified_calendar_choose_valid_start_and_end_time: 1d92c12c6e5fb8a21d720e62cafdc16b
+    unified_calendar_start_end_same_date: 3b6173d688efc6a8c93d355ab541f021
+    unified_calendar_end_time_minimum_gap: 7bcc4e60ea7480dca8b7aff444c6f2c3
+    unified_calendar_add_at_least_one_attendee_email: ded9ce44e2e6d0695739e0492e7887a0
+    unified_calendar_one_or_more_attendee_emails_invalid: e83f388f1ee4d215f38ab5e9455c978d
+    unified_calendar_provide_value_for_selected_location: 888452dc3c293cd426fd3e3041cfee96
+    unified_calendar_new_booking: 5f8ad4aa63d9f9c1c34d8843e5d230b4
+    unified_calendar_unable_to_create_booking: e78915e43b84e25e4a3d972402a22ac3
+    unified_calendar_event_title: c8ee8dd585a689723a5f0caa4328797a
+    unified_calendar_meeting_title: 153d6ae4be51e4e38861f2f43da14cd5
+    unified_calendar_attendees_placeholder: f904a9208d92bf2c2d21152579af5997
+    unified_calendar_select_date: 23c399684f8cbb79d6bbd02f4a00f81d
+    unified_calendar_select_start_time: d4824dd638dcc644aeb5afa635e5b412
+    unified_calendar_select_end_time: 9769c8bbb21d00d6c74a444c1271de69
+    unified_calendar_duration_with_value: 87990e1702b3ac3d64ae02ce92b06662
+    unified_calendar_invalid_range: 3d44430a8376947075d94008f6e99237
+    unified_calendar_target_calendar: 6cf77c4b3bfe487ebce8b9f302afb2ec
+    unified_calendar_no_writable_calendars_available: 0c14968e21b3b3405939e53070634a84
+    unified_calendar_loading_locations: f4688cb284b1351cf69a38c1c825e545
+    unified_calendar_no_supported_location_options: e262fd9f14adb0250ef61a184a5e41da
+    unified_calendar_enter_location_value: af40bbc3f993481230459070a4a6440b
+    unified_calendar_booking_note: e1ac4f3f74f0fa2a5ea896c0cee2ad39
+    unified_calendar_add_notes: 1a392bc06ac119eccef7defb203b57c3
+    unified_calendar_creating: c949fe6aa47b326f345b405fe9c4d6e7
+    unified_calendar_create_booking: 7d2f732dfe07b0228261ee8481fed70d
+    unified_calendar_reschedule_booking: 495209fa1393c824349acd765d858654
+    unified_calendar_unable_to_reschedule_booking: a5e279823c1205db3c3d5bd242685d70
+    event: 4a04a93ec14995d089bd95d271e288a0
+    unified_calendar_rescheduling: 32830de6e281b69357b60ee6d8eca8d3
+    unified_calendar_full_day: 421e452829cd8c5ef1ca7d3b83c0ac2f
+    unified_calendar_more_count: 638292ea3d4196c34388418f731b6ddd
+    unified_calendar_sync_enabled_toast: 4004d09c0297129fd94056a518278b32
+    unified_calendar_sync_disabled_toast: 9ef9d9dc820fb57693b0134b19e1c450
+    unified_calendar_failed_to_update_calendar_sync: 0e561b939fdbf60a9e398436c18aa23d
+    unified_calendar_failed_to_update_calendar_color: 1d6082fff47f8b57526b5db2aaa2e6e6
+    unified_calendar_invalid_time_range_selected: d064c6456ee85f6aa6e9845492b7fcd8
+    unified_calendar_booking_rescheduled: d46064480ffc42b74a875d115a6e9bcc
+    unified_calendar_failed_to_reschedule_booking: 6a38c4b0a6b9be03598cac068ce01709
+    unified_calendar_selected_calendar_no_longer_available_for_booking_creation: 36ef90329e95e6841589472a38023b89
+    unified_calendar_booking_created_toast: 5d81265194b6cd2cfe4354d53d80c1ee
+    unified_calendar_failed_to_create_booking: c3871996d9f2d8ca5549b28b15c64c14
+    unified_calendar_booking_cancelled: 5ce0056b88fee67672bafc6b637a270c
+    unified_calendar_failed_to_cancel_booking: 6aa0449418f3703eded0bcf2047ed739
+    unified_calendar_calendars: 5c886c639eb89b8593b189ee551c0665
+    unified_calendar_failed_to_load_unified_events: cb4c715220c6768c34d97b1497f252d4
+    unified_calendar_event_details: 6f10d37f9d14b662b4ebc60d92e0f7c0
     enable_calendar_sync: 0d8818a729fdf3d75056210286e93790
     disable_calendar_sync: 2cb06576772060b4bc4a5492f4bcb31e
     third_party_services: 0d7d998c4e6ff092c5c99c07cd0d57df
