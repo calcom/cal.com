@@ -70,6 +70,7 @@ function TeamBillingManagement() {
 
         {billingQuery.data?.found && (
           <BillingEditor
+            key={billingQuery.data.team.id}
             teamId={billingQuery.data.team.id}
             teamName={billingQuery.data.team.name}
             teamSlug={billingQuery.data.team.slug}
