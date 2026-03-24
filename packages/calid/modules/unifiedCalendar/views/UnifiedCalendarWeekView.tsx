@@ -42,17 +42,14 @@ export const UnifiedCalendarWeekView = ({
     <div className="border-r">
       <div className=" bg-default sticky top-0 z-20">
         <div className=" flex border-b">
-          <div className="w-12 shrink-0" />
+          <div className="w-10 shrink-0 sm:w-12" />
           {viewDays.map((day) => (
             <div
               key={day.toISOString()}
               className=" flex-1 cursor-pointer border-l py-2.5 text-center transition-colors"
               onClick={() => onSelectDay(day)}>
               <p
-                className={cn(
-                  "text-muted-foreground/50 text-[10px] font-light uppercase tracking-wider",
-                  isToday(day) && "text-default"
-                )}>
+                className={cn(" text-center text-[10px] font-light uppercase tracking-wider sm:text-[12px]")}>
                 {format(day, "EEE")}
               </p>
               <div className="mt-1 flex items-center justify-center">
@@ -69,7 +66,7 @@ export const UnifiedCalendarWeekView = ({
         </div>
 
         <div className=" flex border-b">
-          <div className="text-muted-foreground/55 flex w-12 shrink-0 items-center justify-center px-2 text-[10px] uppercase tracking-wide">
+          <div className="text-muted-foreground/55 flex w-10 shrink-0 items-center justify-center px-1 text-[9px] uppercase tracking-wide sm:w-12 sm:px-2 sm:text-[10px]">
             {t("unified_calendar_full_day")}
           </div>
           <div className="flex flex-1">

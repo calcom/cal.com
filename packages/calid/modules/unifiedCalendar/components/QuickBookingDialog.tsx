@@ -15,6 +15,7 @@ import { getEventLocationType, isAttendeeInputRequired } from "@calcom/app-store
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
+import { cn } from "../../../lib/cn";
 import { formatBookingDuration } from "../lib/formatBookingDuration";
 import type { ConnectedCalendarVM, QuickBookSlot, UnifiedCalendarBookingFormInput } from "../lib/types";
 
@@ -362,12 +363,13 @@ export const QuickBookingDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && !isSubmitting && onClose()}>
-      <DialogContent className={isMobile ? "max-w-[95vw]" : "sm:max-w-md"}>
+      <DialogContent
+        className={cn(isMobile ? "max-w-[95vw]" : "sm:max-w-md", "max-h-[90vh] overflow-hidden")}>
         <DialogHeader>
           <DialogTitle className="text-sm">{t("unified_calendar_new_booking")}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto pr-1" style={{ maxHeight: "calc(90vh - 120px)" }}>
           {(submitError || formError) && (
             <Alert
               severity="error"
@@ -404,7 +406,9 @@ export const QuickBookingDialog = ({
                 <button
                   type="button"
                   className="bg-default border-border/40 flex h-9 w-full items-center justify-between rounded-md border px-3 text-left text-sm outline-none">
-                  <span>{selectedDate ? format(selectedDate, "PPP") : t("unified_calendar_select_date")}</span>
+                  <span>
+                    {selectedDate ? format(selectedDate, "PPP") : t("unified_calendar_select_date")}
+                  </span>
                   <CalendarIcon className="text-muted-foreground h-4 w-4" />
                 </button>
               </PopoverTrigger>
@@ -531,8 +535,7 @@ export const QuickBookingDialog = ({
             {selectedLocationType?.organizerInputType && (
               <Input
                 placeholder={
-                  selectedLocationType.organizerInputPlaceholder ||
-                  t("unified_calendar_enter_location_value")
+                  selectedLocationType.organizerInputPlaceholder || t("unified_calendar_enter_location_value")
                 }
                 value={locationInput}
                 onChange={(event: ChangeEvent<HTMLInputElement>) => setLocationInput(event.target.value)}

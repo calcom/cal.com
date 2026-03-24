@@ -1,3 +1,4 @@
+import { Badge } from "@calid/features/ui/components/badge";
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
@@ -51,6 +52,12 @@ const getNavigationItems = (userId: number): NavigationItemType[] => [
     name: "calendar",
     href: "/calendar",
     icon: "calendar",
+    badge: (
+      <Badge size="sm" variant="gray">
+        Beta
+      </Badge>
+    ),
+    moreOnMobile: true,
   },
   {
     name: "Claim Pro",
