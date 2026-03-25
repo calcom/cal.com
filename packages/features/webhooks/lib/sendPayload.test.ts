@@ -463,6 +463,51 @@ describe("sendPayload", () => {
     });
   });
 
+  describe("Zapier flattened payload", () => {
+    it("should include phone numbers for attendees and sms reminder", async () => {
+      const webhook = {
+        subscriberUrl: "https://hooks.zapier.com/hooks/catch/123/456",
+        appId: "zapier",
+        payloadTemplate: null,
+        version: WebhookVersion.V_2021_10_20,
+      };
+
+      await sendPayload("secret", "BOOKING_CREATED", "2024-01-01T12:00:00.000Z", webhook, {
+        uid: "uid-1",
+        title: "Meeting",
+        startTime: "2024-01-01T10:00:00Z",
+        endTime: "2024-01-01T11:00:00Z",
+        smsReminderNumber: "+15551234567",
+        organizer: {
+          email: "host@example.com",
+          name: "Host",
+          timeZone: "UTC",
+          username: "host",
+          usernameInOrg: null,
+          locale: "en",
+          language: { locale: "en", translate: (key: string) => key },
+        },
+        attendees: [
+          {
+            name: "Guest",
+            email: "guest@example.com",
+            timeZone: "America/New_York",
+            phoneNumber: "+15550002222",
+            language: { locale: "en", translate: (key: string) => key },
+          },
+        ],
+        type: "test",
+        description: "",
+        location: "",
+      } as unknown as Parameters<typeof sendPayload>[4]);
+
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+      expect(body.attendees[0].phoneNumber).toBe("+15550002222");
+      expect(body.smsReminderNumber).toBe("+15551234567");
+    });
+  });
+
   describe("OOO payload handling", () => {
     it("should send OOO payload without Zapier processing", async () => {
       const webhook = {

@@ -137,6 +137,7 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
       email: attendee.email,
       timeZone: attendee.timeZone,
       utcOffset: attendee.utcOffset,
+      phoneNumber: attendee.phoneNumber ?? null,
     };
   });
 
@@ -174,6 +175,7 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
     },
     attendees: attendees,
     createdAt: data.createdAt,
+    smsReminderNumber: data.smsReminderNumber ?? null,
     metadata: {
       videoCallUrl: data.metadata?.videoCallUrl,
     },
