@@ -26,6 +26,7 @@ export function FullscreenUpgradeBannerForTeamsPage() {
         width: 572,
         height: 744,
       }}
+      youtubeId="hp-l5oRVD-U"
       learnMoreButton={{
         text: t("learn_more"),
         href: "https://cal.com/teams",

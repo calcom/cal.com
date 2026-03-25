@@ -25,6 +25,7 @@ function getCspPolicy(nonce: string) {
     };
     object-src 'none';
     base-uri 'none';
+	  frame-src www.youtube.com;
 	  child-src app.cal.com;
 	  style-src 'self' ${
       IS_PRODUCTION ? (useNonStrictPolicy ? "'unsafe-inline'" : "") : "'unsafe-inline'"

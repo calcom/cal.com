@@ -274,14 +274,22 @@ export function FullScreenUpgradeBanner({
                 {t("available_on_plan", { plan: target === "organization" ? t("organization") : t("team") })}
               </DialogDescription>
             </DialogHeader>
-            <div className="aspect-video w-full px-6 pb-6">
+            <div className="w-full px-6 pb-12">
               <iframe
                 src={`https://www.youtube.com/embed/${youtubeId}`}
                 title={title}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
-                className="h-full w-full rounded-lg border border-muted"
+                className="aspect-video h-full w-full rounded-lg border border-muted"
               />
+              <a
+                href={`https://www.youtube.com/watch?v=${youtubeId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-subtle mt-2 flex items-center gap-1 text-xs hover:underline">
+                <Icon name="external-link" className="h-3 w-3" />
+                {t("watch_on_youtube")}
+              </a>
             </div>
             <DialogFooter>
               <Button

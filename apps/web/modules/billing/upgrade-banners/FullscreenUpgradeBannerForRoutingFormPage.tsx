@@ -18,6 +18,7 @@ export function FullscreenUpgradeBannerForRoutingFormPage() {
         width: 572,
         height: 744,
       }}
+      youtubeId="omM89sE7Jpg"
       learnMoreButton={{
         text: t("learn_more"),
         href: "https://cal.com/routing",
