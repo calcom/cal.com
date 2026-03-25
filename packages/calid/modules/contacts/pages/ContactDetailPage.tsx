@@ -39,7 +39,7 @@ const sortMeetingsByStartTimeDesc = (first: ContactMeeting, second: ContactMeeti
 const ContactDetailPage = ({ contactId }: ContactDetailPageProps) => {
   const router = useRouter();
   const utils = trpc.useUtils();
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useMediaQuery("(max-width: 1023px)");
 
   const numericContactId = Number(contactId);
   const hasValidContactId = Number.isInteger(numericContactId) && numericContactId > 0;
@@ -203,7 +203,7 @@ const ContactDetailPage = ({ contactId }: ContactDetailPageProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-4">
       <ContactDetailLayout
         contact={contact}
         isMobile={isMobile}

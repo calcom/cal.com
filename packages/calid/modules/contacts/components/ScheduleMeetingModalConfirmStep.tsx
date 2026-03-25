@@ -45,59 +45,34 @@ export const ScheduleMeetingModalConfirmStep = ({
     <div className="space-y-4 pt-2">
       <div className="border-border space-y-3 rounded-lg border p-4">
         <h4 className="text-sm font-semibold">Booking Summary</h4>
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Event</span>
-            <span className="font-medium">{selectedEventTitle}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Date</span>
-            <span className="font-medium">{selectedDate ? format(selectedDate, "PPP") : ""}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Time</span>
-            <span className="font-medium">
-              {selectedSlotTime ? format(parseISO(selectedSlotTime), timeFormat) : ""}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Duration</span>
-            <span className="font-medium">{selectedDuration} min</span>
-          </div>
-          {selectedLocation ? (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Location</span>
-              <span className="text-right  font-medium">{selectedLocation}</span>
-            </div>
-          ) : null}
+        <dl className="space-y-2 text-sm">
+          <SummaryRow label="Event" value={selectedEventTitle} />
+          <SummaryRow label="Date" value={selectedDate ? format(selectedDate, "PPP") : ""} />
+          <SummaryRow
+            label="Time"
+            value={selectedSlotTime ? format(parseISO(selectedSlotTime), timeFormat) : ""}
+          />
+          <SummaryRow label="Duration" value={`${selectedDuration} min`} />
+          {selectedLocation ? <SummaryRow label="Location" value={selectedLocation} /> : null}
           {isRecurringEventType ? (
             <>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Recurrence</span>
-                <span className="text-right text-xs font-medium capitalize">
-                  {recurringPatternText || "Recurring"}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Occurrences</span>
-                <span className="font-medium">{recurringEventCountText}</span>
-              </div>
+              <SummaryRow
+                label="Recurrence"
+                value={recurringPatternText || "Recurring"}
+                valueClassName="capitalize"
+              />
+              <SummaryRow label="Occurrences" value={String(recurringEventCountText)} />
             </>
           ) : null}
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Contact</span>
-            <span className="font-medium">{contactName}</span>
-          </div>
-          {additionalGuests ? (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Guests</span>
-              <span className="text-right text-xs font-medium">{additionalGuests}</span>
-            </div>
-          ) : null}
-        </div>
+          <SummaryRow label="Contact" value={contactName} />
+          {additionalGuests ? <SummaryRow label="Guests" value={additionalGuests} /> : null}
+        </dl>
       </div>
+
       {bookingErrorMessage ? <p className="text-xs text-red-600">{bookingErrorMessage}</p> : null}
-      <div className="flex justify-between">
+
+      {/* Stack buttons on mobile, row on sm+ */}
+      <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-between sm:gap-0">
         <Button color="secondary" onClick={onBack}>
           <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Back
         </Button>
@@ -108,3 +83,19 @@ export const ScheduleMeetingModalConfirmStep = ({
     </div>
   );
 };
+
+// Small helper to keep summary rows DRY and handle text wrapping gracefully
+const SummaryRow = ({
+  label,
+  value,
+  valueClassName,
+}: {
+  label: string;
+  value?: string;
+  valueClassName?: string;
+}) => (
+  <div className="flex min-w-0 items-start justify-between gap-3">
+    <dt className="text-muted-foreground shrink-0">{label}</dt>
+    <dd className={`text-right text-xs font-medium break-words ${valueClassName ?? ""}`}>{value}</dd>
+  </div>
+);

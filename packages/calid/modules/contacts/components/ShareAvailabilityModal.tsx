@@ -188,8 +188,8 @@ export const ShareAvailabilityModal = ({ open, onOpenChange, contact }: ShareAva
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="md" enableOverflow className="max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent size="md" enableOverflow className="flex max-h-[92vh] flex-col sm:max-h-[90vh]">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base font-semibold">
             <Share2 className="h-4 w-4" />
             Share Availability {contact ? `with ${contact.name}` : ""}
@@ -197,114 +197,124 @@ export const ShareAvailabilityModal = ({ open, onOpenChange, contact }: ShareAva
           <DialogDescription>Send your availability link using your preferred channel.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 pt-2">
-          <div className="space-y-1.5">
-            <Label>Select Event Type</Label>
-            <Select
-              options={eventTypeOptions}
-              value={selectedEventOption}
-              isLoading={eventTypesQuery.isLoading}
-              isDisabled={eventTypesQuery.isError}
-              onChange={(option) => {
-                if (!option) {
-                  setSelectedEventId(null);
-                  return;
-                }
+        {/* Scrollable content body */}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="space-y-4 px-1 pb-1 pt-2">
+            <div className="space-y-1.5">
+              <Label>Select Event Type</Label>
+              <Select
+                options={eventTypeOptions}
+                value={selectedEventOption}
+                isLoading={eventTypesQuery.isLoading}
+                isDisabled={eventTypesQuery.isError}
+                onChange={(option) => {
+                  if (!option) {
+                    setSelectedEventId(null);
+                    return;
+                  }
 
-                if (option.value === NO_EVENT_TYPE_VALUE) {
-                  setSelectedEventId(null);
-                  return;
-                }
+                  if (option.value === NO_EVENT_TYPE_VALUE) {
+                    setSelectedEventId(null);
+                    return;
+                  }
 
-                const parsedId = Number(option.value);
-                if (Number.isNaN(parsedId)) {
-                  setSelectedEventId(null);
-                  return;
-                }
+                  const parsedId = Number(option.value);
+                  if (Number.isNaN(parsedId)) {
+                    setSelectedEventId(null);
+                    return;
+                  }
 
-                setSelectedEventId(parsedId);
-              }}
-            />
-            {eventTypesQuery.isError ? (
-              <div className="space-y-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                <p>{eventTypesQuery.error.message || "Could not load event types."}</p>
-                <Button color="secondary" size="sm" onClick={() => eventTypesQuery.refetch()}>
-                  Retry
+                  setSelectedEventId(parsedId);
+                }}
+              />
+              {eventTypesQuery.isError ? (
+                <div className="space-y-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  <p>{eventTypesQuery.error.message || "Could not load event types."}</p>
+                  <Button color="secondary" size="sm" onClick={() => eventTypesQuery.refetch()}>
+                    Retry
+                  </Button>
+                </div>
+              ) : null}
+              {selectedEventId !== null && selectedEventQuery.isLoading ? (
+                <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Loading event details...
+                </div>
+              ) : null}
+              {selectedEventQuery.isError ? (
+                <p className="text-xs text-red-600">
+                  {selectedEventQuery.error.message || "Could not load selected event type details."}
+                </p>
+              ) : null}
+              {selectedEventId === null && meQuery.isLoading ? (
+                <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Loading your public booking page...
+                </div>
+              ) : null}
+              {selectedEventId === null && meQuery.isError ? (
+                <p className="text-xs text-red-600">
+                  {meQuery.error.message || "Could not load your public booking page."}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="availability-link">Availability Link</Label>
+              {/* Stack input + copy button on very narrow screens */}
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input
+                  id="availability-link"
+                  value={shareLink}
+                  readOnly
+                  className="min-w-0 flex-1 truncate"
+                />
+                <Button
+                  color="secondary"
+                  onClick={copyLink}
+                  className="shrink-0"
+                  loading={copyPending}
+                  disabled={!shareLink || copyPending}>
+                  <Copy className="h-3.5 w-3.5" />
+                  Copy
                 </Button>
               </div>
-            ) : null}
-            {selectedEventId !== null && selectedEventQuery.isLoading ? (
-              <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Loading event details...
-              </div>
-            ) : null}
-            {selectedEventQuery.isError ? (
-              <p className="text-xs text-red-600">
-                {selectedEventQuery.error.message || "Could not load selected event type details."}
-              </p>
-            ) : null}
-            {selectedEventId === null && meQuery.isLoading ? (
-              <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Loading your public booking page...
-              </div>
-            ) : null}
-            {selectedEventId === null && meQuery.isError ? (
-              <p className="text-xs text-red-600">
-                {meQuery.error.message || "Could not load your public booking page."}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="availability-link">Availability Link</Label>
-            <div className="flex gap-2">
-              <Input id="availability-link" value={shareLink} readOnly />
-              <Button
-                color="secondary"
-                onClick={copyLink}
-                className="shrink-0"
-                loading={copyPending}
-                disabled={!shareLink || copyPending}>
-                <Copy className="h-3.5 w-3.5" />
-                Copy
-              </Button>
             </div>
-          </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="share-message">Message</Label>
-            <TextArea
-              id="share-message"
-              rows={4}
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              className="border-default text-sm shadow"
-            />
-          </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="share-message">Message</Label>
+              <TextArea
+                id="share-message"
+                rows={4}
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                className="border-default text-sm shadow"
+              />
+            </div>
 
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {CONTACT_SHARE_OPTIONS.map((option) => (
-              <button
-                key={option.id}
-                onClick={() => handleQuickShare(option.id)}
-                disabled={!shareLink}
-                className="border-border hover:bg-muted disabled:bg-muted/30 disabled:text-muted-foreground rounded-lg border p-3 text-left transition-colors disabled:cursor-not-allowed">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  {option.id === "copy" ? <Copy className="h-3.5 w-3.5" /> : null}
-                  {option.id === "email" ? <Mail className="h-3.5 w-3.5" /> : null}
-                  {option.id === "whatsapp" ? <MessageCircle className="h-3.5 w-3.5" /> : null}
-                  {option.label}
-                </div>
-                <p className="text-muted-foreground mt-1 text-xs">{option.description}</p>
-              </button>
-            ))}
+            {/* Share option cards: 1 col on mobile, 3 cols on sm+ */}
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {CONTACT_SHARE_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => handleQuickShare(option.id)}
+                  disabled={!shareLink}
+                  className="border-border hover:bg-muted disabled:bg-muted/30 disabled:text-muted-foreground rounded-lg border p-3 text-left transition-colors disabled:cursor-not-allowed">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    {option.id === "copy" ? <Copy className="h-3.5 w-3.5 shrink-0" /> : null}
+                    {option.id === "email" ? <Mail className="h-3.5 w-3.5 shrink-0" /> : null}
+                    {option.id === "whatsapp" ? <MessageCircle className="h-3.5 w-3.5 shrink-0" /> : null}
+                    {option.label}
+                  </div>
+                  <p className="text-muted-foreground mt-1 text-xs">{option.description}</p>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        <DialogFooter>
-          <Button color="secondary" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="shrink-0">
+          <Button color="primary" onClick={() => onOpenChange(false)}>
             Close
           </Button>
         </DialogFooter>

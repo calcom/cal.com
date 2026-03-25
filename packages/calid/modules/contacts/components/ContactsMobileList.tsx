@@ -55,9 +55,9 @@ export const ContactsMobileList = ({
             </DropdownMenu>
           </div>
           <div className="text-muted-foreground mt-3 flex items-center gap-4 text-xs">
-            <span className="flex items-center gap-1 truncate">
+            {/* <span className="flex items-center gap-1 truncate">
               <Mail className="h-3 w-3" /> {contact.email}
-            </span>
+            </span> */}
             {contact.phone ? (
               <span className="flex shrink-0 items-center gap-1">
                 <Phone className="h-3 w-3" /> {contact.phone.slice(0, 15)}

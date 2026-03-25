@@ -104,80 +104,89 @@ export const AddEditContactModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="md" enableOverflow className="max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent size="md" enableOverflow className="flex max-h-[92vh] flex-col sm:max-h-[90vh]">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base font-semibold">
             {isEditMode ? <Save className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
             {isEditMode ? "Edit Contact" : "Add Contact"}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 pt-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="contact-name">
-              Full Name <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="contact-name"
-              value={form.name}
-              onChange={(event) => updateField("name", event.target.value)}
-              placeholder="e.g. John Doe"
-              className={errors.name ? "border-destructive" : ""}
-            />
-            {errors.name ? <p className="text-destructive text-xs">{errors.name}</p> : null}
-          </div>
+        {/* Scrollable form body */}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="space-y-4 px-1 pt-2 pb-1">
+            <div className="space-y-1.5">
+              <Label htmlFor="contact-name">
+                Full Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="contact-name"
+                value={form.name}
+                onChange={(event) => updateField("name", event.target.value)}
+                placeholder="e.g. John Doe"
+                className={errors.name ? "border-destructive" : ""}
+              />
+              {errors.name ? <p className="text-destructive text-xs">{errors.name}</p> : null}
+            </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="contact-email">
-              Email Address <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="contact-email"
-              type="email"
-              value={form.email}
-              onChange={(event) => updateField("email", event.target.value)}
-              placeholder="e.g. john@gmail.com"
-              readOnly={isEditMode}
-              className={`${errors.email ? "border-destructive" : ""} ${
-                isEditMode ? "bg-muted cursor-not-allowed" : ""
-              }`}
-            />
-            {errors.email ? <p className="text-destructive text-xs">{errors.email}</p> : null}
-          </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="contact-email">
+                Email Address <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="contact-email"
+                type="email"
+                value={form.email}
+                onChange={(event) => updateField("email", event.target.value)}
+                placeholder="e.g. john@gmail.com"
+                readOnly={isEditMode}
+                className={`${errors.email ? "border-destructive" : ""} ${
+                  isEditMode ? "bg-muted cursor-not-allowed" : ""
+                }`}
+              />
+              {errors.email ? <p className="text-destructive text-xs">{errors.email}</p> : null}
+            </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="contact-phone">Phone Number</Label>
-            <Input
-              id="contact-phone"
-              value={form.phone}
-              onChange={(event) => updateField("phone", event.target.value)}
-              placeholder="+91 98xxxxxxx"
-            />
-          </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="contact-phone">Phone Number</Label>
+              <Input
+                id="contact-phone"
+                value={form.phone}
+                onChange={(event) => updateField("phone", event.target.value)}
+                placeholder="+91 98xxxxxxx"
+              />
+            </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="contact-notes">Notes</Label>
-            <TextArea
-              id="contact-notes"
-              rows={3}
-              value={form.notes}
-              onChange={(event) => updateField("notes", event.target.value)}
-              placeholder="Add any relevant notes..."
-              className="border-default text-sm shadow"
-            />
-          </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="contact-notes">Notes</Label>
+              <TextArea
+                id="contact-notes"
+                rows={3}
+                value={form.notes}
+                onChange={(event) => updateField("notes", event.target.value)}
+                placeholder="Add any relevant notes..."
+                className="border-default text-sm shadow"
+              />
+            </div>
 
-          {errorMessage ? <p className="text-destructive text-xs">{errorMessage}</p> : null}
+            {errorMessage ? <p className="text-destructive text-xs">{errorMessage}</p> : null}
+          </div>
         </div>
 
-        <DialogFooter>
-          <Button color="secondary" onClick={() => onOpenChange(false)} StartIcon="x" disabled={isSubmitting}>
+        <DialogFooter className="shrink-0 flex-col-reverse gap-2 pt-2 sm:flex-row sm:gap-0">
+          <Button
+            color="secondary"
+            onClick={() => onOpenChange(false)}
+            StartIcon="x"
+            disabled={isSubmitting}
+            className="w-full sm:w-auto">
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             loading={isSubmitting}
             disabled={isSubmitting}
+            className="w-full sm:w-auto"
             CustomStartIcon={
               isEditMode ? <Save className="h-3.5 w-3.5" /> : <UserPlus className="h-3.5 w-3.5" />
             }>

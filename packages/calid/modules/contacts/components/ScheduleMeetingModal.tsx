@@ -758,190 +758,202 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
 
   return (
     <Dialog open={open} onOpenChange={resetAndClose}>
-      <DialogContent size="md" className="flex max-h-[90vh] max-h-[90vh] flex-col">
-        <DialogHeader>
+      {/*
+        DialogContent carries a fixed max-height. We make it flex+col so the
+        header and step indicator stay pinned at top while the active step body
+        scrolls independently.
+      */}
+      <DialogContent size="md" className="flex max-h-[92vh] flex-col overflow-hidden sm:max-h-[90vh]">
+        {/* Pinned header */}
+        <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base font-semibold">
             <Video className="h-4 w-4" />
             Schedule Meeting {contact ? `with ${contact.name}` : ""}
           </DialogTitle>
         </DialogHeader>
 
-        <MeetingStepIndicator step={step} steps={stepLabels} />
+        {/* Pinned step indicator */}
+        <div className="shrink-0">
+          <MeetingStepIndicator step={step} steps={stepLabels} />
+        </div>
 
-        {step === EVENT_TYPE_STEP ? (
-          <ScheduleMeetingModalEventTypeStep
-            eventTypes={eventTypesQuery.data ?? []}
-            selectedEventId={selectedEventId}
-            onSelectEventType={handleSelectEventType}
-            isEventTypesLoading={eventTypesQuery.isLoading}
-            eventTypesErrorMessage={eventTypesQuery.isError ? eventTypesQuery.error.message : null}
-            onRetryEventTypes={() => {
-              void eventTypesQuery.refetch();
-            }}
-            isSelectedEventLoading={selectedEventId !== null && selectedEventQuery.isLoading}
-            selectedEventErrorMessage={selectedEventQuery.isError ? selectedEventQuery.error.message : null}
-            unsupportedReason={unsupportedReason}
-            isNextDisabled={
-              selectedEventId === null ||
-              selectedEventQuery.isLoading ||
-              selectedEventQuery.isError ||
-              Boolean(unsupportedReason)
-            }
-            onNext={() => {
-              setBookingErrorMessage(null);
-              if (LOCATION_STEP) {
-                setStep(LOCATION_STEP);
-                return;
+        {/* Scrollable step body */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-1">
+          {step === EVENT_TYPE_STEP ? (
+            <ScheduleMeetingModalEventTypeStep
+              eventTypes={eventTypesQuery.data ?? []}
+              selectedEventId={selectedEventId}
+              onSelectEventType={handleSelectEventType}
+              isEventTypesLoading={eventTypesQuery.isLoading}
+              eventTypesErrorMessage={eventTypesQuery.isError ? eventTypesQuery.error.message : null}
+              onRetryEventTypes={() => {
+                void eventTypesQuery.refetch();
+              }}
+              isSelectedEventLoading={selectedEventId !== null && selectedEventQuery.isLoading}
+              selectedEventErrorMessage={selectedEventQuery.isError ? selectedEventQuery.error.message : null}
+              unsupportedReason={unsupportedReason}
+              isNextDisabled={
+                selectedEventId === null ||
+                selectedEventQuery.isLoading ||
+                selectedEventQuery.isError ||
+                Boolean(unsupportedReason)
               }
-              setStep(DATE_TIME_STEP);
-            }}
-          />
-        ) : null}
+              onNext={() => {
+                setBookingErrorMessage(null);
+                if (LOCATION_STEP) {
+                  setStep(LOCATION_STEP);
+                  return;
+                }
+                setStep(DATE_TIME_STEP);
+              }}
+            />
+          ) : null}
 
-        {LOCATION_STEP && step === LOCATION_STEP ? (
-          <ScheduleMeetingModalLocationStep
-            locationOptions={locationOptions}
-            selectedLocationType={selectedLocationType}
-            onSelectLocationType={setSelectedLocationType}
-            fallbackNotice={locationFallbackNotice}
-            unsupportedReason={unsupportedReason}
-            onBack={() => {
-              setBookingErrorMessage(null);
-              setStep(EVENT_TYPE_STEP);
-            }}
-            onNext={() => {
-              setBookingErrorMessage(null);
-              setStep(DATE_TIME_STEP);
-            }}
-          />
-        ) : null}
+          {LOCATION_STEP && step === LOCATION_STEP ? (
+            <ScheduleMeetingModalLocationStep
+              locationOptions={locationOptions}
+              selectedLocationType={selectedLocationType}
+              onSelectLocationType={setSelectedLocationType}
+              fallbackNotice={locationFallbackNotice}
+              unsupportedReason={unsupportedReason}
+              onBack={() => {
+                setBookingErrorMessage(null);
+                setStep(EVENT_TYPE_STEP);
+              }}
+              onNext={() => {
+                setBookingErrorMessage(null);
+                setStep(DATE_TIME_STEP);
+              }}
+            />
+          ) : null}
 
-        {step === DATE_TIME_STEP ? (
-          <ScheduleMeetingModalDateTimeStep
-            selectedDate={selectedDate}
-            onSelectDate={(value) => {
-              setSelectedDate(value);
-              setSelectedSlotTime(null);
-            }}
-            selectedDuration={selectedDuration}
-            durationOptions={durationOptions}
-            onSelectDuration={(nextDuration) => {
-              setSelectedDuration(nextDuration);
-              setSelectedSlotTime(null);
-            }}
-            selectedSlotTime={selectedSlotTime}
-            onSelectSlotTime={setSelectedSlotTime}
-            availableSlots={availableSlots}
-            isDurationLoading={selectedDate ? selectedEventQuery.isLoading : false}
-            durationErrorMessage={
-              selectedDate && selectedEventQuery.isError ? selectedEventQuery.error.message : null
-            }
-            isSlotsLoading={slotsQuery.isLoading}
-            slotsErrorMessage={slotsQuery.isError ? slotsQuery.error.message : null}
-            onRetrySlots={() => {
-              void slotsQuery.refetch();
-            }}
-            timeFormat={timeFormat}
-            onTimeFormatChange={setTimeFormat}
-            timeFormat12hLabel={t("12_hour_short") || "12h"}
-            timeFormat24hLabel={t("24_hour_short") || "24h"}
-            isRecurringEventType={isRecurringEventType}
-            recurringPatternText={recurringPatternText}
-            recurringMaxCount={recurringMaxCount}
-            recurringEventCountInput={recurringEventCountInput}
-            onRecurringCountInputChange={handleRecurringCountInputChange}
-            recurringEventCountWarning={recurringEventCountWarning}
-            recurringSummaryText={recurringSummaryText}
-            recurringOccurrencePreview={recurringOccurrencePreview}
-            recurringEventCount={recurringEventCount}
-            isRecurringSelectionValid={isRecurringSelectionValid}
-            canContinue={Boolean(selectedDate && selectedDuration && selectedSlotTime)}
-            onBack={() => {
-              setBookingErrorMessage(null);
-              setStep(LOCATION_STEP ?? EVENT_TYPE_STEP);
-            }}
-            onNext={() => {
-              setBookingErrorMessage(null);
-              setStep(BOOKING_FIELDS_STEP ?? GUESTS_STEP);
-            }}
-          />
-        ) : null}
-
-        {hasExtendedBookingFields && step === BOOKING_FIELDS_STEP ? (
-          <ScheduleMeetingModalBookingFieldsStep
-            isLoading={selectedEventQuery.isLoading}
-            errorMessage={selectedEventQuery.isError ? selectedEventQuery.error.message : null}
-            onRetry={() => {
-              void selectedEventQuery.refetch();
-            }}
-            bookingErrorMessage={bookingErrorMessage}
-            onBack={() => {
-              setBookingErrorMessage(null);
-              setStep(DATE_TIME_STEP);
-            }}
-            onNext={handleBookingFieldsNext}
-            nextDisabled={selectedEventQuery.isLoading || selectedEventQuery.isError}>
-            <FormProvider {...bookingFieldsForm}>
-              <BookingFields
-                isDynamicGroupBooking={false}
-                fields={bookingFieldsStepFields}
-                locations={selectedEventDetail?.locations ?? []}
-                bookingData={null}
-              />
-            </FormProvider>
-          </ScheduleMeetingModalBookingFieldsStep>
-        ) : null}
-
-        {step === GUESTS_STEP ? (
-          <ScheduleMeetingModalGuestsStep
-            contactName={contact?.name}
-            contactEmail={contact?.email}
-            additionalGuests={additionalGuests}
-            onAdditionalGuestsChange={setAdditionalGuests}
-            bookingErrorMessage={bookingErrorMessage}
-            onBack={() => {
-              setBookingErrorMessage(null);
-              if (BACK_FROM_GUESTS_STEP) {
-                setStep(BACK_FROM_GUESTS_STEP);
+          {step === DATE_TIME_STEP ? (
+            <ScheduleMeetingModalDateTimeStep
+              selectedDate={selectedDate}
+              onSelectDate={(value) => {
+                setSelectedDate(value);
+                setSelectedSlotTime(null);
+              }}
+              selectedDuration={selectedDuration}
+              durationOptions={durationOptions}
+              onSelectDuration={(nextDuration) => {
+                setSelectedDuration(nextDuration);
+                setSelectedSlotTime(null);
+              }}
+              selectedSlotTime={selectedSlotTime}
+              onSelectSlotTime={setSelectedSlotTime}
+              availableSlots={availableSlots}
+              isDurationLoading={selectedDate ? selectedEventQuery.isLoading : false}
+              durationErrorMessage={
+                selectedDate && selectedEventQuery.isError ? selectedEventQuery.error.message : null
               }
-            }}
-            onNext={() => {
-              setBookingErrorMessage(null);
-              setStep(CONFIRM_STEP);
-            }}
-          />
-        ) : null}
+              isSlotsLoading={slotsQuery.isLoading}
+              slotsErrorMessage={slotsQuery.isError ? slotsQuery.error.message : null}
+              onRetrySlots={() => {
+                void slotsQuery.refetch();
+              }}
+              timeFormat={timeFormat}
+              onTimeFormatChange={setTimeFormat}
+              timeFormat12hLabel={t("12_hour_short") || "12h"}
+              timeFormat24hLabel={t("24_hour_short") || "24h"}
+              isRecurringEventType={isRecurringEventType}
+              recurringPatternText={recurringPatternText}
+              recurringMaxCount={recurringMaxCount}
+              recurringEventCountInput={recurringEventCountInput}
+              onRecurringCountInputChange={handleRecurringCountInputChange}
+              recurringEventCountWarning={recurringEventCountWarning}
+              recurringSummaryText={recurringSummaryText}
+              recurringOccurrencePreview={recurringOccurrencePreview}
+              recurringEventCount={recurringEventCount}
+              isRecurringSelectionValid={isRecurringSelectionValid}
+              canContinue={Boolean(selectedDate && selectedDuration && selectedSlotTime)}
+              onBack={() => {
+                setBookingErrorMessage(null);
+                setStep(LOCATION_STEP ?? EVENT_TYPE_STEP);
+              }}
+              onNext={() => {
+                setBookingErrorMessage(null);
+                setStep(BOOKING_FIELDS_STEP ?? GUESTS_STEP);
+              }}
+            />
+          ) : null}
 
-        {step === CONFIRM_STEP ? (
-          <ScheduleMeetingModalConfirmStep
-            selectedEventTitle={selectedEventInfo?.title}
-            selectedLocation={selectedLocationLabel}
-            selectedDate={selectedDate}
-            selectedSlotTime={selectedSlotTime}
-            selectedDuration={selectedDuration ?? selectedEventDetail?.length ?? 0}
-            isRecurringEventType={isRecurringEventType}
-            recurringPatternText={recurringPatternText}
-            recurringEventCountText={recurringEventCount ?? recurringMaxCount ?? "-"}
-            contactName={contact?.name}
-            additionalGuests={additionalGuests}
-            bookingErrorMessage={bookingErrorMessage}
-            isSubmitting={isAnyBookingMutationPending}
-            isConfirmDisabled={isAnyBookingMutationPending || Boolean(unsupportedReason)}
-            timeFormat={timeFormat}
-            onBack={() => {
-              setBookingErrorMessage(null);
-              setStep(GUESTS_STEP);
-            }}
-            onConfirm={handleConfirm}
-          />
-        ) : null}
+          {hasExtendedBookingFields && step === BOOKING_FIELDS_STEP ? (
+            <ScheduleMeetingModalBookingFieldsStep
+              isLoading={selectedEventQuery.isLoading}
+              errorMessage={selectedEventQuery.isError ? selectedEventQuery.error.message : null}
+              onRetry={() => {
+                void selectedEventQuery.refetch();
+              }}
+              bookingErrorMessage={bookingErrorMessage}
+              onBack={() => {
+                setBookingErrorMessage(null);
+                setStep(DATE_TIME_STEP);
+              }}
+              onNext={handleBookingFieldsNext}
+              nextDisabled={selectedEventQuery.isLoading || selectedEventQuery.isError}>
+              <FormProvider {...bookingFieldsForm}>
+                <BookingFields
+                  isDynamicGroupBooking={false}
+                  fields={bookingFieldsStepFields}
+                  locations={selectedEventDetail?.locations ?? []}
+                  bookingData={null}
+                />
+              </FormProvider>
+            </ScheduleMeetingModalBookingFieldsStep>
+          ) : null}
 
-        {selectedEventId !== null && selectedEventQuery.isLoading && step !== EVENT_TYPE_STEP ? (
-          <div className="text-muted-foreground flex items-center gap-2 text-xs">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            Loading event details...
-          </div>
-        ) : null}
+          {step === GUESTS_STEP ? (
+            <ScheduleMeetingModalGuestsStep
+              contactName={contact?.name}
+              contactEmail={contact?.email}
+              additionalGuests={additionalGuests}
+              onAdditionalGuestsChange={setAdditionalGuests}
+              bookingErrorMessage={bookingErrorMessage}
+              onBack={() => {
+                setBookingErrorMessage(null);
+                if (BACK_FROM_GUESTS_STEP) {
+                  setStep(BACK_FROM_GUESTS_STEP);
+                }
+              }}
+              onNext={() => {
+                setBookingErrorMessage(null);
+                setStep(CONFIRM_STEP);
+              }}
+            />
+          ) : null}
+
+          {step === CONFIRM_STEP ? (
+            <ScheduleMeetingModalConfirmStep
+              selectedEventTitle={selectedEventInfo?.title}
+              selectedLocation={selectedLocationLabel}
+              selectedDate={selectedDate}
+              selectedSlotTime={selectedSlotTime}
+              selectedDuration={selectedDuration ?? selectedEventDetail?.length ?? 0}
+              isRecurringEventType={isRecurringEventType}
+              recurringPatternText={recurringPatternText}
+              recurringEventCountText={recurringEventCount ?? recurringMaxCount ?? "-"}
+              contactName={contact?.name}
+              additionalGuests={additionalGuests}
+              bookingErrorMessage={bookingErrorMessage}
+              isSubmitting={isAnyBookingMutationPending}
+              isConfirmDisabled={isAnyBookingMutationPending || Boolean(unsupportedReason)}
+              timeFormat={timeFormat}
+              onBack={() => {
+                setBookingErrorMessage(null);
+                setStep(GUESTS_STEP);
+              }}
+              onConfirm={handleConfirm}
+            />
+          ) : null}
+
+          {selectedEventId !== null && selectedEventQuery.isLoading && step !== EVENT_TYPE_STEP ? (
+            <div className="text-muted-foreground flex items-center gap-2 text-xs">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              Loading event details...
+            </div>
+          ) : null}
+        </div>
       </DialogContent>
     </Dialog>
   );

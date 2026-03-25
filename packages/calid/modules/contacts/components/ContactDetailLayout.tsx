@@ -48,8 +48,9 @@ export const ContactDetailLayout = ({
   deleteErrorMessage,
 }: ContactDetailLayoutProps) => {
   return (
-    <div className={`grid gap-6 ${isMobile ? "grid-cols-1" : "grid-cols-3 "}`}>
-      <div className="space-y-6">
+    <div className={cn( isMobile ? "grid grid-cols-1" : "grid gap-6 grid-cols-3")}>
+      {/* Sidebar: profile + notes */}
+      <div className="space-y-6 flex flex-col ">
         <ContactProfileCard
           contact={contact}
           onEdit={onEditContact}
@@ -70,10 +71,12 @@ export const ContactDetailLayout = ({
         />
       </div>
 
+      {/* Main: meetings */}
       <div
         className={cn(
-          "col-span-2 flex  min-h-0 flex-col gap-6 overflow-hidden ",
-          !isMobile && "max-h-[80vh]"
+          "col-span-2 flex flex-col gap-6 max-h-[80vh] mt-6",
+          !isMobile && "min-h-0 overflow-hidden mt-0",
+          
         )}>
         <MeetingsSection
           title={
@@ -86,7 +89,7 @@ export const ContactDetailLayout = ({
           countBadge
           isLoading={meetingsLoading}
           errorMessage={meetingsErrorMessage}
-          className={isMobile ? undefined : "flex flex-1 overflow-hidden"}
+          className={cn(!isMobile && "flex flex-1 overflow-hidden")}
         />
 
         <MeetingsSection
@@ -99,7 +102,7 @@ export const ContactDetailLayout = ({
           emptyLabel="No meeting history found for this contact"
           isLoading={meetingsLoading}
           errorMessage={meetingsErrorMessage}
-          className={isMobile ? undefined : "min-h-0 flex-1 overflow-hidden"}
+          className={cn(!isMobile && "min-h-0 flex-1 overflow-hidden")}
         />
       </div>
     </div>

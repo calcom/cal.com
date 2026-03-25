@@ -22,22 +22,22 @@ export const MeetingStepIndicator = ({ step, steps = DEFAULT_STEPS }: MeetingSte
             <div
               className={cn(
                 "flex h-7 w-7 items-center justify-center rounded-full border text-xs font-medium transition-colors",
-                isCompleted && "border-subtle bg-subtle text-emphasis",
-                isActive && "border-active bg-active text-white",
-                isUpcoming && "border-border bg-default text-muted-foreground"
+                isCompleted && " bg-subtle text-emphasis",
+                isActive && " bg-active text-white",
+                isUpcoming && " bg-default text-muted-foreground"
               )}
               aria-current={isActive ? "step" : undefined}>
               {isCompleted ? <Icon name="check" className="h-3.5 w-3.5" /> : value}
             </div>
             {value < steps.length ? (
               <div
-                className={cn("h-px w-6", isCompleted ? "bg-subtle" : isActive ? "bg-active" : "bg-border")}
+                className={cn("h-px w-6", isCompleted ? "bg-emphasis" : isActive ? "bg-active" : "bg-emphasis")}
               />
             ) : null}
           </div>
         );
       })}
-      <span className="text-muted-foreground ml-2 text-xs">{steps[clampedStep - 1] ?? "Confirm"}</span>
+      {/* <span className="text-muted-foreground ml-2 text-xs">{steps[clampedStep - 1] ?? "Confirm"}</span> */}
     </div>
   );
 };

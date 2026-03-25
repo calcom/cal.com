@@ -95,6 +95,7 @@ export const ScheduleMeetingModalDateTimeStep = ({
 
   return (
     <div className="space-y-4 pt-2">
+      {/* Date picker */}
       <div className="space-y-1.5">
         <Label>Select Date</Label>
         <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
@@ -102,11 +103,16 @@ export const ScheduleMeetingModalDateTimeStep = ({
             <Button
               color="secondary"
               className={cn("w-full justify-start text-left", !selectedDate && "text-muted-foreground")}>
-              <CalendarIcon className="mr-2 h-4 w-4" />
+              <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
               {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="start" className="bg-default w-auto border p-0">
+          <PopoverContent
+            align="start"
+            className="bg-default w-auto border p-0"
+            // Keep calendar inside viewport on small screens
+            side="bottom"
+            avoidCollisions>
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -123,6 +129,7 @@ export const ScheduleMeetingModalDateTimeStep = ({
         </Popover>
       </div>
 
+      {/* Duration */}
       {selectedDate ? (
         <div className="space-y-1.5 pt-2">
           <Label>Duration</Label>
@@ -159,9 +166,10 @@ export const ScheduleMeetingModalDateTimeStep = ({
         </div>
       ) : null}
 
+      {/* Time slots */}
       {selectedDate ? (
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <Label>Select Time</Label>
             <ToggleGroup
               value={timeFormat}
@@ -196,13 +204,14 @@ export const ScheduleMeetingModalDateTimeStep = ({
             </p>
           ) : null}
           {!isSlotsLoading && !slotsErrorMessage && availableSlots.length > 0 ? (
-            <div className="grid grid-cols-4 gap-2">
+            /* Responsive slot grid: 3 cols on mobile, 4 on sm+ */
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
               {availableSlots.map((slot) => (
                 <button
                   key={slot.time}
                   onClick={() => onSelectSlotTime(slot.time)}
                   className={cn(
-                    "rounded-md border px-3 py-2 text-xs transition-colors",
+                    "rounded-md border px-2 py-2 text-xs transition-colors",
                     selectedSlotTime === slot.time
                       ? "border-subtle bg-muted text-default font-medium shadow-[0px_2px_3px_0px_rgba(0,0,0,0.03),0px_2px_2px_-1px_rgba(0,0,0,0.03)]"
                       : "border-border hover:bg-muted hover:text-emphasis"
@@ -215,6 +224,7 @@ export const ScheduleMeetingModalDateTimeStep = ({
         </div>
       ) : null}
 
+      {/* Recurring settings */}
       {isRecurringEventType ? (
         <div className="space-y-2 rounded-lg border px-3 py-3">
           <div className="space-y-1">
@@ -271,6 +281,7 @@ export const ScheduleMeetingModalDateTimeStep = ({
         </div>
       ) : null}
 
+      {/* Navigation */}
       <div className="flex justify-between pt-2">
         <Button color="secondary" onClick={onBack}>
           <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Back

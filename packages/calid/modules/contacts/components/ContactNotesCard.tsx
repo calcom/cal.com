@@ -21,7 +21,7 @@ export const ContactNotesCard = ({
   saveErrorMessage,
 }: ContactNotesCardProps) => {
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
           <StickyNote className="h-4 w-4" /> Notes
