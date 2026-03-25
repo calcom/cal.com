@@ -8,6 +8,7 @@ import {
 import { Input } from "@calid/features/ui/components/input/input";
 import { ScrollArea } from "@calid/features/ui/components/scroll-area";
 import { Switch } from "@calid/features/ui/components/switch";
+import { Tooltip } from "@calid/features/ui/components/tooltip";
 import { Search } from "lucide-react";
 import { type ChangeEvent, useMemo } from "react";
 
@@ -26,6 +27,8 @@ interface UnifiedCalendarSidebarProps {
   errorMessage?: string | null;
   pendingSyncCalendarIds?: Set<string>;
 }
+
+const MAX_CALENDAR_NAME_LENGTH = 22;
 
 export const UnifiedCalendarSidebar = ({
   calendars,
@@ -131,13 +134,25 @@ export const UnifiedCalendarSidebar = ({
                           </DropdownMenuContent>
                         </DropdownMenu>
 
-                        <span
-                          className={cn(
-                            "min-w-0 flex-1 truncate text-[13px] transition-colors",
-                            calendar.syncEnabled ? "text-foreground" : "text-muted-foreground/50"
-                          )}>
-                          {calendar.name}
-                        </span>
+                        {calendar.name.length > MAX_CALENDAR_NAME_LENGTH ? (
+                          <Tooltip content={calendar.name}>
+                            <span
+                              className={cn(
+                                "min-w-0 flex-1 truncate text-[13px] transition-colors",
+                                calendar.syncEnabled ? "text-foreground" : "text-muted-foreground/50"
+                              )}>
+                              {`${calendar.name.slice(0, MAX_CALENDAR_NAME_LENGTH)}...`}
+                            </span>
+                          </Tooltip>
+                        ) : (
+                          <span
+                            className={cn(
+                              "min-w-0 flex-1 truncate text-[13px] transition-colors",
+                              calendar.syncEnabled ? "text-foreground" : "text-muted-foreground/50"
+                            )}>
+                            {calendar.name}
+                          </span>
+                        )}
                       </div>
 
                       <div className="shrink-0">
