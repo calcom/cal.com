@@ -2831,9 +2831,9 @@ model CalIdWorkflowStep {
   metaTemplatePhoneNumberId String?
   variableMapping           Json?
 
-  workflowReminders CalIdWorkflowReminder[]
-  numberRequired    Boolean?
-  sender            String?
+  workflowReminders         CalIdWorkflowReminder[]
+  numberRequired            Boolean?
+  sender                    String?
   numberVerificationPending Boolean                 @default(true)
   includeCalendarEvent      Boolean                 @default(false)
   verifiedAt                DateTime?
