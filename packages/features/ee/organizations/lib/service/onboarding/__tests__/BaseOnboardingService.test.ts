@@ -1,7 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
-
 import type { User } from "@calcom/prisma/client";
 import { UserPermissionRole } from "@calcom/prisma/enums";
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
   TeamRepository: class {
@@ -10,6 +9,24 @@ vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
       return Promise.resolve([]);
     }
   },
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
+vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
+  sendEmailVerification: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@calcom/emails/organization-email-service", () => ({
+  sendOrganizationCreationEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@calcom/lib/domainManager/organization", () => ({
+  createDomain: vi.fn().mockResolvedValue(true),
+  deleteDomain: vi.fn().mockResolvedValue(true),
 }));
 
 import { BaseOnboardingService } from "../BaseOnboardingService";
