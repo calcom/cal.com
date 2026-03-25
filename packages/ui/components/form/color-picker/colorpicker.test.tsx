@@ -2,22 +2,13 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { act } from "react-dom/test-utils";
 import { vi } from "vitest";
-
-import type { ButtonProps } from "../../button";
 import ColorPicker from "./colorpicker";
 
-vi.mock("../../button/Button", async () => {
-  const ButtonMock = (await import("../../button/Button")).Button;
-  return {
-    Button: ({ tooltip, ...rest }: ButtonProps) => <ButtonMock {...rest}>{tooltip}</ButtonMock>,
-  };
-});
-
-vi.mock("../icon/Icon", async () => {
-  return {
-    Icon: () => <svg data-testid="dummy-icon" />,
-  };
-});
+function getColorSwatch() {
+  const button = screen.getByRole("button", { name: "pick colors" });
+  const swatch = button.querySelector("span");
+  return { button, swatch: swatch! };
+}
 
 describe("Tests for ColorPicker component", () => {
   test("Should render the color picker with a given default value", () => {
@@ -25,8 +16,8 @@ describe("Tests for ColorPicker component", () => {
     const onChange = vi.fn();
     render(<ColorPicker defaultValue={defaultValue} onChange={onChange} />);
 
-    const colorPickerButton = screen.getByRole("button", { name: "pick colors" });
-    expect(colorPickerButton).toHaveStyle(`background-color: ${defaultValue}`);
+    const { swatch } = getColorSwatch();
+    expect(swatch).toHaveStyle(`background-color: ${defaultValue}`);
   });
 
   test("Should select a new color using the color picker", async () => {
@@ -34,9 +25,9 @@ describe("Tests for ColorPicker component", () => {
     const onChange = vi.fn();
     render(<ColorPicker defaultValue={defaultValue} onChange={onChange} />);
 
-    const colorPickerButton = screen.getByRole("button", { name: "pick colors" });
+    const { button, swatch } = getColorSwatch();
     await act(async () => {
-      fireEvent.click(colorPickerButton);
+      fireEvent.click(button);
     });
     const colorPickerInput = screen.getByRole("textbox");
     await act(async () => {
@@ -44,7 +35,7 @@ describe("Tests for ColorPicker component", () => {
     });
 
     await waitFor(() => {
-      expect(colorPickerButton).toHaveStyle("background-color: #000000");
+      expect(swatch).toHaveStyle("background-color: #000000");
     });
   });
 
@@ -57,9 +48,8 @@ describe("Tests for ColorPicker component", () => {
     await act(async () => userEvent.clear(colorInput));
     const newColorValue = "#00FF00";
     await act(async () => await userEvent.type(colorInput, newColorValue));
-    expect(screen.getByRole("button", { name: "pick colors" })).toHaveStyle(
-      `background-color: ${newColorValue}`
-    );
+    const { swatch } = getColorSwatch();
+    expect(swatch).toHaveStyle(`background-color: ${newColorValue}`);
   });
 
   test("Should not change the color value when an invalid HEX value is entered", async () => {
@@ -68,15 +58,15 @@ describe("Tests for ColorPicker component", () => {
 
     render(<ColorPicker defaultValue={defaultValue} onChange={onChange} />);
 
-    const colorPickerButton = screen.getByRole("button", { name: "pick colors" });
+    const { button, swatch } = getColorSwatch();
     await act(async () => {
-      fireEvent.click(colorPickerButton);
+      fireEvent.click(button);
     });
     const colorPickerInput = screen.getByRole("textbox");
     await act(async () => {
       fireEvent.change(colorPickerInput, { target: { value: "#FF0000240" } });
     });
-    expect(colorPickerButton).toHaveStyle(`background-color: ${defaultValue}`);
+    expect(swatch).toHaveStyle(`background-color: ${defaultValue}`);
   });
 
   test("Should reset the color to default when clicking on the reset button", async () => {
@@ -88,9 +78,9 @@ describe("Tests for ColorPicker component", () => {
       <ColorPicker defaultValue={defaultValue} resetDefaultValue={resetDefaultValue} onChange={onChange} />
     );
 
-    const colorPickerButton = screen.getByRole("button", { name: "pick colors" });
+    const { button } = getColorSwatch();
     await act(async () => {
-      fireEvent.click(colorPickerButton);
+      fireEvent.click(button);
     });
     const colorPickerInput = screen.getByRole("textbox");
     await act(async () => {
@@ -102,7 +92,8 @@ describe("Tests for ColorPicker component", () => {
       fireEvent.click(resetButton);
     });
 
-    expect(colorPickerButton).toHaveStyle(`background-color: ${resetDefaultValue}`);
+    const { swatch } = getColorSwatch();
+    expect(swatch).toHaveStyle(`background-color: ${resetDefaultValue}`);
 
     expect(onChange).toHaveBeenCalledWith(resetDefaultValue);
   });
