@@ -1,12 +1,5 @@
-/**
- * FormCanvas.tsx
- *
- * Center panel — the visual form canvas.
- *
- * All structural mutations go through callback props → useFieldArray in parent.
- */
-import { GripVertical, Trash2, Copy, ChevronUp, ChevronDown } from "lucide-react";
-import React, { CSSProperties, useRef, useState } from "react";
+import { GripVertical, Trash2, Copy, ChevronUp, ChevronDown, Pencil } from "lucide-react";
+import React, { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -23,6 +16,7 @@ interface FormCanvasProps {
   onDropNewField: (type: string, atIndex?: number) => void;
   onDelete: (index: number) => void;
   onDuplicate: (index: number) => void;
+  onEditFieldProperties?: (index: number) => void;
 }
 
 // ─── Inter-field drop zone ────────────────────────────────────────────────────
@@ -84,6 +78,7 @@ interface FieldCardProps {
   onMoveDown: () => void;
   onDragStart: (e: React.DragEvent) => void;
   onDragEnd: (e: React.DragEvent) => void;
+  onEditProperties?: () => void;
 }
 
 function FieldCard({
@@ -101,6 +96,7 @@ function FieldCard({
   onMoveDown,
   onDragStart,
   onDragEnd,
+  onEditProperties,
 }: FieldCardProps) {
   const { t } = useLocale();
   const isLayout = LAYOUT_ONLY_TYPES.has(field.type);
@@ -115,7 +111,6 @@ function FieldCard({
   const invalidEmailMessage = t("enter_valid_email");
   const invalidPhoneMessage = t("invalid_phone_number");
 
-  
   // const showRequired = true;
 
   // const errorMessage = showRequired
@@ -159,6 +154,18 @@ function FieldCard({
           className="hover:bg-subtle rounded p-1">
           <Copy className="text-muted h-3 w-3" />
         </button>
+        {onEditProperties && (
+          <button
+            type="button"
+            title={t("form_builder_field_properties")}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEditProperties();
+            }}
+            className="hover:bg-subtle rounded p-1">
+            <Pencil className="text-muted h-3 w-3" />
+          </button>
+        )}
         {index > 0 && (
           <button
             type="button"
@@ -229,6 +236,7 @@ export function FormCanvas({
   onDropNewField,
   onDelete,
   onDuplicate,
+  onEditFieldProperties,
 }: FormCanvasProps) {
   const { t } = useLocale();
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
@@ -251,7 +259,6 @@ export function FormCanvas({
           backgroundPosition: "left top",
         }
       : {};
-  const layoutPadding = 24;
 
   // Resolve card inline styles from formConfig
   const cardStyle: React.CSSProperties = {
@@ -363,7 +370,7 @@ export function FormCanvas({
 
   return (
     <div
-      className="bg-subtle relative h-full overflow-y-auto"
+      className="bg-default relative h-full overflow-y-auto"
       onClick={() => onSelectField(null)}
       onDragOver={(e) => {
         e.preventDefault();
@@ -372,7 +379,7 @@ export function FormCanvas({
       onDragLeave={() => setCanvasOver(false)}
       onDrop={handleCanvasDrop}>
       <link rel="stylesheet" href="https://use.typekit.net/axv4sxn.css" />
-      <div className="relative" style={{ ...backgroundStyle, padding: `${layoutPadding}px` }}>
+      <div className="relative w-full max-w-full p-3 sm:p-6" style={{ ...backgroundStyle }}>
         {background.type === "image" && background.imageUrl && background.overlayOpacity > 0 && (
           <div
             className="pointer-events-none absolute inset-0"
@@ -385,8 +392,8 @@ export function FormCanvas({
             style={{ backdropFilter: `blur(${background.blur}px)` }}
           />
         )}
-        <div className="relative  flex w-full items-start justify-center">
-          <div className="w-full" style={contentStyle}>
+        <div className="relative flex w-full max-w-full items-start justify-center">
+          <div className="w-full min-w-0 max-w-full" style={contentStyle}>
             {/* ── Header (above card) ── */}
             {(header.title || header.subtitle) && (
               <div
@@ -429,12 +436,12 @@ export function FormCanvas({
                   className={`flex min-h-[240px] flex-col items-center justify-center rounded-lg border-2 border-dashed transition-colors ${
                     canvasOver ? "border-brand bg-brand/5" : "border-default"
                   }`}>
-                  <p className="text-muted text-sm font-medium">
+                  <p className="text-default text-sm font-medium">
                     {canvasOver
                       ? t("form_builder_drop_to_add_field")
                       : t("form_builder_drag_fields_here_or_click")}
                   </p>
-                  <p className="text-muted/60 mt-1 text-xs">{t("form_builder_form_will_appear_here")}</p>
+                  <p className="text-default mt-1 text-xs">{t("form_builder_form_will_appear_here")}</p>
                 </div>
               ) : (
                 <div className="space-y-0">
@@ -508,6 +515,9 @@ export function FormCanvas({
                               onSelect={() => onSelectField(index)}
                               onDelete={() => onDelete(index)}
                               onDuplicate={() => onDuplicate(index)}
+                              onEditProperties={
+                                onEditFieldProperties ? () => onEditFieldProperties(index) : undefined
+                              }
                               onMoveUp={() => onReorder(index, index - 1)}
                               onMoveDown={() => onReorder(index, index + 1)}
                               onDragStart={(e) => {

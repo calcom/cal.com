@@ -10,6 +10,7 @@ import { useState, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
 import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui/components/navigation";
 
@@ -74,8 +75,8 @@ const Actions = ({
 
   return (
     <>
-      <div className="flex items-center">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
           <FormActionsDropdown>
             <FormAction
               action="incompleteBooking"
@@ -130,13 +131,15 @@ const Actions = ({
             data-testid={isMobile ? "update-form-mobile" : "update-form"}
             variant="button"
             size="xs"
-            className="h-[34px]"
+            className="h-[34px] shrink-0"
             loading={isSaving}
             type="submit"
             color="primary">
             <span className="text-sm">{t("save")}</span>
           </Button>
-          <Profile />
+          <div className="hidden sm:block">
+            <Profile />
+          </div>
         </div>
       </div>
       <FormSettingsSlideover
@@ -230,12 +233,16 @@ export function Header({
   }, [searchParams?.toString()]);
 
   const watchedName = form.watch("name");
+  const isMobileHeader = useMediaQuery("(max-width: 767px)");
+  const pathname = usePathname();
+  const isFormEditRoute = pathname?.includes("/form-edit/");
+  const showFormBuilderPreview = useMediaQuery("(max-width: 1023px)");
 
   return (
-    <div className="bg-default sticky top-0 z-10 flex w-full flex-col">
-      <div className="bg-default flex w-full flex-row flex-nowrap items-center justify-between gap-4">
-        <div className="border-muted flex min-w-0 items-center gap-3">
-          <Link href={`${appUrl}`} data-testid="back-button">
+    <div className="bg-default sticky top-0 z-10 flex w-full min-w-0 flex-col gap-2 px-1 pb-1 sm:gap-3 sm:px-0 sm:pb-0">
+      <div className="bg-default flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:flex-nowrap sm:items-center sm:justify-between sm:gap-4">
+        <div className="border-muted flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+          <Link href={`${appUrl}`} data-testid="back-button" className="shrink-0">
             <Button
               type="button"
               color="minimal"
@@ -245,20 +252,25 @@ export function Header({
             />
           </Link>
 
-          <div className="flex min-w-0 flex-col items-start">
-            <span className="text-default text-xl font-bold leading-none">{watchedName || "Loading..."}</span>
-            <span className="text-subtle min-w-[100px] truncate whitespace-nowrap text-sm font-semibold ">
-              {routingForm.description}
+          <div className="flex min-w-0 flex-1 flex-col items-start">
+            <span className="text-default max-w-full truncate text-lg font-bold leading-tight sm:text-xl">
+              {watchedName || "Loading..."}
             </span>
+            {routingForm.description ? (
+              <span className="text-subtle line-clamp-2 max-w-full text-xs font-semibold sm:text-sm">
+                {routingForm.description}
+              </span>
+            ) : null}
           </div>
         </div>
-        <div className="flex items-center justify-end space-x-4">
+        <div className="flex w-full min-w-0 shrink-0 items-center justify-end sm:w-auto">
           <Actions
             form={routingForm}
             setIsTestPreviewOpen={setIsTestPreviewOpen}
             isTestPreviewOpen={isTestPreviewOpen}
             isSaving={isSaving}
             appUrl={appUrl}
+            isMobile={isMobileHeader}
           />
         </div>
       </div>
