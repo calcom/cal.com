@@ -427,7 +427,7 @@ test.describe("Out of office", () => {
 
       await test.step("Delete OOO successfully", async () => {
         await page.getByTestId(`ooo-delete-${member3User?.username}`).click();
-        await expect(page.getByTestId("toast-success")).toBeVisible();
+        await expect(page.getByTestId("toast-success").last()).toBeVisible();
       });
     });
     test("Non-Admin has read-only access to team mate's OOO", async ({ page, users }) => {
