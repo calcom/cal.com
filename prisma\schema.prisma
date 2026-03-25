@@ -1,0 +1,3 @@
+// Add to EventType model - find the existing EventType model and add:
+// optionalGuests     User[]     @relation("OptionalGuestEventTypes")
+// This uses a many-to-many relation
