@@ -1,3 +1,19 @@
-// Add to EventType model - find the existing EventType model and add:
-// optionalGuests     User[]     @relation("OptionalGuestEventTypes")
-// This uses a many-to-many relation
+// In the EventType model, add this relation (find the EventType model and add):
+
+model EventType {
+  // ... existing fields ...
+  
+  // Optional guests - team members added as optional attendees (no conflict check)
+  optionalGuests     User[]     @relation("OptionalGuestEventTypes")
+  
+  // ... rest of existing fields ...
+}
+
+model User {
+  // ... existing fields ...
+  
+  // Optional guest event types
+  optionalGuestEventTypes EventType[] @relation("OptionalGuestEventTypes")
+  
+  // ... rest of existing fields ...
+}
