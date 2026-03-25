@@ -76,7 +76,7 @@ export interface EventAdvancedProps {
   user?: Partial<
     Pick<
       RouterOutputs["viewer"]["me"]["calid_get"],
-      "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts" | "timeZone"
+      "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts" | "timeZone" | "metadata"
     >
   >;
   isUserLoading?: boolean;
@@ -843,6 +843,8 @@ export const EventAdvanced = ({
   // Watch form values for reactive UI updates
   const requiresConfirmation = formMethods.watch("requiresConfirmation") || false;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
+  const disableAllHostEmails = !!formMethods.watch("metadata.disableStandardEmails.all.host");
+  const disableAllAttendeeEmails = !!formMethods.watch("metadata.disableStandardEmails.all.attendee");
 
   // Derived state from form values
   const workflows =
@@ -1665,57 +1667,58 @@ export const EventAdvanced = ({
       )}
 
       {/* Email Notification Controls */}
-      {canDisableParticipantNotifications(workflows) && (
-        <Controller
-          name="metadata.disableStandardEmails.confirmation.attendee"
-          render={({ field: { value, onChange } }) => (
-            <SettingsToggle
-              toggleSwitchAtTheEnd={true}
-              title={t("disable_attendees_confirmation_emails")}
-              description={t("disable_attendees_confirmation_emails_description")}
-              checked={value}
-              onCheckedChange={onChange}
-              fieldPermissions={fieldPermissions}
-              fieldName="metadata.disableStandardEmails.confirmation.attendee"
-              lockedIcon={
-                <FieldPermissionIndicator
-                  fieldName="metadata.disableStandardEmails.confirmation.attendee"
-                  fieldPermissions={fieldPermissions}
-                  t={t}
-                />
-              }
-            />
-          )}
-        />
-      )}
+      {canDisableParticipantNotifications(workflows) &&
+        (!user?.metadata?.isEnterprise || !disableAllAttendeeEmails) && (
+          <Controller
+            name="metadata.disableStandardEmails.confirmation.attendee"
+            render={({ field: { value, onChange } }) => (
+              <SettingsToggle
+                toggleSwitchAtTheEnd={true}
+                title={t("disable_attendees_confirmation_emails")}
+                description={t("disable_attendees_confirmation_emails_description")}
+                checked={value}
+                onCheckedChange={onChange}
+                fieldPermissions={fieldPermissions}
+                fieldName="metadata.disableStandardEmails.confirmation.attendee"
+                lockedIcon={
+                  <FieldPermissionIndicator
+                    fieldName="metadata.disableStandardEmails.confirmation.attendee"
+                    fieldPermissions={fieldPermissions}
+                    t={t}
+                  />
+                }
+              />
+            )}
+          />
+        )}
 
-      {canDisableOrganizerNotifications(workflows) && (
-        <Controller
-          name="metadata.disableStandardEmails.confirmation.host"
-          defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
-          render={({ field: { value, onChange } }) => (
-            <SettingsToggle
-              toggleSwitchAtTheEnd={true}
-              title={t("disable_host_confirmation_emails")}
-              description={t("disable_host_confirmation_emails_description")}
-              checked={value}
-              onCheckedChange={onChange}
-              fieldPermissions={fieldPermissions}
-              fieldName="metadata.disableStandardEmails.confirmation.host"
-              lockedIcon={
-                <FieldPermissionIndicator
-                  fieldName="metadata.disableStandardEmails.confirmation.host"
-                  fieldPermissions={fieldPermissions}
-                  t={t}
-                />
-              }
-            />
-          )}
-        />
-      )}
+      {canDisableOrganizerNotifications(workflows) &&
+        (!user?.metadata?.isEnterprise || !disableAllHostEmails) && (
+          <Controller
+            name="metadata.disableStandardEmails.confirmation.host"
+            defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
+            render={({ field: { value, onChange } }) => (
+              <SettingsToggle
+                toggleSwitchAtTheEnd={true}
+                title={t("disable_host_confirmation_emails")}
+                description={t("disable_host_confirmation_emails_description")}
+                checked={value}
+                onCheckedChange={onChange}
+                fieldPermissions={fieldPermissions}
+                fieldName="metadata.disableStandardEmails.confirmation.host"
+                lockedIcon={
+                  <FieldPermissionIndicator
+                    fieldName="metadata.disableStandardEmails.confirmation.host"
+                    fieldPermissions={fieldPermissions}
+                    t={t}
+                  />
+                }
+              />
+            )}
+          />
+        )}
 
-      {/* Disable All Emails for Team Events */}
-      {team?.parentId && (
+      {user?.metadata?.isEnterprise && (
         <>
           <Controller
             name="metadata.disableStandardEmails.all.attendee"

@@ -47,6 +47,7 @@ export const bookingSelect = {
   title: true,
   uid: true,
   metadata: true,
+  responses: true,
   smsReminderNumber: true,
   attendees: {
     select: {
@@ -539,6 +540,7 @@ export async function scheduleCalIdBookingReminders(
   const promiseSteps = workflowSteps.map(async (step) => {
     const promiseScheduleReminders = bookings.map(async (booking) => {
       const defaultLocale = "en";
+
       const bookingInfo = {
         uid: booking.uid,
         bookerUrl,
@@ -570,6 +572,9 @@ export async function scheduleCalIdBookingReminders(
           schedulingType: booking.eventType?.schedulingType,
           hosts: booking.eventType?.hosts,
         },
+        locationType:
+          (booking.responses as { location?: { value?: string } } | null)?.location?.value ||
+          null,
         metadata: booking.metadata,
         customReplyToEmail: booking.eventType?.customReplyToEmail,
       };

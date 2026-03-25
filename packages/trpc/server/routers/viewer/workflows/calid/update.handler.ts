@@ -337,6 +337,7 @@ export const calIdUpdateHandler = async ({ ctx, input }: CalIdUpdateOptions) => 
         sender: newStep.sender,
         numberVerificationPending: false,
         includeCalendarEvent: newStep.includeCalendarEvent,
+        variableMapping: newStep.variableMapping,
         verifiedAt: !SCANNING_WORKFLOW_STEPS ? new Date() : didBodyChange ? null : oldStep.verifiedAt,
       };
 
