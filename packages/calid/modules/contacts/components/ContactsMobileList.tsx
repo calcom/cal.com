@@ -5,7 +5,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calid/features/ui/components/dropdown-menu";
-import { CalendarPlus, Mail, MoreHorizontal, Phone, Share2 } from "lucide-react";
+import { CalendarPlus, MoreHorizontal, Phone, Share2 } from "lucide-react";
+
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import type { Contact } from "../types";
 import { ContactAvatar } from "./ContactAvatar";
@@ -23,6 +25,8 @@ export const ContactsMobileList = ({
   onShare,
   onSchedule,
 }: ContactsMobileListProps) => {
+  const { t } = useLocale();
+
   return (
     <div className="space-y-2">
       {contacts.map((contact) => (
@@ -46,10 +50,10 @@ export const ContactsMobileList = ({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
                 <DropdownMenuItem onClick={() => onShare(contact)}>
-                  <Share2 className="mr-2 h-3.5 w-3.5" /> Share Availability
+                  <Share2 className="mr-2 h-3.5 w-3.5" /> {t("contacts_share_availability")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onSchedule(contact)}>
-                  <CalendarPlus className="mr-2 h-3.5 w-3.5" /> Schedule Meeting
+                  <CalendarPlus className="mr-2 h-3.5 w-3.5" /> {t("contacts_schedule_meeting")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -2,6 +2,8 @@ import { Button } from "@calid/features/ui/components/button";
 import { Input } from "@calid/features/ui/components/input/input";
 import { Search } from "lucide-react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 interface ContactsToolbarProps {
   isMobile: boolean;
   search: string;
@@ -10,6 +12,8 @@ interface ContactsToolbarProps {
 }
 
 export const ContactsToolbar = ({ isMobile, search, onSearchChange, onAddContact }: ContactsToolbarProps) => {
+  const { t } = useLocale();
+
   return (
     <div
       className={`bg-background/95 sticky top-0 z-10 flex pb-3 backdrop-blur-sm ${
@@ -20,13 +24,13 @@ export const ContactsToolbar = ({ isMobile, search, onSearchChange, onAddContact
         <Input
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Search contacts..."
+          placeholder={t("contacts_search_contacts")}
           className="h-9 pl-9"
         />
       </div>
 
       <Button onClick={onAddContact} className="h-9" StartIcon="plus">
-        Add Contact
+        {t("contacts_add_contact")}
       </Button>
     </div>
   );

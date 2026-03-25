@@ -16,6 +16,8 @@ import {
 import { format } from "date-fns";
 import { CalendarPlus, MoreHorizontal, Share2, User } from "lucide-react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import type { Contact, ContactSortDirection, ContactSortKey } from "../types";
 import { ContactAvatar } from "./ContactAvatar";
 import { ContactsSortHeader } from "./ContactsSortHeader";
@@ -39,6 +41,8 @@ export const ContactsTable = ({
   onShare,
   onSchedule,
 }: ContactsTableProps) => {
+  const { t } = useLocale();
+
   return (
     <div className="border-border w-full overflow-hidden rounded-lg border">
       {/* Horizontal scroll wrapper for narrow viewports */}
@@ -48,25 +52,25 @@ export const ContactsTable = ({
             <TableRow className="bg-muted/30 hover:bg-muted/30">
               <TableHead className="">
                 <ContactsSortHeader
-                  label="Name"
+                  label={t("name")}
                   field="name"
                   activeSortKey={sortKey}
                   sortDirection={sortDirection}
                   onSortChange={onSortChange}
                 />
               </TableHead>
-              <TableHead>Phone</TableHead>
+              <TableHead>{t("phone")}</TableHead>
               <TableHead>
                 <ContactsSortHeader
-                  label="Created"
+                  label={t("contacts_created")}
                   field="createdAt"
                   activeSortKey={sortKey}
                   sortDirection={sortDirection}
                   onSortChange={onSortChange}
                 />
               </TableHead>
-              <TableHead>Last Meeting</TableHead>
-              <TableHead className="w-12">Actions</TableHead>
+              <TableHead>{t("contacts_last_meeting")}</TableHead>
+              <TableHead className="w-12">{t("contacts_actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -106,13 +110,13 @@ export const ContactsTable = ({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
                       <DropdownMenuItem onClick={() => onRowClick(contact.id)}>
-                        <User className="mr-2 h-3.5 w-3.5" /> View Profile
+                        <User className="mr-2 h-3.5 w-3.5" /> {t("contacts_view_profile")}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onShare(contact)}>
-                        <Share2 className="mr-2 h-3.5 w-3.5" /> Share Availability
+                        <Share2 className="mr-2 h-3.5 w-3.5" /> {t("contacts_share_availability")}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onSchedule(contact)}>
-                        <CalendarPlus className="mr-2 h-3.5 w-3.5" /> Schedule Meeting
+                        <CalendarPlus className="mr-2 h-3.5 w-3.5" /> {t("contacts_schedule_meeting")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

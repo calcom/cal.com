@@ -3,12 +3,14 @@ import { Button } from "@calid/features/ui/components/button";
 import { format } from "date-fns";
 import { CalendarDays, CheckCircle2, Video, XCircle } from "lucide-react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import type { ContactMeeting } from "../types";
 
 const meetingStatusConfig = {
-  upcoming: { icon: CalendarDays, className: "text-primary", label: "Upcoming" },
-  completed: { icon: CheckCircle2, className: "text-emerald-600", label: "Completed" },
-  cancelled: { icon: XCircle, className: "text-muted-foreground", label: "Cancelled" },
+  upcoming: { icon: CalendarDays, className: "text-primary", labelKey: "contacts_upcoming" },
+  completed: { icon: CheckCircle2, className: "text-emerald-600", labelKey: "contacts_completed" },
+  cancelled: { icon: XCircle, className: "text-muted-foreground", labelKey: "contacts_cancelled" },
 };
 
 interface MeetingCardProps {
@@ -16,6 +18,7 @@ interface MeetingCardProps {
 }
 
 export const MeetingCard = ({ meeting }: MeetingCardProps) => {
+  const { t } = useLocale();
   const statusConfig = meetingStatusConfig[meeting.status];
   const StatusIcon = statusConfig.icon;
 
@@ -27,7 +30,7 @@ export const MeetingCard = ({ meeting }: MeetingCardProps) => {
         <div className="text-muted-foreground mt-0.5 flex items-center gap-2 text-xs">
           <span>{format(meeting.date, "MMM d, yyyy · h:mm a")}</span>
           <span>·</span>
-          <span>{meeting.duration} min</span>
+          <span>{t("contacts_duration_in_min", { duration: meeting.duration })}</span>
         </div>
         {meeting.notes ? (
           <p className="text-muted-foreground mt-1 truncate text-xs">{meeting.notes}</p>
@@ -35,7 +38,7 @@ export const MeetingCard = ({ meeting }: MeetingCardProps) => {
       </div>
       <div className="flex shrink-0 items-center gap-1">
         <Badge variant="outline" size="xs" className="text-[10px]">
-          {statusConfig.label}
+          {t(statusConfig.labelKey)}
         </Badge>
         {meeting.meetingLink && meeting.status === "upcoming" ? (
           <Button

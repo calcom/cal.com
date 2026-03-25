@@ -1,6 +1,8 @@
 import { Button } from "@calid/features/ui/components/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 interface ContactsPaginationProps {
   page: number;
   totalPages: number;
@@ -14,6 +16,8 @@ export const ContactsPagination = ({
   totalItems,
   onPageChange,
 }: ContactsPaginationProps) => {
+  const { t } = useLocale();
+
   if (totalPages <= 1) {
     return null;
   }
@@ -21,7 +25,7 @@ export const ContactsPagination = ({
   return (
     <div className="flex items-center justify-between pt-2">
       <span className="text-muted-foreground text-xs">
-        {totalItems} contact{totalItems !== 1 ? "s" : ""} - Page {page} of {totalPages}
+        {t("contacts_pagination_summary", { count: totalItems, page, totalPages })}
       </span>
       <div className="flex items-center gap-1">
         <Button

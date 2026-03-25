@@ -14,6 +14,8 @@ import { Label } from "@calid/features/ui/components/label";
 import { Save, UserPlus } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import type { Contact, ContactDraft } from "../types";
 
 interface AddEditContactModalProps {
@@ -40,6 +42,7 @@ export const AddEditContactModal = ({
   isSubmitting = false,
   errorMessage,
 }: AddEditContactModalProps) => {
+  const { t } = useLocale();
   const isEditMode = Boolean(contact);
 
   const [form, setForm] = useState<ContactFormState>({
@@ -77,13 +80,13 @@ export const AddEditContactModal = ({
     const nextErrors: Record<string, string> = {};
 
     if (!form.name.trim()) {
-      nextErrors.name = "Name is required";
+      nextErrors.name = t("contacts_name_is_required");
     }
 
     if (!form.email.trim()) {
-      nextErrors.email = "Email is required";
+      nextErrors.email = t("contacts_email_is_required");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      nextErrors.email = "Invalid email format";
+      nextErrors.email = t("contacts_invalid_email_format");
     }
 
     setErrors(nextErrors);
@@ -108,22 +111,22 @@ export const AddEditContactModal = ({
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base font-semibold">
             {isEditMode ? <Save className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-            {isEditMode ? "Edit Contact" : "Add Contact"}
+            {isEditMode ? t("contacts_edit_contact") : t("contacts_add_contact")}
           </DialogTitle>
         </DialogHeader>
 
         {/* Scrollable form body */}
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="space-y-4 px-1 pt-2 pb-1">
+          <div className="space-y-4 px-1 pb-1 pt-2">
             <div className="space-y-1.5">
               <Label htmlFor="contact-name">
-                Full Name <span className="text-destructive">*</span>
+                {t("contacts_full_name")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="contact-name"
                 value={form.name}
                 onChange={(event) => updateField("name", event.target.value)}
-                placeholder="e.g. John Doe"
+                placeholder={t("contacts_name_placeholder")}
                 className={errors.name ? "border-destructive" : ""}
               />
               {errors.name ? <p className="text-destructive text-xs">{errors.name}</p> : null}
@@ -131,14 +134,14 @@ export const AddEditContactModal = ({
 
             <div className="space-y-1.5">
               <Label htmlFor="contact-email">
-                Email Address <span className="text-destructive">*</span>
+                {t("contacts_email_address")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="contact-email"
                 type="email"
                 value={form.email}
                 onChange={(event) => updateField("email", event.target.value)}
-                placeholder="e.g. john@gmail.com"
+                placeholder={t("contacts_email_placeholder")}
                 readOnly={isEditMode}
                 className={`${errors.email ? "border-destructive" : ""} ${
                   isEditMode ? "bg-muted cursor-not-allowed" : ""
@@ -148,23 +151,23 @@ export const AddEditContactModal = ({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="contact-phone">Phone Number</Label>
+              <Label htmlFor="contact-phone">{t("contacts_phone_number")}</Label>
               <Input
                 id="contact-phone"
                 value={form.phone}
                 onChange={(event) => updateField("phone", event.target.value)}
-                placeholder="+91 98xxxxxxx"
+                placeholder={t("contacts_phone_placeholder")}
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="contact-notes">Notes</Label>
+              <Label htmlFor="contact-notes">{t("contacts_notes")}</Label>
               <TextArea
                 id="contact-notes"
                 rows={3}
                 value={form.notes}
                 onChange={(event) => updateField("notes", event.target.value)}
-                placeholder="Add any relevant notes..."
+                placeholder={t("contacts_add_relevant_notes")}
                 className="border-default text-sm shadow"
               />
             </div>
@@ -180,7 +183,7 @@ export const AddEditContactModal = ({
             StartIcon="x"
             disabled={isSubmitting}
             className="w-full sm:w-auto">
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={handleSubmit}
@@ -190,7 +193,7 @@ export const AddEditContactModal = ({
             CustomStartIcon={
               isEditMode ? <Save className="h-3.5 w-3.5" /> : <UserPlus className="h-3.5 w-3.5" />
             }>
-            {isEditMode ? "Update Contact" : "Create Contact"}
+            {isEditMode ? t("contacts_update_contact") : t("contacts_create_contact")}
           </Button>
         </DialogFooter>
       </DialogContent>

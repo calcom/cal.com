@@ -67,6 +67,6 @@ export type ContactMeetingRow =
 
 export interface ContactShareOption {
   id: string;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
 }

@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { trpc } from "@calcom/trpc/react";
 
@@ -23,6 +24,7 @@ import { mapContactDraftToCreateInput, mapContactRowToContact } from "../mappers
 import type { Contact, ContactDraft } from "../types";
 
 const ContactsPage = () => {
+  const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -69,11 +71,11 @@ const ContactsPage = () => {
 
     try {
       await createContactMutation.mutateAsync(mapContactDraftToCreateInput(draft));
-      triggerToast("Contact created", "success");
+      triggerToast(t("contacts_contact_created"), "success");
       setPage(1);
       setAddOpen(false);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Could not save contact";
+      const message = error instanceof Error ? error.message : t("contacts_could_not_save_contact");
       setAddEditErrorMessage(message);
       triggerToast(message, "error");
     }
@@ -90,12 +92,12 @@ const ContactsPage = () => {
   if (listQuery.isError) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <h3 className="mb-1 text-lg font-semibold">Failed to load contacts</h3>
+        <h3 className="mb-1 text-lg font-semibold">{t("contacts_failed_to_load_contacts")}</h3>
         <p className="text-muted-foreground mb-4 text-sm">
-          {listQuery.error.message || "Please try again in a moment."}
+          {listQuery.error.message || t("contacts_please_try_again_in_a_moment")}
         </p>
         <Button color="secondary" onClick={() => listQuery.refetch()}>
-          Retry
+          {t("retry")}
         </Button>
       </div>
     );
@@ -133,7 +135,7 @@ const ContactsPage = () => {
       {listQuery.isFetching ? (
         <div className="flex items-center gap-2 text-xs">
           <Loader2 className="text-muted-foreground h-3.5 w-3.5 animate-spin" />
-          <span className="text-muted-foreground">Updating contacts…</span>
+          <span className="text-muted-foreground">{t("contacts_updating_contacts")}</span>
         </div>
       ) : null}
 

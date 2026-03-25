@@ -3,6 +3,8 @@ import { Button } from "@calid/features/ui/components/button";
 import { Label } from "@calid/features/ui/components/label";
 import { ArrowRight, Clock, Loader2 } from "lucide-react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 type EventTypeOption = {
   id: number;
   title: string;
@@ -36,48 +38,48 @@ export const ScheduleMeetingModalEventTypeStep = ({
   onNext,
   isNextDisabled,
 }: ScheduleMeetingModalEventTypeStepProps) => {
+  const { t } = useLocale();
+
   return (
     <div className="flex min-h-0 flex-col gap-3 pt-2">
-      <Label>Select Event Type</Label>
+      <Label>{t("select_event_type")}</Label>
 
       {isEventTypesLoading ? (
         <div className="text-muted-foreground flex items-center gap-2 py-3 text-sm">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Loading event types...
+          {t("contacts_loading_event_types")}
         </div>
       ) : null}
 
       {eventTypesErrorMessage ? (
         <div className="space-y-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          <p>{eventTypesErrorMessage || "Failed to load event types."}</p>
+          <p>{eventTypesErrorMessage || t("contacts_failed_to_load_event_types")}</p>
           <Button color="secondary" size="sm" onClick={onRetryEventTypes}>
-            Retry
+            {t("retry")}
           </Button>
         </div>
       ) : null}
 
       {!isEventTypesLoading && !eventTypesErrorMessage && eventTypes.length === 0 ? (
         <p className="text-muted-foreground rounded-lg border px-3 py-2 text-sm">
-          No event types available for scheduling.
+          {t("contacts_no_event_types_available_for_scheduling")}
         </p>
       ) : null}
 
       {!isEventTypesLoading && !eventTypesErrorMessage ? (
         /* Constrained scroll area so event list doesn't push footer off-screen */
-        <div className="min-h-0 max-h-[40vh] space-y-2 overflow-y-auto pr-0.5">
+        <div className="max-h-[40vh] min-h-0 space-y-2 overflow-y-auto pr-0.5">
           {eventTypes.map((eventType) => (
             <button
               key={eventType.id}
               onClick={() => onSelectEventType(eventType.id)}
               className={cn(
                 "w-full rounded-lg border px-4 py-3 text-left transition-colors",
-                selectedEventId === eventType.id
-                  ? "border-primary bg-muted"
-                  : "border-border hover:bg-muted"
+                selectedEventId === eventType.id ? "border-primary bg-muted" : "border-border hover:bg-muted"
               )}>
               <div className="text-sm font-medium">{eventType.title}</div>
               <div className="text-muted-foreground flex items-center gap-1 text-xs">
-                <Clock className="h-3 w-3" /> {eventType.length} min
+                <Clock className="h-3 w-3" /> {t("contacts_duration_in_min", { duration: eventType.length })}
               </div>
             </button>
           ))}
@@ -87,13 +89,13 @@ export const ScheduleMeetingModalEventTypeStep = ({
       {selectedEventId !== null && isSelectedEventLoading ? (
         <div className="text-muted-foreground flex items-center gap-2 text-xs">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Checking event type access...
+          {t("contacts_checking_event_type_access")}
         </div>
       ) : null}
 
       {selectedEventErrorMessage ? (
         <p className="text-xs text-red-600">
-          {selectedEventErrorMessage || "You do not have permission to schedule this event type."}
+          {selectedEventErrorMessage || t("contacts_no_permission_to_schedule_event_type")}
         </p>
       ) : null}
 
@@ -101,7 +103,7 @@ export const ScheduleMeetingModalEventTypeStep = ({
 
       <div className="flex justify-end pt-1">
         <Button disabled={isNextDisabled} onClick={onNext}>
-          Next <ArrowRight className="ml-1 h-3.5 w-3.5" />
+          {t("next")} <ArrowRight className="ml-1 h-3.5 w-3.5" />
         </Button>
       </div>
     </div>

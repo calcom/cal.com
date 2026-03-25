@@ -1,17 +1,21 @@
 import { Button } from "@calid/features/ui/components/button";
 import { Loader2 } from "lucide-react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 interface ContactDetailInvalidStateProps {
   onBack: () => void;
 }
 
 export const ContactDetailInvalidState = ({ onBack }: ContactDetailInvalidStateProps) => {
+  const { t } = useLocale();
+
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <h3 className="mb-1 text-lg font-semibold">Invalid contact</h3>
-      <p className="text-muted-foreground mb-4 text-sm">The contact ID is invalid.</p>
+      <h3 className="mb-1 text-lg font-semibold">{t("contacts_invalid_contact")}</h3>
+      <p className="text-muted-foreground mb-4 text-sm">{t("contacts_contact_id_invalid")}</p>
       <Button color="secondary" onClick={onBack}>
-        Back to Contacts
+        {t("contacts_back_to_contacts")}
       </Button>
     </div>
   );
@@ -30,12 +34,14 @@ interface ContactDetailNotFoundStateProps {
 }
 
 export const ContactDetailNotFoundState = ({ onBack }: ContactDetailNotFoundStateProps) => {
+  const { t } = useLocale();
+
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <h3 className="mb-1 text-lg font-semibold">Contact not found</h3>
-      <p className="text-muted-foreground mb-4 text-sm">This contact may have been removed.</p>
+      <h3 className="mb-1 text-lg font-semibold">{t("contacts_contact_not_found")}</h3>
+      <p className="text-muted-foreground mb-4 text-sm">{t("contacts_contact_may_have_been_removed")}</p>
       <Button color="secondary" onClick={onBack}>
-        Back to Contacts
+        {t("contacts_back_to_contacts")}
       </Button>
     </div>
   );
@@ -47,12 +53,16 @@ interface ContactDetailErrorStateProps {
 }
 
 export const ContactDetailErrorState = ({ message, onRetry }: ContactDetailErrorStateProps) => {
+  const { t } = useLocale();
+
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center">
-      <h3 className="mb-1 text-lg font-semibold">Failed to load contact</h3>
-      <p className="text-muted-foreground mb-4 text-sm">{message || "Please try again in a moment."}</p>
+      <h3 className="mb-1 text-lg font-semibold">{t("contacts_failed_to_load_contact")}</h3>
+      <p className="text-muted-foreground mb-4 text-sm">
+        {message || t("contacts_please_try_again_in_a_moment")}
+      </p>
       <Button color="secondary" onClick={onRetry}>
-        Retry
+        {t("retry")}
       </Button>
     </div>
   );

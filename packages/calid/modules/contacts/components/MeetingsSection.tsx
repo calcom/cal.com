@@ -2,6 +2,8 @@ import { cn } from "@calid/features/lib/cn";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@calid/features/ui/components/card";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import type { ContactMeeting } from "../types";
 import { MeetingCard } from "./MeetingCard";
 
@@ -24,6 +26,8 @@ export const MeetingsSection = ({
   errorMessage = null,
   className,
 }: MeetingsSectionProps) => {
+  const { t } = useLocale();
+
   return (
     <Card className={cn("flex h-full min-h-0 flex-col", className)}>
       <CardHeader className="shrink-0 pb-3">
@@ -39,7 +43,7 @@ export const MeetingsSection = ({
       <CardContent className="min-h-0 flex-1">
         <div className="h-full min-h-0 overflow-y-auto pr-1">
           {isLoading ? (
-            <p className="text-muted-foreground py-4 text-center text-sm">Loading meetings...</p>
+            <p className="text-muted-foreground py-4 text-center text-sm">{t("contacts_loading_meetings")}</p>
           ) : errorMessage ? (
             <p className="text-destructive py-4 text-center text-sm">{errorMessage}</p>
           ) : meetings.length === 0 ? (

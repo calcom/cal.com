@@ -3,6 +3,8 @@ import { Input } from "@calid/features/ui/components/input/input";
 import { Label } from "@calid/features/ui/components/label";
 import { ArrowLeft, ArrowRight, Users } from "lucide-react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 interface ScheduleMeetingModalGuestsStepProps {
   contactName?: string;
   contactEmail?: string;
@@ -22,6 +24,8 @@ export const ScheduleMeetingModalGuestsStep = ({
   onBack,
   onNext,
 }: ScheduleMeetingModalGuestsStepProps) => {
+  const { t } = useLocale();
+
   return (
     <div className="space-y-4 pt-2">
       <div className="bg-muted/50 border-border rounded-lg border p-3">
@@ -30,22 +34,22 @@ export const ScheduleMeetingModalGuestsStep = ({
       </div>
       <div className="space-y-1.5">
         <Label className="flex items-center gap-1">
-          <Users className="h-3.5 w-3.5" /> Additional Guests
+          <Users className="h-3.5 w-3.5" /> {t("contacts_additional_guests")}
         </Label>
         <Input
           value={additionalGuests}
           onChange={(event) => onAdditionalGuestsChange(event.target.value)}
-          placeholder="guest1@email.com, guest2@email.com"
+          placeholder={t("contacts_guest_emails_placeholder")}
         />
-        <p className="text-muted-foreground text-xs">Separate multiple emails with commas</p>
+        <p className="text-muted-foreground text-xs">{t("contacts_separate_emails_with_commas")}</p>
       </div>
       {bookingErrorMessage ? <p className="text-xs text-red-600">{bookingErrorMessage}</p> : null}
       <div className="flex justify-between pt-2">
         <Button color="secondary" onClick={onBack}>
-          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Back
+          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> {t("back")}
         </Button>
         <Button onClick={onNext}>
-          Next <ArrowRight className="ml-1 h-3.5 w-3.5" />
+          {t("next")} <ArrowRight className="ml-1 h-3.5 w-3.5" />
         </Button>
       </div>
     </div>

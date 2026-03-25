@@ -3,6 +3,8 @@ import { Button } from "@calid/features/ui/components/button";
 import { Label } from "@calid/features/ui/components/label";
 import { ArrowLeft, ArrowRight, MapPin } from "lucide-react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 type LocationOption = {
   type: string;
   label: string;
@@ -27,11 +29,13 @@ export const ScheduleMeetingModalLocationStep = ({
   onBack,
   onNext,
 }: ScheduleMeetingModalLocationStepProps) => {
+  const { t } = useLocale();
+
   return (
     <div className="space-y-4 pt-2">
       <div className="space-y-1.5">
-        <Label>Select Location</Label>
-        <p className="text-muted-foreground text-xs">Choose where this meeting will take place.</p>
+        <Label>{t("contacts_select_location")}</Label>
+        <p className="text-muted-foreground text-xs">{t("contacts_choose_meeting_location")}</p>
       </div>
 
       {fallbackNotice ? (
@@ -61,10 +65,10 @@ export const ScheduleMeetingModalLocationStep = ({
 
       <div className="flex justify-between pt-2">
         <Button color="secondary" onClick={onBack}>
-          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Back
+          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> {t("back")}
         </Button>
         <Button disabled={!selectedLocationType || Boolean(unsupportedReason)} onClick={onNext}>
-          Next <ArrowRight className="ml-1 h-3.5 w-3.5" />
+          {t("next")} <ArrowRight className="ml-1 h-3.5 w-3.5" />
         </Button>
       </div>
     </div>

@@ -18,6 +18,7 @@ import { Copy, Loader2, Mail, MessageCircle, Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
 import { CONTACT_SHARE_OPTIONS } from "../constants";
@@ -31,18 +32,20 @@ interface ShareAvailabilityModalProps {
 }
 
 const NO_EVENT_TYPE_VALUE = "__no_event_type__";
-const NO_EVENT_TYPE_OPTION = {
-  label: "No event type",
-  value: NO_EVENT_TYPE_VALUE,
-};
 
 export const ShareAvailabilityModal = ({ open, onOpenChange, contact }: ShareAvailabilityModalProps) => {
+  const { t } = useLocale();
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
-  const [message, setMessage] = useState(
-    "Hi! Here is my availability link so you can pick a time that works for you."
-  );
+  const [message, setMessage] = useState(t("contacts_share_message_default"));
   const [copyPending, setCopyPending] = useState(false);
   const bookerUrl = useBookerUrl();
+  const noEventTypeOption = useMemo(
+    () => ({
+      label: t("contacts_no_event_type"),
+      value: NO_EVENT_TYPE_VALUE,
+    }),
+    [t]
+  );
 
   const eventTypesQuery = trpc.viewer.eventTypes.list.useQuery(undefined, {
     enabled: open,
@@ -83,19 +86,19 @@ export const ShareAvailabilityModal = ({ open, onOpenChange, contact }: ShareAva
 
   const eventTypeOptions = useMemo(() => {
     const realOptions = (eventTypesQuery.data ?? []).map((eventType) => ({
-      label: `${eventType.title} (${eventType.length} min)`,
+      label: `${eventType.title} (${t("contacts_duration_in_min", { duration: eventType.length })})`,
       value: `${eventType.id}`,
     }));
-    return [NO_EVENT_TYPE_OPTION, ...realOptions];
-  }, [eventTypesQuery.data]);
+    return [noEventTypeOption, ...realOptions];
+  }, [eventTypesQuery.data, noEventTypeOption, t]);
 
   const selectedEventOption = useMemo(() => {
     if (selectedEventId === null) {
-      return NO_EVENT_TYPE_OPTION;
+      return noEventTypeOption;
     }
 
-    return eventTypeOptions.find((option) => option.value === `${selectedEventId}`) ?? NO_EVENT_TYPE_OPTION;
-  }, [eventTypeOptions, selectedEventId]);
+    return eventTypeOptions.find((option) => option.value === `${selectedEventId}`) ?? noEventTypeOption;
+  }, [eventTypeOptions, selectedEventId, noEventTypeOption]);
 
   const shareLink = useMemo(() => {
     const selectedEventDetail = selectedEventQuery.data?.eventType;
@@ -130,16 +133,16 @@ export const ShareAvailabilityModal = ({ open, onOpenChange, contact }: ShareAva
 
   const copyLink = async () => {
     if (!shareLink) {
-      triggerToast("Availability link is not available yet.", "error");
+      triggerToast(t("contacts_availability_link_not_available"), "error");
       return;
     }
 
     try {
       setCopyPending(true);
       await navigator.clipboard.writeText(shareLink);
-      triggerToast("Availability link copied", "success");
+      triggerToast(t("contacts_availability_link_copied"), "success");
     } catch {
-      triggerToast("Could not copy availability link", "error");
+      triggerToast(t("contacts_could_not_copy_availability_link"), "error");
     } finally {
       setCopyPending(false);
     }
@@ -150,26 +153,26 @@ export const ShareAvailabilityModal = ({ open, onOpenChange, contact }: ShareAva
       return;
     }
     if (!shareLink) {
-      triggerToast("Availability link is not available yet.", "error");
+      triggerToast(t("contacts_availability_link_not_available"), "error");
       return;
     }
 
-    const subject = `Availability from ${contact.name}`;
+    const subject = t("contacts_availability_from_name", { name: contact.name });
     const body = `${message}\n\n${shareLink}`;
     window.open(
       `mailto:${contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
     );
-    triggerToast("Email draft opened", "success");
+    triggerToast(t("contacts_email_draft_opened"), "success");
   };
 
   const shareViaWhatsApp = () => {
     if (!shareLink) {
-      triggerToast("Availability link is not available yet.", "error");
+      triggerToast(t("contacts_availability_link_not_available"), "error");
       return;
     }
     const payload = `${message} ${shareLink}`.trim();
     window.open(`https://wa.me/?text=${encodeURIComponent(payload)}`, "_blank", "noopener,noreferrer");
-    triggerToast("Share window opened", "success");
+    triggerToast(t("contacts_share_window_opened"), "success");
   };
 
   const handleQuickShare = (shareId: string) => {
@@ -192,16 +195,18 @@ export const ShareAvailabilityModal = ({ open, onOpenChange, contact }: ShareAva
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base font-semibold">
             <Share2 className="h-4 w-4" />
-            Share Availability {contact ? `with ${contact.name}` : ""}
+            {contact
+              ? t("contacts_share_availability_with_name", { name: contact.name })
+              : t("contacts_share_availability")}
           </DialogTitle>
-          <DialogDescription>Send your availability link using your preferred channel.</DialogDescription>
+          <DialogDescription>{t("contacts_send_availability_using_preferred_channel")}</DialogDescription>
         </DialogHeader>
 
         {/* Scrollable content body */}
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="space-y-4 px-1 pb-1 pt-2">
             <div className="space-y-1.5">
-              <Label>Select Event Type</Label>
+              <Label>{t("select_event_type")}</Label>
               <Select
                 options={eventTypeOptions}
                 value={selectedEventOption}
@@ -229,38 +234,39 @@ export const ShareAvailabilityModal = ({ open, onOpenChange, contact }: ShareAva
               />
               {eventTypesQuery.isError ? (
                 <div className="space-y-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                  <p>{eventTypesQuery.error.message || "Could not load event types."}</p>
+                  <p>{eventTypesQuery.error.message || t("contacts_could_not_load_event_types")}</p>
                   <Button color="secondary" size="sm" onClick={() => eventTypesQuery.refetch()}>
-                    Retry
+                    {t("retry")}
                   </Button>
                 </div>
               ) : null}
               {selectedEventId !== null && selectedEventQuery.isLoading ? (
                 <div className="text-muted-foreground flex items-center gap-2 text-xs">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Loading event details...
+                  {t("contacts_loading_event_details")}
                 </div>
               ) : null}
               {selectedEventQuery.isError ? (
                 <p className="text-xs text-red-600">
-                  {selectedEventQuery.error.message || "Could not load selected event type details."}
+                  {selectedEventQuery.error.message ||
+                    t("contacts_could_not_load_selected_event_type_details")}
                 </p>
               ) : null}
               {selectedEventId === null && meQuery.isLoading ? (
                 <div className="text-muted-foreground flex items-center gap-2 text-xs">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Loading your public booking page...
+                  {t("contacts_loading_public_booking_page")}
                 </div>
               ) : null}
               {selectedEventId === null && meQuery.isError ? (
                 <p className="text-xs text-red-600">
-                  {meQuery.error.message || "Could not load your public booking page."}
+                  {meQuery.error.message || t("contacts_could_not_load_public_booking_page")}
                 </p>
               ) : null}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="availability-link">Availability Link</Label>
+              <Label htmlFor="availability-link">{t("contacts_availability_link")}</Label>
               {/* Stack input + copy button on very narrow screens */}
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Input
@@ -276,13 +282,13 @@ export const ShareAvailabilityModal = ({ open, onOpenChange, contact }: ShareAva
                   loading={copyPending}
                   disabled={!shareLink || copyPending}>
                   <Copy className="h-3.5 w-3.5" />
-                  Copy
+                  {t("contacts_copy")}
                 </Button>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="share-message">Message</Label>
+              <Label htmlFor="share-message">{t("contacts_message")}</Label>
               <TextArea
                 id="share-message"
                 rows={4}
@@ -304,9 +310,9 @@ export const ShareAvailabilityModal = ({ open, onOpenChange, contact }: ShareAva
                     {option.id === "copy" ? <Copy className="h-3.5 w-3.5 shrink-0" /> : null}
                     {option.id === "email" ? <Mail className="h-3.5 w-3.5 shrink-0" /> : null}
                     {option.id === "whatsapp" ? <MessageCircle className="h-3.5 w-3.5 shrink-0" /> : null}
-                    {option.label}
+                    {t(option.labelKey)}
                   </div>
-                  <p className="text-muted-foreground mt-1 text-xs">{option.description}</p>
+                  <p className="text-muted-foreground mt-1 text-xs">{t(option.descriptionKey)}</p>
                 </button>
               ))}
             </div>
@@ -315,7 +321,7 @@ export const ShareAvailabilityModal = ({ open, onOpenChange, contact }: ShareAva
 
         <DialogFooter className="shrink-0">
           <Button color="primary" onClick={() => onOpenChange(false)}>
-            Close
+            {t("close")}
           </Button>
         </DialogFooter>
       </DialogContent>

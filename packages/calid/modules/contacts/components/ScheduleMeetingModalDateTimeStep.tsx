@@ -9,6 +9,7 @@ import { format, isBefore, parseISO, startOfDay } from "date-fns";
 import { ArrowLeft, ArrowRight, CalendarIcon, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 
 type SlotOption = {
@@ -80,6 +81,7 @@ export const ScheduleMeetingModalDateTimeStep = ({
   onNext,
   canContinue,
 }: ScheduleMeetingModalDateTimeStepProps) => {
+  const { t } = useLocale();
   const [isDatePopoverOpen, setIsDatePopoverOpen] = useState(false);
 
   useEffect(() => {
@@ -97,14 +99,14 @@ export const ScheduleMeetingModalDateTimeStep = ({
     <div className="space-y-4 pt-2">
       {/* Date picker */}
       <div className="space-y-1.5">
-        <Label>Select Date</Label>
+        <Label>{t("contacts_select_date")}</Label>
         <Popover open={isDatePopoverOpen} onOpenChange={setIsDatePopoverOpen}>
           <PopoverTrigger asChild>
             <Button
               color="secondary"
               className={cn("w-full justify-start text-left", !selectedDate && "text-muted-foreground")}>
               <CalendarIcon className="mr-2 h-4 w-4 shrink-0" />
-              {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+              {selectedDate ? format(selectedDate, "PPP") : t("contacts_pick_a_date")}
             </Button>
           </PopoverTrigger>
           <PopoverContent
@@ -132,16 +134,16 @@ export const ScheduleMeetingModalDateTimeStep = ({
       {/* Duration */}
       {selectedDate ? (
         <div className="space-y-1.5 pt-2">
-          <Label>Duration</Label>
+          <Label>{t("duration")}</Label>
           {isDurationLoading ? (
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Loading duration options...
+              {t("contacts_loading_duration_options")}
             </div>
           ) : null}
           {durationErrorMessage ? (
             <p className="text-xs text-red-600">
-              {durationErrorMessage || "Could not load duration options."}
+              {durationErrorMessage || t("contacts_could_not_load_duration_options")}
             </p>
           ) : null}
           {!isDurationLoading && !durationErrorMessage && durationOptions.length > 0 ? (
@@ -156,12 +158,12 @@ export const ScheduleMeetingModalDateTimeStep = ({
               }}
               options={durationOptions.map((duration) => ({
                 value: `${duration}`,
-                label: `${duration} min`,
+                label: t("contacts_duration_in_min", { duration }),
               }))}
             />
           ) : null}
           {!isDurationLoading && !durationErrorMessage && durationOptions.length === 0 ? (
-            <p className="text-muted-foreground text-xs">No duration options available.</p>
+            <p className="text-muted-foreground text-xs">{t("contacts_no_duration_options_available")}</p>
           ) : null}
         </div>
       ) : null}
@@ -170,7 +172,7 @@ export const ScheduleMeetingModalDateTimeStep = ({
       {selectedDate ? (
         <div className="space-y-1.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <Label>Select Time</Label>
+            <Label>{t("select_time")}</Label>
             <ToggleGroup
               value={timeFormat}
               onValueChange={(value) => {
@@ -187,20 +189,20 @@ export const ScheduleMeetingModalDateTimeStep = ({
           {isSlotsLoading ? (
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Loading available slots...
+              {t("contacts_loading_available_slots")}
             </div>
           ) : null}
           {slotsErrorMessage ? (
             <div className="space-y-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              <p>{slotsErrorMessage || "Failed to load time slots."}</p>
+              <p>{slotsErrorMessage || t("contacts_failed_to_load_time_slots")}</p>
               <Button color="secondary" size="sm" onClick={onRetrySlots}>
-                Retry
+                {t("retry")}
               </Button>
             </div>
           ) : null}
           {!isSlotsLoading && !slotsErrorMessage && availableSlots.length === 0 ? (
             <p className="text-muted-foreground rounded-lg border px-3 py-2 text-xs">
-              No available slots for this date.
+              {t("contacts_no_available_slots_for_this_date")}
             </p>
           ) : null}
           {!isSlotsLoading && !slotsErrorMessage && availableSlots.length > 0 ? (
@@ -228,15 +230,17 @@ export const ScheduleMeetingModalDateTimeStep = ({
       {isRecurringEventType ? (
         <div className="space-y-2 rounded-lg border px-3 py-3">
           <div className="space-y-1">
-            <Label>Recurrence</Label>
+            <Label>{t("contacts_recurrence")}</Label>
             {recurringPatternText ? (
               <p className="text-muted-foreground text-xs capitalize">{recurringPatternText}</p>
             ) : (
-              <p className="text-muted-foreground text-xs">This event repeats on a recurring schedule.</p>
+              <p className="text-muted-foreground text-xs">
+                {t("contacts_event_repeats_on_recurring_schedule")}
+              </p>
             )}
           </div>
           <div className="space-y-1">
-            <Label htmlFor="recurring-count">Occurrences</Label>
+            <Label htmlFor="recurring-count">{t("contacts_occurrences")}</Label>
             <Input
               id="recurring-count"
               type="number"
@@ -252,9 +256,11 @@ export const ScheduleMeetingModalDateTimeStep = ({
               className="max-w-[120px]"
             />
             {recurringMaxCount ? (
-              <p className="text-muted-foreground text-xs">Choose between 1 and {recurringMaxCount}.</p>
+              <p className="text-muted-foreground text-xs">
+                {t("contacts_choose_between_one_and_max", { max: recurringMaxCount })}
+              </p>
             ) : (
-              <p className="text-muted-foreground text-xs">Choose how many occurrences to schedule.</p>
+              <p className="text-muted-foreground text-xs">{t("contacts_choose_how_many_occurrences")}</p>
             )}
             {recurringEventCountWarning ? (
               <p className="text-xs text-amber-700">{recurringEventCountWarning}</p>
@@ -263,7 +269,7 @@ export const ScheduleMeetingModalDateTimeStep = ({
           {recurringSummaryText ? <p className="text-xs font-medium">{recurringSummaryText}</p> : null}
           {recurringOccurrencePreview.length > 0 ? (
             <div className="space-y-1">
-              <p className="text-muted-foreground text-xs">Upcoming occurrences</p>
+              <p className="text-muted-foreground text-xs">{t("contacts_upcoming_occurrences")}</p>
               <ul className="space-y-1 text-xs">
                 {recurringOccurrencePreview.map((occurrence, index) => (
                   <li key={`${occurrence}-${index}`} className="text-muted-foreground">
@@ -272,7 +278,9 @@ export const ScheduleMeetingModalDateTimeStep = ({
                 ))}
                 {recurringEventCount && recurringEventCount > recurringOccurrencePreview.length ? (
                   <li className="text-muted-foreground">
-                    + {recurringEventCount - recurringOccurrencePreview.length} more
+                    {t("contacts_more_occurrences", {
+                      count: recurringEventCount - recurringOccurrencePreview.length,
+                    })}
                   </li>
                 ) : null}
               </ul>
@@ -284,10 +292,10 @@ export const ScheduleMeetingModalDateTimeStep = ({
       {/* Navigation */}
       <div className="flex justify-between pt-2">
         <Button color="secondary" onClick={onBack}>
-          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Back
+          <ArrowLeft className="mr-1 h-3.5 w-3.5" /> {t("back")}
         </Button>
         <Button disabled={!canContinue || !isRecurringSelectionValid} onClick={onNext}>
-          Next <ArrowRight className="ml-1 h-3.5 w-3.5" />
+          {t("next")} <ArrowRight className="ml-1 h-3.5 w-3.5" />
         </Button>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { triggerToast } from "@calid/features/ui/components/toast";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { trpc } from "@calcom/trpc/react";
 
@@ -37,6 +38,7 @@ const sortMeetingsByStartTimeDesc = (first: ContactMeeting, second: ContactMeeti
 };
 
 const ContactDetailPage = ({ contactId }: ContactDetailPageProps) => {
+  const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
   const isMobile = useMediaQuery("(max-width: 1023px)");
@@ -124,7 +126,7 @@ const ContactDetailPage = ({ contactId }: ContactDetailPageProps) => {
   const deleteContactMutation = trpc.viewer.calIdContacts.delete.useMutation({
     async onSuccess() {
       await utils.viewer.calIdContacts.list.invalidate();
-      triggerToast("Contact deleted", "success");
+      triggerToast(t("contacts_contact_deleted"), "success");
       router.push("/contacts");
     },
   });
@@ -166,7 +168,7 @@ const ContactDetailPage = ({ contactId }: ContactDetailPageProps) => {
     try {
       await deleteContactMutation.mutateAsync({ id: contact.id });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Could not delete contact";
+      const message = error instanceof Error ? error.message : t("contacts_could_not_delete_contact");
       setDeleteErrorMessage(message);
       triggerToast(message, "error");
     }
@@ -177,10 +179,10 @@ const ContactDetailPage = ({ contactId }: ContactDetailPageProps) => {
 
     try {
       await updateContactMutation.mutateAsync(mapContactDraftToUpdateInput(draft));
-      triggerToast("Contact updated", "success");
+      triggerToast(t("contacts_contact_updated"), "success");
       handleEditOpenChange(false);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Could not update contact";
+      const message = error instanceof Error ? error.message : t("contacts_could_not_update_contact");
       setEditErrorMessage(message);
       triggerToast(message, "error");
     }
@@ -194,9 +196,9 @@ const ContactDetailPage = ({ contactId }: ContactDetailPageProps) => {
         id: contact.id,
         notes,
       });
-      triggerToast("Notes saved", "success");
+      triggerToast(t("contacts_notes_saved"), "success");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Could not save notes";
+      const message = error instanceof Error ? error.message : t("contacts_could_not_save_notes");
       setNotesErrorMessage(message);
       triggerToast(message, "error");
     }

@@ -156,17 +156,17 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     [selectedEventLocations, t]
   );
   const stepLabels = useMemo(() => {
-    const labels = ["Event Type"];
+    const labels = [t("contacts_event_type")];
     if (hasLocationSelectionStep) {
-      labels.push("Location");
+      labels.push(t("contacts_location"));
     }
-    labels.push("Date & Time");
+    labels.push(t("contacts_date_and_time"));
     if (hasExtendedBookingFields) {
-      labels.push("Booking Fields");
+      labels.push(t("contacts_booking_fields"));
     }
-    labels.push("Guests", "Confirm");
+    labels.push(t("contacts_guests"), t("contacts_confirm"));
     return labels;
-  }, [hasExtendedBookingFields, hasLocationSelectionStep]);
+  }, [hasExtendedBookingFields, hasLocationSelectionStep, t]);
 
   const EVENT_TYPE_STEP = 1;
   const LOCATION_STEP = hasLocationSelectionStep ? 2 : null;
@@ -326,8 +326,8 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     ) {
       return null;
     }
-    return "This event type has no configured location. Jitsi will be used by default.";
-  }, [selectedEventDetail]);
+    return t("contacts_event_type_no_configured_location_jitsi_default");
+  }, [selectedEventDetail, t]);
 
   const recurringSummaryText = useMemo(() => {
     if (
@@ -351,7 +351,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
 
     const frequencyText = getFrequencyText(recurringEventConfig.freq, recurringEventConfig.interval || 1);
     const countText = getCountText(recurringEventCount);
-    return `Repeats ${frequencyText} ${countText} starting from ${formattedStart}`;
+    return t("contacts_recurring_summary", { frequencyText, countText, formattedStart });
   }, [
     i18n.language,
     isRecurringEventType,
@@ -359,6 +359,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     recurringEventCount,
     recurringEventCountWarning,
     selectedSlotTime,
+    t,
     timeFormat,
     userTimeZone,
   ]);
@@ -413,7 +414,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
       selectedEventDetail.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
 
     if (isPaidEventType) {
-      return "Paid event types are not supported in Contacts scheduling yet.";
+      return t("contacts_paid_event_types_not_supported");
     }
 
     const locationField = selectedEventDetail.bookingFields.find(
@@ -423,16 +424,16 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
       const attendeeInputType = isAttendeeInputRequired(selectedLocation.type);
 
       if (attendeeInputType === "phone" && !contact.phone.trim()) {
-        return "This event type requires attendee phone, but this contact has no phone number.";
+        return t("contacts_event_type_requires_attendee_phone");
       }
 
       if (attendeeInputType && attendeeInputType !== "phone") {
-        return "This event type requires attendee-provided location details that are not supported in Contacts scheduling yet.";
+        return t("contacts_event_type_requires_unsupported_attendee_location_details");
       }
     }
 
     return null;
-  }, [contact, selectedEventDetail, selectedLocation]);
+  }, [contact, selectedEventDetail, selectedLocation, t]);
 
   const createBookingMutation = useMutation({
     mutationFn: createBooking,
@@ -540,7 +541,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     const responses = normalizeBookingResponses(bookingFieldsForm.getValues("responses") ?? {});
     const isValid = await validateBookingFields(responses);
     if (!isValid) {
-      setBookingErrorMessage("Please complete the required booking fields before continuing.");
+      setBookingErrorMessage(t("contacts_complete_required_booking_fields_before_continuing"));
       return;
     }
 
@@ -559,19 +560,21 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     const parsedValue = Number.parseInt(value, 10);
     if (!value || Number.isNaN(parsedValue)) {
       setRecurringEventCount(null);
-      setRecurringEventCountWarning("Please enter a valid occurrence count.");
+      setRecurringEventCountWarning(t("contacts_enter_valid_occurrence_count"));
       return;
     }
 
     if (parsedValue < 1) {
       setRecurringEventCount(parsedValue);
-      setRecurringEventCountWarning("Occurrence count must be at least 1.");
+      setRecurringEventCountWarning(t("contacts_occurrence_count_min_one"));
       return;
     }
 
     if (recurringMaxCount && parsedValue > recurringMaxCount) {
       setRecurringEventCount(parsedValue);
-      setRecurringEventCountWarning(`Enter a value between 1 and ${recurringMaxCount}.`);
+      setRecurringEventCountWarning(
+        t("contacts_enter_value_between_one_and_max", { max: recurringMaxCount })
+      );
       return;
     }
 
@@ -598,14 +601,14 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     const invalidGuestEmails = guestEmails.filter((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
 
     if (invalidGuestEmails.length > 0) {
-      setBookingErrorMessage("One or more additional guest emails are invalid.");
+      setBookingErrorMessage(t("contacts_one_or_more_additional_guest_emails_invalid"));
       setStep(GUESTS_STEP);
       return;
     }
 
     const selectedStart = parseISO(selectedSlotTime);
     if (Number.isNaN(selectedStart.getTime())) {
-      setBookingErrorMessage("The selected time slot is invalid. Please choose another slot.");
+      setBookingErrorMessage(t("contacts_selected_time_slot_invalid"));
       setStep(DATE_TIME_STEP);
       return;
     }
@@ -667,7 +670,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
           }
         }
 
-        setBookingErrorMessage("Please complete the required booking fields before confirming.");
+        setBookingErrorMessage(t("contacts_complete_required_booking_fields_before_confirming"));
         return;
       }
 
@@ -680,7 +683,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
         const finalRecurringCount =
           recurringEventCount ?? recurringMaxCount ?? recurringEventConfig.count ?? null;
         if (!finalRecurringCount || recurringEventCountWarning) {
-          setBookingErrorMessage("Please provide a valid occurrence count for this recurring event.");
+          setBookingErrorMessage(t("contacts_provide_valid_occurrence_count_for_recurring_event"));
           setStep(DATE_TIME_STEP);
           return;
         }
@@ -712,7 +715,10 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
         await createRecurringBookingMutation.mutateAsync([recurringBookingInput]);
 
         triggerToast(
-          `Recurring meeting with ${contact.name} confirmed (${finalRecurringCount} occurrences).`,
+          t("contacts_recurring_meeting_confirmed", {
+            name: contact.name,
+            count: finalRecurringCount,
+          }),
           "success"
         );
       } else {
@@ -729,17 +735,18 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
         });
 
         triggerToast(
-          `Meeting with ${contact.name} confirmed for ${format(selectedStart, "PPP")} at ${format(
-            selectedStart,
-            timeFormat
-          )}.`,
+          t("contacts_meeting_confirmed_for_date_time", {
+            name: contact.name,
+            date: format(selectedStart, "PPP"),
+            time: format(selectedStart, timeFormat),
+          }),
           "success"
         );
       }
 
       resetAndClose(false);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Could not schedule meeting";
+      const message = error instanceof Error ? error.message : t("contacts_could_not_schedule_meeting");
       setBookingErrorMessage(message);
       triggerToast(message, "error");
     }
@@ -768,7 +775,9 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
         <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2 text-base font-semibold">
             <Video className="h-4 w-4" />
-            Schedule Meeting {contact ? `with ${contact.name}` : ""}
+            {contact
+              ? t("contacts_schedule_meeting_with_name", { name: contact.name })
+              : t("contacts_schedule_meeting")}
           </DialogTitle>
         </DialogHeader>
 
@@ -950,7 +959,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
           {selectedEventId !== null && selectedEventQuery.isLoading && step !== EVENT_TYPE_STEP ? (
             <div className="text-muted-foreground flex items-center gap-2 text-xs">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Loading event details...
+              {t("contacts_loading_event_details")}
             </div>
           ) : null}
         </div>

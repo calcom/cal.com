@@ -7,6 +7,8 @@ import { format } from "date-fns";
 import { CalendarPlus, Edit2, Mail, Phone, Share2, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import type { Contact } from "../types";
 import { ContactAvatar } from "./ContactAvatar";
 import { DeleteContactDialog } from "./DeleteContactDialog";
@@ -30,6 +32,7 @@ export const ContactProfileCard = ({
   isDeleting = false,
   deleteErrorMessage,
 }: ContactProfileCardProps) => {
+  const { t } = useLocale();
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const handleDeleteConfirm = async () => {
@@ -60,7 +63,7 @@ export const ContactProfileCard = ({
             ) : null}
             {contact.secondaryPhones.length > 0 ? (
               <div className="space-y-2">
-                <p className="text-muted-foreground text-xs font-medium">Secondary numbers</p>
+                <p className="text-muted-foreground text-xs font-medium">{t("contacts_secondary_numbers")}</p>
                 {contact.secondaryPhones.map((phone) => (
                   <div key={phone} className="flex items-center gap-3 text-sm">
                     <Phone className="text-muted-foreground h-4 w-4 shrink-0" />
@@ -75,24 +78,24 @@ export const ContactProfileCard = ({
 
           <div className="space-y-2">
             <Button color="secondary" className="w-full justify-start" onClick={onEdit}>
-              <Edit2 className="h-3.5 w-3.5" /> Edit Contact
+              <Edit2 className="h-3.5 w-3.5" /> {t("contacts_edit_contact")}
             </Button>
             <Button color="secondary" className="w-full justify-start" onClick={onShare}>
-              <Share2 className="h-3.5 w-3.5" /> Share Availability
+              <Share2 className="h-3.5 w-3.5" /> {t("contacts_share_availability")}
             </Button>
             <Button color="secondary" className="w-full justify-start" onClick={onSchedule}>
-              <CalendarPlus className="h-3.5 w-3.5" /> Schedule Meeting
+              <CalendarPlus className="h-3.5 w-3.5" /> {t("contacts_schedule_meeting")}
             </Button>
             <Button
               color="secondary"
               className="text-destructive hover:text-destructive w-full justify-start"
               onClick={() => setConfirmDeleteOpen(true)}>
-              <Trash2 className="h-3.5 w-3.5" /> Delete Contact
+              <Trash2 className="h-3.5 w-3.5" /> {t("contacts_delete_contact")}
             </Button>
           </div>
 
           <div className="text-muted-foreground mt-4 text-xs">
-            Added {format(contact.createdAt, "MMM d, yyyy")}
+            {t("contacts_added_on_date", { date: format(contact.createdAt, "MMM d, yyyy") })}
           </div>
         </CardContent>
       </Card>
