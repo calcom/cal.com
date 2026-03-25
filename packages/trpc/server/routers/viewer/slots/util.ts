@@ -1111,6 +1111,110 @@ export class AvailableSlotsService {
     return null;
   }
 
+  /**
+   * When rescheduling, filter available slots by checking guest (attendee) availability.
+   * If a guest is a Cal.com user, their busy times are fetched and slots that conflict
+   * with any guest's schedule are removed. Non-Cal.com guests are skipped.
+   * On any error, gracefully falls back to the unfiltered slots.
+   */
+  private async filterSlotsByGuestAvailability({
+    availableTimeSlots,
+    rescheduleUid,
+    startTime,
+    endTime,
+    eventLength,
+    mode,
+    loggerWithEventDetails,
+  }: {
+    availableTimeSlots: { time: Dayjs; userIds?: number[] }[];
+    rescheduleUid: string;
+    startTime: Dayjs;
+    endTime: Dayjs;
+    eventLength: number;
+    mode: CalendarFetchMode;
+    loggerWithEventDetails: Logger<unknown>;
+  }): Promise<typeof availableTimeSlots> {
+    try {
+      const bookingRepo = this.dependencies.bookingRepo;
+      const booking = await bookingRepo.findByUidIncludeEventTypeAndReferences({
+        bookingUid: rescheduleUid,
+      });
+
+      if (!booking?.attendees?.length) {
+        return availableTimeSlots;
+      }
+
+      // Collect busy times from all Cal.com guest users
+      const guestBusyTimes: EventBusyDate[] = [];
+
+      for (const attendee of booking.attendees) {
+        // Skip the host (organizer) — they are already accounted for
+        if (booking.user && attendee.email === booking.user.email) {
+          continue;
+        }
+
+        const guestUser = await this.dependencies.userRepo.findByEmail({ email: attendee.email });
+        if (!guestUser) {
+          // Not a Cal.com user, skip
+          continue;
+        }
+
+        const guestWithCalendars = withSelectedCalendars(guestUser);
+
+        const guestAvailabilityUser = {
+          ...guestWithCalendars,
+          credentials: [] as CredentialForCalendarService[],
+          isPlatformManaged: guestWithCalendars.isPlatformManaged ?? false,
+        };
+
+        const [guestAvailability] =
+          await this.dependencies.userAvailabilityService.getUsersAvailability({
+            users: [guestAvailabilityUser],
+            query: {
+              dateFrom: startTime.format(),
+              dateTo: endTime.format(),
+              duration: 0,
+              returnDateOverrides: false,
+              mode,
+            },
+          });
+
+        if (guestAvailability?.busy) {
+          guestBusyTimes.push(
+            ...guestAvailability.busy.map((b) => ({
+              start: b.start,
+              end: b.end,
+            }))
+          );
+        }
+      }
+
+      if (guestBusyTimes.length === 0) {
+        return availableTimeSlots;
+      }
+
+      loggerWithEventDetails.debug(
+        `Filtering ${availableTimeSlots.length} slots against ${guestBusyTimes.length} guest busy times`
+      );
+
+      return availableTimeSlots.filter(
+        (slot) =>
+          !checkForConflicts({
+            time: slot.time,
+            busy: guestBusyTimes,
+            eventLength,
+          })
+      );
+    } catch (error) {
+      // Gracefully fall back to host-only availability on any error
+      loggerWithEventDetails.warn("Failed to fetch guest availability for rescheduling, falling back to host-only", {
+        rescheduleUid,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return availableTimeSlots;
+    }
+  }
+
   private async _getRegularOrDynamicEventType(
     input: TGetScheduleInputSchema,
     organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
@@ -1417,6 +1521,19 @@ export class AvailableSlotsService {
       }
     } else {
       availableTimeSlots = timeSlots;
+    }
+
+    // Filter slots by guest availability when rescheduling
+    if (input.rescheduleUid) {
+      availableTimeSlots = await this.filterSlotsByGuestAvailability({
+        availableTimeSlots,
+        rescheduleUid: input.rescheduleUid,
+        startTime,
+        endTime,
+        eventLength: input.duration || eventType.length,
+        mode,
+        loggerWithEventDetails,
+      });
     }
 
     const reservedSlots = await this._getReservedSlotsAndCleanupExpired({
