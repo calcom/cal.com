@@ -63,6 +63,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   const [customPageMessage, setCustomPageMessage] = useState<NonRouterRoute["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
   const [submitErrorFieldId, setSubmitErrorFieldId] = useState<string | null>(null);
+  const [errorFocusTrigger, setErrorFocusTrigger] = useState(0);
   const [isAwaitingBookingAck, setIsAwaitingBookingAck] = useState(false);
   const isEmbed = useIsEmbed(restProps.isEmbed);
   const [calendarEventType, setCalendarEventType] = useState<string | null>(null);
@@ -434,6 +435,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
     if (firstInvalidFieldId) {
       setSubmitErrorFieldId(firstInvalidFieldId);
+      setErrorFocusTrigger((prev) => prev + 1);
       return;
     }
 
@@ -459,6 +461,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
               submitLoading={isSubmitInProgress}
               submitDisabled={isSubmitInProgress}
               errorFieldIds={submitErrorFieldId ? [submitErrorFieldId] : []}
+              errorFocusTrigger={errorFocusTrigger}
               className="w-full"
               calendarEventType={calendarEventType}
               calendarFormContext={calendarFormContext}
