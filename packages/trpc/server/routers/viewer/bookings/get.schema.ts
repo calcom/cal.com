@@ -3,7 +3,12 @@ import { z } from "zod";
 import { ZTextFilterValue } from "@calcom/features/data-table/lib/types";
 
 // Note: offset has .default(0), so input type has it optional but output type has it required
-type BookingStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
+type BookingStatus =
+  | "upcoming"
+  | "recurring"
+  | "past"
+  | "cancelled"
+  | "unconfirmed";
 
 type TGetInputSchemaFilters = {
   teamIds?: number[];
@@ -20,6 +25,11 @@ type TGetInputSchemaFilters = {
   beforeUpdatedDate?: string;
   afterCreatedDate?: string;
   beforeCreatedDate?: string;
+  utmSource?: string | z.infer<typeof ZTextFilterValue>;
+  utmMedium?: string | z.infer<typeof ZTextFilterValue>;
+  utmCampaign?: string | z.infer<typeof ZTextFilterValue>;
+  utmTerm?: string | z.infer<typeof ZTextFilterValue>;
+  utmContent?: string | z.infer<typeof ZTextFilterValue>;
 };
 
 type TGetInputSchemaSort = {
@@ -42,13 +52,22 @@ export type TGetInputSchema = {
   sort?: TGetInputSchemaSort;
 };
 
-export const ZGetInputSchema: z.ZodType<TGetInputSchema, z.ZodTypeDef, TGetInputRawSchema> = z.object({
+export const ZGetInputSchema: z.ZodType<
+  TGetInputSchema,
+  z.ZodTypeDef,
+  TGetInputRawSchema
+> = z.object({
   filters: z.object({
     teamIds: z.number().array().optional(),
     userIds: z.number().array().optional(),
     // Support both singular 'status' (for API v2) and plural 'statuses' (/bookings page)
-    status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]).optional(),
-    statuses: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]).array().optional(),
+    status: z
+      .enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"])
+      .optional(),
+    statuses: z
+      .enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"])
+      .array()
+      .optional(),
     eventTypeIds: z.number().array().optional(),
     attendeeEmail: z.union([z.string(), ZTextFilterValue]).optional(),
     attendeeName: z.union([z.string(), ZTextFilterValue]).optional(),
@@ -59,6 +78,11 @@ export const ZGetInputSchema: z.ZodType<TGetInputSchema, z.ZodTypeDef, TGetInput
     beforeUpdatedDate: z.string().optional(),
     afterCreatedDate: z.string().optional(),
     beforeCreatedDate: z.string().optional(),
+    utmSource: z.union([z.string(), ZTextFilterValue]).optional(),
+    utmMedium: z.union([z.string(), ZTextFilterValue]).optional(),
+    utmCampaign: z.union([z.string(), ZTextFilterValue]).optional(),
+    utmTerm: z.union([z.string(), ZTextFilterValue]).optional(),
+    utmContent: z.union([z.string(), ZTextFilterValue]).optional(),
   }),
   limit: z.number().min(1).max(100),
   offset: z.number().default(0),

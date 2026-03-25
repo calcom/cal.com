@@ -149,6 +149,11 @@ function BookingListInner({
         attendeeEmail: false,
         dateRange: false,
         bookingUid: false,
+        utmSource: false,
+        utmMedium: false,
+        utmCampaign: false,
+        utmTerm: false,
+        utmContent: false,
       },
     },
     getCoreRowModel: getCoreRowModel(),
@@ -233,8 +238,20 @@ function BookingListInner({
 
 export function BookingListContainer(props: BookingListContainerProps) {
   const { limit, offset, isValidatorPending } = useDataTable();
-  const { eventTypeIds, teamIds, userIds, dateRange, attendeeName, attendeeEmail, bookingUid } =
-    useBookingFilters();
+  const {
+    eventTypeIds,
+    teamIds,
+    userIds,
+    dateRange,
+    attendeeName,
+    attendeeEmail,
+    bookingUid,
+    utmSource,
+    utmMedium,
+    utmCampaign,
+    utmTerm,
+    utmContent,
+  } = useBookingFilters();
 
   const { resolvedTabStatus, isResolvingTabStatus, preSelectedBooking } = useSwitchToCorrectStatusTab({
     defaultStatus: props.status,
@@ -253,6 +270,11 @@ export function BookingListContainer(props: BookingListContainerProps) {
         attendeeName,
         attendeeEmail,
         bookingUid,
+        utmSource,
+        utmMedium,
+        utmCampaign,
+        utmTerm,
+        utmContent,
         afterStartDate: dateRange?.startDate
           ? dayjs(dateRange?.startDate).startOf("day").toISOString()
           : undefined,
@@ -269,6 +291,11 @@ export function BookingListContainer(props: BookingListContainerProps) {
       attendeeName,
       attendeeEmail,
       bookingUid,
+      utmSource,
+      utmMedium,
+      utmCampaign,
+      utmTerm,
+      utmContent,
       dateRange,
     ]
   );

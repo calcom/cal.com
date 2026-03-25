@@ -24,6 +24,11 @@ const FILTER_COLUMN_IDS = [
   "attendeeEmail",
   "dateRange",
   "bookingUid",
+  "utmSource",
+  "utmMedium",
+  "utmCampaign",
+  "utmTerm",
+  "utmContent",
 ] as const;
 
 /**
@@ -34,46 +39,60 @@ export function getFilterColumnVisibility(): VisibilityState {
   return Object.fromEntries(FILTER_COLUMN_IDS.map((id) => [id, false]));
 }
 
-export function buildFilterColumns({ t, permissions, status }: BuildFilterColumnsParams) {
+export function buildFilterColumns({
+  t,
+  permissions,
+  status,
+}: BuildFilterColumnsParams) {
   const columnHelper = createColumnHelper<RowData>();
 
   return [
-    columnHelper.accessor((row) => (row.type === "data" ? row.booking.eventType.id : null), {
-      id: "eventTypeId",
-      header: t("event_type"),
-      enableColumnFilter: true,
-      enableSorting: false,
-      cell: () => null,
-      meta: {
-        filter: {
-          type: ColumnFilterType.MULTI_SELECT,
+    columnHelper.accessor(
+      (row) => (row.type === "data" ? row.booking.eventType.id : null),
+      {
+        id: "eventTypeId",
+        header: t("event_type"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
         },
-      },
-    }),
-    columnHelper.accessor((row) => (row.type === "data" ? (row.booking.eventType.team?.id ?? null) : null), {
-      id: "teamId",
-      header: t("team"),
-      enableColumnFilter: true,
-      enableSorting: false,
-      cell: () => null,
-      meta: {
-        filter: {
-          type: ColumnFilterType.MULTI_SELECT,
+      }
+    ),
+    columnHelper.accessor(
+      (row) =>
+        row.type === "data" ? row.booking.eventType.team?.id ?? null : null,
+      {
+        id: "teamId",
+        header: t("team"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
         },
-      },
-    }),
-    columnHelper.accessor((row) => (row.type === "data" ? (row.booking.user?.id ?? null) : null), {
-      id: "userId",
-      header: t("member"),
-      enableColumnFilter: true,
-      enableSorting: false,
-      cell: () => null,
-      meta: {
-        filter: {
-          type: ColumnFilterType.MULTI_SELECT,
+      }
+    ),
+    columnHelper.accessor(
+      (row) => (row.type === "data" ? row.booking.user?.id ?? null : null),
+      {
+        id: "userId",
+        header: t("member"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
         },
-      },
-    }),
+      }
+    ),
     columnHelper.accessor((row) => row, {
       id: "attendeeName",
       header: t("attendee_name"),
@@ -108,23 +127,91 @@ export function buildFilterColumns({ t, permissions, status }: BuildFilterColumn
         filter: {
           type: ColumnFilterType.DATE_RANGE,
           dateRangeOptions: {
-            range: status === "past" ? "past" : status === "cancelled" ? "any" : "future", // upcoming, unconfirmed, recurring are all future-only
+            range:
+              status === "past"
+                ? "past"
+                : status === "cancelled"
+                ? "any"
+                : "future", // upcoming, unconfirmed, recurring are all future-only
           },
         },
       },
     }),
-    columnHelper.accessor((row) => (row.type === "data" ? row.booking.uid : null), {
-      id: "bookingUid",
-      header: t("booking_uid"),
+    columnHelper.accessor(
+      (row) => (row.type === "data" ? row.booking.uid : null),
+      {
+        id: "bookingUid",
+        header: t("booking_uid"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.TEXT,
+            textOptions: {
+              allowedOperators: ["equals"],
+            },
+          },
+        },
+      }
+    ),
+    columnHelper.accessor((row) => row, {
+      id: "utmSource",
+      header: t("utm_source"),
       enableColumnFilter: true,
       enableSorting: false,
       cell: () => null,
       meta: {
         filter: {
           type: ColumnFilterType.TEXT,
-          textOptions: {
-            allowedOperators: ["equals"],
-          },
+        },
+      },
+    }),
+    columnHelper.accessor((row) => row, {
+      id: "utmMedium",
+      header: t("utm_medium"),
+      enableColumnFilter: true,
+      enableSorting: false,
+      cell: () => null,
+      meta: {
+        filter: {
+          type: ColumnFilterType.TEXT,
+        },
+      },
+    }),
+    columnHelper.accessor((row) => row, {
+      id: "utmCampaign",
+      header: t("utm_campaign"),
+      enableColumnFilter: true,
+      enableSorting: false,
+      cell: () => null,
+      meta: {
+        filter: {
+          type: ColumnFilterType.TEXT,
+        },
+      },
+    }),
+    columnHelper.accessor((row) => row, {
+      id: "utmTerm",
+      header: t("utm_term"),
+      enableColumnFilter: true,
+      enableSorting: false,
+      cell: () => null,
+      meta: {
+        filter: {
+          type: ColumnFilterType.TEXT,
+        },
+      },
+    }),
+    columnHelper.accessor((row) => row, {
+      id: "utmContent",
+      header: t("utm_content"),
+      enableColumnFilter: true,
+      enableSorting: false,
+      cell: () => null,
+      meta: {
+        filter: {
+          type: ColumnFilterType.TEXT,
         },
       },
     }),
