@@ -15,7 +15,7 @@
     <a href="https://github.com/calcom/cal.com/discussions">Discussions</a>
     ·
     <a href="https://cal.com">Website</a>
-    ·
+    · 
     <a href="https://github.com/calcom/cal.com/issues">Issues</a>
     ·
     <a href="https://cal.com/roadmap">Roadmap</a>
