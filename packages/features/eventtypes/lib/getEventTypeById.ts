@@ -127,6 +127,7 @@ export const getEventTypeById = async ({
     useBookerTimezone: rawEventType.useBookerTimezone || false,
     instantMeetingSchedule: rawEventType.instantMeetingSchedule?.id || null,
     scheduleName: rawEventType.schedule?.name || null,
+    requiresCancellationReason: rawEventType.requiresCancellationReason ?? null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     bookingLimits: parseBookingLimit(restEventType.bookingLimits),
     durationLimits: parseDurationLimit(restEventType.durationLimits),

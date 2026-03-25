@@ -135,6 +135,7 @@ export type FormValues = {
   useEventLevelSelectedCalendars: boolean;
   disabledCancelling: boolean;
   disabledRescheduling: boolean;
+  requiresCancellationReason: CancellationReasonRequirement | null;
   minimumRescheduleNotice: number | null;
   periodType: PeriodType;
   /**

@@ -1,4 +1,4 @@
-// Cache bust: added disableReassignment to eventType
+// Cache bust: added requiresCancellationReason to eventType
 import getEventTypeById from "@calcom/features/eventtypes/lib/getEventTypeById";
 import type { PrismaClient } from "@calcom/prisma";
 

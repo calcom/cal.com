@@ -97,6 +97,7 @@ export const useEventTypeForm = ({
       minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
       disabledCancelling: eventType.disableCancelling ?? false,
       disabledRescheduling: eventType.disableRescheduling ?? false,
+      requiresCancellationReason: eventType.requiresCancellationReason ?? null,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
@@ -380,7 +381,15 @@ export const useEventTypeForm = ({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { availability, users, scheduleName, disabledCancelling, disabledRescheduling, ...rest } = input;
+    const {
+      availability,
+      users,
+      scheduleName,
+      disabledCancelling,
+      disabledRescheduling,
+      requiresCancellationReason,
+      ...rest
+    } = input;
     // Strip children down to only the fields the server schema expects.
     // The full children objects contain avatar, profile, and other display-only
     // data that bloats the request payload. With many assigned users (~85+),
@@ -413,6 +422,7 @@ export const useEventTypeForm = ({
       multiplePrivateLinks: values.multiplePrivateLinks,
       disableCancelling: disabledCancelling,
       disableRescheduling: disabledRescheduling,
+      requiresCancellationReason,
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
         : undefined,
