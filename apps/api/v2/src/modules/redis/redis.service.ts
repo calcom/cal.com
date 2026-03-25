@@ -1,7 +1,7 @@
-import { AppConfig } from "@/config/type";
-import { Injectable, OnModuleDestroy, Logger } from "@nestjs/common";
+import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Redis } from "ioredis";
+import { AppConfig } from "@/config/type";
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {
@@ -170,6 +170,42 @@ export class RedisService implements OnModuleDestroy {
       return this.redis.incr(key);
     } catch (err) {
       if (err instanceof Error) this.logger.error(`IoRedis incr failed: ${err.message}`);
+      return 0;
+    }
+  }
+
+  async hmset(key: string, data: Record<string, string>): Promise<"OK" | null> {
+    if (!this.isReady) {
+      return null;
+    }
+    try {
+      return await this.redis.hmset(key, data);
+    } catch (err) {
+      if (err instanceof Error) this.logger.error(`IoRedis hmset failed: ${err.message}`);
+      return null;
+    }
+  }
+
+  async hgetall(key: string): Promise<Record<string, string>> {
+    if (!this.isReady) {
+      return {};
+    }
+    try {
+      return await this.redis.hgetall(key);
+    } catch (err) {
+      if (err instanceof Error) this.logger.error(`IoRedis hgetall failed: ${err.message}`);
+      return {};
+    }
+  }
+
+  async expireat(key: string, timestampInSeconds: number): Promise<0 | 1> {
+    if (!this.isReady) {
+      return 0;
+    }
+    try {
+      return this.redis.expireat(key, timestampInSeconds) as Promise<0 | 1>;
+    } catch (err) {
+      if (err instanceof Error) this.logger.error(`IoRedis expireat failed: ${err.message}`);
       return 0;
     }
   }

@@ -1,10 +1,9 @@
+import type { Team } from "@calcom/prisma/client";
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
+import { Request } from "express";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsWebhooksRepository } from "@/modules/organizations/webhooks/organizations-webhooks.repository";
 import { RedisService } from "@/modules/redis/redis.service";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
-import { Request } from "express";
-
-import type { Team } from "@calcom/prisma/client";
 
 type CachedData = {
   org?: Team;
@@ -33,10 +32,10 @@ export class IsWebhookInOrg implements CanActivate {
     }
 
     const REDIS_CACHE_KEY = `apiv2:org:${webhookId}:guard:isWebhookInOrg`;
-    const cachedData = await this.redisService.redis.get(REDIS_CACHE_KEY);
+    const cachedData = await this.redisService.get<CachedData>(REDIS_CACHE_KEY);
 
     if (cachedData) {
-      const { org: cachedOrg, canAccess: cachedCanAccess } = JSON.parse(cachedData) as CachedData;
+      const { org: cachedOrg, canAccess: cachedCanAccess } = cachedData;
       if (cachedOrg?.id === Number(organizationId) && cachedCanAccess !== undefined) {
         request.organization = cachedOrg;
         return cachedCanAccess;
@@ -54,12 +53,9 @@ export class IsWebhookInOrg implements CanActivate {
     }
 
     if (org && canAccess) {
-      await this.redisService.redis.set(
-        REDIS_CACHE_KEY,
-        JSON.stringify({ org: org, canAccess } satisfies CachedData),
-        "EX",
-        300
-      );
+      await this.redisService.set(REDIS_CACHE_KEY, { org: org, canAccess } satisfies CachedData, {
+        ttl: 300 * 1000,
+      });
     }
 
     if (!canAccess) {

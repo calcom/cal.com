@@ -1,8 +1,7 @@
-import { RedisService } from "@/modules/redis/redis.service";
-import { Injectable } from "@nestjs/common";
-
-import { cityTimezonesHandler } from "@calcom/platform-libraries";
 import type { CityTimezones } from "@calcom/platform-libraries";
+import { cityTimezonesHandler } from "@calcom/platform-libraries";
+import { Injectable } from "@nestjs/common";
+import { RedisService } from "@/modules/redis/redis.service";
 
 @Injectable()
 export class TimezonesService {
@@ -11,14 +10,14 @@ export class TimezonesService {
   constructor(private readonly redisService: RedisService) {}
 
   async getCityTimeZones(): Promise<CityTimezones> {
-    const cachedTimezones = await this.redisService.redis.get(this.cacheKey);
+    const cachedTimezones = await this.redisService.get<CityTimezones>(this.cacheKey);
     if (!cachedTimezones) {
       const timezones = await cityTimezonesHandler();
-      await this.redisService.redis.set(this.cacheKey, JSON.stringify(timezones), "EX", 60 * 60 * 24);
+      await this.redisService.set(this.cacheKey, timezones, { ttl: 60 * 60 * 24 * 1000 });
 
       return timezones;
     } else {
-      return JSON.parse(cachedTimezones) as CityTimezones;
+      return cachedTimezones;
     }
   }
 }

@@ -1,11 +1,11 @@
-import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { PlatformPlanType, orderedPlans } from "@/modules/billing/types";
-import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
-import { RedisService } from "@/modules/redis/redis.service";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { orderedPlans, PlatformPlanType } from "@/modules/billing/types";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { RedisService } from "@/modules/redis/redis.service";
 
 @Injectable()
 export class PlatformPlanGuard implements CanActivate {
@@ -36,9 +36,9 @@ export class PlatformPlanGuard implements CanActivate {
 
   async checkPlatformPlanAccess(orgId: string, minimumPlan: PlatformPlanType) {
     const REDIS_CACHE_KEY = `apiv2:org:${orgId}:guard:platformbilling:${minimumPlan}`;
-    const cachedValue = await this.redisService.redis.get(REDIS_CACHE_KEY);
+    const cachedValue = await this.redisService.get<string>(REDIS_CACHE_KEY);
     if (cachedValue !== null) {
-      return cachedValue === "true";
+      return cachedValue === "true" || cachedValue === true;
     }
 
     const organization = await this.organizationsRepository.findByIdIncludeBilling(Number(orgId));
@@ -49,7 +49,7 @@ export class PlatformPlanGuard implements CanActivate {
       throw new ForbiddenException(`PlatformPlanGuard - No organization found with id=${orgId}.`);
     }
     if (!isPlatform) {
-      await this.redisService.redis.set(REDIS_CACHE_KEY, "true", "EX", 300);
+      await this.redisService.set(REDIS_CACHE_KEY, "true", { ttl: 300 * 1000 });
       return true;
     }
     if (!hasSubscription) {
@@ -71,7 +71,7 @@ export class PlatformPlanGuard implements CanActivate {
       );
     }
 
-    await this.redisService.redis.set(REDIS_CACHE_KEY, "true", "EX", 300);
+    await this.redisService.set(REDIS_CACHE_KEY, "true", { ttl: 300 * 1000 });
     return true;
   }
 }

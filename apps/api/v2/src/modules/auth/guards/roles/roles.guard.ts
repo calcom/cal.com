@@ -1,11 +1,11 @@
-import { ORG_ROLES, TEAM_ROLES, SYSTEM_ADMIN_ROLE } from "@/lib/roles/constants";
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable, Logger } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { Request } from "express";
+import { ORG_ROLES, SYSTEM_ADMIN_ROLE, TEAM_ROLES } from "@/lib/roles/constants";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { RedisService } from "@/modules/redis/redis.service";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-import { Request } from "express";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -59,7 +59,7 @@ export class RolesGuard implements CanActivate {
     const REDIS_CACHE_KEY = `apiv2:user:${user.id ?? "none"}:org:${orgId ?? "none"}:team:${
       teamId ?? "none"
     }:guard:roles:${allowedRole}`;
-    const cachedAccess = JSON.parse((await this.redisService.redis.get(REDIS_CACHE_KEY)) ?? "false");
+    const cachedAccess = await this.redisService.get<boolean>(REDIS_CACHE_KEY);
 
     if (cachedAccess) {
       return { canAccess: cachedAccess };
@@ -86,7 +86,7 @@ export class RolesGuard implements CanActivate {
     }
 
     // Checking the role of the user within the organization
-    else if (Boolean(orgId) && !Boolean(teamId)) {
+    else if (Boolean(orgId) && !teamId) {
       const membership = await this.membershipRepository.findMembershipByOrgId(Number(orgId), user.id);
       if (!membership) {
         this.logger.log(`User (${user.id}) is not a member of the organization (${orgId}), denying access.`);
@@ -105,7 +105,7 @@ export class RolesGuard implements CanActivate {
     }
 
     // Checking the role of the user within the team
-    else if (Boolean(teamId) && !Boolean(orgId)) {
+    else if (Boolean(teamId) && !orgId) {
       const membership = await this.membershipRepository.findMembershipByTeamId(Number(teamId), user.id);
       if (!membership) {
         this.logger.log(`User (${user.id}) is not a member of the team (${teamId}), denying access.`);
@@ -165,7 +165,7 @@ export class RolesGuard implements CanActivate {
     }
 
     if (canAccess) {
-      await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
+      await this.redisService.set(REDIS_CACHE_KEY, String(canAccess), { ttl: 300 * 1000 });
     }
 
     return { canAccess };

@@ -1,9 +1,8 @@
+import type { Team } from "@calcom/prisma/client";
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
+import { Request } from "express";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { RedisService } from "@/modules/redis/redis.service";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
-import { Request } from "express";
-
-import type { Team } from "@calcom/prisma/client";
 
 type CachedData = {
   org?: Team;
@@ -43,10 +42,10 @@ export class IsOrgGuard implements CanActivate {
   async checkOrgAccess(organizationId: string): Promise<{ canAccess: boolean; org?: Team | null }> {
     const REDIS_CACHE_KEY = `apiv2:org:${organizationId}:guard:isOrg`;
     let canAccess = false;
-    const cachedData = await this.redisService.redis.get(REDIS_CACHE_KEY);
+    const cachedData = await this.redisService.get<CachedData>(REDIS_CACHE_KEY);
 
     if (cachedData) {
-      const { org: cachedOrg, canAccess: cachedCanAccess } = JSON.parse(cachedData) as CachedData;
+      const { org: cachedOrg, canAccess: cachedCanAccess } = cachedData;
       if (cachedOrg?.id === Number(organizationId) && cachedCanAccess !== undefined) {
         return {
           org: cachedOrg,
@@ -62,12 +61,9 @@ export class IsOrgGuard implements CanActivate {
     }
 
     if (org && canAccess) {
-      await this.redisService.redis.set(
-        REDIS_CACHE_KEY,
-        JSON.stringify({ org, canAccess } satisfies CachedData),
-        "EX",
-        300
-      );
+      await this.redisService.set(REDIS_CACHE_KEY, { org, canAccess } satisfies CachedData, {
+        ttl: 300 * 1000,
+      });
     }
 
     return { canAccess, org };
