@@ -3,19 +3,35 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@calcom/lib/constants", () => ({ APP_NAME: "Cal.com" }));
 
-vi.mock("@calcom/features/settings/appDir/SettingsHeader", () => ({
-  default: ({ children, title }: { children: React.ReactNode; title: string }) => (
-    <div data-testid="settings-header" data-title={title}>
+vi.mock("@coss/ui/shared/app-header", () => ({
+  AppHeader: ({ children }: { children: React.ReactNode }) => (
+    <header data-testid="app-header">{children}</header>
+  ),
+  AppHeaderContent: ({ children, title }: { children: React.ReactNode; title: string }) => (
+    <div data-testid="app-header-content" data-title={title}>
       {children}
     </div>
   ),
+  AppHeaderDescription: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
 }));
 
-vi.mock("@calcom/ui/components/skeleton", () => ({
-  SkeletonText: ({ className }: { className?: string }) => (
-    <div data-testid="skeleton-text" className={className} />
+vi.mock("@coss/ui/components/card", () => ({
+  Card: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardPanel: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock("@coss/ui/components/skeleton", () => ({
+  Skeleton: ({ className, ...props }: { className?: string; "data-testid"?: string }) => (
+    <div data-testid={props["data-testid"] || "skeleton-text"} className={className} />
   ),
-  SkeletonContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock("@coss/ui/shared/list-item", () => ({
+  ListItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ListItemActions: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ListItemBadges: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ListItemContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ListItemHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 describe("ApiKeysSkeleton", async () => {
@@ -25,9 +41,9 @@ describe("ApiKeysSkeleton", async () => {
     expect(container.firstChild).toBeTruthy();
   });
 
-  it("should render SettingsHeader with api_keys title", () => {
+  it("should render AppHeader with api_keys title", () => {
     render(<SkeletonLoader />);
-    expect(screen.getByTestId("settings-header")).toHaveAttribute("data-title", "api_keys");
+    expect(screen.getByTestId("app-header-content")).toHaveAttribute("data-title", "api_keys");
   });
 
   it("should render skeleton text elements", () => {

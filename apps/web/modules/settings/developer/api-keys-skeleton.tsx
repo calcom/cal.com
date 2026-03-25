@@ -1,24 +1,56 @@
 "use client";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+import { Card, CardPanel } from "@coss/ui/components/card";
+import { Skeleton } from "@coss/ui/components/skeleton";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
+import {
+  ListItem,
+  ListItemActions,
+  ListItemBadges,
+  ListItemContent,
+  ListItemHeader,
+} from "@coss/ui/shared/list-item";
 
 export const SkeletonLoader = () => {
   const { t } = useLocale();
 
   return (
-    <SettingsHeader
-      title={t("api_keys")}
-      description={t("create_first_api_key_description", { appName: APP_NAME })}
-      borderInShellHeader={true}>
-      <SkeletonContainer>
-        <div className="divide-subtle border-subtle stack-y-6 rounded-b-lg border border-t-0 px-6 py-4">
-          <SkeletonText className="h-8 w-full" />
-          <SkeletonText className="h-8 w-full" />
-        </div>
-      </SkeletonContainer>
-    </SettingsHeader>
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("api_keys")}>
+          <AppHeaderDescription>
+            {t("create_first_api_key_description", { appName: APP_NAME })}
+          </AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
+      <Card>
+        <CardPanel className="p-0">
+          <SkeletonRow />
+          <SkeletonRow />
+          <SkeletonRow />
+        </CardPanel>
+      </Card>
+    </>
   );
 };
+
+function SkeletonRow() {
+  return (
+    <ListItem>
+      <ListItemContent>
+        <ListItemHeader>
+          <Skeleton className="h-6 w-32 sm:h-5" data-testid="skeleton-text" />
+          <Skeleton className="my-0.5 h-4 w-48" data-testid="skeleton-text" />
+        </ListItemHeader>
+      </ListItemContent>
+      <ListItemBadges>
+        <Skeleton className="h-5.5 w-12 sm:h-4.5" data-testid="skeleton-text" />
+      </ListItemBadges>
+      <ListItemActions>
+        <Skeleton className="size-9 rounded-lg sm:size-8" data-testid="skeleton-text" />
+      </ListItemActions>
+    </ListItem>
+  );
+}

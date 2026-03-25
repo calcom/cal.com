@@ -1,37 +1,43 @@
-import { useState } from "react";
+"use client";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import classNames from "@calcom/ui/classNames";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { Dialog } from "@calcom/ui/components/dialog";
-import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@calcom/ui/components/dropdown";
-import { showToast } from "@calcom/ui/components/toast";
 import { revalidateApiKeysList } from "@calcom/web/app/(use-page-wrapper)/settings/(settings-layout)/developer/api-keys/actions";
+import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogPopup,
+  AlertDialogTitle,
+} from "@coss/ui/components/alert-dialog";
+import { Badge } from "@coss/ui/components/badge";
+import { Button } from "@coss/ui/components/button";
+import { Menu, MenuItem, MenuPopup, MenuTrigger } from "@coss/ui/components/menu";
+import { toastManager } from "@coss/ui/components/toast";
+import { Tooltip, TooltipPopup, TooltipTrigger } from "@coss/ui/components/tooltip";
+import { EllipsisIcon, PencilIcon, Trash2Icon } from "@coss/ui/icons";
+import {
+  ListItem,
+  ListItemActions,
+  ListItemBadges,
+  ListItemContent,
+  ListItemDescription,
+  ListItemHeader,
+  ListItemTitle,
+} from "@coss/ui/shared/list-item";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 
-const ApiKeyListItem = ({
-  apiKey,
-  lastItem,
-  onEditClick,
-}: {
-  apiKey: TApiKeys;
-  lastItem: boolean;
-  onEditClick: () => void;
-}) => {
+const ApiKeyListItem = ({ apiKey, onEditClick }: { apiKey: TApiKeys; onEditClick: () => void }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
+  const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const isExpired = apiKey?.expiresAt ? apiKey.expiresAt < new Date() : null;
@@ -40,84 +46,93 @@ const ApiKeyListItem = ({
   const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
     async onSuccess() {
       await utils.viewer.apiKeys.list.invalidate();
-      revalidateApiKeysList();
-      showToast(t("api_key_deleted"), "success");
+      await revalidateApiKeysList();
+      router.refresh();
+      toastManager.add({ title: t("api_key_deleted"), type: "success" });
     },
     onError(err) {
       console.error(err);
-      showToast(t("something_went_wrong"), "error");
+      toastManager.add({ title: t("something_went_wrong"), type: "error" });
     },
   });
 
+  const expirationDescription = neverExpires
+    ? t("api_key_never_expires")
+    : `${isExpired ? t("expired") : t("expires")} ${dayjs(apiKey?.expiresAt?.toString()).fromNow()}`;
+
   return (
-    <div
-      key={apiKey.id}
-      className={classNames(
-        "flex w-full justify-between px-4 py-4 sm:px-6",
-        lastItem ? "" : "border-subtle border-b"
-      )}>
-      <div>
-        <div className="flex gap-1">
-          <p className="text-sm font-semibold"> {apiKey?.note ? apiKey.note : t("api_key_no_note")}</p>
-          {!neverExpires && isExpired && <Badge variant="red">{t("expired")}</Badge>}
-          {!isExpired && <Badge variant="green">{t("active")}</Badge>}
-        </div>
-        <div className="mt-1 flex items-center space-x-3.5">
-          <p className="text-default text-sm">
-            {neverExpires ? (
-              <div className="flex flex-row space-x-3">{t("api_key_never_expires")}</div>
-            ) : (
-              `${isExpired ? t("expired") : t("expires")} ${dayjs(apiKey?.expiresAt?.toString()).fromNow()}`
-            )}
-          </p>
-        </div>
-      </div>
-      <div>
-        <Dropdown>
-          <DropdownMenuTrigger asChild>
-            <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
-          </DropdownMenuTrigger>
+    <ListItem>
+      <ListItemContent>
+        <ListItemHeader>
+          <ListItemTitle>{apiKey?.note ? apiKey.note : t("api_key_no_note")}</ListItemTitle>
+          <ListItemDescription>{expirationDescription}</ListItemDescription>
+        </ListItemHeader>
+      </ListItemContent>
+      <ListItemBadges>
+        {!neverExpires && isExpired ? (
+          <Badge variant="error" className="pointer-events-none capitalize">
+            {t("expired")}
+          </Badge>
+        ) : (
+          <Badge variant="success" className="pointer-events-none capitalize">
+            {t("active")}
+          </Badge>
+        )}
+      </ListItemBadges>
+      <ListItemActions>
+        <Menu>
+          <Tooltip>
+            <MenuTrigger
+              render={
+                <TooltipTrigger
+                  render={
+                    <Button
+                      aria-label={`Options for ${apiKey?.note || "API key"}`}
+                      size="icon"
+                      variant="outline">
+                      <EllipsisIcon />
+                    </Button>
+                  }
+                />
+              }
+            />
+            <TooltipPopup>{t("options")}</TooltipPopup>
+          </Tooltip>
+          <MenuPopup align="end">
+            <MenuItem onClick={onEditClick}>
+              <PencilIcon />
+              {t("edit")}
+            </MenuItem>
+            <MenuItem
+              disabled={deleteApiKey.isPending}
+              onClick={() => setDeleteDialogOpen(true)}
+              variant="destructive">
+              <Trash2Icon />
+              {t("delete")}
+            </MenuItem>
+          </MenuPopup>
+        </Menu>
+      </ListItemActions>
 
-          <DropdownMenuContent>
-            <DropdownMenuItem>
-              <DropdownItem type="button" onClick={onEditClick} StartIcon="pencil">
-                {t("edit") as string}
-              </DropdownItem>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <DropdownItem
-                type="button"
-                color="destructive"
-                disabled={deleteApiKey.isPending}
-                onClick={() => setDeleteDialogOpen(true)}
-                StartIcon="trash"
-                className="rounded-t-none">
-                {t("delete") as string}
-              </DropdownItem>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </Dropdown>
-      </div>
-
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <ConfirmationDialogContent
-          variety="danger"
-          title={t("delete_api_key_confirm_title")}
-          confirmBtnText={t("confirm_delete_api_key")}
-          loadingText={t("confirm_delete_api_key")}
-          isPending={deleteApiKey.isPending}
-          onConfirm={() => {
-            deleteApiKey.mutate({
-              id: apiKey.id,
-            });
-            setDeleteDialogOpen(false);
-          }}>
-          <div className="mt-2">
-            <p className="text-subtle text-sm">{t("delete_api_key_warning")}</p>
-          </div>
-        </ConfirmationDialogContent>
-      </Dialog>
-    </div>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogPopup>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("delete_api_key_confirm_title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("delete_api_key_warning")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose render={<Button variant="ghost" />}>{t("cancel")}</AlertDialogClose>
+            <AlertDialogClose
+              onClick={() => {
+                deleteApiKey.mutate({ id: apiKey.id });
+              }}
+              render={<Button variant="destructive" />}>
+              {t("confirm_delete_api_key")}
+            </AlertDialogClose>
+          </AlertDialogFooter>
+        </AlertDialogPopup>
+      </AlertDialog>
+    </ListItem>
   );
 };
 

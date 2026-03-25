@@ -1,19 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-import type { TApiKeys } from "~/ee/api-keys/components/ApiKeyListItem";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
-import ApiKeyDialogForm from "~/ee/api-keys/components/ApiKeyDialogForm";
-import ApiKeyListItem from "~/ee/api-keys/components/ApiKeyListItem";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent } from "@calcom/ui/components/dialog";
-import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Button } from "@coss/ui/components/button";
+import { Card, CardPanel } from "@coss/ui/components/card";
+import { Dialog, DialogPopup } from "@coss/ui/components/dialog";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@coss/ui/components/empty";
+import { LinkIcon, PlusIcon } from "@coss/ui/icons";
+import {
+  AppHeader,
+  AppHeaderActions,
+  AppHeaderContent,
+  AppHeaderDescription,
+} from "@coss/ui/shared/app-header";
+import { useEffect, useRef, useState } from "react";
+import ApiKeyDialogForm from "~/ee/api-keys/components/ApiKeyDialogForm";
+import type { TApiKeys } from "~/ee/api-keys/components/ApiKeyListItem";
+import ApiKeyListItem from "~/ee/api-keys/components/ApiKeyListItem";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 
 export const apiKeyModalRef = {
   current: null as null | ((show: boolean) => void),
@@ -22,19 +34,17 @@ export const apiKeyToEditRef = {
   current: null as null | ((apiKey: (TApiKeys & { neverExpires?: boolean }) | undefined) => void),
 };
 
-export const NewApiKeyButton = () => {
+export const NewApiKeyButton = ({ isEmptyState }: { isEmptyState?: boolean }) => {
   const { t } = useLocale();
   return (
     <Button
-      color="secondary"
-      StartIcon="plus"
-      size="sm"
-      variant="fab"
+      variant={isEmptyState ? "default" : "outline"}
       onClick={() => {
         apiKeyModalRef.current?.(true);
         apiKeyToEditRef.current?.(undefined);
       }}>
-      {t("add")}
+      <PlusIcon aria-hidden />
+      {t("new")}
     </Button>
   );
 };
@@ -47,6 +57,7 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
   const { t } = useLocale();
 
   const [apiKeyModal, setApiKeyModal] = useState(false);
+  const initialFocusRef = useRef<HTMLInputElement>(null);
   const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires?: boolean }) | undefined>(
     undefined
   );
@@ -61,47 +72,64 @@ const ApiKeysView = ({ apiKeys: data }: Props) => {
   }, []);
 
   return (
-    <SettingsHeader
-      title={t("api_keys")}
-      description={t("create_first_api_key_description", { appName: APP_NAME })}
-      CTA={<NewApiKeyButton />}
-      borderInShellHeader={true}>
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("api_keys")}>
+          <AppHeaderDescription>
+            {t("create_first_api_key_description", { appName: APP_NAME })}
+          </AppHeaderDescription>
+        </AppHeaderContent>
+        {data?.length ? (
+          <AppHeaderActions>
+            <NewApiKeyButton />
+          </AppHeaderActions>
+        ) : null}
+      </AppHeader>
+
       <LicenseRequired>
-        <div>
-          {data?.length ? (
-            <>
-              <div className="border-subtle rounded-b-lg border border-t-0">
-                {data.map((apiKey, index) => (
-                  <ApiKeyListItem
-                    key={apiKey.id}
-                    apiKey={apiKey}
-                    lastItem={data.length === index + 1}
-                    onEditClick={() => {
-                      setApiKeyToEdit(apiKey);
-                      setApiKeyModal(true);
-                    }}
-                  />
-                ))}
-              </div>
-            </>
-          ) : (
-            <EmptyScreen
-              Icon="link"
-              headline={t("create_first_api_key")}
-              description={t("create_first_api_key_description", { appName: APP_NAME })}
-              className="rounded-b-lg rounded-t-none border-t-0"
-              buttonRaw={<NewApiKeyButton />}
-            />
-          )}
-        </div>
+        {data?.length ? (
+          <Card>
+            <CardPanel className="p-0">
+              {data.map((apiKey) => (
+                <ApiKeyListItem
+                  key={apiKey.id}
+                  apiKey={apiKey}
+                  onEditClick={() => {
+                    setApiKeyToEdit(apiKey);
+                    setApiKeyModal(true);
+                  }}
+                />
+              ))}
+            </CardPanel>
+          </Card>
+        ) : (
+          <Empty className="rounded-xl border border-dashed">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <LinkIcon />
+              </EmptyMedia>
+              <EmptyTitle>{t("create_first_api_key")}</EmptyTitle>
+              <EmptyDescription>
+                {t("create_first_api_key_description", { appName: APP_NAME })}
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <NewApiKeyButton isEmptyState />
+            </EmptyContent>
+          </Empty>
+        )}
       </LicenseRequired>
 
       <Dialog open={apiKeyModal} onOpenChange={setApiKeyModal}>
-        <DialogContent type="creation">
-          <ApiKeyDialogForm handleClose={() => setApiKeyModal(false)} defaultValues={apiKeyToEdit} />
-        </DialogContent>
+        <DialogPopup className="max-w-xl" initialFocus={initialFocusRef}>
+          <ApiKeyDialogForm
+            handleClose={() => setApiKeyModal(false)}
+            defaultValues={apiKeyToEdit}
+            initialFocusRef={initialFocusRef}
+          />
+        </DialogPopup>
       </Dialog>
-    </SettingsHeader>
+    </>
   );
 };
 
