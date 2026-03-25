@@ -13,6 +13,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
+import { Locales } from "@/lib/enums/locales";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -100,6 +101,7 @@ describe("Me Endpoints", () => {
           expect(responseBody.data.defaultScheduleId).toEqual(user.defaultScheduleId);
           expect(responseBody.data.weekStart).toEqual(user.weekStart);
           expect(responseBody.data.timeZone).toEqual(user.timeZone);
+          expect(responseBody.data.locale).toEqual(user.locale);
           expect(responseBody.data.organization?.isPlatform).toEqual(true);
           expect(responseBody.data.organization?.id).toEqual(org.id);
         });
@@ -129,6 +131,35 @@ describe("Me Endpoints", () => {
             const defaultSchedule = await schedulesRepositoryFixture.getById(user.defaultScheduleId);
             expect(defaultSchedule?.timeZone).toEqual(body.timeZone);
           }
+        });
+    });
+
+    it("should update user locale", async () => {
+      const body: UpdateManagedUserInput = { locale: Locales.FR };
+
+      return request(app.getHttpServer())
+        .patch("/v2/me")
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<UserResponse> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.locale).toEqual(Locales.FR);
+        });
+    });
+
+    it("should not override locale when updating other fields", async () => {
+      const body: UpdateManagedUserInput = { timeZone: "Europe/London" };
+
+      return request(app.getHttpServer())
+        .patch("/v2/me")
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<UserResponse> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data.timeZone).toEqual("Europe/London");
+          expect(responseBody.data.locale).toEqual(Locales.FR);
         });
     });
 

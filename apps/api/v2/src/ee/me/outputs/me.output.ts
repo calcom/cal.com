@@ -51,6 +51,11 @@ export class MeOutput {
   @DocsProperty()
   timeZone!: string;
 
+  @IsString()
+  @IsOptional()
+  @DocsProperty({ type: String, nullable: true, example: "en", description: "The user's locale setting" })
+  locale!: string | null;
+
   @IsInt()
   @DocsProperty({ type: Number, nullable: true })
   organizationId!: number | null;

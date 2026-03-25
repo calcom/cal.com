@@ -11,6 +11,7 @@ export const userSchemaResponse = z.object({
   weekStart: z.string(),
   timeZone: z.string().default("Europe/London"),
   username: z.string(),
+  locale: z.string().nullable(),
   organizationId: z.number().nullable(),
   organization: z.object({ isPlatform: z.boolean(), id: z.number() }).optional(),
 });

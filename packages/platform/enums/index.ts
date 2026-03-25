@@ -8,3 +8,4 @@ export * from "./event-types/frequency";
 export * from "./event-types/booker-layouts.enum";
 export * from "./event-types/confirmation-policy.enum";
 export * from "./slot-format.enum";
+export * from "./locales";
