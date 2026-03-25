@@ -32,7 +32,7 @@ export default function SettingsHomeView() {
   );
 
   const filteredSections = useMemo(() => {
-    if (!debouncedQuery || (debouncedQuery?.length ?? 0) < 2) return visibleSections;
+    if (!debouncedQuery || (debouncedQuery?.length ?? 0) < 1) return visibleSections;
 
     const lowerQuery = debouncedQuery.toLowerCase();
 
@@ -53,7 +53,7 @@ export default function SettingsHomeView() {
       .filter((section) => section.items.length > 0);
   }, [debouncedQuery, visibleSections, t]);
 
-  const hasNoResults = (debouncedQuery?.length ?? 0) >= 2 && filteredSections.length === 0;
+  const hasNoResults = (debouncedQuery?.length ?? 0) >= 1 && filteredSections.length === 0;
 
   return (
     <div className="py-2">
