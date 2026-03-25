@@ -148,14 +148,17 @@ export class CalendarEventBuilder {
 
   withLocation({
     location,
+    locationType,
     conferenceCredentialId,
   }: {
     location: string | null;
+    locationType: string | null;
     conferenceCredentialId?: number;
   }) {
     this.event = {
       ...this.event,
       location,
+      locationType,
       conferenceCredentialId,
     };
     return this;

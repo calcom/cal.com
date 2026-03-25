@@ -1366,6 +1366,7 @@ async function handler(
     })
     .withLocation({
       location: platformBookingLocation ?? bookingLocation, // Will be processed by the EventManager later.
+      locationType: locationBodyString,
       conferenceCredentialId,
     })
     .withDestinationCalendar(destinationCalendar)
