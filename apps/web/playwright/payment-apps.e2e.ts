@@ -313,8 +313,9 @@ test.describe("Payment app", () => {
     await goToAppsTab(page, paymentEvent?.id);
 
     await page.locator("[data-testid='paypal-app-switch']").click();
-    // After enabling paypal, the paypal switch should be checked
+    // After enabling paypal, the paypal switch should be checked and stripe should be disabled (mutual exclusivity)
     await expect(page.locator("[data-testid='paypal-app-switch']")).toBeChecked();
+    await expect(page.locator("[data-testid='stripe-app-switch']")).toBeDisabled();
   });
 
   test("when more than one payment app is installed the price should be updated when changing settings", async ({
