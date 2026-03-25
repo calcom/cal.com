@@ -54,6 +54,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateScheduleOptions)
             startTime: schedule.startTime,
             endTime: schedule.endTime,
             date: schedule.date,
+            targetTimeZones: schedule.targetTimeZones ?? [],
           })),
         },
       },

@@ -9,7 +9,8 @@ import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
-import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
+import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
+import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
@@ -44,6 +45,8 @@ export type AppPageProps = {
   categories: string[];
   author: string;
   pro?: boolean;
+  owner_scoped_installation?: boolean;
+  extendsFeature?: string;
   price?: number;
   commission?: number;
   feeType?: AppType["feeType"];
@@ -78,6 +81,8 @@ export const AppPage = ({
   variant,
   body,
   categories,
+  extendsFeature,
+  owner_scoped_installation,
   author,
   price = 0,
   commission,
@@ -128,9 +133,34 @@ export const AppPage = ({
     isPaid: !!paid,
   });
 
+  const extendsEventType = extendsFeature === "EventType";
+
+  const isConferencing = isConferencingApp(categories);
+
+  const showEventTypesStep = extendsEventType || isConferencing;
+
+  const isOwnerScopedInstallation = owner_scoped_installation === true;
+
+  const handleInstallOnPersonalAccount = async () => {
+    const returnTo = await getAppOnboardingUrl({
+      slug: slug,
+      step: AppOnboardingSteps.EVENT_TYPES_STEP,
+    });
+
+    mutation.mutate({
+      type: type,
+      variant: variant,
+      slug: slug,
+      // for oAuth apps
+      ...(showEventTypesStep && {
+        returnTo: WEBAPP_URL + returnTo,
+      }),
+    });
+  };
+
   const handleAppInstall = async () => {
     setIsLoading(true);
-    if (isConferencing(categories)) {
+    if (isConferencing) {
       const onBoardingUrl = await getAppOnboardingUrl({
         slug: slug,
         step: AppOnboardingSteps.EVENT_TYPES_STEP,
@@ -144,12 +174,16 @@ export const AppPage = ({
     } else if (!availableForTeams) {
       mutation.mutate({ type });
     } else {
-      const onBoardingUrl = await getAppOnboardingUrl({
-        slug: slug,
-        step: AppOnboardingSteps.ACCOUNTS_STEP,
-      });
+      if (isOwnerScopedInstallation) {
+        await handleInstallOnPersonalAccount();
+      } else {
+        const onBoardingUrl = await getAppOnboardingUrl({
+          slug: slug,
+          step: AppOnboardingSteps.ACCOUNTS_STEP,
+        });
 
-      router.push(onBoardingUrl);
+        router.push(onBoardingUrl);
+      }
     }
   };
 
@@ -184,6 +218,13 @@ export const AppPage = ({
         availableForTeams && data?.userAdminTeams && data.userAdminTeams.length > 0
           ? credentialsCount >= data.userAdminTeams.length + 1 /* for user cred */
           : credentialsCount > 0;
+
+      console.log("Calculated appInstalledForAllTargets:", {
+        credentialsCount,
+        userAdminTeamsCount: data?.userAdminTeams?.length,
+        appInstalledForAllTargets,
+      });
+
       setAppInstalledForAllTargets(appInstalledForAllTargets);
 
       // OneHash Chat specific logic

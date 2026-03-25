@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const tenantId = teamId ? teamId : userId;
   res.status(200).json({
-    url: `https://oauth.pipedrive.com/oauth/authorize?client_id=${appKeys.client_id}&redirect_uri=${redirect_url}&state={%22tenantId%22:%22${tenantId}%22,%22revertPublicToken%22:%22${process.env.REVERT_PUBLIC_TOKEN}%22}`,
+    url: `https://oauth.pipedrive.com/oauth/authorize?client_id=${appKeys.client_id}&redirect_uri=${redirect_url}&state=${tenantId}`,
     newTab: true,
   });
 }

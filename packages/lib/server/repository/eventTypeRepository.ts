@@ -1454,6 +1454,7 @@ export class EventTypeRepository {
                 startTime: true,
                 endTime: true,
                 days: true,
+                targetTimeZones: true,
               },
             },
             timeZone: true,
@@ -1465,6 +1466,7 @@ export class EventTypeRepository {
             startTime: true,
             endTime: true,
             days: true,
+            targetTimeZones: true,
           },
         },
         hosts: {
@@ -1487,6 +1489,7 @@ export class EventTypeRepository {
                     startTime: true,
                     endTime: true,
                     days: true,
+                    targetTimeZones: true,
                   },
                 },
                 timeZone: true,
