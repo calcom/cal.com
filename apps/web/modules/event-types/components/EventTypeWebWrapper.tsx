@@ -150,6 +150,7 @@ const EventTypeWeb = ({
   const [isOpenUnsavedChangesDialog, setIsOpenUnsavedChangesDialog] = useState(false);
   const unsavedChangesPendingUrl = useRef<string | null>(null);
   const formIsDirtyRef = useRef(false);
+  const skipPopStateRef = useRef(false);
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
@@ -328,8 +329,14 @@ const EventTypeWeb = ({
     const handleClick = (e: MouseEvent) => {
       if (!formIsDirtyRef.current) return;
 
+      // Don't intercept modifier clicks (new tab/window)
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+
       const target = (e.target as HTMLElement).closest("a");
       if (!target) return;
+
+      // Don't intercept links with target attribute (e.g. target="_blank")
+      if (target.getAttribute("target")) return;
 
       const href = target.getAttribute("href");
       if (!href || href.startsWith("#") || href.startsWith("http") || href.startsWith("mailto:")) return;
@@ -344,11 +351,19 @@ const EventTypeWeb = ({
     };
 
     const handlePopState = () => {
+      if (skipPopStateRef.current) {
+        skipPopStateRef.current = false;
+        return;
+      }
       if (formIsDirtyRef.current) {
         // Push current URL back to prevent leaving the page
         window.history.pushState(null, "", window.location.href);
-        unsavedChangesPendingUrl.current = "/event-types";
+        unsavedChangesPendingUrl.current = null;
         setIsOpenUnsavedChangesDialog(true);
+      } else {
+        // Form is clean — continue back navigation past the extra history entry
+        skipPopStateRef.current = true;
+        window.history.back();
       }
     };
 
@@ -504,6 +519,9 @@ const EventTypeWeb = ({
             formIsDirtyRef.current = false;
             if (unsavedChangesPendingUrl.current) {
               appRouter.push(unsavedChangesPendingUrl.current);
+            } else {
+              // Back button: go back past the extra history entry and the current page
+              window.history.go(-2);
             }
           }}
         />
