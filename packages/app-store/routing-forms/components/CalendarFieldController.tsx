@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useSchedule } from "@calcom/features/schedules/lib/use-schedule/useSchedule";
+import { trpc } from "@calcom/trpc/react";
 
 import {
   parseEventTypeInput,
@@ -57,25 +58,93 @@ export default function CalendarFieldController({
   );
 
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const month = selectedDate ? selectedDate.slice(0, 7) : dayjs().format("YYYY-MM");
+
+  const [month, setMonth] = useState(() => dayjs().startOf("month").format("YYYY-MM"));
+
+  const durationFromEventType = useMemo(() => {
+    if (!eventType) return null;
+    try {
+      const searchParams =
+        eventType.startsWith("http://") || eventType.startsWith("https://")
+          ? new URL(eventType).searchParams
+          : new URLSearchParams(eventType.split("?")[1] ?? "");
+      const parsedDuration = Number(searchParams.get("duration"));
+      return Number.isFinite(parsedDuration) && parsedDuration > 0 ? parsedDuration : null;
+    } catch {
+      return null;
+    }
+  }, [eventType]);
+
+  const event = trpc.viewer.public.calIdEvent.useQuery(
+    {
+      username: parsedEvent.username ?? "",
+      eventSlug: parsedEvent.eventSlug ?? "",
+      isTeamEvent: parsedEvent.isTeamEvent,
+      org: null,
+    },
+    {
+      enabled:
+        durationFromEventType === null &&
+        !!parsedEvent.username &&
+        !!parsedEvent.eventSlug &&
+        ownershipValid &&
+        !disabled,
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  const resolvedDuration = durationFromEventType ?? event.data?.length ?? null;
+  const eventQueryEnabled =
+    durationFromEventType === null &&
+    !!parsedEvent.username &&
+    !!parsedEvent.eventSlug &&
+    ownershipValid &&
+    !disabled;
+  const scheduleEnabled =
+    !!parsedEvent.username &&
+    !!parsedEvent.eventSlug &&
+    ownershipValid &&
+    !disabled &&
+    resolvedDuration !== null;
 
   const schedule = useSchedule({
     username: parsedEvent.username,
     eventSlug: parsedEvent.eventSlug,
+    eventId: event.data?.id ?? null,
+    monthCount: 2,
     isTeamEvent: parsedEvent.isTeamEvent,
     timezone,
     month,
-    selectedDate: selectedDate ?? undefined,
+    duration: resolvedDuration,
+    // selectedDate: selectedDate ?? undefined,
     prefetchNextMonth: true,
-    enabled: !!parsedEvent.username && !!parsedEvent.eventSlug && ownershipValid && !disabled,
+    enabled: scheduleEnabled,
   });
 
-  const slotsByDate = schedule?.data?.slots ?? {};
+  const [cachedData, setCachedData] = useState<typeof scheduleResult.data | null>(null);
+
+  // Update cache only when fresh data arrives
+  useEffect(() => {
+    if (schedule.data) {
+      setCachedData(schedule.data);
+    }
+  }, [schedule.data]);
+
+  // Decide what to show
+  const scheduleData = cachedData ?? schedule.data;
+  const isLoading =
+    !!eventType &&
+    ownershipValid &&
+    ((eventQueryEnabled && event.isPending) || (scheduleEnabled && !cachedData && schedule.isLoading));
+
+  const slotsByDate = scheduleData?.slots ?? {};
   const availableDates = Object.keys(slotsByDate).sort();
   const availableTimes = selectedDate ? (slotsByDate[selectedDate] ?? []).map((slot) => slot.time) : [];
 
-  const isLoading = !!eventType && ownershipValid && (schedule?.isPending || schedule?.isLoading);
-  const hasError = !!eventType && ownershipValid && schedule?.isError;
+  const hasError =
+    !!eventType &&
+    ownershipValid &&
+    ((eventQueryEnabled && event.isError) || (scheduleEnabled && schedule?.isError));
   const isDisabled = disabled || !ownershipValid || hasError || !eventType || availableDates.length === 0;
 
   const isUnderline = fieldStyle === "underline";
@@ -140,6 +209,9 @@ export default function CalendarFieldController({
       <div className="w-full">
         <ExtendedDatePicker
           selectedDate={selectedDate}
+          onMonthChange={(_month) => {
+            setMonth(_month);
+          }}
           onChange={(nextDate) => {
             if (nextDate !== selectedDate) setSelectedDate(nextDate);
             if (selectedTime) setSelectedTime(null);

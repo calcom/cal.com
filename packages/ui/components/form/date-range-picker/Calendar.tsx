@@ -22,6 +22,7 @@ function Calendar({
   showOutsideDays = true,
   variant = "default",
   accentColor,
+  onMonthChange,
   ...props
 }: CalendarProps) {
   const isCompact = variant === "compact";
@@ -29,6 +30,7 @@ function Calendar({
   return (
     <DayPicker
       fromDate={fromDate}
+      onMonthChange={onMonthChange}
       toDate={toDate || undefined}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
