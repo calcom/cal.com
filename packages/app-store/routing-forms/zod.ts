@@ -27,6 +27,21 @@ export const zodNonRouterField = z.object({
       })
     )
     .optional(),
+  uiConfig: z
+    .object({
+      layout: z.enum(["full", "half"]).optional(),
+      helpText: z.string().optional(),
+      content: z.string().optional(),
+      checkboxDirection: z.enum(["row", "column"]).optional(),
+      checkboxVariant: z.enum(["default", "largeSquare"]).optional(),
+      validation: z
+        .object({
+          minChars: z.number().optional(),
+        })
+        .optional(),
+    })
+    .passthrough()
+    .optional(),
 });
 
 export const zodRouterField = zodNonRouterField.extend({
@@ -135,7 +150,8 @@ export const appKeysSchema = z.object({});
 // Record key is formFieldId
 export const routingFormResponseInDbSchema = z.record(
   z.object({
-    label: z.string().optional(),
+    label: z.string(),
     value: z.union([z.string(), z.number(), z.array(z.string())]),
+    optionId: z.union([z.string(), z.array(z.string())]).optional(),
   })
 );

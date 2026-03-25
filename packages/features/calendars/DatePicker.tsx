@@ -3,7 +3,7 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
+import { useEmbedStyles } from "@calid/embed-runtime/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/dayjs";

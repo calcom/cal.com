@@ -42,6 +42,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     form.settings || {
       // Would have really loved to do it using zod. But adding .default(true) throws type error in prisma/zod/app_routingforms_form.ts
       emailOwnerOnSubmission: true,
+      waitForBookingAcknowledgement: false,
     }
   );
 

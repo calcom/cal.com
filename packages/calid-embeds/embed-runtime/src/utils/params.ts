@@ -147,7 +147,7 @@ export function bookingPathsMatch({ path1, path2 }: { path1: string; path2: stri
 }
 
 export function configToParams(config: EmbedConfig): URLSearchParams {
-  const { iframeAttrs: _skip, ...rest } = config;
+  const { iframeAttrs: _skip, loaderUrl: _loaderUrl, ...rest } = config;
   return Object.entries(rest).reduce((sp, [k, v]) => {
     if (Array.isArray(v)) v.forEach((val) => sp.append(k, val));
     else if (typeof v === "string") sp.set(k, v);

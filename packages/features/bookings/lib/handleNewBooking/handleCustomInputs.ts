@@ -37,7 +37,7 @@ function validateBooleanInput(value: string | boolean | undefined, errorMessage:
   }).parse(value);
 }
 
-function validatePhoneInput(value: string | boolean | undefined, errorMessage: string) {
+export function validatePhoneInput(value: string | boolean | undefined, errorMessage: string) {
   z.string({
     errorMap: () => ({ message: errorMessage }),
   })

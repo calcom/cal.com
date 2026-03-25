@@ -1,4 +1,5 @@
 import { scheduleEmailReminder } from "@calid/features/modules/workflows/managers/emailManager";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { scheduleSMSReminder } from "@calid/features/modules/workflows/managers/smsManager";
 import { scheduleWhatsappReminder } from "@calid/features/modules/workflows/managers/whatsappManager";
 
@@ -76,6 +77,7 @@ export const calIdActivateEventTypeHandler = async ({ ctx, input }: CalIdActivat
         select: {
           id: true,
           name: true,
+          metadata: true
         },
       },
     },
@@ -234,6 +236,7 @@ export const calIdActivateEventTypeHandler = async ({ ctx, input }: CalIdActivat
 
     for (const booking of bookingsForReminders) {
       const defaultLocale = "en";
+      // TODO: Need to add locationType here
       const bookingInfo = {
         uid: booking.uid,
         bookerUrl,
@@ -314,6 +317,7 @@ export const calIdActivateEventTypeHandler = async ({ ctx, input }: CalIdActivat
             emailBody: step.reminderBody || "",
             template: step.template,
             sender: step.sender,
+            enterpriseEmailPrefix: isPrismaObjOrUndefined(eventTypeWorkflow.calIdTeam?.metadata)?.enterpriseEmailPrefix?.toString(),
             workflowStepId: step.id,
             workflowId: step.workflowId,
           });

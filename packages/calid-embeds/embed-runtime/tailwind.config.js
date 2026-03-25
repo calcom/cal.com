@@ -2,7 +2,7 @@ const base = require("@calcom/config/tailwind-preset");
 
 module.exports = {
   ...base,
-  content: ["**/*Html.ts", "**/ui/**/*.ts*"],
+  content: ["**/*Html.ts", "**/*template.ts", "**/ui/**/*.ts*"],
   theme: {
     ...base.theme,
     extend: {

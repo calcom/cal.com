@@ -63,3 +63,20 @@
 .loader.modal-loader {
   margin: 60px auto;
 }
+
+.custom-loader-wrapper {
+  display: none;
+}
+
+.custom-loader-wrapper.modal-loader {
+  margin: 60px auto;
+}
+
+.custom-loader-image {
+  display: block;
+  max-width: 160px;
+  max-height: 160px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}

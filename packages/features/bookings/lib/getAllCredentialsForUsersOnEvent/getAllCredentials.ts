@@ -10,7 +10,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 
 export type EventType = {
   userId?: number | null;
-  team?: { id: number | null; parentId: number | null } | null;
+  calIdTeam?: { id: number | null } | null;
   parentId?: number | null;
   metadata: z.infer<typeof EventTypeMetaDataSchema>;
 } | null;
@@ -26,10 +26,10 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
   let allCredentials = user.credentials;
 
   // If it's a team event type query for team credentials
-  if (eventType?.team?.id) {
+  if (eventType?.calIdTeam?.id) {
     const teamCredentialsQuery = await prisma.credential.findMany({
       where: {
-        teamId: eventType.team.id,
+        calIdTeamId: eventType.calIdTeam.id,
       },
       select: credentialForCalendarServiceSelect,
     });
@@ -38,7 +38,7 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
 
   // If it's a managed event type, query for the parent team's credentials
   if (eventType?.parentId) {
-    const teamCredentialsQuery = await prisma.team.findFirst({
+    const teamCredentialsQuery = await prisma.calIdTeam.findFirst({
       where: {
         eventTypes: {
           some: {

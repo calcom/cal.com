@@ -2,7 +2,7 @@ import { Badge } from "@calid/features/ui/components/badge";
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useIsEmbed } from "@calid/embed-runtime/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import classNames from "@calcom/ui/classNames";

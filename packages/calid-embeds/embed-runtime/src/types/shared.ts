@@ -57,6 +57,7 @@ export type SlotQueryStatus = {
 
 export type EmbedConfig = Record<string, string | string[] | Record<string, string>> & {
   iframeAttrs?: Record<string, string> & { id?: string };
+  loaderUrl?: string;
 } & KnownParams;
 
 export type StyleSetter = React.Dispatch<React.SetStateAction<StylesMap>>;

@@ -21,6 +21,33 @@ const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
 
 const translator = short();
 
+const getVideoFallbackReason = (error: unknown): "missing_install" | "missing_scope" | "provider_error" => {
+  const message =
+    typeof error === "string"
+      ? error
+      : error instanceof Error
+      ? error.message
+      : safeStringify(error).toLowerCase();
+  const normalizedMessage = message.toLowerCase();
+
+  if (normalizedMessage.includes("disabled or not seeded")) {
+    return "missing_install";
+  }
+
+  if (
+    normalizedMessage.includes("scope") ||
+    normalizedMessage.includes("permission") ||
+    normalizedMessage.includes("insufficient") ||
+    normalizedMessage.includes("forbidden") ||
+    normalizedMessage.includes("unauthorized") ||
+    normalizedMessage.includes("invalid_grant")
+  ) {
+    return "missing_scope";
+  }
+
+  return "provider_error";
+};
+
 // factory
 const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<VideoApiAdapter[]> => {
   const videoAdapters: VideoApiAdapter[] = [];
@@ -112,14 +139,23 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     log.debug("created Meeting", safeStringify(returnObject));
   } catch (err) {
     await sendBrokenIntegrationEmail(calEvent, "video");
+    const fallbackReason = getVideoFallbackReason(err);
     log.error(
       "createMeeting failed",
       safeStringify(err),
-      safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
+      safeStringify({
+        fallbackReason,
+        credential: getPiiFreeCredential(credential),
+        calEvent: getPiiFreeCalendarEvent(calEvent),
+      })
     );
 
     // Fallback to Jitsi
     // Note: Jitsi creates permanent rooms, so recurring events work automatically
+    log.warn(
+      "Falling back to jitsi video meeting creation",
+      safeStringify({ fallbackReason, fallbackProvider: "jitsi_video" })
+    );
     const defaultMeeting = await createMeetingWithJitsiVideo(calEvent);
     if (defaultMeeting) {
       calEvent.location = JitsiLocationType;
@@ -216,7 +252,7 @@ const deleteMeeting = async (credential: CredentialPayload | null, uid: string):
   return Promise.resolve({});
 };
 
-// @TODO: This is a temporary solution to create a meeting with cal.com video as fallback url
+// @TODO: This is a temporary solution to create a Cal Video meeting room directly.
 const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {

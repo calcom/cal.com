@@ -12,6 +12,11 @@ vi.mock("../InitialConfig", () => ({
       text: { type: "text" },
       select: { type: "select" },
       multiselect: { type: "multiselect" },
+      address: { type: "text" },
+      url: { type: "text" },
+      radio: { type: "select" },
+      checkbox: { type: "multiselect" },
+      boolean: { type: "select" },
     },
     operators: {
       is_empty: {},
@@ -42,6 +47,48 @@ describe("getQueryBuilderConfig", () => {
         type: "multiselect",
         selectText: "Option A\nOption B\nOption C",
       },
+      {
+        id: "field4",
+        label: "Address Field",
+        type: "address",
+      },
+      {
+        id: "field5",
+        label: "URL Field",
+        type: "url",
+      },
+      {
+        id: "field6",
+        label: "Radio Field",
+        type: "radio",
+        selectText: "Choice 1\nChoice 2",
+      },
+      {
+        id: "field7",
+        label: "Checkbox Field",
+        type: "checkbox",
+        selectText: "Choice A\nChoice B",
+      },
+      {
+        id: "field8",
+        label: "Boolean Field",
+        type: "boolean",
+      },
+      {
+        id: "field9",
+        label: "Layout Field",
+        type: "heading",
+      },
+      {
+        id: "field10",
+        label: "Date Field",
+        type: "date",
+      },
+      {
+        id: "field11",
+        label: "Calendar Field",
+        type: "calendar",
+      },
     ],
   };
 
@@ -51,6 +98,14 @@ describe("getQueryBuilderConfig", () => {
     expect(config.fields).toHaveProperty("field1");
     expect(config.fields).toHaveProperty("field2");
     expect(config.fields).toHaveProperty("field3");
+    expect(config.fields).toHaveProperty("field4");
+    expect(config.fields).toHaveProperty("field5");
+    expect(config.fields).toHaveProperty("field6");
+    expect(config.fields).toHaveProperty("field7");
+    expect(config.fields).toHaveProperty("field8");
+    expect(config.fields).not.toHaveProperty("field9");
+    expect(config.fields).not.toHaveProperty("field10");
+    expect(config.fields).not.toHaveProperty("field11");
 
     expect(config.fields.field1).toEqual({
       label: "Text Field",
@@ -81,6 +136,53 @@ describe("getQueryBuilderConfig", () => {
           { value: "Option B", title: "Option B" },
           { value: "Option C", title: "Option C" },
         ],
+      },
+    });
+
+    expect(config.fields.field4).toEqual({
+      label: "Address Field",
+      type: "text",
+      valueSources: ["value"],
+      fieldSettings: {},
+    });
+
+    expect(config.fields.field5).toEqual({
+      label: "URL Field",
+      type: "text",
+      valueSources: ["value"],
+      fieldSettings: {},
+    });
+
+    expect(config.fields.field6).toEqual({
+      label: "Radio Field",
+      type: "select",
+      valueSources: ["value"],
+      fieldSettings: {
+        listValues: [
+          { value: "Choice 1", title: "Choice 1" },
+          { value: "Choice 2", title: "Choice 2" },
+        ],
+      },
+    });
+
+    expect(config.fields.field7).toEqual({
+      label: "Checkbox Field",
+      type: "multiselect",
+      valueSources: ["value"],
+      fieldSettings: {
+        listValues: [
+          { value: "Choice A", title: "Choice A" },
+          { value: "Choice B", title: "Choice B" },
+        ],
+      },
+    });
+
+    expect(config.fields.field8).toEqual({
+      label: "Boolean Field",
+      type: "select",
+      valueSources: ["value"],
+      fieldSettings: {
+        listValues: [{ value: "true", title: "Checked" }],
       },
     });
   });
@@ -114,7 +216,7 @@ describe("getQueryBuilderConfig", () => {
     });
   });
 
-  it("should throw an error for unsupported field types", () => {
+  it("should skip unsupported field types", () => {
     const formWithUnsupportedField: MockedForm = {
       ...mockForm,
       fields: [
@@ -126,9 +228,8 @@ describe("getQueryBuilderConfig", () => {
       ],
     };
 
-    expect(() => getQueryBuilderConfigForFormFields(formWithUnsupportedField)).toThrow(
-      "Unsupported field type:unsupported"
-    );
+    const config = getQueryBuilderConfigForFormFields(formWithUnsupportedField);
+    expect(config.fields).not.toHaveProperty("unsupportedField");
   });
 
   it("should remove specific operators when forReporting is true", () => {

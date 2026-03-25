@@ -244,8 +244,7 @@ export const ComponentForField = ({
   translatedDefaultLabel,
 }: {
   field: Omit<RhfFormField, "editable" | "label"> & {
-    // Label is optional because radioInput doesn't have a label
-    label?: string;
+    label: string;
   };
   readOnly: boolean;
   noLabel?: boolean;

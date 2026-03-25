@@ -48,7 +48,7 @@ const FormSettings = ({
   const formLink = `${orgBranding?.fullDomain ?? WEBSITE_URL}/forms/${form.id}`;
 
   return (
-    <div className="flex w-full py-4">
+    <div className="flex w-full">
       <div className="flex w-full gap-6">
         <div className="flex grid w-full grid-cols-1 justify-between gap-10 sm:grid-cols-2 md:grid-cols-2">
           <div className="bg-default border-subtle gap-3 rounded-md border p-6">
@@ -153,6 +153,27 @@ const FormSettings = ({
                       </div>
                     )}
                   </>
+                );
+              }}
+            />
+
+            <Controller
+              name="settings.waitForBookingAcknowledgement"
+              control={hookForm.control}
+              render={({ field: { value, onChange } }) => {
+                return (
+                  <div className="mt-4 flex items-center gap-2">
+                    <Checkbox
+                      checked={!!value}
+                      onCheckedChange={(val) => onChange(!!val)}
+                      id="waitForBookingAcknowledgement"
+                    />
+                    <label
+                      htmlFor="waitForBookingAcknowledgement"
+                      className="text-default text-sm font-medium leading-none">
+                      Wait for booking acknowledgement before redirect (embed only)
+                    </label>
+                  </div>
                 );
               }}
             />

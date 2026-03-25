@@ -60,7 +60,12 @@ export function getUrlSearchParamsToForward({
     }
     let valueAsStringOrStringArray =
       typeof fieldResponse.value === "number" ? String(fieldResponse.value) : fieldResponse.value;
-    if (foundField.type === "select" || foundField.type === "multiselect") {
+    if (
+      foundField.type === "select" ||
+      foundField.type === "multiselect" ||
+      foundField.type === "radio" ||
+      foundField.type === "checkbox"
+    ) {
       const options = foundField.options || [];
       let arr =
         valueAsStringOrStringArray instanceof Array
@@ -75,7 +80,7 @@ export function getUrlSearchParamsToForward({
         }
         return idOrLabel;
       });
-      valueAsStringOrStringArray = foundField.type === "select" ? arr[0] : arr;
+      valueAsStringOrStringArray = foundField.type === "select" || foundField.type === "radio" ? arr[0] : arr;
     }
     paramsFromResponse[getFieldIdentifier(foundField) as keyof typeof paramsFromResponse] =
       valueAsStringOrStringArray;

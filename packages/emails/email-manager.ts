@@ -3,13 +3,11 @@ import type { TFunction } from "i18next";
 import { default as cloneDeep } from "lodash/cloneDeep";
 import type { z } from "zod";
 
-import dayjs from "@calcom/dayjs";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 import type { EventNameObjectType } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -515,25 +513,12 @@ export const sendDeclinedEmailsAndSMS = async (
 
 export const sendCancelledEmailsAndSMS = async (
   calEvent: CalendarEvent,
-  eventNameObject: Pick<EventNameObjectType, "eventName">,
+  _eventNameObject: Pick<EventNameObjectType, "eventName">,
   eventTypeMetadata?: EventTypeMetadata,
   hasRelevantSmsWorkflow = false
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
-  const calEventLength = calendarEvent.length;
-  const eventDuration = dayjs(calEvent.endTime).diff(calEvent.startTime, "minutes");
-
-  if (typeof calEventLength !== "number") {
-    logger.error(
-      "`calEventLength` is not a number",
-      safeStringify({
-        calEventLength,
-        calEventTitle: calEvent.title,
-        bookingId: calEvent.bookingId,
-      })
-    );
-  }
 
   logger.info("Sending cancellation notifications", {
     bookingId: calEvent.bookingId,
@@ -571,25 +556,7 @@ export const sendCancelledEmailsAndSMS = async (
   if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
     emailsToSend.push(
       ...calendarEvent.attendees.map((attendee) => {
-        return sendEmail(
-          () =>
-            new AttendeeCancelledEmail(
-              {
-                ...calendarEvent,
-                title: getEventName({
-                  ...eventNameObject,
-                  t: attendee.language.translate,
-                  attendeeName: attendee.name,
-                  host: calendarEvent.organizer.name,
-                  eventType: calendarEvent.title,
-                  eventDuration,
-                  ...(calendarEvent.responses && { bookingFields: calendarEvent.responses }),
-                  ...(calendarEvent.location && { location: calendarEvent.location }),
-                }),
-              },
-              attendee
-            )
-        );
+        return sendEmail(() => new AttendeeCancelledEmail(calendarEvent, attendee));
       })
     );
   }

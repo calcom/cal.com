@@ -16,6 +16,7 @@ import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { resolveWorkflowStepStatus } from "@calcom/lib/workflows/resolveWorkflowStepStatus";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TimeUnit, WorkflowActions, WorkflowStatus, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -186,49 +187,6 @@ function getChannelFromAction(action: WorkflowActions): "EMAIL" | "SMS" | "WHATS
   return "EMAIL";
 }
 
-function parseUtcTimestamp(input: string | Date): number {
-  if (input instanceof Date) {
-    return input.getTime();
-  }
-
-  // If timezone is missing, force UTC
-  return Date.parse(!/[zZ]|[+-]\d\d:\d\d$/.test(input) ? `${input}Z` : input);
-}
-
-function resolveWorkflowStepStatus(
-  workflowInsight: {
-    status: WorkflowStatus;
-  } | null,
-  workflowReminder: {
-    cancelled: boolean | null;
-    scheduled: boolean;
-    scheduledDate: Date;
-  } | null
-): WorkflowStatus {
-  // 1. If workflowInsight exists, use its status
-  if (workflowInsight) {
-    return workflowInsight.status;
-  }
-
-  // 2. Check workflowReminder
-  if (workflowReminder) {
-    const parsedScheduledDate = parseUtcTimestamp(workflowReminder.scheduledDate);
-    const currentTime = Date.now();
-
-    if (workflowReminder.cancelled) {
-      return "CANCELLED";
-    }
-    if (workflowReminder.scheduled && parsedScheduledDate <= currentTime) {
-      return "DELIVERED";
-    }
-    if (workflowReminder.scheduled && parsedScheduledDate > currentTime) {
-      return "QUEUED";
-    }
-  }
-
-  // 3. Default to QUEUED
-  return "QUEUED";
-}
 export async function getBookings({
   user,
   prisma,
@@ -802,6 +760,7 @@ export async function getBookings({
                 "CalIdWorkflowReminder.scheduledDate",
                 "CalIdWorkflowReminder.scheduled",
                 "CalIdWorkflowReminder.cancelled",
+                "CalIdWorkflowReminder.providerCancellationStatus",
                 "CalIdWorkflowReminder.seatReferenceId",
                 "CalIdWorkflowReminder.isMandatoryReminder",
                 "CalIdWorkflowReminder.attendeeId",

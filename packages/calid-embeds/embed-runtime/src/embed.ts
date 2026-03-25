@@ -1,4 +1,5 @@
 import { EventChannel } from "./bus/channel";
+import { createPostMessageRouter, sendPostMessage, type PostMessageEnvelope } from "./bus/post-message";
 import type { EventEnvelope, EventRegistry } from "./bus/channel";
 import { SLOT_STALE_DURATION, IFRAME_FORCE_RELOAD_DURATION, PRERENDER_COOLDOWN_DURATION } from "./constants";
 import type { InterfaceWithParent, interfaceWithParent } from "./embed-iframe";
@@ -40,7 +41,7 @@ customElements.define("cal-inline", Inline);
 
 declare module "*.css" {}
 
-type AppConfig = { calOrigin: string; debug?: boolean; uiDebug?: boolean };
+type AppConfig = { calOrigin: string; debug?: boolean; uiDebug?: boolean; postMessageOrigins?: string[] };
 type ModalElement = Element & { uid?: string };
 
 type SnapshotData = {
@@ -166,6 +167,7 @@ export class Cal {
   calLink: string | null = null;
   embedConfig: EmbedConfig | null = null;
   embedRenderStartTime: number | null = null;
+  postMessageRouter?: ReturnType<typeof createPostMessageRouter>;
 
   static actionBuses: Record<string, EventChannel> = {};
 
@@ -228,7 +230,7 @@ export class Cal {
   }): HTMLIFrameElement {
     iframe.dataset.calLink = calLink;
     const appCfg = this.getAppConfig();
-    const { iframeAttrs, ...queryCfg } = config;
+    const { iframeAttrs, loaderUrl: _loaderUrl, ...queryCfg } = config;
 
     if (iframeAttrs?.id) iframe.setAttribute("id", iframeAttrs.id);
     iframe.setAttribute("allow", "payment");
@@ -273,6 +275,11 @@ export class Cal {
     this.iframe.contentWindow?.postMessage({ originator: "CAL", method: msg.method, arg: msg.arg }, "*");
   }
 
+  forwardPostMessageToIframe(msg: PostMessageEnvelope): void {
+    if (!this.iframe) return;
+    sendPostMessage(this.iframe.contentWindow as Window, msg, "*");
+  }
+
   constructor(ns: string, q: Queue) {
     console.log("WEBAPPURL: ", WEBAPP_URL);
     this.__config = { calOrigin: WEBAPP_URL };
@@ -281,6 +288,17 @@ export class Cal {
     this.actionManager = new EventChannel(ns);
     Cal.actionBuses = Cal.actionBuses || {};
     Cal.actionBuses[ns] = this.actionManager;
+
+    this.postMessageRouter = createPostMessageRouter({
+      namespace: ns,
+      allowedOrigins: this.__config.postMessageOrigins,
+      handlers: {
+        set_calendar_event_type: (msg) => this.forwardPostMessageToIframe(msg),
+        set_field_value: (msg) => this.forwardPostMessageToIframe(msg),
+        form_submission_acknowledgement: (msg) => this.forwardPostMessageToIframe(msg),
+      },
+    });
+    this.postMessageRouter.attach();
 
     this.drainQueue(q);
     this.wireListeners();
@@ -296,7 +314,6 @@ export class Cal {
 
     this.actionManager.listen("__iframeReady", (e) => {
       this.iframeReady = true;
-      if (this.iframe && !e.detail.data.isPrerendering) this.iframe.style.visibility = "";
       this.sendToIframe({ method: "parentKnowsIframeReady" } as const);
       this.iframeDoQueue.forEach((m) => this.sendToIframe(m));
     });
@@ -552,10 +569,11 @@ class EmbedApiImpl {
     const pageType = readConfig(config, "cal.embed.pageType");
     const theme = readConfig(config, "theme");
     const layout = readConfig(config, "layout");
+    const loaderUrl = typeof config.loaderUrl === "string" ? config.loaderUrl : null;
 
     const tmpl = document.createElement("template");
     tmpl.innerHTML = [
-      `<cal-inline ${dataAttrs({ pageType, theme, layout })}`,
+      `<cal-inline ${dataAttrs({ pageType, theme, layout, loaderUrl })}`,
       ` style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline>`,
       `<style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`,
     ].join("");
@@ -709,6 +727,10 @@ class EmbedApiImpl {
     const existing = document.querySelector(`cal-modal-box[uid="${uid}"]`);
 
     if (existing && this.cal.iframe) {
+      const loaderUrl = typeof enrichedCfg.loaderUrl === "string" ? enrichedCfg.loaderUrl : "";
+      if (loaderUrl) existing.setAttribute("data-loader-url", loaderUrl);
+      else existing.removeAttribute("data-loader-url");
+
       const currentLink = this.cal.getLoadedLink();
       const currentIsRouter = currentLink?.pathname?.includes("/router");
       if (isRouter && !currentIsRouter) throw new Error("prerender should use router path");
@@ -752,9 +774,10 @@ class EmbedApiImpl {
     const pageType = readConfig(enrichedCfg, "cal.embed.pageType");
     const theme = readConfig(enrichedCfg, "theme");
     const layout = readConfig(enrichedCfg, "layout");
+    const loaderUrl = typeof enrichedCfg.loaderUrl === "string" ? enrichedCfg.loaderUrl : null;
 
     const tmpl = document.createElement("template");
-    tmpl.innerHTML = `<cal-modal-box ${dataAttrs({ pageType, theme, layout })} uid="${uid}"></cal-modal-box>`;
+    tmpl.innerHTML = `<cal-modal-box ${dataAttrs({ pageType, theme, layout, loaderUrl })} uid="${uid}"></cal-modal-box>`;
 
     this.cal.modalBox = tmpl.content.children[0];
     this.cal.modalBox.appendChild(frame);

@@ -18,7 +18,7 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 
-import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import useIsPublicPage from "@lib/hooks/useIsPublicPage";
 import type { WithLocaleProps } from "@lib/withLocale";
 
 import { useViewerI18n } from "@components/I18nLanguageHandler";
@@ -270,7 +270,7 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 }
 
 const AppProviders = (props: AppPropsWithChildren) => {
-  const isBookingPage = useIsBookingPage();
+  const isBookingPage = useIsPublicPage();
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>

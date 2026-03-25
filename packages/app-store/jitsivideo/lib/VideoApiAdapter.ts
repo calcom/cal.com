@@ -1,11 +1,27 @@
 import { v4 as uuidv4 } from "uuid";
 
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { metadata } from "../_metadata";
+
+export const FAKE_JITSI_CREDENTIAL: CredentialForCalendarService & { invalid: boolean } = {
+  id: 0,
+  type: "jitsi_video",
+  key: {},
+  userId: 0,
+  user: { email: "" },
+  appId: "jitsi",
+  invalid: false,
+  calIdTeamId: null,
+  teamId: null,
+  delegatedToId: null,
+  delegatedTo: null,
+  delegationCredentialId: null,
+};
 
 const JitsiVideoApiAdapter = (): VideoApiAdapter => {
   return {

@@ -1,7 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
-import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
+import {
+  DefaultFallbackVideoLocationType,
+  OrganizerDefaultConferencingAppType,
+  getLocationValueForDB,
+} from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import {
   sendRoundRobinCancelledEmailsAndSMS as RRCancelledEmailAndSMS,
@@ -271,7 +275,7 @@ async function determineLocationForNewOrganizer(
 
   const targetMeta = userMetadata.safeParse(data.targetHost.user.metadata);
   const defaultApp = targetMeta.success ? targetMeta.data?.defaultConferencingApp?.appLink : undefined;
-  const currentLoc = data.booking.location || "integrations:daily";
+  const currentLoc = data.booking.location || DefaultFallbackVideoLocationType;
 
   return defaultApp || getLocationValueForDB(currentLoc, data.eventType.locations).bookingLocation;
 }
@@ -291,7 +295,7 @@ async function generateBookingTitle(
     eventName: data.eventType.eventName,
     teamName: data.eventType.team?.name,
     host: data.targetHost.user.name || "Nameless",
-    location: location || "integrations:daily",
+    location: location || DefaultFallbackVideoLocationType,
     bookingFields: { ...responses },
     eventDuration: durationMinutes,
     t: targetTranslation,
@@ -331,6 +335,10 @@ async function prepareCalendarEvent(
   updatedBooking: BookingSelectResult,
   updatedLocation: string | null
 ): Promise<CalendarEvent> {
+  const locationType = isPrismaObjOrUndefined(
+    isPrismaObjOrUndefined(updatedBooking.responses)?.location
+  )?.value;
+
   const effectiveOrganizer = data.requiresOrganizerChange
     ? data.targetHost.user
     : updatedBooking.user ?? data.targetHost.user;
@@ -382,6 +390,7 @@ async function prepareCalendarEvent(
     }),
     customReplyToEmail: data.eventType.customReplyToEmail,
     location: updatedLocation,
+    locationType: locationType?.toString(),
     ...(payload.platformClientParams ? payload.platformClientParams : {}),
   };
 }
@@ -451,7 +460,7 @@ async function synchronizeCalendars(
     bookingICalUID: updatedBooking.iCalUID,
     bookingMetadata: updatedBooking.metadata,
   });
-  console.log("Event after sync: ", evtWithAdditionalInfo)
+  console.log("Event after sync: ", evtWithAdditionalInfo);
 
   return evtWithAdditionalInfo;
 }
@@ -565,6 +574,12 @@ const calIdWorkflowReminderSelect = {
           timeUnit: true,
         },
       },
+      calIdTeam: {
+        select: {
+          id: true,
+          metadata: true,
+        },
+      },
       emailSubject: true,
       reminderBody: true,
       sender: true,
@@ -609,6 +624,7 @@ async function rescheduleExistingReminders(
         ...evt,
         metadata: eventMeta,
         eventType: eventType,
+        cancellationReason: evt.cancellationReason ?? undefined,
         bookerUrl,
       },
       action: WorkflowActions.EMAIL_HOST,
@@ -622,6 +638,9 @@ async function rescheduleExistingReminders(
       emailSubject: reminder.workflowStep.emailSubject || undefined,
       emailBody: reminder.workflowStep.reminderBody || undefined,
       sender: reminder.workflowStep.sender || SENDER_NAME,
+      enterpriseEmailPrefix: isPrismaObjOrUndefined(
+        reminder.calIdTeam?.metadata
+      )?.enterpriseEmailPrefix?.toString(),
       hideBranding: true,
       includeCalendarEvent: reminder.workflowStep.includeCalendarEvent,
       workflowStepId: reminder.workflowStep.id,
@@ -630,7 +649,7 @@ async function rescheduleExistingReminders(
       teamId: workflow.calIdTeamId,
     });
 
-    await deleteScheduledEmailReminder(reminder.id);
+    await deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
   }
 }
 
@@ -641,7 +660,7 @@ async function fetchActiveReminders(booking: BookingSelectResult): Promise<any[]
     WorkflowTriggerEvents.AFTER_EVENT,
   ];
 
-  const bookingUid = booking.uid
+  const bookingUid = booking.uid;
 
   return await prisma.calIdWorkflowReminder.findMany({
     where: {

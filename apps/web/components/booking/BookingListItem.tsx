@@ -18,7 +18,11 @@ import { flushSync } from "react-dom";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import type { getEventLocationValue } from "@calcom/app-store/locations";
-import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
+import {
+  getEventLocationTypeFromVideoProvider,
+  getSuccessPageLocationMessage,
+  guessEventLocationType,
+} from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import "@calcom/dayjs/locales";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
@@ -231,7 +235,9 @@ export default function BookingListItem(booking: BookingItemProps) {
     t,
     booking.status
   );
-  const provider = guessEventLocationType(location);
+  const provider =
+    getEventLocationTypeFromVideoProvider(parsedBooking.metadata?.videoProvider) ||
+    guessEventLocationType(location);
 
   const isDisabledCancelling = booking.eventType.disableCancelling;
   const isDisabledRescheduling = booking.eventType.disableRescheduling;
