@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import { useMutation } from "@tanstack/react-query";
-import { addMinutes, format, parseISO, startOfDay } from "date-fns";
+import { addMinutes, addMonths, endOfDay, format, parseISO, startOfDay } from "date-fns";
 import { Loader2, Video } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -24,6 +24,7 @@ import {
 import { SystemField } from "@calcom/features/bookings/lib/SystemField";
 import { createBooking } from "@calcom/features/bookings/lib/create-booking";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { getNonEmptyScheduleDays } from "@calcom/features/schedules/lib/use-schedule/useNonEmptyScheduleDays";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringDates, processDate } from "@calcom/lib/parse-dates";
@@ -40,10 +41,8 @@ import {
 } from "./ScheduleMeetingModal.utils";
 import { ScheduleMeetingModalBookingFieldsStep } from "./ScheduleMeetingModalBookingFieldsStep";
 import { ScheduleMeetingModalConfirmStep } from "./ScheduleMeetingModalConfirmStep";
-import { ScheduleMeetingModalDateTimeStep } from "./ScheduleMeetingModalDateTimeStep";
 import { ScheduleMeetingModalEventTypeStep } from "./ScheduleMeetingModalEventTypeStep";
-import { ScheduleMeetingModalGuestsStep } from "./ScheduleMeetingModalGuestsStep";
-import { ScheduleMeetingModalLocationStep } from "./ScheduleMeetingModalLocationStep";
+import { ScheduleMeetingModalLocationDateTimeStep } from "./ScheduleMeetingModalLocationDateTimeStep";
 
 interface ScheduleMeetingModalProps {
   open: boolean;
@@ -63,6 +62,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
 
   const [step, setStep] = useState(1);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const [shouldAutoAdvanceFromEventSelection, setShouldAutoAdvanceFromEventSelection] = useState(false);
   const [selectedLocationType, setSelectedLocationType] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
@@ -142,7 +142,6 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
   );
 
   const hasExtendedBookingFields = bookingFieldsStepSource.length > 0;
-  const hasLocationSelectionStep = selectedEventLocations.length > 1;
   const locationOptions = useMemo(
     () =>
       selectedEventLocations.map((location) => {
@@ -156,25 +155,18 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     [selectedEventLocations, t]
   );
   const stepLabels = useMemo(() => {
-    const labels = [t("contacts_event_type")];
-    if (hasLocationSelectionStep) {
-      labels.push(t("contacts_location"));
-    }
-    labels.push(t("contacts_date_and_time"));
-    if (hasExtendedBookingFields) {
-      labels.push(t("contacts_booking_fields"));
-    }
-    labels.push(t("contacts_guests"), t("contacts_confirm"));
-    return labels;
-  }, [hasExtendedBookingFields, hasLocationSelectionStep, t]);
+    return [
+      t("contacts_event_type"),
+      `${t("contacts_location")} + ${t("contacts_date_and_time")}`,
+      t("contacts_booking_fields"),
+      t("contacts_confirm"),
+    ];
+  }, [t]);
 
   const EVENT_TYPE_STEP = 1;
-  const LOCATION_STEP = hasLocationSelectionStep ? 2 : null;
-  const DATE_TIME_STEP = hasLocationSelectionStep ? 3 : 2;
-  const BOOKING_FIELDS_STEP = hasExtendedBookingFields ? DATE_TIME_STEP + 1 : null;
-  const GUESTS_STEP = hasExtendedBookingFields ? (BOOKING_FIELDS_STEP as number) + 1 : DATE_TIME_STEP + 1;
-  const CONFIRM_STEP = GUESTS_STEP + 1;
-  const BACK_FROM_GUESTS_STEP = hasExtendedBookingFields ? BOOKING_FIELDS_STEP : DATE_TIME_STEP;
+  const LOCATION_DATE_TIME_STEP = 2;
+  const BOOKING_FIELDS_STEP = 3;
+  const CONFIRM_STEP = 4;
 
   const defaultBookingFieldResponses = useMemo(() => {
     return bookingFieldsStepSource.reduce<Record<string, unknown>>((defaults, field) => {
@@ -257,6 +249,56 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
       setSelectedSlotTime(null);
     }
   }, [durationOptions, selectedDuration]);
+
+  const nextMonthScheduleInput = {
+    eventTypeId: selectedEventId ?? 0,
+    startTime: startOfDay(new Date()).toISOString(),
+    endTime: endOfDay(addMonths(new Date(), 1)).toISOString(),
+    timeZone: userTimeZone,
+    ...(selectedDuration ? { duration: `${selectedDuration}` } : {}),
+  };
+
+  const nextMonthScheduleQuery = trpc.viewer.slots.getSchedule.useQuery(nextMonthScheduleInput, {
+    enabled: open && selectedEventId !== null && Boolean(selectedDuration),
+    refetchOnWindowFocus: false,
+  });
+
+  const nearestAvailableDateInNextMonth = useMemo(() => {
+    const nonEmptyDays = getNonEmptyScheduleDays(nextMonthScheduleQuery.data?.slots).sort((a, b) =>
+      a.localeCompare(b)
+    );
+    if (nonEmptyDays.length === 0) {
+      return null;
+    }
+
+    return parseISO(nonEmptyDays[0]);
+  }, [nextMonthScheduleQuery.data?.slots]);
+
+  useEffect(() => {
+    if (!open || selectedEventId === null || !selectedDuration || selectedDate) {
+      return;
+    }
+
+    if (nextMonthScheduleQuery.isLoading) {
+      return;
+    }
+
+    if (nearestAvailableDateInNextMonth) {
+      setSelectedDate(startOfDay(nearestAvailableDateInNextMonth));
+      setSelectedSlotTime(null);
+      return;
+    }
+
+    setSelectedDate(startOfDay(new Date()));
+    setSelectedSlotTime(null);
+  }, [
+    nearestAvailableDateInNextMonth,
+    nextMonthScheduleQuery.isLoading,
+    open,
+    selectedDate,
+    selectedDuration,
+    selectedEventId,
+  ]);
 
   const slotsInput = selectedDate
     ? {
@@ -471,6 +513,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     if (!nextOpen) {
       setStep(EVENT_TYPE_STEP);
       setSelectedEventId(null);
+      setShouldAutoAdvanceFromEventSelection(false);
       setSelectedLocationType(null);
       setSelectedDate(undefined);
       setSelectedDuration(null);
@@ -545,7 +588,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
       return;
     }
 
-    setStep(GUESTS_STEP);
+    setStep(CONFIRM_STEP);
   };
 
   const handleRecurringCountInputChange = (value: string) => {
@@ -602,14 +645,14 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
 
     if (invalidGuestEmails.length > 0) {
       setBookingErrorMessage(t("contacts_one_or_more_additional_guest_emails_invalid"));
-      setStep(GUESTS_STEP);
+      setStep(BOOKING_FIELDS_STEP);
       return;
     }
 
     const selectedStart = parseISO(selectedSlotTime);
     if (Number.isNaN(selectedStart.getTime())) {
       setBookingErrorMessage(t("contacts_selected_time_slot_invalid"));
-      setStep(DATE_TIME_STEP);
+      setStep(LOCATION_DATE_TIME_STEP);
       return;
     }
 
@@ -665,9 +708,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
             type: "manual",
             message: issueMessage,
           });
-          if (BOOKING_FIELDS_STEP) {
-            setStep(BOOKING_FIELDS_STEP);
-          }
+          setStep(BOOKING_FIELDS_STEP);
         }
 
         setBookingErrorMessage(t("contacts_complete_required_booking_fields_before_confirming"));
@@ -684,7 +725,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
           recurringEventCount ?? recurringMaxCount ?? recurringEventConfig.count ?? null;
         if (!finalRecurringCount || recurringEventCountWarning) {
           setBookingErrorMessage(t("contacts_provide_valid_occurrence_count_for_recurring_event"));
-          setStep(DATE_TIME_STEP);
+          setStep(LOCATION_DATE_TIME_STEP);
           return;
         }
 
@@ -754,6 +795,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
 
   const handleSelectEventType = (eventTypeId: number) => {
     setSelectedEventId(eventTypeId);
+    setShouldAutoAdvanceFromEventSelection(true);
     setSelectedLocationType(null);
     setSelectedDate(undefined);
     setSelectedDuration(null);
@@ -762,6 +804,32 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
     setBookingErrorMessage(null);
     bookingFieldsForm.reset({ responses: {} });
   };
+
+  const handleSelectDate = (value?: Date) => {
+    setSelectedDate(value);
+    setSelectedSlotTime(null);
+  };
+
+  useEffect(() => {
+    if (!shouldAutoAdvanceFromEventSelection || step !== EVENT_TYPE_STEP || selectedEventId === null) {
+      return;
+    }
+
+    if (selectedEventQuery.isLoading || selectedEventQuery.isError || unsupportedReason) {
+      return;
+    }
+
+    setBookingErrorMessage(null);
+    setShouldAutoAdvanceFromEventSelection(false);
+    setStep(LOCATION_DATE_TIME_STEP);
+  }, [
+    selectedEventId,
+    selectedEventQuery.isError,
+    selectedEventQuery.isLoading,
+    shouldAutoAdvanceFromEventSelection,
+    step,
+    unsupportedReason,
+  ]);
 
   return (
     <Dialog open={open} onOpenChange={resetAndClose}>
@@ -801,48 +869,18 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
               isSelectedEventLoading={selectedEventId !== null && selectedEventQuery.isLoading}
               selectedEventErrorMessage={selectedEventQuery.isError ? selectedEventQuery.error.message : null}
               unsupportedReason={unsupportedReason}
-              isNextDisabled={
-                selectedEventId === null ||
-                selectedEventQuery.isLoading ||
-                selectedEventQuery.isError ||
-                Boolean(unsupportedReason)
-              }
-              onNext={() => {
-                setBookingErrorMessage(null);
-                if (LOCATION_STEP) {
-                  setStep(LOCATION_STEP);
-                  return;
-                }
-                setStep(DATE_TIME_STEP);
-              }}
             />
           ) : null}
 
-          {LOCATION_STEP && step === LOCATION_STEP ? (
-            <ScheduleMeetingModalLocationStep
+          {step === LOCATION_DATE_TIME_STEP ? (
+            <ScheduleMeetingModalLocationDateTimeStep
               locationOptions={locationOptions}
               selectedLocationType={selectedLocationType}
               onSelectLocationType={setSelectedLocationType}
               fallbackNotice={locationFallbackNotice}
               unsupportedReason={unsupportedReason}
-              onBack={() => {
-                setBookingErrorMessage(null);
-                setStep(EVENT_TYPE_STEP);
-              }}
-              onNext={() => {
-                setBookingErrorMessage(null);
-                setStep(DATE_TIME_STEP);
-              }}
-            />
-          ) : null}
-
-          {step === DATE_TIME_STEP ? (
-            <ScheduleMeetingModalDateTimeStep
               selectedDate={selectedDate}
-              onSelectDate={(value) => {
-                setSelectedDate(value);
-                setSelectedSlotTime(null);
-              }}
+              onSelectDate={handleSelectDate}
               selectedDuration={selectedDuration}
               durationOptions={durationOptions}
               onSelectDuration={(nextDuration) => {
@@ -850,7 +888,19 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
                 setSelectedSlotTime(null);
               }}
               selectedSlotTime={selectedSlotTime}
-              onSelectSlotTime={setSelectedSlotTime}
+              onSelectSlotTime={(slotTime) => {
+                setSelectedSlotTime(slotTime);
+                if (
+                  slotTime &&
+                  !unsupportedReason &&
+                  isRecurringSelectionValid &&
+                  selectedDate &&
+                  selectedDuration
+                ) {
+                  setBookingErrorMessage(null);
+                  setStep(BOOKING_FIELDS_STEP);
+                }
+              }}
               availableSlots={availableSlots}
               isDurationLoading={selectedDate ? selectedEventQuery.isLoading : false}
               durationErrorMessage={
@@ -878,58 +928,51 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
               canContinue={Boolean(selectedDate && selectedDuration && selectedSlotTime)}
               onBack={() => {
                 setBookingErrorMessage(null);
-                setStep(LOCATION_STEP ?? EVENT_TYPE_STEP);
+                setShouldAutoAdvanceFromEventSelection(false);
+                setStep(EVENT_TYPE_STEP);
               }}
               onNext={() => {
                 setBookingErrorMessage(null);
-                setStep(BOOKING_FIELDS_STEP ?? GUESTS_STEP);
+                setStep(BOOKING_FIELDS_STEP);
               }}
             />
           ) : null}
 
-          {hasExtendedBookingFields && step === BOOKING_FIELDS_STEP ? (
+          {step === BOOKING_FIELDS_STEP ? (
             <ScheduleMeetingModalBookingFieldsStep
-              isLoading={selectedEventQuery.isLoading}
-              errorMessage={selectedEventQuery.isError ? selectedEventQuery.error.message : null}
+              isLoading={hasExtendedBookingFields ? selectedEventQuery.isLoading : false}
+              errorMessage={
+                hasExtendedBookingFields && selectedEventQuery.isError
+                  ? selectedEventQuery.error.message
+                  : null
+              }
               onRetry={() => {
                 void selectedEventQuery.refetch();
               }}
               bookingErrorMessage={bookingErrorMessage}
               onBack={() => {
                 setBookingErrorMessage(null);
-                setStep(DATE_TIME_STEP);
+                setStep(LOCATION_DATE_TIME_STEP);
               }}
               onNext={handleBookingFieldsNext}
-              nextDisabled={selectedEventQuery.isLoading || selectedEventQuery.isError}>
-              <FormProvider {...bookingFieldsForm}>
-                <BookingFields
-                  isDynamicGroupBooking={false}
-                  fields={bookingFieldsStepFields}
-                  locations={selectedEventDetail?.locations ?? []}
-                  bookingData={null}
-                />
-              </FormProvider>
-            </ScheduleMeetingModalBookingFieldsStep>
-          ) : null}
-
-          {step === GUESTS_STEP ? (
-            <ScheduleMeetingModalGuestsStep
+              nextDisabled={
+                hasExtendedBookingFields && (selectedEventQuery.isLoading || selectedEventQuery.isError)
+              }
               contactName={contact?.name}
               contactEmail={contact?.email}
               additionalGuests={additionalGuests}
-              onAdditionalGuestsChange={setAdditionalGuests}
-              bookingErrorMessage={bookingErrorMessage}
-              onBack={() => {
-                setBookingErrorMessage(null);
-                if (BACK_FROM_GUESTS_STEP) {
-                  setStep(BACK_FROM_GUESTS_STEP);
-                }
-              }}
-              onNext={() => {
-                setBookingErrorMessage(null);
-                setStep(CONFIRM_STEP);
-              }}
-            />
+              onAdditionalGuestsChange={setAdditionalGuests}>
+              {hasExtendedBookingFields ? (
+                <FormProvider {...bookingFieldsForm}>
+                  <BookingFields
+                    isDynamicGroupBooking={false}
+                    fields={bookingFieldsStepFields}
+                    locations={selectedEventDetail?.locations ?? []}
+                    bookingData={null}
+                  />
+                </FormProvider>
+              ) : null}
+            </ScheduleMeetingModalBookingFieldsStep>
           ) : null}
 
           {step === CONFIRM_STEP ? (
@@ -950,7 +993,7 @@ export const ScheduleMeetingModal = ({ open, onOpenChange, contact }: ScheduleMe
               timeFormat={timeFormat}
               onBack={() => {
                 setBookingErrorMessage(null);
-                setStep(GUESTS_STEP);
+                setStep(BOOKING_FIELDS_STEP);
               }}
               onConfirm={handleConfirm}
             />

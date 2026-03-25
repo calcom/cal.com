@@ -1,7 +1,7 @@
 import { cn } from "@calid/features/lib/cn";
 import { Button } from "@calid/features/ui/components/button";
 import { Label } from "@calid/features/ui/components/label";
-import { ArrowRight, Clock, Loader2 } from "lucide-react";
+import { Clock, Loader2 } from "lucide-react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -21,8 +21,6 @@ interface ScheduleMeetingModalEventTypeStepProps {
   isSelectedEventLoading: boolean;
   selectedEventErrorMessage: string | null;
   unsupportedReason: string | null;
-  onNext: () => void;
-  isNextDisabled: boolean;
 }
 
 export const ScheduleMeetingModalEventTypeStep = ({
@@ -35,8 +33,6 @@ export const ScheduleMeetingModalEventTypeStep = ({
   isSelectedEventLoading,
   selectedEventErrorMessage,
   unsupportedReason,
-  onNext,
-  isNextDisabled,
 }: ScheduleMeetingModalEventTypeStepProps) => {
   const { t } = useLocale();
 
@@ -100,12 +96,6 @@ export const ScheduleMeetingModalEventTypeStep = ({
       ) : null}
 
       {unsupportedReason ? <p className="text-xs text-red-600">{unsupportedReason}</p> : null}
-
-      <div className="flex justify-end pt-1">
-        <Button disabled={isNextDisabled} onClick={onNext}>
-          {t("next")} <ArrowRight className="ml-1 h-3.5 w-3.5" />
-        </Button>
-      </div>
     </div>
   );
 };

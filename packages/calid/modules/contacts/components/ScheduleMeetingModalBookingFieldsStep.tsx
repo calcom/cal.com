@@ -1,6 +1,7 @@
 import { Button } from "@calid/features/ui/components/button";
+import { Input } from "@calid/features/ui/components/input/input";
 import { Label } from "@calid/features/ui/components/label";
-import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Users } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,6 +14,10 @@ interface ScheduleMeetingModalBookingFieldsStepProps {
   onBack: () => void;
   onNext: () => void;
   nextDisabled: boolean;
+  contactName?: string;
+  contactEmail?: string;
+  additionalGuests: string;
+  onAdditionalGuestsChange: (value: string) => void;
   children: ReactNode;
 }
 
@@ -24,6 +29,10 @@ export const ScheduleMeetingModalBookingFieldsStep = ({
   onBack,
   onNext,
   nextDisabled,
+  contactName,
+  contactEmail,
+  additionalGuests,
+  onAdditionalGuestsChange,
   children,
 }: ScheduleMeetingModalBookingFieldsStepProps) => {
   const { t } = useLocale();
@@ -54,7 +63,25 @@ export const ScheduleMeetingModalBookingFieldsStep = ({
       ) : null}
 
       {!isLoading && !errorMessage ? (
-        <div className="max-h-[42vh] overflow-y-auto pr-1">{children}</div>
+        <>
+          <div className="max-h-[32vh] overflow-y-auto pr-1">{children}</div>
+          {/* <Label>{t("attendees")}</Label> */}
+          {/* <div className="bg-muted/50 border-border rounded-lg border p-3">
+            <div className="text-sm font-medium">{contactName}</div>
+            <div className="text-muted-foreground text-xs">{contactEmail}</div>
+          </div> */}
+          <div className="space-y-1.5">
+            <Label className="flex items-center gap-1">
+              <Users className="h-3.5 w-3.5" /> {t("contacts_additional_guests")}
+            </Label>
+            <Input
+              value={additionalGuests}
+              onChange={(event) => onAdditionalGuestsChange(event.target.value)}
+              placeholder={t("contacts_guest_emails_placeholder")}
+            />
+            <p className="text-muted-foreground text-xs">{t("contacts_separate_emails_with_commas")}</p>
+          </div>
+        </>
       ) : null}
 
       {bookingErrorMessage ? <p className="text-xs text-red-600">{bookingErrorMessage}</p> : null}

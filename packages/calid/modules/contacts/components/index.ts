@@ -16,5 +16,6 @@ export * from "./MeetingCard";
 export * from "./MeetingsSection";
 export * from "./MeetingStepIndicator";
 export * from "./ScheduleMeetingModal";
+export * from "./ScheduleMeetingModalLocationDateTimeStep";
 export * from "./ScheduleMeetingModalLocationStep";
 export * from "./ShareAvailabilityModal";
