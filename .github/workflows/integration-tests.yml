@@ -88,11 +88,12 @@ jobs:
           DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
           DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
       - name: Run Tests
-        run: VITEST_MODE=integration yarn test
-      # TODO: Generate test results so we can upload them
-      # - name: Upload Test Results
-      #   if: ${{ always() }}
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: test-results
-      #     path: test-results
+        run: VITEST_MODE=integration yarn vitest run --coverage
+      - name: Upload integration coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-coverage
+          path: coverage/coverage-summary.json
+          if-no-files-found: warn
+          retention-days: 7

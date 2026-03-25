@@ -17,6 +17,13 @@ jobs:
       - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
       - run: yarn prisma generate
-      - run: yarn test -- --no-isolate
-      # We could add different timezones here that we need to run our tests in
-      - run: TZ=America/Los_Angeles VITEST_MODE=timezone yarn test -- --no-isolate
+      - run: TZ=UTC yarn vitest run --coverage
+      - run: TZ=America/Los_Angeles VITEST_MODE=timezone yarn vitest run
+      - name: Upload unit coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-coverage
+          path: coverage/coverage-summary.json
+          if-no-files-found: warn
+          retention-days: 7

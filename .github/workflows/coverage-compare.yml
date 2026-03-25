@@ -1,0 +1,168 @@
+name: Coverage Compare
+
+on:
+  workflow_call:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  compare:
+    name: Compare Coverage
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Download unit coverage (PR)
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-coverage
+          path: coverage/pr/unit
+        continue-on-error: true
+
+      - name: Download integration coverage (PR)
+        uses: actions/download-artifact@v4
+        with:
+          name: integration-coverage
+          path: coverage/pr/integration
+        continue-on-error: true
+
+      - name: Download unit coverage baseline (main)
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: coverage-baseline.yml
+          branch: main
+          name: coverage-baseline-unit
+          path: coverage/base/unit
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      - name: Download integration coverage baseline (main)
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: coverage-baseline.yml
+          branch: main
+          name: coverage-baseline-integration
+          path: coverage/base/integration
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      - name: Compare coverage against main
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            function loadCoverage(filePath) {
+              try {
+                const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                return data.total;
+              } catch {
+                return null;
+              }
+            }
+
+            const metrics = ['statements', 'branches', 'functions', 'lines'];
+
+            const prUnit = loadCoverage('coverage/pr/unit/coverage-summary.json');
+            const prIntegration = loadCoverage('coverage/pr/integration/coverage-summary.json');
+            const baseUnit = loadCoverage('coverage/base/unit/coverage-summary.json');
+            const baseIntegration = loadCoverage('coverage/base/integration/coverage-summary.json');
+
+            if (!prUnit && !prIntegration) {
+              core.info('No PR coverage data found. Skipping comparison.');
+              await core.summary
+                .addHeading('Coverage Report', 2)
+                .addRaw('No coverage data available for this PR.')
+                .write();
+              return;
+            }
+
+            let dropped = false;
+            let summary = '## Coverage Report\n\n';
+
+            function buildTable(label, prData, baseData) {
+              let table = `### ${label}\n\n`;
+
+              if (!prData) {
+                table += '> Coverage data not available for this run.\n\n';
+                return table;
+              }
+
+              if (!baseData) {
+                table += '> No baseline found for main. Showing current coverage only.\n\n';
+                table += '| Metric | Covered/Total | Percentage |\n';
+                table += '|--------|--------------|------------|\n';
+                for (const m of metrics) {
+                  table += `| ${m} | ${prData[m].covered}/${prData[m].total} | ${prData[m].pct}% |\n`;
+                }
+                return table + '\n';
+              }
+
+              table += '| Metric | main | PR | Delta |\n';
+              table += '|--------|-----:|---:|------:|\n';
+              for (const m of metrics) {
+                const diff = prData[m].pct - baseData[m].pct;
+                const sign = diff >= 0 ? '+' : '';
+                const icon = diff < 0 ? ' :red_circle:' : (diff > 0 ? ' :green_circle:' : '');
+                const delta = `${sign}${diff.toFixed(2)}%${icon}`;
+                if (diff < 0) dropped = true;
+                table += `| ${m} | ${baseData[m].pct.toFixed(2)}% | ${prData[m].pct.toFixed(2)}% | ${delta} |\n`;
+              }
+              return table + '\n';
+            }
+
+            function aggregate(unitData, integrationData) {
+              if (!unitData && !integrationData) return null;
+              const result = {};
+              for (const m of metrics) {
+                let totalCovered = 0;
+                let totalTotal = 0;
+                if (unitData && unitData[m]) {
+                  totalCovered += unitData[m].covered;
+                  totalTotal += unitData[m].total;
+                }
+                if (integrationData && integrationData[m]) {
+                  totalCovered += integrationData[m].covered;
+                  totalTotal += integrationData[m].total;
+                }
+                result[m] = {
+                  covered: totalCovered,
+                  total: totalTotal,
+                  pct: totalTotal > 0 ? (totalCovered / totalTotal) * 100 : 0,
+                };
+              }
+              return result;
+            }
+
+            if (!baseUnit && !baseIntegration) {
+              summary += '> **No baseline found for main.** Showing current PR coverage only. ';
+              summary += 'The baseline will be created after this PR merges (or after the next push to main).\n\n';
+            }
+
+            if (prUnit || baseUnit) {
+              summary += buildTable('Unit Tests', prUnit, baseUnit);
+            }
+
+            if (prIntegration || baseIntegration) {
+              summary += buildTable('Integration Tests', prIntegration, baseIntegration);
+            }
+
+            const prAggregate = aggregate(prUnit, prIntegration);
+            const baseAggregate = aggregate(baseUnit, baseIntegration);
+
+            const sameShape =
+              ((prUnit && baseUnit) || (!prUnit && !baseUnit)) &&
+              ((prIntegration && baseIntegration) || (!prIntegration && !baseIntegration));
+
+            if (prAggregate && sameShape) {
+              summary += buildTable('Aggregate (Unit + Integration)', prAggregate, baseAggregate);
+              summary += '> **Note:** Aggregate numbers are approximate — unit and integration coverage instrument the same source files, so covered/total counts are summed across both and may double-count.\n\n';
+            }
+
+            await core.summary.addRaw(summary).write();
+
+            if (dropped) {
+              core.setFailed('Coverage dropped compared to main. Please add tests to maintain or improve coverage.');
+            } else {
+              core.info('Coverage is stable or improved compared to main.');
+            }

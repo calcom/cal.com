@@ -117,6 +117,26 @@ export default defineConfig({
     },
     coverage: {
       provider: "v8",
+      reporter: ["text", "json-summary"],
+      reportOnFailure: true,
+      include: isIntegrationMode
+        ? ["packages/**/*.ts", "packages/**/*.tsx", "apps/**/*.ts", "apps/**/*.tsx"]
+        : ["packages/**/*.ts", "packages/**/*.tsx"],
+      exclude: [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
+        "**/*.integration-test.ts",
+        "**/node_modules/**",
+        "**/__mocks__/**",
+        "**/*.generated.ts",
+        "**/dist/**",
+        "**/apps/api/v2/**",
+        "**/apps/web/playwright/**",
+        "**/packages/platform/examples/**",
+        "**/packages/platform/types/**",
+      ],
     },
     passWithNoTests: true,
     testTimeout: 500000,
