@@ -4,7 +4,7 @@ import { RadioGroup, RadioField } from "@calid/features/ui/components/radio-grou
 import type { App_RoutingForms_Form } from "@prisma/client";
 import { format } from "date-fns";
 import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { validatePhoneInput } from "@calcom/features/bookings/lib/handleNewBooking/handleCustomInputs";
 import type { FormLevelConfig } from "@calcom/features/form-builder/components/builderTypes";
@@ -103,6 +103,7 @@ export type FormInputFieldsProps = {
   fieldStyle?: FormLevelConfig["style"]["fieldStyle"];
   showErrors?: boolean;
   errorFieldIds?: string[];
+  errorFocusTrigger?: number;
   accentColor?: string;
   secondaryColor?: string;
   calendarEventType?: string | null;
@@ -123,6 +124,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
     fieldStyle = "default",
     showErrors = false,
     errorFieldIds,
+    errorFocusTrigger = 0,
     accentColor,
     secondaryColor,
     calendarEventType,
@@ -135,6 +137,46 @@ export default function FormInputFields(props: FormInputFieldsProps) {
     ...(secondaryColor ? { borderColor: secondaryColor } : {}),
   };
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const firstErrorFieldId = errorFieldIds?.[0];
+
+  useEffect(() => {
+    if (!firstErrorFieldId) {
+      return;
+    }
+
+    const fieldContainer = document.querySelector<HTMLElement>(
+      `[data-routing-field-wrapper-id="${firstErrorFieldId}"]`
+    );
+
+    if (!fieldContainer) {
+      return;
+    }
+
+    const focusTarget = fieldContainer.querySelector<HTMLElement>(
+      [
+        "input:not([disabled])",
+        "textarea:not([disabled])",
+        "select:not([disabled])",
+        "button:not([disabled])",
+        "[tabindex]:not([tabindex='-1'])",
+      ].join(",")
+    );
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const scrollBehavior: ScrollBehavior = prefersReducedMotion ? "auto" : "smooth";
+
+    fieldContainer.scrollIntoView({ behavior: scrollBehavior, block: "center" });
+
+    const focusDelay = prefersReducedMotion ? 0 : 300;
+    const focusTimeout = window.setTimeout(() => {
+      (focusTarget ?? fieldContainer).focus({ preventScroll: true });
+    }, focusDelay);
+
+    return () => {
+      window.clearTimeout(focusTimeout);
+    };
+  }, [firstErrorFieldId, errorFocusTrigger]);
 
   const formFieldsQueryBuilderConfig = withRaqbSettingsAndWidgets({
     config: getQueryBuilderConfigForFormFields(form),
@@ -403,7 +445,10 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         if (customField) {
           return (
             <div key={field.id} className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}>
-              <div className="rounded-lg border-2 border-transparent p-3">
+              <div
+                className="rounded-lg border-2 border-transparent p-3"
+                data-routing-field-wrapper-id={field.id}
+                tabIndex={-1}>
                 {!isLabelEmpty && (
                   <label id={`field-label-${field.id}`} className={labelClassName}>
                     {labelText}
@@ -437,7 +482,10 @@ export default function FormInputFields(props: FormInputFieldsProps) {
 
         return (
           <div key={field.id} className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}>
-            <div className="rounded-lg border-2 border-transparent p-3">
+            <div
+              className="rounded-lg border-2 border-transparent p-3"
+              data-routing-field-wrapper-id={field.id}
+              tabIndex={-1}>
               {!isLabelEmpty && (
                 <label id={`field-label-${field.id}`} className={labelClassName}>
                   {labelText}
