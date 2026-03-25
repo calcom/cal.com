@@ -571,5 +571,159 @@ describe("BOOKING_REQUESTED Trigger", () => {
         })
       );
     });
+
+    describe("Reschedule with confirmation required", () => {
+      const previousBookingStartTime = new Date("2024-06-10T09:00:00.000Z");
+      const previousBookingEndTime = new Date("2024-06-10T10:00:00.000Z");
+
+      const createMockPreviousBooking = (overrides = {}) => ({
+        id: 100,
+        uid: "original-booking-uid",
+        startTime: previousBookingStartTime,
+        endTime: previousBookingEndTime,
+        rescheduledBy: "attendee@example.com",
+        ...overrides,
+      });
+
+      it("includes rescheduleId, rescheduleUid, rescheduleStartTime, rescheduleEndTime from previous booking", async () => {
+        vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+          calendarEvent: createMockCalendarEvent(),
+          booking: createMockBooking({ fromReschedule: "original-booking-uid" }),
+          previousBooking: createMockPreviousBooking(),
+        });
+
+        vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+        const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+        await consumerWithRealBuilder.processWebhookTask(
+          {
+            operationId: "op-reschedule-requested",
+            triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+            bookingUid: "booking-uid-123",
+            eventTypeId: 456,
+            userId: 789,
+            timestamp: new Date().toISOString(),
+          },
+          "task-reschedule-requested"
+        );
+
+        const p = getDeliveredPayload();
+        expect(p.rescheduleId).toBe(100);
+        expect(p.rescheduleUid).toBe("original-booking-uid");
+        expect(p.rescheduleStartTime).toBe(previousBookingStartTime.toISOString());
+        expect(p.rescheduleEndTime).toBe(previousBookingEndTime.toISOString());
+      });
+
+      it("includes rescheduledBy from previous booking", async () => {
+        vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+          calendarEvent: createMockCalendarEvent(),
+          booking: createMockBooking({ fromReschedule: "original-booking-uid" }),
+          previousBooking: createMockPreviousBooking({ rescheduledBy: "organizer@example.com" }),
+        });
+
+        vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+        const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+        await consumerWithRealBuilder.processWebhookTask(
+          {
+            operationId: "op-rescheduled-by-requested",
+            triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+            bookingUid: "booking-uid-123",
+            eventTypeId: 456,
+            userId: 789,
+            timestamp: new Date().toISOString(),
+          },
+          "task-rescheduled-by-requested"
+        );
+
+        const p = getDeliveredPayload();
+        expect(p.rescheduledBy).toBe("organizer@example.com");
+      });
+
+      it("rescheduledBy is undefined when previous booking has null rescheduledBy", async () => {
+        vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+          calendarEvent: createMockCalendarEvent(),
+          booking: createMockBooking({ fromReschedule: "original-booking-uid" }),
+          previousBooking: createMockPreviousBooking({ rescheduledBy: null }),
+        });
+
+        vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+        const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+        await consumerWithRealBuilder.processWebhookTask(
+          {
+            operationId: "op-no-rescheduled-by-requested",
+            triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+            bookingUid: "booking-uid-123",
+            eventTypeId: 456,
+            userId: 789,
+            timestamp: new Date().toISOString(),
+          },
+          "task-no-rescheduled-by-requested"
+        );
+
+        const p = getDeliveredPayload();
+        expect(p.rescheduledBy).toBeUndefined();
+      });
+
+      it("does not include reschedule fields when no previousBooking is present (non-reschedule)", async () => {
+        vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+          calendarEvent: createMockCalendarEvent(),
+          booking: createMockBooking(),
+        });
+
+        vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+        const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+        await consumerWithRealBuilder.processWebhookTask(
+          {
+            operationId: "op-no-reschedule-requested",
+            triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+            bookingUid: "booking-uid-123",
+            eventTypeId: 456,
+            userId: 789,
+            timestamp: new Date().toISOString(),
+          },
+          "task-no-reschedule-requested"
+        );
+
+        const p = getDeliveredPayload();
+        expect(p.rescheduleId).toBeUndefined();
+        expect(p.rescheduleUid).toBeUndefined();
+        expect(p.rescheduleStartTime).toBeUndefined();
+        expect(p.rescheduleEndTime).toBeUndefined();
+        expect(p.rescheduledBy).toBeUndefined();
+      });
+
+      it("still has PENDING status when BOOKING_REQUESTED is a reschedule", async () => {
+        vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+          calendarEvent: createMockCalendarEvent(),
+          booking: createMockBooking({ fromReschedule: "original-booking-uid" }),
+          previousBooking: createMockPreviousBooking(),
+        });
+
+        vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+        const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+        await consumerWithRealBuilder.processWebhookTask(
+          {
+            operationId: "op-pending-reschedule",
+            triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+            bookingUid: "booking-uid-123",
+            eventTypeId: 456,
+            userId: 789,
+            timestamp: new Date().toISOString(),
+          },
+          "task-pending-reschedule"
+        );
+
+        const envelope = getDeliveredWebhookEnvelope();
+        expect(envelope.triggerEvent).toBe("BOOKING_REQUESTED");
+
+        const p = getDeliveredPayload();
+        expect(p.status).toBe("PENDING");
+        expect(p.rescheduleUid).toBe("original-booking-uid");
+      });
+    });
   });
 });

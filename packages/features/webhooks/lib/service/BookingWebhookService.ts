@@ -140,6 +140,11 @@ export class BookingWebhookService implements IBookingWebhookService {
       evt: params.evt,
       eventType: params.eventType,
       booking: params.booking,
+      rescheduleId: params.rescheduleId,
+      rescheduleUid: params.rescheduleUid,
+      rescheduleStartTime: params.rescheduleStartTime,
+      rescheduleEndTime: params.rescheduleEndTime,
+      rescheduledBy: params.rescheduledBy,
     };
     await this.webhookNotifier.emitWebhook(dto, params.isDryRun);
   }

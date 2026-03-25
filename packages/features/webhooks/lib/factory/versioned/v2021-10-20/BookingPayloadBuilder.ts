@@ -100,6 +100,11 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
           triggerEvent: dto.triggerEvent,
           createdAt: dto.createdAt,
           extra: {
+            rescheduleId: dto.rescheduleId,
+            rescheduleUid: dto.rescheduleUid,
+            rescheduleStartTime: dto.rescheduleStartTime,
+            rescheduleEndTime: dto.rescheduleEndTime,
+            rescheduledBy: dto.rescheduledBy,
             metadata: (dto.metadata ?? {}) as { [key: string]: string | number | boolean | null },
           },
         });

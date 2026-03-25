@@ -82,6 +82,11 @@ export interface BookingRequestedParams {
     length: number;
     teamId?: number | null;
   };
+  rescheduleId?: number;
+  rescheduleUid?: string;
+  rescheduleStartTime?: string;
+  rescheduleEndTime?: string;
+  rescheduledBy?: string;
   teamId?: number | null;
   orgId?: number | null;
   platformClientId?: string;

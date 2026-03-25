@@ -16,6 +16,11 @@ export type BookingExtraDataMap = {
     requestReschedule?: boolean;
   };
   [WebhookTriggerEvents.BOOKING_REQUESTED]: {
+    rescheduleId?: number;
+    rescheduleUid?: string;
+    rescheduleStartTime?: string;
+    rescheduleEndTime?: string;
+    rescheduledBy?: string;
     metadata?: { [key: string]: string | number | boolean | null };
   };
   [WebhookTriggerEvents.BOOKING_REJECTED]: null;

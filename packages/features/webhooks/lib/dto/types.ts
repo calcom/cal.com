@@ -82,6 +82,11 @@ export interface BookingRequestedDTO extends BaseEventDTO {
     eventTypeId: number | null;
     userId: number | null;
   };
+  rescheduleId?: number;
+  rescheduleUid?: string;
+  rescheduleStartTime?: string;
+  rescheduleEndTime?: string;
+  rescheduledBy?: string;
   metadata?: Record<string, unknown>;
 }
 

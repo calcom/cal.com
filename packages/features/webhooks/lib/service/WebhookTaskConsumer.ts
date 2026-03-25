@@ -326,10 +326,22 @@ export class WebhookTaskConsumer {
           },
         } satisfies BookingRescheduledDTO;
       }
-      case WebhookTriggerEvents.BOOKING_REQUESTED:
+      case WebhookTriggerEvents.BOOKING_REQUESTED: {
+        const previousBookingForRequested = eventData.previousBooking as
+          | { id: number; uid: string; startTime: Date; endTime: Date; rescheduledBy: string | null }
+          | undefined;
         return {
           ...baseDTO,
           triggerEvent,
+          ...(previousBookingForRequested
+            ? {
+                rescheduleId: previousBookingForRequested.id,
+                rescheduleUid: previousBookingForRequested.uid,
+                rescheduleStartTime: previousBookingForRequested.startTime?.toISOString(),
+                rescheduleEndTime: previousBookingForRequested.endTime?.toISOString(),
+                rescheduledBy: previousBookingForRequested.rescheduledBy ?? undefined,
+              }
+            : {}),
           metadata: {
             ...(typeof booking.metadata === "object" &&
             booking.metadata !== null &&
@@ -339,6 +351,7 @@ export class WebhookTaskConsumer {
             ...(bookingPayload.metadata ?? {}),
           },
         } satisfies BookingRequestedDTO;
+      }
       case WebhookTriggerEvents.BOOKING_REJECTED:
         return {
           ...baseDTO,

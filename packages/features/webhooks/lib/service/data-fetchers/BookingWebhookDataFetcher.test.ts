@@ -27,6 +27,7 @@ describe("BookingWebhookDataFetcher", () => {
   let mockBookingRepository: {
     getBookingForCalEventBuilderFromUid: ReturnType<typeof vi.fn>;
     findAttendeeNoShowByIds: ReturnType<typeof vi.fn>;
+    findPreviousBooking: ReturnType<typeof vi.fn>;
   };
   let fetcher: BookingWebhookDataFetcher;
 
@@ -71,6 +72,7 @@ describe("BookingWebhookDataFetcher", () => {
     mockBookingRepository = {
       getBookingForCalEventBuilderFromUid: vi.fn(),
       findAttendeeNoShowByIds: vi.fn(),
+      findPreviousBooking: vi.fn(),
     };
     fetcher = new BookingWebhookDataFetcher(mockLogger as unknown as ILogger, mockBookingRepository as never);
   });
@@ -235,6 +237,60 @@ describe("BookingWebhookDataFetcher", () => {
       expect(mockLogger.error).toHaveBeenCalledWith("Error fetching booking data for webhook", {
         bookingUid: "booking-uid-1",
         error: "DB connection failed",
+      });
+    });
+
+    describe("BOOKING_REQUESTED with fromReschedule", () => {
+      it("should fetch previousBooking when booking has fromReschedule and trigger is BOOKING_REQUESTED", async () => {
+        const mockBooking = {
+          eventType: { id: 10, title: "Test" },
+          fromReschedule: "original-booking-uid",
+        };
+        const mockPreviousBooking = {
+          id: 50,
+          uid: "original-booking-uid",
+          startTime: new Date("2024-06-10T09:00:00.000Z"),
+          endTime: new Date("2024-06-10T10:00:00.000Z"),
+          rescheduledBy: "attendee@example.com",
+        };
+        mockBookingRepository.getBookingForCalEventBuilderFromUid.mockResolvedValue(mockBooking);
+        mockBookingRepository.findPreviousBooking.mockResolvedValue(mockPreviousBooking);
+        const mockBuilder = { build: vi.fn().mockReturnValue({ title: "Test" }) };
+        vi.mocked(CalendarEventBuilder.fromBooking).mockResolvedValue(mockBuilder as never);
+
+        const payload = createPayload({
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+        });
+        const result = await fetcher.fetchEventData(payload);
+
+        expect(mockBookingRepository.findPreviousBooking).toHaveBeenCalledWith({
+          fromReschedule: "original-booking-uid",
+        });
+        expect(result).toEqual({
+          calendarEvent: { title: "Test" },
+          booking: mockBooking,
+          eventType: mockBooking.eventType,
+          previousBooking: mockPreviousBooking,
+        });
+      });
+
+      it("should not fetch previousBooking when booking has no fromReschedule for BOOKING_REQUESTED", async () => {
+        const mockBooking = { eventType: { id: 10, title: "Test" } };
+        mockBookingRepository.getBookingForCalEventBuilderFromUid.mockResolvedValue(mockBooking);
+        const mockBuilder = { build: vi.fn().mockReturnValue({ title: "Test" }) };
+        vi.mocked(CalendarEventBuilder.fromBooking).mockResolvedValue(mockBuilder as never);
+
+        const payload = createPayload({
+          triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
+        });
+        const result = await fetcher.fetchEventData(payload);
+
+        expect(mockBookingRepository.findPreviousBooking).not.toHaveBeenCalled();
+        expect(result).toEqual({
+          calendarEvent: { title: "Test" },
+          booking: mockBooking,
+          eventType: mockBooking.eventType,
+        });
       });
     });
 

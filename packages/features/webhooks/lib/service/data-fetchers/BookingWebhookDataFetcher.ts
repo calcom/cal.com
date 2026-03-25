@@ -66,7 +66,8 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
         return null;
       }
 
-      // For BOOKING_RESCHEDULED, fetch the original booking's details
+      // For BOOKING_RESCHEDULED or BOOKING_REQUESTED (reschedule requiring confirmation),
+      // fetch the original booking's details so rescheduleUid/rescheduleId are included in the payload.
       let previousBooking: {
         id: number;
         uid: string;
@@ -75,7 +76,8 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
         rescheduledBy: string | null;
       } | null = null;
       if (
-        payload.triggerEvent === WebhookTriggerEvents.BOOKING_RESCHEDULED &&
+        (payload.triggerEvent === WebhookTriggerEvents.BOOKING_RESCHEDULED ||
+          payload.triggerEvent === WebhookTriggerEvents.BOOKING_REQUESTED) &&
         (booking as Record<string, unknown>).fromReschedule
       ) {
         previousBooking = await this.bookingRepository.findPreviousBooking({
