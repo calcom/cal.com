@@ -1,10 +1,9 @@
 "use client";
 
+import { PencilIcon } from "@coss/ui/icons";
 import classNames from "classnames";
 import { useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
-
-import { Icon } from "../icon";
 
 export const EditableHeading = function EditableHeading({
   value,
@@ -27,8 +26,7 @@ export const EditableHeading = function EditableHeading({
             className={classNames(
               "whitespace-pre text-xl tracking-normal w-full truncate cursor-pointer",
               isEditing && "text-transparent"
-            )}
-          >
+            )}>
             {value}
           </span>
 
@@ -55,7 +53,7 @@ export const EditableHeading = function EditableHeading({
             onChange={(e) => onChange?.(e.target.value)}
           />
           {!isEditing && isReady && !disabled && (
-            <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-1 inline h-4 w-4" />
+            <PencilIcon className="text-subtle group-hover:text-subtle -mt-px ml-1 inline h-4 w-4" />
           )}
         </label>
       </div>

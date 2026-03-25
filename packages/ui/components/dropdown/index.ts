@@ -1,6 +1,6 @@
 export {
-  Dropdown,
   ButtonOrLink,
+  Dropdown,
   DropdownItem,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
@@ -8,5 +8,8 @@ export {
   DropdownMenuLabel,
   DropdownMenuPortal,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "./Dropdown";

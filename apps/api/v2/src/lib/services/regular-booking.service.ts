@@ -1,3 +1,10 @@
+import {
+  RegularBookingService as BaseRegularBookingService,
+  type IWebhookProducerService,
+} from "@calcom/platform-libraries/bookings";
+import type { PrismaClient } from "@calcom/prisma";
+import { Inject, Injectable } from "@nestjs/common";
+import { WEBHOOK_PRODUCER } from "@/lib/modules/regular-booking.tokens";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
@@ -7,10 +14,6 @@ import { HashedLinkService } from "@/lib/services/hashed-link.service";
 import { LuckyUserService } from "@/lib/services/lucky-user.service";
 import { BookingEmailAndSmsTasker } from "@/lib/services/tasker/booking-emails-sms-tasker.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { Injectable } from "@nestjs/common";
-
-import { RegularBookingService as BaseRegularBookingService } from "@calcom/platform-libraries/bookings";
-import type { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class RegularBookingService extends BaseRegularBookingService {
@@ -23,7 +26,8 @@ export class RegularBookingService extends BaseRegularBookingService {
     userRepository: PrismaUserRepository,
     bookingEmailAndSmsTasker: BookingEmailAndSmsTasker,
     featuresRepository: PrismaFeaturesRepository,
-    bookingEventHandler: BookingEventHandlerService
+    bookingEventHandler: BookingEventHandlerService,
+    @Inject(WEBHOOK_PRODUCER) webhookProducer: IWebhookProducerService
   ) {
     super({
       checkBookingAndDurationLimitsService,
@@ -35,6 +39,7 @@ export class RegularBookingService extends BaseRegularBookingService {
       bookingEmailAndSmsTasker,
       featuresRepository,
       bookingEventHandler,
+      webhookProducer,
     });
   }
 }

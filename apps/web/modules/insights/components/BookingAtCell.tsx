@@ -13,7 +13,7 @@ import {
   HoverCardTrigger,
   HoverCardPortal,
 } from "@calcom/ui/components/hover-card";
-import { Icon } from "@calcom/ui/components/icon";
+import { CopyIcon } from "@coss/ui/icons";
 
 import type { RoutingFormTableRow } from "@calcom/web/modules/insights/lib/types";
 import { BookingStatusBadge } from "./BookingStatusBadge";
@@ -52,7 +52,7 @@ export function BookingAtCell({ row, rowId }: { row: RoutingFormTableRow; rowId:
                       e.stopPropagation();
                       copyToClipboard(row.bookingUserEmail ?? "");
                     }}>
-                    <Icon name="copy" />
+                    <CopyIcon />
                   </button>
                 </p>
               </div>

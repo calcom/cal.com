@@ -40,6 +40,17 @@ export async function getTeamWithMembers(args: {
 
   // This should improve performance saving already app data found.
   const appDataMap = new Map();
+
+  // Minimal user select for event type hosts in team view - only fields needed for avatar display
+  // This significantly reduces data transfer for teams with many event types/hosts
+  const minimalUserSelectForHosts = {
+    username: true,
+    name: true,
+    avatarUrl: true,
+    id: true,
+  } satisfies Prisma.UserSelect;
+
+  // Full user select for members (includes credentials for connectedApps when !isTeamView)
   const userSelect = {
     username: true,
     email: true,
@@ -156,7 +167,9 @@ export async function getTeamWithMembers(args: {
           hosts: {
             select: {
               user: {
-                select: userSelect,
+                // For team view, we only need minimal user info for avatar display
+                // This significantly reduces data transfer for teams with many event types/hosts
+                select: isTeamView ? minimalUserSelectForHosts : userSelect,
               },
             },
           },

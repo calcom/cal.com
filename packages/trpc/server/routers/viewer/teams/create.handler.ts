@@ -9,6 +9,7 @@ import { getTrackingFromCookies } from "@calcom/lib/tracking";
 import type { TrackingData } from "@calcom/lib/tracking";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { BillingPeriod as BillingPeriodEnum } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -28,12 +29,14 @@ const generateCheckoutSession = async ({
   teamName,
   userId,
   isOnboarding,
+  billingPeriod,
   tracking,
 }: {
   teamSlug: string;
   teamName: string;
   userId: number;
   isOnboarding?: boolean;
+  billingPeriod?: "MONTHLY" | "ANNUALLY";
   tracking?: TrackingData;
 }) => {
   if (!IS_TEAM_BILLING_ENABLED) {
@@ -46,6 +49,7 @@ const generateCheckoutSession = async ({
     teamName,
     userId,
     isOnboarding,
+    billingPeriod: billingPeriod as BillingPeriodEnum | undefined,
     tracking,
   });
 
@@ -59,7 +63,7 @@ const generateCheckoutSession = async ({
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { user } = ctx;
-  const { slug, name, bio, isOnboarding } = input;
+  const { slug, name, bio, isOnboarding, billingPeriod } = input;
   const isOrgChildTeam = !!user.profile?.organizationId;
 
   // For orgs we want to create teams under the org
@@ -94,6 +98,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       teamName: name,
       userId: user.id,
       isOnboarding,
+      billingPeriod,
       tracking,
     });
 

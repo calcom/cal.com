@@ -20,6 +20,8 @@ export interface UpdateBillingPeriodData {
   billingPeriod: BillingPeriod;
   pricePerSeat?: number | null;
   paidSeats?: number | null;
+  subscriptionStart?: Date | null;
+  subscriptionEnd?: Date | null;
 }
 
 export class BillingPeriodRepository {
@@ -83,6 +85,14 @@ export class BillingPeriodRepository {
       where: { id: billingId },
       data,
     });
+  }
+
+  async findBillingPeriodByTeamId(teamId: number): Promise<BillingPeriod | null> {
+    const billing = await this.prisma.teamBilling.findFirst({
+      where: { teamId },
+      select: { billingPeriod: true },
+    });
+    return billing?.billingPeriod ?? null;
   }
 
   async getTeamForBillingUpdate(teamId: number) {

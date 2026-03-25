@@ -5,7 +5,7 @@ import {
   closeOAuthClientDetails,
   createPendingOAuthClient,
   openOAuthClientDetailsFromList,
-  goToAdminOAuthSettings
+  goToAdminOAuthSettings,
 } from "./oauth-client-helpers";
 
 async function expectClientStatusInDb(

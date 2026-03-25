@@ -117,7 +117,7 @@ export const getHostsWithLocationOptionsHandler = async ({
     hasMore,
   } = await hostRepository.findHostsWithLocationOptionsPaginated({
     eventTypeId,
-    cursor,
+    cursor: cursor ?? undefined,
     limit,
   });
 
@@ -127,6 +127,7 @@ export const getHostsWithLocationOptionsHandler = async ({
     credentials: host.user.credentials.map((cred) => ({
       ...cred,
       key: {} as Prisma.JsonValue,
+      encryptedKey: null,
     })),
   }));
 

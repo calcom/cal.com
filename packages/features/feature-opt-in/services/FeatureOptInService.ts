@@ -1,8 +1,8 @@
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
-import type { IFeatureRepository } from "@calcom/features/flags/repositories/FeatureRepository";
-import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/TeamFeatureRepository";
-import type { IUserFeatureRepository } from "@calcom/features/flags/repositories/UserFeatureRepository";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
+import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
+import type { IUserFeatureRepository } from "@calcom/features/flags/repositories/PrismaUserFeatureRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { TeamFeaturesDto } from "@calcom/lib/dto/TeamFeaturesDto";
@@ -227,23 +227,33 @@ export class FeatureOptInService implements IFeatureOptInService {
     };
   }
 
-  /**
-   * List all opt-in features with their states for a user across teams.
-   * Only returns features that are in the allowlist, globally enabled, and scoped to "user".
-   */
-  async listFeaturesForUser(input: {
+  async resolveFeatureStates(input: {
     userId: number;
-    orgId: number | null;
-    teamIds: number[];
-  }): Promise<ListFeaturesForUserResult[]> {
-    const { userId, orgId, teamIds } = input;
-    const userScopedFeatures = getOptInFeaturesForScope("user");
-    const featureIds = userScopedFeatures.map((config) => config.slug);
+    featureIds: FeatureId[];
+  }): Promise<Record<string, ResolvedFeatureState>> {
+    const { userId, featureIds } = input;
+    const { orgId, teamIds } = await this.getUserOrgAndTeamIds(userId);
 
-    const resolvedStates = await this.resolveFeatureStatesAcrossTeams({
+    return this.resolveFeatureStatesAcrossTeams({
       userId,
       orgId,
       teamIds,
+      featureIds,
+    });
+  }
+
+  /**
+   * List all opt-in features with their states for a user across teams.
+   * Only returns features that are in the allowlist, globally enabled, scoped to "user",
+   * and configured to be displayed in settings.
+   */
+  async listFeaturesForUser(input: { userId: number }): Promise<ListFeaturesForUserResult[]> {
+    const { userId } = input;
+    const userScopedFeatures = getOptInFeaturesForScope("user", "settings");
+    const featureIds = userScopedFeatures.map((config) => config.slug);
+
+    const resolvedStates = await this.resolveFeatureStates({
+      userId,
       featureIds,
     });
 
@@ -253,7 +263,8 @@ export class FeatureOptInService implements IFeatureOptInService {
   /**
    * List all opt-in features with their raw states for a team or organization.
    * Used for team/org admin settings page to configure feature opt-in.
-   * Only returns features that are in the allowlist, globally enabled, and scoped to the specified scope.
+   * Only returns features that are in the allowlist, globally enabled, scoped to the specified scope,
+   * and configured to be displayed in settings.
    * If parentOrgId is provided, also returns the organization state for each feature.
    */
   async listFeaturesForTeam(input: {
@@ -263,7 +274,7 @@ export class FeatureOptInService implements IFeatureOptInService {
   }): Promise<ListFeaturesForTeamResult[]> {
     const { teamId, parentOrgId, scope = "team" } = input;
     const teamIdsToQuery = getTeamIdsToQuery(teamId, parentOrgId);
-    const scopedFeatures = getOptInFeaturesForScope(scope);
+    const scopedFeatures = getOptInFeaturesForScope(scope, "settings");
 
     const [allFeatures, teamStates] = await Promise.all([
       this.deps.featureRepo.findAll(),

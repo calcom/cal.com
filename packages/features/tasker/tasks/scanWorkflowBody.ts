@@ -6,7 +6,7 @@ import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib
 import { Task } from "@calcom/features/tasker/repository";
 import { URL_SCANNING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 
@@ -27,7 +27,11 @@ const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
  * Extracts the duplicated logic from both Iffy-enabled and Iffy-disabled paths.
  */
 async function handleUrlScanningForStep(
-  workflowStep: { id: number; reminderBody: string | null; workflow: { user: { whitelistWorkflows: boolean } | null } },
+  workflowStep: {
+    id: number;
+    reminderBody: string | null;
+    workflow: { user: { whitelistWorkflows: boolean } | null };
+  },
   userId: number
 ): Promise<void> {
   if (URL_SCANNING_ENABLED && workflowStep.reminderBody) {

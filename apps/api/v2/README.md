@@ -1,94 +1,67 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://github.com/user-attachments/assets/ce7c2ecf-6097-469a-8512-c846a9fb665d" height="200" alt="Nest Logo" /></a>
-</p>
+Cal.com api v2 is a [Nest.js](https://github.com/nestjs/nest) project.
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# Local development
+This setup will allow you to develop with api v2 locally. If you want to also test atoms locally with platform's example app,
+then proceed to `apps/api/v2/README-PLATFORM.md` instead.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-Cal.com is using the [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Installation
-
+1. Install dependencies
 ```bash
 $ yarn install
 ```
-
-## Prisma setup
-
+2. Download and install Docker on your computer and then make sure it is running. You simply need to open Docker dashboard.
+3. Make sure that mailhog is running - it is used by v2 to send emails locally. You can start it by:
 ```bash
-$ yarn prisma generate
+$ cd packages/emails && yarn dx
 ```
-
-## Env setup
-
-Copy `.env.example` to `.env` and fill values.
-
-## Add license Key to Deployment table in DB
-
+4. Setup api v2 environment - make a copy of `apps/api/v2/.env.example` and rename it to `apps/api/v2/.env` - it has almost all the required values setup - ones you need to add will be explained below.
+- Then copy the value of `NEXTAUTH_SECRET` from there to the root `.env` `NEXTAUTH_SECRET`. If you have `NEXTAUTH_SECRET` already in the root `.env` then you can paste that value in `apps/api/v2/.env`.
+```
+Note: make sure that the value of `NEXTAUTH_SECRET` is the same in both the root `.env` and in the api v2 `.env`.
+```
+5. Setup license key. In the Deployment table in database create the following entry:
+```
 id, logo, theme, licenseKey, agreedLicenseAt:-
 1, null, null, '00000000-0000-0000-0000-000000000000', '2023-05-15 21:39:47.611'
-
-Replace with your actual license key.
-
-your CALCOM_LICENSE_KEY env var need to contain the same value
-
-.env
-CALCOM_LICENSE_KEY=00000000-0000-0000-0000-000000000000
-
-## Running the app
-
-# Development
-
+```
+Then in the `apps/api/v2/.env` set the license key environment variable:
+```
+CALCOM_LICENSE_KEY="00000000-0000-0000-0000-000000000000"
+```
+6. (optional) Prisma setup and database seeding - if you need to setup and seed database you can do it:
 ```bash
-$ yarn run start
+$ cd packages/prisma
+$ yarn prisma generate
+$ yarn prisma migrate dev
+$ yarn db-seed
+```
+7. Proceed to the next section to start api v2
+
+# Running api v2
+
+Start api v2 using:
+```bash
+$ yarn dev
 ```
 
-OR if you don't want to use docker, you can run following command.
-
-```bash
-$ yarn dev:no-docker
+Sometimes it happens that v2 api restarts because some unrelated log of build files changed if you are running it while cal web app is running. If it happens and is annoying you, you can just build it and then run without watch mode:
+```
+cd apps/api/v2
+yarn dev:build
+yarn start
 ```
 
-Additionally you can run following command(in different terminal) to ensure that any change in any of the dependencies is rebuilt and detected. It watches platform-libraries, platform-constants, platform-enums, platform-utils, platform-types.
+Api v2 depends on various platform packages "platform-libraries, platform-constants, platform-enums, platform-utils, platform-types" so if any of them change you might need to restart api v2 so it rebuild these dependencies and picks up the changes.
+
+Notably, you can run following command(in different terminal) to ensure that any change in any of the dependencies is rebuilt and detected. It watches platform-libraries, platform-constants, platform-enums, platform-utils, platform-types.
 
 ```bash
 $ yarn run dev:build:watch
 ```
 
-If you are making changes in packages/platform/libraries, you should run the following command too that would connect your local packages/platform/libraries to the api/v2
-
+OR if you don't want to use docker, you can run following command.
 ```bash
-$ yarn local
+$ yarn dev:no-docker
 ```
-
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
-```
-
-
-
 
 ## Test
 
@@ -99,17 +72,14 @@ $ yarn run test
 # e2e tests
 $ yarn run test:e2e
 
-# e2e tests in watch mode
-$ yarn test:e2e:watch 
-
 # run specific e2e test file in watch mode
-$ yarn test:e2e:watch --testPathPattern=filePath
+$ yarn run test:e2e some-file.e2e-spec.ts
 
 # test coverage
 $ yarn run test:cov
 ```
 
-## Conventions
+# Conventions
 
 ### Guards
 1. In case a guard would return "false" for "canActivate" instead throw ForbiddenException with an error message containing guard name and the error.
@@ -117,16 +87,3 @@ $ yarn run test:cov
 3. If you use ApiAuthGuard but want that only specific auth method is allowed, for example, api key, then you also need to add `@ApiAuthGuardOnlyAllow(["API_KEY"])` under the `@UseGuards(ApiAuthGuard)`. Shortly, use `ApiAuthGuardOnlyAllow` to specify which auth methods are allowed by `ApiAuthGuard`. If `ApiAuthGuardOnlyAllow` is not used or nothing is passed to it or empty array it means that
 all auth methods are allowed.
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).

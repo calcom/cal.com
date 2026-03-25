@@ -209,8 +209,8 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                 currentlyEditingOutOfOfficeEntry
                   ? t("edit_an_out_of_office")
                   : oooType === "team"
-                  ? t("create_ooo_dialog_team_title")
-                  : t("create_an_out_of_office")
+                    ? t("create_ooo_dialog_team_title")
+                    : t("create_an_out_of_office")
               }
               subtitle={
                 oooType === "team"
@@ -312,6 +312,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       className="mb-0 mt-1 text-white"
                       name="reason"
                       data-testid="reason_select"
+                      menuPlacement="bottom"
                       value={reasonList.find((reason) => reason.value === value)}
                       placeholder={t("ooo_select_reason")}
                       options={reasonList}

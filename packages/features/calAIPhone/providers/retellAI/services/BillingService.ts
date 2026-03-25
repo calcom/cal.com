@@ -26,7 +26,7 @@ export class BillingService {
       phoneNumberRepository: PhoneNumberRepositoryInterface;
       retellRepository: RetellAIRepository;
     }
-  ) { }
+  ) {}
 
   async generatePhoneNumberCheckoutSession({
     userId,
@@ -83,8 +83,14 @@ export class BillingService {
         agentId: agentId || "",
         workflowId: workflowId || "",
         type: CHECKOUT_SESSION_TYPES.PHONE_NUMBER_SUBSCRIPTION,
-        ...(tracking?.googleAds?.gclid && { gclid: tracking.googleAds.gclid, campaignId: tracking.googleAds.campaignId }),
-        ...(tracking?.linkedInAds?.liFatId && { liFatId: tracking.linkedInAds.liFatId, linkedInCampaignId: tracking.linkedInAds?.campaignId }),
+        ...(tracking?.googleAds?.gclid && {
+          gclid: tracking.googleAds.gclid,
+          campaignId: tracking.googleAds.campaignId,
+        }),
+        ...(tracking?.linkedInAds?.liFatId && {
+          liFatId: tracking.linkedInAds.liFatId,
+          linkedInCampaignId: tracking.linkedInAds?.campaignId,
+        }),
       },
       subscription_data: {
         metadata: {
@@ -119,14 +125,14 @@ export class BillingService {
     // Find phone number with proper team authorization
     const phoneNumber = teamId
       ? await this.deps.phoneNumberRepository.findByIdWithTeamAccess({
-        id: phoneNumberId,
-        teamId,
-        userId,
-      })
+          id: phoneNumberId,
+          teamId,
+          userId,
+        })
       : await this.deps.phoneNumberRepository.findByIdAndUserId({
-        id: phoneNumberId,
-        userId,
-      });
+          id: phoneNumberId,
+          userId,
+        });
 
     if (!phoneNumber) {
       throw new HttpError({

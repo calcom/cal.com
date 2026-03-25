@@ -2,8 +2,8 @@
 
 import { usePathname } from "next/navigation";
 
-import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useSegments } from "~/data-table/hooks/useSegments";
 import {
   RoutingFormResponsesTable,
   FailedBookingsByField,

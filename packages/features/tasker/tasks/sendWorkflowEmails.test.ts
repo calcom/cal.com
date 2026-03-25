@@ -6,9 +6,11 @@ vi.mock("@calcom/emails/workflow-email-service", () => ({
 
 const mockGetBookingForCalEventBuilderFromUid = vi.fn();
 vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
-  BookingRepository: vi.fn().mockImplementation(function() { return {
-    getBookingForCalEventBuilderFromUid: mockGetBookingForCalEventBuilderFromUid,
-  }; }),
+  BookingRepository: vi.fn().mockImplementation(function () {
+    return {
+      getBookingForCalEventBuilderFromUid: mockGetBookingForCalEventBuilderFromUid,
+    };
+  }),
 }));
 
 vi.mock("@calcom/features/bookings/repositories/BookingSeatRepository", () => ({
@@ -17,9 +19,11 @@ vi.mock("@calcom/features/bookings/repositories/BookingSeatRepository", () => ({
 
 const mockHandleSendEmailWorkflowTask = vi.fn();
 vi.mock("@calcom/features/ee/workflows/lib/service/EmailWorkflowService", () => ({
-  EmailWorkflowService: vi.fn().mockImplementation(function() { return {
-    handleSendEmailWorkflowTask: mockHandleSendEmailWorkflowTask,
-  }; }),
+  EmailWorkflowService: vi.fn().mockImplementation(function () {
+    return {
+      handleSendEmailWorkflowTask: mockHandleSendEmailWorkflowTask,
+    };
+  }),
 }));
 
 vi.mock("@calcom/features/ee/workflows/repositories/WorkflowReminderRepository", () => ({

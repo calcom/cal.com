@@ -178,6 +178,20 @@
       }
     },
     {
+      "includes": ["packages/embeds/embed-core/**/*.{ts,tsx,js,jsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNodejsImportProtocol": "off",
+            "noProcessEnv": "off"
+          },
+          "correctness": {
+            "noProcessGlobal": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["apps/api/v2/**/*.ts", "apps/api/v2/**/*.controller.ts"],
       "linter": {
         "rules": {
@@ -244,6 +258,27 @@
                     "message": "lib package should not import from @trpc/server to avoid circular dependencies."
                   }
                 ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "packages/lib/**/*repository*.{ts,tsx,js,jsx}",
+        "packages/lib/**/*Repository*.{ts,tsx,js,jsx}",
+        "packages/lib/**/repository/**/*.{ts,tsx,js,jsx}",
+        "packages/lib/**/repositories/**/*.{ts,tsx,js,jsx}"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": {
+              "level": "error",
+              "options": {
+                "match": "REPOSITORY-FILES-NOT-ALLOWED-IN-PACKAGES-LIB[.](.+)",
+                "filenameCases": ["camelCase"]
               }
             }
           }
@@ -358,6 +393,9 @@
       "includes": ["packages/platform/atoms/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"],
       "linter": {
         "rules": {
+          "correctness": {
+            "noProcessGlobal": "off"
+          },
           "style": {
             "noRestrictedImports": {
               "level": "error",

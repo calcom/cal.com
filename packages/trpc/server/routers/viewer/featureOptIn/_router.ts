@@ -3,7 +3,6 @@ import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFea
 import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isOptInFeature } from "@calcom/features/feature-opt-in/config";
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { prisma } from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
 import type { ZodEnum } from "zod";
@@ -22,27 +21,6 @@ const featureOptInService: ReturnType<typeof getFeatureOptInService> = getFeatur
 const teamFeatureRepository: ReturnType<typeof getTeamFeatureRepository> = getTeamFeatureRepository();
 const userFeatureRepository: ReturnType<typeof getUserFeatureRepository> = getUserFeatureRepository();
 const teamRepository: TeamRepository = new TeamRepository(prisma);
-const membershipRepository: MembershipRepository = new MembershipRepository(prisma);
-
-async function getUserOrgAndTeamIds(userId: number): Promise<{ orgId: number | null; teamIds: number[] }> {
-  const memberships = await membershipRepository.findAllByUserId({
-    userId,
-    filters: { accepted: true },
-  });
-
-  let orgId: number | null = null;
-  const teamIds: number[] = [];
-
-  for (const membership of memberships) {
-    if (membership.team.isOrganization) {
-      orgId = membership.teamId;
-    } else {
-      teamIds.push(membership.teamId);
-    }
-  }
-
-  return { orgId, teamIds };
-}
 
 export const featureOptInRouter = router({
   /**
@@ -50,12 +28,8 @@ export const featureOptInRouter = router({
    * This considers all teams/orgs the user belongs to.
    */
   listForUser: authedProcedure.query(async ({ ctx }) => {
-    const { orgId, teamIds } = await getUserOrgAndTeamIds(ctx.user.id);
-
     return featureOptInService.listFeaturesForUser({
       userId: ctx.user.id,
-      orgId,
-      teamIds,
     });
   }),
 

@@ -61,7 +61,10 @@ test.describe("Update Profile", () => {
 
     await page.getByTestId("profile-submit-button").first().click();
 
-    await page.getByTestId("password").first().fill(user?.username ?? "Nameless User");
+    await page
+      .getByTestId("password")
+      .first()
+      .fill(user?.username ?? "Nameless User");
 
     await submitAndWaitForResponse(page, "/api/trpc/me/updateProfile?batch=1", {
       action: () => page.getByTestId("profile-update-email-submit-button").first().click(),

@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
-import { WorkspacePlatformRepository } from "@calcom/lib/server/repository/workspacePlatform";
+import { WorkspacePlatformRepository } from "@calcom/features/workspace-platform/repositories/WorkspacePlatformRepository";
 
 import { TRPCError } from "@trpc/server";
 

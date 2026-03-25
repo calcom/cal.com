@@ -1,5 +1,5 @@
 import type { AxiosError, AxiosRequestConfig } from "axios";
-// eslint-disable-next-line no-restricted-imports
+ 
 import { debounce } from "lodash";
 import { useEffect, useState } from "react";
 import usePrevious from "react-use/lib/usePrevious";
@@ -13,11 +13,23 @@ export interface useOAuthProps {
   refreshUrl?: string;
   onError?: (error: string) => void;
   onSuccess?: () => void;
+  onTokenRefreshStart?: () => void;
+  onTokenRefreshSuccess?: () => void;
+  onTokenRefreshError?: (error: string) => void;
   clientId: string;
 }
 
 const debouncedRefresh = debounce(http.refreshTokens, 10000, { leading: true, trailing: false });
-export const useOAuthFlow = ({ accessToken, refreshUrl, clientId, onError, onSuccess }: useOAuthProps) => {
+export const useOAuthFlow = ({
+  accessToken,
+  refreshUrl,
+  clientId,
+  onError,
+  onSuccess,
+  onTokenRefreshStart,
+  onTokenRefreshSuccess,
+  onTokenRefreshError,
+}: useOAuthProps) => {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [clientAccessToken, setClientAccessToken] = useState<string>("");
   const prevAccessToken = usePrevious(accessToken);
@@ -28,16 +40,20 @@ export const useOAuthFlow = ({ accessToken, refreshUrl, clientId, onError, onSuc
             const originalRequest = err.config as AxiosRequestConfig;
             if (refreshUrl && err.response?.status === 498 && !isRefreshing) {
               setIsRefreshing(true);
+              onTokenRefreshStart?.();
               const refreshedToken = await debouncedRefresh(refreshUrl);
               if (refreshedToken) {
                 setClientAccessToken(refreshedToken);
                 onSuccess?.();
+                onTokenRefreshSuccess?.();
                 return http.instance({
                   ...originalRequest,
                   headers: { ...originalRequest.headers, Authorization: `Bearer ${refreshedToken}` },
                 });
               } else {
-                onError?.("Invalid Refresh Token.");
+                const errorMessage = "Invalid Refresh Token.";
+                onError?.(errorMessage);
+                onTokenRefreshError?.(errorMessage);
               }
 
               setIsRefreshing(false);
@@ -51,33 +67,35 @@ export const useOAuthFlow = ({ accessToken, refreshUrl, clientId, onError, onSuc
         http.responseInterceptor.eject(interceptorId);
       }
     };
-  }, [clientAccessToken, isRefreshing, refreshUrl, onError, onSuccess]);
+  }, [clientAccessToken, isRefreshing, refreshUrl, onError, onSuccess, onTokenRefreshStart, onTokenRefreshSuccess, onTokenRefreshError]);
 
   useEffect(() => {
     if (accessToken && http.getUrl() && prevAccessToken !== accessToken) {
       http.setAuthorizationHeader(accessToken);
-      try {
-        http
-          .get<ApiResponse>(`/provider/${clientId}/access-token`)
-          .catch(async (err: AxiosError) => {
-            if ((err.response?.status === 498 || err.response?.status === 401) && refreshUrl) {
-              setIsRefreshing(true);
-              const refreshedToken = await http.refreshTokens(refreshUrl);
-              if (refreshedToken) {
-                setClientAccessToken(refreshedToken);
-                onSuccess?.();
-              } else {
-                onError?.("Invalid Refresh Token.");
-              }
-              setIsRefreshing(false);
+      http
+        .get<ApiResponse>(`/provider/${clientId}/access-token`)
+        .catch(async (err: AxiosError) => {
+          if ((err.response?.status === 498 || err.response?.status === 401) && refreshUrl) {
+            setIsRefreshing(true);
+            onTokenRefreshStart?.();
+            const refreshedToken = await http.refreshTokens(refreshUrl);
+            if (refreshedToken) {
+              setClientAccessToken(refreshedToken);
+              onSuccess?.();
+              onTokenRefreshSuccess?.();
+            } else {
+              const errorMessage = "Invalid Refresh Token.";
+              onError?.(errorMessage);
+              onTokenRefreshError?.(errorMessage);
             }
-          })
-          .finally(() => {
-            setClientAccessToken(accessToken);
-          });
-      } catch (err) {}
+            setIsRefreshing(false);
+          }
+        })
+        .finally(() => {
+          setClientAccessToken(accessToken);
+        });
     }
-  }, [accessToken, clientId, refreshUrl, prevAccessToken, onError, onSuccess]);
+  }, [accessToken, clientId, refreshUrl, prevAccessToken, onError, onSuccess, onTokenRefreshStart, onTokenRefreshSuccess, onTokenRefreshError]);
 
   return { isRefreshing, currentAccessToken: clientAccessToken };
 };

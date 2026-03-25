@@ -11,6 +11,7 @@ import { updateQueryParam, getQueryParam, removeQueryParam } from "../bookings/B
  */
 type StoreInitializeType = {
   month: string | null;
+  isPlatform?: boolean;
 };
 
 type EventType = {
@@ -18,9 +19,11 @@ type EventType = {
   slug: string;
   duration: number;
   teamId?: number | null;
+  username?: string | null;
 };
 
 export type TroubleshooterStore = {
+  isPlatform: boolean;
   event: EventType | null;
   setEvent: (eventSlug: EventType) => void;
   month: string | null;
@@ -41,6 +44,7 @@ export type TroubleshooterStore = {
  * See comments in interface above for more information on it's specific values.
  */
 export const useTroubleshooterStore = create<TroubleshooterStore>((set, get) => ({
+  isPlatform: false,
   selectedDate: getQueryParam("date") || null,
   setSelectedDate: (selectedDate: string | null) => {
     // unset selected date
@@ -77,7 +81,9 @@ export const useTroubleshooterStore = create<TroubleshooterStore>((set, get) => 
   event: null,
   setEvent: (event: EventType) => {
     set({ event });
-    updateQueryParam("eventTypeId", event.id.toString());
+    if (!get().isPlatform) {
+      updateQueryParam("eventTypeId", event.id.toString());
+    }
   },
   month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {
@@ -85,7 +91,10 @@ export const useTroubleshooterStore = create<TroubleshooterStore>((set, get) => 
     updateQueryParam("month", month ?? "");
     get().setSelectedDate(null);
   },
-  initialize: ({ month }: StoreInitializeType) => {
+  initialize: ({ month, isPlatform }: StoreInitializeType) => {
+    if (isPlatform) {
+      set({ isPlatform: true });
+    }
     if (month) {
       set({ month });
       updateQueryParam("month", month);
@@ -101,11 +110,12 @@ export const useTroubleshooterStore = create<TroubleshooterStore>((set, get) => 
   },
 }));
 
-export const useInitalizeTroubleshooterStore = ({ month }: StoreInitializeType) => {
+export const useInitalizeTroubleshooterStore = ({ month, isPlatform }: StoreInitializeType) => {
   const initializeStore = useTroubleshooterStore((state) => state.initialize);
   useEffect(() => {
     initializeStore({
       month,
+      isPlatform,
     });
-  }, [initializeStore, month]);
+  }, [initializeStore, month, isPlatform]);
 };

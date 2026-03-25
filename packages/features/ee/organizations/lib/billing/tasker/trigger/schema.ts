@@ -35,15 +35,19 @@ export const platformBillingCancelUsageIncrementTaskSchema: z.ZodObject<
 export const platformBillingRescheduleUsageIncrementTaskSchema: z.ZodObject<
   {
     bookingUid: z.ZodString;
+    rescheduledTime: z.ZodDate;
   },
   "strip",
   z.ZodTypeAny,
   {
     bookingUid: string;
+    rescheduledTime: Date;
   },
   {
     bookingUid: string;
+    rescheduledTime: Date;
   }
 > = z.object({
   bookingUid: z.string(),
+  rescheduledTime: z.coerce.date(),
 });

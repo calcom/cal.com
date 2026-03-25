@@ -66,7 +66,8 @@ export class MonthlyProrationService {
   async processMonthlyProrations(params: ProcessMonthlyProrationsParams) {
     const { monthKey, teamIds } = params;
 
-    const isFeatureEnabled = await this.featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
+    const isFeatureEnabled =
+      await this.featuresRepository.checkIfFeatureIsEnabledGlobally("monthly-proration");
     if (!isFeatureEnabled) {
       this.logger.info("Monthly proration feature is not enabled, skipping batch processing", { monthKey });
       return [];
@@ -323,6 +324,7 @@ export class MonthlyProrationService {
 
     let invoiceId: string | null = null;
     let invoiceFinalized = false;
+    let invoiceUrl: string | null = null;
 
     try {
       const invoice = await this.billingService.createInvoice({
@@ -335,8 +337,9 @@ export class MonthlyProrationService {
 
       invoiceId = invoice.invoiceId;
 
-      await this.billingService.finalizeInvoice(invoiceId);
+      const finalizedInvoice = await this.billingService.finalizeInvoice(invoiceId);
       invoiceFinalized = true;
+      invoiceUrl = finalizedInvoice.invoiceUrl;
 
       return await this.prorationRepository.updateProrationStatus(
         proration.id,
@@ -344,6 +347,7 @@ export class MonthlyProrationService {
         {
           invoiceItemId,
           invoiceId,
+          invoiceUrl: invoiceUrl ?? undefined,
         }
       );
     } catch (error) {
@@ -397,7 +401,12 @@ export class MonthlyProrationService {
         await this.billingService.deleteInvoiceItem(invoiceItemId);
       }
     } catch (cleanupError) {
-      this.logger.error("Failed to clean up Stripe artifacts", { prorationId, invoiceId, invoiceItemId, error: cleanupError });
+      this.logger.error("Failed to clean up Stripe artifacts", {
+        prorationId,
+        invoiceId,
+        invoiceItemId,
+        error: cleanupError,
+      });
     }
   }
 

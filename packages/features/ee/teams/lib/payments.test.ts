@@ -6,6 +6,7 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { BillingPeriod } from "@calcom/prisma/zod-utils";
 
 import {
+  generateTeamCheckoutSession,
   getTeamWithPaymentMetadata,
   purchaseTeamOrOrgSubscription,
   updateQuantitySubscriptionFromStripe,
@@ -13,7 +14,9 @@ import {
 
 beforeEach(async () => {
   vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "STRIPE_ORG_MONTHLY_PRICE_ID");
+  vi.stubEnv("STRIPE_ORG_ANNUAL_PRICE_ID", "STRIPE_ORG_ANNUAL_PRICE_ID");
   vi.stubEnv("STRIPE_TEAM_MONTHLY_PRICE_ID", "STRIPE_TEAM_MONTHLY_PRICE_ID");
+  vi.stubEnv("STRIPE_TEAM_ANNUAL_PRICE_ID", "STRIPE_TEAM_ANNUAL_PRICE_ID");
   vi.resetAllMocks();
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -33,6 +36,12 @@ vi.mock("@calcom/app-store/stripepayment/lib/customer", () => {
     getStripeCustomerIdFromUserId: function () {
       return "CUSTOMER_ID";
     },
+  };
+});
+
+vi.mock("@calcom/features/auth/lib/dub", () => {
+  return {
+    getDubCustomer: vi.fn().mockResolvedValue(null),
   };
 });
 
@@ -56,6 +65,74 @@ vi.mock("@calcom/features/ee/payments/server/stripe", () => {
       },
     },
   };
+});
+
+describe("generateTeamCheckoutSession", () => {
+  it("should use monthly price by default", async () => {
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    await generateTeamCheckoutSession({
+      teamName: "Test Team",
+      teamSlug: "test-team",
+      userId: 1,
+    });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [
+          expect.objectContaining({
+            price: "STRIPE_TEAM_MONTHLY_PRICE_ID",
+          }),
+        ],
+      })
+    );
+  });
+
+  it("should use annual price when billingPeriod is ANNUALLY", async () => {
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    await generateTeamCheckoutSession({
+      teamName: "Test Team",
+      teamSlug: "test-team",
+      userId: 1,
+      billingPeriod: BillingPeriod.ANNUALLY,
+    });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [
+          expect.objectContaining({
+            price: "STRIPE_TEAM_ANNUAL_PRICE_ID",
+          }),
+        ],
+      })
+    );
+  });
+
+  it("should store billingPeriod in checkout session metadata", async () => {
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    await generateTeamCheckoutSession({
+      teamName: "Test Team",
+      teamSlug: "test-team",
+      userId: 1,
+      billingPeriod: BillingPeriod.ANNUALLY,
+    });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          billingPeriod: "ANNUALLY",
+        }),
+      })
+    );
+  });
 });
 
 describe("purchaseTeamOrOrgSubscription", () => {
@@ -262,6 +339,116 @@ describe("purchaseTeamOrOrgSubscription", () => {
           {
             price: "PRICE_ID",
             quantity: seatsToChargeFor,
+          },
+        ],
+      })
+    );
+  });
+
+  it("should use annual fixed price when billingPeriod is ANNUALLY and no custom price", async () => {
+    const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
+    const user = await prismock.user.create({
+      data: {
+        name: "test",
+        email: "test@email.com",
+      },
+    });
+
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    mockStripeCheckoutSessionRetrieve(
+      {
+        currency: "USD",
+        product: {
+          id: "PRODUCT_ID",
+        },
+      },
+      [FAKE_PAYMENT_ID]
+    );
+
+    const team = await prismock.team.create({
+      data: {
+        name: "test",
+        metadata: {
+          paymentId: FAKE_PAYMENT_ID,
+        },
+      },
+    });
+
+    expect(
+      await purchaseTeamOrOrgSubscription({
+        teamId: team.id,
+        seatsUsed: 10,
+        userId: user.id,
+        isOrg: false,
+        pricePerSeat: null,
+        billingPeriod: BillingPeriod.ANNUALLY,
+      })
+    ).toEqual({ url: "SESSION_URL" });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [
+          {
+            price: "STRIPE_TEAM_ANNUAL_PRICE_ID",
+            quantity: 10,
+          },
+        ],
+      })
+    );
+  });
+
+  it("should use annual fixed price for org when billingPeriod is ANNUALLY and no custom price", async () => {
+    const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
+    const user = await prismock.user.create({
+      data: {
+        name: "test",
+        email: "test@email.com",
+      },
+    });
+
+    const checkoutSessionsCreate = mockStripeCheckoutSessionsCreate({
+      url: "SESSION_URL",
+    });
+
+    mockStripeCheckoutSessionRetrieve(
+      {
+        currency: "USD",
+        product: {
+          id: "PRODUCT_ID",
+        },
+      },
+      [FAKE_PAYMENT_ID]
+    );
+
+    const team = await prismock.team.create({
+      data: {
+        name: "test",
+        metadata: {
+          paymentId: FAKE_PAYMENT_ID,
+        },
+      },
+    });
+
+    expect(
+      await purchaseTeamOrOrgSubscription({
+        teamId: team.id,
+        seatsUsed: 5,
+        userId: user.id,
+        isOrg: true,
+        pricePerSeat: null,
+        billingPeriod: BillingPeriod.ANNUALLY,
+      })
+    ).toEqual({ url: "SESSION_URL" });
+
+    expect(checkoutSessionsCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [
+          {
+            price: "STRIPE_ORG_ANNUAL_PRICE_ID",
+            quantity: 5,
           },
         ],
       })

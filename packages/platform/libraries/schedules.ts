@@ -23,3 +23,5 @@ export {
   duplicateHandler as duplicateScheduleHandler,
   type DuplicateScheduleHandlerReturn,
 } from "@calcom/trpc/server/routers/viewer/availability/schedule/duplicate.handler";
+
+export { getScheduleByEventSlugHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/getScheduleByEventTypeSlug.handler";
