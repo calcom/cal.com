@@ -27,6 +27,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     bookingData: req.body,
     bookingMeta: {
       userUuid: session?.user?.uuid,
+      impersonatedByUserUuid: null,
     },
   });
 
