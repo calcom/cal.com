@@ -617,15 +617,11 @@ test.describe("Bookings", () => {
       await page.locator(`[data-testid="select-filter-options-teamId"] [role="option"]`).first().click();
       await bookingsGetResponse2;
 
-      // Verify the team filter is active in the UI (filter chip visible)
       await expect(page.getByTestId("filter-popover-trigger-teamId")).toBeVisible({ timeout: 10000 });
 
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
 
-      // In cal.com, the team filter for direct events does not exclude the owner's personal
-      // bookings (unlike calcom/cal), so we verify the team booking is present rather than
-      // asserting count=1 or that the personal booking disappears.
       await expect(
         upcomingBookingsTable.locator('[data-testid="booking-item"]', { hasText: teamBooking!.title })
       ).toBeVisible({ timeout: 10000 });
@@ -682,7 +678,6 @@ test.describe("Bookings", () => {
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
 
-      // Wait for the personal booking to disappear (proves filter took effect in the DOM)
       await expect(
         upcomingBookingsTable.locator('[data-testid="booking-item"]', { hasText: "Personal Event Booking" })
       ).toBeHidden({ timeout: 10000 });
@@ -761,7 +756,6 @@ test.describe("Bookings", () => {
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
 
-      // Wait for the other team's booking to disappear (proves filter took effect in the DOM)
       await expect(
         upcomingBookingsTable.locator('[data-testid="booking-item"]', { hasText: "Team 2 Booking" })
       ).toBeHidden({ timeout: 10000 });
