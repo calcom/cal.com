@@ -1,22 +1,22 @@
 /**
- * Modified calendar service to support optional attendees
- * Google Calendar uses "optional: true" in the attendees array
+ * Modification to Google Calendar service to support optional attendees
  * 
- * In the existing createEvent method, attendees marked with optional: true
- * should be mapped to Google's attendee format with optional: true
+ * In the existing createEvent method, when building the attendees list,
+ * check for the optional flag and include it in the Google Calendar API call
  */
 
-// In the existing createEvent or similar method, modify attendee mapping:
-const mapAttendee = (attendee: CalendarServiceAttendee) => {
-  const base = {
+// The Google Calendar API supports optional attendees via:
+// { email: "user@example.com", optional: true }
+
+// In the existing mapAttendeeToGoogleFormat function or equivalent:
+const formatAttendeeForGoogle = (attendee: {
+  email: string;
+  name?: string;
+  optional?: boolean;
+}) => {
+  return {
     email: attendee.email,
     displayName: attendee.name,
+    ...(attendee.optional && { optional: true }),
   };
-  
-  // If the attendee is marked as optional, include that in the Google Calendar format
-  if (attendee.optional) {
-    return { ...base, optional: true };
-  }
-  
-  return base;
 };
