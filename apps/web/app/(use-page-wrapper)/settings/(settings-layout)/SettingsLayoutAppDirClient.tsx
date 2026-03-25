@@ -26,7 +26,6 @@ import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
-import { Icon } from "@calcom/ui/components/icon";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import { VerticalTabItem } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
@@ -34,6 +33,13 @@ import {
   ArrowLeftIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  CreditCardIcon,
+  KeyIcon,
+  LayoutDashboardIcon,
+  LockIcon,
+  MenuIcon,
+  TerminalIcon,
+  UsersIcon,
 } from "@coss/ui/icons";
 import {
   Collapsible,
@@ -52,12 +58,20 @@ import Shell from "~/shell/Shell";
  * When adding a new setting here, also add it to the settings home screen:
  * apps/web/modules/settings/home/settings-home-data.ts
  */
+const SETTINGS_TAB_ICONS: Record<string, React.ReactNode> = {
+  security: <KeyIcon className="h-[16px] w-[16px] stroke-[2px] text-subtle md:mt-0 ltr:mr-3 rtl:ml-3" />,
+  billing: <CreditCardIcon className="h-[16px] w-[16px] stroke-[2px] text-subtle md:mt-0 ltr:mr-3 rtl:ml-3" />,
+  developer: <TerminalIcon className="h-[16px] w-[16px] stroke-[2px] text-subtle md:mt-0 ltr:mr-3 rtl:ml-3" />,
+  teams: <UsersIcon className="h-[16px] w-[16px] stroke-[2px] text-subtle md:mt-0 ltr:mr-3 rtl:ml-3" />,
+  other_teams: <UsersIcon className="h-[16px] w-[16px] stroke-[2px] text-subtle md:mt-0 ltr:mr-3 rtl:ml-3" />,
+  admin: <LockIcon className="h-[16px] w-[16px] stroke-[2px] text-subtle md:mt-0 ltr:mr-3 rtl:ml-3" />,
+};
+
 const getTabs = (orgBranding: OrganizationBranding | null) => {
   const tabs: VerticalTabItemProps[] = [
     {
       name: "my_account",
       href: "/settings/my-account",
-      icon: "user",
       children: [
         {
           name: "profile",
@@ -113,7 +127,6 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     {
       name: "security",
       href: "/settings/security",
-      icon: "key",
       children: [
         {
           name: "password",
@@ -140,7 +153,6 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     {
       name: "billing",
       href: "/settings/billing",
-      icon: "credit-card",
       children: [
         {
           name: "manage_billing",
@@ -157,7 +169,6 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     {
       name: "developer",
       href: "/settings/developer",
-      icon: "terminal",
       children: [
         //
         {
@@ -251,19 +262,16 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
     {
       name: "teams",
       href: "/teams",
-      icon: "users",
       children: [],
     },
     {
       name: "other_teams",
       href: "/settings/organizations/teams/other",
-      icon: "users",
       children: [],
     },
     {
       name: "admin",
       href: "/settings/admin",
-      icon: "lock",
       children: [
         //
         {
@@ -404,7 +412,6 @@ const useTabs = ({
         return {
           ...tab,
           name: user?.name || "my_account",
-          icon: undefined,
           avatar: getUserAvatarUrl(user),
         };
       } else if (tab.href === "/settings/organizations") {
@@ -936,9 +943,8 @@ const SettingsSidebarContainer = ({
             pathname === "/settings" && "bg-emphasis"
           )}
         >
-          <Icon
-            name="layout-grid"
-            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3"
+          <LayoutDashboardIcon
+            className="h-[16px] w-[16px] stroke-[2px] text-subtle ltr:mr-3 rtl:ml-3"
           />
           <span className="text-sm font-medium text-subtle">
             {t("overview")}
@@ -951,14 +957,9 @@ const SettingsSidebarContainer = ({
                 <React.Fragment key={tab.href}>
                   <div className={`${!tab.children?.length ? "mb-3!" : ""}`}>
                     <div className="[&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default group flex h-7 w-full flex-row items-center rounded-md px-2 text-sm font-medium leading-none">
-                      {tab && tab.icon && (
-                        <Icon
-                          name={tab.icon}
-                          className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
-                        />
-                      )}
+                      {SETTINGS_TAB_ICONS[tab.name]}
                       {}
-                      {!tab.icon && tab?.avatar && (
+                      {!SETTINGS_TAB_ICONS[tab.name] && tab?.avatar && (
                         <Image
                           width={16}
                           height={16}
@@ -1012,12 +1013,7 @@ const SettingsSidebarContainer = ({
                   >
                     <Link href={tab.href}>
                       <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
-                        {tab && tab.icon && (
-                          <Icon
-                            name={tab.icon}
-                            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
-                          />
-                        )}
+                        {SETTINGS_TAB_ICONS[tab.name]}
                         <Skeleton
                           title={tab.name}
                           as="p"
@@ -1053,12 +1049,7 @@ const SettingsSidebarContainer = ({
                   <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
                       <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px] text-sm font-medium leading-none transition">
-                        {tab && tab.icon && (
-                          <Icon
-                            name={tab.icon}
-                            className="text-subtle h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0"
-                          />
-                        )}
+                        {SETTINGS_TAB_ICONS[tab.name]}
                         <Skeleton
                           title={t("org_admin_other_teams")}
                           as="p"
@@ -1230,7 +1221,7 @@ const MobileSettingsContainer = (props: {
       <nav className="flex sticky top-0 z-20 justify-between items-center px-2 py-2 w-full border-b bg-cal-muted border-muted sm:relative lg:hidden">
         <div className="flex items-center space-x-3">
           <Button
-            StartIcon="menu"
+            CustomStartIcon={<MenuIcon className="h-4 w-4" />}
             color="minimal"
             variant="icon"
             onClick={props.onSideContainerOpen}
