@@ -29,8 +29,6 @@ test.describe("Teams", () => {
     await page.goto("/teams");
 
     await test.step("Can create team", async () => {
-      // Click the new team button (use .first() because the fab variant button may
-      // appear twice in the DOM during Next.js streaming/hydration)
       await page.locator("[data-testid=new-team-btn]").first().click();
       await page.waitForLoadState("networkidle");
       // Fill team name input (new onboarding-v3 style flow)
@@ -64,8 +62,6 @@ test.describe("Teams", () => {
       await page.getByTestId("disband-team-button").click();
       await page.getByTestId("dialog-confirmation").click();
       await page.waitForURL("/teams");
-      // Use auto-retrying assertion instead of a raw count check so Playwright
-      // waits for the UI to update after the team is disbanded.
       await expect(page.locator(`text=${user.username}'s Team`)).toBeHidden({ timeout: 10000 });
 
       // Cleanup the invited user since they were created without our fixtures
