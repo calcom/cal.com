@@ -5,7 +5,7 @@ import type EventManager from "@calcom/features/bookings/lib/EventManager";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
-import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import type { Booking } from "../../../handleNewBooking/createBooking";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
@@ -67,7 +67,9 @@ const moveSeatedBookingToNewTimeSlot = async (
     cancellationReason: rescheduleReason,
   });
 
-  evt = { ...addVideoCallDataToEvent(newBooking.references, evt), bookerUrl: evt.bookerUrl };
+  evt = CalendarEventBuilder.fromEvent(evt)
+    .withVideoCallDataFromReferences(newBooking.references)
+    .build();
 
   const copyEvent = cloneDeep(evt);
 
