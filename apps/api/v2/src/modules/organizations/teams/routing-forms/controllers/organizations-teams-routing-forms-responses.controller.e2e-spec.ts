@@ -163,7 +163,7 @@ describe("Organizations Teams Routing Forms Responses", () => {
               "rule-1": {
                 type: "rule",
                 properties: {
-                  field: "question1",
+                  field: "question2-field",
                   operator: "equal",
                   value: ["answer1"],
                   valueSrc: ["value"],
@@ -434,6 +434,7 @@ describe("Organizations Teams Routing Forms Responses", () => {
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           participant: "test-participant",
+          question2: "answer1",
         })
         .expect(201)
         .then((response) => {
