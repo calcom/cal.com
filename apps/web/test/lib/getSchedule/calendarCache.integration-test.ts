@@ -22,12 +22,32 @@ const WEEKDAY_HOURLY_SLOTS = [
   "16:00:00.000Z",
 ];
 
-const FAKED_NOW = "2026-06-25T00:00:00Z";
-const FRESH_SYNC_DATE = new Date("2026-06-24T00:00:00Z");
-const STALE_SYNC_DATE = new Date("2026-06-17T00:00:00Z");
+/**
+ * All test dates are computed relative to the real current time so the test
+ * never drifts beyond the 3-month cache horizon used by CalendarCacheWrapper.
+ */
+function nextMonday(from: Date, minDaysAhead: number): string {
+  const d = new Date(from);
+  d.setUTCDate(d.getUTCDate() + minDaysAhead);
+  while (d.getUTCDay() !== 1) d.setUTCDate(d.getUTCDate() + 1);
+  return d.toISOString().split("T")[0];
+}
+
+const realNow = new Date();
+realNow.setUTCHours(0, 0, 0, 0);
+
+// FAKED_NOW: 7 days ahead of real time (gives room for sync date math)
+const fakedNowDate = new Date(realNow);
+fakedNowDate.setUTCDate(fakedNowDate.getUTCDate() + 7);
+const FAKED_NOW = fakedNowDate.toISOString();
+
+// Sync dates relative to FAKED_NOW
+const FRESH_SYNC_DATE = new Date(fakedNowDate.getTime() - 1 * 24 * 60 * 60 * 1000); // 1 day before
+const STALE_SYNC_DATE = new Date(fakedNowDate.getTime() - 8 * 24 * 60 * 60 * 1000); // 8 days before (>7-day threshold)
+
 const CALENDAR_CACHE_FEATURE = "calendar-subscription-cache";
-const testDate = "2026-07-06"; // Monday, within 3 months of FAKED_NOW
-const farFutureDate = "2026-10-05"; // Monday, >3 months from FAKED_NOW
+const testDate = nextMonday(fakedNowDate, 14); // ~2 weeks after FAKED_NOW, well within 3-month horizon
+const farFutureDate = nextMonday(fakedNowDate, 100); // ~3.3 months after FAKED_NOW, beyond 3-month horizon
 
 const createTestUser = async (suffix: string) => {
   return prisma.user.create({
