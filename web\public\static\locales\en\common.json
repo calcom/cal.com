@@ -1,0 +1,10 @@
+{
+  "add_optional_team_members": "Add team members as optional guests",
+  "add_optional_team_members_description": "Invite team members to all bookings without checking their availability",
+  "optional_guests_no_conflict_check": "These team members will be invited to all bookings but their calendars won't be checked for conflicts.",
+  "add_team_member": "Add team member",
+  "select_team_member": "Select a team member...",
+  "optional_guests": "Optional guests",
+  "optional": "Optional",
+  "no_team_members_available": "All team members have been added as optional guests."
+}
