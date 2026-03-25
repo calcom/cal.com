@@ -1,45 +1,78 @@
-import { render, screen } from "@testing-library/react";
+import React from "react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ComplianceDocument } from "./compliance-documents";
 import { DOCUMENT_CATEGORIES } from "./compliance-documents";
 
 vi.mock("@coss/ui/icons", () => ({
+  DownloadIcon: () => <div data-testid="download-icon" />,
   FileTextIcon: (props: Record<string, unknown>) => <div data-testid="file-text-icon" {...props} />,
+  LockIcon: () => <div data-testid="lock-icon" />,
 }));
 
-vi.mock("@calcom/ui/components/button", () => ({
+vi.mock("next/link", () => ({
+  default: ({ children, href, ...rest }: { children: React.ReactNode; href: string }) => (
+    <a href={href} {...rest}>
+      {children}
+    </a>
+  ),
+}));
+
+vi.mock("@coss/ui/components/button", () => ({
   Button: ({
     children,
     onClick,
-    href,
-    StartIcon,
+    render,
     ...rest
   }: {
     children: React.ReactNode;
     onClick?: () => void;
-    href?: string;
-    StartIcon?: string;
-  }) => (
-    <button data-testid={`button-${StartIcon}`} onClick={onClick} data-href={href} {...rest}>
-      {children}
-    </button>
-  ),
+    render?: React.ReactElement;
+  }) => {
+    if (render) {
+      return React.cloneElement(render, { ...rest }, children);
+    }
+
+    return (
+      <button onClick={onClick} {...rest}>
+        {children}
+      </button>
+    );
+  },
 }));
 
-vi.mock("@calcom/ui/components/tooltip", () => ({
-  Tooltip: ({ children, content }: { children: React.ReactNode; content: string }) => (
-    <div data-testid="tooltip" data-content={content}>
+vi.mock("@coss/ui/components/skeleton", () => ({
+  Skeleton: (props: Record<string, unknown>) => <div data-testid="action-skeleton" {...props} />,
+}));
+
+vi.mock("@coss/ui/components/tooltip", () => ({
+  Tooltip: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="tooltip">
       {children}
     </div>
   ),
+  TooltipPopup: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="tooltip-popup">{children}</div>
+  ),
+  TooltipTrigger: ({ render }: { render: React.ReactElement }) => render,
 }));
 
-vi.mock("@calcom/ui/classNames", () => ({
-  default: (...args: string[]) => args.filter(Boolean).join(" "),
+vi.mock("@coss/ui/components/empty", () => ({
+  EmptyMedia: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock("@coss/ui/shared/list-item", () => ({
+  ListItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ListItemActions: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ListItemContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ListItemDescription: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ListItemHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ListItemTitle: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 describe("ComplianceDocumentCard", async () => {
   const { ComplianceDocumentCard } = await import("./ComplianceDocumentCard");
+  const mockOpen = vi.fn();
   const urlDocument: ComplianceDocument = {
     id: "dpa",
     name: "data_protection_agreement",
@@ -60,6 +93,7 @@ describe("ComplianceDocumentCard", async () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal("open", mockOpen);
   });
 
   it("should render document name and description", () => {
@@ -72,7 +106,7 @@ describe("ComplianceDocumentCard", async () => {
   it("should render download button when user has access", () => {
     render(<ComplianceDocumentCard document={urlDocument} hasAccess={true} />);
 
-    const downloadBtn = screen.getByTestId("button-download");
+    const downloadBtn = screen.getByRole("button", { name: "download" });
     expect(downloadBtn).toBeInTheDocument();
     expect(downloadBtn).toHaveTextContent("download");
   });
@@ -80,30 +114,16 @@ describe("ComplianceDocumentCard", async () => {
   it("should render upgrade button when user does not have access", () => {
     render(<ComplianceDocumentCard document={b2Document} hasAccess={false} />);
 
-    const lockBtn = screen.getByTestId("button-lock");
+    const lockBtn = screen.getByRole("link", { name: "upgrade_to_access" });
     expect(lockBtn).toBeInTheDocument();
     expect(lockBtn).toHaveTextContent("upgrade_to_access");
-  });
-
-  it("should apply reduced opacity when user does not have access", () => {
-    const { container } = render(<ComplianceDocumentCard document={b2Document} hasAccess={false} />);
-
-    const card = container.firstChild as HTMLElement;
-    expect(card.className).toContain("opacity-60");
-  });
-
-  it("should not apply reduced opacity when user has access", () => {
-    const { container } = render(<ComplianceDocumentCard document={urlDocument} hasAccess={true} />);
-
-    const card = container.firstChild as HTMLElement;
-    expect(card.className).not.toContain("opacity-60");
   });
 
   it("should show tooltip with upgrade message when no access", () => {
     render(<ComplianceDocumentCard document={b2Document} hasAccess={false} />);
 
-    const tooltip = screen.getByTestId("tooltip");
-    expect(tooltip).toHaveAttribute("data-content", "compliance_upgrade_tooltip");
+    expect(screen.getByTestId("tooltip")).toBeInTheDocument();
+    expect(screen.getByTestId("tooltip-popup")).toHaveTextContent("compliance_upgrade_tooltip");
   });
 
   it("should render FileTextIcon", () => {
@@ -111,10 +131,37 @@ describe("ComplianceDocumentCard", async () => {
     expect(screen.getByTestId("file-text-icon")).toBeInTheDocument();
   });
 
+  it("should render DownloadIcon when user has access", () => {
+    render(<ComplianceDocumentCard document={urlDocument} hasAccess={true} />);
+
+    expect(screen.getByTestId("download-icon")).toBeInTheDocument();
+  });
+
+  it("should render LockIcon when user does not have access", () => {
+    render(<ComplianceDocumentCard document={b2Document} hasAccess={false} />);
+
+    expect(screen.getByTestId("lock-icon")).toBeInTheDocument();
+  });
+
+  it("should render action skeleton while loading", () => {
+    render(<ComplianceDocumentCard document={b2Document} hasAccess={false} loading={true} />);
+
+    expect(screen.getByTestId("action-skeleton")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "upgrade_to_access" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "download" })).not.toBeInTheDocument();
+  });
+
+  it("should open document in a new tab when user has access", () => {
+    render(<ComplianceDocumentCard document={urlDocument} hasAccess={true} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "download" }));
+    expect(mockOpen).toHaveBeenCalledWith("https://go.cal.com/dpa", "_blank", "noopener,noreferrer");
+  });
+
   it("should point upgrade button to billing page", () => {
     render(<ComplianceDocumentCard document={b2Document} hasAccess={false} />);
 
-    const lockBtn = screen.getByTestId("button-lock");
-    expect(lockBtn).toHaveAttribute("data-href", "/settings/billing");
+    const lockBtn = screen.getByRole("link", { name: "upgrade_to_access" });
+    expect(lockBtn).toHaveAttribute("href", "/settings/billing");
   });
 });

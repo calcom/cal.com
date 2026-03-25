@@ -1,7 +1,6 @@
-import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
 
 import ComplianceView from "~/settings/security/compliance-view";
 
@@ -18,12 +17,14 @@ const Page = async () => {
   const t = await getTranslate();
 
   return (
-    <SettingsHeader
-      title={t("compliance")}
-      description={t("compliance_description")}
-      borderInShellHeader={true}>
+    <div>
+      <AppHeader>
+        <AppHeaderContent title={t("compliance")}>
+          <AppHeaderDescription>{t("compliance_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
       <ComplianceView />
-    </SettingsHeader>
+    </div>
   );
 };
 

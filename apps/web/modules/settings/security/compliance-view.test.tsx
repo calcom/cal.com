@@ -7,20 +7,21 @@ vi.mock("next-auth/react", () => ({
   useSession: (...args: unknown[]) => mockUseSession(...args),
 }));
 
-vi.mock("@calcom/ui/components/skeleton", () => ({
-  SkeletonContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  SkeletonText: () => <div data-testid="skeleton-text" />,
-}));
-
 vi.mock("./compliance/ComplianceDocumentCard", () => ({
   ComplianceDocumentCard: ({
     document,
     hasAccess,
+    loading,
   }: {
     document: { id: string; name: string };
     hasAccess: boolean;
+    loading?: boolean;
   }) => (
-    <div data-testid={`doc-card-${document.id}`} data-has-access={hasAccess}>
+    <div
+      data-testid={`doc-card-${document.id}`}
+      data-has-access={hasAccess}
+      data-loading={loading}
+    >
       {document.name}
     </div>
   ),
@@ -62,7 +63,7 @@ describe("ComplianceView", async () => {
     vi.clearAllMocks();
   });
 
-  it("should render skeleton when session is loading", () => {
+  it("should render cards immediately when session is loading", () => {
     mockUseSession.mockReturnValue({
       status: "loading",
       data: null,
@@ -70,7 +71,22 @@ describe("ComplianceView", async () => {
     });
 
     render(<ComplianceView />);
-    expect(screen.getAllByTestId("skeleton-text").length).toBeGreaterThan(0);
+    expect(screen.getByTestId("doc-card-dpa")).toBeInTheDocument();
+    expect(screen.getByTestId("doc-card-soc2")).toBeInTheDocument();
+    expect(screen.getByTestId("doc-card-pentest")).toBeInTheDocument();
+  });
+
+  it("should mark restricted docs as loading while session is loading", () => {
+    mockUseSession.mockReturnValue({
+      status: "loading",
+      data: null,
+      update: vi.fn(),
+    });
+
+    render(<ComplianceView />);
+    expect(screen.getByTestId("doc-card-dpa")).toHaveAttribute("data-loading", "false");
+    expect(screen.getByTestId("doc-card-soc2")).toHaveAttribute("data-loading", "true");
+    expect(screen.getByTestId("doc-card-pentest")).toHaveAttribute("data-loading", "true");
   });
 
   it("should render all three document category sections", () => {
@@ -108,6 +124,7 @@ describe("ComplianceView", async () => {
 
     render(<ComplianceView />);
     expect(screen.getByTestId("doc-card-dpa")).toHaveAttribute("data-has-access", "true");
+    expect(screen.getByTestId("doc-card-dpa")).toHaveAttribute("data-loading", "false");
   });
 
   it("should deny access to restricted docs for users without org", () => {
@@ -120,6 +137,8 @@ describe("ComplianceView", async () => {
     render(<ComplianceView />);
     expect(screen.getByTestId("doc-card-soc2")).toHaveAttribute("data-has-access", "false");
     expect(screen.getByTestId("doc-card-pentest")).toHaveAttribute("data-has-access", "false");
+    expect(screen.getByTestId("doc-card-soc2")).toHaveAttribute("data-loading", "false");
+    expect(screen.getByTestId("doc-card-pentest")).toHaveAttribute("data-loading", "false");
   });
 
   it("should grant access to restricted docs for org users", () => {
@@ -133,5 +152,7 @@ describe("ComplianceView", async () => {
     expect(screen.getByTestId("doc-card-soc2")).toHaveAttribute("data-has-access", "true");
     expect(screen.getByTestId("doc-card-pentest")).toHaveAttribute("data-has-access", "true");
     expect(screen.getByTestId("doc-card-dpa")).toHaveAttribute("data-has-access", "true");
+    expect(screen.getByTestId("doc-card-soc2")).toHaveAttribute("data-loading", "false");
+    expect(screen.getByTestId("doc-card-pentest")).toHaveAttribute("data-loading", "false");
   });
 });
