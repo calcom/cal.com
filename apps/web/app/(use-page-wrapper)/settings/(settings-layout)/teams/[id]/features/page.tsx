@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
@@ -26,6 +27,7 @@ export const generateMetadata = async ({ params }: PageParams): Promise<Metadata
   );
 
 const Page = async ({ params }: PageParams) => {
+  const t = await getTranslate();
   const { id } = await params;
   const teamId = Number(id);
 
@@ -73,7 +75,16 @@ const Page = async ({ params }: PageParams) => {
     return redirect(`/settings/teams/${teamId}/profile`);
   }
 
-  return <TeamFeaturesView teamId={teamId} canEdit={canEdit} />;
+  return (
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("features")}>
+          <AppHeaderDescription>{t("feature_opt_in_team_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
+      <TeamFeaturesView teamId={teamId} canEdit={canEdit} />
+    </>
+  );
 };
 
 export default Page;

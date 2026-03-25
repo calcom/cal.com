@@ -39,7 +39,7 @@ export function SettingsToggle({
             <CardFrameDescription>{description}</CardFrameDescription>
           </CardFrameHeader>
           {loading ? (
-            <Skeleton className="h-4.5 w-7.5 rounded-full" />
+            <Skeleton className="h-5.5 w-9.5 sm:h-4.5 sm:w-7.5 rounded-full shrink-0" />
           ) : (
             <Switch
               checked={isControlled ? checked : undefined}

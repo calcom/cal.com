@@ -1,11 +1,9 @@
-import type { Metadata } from "next";
-import type { ReactElement } from "react";
-
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
 
 import FeaturesView from "~/settings/my-account/features-view";
 
-const generateMetadata = async (): Promise<Metadata> =>
+export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("features"),
     (t) => t("feature_opt_in_description"),
@@ -14,9 +12,19 @@ const generateMetadata = async (): Promise<Metadata> =>
     "/settings/my-account/features"
   );
 
-const Page = (): ReactElement => {
-  return <FeaturesView />;
+const Page = async () => {
+  const t = await getTranslate();
+
+  return (
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("features")}>
+          <AppHeaderDescription>{t("feature_opt_in_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
+      <FeaturesView />
+    </>
+  );
 };
 
-export { generateMetadata };
 export default Page;

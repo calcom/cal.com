@@ -3,13 +3,21 @@
 import type { FeatureState } from "@calcom/features/flags/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Alert } from "@calcom/ui/components/alert";
-import { SettingsToggle, ToggleGroup } from "@calcom/ui/components/form";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
-import { CircleAlertIcon, CircleCheckIcon } from "@coss/ui/icons";
-import { Tooltip } from "@calcom/ui/components/tooltip";
+import { Alert, AlertDescription } from "@coss/ui/components/alert";
+import {
+  Card,
+  CardFrame,
+  CardFrameDescription,
+  CardFrameHeader,
+  CardFrameTitle,
+  CardPanel,
+} from "@coss/ui/components/card";
+import { Skeleton } from "@coss/ui/components/skeleton";
+import { CircleAlertIcon, CircleCheckIcon, InfoIcon } from "@coss/ui/icons";
+import { SettingsToggle } from "@coss/ui/shared/settings-toggle";
+import { Toggle, ToggleGroup, ToggleGroupSeparator } from "@coss/ui/components/toggle-group";
+import { Tooltip, TooltipPopup, TooltipTrigger } from "@coss/ui/components/tooltip";
 import type { ReactElement } from "react";
-import { useMemo } from "react";
 
 import { getOptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
 import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
@@ -21,15 +29,6 @@ interface FeaturesSettingsProps {
   canEdit?: boolean;
 }
 
-interface ToggleOption {
-  value: string;
-  label: string;
-}
-
-function isEnabledViaAutoOptIn(feature: NormalizedFeature, autoOptIn: boolean): boolean {
-  return feature.currentState === "inherit" && autoOptIn && feature.globalEnabled;
-}
-
 function handleValueChange(
   val: string | undefined,
   slug: string,
@@ -39,36 +38,60 @@ function handleValueChange(
   setFeatureState(slug, val as FeatureState);
 }
 
-function LoadingSkeleton(): ReactElement {
+function LoadingSkeleton({
+  autoOptInTitle,
+  autoOptInDescription,
+  featureTitle,
+  featureDescription,
+}: {
+  autoOptInTitle: string;
+  autoOptInDescription: string;
+  featureTitle: string;
+  featureDescription: string;
+}): ReactElement {
   return (
-    <div className="border-subtle rounded-b-lg border-x border-b px-4 py-8 sm:px-6">
-      <div className="space-y-4">
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-      </div>
+    <div className="flex flex-col gap-4">
+      <CardFrame>
+        <Card>
+          <CardPanel>
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <CardFrameHeader className="p-0">
+                  <CardFrameTitle className="text-sm">{featureTitle}</CardFrameTitle>
+                  <CardFrameDescription>{featureDescription}</CardFrameDescription>
+                </CardFrameHeader>
+                <Skeleton className="h-9 sm:h-8 w-40 rounded-lg" />
+              </div>
+            </div>
+          </CardPanel>
+        </Card>
+      </CardFrame>
+      <SettingsToggle title={autoOptInTitle} description={autoOptInDescription} loading />
     </div>
   );
 }
 
-function EmptyState({ message }: { message: string }): ReactElement {
-  return <Alert severity="neutral" title={message} />;
-}
-
 function FeatureItem({
   feature,
-  toggleOptions,
+  toggleLabels,
   getBlockedWarning,
   isBlockedByHigherLevel,
   autoOptIn,
+  isTurningAutoOptInOff,
   setFeatureState,
   canEdit,
   t,
 }: {
   feature: NormalizedFeature;
-  toggleOptions: ToggleOption[];
+  toggleLabels: {
+    disabled: string;
+    enabled: string;
+    inherit: string;
+  };
   getBlockedWarning: (feature: NormalizedFeature) => string | null;
   isBlockedByHigherLevel: (feature: NormalizedFeature) => boolean;
   autoOptIn: boolean;
+  isTurningAutoOptInOff: boolean;
   setFeatureState: (slug: string, state: FeatureState) => void;
   canEdit: boolean;
   t: (key: string) => string;
@@ -76,57 +99,66 @@ function FeatureItem({
   const config = getOptInFeatureConfig(feature.slug);
 
   const blockedWarning = getBlockedWarning(feature);
-  const enabledViaAutoOptInFlag = isEnabledViaAutoOptIn(feature, autoOptIn);
+  const isInheritGlobalFeature = feature.currentState === "inherit" && feature.globalEnabled;
+  const shouldShowEnabledIcon = isInheritGlobalFeature && (autoOptIn || (isTurningAutoOptInOff && !blockedWarning));
+  const shouldShowBlockedWarning = Boolean(blockedWarning) && !shouldShowEnabledIcon;
   const blockedByHigherLevel = isBlockedByHigherLevel(feature);
   const isDisabled = blockedByHigherLevel || !canEdit;
-
-  const finalToggleOptions = useMemo(() => {
-    if (!isDisabled) {
-      return toggleOptions;
-    }
-    return toggleOptions.map((option) => ({
-      ...option,
-      disabled: true,
-    }));
-  }, [toggleOptions, isDisabled]);
 
   if (!config) return null;
 
   return (
-    <div key={feature.slug}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3
-            className={classNames(
-              "text-emphasis flex items-center text-sm font-medium",
-              blockedWarning && "text-subtle line-through"
-            )}>
-            {t(config.i18n.name)}
-            {blockedWarning && (
-              <Tooltip side="top" content={blockedWarning}>
-                <span>
-                  <CircleAlertIcon className="text-error ml-1 h-4 w-4" />
-                </span>
-              </Tooltip>
-            )}
-            {enabledViaAutoOptInFlag && (
-              <Tooltip side="top" content={t("enabled_via_auto_opt_in")}>
-                <span>
-                  <CircleCheckIcon className="text-success ml-1 h-4 w-4" />
-                </span>
-              </Tooltip>
-            )}
-          </h3>
-          <p className="text-subtle text-sm">{t(config.i18n.description)}</p>
-        </div>
-        <ToggleGroup
-          value={feature.currentState}
-          onValueChange={(val: string | undefined): void =>
-            handleValueChange(val, feature.slug, setFeatureState)
-          }
-          options={finalToggleOptions}
-        />
-      </div>
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <CardFrameHeader className="p-0">
+        <CardFrameTitle
+          className={classNames(
+            "flex items-center text-sm gap-1",
+            shouldShowBlockedWarning && "text-muted-foreground line-through"
+          )}>
+          {t(config.i18n.name)}
+          {shouldShowBlockedWarning && (
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <span>
+                    <CircleAlertIcon className="text-destructive-foreground size-4" />
+                  </span>
+                }
+              />
+              <TooltipPopup className="max-w-72 text-center">{blockedWarning}</TooltipPopup>
+            </Tooltip>
+          )}
+          {shouldShowEnabledIcon && (
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <span>
+                    <CircleCheckIcon className="text-success-foreground size-4" />
+                  </span>
+                }
+              />
+              <TooltipPopup>{t("enabled_via_auto_opt_in")}</TooltipPopup>
+            </Tooltip>
+          )}
+        </CardFrameTitle>
+        <CardFrameDescription>{t(config.i18n.description)}</CardFrameDescription>
+      </CardFrameHeader>
+      <ToggleGroup
+        onValueChange={(values) => handleValueChange(values[0], feature.slug, setFeatureState)}
+        value={[feature.currentState]}
+        variant="outline">
+        <Toggle aria-label={toggleLabels.disabled} value="disabled" disabled={isDisabled}>
+          {toggleLabels.disabled}
+        </Toggle>
+        <ToggleGroupSeparator />
+        <Toggle aria-label={toggleLabels.enabled} value="enabled" disabled={isDisabled}>
+          {toggleLabels.enabled}
+        </Toggle>
+        <ToggleGroupSeparator />
+        <Toggle aria-label={toggleLabels.inherit} value="inherit" disabled={isDisabled}>
+          {toggleLabels.inherit}
+        </Toggle>
+      </ToggleGroup>
     </div>
   );
 }
@@ -145,47 +177,59 @@ export function FeaturesSettings({ featureOptIn, canEdit = true }: FeaturesSetti
     getBlockedWarning,
     isBlockedByHigherLevel,
   } = featureOptIn;
+  const isTurningAutoOptInOff = isAutoOptInMutationPending && !autoOptIn;
 
-  if (isLoading) return <LoadingSkeleton />;
-
-  const toggleOptions: ToggleOption[] = [
-    { value: "disabled", label: toggleLabels.disabled },
-    { value: "enabled", label: toggleLabels.enabled },
-    { value: "inherit", label: toggleLabels.inherit },
-  ];
+  if (isLoading) {
+    return (
+      <LoadingSkeleton
+        autoOptInTitle={t("auto_opt_in_experimental")}
+        autoOptInDescription={autoOptInDescription}
+        featureTitle={t("bookings_v3_name")}
+        featureDescription={t("bookings_v3_description")}
+      />
+    );
+  }
 
   return (
-    <>
-      <div className="border-subtle rounded-b-lg border-x border-b px-4 py-8 sm:px-6">
-        {features.length === 0 && <EmptyState message={t("no_opt_in_features_available")} />}
-        {features.length > 0 && (
-          <div className="space-y-6">
-            {features.map((feature) => (
-              <FeatureItem
-                key={feature.slug}
-                feature={feature}
-                toggleOptions={toggleOptions}
-                getBlockedWarning={getBlockedWarning}
-                isBlockedByHigherLevel={isBlockedByHigherLevel}
-                autoOptIn={autoOptIn}
-                setFeatureState={setFeatureState}
-                canEdit={canEdit}
-                t={t}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="flex flex-col gap-4">
+      {features.length === 0 && (
+        <Alert variant="info">
+          <InfoIcon aria-hidden="true" />
+          <AlertDescription>{t("no_opt_in_features_available")}</AlertDescription>
+        </Alert>
+      )}
+      {features.length > 0 && (
+        <CardFrame>
+          <Card>
+            <CardPanel>
+              <div className="flex flex-col gap-6">
+                {features.map((feature) => (
+                  <FeatureItem
+                    key={feature.slug}
+                    feature={feature}
+                    toggleLabels={toggleLabels}
+                    getBlockedWarning={getBlockedWarning}
+                    isBlockedByHigherLevel={isBlockedByHigherLevel}
+                    autoOptIn={autoOptIn}
+                    isTurningAutoOptInOff={isTurningAutoOptInOff}
+                    setFeatureState={setFeatureState}
+                    canEdit={canEdit}
+                    t={t}
+                  />
+                ))}
+              </div>
+            </CardPanel>
+          </Card>
+        </CardFrame>
+      )}
       <SettingsToggle
-        toggleSwitchAtTheEnd={true}
         title={t("auto_opt_in_experimental")}
         description={autoOptInDescription}
         disabled={isAutoOptInMutationPending || !canEdit}
         checked={autoOptIn}
         onCheckedChange={setAutoOptIn}
-        switchContainerClassName="mt-6"
       />
-    </>
+    </div>
   );
 }
 

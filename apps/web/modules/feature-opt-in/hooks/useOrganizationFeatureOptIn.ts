@@ -4,7 +4,7 @@ import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/
 import type { FeatureState } from "@calcom/features/flags/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
+import { toastManager } from "@coss/ui/components/toast";
 import { useCallback, useMemo } from "react";
 
 function useMutationCallbacks(onSuccessCallback: () => void): { onSuccess: () => void; onError: () => void } {
@@ -13,10 +13,10 @@ function useMutationCallbacks(onSuccessCallback: () => void): { onSuccess: () =>
     () => ({
       onSuccess: (): void => {
         onSuccessCallback();
-        showToast(t("settings_updated_successfully"), "success");
+        toastManager.add({ title: t("settings_updated_successfully"), type: "success" });
       },
       onError: (): void => {
-        showToast(t("error_updating_settings"), "error");
+        toastManager.add({ title: t("error_updating_settings"), type: "error" });
       },
     }),
     [onSuccessCallback, t]
@@ -69,11 +69,25 @@ export function useOrganizationFeatureOptIn(): UseFeatureOptInResult {
 
   const setStateMutation =
     trpc.viewer.featureOptIn.setOrganizationState.useMutation(setStateMutationCallbacks);
-  const setAutoOptInMutation = trpc.viewer.featureOptIn.setOrganizationAutoOptIn.useMutation(
-    setAutoOptInMutationCallbacks
-  );
+  const setAutoOptInMutation = trpc.viewer.featureOptIn.setOrganizationAutoOptIn.useMutation({
+    ...setAutoOptInMutationCallbacks,
+    onMutate: async ({ autoOptIn }) => {
+      await utils.viewer.featureOptIn.getOrganizationAutoOptIn.cancel();
+      const previousAutoOptIn = utils.viewer.featureOptIn.getOrganizationAutoOptIn.getData();
 
-  const features = normalizeFeatures(featuresQuery.data);
+      utils.viewer.featureOptIn.getOrganizationAutoOptIn.setData(undefined, { autoOptIn });
+
+      return { previousAutoOptIn };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previousAutoOptIn) {
+        utils.viewer.featureOptIn.getOrganizationAutoOptIn.setData(undefined, context.previousAutoOptIn);
+      }
+      setAutoOptInMutationCallbacks.onError();
+    },
+  });
+
+  const features = useMemo(() => normalizeFeatures(featuresQuery.data), [featuresQuery.data]);
   const setFeatureState = (slug: string, state: FeatureState): void =>
     setStateMutation.mutate({ slug, state });
   const setAutoOptIn = (checked: boolean): void => setAutoOptInMutation.mutate({ autoOptIn: checked });
