@@ -8,7 +8,8 @@ const CACHING_TIME = 86400000; // 24 hours in milliseconds
 const getLicenseCacheKey = (key: string) => `api-v2-license-key-goblin-url-${key}`;
 
 type LicenseCheckResponse = {
-  valid: boolean;
+  valid?: boolean;
+  status?: boolean;
 };
 @Injectable()
 export class DeploymentsService {
@@ -36,7 +37,8 @@ export class DeploymentsService {
     const licenseKeyUrl = this.configService.get("api.licenseKeyUrl") + `/${licenseKey}`;
     const cachedData = await this.redisService.redis.get(getLicenseCacheKey(licenseKey));
     if (cachedData) {
-      return (JSON.parse(cachedData) as LicenseCheckResponse)?.valid;
+      const cached = JSON.parse(cachedData) as LicenseCheckResponse;
+      return cached.valid ?? cached.status ?? false;
     }
     const response = await fetch(licenseKeyUrl, { mode: "cors" });
     const data = (await response.json()) as LicenseCheckResponse;
