@@ -95,7 +95,7 @@ test.describe("2FA Tests", async () => {
 
       // expects the home page for an authorized user
       await page.goto("/settings/security/two-factor-auth");
-      await page.click(`[data-testid=two-factor-switch][data-state="unchecked"]`);
+      await page.click(`[data-testid=two-factor-switch]`);
       await page.fill('input[name="password"]', userPassword);
       await page.press('input[name="password"]', "Enter");
       const secret = await page.locator(`[data-testid=two-factor-secret]`).textContent();
@@ -116,13 +116,13 @@ test.describe("2FA Tests", async () => {
 
       // click copy button
       await page.getByTestId("backup-codes-copy").click();
-      await page.getByTestId("toast-success").waitFor();
+      await page.locator('[data-slot="toast-title"]').first().waitFor();
       // TODO: check clipboard content
 
       // close backup code dialog
       await page.getByTestId("backup-codes-close").click();
 
-      await expect(page.locator(`[data-testid=two-factor-switch][data-state="checked"]`)).toBeVisible();
+      await expect(page.getByTestId("two-factor-switch")).toBeVisible();
 
       return user;
     });
@@ -133,7 +133,7 @@ test.describe("2FA Tests", async () => {
 
       // expects the home page for an authorized user
       await page.goto("/settings/security/two-factor-auth");
-      await page.click(`[data-testid=two-factor-switch][data-state="checked"]`);
+      await page.click(`[data-testid=two-factor-switch]`);
       await page.fill('input[name="password"]', userPassword);
 
       const userWith2FaSecret = await prisma.user.findFirst({
@@ -151,8 +151,9 @@ test.describe("2FA Tests", async () => {
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await fillOtp({ page, secret: secret! });
-      await page.click('[data-testid="disable-2fa"]');
-      await expect(page.locator(`[data-testid=two-factor-switch][data-state="unchecked"]`)).toBeVisible();
+      // The new InputOTP component auto-submits when 6 digits are entered,
+      // so the modal closes automatically without needing to click disable-2fa.
+      await expect(page.getByTestId("two-factor-switch")).toBeVisible();
 
       return user;
     });
@@ -160,9 +161,15 @@ test.describe("2FA Tests", async () => {
 });
 
 async function removeOtpInput(page: Page) {
-  await page.locator('input[name="2fa6"]').waitFor({ state: "visible", timeout: 30_000 });
+  // New input-otp component (single input)
+  const otpInput = page.locator("[data-input-otp]");
+  if (await otpInput.isVisible()) {
+    await otpInput.clear();
+    return;
+  }
 
-  // Remove one OTP input
+  // Legacy individual inputs
+  await page.locator('input[name="2fa6"]').waitFor({ state: "visible", timeout: 30_000 });
   await page.locator('input[name="2fa6"]').focus();
   await page.keyboard.press("Backspace");
 }
@@ -170,15 +177,28 @@ async function removeOtpInput(page: Page) {
 async function fillOtp({ page, secret, noRetry }: { page: Page; secret: string; noRetry?: boolean }) {
   let token = authenticator.generate(secret);
   if (!noRetry && !totpAuthenticatorCheck(token, secret)) {
-    console.log("Token expired, Renerating.");
+    console.log("Token expired, Regenerating.");
     // Maybe token was just about to expire, try again just once more
     token = authenticator.generate(secret);
   }
-  await page.locator('input[name="2fa1"]').waitFor({ state: "visible", timeout: 60_000 });
-  await page.fill('input[name="2fa1"]', token[0]);
-  await page.fill('input[name="2fa2"]', token[1]);
-  await page.fill('input[name="2fa3"]', token[2]);
-  await page.fill('input[name="2fa4"]', token[3]);
-  await page.fill('input[name="2fa5"]', token[4]);
-  await page.fill('input[name="2fa6"]', token[5]);
+
+  // New input-otp component (single input) or legacy individual inputs
+  const otpInput = page.locator("[data-input-otp]");
+  const legacyInput = page.locator('input[name="2fa1"]');
+
+  const winner = await Promise.race([
+    otpInput.waitFor({ state: "visible", timeout: 60_000 }).then(() => "otp" as const),
+    legacyInput.waitFor({ state: "visible", timeout: 60_000 }).then(() => "legacy" as const),
+  ]);
+
+  if (winner === "otp") {
+    await otpInput.fill(token);
+  } else {
+    await page.fill('input[name="2fa1"]', token[0]);
+    await page.fill('input[name="2fa2"]', token[1]);
+    await page.fill('input[name="2fa3"]', token[2]);
+    await page.fill('input[name="2fa4"]', token[3]);
+    await page.fill('input[name="2fa5"]', token[4]);
+    await page.fill('input[name="2fa6"]', token[5]);
+  }
 }

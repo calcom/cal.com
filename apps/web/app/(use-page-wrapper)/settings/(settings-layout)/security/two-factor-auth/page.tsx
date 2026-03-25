@@ -1,8 +1,5 @@
-import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
-
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import TwoFactorAuthView from "~/settings/security/two-factor-auth-view";
 
 export const generateMetadata = async () =>
@@ -13,16 +10,19 @@ export const generateMetadata = async () =>
     undefined,
     "/settings/security/two-factor-auth"
   );
+
 const Page = async () => {
   const t = await getTranslate();
 
   return (
-    <SettingsHeader
-      title={t("2fa")}
-      description={t("set_up_two_factor_authentication")}
-      borderInShellHeader={true}>
+    <div>
+      <AppHeader>
+        <AppHeaderContent title={t("2fa")}>
+          <AppHeaderDescription>{t("set_up_two_factor_authentication")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
       <TwoFactorAuthView />
-    </SettingsHeader>
+    </div>
   );
 };
 

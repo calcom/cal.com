@@ -3933,6 +3933,7 @@ __metadata:
     "@biomejs/biome": "npm:2.3.10"
     class-variance-authority: "npm:0.7.1"
     clsx: "npm:2.1.1"
+    input-otp: "npm:^1.4.2"
     lucide-react: "npm:0.555.0"
     tailwind-merge: "npm:3.4.0"
     ts-node: "npm:10.9.2"
@@ -24944,6 +24945,16 @@ __metadata:
     react-dom:
       optional: true
   checksum: 10/2b6903599f59aefe1571fbde46c45663c8b9d170934c798f2d6c5bf07a2f578bc3c63a5f653d48eaefd414e9b1b8f16b497f2cd4e56d65dc65e4a86b4611ae02
+  languageName: node
+  linkType: hard
+
+"input-otp@npm:^1.4.2":
+  version: 1.4.2
+  resolution: "input-otp@npm:1.4.2"
+  peerDependencies:
+    react: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0.0 || ^19.0.0-rc
+  checksum: 10/7dfaa30ecda1640a1e6f78be05c52de58e35134f34684709b065abb47cae23c054cb4d87df8af317f8ecb4ef384167f3237aa31cd2601bed5f8ca88ed93b7452
   languageName: node
   linkType: hard
 

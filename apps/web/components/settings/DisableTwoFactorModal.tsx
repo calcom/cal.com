@@ -1,143 +1,222 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+"use client";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { Form, PasswordField } from "@calcom/ui/components/form";
-
-import BackupCode from "@components/auth/BackupCode";
-import TwoFactor from "@components/auth/TwoFactor";
-
+import { Button } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "@coss/ui/components/dialog";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@coss/ui/components/field";
+import { Form } from "@coss/ui/components/form";
+import { Input } from "@coss/ui/components/input";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@coss/ui/components/input-otp";
+import { PasswordField } from "@coss/ui/shared/password-field";
+import { useState } from "react";
 import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
 
-interface DisableTwoFactorAuthModalProps {
+interface DisableTwoFactorModalProps {
   open: boolean;
-  onOpenChange: () => void;
-  disablePassword?: boolean;
-  /** Called when the user closes the modal without disabling two-factor auth */
-  onCancel: () => void;
-  /** Called when the user disables two-factor auth */
+  onClose: () => void;
   onDisable: () => void;
+  disablePassword?: boolean;
 }
 
-interface DisableTwoFactorValues {
-  backupCode: string;
-  totpCode: string;
-  password: string;
-}
-
-const DisableTwoFactorAuthModal = ({
-  onDisable,
-  onCancel,
-  disablePassword,
+export default function DisableTwoFactorModal({
   open,
-  onOpenChange,
-}: DisableTwoFactorAuthModalProps) => {
-  const [isDisabling, setIsDisabling] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [twoFactorLostAccess, setTwoFactorLostAccess] = useState(false);
+  onClose,
+  onDisable,
+  disablePassword,
+}: DisableTwoFactorModalProps) {
   const { t } = useLocale();
 
-  const form = useForm<DisableTwoFactorValues>();
+  const [password, setPassword] = useState("");
+  const [totpCode, setTotpCode] = useState("");
+  const [backupCode, setBackupCode] = useState("");
+  const [isDisabling, setIsDisabling] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [twoFactorError, setTwoFactorError] = useState<string | null>(null);
+  const [twoFactorLostAccess, setTwoFactorLostAccess] = useState(false);
 
-  const resetForm = (clearPassword = true) => {
-    if (clearPassword) form.setValue("password", "");
-    form.setValue("backupCode", "");
-    form.setValue("totpCode", "");
-    setErrorMessage(null);
+  const resetState = () => {
+    setPassword("");
+    setTotpCode("");
+    setBackupCode("");
+    setIsDisabling(false);
+    setPasswordError(null);
+    setTwoFactorError(null);
+    setTwoFactorLostAccess(false);
   };
 
-  async function handleDisable({ password, totpCode, backupCode }: DisableTwoFactorValues) {
-    if (isDisabling) {
-      return;
-    }
+  async function handleDisable(e?: React.FormEvent, totpCodeOverride?: string) {
+    e?.preventDefault();
+    if (isDisabling) return;
+
+    const code = totpCodeOverride ?? totpCode;
+    if (!twoFactorLostAccess && code.trim().length !== 6) return;
+
     setIsDisabling(true);
-    setErrorMessage(null);
+    setPasswordError(null);
+    setTwoFactorError(null);
 
     try {
-      const response = await TwoFactorAuthAPI.disable(password, totpCode, backupCode);
+      const response = await TwoFactorAuthAPI.disable(password, code, backupCode);
       if (response.status === 200) {
-        setTwoFactorLostAccess(false);
-        resetForm();
+        resetState();
         onDisable();
         return;
       }
 
       const body = await response.json();
       if (body.error === ErrorCode.IncorrectPassword) {
-        setErrorMessage(t("incorrect_password"));
-      } else if (body.error === ErrorCode.SecondFactorRequired) {
-        setErrorMessage(t("2fa_required"));
-      } else if (body.error === ErrorCode.IncorrectTwoFactorCode) {
-        setErrorMessage(t("incorrect_2fa"));
-      } else if (body.error === ErrorCode.IncorrectBackupCode) {
-        setErrorMessage(t("incorrect_backup_code"));
-      } else if (body.error === ErrorCode.MissingBackupCodes) {
-        setErrorMessage(t("missing_backup_codes"));
+        setPasswordError(t("incorrect_password"));
+      } else if (
+        body.error === ErrorCode.SecondFactorRequired ||
+        body.error === ErrorCode.IncorrectTwoFactorCode ||
+        body.error === ErrorCode.IncorrectBackupCode ||
+        body.error === ErrorCode.MissingBackupCodes
+      ) {
+        const msg =
+          body.error === ErrorCode.SecondFactorRequired
+            ? t("2fa_required")
+            : body.error === ErrorCode.IncorrectTwoFactorCode
+              ? t("incorrect_2fa")
+              : body.error === ErrorCode.IncorrectBackupCode
+                ? t("incorrect_backup_code")
+                : t("missing_backup_codes");
+        setTwoFactorError(msg);
       } else {
-        setErrorMessage(t("something_went_wrong"));
+        setTwoFactorError(t("something_went_wrong"));
       }
     } catch (e) {
-      setErrorMessage(t("something_went_wrong"));
+      setTwoFactorError(t("something_went_wrong"));
       console.error(t("error_disabling_2fa"), e);
     } finally {
       setIsDisabling(false);
     }
   }
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      onClose();
+    }
+  };
+
+  const handleOpenChangeComplete = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      resetState();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title={t("disable_2fa")} description={t("disable_2fa_recommendation")} type="creation">
-        <Form form={form} handleSubmit={handleDisable}>
-          <div className="mb-8">
+    <Dialog open={open} onOpenChange={handleOpenChange} onOpenChangeComplete={handleOpenChangeComplete}>
+      <DialogPopup showCloseButton={false}>
+        <Form className="contents" onSubmit={handleDisable}>
+          <DialogHeader>
+            <DialogTitle>{t("disable_2fa")}</DialogTitle>
+            <DialogDescription>{t("disable_2fa_recommendation")}</DialogDescription>
+          </DialogHeader>
+          <DialogPanel className="grid gap-4">
             {!disablePassword && (
-              <PasswordField
-                required
-                labelProps={{
-                  className: "block text-sm font-medium text-default",
-                }}
-                {...form.register("password")}
-                className="border-default mt-1 block w-full rounded-md border px-3 py-2 text-sm focus:border-black focus:outline-none focus:ring-black"
-              />
+              <Field name="password" invalid={!!passwordError}>
+                <FieldLabel htmlFor="disable-2fa-password">{t("password")}</FieldLabel>
+                <PasswordField
+                  id="disable-2fa-password"
+                  name="password"
+                  required
+                  value={password}
+                  onChange={(e) => {
+                    if (passwordError) setPasswordError(null);
+                    setPassword(e.target.value);
+                  }}
+                />
+                <FieldError match={passwordError ? true : "valueMissing"}>
+                  {passwordError ?? t("error_required_field")}
+                </FieldError>
+              </Field>
             )}
+
             {twoFactorLostAccess ? (
-              <BackupCode center={false} />
+              <Field name="backupCode" invalid={!!twoFactorError}>
+                <FieldLabel htmlFor="backup-code">{t("backup_code")}</FieldLabel>
+                <Input
+                  id="backup-code"
+                  name="backupCode"
+                  placeholder="XXXXX-XXXXX"
+                  required
+                  value={backupCode}
+                  onChange={(e) => {
+                    if (twoFactorError) setTwoFactorError(null);
+                    setBackupCode(e.target.value);
+                  }}
+                />
+                <FieldDescription>{t("backup_code_instructions")}</FieldDescription>
+                <FieldError match={twoFactorError ? true : "valueMissing"}>
+                  {twoFactorError ?? t("error_required_field")}
+                </FieldError>
+              </Field>
             ) : (
-              <TwoFactor center={false} autoFocus={false} />
+              <Field name="totpCode" invalid={!!twoFactorError}>
+                <FieldLabel htmlFor="totpCode">{t("2fa_code")}</FieldLabel>
+                <InputOTP
+                  id="totpCode"
+                  aria-label={t("2fa_code")}
+                  autoComplete="one-time-code"
+                  inputMode="numeric"
+                  maxLength={6}
+                  pattern={REGEXP_ONLY_DIGITS}
+                  value={totpCode}
+                  onChange={(value) => {
+                    if (twoFactorError) setTwoFactorError(null);
+                    setTotpCode(value);
+                    if (value.trim().length === 6) {
+                      void handleDisable(undefined, value);
+                    }
+                  }}>
+                  <InputOTPGroup size="lg">
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+                <FieldDescription>{t("2fa_enabled_instructions")}</FieldDescription>
+                <FieldError match={!!twoFactorError} data-testid="error-submitting-code">
+                  {twoFactorError}
+                </FieldError>
+              </Field>
             )}
 
-            {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
-          </div>
-
-          <DialogFooter showDivider className="relative mt-5">
+          </DialogPanel>
+          <DialogFooter>
             <Button
-              color="minimal"
-              className="mr-auto"
+              variant="outline"
+              className="me-auto"
+              type="button"
               onClick={() => {
                 setTwoFactorLostAccess(!twoFactorLostAccess);
-                resetForm(false);
+                setTotpCode("");
+                setBackupCode("");
+                setTwoFactorError(null);
               }}>
               {twoFactorLostAccess ? t("go_back") : t("lost_access")}
             </Button>
-            <Button color="secondary" onClick={onCancel}>
-              {t("cancel")}
-            </Button>
-            <Button
-              type="submit"
-              className="me-2 ms-2"
-              data-testid="disable-2fa"
-              loading={isDisabling}
-              disabled={isDisabling}>
+            <DialogClose render={<Button variant="ghost" />}>{t("cancel")}</DialogClose>
+            <Button type="submit" data-testid="disable-2fa" loading={isDisabling}>
               {t("disable")}
             </Button>
           </DialogFooter>
         </Form>
-      </DialogContent>
+      </DialogPopup>
     </Dialog>
   );
-};
-
-export default DisableTwoFactorAuthModal;
+}

@@ -1,89 +1,73 @@
-import type { BaseSyntheticEvent } from "react";
-import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+"use client";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useCallbackRef } from "@calcom/lib/hooks/useCallbackRef";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { Form, PasswordField } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
-
-import TwoFactor from "@components/auth/TwoFactor";
-
+import { Button } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "@coss/ui/components/dialog";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@coss/ui/components/field";
+import { Form } from "@coss/ui/components/form";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@coss/ui/components/input-otp";
+import { toastManager } from "@coss/ui/components/toast";
+import { PasswordField } from "@coss/ui/shared/password-field";
+import { useMemo, useState } from "react";
 import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
+
+type SetupStep = "password" | "qrcode" | "totp" | "backup-codes";
 
 interface EnableTwoFactorModalProps {
   open: boolean;
-  onOpenChange: () => void;
-
-  /**
-   * Called when the user closes the modal without disabling two-factor auth
-   */
-  onCancel: () => void;
-
-  /**
-   * Called when the user enables two-factor auth
-   */
+  onClose: () => void;
   onEnable: () => void;
 }
 
-enum SetupStep {
-  ConfirmPassword,
-  DisplayBackupCodes,
-  DisplayQrCode,
-  EnterTotpCode,
+function formatBackupCode(code: string) {
+  return `${code.slice(0, 5)}-${code.slice(5, 10)}`;
 }
 
-const WithStep = ({
-  step,
-  current,
-  children,
-}: {
-  step: SetupStep;
-  current: SetupStep;
-  children: JSX.Element;
-}) => {
-  return step === current ? children : null;
-};
-
-interface EnableTwoFactorValues {
-  totpCode: string;
-}
-
-const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: EnableTwoFactorModalProps) => {
+export default function EnableTwoFactorModal({ open, onClose, onEnable }: EnableTwoFactorModalProps) {
   const { t } = useLocale();
-  const form = useForm<EnableTwoFactorValues>();
 
-  const setupDescriptions = {
-    [SetupStep.ConfirmPassword]: t("2fa_confirm_current_password"),
-    [SetupStep.DisplayBackupCodes]: t("backup_code_instructions"),
-    [SetupStep.DisplayQrCode]: t("2fa_scan_image_or_use_code"),
-    [SetupStep.EnterTotpCode]: t("2fa_enter_six_digit_code"),
-  };
-  const [step, setStep] = useState(SetupStep.ConfirmPassword);
+  const [step, setStep] = useState<SetupStep>("password");
   const [password, setPassword] = useState("");
-  const [backupCodes, setBackupCodes] = useState([]);
-  const [backupCodesUrl, setBackupCodesUrl] = useState("");
   const [dataUri, setDataUri] = useState("");
   const [secret, setSecret] = useState("");
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
+  const [totpCode, setTotpCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const backupCodesUrl = useMemo(() => {
+    if (backupCodes.length === 0) return "";
+    const textBlob = new Blob([backupCodes.map(formatBackupCode).join("\n")], {
+      type: "text/plain",
+    });
+    return URL.createObjectURL(textBlob);
+  }, [backupCodes]);
+
   const resetState = () => {
+    setStep("password");
     setPassword("");
+    setDataUri("");
+    setSecret("");
+    setBackupCodes([]);
+    setTotpCode("");
+    setIsSubmitting(false);
     setErrorMessage(null);
-    setStep(SetupStep.ConfirmPassword);
   };
 
-  async function handleSetup(e: React.FormEvent) {
+  async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
-
-    if (isSubmitting) {
-      return;
-    }
+    if (isSubmitting) return;
 
     setIsSubmitting(true);
     setErrorMessage(null);
@@ -93,18 +77,10 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
       const body = await response.json();
 
       if (response.status === 200) {
-        setBackupCodes(body.backupCodes);
-
-        // create backup codes download url
-        const textBlob = new Blob([body.backupCodes.map(formatBackupCode).join("\n")], {
-          type: "text/plain",
-        });
-        if (backupCodesUrl) URL.revokeObjectURL(backupCodesUrl);
-        setBackupCodesUrl(URL.createObjectURL(textBlob));
-
         setDataUri(body.dataUri);
         setSecret(body.secret);
-        setStep(SetupStep.DisplayQrCode);
+        setBackupCodes(body.backupCodes);
+        setStep("qrcode");
         return;
       }
 
@@ -121,22 +97,22 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
     }
   }
 
-  async function handleEnable({ totpCode }: EnableTwoFactorValues, e: BaseSyntheticEvent | undefined) {
+  async function handleTotpSubmit(e?: React.FormEvent, code?: string) {
     e?.preventDefault();
+    if (isSubmitting) return;
 
-    if (isSubmitting) {
-      return;
-    }
+    const value = (code ?? totpCode).trim();
+    if (value.length !== 6) return;
 
     setIsSubmitting(true);
     setErrorMessage(null);
 
     try {
-      const response = await TwoFactorAuthAPI.enable(totpCode);
+      const response = await TwoFactorAuthAPI.enable(value);
       const body = await response.json();
 
       if (response.status === 200) {
-        setStep(SetupStep.DisplayBackupCodes);
+        setStep("backup-codes");
         return;
       }
 
@@ -153,148 +129,163 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
     }
   }
 
-  const handleEnableRef = useCallbackRef(handleEnable);
+  const stepDescriptions: Record<SetupStep, string> = {
+    password: t("2fa_confirm_current_password"),
+    qrcode: t("2fa_scan_image_or_use_code"),
+    totp: t("2fa_enter_six_digit_code"),
+    "backup-codes": t("backup_code_instructions"),
+  };
 
-  const totpCode = form.watch("totpCode");
-
-  // auto submit 2FA if all inputs have a value
-  useEffect(() => {
-    if (totpCode?.trim().length === 6) {
-      form.handleSubmit(handleEnableRef.current)();
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      onClose();
     }
-  }, [form, handleEnableRef, totpCode]);
+  };
 
-  const formatBackupCode = (code: string) => `${code.slice(0, 5)}-${code.slice(5, 10)}`;
+  const handleOpenChangeComplete = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      resetState();
+      if (backupCodesUrl) URL.revokeObjectURL(backupCodesUrl);
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        title={step === SetupStep.DisplayBackupCodes ? t("backup_codes") : t("enable_2fa")}
-        description={setupDescriptions[step]}
-        type="creation">
-        <WithStep step={SetupStep.ConfirmPassword} current={step}>
-          <form onSubmit={handleSetup}>
-            <div className="mb-4">
-              <PasswordField
-                label={t("password")}
-                name="password"
-                id="password"
-                required
-                value={password}
-                onInput={(e) => setPassword(e.currentTarget.value)}
-              />
-              {errorMessage && <p className="mt-1 text-sm text-red-700">{errorMessage}</p>}
-            </div>
-          </form>
-        </WithStep>
-        <WithStep step={SetupStep.DisplayQrCode} current={step}>
-          <>
-            <div className="-mt-3 flex justify-center">
-              {
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={dataUri} alt="" />
-              }
-            </div>
-            <p data-testid="two-factor-secret" className="mb-4 text-center font-mono text-xs">
-              {secret}
-            </p>
-          </>
-        </WithStep>
-        <WithStep step={SetupStep.DisplayBackupCodes} current={step}>
-          <>
-            <div className="mt-5 grid grid-cols-2 gap-1 text-center font-mono md:pl-10 md:pr-10">
-              {backupCodes.map((code) => (
-                <div key={code}>{formatBackupCode(code)}</div>
-              ))}
-            </div>
-          </>
-        </WithStep>
-        <Form handleSubmit={handleEnable} form={form}>
-          <WithStep step={SetupStep.EnterTotpCode} current={step}>
-            <div className="-mt-4 pb-2">
-              <TwoFactor center />
+    <Dialog open={open} onOpenChange={handleOpenChange} onOpenChangeComplete={handleOpenChangeComplete}>
+      <DialogPopup showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>{step === "backup-codes" ? t("backup_codes") : t("enable_2fa")}</DialogTitle>
+          <DialogDescription>{stepDescriptions[step]}</DialogDescription>
+        </DialogHeader>
 
-              {errorMessage && (
-                <p data-testid="error-submitting-code" className="mt-1 text-sm text-red-700">
+        {step === "password" && (
+          <Form className="contents" onSubmit={handlePasswordSubmit}>
+            <DialogPanel>
+              <Field name="password" invalid={!!errorMessage}>
+                <FieldLabel htmlFor="password">{t("password")}</FieldLabel>
+                <PasswordField
+                  id="password"
+                  name="password"
+                  required
+                  value={password}
+                  onChange={(e) => {
+                    if (errorMessage) setErrorMessage(null);
+                    setPassword(e.target.value);
+                  }}
+                />
+                <FieldError match={errorMessage ? true : "valueMissing"}>
+                  {errorMessage ?? t("error_required_field")}
+                </FieldError>
+              </Field>
+            </DialogPanel>
+            <DialogFooter>
+              <DialogClose render={<Button variant="ghost" />}>{t("cancel")}</DialogClose>
+              <Button type="submit" loading={isSubmitting}>
+                {t("continue")}
+              </Button>
+            </DialogFooter>
+          </Form>
+        )}
+
+        {step === "qrcode" && (
+          <>
+            <DialogPanel className="flex flex-col gap-1">
+              <div className="flex justify-center">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={dataUri} alt="" />
+              </div>
+              <p data-testid="two-factor-secret" className="text-center font-mono text-xs">
+                {secret}
+              </p>
+            </DialogPanel>
+            <DialogFooter>
+              <DialogClose render={<Button variant="ghost" />}>{t("cancel")}</DialogClose>
+              <Button data-testid="goto-otp-screen" onClick={() => setStep("totp")}>
+                {t("continue")}
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+
+        {step === "totp" && (
+          <Form className="contents" onSubmit={handleTotpSubmit}>
+            <DialogPanel>
+              <Field name="totpCode" invalid={!!errorMessage}>
+                <FieldLabel htmlFor="totpCode">{t("2fa_code")}</FieldLabel>
+                <InputOTP
+                  id="totpCode"
+                  aria-label={t("2fa_code")}
+                  autoFocus
+                  autoComplete="one-time-code"
+                  inputMode="numeric"
+                  maxLength={6}
+                  pattern={REGEXP_ONLY_DIGITS}
+                  value={totpCode}
+                  onChange={(value) => {
+                    if (errorMessage) setErrorMessage(null);
+                    setTotpCode(value);
+                    if (value.trim().length === 6) {
+                      void handleTotpSubmit(undefined, value);
+                    }
+                  }}>
+                  <InputOTPGroup size="lg">
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+                <FieldDescription>{t("2fa_enabled_instructions")}</FieldDescription>
+                <FieldError match={!!errorMessage} data-testid="error-submitting-code">
                   {errorMessage}
-                </p>
-              )}
-            </div>
-          </WithStep>
-          <DialogFooter className="mt-8" showDivider>
-            {step !== SetupStep.DisplayBackupCodes ? (
-              <Button
-                color="secondary"
-                onClick={() => {
-                  onCancel();
-                  resetState();
-                }}>
-                {t("cancel")}
-              </Button>
-            ) : null}
-            <WithStep step={SetupStep.ConfirmPassword} current={step}>
+                </FieldError>
+              </Field>
+            </DialogPanel>
+            <DialogFooter>
+              <DialogClose render={<Button variant="ghost" />}>{t("cancel")}</DialogClose>
               <Button
                 type="submit"
-                className="me-2 ms-2"
-                onClick={handleSetup}
-                loading={isSubmitting}
-                disabled={password.length === 0 || isSubmitting}>
-                {t("continue")}
-              </Button>
-            </WithStep>
-            <WithStep step={SetupStep.DisplayQrCode} current={step}>
-              <Button
-                type="submit"
-                data-testid="goto-otp-screen"
-                className="me-2 ms-2"
-                onClick={() => setStep(SetupStep.EnterTotpCode)}>
-                {t("continue")}
-              </Button>
-            </WithStep>
-            <WithStep step={SetupStep.EnterTotpCode} current={step}>
-              <Button
-                type="submit"
-                className="me-2 ms-2"
                 data-testid="enable-2fa"
-                loading={isSubmitting}
-                disabled={isSubmitting}>
+                disabled={totpCode.trim().length !== 6}
+                loading={isSubmitting}>
                 {t("enable")}
               </Button>
-            </WithStep>
-            <WithStep step={SetupStep.DisplayBackupCodes} current={step}>
-              <>
-                <Button
-                  color="secondary"
-                  data-testid="backup-codes-close"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    resetState();
-                    onEnable();
-                  }}>
-                  {t("close")}
-                </Button>
-                <Button
-                  color="secondary"
-                  data-testid="backup-codes-copy"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigator.clipboard.writeText(backupCodes.map(formatBackupCode).join("\n"));
-                    showToast(t("backup_codes_copied"), "success");
-                  }}>
-                  {t("copy")}
-                </Button>
-                <a download="cal-backup-codes.txt" href={backupCodesUrl}>
-                  <Button color="primary" data-testid="backup-codes-download">
-                    {t("download")}
-                  </Button>
-                </a>
-              </>
-            </WithStep>
-          </DialogFooter>
-        </Form>
-      </DialogContent>
+            </DialogFooter>
+          </Form>
+        )}
+
+        {step === "backup-codes" && (
+          <>
+            <DialogPanel>
+              <div className="grid grid-cols-2 gap-2 text-center font-mono text-sm">
+                {backupCodes.map((code) => (
+                  <div key={code} className="bg-muted rounded-sm py-1">{formatBackupCode(code)}</div>
+                ))}
+              </div>
+            </DialogPanel>
+            <DialogFooter>
+              <DialogClose
+                render={
+                  <Button variant="ghost" data-testid="backup-codes-close" onClick={() => onEnable()} />
+                }>
+                {t("close")}
+              </DialogClose>
+              <Button
+                variant="outline"
+                data-testid="backup-codes-copy"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigator.clipboard.writeText(backupCodes.map(formatBackupCode).join("\n"));
+                  toastManager.add({ title: t("backup_codes_copied"), type: "success" });
+                }}>
+                {t("copy")}
+              </Button>
+              <Button data-testid="backup-codes-download" render={<a download="cal-backup-codes.txt" href={backupCodesUrl} />}>{t("download")}</Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogPopup>
     </Dialog>
   );
-};
-
-export default EnableTwoFactorModal;
+}
