@@ -12,6 +12,8 @@ export type Schedule = {
     date: Date | null;
     days: number[];
     scheduleId: number | null;
+    createdAt: Date | null;
+    updatedAt: Date | null;
   }[];
 };
 
