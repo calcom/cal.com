@@ -38,7 +38,7 @@ export class PlatformPlanGuard implements CanActivate {
     const REDIS_CACHE_KEY = `apiv2:org:${orgId}:guard:platformbilling:${minimumPlan}`;
     const cachedValue = await this.redisService.get<string>(REDIS_CACHE_KEY);
     if (cachedValue !== null) {
-      return cachedValue === "true" || cachedValue === true;
+      return cachedValue === "true";
     }
 
     const organization = await this.organizationsRepository.findByIdIncludeBilling(Number(orgId));
