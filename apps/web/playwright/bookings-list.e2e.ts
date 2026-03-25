@@ -620,11 +620,12 @@ test.describe("Bookings", () => {
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
 
-      await expect
-        .poll(async () => {
-          return await bookingListItems.count();
-        })
-        .toBe(1);
+      // Wait for the personal booking to disappear (proves filter took effect in the DOM)
+      await expect(
+        upcomingBookingsTable.locator('[data-testid="booking-item"]', { hasText: "Personal Event Booking" })
+      ).toBeHidden({ timeout: 10000 });
+
+      await expect(bookingListItems).toHaveCount(1);
       await expect(bookingListItems.first().getByTestId("title-and-attendees")).toContainText(
         teamBooking!.title
       );
@@ -677,12 +678,12 @@ test.describe("Bookings", () => {
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
 
-      await expect
-        .poll(async () => {
-          return await bookingListItems.count();
-        })
-        .toBe(1);
+      // Wait for the personal booking to disappear (proves filter took effect in the DOM)
+      await expect(
+        upcomingBookingsTable.locator('[data-testid="booking-item"]', { hasText: "Personal Event Booking" })
+      ).toBeHidden({ timeout: 10000 });
 
+      await expect(bookingListItems).toHaveCount(1);
       await expect(bookingListItems.first().getByTestId("title-and-attendees")).toContainText(
         managedEventBooking!.title
       );
@@ -756,11 +757,12 @@ test.describe("Bookings", () => {
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
 
-      await expect
-        .poll(async () => {
-          return await bookingListItems.count();
-        })
-        .toBe(1);
+      // Wait for the other team's booking to disappear (proves filter took effect in the DOM)
+      await expect(
+        upcomingBookingsTable.locator('[data-testid="booking-item"]', { hasText: "Team 2 Booking" })
+      ).toBeHidden({ timeout: 10000 });
+
+      await expect(bookingListItems).toHaveCount(1);
     });
   });
 
