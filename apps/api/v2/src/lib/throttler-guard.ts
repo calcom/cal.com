@@ -2,6 +2,7 @@ import { getEnv } from "@/env";
 import { sha256Hash, isApiKey, stripApiKey } from "@/lib/api-key";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { RedisService } from "@/modules/redis/redis.service";
 import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
 import { Inject, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
@@ -44,7 +45,8 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     options: ThrottlerModuleOptions,
     @Inject(ThrottlerStorageRedisService) protected readonly storageService: ThrottlerStorageRedisService,
     reflector: Reflector,
-    private readonly dbRead: PrismaReadService
+    private readonly dbRead: PrismaReadService,
+    private readonly redisService: RedisService
   ) {
     super(options, storageService, reflector);
     this.storageService = storageService;
@@ -141,12 +143,12 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
   private async getRateLimitsForApiKeyTracker(tracker: string) {
     const cacheKey = `rate_limit:${tracker}`;
 
-    const cachedRateLimits = await this.storageService.redis.get(cacheKey);
+    const cachedRateLimits = await this.redisService.get<RateLimitType[]>(cacheKey);
     if (cachedRateLimits) {
       /*this.logger.verbose(`Tracker "${tracker}" rate limits retrieved from redis cache:
         ${cachedRateLimits}
       `);*/
-      return rateLimitsSchema.parse(JSON.parse(cachedRateLimits));
+      return rateLimitsSchema.parse(cachedRateLimits);
     }
 
     const apiKey = tracker.replace("api_key_", "");
@@ -171,7 +173,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
         ${JSON.stringify(rateLimits, null, 2)}`);*/
     }
 
-    await this.storageService.redis.set(cacheKey, JSON.stringify(rateLimits), "EX", 3600);
+    await this.redisService.set(cacheKey, rateLimits, { ttl: 3600 * 1000 });
 
     return rateLimits;
   }

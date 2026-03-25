@@ -1,10 +1,9 @@
+import { createMock } from "@golevelup/ts-jest";
+import { ExecutionContext, ForbiddenException } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { RedisService } from "@/modules/redis/redis.service";
-import { createMock } from "@golevelup/ts-jest";
-import { ForbiddenException } from "@nestjs/common";
-import { ExecutionContext } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
 
 describe("PlatformPlanGuard", () => {
   let guard: PlatformPlanGuard;
@@ -21,10 +20,8 @@ describe("PlatformPlanGuard", () => {
     reflector = new Reflector();
     organizationsRepository = createMock<OrganizationsRepository>();
     redisService = createMock<RedisService>({
-      redis: {
-        get: jest.fn().mockResolvedValue(null),
-        set: jest.fn().mockResolvedValue(null),
-      },
+      get: jest.fn().mockResolvedValue(null),
+      set: jest.fn().mockResolvedValue(null),
     });
     guard = new PlatformPlanGuard(reflector, organizationsRepository, redisService);
   });
@@ -38,7 +35,7 @@ describe("PlatformPlanGuard", () => {
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       platformBilling: {
         subscriptionId: "sub_123",
         plan: "SCALE",
@@ -60,7 +57,7 @@ describe("PlatformPlanGuard", () => {
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: false,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       platformBilling: undefined,
     });
 
@@ -72,7 +69,7 @@ describe("PlatformPlanGuard", () => {
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       platformBilling: {
         subscriptionId: null,
         plan: "STARTER",
@@ -87,7 +84,7 @@ describe("PlatformPlanGuard", () => {
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       platformBilling: {
         subscriptionId: "sub_123",
         plan: "STARTER",
@@ -99,7 +96,7 @@ describe("PlatformPlanGuard", () => {
 
   it("should return true if the result is cached in Redis", async () => {
     jest.spyOn(reflector, "get").mockReturnValue("ESSENTIALS");
-    jest.spyOn(redisService.redis, "get").mockResolvedValue(JSON.stringify(true));
+    jest.spyOn(redisService, "get").mockResolvedValue(true);
 
     await expect(guard.canActivate(mockContext)).resolves.toBe(true);
   });

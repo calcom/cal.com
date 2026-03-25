@@ -4,12 +4,11 @@ import { Provider } from "@nestjs/common";
 export const MockedRedisService = {
   provide: RedisService,
   useValue: {
-    redis: {
-      get: jest.fn(),
-      hgetall: jest.fn(),
-      set: jest.fn(),
-      hmset: jest.fn(),
-      expireat: jest.fn(),
-    },
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+    hgetall: jest.fn(),
+    hmset: jest.fn(),
+    expireat: jest.fn(),
   },
 } as Provider;

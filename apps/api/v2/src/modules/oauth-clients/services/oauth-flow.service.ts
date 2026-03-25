@@ -32,12 +32,12 @@ export class OAuthFlowService {
       }
 
       const cacheKey = this._generateActKey(accessToken);
-      await this.redisService.redis.hmset(cacheKey, {
-        ownerId: ownerId,
-        expiresAt: expiry?.toJSON(),
+      await this.redisService.hmset(cacheKey, {
+        ownerId: String(ownerId),
+        expiresAt: expiry?.toJSON() ?? "",
       });
 
-      await this.redisService.redis.expireat(cacheKey, Math.floor(expiry.getTime() / 1000));
+      await this.redisService.expireat(cacheKey, Math.floor(expiry.getTime() / 1000));
     } catch (err) {
       this.logger.error("Access Token Propagation Failed, falling back to DB...", err);
     }
@@ -47,7 +47,7 @@ export class OAuthFlowService {
     const cacheKey = this._generateOwnerIdKey(accessToken);
 
     try {
-      const ownerId = await this.redisService.redis.get(cacheKey);
+      const ownerId = await this.redisService.get<string>(cacheKey);
       if (ownerId) {
         return Number.parseInt(ownerId);
       }
@@ -60,7 +60,7 @@ export class OAuthFlowService {
     if (!ownerIdFromDb) throw new Error("Invalid Access Token, not present in Redis or DB");
 
     // await in case of race conditions, but void it's return since cache writes shouldn't halt execution.
-    void (await this.redisService.redis.setex(cacheKey, 3600, ownerIdFromDb)); // expires in 1 hour
+    void (await this.redisService.set(cacheKey, ownerIdFromDb, { ttl: 3600 * 1000 })); // expires in 1 hour
 
     return ownerIdFromDb;
   }
@@ -86,15 +86,15 @@ export class OAuthFlowService {
 
     // we can't use a Promise#all or similar here because we care about execution order
     // however we can't allow caches to fail a validation hence the results are voided.
-    void (await this.redisService.redis.hmset(cacheKey, { expiresAt: tokenExpiresAt.toJSON() }));
-    void (await this.redisService.redis.expireat(cacheKey, Math.floor(tokenExpiresAt.getTime() / 1000)));
+    void (await this.redisService.hmset(cacheKey, { expiresAt: tokenExpiresAt.toJSON() }));
+    void (await this.redisService.expireat(cacheKey, Math.floor(tokenExpiresAt.getTime() / 1000)));
 
     return true;
   }
 
   private async readFromCache(secret: string) {
     const cacheKey = this._generateActKey(secret);
-    const tokenData = await this.redisService.redis.hgetall(cacheKey);
+    const tokenData = await this.redisService.hgetall(cacheKey);
 
     if (tokenData && new Date() < new Date(tokenData.expiresAt)) {
       return { status: "CACHE_HIT", cacheKey };

@@ -34,14 +34,14 @@ export class DeploymentsService {
       return false;
     }
     const licenseKeyUrl = this.configService.get("api.licenseKeyUrl") + `/${licenseKey}`;
-    const cachedData = await this.redisService.redis.get(getLicenseCacheKey(licenseKey));
+    const cachedData = await this.redisService.get<LicenseCheckResponse>(getLicenseCacheKey(licenseKey));
     if (cachedData) {
-      return (JSON.parse(cachedData) as LicenseCheckResponse)?.status;
+      return cachedData?.status;
     }
     const response = await fetch(licenseKeyUrl, { mode: "cors" });
     const data = (await response.json()) as LicenseCheckResponse;
     const cacheKey = getLicenseCacheKey(licenseKey);
-    this.redisService.redis.set(cacheKey, JSON.stringify(data), "EX", CACHING_TIME);
+    void this.redisService.set(cacheKey, data, { ttl: CACHING_TIME });
     return data.status;
   }
 }

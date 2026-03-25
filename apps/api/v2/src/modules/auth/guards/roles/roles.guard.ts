@@ -67,7 +67,7 @@ export class RolesGuard implements CanActivate {
     const REDIS_CACHE_KEY = `apiv2:user:${user.id ?? "none"}:org:${orgId ?? "none"}:team:${
       teamId ?? "none"
     }:guard:roles:${allowedRole}`;
-    const cachedAccess = JSON.parse((await this.redisService.redis.get(REDIS_CACHE_KEY)) ?? "false");
+    const cachedAccess = await this.redisService.get<boolean>(REDIS_CACHE_KEY);
 
     if (cachedAccess) {
       return { canAccess: cachedAccess };
@@ -173,7 +173,7 @@ export class RolesGuard implements CanActivate {
     }
 
     if (canAccess) {
-      await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
+      await this.redisService.set(REDIS_CACHE_KEY, String(canAccess), { ttl: 300 * 1000 });
     }
 
     return { canAccess };
