@@ -1,19 +1,54 @@
-// In the EventType model, add this relation (find the EventType model and add):
+// ==========================================
+// COMPLETE SCHEMA CHANGES FOR OPTIONAL GUESTS
+// ==========================================
+// 
+// Add the following to the EventType model:
+//
+//   optionalGuests       User[]      @relation("OptionalGuestEventTypes")
+//
+// Add the following to the User model:
+//
+//   optionalGuestEventTypes EventType[] @relation("OptionalGuestEventTypes")
+//
+// Prisma will automatically create the junction table _OptionalGuestEventTypes
+// ==========================================
+
+// Example of how the models should look after modification:
 
 model EventType {
-  // ... existing fields ...
+  id                      Int                    @id @default(autoincrement())
+  title                   String
+  slug                    String
+  description             String?
+  position                Int                    @default(0)
+  locations               Json?
+  length                  Int
+  offsetStart             Int                    @default(0)
+  hidden                  Boolean                @default(false)
+  hosts                   Host[]
+  users                   User[]                 @relation("user_eventtype")
   
-  // Optional guests - team members added as optional attendees (no conflict check)
-  optionalGuests     User[]     @relation("OptionalGuestEventTypes")
+  // NEW: Optional guests - team members invited to all bookings without conflict checking
+  optionalGuests          User[]                 @relation("OptionalGuestEventTypes")
   
-  // ... rest of existing fields ...
+  // ... rest of existing EventType fields ...
+  
+  @@map("EventType")
 }
 
 model User {
-  // ... existing fields ...
+  id                      Int                    @id @default(autoincrement())
+  username                String?                @unique
+  name                    String?
+  email                   String                 @unique
   
-  // Optional guest event types
-  optionalGuestEventTypes EventType[] @relation("OptionalGuestEventTypes")
+  // Existing relation
+  eventTypes              EventType[]            @relation("user_eventtype")
   
-  // ... rest of existing fields ...
+  // NEW: Event types where this user is an optional guest
+  optionalGuestEventTypes EventType[]            @relation("OptionalGuestEventTypes")
+  
+  // ... rest of existing User fields ...
+  
+  @@map("users")
 }
