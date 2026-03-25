@@ -6,13 +6,6 @@ declare global {
   var __redisConnection: IORedis | undefined;
 }
 
-/**
- * Parse REDIS_URL into BullMQ-compatible RedisOptions.
- * Supports:
- *  redis://
- *  rediss:// (TLS)
- *  username/password/db
- */
 function parseRedisUrl(url: string): RedisOptions {
   try {
     const parsed = new URL(url);
@@ -26,11 +19,7 @@ function parseRedisUrl(url: string): RedisOptions {
       username: parsed.username || undefined,
       password: parsed.password || undefined,
       db: Number.isNaN(dbFromPath) ? 0 : dbFromPath,
-
-      // BullMQ requirement
       maxRetriesPerRequest: null,
-
-      // Enable TLS for rediss://
       tls: parsed.protocol === "rediss:" ? {} : undefined,
     };
   } catch (error) {
@@ -39,21 +28,11 @@ function parseRedisUrl(url: string): RedisOptions {
   }
 }
 
-/**
- * BullMQ connection options (for Queue / Worker / QueueEvents)
- */
 export function getRedisOptions(): RedisOptions {
   const REDIS_URL = process.env.REDIS_URL ?? "redis://127.0.0.1:6379";
   return parseRedisUrl(REDIS_URL);
 }
 
-/**
- * Singleton Redis client (shared across app)
- * Prevents creating multiple connections during:
- *  - Next.js hot reload
- *  - Worker restarts
- *  - API route execution
- */
 export function getRedisConnection(): IORedis {
   if (!global.__redisConnection) {
     console.log("🔌 Creating new Redis connection");
@@ -74,9 +53,6 @@ export function getRedisConnection(): IORedis {
   return global.__redisConnection;
 }
 
-/**
- * Graceful shutdown (important for workers + Docker)
- */
 export async function closeRedisConnection() {
   if (global.__redisConnection) {
     console.log("🛑 Closing Redis connection...");

@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { HttpError } from "@calcom/lib/http-error";
+import { getAppFromSlug } from "@calcom/app-store/utils";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import type { UserProfile } from "@calcom/types/UserProfile";
@@ -43,11 +44,20 @@ export async function createDefaultInstallation({
   paymentStatus,
   subscriptionId,
 }: InstallationArgs) {
+  const appMeta = getAppFromSlug(slug);
+  const isOwnerScopedInstallation = appMeta?.owner_scoped_installation === true;
+
   const installation = await prisma.credential.create({
     data: {
       type: appType,
       key,
-      ...(calIdTeamId ? { calIdTeamId } : teamId ? { teamId } : { userId: user.id }),
+      ...(isOwnerScopedInstallation
+        ? { userId: user.id }
+        : calIdTeamId
+        ? { calIdTeamId }
+        : teamId
+        ? { teamId }
+        : { userId: user.id }),
       appId: slug,
       subscriptionId,
       paymentStatus,

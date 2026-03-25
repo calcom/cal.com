@@ -12,6 +12,7 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+import { toggleCalendarSyncForUser } from "@calcom/trpc/server/routers/viewer/unifiedCalendar/toggleCalendarSync.handler";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -22,6 +23,21 @@ const selectedCalendarSelectSchema = z.object({
   delegationCredentialId: z.string().nullish().default(null),
   eventTypeId: z.coerce.number().nullish(),
 });
+
+const getSyncProviderFromIntegration = (integration: string): "GOOGLE" | "OUTLOOK" | null => {
+  const normalized = integration.toLowerCase();
+  if (normalized.includes("google")) {
+    return "GOOGLE";
+  }
+  if (
+    normalized.includes("office365") ||
+    normalized.includes("outlook") ||
+    normalized.includes("microsoft")
+  ) {
+    return "OUTLOOK";
+  }
+  return null;
+};
 
 async function authMiddleware() {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
@@ -91,6 +107,19 @@ async function deleteHandler(req: NextRequest) {
 
   const { integration, externalId, credentialId, eventTypeId } =
     selectedCalendarSelectSchema.parse(searchParams);
+  const syncProvider = getSyncProviderFromIntegration(integration);
+
+  if (syncProvider) {
+    await toggleCalendarSyncForUser({
+      userId: user.id,
+      input: {
+        provider: syncProvider,
+        credentialId,
+        providerCalendarId: externalId,
+        enabled: false,
+      },
+    });
+  }
 
   const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
   await calendarCacheRepository.unwatchCalendar({

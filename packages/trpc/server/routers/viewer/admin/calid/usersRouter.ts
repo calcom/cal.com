@@ -2,12 +2,19 @@ import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { CreationSource, RedirectType } from "@calcom/prisma/enums";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import { authedAdminProcedure } from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { userBodySchema, userIdSchema, userListSchema, userUpdateSchema } from "./userSchemas";
+import {
+  userBodySchema,
+  userEnterpriseSchema,
+  userIdSchema,
+  userListSchema,
+  userUpdateSchema,
+} from "./userSchemas";
 
 const subdomainSuffix = () => {
   const urlSplit = WEBAPP_URL.replace("https://", "").replace("http://", "").split(".");
@@ -111,6 +118,7 @@ export const calidAdminUsersRouter = router({
           },
           whitelistWorkflows: true,
           avatarUrl: true,
+          metadata: true,
         },
       }),
     ]);
@@ -173,6 +181,24 @@ export const calidAdminUsersRouter = router({
   delete: authedAdminWithRequestedUser.input(userIdSchema).mutation(async ({ ctx }) => {
     await ctx.prisma.user.delete({ where: { id: ctx.requestedUser.id } });
     return { message: `User with id: ${ctx.requestedUser.id} deleted successfully` };
+  }),
+  setEnterprise: authedAdminWithRequestedUser.input(userEnterpriseSchema).mutation(async ({ ctx, input }) => {
+    const existingMetadata = userMetadata.parse(ctx.requestedUser.metadata) ?? {};
+    const nextMetadata = {
+      ...existingMetadata,
+      isEnterprise: input.isEnterprise,
+    };
+
+    const user = await ctx.prisma.user.update({
+      where: { id: ctx.requestedUser.id },
+      data: { metadata: nextMetadata },
+      select: {
+        id: true,
+        metadata: true,
+      },
+    });
+
+    return { user, message: `User with id: ${ctx.requestedUser.id} enterprise status updated successfully` };
   }),
 });
 

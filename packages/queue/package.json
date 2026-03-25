@@ -9,9 +9,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@calid/redis": "*",
     "bullmq": "^5.67.2",
-    "dotenv": "^17.2.4",
-    "ioredis": "^5.9.2"
+    "dotenv": "^17.2.4"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

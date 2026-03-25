@@ -252,7 +252,7 @@ export const EventTypes = () => {
   }
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-default min-h-screen">
       {/* Responsive Container */}
       <div className="mx-auto w-full px-2 lg:px-0">
         {/* Team Tabs */}
