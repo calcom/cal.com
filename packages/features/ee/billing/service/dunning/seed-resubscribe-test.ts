@@ -19,7 +19,7 @@
  *   - STRIPE_ORG_MONTHLY_PRICE_ID must be set (for org case)
  *
  * Usage:
- *   npx tsx packages/features/ee/billing/service/dunning/seed-resubscribe-test.ts
+ *   npx env-cmd npx tsx packages/features/ee/billing/service/dunning/seed-resubscribe-test.ts
  *
  * Options:
  *   --skip-stripe       Skip Stripe API calls (use fake IDs)
@@ -631,7 +631,7 @@ async function main() {
 
     console.log("\n=== Cleanup ===\n");
     console.log(
-      "  npx tsx packages/features/ee/billing/service/dunning/seed-resubscribe-test.ts --cleanup --skip-stripe"
+      "  npx env-cmd npx tsx packages/features/ee/billing/service/dunning/seed-resubscribe-test.ts --cleanup --skip-stripe"
     );
     console.log("");
   } catch (error) {

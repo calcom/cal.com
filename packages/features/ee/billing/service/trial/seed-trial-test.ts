@@ -12,7 +12,7 @@
  *   - STRIPE_PRIVATE_KEY must be set (use test mode key)
  *
  * Usage:
- *   npx tsx packages/features/ee/billing/service/trial/seed-trial-test.ts
+ *   npx env-cmd npx tsx packages/features/ee/billing/service/trial/seed-trial-test.ts
  *
  * Options:
  *   --skip-stripe    Skip Stripe API calls (use fake IDs)
@@ -384,6 +384,18 @@ async function seedTrialTeam(stripe: Stripe | null) {
     `  TeamBilling created (TRIALING, $${teamPricePerSeatCents / 100}/seat, ${seatCount} seats, trial ends ${subscriptionTrialEnd.toISOString()})`
   );
 
+  // Set team metadata with subscriptionId so listInvoices handler can find invoices
+  await prisma.team.update({
+    where: { id: team.id },
+    data: {
+      metadata: {
+        subscriptionId: stripeSubscriptionId,
+        subscriptionItemId: stripeSubscriptionItemId,
+      },
+    },
+  });
+  console.log("  Team metadata updated with subscriptionId");
+
   return {
     team: { id: team.id, name: team.name, slug: team.slug! },
     seatCount,
@@ -617,7 +629,7 @@ async function main() {
     console.log("\n=== Cleanup ===\n");
     console.log("To clean up all test data, run:");
     console.log(
-      "  npx tsx packages/features/ee/billing/service/trial/seed-trial-test.ts --cleanup --skip-stripe"
+      "  npx env-cmd npx tsx packages/features/ee/billing/service/trial/seed-trial-test.ts --cleanup --skip-stripe"
     );
     console.log("");
   } catch (error) {

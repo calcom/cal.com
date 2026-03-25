@@ -14,7 +14,7 @@
  *   - STRIPE_ORG_MONTHLY_PRICE_ID or STRIPE_TEAM_MONTHLY_PRICE_ID should be set
  *
  * Usage:
- *   npx tsx packages/features/ee/billing/service/dueInvoice/seed-proration-test.ts
+ *   npx env-cmd npx tsx packages/features/ee/billing/service/dueInvoice/seed-proration-test.ts
  *
  * Options:
  *   --skip-stripe    Skip Stripe API calls (use fake IDs)
@@ -1125,7 +1125,7 @@ async function main() {
     console.log("=== Cleanup ===\n");
     console.log("To clean up all test data, run:");
     console.log(
-      "  npx tsx packages/features/ee/billing/service/dueInvoice/seed-proration-test.ts --cleanup --skip-stripe"
+      "  npx env-cmd npx tsx packages/features/ee/billing/service/dueInvoice/seed-proration-test.ts --cleanup --skip-stripe"
     );
     console.log("");
   } catch (error) {

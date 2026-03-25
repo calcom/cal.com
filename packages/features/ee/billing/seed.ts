@@ -3,31 +3,40 @@
  * Interactive seed script launcher for billing test data.
  *
  * Usage:
- *   npx tsx packages/features/ee/billing/seed.ts
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts
  *
  * Non-interactive (CI-friendly):
- *   npx tsx packages/features/ee/billing/seed.ts --hwm
- *   npx tsx packages/features/ee/billing/seed.ts --proration
- *   npx tsx packages/features/ee/billing/seed.ts --active-user
- *   npx tsx packages/features/ee/billing/seed.ts --dunning
- *   npx tsx packages/features/ee/billing/seed.ts --resubscribe
- *   npx tsx packages/features/ee/billing/seed.ts --recreate-ownership
- *   npx tsx packages/features/ee/billing/seed.ts --trial
- *   npx tsx packages/features/ee/billing/seed.ts --plans
- *   npx tsx packages/features/ee/billing/seed.ts --all
- *   npx tsx packages/features/ee/billing/seed.ts --cleanup
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts --hwm
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts --proration
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts --active-user
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts --dunning
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts --resubscribe
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts --recreate-ownership
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts --trial
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts --plans
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts --all
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts --cleanup
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts --setup-stripe
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts --setup-stripe-env
+ *   npx env-cmd npx tsx packages/features/ee/billing/seed.ts --wipe-stripe
  *
  * Flags (combinable with above):
  *   --skip-stripe       Skip Stripe API calls (use fake IDs)
  *   --cleanup           Clean up before seeding
  *   --min-seats <N>     Set minSeats floor for active-user billing
  *   --trial-days <N>    Set trial duration in days (default: 14)
+ *   --setup-stripe      Create Stripe products/prices (run once for a fresh Stripe account)
+ *   --setup-stripe-env  Same as --setup-stripe but also writes to .env
+ *   --wipe-stripe       Wipe all Stripe data (subscriptions, customers, products, prices)
  */
 
 import { spawn } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import process from "node:process";
 import * as readline from "node:readline";
 
+const SETUP_STRIPE_SCRIPT = "packages/features/ee/billing/seed-stripe-products.ts";
 const HWM_SCRIPT = "packages/features/ee/billing/service/highWaterMark/seed-hwm-test.ts";
 const PRORATION_SCRIPT = "packages/features/ee/billing/service/dueInvoice/seed-proration-test.ts";
 const ACTIVE_USER_SCRIPT = "packages/features/ee/billing/active-user/seed-active-user-test.ts";
@@ -53,6 +62,41 @@ function run(script: string, extraArgs: string[] = []): Promise<number> {
     const child = spawn("npx", args, { stdio: "inherit", shell: true });
     child.on("close", (code) => resolve(code ?? 1));
   });
+}
+
+/**
+ * Reload .env file into process.env so subsequent spawned scripts
+ * pick up freshly written values (e.g. after --setup-stripe-env).
+ */
+function reloadEnv() {
+  try {
+    const envPath = resolve(process.cwd(), ".env");
+    const content = readFileSync(envPath, "utf-8");
+    for (const line of content.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eqIdx = trimmed.indexOf("=");
+      if (eqIdx === -1) continue;
+      const key = trimmed.slice(0, eqIdx);
+      const value = trimmed.slice(eqIdx + 1);
+      process.env[key] = value;
+    }
+  } catch {
+    // .env might not exist
+  }
+}
+
+async function setupStripe(writeEnv: boolean) {
+  console.log("\n--- Setting up Stripe products and prices ---\n");
+  const extra = writeEnv ? ["--write-env"] : [];
+  const code = await run(SETUP_STRIPE_SCRIPT, extra);
+  if (code === 0 && writeEnv) reloadEnv();
+  return code;
+}
+
+async function wipeStripe() {
+  console.log("\n--- Wiping Stripe account ---\n");
+  return run(SETUP_STRIPE_SCRIPT, ["--wipe"]);
 }
 
 async function seedHwm(cleanup: boolean) {
@@ -169,9 +213,11 @@ async function interactive() {
   console.log("  8) Seed Plans page test data");
   console.log("  9) Seed all");
   console.log("  10) Cleanup all test data");
+  console.log("  11) Setup Stripe products & prices (run once for fresh account)");
+  console.log("  12) Wipe Stripe (delete all subscriptions, customers, products, prices)");
   console.log("  q) Quit\n");
 
-  const choice = await prompt("Choose [1-10, q]: ");
+  const choice = await prompt("Choose [1-12, q]: ");
 
   if (choice === "q" || choice === "") {
     console.log("Bye.");
@@ -229,6 +275,19 @@ async function interactive() {
     case "10":
       code = await cleanupAll();
       break;
+    case "11":
+      code = await setupStripe(true);
+      break;
+    case "12":
+      code = await wipeStripe();
+      if (code === 0) {
+        console.log("\n⚠️  Your .env price IDs are now invalid (prices were archived).");
+        const setupAns = await prompt("Run setup now to create new products & update .env? [Y/n]: ");
+        if (setupAns.toLowerCase() !== "n") {
+          code = await setupStripe(true);
+        }
+      }
+      break;
     default:
       console.log(`Unknown option: ${choice}`);
       code = 1;
@@ -240,6 +299,15 @@ async function interactive() {
 async function main() {
   const args = process.argv.slice(2).filter((a) => !a.startsWith("--skip-stripe"));
 
+  if (args.includes("--wipe-stripe")) {
+    process.exit(await wipeStripe());
+  }
+  if (args.includes("--setup-stripe-env")) {
+    process.exit(await setupStripe(true));
+  }
+  if (args.includes("--setup-stripe") && !args.includes("--setup-stripe-env")) {
+    process.exit(await setupStripe(false));
+  }
   if (args.includes("--hwm")) {
     process.exit(await seedHwm(args.includes("--cleanup")));
   }

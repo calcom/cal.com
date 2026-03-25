@@ -16,7 +16,7 @@
  *   - STRIPE_PRIVATE_KEY for real Stripe resources (optional)
  *
  * Usage:
- *   npx tsx packages/features/ee/billing/active-user/seed-active-user-test.ts
+ *   npx env-cmd npx tsx packages/features/ee/billing/active-user/seed-active-user-test.ts
  *
  * Options:
  *   --skip-stripe        Skip Stripe API calls (use fake IDs)

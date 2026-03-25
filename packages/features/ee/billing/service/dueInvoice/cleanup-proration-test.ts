@@ -3,7 +3,7 @@
  * Cleanup script for proration test data
  *
  * Usage:
- *   npx tsx packages/features/ee/billing/service/dueInvoice/cleanup-proration-test.ts
+ *   npx env-cmd npx tsx packages/features/ee/billing/service/dueInvoice/cleanup-proration-test.ts
  *
  * Options:
  *   --skip-stripe    Skip Stripe API cleanup

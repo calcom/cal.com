@@ -13,7 +13,7 @@
  *   - STRIPE_PRIVATE_KEY must be set (use test mode key)
  *
  * Usage:
- *   npx tsx packages/features/ee/billing/service/highWaterMark/seed-hwm-test.ts
+ *   npx env-cmd npx tsx packages/features/ee/billing/service/highWaterMark/seed-hwm-test.ts
  *
  * Options:
  *   --skip-stripe    Skip Stripe API calls (use fake IDs)
@@ -453,6 +453,18 @@ async function seedHwmTeam(stripe: Stripe | null): Promise<TeamSeedResult> {
   console.log(
     `  TeamBilling created (MONTHLY, $${teamPricePerSeatCents / 100}/seat, ${paidSeats} paid, HWM=${peakMemberCount})`
   );
+
+  // Set team metadata with subscriptionId so listInvoices handler can find invoices
+  await prisma.team.update({
+    where: { id: team.id },
+    data: {
+      metadata: {
+        subscriptionId: stripeSubscriptionId,
+        subscriptionItemId: stripeSubscriptionItemId,
+      },
+    },
+  });
+  console.log("  Team metadata updated with subscriptionId");
 
   // Get billing record for linking seat changes
   const teamBilling = await prisma.teamBilling.findUnique({ where: { teamId: team.id } });
@@ -897,7 +909,7 @@ async function main() {
     console.log("=== Cleanup ===\n");
     console.log("To clean up all test data, run:");
     console.log(
-      "  npx tsx packages/features/ee/billing/service/highWaterMark/seed-hwm-test.ts --cleanup --skip-stripe"
+      "  npx env-cmd npx tsx packages/features/ee/billing/service/highWaterMark/seed-hwm-test.ts --cleanup --skip-stripe"
     );
     console.log("");
   } catch (error) {
