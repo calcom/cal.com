@@ -26,6 +26,7 @@ type RoutingFormRendererProps = {
   className?: string;
   showErrors?: boolean;
   errorFieldIds?: string[];
+  errorFocusTrigger?: number;
   calendarEventType?: string | null;
   calendarFormContext?: { username?: string | null; teamSlug?: string | null };
   onFieldChange?: (args: {
@@ -48,6 +49,7 @@ export default function RoutingFormRenderer({
   className,
   showErrors = false,
   errorFieldIds,
+  errorFocusTrigger = 0,
   calendarEventType,
   calendarFormContext,
   onFieldChange,
@@ -191,6 +193,7 @@ export default function RoutingFormRenderer({
               fieldStyle={style.fieldStyle}
               showErrors={showErrors}
               errorFieldIds={errorFieldIds}
+              errorFocusTrigger={errorFocusTrigger}
               accentColor={style.accentColor}
               secondaryColor={style.secondaryColor}
               calendarEventType={calendarEventType}
