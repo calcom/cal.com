@@ -8,20 +8,24 @@ import {
 } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { AttendeeRepository } from "@calcom/features/bookings/repositories/AttendeeRepository";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -77,6 +81,7 @@ type HandleMarkHostNoShowArgs = {
   actionSource: ValidActionSource;
   locale?: string;
   platformClientParams?: PlatformClientParams;
+  impersonatedByUserUuid: string | null;
 };
 
 type HandleMarkAttendeesAndHostNoShowArgs = {
@@ -88,6 +93,7 @@ type HandleMarkAttendeesAndHostNoShowArgs = {
   actionSource: ValidActionSource;
   locale?: string;
   platformClientParams?: PlatformClientParams;
+  impersonatedByUserUuid: string | null;
 };
 
 type HandleMarkNoShowArgs = {
@@ -100,6 +106,7 @@ type HandleMarkNoShowArgs = {
   locale?: string;
   platformClientParams?: PlatformClientParams;
   actor: Actor;
+  impersonatedByUserUuid: string | null;
 };
 
 const buildResultPayload = async ({
@@ -110,7 +117,7 @@ const buildResultPayload = async ({
   attendees: NonNullable<TNoShowInputSchema["attendees"]>;
   t: TFunction;
   emailToAttendeeMap: EmailToAttendeeMap;
-}): Promise<{message: string; attendees: NoShowAttendees}> => {
+}): Promise<{ message: string; attendees: NoShowAttendees }> => {
   const updatedAttendees = await updateAttendees({ attendees, emailToAttendeeMap });
 
   if (updatedAttendees.length === 1) {
@@ -197,6 +204,7 @@ async function fireNoShowUpdated({
   actor,
   orgId,
   actionSource,
+  impersonatedByUserUuid,
 }: {
   updatedNoShowHost?: boolean;
   hostUserUuid?: string;
@@ -209,6 +217,7 @@ async function fireNoShowUpdated({
   actor: Actor;
   orgId: number | null;
   actionSource: ValidActionSource;
+  impersonatedByUserUuid: string | null;
 }): Promise<void> {
   const auditData: {
     host?: { userUuid: string; noShow: { old: boolean | null; new: boolean } };
@@ -241,14 +250,17 @@ async function fireNoShowUpdated({
     ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
     : false;
 
-  const isSomethingChanged = auditData.host || (auditData.attendeesNoShow && auditData.attendeesNoShow.length > 0);
+  const isSomethingChanged =
+    auditData.host || (auditData.attendeesNoShow && auditData.attendeesNoShow.length > 0);
   if (isSomethingChanged) {
+    const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
     await bookingEventHandlerService.onNoShowUpdated({
       bookingUid: booking.uid,
       actor,
       organizationId: orgId ?? null,
       source: actionSource,
       auditData,
+      context: auditContext,
       isBookingAuditEnabled,
     });
   }
@@ -263,6 +275,7 @@ const handleMarkNoShow = async ({
   locale,
   platformClientParams,
   actionSource,
+  impersonatedByUserUuid,
 }: HandleMarkNoShowArgs): Promise<ResponsePayloadResult> => {
   const responsePayload = new ResponsePayload();
   const t = await getTranslation(locale ?? "en", "common");
@@ -359,6 +372,25 @@ const handleMarkNoShow = async ({
                 }
               : undefined;
 
+            const hideBranding = await getEventTypeService().shouldHideBrandingForEventType(
+              booking.eventType.id,
+              {
+                team: booking.eventType.team
+                  ? {
+                      hideBranding: booking.eventType.team.hideBranding,
+                      parent: booking.eventType.team.parent,
+                    }
+                  : null,
+                owner: booking.eventType.owner
+                  ? {
+                      id: booking.eventType.owner.id,
+                      hideBranding: booking.eventType.owner.hideBranding,
+                      profiles: booking.eventType.owner.profiles ?? [],
+                    }
+                  : null,
+              } satisfies EventTypeBrandingData
+            );
+
             const calendarEvent: ExtendedCalendarEvent = {
               type: booking.eventType.slug,
               title: booking.title,
@@ -393,6 +425,7 @@ const handleMarkNoShow = async ({
               eventTypeId: booking.eventType?.id,
               customReplyToEmail: booking.eventType?.customReplyToEmail,
               team,
+              hideBranding,
             };
 
             const creditService = new CreditService();
@@ -400,7 +433,7 @@ const handleMarkNoShow = async ({
             await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
               workflows,
               smsReminderNumber: booking.smsReminderNumber,
-              hideBranding: booking.eventType.owner?.hideBranding,
+              hideBranding: calendarEvent.hideBranding,
               calendarEvent,
               triggers: [WorkflowTriggerEvents.BOOKING_NO_SHOW_UPDATED],
               creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
@@ -432,6 +465,7 @@ const handleMarkNoShow = async ({
       actor,
       orgId: orgId ?? null,
       actionSource,
+      impersonatedByUserUuid,
     });
 
     return responsePayload.getPayload();
@@ -448,7 +482,7 @@ const updateAttendees = async ({
   emailToAttendeeMap,
 }: {
   attendees: NonNullable<TNoShowInputSchema["attendees"]>;
-  emailToAttendeeMap: EmailToAttendeeMap; 
+  emailToAttendeeMap: EmailToAttendeeMap;
 }): Promise<NoShowAttendees> => {
   const attendeeRepository = new AttendeeRepository(prisma);
   const updatePromises = attendees.map((attendee) => {
@@ -514,6 +548,7 @@ export const handleMarkHostNoShow = async ({
   actionSource,
   locale,
   platformClientParams,
+  impersonatedByUserUuid,
 }: HandleMarkHostNoShowArgs): Promise<ResponsePayloadResult> => {
   const actorEmail = buildActorEmail({
     identifier: getUniqueIdentifier({ prefix: "attendee" }),
@@ -530,6 +565,7 @@ export const handleMarkHostNoShow = async ({
     actionSource,
     locale,
     platformClientParams,
+    impersonatedByUserUuid,
   });
 };
 
@@ -547,6 +583,7 @@ export const handleMarkAttendeesAndHostNoShow = async ({
   actionSource,
   locale,
   platformClientParams,
+  impersonatedByUserUuid,
 }: HandleMarkAttendeesAndHostNoShowArgs): Promise<ResponsePayloadResult> => {
   const actor = makeUserActor(userUuid);
 
@@ -559,6 +596,7 @@ export const handleMarkAttendeesAndHostNoShow = async ({
     actionSource,
     locale,
     platformClientParams,
+    impersonatedByUserUuid,
   });
 };
 

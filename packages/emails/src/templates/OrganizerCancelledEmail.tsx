@@ -7,8 +7,10 @@ export const OrganizerCancelledEmail = (props: React.ComponentProps<typeof Organ
   const title = "event_request_cancelled";
   const subject = "event_cancelled_subject";
   const isRoundRobin = props.calEvent.schedulingType === SchedulingType.ROUND_ROBIN;
-  const subtitle = props.reassigned 
-    ? (isRoundRobin ? t("event_reassigned_subtitle") : t("event_reassigned_subtitle_generic"))
+  const subtitle = props.reassigned
+    ? isRoundRobin
+      ? t("event_reassigned_subtitle")
+      : t("event_reassigned_subtitle_generic")
     : "";
   return (
     <OrganizerScheduledEmail

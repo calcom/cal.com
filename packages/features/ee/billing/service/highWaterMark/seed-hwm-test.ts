@@ -270,7 +270,12 @@ async function cleanupDatabaseResources() {
   console.log("Cleaning up database test resources...");
 
   // Delete test users (cascade will handle related records)
-  const testEmails = [HWM_TEAM_ADMIN_EMAIL, ...HWM_TEAM_MEMBER_EMAILS, HWM_ORG_ADMIN_EMAIL, ...HWM_ORG_MEMBER_EMAILS];
+  const testEmails = [
+    HWM_TEAM_ADMIN_EMAIL,
+    ...HWM_TEAM_MEMBER_EMAILS,
+    HWM_ORG_ADMIN_EMAIL,
+    ...HWM_ORG_MEMBER_EMAILS,
+  ];
   const deleteResult = await prisma.user.deleteMany({
     where: { email: { in: testEmails } },
   });
@@ -445,7 +450,9 @@ async function seedHwmTeam(stripe: Stripe | null): Promise<TeamSeedResult> {
     },
   });
 
-  console.log(`  TeamBilling created (MONTHLY, $${teamPricePerSeatCents / 100}/seat, ${paidSeats} paid, HWM=${peakMemberCount})`);
+  console.log(
+    `  TeamBilling created (MONTHLY, $${teamPricePerSeatCents / 100}/seat, ${paidSeats} paid, HWM=${peakMemberCount})`
+  );
 
   // Get billing record for linking seat changes
   const teamBilling = await prisma.teamBilling.findUnique({ where: { teamId: team.id } });
@@ -654,7 +661,9 @@ async function seedHwmOrg(stripe: Stripe | null): Promise<OrgSeedResult> {
     },
   });
 
-  console.log(`  OrganizationBilling created (MONTHLY, $${orgPricePerSeatCents / 100}/seat, ${paidSeats} paid, HWM=${peakMemberCount})`);
+  console.log(
+    `  OrganizationBilling created (MONTHLY, $${orgPricePerSeatCents / 100}/seat, ${paidSeats} paid, HWM=${peakMemberCount})`
+  );
 
   // Get billing record for linking seat changes
   const orgBilling = await prisma.organizationBilling.findUnique({ where: { teamId: org.id } });
@@ -812,12 +821,8 @@ async function main() {
     const formatDate = (d: Date | null) => (d ? d.toISOString().split("T")[0] : "N/A");
 
     console.log("=== Summary Table ===\n");
-    console.log(
-      "| Entity | Qty | Members | HWM | invoice.upcoming | After Renewal | Price |"
-    );
-    console.log(
-      "|--------|-----|---------|-----|------------------|---------------|-------|"
-    );
+    console.log("| Entity | Qty | Members | HWM | invoice.upcoming | After Renewal | Price |");
+    console.log("|--------|-----|---------|-----|------------------|---------------|-------|");
     console.log(
       `| Team (ID:${result.team.team.id}) | ${result.team.paidSeats} | ${result.team.memberCount} | ${result.team.highWaterMark} | qty → ${result.team.highWaterMark} | qty → ${result.team.memberCount} (scale down) | $6.99 |`
     );
@@ -826,8 +831,12 @@ async function main() {
     );
 
     console.log("\n=== Test Clock Dates ===\n");
-    console.log(`  1. Advance to ${formatDate(teamInvoiceUpcomingDate)} → triggers invoice.upcoming (scale UP to HWM)`);
-    console.log(`  2. Advance to ${formatDate(teamPeriodEnd)} → triggers renewal (scale DOWN to current members)`);
+    console.log(
+      `  1. Advance to ${formatDate(teamInvoiceUpcomingDate)} → triggers invoice.upcoming (scale UP to HWM)`
+    );
+    console.log(
+      `  2. Advance to ${formatDate(teamPeriodEnd)} → triggers renewal (scale DOWN to current members)`
+    );
 
     console.log("\n=== Stripe Resources ===\n");
     console.log("Team:");
@@ -853,7 +862,9 @@ async function main() {
     console.log("   Or use Stripe CLI:");
     if (result.team.stripe.testClock) {
       const advanceTime = Math.floor(Date.now() / 1000) + 27 * 24 * 60 * 60;
-      console.log(`   stripe test_clocks advance ${result.team.stripe.testClock.id} --frozen-time ${advanceTime}`);
+      console.log(
+        `   stripe test_clocks advance ${result.team.stripe.testClock.id} --frozen-time ${advanceTime}`
+      );
     }
     console.log("");
     console.log("2. invoice.upcoming webhook flow:");
@@ -875,8 +886,12 @@ async function main() {
     console.log("   - Org: subscription quantity reset from 8 to 6, HWM reset to 6");
     console.log("");
     console.log("5. To verify HWM in database:");
-    console.log(`   SELECT "highWaterMark", "highWaterMarkPeriodStart", "paidSeats" FROM "TeamBilling" WHERE "teamId" = ${result.team.team.id};`);
-    console.log(`   SELECT "highWaterMark", "highWaterMarkPeriodStart", "paidSeats" FROM "OrganizationBilling" WHERE "teamId" = ${result.organization.organization.id};`);
+    console.log(
+      `   SELECT "highWaterMark", "highWaterMarkPeriodStart", "paidSeats" FROM "TeamBilling" WHERE "teamId" = ${result.team.team.id};`
+    );
+    console.log(
+      `   SELECT "highWaterMark", "highWaterMarkPeriodStart", "paidSeats" FROM "OrganizationBilling" WHERE "teamId" = ${result.organization.organization.id};`
+    );
     console.log("");
 
     console.log("=== Cleanup ===\n");

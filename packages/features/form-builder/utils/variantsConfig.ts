@@ -16,28 +16,31 @@ function getTranslatedConfigVariants(
 ) {
   const fieldTypeVariantsConfig = fieldTypesConfigMap[fieldType]?.variantsConfig?.variants;
 
-  return Object.entries(configVariants).reduce((variantsConfigVariants, [variantName, variant]) => {
-    const variantFieldsMap = fieldTypeVariantsConfig?.[variantName as keyof typeof fieldTypeVariantsConfig]
-      ?.fieldsMap;
+  return Object.entries(configVariants).reduce(
+    (variantsConfigVariants, [variantName, variant]) => {
+      const variantFieldsMap =
+        fieldTypeVariantsConfig?.[variantName as keyof typeof fieldTypeVariantsConfig]?.fieldsMap;
 
-    const translatedFields = variant.fields.map((field) => {
-      const defaultLabel =
-        variantFieldsMap?.[field.name as keyof typeof variantFieldsMap]?.defaultLabel ?? "";
-      const label = (field.label?.trim() ? field.label : defaultLabel) ?? "";
-      const placeholder = field.placeholder ?? "";
-      return {
-        ...field,
-        label: translate(label),
-        placeholder: translate(placeholder),
+      const translatedFields = variant.fields.map((field) => {
+        const defaultLabel =
+          variantFieldsMap?.[field.name as keyof typeof variantFieldsMap]?.defaultLabel ?? "";
+        const label = (field.label?.trim() ? field.label : defaultLabel) ?? "";
+        const placeholder = field.placeholder ?? "";
+        return {
+          ...field,
+          label: translate(label),
+          placeholder: translate(placeholder),
+        };
+      });
+      variantsConfigVariants[variantName] = {
+        ...variant,
+        fields: translatedFields,
       };
-    });
-    variantsConfigVariants[variantName] = {
-      ...variant,
-      fields: translatedFields,
-    };
 
-    return variantsConfigVariants;
-  }, {} as typeof configVariants);
+      return variantsConfigVariants;
+    },
+    {} as typeof configVariants
+  );
 }
 
 /**

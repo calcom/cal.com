@@ -9,9 +9,12 @@ function createMockRepository(): {
   return {
     getManagedUserEmailsBySubscriptionId: vi.fn().mockResolvedValue([]),
     getOrgMemberEmailsByOrgId: vi.fn().mockResolvedValue([]),
+    getOrgMemberDetailsByOrgId: vi.fn().mockResolvedValue([]),
     getActivePlatformUsersAsHost: vi.fn().mockResolvedValue([]),
     getActiveUsersAsHost: vi.fn().mockResolvedValue([]),
     getActiveUsersAsAttendee: vi.fn().mockResolvedValue([]),
+    getBookingsByHostUserId: vi.fn().mockResolvedValue([]),
+    getBookingsByAttendeeEmail: vi.fn().mockResolvedValue([]),
   };
 }
 
@@ -198,6 +201,81 @@ describe("ActiveUserBillingService", () => {
         periodStart,
         periodEnd
       );
+    });
+  });
+
+  describe("getActiveUsersForOrg", () => {
+    const orgId = 42;
+
+    it("returns empty result when org has no members", async () => {
+      mockRepo.getOrgMemberDetailsByOrgId.mockResolvedValue([]);
+
+      const result = await service.getActiveUsersForOrg(orgId, periodStart, periodEnd);
+
+      expect(result.activeUsers).toEqual([]);
+      expect(result.totalMembers).toBe(0);
+      expect(result.activeHosts).toBe(0);
+      expect(result.activeAttendees).toBe(0);
+      expect(mockRepo.getActiveUsersAsHost).not.toHaveBeenCalled();
+    });
+
+    it("returns only hosts when everyone hosted", async () => {
+      mockRepo.getOrgMemberDetailsByOrgId.mockResolvedValue([
+        { id: 1, email: "alice@org.com", name: "Alice" },
+        { id: 2, email: "bob@org.com", name: "Bob" },
+      ]);
+      mockRepo.getActiveUsersAsHost.mockResolvedValue([
+        { email: "alice@org.com" },
+        { email: "bob@org.com" },
+      ]);
+
+      const result = await service.getActiveUsersForOrg(orgId, periodStart, periodEnd);
+
+      expect(result.activeUsers).toEqual([
+        { id: 1, email: "alice@org.com", name: "Alice", activeAs: "host" },
+        { id: 2, email: "bob@org.com", name: "Bob", activeAs: "host" },
+      ]);
+      expect(result.totalMembers).toBe(2);
+      expect(result.activeHosts).toBe(2);
+      expect(result.activeAttendees).toBe(0);
+      expect(mockRepo.getActiveUsersAsAttendee).not.toHaveBeenCalled();
+    });
+
+    it("returns only active users (hosts + attendees), excludes inactive", async () => {
+      mockRepo.getOrgMemberDetailsByOrgId.mockResolvedValue([
+        { id: 1, email: "alice@org.com", name: "Alice" },
+        { id: 2, email: "bob@org.com", name: "Bob" },
+        { id: 3, email: "charlie@org.com", name: "Charlie" },
+        { id: 4, email: "diana@org.com", name: null },
+      ]);
+      mockRepo.getActiveUsersAsHost.mockResolvedValue([{ email: "alice@org.com" }]);
+      mockRepo.getActiveUsersAsAttendee.mockResolvedValue([{ email: "bob@org.com" }]);
+
+      const result = await service.getActiveUsersForOrg(orgId, periodStart, periodEnd);
+
+      expect(result.activeUsers).toEqual([
+        { id: 1, email: "alice@org.com", name: "Alice", activeAs: "host" },
+        { id: 2, email: "bob@org.com", name: "Bob", activeAs: "attendee" },
+      ]);
+      expect(result.totalMembers).toBe(4);
+      expect(result.activeHosts).toBe(1);
+      expect(result.activeAttendees).toBe(1);
+    });
+
+    it("returns empty activeUsers when no one has bookings", async () => {
+      mockRepo.getOrgMemberDetailsByOrgId.mockResolvedValue([
+        { id: 1, email: "alice@org.com", name: "Alice" },
+        { id: 2, email: "bob@org.com", name: "Bob" },
+      ]);
+      mockRepo.getActiveUsersAsHost.mockResolvedValue([]);
+      mockRepo.getActiveUsersAsAttendee.mockResolvedValue([]);
+
+      const result = await service.getActiveUsersForOrg(orgId, periodStart, periodEnd);
+
+      expect(result.activeUsers).toEqual([]);
+      expect(result.totalMembers).toBe(2);
+      expect(result.activeHosts).toBe(0);
+      expect(result.activeAttendees).toBe(0);
     });
   });
 });

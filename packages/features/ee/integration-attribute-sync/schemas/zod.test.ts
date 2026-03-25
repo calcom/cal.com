@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import {
-  attributeSyncRuleConditionSchema,
-  attributeSyncRuleSchema,
-  syncFormDataSchema,
-} from "./zod";
+import { attributeSyncRuleConditionSchema, attributeSyncRuleSchema, syncFormDataSchema } from "./zod";
 
 describe("attributeSyncRuleConditionSchema", () => {
   describe("team conditions", () => {

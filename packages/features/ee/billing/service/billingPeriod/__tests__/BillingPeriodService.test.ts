@@ -272,6 +272,7 @@ describe("BillingPeriodService", () => {
         teamBilling: {
           id: 1,
           billingPeriod: "ANNUALLY",
+          billingMode: "SEATS",
           subscriptionStart,
           subscriptionEnd,
           subscriptionTrialEnd: null,
@@ -286,6 +287,7 @@ describe("BillingPeriodService", () => {
 
       expect(result).toEqual({
         billingPeriod: "ANNUALLY",
+        billingMode: "SEATS",
         subscriptionStart,
         subscriptionEnd,
         trialEnd: null,
@@ -332,6 +334,7 @@ describe("BillingPeriodService", () => {
 
       expect(result).toEqual({
         billingPeriod: null,
+        billingMode: null,
         subscriptionStart: null,
         subscriptionEnd: null,
         trialEnd: null,

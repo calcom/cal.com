@@ -1,7 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import type { PrismaClient } from "@calcom/prisma";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { WrongAssignmentReportRepository } from "./WrongAssignmentReportRepository";
 
 describe("WrongAssignmentReportRepository", () => {

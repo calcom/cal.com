@@ -10,7 +10,7 @@ import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button, buttonClasses } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { ChevronDownIcon, InfoIcon, SearchIcon, UploadIcon } from "@coss/ui/icons";
 import {
   Sheet,
   SheetBody,
@@ -272,7 +272,7 @@ export const EditWeightsForAllTeamMembers = ({
             <SheetBody className="mt-4 flex h-full flex-col stack-y-6 p-1">
               <div className="flex justify-start gap-2">
                 <label className={buttonClasses({ color: "secondary" })}>
-                  <Icon name="upload" className="mr-2 h-4 w-4" />
+                  <UploadIcon className="mr-2 h-4 w-4" />
                   <input type="file" accept=".csv" className="hidden" onChange={handleUploadCsv} />
                   {t("upload")}
                 </label>
@@ -285,7 +285,7 @@ export const EditWeightsForAllTeamMembers = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
                 addOnLeading={
-                  <Icon name="search" className="text-subtle h-4 w-4" aria-hidden="true" focusable="false" />
+                  <SearchIcon className="text-subtle h-4 w-4" />
                 }
               />
 
@@ -304,10 +304,10 @@ export const EditWeightsForAllTeamMembers = ({
                     className="flex w-full items-center justify-between rounded-md border bg-red-50 p-3 text-sm text-red-900"
                     onClick={() => setIsErrorsExpanded(!isErrorsExpanded)}>
                     <div className="flex items-center space-x-2">
-                      <Icon name="info" className="h-4 w-4" />
+                      <InfoIcon className="h-4 w-4" />
                       <span>{t("csv_upload_errors", { count: uploadErrors.length })}</span>
                     </div>
-                    <Icon name="chevron-down" className="h-4 w-4" />
+                    <ChevronDownIcon className="h-4 w-4" />
                   </button>
                   {isErrorsExpanded && (
                     <div className="mt-2 stack-y-2">

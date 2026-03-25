@@ -5,7 +5,7 @@ import { generateMeetingMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { loadTranslations } from "@calcom/lib/server/i18n";
+import { loadTranslations } from "@calcom/i18n/server";
 
 import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";

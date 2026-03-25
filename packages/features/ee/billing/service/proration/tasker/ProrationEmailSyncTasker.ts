@@ -28,10 +28,9 @@ export class ProrationEmailSyncTasker implements IProrationEmailTasker {
     const runId = `sync_${nanoid(10)}`;
     // In sync mode, reminders are not scheduled (they require Trigger.dev)
     // so cancellation is a no-op
-    this.logger.info(
-      `[ProrationEmailSyncTasker] cancelReminder runId=${runId} - no-op in sync mode`,
-      { prorationId: payload.prorationId }
-    );
+    this.logger.info(`[ProrationEmailSyncTasker] cancelReminder runId=${runId} - no-op in sync mode`, {
+      prorationId: payload.prorationId,
+    });
     return { runId };
   }
 }

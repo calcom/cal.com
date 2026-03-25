@@ -79,8 +79,8 @@ async function getAttributeRoutingConfig(
   const routingFormResponseQuery = routingFormResponseId
     ? await routingFormResponseRepository.findFormResponseIncludeForm({ routingFormResponseId })
     : queuedFormResponseId
-    ? await routingFormResponseRepository.findQueuedFormResponseIncludeForm({ queuedFormResponseId })
-    : null;
+      ? await routingFormResponseRepository.findQueuedFormResponseIncludeForm({ queuedFormResponseId })
+      : null;
 
   if (!routingFormResponseQuery || !routingFormResponseQuery?.form.routes) return null;
   const parsedRoutes = routesSchema.safeParse(routingFormResponseQuery?.form.routes);
@@ -232,8 +232,8 @@ async function getTeamMemberEmailForResponseOrContact({
     routingFormResponseId || queuedFormResponseId
       ? { routingFormResponseId, queuedFormResponseId, eventTypeId }
       : chosenRoute
-      ? { route: chosenRoute }
-      : null;
+        ? { route: chosenRoute }
+        : null;
 
   // If we have found crmAppSlug, it means that the CRM App in the routing-form will handle the logic
   if (attributeRoutingConfigGetterData && crmAppSlug) {

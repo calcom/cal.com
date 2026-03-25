@@ -2,6 +2,7 @@
 
 import { FieldTypes } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -14,10 +15,10 @@ import {
   SelectField,
   TextField,
 } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
 import SingleForm from "@components/apps/routing-forms/SingleForm";
+import { ChevronDownIcon, MenuIcon } from "@coss/ui/icons";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import type { UseFormReturn } from "react-hook-form";
@@ -132,7 +133,13 @@ function Field({
             <TextField
               disabled={!!router}
               label={t("identifier_url_parameter")}
-              hint={t("identifier_url_parameter_hint")}
+              hint={
+                <LearnMoreLink
+                  t={t}
+                  i18nKey="identifier_url_parameter_hint"
+                  href="https://cal.com/help/routing/connect-routing-form-to-booking-questions"
+                />
+              }
               name={`${hookFieldNamespace}.identifier`}
               required
               placeholder={t("identifies_name_field")}
@@ -164,8 +171,8 @@ function Field({
                             "h-8 w-full justify-between text-left text-sm",
                             !!router && "bg-subtle cursor-not-allowed"
                           )}>
-                          <span className="text-default">{defaultValue?.label || "Select field type"}</span>
-                          <Icon name="chevron-down" className="text-default h-4 w-4" />
+                          <span className="text-default">{defaultValue?.label || t("select_field_type")}</span>
+                          <ChevronDownIcon className="text-default h-4 w-4" />
                         </Button>
                       </Tooltip>
                     </div>
@@ -333,7 +340,7 @@ const FormEdit = ({
           {/* Icon card - Top */}
           <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">
             <div className="text-emphasis flex h-full items-center justify-center">
-              <Icon name="menu" className="text-emphasis h-4 w-4" />
+              <MenuIcon className="text-emphasis h-4 w-4" />
             </div>
           </div>
           {/* Left fanned card */}

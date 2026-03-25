@@ -37,18 +37,10 @@ function CalendarToggleItem(props: CalendarToggleItemProps) {
             {badgeText}
           </Badge>
         </div>
-      }
-    >
+      }>
       <div className="[&>*]:text-emphasis flex flex-col gap-3">
         {props.calendars?.map((calendar) => {
-          return (
-            <Switch
-              key={calendar.name}
-              checked={calendar.active}
-              label={calendar.name}
-              disabled
-            />
-          );
+          return <Switch key={calendar.name} checked={calendar.active} label={calendar.name} disabled />;
         })}
       </div>
     </TroubleshooterListItemContainer>
@@ -77,15 +69,10 @@ function EmptyCalendarToggleItem({
             {t("unavailable")}
           </Badge>
         </div>
-      }
-    >
+      }>
       {installCalendarAction && (
         <div className="flex flex-col gap-3">
-          <Button
-            color="secondary"
-            className="justify-center gap-2"
-            {...installCalendarAction}
-          >
+          <Button color="secondary" className="justify-center gap-2" {...installCalendarAction}>
             {t("install_calendar")}
           </Button>
         </div>
@@ -127,15 +114,11 @@ export function CalendarToggleContainerComponent({
 
   return (
     <div className="flex flex-col stack-y-3">
-      <p className="text-sm font-medium leading-none">
-        {t("calendars_were_checking_for_conflicts")}
-      </p>
+      <p className="text-sm font-medium leading-none">{t("calendars_were_checking_for_conflicts")}</p>
       {hasConnectedCalendars && !isLoading ? (
         <>
           {connectedCalendars.map((calendar) => {
-            const foundPrimary = calendar.calendars?.find(
-              (item) => item.primary
-            );
+            const foundPrimary = calendar.calendars?.find((item) => item.primary);
             // Will be used when getAvailbility is modified to use externalId instead of appId for source.
             // const color = SELECTION_COLORS[idx] || "#000000";
             // // Add calendar to color map using externalId (what we use on the backend to determine source)
@@ -157,11 +140,7 @@ export function CalendarToggleContainerComponent({
             );
           })}
           {manageCalendarsAction && (
-            <Button
-              color="secondary"
-              className="justify-center gap-2"
-              {...manageCalendarsAction}
-            >
+            <Button color="secondary" className="justify-center gap-2" {...manageCalendarsAction}>
               {t("manage_calendars")}
             </Button>
           )}

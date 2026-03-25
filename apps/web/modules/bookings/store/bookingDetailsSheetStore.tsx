@@ -185,11 +185,8 @@ function useBiDirectionalSyncBetweenStoreAndUrl({ store }: { store: BookingDetai
 
   // Sync Store → URL
   useEffect(() => {
-    // We can't sync from Store to URL if URL hasn't first been synced to Store
-    // This is to prevent override of any user configuration provided by URL query params. Think about page being refreshed
-    if (!isSyncedFromUrlToStoreRef.current) return;
-
     const unsubscribe = store.subscribe((state) => {
+      if (!isSyncedFromUrlToStoreRef.current) return;
       if (state.selectedBookingUid !== selectedBookingUidFromUrl) {
         setSelectedBookingUidToUrl(state.selectedBookingUid);
       }

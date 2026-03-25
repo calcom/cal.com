@@ -15,7 +15,10 @@ const sendEmail = async (prepare: () => BaseEmail) => {
     return await email.sendEmail();
   } catch (e) {
     const errorName = e instanceof Error ? e.name : "UnknownError";
-    console.error(`${email?.constructor?.name ?? "Email"}.sendEmail oauth-email-service failed (${errorName})`, e);
+    console.error(
+      `${email?.constructor?.name ?? "Email"}.sendEmail oauth-email-service failed (${errorName})`,
+      e
+    );
     throw e;
   }
 };

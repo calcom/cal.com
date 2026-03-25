@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z, ZodError } from "zod";
 
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma from "@calcom/prisma";
 
 import { GiphyManager } from "../lib";
@@ -39,10 +40,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       nextOffset: total === offset + 1 ? 0 : offset + 1,
     });
   } catch (error: unknown) {
-    if (error instanceof Error) {
-      return res.status(500).json({ message: error.message });
-    }
-    return res.status(500);
+    const httpError = getServerErrorFromUnknown(error);
+    return res.status(httpError.statusCode).json({ message: httpError.message });
   }
 }
 

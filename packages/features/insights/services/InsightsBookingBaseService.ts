@@ -25,7 +25,7 @@ import { transformBookingsForCsv, type BookingTimeStatusData } from "./csvDataTr
 
 // Utility function to build user hash map with avatar URL fallback
 export const buildHashMapForUsers = <
-  T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown }
+  T extends { avatarUrl: string | null; id: number; username: string | null; [key: string]: unknown },
 >(
   usersFromTeam: T[]
 ) => {
@@ -176,12 +176,13 @@ export class InsightsBookingBaseService {
       ORDER BY 1
     `;
 
-    const results = await this.prisma.$queryRaw<
-      Array<{
-        hour: string;
-        count: number;
-      }>
-    >(query);
+    const results =
+      await this.prisma.$queryRaw<
+        Array<{
+          hour: string;
+          count: number;
+        }>
+      >(query);
 
     // Create a map of results by hour for easy lookup
     const resultsMap = new Map(results.map((row) => [Number(row.hour), row.count]));
@@ -522,25 +523,26 @@ export class InsightsBookingBaseService {
       OFFSET ${offset}
     `;
 
-    const csvData = await this.prisma.$queryRaw<
-      Array<{
-        id: number;
-        uid: string | null;
-        title: string;
-        createdAt: Date;
-        timeStatus: string;
-        eventTypeId: number | null;
-        eventLength: number;
-        startTime: Date;
-        endTime: Date;
-        paid: boolean;
-        userEmail: string;
-        userUsername: string;
-        rating: number | null;
-        ratingFeedback: string | null;
-        noShowHost: boolean;
-      }>
-    >(csvDataQuery);
+    const csvData =
+      await this.prisma.$queryRaw<
+        Array<{
+          id: number;
+          uid: string | null;
+          title: string;
+          createdAt: Date;
+          timeStatus: string;
+          eventTypeId: number | null;
+          eventLength: number;
+          startTime: Date;
+          endTime: Date;
+          paid: boolean;
+          userEmail: string;
+          userUsername: string;
+          rating: number | null;
+          ratingFeedback: string | null;
+          noShowHost: boolean;
+        }>
+      >(csvDataQuery);
 
     if (csvData.length === 0) {
       return { data: csvData, total: totalCount };
@@ -652,15 +654,16 @@ export class InsightsBookingBaseService {
     ORDER BY bs."date"
   `;
 
-    const data = await this.prisma.$queryRaw<
-      {
-        date: Date;
-        bookingsCount: number;
-        timeStatus: string;
-        noShowHost: boolean;
-        noShowGuests: number;
-      }[]
-    >(query);
+    const data =
+      await this.prisma.$queryRaw<
+        {
+          date: Date;
+          bookingsCount: number;
+          timeStatus: string;
+          noShowHost: boolean;
+          noShowGuests: number;
+        }[]
+      >(query);
 
     // Initialize aggregate object with zero counts for all date ranges
     const aggregate: {
@@ -762,12 +765,13 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const bookingsFromSelected = await this.prisma.$queryRaw<
-      Array<{
-        eventTypeId: number;
-        count: number;
-      }>
-    >(query);
+    const bookingsFromSelected =
+      await this.prisma.$queryRaw<
+        Array<{
+          eventTypeId: number;
+          count: number;
+        }>
+      >(query);
 
     const eventTypeIds = bookingsFromSelected.map((booking) => booking.eventTypeId);
 
@@ -868,12 +872,13 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const bookingsFromTeam = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        count: number;
-      }>
-    >(query);
+    const bookingsFromTeam =
+      await this.prisma.$queryRaw<
+        Array<{
+          userId: number;
+          count: number;
+        }>
+      >(query);
 
     if (bookingsFromTeam.length === 0) {
       return [];
@@ -931,12 +936,13 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const bookingsFromTeam = await this.prisma.$queryRaw<
-      Array<{
-        userId: number;
-        count: number;
-      }>
-    >(query);
+    const bookingsFromTeam =
+      await this.prisma.$queryRaw<
+        Array<{
+          userId: number;
+          count: number;
+        }>
+      >(query);
 
     if (bookingsFromTeam.length === 0) {
       return [];
@@ -994,13 +1000,14 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const bookingsFromTeam = await this.prisma.$queryRaw<
-      Array<{
-        userId: number | null;
-        rating: number | null;
-        ratingFeedback: string | null;
-      }>
-    >(query);
+    const bookingsFromTeam =
+      await this.prisma.$queryRaw<
+        Array<{
+          userId: number | null;
+          rating: number | null;
+          ratingFeedback: string | null;
+        }>
+      >(query);
 
     if (bookingsFromTeam.length === 0) {
       return [];
@@ -1092,19 +1099,20 @@ export class InsightsBookingBaseService {
       FROM booking_stats bs, guest_stats gs
     `;
 
-    const stats = await this.prisma.$queryRaw<
-      Array<{
-        total_bookings: bigint;
-        completed_bookings: bigint;
-        rescheduled_bookings: bigint;
-        cancelled_bookings: bigint;
-        no_show_host_bookings: bigint;
-        avg_rating: number | null;
-        total_ratings: bigint;
-        ratings_above_3: bigint;
-        no_show_guests: bigint;
-      }>
-    >(query);
+    const stats =
+      await this.prisma.$queryRaw<
+        Array<{
+          total_bookings: bigint;
+          completed_bookings: bigint;
+          rescheduled_bookings: bigint;
+          cancelled_bookings: bigint;
+          no_show_host_bookings: bigint;
+          avg_rating: number | null;
+          total_ratings: bigint;
+          ratings_above_3: bigint;
+          no_show_guests: bigint;
+        }>
+      >(query);
 
     const rawStats = stats[0];
     return rawStats
@@ -1173,15 +1181,16 @@ export class InsightsBookingBaseService {
       LIMIT 10
     `;
 
-    const recentNoShowBookings = await this.prisma.$queryRaw<
-      Array<{
-        bookingId: number;
-        startTime: Date;
-        eventTypeName: string;
-        guestName: string;
-        guestEmail: string;
-      }>
-    >(query);
+    const recentNoShowBookings =
+      await this.prisma.$queryRaw<
+        Array<{
+          bookingId: number;
+          startTime: Date;
+          eventTypeName: string;
+          guestName: string;
+          guestEmail: string;
+        }>
+      >(query);
 
     return recentNoShowBookings;
   }
@@ -1221,12 +1230,13 @@ export class InsightsBookingBaseService {
       ORDER BY 1
     `;
 
-    const data = await this.prisma.$queryRaw<
-      {
-        date: Date;
-        count: number;
-      }[]
-    >(query);
+    const data =
+      await this.prisma.$queryRaw<
+        {
+          date: Date;
+          count: number;
+        }[]
+      >(query);
 
     // Initialize aggregate object with zero counts for all date ranges
     const aggregate: { [date: string]: number } = {};
@@ -1279,13 +1289,14 @@ export class InsightsBookingBaseService {
       ORDER BY 1
     `;
 
-    const data = await this.prisma.$queryRaw<
-      {
-        date: Date;
-        ratings_above_3: number;
-        total_ratings: number;
-      }[]
-    >(query);
+    const data =
+      await this.prisma.$queryRaw<
+        {
+          date: Date;
+          ratings_above_3: number;
+          total_ratings: number;
+        }[]
+      >(query);
 
     // Initialize aggregate object with zero counts for all date ranges
     const aggregate: { [date: string]: { ratingsAbove3: number; totalRatings: number } } = {};

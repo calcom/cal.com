@@ -8,8 +8,8 @@ import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Divider } from "@calcom/ui/components/divider";
 import { FilterSearchField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
+import { LayersIcon } from "@coss/ui/icons";
 
 import { useInsightsOrgTeams } from "../../hooks/useInsightsOrgTeams";
 
@@ -97,7 +97,7 @@ export const OrgTeamsFilter = () => {
           <FilterCheckboxField
             id="all"
             testId="org-teams-filter-item"
-            icon={<Icon name="layers" className="h-4 w-4" />}
+            icon={<LayersIcon className="h-4 w-4" />}
             checked={orgTeamsType === "org"}
             onChange={(e) => {
               if (e.target.checked) {

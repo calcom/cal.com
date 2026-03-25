@@ -1,17 +1,15 @@
-import type { Mock } from "vitest";
-import { vi } from "vitest";
-
 import type { MockResponse } from "@calcom/features/auth/signup/handlers/__tests__/mocks/next.mocks";
-
 import {
   prismaMock,
   resetPrismaMock,
 } from "@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks";
-import {
-  createMockTeam,
-  createMockFoundToken,
-} from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
 import type { SignupBody } from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
+import {
+  createMockFoundToken,
+  createMockTeam,
+} from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
+import type { Mock } from "vitest";
+import { vi } from "vitest";
 
 const mockFindTokenByToken: Mock = vi.fn();
 const mockValidateAndGetCorrectedUsernameForTeam: Mock = vi.fn();
@@ -76,6 +74,22 @@ vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({
 vi.mock("@calcom/features/watchlist/lib/telemetry", () => ({ sentrySpan: {} }));
 vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller", () => ({
   checkIfEmailIsBlockedInWatchlistController: vi.fn().mockResolvedValue(false),
+}));
+vi.mock("@calcom/features/di/containers/FeatureRepository", () => ({
+  getFeatureRepository: vi.fn().mockReturnValue({
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
+  }),
+}));
+vi.mock("@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository", () => {
+  return {
+    GlobalWatchlistRepository: class {
+      findBlockedEmail = vi.fn().mockResolvedValue(null);
+      createEntry = vi.fn().mockResolvedValue({});
+    },
+  };
+});
+vi.mock("@calcom/features/watchlist/lib/utils/normalization", () => ({
+  normalizeEmail: vi.fn((e: string) => e.toLowerCase()),
 }));
 vi.mock("@calcom/web/lib/buildLegacyCtx", () => ({ buildLegacyRequest: vi.fn() }));
 vi.mock("@calcom/features/auth/signup/utils/organization", () => ({ joinAnyChildTeamOnOrgInvite: vi.fn() }));

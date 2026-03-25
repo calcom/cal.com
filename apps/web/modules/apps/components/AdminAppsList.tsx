@@ -1,16 +1,7 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-// eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
-import type { FC } from "react";
-import { useReducer, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
-
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
-import AppListCard from "@calcom/web/modules/apps/components/AppListCard";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,19 +11,25 @@ import { trpc } from "@calcom/trpc/react";
 import cs from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import {
+  ConfirmationDialogContent,
+  DialogClose,
   DialogContent,
   DialogFooter,
-  DialogClose,
-  ConfirmationDialogContent,
 } from "@calcom/ui/components/dialog";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { Form, Switch, TextField } from "@calcom/ui/components/form";
 import { List } from "@calcom/ui/components/list";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import AppListCardWebWrapper from "@calcom/web/modules/apps/components/AppListCardWebWrapper";
+import { PencilIcon } from "@coss/ui/icons";
+import { zodResolver } from "@hookform/resolvers/zod";
+// eslint-disable-next-line no-restricted-imports
+import { noop } from "lodash";
+import type { FC } from "react";
+import { useReducer, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 type App = RouterOutputs["viewer"]["apps"]["listLocal"][number];
 
@@ -83,7 +80,7 @@ const IntegrationContainer = ({
 
   return (
     <li>
-      <AppListCard
+      <AppListCardWebWrapper
         logo={app.logo}
         description={app.description}
         title={app.name}
@@ -92,7 +89,7 @@ const IntegrationContainer = ({
           <div className="flex items-center justify-self-end">
             {app.keys && (
               <Button color="secondary" className="mr-2" onClick={() => showKeyModal()}>
-                <Icon name="pencil" />
+                <PencilIcon />
               </Button>
             )}
 

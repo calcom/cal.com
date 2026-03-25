@@ -13,7 +13,7 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { CalendarIcon, Columns3Icon, Grid3x3Icon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import { TimeFormatToggle } from "@calcom/features/bookings/components/TimeFormatToggle";
@@ -195,7 +195,7 @@ const LayoutToggle = ({
         value: BookerLayouts.MONTH_VIEW,
         label: (
           <>
-            <Icon name="calendar" width="16" height="16" />
+            <CalendarIcon className="h-4 w-4" />
             <span className="sr-only">${t("switch_monthly")}</span>
           </>
         ),
@@ -205,7 +205,7 @@ const LayoutToggle = ({
         value: BookerLayouts.WEEK_VIEW,
         label: (
           <>
-            <Icon name="grid-3x3" width="16" height="16" />
+            <Grid3x3Icon className="h-4 w-4" />
             <span className="sr-only">${t("switch_weekly")}</span>
           </>
         ),
@@ -215,7 +215,7 @@ const LayoutToggle = ({
         value: BookerLayouts.COLUMN_VIEW,
         label: (
           <>
-            <Icon name="columns-3" width="16" height="16" />
+            <Columns3Icon className="h-4 w-4" />
             <span className="sr-only">${t("switch_columnview")}</span>
           </>
         ),

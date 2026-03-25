@@ -8,7 +8,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import classNames from "@calcom/ui/classNames";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon } from "@coss/ui/icons";
 
 import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
@@ -125,7 +125,7 @@ export const FormBuilderField = ({
                     <div
                       data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
-                      <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                      <InfoIcon className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                       <p>{t(message || "invalid_input")}</p>
                     </div>
                   );

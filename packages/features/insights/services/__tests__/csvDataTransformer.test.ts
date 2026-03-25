@@ -207,9 +207,7 @@ describe("csvDataTransformer", () => {
     const createBooking = (overrides: Partial<BookingWithAttendees> = {}): BookingWithAttendees => ({
       uid: "test-uid",
       eventTypeId: 1,
-      attendees: [
-        { name: "John Doe", email: "john@example.com", phoneNumber: null, noShow: false },
-      ],
+      attendees: [{ name: "John Doe", email: "john@example.com", phoneNumber: null, noShow: false }],
       seatsReferences: [],
       responses: {},
       eventType: { bookingFields: [] },
@@ -227,10 +225,7 @@ describe("csvDataTransformer", () => {
 
       const result = processBookingAttendees(booking, null, null, false);
 
-      expect(result.attendeeList).toEqual([
-        "John Doe (john@example.com)",
-        "Jane Smith (jane@example.com)",
-      ]);
+      expect(result.attendeeList).toEqual(["John Doe (john@example.com)", "Jane Smith (jane@example.com)"]);
       expect(result.attendeePhoneNumbers).toEqual(["+1234567890", null]);
     });
 
@@ -260,10 +255,7 @@ describe("csvDataTransformer", () => {
 
       const result = processBookingAttendees(booking, null, null, true);
 
-      expect(result.attendeeList).toEqual([
-        "Seat 1 (seat1@example.com)",
-        "Seat 2 (seat2@example.com)",
-      ]);
+      expect(result.attendeeList).toEqual(["Seat 1 (seat1@example.com)", "Seat 2 (seat2@example.com)"]);
       expect(result.noShowGuests).toBe("Seat 2 (seat2@example.com)");
     });
 
@@ -293,9 +285,7 @@ describe("csvDataTransformer", () => {
 
     it("should use system phone as fallback for attendee phone", () => {
       const booking = createBooking({
-        attendees: [
-          { name: "John Doe", email: "john@example.com", phoneNumber: null, noShow: false },
-        ],
+        attendees: [{ name: "John Doe", email: "john@example.com", phoneNumber: null, noShow: false }],
         responses: {
           attendeePhoneNumber: "+1234567890",
         },
@@ -308,9 +298,7 @@ describe("csvDataTransformer", () => {
 
     it("should use custom phone field as fallback when system phone not available", () => {
       const booking = createBooking({
-        attendees: [
-          { name: "John Doe", email: "john@example.com", phoneNumber: null, noShow: false },
-        ],
+        attendees: [{ name: "John Doe", email: "john@example.com", phoneNumber: null, noShow: false }],
         responses: {
           customPhone: "+9876543210",
         },
@@ -361,9 +349,7 @@ describe("csvDataTransformer", () => {
         {
           uid: "booking-1",
           eventTypeId: 1,
-          attendees: [
-            { name: "A1", email: "a1@test.com", phoneNumber: null, noShow: false },
-          ],
+          attendees: [{ name: "A1", email: "a1@test.com", phoneNumber: null, noShow: false }],
           seatsReferences: [],
           responses: {},
           eventType: { bookingFields: [] },
@@ -478,7 +464,9 @@ describe("csvDataTransformer", () => {
   });
 
   describe("formatCsvRow", () => {
-    const createBookingTimeStatus = (overrides: Partial<BookingTimeStatusData> = {}): BookingTimeStatusData => ({
+    const createBookingTimeStatus = (
+      overrides: Partial<BookingTimeStatusData> = {}
+    ): BookingTimeStatusData => ({
       id: 1,
       uid: "test-uid",
       title: "Test Meeting",
@@ -500,13 +488,7 @@ describe("csvDataTransformer", () => {
     it("should format dates correctly for timezone", () => {
       const bookingTimeStatus = createBookingTimeStatus();
 
-      const result = formatCsvRow(
-        bookingTimeStatus,
-        null,
-        0,
-        new Set(),
-        "America/New_York"
-      );
+      const result = formatCsvRow(bookingTimeStatus, null, 0, new Set(), "America/New_York");
 
       expect(result.createdAt).toBe("2024-01-15T10:00:00.000Z");
       expect(result.createdAt_date).toBe("2024-01-15");
@@ -523,13 +505,7 @@ describe("csvDataTransformer", () => {
         bookingQuestionResponses: {},
       };
 
-      const result = formatCsvRow(
-        bookingTimeStatus,
-        processedData,
-        3,
-        new Set(),
-        "UTC"
-      );
+      const result = formatCsvRow(bookingTimeStatus, processedData, 3, new Set(), "UTC");
 
       expect(result.attendee1).toBe("John (john@test.com)");
       expect(result.attendeePhone1).toBe("+111");
@@ -601,21 +577,9 @@ describe("csvDataTransformer", () => {
         },
       };
 
-      const allLabels = new Set([
-        "Company",
-        "Job Title",
-        "Budget",
-        "Meeting Purpose",
-        "Additional Notes",
-      ]);
+      const allLabels = new Set(["Company", "Job Title", "Budget", "Meeting Purpose", "Additional Notes"]);
 
-      const result = formatCsvRow(
-        bookingTimeStatus,
-        processedData,
-        3,
-        allLabels,
-        "America/Los_Angeles"
-      );
+      const result = formatCsvRow(bookingTimeStatus, processedData, 3, allLabels, "America/Los_Angeles");
 
       expect(result).toMatchSnapshot();
     });
@@ -710,17 +674,24 @@ describe("csvDataTransformer", () => {
           eventTypeId: 2,
           attendees: [],
           seatsReferences: [
-            { attendee: { name: "Participant 1", email: "p1@example.com", phoneNumber: null, noShow: false } },
+            {
+              attendee: { name: "Participant 1", email: "p1@example.com", phoneNumber: null, noShow: false },
+            },
             { attendee: { name: "Participant 2", email: "p2@example.com", phoneNumber: null, noShow: true } },
-            { attendee: { name: "Participant 3", email: "p3@example.com", phoneNumber: "+9876543210", noShow: false } },
+            {
+              attendee: {
+                name: "Participant 3",
+                email: "p3@example.com",
+                phoneNumber: "+9876543210",
+                noShow: false,
+              },
+            },
           ],
           responses: {
             emergencyContact: "+5555555555",
           },
           eventType: {
-            bookingFields: [
-              { name: "emergencyContact", type: "phone", label: "Emergency Contact" },
-            ],
+            bookingFields: [{ name: "emergencyContact", type: "phone", label: "Emergency Contact" }],
           },
           tracking: null,
         },

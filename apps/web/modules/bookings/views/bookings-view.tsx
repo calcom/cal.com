@@ -1,13 +1,14 @@
 "use client";
 
-import { ColumnFilterType, DataTableProvider, type SystemFilterSegment } from "@calcom/features/data-table";
+import { ColumnFilterType, type SystemFilterSegment } from "@calcom/features/data-table";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { useSegments } from "~/data-table/hooks/useSegments";
 import FeatureOptInBannerWrapper from "~/feature-opt-in/components/FeatureOptInBannerWrapper";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
-import { useMemo } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useMemo } from "react";
 import { useFeatureOptInBanner } from "../../feature-opt-in/hooks/useFeatureOptInBanner";
 import { BookingListContainer } from "../components/BookingListContainer";
 import { useActiveFiltersValidator } from "../hooks/useActiveFiltersValidator";
@@ -78,7 +79,11 @@ export default function Bookings(props: BookingsProps) {
 
 function BookingsContent({ status, permissions, bookingsV3Enabled, bookingAuditEnabled }: BookingsProps) {
   const [view] = useBookingsView({ bookingsV3Enabled });
-  const optInBanner = useFeatureOptInBanner("bookings-v3");
+  const router = useRouter();
+  const handleOptInSuccess = useCallback(() => {
+    router.refresh();
+  }, [router]);
+  const optInBanner = useFeatureOptInBanner("bookings-v3", { onOptInSuccess: handleOptInSuccess });
 
   return (
     <div className={classNames(view === "calendar" && "-mb-8")}>

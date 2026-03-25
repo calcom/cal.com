@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const code = req.query.code as string;
-  const state = decodeOAuthState(req);
+  const state = decodeOAuthState(req, "tandem");
 
   let clientId = "";
   let clientSecret = "";

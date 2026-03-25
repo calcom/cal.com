@@ -15,7 +15,6 @@ export type GetSubscriberOptions = {
   oAuthClientId?: string | null;
 };
 
-
 const getWebhooks = async (
   options: GetSubscriberOptions,
   prisma: PrismaClient = defaultPrisma

@@ -1,5 +1,10 @@
-import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
+import {
+  bindModuleToClassOnToken,
+  createModule,
+  type ModuleLoader,
+} from "@calcom/features/di/di";
 import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/FeaturesRepository";
+import { moduleLoader as activeUserBillingServiceModuleLoader } from "@calcom/features/ee/billing/active-user/di/ActiveUserBillingService.module";
 import { SeatBillingStrategyFactory } from "@calcom/features/ee/billing/service/seatBillingStrategy/SeatBillingStrategyFactory";
 import { DI_TOKENS } from "../tokens";
 import { billingPeriodServiceModuleLoader } from "./BillingPeriodService.module";
@@ -26,6 +31,7 @@ const loadModule = bindModuleToClassOnToken({
     highWaterMarkService: highWaterMarkServiceModuleLoader,
     monthlyProrationService: monthlyProrationServiceModuleLoader,
     teamBillingDataRepository: teamBillingDataRepositoryModuleLoader,
+    activeUserBillingService: activeUserBillingServiceModuleLoader,
   },
 });
 

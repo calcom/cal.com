@@ -1,19 +1,18 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { signIn } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import z from "zod";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
+import { MailOpenIcon, TriangleAlertIcon } from "@coss/ui/icons";
+import { motion } from "framer-motion";
+import { usePathname, useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useEffect, useRef, useState } from "react";
+import z from "zod";
 
 async function sendVerificationLogin(email: string, username: string, t: (key: string) => string) {
   await signIn("email", {
@@ -59,7 +58,7 @@ const querySchema = z.object({
 
 const PaymentFailedIcon = () => (
   <div className="rounded-full bg-orange-900 p-3">
-    <Icon name="triangle-alert" className="h-6 w-6 shrink-0 p-0.5 font-extralight text-orange-100" />
+    <TriangleAlertIcon className="h-6 w-6 shrink-0 p-0.5 font-extralight text-orange-100" />
   </div>
 );
 
@@ -106,9 +105,9 @@ const PaymentSuccess = () => (
   </div>
 );
 
-const MailOpenIcon = () => (
+const MailOpenIconWrapper = () => (
   <div className="bg-default rounded-full p-3">
-    <Icon name="mail-open" className="text-emphasis h-12 w-12 shrink-0 p-0.5 font-extralight" />
+    <MailOpenIcon className="text-emphasis h-12 w-12 shrink-0 p-0.5 font-extralight" />
   </div>
 );
 
@@ -170,7 +169,7 @@ export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
           ) : isPremiumUsername ? (
             <PaymentSuccess />
           ) : (
-            <MailOpenIcon />
+            <MailOpenIconWrapper />
           )}
           <h3 className="font-cal text-emphasis my-6 text-2xl font-normal leading-none">
             {hasPaymentFailed

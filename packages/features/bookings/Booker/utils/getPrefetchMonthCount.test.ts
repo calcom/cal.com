@@ -84,7 +84,13 @@ describe("getPrefetchMonthCount", () => {
     });
 
     it("should return undefined when both months are invalid", () => {
-      const result = getPrefetchMonthCount(BookerLayouts.COLUMN_VIEW, "selecting_time", Infinity, -Infinity, false);
+      const result = getPrefetchMonthCount(
+        BookerLayouts.COLUMN_VIEW,
+        "selecting_time",
+        Infinity,
+        -Infinity,
+        false
+      );
       expect(result).toBe(undefined);
     });
   });

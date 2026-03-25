@@ -55,7 +55,10 @@ export const OrganizerScheduledEmail = (
         ) : (
           <>
             {props.attendeeCancelled
-              ? t("attendee_no_longer_attending_subtitle", { name: props.attendee.name, interpolation: { escapeValue: false } })
+              ? t("attendee_no_longer_attending_subtitle", {
+                  name: props.attendee.name,
+                  interpolation: { escapeValue: false },
+                })
               : ""}
           </>
         )

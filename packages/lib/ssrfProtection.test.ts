@@ -81,16 +81,12 @@ describe("validateUrlForSSRFSync", () => {
   });
 
   it("allows /api/avatar/{uuid}.png only", () => {
-    expect(validateUrlForSSRFSync("/api/avatar/ba0fa3a6-2aac-4032-8230-3789f5752e5a.png").isValid).toBe(
-      true
-    );
+    expect(validateUrlForSSRFSync("/api/avatar/ba0fa3a6-2aac-4032-8230-3789f5752e5a.png").isValid).toBe(true);
     expect(validateUrlForSSRFSync("/api/avatar/any-value.png").isValid).toBe(true);
   });
 
   it("rejects /api/avatar/ path without .png extension", () => {
-    expect(validateUrlForSSRFSync("/api/avatar/ba0fa3a6-2aac-4032-8230-3789f5752e5a").isValid).toBe(
-      false
-    );
+    expect(validateUrlForSSRFSync("/api/avatar/ba0fa3a6-2aac-4032-8230-3789f5752e5a").isValid).toBe(false);
     expect(validateUrlForSSRFSync("/api/avatar/foo.jpg").isValid).toBe(false);
   });
 

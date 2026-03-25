@@ -1,7 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
-
 import type { User } from "@calcom/prisma/client";
 import { UserPermissionRole } from "@calcom/prisma/enums";
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
   TeamRepository: class {
@@ -10,6 +9,24 @@ vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
       return Promise.resolve([]);
     }
   },
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
+vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
+  sendEmailVerification: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@calcom/emails/organization-email-service", () => ({
+  sendOrganizationCreationEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@calcom/lib/domainManager/organization", () => ({
+  createDomain: vi.fn().mockResolvedValue(true),
+  deleteDomain: vi.fn().mockResolvedValue(true),
 }));
 
 import { BaseOnboardingService } from "../BaseOnboardingService";
@@ -184,7 +201,11 @@ describe("BaseOnboardingService", () => {
     it("should handle undefined teams and invites", async () => {
       const service = new TestableBaseOnboardingService(mockUser);
 
-      const { teamsData, invitedMembersData } = await service.testBuildTeamsAndInvites("test-org", undefined, undefined);
+      const { teamsData, invitedMembersData } = await service.testBuildTeamsAndInvites(
+        "test-org",
+        undefined,
+        undefined
+      );
 
       expect(teamsData).toEqual([]);
       expect(invitedMembersData).toEqual([]);
@@ -203,7 +224,11 @@ describe("BaseOnboardingService", () => {
         { email: "user2@example.com", teamId: -1, teamName: "Sales", role: "ADMIN" },
       ];
 
-      const { teamsData, invitedMembersData } = await service.testBuildTeamsAndInvites("test-org", teams, invites);
+      const { teamsData, invitedMembersData } = await service.testBuildTeamsAndInvites(
+        "test-org",
+        teams,
+        invites
+      );
 
       expect(teamsData).toHaveLength(2);
       expect(invitedMembersData).toHaveLength(2);
@@ -227,7 +252,11 @@ describe("BaseOnboardingService", () => {
         { email: "eng@example.com", teamName: "Engineering", teamId: 42, role: "ADMIN" },
       ];
 
-      const { teamsData, invitedMembersData } = await service.testBuildTeamsAndInvites("test-org", teams, invites);
+      const { teamsData, invitedMembersData } = await service.testBuildTeamsAndInvites(
+        "test-org",
+        teams,
+        invites
+      );
 
       expect(teamsData).toHaveLength(2);
       expect(invitedMembersData).toHaveLength(3);

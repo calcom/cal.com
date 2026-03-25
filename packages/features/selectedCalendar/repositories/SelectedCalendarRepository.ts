@@ -278,10 +278,7 @@ export class SelectedCalendarRepository implements ISelectedCalendarRepository {
             ],
           },
           {
-            OR: [
-              { googleChannelExpiration: null },
-              { googleChannelExpiration: { lt: tomorrowTimestamp } },
-            ],
+            OR: [{ googleChannelExpiration: null }, { googleChannelExpiration: { lt: tomorrowTimestamp } }],
           },
         ],
       },

@@ -1,5 +1,6 @@
 "use client";
 
+import { RATING_OPTIONS } from "@calcom/features/bookings/lib/rating";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@coss/ui/components/button";
@@ -9,7 +10,6 @@ import { cn } from "@coss/ui/lib/utils";
 import { XIcon } from "lucide-react";
 import type { ReactElement } from "react";
 import { useState } from "react";
-import { RATING_OPTIONS } from "@calcom/features/bookings/lib/rating";
 
 export interface FeedbackDialogProps {
   isOpen: boolean;
@@ -44,15 +44,19 @@ export function FeedbackDialog({
   const [comment, setComment] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const submitFeedbackMutation = trpc.viewer.feedback.submitFeedback.useMutation({
-    onSuccess: () => {
-      setIsSuccess(true);
-      onSubmitSuccess?.();
-    },
-    onError: () => {
-      toastManager.add({ title: t("error_submitting_feedback"), type: "error" });
-    },
-  });
+  const submitFeedbackMutation =
+    trpc.viewer.feedback.submitFeedback.useMutation({
+      onSuccess: () => {
+        setIsSuccess(true);
+        onSubmitSuccess?.();
+      },
+      onError: () => {
+        toastManager.add({
+          title: t("error_submitting_feedback"),
+          type: "error",
+        });
+      },
+    });
 
   const handleSubmit = async (): Promise<void> => {
     if (selectedRating === null) return;
@@ -82,7 +86,12 @@ export function FeedbackDialog({
   }
 
   // Visibility classes based on showOn
-  const visibilityClass = showOn === "desktop" ? "hidden sm:block" : showOn === "mobile" ? "sm:hidden" : "";
+  const visibilityClass =
+    showOn === "desktop"
+      ? "hidden sm:block"
+      : showOn === "mobile"
+      ? "sm:hidden"
+      : "";
   const showMobileBackdrop = showOn !== "desktop";
 
   if (isSuccess) {
@@ -90,24 +99,33 @@ export function FeedbackDialog({
       <>
         {/* Mobile-only backdrop */}
         {showMobileBackdrop && (
-          <div className="fixed inset-0 z-40 bg-black/50 sm:hidden" onClick={resetAndClose} />
+          <div
+            className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+            onClick={resetAndClose}
+          />
         )}
         <div
           data-testid="feedback-success-dialog"
           className={cn(
-            "bg-default border-subtle fixed bottom-24 left-5 right-5 z-50 rounded-lg border shadow-lg sm:bottom-5 sm:left-auto sm:max-w-sm",
+            "fixed right-5 bottom-24 left-5 z-50 rounded-lg border border-subtle bg-default shadow-lg sm:right-20 sm:bottom-5 sm:left-auto sm:max-w-sm",
             visibilityClass
-          )}>
+          )}
+        >
           <div className="relative p-4">
             <button
               type="button"
               onClick={resetAndClose}
               className="absolute top-2 right-2 rounded-md p-1 hover:bg-subtle"
-              aria-label={t("close")}>
+              aria-label={t("close")}
+            >
               <XIcon className="h-4 w-4" />
             </button>
-            <h3 className="text-emphasis text-lg font-semibold">{t("feedback_submitted_title")}</h3>
-            <p className="text-subtle mt-1 text-sm">{t("feedback_submitted_description")}</p>
+            <h3 className="font-semibold text-emphasis text-lg">
+              {t("feedback_submitted_title")}
+            </h3>
+            <p className="mt-1 text-sm text-subtle">
+              {t("feedback_submitted_description")}
+            </p>
             <div className="mt-4 flex justify-end">
               <Button size="sm" onClick={resetAndClose}>
                 {t("done")}
@@ -123,24 +141,29 @@ export function FeedbackDialog({
     <>
       {/* Mobile-only backdrop */}
       {showMobileBackdrop && (
-        <div className="fixed inset-0 z-40 bg-black/50 sm:hidden" onClick={handleSkip} />
+        <div
+          className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+          onClick={handleSkip}
+        />
       )}
       <div
         data-testid="feedback-dialog"
         className={cn(
-          "bg-default border-subtle fixed bottom-24 left-5 right-5 z-50 rounded-lg border shadow-lg sm:bottom-5 sm:left-auto sm:max-w-sm",
+          "fixed right-5 bottom-24 left-5 z-50 rounded-lg border border-subtle bg-default shadow-lg sm:right-20 sm:bottom-5 sm:left-auto sm:max-w-sm",
           visibilityClass
-        )}>
+        )}
+      >
         <div className="relative p-4">
           <button
             type="button"
             onClick={handleSkip}
             className="absolute top-2 right-2 rounded-md p-1 hover:bg-subtle"
-            aria-label={t("close")}>
+            aria-label={t("close")}
+          >
             <XIcon className="h-4 w-4" />
           </button>
-          <h3 className="text-emphasis text-lg font-semibold">{t(titleKey)}</h3>
-          <p className="text-subtle mt-1 text-sm">{t(descriptionKey)}</p>
+          <h3 className="font-semibold text-emphasis text-lg">{t(titleKey)}</h3>
+          <p className="mt-1 text-sm text-subtle">{t(descriptionKey)}</p>
 
           <div className="mt-4 flex justify-center gap-2">
             {RATING_OPTIONS.map((option) => (
@@ -150,9 +173,12 @@ export function FeedbackDialog({
                 onClick={() => setSelectedRating(option.value)}
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-lg text-xl transition-all",
-                  selectedRating === option.value ? "bg-emphasis" : "hover:bg-subtle"
+                  selectedRating === option.value
+                    ? "bg-emphasis"
+                    : "hover:bg-subtle"
                 )}
-                aria-label={`Rating ${option.value}`}>
+                aria-label={`Rating ${option.value}`}
+              >
                 {option.emoji}
               </button>
             ))}
@@ -173,7 +199,10 @@ export function FeedbackDialog({
             <Button
               size="sm"
               onClick={handleSubmit}
-              disabled={selectedRating === null || submitFeedbackMutation.isPending}>
+              disabled={
+                selectedRating === null || submitFeedbackMutation.isPending
+              }
+            >
               {t("submit_feedback")}
             </Button>
           </div>

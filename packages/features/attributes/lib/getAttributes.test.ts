@@ -868,18 +868,22 @@ describe("getAttributes", () => {
         attributeOptionId: "level-senior",
       });
 
-      const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } = await getAttributesAssignmentData({
-        teamId: team.id,
-        orgId,
-        attributeIds: ["attr1", "attr2"],
-      });
+      const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } =
+        await getAttributesAssignmentData({
+          teamId: team.id,
+          orgId,
+          attributeIds: ["attr1", "attr2"],
+        });
 
       expect(attributesOfTheOrg).toHaveLength(2);
       expect(attributesOfTheOrg.map((a) => a.id).sort()).toEqual(["attr1", "attr2"]);
 
       expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
       expect(attributesAssignedToTeamMembersWithOptions[0].userId).toBe(user.id);
-      expect(Object.keys(attributesAssignedToTeamMembersWithOptions[0].attributes)).toEqual(["attr1", "attr2"]);
+      expect(Object.keys(attributesAssignedToTeamMembersWithOptions[0].attributes)).toEqual([
+        "attr1",
+        "attr2",
+      ]);
       expect(attributesAssignedToTeamMembersWithOptions[0].attributes.attr1).toBeDefined();
       expect(attributesAssignedToTeamMembersWithOptions[0].attributes.attr2).toBeDefined();
       expect(attributesAssignedToTeamMembersWithOptions[0].attributes.attr3).toBeUndefined();
@@ -898,7 +902,9 @@ describe("getAttributes", () => {
         name: "Department",
         slug: "department",
         type: AttributeType.SINGLE_SELECT,
-        options: [{ id: "dept-eng", value: "Engineering", slug: "engineering", isGroup: false, contains: [] }],
+        options: [
+          { id: "dept-eng", value: "Engineering", slug: "engineering", isGroup: false, contains: [] },
+        ],
       });
 
       await createMockAttribute({
@@ -942,7 +948,9 @@ describe("getAttributes", () => {
         name: "Department",
         slug: "department",
         type: AttributeType.SINGLE_SELECT,
-        options: [{ id: "dept-eng", value: "Engineering", slug: "engineering", isGroup: false, contains: [] }],
+        options: [
+          { id: "dept-eng", value: "Engineering", slug: "engineering", isGroup: false, contains: [] },
+        ],
       });
 
       await createMockAttributeAssignment({
@@ -973,7 +981,9 @@ describe("getAttributes", () => {
         name: "Department",
         slug: "department",
         type: AttributeType.SINGLE_SELECT,
-        options: [{ id: "dept-eng", value: "Engineering", slug: "engineering", isGroup: false, contains: [] }],
+        options: [
+          { id: "dept-eng", value: "Engineering", slug: "engineering", isGroup: false, contains: [] },
+        ],
       });
 
       await createMockAttributeAssignment({
@@ -1006,10 +1016,22 @@ describe("getAttributes", () => {
         data: { name: "User 2", email: "user2@test.com" },
       });
       const orgMembership2 = await prismock.membership.create({
-        data: { role: MembershipRole.MEMBER, disableImpersonation: false, accepted: true, teamId: orgId, userId: user2.id },
+        data: {
+          role: MembershipRole.MEMBER,
+          disableImpersonation: false,
+          accepted: true,
+          teamId: orgId,
+          userId: user2.id,
+        },
       });
       await prismock.membership.create({
-        data: { role: MembershipRole.MEMBER, disableImpersonation: false, accepted: true, teamId: team.id, userId: user2.id },
+        data: {
+          role: MembershipRole.MEMBER,
+          disableImpersonation: false,
+          accepted: true,
+          teamId: team.id,
+          userId: user2.id,
+        },
       });
 
       // User 3 has no attribute assignments at all
@@ -1017,10 +1039,22 @@ describe("getAttributes", () => {
         data: { name: "User 3", email: "user3@test.com" },
       });
       await prismock.membership.create({
-        data: { role: MembershipRole.MEMBER, disableImpersonation: false, accepted: true, teamId: orgId, userId: user3.id },
+        data: {
+          role: MembershipRole.MEMBER,
+          disableImpersonation: false,
+          accepted: true,
+          teamId: orgId,
+          userId: user3.id,
+        },
       });
       await prismock.membership.create({
-        data: { role: MembershipRole.MEMBER, disableImpersonation: false, accepted: true, teamId: team.id, userId: user3.id },
+        data: {
+          role: MembershipRole.MEMBER,
+          disableImpersonation: false,
+          accepted: true,
+          teamId: team.id,
+          userId: user3.id,
+        },
       });
 
       await createMockAttribute({

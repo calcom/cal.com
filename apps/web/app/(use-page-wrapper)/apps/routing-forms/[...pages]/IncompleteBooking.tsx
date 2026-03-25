@@ -1,10 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import type z from "zod";
-
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
-import { WhenToWriteToRecord, SalesforceFieldType } from "@calcom/app-store/salesforce/lib/enums";
+import { SalesforceFieldType, WhenToWriteToRecord } from "@calcom/app-store/salesforce/lib/enums";
 import type { writeToRecordDataSchema as salesforceWriteToRecordDataSchema } from "@calcom/app-store/salesforce/zod";
 import { routingFormIncompleteBookingDataSchema as salesforceRoutingFormIncompleteBookingDataSchema } from "@calcom/app-store/salesforce/zod";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,15 +9,13 @@ import { IncompleteBookingActionType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui/components/button";
-import { Switch } from "@calcom/ui/components/form";
-import { InputField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { InputField, Label, Select, Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import type { getServerSidePropsForSingleFormView as getServerSideProps } from "@calcom/web/lib/apps/routing-forms/[...pages]/getServerSidePropsSingleForm";
-
 import SingleForm from "@components/apps/routing-forms/SingleForm";
+import { GlobeIcon } from "@coss/ui/icons";
+import { useEffect, useState } from "react";
+import type z from "zod";
 
 function Page({ form }: { form: RoutingFormWithResponseCount }) {
   const { t } = useLocale();
@@ -105,7 +100,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-0.5">
               <div className="border-subtle rounded-lg border p-1">
-                <Icon name="globe" className="text-subtle h-4 w-4" />
+                <GlobeIcon className="text-subtle h-4 w-4" />
               </div>
               <div className="flex flex-col">
                 <span className="text-emphasis ml-2 text-sm font-medium">
