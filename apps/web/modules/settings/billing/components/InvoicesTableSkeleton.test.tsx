@@ -1,34 +1,20 @@
-import { render } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { InvoicesTableSkeleton } from "./InvoicesTableSkeleton";
 
-vi.mock("@calcom/ui/components/skeleton", () => ({
-  SkeletonText: ({ className }: { className?: string }) => (
-    <div data-testid="skeleton-text" className={className} />
-  ),
-}));
-
-vi.mock("@calcom/ui/components/card", () => ({
-  PanelCard: ({ children, title }: { children: React.ReactNode; title: string }) => (
-    <div data-testid="panel-card" data-title={title}>
-      {children}
-    </div>
-  ),
-}));
-
-describe("InvoicesTableSkeleton", async () => {
-  const { InvoicesTableSkeleton } = await import("./InvoicesTableSkeleton");
+describe("InvoicesTableSkeleton", () => {
   it("should render without crashing", () => {
     const { container } = render(<InvoicesTableSkeleton />);
     expect(container.firstChild).toBeTruthy();
   });
 
-  it("should render inside a PanelCard with invoices title", () => {
-    const { getByTestId } = render(<InvoicesTableSkeleton />);
-    expect(getByTestId("panel-card")).toHaveAttribute("data-title", "invoices");
+  it("should render the invoices title", () => {
+    render(<InvoicesTableSkeleton />);
+    expect(screen.getByText("invoices")).toBeInTheDocument();
   });
 
-  it("should render multiple skeleton rows", () => {
-    const { getAllByTestId } = render(<InvoicesTableSkeleton />);
-    expect(getAllByTestId("skeleton-text").length).toBeGreaterThan(10);
+  it("should render multiple skeleton elements", () => {
+    const { container } = render(<InvoicesTableSkeleton />);
+    expect(container.querySelectorAll('[data-slot="skeleton"]').length).toBeGreaterThan(10);
   });
 });

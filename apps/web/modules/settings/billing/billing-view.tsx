@@ -4,9 +4,29 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
+import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@coss/ui/components/alert-dialog";
+import { Button } from "@coss/ui/components/button";
+import {
+  Card,
+  CardFrame,
+  CardFrameDescription,
+  CardFrameFooter,
+  CardFrameHeader,
+  CardFrameTitle,
+  CardPanel,
+} from "@coss/ui/components/card";
+import { ExternalLinkIcon } from "@coss/ui/icons";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
@@ -33,7 +53,7 @@ declare global {
 export const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
   return (
     <>
-      <section className={classNames("text-default flex flex-col sm:flex-row", className)}>
+      <section className={classNames("flex flex-col sm:flex-row", className)}>
         <div>
           <h2 className="text-base font-semibold">{title}</h2>
           <p>{description}</p>
@@ -107,64 +127,71 @@ const BillingView = () => {
   const isTrialing = subscriptionStatus?.isTrialing && teamIdNumber;
 
   return (
-    <>
-      <div className="border-subtle rounded-b-lg border border-t-0 px-4 py-8 sm:px-6">
-        <div className="bg-cal-muted border-muted rounded-xl border p-1">
-          <div className="bg-default border-muted flex rounded-[10px] border px-5 py-4">
-            <div className="flex w-full flex-col gap-1">
-              <h3 className="text-emphasis text-sm font-semibold leading-none">{t("manage_billing")}</h3>
-              <p className="text-subtle text-sm font-medium leading-tight">
-                {t("view_and_manage_billing_details")}
-              </p>
-            </div>
-            <Button color="primary" href={billingHref} target="_blank" size="sm" EndIcon="external-link">
-              {t("billing_portal")}
-            </Button>
-          </div>
-          {isTrialing && (
-            <div className="bg-default border-muted mt-1 flex rounded-[10px] border px-5 py-4">
-              <div className="flex w-full flex-col gap-1">
-                <h3 className="text-emphasis text-sm font-semibold leading-none">{t("skip_trial")}</h3>
-                <p className="text-subtle text-sm font-medium leading-tight">{t("skip_trial_description")}</p>
-              </div>
+    <div className="flex flex-col gap-4">
+      <CardFrame>
+        <Card>
+          <CardPanel>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <CardFrameHeader className="p-0">
+                <CardFrameTitle>{t("manage_billing")}</CardFrameTitle>
+                <CardFrameDescription>
+                  {t("view_and_manage_billing_details")}
+                </CardFrameDescription>
+              </CardFrameHeader>
               <Button
-                color="secondary"
-                size="sm"
-                onClick={() => setShowSkipTrialDialog(true)}
-                loading={isLoadingStatus}>
-                {t("skip_trial")}
+                variant="default"
+                render={<Link href={billingHref} target="_blank" rel="noopener noreferrer" />}>
+                {t("billing_portal")}
+                <ExternalLinkIcon aria-hidden="true" />
               </Button>
             </div>
-          )}
-          <div className="flex items-center justify-between px-4 py-5">
-            <p className="text-subtle text-sm font-medium leading-tight">{t("need_help")}</p>
-            <Button color="secondary" size="sm" onClick={onContactSupportClick}>
-              {t("contact_support")}
-            </Button>
-          </div>
-        </div>
-        <BillingCredits />
-        {teamIdNumber && subscriptionStatus?.billingMode === "ACTIVE_USERS" && (
-          <ActiveUserBreakdown teamId={teamIdNumber} />
-        )}
-        <InvoicesTable />
-      </div>
-
-      <Dialog open={showSkipTrialDialog} onOpenChange={setShowSkipTrialDialog}>
-        <DialogContent>
-          <DialogHeader title={t("skip_trial_confirmation_title")} />
-          <p className="text-subtle text-sm">{t("skip_trial_confirmation_description")}</p>
-          <DialogFooter>
-            <Button color="minimal" onClick={() => setShowSkipTrialDialog(false)}>
-              {t("cancel")}
-            </Button>
-            <Button color="primary" onClick={handleSkipTrial} loading={skipTrialMutation.isPending}>
-              {t("skip_trial")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+          </CardPanel>
+        </Card>
+        <CardFrameFooter className="flex items-center justify-end gap-2">
+          <p className="text-muted-foreground text-xs">{t("need_help")}</p>
+          <Button variant="outline" size="xs" onClick={onContactSupportClick}>
+            {t("contact_support")}
+          </Button>
+        </CardFrameFooter>
+      </CardFrame>
+      {isTrialing && (
+        <Card>
+          <CardPanel>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <CardFrameHeader className="p-0">
+                <CardFrameTitle>{t("skip_trial")}</CardFrameTitle>
+                <CardFrameDescription>{t("skip_trial_description")}</CardFrameDescription>
+              </CardFrameHeader>
+              <AlertDialog open={showSkipTrialDialog} onOpenChange={setShowSkipTrialDialog}>
+                <AlertDialogTrigger render={<Button variant="outline" />}>
+                  {t("skip_trial")}
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t("skip_trial_confirmation_title")}</AlertDialogTitle>
+                    <AlertDialogDescription>{t("skip_trial_confirmation_description")}</AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogClose render={<Button variant="ghost" />}>{t("cancel")}</AlertDialogClose>
+                    <Button
+                      variant="default"
+                      onClick={handleSkipTrial}
+                      loading={skipTrialMutation.isPending}>
+                      {t("skip_trial")}
+                    </Button>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </CardPanel>
+        </Card>
+      )}
+      <BillingCredits />
+      {teamIdNumber && subscriptionStatus?.billingMode === "ACTIVE_USERS" && (
+        <ActiveUserBreakdown teamId={teamIdNumber} />
+      )}
+      <InvoicesTable />
+    </div>
   );
 };
 

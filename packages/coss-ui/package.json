@@ -49,6 +49,7 @@
     "clsx": "2.1.1",
     "input-otp": "^1.4.2",
     "lucide-react": "0.555.0",
+    "react-day-picker": "9.14.0",
     "tailwind-merge": "3.4.0"
   },
   "peerDependencies": {

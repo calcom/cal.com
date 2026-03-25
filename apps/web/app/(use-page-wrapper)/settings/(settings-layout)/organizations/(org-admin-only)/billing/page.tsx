@@ -1,7 +1,7 @@
 import { _generateMetadata } from "app/_utils";
 import { getTranslate } from "app/_utils";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import BillingView from "~/settings/billing/billing-view";
@@ -26,12 +26,14 @@ const Page = async () => {
   });
 
   return (
-    <SettingsHeader
-      title={t("billing")}
-      description={t("manage_billing_description")}
-      borderInShellHeader={true}>
+    <div>
+      <AppHeader>
+        <AppHeaderContent title={t("billing")}>
+          <AppHeaderDescription>{t("manage_billing_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
       <BillingView />
-    </SettingsHeader>
+    </div>
   );
 };
 

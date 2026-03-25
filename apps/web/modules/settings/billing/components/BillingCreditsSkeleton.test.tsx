@@ -1,13 +1,9 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@calcom/ui/components/skeleton", () => ({
-  SkeletonText: ({ className }: { className?: string }) => (
-    <div data-testid="skeleton-text" className={className} />
-  ),
-  SkeletonContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  SkeletonButton: ({ className }: { className?: string }) => (
-    <div data-testid="skeleton-button" className={className} />
+vi.mock("@coss/ui/components/skeleton", () => ({
+  Skeleton: ({ className, ...props }: { className?: string }) => (
+    <div data-slot="skeleton" data-testid="skeleton" className={className} {...props} />
   ),
 }));
 
@@ -18,13 +14,8 @@ describe("BillingCreditsSkeleton", async () => {
     expect(container.firstChild).toBeTruthy();
   });
 
-  it("should render multiple skeleton text elements", () => {
+  it("should render multiple skeleton elements", () => {
     const { getAllByTestId } = render(<BillingCreditsSkeleton />);
-    expect(getAllByTestId("skeleton-text").length).toBeGreaterThan(3);
-  });
-
-  it("should render skeleton buttons for buy and download actions", () => {
-    const { getAllByTestId } = render(<BillingCreditsSkeleton />);
-    expect(getAllByTestId("skeleton-button").length).toBeGreaterThanOrEqual(2);
+    expect(getAllByTestId("skeleton").length).toBeGreaterThan(3);
   });
 });

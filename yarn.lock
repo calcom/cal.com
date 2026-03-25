@@ -3935,6 +3935,7 @@ __metadata:
     clsx: "npm:2.1.1"
     input-otp: "npm:^1.4.2"
     lucide-react: "npm:0.555.0"
+    react-day-picker: "npm:9.14.0"
     tailwind-merge: "npm:3.4.0"
     ts-node: "npm:10.9.2"
     tsc-absolute: "npm:1.0.0"
@@ -4036,6 +4037,13 @@ __metadata:
     react: ^16.8 || ^17.0 || ^18.0 || ^19.0
     react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0
   checksum: 10/d1522247c7d38290dfefb8422f4ba206914f835974114e72b39bf864072d8961d98c9ee63d757f47e6f775d2b2b844a027e1603eed73b66c4844cc0325d9c9d0
+  languageName: node
+  linkType: hard
+
+"@date-fns/tz@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "@date-fns/tz@npm:1.4.1"
+  checksum: 10/062097590005cce3da4c7d9880f9c77d386cff5b4dd58fa3dde3c346a8b2e4f4a8025a613306351a7cad8eb71178a0f67b4840d5884f73aa4c759085fac92063
   languageName: node
   linkType: hard
 
@@ -14323,6 +14331,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tabby_ai/hijri-converter@npm:1.0.5":
+  version: 1.0.5
+  resolution: "@tabby_ai/hijri-converter@npm:1.0.5"
+  checksum: 10/35711b606870889eaafd76f8fb94bd095a15c5d066a3062d7c3987344949e9d7638726863cf7c9439f9c5efc9a56f289485fd9d99a77e5d29cd23897c8d748ce
+  languageName: node
+  linkType: hard
+
 "@tailwindcss/cli@npm:4.1.16":
   version: 4.1.16
   resolution: "@tailwindcss/cli@npm:4.1.16"
@@ -20369,6 +20384,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"date-fns-jalali@npm:4.1.0-0":
+  version: 4.1.0-0
+  resolution: "date-fns-jalali@npm:4.1.0-0"
+  checksum: 10/0005e0e37d449aa998cfc353395b0292eea4778aba4283dad4fa0e3559cf0a7fc7ce9123fb6f22c235285219d4f4774c88bb9c01fa2694c6a5efbbcd33efe7fc
+  languageName: node
+  linkType: hard
+
 "date-fns-tz@npm:3.2.0":
   version: 3.2.0
   resolution: "date-fns-tz@npm:3.2.0"
@@ -20385,7 +20407,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-fns@npm:4.1.0":
+"date-fns@npm:4.1.0, date-fns@npm:^4.1.0":
   version: 4.1.0
   resolution: "date-fns@npm:4.1.0"
   checksum: 10/d5f6e9de5bbc52310f786099e18609289ed5e30af60a71e0646784c8185ddd1d0eebcf7c96b7faaaefc4a8366f3a3a4244d099b6d0866ee2bec80d1361e64342
@@ -33187,6 +33209,20 @@ __metadata:
     date-fns: ^2.28.0 || ^3.0.0
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
   checksum: 10/374056dca7fed70a154a3b0e98c6c746c26b4fc868548fa8f285ef3cab9679537e84c0c21ba7b6db67b3f7f54cc562f5d83efba2c7f2c7bd3705ac8992869607
+  languageName: node
+  linkType: hard
+
+"react-day-picker@npm:9.14.0":
+  version: 9.14.0
+  resolution: "react-day-picker@npm:9.14.0"
+  dependencies:
+    "@date-fns/tz": "npm:^1.4.1"
+    "@tabby_ai/hijri-converter": "npm:1.0.5"
+    date-fns: "npm:^4.1.0"
+    date-fns-jalali: "npm:4.1.0-0"
+  peerDependencies:
+    react: ">=16.8.0"
+  checksum: 10/a4e05e6af3d5535e34909aa1c258904765da73f5299ddf031838f92fff8493d4bad9140088e94ddc9041b07410f9803d3ee27e7fc67d78cf0d2c8622089723f5
   languageName: node
   linkType: hard
 

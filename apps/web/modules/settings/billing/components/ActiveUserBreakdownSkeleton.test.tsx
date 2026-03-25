@@ -1,14 +1,8 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+import { ActiveUserBreakdownSkeleton } from "./ActiveUserBreakdownSkeleton";
 
-vi.mock("@calcom/ui/components/skeleton", () => ({
-  SkeletonText: ({ className }: { className?: string }) => (
-    <div data-testid="skeleton-text" className={className} />
-  ),
-}));
-
-describe("ActiveUserBreakdownSkeleton", async () => {
-  const { ActiveUserBreakdownSkeleton } = await import("./ActiveUserBreakdownSkeleton");
+describe("ActiveUserBreakdownSkeleton", () => {
   it("should render without crashing", () => {
     const { container } = render(<ActiveUserBreakdownSkeleton />);
     expect(container.firstChild).toBeTruthy();
@@ -19,8 +13,8 @@ describe("ActiveUserBreakdownSkeleton", async () => {
     expect(screen.getByText("active_users_billing")).toBeInTheDocument();
   });
 
-  it("should render multiple skeleton text elements", () => {
-    const { getAllByTestId } = render(<ActiveUserBreakdownSkeleton />);
-    expect(getAllByTestId("skeleton-text").length).toBeGreaterThan(5);
+  it("should render table structure", () => {
+    const { container } = render(<ActiveUserBreakdownSkeleton />);
+    expect(container.querySelectorAll('[class*="border-b"]').length).toBeGreaterThan(3);
   });
 });

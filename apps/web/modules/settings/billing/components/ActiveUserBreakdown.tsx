@@ -7,17 +7,25 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@coss/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
+import { Button } from "@coss/ui/components/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetPanel,
-  SheetTitle,
-  SheetClose,
-} from "@coss/ui/components/sheet";
+  Card,
+  CardFrame,
+  CardFrameDescription,
+  CardFrameFooter,
+  CardFrameHeader,
+  CardFrameTitle,
+  CardPanel,
+} from "@coss/ui/components/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@coss/ui/components/empty";
+import {
+  Drawer,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerPopup,
+  DrawerPanel,
+  DrawerTitle,
+} from "@coss/ui/components/drawer";
 import { Skeleton } from "@coss/ui/components/skeleton";
 import {
   Table,
@@ -27,7 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "@coss/ui/components/table";
-import { Tooltip } from "@calcom/ui/components/tooltip";
+import { FileTextIcon } from "@coss/ui/icons";
 
 import { ActiveUserBreakdownSkeleton } from "./ActiveUserBreakdownSkeleton";
 
@@ -73,25 +81,27 @@ type SeatRowProps = {
   value: number;
   isBold?: boolean;
   underline?: "dashed" | "solid";
+  className?: string;
 };
 
-function SeatRow({ label, value, isBold = false, underline }: SeatRowProps) {
+function SeatRow({ label, value, isBold = false, underline, className = "" }: SeatRowProps) {
   const numberFormatter = new Intl.NumberFormat();
   return (
     <div
       className={classNames(
-        "my-1 flex justify-between",
+        "py-1.5 px-2.5 flex justify-between",
         underline === "dashed"
-          ? "border-subtle border-b border-dashed"
+          ? "border-b border-dashed"
           : underline === "solid"
-          ? "border-subtle border-b border-solid"
-          : "mt-1"
+            ? "border-b"
+            : undefined,
+        className
       )}
     >
       <span
         className={classNames(
           "text-sm",
-          isBold ? "font-semibold" : "text-subtle font-medium leading-tight"
+          isBold ? "font-semibold" : "font-medium text-muted-foreground"
         )}
       >
         {label}
@@ -99,41 +109,11 @@ function SeatRow({ label, value, isBold = false, underline }: SeatRowProps) {
       <span
         className={classNames(
           "text-sm",
-          isBold ? "font-semibold" : "text-subtle font-medium leading-tight"
+          isBold ? "font-semibold" : "font-medium text-muted-foreground"
         )}
       >
         {numberFormatter.format(value)}
       </span>
-    </div>
-  );
-}
-
-type SegmentedBarProps = {
-  segments: Array<{
-    value: number;
-    color: string;
-    tooltip: string;
-  }>;
-  total: number;
-};
-
-function SegmentedBar({ segments, total }: SegmentedBarProps) {
-  if (total === 0) return null;
-
-  return (
-    <div className="bg-subtle flex h-2 w-full overflow-hidden rounded-full">
-      {segments.map((segment, i) => {
-        if (segment.value <= 0) return null;
-        const pct = (segment.value / total) * 100;
-        return (
-          <Tooltip key={i} content={segment.tooltip}>
-            <div
-              className={classNames("h-full", segment.color)}
-              style={{ width: `${pct}%` }}
-            />
-          </Tooltip>
-        );
-      })}
     </div>
   );
 }
@@ -177,121 +157,118 @@ function ActiveUserBreakdownContent({
 
   return (
     <>
-      <div className="mt-5 rounded-xl border border-muted bg-cal-muted p-1">
-        <div className="flex flex-col gap-1 px-4 py-5">
-          <h2 className="text-default text-base font-semibold leading-none">
-            {t("active_users_billing")}
-          </h2>
-          <p className="text-subtle text-sm font-medium leading-tight">
+      <CardFrame>
+        <CardFrameHeader>
+          <CardFrameTitle>{t("active_users_billing")}</CardFrameTitle>
+          <CardFrameDescription>
             {t("active_users_billing_description", {
               start: formattedStart,
               end: formattedEnd,
             })}
-          </p>
-        </div>
-
-        <div className="bg-default border-muted flex w-full rounded-[10px] border px-5 py-4">
-          <div className="w-full">
-            <div className="mb-4">
-              <SeatRow
-                label={t("total_members")}
-                value={totalMembers}
-                underline="dashed"
-              />
-              <SeatRow
-                label={t("active_users_count")}
-                value={totalActive}
-                underline="dashed"
-              />
-              {minSeats ? (
+          </CardFrameDescription>
+        </CardFrameHeader>
+        <Card>
+          {activeUsers.length > 0 ? (
+            <CardPanel className="px-4 pt-1 pb-4">
+              <div className="my-3">
                 <SeatRow
-                  label={t("min_seats_commitment")}
-                  value={minSeats}
-                  underline="solid"
+                  label={t("total_members")}
+                  value={totalMembers}
+                  underline="dashed"
                 />
-              ) : null}
-              <SeatRow label={t("billed_seats")} value={billedSeats} isBold />
-            </div>
-
-            {activeUsers.length > 0 ? (
-              <>
-                <div className="-mx-5">
-                  <hr className="border-subtle" />
-                </div>
-                <div className="mt-4 overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t("name")}</TableHead>
-                        <TableHead>{t("email")}</TableHead>
-                        <TableHead>{t("status")}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {paginatedUsers.map((user) => (
-                        <TableRow
-                          key={user.id}
-                          className="cursor-pointer"
-                          onClick={() => setSelectedUser(user)}
-                        >
-                          <TableCell>{user.name || "-"}</TableCell>
-                          <TableCell>{user.email}</TableCell>
-                          <TableCell>
-                            {user.activeAs === "host" ? (
-                              <Badge variant="success">
-                                {t("active_as_host")}
-                              </Badge>
-                            ) : (
-                              <Badge variant="info">
-                                {t("active_as_attendee")}
-                              </Badge>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-end gap-2 px-4 py-3">
-                    <Button
-                      color="secondary"
-                      size="sm"
-                      onClick={() => setCurrentPage(currentPage - 1)}
-                      disabled={currentPage === 0}
-                      StartIcon="arrow-left"
-                    >
-                      {t("previous")}
-                    </Button>
-                    <Button
-                      color="secondary"
-                      size="sm"
-                      onClick={() => setCurrentPage(currentPage + 1)}
-                      disabled={currentPage >= totalPages - 1}
-                      EndIcon="arrow-right"
-                    >
-                      {t("next")}
-                    </Button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="text-subtle py-4 text-center text-sm">
-                {t("no_active_users")}
+                <SeatRow
+                  label={t("active_users_count")}
+                  value={totalActive}
+                  underline="dashed"
+                />
+                {minSeats ? (
+                  <SeatRow
+                    label={t("min_seats_commitment")}
+                    value={minSeats}
+                    underline="solid"
+                  />
+                ) : null}
+                <SeatRow label={t("billed_seats")} value={billedSeats} isBold />
               </div>
-            )}
-          </div>
-        </div>
-      </div>
 
-      <Sheet
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead>{t("name")}</TableHead>
+                    <TableHead>{t("email")}</TableHead>
+                    <TableHead className="text-right">{t("status")}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedUsers.map((user) => (
+                    <TableRow
+                      key={user.id}
+                      className="cursor-pointer hover:bg-transparent hover:*:bg-muted last:*:first:rounded-es-lg last:*:last:rounded-ee-lg"
+                      onClick={() => setSelectedUser(user)}
+                    >
+                      <TableCell>{user.name || "-"}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell className="text-right">
+                        {user.activeAs === "host" ? (
+                          <Badge variant="success">
+                            {t("active_as_host")}
+                          </Badge>
+                        ) : (
+                          <Badge variant="info">
+                            {t("active_as_attendee")}
+                          </Badge>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardPanel>
+          ) : (
+            <CardPanel className="p-0">
+              <Empty>
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <FileTextIcon />
+                  </EmptyMedia>
+                  <EmptyTitle>{t("no_active_users")}</EmptyTitle>
+                  <EmptyDescription>{t("active_users_billing_description", { start: formattedStart, end: formattedEnd })}</EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            </CardPanel>
+          )}
+        </Card>
+        {totalPages > 1 && (
+          <CardFrameFooter className="flex items-center justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 0}
+            >
+              {t("previous")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage >= totalPages - 1}
+            >
+              {t("next")}
+            </Button>
+          </CardFrameFooter>
+        )}
+      </CardFrame>
+
+      <Drawer
         open={!!selectedUser}
         onOpenChange={(open) => !open && setSelectedUser(null)}
+        position="bottom"
       >
-        <SheetContent side="right" variant="inset">
-          <SheetHeader>
-            <SheetTitle>{selectedUser?.name || selectedUser?.email}</SheetTitle>
-            <SheetDescription>
+        <DrawerPopup showBar>
+          <DrawerHeader>
+            <DrawerTitle>{selectedUser?.name || selectedUser?.email}</DrawerTitle>
+            <DrawerDescription>
               <span className="flex items-center gap-2">
                 {selectedUser?.email}
                 {selectedUser?.activeAs === "host" ? (
@@ -300,10 +277,9 @@ function ActiveUserBreakdownContent({
                   <Badge variant="info">{t("active_as_attendee")}</Badge>
                 )}
               </span>
-            </SheetDescription>
-          </SheetHeader>
-
-          <SheetPanel>
+            </DrawerDescription>
+          </DrawerHeader>
+          <DrawerPanel>
             {selectedUser && (
               <UserBookingsSheet
                 teamId={teamId}
@@ -311,15 +287,9 @@ function ActiveUserBreakdownContent({
                 activeAs={selectedUser.activeAs}
               />
             )}
-          </SheetPanel>
-
-          <SheetFooter>
-            <SheetClose
-              render={<Button color="secondary">{t("close")}</Button>}
-            />
-          </SheetFooter>
-        </SheetContent>
-      </Sheet>
+          </DrawerPanel>
+        </DrawerPopup>
+      </Drawer>
     </>
   );
 }
@@ -355,11 +325,8 @@ function UserBookingsSheet({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-baseline gap-2">
-        <span className="text-2xl font-bold">{bookings.length}</span>
-        <span className="text-muted-foreground text-sm">
-          {bookings.length === 1 ? t("booking") : t("bookings")}
-        </span>
+      <div className="font-semibold text-sm">
+        {bookings.length} {bookings.length === 1 ? t("booking") : t("bookings")}
       </div>
 
       {bookings.length === 0 ? (
