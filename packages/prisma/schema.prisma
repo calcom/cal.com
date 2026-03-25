@@ -281,7 +281,7 @@ model EventType {
   disableReassignment              Boolean @default(false)
 
   secondaryEmailId Int?
-  secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
+  secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: SetNull)
 
   useBookerTimezone     Boolean     @default(false)
   restrictionScheduleId Int?
