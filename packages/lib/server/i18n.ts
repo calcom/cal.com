@@ -7,41 +7,95 @@ import { WEBAPP_URL } from "../constants";
 const translationCache = new Map<string, Record<string, string>>();
 const i18nInstanceCache = new Map<string, any>();
 
-/**
- * Find repository root by detecting a root-level marker file.
- * Works from apps/, packages/, worker dist, etc.
- */
-function findRepoRoot(startDir: string): string {
-  let currentDir = startDir;
+const LOCALES_ENV_OVERRIDES = ["I18N_LOCALES_ROOT", "LOCALES_ROOT"] as const;
+
+function walkUpDirectories(startDir: string): string[] {
+  const dirs: string[] = [];
+  let currentDir = path.resolve(startDir);
 
   while (true) {
-    if (
-      fs.existsSync(path.join(currentDir, "turbo.json")) ||
-      fs.existsSync(path.join(currentDir, "i18n.json"))
-    ) {
-      return currentDir;
-    }
-
+    dirs.push(currentDir);
     const parentDir = path.dirname(currentDir);
-
     if (parentDir === currentDir) {
-      throw new Error("Could not find repository root");
+      break;
     }
-
     currentDir = parentDir;
   }
+
+  return dirs;
+}
+
+function buildLocaleFileCandidates(baseDir: string, locale: string, ns: string): string[] {
+  const fileName = `${ns}.json`;
+  return [
+    path.join(baseDir, locale, fileName),
+    path.join(baseDir, "locales", locale, fileName),
+    path.join(baseDir, "static", "locales", locale, fileName),
+    path.join(baseDir, "public", "static", "locales", locale, fileName),
+    path.join(baseDir, "apps", "web", "public", "static", "locales", locale, fileName),
+  ];
+}
+
+function getLocaleFilePaths(locale: string, ns: string): string[] {
+  const paths = new Set<string>();
+
+  for (const envName of LOCALES_ENV_OVERRIDES) {
+    const overridePath = process.env[envName];
+    if (!overridePath) continue;
+    const resolvedOverride = path.isAbsolute(overridePath)
+      ? overridePath
+      : path.resolve(process.cwd(), overridePath);
+    for (const filePath of buildLocaleFileCandidates(resolvedOverride, locale, ns)) {
+      paths.add(filePath);
+    }
+  }
+
+  const startDirs = [
+    process.cwd(),
+    __dirname,
+    process.argv[1] ? path.dirname(process.argv[1]) : undefined,
+  ].filter((dir): dir is string => Boolean(dir));
+
+  for (const startDir of startDirs) {
+    for (const dir of walkUpDirectories(startDir)) {
+      for (const filePath of buildLocaleFileCandidates(dir, locale, ns)) {
+        paths.add(filePath);
+      }
+    }
+  }
+
+  return Array.from(paths);
 }
 
 /**
  * Load translations from filesystem (primary strategy)
  */
 async function loadFromFile(locale: string, ns: string) {
-  const repoRoot = findRepoRoot(__dirname);
+  const attemptedPaths: string[] = [];
 
-  const filePath = path.join(repoRoot, "apps", "web", "public", "static", "locales", locale, `${ns}.json`);
+  for (const filePath of getLocaleFilePaths(locale, ns)) {
+    attemptedPaths.push(filePath);
+    try {
+      const file = await fs.promises.readFile(filePath, "utf-8");
+      return JSON.parse(file);
+    } catch (error: any) {
+      if (error?.code === "ENOENT") {
+        continue;
+      }
 
-  const file = await fs.promises.readFile(filePath, "utf-8");
-  return JSON.parse(file);
+      if (error instanceof SyntaxError) {
+        throw new Error(`Translation JSON parse failed at ${filePath}: ${error.message}`);
+      }
+
+      throw new Error(`Translation file read failed at ${filePath}: ${error?.message ?? String(error)}`);
+    }
+  }
+
+  throw new Error(
+    `Translation file not found for ${locale}/${ns}. Attempted ${
+      attemptedPaths.length
+    } path(s):\n${attemptedPaths.map((p) => `- ${p}`).join("\n")}`
+  );
 }
 
 /**
