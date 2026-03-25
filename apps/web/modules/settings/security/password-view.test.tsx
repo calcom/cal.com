@@ -47,77 +47,110 @@ vi.mock("@calcom/trpc/react", () => ({
   },
 }));
 
-vi.mock("@calcom/features/settings/SectionBottomActions", () => ({
-  default: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="section-bottom">{children}</div>
-  ),
-}));
-
 vi.mock("@calcom/prisma/zod-utils", () => ({
   userMetadata: { safeParse: vi.fn().mockReturnValue({ success: true, data: {} }) },
 }));
 
-vi.mock("@calcom/ui/classNames", () => ({
-  default: (...args: string[]) => args.filter(Boolean).join(" "),
+vi.mock("@coss/ui/icons", () => ({
+  CircleAlertIcon: () => <span data-testid="circle-alert-icon" />,
 }));
 
-vi.mock("@calcom/ui/components/alert", () => ({
-  Alert: ({ message }: { message?: string }) => <div data-testid="alert">{message}</div>,
+vi.mock("@coss/ui/components/alert", () => ({
+  Alert: ({ children }: { children: React.ReactNode }) => <div data-testid="alert">{children}</div>,
+  AlertTitle: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  AlertDescription: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
 }));
 
-vi.mock("@calcom/ui/components/button", () => ({
+vi.mock("@coss/ui/components/card", () => ({
+  Card: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardDescription: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
+  CardFrame: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardFrameDescription: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
+  CardFrameFooter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardFrameHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardFrameTitle: ({ children }: { children: React.ReactNode }) => <h3>{children}</h3>,
+  CardHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardPanel: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardTitle: ({ children }: { children: React.ReactNode }) => <h3>{children}</h3>,
+}));
+
+vi.mock("@coss/ui/components/field", () => ({
+  Field: ({ children }: { children: React.ReactNode }) => <div data-testid="field">{children}</div>,
+  FieldError: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  FieldLabel: ({ children }: { children: React.ReactNode }) => <label>{children}</label>,
+}));
+
+vi.mock("@coss/ui/components/form", () => ({
+  Form: ({ children, onSubmit }: { children: React.ReactNode; onSubmit?: (e: React.FormEvent) => void }) => (
+    <form data-testid="form" onSubmit={onSubmit}>
+      {children}
+    </form>
+  ),
+}));
+
+vi.mock("@coss/ui/components/skeleton", () => ({
+  Skeleton: ({ className }: { className?: string }) => <div data-testid="skeleton" className={className} />,
+}));
+
+vi.mock("@coss/ui/components/switch", () => ({
+  Switch: ({
+    checked,
+    onCheckedChange,
+    ...rest
+  }: {
+    checked: boolean;
+    onCheckedChange: (checked: boolean) => void;
+    [key: string]: unknown;
+  }) => (
+    <button
+      data-testid="session-check"
+      data-checked={checked}
+      onClick={() => onCheckedChange(!checked)}
+      {...rest}
+    >
+      Toggle
+    </button>
+  ),
+}));
+
+vi.mock("@coss/ui/shared/password-field", () => ({
+  PasswordField: vi.fn(({ name }: { name?: string }) => (
+    <input data-testid={`password-field-${name}`} name={name} />
+  )),
+}));
+
+vi.mock("@coss/ui/components/button", () => ({
   Button: ({
     children,
     onClick,
     disabled,
-    loading,
     ...rest
   }: {
     children: React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
-    loading?: boolean;
   }) => (
-    <button onClick={onClick} disabled={disabled} data-loading={loading} {...rest}>
+    <button onClick={onClick} disabled={disabled} {...rest}>
       {children}
     </button>
   ),
 }));
 
-vi.mock("@calcom/ui/components/form", () => ({
-  Form: ({ children }: { children: React.ReactNode }) => <form data-testid="form">{children}</form>,
-  PasswordField: vi.fn(({ label }: { label: string }) => (
-    <div data-testid={`password-field-${label}`}>{label}</div>
-  )),
-  Select: vi.fn(() => <select data-testid="select" />),
-  SettingsToggle: ({
-    children,
-    title,
-    checked,
-    onCheckedChange,
-  }: {
-    children?: React.ReactNode;
-    title: string;
-    checked: boolean;
-    onCheckedChange: (checked: boolean) => void;
-  }) => (
-    <div data-testid="settings-toggle" data-title={title} data-checked={checked}>
-      <button data-testid="toggle-button" onClick={() => onCheckedChange(!checked)}>
-        Toggle
-      </button>
-      {checked && children}
-    </div>
-  ),
+vi.mock("@coss/ui/components/select", () => ({
+  Select: ({ children }: { children: React.ReactNode }) => <div data-testid="select">{children}</div>,
+  SelectItem: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectPopup: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectValue: () => <span />,
 }));
 
-vi.mock("@calcom/ui/components/skeleton", () => ({
-  SkeletonButton: () => <div data-testid="skeleton-button" />,
-  SkeletonContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  SkeletonText: () => <div data-testid="skeleton-text" />,
+vi.mock("@coss/ui/shared/field-grid", () => ({
+  FieldGrid: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  FieldGridRow: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-vi.mock("@calcom/ui/components/toast", () => ({
-  showToast: vi.fn(),
+vi.mock("@coss/ui/components/toast", () => ({
+  toastManager: { add: vi.fn() },
 }));
 
 describe("PasswordViewWrapper", async () => {
@@ -131,7 +164,7 @@ describe("PasswordViewWrapper", async () => {
     mockUseQuery.mockReturnValue({ data: undefined, isPending: true });
 
     render(<PasswordViewWrapper />);
-    expect(screen.getAllByTestId("skeleton-text").length).toBeGreaterThan(0);
+    expect(screen.getAllByTestId("skeleton").length).toBeGreaterThan(0);
   });
 
   describe("PasswordView (internal)", () => {
@@ -189,8 +222,8 @@ describe("PasswordViewWrapper", async () => {
       mockUseQuery.mockReturnValue({ data: calUser, isPending: false });
 
       render(<PasswordViewWrapper />);
-      const toggle = screen.getByTestId("settings-toggle");
-      expect(toggle).toHaveAttribute("data-title", "session_timeout");
+      const toggle = screen.getByTestId("session-check");
+      expect(toggle).toBeInTheDocument();
     });
 
     it("should render update button", () => {

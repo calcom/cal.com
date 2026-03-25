@@ -1,7 +1,10 @@
-import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import {
+  AppHeader,
+  AppHeaderContent,
+  AppHeaderDescription,
+} from "@coss/ui/shared/app-header";
 
 import PasswordViewWrapper from "~/settings/security/password-view";
 
@@ -16,11 +19,17 @@ export const generateMetadata = async () =>
 
 const Page = async () => {
   const t = await getTranslate();
-
   return (
-    <SettingsHeader title={t("password")} description={t("password_description")} borderInShellHeader={true}>
+    <div>
+      <AppHeader>
+        <AppHeaderContent title={t("password")}>
+          <AppHeaderDescription>
+            {t("password_description")}
+          </AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
       <PasswordViewWrapper />
-    </SettingsHeader>
+    </div>
   );
 };
 

@@ -8,37 +8,41 @@ import { Tooltip, TooltipPopup, TooltipTrigger } from "@coss/ui/components/toolt
 import { EyeIcon, EyeOffIcon } from "@coss/ui/icons";
 import * as React from "react";
 
-export function PasswordField({ type: _type, ref, ...props }: InputProps): React.ReactElement {
-  const [showPassword, setShowPassword] = React.useState(false);
-  const { t } = useLocale();
-  return (
-    <InputGroup>
-      <InputGroupInput
-        {...props}
-        ref={ref}
-        autoCapitalize="none"
-        autoCorrect="off"
-        placeholder={props.placeholder ?? "•••••••••••••"}
-        spellCheck={false}
-        type={showPassword ? "text" : "password"}
-      />
-      <InputGroupAddon align="inline-end">
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                aria-label={showPassword ? t("hide_password") : t("show_password")}
-                onClick={() => setShowPassword(!showPassword)}
-                size="icon-xs"
-                type="button"
-                variant="ghost"
-              />
-            }>
-            {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-          </TooltipTrigger>
-          <TooltipPopup>{showPassword ? t("hide_password") : t("show_password")}</TooltipPopup>
-        </Tooltip>
-      </InputGroupAddon>
-    </InputGroup>
-  );
-}
+export const PasswordField = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ type: _type, ...props }, ref): React.ReactElement => {
+    const [showPassword, setShowPassword] = React.useState(false);
+    const { t } = useLocale();
+    return (
+      <InputGroup>
+        <InputGroupInput
+          {...props}
+          ref={ref}
+          autoCapitalize="none"
+          autoCorrect="off"
+          placeholder={props.placeholder ?? "•••••••••••••"}
+          spellCheck={false}
+          type={showPassword ? "text" : "password"}
+        />
+        <InputGroupAddon align="inline-end">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  aria-label={showPassword ? t("hide_password") : t("show_password")}
+                  onClick={() => setShowPassword(!showPassword)}
+                  size="icon-xs"
+                  type="button"
+                  variant="ghost"
+                />
+              }>
+              {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+            </TooltipTrigger>
+            <TooltipPopup>{showPassword ? t("hide_password") : t("show_password")}</TooltipPopup>
+          </Tooltip>
+        </InputGroupAddon>
+      </InputGroup>
+    );
+  }
+);
+
+PasswordField.displayName = "PasswordField";

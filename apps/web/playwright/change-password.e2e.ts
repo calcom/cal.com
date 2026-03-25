@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-
 import { test } from "./lib/fixtures";
 import { submitAndWaitForResponse } from "./lib/testUtils";
 
@@ -19,8 +18,9 @@ test.describe("Change Password Test", () => {
 
     const $newPasswordField = page.locator('[name="newPassword"]');
     $newPasswordField.fill(`${pro.username}Aa1111`);
+    const passwordForm = page.getByRole("form", { name: "Password" });
     await submitAndWaitForResponse(page, "/api/trpc/auth/changePassword?batch=1", {
-      action: () => page.locator("text=Update").click(),
+      action: () => passwordForm.getByRole("button", { name: "Update" }).click(),
     });
   });
 });
