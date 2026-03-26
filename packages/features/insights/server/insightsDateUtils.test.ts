@@ -1,7 +1,6 @@
-import { describe, it, expect } from "vitest";
 import dayjs from "@calcom/dayjs";
-
-import { getTimeView, getDateRanges, formatPeriod, formatPeriodFull } from "./insightsDateUtils";
+import { describe, expect, it } from "vitest";
+import { formatPeriod, formatPeriodFull, getDateRanges, getTimeView } from "./insightsDateUtils";
 
 describe("getTimeView", () => {
   it("should return 'day' for diff <= 30 days", () => {
@@ -257,5 +256,48 @@ describe("formatPeriodFull", () => {
       wholeEnd: dayjs("2025-12-31"),
     });
     expect(result).toContain("2024");
+  });
+
+  it("should format week view across different years with year on each side", () => {
+    const start = dayjs("2023-12-28");
+    const end = dayjs("2024-01-03");
+    const result = formatPeriodFull({
+      start,
+      end,
+      timeView: "week",
+      wholeStart: dayjs("2023-01-01"),
+      wholeEnd: dayjs("2024-12-31"),
+    });
+    // Cross-year week should include year on both sides: "Dec 28, 2023 - Jan 3, 2024"
+    expect(result).toContain("2023");
+    expect(result).toContain("2024");
+    expect(result).toContain("-");
+  });
+
+  it("should format week view with year suffix when whole range spans years", () => {
+    const start = dayjs("2024-03-01");
+    const end = dayjs("2024-03-07");
+    const result = formatPeriodFull({
+      start,
+      end,
+      timeView: "week",
+      wholeStart: dayjs("2023-06-01"),
+      wholeEnd: dayjs("2024-12-31"),
+    });
+    // Same-year week but whole range spans years: "Mar 1 - Mar 7, 2024"
+    expect(result).toContain("2024");
+    expect(result).toContain("-");
+  });
+
+  it("should format month view with year when spanning years", () => {
+    const start = dayjs("2024-03-01");
+    const result = formatPeriodFull({
+      start,
+      end: dayjs("2024-03-31"),
+      timeView: "month",
+      wholeStart: dayjs("2023-12-01"),
+      wholeEnd: dayjs("2024-12-31"),
+    });
+    expect(result).toBe("Mar 2024");
   });
 });

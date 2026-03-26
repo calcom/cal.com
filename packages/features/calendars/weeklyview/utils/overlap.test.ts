@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import type { CalendarEvent } from "../types/events";
 import { buildOverlapGroups, calculateEventLayouts, createLayoutMap, sortEvents } from "./overlap";
 
@@ -526,6 +525,58 @@ describe("overlap utility", () => {
 
       const lastLayout = layouts[layouts.length - 1];
       expect(lastLayout.leftOffsetPercent + lastLayout.widthPercent).toBeLessThanOrEqual(100);
+    });
+
+    it("should use anchor widths for four overlapping events", () => {
+      const events: CalendarEvent[] = [
+        {
+          id: 1,
+          title: "Event 1",
+          start: new Date("2024-01-01T10:00:00"),
+          end: new Date("2024-01-01T11:00:00"),
+        },
+        {
+          id: 2,
+          title: "Event 2",
+          start: new Date("2024-01-01T10:15:00"),
+          end: new Date("2024-01-01T11:15:00"),
+        },
+        {
+          id: 3,
+          title: "Event 3",
+          start: new Date("2024-01-01T10:30:00"),
+          end: new Date("2024-01-01T11:30:00"),
+        },
+        {
+          id: 4,
+          title: "Event 4",
+          start: new Date("2024-01-01T10:45:00"),
+          end: new Date("2024-01-01T11:45:00"),
+        },
+      ];
+
+      const layouts = calculateEventLayouts(events);
+
+      expect(layouts).toHaveLength(4);
+
+      // First event starts at left edge with wFirst=40
+      expect(layouts[0].leftOffsetPercent).toBe(0);
+      expect(layouts[0].widthPercent).toBe(40);
+
+      // Last event uses wLast=25
+      expect(layouts[3].widthPercent).toBe(25);
+
+      // All events stay within bounds
+      layouts.forEach((layout) => {
+        expect(layout.leftOffsetPercent + layout.widthPercent).toBeLessThanOrEqual(99.5);
+        expect(layout.widthPercent).toBeGreaterThanOrEqual(25);
+      });
+
+      // z-index increases with each event
+      expect(layouts[0].baseZIndex).toBe(60);
+      expect(layouts[1].baseZIndex).toBe(61);
+      expect(layouts[2].baseZIndex).toBe(62);
+      expect(layouts[3].baseZIndex).toBe(63);
     });
 
     it("should use dynamic width for three overlapping events", () => {

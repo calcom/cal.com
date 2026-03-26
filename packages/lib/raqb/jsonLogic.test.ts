@@ -1,5 +1,4 @@
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import jsonLogic from "./jsonLogic";
 
 describe("jsonLogic", () => {
@@ -223,6 +222,22 @@ describe("jsonLogic", () => {
           }
         )
       ).toBe(false);
+    });
+  });
+
+  describe("normalize passthrough for non-string/non-array values", () => {
+    it("should pass through numbers unchanged in comparisons", () => {
+      expect(jsonLogic.apply({ "==": [42, 42] })).toBe(true);
+      expect(jsonLogic.apply({ "==": [42, 43] })).toBe(false);
+    });
+
+    it("should pass through booleans unchanged in comparisons", () => {
+      expect(jsonLogic.apply({ "===": [true, true] })).toBe(true);
+      expect(jsonLogic.apply({ "===": [true, false] })).toBe(false);
+    });
+
+    it("should pass through null unchanged in comparisons", () => {
+      expect(jsonLogic.apply({ "==": [null, null] })).toBe(true);
     });
   });
 

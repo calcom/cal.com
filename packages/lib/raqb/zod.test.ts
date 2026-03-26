@@ -1,5 +1,4 @@
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import { raqbQueryValueSchema } from "./zod";
 
 describe("queryValueValidationSchema", () => {
@@ -246,6 +245,44 @@ describe("queryValueValidationSchema", () => {
       },
     });
     expect(result.success).toBe(false);
+  });
+
+  it("should pass validation when valueSrc is not an array", () => {
+    const result = raqbQueryValueSchema.safeParse({
+      id: "9",
+      type: "group",
+      children1: {
+        rule1: {
+          type: "rule",
+          properties: {
+            field: "name",
+            operator: "equal",
+            value: ["John"],
+            valueSrc: "value",
+          },
+        },
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("should pass validation when value is not an array", () => {
+    const result = raqbQueryValueSchema.safeParse({
+      id: "10",
+      type: "group",
+      children1: {
+        rule1: {
+          type: "rule",
+          properties: {
+            field: "name",
+            operator: "equal",
+            value: "John",
+            valueSrc: ["value"],
+          },
+        },
+      },
+    });
+    expect(result.success).toBe(true);
   });
 
   it("should allow properties in the query that has rule grouping details", () => {

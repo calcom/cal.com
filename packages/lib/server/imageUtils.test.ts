@@ -174,6 +174,27 @@ describe("detectContentType", () => {
     const result = await detectContentType(buffer);
     expect(result).toBe("image/jpeg");
   });
+
+  it("handles sharp metadata returning avif format", async () => {
+    const buffer = Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b]);
+    mockMetadata.mockResolvedValueOnce({ format: "avif" });
+    const result = await detectContentType(buffer);
+    expect(result).toBe("image/avif");
+  });
+
+  it("handles sharp metadata returning gif format", async () => {
+    const buffer = Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b]);
+    mockMetadata.mockResolvedValueOnce({ format: "gif" });
+    const result = await detectContentType(buffer);
+    expect(result).toBe("image/gif");
+  });
+
+  it("handles sharp metadata returning svg format", async () => {
+    const buffer = Buffer.from([0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b]);
+    mockMetadata.mockResolvedValueOnce({ format: "svg" });
+    const result = await detectContentType(buffer);
+    expect(result).toBe("image/svg+xml");
+  });
 });
 
 describe("resizeImage", () => {
