@@ -10,6 +10,7 @@ import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cach
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { uniqueBy } from "@calcom/lib/array";
+import { CALENDAR_EVENT_ORIGIN_MARKER, GOOGLE_EVENT_ORIGIN_PRIVATE_KEY } from "@calcom/lib/calendarOrigin";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -124,6 +125,20 @@ export default class GoogleCalendarService implements Calendar {
     return attendees;
   };
 
+  private getConferenceDataWithUniqueRequestId(conferenceData?: calendar_v3.Schema$ConferenceData) {
+    if (!conferenceData?.createRequest) {
+      return conferenceData;
+    }
+
+    return {
+      ...conferenceData,
+      createRequest: {
+        ...conferenceData.createRequest,
+        requestId: uuid(),
+      },
+    };
+  }
+
   private async stopWatchingCalendarsInGoogle(
     channels: { googleChannelResourceId: string | null; googleChannelId: string | null }[]
   ) {
@@ -192,6 +207,11 @@ export default class GoogleCalendarService implements Calendar {
       },
       guestsCanSeeOtherGuests: !!calEvent.seatsPerTimeSlot ? calEvent.seatsShowAttendees : true,
       iCalUID: calEvent.iCalUID,
+      extendedProperties: {
+        private: {
+          [GOOGLE_EVENT_ORIGIN_PRIVATE_KEY]: CALENDAR_EVENT_ORIGIN_MARKER,
+        },
+      },
     };
     if (calEvent.hideCalendarEventDetails) {
       payload.visibility = "private";
@@ -215,7 +235,7 @@ export default class GoogleCalendarService implements Calendar {
       payload["recurrence"] = this.mapRecurrenceToPayload(calEvent.recurringEvent);
     }
     if (calEvent.conferenceData && calEvent.location === MeetLocationType) {
-      payload["conferenceData"] = calEvent.conferenceData;
+      payload["conferenceData"] = this.getConferenceDataWithUniqueRequestId(calEvent.conferenceData);
     }
     const calendar = await this.authedCalendar();
     // Find in formattedCalEvent.destinationCalendar the one with the same credentialId
@@ -272,6 +292,7 @@ export default class GoogleCalendarService implements Calendar {
           sendUpdates: "none",
         });
         event = eventResponse.data;
+        console.log("in_here_eventResponse", event.conferenceData.entryPoints);
         if (event.recurrence) {
           if (event.recurrence.length > 0) {
             recurringEventId = event.id;
@@ -374,6 +395,11 @@ export default class GoogleCalendarService implements Calendar {
         useDefault: true,
       },
       guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+      extendedProperties: {
+        private: {
+          [GOOGLE_EVENT_ORIGIN_PRIVATE_KEY]: CALENDAR_EVENT_ORIGIN_MARKER,
+        },
+      },
     };
 
     if (event.location) {
@@ -381,7 +407,7 @@ export default class GoogleCalendarService implements Calendar {
     }
 
     if (event.conferenceData && event.location === MeetLocationType) {
-      payload["conferenceData"] = event.conferenceData;
+      payload["conferenceData"] = this.getConferenceDataWithUniqueRequestId(event.conferenceData);
     }
 
     const calendar = await this.authedCalendar();
@@ -1372,6 +1398,11 @@ export default class GoogleCalendarService implements Calendar {
           useDefault: true,
         },
         guestsCanSeeOtherGuests: !!event.seatsPerTimeSlot ? event.seatsShowAttendees : true,
+        extendedProperties: {
+          private: {
+            [GOOGLE_EVENT_ORIGIN_PRIVATE_KEY]: CALENDAR_EVENT_ORIGIN_MARKER,
+          },
+        },
       };
 
       if (event.hideCalendarEventDetails) {

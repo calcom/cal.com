@@ -2,6 +2,7 @@ import publicProcedure from "../../procedures/publicProcedure";
 import { router } from "../../trpc";
 import { ZUserEmailVerificationRequiredSchema } from "./checkIfUserEmailVerificationRequired.schema";
 import { ZMarkHostAsNoShowInputSchema } from "./markHostAsNoShow.schema";
+import { calIdEvent } from "./procedures/calIdEvent";
 import { session } from "./procedures/session";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
@@ -14,6 +15,7 @@ const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 // things that unauthenticated users can query about themselves
 export const publicViewerRouter = router({
   session,
+  calIdEvent,
   countryCode: publicProcedure.query(async (opts) => {
     const { default: handler } = await import("./countryCode.handler");
     return handler(opts);

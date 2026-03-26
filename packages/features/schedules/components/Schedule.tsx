@@ -18,9 +18,13 @@ import { createFilter, type GroupBase, type Props } from "react-select";
 import type { scheduleClassNames } from "@calcom/atoms/availability/types";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { SELECT_SEARCH_DATA } from "@calcom/features/components/timezone-select/TimezoneSelect";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
+import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { formatTimezoneOptionLabel } from "@calcom/lib/timezone";
 import { weekdayNames } from "@calcom/lib/weekday";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange } from "@calcom/types/schedule";
 import cn from "@calcom/ui/classNames";
@@ -327,6 +331,123 @@ const RemoveTimeButton = ({
   );
 };
 
+const MAX_VISIBLE_TIMEZONES = 50;
+
+const TargetTimezonesDropdown = ({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: TimeRange;
+  onChange: (value: TimeRange) => void;
+  disabled?: boolean;
+}) => {
+  const { t } = useLocale();
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const selectedTz = useMemo(() => value.targetTimeZones ?? [], [value.targetTimeZones]);
+  const { data: cityTimezones = [], isPending } = trpc.viewer.timezones.cityTimezones.useQuery(
+    { CalComVersion: CALCOM_VERSION },
+    {
+      trpc: { context: { skipBatch: true } },
+      enabled: open,
+    }
+  );
+  const filteredOptions = useMemo(() => {
+    const cityOptions = cityTimezones
+      .filter(({ city, timezone }) => city != null && timezone != null)
+      .map(({ city, timezone }) => ({ label: city, value: timezone }));
+    const searchOptions = SELECT_SEARCH_DATA.map(({ label, timezone }) => ({ label, value: timezone }));
+    const merged = [...searchOptions, ...cityOptions];
+    const uniqueByTimezone = Array.from(new Map(merged.map((tz) => [tz.value, tz])).values());
+    if (!search.trim()) return uniqueByTimezone;
+    const searchLower = search.toLowerCase().trim();
+    const searchAliases = new Set<string>();
+    if (["united", "usa", "us"].includes(searchLower)) searchAliases.add("america");
+    return uniqueByTimezone.filter((tz) => {
+      const labelMatch = (tz.label ?? "").toLowerCase().includes(searchLower);
+      const valueMatch = (tz.value ?? "").toLowerCase().replace(/_/g, " ").includes(searchLower);
+      const aliasMatch = [...searchAliases].some((alias) => (tz.value ?? "").toLowerCase().includes(alias));
+      const formattedMatch = formatTimezoneOptionLabel(tz.value).toLowerCase().includes(searchLower);
+      return labelMatch || valueMatch || aliasMatch || formattedMatch;
+    });
+  }, [cityTimezones, search]);
+  const timezoneOptions = useMemo(() => {
+    const selected = filteredOptions.filter((tz) => selectedTz.includes(tz.value));
+    const rest = filteredOptions.filter((tz) => !selectedTz.includes(tz.value));
+    return [...selected, ...rest].slice(0, MAX_VISIBLE_TIMEZONES);
+  }, [filteredOptions, selectedTz]);
+  const hasMore = filteredOptions.length > MAX_VISIBLE_TIMEZONES;
+
+  return (
+    <Dropdown
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) setSearch("");
+      }}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="icon"
+          color="minimal"
+          size="sm"
+          disabled={disabled || isPending}
+          className="text-muted hover:text-default h-8 w-8 shrink-0"
+          tooltip={t("show_for_timezones")}
+          StartIcon="globe"
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-80 max-w-[calc(100vw-2rem)] p-2">
+        <div className="text-muted mb-2 text-xs font-medium">{t("show_for_timezones")}</div>
+        <input
+          type="text"
+          placeholder={t("search")}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="border-default bg-default mb-2 w-full rounded-md border px-2 py-1.5 text-sm"
+        />
+        <div className="max-h-48 space-y-1 overflow-y-auto">
+          <label className="hover:bg-muted flex cursor-pointer items-center gap-2 rounded px-2 py-1.5">
+            <input
+              type="checkbox"
+              checked={selectedTz.length === 0}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  onChange({ ...value, targetTimeZones: [] });
+                }
+              }}
+              className="border-default h-4 w-4 rounded"
+            />
+            <span className="text-sm">{t("all")}</span>
+          </label>
+          {timezoneOptions.map((tz) => (
+            <label
+              key={tz.value}
+              className="hover:bg-muted flex cursor-pointer items-center gap-2 rounded px-2 py-1.5">
+              <input
+                type="checkbox"
+                checked={selectedTz.includes(tz.value)}
+                onChange={(e) => {
+                  const newTz = e.target.checked
+                    ? [...selectedTz, tz.value]
+                    : selectedTz.filter((t) => t !== tz.value);
+                  onChange({ ...value, targetTimeZones: newTz });
+                }}
+                className="border-default h-4 w-4 shrink-0 rounded"
+              />
+              <span className="text-default min-w-0 truncate text-sm">
+                {formatTimezoneOptionLabel(tz.value)}
+              </span>
+            </label>
+          ))}
+          {hasMore && <div className="text-muted mt-2 px-2 py-1 text-xs">{t("search_to_load_more")}</div>}
+        </div>
+      </DropdownMenuContent>
+    </Dropdown>
+  );
+};
+
 const TimeRangeField = ({
   className,
   value,
@@ -338,38 +459,41 @@ const TimeRangeField = ({
   disabled?: boolean;
   userTimeFormat: number | null;
 } & ControllerRenderProps) => {
-  // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
+  const timeRangeValue = value as TimeRange;
   return (
-    <div className={cn("flex flex-row gap-2 sm:gap-3", className)}>
-      <LazySelect
-        userTimeFormat={userTimeFormat}
-        className="block w-[90px] sm:w-[100px]"
-        isDisabled={disabled}
-        value={value.start}
-        menuPlacement="bottom"
-        onChange={(option) => {
-          const newStart = new Date(option?.value as number);
-          if (newStart >= new Date(value.end)) {
-            const newEnd = new Date(option?.value as number);
-            newEnd.setMinutes(newEnd.getMinutes() + INCREMENT);
-            onChange({ ...value, start: newStart, end: newEnd });
-          } else {
-            onChange({ ...value, start: newStart });
-          }
-        }}
-      />
-      <span className="text-default w-2 self-center"> - </span>
-      <LazySelect
-        userTimeFormat={userTimeFormat}
-        className="block w-[90px] rounded-md sm:w-[100px]"
-        isDisabled={disabled}
-        value={value.end}
-        min={value.start}
-        menuPlacement="bottom"
-        onChange={(option) => {
-          onChange({ ...value, end: new Date(option?.value as number) });
-        }}
-      />
+    <div className={cn("flex flex-row flex-wrap items-center gap-2 sm:gap-3", className)}>
+      <div className="flex flex-row gap-2 sm:gap-3">
+        <LazySelect
+          userTimeFormat={userTimeFormat}
+          className="block w-[90px] sm:w-[100px]"
+          isDisabled={disabled}
+          value={timeRangeValue.start}
+          menuPlacement="bottom"
+          onChange={(option) => {
+            const newStart = new Date(option?.value as number);
+            if (newStart >= new Date(timeRangeValue.end)) {
+              const newEnd = new Date(option?.value as number);
+              newEnd.setMinutes(newEnd.getMinutes() + INCREMENT);
+              onChange({ ...timeRangeValue, start: newStart, end: newEnd });
+            } else {
+              onChange({ ...timeRangeValue, start: newStart });
+            }
+          }}
+        />
+        <span className="text-default w-2 self-center"> - </span>
+        <LazySelect
+          userTimeFormat={userTimeFormat}
+          className="block w-[90px] rounded-md sm:w-[100px]"
+          isDisabled={disabled}
+          value={timeRangeValue.end}
+          min={timeRangeValue.start}
+          menuPlacement="bottom"
+          onChange={(option) => {
+            onChange({ ...timeRangeValue, end: new Date(option?.value as number) });
+          }}
+        />
+      </div>
+      {!disabled && <TargetTimezonesDropdown value={timeRangeValue} onChange={(v) => onChange(v)} />}
     </div>
   );
 };
@@ -514,6 +638,7 @@ const getDateSlotRange = (endField?: FieldArrayWithId, startField?: FieldArrayWi
       append: {
         start: nextRangeStart.toDate(),
         end: nextRangeEnd.isAfter(endOfDay) ? endOfDay.toDate() : nextRangeEnd.toDate(),
+        targetTimeZones: [],
       },
     };
   }
@@ -526,6 +651,7 @@ const getDateSlotRange = (endField?: FieldArrayWithId, startField?: FieldArrayWi
       prepend: {
         start: previousRangeStart.isBefore(startOfDay) ? startOfDay.toDate() : previousRangeStart.toDate(),
         end: timezoneStartRange.toDate(),
+        targetTimeZones: [],
       },
     };
   }

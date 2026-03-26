@@ -30,6 +30,7 @@ export class ScheduleRepository {
             startTime: true,
             endTime: true,
             date: true,
+            targetTimeZones: true,
           },
         },
         user: {

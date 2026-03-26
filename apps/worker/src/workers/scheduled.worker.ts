@@ -5,7 +5,8 @@ import type {
   TriggerScheduledWebhookData,
 } from "@calid/job-engine";
 // import type { SyncWhatsappTemplatesData } from "@calid/job-engine/src/scheduled/type.js";
-import { getRedisOptions, QueueName } from "@calid/queue";
+import { QueueName } from "@calid/queue";
+import { getRedisOptions } from "@calid/redis";
 import type { Job } from "bullmq";
 import { Worker } from "bullmq";
 

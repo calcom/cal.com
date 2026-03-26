@@ -93,11 +93,17 @@ export const updateSchedule = async ({ input, user, prisma }: IUpdateScheduleOpt
         },
         createMany: {
           data: [
-            ...availability,
+            ...availability.map((a) => ({
+              days: a.days,
+              startTime: a.startTime,
+              endTime: a.endTime,
+              targetTimeZones: a.targetTimeZones ?? [],
+            })),
             ...(input.dateOverrides || []).map((override) => ({
               date: override.start,
               startTime: override.start,
               endTime: override.end,
+              targetTimeZones: [],
             })),
           ],
         },

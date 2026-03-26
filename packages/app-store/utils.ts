@@ -131,7 +131,7 @@ export function getAppType(name: string): string {
   return "Unknown";
 }
 
-export function getAppFromSlug(slug: string | undefined): AppMeta | undefined {
+export function getAppFromSlug(slug: string | undefined | null): AppMeta | undefined {
   return ALL_APPS.find((app) => app.slug === slug);
 }
 

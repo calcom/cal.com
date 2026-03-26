@@ -119,6 +119,11 @@ import { createBooking } from "./handleNewBooking/createBooking";
 import type { Booking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "./handleNewBooking/getBookingData";
+import {
+  getConferenceDetailsFromResult,
+  getPreferredConferenceResult,
+} from "./handleNewBooking/getConferenceDetailsFromResult";
+import type { ResultWithConferenceFields } from "./handleNewBooking/getConferenceDetailsFromResult";
 import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
 import type { GetEventTypeReturn } from "./handleNewBooking/getEventType";
 import { getEventType } from "./handleNewBooking/getEventType";
@@ -1980,7 +1985,7 @@ async function handler(
           const googleCalIndex = updateManager.referencesToCreate.findIndex(
             (ref) => ref.type === "google_calendar"
           );
-          const googleCalResult = results[googleCalIndex];
+          const googleCalResult = results.find((result) => result.type === "google_calendar");
 
           if (!googleCalResult) {
             loggerWithEventDetails.warn("Google Calendar not installed but using Google Meet as location");
@@ -1991,9 +1996,10 @@ async function handler(
             });
           }
 
-          const googleHangoutLink = Array.isArray(googleCalResult?.updatedEvent)
-            ? googleCalResult.updatedEvent[0]?.hangoutLink
-            : googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink;
+          const googleConferenceDetails = getConferenceDetailsFromResult(
+            googleCalResult as ResultWithConferenceFields | undefined
+          );
+          const googleHangoutLink = googleConferenceDetails.meetingUrl;
 
           if (googleHangoutLink) {
             results.push({
@@ -2002,18 +2008,22 @@ async function handler(
             });
 
             // Add google_meet to referencesToCreate in the same index as google_calendar
-            updateManager.referencesToCreate[googleCalIndex] = {
-              ...updateManager.referencesToCreate[googleCalIndex],
-              meetingUrl: googleHangoutLink,
-            };
+            if (googleCalIndex >= 0) {
+              updateManager.referencesToCreate[googleCalIndex] = {
+                ...updateManager.referencesToCreate[googleCalIndex],
+                meetingUrl: googleHangoutLink,
+              };
+            }
 
             // Also create a new referenceToCreate with type video for google_meet
-            updateManager.referencesToCreate.push({
-              type: "google_meet_video",
-              meetingUrl: googleHangoutLink,
-              uid: googleCalResult.uid,
-              credentialId: updateManager.referencesToCreate[googleCalIndex].credentialId,
-            });
+            if (googleCalResult && googleCalIndex >= 0) {
+              updateManager.referencesToCreate.push({
+                type: "google_meet_video",
+                meetingUrl: googleHangoutLink,
+                uid: googleCalResult.uid,
+                credentialId: updateManager.referencesToCreate[googleCalIndex].credentialId,
+              });
+            }
           } else if (googleCalResult && !googleHangoutLink) {
             results.push({
               ...googleMeetResult,
@@ -2021,16 +2031,16 @@ async function handler(
             });
           }
         }
-        const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
-          ? results[0]?.updatedEvent[0]
-          : results[0]?.updatedEvent ?? results[0]?.createdEvent;
-        metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
-        metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
-        metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
+        const preferredConferenceResult = getPreferredConferenceResult(
+          results as ResultWithConferenceFields[]
+        );
+        const conferenceDetails = getConferenceDetailsFromResult(preferredConferenceResult);
+        metadata.hangoutLink = conferenceDetails.hangoutLink;
+        metadata.conferenceData = conferenceDetails.conferenceData;
+        metadata.entryPoints = conferenceDetails.entryPoints;
         evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
-          metadata.hangoutLink ||
-          createdOrUpdatedEvent?.url ||
+          conferenceDetails.meetingUrl ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
           getVideoCallUrlFromCalEvent(evt) ||
           videoCallUrl;
@@ -2210,7 +2220,7 @@ async function handler(
           const googleCalIndex = createManager.referencesToCreate.findIndex(
             (ref) => ref.type === "google_calendar"
           );
-          const googleCalResult = results[googleCalIndex];
+          const googleCalResult = results.find((result) => result.type === "google_calendar");
 
           if (!googleCalResult) {
             loggerWithEventDetails.warn("Google Calendar not installed but using Google Meet as location");
@@ -2221,26 +2231,35 @@ async function handler(
             });
           }
 
-          if (googleCalResult?.createdEvent?.hangoutLink) {
+          const googleConferenceDetails = getConferenceDetailsFromResult(
+            googleCalResult as ResultWithConferenceFields | undefined
+          );
+          const googleHangoutLink = googleConferenceDetails.meetingUrl;
+
+          if (googleHangoutLink) {
             results.push({
               ...googleMeetResult,
               success: true,
             });
 
             // Add google_meet to referencesToCreate in the same index as google_calendar
-            createManager.referencesToCreate[googleCalIndex] = {
-              ...createManager.referencesToCreate[googleCalIndex],
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
-            };
+            if (googleCalIndex >= 0) {
+              createManager.referencesToCreate[googleCalIndex] = {
+                ...createManager.referencesToCreate[googleCalIndex],
+                meetingUrl: googleHangoutLink,
+              };
+            }
 
             // Also create a new referenceToCreate with type video for google_meet
-            createManager.referencesToCreate.push({
-              type: "google_meet_video",
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
-              uid: googleCalResult.uid,
-              credentialId: createManager.referencesToCreate[googleCalIndex].credentialId,
-            });
-          } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
+            if (googleCalResult && googleCalIndex >= 0) {
+              createManager.referencesToCreate.push({
+                type: "google_meet_video",
+                meetingUrl: googleHangoutLink,
+                uid: googleCalResult.uid,
+                credentialId: createManager.referencesToCreate[googleCalIndex].credentialId,
+              });
+            }
+          } else if (googleCalResult && !googleHangoutLink) {
             results.push({
               ...googleMeetResult,
               success: false,
@@ -2248,12 +2267,16 @@ async function handler(
           }
         }
         // TODO: Handle created event metadata more elegantly
-        additionalInformation.hangoutLink = results[0].createdEvent?.hangoutLink;
-        additionalInformation.conferenceData = results[0].createdEvent?.conferenceData;
-        additionalInformation.entryPoints = results[0].createdEvent?.entryPoints;
+        const preferredConferenceResult = getPreferredConferenceResult(
+          results as ResultWithConferenceFields[]
+        );
+        const conferenceDetails = getConferenceDetailsFromResult(preferredConferenceResult);
+        additionalInformation.hangoutLink = conferenceDetails.hangoutLink;
+        additionalInformation.conferenceData = conferenceDetails.conferenceData;
+        additionalInformation.entryPoints = conferenceDetails.entryPoints;
         evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
-          additionalInformation.hangoutLink ||
+          conferenceDetails.meetingUrl ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
           videoCallUrl;
 

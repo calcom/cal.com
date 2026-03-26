@@ -11,7 +11,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { code, userId } = req.query;
+    const { code, userId: userIdQuery, state } = req.query;
+
+    // Get userId from query or from state (e.g. onboarding_finish_123)
+    let userId = typeof userIdQuery === "string" ? userIdQuery : undefined;
+    if (!userId && typeof state === "string" && state.startsWith("onboarding_finish_")) {
+      userId = state.split("_")[2];
+    }
 
     // Validate required parameters
     if (!code || !userId || typeof code !== "string" || typeof userId !== "string") {
@@ -74,6 +80,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
         },
       });
+    }
+
+    // Redirect to onboarding finish when user came from "Import from Calendly and finish" flow
+    if (typeof state === "string" && state.startsWith("onboarding_finish_")) {
+      const webappUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "";
+      return res.redirect(302, `${webappUrl}/getting-started/connected-video?redirected=1`);
     }
 
     return res.status(200).json({ success: true });

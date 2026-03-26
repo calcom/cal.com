@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -17,13 +17,52 @@ export class DestinationCalendarRepository {
   static async createIfNotExistsForUser(
     data: { userId: number } & Prisma.DestinationCalendarUncheckedCreateInput
   ) {
-    const conflictingCalendar = await DestinationCalendarRepository.findConflictingForUser(data);
-    if (conflictingCalendar) {
-      return conflictingCalendar;
-    }
-    return await prisma.destinationCalendar.create({
-      data,
+    const credentialPayload = buildCredentialPayloadForPrisma({
+      credentialId: data.credentialId,
+      delegationCredentialId: data.delegationCredentialId,
     });
+
+    try {
+      return await prisma.destinationCalendar.upsert({
+        where: {
+          userId: data.userId,
+        },
+        create: {
+          userId: data.userId,
+          integration: data.integration,
+          externalId: data.externalId,
+          primaryEmail: data.primaryEmail,
+          ...credentialPayload,
+        },
+        update: {
+          integration: data.integration,
+          externalId: data.externalId,
+          primaryEmail: data.primaryEmail,
+          ...credentialPayload,
+        },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        log.warn("destinationCalendar upsert hit P2002, reconciling by userId", {
+          userId: data.userId,
+          target: error.meta?.target,
+        });
+
+        return await prisma.destinationCalendar.update({
+          where: {
+            userId: data.userId,
+          },
+          data: {
+            integration: data.integration,
+            externalId: data.externalId,
+            primaryEmail: data.primaryEmail,
+            ...credentialPayload,
+          },
+        });
+      }
+
+      throw error;
+    }
   }
 
   static async getByUserId(userId: number) {
@@ -45,21 +84,6 @@ export class DestinationCalendarRepository {
   static async find({ where }: { where: Prisma.DestinationCalendarWhereInput }) {
     return await prisma.destinationCalendar.findFirst({
       where,
-    });
-  }
-
-  private static async findConflictingForUser(data: {
-    userId: number;
-    integration: string;
-    externalId: string;
-  }) {
-    return await DestinationCalendarRepository.find({
-      where: {
-        userId: data.userId,
-        integration: data.integration,
-        externalId: data.externalId,
-        eventTypeId: null,
-      },
     });
   }
 

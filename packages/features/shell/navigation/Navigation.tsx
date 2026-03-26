@@ -1,3 +1,4 @@
+import { Badge } from "@calid/features/ui/components/badge";
 import { useSession } from "next-auth/react";
 import { useMemo } from "react";
 
@@ -42,6 +43,17 @@ const getNavigationItems = (userId: number): NavigationItemType[] => [
     icon: "clock-2",
   },
   {
+    name: "calendar",
+    href: "/calendar",
+    icon: "calendar",
+    badge: (
+      <Badge size="sm" variant="gray">
+        Beta
+      </Badge>
+    ),
+    moreOnMobile: true,
+  },
+  {
     name: "Claim Pro",
     href: "/claim",
     icon: "badge-percent",
@@ -61,7 +73,10 @@ const getNavigationItems = (userId: number): NavigationItemType[] => [
     moreOnMobile: true,
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
+      return (
+        (item.href ? path?.startsWith(item.href) ?? false : false) &&
+        !(path?.includes("routing-forms/") ?? false)
+      );
     },
   },
   {

@@ -1,4 +1,5 @@
 import { _generateMetadata } from "app/_utils";
+import type { PageProps } from "app/_types";
 import { cookies, headers } from "next/headers";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
@@ -21,7 +22,8 @@ export const generateMetadata = async () => {
   );
 };
 
-const ServerPage = async () => {
+const ServerPage = async ({ searchParams: _searchParams }: Pick<PageProps, "searchParams">) => {
+  const searchParams = await _searchParams;
   const req = buildLegacyRequest(await headers(), await cookies());
   const session = await getServerSession({ req });
   let appStore, userAdminTeamsIds: number[];
@@ -47,6 +49,13 @@ const ServerPage = async () => {
     }
     return c;
   }, {} as Record<string, number>);
+  const requestedCategory = Array.isArray(searchParams?.category)
+    ? searchParams.category[0]
+    : searchParams?.category;
+  const selectedCategory =
+    typeof requestedCategory === "string" && Object.hasOwn(categories, requestedCategory)
+      ? (requestedCategory as AppCategories)
+      : null;
 
   const props = {
     categories: Object.entries(categories)
@@ -59,6 +68,7 @@ const ServerPage = async () => {
       }),
     appStore,
     userAdminTeams: userAdminTeamsIds,
+    selectedCategory,
   };
   return <AppsPage {...props} isAdmin={session?.user?.role === "ADMIN"} />;
 };

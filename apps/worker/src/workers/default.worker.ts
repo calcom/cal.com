@@ -5,7 +5,8 @@ import {
   type RazorpayAppRevokedJobData,
   type BookingEmailsJobData,
 } from "@calid/job-engine";
-import { getRedisOptions, QueueName } from "@calid/queue";
+import { QueueName } from "@calid/queue";
+import { getRedisOptions } from "@calid/redis";
 import { Worker } from "bullmq";
 import type { Job } from "bullmq";
 

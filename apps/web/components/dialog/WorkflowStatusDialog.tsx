@@ -9,6 +9,7 @@ import type { IconName } from "@calid/features/ui/components/icon/Icon";
 import { Icon } from "@calid/features/ui/components/icon/Icon";
 import { Input } from "@calid/features/ui/components/input/input";
 import { ScrollArea } from "@calid/features/ui/components/scroll-area";
+import startCase from "lodash/startCase";
 import type { Dispatch, SetStateAction } from "react";
 import { useMemo, useState } from "react";
 
@@ -56,8 +57,10 @@ const getStatusLabel = (status: string): string => {
       return "Failed";
     case "CANCELLED":
       return "Cancelled";
+    case "DELIVERED":
+      return "Delivered";
     default:
-      return status;
+      return startCase(status);
   }
 };
 

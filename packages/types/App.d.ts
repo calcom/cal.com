@@ -173,6 +173,13 @@ export interface App {
   delegationCredential?: {
     workspacePlatformSlug: string;
   };
+
+  /**
+   * When true, this app uses the owner-scoped installation model:
+   * - Installations are always stored as user-scoped credentials
+   * - Availability for event-type cards is resolved dynamically based on ownership
+   */
+  owner_scoped_installation?: boolean;
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {
