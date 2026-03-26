@@ -1,6 +1,15 @@
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dialog, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogPopup,
+  AlertDialogTitle,
+} from "@coss/ui/components/alert-dialog";
+import { Button } from "@coss/ui/components/button";
 
 interface DeleteWebhookDialogProps {
   open: boolean;
@@ -13,19 +22,26 @@ export function DeleteWebhookDialog({ open, onOpenChange, onConfirm, isPending }
   const { t } = useLocale();
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <ConfirmationDialogContent
-        variety="danger"
-        title={t("delete_webhook")}
-        confirmBtnText={t("confirm_delete_webhook")}
-        loadingText={t("confirm_delete_webhook")}
-        isPending={isPending}
-        onConfirm={(e) => {
-          e.preventDefault();
-          onConfirm();
-        }}>
-        {t("delete_webhook_confirmation_message", { appName: APP_NAME })}
-      </ConfirmationDialogContent>
-    </Dialog>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogPopup>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t("delete_webhook")}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {t("delete_webhook_confirmation_message", { appName: APP_NAME })}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogClose render={<Button variant="ghost" />}>{t("cancel")}</AlertDialogClose>
+          <Button
+            data-testid="dialog-confirmation"
+            variant="destructive"
+            loading={isPending}
+            onClick={onConfirm}
+          >
+            {t("confirm_delete_webhook")}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogPopup>
+    </AlertDialog>
   );
 }
