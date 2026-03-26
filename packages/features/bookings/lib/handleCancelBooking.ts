@@ -420,10 +420,12 @@ async function handler(input: CancelBookingInput) {
     iCalSequence: bookingToDelete.iCalSequence || 0,
     iCalUID: bookingToDelete.iCalUID || "",
     location: bookingToDelete?.location,
+    locationType: booking?.responses["location"]?.value ?? null,
     eventTypeId: bookingToDelete.eventTypeId,
     seatsShowAttendees: !!bookingToDelete.eventType?.seatsShowAttendees,
     seatsPerTimeSlot: bookingToDelete.eventType?.seatsPerTimeSlot,
     recurringEvent: parseRecurringEvent(bookingToDelete.eventType?.recurringEvent),
+    bookingFields: bookingToDelete.eventType?.bookingFields ?? [],
     ...(teamMembers &&
       teamId && {
         team: {

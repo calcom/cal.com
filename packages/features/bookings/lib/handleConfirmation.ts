@@ -32,6 +32,11 @@ import { getAllCalIdWorkflowsFromEventType } from "@calcom/trpc/server/routers/v
 import type { AdditionalInformation, CalendarEvent, RecurringEvent, Person } from "@calcom/types/Calendar";
 
 import { getCalEventResponses } from "./getCalEventResponses";
+import {
+  getConferenceDetailsFromResult,
+  getPreferredConferenceResult,
+} from "./handleNewBooking/getConferenceDetailsFromResult";
+import type { ResultWithConferenceFields } from "./handleNewBooking/getConferenceDetailsFromResult";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
@@ -171,9 +176,11 @@ export async function handleConfirmation(args: {
     log.error(`Booking ${user.username} failed`, safeStringify({ error, results }));
   } else {
     if (results.length) {
-      metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-      metadata.conferenceData = results[0].createdEvent?.conferenceData;
-      metadata.entryPoints = results[0].createdEvent?.entryPoints;
+      const preferredConferenceResult = getPreferredConferenceResult(results as ResultWithConferenceFields[]);
+      const conferenceDetails = getConferenceDetailsFromResult(preferredConferenceResult);
+      metadata.hangoutLink = conferenceDetails.hangoutLink;
+      metadata.conferenceData = conferenceDetails.conferenceData;
+      metadata.entryPoints = conferenceDetails.entryPoints;
     }
     try {
       const eventType = booking.eventType;
@@ -249,7 +256,8 @@ export async function handleConfirmation(args: {
   }[] = [];
 
   const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
-  const meetingUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
+  const meetingUrl = getVideoCallUrlFromCalEvent({ ...evt, additionalInformation: metadata }) || videoCallUrl;
+  const resolvedVideoProvider = evt.videoCallData?.type;
 
   const updatedBooking = await prisma.booking.update({
     where: {
@@ -261,7 +269,8 @@ export async function handleConfirmation(args: {
       },
       metadata: {
         ...(typeof booking.metadata === "object" ? booking.metadata : {}),
-        videoCallUrl: meetingUrl,
+        ...(meetingUrl ? { videoCallUrl: meetingUrl } : {}),
+        ...(resolvedVideoProvider ? { videoProvider: resolvedVideoProvider } : {}),
       },
     },
     select: {
@@ -374,7 +383,10 @@ export async function handleConfirmation(args: {
       const evtOfBooking = {
         ...evt,
         rescheduleReason: updatedBookings[index].cancellationReason || null,
-        metadata: { videoCallUrl: meetingUrl },
+        metadata: {
+          ...(meetingUrl ? { videoCallUrl: meetingUrl } : {}),
+          ...(resolvedVideoProvider ? { videoProvider: resolvedVideoProvider } : {}),
+        },
         eventType: {
           id: booking.eventTypeId ?? undefined,
           title: eventTypeTitle,
@@ -521,7 +533,13 @@ export async function handleConfirmation(args: {
       eventTypeId: eventType?.id,
       status: "ACCEPTED",
       smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
+      metadata:
+        meetingUrl || resolvedVideoProvider
+          ? {
+              ...(meetingUrl ? { videoCallUrl: meetingUrl } : {}),
+              ...(resolvedVideoProvider ? { videoProvider: resolvedVideoProvider } : {}),
+            }
+          : undefined,
       ...(platformClientParams ? platformClientParams : {}),
     };
 

@@ -44,8 +44,8 @@ interface LoginValues {
 
 const GoogleIcon = () => (
   <img
-    className="google-icon-premium mr-3 h-5 w-5"
-    src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1024px-Google_%22G%22_logo.svg.png"
+    className="google-icon-premium mr-3 h-5 w-5 "
+    src={`${WEBAPP_URL}/google-icon-colored.svg`}
     alt="Google"
   />
 );

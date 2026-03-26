@@ -89,11 +89,7 @@ export const parsePostMessage = (data: unknown): PostMessageEnvelope | null => {
 };
 
 const globalHandler = (e: MessageEvent) => {
-  console.log("Received event: ", e.data);
-
   const msg = parsePostMessage(e.data);
-
-  console.log("Received post message: ", msg);
 
   if (!msg) return;
   routers.forEach((router) => {

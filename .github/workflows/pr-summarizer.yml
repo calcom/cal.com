@@ -1,0 +1,273 @@
+name: PR Summarizer
+
+permissions:
+  contents: read
+  models: read
+  pull-requests: write
+  issues: write
+
+on:
+  pull_request:
+    types: [closed]
+
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull Request Number"
+        required: true
+        type: number
+
+concurrency:
+  group: pr-summarizer
+  cancel-in-progress: false
+
+jobs:
+  prepareFilesForSummary:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main') }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Summarize PR
+        id: summarize_pr
+        uses: actions/github-script@v8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            let pr;
+            if (context.eventName === "workflow_dispatch") {
+              const prNumber = context.payload.inputs.pr_number;
+
+              const { data } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+              });
+
+              pr = data;
+            } else {
+              pr = context.payload.pull_request;
+            }
+
+            const inferenceEndpoint = "https://models.github.ai/inference/chat/completions";
+
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                per_page: 100,
+              }
+            );
+
+            console.log(`Total files: ${files.length}`);
+
+            const batchSize = 10;
+            const fileSummaries = [];
+
+            async function fetchWithRetry(url, options, retries=5) {
+              for (let attempt = 0; attempt < retries; attempt++) {
+                const res = await fetch(url, options);
+
+                try {
+                  if (res.status === 429) {
+                    console.log(await res.text());
+                    throw new Error("Too many requests");
+                  }
+
+                  return await res.json();
+
+                } catch (err) {
+                  const waitTime = Math.pow(2, attempt) * 8000;
+                  console.log(err);
+                  console.log(`Rate limited. Retrying in ${waitTime / 1000}s...`);
+
+                  await new Promise(r => setTimeout(r, waitTime));
+                }
+              }
+
+              throw new Error("Max retries exceeded");
+            }
+
+            for (let i = 0; i < files.length; i += batchSize) {
+              const batch = files.slice(i, i + batchSize);
+
+              const prompt = batch.map(f => `
+                File: ${f.filename}
+                Status: ${f.status}
+                Patch:
+                ${f.patch?.slice(0, 1500) ?? 'No diff available'}
+              `).join('\n\n');
+
+              const data = await fetchWithRetry(
+                inferenceEndpoint,
+                {
+                  method: "POST",
+                  headers: {
+                    "Authorization": `Bearer ${process.env.GITHUB_TOKEN}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    model: "gpt-4.1-mini",
+                    messages: [
+                      {
+                        role: "system",
+                        content: `
+                          # Role
+                          You are an ultra-concise git diff parser. Your job is to compress file changes into hyper-dense "information nuggets" for a downstream machine reader. 
+
+                          # Goal
+                          Produce the absolute minimum text required to convey functional changes. Save token space.
+
+                          ---
+
+                          # 🛑 Filter (Zero Output)
+                          If the file diff belongs to any of these categories, output exactly \`[SKIP]\` and stop:
+                          - Lockfiles, third-party vendor folders, image assets, test snapshots, internal configs (linter, tsconfig, prettier, gitignore), or CI/CD pipelines.
+
+                          ---
+
+                          # ✂️ Compression Rules
+                          Apply these rules aggressively to minimize token usage:
+                          1. **Telegram Style:** Remove articles (a, an, the) and conjunctions where possible. 
+                          2. **Functional Focus:** Ignore whitespace, formatting, variable renames, and imports. Document only logic shifts.
+                          3. **No Code:** Do not wrap keywords in backticks (\`) or include code snippets.
+                          4. **Limits:** Maximum 1 to 2 lines per file. Under 15 words per line.
+
+                          ---
+
+                          # Output Rules
+                          Output ONLY one of the following two options based on relevance. Do NOT output section headers, labels, or introductory text. Start your response immediately with the output data.
+
+                          Option 1: For irrelevant files, output exactly:
+                          [SKIP]
+
+                          Option 2: For relevant files, output only the bullet points:
+                          - [Short functional change 1]
+                          - [Short functional change 2]
+                        `
+                      },
+                      {
+                        role: "user",
+                        content: prompt
+                      }
+                    ],
+                    max_tokens: 800,
+                  }),
+                }
+              );
+
+              const summary = data.choices?.[0]?.message?.content || "";
+
+              console.log(summary)
+              fileSummaries.push(summary);
+
+              await new Promise((res) => setTimeout(res, 10 * 1000));
+            }
+
+            const combinedSummaries = fileSummaries.join("\n\n").slice(0, 7000);
+
+            const finalRes = await fetch(
+              inferenceEndpoint,
+              {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${process.env.GITHUB_TOKEN}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  model: "gpt-4.1-mini",
+                  messages: [
+                    {
+                      role: "system",
+                      content: `
+                        # Role
+                        You are a Senior Product Engineer and Product-Minded Communicator. Your goal is to curate meaningful, jargon-free product updates for end-users based on technical pull requests (PRs).
+
+                        ---
+
+                        # Inputs
+                        The user will provide the following inputs using these tags:
+                        - <pr_title>Title of the PR</pr_title>
+                        - <pr_description>Author-written description and context</pr_description>
+                        - <file_summaries>A list of file-level changes derived from code diffs</file_summaries>
+
+                        ---
+
+                        # Filtering Criteria (CRITICAL)
+                        Evaluate the pull request using the following binary filter. If a PR falls under "Ignore," do not force a product summary out of it.
+
+                        ### ✅ INCLUDE (Has Product Impact)
+                        - New user-facing features or capabilities
+                        - UI/UX enhancements or visual changes
+                        - Significant user-facing performance improvements (e.g., "Dashboard loads 2x faster")
+                        - External API changes or breaking changes for developers
+
+                        ### ❌ IGNORE (Internal / No Product Impact)
+                        - CI/CD pipelines, GitHub Actions, workflow automation
+                        - Dependency bumps (npm, pip, cargo updates)
+                        - Testing infrastructure, jest/pytest additions
+                        - Internal code refactoring, linter fixes, or structural cleanup
+                        - Internal logging, telemetry, or metric additions
+
+                        ---
+
+                        # Rules of Interpretation
+                        1. **Truth Source:** Trust <file_summaries> most for what actually happened. Trust <pr_description> for why it happened.
+                        2. **Conflicting Data:** If code diffs do not match the description's claims, prioritize the code diffs.
+                        3. **Language:** Translate technical jargon into outcome-driven language. (e.g., Instead of "Updated OAuth2 callback endpoints," use "Fixed an issue where logging in via Google would occasionally fail.")
+
+                        ---
+
+                        # Output Format
+
+                        Determine if the PR has a product impact. Choose ONLY ONE of the two output branches below:
+
+                        ### Branch A: If the PR has NO product impact (Internal/CI/CD/Tests)
+                        Output exactly this and nothing else:
+                        No relevant product impact.
+
+                        ### Branch B: If the PR HAS a product impact
+                        Output exactly this Markdown structure:
+
+                        ## 🧠 PR Summary
+
+                        ### ✨ Product Impact
+                        - [Bullet point translating technical changes into user value, outcomes, or reliability improvements]
+
+                        ### 🏷️ Classification
+                        - **Type:** (Feature | Improvement | Bugfix)
+                        - **Impact Level:** (Low | Medium | High)
+                      `
+                    },
+                    {
+                      role: "user",
+                      content: `
+                        <pr_title>${pr.title}</pr_title>
+                        <pr_description>${pr.body}</pr_description>
+                        <file_summaries>${combinedSummaries}</file_summaries>
+
+                        Follow best practices: concise, high-signal, no fluff.
+                      `
+                    }
+                  ],
+                  max_tokens: 1500,
+                }),
+              }
+            );
+
+            const finalData = await finalRes.json();
+            console.log(finalData);
+            const finalSummary = finalData.choices?.[0]?.message?.content;
+
+            console.log("\n\n\n")
+            console.log(finalSummary)
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body: finalSummary,
+            });
+
+            console.log("PR summary posted!");

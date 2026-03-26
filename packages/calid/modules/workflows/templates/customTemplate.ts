@@ -22,6 +22,7 @@ export type VariablesType = {
   additionalNotes?: string | null;
   responses?: CalEventResponses | null;
   meetingUrl?: string;
+  onlineMeetingUrl?: string;
   cancelUrl?: string;
   rescheduleUrl?: string;
   ratingUrl?: string;
@@ -92,6 +93,7 @@ const performBasicTokenSubstitution = (
   const cancellationUrl = variables.cancelUrl ?? "";
   const reschedulingUrl = variables.rescheduleUrl ?? "";
 
+  // REVIEW: This mapping can be optimized by iterating through the variables object keys and performing dynamic replacements, rather than hardcoding each token replacement.
   return textContent
     .replaceAll("{EVENT_TYPE_NAME}", variables.eventTypeName || "")
     .replaceAll("{EVENT_NAME}", variables.eventName || "")
@@ -112,6 +114,7 @@ const performBasicTokenSubstitution = (
     .replaceAll("{CANCEL_URL}", cancellationUrl)
     .replaceAll("{RESCHEDULE_URL}", reschedulingUrl)
     .replaceAll("{MEETING_URL}", variables.meetingUrl || "")
+    .replaceAll("{ONLINE_MEETING_URL}", variables.onlineMeetingUrl || "")
     .replaceAll("{RATING_URL}", variables.ratingUrl || "")
     .replaceAll("{NO_SHOW_URL}", variables.noShowUrl || "")
     .replaceAll("{ATTENDEE_TIMEZONE}", variables.attendeeTimezone || "")
@@ -171,31 +174,113 @@ const processCustomResponseTokens = (
   variables: VariablesType
 ): string => {
   let processedText = textContent;
+  
+  const responses = variables.responses
 
-  if (!variables.responses) return processedText;
+  if (!responses) return processedText;
 
-  Object.keys(variables.responses).forEach((responseKey) => {
-    const normalizedToken = responseKey
-      .replace(/[^a-zA-Z0-9 ]/g, "")
-      .trim()
-      .replaceAll(" ", "_")
-      .toUpperCase();
+  tokenList.forEach((token) => {
+    if (token.startsWith("RESPONSES.")) {
+      const path = token.slice("RESPONSES.".length).split(".");
+      let value: unknown = variables.responses;
+      for (const segment of path) {
+        if (!value || typeof value !== "object") {
+          value = undefined;
+          break;
+        }
+        value = (value as Record<string, unknown>)[segment];
+      }
+      if (value !== undefined && value !== null) {
+        processedText = processedText.replaceAll(`{${token}}`, String(value));
+      }
+      return;
+    }
 
-    tokenList.forEach((token) => {
+    Object.keys(responses).forEach((responseKey) => {
+      const normalizedToken = responseKey
+        .replace(/[^a-zA-Z0-9 ]/g, "")
+        .trim()
+        .replaceAll(" ", "_")
+        .toUpperCase();
+
       if (
         token === normalizedToken &&
-        variables.responses &&
-        variables.responses[responseKey as keyof typeof variables.responses].value
+        responses[responseKey as keyof typeof variables.responses]?.value
       ) {
         processedText = processedText.replace(
           `{${token}}`,
-          variables.responses[responseKey as keyof typeof variables.responses].value.toString()
+          responses[responseKey as keyof typeof variables.responses].value.toString()
         );
       }
     });
   });
 
   return processedText;
+};
+
+const UPPER_CASE_TO_VARIABLES_KEY: Record<string, keyof VariablesType> = {
+  EVENT_TYPE_NAME: "eventTypeName",
+  EVENT_NAME: "eventName",
+  ORGANIZER_NAME: "organizerName",
+  ORGANIZER_FIRST_NAME: "organizerFirstName",
+  ATTENDEE_NAME: "attendeeName",
+  ATTENDEE_FIRST_NAME: "attendeeFirstName",
+  ATTENDEE_LAST_NAME: "attendeeLastName",
+  ATTENDEE_EMAIL: "attendeeEmail",
+  EVENT_DATE: "eventDate",
+  EVENT_TIME: "eventStartTime",
+  START_TIME: "eventStartTime",
+  EVENT_END_TIME: "eventEndTime",
+  TIMEZONE: "timezone",
+  LOCATION: "location",
+  ADDITIONAL_NOTES: "additionalNotes",
+  MEETING_URL: "meetingUrl",
+  ONLINE_MEETING_URL: "onlineMeetingUrl",
+  CANCEL_URL: "cancelUrl",
+  RESCHEDULE_URL: "rescheduleUrl",
+  RATING_URL: "ratingUrl",
+  NO_SHOW_URL: "noShowUrl",
+  ATTENDEE_TIMEZONE: "attendeeTimezone",
+  EVENT_START_TIME_IN_ATTENDEE_TIMEZONE: "eventStartTimeInAttendeeTimezone",
+  EVENT_END_TIME_IN_ATTENDEE_TIMEZONE: "eventEndTimeInAttendeeTimezone",
+  CANCELLATION_REASON: "cancellationReason",
+  RESPONSES: "responses",
+};
+
+const resolveConditionalTruthiness = (value: unknown): boolean => {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "string") return value.length > 0;
+  if (dayjs.isDayjs(value)) return value.isValid();
+  return Boolean(value);
+};
+
+export const evaluateConditionals = (text: string, variables: VariablesType): string => {
+  const conditionalPattern =
+    /\{#if\s+([A-Z][A-Z0-9_]*(?:\.[a-zA-Z0-9_.]+)*)\}([\s\S]*?)(?:\{else\}([\s\S]*?))?\{\/if\}/g;
+
+  return text.replace(conditionalPattern, (fullMatch, key, truthyBranch, falsyBranch) => {
+    const hasNestedConditional =
+      truthyBranch.includes("{#if") || (typeof falsyBranch === "string" && falsyBranch.includes("{#if"));
+
+    if (hasNestedConditional) {
+      return fullMatch;
+    }
+
+    const [baseKey, ...nestedKeys] = key.split(".");
+    const variablesKey = UPPER_CASE_TO_VARIABLES_KEY[baseKey];
+    let value: unknown = variablesKey ? variables[variablesKey] : undefined;
+
+    for (const nestedKey of nestedKeys) {
+      if (!value || typeof value !== "object" || dayjs.isDayjs(value)) {
+        value = undefined;
+        break;
+      }
+      value = (value as Record<string, unknown>)[nestedKey];
+    }
+
+    const selectedBranch = resolveConditionalTruthiness(value) ? truthyBranch : falsyBranch ?? "";
+    return selectedBranch.trim();
+  });
 };
 
 const generateBrandingFooter = (suppressBranding?: boolean): string => {
@@ -245,6 +330,7 @@ const processTemplateContent = (config: ProcessingConfiguration): TemplateOutput
   );
 
   processedText = processCustomResponseTokens(processedText, customTokens, config.dataVariables);
+  processedText = evaluateConditionals(processedText, config.dataVariables);
 
   const brandingFooter = generateBrandingFooter(config.brandingSuppressionFlag);
   const htmlOutput = constructHtmlOutput(processedText, brandingFooter);

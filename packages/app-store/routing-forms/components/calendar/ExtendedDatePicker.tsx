@@ -1,19 +1,21 @@
 "use client";
 
+import { Button } from "@calid/features/ui/components/button";
+import { Icon } from "@calid/features/ui/components/icon";
+import { inputStyles } from "@calid/features/ui/components/input/input";
 import * as Popover from "@radix-ui/react-popover";
 import { format } from "date-fns";
 import { useMemo } from "react";
+import { MonthChangeEventHandler } from "react-day-picker";
 
-import { Icon } from "@calid/features/ui/components/icon";
-import { Button } from "@calid/features/ui/components/button";
 import classNames from "@calcom/ui/classNames";
-import { Spinner } from "@calcom/ui/components/icon";
 import { Calendar } from "@calcom/ui/components/form";
-import { inputStyles } from "@calid/features/ui/components/input/input";
+import { Spinner } from "@calcom/ui/components/icon";
 
 type ExtendedDatePickerProps = {
   selectedDate: string | null;
   onChange: (date: string) => void;
+  onMonthChange: MonthChangeEventHandler;
   availableDates: string[];
   disabled?: boolean;
   loading?: boolean;
@@ -36,6 +38,7 @@ export default function ExtendedDatePicker({
   calendarVariant = "default",
   underlineColor,
   accentColor,
+  onMonthChange,
   placeholder,
 }: ExtendedDatePickerProps) {
   const availableSet = useMemo(() => new Set(availableDates), [availableDates]);
@@ -65,23 +68,20 @@ export default function ExtendedDatePicker({
               isUnderline &&
                 classNames(
                   inputStyles({ size: "md", variant: "underline" }),
-                  "bg-transparent hover:bg-transparent active:bg-transparent px-0 rounded-none focus-visible:ring-0 focus-visible:shadow-none hover:shadow-none active:shadow-none",
-                  isUnderlineDisabled && "disabled:shadow-none disabled:opacity-100 disabled:text-default"
+                  "rounded-none bg-transparent px-0 hover:bg-transparent hover:shadow-none focus-visible:shadow-none focus-visible:ring-0 active:bg-transparent active:shadow-none",
+                  isUnderlineDisabled && "disabled:text-default disabled:opacity-100 disabled:shadow-none"
                 )
             )}
-            style={underlineStyle}
-          >
+            style={underlineStyle}>
             <span className="truncate">
-              {selected ? format(selected, "LLL dd, y") : (
-                <span className="text-sm text-subtle">{placeholder || "Pick a date"}</span>
+              {selected ? (
+                format(selected, "LLL dd, y")
+              ) : (
+                <span className="text-subtle text-sm">{placeholder || "Pick a date"}</span>
               )}
             </span>
             <span className="ml-auto flex items-center">
-              {loading ? (
-                <Spinner className="h-4 w-4" />
-              ) : (
-                <Icon name="calendar" className="h-4 w-4" />
-              )}
+              {loading ? <Spinner className="h-4 w-4" /> : <Icon name="calendar" className="h-4 w-4" />}
             </span>
           </Button>
         </Popover.Trigger>
@@ -89,10 +89,9 @@ export default function ExtendedDatePicker({
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
           side="top"
-          sideOffset={4}
-        >
+          sideOffset={4}>
           <Calendar
-            initialFocus
+            onMonthChange={onMonthChange}
             fromDate={new Date()}
             mode="single"
             defaultMonth={selected ?? new Date()}

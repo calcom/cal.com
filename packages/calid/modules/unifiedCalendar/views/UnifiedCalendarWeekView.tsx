@@ -1,6 +1,8 @@
 import { cn } from "@calid/features/lib/cn";
 import { format, isToday } from "date-fns";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import type { UnifiedCalendarEventVM } from "../lib/types";
 import { splitEventsForDay } from "../lib/utils";
 import { UnifiedCalendarDayColumn, UnifiedCalendarTimeLabels } from "./UnifiedCalendarDayView";
@@ -34,28 +36,27 @@ export const UnifiedCalendarWeekView = ({
   dragPreview,
   onStartDragEvent,
 }: UnifiedCalendarWeekViewProps) => {
+  const { t } = useLocale();
+
   return (
-    <div>
-      <div className="border-border/30 bg-default sticky top-0 z-20">
-        <div className="border-border/30 flex border-b">
-          <div className="w-12 shrink-0" />
+    <div className="border-r">
+      <div className=" bg-default sticky top-0 z-20">
+        <div className=" flex border-b">
+          <div className="w-10 shrink-0 sm:w-12" />
           {viewDays.map((day) => (
             <div
               key={day.toISOString()}
-              className="border-border/20 hover:bg-muted/20 flex-1 cursor-pointer border-l py-2.5 text-center transition-colors"
+              className=" flex-1 cursor-pointer border-l py-2.5 text-center transition-colors"
               onClick={() => onSelectDay(day)}>
               <p
-                className={cn(
-                  "text-muted-foreground/50 text-[10px] font-light uppercase tracking-wider",
-                  isToday(day) && "text-brand-default"
-                )}>
+                className={cn(" text-center text-[10px] font-light uppercase tracking-wider sm:text-[12px]")}>
                 {format(day, "EEE")}
               </p>
               <div className="mt-1 flex items-center justify-center">
                 <div
                   className={cn(
                     "flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium",
-                    isToday(day) && "bg-brand-default text-white"
+                    isToday(day) && "bg-emphasis"
                   )}>
                   {format(day, "d")}
                 </div>
@@ -64,9 +65,9 @@ export const UnifiedCalendarWeekView = ({
           ))}
         </div>
 
-        <div className="border-border/20 flex border-b">
-          <div className="text-muted-foreground/55 flex w-12 shrink-0 items-center justify-center px-2 text-[10px] uppercase tracking-wide">
-            Full Day
+        <div className=" flex border-b">
+          <div className="text-muted-foreground/55 flex w-10 shrink-0 items-center justify-center px-1 text-[9px] uppercase tracking-wide sm:w-12 sm:px-2 sm:text-[10px]">
+            {t("unified_calendar_full_day")}
           </div>
           <div className="flex flex-1">
             {viewDays.map((day) => {
@@ -92,7 +93,7 @@ export const UnifiedCalendarWeekView = ({
                     ))}
                     {allDayEvents.length > 2 && (
                       <p className="text-muted-foreground/40 pl-0.5 text-[10px]">
-                        +{allDayEvents.length - 2} more
+                        {t("unified_calendar_more_count", { count: allDayEvents.length - 2 })}
                       </p>
                     )}
                   </div>
@@ -108,7 +109,7 @@ export const UnifiedCalendarWeekView = ({
 
         <div className="flex flex-1">
           {viewDays.map((day) => (
-            <div key={day.toISOString()} className={cn("border-border/20 flex-1 border-l")}>
+            <div key={day.toISOString()} className={cn("flex-1 border-l")}>
               <UnifiedCalendarDayColumn
                 day={day}
                 filteredEvents={filteredEvents}

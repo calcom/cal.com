@@ -3,7 +3,12 @@
 import { cn } from "@calid/features/lib/cn";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
-import { Collapsible, CollapsibleContent } from "@calid/features/ui/components/collapsible";
+import { CodeEditor } from "@calid/features/ui/components/code-editor";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@calid/features/ui/components/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -46,7 +51,11 @@ import { Editor } from "@calcom/ui/components/editor";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
 import { Radio, RadioField, RadioGroup, RadioIndicator } from "@calcom/ui/components/radio";
 
-import { DYNAMIC_TEXT_VARIABLES, META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
+import {
+  CAL_ID_HTML_MARKER,
+  DYNAMIC_TEXT_VARIABLES,
+  META_DYNAMIC_TEXT_VARIABLES,
+} from "../config/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../config/utils";
 import {
   isSMSAction,
@@ -85,6 +94,7 @@ type WorkflowStep = {
   verifiedAt: Date | null;
   metaTemplatePhoneNumberId?: string | null;
   metaTemplateName?: string | null;
+  variableMapping?: Record<string, unknown> | null;
 };
 
 export type FormValues = {
@@ -103,6 +113,91 @@ type Option = {
 };
 
 type User = RouterOutputs["viewer"]["me"]["get"];
+
+const PREVIEW_TEMPLATE_KEYS = [
+  "EVENT_TYPE_NAME",
+  "EVENT_NAME",
+  "ORGANIZER_NAME",
+  "ORGANIZER_FIRST_NAME",
+  "ATTENDEE_NAME",
+  "ATTENDEE_FIRST_NAME",
+  "ATTENDEE_LAST_NAME",
+  "ATTENDEE_EMAIL",
+  "EVENT_DATE",
+  "EVENT_TIME",
+  "START_TIME",
+  "ONLINE_MEETING_URL",
+  "EVENT_END_TIME",
+  "TIMEZONE",
+  "LOCATION",
+  "ADDITIONAL_NOTES",
+  "MEETING_URL",
+  "CANCEL_URL",
+  "RESCHEDULE_URL",
+  "RATING_URL",
+  "NO_SHOW_URL",
+  "ATTENDEE_TIMEZONE",
+  "EVENT_START_TIME_IN_ATTENDEE_TIMEZONE",
+  "EVENT_END_TIME_IN_ATTENDEE_TIMEZONE",
+  "CANCELLATION_REASON",
+  "RESPONSES",
+] as const;
+
+const evaluatePreview = (html: string, variableMapping: Record<string, any>): string => {
+  let result = html;
+
+  Object.entries(variableMapping).forEach(([key, value]) => {
+    if (key === "RESPONSES") return;
+    if (typeof value === "string") {
+      result = result.replaceAll(`{${key}}`, value);
+    }
+  });
+
+  if (variableMapping.RESPONSES && typeof variableMapping.RESPONSES === "object") {
+    const substituteNested = (prefix: string, obj: Record<string, any>) => {
+      Object.entries(obj).forEach(([k, v]) => {
+        const tokenPath = `${prefix}.${k}`;
+        if (typeof v === "string" || typeof v === "number") {
+          result = result.replaceAll(`{${tokenPath}}`, String(v));
+        } else if (v && typeof v === "object") {
+          substituteNested(tokenPath, v);
+        }
+      });
+    };
+    substituteNested("RESPONSES", variableMapping.RESPONSES);
+  }
+
+  result = result.replace(
+    /\{#if\s+([A-Z][A-Z0-9_]*(?:\.[a-zA-Z0-9_.]+)*)\}([\s\S]*?)(?:\{else\}([\s\S]*?))?\{\/if\}/g,
+    (fullMatch, key, truthyBranch, falsyBranch) => {
+      if (truthyBranch.includes("{#if")) return fullMatch;
+      const [baseKey, ...nestedKeys] = key.split(".");
+      let value: unknown = variableMapping[baseKey];
+      for (const nk of nestedKeys) {
+        if (!value || typeof value !== "object") {
+          value = undefined;
+          break;
+        }
+        value = (value as Record<string, unknown>)[nk];
+      }
+      const truthy = value !== undefined && value !== null && value !== "";
+      return (truthy ? truthyBranch : falsyBranch ?? "").trim();
+    }
+  );
+
+  return result;
+};
+
+const isHtmlMarked = (content: string | null | undefined): boolean =>
+  (content ?? "").trimStart().startsWith(CAL_ID_HTML_MARKER);
+
+const stripHtmlMarker = (content: string | null | undefined): string =>
+  (content ?? "").trimStart().replace(CAL_ID_HTML_MARKER, "");
+
+const isEmailAction = (action: WorkflowActions) =>
+  action === WorkflowActions.EMAIL_ATTENDEE ||
+  action === WorkflowActions.EMAIL_HOST ||
+  action === WorkflowActions.EMAIL_ADDRESS;
 
 const VariableDropdown: React.FC<{
   onSelect: (variable: string) => void;
@@ -131,6 +226,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   // Real data hooks from old implementation
   const userQuery = useMeQuery();
   const user = userQuery.data;
+  const isEnterprise = !!(user?.metadata as any)?.isEnterprise;
   const utils = trpc.useUtils();
 
   const isAWhatsappAction = (action) =>
@@ -170,6 +266,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     name: "steps",
     defaultValue: [],
   }) as WorkflowStep[];
+  const htmlEditorVariables = useMemo(() => [...PREVIEW_TEMPLATE_KEYS], []);
 
   useEffect(() => {
     steps.map((step) => {
@@ -329,6 +426,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const [emailVerificationStatus, setEmailVerificationStatus] = useState<{ [stepId: string]: boolean }>({});
   const [otpSentForPhone, setOtpSentForPhone] = useState<{ [stepId: string]: boolean }>({});
   const [otpSentForEmail, setOtpSentForEmail] = useState<{ [stepId: string]: boolean }>({});
+  const [useRawHtmlEditor, setUseRawHtmlEditor] = useState<{ [stepId: string]: boolean }>({});
+  const [variableMappingJson, setVariableMappingJson] = useState<{ [stepId: string]: string }>({});
+  const [variableMappingError, setVariableMappingError] = useState<{
+    [stepId: string]: string | null;
+  }>({});
+  const [variableMappingOpen, setVariableMappingOpen] = useState<{ [stepId: string]: boolean }>({});
+  const [previewStepId, setPreviewStepId] = useState<string | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string>("");
 
   // Template update tracker
   const [updateTemplate, setUpdateTemplate] = useState<{ [stepId: string]: number }>({});
@@ -610,6 +715,20 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
             return updatedStep;
           }) || [];
 
+        const initialVariableMappingJson: { [key: string]: string } = {};
+        const defaultRawHtml: { [key: string]: boolean } = {};
+        processedSteps.forEach((step) => {
+          const stepId = step.id.toString();
+          if (step.variableMapping && typeof step.variableMapping === "object") {
+            initialVariableMappingJson[stepId] = JSON.stringify(step.variableMapping, null, 2);
+          }
+          if (isEmailAction(step.action) && isHtmlMarked(step.reminderBody)) {
+            defaultRawHtml[stepId] = true;
+          }
+        });
+        setVariableMappingJson(initialVariableMappingJson);
+        setUseRawHtmlEditor(defaultRawHtml);
+
         // Use form.reset to set all values at once
 
         form.reset({
@@ -838,6 +957,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         numberVerificationPending: false,
         includeCalendarEvent: false,
         verifiedAt: null,
+        variableMapping: null,
       };
 
       // Set default template content
@@ -926,8 +1046,28 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         const { [stepIdStr]: removed, ...rest } = prev;
         return rest;
       });
+      setUseRawHtmlEditor((prev) => {
+        const { [stepIdStr]: removed, ...rest } = prev;
+        return rest;
+      });
+      setVariableMappingJson((prev) => {
+        const { [stepIdStr]: removed, ...rest } = prev;
+        return rest;
+      });
+      setVariableMappingError((prev) => {
+        const { [stepIdStr]: removed, ...rest } = prev;
+        return rest;
+      });
+      setVariableMappingOpen((prev) => {
+        const { [stepIdStr]: removed, ...rest } = prev;
+        return rest;
+      });
+      if (previewStepId === stepIdStr) {
+        setPreviewStepId(null);
+        setPreviewHtml("");
+      }
     },
-    [form]
+    [form, previewStepId]
   );
 
   const updateAction = useCallback(
@@ -1094,12 +1234,12 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     [form]
   );
 
-  const isEmailAction = (action: WorkflowActions) =>
-    action === WorkflowActions.EMAIL_ATTENDEE ||
-    action === WorkflowActions.EMAIL_HOST ||
-    action === WorkflowActions.EMAIL_ADDRESS;
-
   const isSMSActionType = (action: WorkflowActions) => isSMSAction(action) || isWhatsappAction(action);
+
+  const handleEditorToggle = useCallback((stepId: number) => {
+    const stepIdStr = stepId.toString();
+    setUseRawHtmlEditor((prev) => ({ ...prev, [stepIdStr]: !prev[stepIdStr] }));
+  }, []);
 
   const handleSaveWorkflow = useCallback(async () => {
     let activeOnIds: number[] = [];
@@ -2053,25 +2193,115 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                       <Label className="mb-0 flex-none">
                                         {isEmailAction(step.action) ? t("email_body") : t("text_message")}
                                       </Label>
-                                      {step.metaTemplatePhoneNumberId && (
-                                        <Button
-                                          color="minimal"
-                                          size="sm"
-                                          onClick={() => setIsVariableDocsOpen(true)}
-                                          className="flex items-center gap-1 text-xs">
-                                          <Icon name="info" className="h-4 w-4" />
-                                          View Available Variables
-                                        </Button>
-                                      )}
+                                      <div className="flex items-center gap-2">
+                                        {isEnterprise && isEmailAction(step.action) && (
+                                          <>
+                                            <Button
+                                              color="minimal"
+                                              size="sm"
+                                              onClick={() => handleEditorToggle(step.id)}
+                                              disabled={readOnly}>
+                                              {useRawHtmlEditor[step.id.toString()]
+                                                ? t("switch_to_rich_editor")
+                                                : t("switch_to_html_editor")}
+                                            </Button>
+                                            <Button
+                                              color="minimal"
+                                              size="sm"
+                                              disabled={readOnly}
+                                              onClick={() => {
+                                                const jsonInput = variableMappingJson[stepId];
+                                                let parsedMapping: Record<string, unknown> = {};
+                                                if (jsonInput?.trim()) {
+                                                  try {
+                                                    const candidate = JSON.parse(jsonInput);
+                                                    if (candidate && typeof candidate === "object") {
+                                                      parsedMapping = candidate as Record<string, unknown>;
+                                                      setVariableMappingError((prev) => ({
+                                                        ...prev,
+                                                        [stepId]: null,
+                                                      }));
+                                                    }
+                                                  } catch {
+                                                    setVariableMappingError((prev) => ({
+                                                      ...prev,
+                                                      [stepId]: "Invalid JSON",
+                                                    }));
+                                                  }
+                                                } else if (
+                                                  step.variableMapping &&
+                                                  typeof step.variableMapping === "object"
+                                                ) {
+                                                  parsedMapping = step.variableMapping as Record<
+                                                    string,
+                                                    unknown
+                                                  >;
+                                                }
+
+                                                setPreviewHtml(
+                                                  evaluatePreview(step.reminderBody || "", parsedMapping)
+                                                );
+                                                setPreviewStepId(stepId);
+                                              }}>
+                                              <Icon name="eye" className="mr-1 h-4 w-4" />
+                                              Preview
+                                            </Button>
+                                          </>
+                                        )}
+                                        {step.metaTemplatePhoneNumberId && (
+                                          <Button
+                                            color="minimal"
+                                            size="sm"
+                                            onClick={() => setIsVariableDocsOpen(true)}
+                                            className="flex items-center gap-1 text-xs">
+                                            <Icon name="info" className="h-4 w-4" />
+                                            View Available Variables
+                                          </Button>
+                                        )}
+                                      </div>
                                     </div>
+                                    {isEnterprise && isEmailAction(step.action) && (
+                                      <div className={cn({ hidden: !useRawHtmlEditor[step.id.toString()] })}>
+                                        <CodeEditor
+                                          language="html"
+                                          value={stripHtmlMarker(step.reminderBody)}
+                                          onChange={(val) =>
+                                            updateAction(
+                                              step.id,
+                                              "reminderBody",
+                                              `${CAL_ID_HTML_MARKER}${val}`
+                                            )
+                                          }
+                                          readOnly={readOnly}
+                                          height="300px"
+                                          variables={htmlEditorVariables}
+                                        />
+                                      </div>
+                                    )}
                                     <div
                                       className={cn("rounded-md border", {
+                                        hidden:
+                                          isEnterprise &&
+                                          isEmailAction(step.action) &&
+                                          useRawHtmlEditor[step.id.toString()],
                                         "cursor-not-allowed":
                                           readOnly || step.template !== WorkflowTemplates.CUSTOM,
                                       })}>
                                       <Editor
                                         key={`editor-${step.id}-${stepTemplateUpdate}-${step.template}`}
                                         getText={() => {
+                                          if (isEmailAction(step.action) && isHtmlMarked(step.reminderBody)) {
+                                            return (
+                                              getTemplateBodyForAction({
+                                                action: step.action,
+                                                locale: i18n.language,
+                                                t,
+                                                template: step.template,
+                                                timeFormat,
+                                              }) ?? ""
+                                            );
+                                          }
+
                                           let body = step.reminderBody || "";
 
                                           const isWhatsApp =
@@ -2102,12 +2332,14 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                             : body;
                                         }}
                                         setText={(text: string) => {
-                                          const stepIndex = steps.findIndex((s) => s.id === step.id);
-                                          if (stepIndex !== -1) {
-                                            form.setValue(`steps.${stepIndex}.reminderBody`, text, {
-                                              shouldDirty: true,
-                                              shouldValidate: false,
-                                            });
+                                          if (!useRawHtmlEditor[step.id.toString()]) {
+                                            const stepIndex = steps.findIndex((s) => s.id === step.id);
+                                            if (stepIndex !== -1) {
+                                              form.setValue(`steps.${stepIndex}.reminderBody`, text, {
+                                                shouldDirty: true,
+                                                shouldValidate: false,
+                                              });
+                                            }
                                           }
                                         }}
                                         variables={DYNAMIC_TEXT_VARIABLES}
@@ -2122,6 +2354,95 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                         plainText={isSMSAction(step.action)}
                                       />
                                     </div>
+
+                                    {isEnterprise && isEmailAction(step.action) && (
+                                      <div className="mt-3">
+                                        <Collapsible
+                                          open={variableMappingOpen[stepId] || false}
+                                          onOpenChange={(open) =>
+                                            setVariableMappingOpen((prev) => ({
+                                              ...prev,
+                                              [stepId]: open,
+                                            }))
+                                          }>
+                                          <CollapsibleTrigger asChild>
+                                            <Button
+                                              color="minimal"
+                                              size="sm"
+                                              disabled={readOnly}
+                                              className="pl-2">
+                                              Variable data
+                                              <Icon
+                                                name={
+                                                  variableMappingOpen[stepId]
+                                                    ? "chevron-down"
+                                                    : "chevron-right"
+                                                }
+                                                className="mr-1 h-4 w-4"
+                                              />
+                                            </Button>
+                                          </CollapsibleTrigger>
+                                          <CollapsibleContent>
+                                            <div className="mt-2 space-y-2">
+                                              <Label>JSON variable data</Label>
+                                              <CodeEditor
+                                                language="json"
+                                                value={variableMappingJson[stepId] ?? ""}
+                                                onChange={(rawJson) => {
+                                                  setVariableMappingJson((prev) => ({
+                                                    ...prev,
+                                                    [stepId]: rawJson,
+                                                  }));
+
+                                                  if (!rawJson.trim()) {
+                                                    setVariableMappingError((prev) => ({
+                                                      ...prev,
+                                                      [stepId]: null,
+                                                    }));
+                                                    updateAction(step.id, "variableMapping", null);
+                                                    return;
+                                                  }
+
+                                                  try {
+                                                    const parsed = JSON.parse(rawJson);
+                                                    if (!parsed || typeof parsed !== "object") {
+                                                      setVariableMappingError((prev) => ({
+                                                        ...prev,
+                                                        [stepId]: "Invalid JSON",
+                                                      }));
+                                                      return;
+                                                    }
+
+                                                    setVariableMappingError((prev) => ({
+                                                      ...prev,
+                                                      [stepId]: null,
+                                                    }));
+                                                    updateAction(
+                                                      step.id,
+                                                      "variableMapping",
+                                                      parsed as Record<string, unknown>
+                                                    );
+                                                  } catch {
+                                                    setVariableMappingError((prev) => ({
+                                                      ...prev,
+                                                      [stepId]: "Invalid JSON",
+                                                    }));
+                                                  }
+                                                }}
+                                                readOnly={readOnly}
+                                                height="200px"
+                                                placeholder='{ "ATTENDEE_FIRST_NAME": "Priya", "MEETING_URL": "https://...", "RESPONSES": { "store_name": { "value": "..." } } }'
+                                              />
+                                              {variableMappingError[stepId] && (
+                                                <p className="text-sm text-red-600">
+                                                  {variableMappingError[stepId]}
+                                                </p>
+                                              )}
+                                            </div>
+                                          </CollapsibleContent>
+                                        </Collapsible>
+                                      </div>
+                                    )}
 
                                     {invalidVariables[stepId] && isWhatsappAction(step.action) && (
                                       <Alert
@@ -2203,6 +2524,32 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
           additionalFunction={handleDeleteSuccess}
         />
       )}
+
+      <Dialog
+        open={!!previewStepId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPreviewStepId(null);
+            setPreviewHtml("");
+          }
+        }}>
+        <DialogContent size="md">
+          <DialogHeader>
+            <DialogTitle>Preview</DialogTitle>
+          </DialogHeader>
+          <iframe srcDoc={previewHtml} className="h-[80vh] w-full rounded border" title="Email preview" />
+          <DialogFooter>
+            <Button
+              color="secondary"
+              onClick={() => {
+                setPreviewStepId(null);
+                setPreviewHtml("");
+              }}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={unsavedDialogOpen}

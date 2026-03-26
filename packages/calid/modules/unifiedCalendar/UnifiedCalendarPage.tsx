@@ -8,6 +8,7 @@ import { addMinutes, differenceInMinutes, isEqual, set, startOfDay } from "date-
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 
@@ -83,6 +84,7 @@ const isTimeColumnElement = (value: Element | null): value is HTMLElement => {
 };
 
 const UnifiedCalendarPage = () => {
+  const { t } = useLocale();
   const isMobile = useIsMobile();
 
   const [viewMode, setViewMode] = useState<ViewMode>(isMobile ? "day" : "week");
@@ -341,9 +343,7 @@ const UnifiedCalendarPage = () => {
       });
 
       showToast(
-        enabled
-          ? "Calendar sync enabled. Events can take a moment to appear."
-          : "Calendar sync disabled. Existing merged items may persist briefly.",
+        enabled ? t("unified_calendar_sync_enabled_toast") : t("unified_calendar_sync_disabled_toast"),
         "success"
       );
 
@@ -355,7 +355,7 @@ const UnifiedCalendarPage = () => {
       });
     } catch (_error) {
       setOptimisticSyncById((current) => ({ ...current, [id]: previousValue }));
-      showToast("Failed to update calendar sync. Please try again.", "error");
+      showToast(t("unified_calendar_failed_to_update_calendar_sync"), "error");
     } finally {
       setPendingSyncById((current) => {
         const next = { ...current };
@@ -393,7 +393,7 @@ const UnifiedCalendarPage = () => {
       });
     } catch (_error) {
       setLocalCalendarColors((current) => ({ ...current, [id]: previousColor }));
-      showToast("Failed to update calendar color. Please try again.", "error");
+      showToast(t("unified_calendar_failed_to_update_calendar_color"), "error");
     } finally {
       setPendingColorById((current) => {
         const next = { ...current };
@@ -572,7 +572,7 @@ const UnifiedCalendarPage = () => {
       }
 
       if (start >= end) {
-        showToast("Invalid time range selected.", "error");
+        showToast(t("unified_calendar_invalid_time_range_selected"), "error");
         return;
       }
 
@@ -595,12 +595,13 @@ const UnifiedCalendarPage = () => {
           endTime: end.toISOString(),
         });
 
-        showToast("Booking rescheduled.", "success");
+        showToast(t("unified_calendar_booking_rescheduled"), "success");
         setRescheduleEvent((current) => (current?.id === eventId ? null : current));
         setSelectedEvent((current) => (current?.id === eventId ? null : current));
         void trpcUtils.viewer.unifiedCalendar.list.invalidate();
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Failed to reschedule booking.";
+        const message =
+          error instanceof Error ? error.message : t("unified_calendar_failed_to_reschedule_booking");
         trpcUtils.viewer.unifiedCalendar.list.setData(unifiedCalendarListInput, previousData);
         showToast(message, "error");
       } finally {
@@ -849,7 +850,7 @@ const UnifiedCalendarPage = () => {
 
     const targetCalendar = getCalendarByUiId(draft.calendarId);
     if (!targetCalendar || typeof targetCalendar.credentialId !== "number") {
-      const message = "Selected calendar is no longer available for booking creation.";
+      const message = t("unified_calendar_selected_calendar_no_longer_available_for_booking_creation");
       setQuickBookingError(message);
       return;
     }
@@ -873,10 +874,10 @@ const UnifiedCalendarPage = () => {
       });
 
       await trpcUtils.viewer.unifiedCalendar.list.invalidate();
-      showToast("Booking created. It may take a moment to reflect across all calendars.", "success");
+      showToast(t("unified_calendar_booking_created_toast"), "success");
       setQuickBookSlot(null);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to create booking.";
+      const message = error instanceof Error ? error.message : t("unified_calendar_failed_to_create_booking");
       setQuickBookingError(message);
     }
   };
@@ -893,7 +894,7 @@ const UnifiedCalendarPage = () => {
     }
 
     if (payload.start >= payload.end) {
-      setRescheduleError("Invalid time range selected.");
+      setRescheduleError(t("unified_calendar_invalid_time_range_selected"));
       return;
     }
 
@@ -918,12 +919,13 @@ const UnifiedCalendarPage = () => {
         endTime: payload.end.toISOString(),
       });
 
-      showToast("Booking rescheduled.", "success");
+      showToast(t("unified_calendar_booking_rescheduled"), "success");
       setRescheduleEvent(null);
       setSelectedEvent(null);
       void trpcUtils.viewer.unifiedCalendar.list.invalidate();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to reschedule booking.";
+      const message =
+        error instanceof Error ? error.message : t("unified_calendar_failed_to_reschedule_booking");
       trpcUtils.viewer.unifiedCalendar.list.setData(unifiedCalendarListInput, previousData);
       setRescheduleError(message);
       showToast(message, "error");
@@ -946,10 +948,10 @@ const UnifiedCalendarPage = () => {
       });
 
       await trpcUtils.viewer.unifiedCalendar.list.invalidate();
-      showToast("Booking cancelled.", "success");
+      showToast(t("unified_calendar_booking_cancelled"), "success");
       setSelectedEvent((current) => (current?.id === event.id ? null : current));
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to cancel booking.";
+      const message = error instanceof Error ? error.message : t("unified_calendar_failed_to_cancel_booking");
       setCancelError(message);
       showToast(message, "error");
     }
@@ -973,7 +975,10 @@ const UnifiedCalendarPage = () => {
   };
 
   return (
-    <div className="bg-default min-h-screen" data-query-from={queryRange.from} data-query-to={queryRange.to}>
+    <div
+      className="bg-default flex min-h-[80vh] flex-col"
+      data-query-from={queryRange.from}
+      data-query-to={queryRange.to}>
       <UnifiedCalendarToolbar
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((value) => !value)}
@@ -986,9 +991,9 @@ const UnifiedCalendarPage = () => {
         isMobile={isMobile}
       />
 
-      <div className="flex">
+      <div className="flex flex-1 gap-2 overflow-hidden border-b">
         {!isMobile && sidebarOpen && (
-          <div className="border-border/20 bg-muted/[0.03] w-54 sticky top-[105px] h-[calc(100vh-105px)] shrink-0 border-r">
+          <div className="h-[calc(100vh-105px)] w-48 shrink-0 md:w-56">
             <UnifiedCalendarSidebar
               calendars={sidebarCalendars}
               onToggleSync={handleSyncToggle}
@@ -1006,7 +1011,7 @@ const UnifiedCalendarPage = () => {
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetContent side="left" className="w-72 p-0">
               <SheetHeader className="px-4 pt-4">
-                <SheetTitle className="text-sm">Calendars</SheetTitle>
+                <SheetTitle className="text-sm">{t("unified_calendar_calendars")}</SheetTitle>
               </SheetHeader>
               <UnifiedCalendarSidebar
                 calendars={sidebarCalendars}
@@ -1022,7 +1027,7 @@ const UnifiedCalendarPage = () => {
           </Sheet>
         )}
 
-        <ScrollArea ref={scrollAreaRootRef} className="h-[calc(100vh-105px)] flex-1">
+        <ScrollArea ref={scrollAreaRootRef} className="h-[calc(100vh-105px)] min-w-0 flex-1 border-l">
           <div ref={calendarViewportRef} className="relative min-w-0">
             {dragSession?.isActive && (
               <>
@@ -1085,7 +1090,7 @@ const UnifiedCalendarPage = () => {
               <div className="p-4">
                 <Alert
                   severity="error"
-                  title="Failed to load unified events"
+                  title={t("unified_calendar_failed_to_load_unified_events")}
                   message={unifiedCalendarListQuery.error.message}
                 />
               </div>
@@ -1119,7 +1124,7 @@ const UnifiedCalendarPage = () => {
         <Sheet open={Boolean(selectedEvent)} onOpenChange={() => setSelectedEvent(null)}>
           <SheetContent className="bg-default sm:max-w-sm">
             <SheetHeader>
-              <SheetTitle className="text-sm">Event Details</SheetTitle>
+              <SheetTitle className="text-sm">{t("unified_calendar_event_details")}</SheetTitle>
             </SheetHeader>
             <div className="mt-4">
               {cancelError && <Alert severity="error" message={cancelError} className="mb-3" />}
@@ -1138,9 +1143,9 @@ const UnifiedCalendarPage = () => {
 
       {selectedEvent && isMobile && (
         <Dialog open={Boolean(selectedEvent)} onOpenChange={() => setSelectedEvent(null)}>
-          <DialogContent className="bg-default max-w-[95vw]">
+          <DialogContent className="bg-default max-h-[85vh] max-w-[95vw] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-sm">Event Details</DialogTitle>
+              <DialogTitle className="text-sm">{t("unified_calendar_event_details")}</DialogTitle>
             </DialogHeader>
             {cancelError && <Alert severity="error" message={cancelError} className="mb-2" />}
             <UnifiedCalendarEventDetailsPanel

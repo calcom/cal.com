@@ -1,0 +1,146 @@
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<div id="g_id_onload"
+     data-client_id="561226343494-0278gc7vursg1uemeiiuf9bbougi0svm.apps.googleusercontent.com"
+     data-callback="handleOneTap"
+     data-auto_prompt="false">
+</div>
+
+<script>
+let oneTapTriggered = false;
+
+function triggerOneTap() {
+  if (oneTapTriggered) return;
+  oneTapTriggered = true;
+
+  if (window.google && google.accounts && google.accounts.id) {
+    google.accounts.id.prompt();
+  }
+
+  cleanup();
+}
+
+// -------- CONDITION 1: Scroll ≥ 30% --------
+function handleScroll() {
+  const scrollTop = window.scrollY || window.pageYOffset;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+  if (docHeight <= 0) return;
+
+  const scrollPercent = (scrollTop / docHeight) * 100;
+
+  if (scrollPercent >= 30) {
+    triggerOneTap();
+  }
+}
+
+window.addEventListener("scroll", handleScroll);
+
+// -------- CONDITION 2: Time ≥ 10 seconds --------
+const timer = setTimeout(() => {
+  triggerOneTap();
+}, 20000);
+
+// -------- Cleanup --------
+function cleanup() {
+  clearTimeout(timer);
+  window.removeEventListener("scroll", handleScroll);
+}
+
+// -------- One Tap Callback --------
+function getBrowser(userAgent) {
+  const ua = (userAgent || "").toLowerCase();
+
+  if (ua.includes("edg/")) return "Edge";
+  if (ua.includes("brave/") || ua.includes("brave")) return "Brave";
+  if (ua.includes("chrome/") && !ua.includes("edg/")) return "Chrome";
+  if (ua.includes("firefox/")) return "Firefox";
+  if (ua.includes("safari/") && !ua.includes("chrome/")) return "Safari";
+  if (ua.includes("opera/") || ua.includes("opr/")) return "Opera";
+
+  return "Unknown";
+}
+
+function getDeviceType(userAgent) {
+  const ua = (userAgent || "").toLowerCase();
+
+  if (ua.includes("ipad") || ua.includes("tablet")) return "Tablet";
+  if (ua.includes("mobile") || ua.includes("android") || ua.includes("iphone")) return "Mobile";
+
+  return "Desktop";
+}
+
+function getOS(userAgent, platform) {
+  const ua = (userAgent || "").toLowerCase();
+
+  if (ua.includes("windows")) return "Windows";
+  if (ua.includes("mac os") || (platform || "").includes("Mac")) return "macOS";
+  if (ua.includes("linux")) return "Linux";
+  if (ua.includes("android")) return "Android";
+  if (ua.includes("ios") || ua.includes("iphone") || ua.includes("ipad")) return "iOS";
+
+  return "Unknown";
+}
+
+function getScreenResolution() {
+  try {
+    if (typeof screen !== "undefined" && screen.width && screen.height) {
+      return `${screen.width}x${screen.height}`;
+    }
+    return "Unknown";
+  } catch {
+    return "Unknown";
+  }
+}
+
+function detectOneTapDeviceDetails() {
+  try {
+    const userAgent = navigator?.userAgent || "";
+    const platform = navigator?.platform || "";
+
+    const deviceDetails= {
+      browser: getBrowser(userAgent),
+      deviceType: getDeviceType(userAgent),
+      deviceOS: getOS(userAgent, platform),
+      screenResolution: getScreenResolution(),
+    };
+    console.log("deviceDetails",deviceDetails);
+    return deviceDetails;
+  } catch (error) {
+    console.warn("One Tap device detection failed:", error);
+    return null;
+  }
+}
+
+async function handleOneTap(response) {
+  const currentDomain = window.location.origin;
+  const deviceDetails = detectOneTapDeviceDetails();
+
+
+  const res = await fetch(`${currentDomain}/api/onetap`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      credential: response.credential,
+      ...(deviceDetails ? { deviceDetails } : {}),
+    }),
+  });
+
+  if (res.ok) {
+    const data = await res.json();
+
+    if (data.isNewUser) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "onetap_signup_success",
+        signup_method: "onetap",
+        user_name: data.username,
+        email_address: data.email,
+      });
+    }
+
+    location.href = data.redirectUrl;
+  }
+}
+</script>

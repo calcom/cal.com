@@ -2,6 +2,8 @@ import { cn } from "@calid/features/lib/cn";
 import { differenceInMinutes, format, isSameDay, setHours, startOfDay } from "date-fns";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 import { UnifiedCalendarEventBlock } from "../components/UnifiedCalendarEventBlock";
 import { HOURS } from "../lib/constants";
 import type { UnifiedCalendarEventVM } from "../lib/types";
@@ -74,19 +76,26 @@ export const UnifiedCalendarDayColumn = ({
       style={{ minHeight: "1440px" }}
       data-unified-time-column="true"
       data-unified-day-start={startOfDay(day).toISOString()}>
-      {HOURS.map((hour) => (
-        <div
-          key={hour}
-          className="border-border/20 hover:bg-muted/20 absolute left-0 right-0 cursor-pointer border-t transition-colors"
-          style={{ top: `${(hour / 24) * 100}%`, height: `${100 / 24}%` }}
-          onClick={() => onQuickBookSlot({ date: day, hour })}
-        />
-      ))}
+      {Array.from({ length: 48 }).map((_, index) => {
+        const hour = Math.floor(index / 2);
+
+        return (
+          <div
+            key={index}
+            className="hover:bg-emphasis absolute left-0 right-0 cursor-pointer border-t transition-colors"
+            style={{
+              top: `${(index / 48) * 100}%`,
+              height: `${100 / 48}%`,
+            }}
+            onClick={() => onQuickBookSlot({ date: day, hour })}
+          />
+        );
+      })}
 
       {HOURS.map((hour) => (
         <div
           key={`half-${hour}`}
-          className="border-border/[0.08] absolute left-0 right-0 border-t"
+          className=" absolute left-0 right-0 border-t"
           style={{ top: `${((hour + 0.5) / 24) * 100}%` }}
         />
       ))}
@@ -159,13 +168,14 @@ export const UnifiedCalendarAllDayRow = ({
   filteredEvents,
   onSelectEvent,
 }: UnifiedCalendarAllDayRowProps) => {
+  const { t } = useLocale();
   const { allDayEvents } = splitEventsForDay(filteredEvents, day);
 
   return (
     <div className="bg-default sticky top-0 z-20 border-b">
       <div className="flex h-full  items-start">
-        <div className="flex w-12 shrink-0 items-center justify-center border-r px-4 py-2 text-[10px] uppercase tracking-wide">
-          Full Day
+        <div className="flex w-10 shrink-0 items-center justify-center border-r px-2 py-2 text-[9px] uppercase tracking-wide sm:w-12 sm:px-4 sm:text-[10px]">
+          {t("unified_calendar_full_day")}
         </div>
         <div className="flex flex-1 flex-wrap gap-1.5 p-1.5">
           {allDayEvents.length === 0 && (
@@ -194,7 +204,7 @@ export const UnifiedCalendarAllDayRow = ({
 
 export const UnifiedCalendarTimeLabels = () => {
   return (
-    <div className="relative w-12 shrink-0" style={{ minHeight: "1440px" }}>
+    <div className="relative w-10 shrink-0 sm:w-12" style={{ minHeight: "1440px" }}>
       {HOURS.map((hour) => (
         <div
           key={hour}

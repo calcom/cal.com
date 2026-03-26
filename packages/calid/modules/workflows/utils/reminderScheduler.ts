@@ -6,6 +6,8 @@ import {
 
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
+import prisma from "@calcom/prisma";
 import { SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -47,6 +49,28 @@ export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams
   isFirstRecurringEvent?: boolean;
   isDryRun?: boolean;
 }
+
+const getEnterpriseEmailPrefix = async (workflowId: number): Promise<string | undefined> => {
+  let enterpriseEmailPrefix;
+  try {
+    const workflow = await prisma.calIdWorkflow.findUnique({
+      where: { id: workflowId },
+      select: {
+        calIdTeam: {
+          select: {
+            metadata: true,
+          },
+        },
+      },
+    });
+    enterpriseEmailPrefix = isPrismaObjOrUndefined(
+      workflow?.calIdTeam?.metadata
+    )?.enterpriseEmailPrefix?.toString();
+  } catch {
+    // Do nothing, in case of any error, we will just not add the prefix
+  }
+  return enterpriseEmailPrefix;
+};
 
 const executeStepLogic = async (
   workflowConfig: CalIdWorkflow,
@@ -110,6 +134,8 @@ const executeStepLogic = async (
   const isEmailAction = emailActions.includes(stepConfig.action);
 
   if (isEmailAction) {
+    const enterpriseEmailPrefix = await getEnterpriseEmailPrefix(workflowConfig.id);
+
     let recipients: string[] = [];
 
     if (stepConfig.action === WorkflowActions.EMAIL_ADDRESS) {
@@ -152,6 +178,7 @@ const executeStepLogic = async (
           emailBody: stepConfig.reminderBody || "",
           template: stepConfig.template,
           sender: stepConfig.sender || SENDER_NAME,
+          enterpriseEmailPrefix,
           workflowStepId: stepConfig.id,
           hideBranding,
           seatReferenceUid,
@@ -176,6 +203,7 @@ const executeStepLogic = async (
         emailBody: stepConfig.reminderBody || "",
         template: stepConfig.template,
         sender: stepConfig.sender || SENDER_NAME,
+        enterpriseEmailPrefix,
         workflowStepId: stepConfig.id,
         hideBranding,
         seatReferenceUid,

@@ -22,9 +22,6 @@ const Page = async ({ searchParams: _searchParams }: PageProps) => {
       heading={
         <span className="inline-flex items-center gap-2">
           <span>{t("unified_calendar_heading")}</span>
-          <span className="bg-subtle text-default border-subtle inline-flex h-5 items-center rounded-full border px-2 text-[10px] font-semibold uppercase tracking-wide">
-            Beta
-          </span>
         </span>
       }
       subtitle={t("unified_calendar_subtitle")}>

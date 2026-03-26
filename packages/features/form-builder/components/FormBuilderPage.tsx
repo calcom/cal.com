@@ -1,26 +1,16 @@
-/**
- * FormBuilderPage.tsx
- *
- * Root component replacing FormEdit. Passed as `Page` render prop to SingleForm.
- *
- * STATE ARCHITECTURE — critical fix:
- *   useFieldArray.fields is a snapshot and does NOT update when setValue is called.
- *   Solution: use hookForm.watch("fields") for reactive reads everywhere.
- *   useFieldArray is used ONLY for structural mutations (append/remove/swap/insert).
- *
- * All field property edits go through:
- *   hookForm.setValue(`fields.${index}.key`, value, { shouldDirty: true })
- *
- * Form-level visual config (header, style, submitButton) lives in local state
- * since it maps to uiConfig on the form, not the backend fields array.
- */
 "use client";
 
-import React, { useState, useCallback } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@calid/features/ui/components/dialog";
+import React, { useState, useCallback, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useFieldArray } from "react-hook-form";
 
-import type { RoutingFormWithResponseCount } from "../../types/types";
+import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
+import { Button } from "@calcom/ui/components/button";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+
 import { FieldLibrary } from "./FieldLibrary";
 import { FieldSettingsPanel } from "./FieldSettingsPanel";
 import { FormCanvas } from "./FormCanvas";
@@ -32,10 +22,39 @@ interface FormBuilderPageProps {
   form: any;
   appUrl: string;
   uptoDateForm?: any;
+  showCanvasSkeleton?: boolean;
 }
 
-export function FormBuilderPage({ hookForm, form, appUrl }: FormBuilderPageProps) {
-  // ── Local UI state ──────────────────────────────────────────────────────
+function FormCanvasSkeleton() {
+  return (
+    <div className="bg-muted/20 h-full w-full p-6">
+      <SkeletonContainer className="bg-default border-subtle mx-auto h-full w-full max-w-3xl rounded-xl border p-6">
+        <div className="space-y-4">
+          <SkeletonText className="h-8 w-56" />
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="border-subtle rounded-lg border p-4">
+              <SkeletonText className="mb-3 h-4 w-40" />
+              <SkeletonText className="h-10 w-full" />
+            </div>
+          ))}
+          <SkeletonText className="h-10 w-36" />
+        </div>
+      </SkeletonContainer>
+    </div>
+  );
+}
+
+export function FormBuilderPage({
+  hookForm,
+  form,
+  appUrl: _appUrl,
+  showCanvasSkeleton = false,
+}: FormBuilderPageProps) {
+  const { t } = useLocale();
+  const isNarrowLayout = useMediaQuery("(max-width: 1023px)");
+  const [libraryDialogOpen, setLibraryDialogOpen] = useState(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const settings = hookForm.watch("settings") ?? {};
@@ -47,18 +66,14 @@ export function FormBuilderPage({ hookForm, form, appUrl }: FormBuilderPageProps
     }
   );
 
-  // ── useFieldArray — structural mutations only ───────────────────────────
-  const { append, remove, move, insert } = useFieldArray({
+  const { append, remove, move, insert } = useFieldArray<RoutingFormWithResponseCount, "fields", "_rhfId">({
     control: hookForm.control,
     name: "fields",
-    // @ts-ignore keyName override
     keyName: "_rhfId",
   });
 
-  // ── REACTIVE READ: watch gives us live updates after setValue ───────────
   const fields = (hookForm.watch("fields") ?? []) as unknown as BuilderField[];
 
-  // ── Add field ───────────────────────────────────────────────────────────
   const handleAddField = useCallback(
     (type: UIFieldType, atIndex?: number) => {
       const newField = createBuilderField(type);
@@ -73,7 +88,6 @@ export function FormBuilderPage({ hookForm, form, appUrl }: FormBuilderPageProps
     [append, insert, fields.length]
   );
 
-  // ── Reorder ─────────────────────────────────────────────────────────────
   const handleReorder = useCallback(
     (from: number, to: number) => {
       if (from === to) return;
@@ -98,7 +112,6 @@ export function FormBuilderPage({ hookForm, form, appUrl }: FormBuilderPageProps
     [move, fields.length, selectedIndex]
   );
 
-  // ── Delete ──────────────────────────────────────────────────────────────
   const handleDelete = useCallback(
     (index: number) => {
       remove(index);
@@ -108,7 +121,6 @@ export function FormBuilderPage({ hookForm, form, appUrl }: FormBuilderPageProps
     [remove, selectedIndex]
   );
 
-  // ── Duplicate ───────────────────────────────────────────────────────────
   const handleDuplicate = useCallback(
     (index: number) => {
       const original = fields[index];
@@ -125,7 +137,6 @@ export function FormBuilderPage({ hookForm, form, appUrl }: FormBuilderPageProps
     [fields, insert]
   );
 
-  // ── Update individual field property ────────────────────────────────────
   const handleUpdateField = useCallback(
     (updates: Partial<BuilderField>) => {
       if (selectedIndex === null) return;
@@ -138,7 +149,6 @@ export function FormBuilderPage({ hookForm, form, appUrl }: FormBuilderPageProps
     [hookForm, selectedIndex]
   );
 
-  // ── Update uiConfig sub-object ──────────────────────────────────────────
   const handleUpdateUIConfig = useCallback(
     (updates: Partial<BuilderField["uiConfig"]>) => {
       if (selectedIndex === null) return;
@@ -154,63 +164,168 @@ export function FormBuilderPage({ hookForm, form, appUrl }: FormBuilderPageProps
 
   const selectedField = selectedIndex !== null ? fields[selectedIndex] ?? null : null;
 
+  const onUpdateFormConfig = useCallback(
+    (updates: Partial<FormLevelConfig>) => {
+      const current = hookForm.getValues("settings") ?? { emailOwnerOnSubmission: true };
+      const currentUIConfig = (current as { uiConfig?: Partial<FormLevelConfig> }).uiConfig;
+      const baseUIConfig =
+        currentUIConfig ??
+        ({
+          header: {
+            title: form?.name ?? "",
+            subtitle: form?.description ?? "",
+          },
+        } as Partial<FormLevelConfig>);
+      const next = resolveFormConfig({
+        ...baseUIConfig,
+        ...updates,
+      });
+      hookForm.setValue(
+        "settings",
+        {
+          ...current,
+          uiConfig: next,
+        },
+        { shouldDirty: true }
+      );
+    },
+    [hookForm, form?.name, form?.description]
+  );
+
+  const fieldSettingsPanel = (
+    <FieldSettingsPanel
+      field={selectedField}
+      selectedIndex={selectedIndex}
+      formConfig={formConfig}
+      onUpdate={handleUpdateField}
+      onUpdateUIConfig={handleUpdateUIConfig}
+      onUpdateFormConfig={onUpdateFormConfig}
+      onDelete={() => selectedIndex !== null && handleDelete(selectedIndex)}
+      onDuplicate={() => selectedIndex !== null && handleDuplicate(selectedIndex)}
+    />
+  );
+
+  useEffect(() => {
+    if (!isNarrowLayout) return;
+    if (selectedIndex !== null) setSettingsDialogOpen(true);
+  }, [selectedIndex, isNarrowLayout]);
+
+  useEffect(() => {
+    if (selectedIndex === null) setSettingsDialogOpen(false);
+  }, [selectedIndex]);
+
+  const openLibraryDialog = () => {
+    setSettingsDialogOpen(false);
+    setLibraryDialogOpen(true);
+  };
+
+  const addFieldFromDialog = useCallback(
+    (type: UIFieldType) => {
+      handleAddField(type);
+      setLibraryDialogOpen(false);
+    },
+    [handleAddField]
+  );
+
+  const handleEditFieldProperties = useCallback(
+    (index: number) => {
+      setSelectedIndex(index);
+      if (isNarrowLayout) setSettingsDialogOpen(true);
+    },
+    [isNarrowLayout]
+  );
+
   return (
-    <div className="flex h-[calc(100vh-56px)] w-full overflow-hidden bg-muted/20">
-      {/* Left: Field Library */}
-      <div className="w-52 min-h-0 h-full flex-shrink-0 overflow-hidden border-r border-border bg-card">
-        <FieldLibrary onAddField={handleAddField} />
+    <>
+      <div className="border-border flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden rounded-md border max-lg:h-[calc(100dvh-11rem)] max-lg:max-h-[calc(100dvh-11rem)] lg:h-[min(100dvh,56rem)] lg:max-h-[calc(100dvh-10.5rem)] lg:flex-row">
+        {/* Desktop / tablet lg+: field library sidebar */}
+        {!isNarrowLayout && (
+          <div className="border-border bg-card flex h-full min-h-0 w-52 flex-shrink-0 flex-col overflow-hidden border-r">
+            <FieldLibrary onAddField={handleAddField} variant="sidebar" />
+          </div>
+        )}
+
+        {/* Phone & tablet: toolbar + full-width canvas only (no inline library / settings) */}
+        {isNarrowLayout && (
+          <div className="border-subtle bg-muted/30 flex shrink-0 flex-wrap items-center justify-end gap-2 border-b px-3 py-2.5">
+            <Button
+              type="button"
+              color="secondary"
+              size="sm"
+              className="min-h-10"
+              data-testid="form-builder-add-fields"
+              onClick={openLibraryDialog}>
+              {t("form_builder_add_fields")}
+            </Button>
+          </div>
+        )}
+
+        <div className="min-h-0 w-full min-w-0 flex-1 lg:min-h-0">
+          {showCanvasSkeleton ? (
+            <FormCanvasSkeleton />
+          ) : (
+            <FormCanvas
+              fields={fields}
+              selectedFieldIndex={selectedIndex}
+              formConfig={formConfig}
+              onSelectField={setSelectedIndex}
+              onReorder={handleReorder}
+              onDropNewField={(type, atIndex) => handleAddField(type as UIFieldType, atIndex)}
+              onDelete={handleDelete}
+              onDuplicate={handleDuplicate}
+              onEditFieldProperties={handleEditFieldProperties}
+            />
+          )}
+        </div>
+
+        {!isNarrowLayout && (
+          <div className="border-border bg-card flex min-h-0 w-64 flex-none flex-shrink-0 flex-col overflow-hidden border-l lg:border-t-0">
+            {fieldSettingsPanel}
+          </div>
+        )}
       </div>
 
-      {/* Center: Form Canvas */}
-      <div className="flex-1 min-w-0 min-h-0">
-        <FormCanvas
-          fields={fields}
-          selectedFieldIndex={selectedIndex}
-          formConfig={formConfig}
-          onSelectField={setSelectedIndex}
-          onReorder={handleReorder}
-          onDropNewField={(type, atIndex) => handleAddField(type as UIFieldType, atIndex)}
-          onDelete={handleDelete}
-          onDuplicate={handleDuplicate}
-        />
-      </div>
+      {isNarrowLayout && (
+        <>
+          <Dialog open={libraryDialogOpen} onOpenChange={setLibraryDialogOpen}>
+            <DialogContent
+              size="md"
+              showCloseButton
+              enableOverflow={false}
+              className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
+              <div className="border-subtle shrink-0 border-b px-6 pb-4 pt-6">
+                <DialogHeader className="space-y-0">
+                  <DialogTitle>{t("form_builder_add_fields")}</DialogTitle>
+                </DialogHeader>
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-2">
+                <FieldLibrary variant="sheet" onAddField={addFieldFromDialog} />
+              </div>
+            </DialogContent>
+          </Dialog>
 
-      {/* Right: Settings Panel */}
-      <div className="w-64 min-h-0 h-full flex-shrink-0 overflow-hidden border-l border-border bg-card">
-        <FieldSettingsPanel
-          field={selectedField}
-          selectedIndex={selectedIndex}
-          formConfig={formConfig}
-          onUpdate={handleUpdateField}
-          onUpdateUIConfig={handleUpdateUIConfig}
-          onUpdateFormConfig={(updates) => {
-            const current = hookForm.getValues("settings") ?? { emailOwnerOnSubmission: true };
-            const currentUIConfig = (current as { uiConfig?: Partial<FormLevelConfig> }).uiConfig;
-            const baseUIConfig =
-              currentUIConfig ??
-              ({
-                header: {
-                  title: form?.name ?? "",
-                  subtitle: form?.description ?? "",
-                },
-              } as Partial<FormLevelConfig>);
-            const next = resolveFormConfig({
-              ...baseUIConfig,
-              ...updates,
-            });
-            hookForm.setValue(
-              "settings",
-              {
-                ...current,
-                uiConfig: next,
-              },
-              { shouldDirty: true }
-            );
-          }}
-          onDelete={() => selectedIndex !== null && handleDelete(selectedIndex)}
-          onDuplicate={() => selectedIndex !== null && handleDuplicate(selectedIndex)}
-        />
-      </div>
-    </div>
+          <Dialog
+            open={settingsDialogOpen && selectedIndex !== null}
+            onOpenChange={(open) => {
+              setSettingsDialogOpen(open);
+            }}>
+            <DialogContent
+              size="lg"
+              showCloseButton
+              enableOverflow={false}
+              className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl">
+              <div className="border-subtle shrink-0 border-b px-6 pb-4 pt-6 sm:px-8">
+                <DialogHeader className="space-y-0">
+                  <DialogTitle>{t("form_builder_field_properties")}</DialogTitle>
+                </DialogHeader>
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-0 sm:px-8">
+                {fieldSettingsPanel}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
+    </>
   );
 }

@@ -19,7 +19,7 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import type { timeUnitLowerCase } from "../config/constants";
+import { CAL_ID_HTML_MARKER, type timeUnitLowerCase } from "../config/constants";
 import type { CalIdScheduleEmailReminderAction } from "../config/types";
 import type { CalIdAttendeeInBookingInfo, CalIdBookingInfo } from "../config/types";
 import { getBatchId, sendSendgridMail } from "../providers/sendgrid";
@@ -53,6 +53,7 @@ interface EmailNotificationParameters extends ScheduleReminderArgs {
   action: CalIdScheduleEmailReminderAction;
   emailSubject?: string;
   emailBody?: string;
+  enterpriseEmailPrefix?: string;
   hideBranding?: boolean;
   includeCalendarEvent?: boolean;
   isMandatoryReminder?: boolean;
@@ -180,8 +181,9 @@ const generateEmailContentFromTemplate = (
 ): EmailContentData => {
   const { startTime, endTime } = eventData;
   const { targetName, participantInfo, participantName, targetTimezone } = recipientDetails;
+  const strippedCustomBody = customBody?.replace(CAL_ID_HTML_MARKER, "");
 
-  if (customBody) {
+  if (strippedCustomBody) {
     const templateVariables = constructVariablesForTemplate(
       eventData,
       participantInfo!,
@@ -203,7 +205,7 @@ const generateEmailContentFromTemplate = (
       eventData.organizer.timeFormat
     );
     const processedBody = customTemplate(
-      customBody,
+      strippedCustomBody,
       templateVariables,
       userLocale,
       eventData.organizer.timeFormat,
@@ -294,7 +296,7 @@ const generateEmailContentFromTemplate = (
     default:
       return {
         emailSubject: customSubject,
-        emailBody: `<body style="white-space: pre-wrap;">${customBody}</body>`,
+        emailBody: `<body style="white-space: pre-wrap;">${strippedCustomBody}</body>`,
       };
   }
 };
@@ -304,6 +306,7 @@ const prepareEmailTransmission = async (
   emailContentData: EmailContentData,
   shouldIncludeCalendar?: boolean,
   customSender?: string | null,
+  enterpriseEmailPrefix?: string,
   batchId?: string
 ) => {
   return async (recipientData: Partial<MailData>, eventTrigger?: WorkflowTriggerEvents) => {
@@ -357,7 +360,7 @@ const prepareEmailTransmission = async (
           : undefined,
         sendAt: recipientData.sendAt,
       },
-      { sender: customSender },
+      { sender: customSender, enterpriseEmailPrefix },
       {
         msgId: batchId,
       }
@@ -559,6 +562,7 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
     timeSpan,
     template,
     sender,
+    enterpriseEmailPrefix,
     workflowStepId,
     seatReferenceUid,
     sendTo,
@@ -600,6 +604,7 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
     emailContentData,
     includeCalendarEvent,
     sender,
+    enterpriseEmailPrefix,
     batchId
   );
 
@@ -648,18 +653,44 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
 
 export const deleteScheduledEmailReminder = async (
   reminderIdentifier: number,
-  referenceIdentifier: string | null
+  referenceIdentifier?: string | null
 ) => {
   try {
-    await prisma.calIdWorkflowReminder.update({
+    const reminder = await prisma.calIdWorkflowReminder.findFirst({
       where: {
         id: reminderIdentifier,
         scheduledDate: {
           gt: new Date(),
         },
       },
+      select: {
+        id: true,
+        scheduled: true,
+        referenceId: true,
+        providerCancellationStatus: true,
+      },
+    });
+
+    if (!reminder) {
+      return;
+    }
+
+    const hasProviderReferenceId = Boolean(referenceIdentifier ?? reminder.referenceId);
+    const requiresProviderCancellation = reminder.scheduled && hasProviderReferenceId;
+    const hasTerminalProviderCancellationStatus = ["cancelled", "not_cancellable"].includes(
+      reminder.providerCancellationStatus || ""
+    );
+
+    await prisma.calIdWorkflowReminder.update({
+      where: {
+        id: reminder.id,
+      },
       data: {
         cancelled: true,
+        ...(requiresProviderCancellation &&
+          !hasTerminalProviderCancellationStatus && {
+            providerCancellationStatus: "pending",
+          }),
       },
     });
   } catch (error) {

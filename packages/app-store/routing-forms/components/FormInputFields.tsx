@@ -4,7 +4,7 @@ import { RadioGroup, RadioField } from "@calid/features/ui/components/radio-grou
 import type { App_RoutingForms_Form } from "@prisma/client";
 import { format } from "date-fns";
 import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { validatePhoneInput } from "@calcom/features/bookings/lib/handleNewBooking/handleCustomInputs";
 import type { FormLevelConfig } from "@calcom/features/form-builder/components/builderTypes";
@@ -12,10 +12,10 @@ import { LAYOUT_ONLY_TYPES } from "@calcom/features/form-builder/components/buil
 import { Checkbox, DatePicker } from "@calcom/ui/components/form";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 
-import { applyDefaultCountryCodeToPhoneValue } from "../lib/phoneUtils";
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfigForFormFields } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
+import { applyDefaultCountryCodeToPhoneValue } from "../lib/phoneUtils";
 import { getUIOptionsForSelect } from "../lib/selectOptions";
 import { getFieldResponseForJsonLogic, getOptionIdForValue } from "../lib/transformResponse";
 import type { SerializableForm, FormResponse } from "../types/types";
@@ -23,6 +23,22 @@ import CalendarFieldController from "./CalendarFieldController";
 import { ConfigFor, withRaqbSettingsAndWidgets } from "./react-awesome-query-builder/config/uiConfig";
 
 const emailRegex = /^\S+@\S+\.\S+$/;
+type DatePickerRange = "future" | "past" | "all";
+
+const getDatePickerBounds = (datePickerRange?: DatePickerRange) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (datePickerRange === "past") {
+    return { minDate: null as Date | null, maxDate: today };
+  }
+
+  if (datePickerRange === "all") {
+    return { minDate: null as Date | null, maxDate: undefined };
+  }
+
+  return { minDate: today, maxDate: undefined };
+};
 
 const isEmptyValue = (value: unknown) => {
   if (value === undefined || value === null) return true;
@@ -86,6 +102,8 @@ export type FormInputFieldsProps = {
   disabledFields?: string[];
   fieldStyle?: FormLevelConfig["style"]["fieldStyle"];
   showErrors?: boolean;
+  errorFieldIds?: string[];
+  errorFocusTrigger?: number;
   accentColor?: string;
   secondaryColor?: string;
   calendarEventType?: string | null;
@@ -105,6 +123,8 @@ export default function FormInputFields(props: FormInputFieldsProps) {
     disabledFields = [],
     fieldStyle = "default",
     showErrors = false,
+    errorFieldIds,
+    errorFocusTrigger = 0,
     accentColor,
     secondaryColor,
     calendarEventType,
@@ -117,6 +137,46 @@ export default function FormInputFields(props: FormInputFieldsProps) {
     ...(secondaryColor ? { borderColor: secondaryColor } : {}),
   };
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const firstErrorFieldId = errorFieldIds?.[0];
+
+  useEffect(() => {
+    if (!firstErrorFieldId) {
+      return;
+    }
+
+    const fieldContainer = document.querySelector<HTMLElement>(
+      `[data-routing-field-wrapper-id="${firstErrorFieldId}"]`
+    );
+
+    if (!fieldContainer) {
+      return;
+    }
+
+    const focusTarget = fieldContainer.querySelector<HTMLElement>(
+      [
+        "input:not([disabled])",
+        "textarea:not([disabled])",
+        "select:not([disabled])",
+        "button:not([disabled])",
+        "[tabindex]:not([tabindex='-1'])",
+      ].join(",")
+    );
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const scrollBehavior: ScrollBehavior = prefersReducedMotion ? "auto" : "smooth";
+
+    fieldContainer.scrollIntoView({ behavior: scrollBehavior, block: "center" });
+
+    const focusDelay = prefersReducedMotion ? 0 : 300;
+    const focusTimeout = window.setTimeout(() => {
+      (focusTarget ?? fieldContainer).focus({ preventScroll: true });
+    }, focusDelay);
+
+    return () => {
+      window.clearTimeout(focusTimeout);
+    };
+  }, [firstErrorFieldId, errorFocusTrigger]);
 
   const formFieldsQueryBuilderConfig = withRaqbSettingsAndWidgets({
     config: getQueryBuilderConfigForFormFields(form),
@@ -177,7 +237,8 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         const isLabelEmpty = labelText.length === 0;
         const currentValue = response[field.id]?.value ?? "";
         const errorMessage = getValidationErrorMessage(field, currentValue);
-        const showError = showErrors || (field.required && touched[field.id]);
+        const showError =
+          Boolean(errorFieldIds?.includes(field.id)) || showErrors || (field.required && touched[field.id]);
         const isDisabled = disabledFields?.includes(fieldIdentifier);
 
         if (isLayout) {
@@ -219,6 +280,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
             return (
               <TextField
                 type="url"
+                data-routing-field-id={field.id}
                 value={String(currentValue)}
                 placeholder={field.placeholder ?? ""}
                 disabled={isDisabled}
@@ -235,6 +297,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
             return (
               <TextField
                 type="text"
+                data-routing-field-id={field.id}
                 value={String(currentValue)}
                 placeholder={field.placeholder ?? ""}
                 disabled={isDisabled}
@@ -336,6 +399,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
             const rawDate = currentValue ? String(currentValue) : "";
             const parsedDate = rawDate ? new Date(rawDate) : null;
             const dateValue = parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate : null;
+            const { minDate, maxDate } = getDatePickerBounds(field.uiConfig?.datePickerRange);
             return (
               <DatePicker
                 date={dateValue as Date}
@@ -347,6 +411,8 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                 placeholder={field.placeholder || "Pick a date"}
                 onBlur={() => setTouched((prev) => ({ ...prev, [field.id]: true }))}
                 variant={field.uiConfig?.datePickerVariant ?? "default"}
+                minDate={minDate}
+                maxDate={maxDate}
                 accentColor={accentColor}
                 onDatesChange={(nextDate) => {
                   updateResponse(format(nextDate, "yyyy-MM-dd"));
@@ -379,7 +445,10 @@ export default function FormInputFields(props: FormInputFieldsProps) {
         if (customField) {
           return (
             <div key={field.id} className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}>
-              <div className="rounded-lg border-2 border-transparent p-3">
+              <div
+                className="rounded-lg border-2 border-transparent p-3"
+                data-routing-field-wrapper-id={field.id}
+                tabIndex={-1}>
                 {!isLabelEmpty && (
                   <label id={`field-label-${field.id}`} className={labelClassName}>
                     {labelText}
@@ -413,7 +482,10 @@ export default function FormInputFields(props: FormInputFieldsProps) {
 
         return (
           <div key={field.id} className={isFull ? "col-span-1 sm:col-span-2" : "col-span-1"}>
-            <div className="rounded-lg border-2 border-transparent p-3">
+            <div
+              className="rounded-lg border-2 border-transparent p-3"
+              data-routing-field-wrapper-id={field.id}
+              tabIndex={-1}>
               {!isLabelEmpty && (
                 <label id={`field-label-${field.id}`} className={labelClassName}>
                   {labelText}
@@ -422,15 +494,12 @@ export default function FormInputFields(props: FormInputFieldsProps) {
               )}
               <Component
                 value={currentValue}
+                data-routing-field-id={field.id}
                 placeholder={widgetPlaceholder}
                 variant={inputVariant}
                 size={inputSize}
                 styles={underlineSelectStyles}
                 style={underlineStyle}
-                // required property isn't accepted by query-builder types
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                /* @ts-ignore */
-                required={!!field.required}
                 listValues={options}
                 disabled={isDisabled}
                 data-testid={`form-field-${fieldIdentifier}`}

@@ -29,6 +29,7 @@ export interface UIFieldConfig {
   radioDirection?: "row" | "column";
   radioVariant?: "default" | "largeSquare";
   datePickerVariant?: "default" | "compact";
+  datePickerRange?: "future" | "past" | "all";
   validation?: {
     minChars?: number;
   };

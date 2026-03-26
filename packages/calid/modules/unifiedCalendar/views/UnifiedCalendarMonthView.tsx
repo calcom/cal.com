@@ -1,8 +1,10 @@
 import { cn } from "@calid/features/lib/cn";
-import { format, isSameMonth, isToday, startOfDay } from "date-fns";
+import { format, isToday, startOfDay } from "date-fns";
 import type { PointerEvent as ReactPointerEvent } from "react";
 
-import { PALETTE, MONTH_VIEW_DAY_LABELS } from "../lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { PALETTE } from "../lib/constants";
 import type { UnifiedCalendarEventVM } from "../lib/types";
 import { splitEventsForDay } from "../lib/utils";
 
@@ -29,13 +31,25 @@ export const UnifiedCalendarMonthView = ({
   hoveredDayKey,
   onStartDragEvent,
 }: UnifiedCalendarMonthViewProps) => {
+  const { t } = useLocale();
+  const monthViewDayLabels = [
+    t("unified_calendar_month_day_mon"),
+    t("unified_calendar_month_day_tue"),
+    t("unified_calendar_month_day_wed"),
+    t("unified_calendar_month_day_thu"),
+    t("unified_calendar_month_day_fri"),
+    t("unified_calendar_month_day_sat"),
+    t("unified_calendar_month_day_sun"),
+  ];
+
   return (
     <div>
-      <div className="border-border/30 grid grid-cols-7 border-b">
-        {MONTH_VIEW_DAY_LABELS.map((dayLabel) => (
+      <div className="grid grid-cols-7 border-b border-r">
+        {monthViewDayLabels.map((dayLabel) => (
           <div
             key={dayLabel}
-            className="text-muted-foreground/50 py-2.5 text-center text-[10px] font-light uppercase tracking-wider">
+            className="text-muted-foreground/50 py-2.5 text-center text-[10px] font-light uppercase tracking-wider sm:text-[12px]">
+            {" "}
             {dayLabel}
           </div>
         ))}
@@ -45,14 +59,14 @@ export const UnifiedCalendarMonthView = ({
         {viewDays.map((day) => {
           const { allDayEvents, timedEvents } = splitEventsForDay(filteredEvents, day);
           const dayEvents = [...allDayEvents, ...timedEvents];
-          const isCurrentMonth = isSameMonth(day, currentDate);
+          const isCurrentDay = isToday(day);
 
           return (
             <div
               key={day.toISOString()}
               className={cn(
-                "border-border/20 hover:bg-muted/15 min-h-[110px] cursor-pointer border-b border-r p-1.5 transition-colors",
-                !isCurrentMonth && "bg-muted/[0.04]",
+                "hover:bg-emphasis min-h-[80px] cursor-pointer border-b border-r p-1 transition-colors sm:min-h-[110px] sm:p-1.5 md:min-h-[150px]",
+                isCurrentDay && "bg-emphasis",
                 hoveredDayKey === day.toISOString() && "ring-primary/55 bg-primary/[0.05] ring-1 ring-inset"
               )}
               onClick={() => {
@@ -65,9 +79,7 @@ export const UnifiedCalendarMonthView = ({
                 <div
                   className={cn(
                     "flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-medium",
-                    !isCurrentMonth && "text-muted-foreground/30",
-                    isCurrentMonth && "text-foreground/60",
-                    isToday(day) && "bg-brand-default text-white"
+                    isCurrentDay && " text-default "
                   )}>
                   {format(day, "d")}
                 </div>
@@ -91,7 +103,7 @@ export const UnifiedCalendarMonthView = ({
                         onStartDragEvent(event, { x: pointerEvent.clientX, y: pointerEvent.clientY });
                       }}
                       className={cn(
-                        "bg-muted/30 text-foreground/60 hover:bg-muted/50 w-full truncate rounded border-l-2 px-1.5 py-0.5 text-left text-[10px] transition-colors",
+                        "bg-muted/30 text-foreground/60 hover:bg-muted/50 w-full truncate rounded border-l-2 px-1 py-0.5 text-left text-[9px] transition-colors sm:px-1.5 sm:text-[10px]",
                         event.status === "CANCELLED" && "text-muted-foreground/50 line-through",
                         event.status === "TENTATIVE" && "border-dashed",
                         event.canReschedule &&
@@ -112,7 +124,9 @@ export const UnifiedCalendarMonthView = ({
                 })}
 
                 {dayEvents.length > 3 && (
-                  <p className="text-muted-foreground/40 pl-1 text-[10px]">+{dayEvents.length - 3} more</p>
+                  <p className="text-muted-foreground/40 pl-1 text-[10px]">
+                    {t("unified_calendar_more_count", { count: dayEvents.length - 3 })}
+                  </p>
                 )}
               </div>
             </div>

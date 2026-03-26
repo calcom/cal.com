@@ -41,12 +41,105 @@ import { getAllRemindersToCancel, getAllUnscheduledReminders } from "../../utils
 //   });
 // };
 
+const PROVIDER_CANCELLATION_STATUS = {
+  PENDING: "pending",
+  CANCELLED: "cancelled",
+  NOT_CANCELLABLE: "not_cancellable",
+} as const;
+
+const getProviderErrorStatusCode = (error: unknown): number | undefined => {
+  if (!error || typeof error !== "object") {
+    return undefined;
+  }
+
+  const providerError = error as {
+    code?: number;
+    response?: {
+      statusCode?: number;
+    };
+  };
+
+  return providerError.response?.statusCode ?? providerError.code;
+};
+
+const getProviderErrorMessage = (error: unknown): string => {
+  if (!error || typeof error !== "object") {
+    return "";
+  }
+
+  const providerError = error as {
+    message?: string;
+    response?: {
+      body?: {
+        errors?: { message?: string }[];
+      };
+    };
+  };
+
+  const providerMessages =
+    providerError.response?.body?.errors
+      ?.map((providerMessage) => providerMessage.message)
+      .filter((message): message is string => Boolean(message)) || [];
+
+  return [providerError.message, ...providerMessages].filter(Boolean).join(" ").toLowerCase();
+};
+
+const isNotCancellableProviderError = (error: unknown): boolean => {
+  const statusCode = getProviderErrorStatusCode(error);
+  const message = getProviderErrorMessage(error);
+
+  if (statusCode === 404) {
+    return true;
+  }
+
+  const nonCancellablePatterns = [
+    "already sent",
+    "already processed",
+    "already canceled",
+    "already cancelled",
+    "cannot cancel",
+    "cannot be cancelled",
+    "can't be cancelled",
+    "too late",
+    "past send",
+    "batch id does not exist",
+    "not found",
+  ];
+
+  return nonCancellablePatterns.some((pattern) => message.includes(pattern));
+};
+
 const processCancelledNotifications = async (): Promise<number> => {
-  const notificationsToCancel: { referenceId: string | null; id: number }[] = await getAllRemindersToCancel();
+  const notificationsToCancel: {
+    referenceId: string | null;
+    id: number;
+    providerCancellationStatus: string | null;
+  }[] = await getAllRemindersToCancel();
 
   let cancelledCount = 0;
 
   const cancellationOperations = notificationsToCancel.map(async (notification) => {
+    if (!notification.referenceId) {
+      try {
+        await prisma.calIdWorkflowReminder.update({
+          where: { id: notification.id },
+          data: {
+            scheduled: false,
+            providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.NOT_CANCELLABLE,
+          },
+        });
+      } catch (error) {
+        logger.error(
+          {
+            error,
+            notificationId: notification.id,
+          },
+          "Failed to reconcile cancelled reminder without provider reference ID"
+        );
+      }
+      return;
+    }
+
     try {
       // First, attempt to cancel the scheduled email
       await cancelScheduledEmail(notification.referenceId);
@@ -61,7 +154,9 @@ const processCancelledNotifications = async (): Promise<number> => {
             where: {
               msgId: notification.referenceId,
               type: WorkflowMethods.EMAIL,
-              status: WorkflowStatus.QUEUED,
+              status: {
+                notIn: [WorkflowStatus.DELIVERED, WorkflowStatus.READ],
+              },
             },
             data: {
               status: WorkflowStatus.CANCELLED,
@@ -84,6 +179,7 @@ const processCancelledNotifications = async (): Promise<number> => {
           },
           data: {
             scheduled: false,
+            providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.CANCELLED,
           },
         })
         .then(() => {
@@ -100,6 +196,49 @@ const processCancelledNotifications = async (): Promise<number> => {
       // Increment count only if everything succeeded
       cancelledCount++;
     } catch (error) {
+      if (isNotCancellableProviderError(error)) {
+        try {
+          await prisma.calIdWorkflowReminder.update({
+            where: { id: notification.id },
+            data: {
+              scheduled: false,
+              providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.NOT_CANCELLABLE,
+            },
+          });
+        } catch (updateError) {
+          logger.error(
+            {
+              error: updateError,
+              notificationId: notification.id,
+              referenceId: notification.referenceId,
+            },
+            "Failed to mark reminder as not cancellable"
+          );
+        }
+
+        return;
+      }
+
+      if (notification.providerCancellationStatus !== PROVIDER_CANCELLATION_STATUS.PENDING) {
+        try {
+          await prisma.calIdWorkflowReminder.update({
+            where: { id: notification.id },
+            data: {
+              providerCancellationStatus: PROVIDER_CANCELLATION_STATUS.PENDING,
+            },
+          });
+        } catch (updateError) {
+          logger.error(
+            {
+              error: updateError,
+              notificationId: notification.id,
+              referenceId: notification.referenceId,
+            },
+            "Failed to persist pending provider cancellation status"
+          );
+        }
+      }
+
       logger.error(
         {
           error,
@@ -118,6 +257,43 @@ const processCancelledNotifications = async (): Promise<number> => {
 
 const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowReminder[]> => {
   const mailDeliveryTasks: Promise<any>[] = [];
+  const enterpriseEmailPrefixCache = new Map<number, Promise<string | undefined>>();
+
+  const getEnterpriseEmailPrefix = async (
+    calIdTeamId: number | null | undefined
+  ): Promise<string | undefined> => {
+    if (!calIdTeamId) {
+      return undefined;
+    }
+
+    if (!enterpriseEmailPrefixCache.has(calIdTeamId)) {
+      enterpriseEmailPrefixCache.set(
+        calIdTeamId,
+        prisma.calIdTeam
+          .findUnique({
+            where: {
+              id: calIdTeamId,
+            },
+            select: {
+              metadata: true,
+            },
+          })
+          .then((team) => {
+            const metadata = team?.metadata;
+
+            if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+              return undefined;
+            }
+
+            const prefix = (metadata as Record<string, unknown>).enterpriseEmailPrefix;
+            return typeof prefix === "string" && prefix.length > 0 ? prefix : undefined;
+          })
+          .catch(() => undefined)
+      );
+    }
+
+    return enterpriseEmailPrefixCache.get(calIdTeamId)!;
+  };
 
   const pendingNotifications: PartialCalIdWorkflowReminder[] = await getAllUnscheduledReminders();
 
@@ -195,6 +371,8 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
             booking: notification.booking,
           });
 
+          const rawResponses = notification.booking.responses;
+
           const organizerProfile = await prisma.profile.findFirst({
             where: {
               userId: notification.booking.user?.id,
@@ -221,6 +399,7 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
             additionalNotes: notification.booking.description,
             responses: responses,
             meetingUrl: bookingMetadataSchema.parse(notification.booking.metadata || {})?.videoCallUrl,
+            onlineMeetingUrl: (rawResponses && rawResponses["location"] && rawResponses["location"].value !== 'inPerson' ) ? bookingMetadataSchema.parse(notification.booking.metadata || {})?.videoCallUrl : undefined,
             cancelUrl: `${bookingUrl}/booking/${notification.booking.uid}?cancel=true`,
             rescheduleUrl: `${bookingUrl}/reschedule/${notification.booking.uid}`,
             ratingUrl: `${bookingUrl}/booking/${notification.booking.uid}?rating`,
@@ -305,6 +484,9 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
         }
         if (messageContent.emailSubject.length > 0 && !isBodyEmpty && recipientAddress) {
           const batchIdentifier = await getBatchId();
+          const enterpriseEmailPrefix = await getEnterpriseEmailPrefix(
+            notification.workflowStep?.workflow?.calIdTeamId
+          );
           const bookingData = notification.booking;
           const translator = await getTranslation(bookingData.user?.locale ?? "en", "common");
           const attendeeTranslationTasks: Promise<
@@ -374,7 +556,10 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
                       ]
                     : undefined,
                 },
-                { sender: notification.workflowStep?.sender },
+                {
+                  sender: notification.workflowStep?.sender,
+                  enterpriseEmailPrefix,
+                },
                 {
                   msgId: batchIdentifier,
                 }
@@ -445,6 +630,9 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
         });
         if (messageContent.emailSubject.length > 0 && !isBodyEmpty && recipientAddress) {
           const batchIdentifier = await getBatchId();
+          const enterpriseEmailPrefix = await getEnterpriseEmailPrefix(
+            notification.workflowStep?.workflow?.calIdTeamId
+          );
 
           mailDeliveryTasks.push(
             (async () => {
@@ -458,7 +646,10 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
                   sendAt: dayjs(notification.scheduledDate).unix(),
                   replyTo: notification.booking?.userPrimaryEmail ?? notification.booking?.user?.email,
                 },
-                { sender: notification.workflowStep?.sender },
+                {
+                  sender: notification.workflowStep?.sender,
+                  enterpriseEmailPrefix,
+                },
                 {
                   msgId: batchIdentifier,
                 }

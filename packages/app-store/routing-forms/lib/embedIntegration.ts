@@ -34,7 +34,13 @@ export type FormSubmissionPayload = {
 export type EmbedCommandHandlers = {
   onSetFieldValue: (fieldIdentifier: string, value: number | string | string[]) => void;
   onSetCalendarEventType: (eventType: string | undefined, fieldIdentifier?: string) => void;
-  onAck: (success: boolean, submissionId: string, redirectUrl?: string, error?: string, successMsg?: string) => void;
+  onAck: (
+    success: boolean,
+    submissionId: string,
+    redirectUrl?: string,
+    error?: string,
+    successMsg?: string
+  ) => void;
 };
 
 const getAllowedOrigin = (): string | null => {
@@ -60,7 +66,10 @@ export const emitRoutingEvent = (
 };
 
 export const attachCommandListener = (handlers: EmbedCommandHandlers) => {
-  if (typeof window === "undefined") return () => {};
+  if (typeof window === "undefined")
+    return () => {
+      //pass
+    };
   const allowedOrigin = getAllowedOrigin();
   const namespace = window.getEmbedNamespace?.() ?? null;
 
@@ -75,7 +84,6 @@ export const attachCommandListener = (handlers: EmbedCommandHandlers) => {
         );
       },
       set_field_value: (msg) => {
-        console.log(" handlers.onSetFieldValue( ")
         handlers.onSetFieldValue(
           msg.payload.fieldIdentifier as string,
           msg.payload.value as number | string | string[]
@@ -87,7 +95,7 @@ export const attachCommandListener = (handlers: EmbedCommandHandlers) => {
           msg.payload.submissionId as string,
           msg.payload.redirect_url as string | undefined,
           msg.payload.error as string | undefined,
-          msg.payload.successMsg as string | undefined,
+          msg.payload.successMsg as string | undefined
         );
       },
     } satisfies PostMessageHandlers,
