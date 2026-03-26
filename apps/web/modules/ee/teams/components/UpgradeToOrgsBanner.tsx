@@ -3,7 +3,6 @@ import { UpgradePlanDialog } from "@calcom/web/modules/billing/components/Upgrad
 import { Button } from "@coss/ui/components/button";
 import {
   Card,
-  CardFooter,
   CardFrame,
   CardFrameAction,
   CardFrameHeader,
@@ -18,18 +17,21 @@ const items = [
     titleKey: "upgrade_to_orgs_consolidate_teams_title",
     descriptionKey: "upgrade_to_orgs_consolidate_teams_description",
     image: "/upgrade/teams/consolidate-teams.svg",
+    imageDark: "/upgrade/teams/consolidate-teams-dark.svg",
     imageOffsetY: { base: "40%", sm: "40%", md: "40%" },
   },
   {
     titleKey: "upgrade_to_orgs_clean_subdomain_title",
     descriptionKey: "upgrade_to_orgs_clean_subdomain_description",
     image: "/upgrade/teams/clean-subdomain.svg",
+    imageDark: "/upgrade/teams/clean-subdomain-dark.svg",
     imageOffsetY: { base: "-20%", sm: "-5%", md: "-5%" },
   },
   {
     titleKey: "upgrade_to_orgs_consolidate_insights_title",
     descriptionKey: "upgrade_to_orgs_consolidate_insights_description",
     image: "/upgrade/teams/consolidate-insights.svg",
+    imageDark: "/upgrade/teams/consolidate-insights-dark.svg",
     imageOffsetY: { base: "-20%", sm: "-5%", md: "-5%" },
   },
 ];
@@ -45,9 +47,7 @@ export function UpgradeToOrgsBanner() {
           <div className="flex gap-2">
             <Button
               variant="ghost"
-              render={
-                <a href="https://cal.com/organizations" target="_blank" rel="noopener noreferrer" />
-              }>
+              render={<a href="https://cal.com/organizations" target="_blank" rel="noopener noreferrer" />}>
               <span className="hidden md:inline">{t("learn_more")}</span>
               <ExternalLinkIcon className="h-4 w-4 md:hidden" />
             </Button>
@@ -61,7 +61,9 @@ export function UpgradeToOrgsBanner() {
         <CardPanel className="-p-6">
           <div className="grid grid-cols-1 md:grid-cols-3">
             {items.map((item) => (
-              <div key={item.titleKey} className="border-subtle flex flex-col overflow-hidden border-b last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0">
+              <div
+                key={item.titleKey}
+                className="flex flex-col overflow-hidden border-subtle border-b last:border-b-0 md:border-r md:border-b-0 md:last:border-r-0">
                 <div
                   className="relative h-[94px] overflow-hidden"
                   style={
@@ -75,14 +77,20 @@ export function UpgradeToOrgsBanner() {
                     src={item.image}
                     alt={t(item.titleKey)}
                     fill
-                    className="object-cover object-[center_var(--offset-base)] sm:object-[center_var(--offset-sm)] md:object-[center_var(--offset-md)]"
+                    className="object-cover object-[center_var(--offset-base)] sm:object-[center_var(--offset-sm)] md:object-[center_var(--offset-md)] dark:hidden"
+                  />
+                  <Image
+                    src={item.imageDark}
+                    alt={t(item.titleKey)}
+                    fill
+                    className="hidden object-cover object-[center_var(--offset-base)] sm:object-[center_var(--offset-sm)] md:object-[center_var(--offset-md)] dark:block"
                   />
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-linear-to-b from-default to-transparent" />
                   <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-default to-transparent" />
                 </div>
-                <div className="flex flex-col gap-2 px-5 pb-5 pt-[26px]">
-                  <h3 className="text-base font-semibold">{t(item.titleKey)}</h3>
-                  <p className="text-subtle text-sm font-normal">{t(item.descriptionKey)}</p>
+                <div className="flex flex-col gap-2 px-5 pt-[26px] pb-5">
+                  <h3 className="font-semibold text-base">{t(item.titleKey)}</h3>
+                  <p className="font-normal text-sm text-subtle">{t(item.descriptionKey)}</p>
                 </div>
               </div>
             ))}
