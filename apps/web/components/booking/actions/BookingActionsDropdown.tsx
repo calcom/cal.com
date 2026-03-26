@@ -28,6 +28,7 @@ import { ReportBookingDialog } from "@components/dialog/ReportBookingDialog";
 import { RerouteDialog } from "@components/dialog/RerouteDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import { WrongAssignmentDialog } from "@components/dialog/WrongAssignmentDialog";
+import { ForceConfirmDialog } from "@components/dialog/ForceConfirmDialog";
 import { useState } from "react";
 import type { z } from "zod";
 import ViewRecordingsDialog from "~/ee/video/components/ViewRecordingsDialog";
@@ -81,9 +82,12 @@ export function BookingActionsDropdown({
   // Use the booking confirmation hook for confirm/reject logic
   const {
     bookingConfirm,
+    bookingForceConfirm,
     handleReject,
     rejectionDialogIsOpen,
     setRejectionDialogIsOpen,
+    forceConfirmDialogIsOpen,
+    setForceConfirmDialogIsOpen,
     isPending: isConfirmPending,
   } = useBookingConfirmation({
     isRecurring,
@@ -608,6 +612,12 @@ export function BookingActionsDropdown({
             reason,
           })
         }
+        isPending={isConfirmPending}
+      />
+      <ForceConfirmDialog
+        isOpenDialog={forceConfirmDialogIsOpen}
+        setIsOpenDialog={setForceConfirmDialogIsOpen}
+        onConfirm={bookingForceConfirm}
         isPending={isConfirmPending}
       />
       <Dropdown modal={false}>

@@ -2146,18 +2146,6 @@ async function handler(
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
 
-    const updateManager = !skipCalendarSyncTaskCreation
-      ? await eventManager.reschedule(
-          evt,
-          originalRescheduledBooking.uid,
-          undefined,
-          changedOrganizer,
-          previousHostDestinationCalendar,
-          isBookingRequestedReschedule,
-          skipDeleteEventsAndMeetings
-        )
-      : placeholderCreatedEvent;
-
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
 

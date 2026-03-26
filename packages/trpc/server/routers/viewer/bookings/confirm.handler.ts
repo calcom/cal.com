@@ -129,6 +129,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     confirmed,
     emailsEnabled,
     platformClientParams,
+    forceConfirm,
     actionSource,
     actor,
     impersonatedByUserUuid,
@@ -430,6 +431,25 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   }
 
   if (confirmed) {
+    if (!forceConfirm) {
+      const conflict = await prisma.booking.findFirst({
+        where: {
+          userId: booking.userId,
+          status: BookingStatus.ACCEPTED,
+          id: { not: bookingId },
+          startTime: { lt: booking.endTime },
+          endTime: { gt: booking.startTime },
+        },
+        select: { id: true },
+      });
+      if (conflict) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "booking_conflict_exists",
+        });
+      }
+    }
+
     const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
     const userWithCredentials = {
       ...user,
