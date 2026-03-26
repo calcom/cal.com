@@ -447,6 +447,7 @@ export const teamMetadataSchema = z
       })
       .optional(),
     billingPeriod: z.nativeEnum(BillingPeriod).optional(),
+    customBannerLogoPosition: z.enum(["top", "bottom"]).optional(),
   })
   .partial()
   .nullable();

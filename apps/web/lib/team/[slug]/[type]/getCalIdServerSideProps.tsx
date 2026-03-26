@@ -286,6 +286,9 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: calIdTeam.slug,
       orgBannerUrl: calIdTeam.bannerUrl ?? "",
+      customBannerLogoPosition:
+        (isPrismaObjOrUndefined(calIdTeam.metadata)?.customBannerLogoPosition as "top" | "bottom" | undefined) ??
+        "bottom",
       faviconUrl: calIdTeam.faviconUrl ?? null,
       teamMemberEmail,
       crmOwnerRecordType,
@@ -320,6 +323,7 @@ const getCalIdTeamWithEventsData = async (teamSlug: string, meetingSlug: string)
         brandColor: true,
         darkBrandColor: true,
         theme: true,
+        metadata: true,
         eventTypes: {
           where: {
             slug: meetingSlug,
