@@ -4,12 +4,7 @@ import type {
   IDunningRepository,
   RawDunningRecordForBilling,
 } from "../../../repository/dunning/IDunningRepository";
-import {
-  BaseDunningService,
-  CANCEL_DAYS,
-  HARD_BLOCK_DAYS,
-  SOFT_BLOCK_DAYS,
-} from "../BaseDunningService";
+import { BaseDunningService, CANCEL_DAYS, HARD_BLOCK_DAYS, SOFT_BLOCK_DAYS } from "../BaseDunningService";
 
 vi.mock("@calcom/lib/logger", () => ({
   default: {
@@ -220,9 +215,7 @@ describe("BaseDunningService", () => {
     });
 
     it("does nothing when already CURRENT", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(
-        makeRawRecord({ status: "CURRENT" })
-      );
+      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "CURRENT" }));
 
       await service.onPaymentSucceeded("billing_1");
 
@@ -230,9 +223,7 @@ describe("BaseDunningService", () => {
     });
 
     it("recovers from WARNING to CURRENT", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(
-        makeRawRecord({ status: "WARNING" })
-      );
+      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "WARNING" }));
       mockRepo.upsert.mockResolvedValue(makeRawRecord());
 
       await service.onPaymentSucceeded("billing_1");
@@ -246,9 +237,7 @@ describe("BaseDunningService", () => {
     });
 
     it("recovers from SOFT_BLOCKED to CURRENT", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(
-        makeRawRecord({ status: "SOFT_BLOCKED" })
-      );
+      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "SOFT_BLOCKED" }));
       mockRepo.upsert.mockResolvedValue(makeRawRecord());
 
       await service.onPaymentSucceeded("billing_1");
@@ -262,9 +251,7 @@ describe("BaseDunningService", () => {
     });
 
     it("recovers from HARD_BLOCKED to CURRENT", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(
-        makeRawRecord({ status: "HARD_BLOCKED" })
-      );
+      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "HARD_BLOCKED" }));
       mockRepo.upsert.mockResolvedValue(makeRawRecord());
 
       await service.onPaymentSucceeded("billing_1");
@@ -276,9 +263,7 @@ describe("BaseDunningService", () => {
     });
 
     it("recovers from CANCELLED to CURRENT", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(
-        makeRawRecord({ status: "CANCELLED" })
-      );
+      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "CANCELLED" }));
       mockRepo.upsert.mockResolvedValue(makeRawRecord());
 
       await service.onPaymentSucceeded("billing_1");
@@ -322,9 +307,7 @@ describe("BaseDunningService", () => {
     });
 
     it("returns not advanced when status is CURRENT", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(
-        makeRawRecord({ status: "CURRENT" })
-      );
+      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "CURRENT" }));
 
       const result = await service.advanceDunning("billing_1");
 
@@ -332,9 +315,7 @@ describe("BaseDunningService", () => {
     });
 
     it("returns not advanced when firstFailedAt is null", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(
-        makeRawRecord({ status: "WARNING", firstFailedAt: null })
-      );
+      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "WARNING", firstFailedAt: null }));
 
       const result = await service.advanceDunning("billing_1");
 
@@ -353,10 +334,7 @@ describe("BaseDunningService", () => {
 
       const result = await service.advanceDunning("billing_1");
 
-      expect(mockRepo.advanceStatus).toHaveBeenCalledWith(
-        "billing_1",
-        "SOFT_BLOCKED"
-      );
+      expect(mockRepo.advanceStatus).toHaveBeenCalledWith("billing_1", "SOFT_BLOCKED");
       expect(result).toEqual({
         advanced: true,
         from: "WARNING",
@@ -389,10 +367,7 @@ describe("BaseDunningService", () => {
 
       const result = await service.advanceDunning("billing_2");
 
-      expect(mockRepo.advanceStatus).toHaveBeenCalledWith(
-        "billing_2",
-        "HARD_BLOCKED"
-      );
+      expect(mockRepo.advanceStatus).toHaveBeenCalledWith("billing_2", "HARD_BLOCKED");
       expect(result).toEqual({
         advanced: true,
         from: "SOFT_BLOCKED",
@@ -425,10 +400,7 @@ describe("BaseDunningService", () => {
 
       const result = await service.advanceDunning("billing_5");
 
-      expect(mockRepo.advanceStatus).toHaveBeenCalledWith(
-        "billing_5",
-        "HARD_BLOCKED"
-      );
+      expect(mockRepo.advanceStatus).toHaveBeenCalledWith("billing_5", "HARD_BLOCKED");
       expect(result).toEqual({
         advanced: true,
         from: "WARNING",
@@ -447,10 +419,7 @@ describe("BaseDunningService", () => {
 
       const result = await service.advanceDunning("billing_6");
 
-      expect(mockRepo.advanceStatus).toHaveBeenCalledWith(
-        "billing_6",
-        "CANCELLED"
-      );
+      expect(mockRepo.advanceStatus).toHaveBeenCalledWith("billing_6", "CANCELLED");
       expect(result).toEqual({
         advanced: true,
         from: "HARD_BLOCKED",
@@ -497,9 +466,7 @@ describe("BaseDunningService", () => {
     });
 
     it("returns the status from existing dunning record", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(
-        makeRawRecord({ status: "SOFT_BLOCKED" })
-      );
+      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "SOFT_BLOCKED" }));
 
       const status = await service.getStatus("billing_1");
 
@@ -507,9 +474,7 @@ describe("BaseDunningService", () => {
     });
 
     it("returns HARD_BLOCKED status correctly", async () => {
-      mockRepo.findByBillingId.mockResolvedValue(
-        makeRawRecord({ status: "HARD_BLOCKED" })
-      );
+      mockRepo.findByBillingId.mockResolvedValue(makeRawRecord({ status: "HARD_BLOCKED" }));
 
       const status = await service.getStatus("billing_1");
 
@@ -586,11 +551,7 @@ describe("BaseDunningService", () => {
         }),
       ]);
 
-      const result = await service.getBannerData([
-        "billing_10",
-        "billing_20",
-        "billing_30",
-      ]);
+      const result = await service.getBannerData(["billing_10", "billing_20", "billing_30"]);
 
       expect(result).toHaveLength(3);
       expect(result).toEqual([

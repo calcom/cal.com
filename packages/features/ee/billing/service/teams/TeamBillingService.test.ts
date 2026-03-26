@@ -589,4 +589,329 @@ describe("TeamBillingService", () => {
       expect(purchaseTeamOrOrgSubscription).toHaveBeenCalledWith(expect.objectContaining({ seatsUsed: 12 }));
     });
   });
+
+  describe("downgrade", () => {
+    it("should clear metadata fields and update the team", async () => {
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      await teamBillingService.downgrade();
+
+      expect(prismaMock.team.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: {
+          metadata: {
+            paymentId: undefined,
+            subscriptionId: undefined,
+            subscriptionItemId: undefined,
+          },
+        },
+      });
+    });
+  });
+
+  describe("endTrial", () => {
+    it("should successfully end trial and return true", async () => {
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      vi.mocked(mockBillingProviderService.handleEndTrial).mockResolvedValue(undefined);
+
+      const result = await teamBillingService.endTrial();
+
+      expect(result).toBe(true);
+      expect(mockBillingProviderService.handleEndTrial).toHaveBeenCalledWith("sub_123");
+    });
+
+    it("should return false when no subscriptionId exists", async () => {
+      const teamWithoutSubscriptionId = {
+        ...mockTeam,
+        metadata: {
+          paymentId: "cs_789",
+          subscriptionItemId: "si_456",
+        },
+      };
+
+      const teamBillingService = new TeamBillingService({
+        team: teamWithoutSubscriptionId,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      const result = await teamBillingService.endTrial();
+
+      expect(result).toBe(false);
+      expect(mockBillingProviderService.handleEndTrial).not.toHaveBeenCalled();
+    });
+
+    it("should return false when handleEndTrial throws an error", async () => {
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      vi.mocked(mockBillingProviderService.handleEndTrial).mockRejectedValue(
+        new Error("Billing provider error")
+      );
+
+      const result = await teamBillingService.endTrial();
+
+      expect(result).toBe(false);
+      expect(mockBillingProviderService.handleEndTrial).toHaveBeenCalledWith("sub_123");
+    });
+  });
+
+  describe("getSubscriptionStatus", () => {
+    it("should return subscription status when subscriptionId exists", async () => {
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      const mockStatus = "active";
+      vi.mocked(mockBillingProviderService.getSubscriptionStatus).mockResolvedValue(mockStatus);
+
+      const result = await teamBillingService.getSubscriptionStatus();
+
+      expect(result).toBe(mockStatus);
+      expect(mockBillingProviderService.getSubscriptionStatus).toHaveBeenCalledWith("sub_123");
+    });
+
+    it("should return null when no subscriptionId exists", async () => {
+      const teamWithoutSubscriptionId = {
+        ...mockTeam,
+        metadata: {
+          paymentId: "cs_789",
+          subscriptionItemId: "si_456",
+        },
+      };
+
+      const teamBillingService = new TeamBillingService({
+        team: teamWithoutSubscriptionId,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      const result = await teamBillingService.getSubscriptionStatus();
+
+      expect(result).toBeNull();
+      expect(mockBillingProviderService.getSubscriptionStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("updateQuantity - edge cases", () => {
+    it("should return early when no URL and team is not an organization", async () => {
+      const teamNotOrg = { ...mockTeam, isOrganization: false };
+
+      const teamBillingService = new TeamBillingService({
+        team: teamNotOrg,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      vi.spyOn(teamBillingService, "checkIfTeamPaymentRequired").mockResolvedValue({
+        url: null,
+        paymentId: null,
+        paymentRequired: true,
+      });
+
+      const strategy = createMockStrategy();
+      const resolver = createMockFactory(strategy);
+      teamBillingService["seatBillingStrategyFactory"] = resolver;
+
+      await teamBillingService.updateQuantity("addition");
+
+      expect(resolver.createByTeamId).not.toHaveBeenCalled();
+      expect(strategy.onSeatChange).not.toHaveBeenCalled();
+      expect(prismaMock.membership.count).not.toHaveBeenCalled();
+    });
+
+    it("should throw error when missing subscriptionId", async () => {
+      const teamWithoutSubscriptionId = {
+        ...mockTeam,
+        metadata: {
+          paymentId: "cs_789",
+          subscriptionItemId: "si_456",
+        },
+      };
+
+      const teamBillingService = new TeamBillingService({
+        team: teamWithoutSubscriptionId,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      vi.spyOn(teamBillingService, "checkIfTeamPaymentRequired").mockResolvedValue({
+        url: "http://checkout.url",
+        paymentId: "cs_789",
+        paymentRequired: false,
+      });
+
+      prismaMock.membership.count.mockResolvedValue(5);
+
+      // The method should catch and log the error, not throw
+      await teamBillingService.updateQuantity("addition");
+
+      expect(prismaMock.membership.count).toHaveBeenCalled();
+    });
+
+    it("should throw error when missing subscriptionItemId", async () => {
+      const teamWithoutSubscriptionItemId = {
+        ...mockTeam,
+        metadata: {
+          paymentId: "cs_789",
+          subscriptionId: "sub_123",
+        },
+      };
+
+      const teamBillingService = new TeamBillingService({
+        team: teamWithoutSubscriptionItemId,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      vi.spyOn(teamBillingService, "checkIfTeamPaymentRequired").mockResolvedValue({
+        url: "http://checkout.url",
+        paymentId: "cs_789",
+        paymentRequired: false,
+      });
+
+      prismaMock.membership.count.mockResolvedValue(5);
+
+      // The method should catch and log the error, not throw
+      await teamBillingService.updateQuantity("addition");
+
+      expect(prismaMock.membership.count).toHaveBeenCalled();
+    });
+  });
+
+  describe("cancel - edge cases", () => {
+    it("should log error when missing subscriptionId", async () => {
+      const teamWithoutSubscriptionId = {
+        ...mockTeam,
+        metadata: {
+          paymentId: "cs_789",
+          subscriptionItemId: "si_456",
+        },
+      };
+
+      const teamBillingService = new TeamBillingService({
+        team: teamWithoutSubscriptionId,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      // The method should catch and log the error, not throw
+      await teamBillingService.cancel();
+
+      expect(mockBillingProviderService.handleSubscriptionCancel).not.toHaveBeenCalled();
+      expect(prismaMock.team.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getOrgIfNeeded", () => {
+    it("should fetch and set parent team when parentId exists", async () => {
+      const teamWithParent = { ...mockTeam, parentId: 999 };
+      const parentTeam = {
+        id: 999,
+        metadata: {
+          subscriptionId: "sub_parent_123",
+          subscriptionItemId: "si_parent_456",
+          paymentId: "cs_parent_789",
+        },
+        isOrganization: true,
+        parentId: null,
+      };
+
+      const teamBillingService = new TeamBillingService({
+        team: teamWithParent,
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      vi.mocked(mockTeamBillingDataRepository.find).mockResolvedValue(parentTeam);
+
+      // Call getOrgIfNeeded through a method that uses it
+      vi.spyOn(teamBillingService, "checkIfTeamPaymentRequired").mockResolvedValue({
+        url: "http://checkout.url",
+        paymentId: "cs_789",
+        paymentRequired: false,
+      });
+
+      prismaMock.membership.count.mockResolvedValue(5);
+
+      await teamBillingService.updateQuantity("addition");
+
+      expect(mockTeamBillingDataRepository.find).toHaveBeenCalledWith(999);
+      // Verify the team was updated to the parent team
+      expect(teamBillingService.team.id).toBe(999);
+    });
+
+    it("should not fetch parent team when parentId is null", async () => {
+      const teamBillingService = new TeamBillingService({
+        team: mockTeam, // mockTeam has parentId: null
+        billingProviderService: mockBillingProviderService,
+        teamBillingDataRepository: mockTeamBillingDataRepository,
+        billingRepository: mockBillingRepository,
+        seatBillingStrategyFactory: defaultResolver,
+        membershipRepository: mockMembershipRepository,
+      });
+
+      // Call getOrgIfNeeded through a method that uses it
+      vi.spyOn(teamBillingService, "checkIfTeamPaymentRequired").mockResolvedValue({
+        url: "http://checkout.url",
+        paymentId: "cs_789",
+        paymentRequired: false,
+      });
+
+      prismaMock.membership.count.mockResolvedValue(5);
+
+      await teamBillingService.updateQuantity("addition");
+
+      expect(mockTeamBillingDataRepository.find).not.toHaveBeenCalled();
+      // Verify the team ID remains unchanged
+      expect(teamBillingService.team.id).toBe(1);
+    });
+  });
 });

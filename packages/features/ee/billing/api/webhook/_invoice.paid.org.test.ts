@@ -45,11 +45,14 @@ vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
   },
 }));
 
-vi.mock("@calcom/features/ee/organizations/lib/service/onboarding/BillingEnabledOrgOnboardingService", () => ({
-  BillingEnabledOrgOnboardingService: class {
-    createOrganization = createOrganization;
-  },
-}));
+vi.mock(
+  "@calcom/features/ee/organizations/lib/service/onboarding/BillingEnabledOrgOnboardingService",
+  () => ({
+    BillingEnabledOrgOnboardingService: class {
+      createOrganization = createOrganization;
+    },
+  })
+);
 
 const onPaymentSucceeded = vi.fn().mockResolvedValue({ handled: true });
 const dunningCreateBySubscriptionId = vi.fn().mockResolvedValue({ onPaymentSucceeded });
@@ -116,8 +119,7 @@ function buildInvoiceData(overrides: {
       lines: {
         data: [
           {
-            subscription_item:
-              "subscription_item" in overrides ? overrides.subscription_item : "si_123",
+            subscription_item: "subscription_item" in overrides ? overrides.subscription_item : "si_123",
             period: { start: 1700000000, end: 1703000000 },
           },
         ],
@@ -219,10 +221,10 @@ describe("invoice.paid.org webhook", () => {
         stripeSubscriptionId: "sub_123",
         stripeSubscriptionItemId: "si_trial",
       });
-      expect(createOrganization).toHaveBeenCalledWith(
-        expect.objectContaining({ id: "onb_1" }),
-        { subscriptionId: "sub_123", subscriptionItemId: "si_trial" }
-      );
+      expect(createOrganization).toHaveBeenCalledWith(expect.objectContaining({ id: "onb_1" }), {
+        subscriptionId: "sub_123",
+        subscriptionItemId: "si_trial",
+      });
       expect(saveTeamBilling).toHaveBeenCalledWith(
         expect.objectContaining({
           subscriptionId: "sub_123",

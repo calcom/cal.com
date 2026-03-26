@@ -3,6 +3,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { prisma } from "@calcom/prisma";
 
 import { SeatChangeTrackingService } from "../SeatChangeTrackingService";
+import type { SeatChangeLogRepository } from "../../repository/seatChangeLogs/SeatChangeLogRepository";
+import type { HighWaterMarkRepository } from "../../repository/highWaterMark/HighWaterMarkRepository";
+import type { MonthlyProrationTeamRepository } from "../../repository/proration/MonthlyProrationTeamRepository";
+import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 
 vi.mock("@calcom/prisma", () => ({
   prisma: {

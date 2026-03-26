@@ -33,11 +33,11 @@ function createMockDunningServiceFactory(resolved = true) {
   } as unknown as IDunningService;
 
   return {
-    forTeam: vi.fn().mockResolvedValue(
-      resolved
-        ? { service: mockService, billingId: BILLING_ID, entityType: "team" as const }
-        : null
-    ),
+    forTeam: vi
+      .fn()
+      .mockResolvedValue(
+        resolved ? { service: mockService, billingId: BILLING_ID, entityType: "team" as const } : null
+      ),
     _mockService: mockService,
   };
 }

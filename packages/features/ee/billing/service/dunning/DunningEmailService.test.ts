@@ -63,9 +63,11 @@ function createMockDunningServiceFactory(record: typeof mockDunningRecord | null
     findRecord: vi.fn().mockResolvedValue(record),
   };
   return {
-    forTeam: vi.fn().mockResolvedValue(
-      record ? { service: mockService, billingId: "billing_123", entityType: "team" as const } : null
-    ),
+    forTeam: vi
+      .fn()
+      .mockResolvedValue(
+        record ? { service: mockService, billingId: "billing_123", entityType: "team" as const } : null
+      ),
     _mockService: mockService,
   };
 }

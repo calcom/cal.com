@@ -1,3 +1,4 @@
+/* v8 ignore file -- trigger.dev infrastructure config, not unit-testable */
 import { queue, type schemaTask } from "@trigger.dev/sdk";
 
 type MonthlyProrationTaskConfig = Pick<Parameters<typeof schemaTask>[0], "machine" | "retry" | "queue">;

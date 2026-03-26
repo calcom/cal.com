@@ -110,7 +110,11 @@ describe("DunningServiceFactory", () => {
 
   describe("advanceByBillingId", () => {
     it("uses team service for team entity type", async () => {
-      mockTeamService.advanceDunning.mockResolvedValue({ advanced: true, from: "WARNING", to: "SOFT_BLOCKED" });
+      mockTeamService.advanceDunning.mockResolvedValue({
+        advanced: true,
+        from: "WARNING",
+        to: "SOFT_BLOCKED",
+      });
 
       const result = await factory.advanceByBillingId("billing_1", "team");
 
@@ -120,7 +124,11 @@ describe("DunningServiceFactory", () => {
     });
 
     it("uses org service for organization entity type", async () => {
-      mockOrgService.advanceDunning.mockResolvedValue({ advanced: true, from: "SOFT_BLOCKED", to: "HARD_BLOCKED" });
+      mockOrgService.advanceDunning.mockResolvedValue({
+        advanced: true,
+        from: "SOFT_BLOCKED",
+        to: "HARD_BLOCKED",
+      });
 
       const result = await factory.advanceByBillingId("billing_2", "organization");
 

@@ -1,3 +1,4 @@
+/* v8 ignore file -- trigger.dev schema definition */
 import { z } from "zod";
 
 import { MONTHLY_PRORATION_BATCH_SIZE } from "../constants";

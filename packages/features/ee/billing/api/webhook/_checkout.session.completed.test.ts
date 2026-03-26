@@ -70,9 +70,7 @@ vi.mock("@calcom/prisma", () => ({
 
 import handler from "./_checkout.session.completed";
 
-function buildSession(
-  overrides: Partial<SWHMap["checkout.session.completed"]["data"]["object"]> = {}
-) {
+function buildSession(overrides: Partial<SWHMap["checkout.session.completed"]["data"]["object"]> = {}) {
   return {
     object: {
       id: "cs_123",
@@ -154,10 +152,7 @@ describe("checkout.session.completed webhook", () => {
       expect(listLineItems).toHaveBeenCalledWith("cs_123");
       expect(findByStripeSessionId).toHaveBeenCalledWith("cs_123");
       expect(transactionFn).toHaveBeenCalled();
-      expect(upsertUserBalance).toHaveBeenCalledWith(
-        { userId: 1, additionalCredits: 10 },
-        expect.anything()
-      );
+      expect(upsertUserBalance).toHaveBeenCalledWith({ userId: 1, additionalCredits: 10 }, expect.anything());
       expect(creditPurchaseLogCreate).toHaveBeenCalledWith(
         {
           credits: 10,
@@ -224,10 +219,7 @@ describe("checkout.session.completed webhook", () => {
       const result = await handler(data);
 
       expect(listLineItems).toHaveBeenCalledWith("cs_123");
-      expect(upsertUserBalance).toHaveBeenCalledWith(
-        { userId: 1, additionalCredits: 10 },
-        expect.anything()
-      );
+      expect(upsertUserBalance).toHaveBeenCalledWith({ userId: 1, additionalCredits: 10 }, expect.anything());
       expect(result).toEqual({ success: true });
     });
 

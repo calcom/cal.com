@@ -1,63 +1,126 @@
 import { describe, expect, it } from "vitest";
+
 import { formatMonthKey, isValidMonthKey } from "./month-key";
 
-describe("formatMonthKey", () => {
-  it("formats a date in January correctly", () => {
-    const date = new Date(Date.UTC(2024, 0, 15));
-    expect(formatMonthKey(date)).toBe("2024-01");
+describe("month-key utils", () => {
+  describe("formatMonthKey", () => {
+    it("should format date to YYYY-MM using UTC", () => {
+      const date = new Date("2023-12-15T14:30:00Z");
+      const result = formatMonthKey(date);
+      expect(result).toBe("2023-12");
+    });
+
+    it("should pad single digit months with zero", () => {
+      const date = new Date("2023-05-15T14:30:00Z");
+      const result = formatMonthKey(date);
+      expect(result).toBe("2023-05");
+    });
+
+    it("should handle January correctly", () => {
+      const date = new Date("2023-01-15T14:30:00Z");
+      const result = formatMonthKey(date);
+      expect(result).toBe("2023-01");
+    });
+
+    it("should handle December correctly", () => {
+      const date = new Date("2023-12-31T23:59:59Z");
+      const result = formatMonthKey(date);
+      expect(result).toBe("2023-12");
+    });
+
+    it("should use UTC time regardless of local timezone", () => {
+      // Create a date that would be different month in different timezones
+      const date = new Date("2023-01-01T02:00:00Z");
+      const result = formatMonthKey(date);
+      expect(result).toBe("2023-01");
+    });
+
+    it("should handle year changes correctly", () => {
+      const date = new Date("2024-01-01T00:00:00Z");
+      const result = formatMonthKey(date);
+      expect(result).toBe("2024-01");
+    });
   });
 
-  it("formats a date in December correctly", () => {
-    const date = new Date(Date.UTC(2024, 11, 31));
-    expect(formatMonthKey(date)).toBe("2024-12");
-  });
+  describe("isValidMonthKey", () => {
+    describe("valid month keys", () => {
+      it("should accept valid month key format", () => {
+        expect(isValidMonthKey("2023-12")).toBe(true);
+      });
 
-  it("pads single-digit months with leading zero", () => {
-    const date = new Date(Date.UTC(2024, 2, 1));
-    expect(formatMonthKey(date)).toBe("2024-03");
-  });
+      it("should accept January", () => {
+        expect(isValidMonthKey("2023-01")).toBe(true);
+      });
 
-  it("handles year boundaries", () => {
-    const date = new Date(Date.UTC(2025, 0, 1));
-    expect(formatMonthKey(date)).toBe("2025-01");
-  });
+      it("should accept December", () => {
+        expect(isValidMonthKey("2023-12")).toBe(true);
+      });
 
-  it("uses UTC month to avoid timezone issues", () => {
-    // Create a date at the very end of a month in UTC
-    const date = new Date(Date.UTC(2024, 5, 30, 23, 59, 59));
-    expect(formatMonthKey(date)).toBe("2024-06");
-  });
-});
+      it("should accept 4-digit years", () => {
+        expect(isValidMonthKey("2024-06")).toBe(true);
+      });
 
-describe("isValidMonthKey", () => {
-  it("returns true for valid month keys", () => {
-    expect(isValidMonthKey("2024-01")).toBe(true);
-    expect(isValidMonthKey("2024-06")).toBe(true);
-    expect(isValidMonthKey("2024-12")).toBe(true);
-    expect(isValidMonthKey("2000-09")).toBe(true);
-  });
+      it("should accept older years", () => {
+        expect(isValidMonthKey("1999-03")).toBe(true);
+      });
 
-  it("returns false for month 00", () => {
-    expect(isValidMonthKey("2024-00")).toBe(false);
-  });
+      it("should accept future years", () => {
+        expect(isValidMonthKey("2099-08")).toBe(true);
+      });
+    });
 
-  it("returns false for month 13 and above", () => {
-    expect(isValidMonthKey("2024-13")).toBe(false);
-    expect(isValidMonthKey("2024-99")).toBe(false);
-  });
+    describe("invalid month keys", () => {
+      it("should reject month 00", () => {
+        expect(isValidMonthKey("2023-00")).toBe(false);
+      });
 
-  it("returns false for invalid formats", () => {
-    expect(isValidMonthKey("2024")).toBe(false);
-    expect(isValidMonthKey("2024-1")).toBe(false);
-    expect(isValidMonthKey("24-01")).toBe(false);
-    expect(isValidMonthKey("")).toBe(false);
-    expect(isValidMonthKey("abcd-01")).toBe(false);
-    expect(isValidMonthKey("2024/01")).toBe(false);
-  });
+      it("should reject month 13", () => {
+        expect(isValidMonthKey("2023-13")).toBe(false);
+      });
 
-  it("returns false for keys with extra characters", () => {
-    expect(isValidMonthKey("2024-01-01")).toBe(false);
-    expect(isValidMonthKey(" 2024-01")).toBe(false);
-    expect(isValidMonthKey("2024-01 ")).toBe(false);
+      it("should reject month without leading zero", () => {
+        expect(isValidMonthKey("2023-5")).toBe(false);
+      });
+
+      it("should reject 2-digit years", () => {
+        expect(isValidMonthKey("23-12")).toBe(false);
+      });
+
+      it("should reject 3-digit years", () => {
+        expect(isValidMonthKey("202-12")).toBe(false);
+      });
+
+      it("should reject 5-digit years", () => {
+        expect(isValidMonthKey("20233-12")).toBe(false);
+      });
+
+      it("should reject missing dash", () => {
+        expect(isValidMonthKey("202312")).toBe(false);
+      });
+
+      it("should reject extra characters", () => {
+        expect(isValidMonthKey("2023-12-01")).toBe(false);
+      });
+
+      it("should reject non-numeric year", () => {
+        expect(isValidMonthKey("abcd-12")).toBe(false);
+      });
+
+      it("should reject non-numeric month", () => {
+        expect(isValidMonthKey("2023-ab")).toBe(false);
+      });
+
+      it("should reject empty string", () => {
+        expect(isValidMonthKey("")).toBe(false);
+      });
+
+      it("should reject whitespace", () => {
+        expect(isValidMonthKey("2023-12 ")).toBe(false);
+      });
+
+      it("should reject multiple dashes", () => {
+        expect(isValidMonthKey("2023--12")).toBe(false);
+      });
+    });
   });
 });

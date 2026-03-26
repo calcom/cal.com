@@ -162,7 +162,6 @@ describe("DunningAwareStrategy", () => {
         "Inner strategy error"
       );
     });
-
   });
 
   describe("onPaymentSucceeded", () => {

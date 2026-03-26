@@ -54,10 +54,7 @@ function makeDunningState(
     resolvedAt: null,
     subscriptionId: "sub_123",
     failedInvoiceId: "inv_456",
-    invoiceUrl:
-      "invoiceUrl" in overrides
-        ? overrides.invoiceUrl!
-        : "https://stripe.com/invoice/inv_456",
+    invoiceUrl: "invoiceUrl" in overrides ? overrides.invoiceUrl! : "https://stripe.com/invoice/inv_456",
     failureReason: "card_declined",
     notificationsSent: 1,
     createdAt: new Date("2026-02-10T00:00:00Z"),
@@ -76,11 +73,13 @@ function createMockDunningServiceFactory(
   } as unknown as IDunningService;
 
   return {
-    forTeam: vi.fn().mockResolvedValue(
-      findRecordResult
-        ? { service: mockService, billingId: "billing_123", entityType: "team" as const }
-        : null
-    ),
+    forTeam: vi
+      .fn()
+      .mockResolvedValue(
+        findRecordResult
+          ? { service: mockService, billingId: "billing_123", entityType: "team" as const }
+          : null
+      ),
     findPlanNameByBillingId: vi.fn().mockResolvedValue(planName),
     findTeamIdByBillingId: vi.fn().mockResolvedValue(100),
     _mockService: mockService,
@@ -487,8 +486,7 @@ describe("DunningGuard", () => {
         mockStrategyFactory = createMockStrategyFactory();
         mockTeamRepository = {
           findTeamSlugById: vi.fn().mockImplementation(({ id }: { id: number }) => {
-            if (id === SUB_TEAM_ID)
-              return Promise.resolve({ slug: "sub-team", parentId: PARENT_ORG_ID });
+            if (id === SUB_TEAM_ID) return Promise.resolve({ slug: "sub-team", parentId: PARENT_ORG_ID });
             if (id === PARENT_ORG_ID) return Promise.resolve({ slug: "parent-org", parentId: null });
             return Promise.resolve(null);
           }),
@@ -517,8 +515,7 @@ describe("DunningGuard", () => {
         mockStrategyFactory = createMockStrategyFactory();
         mockTeamRepository = {
           findTeamSlugById: vi.fn().mockImplementation(({ id }: { id: number }) => {
-            if (id === SUB_TEAM_ID)
-              return Promise.resolve({ slug: "sub-team", parentId: PARENT_ORG_ID });
+            if (id === SUB_TEAM_ID) return Promise.resolve({ slug: "sub-team", parentId: PARENT_ORG_ID });
             if (id === PARENT_ORG_ID) return Promise.resolve({ slug: "parent-org", parentId: null });
             return Promise.resolve(null);
           }),
@@ -543,8 +540,7 @@ describe("DunningGuard", () => {
         mockStrategyFactory = createMockStrategyFactory();
         mockTeamRepository = {
           findTeamSlugById: vi.fn().mockImplementation(({ id }: { id: number }) => {
-            if (id === SUB_TEAM_ID)
-              return Promise.resolve({ slug: "sub-team", parentId: PARENT_ORG_ID });
+            if (id === SUB_TEAM_ID) return Promise.resolve({ slug: "sub-team", parentId: PARENT_ORG_ID });
             if (id === PARENT_ORG_ID) return Promise.resolve({ slug: "parent-org", parentId: null });
             return Promise.resolve(null);
           }),
@@ -572,10 +568,8 @@ describe("DunningGuard", () => {
         mockStrategyFactory = createMockStrategyFactory();
         mockTeamRepository = {
           findTeamSlugById: vi.fn().mockImplementation(({ id }: { id: number }) => {
-            if (id === SUB_TEAM_ID)
-              return Promise.resolve({ slug: "sub-team", parentId: PARENT_ORG_ID });
-            if (id === PARENT_ORG_ID)
-              return Promise.resolve({ slug: "parent-org", parentId: null });
+            if (id === SUB_TEAM_ID) return Promise.resolve({ slug: "sub-team", parentId: PARENT_ORG_ID });
+            if (id === PARENT_ORG_ID) return Promise.resolve({ slug: "parent-org", parentId: null });
             return Promise.resolve(null);
           }),
         };
@@ -601,8 +595,7 @@ describe("DunningGuard", () => {
         mockStrategyFactory = createMockStrategyFactory("MonthlyProration");
         mockTeamRepository = {
           findTeamSlugById: vi.fn().mockImplementation(({ id }: { id: number }) => {
-            if (id === SUB_TEAM_ID)
-              return Promise.resolve({ slug: "sub-team", parentId: PARENT_ORG_ID });
+            if (id === SUB_TEAM_ID) return Promise.resolve({ slug: "sub-team", parentId: PARENT_ORG_ID });
             if (id === PARENT_ORG_ID) return Promise.resolve({ slug: "parent-org", parentId: null });
             return Promise.resolve(null);
           }),

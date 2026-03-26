@@ -109,9 +109,7 @@ describe("Stripe booking payment webhook handler", () => {
     const handler = await loadHandler();
     await handler(req, res);
     expect(res.status).toHaveBeenCalledWith(405);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Method Not Allowed" })
-    );
+    expect(res.send).toHaveBeenCalledWith(expect.objectContaining({ message: "Method Not Allowed" }));
   });
 
   it("returns 400 when stripe-signature header is missing", async () => {
@@ -120,9 +118,7 @@ describe("Stripe booking payment webhook handler", () => {
     const handler = await loadHandler();
     await handler(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Missing stripe-signature" })
-    );
+    expect(res.send).toHaveBeenCalledWith(expect.objectContaining({ message: "Missing stripe-signature" }));
     expect(mockBuffer).not.toHaveBeenCalled();
   });
 
@@ -153,11 +149,7 @@ describe("Stripe booking payment webhook handler", () => {
     const handler = await loadHandler();
     await handler(req, res);
 
-    expect(mockConstructEvent).toHaveBeenCalledWith(
-      '{"id":"evt_1"}',
-      "invalid",
-      "whsec_test_secret"
-    );
+    expect(mockConstructEvent).toHaveBeenCalledWith('{"id":"evt_1"}', "invalid", "whsec_test_secret");
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.send).toHaveBeenCalledWith(
       expect.objectContaining({ message: "Signature verification failed" })
@@ -179,9 +171,7 @@ describe("Stripe booking payment webhook handler", () => {
     await handler(req, res);
 
     expect(res.status).toHaveBeenCalledWith(202);
-    expect(res.send).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "Incoming connected account" })
-    );
+    expect(res.send).toHaveBeenCalledWith(expect.objectContaining({ message: "Incoming connected account" }));
     expect(mockHandlePaymentSuccess).not.toHaveBeenCalled();
   });
 
