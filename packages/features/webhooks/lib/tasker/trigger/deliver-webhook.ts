@@ -1,7 +1,6 @@
 import { Prisma } from "@calcom/prisma/client";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { logger, retry, schemaTask, type TaskWithSchema } from "@trigger.dev/sdk";
-import pLimit from "p-limit";
 import type { WebhookDeliveryResult, WebhookSubscriber } from "../../dto/types";
 import type { WebhookPayload } from "../../factory/types";
 import type { IWebhookRepository } from "../../interface/IWebhookRepository";
@@ -385,6 +384,7 @@ export const deliverWebhook: TaskWithSchema<
     const unexpectedErrors: Error[] = [];
 
     // --- First pass: parallel delivery (no retries) ---
+    const { default: pLimit } = await import("p-limit");
     const limit = pLimit(PARALLEL_CONCURRENCY);
     const firstPassResults = await Promise.allSettled(
       subscribers.map((subscriber) =>
