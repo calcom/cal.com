@@ -68,10 +68,19 @@ vi.mock("@coss/ui/components/card", () => ({
   CardFrameDescription: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
   CardFrameFooter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   CardFrameHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardFrameAction: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   CardFrameTitle: ({ children }: { children: React.ReactNode }) => <h3>{children}</h3>,
   CardHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   CardPanel: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   CardTitle: ({ children }: { children: React.ReactNode }) => <h3>{children}</h3>,
+}));
+
+vi.mock("@coss/ui/components/collapsible", () => ({
+  Collapsible: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CollapsiblePanel: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CollapsibleTrigger: ({ children, render }: { children?: React.ReactNode; render?: React.ReactNode }) => (
+    <div>{render ?? children}</div>
+  ),
 }));
 
 vi.mock("@coss/ui/components/field", () => ({
@@ -106,8 +115,7 @@ vi.mock("@coss/ui/components/switch", () => ({
       data-testid="session-check"
       data-checked={checked}
       onClick={() => onCheckedChange(!checked)}
-      {...rest}
-    >
+      {...rest}>
       Toggle
     </button>
   ),
