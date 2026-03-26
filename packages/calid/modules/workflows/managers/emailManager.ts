@@ -614,7 +614,8 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
   const shouldSendImmediately =
     !scheduledTimestamp ||
     (scheduledTimestamp &&
-      (scheduledTimestamp.isBefore(dayjs()) || scheduledTimestamp.isSame(dayjs(), "minute")));
+      ((scheduledTimestamp.isBefore(dayjs()) && scheduledTimestamp.isAfter(dayjs().subtract(1, "hour"))) ||
+        scheduledTimestamp.isSame(dayjs(), "minute")));
 
   if (shouldSendImmediately) {
     // Send immediately for all trigger types when no valid future timestamp exists
