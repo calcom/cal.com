@@ -7,6 +7,21 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 
+const inferProviderNameFromMeetingUrl = (meetingUrl?: string) => {
+  if (!meetingUrl) {
+    return undefined;
+  }
+  const normalizedUrl = meetingUrl.toLowerCase();
+  if (
+    normalizedUrl.includes("meet.google.com") ||
+    normalizedUrl.includes("g.co/meet") ||
+    normalizedUrl.includes("google.com/meet")
+  ) {
+    return getEventLocationTypeFromVideoProvider("google_meet_video")?.label || "Google Meet";
+  }
+  return undefined;
+};
+
 export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
   const { t } = props;
   const bookingMetadata = (props.calEvent as CalendarEvent & { metadata?: { videoProvider?: string } | null })
@@ -15,7 +30,7 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
     typeof bookingMetadata?.videoProvider === "string" ? bookingMetadata.videoProvider : undefined;
 
   // We would not be able to determine provider name for DefaultEventLocationTypes
-  const providerName =
+  let providerName =
     getEventLocationTypeFromVideoProvider(resolvedVideoProvider)?.label ||
     guessEventLocationType(props.calEvent.location)?.label;
 
@@ -25,6 +40,11 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
   if (props.calEvent) {
     meetingUrl = getVideoCallUrlFromCalEvent(props.calEvent) || meetingUrl;
   }
+
+  if (!providerName) {
+    providerName = inferProviderNameFromMeetingUrl(meetingUrl) || inferProviderNameFromMeetingUrl(location);
+  }
+  const shouldShowRawMeetingUrl = !providerName || providerName === "Link";
 
   const isPhone = location?.startsWith("+");
 
@@ -48,6 +68,7 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
           </a>
         }
         extraInfo={
+          shouldShowRawMeetingUrl &&
           meetingUrl && (
             <div style={{ color: "#494949", fontWeight: 400, lineHeight: "24px" }}>
               <>
