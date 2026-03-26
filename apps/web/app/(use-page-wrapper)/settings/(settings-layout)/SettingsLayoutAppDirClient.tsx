@@ -381,24 +381,20 @@ const organizationAdminKeys = [
   "SSO",
   "directory_sync",
   "delegation_credential",
+  "features",
 ];
 
-interface SettingsPermissions {
-  canViewRoles?: boolean;
-  canViewOrganizationBilling?: boolean;
-  canUpdateOrganization?: boolean;
-  canViewAttributes?: boolean;
-}
+import type { SettingsPermissions } from "./SettingsPermissionsContext";
+import { SettingsPermissionsProvider, useSettingsPermissions } from "./SettingsPermissionsContext";
 
 const useTabs = ({
   isDelegationCredentialEnabled,
   isPbacEnabled,
-  permissions,
 }: {
   isDelegationCredentialEnabled: boolean;
   isPbacEnabled: boolean;
-  permissions?: SettingsPermissions;
 }) => {
+  const permissions = useSettingsPermissions();
   const session = useSession();
   const { data: user } = trpc.viewer.me.get.useQuery({
     includePasswordAdded: true,
@@ -562,7 +558,6 @@ interface SettingsSidebarContainerProps {
   navigationIsOpenedOnMobile?: boolean;
   bannersHeight?: number;
   teamFeatures?: Record<number, TeamFeatures>;
-  permissions?: SettingsPermissions;
 }
 
 const TeamRolesNavItem = ({
@@ -859,12 +854,12 @@ const SettingsSidebarContainer = ({
   navigationIsOpenedOnMobile,
   bannersHeight,
   teamFeatures,
-  permissions,
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
   const pathname = usePathname();
   const orgBranding = useOrgBranding();
   const { t } = useLocale();
+  const permissions = useSettingsPermissions();
   const [otherTeamMenuState, setOtherTeamMenuState] = useState<
     {
       teamId: number | undefined;
@@ -890,7 +885,6 @@ const SettingsSidebarContainer = ({
   const tabsWithPermissions = useTabs({
     isDelegationCredentialEnabled,
     isPbacEnabled,
-    permissions,
   });
 
   const { data: otherTeams } =
@@ -1282,37 +1276,38 @@ function SettingsLayoutAppDirClient({
   }, [pathname, setSideContainerOpen]);
 
   return (
-    <Shell
-      flexChildrenContainer
-      {...rest}
-      SidebarContainer={
-        <SidebarContainerElement
-          sideContainerOpen={sideContainerOpen}
-          setSideContainerOpen={setSideContainerOpen}
-          teamFeatures={teamFeatures}
-          permissions={permissions}
-        />
-      }
-      drawerState={state}
-      MobileNavigationContainer={null}
-      TopNavContainer={
-        <MobileSettingsContainer
-          onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)}
-        />
-      }
-    >
-      <div className="*:flex-1 flex flex-1">
-        <div
-          className={classNames(
-            "mx-auto justify-center",
-            isFullWidthPage ? "px-4" : "max-w-full lg:max-w-3xl",
-            rest.containerClassName
-          )}
-        >
-          <ErrorBoundary>{children}</ErrorBoundary>
+    <SettingsPermissionsProvider permissions={permissions ?? {}}>
+      <Shell
+        flexChildrenContainer
+        {...rest}
+        SidebarContainer={
+          <SidebarContainerElement
+            sideContainerOpen={sideContainerOpen}
+            setSideContainerOpen={setSideContainerOpen}
+            teamFeatures={teamFeatures}
+          />
+        }
+        drawerState={state}
+        MobileNavigationContainer={null}
+        TopNavContainer={
+          <MobileSettingsContainer
+            onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)}
+          />
+        }
+      >
+        <div className="*:flex-1 flex flex-1">
+          <div
+            className={classNames(
+              "mx-auto justify-center",
+              isFullWidthPage ? "px-4" : "max-w-full lg:max-w-3xl",
+              rest.containerClassName
+            )}
+          >
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </div>
         </div>
-      </div>
-    </Shell>
+      </Shell>
+    </SettingsPermissionsProvider>
   );
 }
 
@@ -1321,7 +1316,6 @@ type SidebarContainerElementProps = {
   bannersHeight?: number;
   setSideContainerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   teamFeatures?: Record<number, TeamFeatures>;
-  permissions?: SettingsPermissions;
 };
 
 const SidebarContainerElement = ({
@@ -1329,7 +1323,6 @@ const SidebarContainerElement = ({
   bannersHeight,
   setSideContainerOpen,
   teamFeatures,
-  permissions,
 }: SidebarContainerElementProps) => {
   const { t } = useLocale();
   return (
@@ -1347,7 +1340,6 @@ const SidebarContainerElement = ({
         navigationIsOpenedOnMobile={sideContainerOpen}
         bannersHeight={bannersHeight}
         teamFeatures={teamFeatures}
-        permissions={permissions}
       />
     </>
   );

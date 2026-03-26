@@ -1,6 +1,9 @@
 import type { IconName } from "@calcom/ui/components/icon/icon-names";
+import type { SettingsPermissions } from "../../SettingsPermissionsContext";
 
 type SectionVisibility = "always" | "org" | "admin";
+
+export type OrgPermissionKey = keyof SettingsPermissions;
 
 export interface SettingsItem {
   titleKey: string;
@@ -9,6 +12,8 @@ export interface SettingsItem {
   href: string;
   isExternalLink?: boolean;
   keywords?: string[];
+  /** Permission required to see this item (only used for org section items) */
+  requiredPermission?: OrgPermissionKey;
 }
 
 export interface SettingsSection {
@@ -174,6 +179,7 @@ export const settingsSections: SettingsSection[] = [
         icon: "tags",
         href: "/settings/organizations/attributes",
         keywords: ["custom attributes", "user attributes", "member attributes"],
+        requiredPermission: "canViewAttributes",
       },
       {
         titleKey: "privacy_and_security",
@@ -181,6 +187,7 @@ export const settingsSections: SettingsSection[] = [
         icon: "lock",
         href: "/settings/organizations/privacy",
         keywords: ["organization privacy", "org security"],
+        requiredPermission: "canUpdateOrganization",
       },
       {
         titleKey: "manage_billing",
@@ -188,6 +195,7 @@ export const settingsSections: SettingsSection[] = [
         icon: "credit-card",
         href: "/settings/organizations/billing",
         keywords: ["organization billing", "org subscription", "org payment"],
+        requiredPermission: "canViewOrganizationBilling",
       },
       {
         titleKey: "roles",
@@ -195,6 +203,7 @@ export const settingsSections: SettingsSection[] = [
         icon: "shield",
         href: "/settings/organizations/roles",
         keywords: ["permissions", "access control", "admin", "member roles"],
+        requiredPermission: "canViewRoles",
       },
       {
         titleKey: "features",
@@ -202,6 +211,7 @@ export const settingsSections: SettingsSection[] = [
         icon: "sparkles",
         href: "/settings/organizations/features",
         keywords: ["organization features", "org beta", "org opt-in"],
+        requiredPermission: "canUpdateOrganization",
       },
       {
         titleKey: "single_sign_on",
@@ -209,6 +219,7 @@ export const settingsSections: SettingsSection[] = [
         icon: "lock",
         href: "/settings/organizations/sso",
         keywords: ["sso", "saml", "okta", "azure ad", "identity provider"],
+        requiredPermission: "canUpdateOrganization",
       },
       {
         titleKey: "directory_sync",
@@ -216,6 +227,7 @@ export const settingsSections: SettingsSection[] = [
         icon: "arrow-left-right",
         href: "/settings/organizations/dsync",
         keywords: ["scim", "user provisioning", "directory sync", "auto provision"],
+        requiredPermission: "canUpdateOrganization",
       },
     ],
   },

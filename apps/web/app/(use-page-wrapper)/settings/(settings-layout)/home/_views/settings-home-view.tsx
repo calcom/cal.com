@@ -1,35 +1,47 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo, useState } from "react";
-
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextField } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { SearchIcon } from "@coss/ui/icons";
-
-import type { SettingsItem, SettingsSection } from "./settings-home-data";
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import { useSettingsPermissions } from "../../SettingsPermissionsContext";
+import type { OrgPermissionKey, SettingsItem, SettingsSection } from "./settings-home-data";
 import { settingsSections } from "./settings-home-data";
 
 export default function SettingsHomeView() {
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
+  const permissions = useSettingsPermissions();
 
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedQuery = useDebounce(searchQuery, 300);
 
   const hasOrg = !!orgBranding;
 
-  const visibleSections = useMemo(
-    () =>
-      settingsSections.filter((section) => {
+  const visibleSections = useMemo(() => {
+    const hasPermission = (key: OrgPermissionKey | undefined): boolean => {
+      if (!key) return true;
+      return permissions[key] === true;
+    };
+
+    return settingsSections
+      .filter((section) => {
         if (section.visibility === "org") return hasOrg;
         return true;
-      }),
-    [hasOrg]
-  );
+      })
+      .map((section) => {
+        if (section.visibility !== "org") return section;
+
+        // Filter org items based on permissions
+        const filteredItems = section.items.filter((item) => hasPermission(item.requiredPermission));
+        return { ...section, items: filteredItems };
+      })
+      .filter((section) => section.items.length > 0);
+  }, [hasOrg, permissions]);
 
   const filteredSections = useMemo(() => {
     if (!debouncedQuery || (debouncedQuery?.length ?? 0) < 1) return visibleSections;
