@@ -1,7 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-
 import dayjs from "@calcom/dayjs";
-
+import { describe, expect, it, vi } from "vitest";
 import {
   buildDateRanges,
   intersect,
@@ -1258,5 +1256,55 @@ describe("intersect function comprehensive tests", () => {
       expect(result[1].end.toISOString()).toBe("2024-06-01T12:30:00.000Z"); // Correct: no extension
       expect(result.find((r) => r.start.toISOString() === "2024-06-02T04:00:00.000Z")).toBeUndefined(); // Correct: June 2 excluded
     });
+  });
+});
+
+describe("processWorkingHours endTimeToKeyMap cleanup", () => {
+  it("should retain other keys in endTimeToKeyMap when merging overlapping ranges", () => {
+    vi.useFakeTimers().setSystemTime(new Date("2024-01-15T00:00:00.000Z"));
+
+    const timeZone = "UTC";
+    const dateFrom = dayjs.utc("2024-01-15T00:00:00Z");
+    const dateTo = dayjs.utc("2024-01-16T00:00:00Z");
+
+    // Pre-populate results with two entries sharing the same end time.
+    // Key is startResult.valueOf(), value is { start, end }.
+    const endTime = dayjs.utc("2024-01-15T17:00:00Z");
+    const existingResults: Record<number, { start: typeof dayjs.prototype; end: typeof dayjs.prototype }> =
+      {};
+
+    // Entry 1: 8:00-17:00
+    const start1 = dayjs.utc("2024-01-15T08:00:00Z");
+    existingResults[start1.valueOf()] = { start: start1, end: endTime };
+
+    // Entry 2: 10:00-17:00 (same end time, different key)
+    const start2 = dayjs.utc("2024-01-15T10:00:00Z");
+    existingResults[start2.valueOf()] = { start: start2, end: endTime };
+
+    // Process a new working hour that starts at the same time as entry 1 (8:00)
+    // but with a later end time. This triggers the merge path at line 128
+    // where oldKey=start1.valueOf() is removed and the filteredKeys for
+    // oldEndTime still contains start2.valueOf() (line 145).
+    const item = {
+      days: [1], // Monday (2024-01-15 is a Monday)
+      startTime: new Date(Date.UTC(2024, 0, 15, 8, 0)),
+      endTime: new Date(Date.UTC(2024, 0, 15, 18, 0)),
+    };
+
+    const result = processWorkingHours(existingResults, {
+      item,
+      timeZone,
+      dateFrom,
+      dateTo,
+      travelSchedules: [],
+    });
+
+    const values = Object.values(result);
+    // Entry 2 (10:00-17:00) should still exist
+    expect(values.some((r) => r.start.valueOf() === start2.valueOf())).toBe(true);
+    // The merged entry should have start1's start and a later end time
+    expect(values.some((r) => r.start.valueOf() === start1.valueOf() && r.end.hour() === 18)).toBe(true);
+
+    vi.useRealTimers();
   });
 });

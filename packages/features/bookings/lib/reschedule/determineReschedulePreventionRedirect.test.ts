@@ -1,9 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import * as constants from "@calcom/lib/constants";
 import { BookingStatus } from "@calcom/prisma/client";
 import type { JsonValue } from "@calcom/types/Json";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   determineReschedulePreventionRedirect,
   type ReschedulePreventionRedirectInput,
@@ -326,6 +324,32 @@ describe("determineReschedulePreventionRedirect", () => {
       const result = determineReschedulePreventionRedirect(input);
 
       expectToNotPreventReschedule(result);
+    });
+
+    it("should redirect to event URL with prefilled params for team event when ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS is not set", () => {
+      const input = createReschedulePreventionRedirectInput({
+        booking: createTestBooking({
+          endTime: daysAgo(5),
+          responses: {
+            name: "John Doe",
+            email: "john.doe@example.com",
+          },
+          eventType: {
+            allowReschedulingPastBookings: false,
+            teamId: 42,
+          },
+        }),
+      });
+      const result = determineReschedulePreventionRedirect(input);
+
+      expectRedirectToEventBookingPageWithParams({
+        result,
+        eventUrl: "https://example.com/event",
+        params: {
+          name: "John Doe",
+          email: "john.doe@example.com",
+        },
+      });
     });
   });
 

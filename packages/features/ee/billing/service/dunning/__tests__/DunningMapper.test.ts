@@ -1,16 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
 import type {
   RawDunningRecord,
   RawDunningRecordForBilling,
 } from "../../../repository/dunning/IDunningRepository";
 import { toDunningRecordForBilling } from "../DunningMapper";
-import {
-  DunningState,
-  SOFT_BLOCK_DAYS,
-  HARD_BLOCK_DAYS,
-  CANCEL_DAYS,
-} from "../DunningState";
+import { CANCEL_DAYS, DunningState, HARD_BLOCK_DAYS, SOFT_BLOCK_DAYS } from "../DunningState";
 
 describe("DunningState.fromRecord", () => {
   const now = new Date("2026-02-18T12:00:00Z");
@@ -120,8 +114,7 @@ describe("DunningState.recordPaymentFailure", () => {
 
   it("transitions initial state to WARNING and marks as new", () => {
     const initial = DunningState.initial("billing_1", "team");
-    const { state, isNewDunningRecord } =
-      initial.recordPaymentFailure(failureParams);
+    const { state, isNewDunningRecord } = initial.recordPaymentFailure(failureParams);
 
     expect(isNewDunningRecord).toBe(true);
     expect(state.status).toBe("WARNING");
@@ -148,8 +141,7 @@ describe("DunningState.recordPaymentFailure", () => {
       updatedAt: new Date(),
     };
     const state = DunningState.fromRecord(raw, "team");
-    const { state: next, isNewDunningRecord } =
-      state.recordPaymentFailure(failureParams);
+    const { state: next, isNewDunningRecord } = state.recordPaymentFailure(failureParams);
 
     expect(isNewDunningRecord).toBe(true);
     expect(next.status).toBe("WARNING");
@@ -173,8 +165,7 @@ describe("DunningState.recordPaymentFailure", () => {
       updatedAt: new Date(),
     };
     const state = DunningState.fromRecord(raw, "team");
-    const { state: next, isNewDunningRecord } =
-      state.recordPaymentFailure(failureParams);
+    const { state: next, isNewDunningRecord } = state.recordPaymentFailure(failureParams);
 
     expect(isNewDunningRecord).toBe(false);
     expect(next.status).toBe("SOFT_BLOCKED");
@@ -220,9 +211,7 @@ describe("DunningState.resolve", () => {
 });
 
 describe("DunningState.advance", () => {
-  function makeRaw(
-    overrides: Partial<RawDunningRecord> = {}
-  ): RawDunningRecord {
+  function makeRaw(overrides: Partial<RawDunningRecord> = {}): RawDunningRecord {
     const now = new Date();
     return {
       id: "dun_1",
@@ -243,28 +232,19 @@ describe("DunningState.advance", () => {
   }
 
   it("returns null for CURRENT status", () => {
-    const state = DunningState.fromRecord(
-      makeRaw({ status: "CURRENT" }),
-      "team"
-    );
+    const state = DunningState.fromRecord(makeRaw({ status: "CURRENT" }), "team");
     expect(state.advance(new Date())).toBeNull();
   });
 
   it("returns null when firstFailedAt is null", () => {
-    const state = DunningState.fromRecord(
-      makeRaw({ status: "WARNING", firstFailedAt: null }),
-      "team"
-    );
+    const state = DunningState.fromRecord(makeRaw({ status: "WARNING", firstFailedAt: null }), "team");
     expect(state.advance(new Date())).toBeNull();
   });
 
   it("advances WARNING to SOFT_BLOCKED after 7 days", () => {
     const firstFailed = new Date("2026-02-11T11:00:00Z");
     const now = new Date("2026-02-18T12:00:00Z");
-    const state = DunningState.fromRecord(
-      makeRaw({ status: "WARNING", firstFailedAt: firstFailed }),
-      "team"
-    );
+    const state = DunningState.fromRecord(makeRaw({ status: "WARNING", firstFailedAt: firstFailed }), "team");
 
     const result = state.advance(now);
     expect(result).not.toBeNull();
@@ -276,10 +256,7 @@ describe("DunningState.advance", () => {
   it("does not advance WARNING before 7 days", () => {
     const firstFailed = new Date("2026-02-12T13:00:00Z");
     const now = new Date("2026-02-18T12:00:00Z");
-    const state = DunningState.fromRecord(
-      makeRaw({ status: "WARNING", firstFailedAt: firstFailed }),
-      "team"
-    );
+    const state = DunningState.fromRecord(makeRaw({ status: "WARNING", firstFailedAt: firstFailed }), "team");
 
     expect(state.advance(now)).toBeNull();
   });
@@ -287,10 +264,7 @@ describe("DunningState.advance", () => {
   it("advances WARNING directly to HARD_BLOCKED if 14+ days elapsed", () => {
     const firstFailed = new Date("2026-02-01T00:00:00Z");
     const now = new Date("2026-02-18T12:00:00Z");
-    const state = DunningState.fromRecord(
-      makeRaw({ status: "WARNING", firstFailedAt: firstFailed }),
-      "team"
-    );
+    const state = DunningState.fromRecord(makeRaw({ status: "WARNING", firstFailedAt: firstFailed }), "team");
 
     const result = state.advance(now);
     expect(result).not.toBeNull();
@@ -341,18 +315,8 @@ describe("DunningState.advance", () => {
 describe("DunningState.isActionBlocked", () => {
   const defaultPolicy = {
     SOFT_BLOCKED: ["INVITE_MEMBER", "CREATE_EVENT_TYPE"] as const,
-    HARD_BLOCKED: [
-      "INVITE_MEMBER",
-      "CREATE_EVENT_TYPE",
-      "CREATE_BOOKING",
-      "API_ACCESS",
-    ] as const,
-    CANCELLED: [
-      "INVITE_MEMBER",
-      "CREATE_EVENT_TYPE",
-      "CREATE_BOOKING",
-      "API_ACCESS",
-    ] as const,
+    HARD_BLOCKED: ["INVITE_MEMBER", "CREATE_EVENT_TYPE", "CREATE_BOOKING", "API_ACCESS"] as const,
+    CANCELLED: ["INVITE_MEMBER", "CREATE_EVENT_TYPE", "CREATE_BOOKING", "API_ACCESS"] as const,
   };
 
   function makeState(status: string): DunningState {
@@ -387,9 +351,7 @@ describe("DunningState.isActionBlocked", () => {
   it("returns true for blocked action at SOFT_BLOCKED", () => {
     const state = makeState("SOFT_BLOCKED");
     expect(state.isActionBlocked("INVITE_MEMBER", defaultPolicy)).toBe(true);
-    expect(state.isActionBlocked("CREATE_EVENT_TYPE", defaultPolicy)).toBe(
-      true
-    );
+    expect(state.isActionBlocked("CREATE_EVENT_TYPE", defaultPolicy)).toBe(true);
   });
 
   it("returns false for non-blocked action at SOFT_BLOCKED", () => {
@@ -440,6 +402,25 @@ describe("DunningState.isInDunning", () => {
 });
 
 describe("DunningState.severity / severityOf", () => {
+  function makeState(status: string): DunningState {
+    const raw: RawDunningRecord = {
+      id: "dun_1",
+      billingFk: "billing_1",
+      status: status as RawDunningRecord["status"],
+      firstFailedAt: new Date(),
+      lastFailedAt: new Date(),
+      resolvedAt: null,
+      subscriptionId: null,
+      failedInvoiceId: null,
+      invoiceUrl: null,
+      failureReason: null,
+      notificationsSent: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    return DunningState.fromRecord(raw, "team");
+  }
+
   it("CURRENT has lowest severity", () => {
     expect(DunningState.severityOf("CURRENT")).toBe(0);
   });
@@ -449,18 +430,18 @@ describe("DunningState.severity / severityOf", () => {
   });
 
   it("severity ordering is correct", () => {
-    expect(DunningState.severityOf("CURRENT")).toBeLessThan(
-      DunningState.severityOf("WARNING")
-    );
-    expect(DunningState.severityOf("WARNING")).toBeLessThan(
-      DunningState.severityOf("SOFT_BLOCKED")
-    );
-    expect(DunningState.severityOf("SOFT_BLOCKED")).toBeLessThan(
-      DunningState.severityOf("HARD_BLOCKED")
-    );
-    expect(DunningState.severityOf("HARD_BLOCKED")).toBeLessThan(
-      DunningState.severityOf("CANCELLED")
-    );
+    expect(DunningState.severityOf("CURRENT")).toBeLessThan(DunningState.severityOf("WARNING"));
+    expect(DunningState.severityOf("WARNING")).toBeLessThan(DunningState.severityOf("SOFT_BLOCKED"));
+    expect(DunningState.severityOf("SOFT_BLOCKED")).toBeLessThan(DunningState.severityOf("HARD_BLOCKED"));
+    expect(DunningState.severityOf("HARD_BLOCKED")).toBeLessThan(DunningState.severityOf("CANCELLED"));
+  });
+
+  it("instance severity getter matches static severityOf for all statuses", () => {
+    const statuses = ["CURRENT", "WARNING", "SOFT_BLOCKED", "HARD_BLOCKED", "CANCELLED"] as const;
+    for (const status of statuses) {
+      const state = makeState(status);
+      expect(state.severity).toBe(DunningState.severityOf(status));
+    }
   });
 });
 

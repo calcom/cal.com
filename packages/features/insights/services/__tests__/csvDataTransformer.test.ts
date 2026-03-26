@@ -1,17 +1,16 @@
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import {
+  type BookingTimeStatusData,
+  type BookingWithAttendees,
   extractFieldValue,
-  isSystemField,
-  getPhoneFieldsForSeatedEvent,
+  formatCsvRow,
   getAllFieldsForNonSeatedEvent,
+  getPhoneFieldsForSeatedEvent,
+  getUtmDataForBooking,
+  isSystemField,
   processBookingAttendees,
   processBookingsForCsv,
-  formatCsvRow,
   transformBookingsForCsv,
-  getUtmDataForBooking,
-  type BookingWithAttendees,
-  type BookingTimeStatusData,
 } from "../csvDataTransformer";
 
 describe("csvDataTransformer", () => {
@@ -406,6 +405,45 @@ describe("csvDataTransformer", () => {
 
       expect(result.allBookingQuestionLabels).toContain("Company");
       expect(result.allBookingQuestionLabels).toContain("Department");
+    });
+
+    it("should use cached phone fields for second seated booking with same eventTypeId", () => {
+      const bookings: BookingWithAttendees[] = [
+        {
+          uid: "seated-1",
+          eventTypeId: 10,
+          attendees: [],
+          seatsReferences: [
+            { attendee: { name: "S1", email: "s1@test.com", phoneNumber: null, noShow: false } },
+          ],
+          responses: { emergencyPhone: "+1111111111" },
+          eventType: {
+            bookingFields: [{ name: "emergencyPhone", type: "phone", label: "Emergency Phone" }],
+          },
+          tracking: null,
+        },
+        {
+          uid: "seated-2",
+          eventTypeId: 10,
+          attendees: [],
+          seatsReferences: [
+            { attendee: { name: "S2", email: "s2@test.com", phoneNumber: null, noShow: false } },
+          ],
+          responses: { emergencyPhone: "+2222222222" },
+          eventType: {
+            bookingFields: [{ name: "emergencyPhone", type: "phone", label: "Emergency Phone" }],
+          },
+          tracking: null,
+        },
+      ];
+
+      const result = processBookingsForCsv(bookings);
+
+      expect(result.bookingMap.size).toBe(2);
+      const data1 = result.bookingMap.get("seated-1")!;
+      const data2 = result.bookingMap.get("seated-2")!;
+      expect(data1.attendeePhoneNumbers[0]).toBe("+1111111111");
+      expect(data2.attendeePhoneNumbers[0]).toBe("+2222222222");
     });
 
     it("snapshot: processing multiple bookings with different event types", () => {

@@ -1234,3 +1234,38 @@ describe("Tests 40-minute duration slot generation", () => {
     expect(slots).toHaveLength(4);
   });
 });
+
+describe("Tests slot alignment when prevBoundary falls within next range start", () => {
+  it("should align slots using prevBoundary when it is at or after range start", async () => {
+    const nextDay = dayjs.utc().add(1, "day").startOf("day");
+
+    // Two adjacent ranges where the first range's last slot boundary
+    // falls at the start of the second range
+    const dateRanges: DateRange[] = [
+      {
+        start: nextDay.hour(9),
+        end: nextDay.hour(10),
+      },
+      {
+        start: nextDay.hour(10),
+        end: nextDay.hour(11),
+      },
+    ];
+
+    const slots = getSlots({
+      inviteeDate: nextDay,
+      frequency: 30,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 30,
+      offsetStart: 0,
+    });
+
+    expect(slots.length).toBeGreaterThan(0);
+    // Slots should be consistently spaced at 30-minute intervals
+    for (let i = 1; i < slots.length; i++) {
+      const diff = slots[i].time.diff(slots[i - 1].time, "minutes");
+      expect(diff).toBe(30);
+    }
+  });
+});
