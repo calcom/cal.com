@@ -244,4 +244,31 @@ export class SchedulesRepository_2024_06_11 {
       take,
     });
   }
+
+  async getSchedulesByIds(scheduleIds: number[], skip: number, take: number) {
+    return this.dbRead.prisma.schedule.findMany({
+      where: {
+        id: {
+          in: scheduleIds,
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        timeZone: true,
+        availability: {
+          select: {
+            days: true,
+            startTime: true,
+            endTime: true,
+            date: true,
+          },
+        },
+      },
+      orderBy: { id: 'asc' },
+      skip,
+      take,
+    });
+  }
 }

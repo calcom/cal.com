@@ -8,6 +8,11 @@ import { deleteWatchlistEntryHandler } from "./deleteWatchlistEntry.handler";
 vi.mock("@calcom/features/di/watchlist/containers/watchlist");
 vi.mock("@calcom/features/watchlist/lib/repository/WatchlistRepository");
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("deleteWatchlistEntryHandler", () => {
   const mockUser = {
     id: 1,
@@ -45,7 +50,9 @@ describe("deleteWatchlistEntryHandler", () => {
     );
 
     vi.mocked(getOrganizationWatchlistOperationsService).mockReturnValue(mockService as never);
-    vi.mocked(WatchlistRepository).mockImplementation(function() { return mockWatchlistRepo as never; });
+    vi.mocked(WatchlistRepository).mockImplementation(function () {
+      return mockWatchlistRepo as never;
+    });
   });
 
   describe("access control", () => {

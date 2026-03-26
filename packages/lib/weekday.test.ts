@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import "@calcom/dayjs/locales";
+
 import { nameOfDay, weekdayNames } from "./weekday";
 
 describe("Weekday tests", () => {
@@ -61,6 +63,12 @@ describe("Weekday tests", () => {
           expect(result).toEqual(expected);
         }
       }
+    });
+
+    it("should work with Icelandic, Lithuanian, and Norwegian locales", () => {
+      expect(nameOfDay("is", 1, "long")).toMatch(/mánudagur/i); // Monday in Icelandic
+      expect(nameOfDay("lt", 1, "long")).toMatch(/pirmadienis/i); // Monday in Lithuanian
+      expect(nameOfDay("nb", 1, "long")).toMatch(/mandag/i); // Monday in Norwegian
     });
   });
 });

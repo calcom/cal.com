@@ -95,7 +95,7 @@ const CreateConnectionDialog = ({
               wellKnownUrl,
             });
           }}>
-          <h2 className="font-heading text-emphasis text-xl tracking-wide">
+          <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
             {t("sso_oidc_configuration_title")}
           </h2>
           <p className="text-subtle mb-4 mt-1 text-sm">{t("sso_oidc_configuration_description")}</p>

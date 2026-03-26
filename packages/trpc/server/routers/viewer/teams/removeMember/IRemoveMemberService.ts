@@ -3,6 +3,7 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 export interface RemoveMemberContext {
   userId: number;
   isOrgAdmin: boolean;
+  organizationId: number | null;
   memberIds: number[];
   teamIds: number[];
   isOrg: boolean;

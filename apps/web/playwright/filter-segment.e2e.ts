@@ -1,17 +1,18 @@
-import { expect } from "@playwright/test";
-
 import { MembershipRole } from "@calcom/prisma/enums";
+import { expect } from "@playwright/test";
 
 import {
   applySelectFilter,
-  createFilterSegment,
-  selectSegment,
-  deleteSegment,
-  listSegments,
   clearFilters,
-  openSegmentSubmenu,
-  locateSelectedSegmentName,
+  createFilterSegment,
+  deleteSegment,
+  expectSegmentCleared,
+  expectSegmentSelected,
   getByTableColumnText,
+  listSegments,
+  locateSelectedSegmentName,
+  openSegmentSubmenu,
+  selectSegment,
 } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 
@@ -119,9 +120,6 @@ test.describe("Filter Segment Functionality", () => {
 
     await page.reload();
     await expect(dataTable).toBeVisible();
-
-    await selectSegment(page, segmentName);
-
     await expect(getByTableColumnText(page, "member", adminUser.email)).toBeVisible();
     await expect(getByTableColumnText(page, "member", memberUser.email)).toBeHidden();
 
@@ -361,5 +359,35 @@ test.describe("Filter Segment Functionality", () => {
         page.getByTestId("filter-segment-select-submenu-content").getByText("Delete")
       ).toBeHidden();
     });
+  });
+
+  test("Deselecting a segment clears all active filters", async ({ page, users }) => {
+    const orgOwner = await users.create(undefined, {
+      hasTeam: true,
+      isOrg: true,
+    });
+    const { team: org } = await orgOwner.getOrgMembership();
+
+    await orgOwner.apiLogin();
+    await page.goto(`/settings/organizations/${org.slug}/members`);
+
+    const dataTable = page.getByTestId("user-list-data-table").first();
+    await expect(dataTable).toBeVisible();
+
+    await applySelectFilter(page, "role", "admin");
+    const segmentName = "Test Deselect Segment";
+    await createFilterSegment(page, segmentName);
+
+    await expectSegmentSelected(page, segmentName);
+    const urlWithSegment = page.url();
+    expect(urlWithSegment).toContain("activeFilters");
+
+    await selectSegment(page, segmentName);
+    await expectSegmentCleared(page);
+
+    const urlAfterDeselect = page.url();
+    expect(urlAfterDeselect).not.toContain("activeFilters");
+
+    await deleteSegment(page, segmentName);
   });
 });

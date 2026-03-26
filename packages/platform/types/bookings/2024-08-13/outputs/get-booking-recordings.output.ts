@@ -55,12 +55,4 @@ export class GetBookingRecordingsOutput {
   @ValidateNested({ each: true })
   @Type(() => RecordingItem)
   data!: RecordingItem[];
-
-  @ApiProperty({
-    example: "This endpoint will require authentication in a future release.",
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  message?: string;
 }

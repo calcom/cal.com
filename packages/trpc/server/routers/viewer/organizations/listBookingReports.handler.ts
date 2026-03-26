@@ -43,12 +43,13 @@ export const listBookingReportsHandler = async ({ ctx, input }: ListBookingRepor
 
   const bookingReportRepo = new PrismaBookingReportRepository(prisma);
 
-  const result = await bookingReportRepo.findAllReportedBookings({
+  const result = await bookingReportRepo.findGroupedReportedBookings({
     organizationId,
     skip: input.offset,
     take: input.limit,
     searchTerm: input.searchTerm,
     filters: input.filters,
+    sortBy: input.sortBy,
   });
 
   return result;

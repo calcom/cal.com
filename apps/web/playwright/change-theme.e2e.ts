@@ -17,8 +17,7 @@ test.describe("Change App Theme Test", () => {
     const darkModeClass = await page.getAttribute("html", "class");
     expect(darkModeClass).toContain("dark");
 
-    const themeValue = await page.evaluate(() => localStorage.getItem("app-theme"));
-    expect(themeValue).toBe("dark");
+    await page.waitForFunction(() => localStorage.getItem("app-theme") === "dark");
   });
 
   test("change app theme to light", async ({ page, users }) => {
@@ -35,8 +34,7 @@ test.describe("Change App Theme Test", () => {
     const darkModeClass = await page.getAttribute("html", "class");
     expect(darkModeClass).toContain("light");
 
-    const themeValue = await page.evaluate(() => localStorage.getItem("app-theme"));
-    expect(themeValue).toBe("light");
+    await page.waitForFunction(() => localStorage.getItem("app-theme") === "light");
   });
 
   test("change app theme to system", async ({ page, users }) => {
@@ -54,10 +52,7 @@ test.describe("Change App Theme Test", () => {
     await page.click('[data-testid="update-app-theme-btn"]');
     const toast2 = await page.waitForSelector('[data-testid="toast-success"]');
     expect(toast2).toBeTruthy();
-
-    await page.waitForTimeout(3000);
-    const themeValue = await page.evaluate(() => localStorage.getItem("app-theme"));
-    expect(themeValue).toBe("light");
+    await page.waitForFunction(() => localStorage.getItem("app-theme") === "light");
 
     const systemTheme = await page.evaluate(() => {
       return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";

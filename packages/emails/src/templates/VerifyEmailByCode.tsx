@@ -1,5 +1,8 @@
-import { APP_NAME, SENDER_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
-
+import {
+  APP_NAME,
+  SENDER_NAME,
+  SUPPORT_MAIL_ADDRESS,
+} from "@calcom/lib/constants";
 import type { EmailVerifyCode } from "../../lib/types/email-types";
 import { BaseEmailHtml } from "../components";
 
@@ -8,15 +11,23 @@ export const VerifyEmailByCode = (
 ) => {
   return (
     <BaseEmailHtml
-      subject={props.language(`verify_email_subject${props.isVerifyingEmail ? "_verifying_email" : ""}`, {
-        appName: APP_NAME,
-      })}>
+      hideLogo={props.hideLogo}
+      subject={
+        props.hideLogo
+          ? props.language("verify_email_subject_no_branding")
+          : props.language(
+              `verify_email_subject${props.isVerifyingEmail ? "_verifying_email" : ""}`,
+              { appName: APP_NAME }
+            )
+      }
+    >
       <p
         style={{
           fontWeight: 600,
           fontSize: "32px",
           lineHeight: "38px",
-        }}>
+        }}
+      >
         <>{props.language("verify_email_email_header")}</>
       </p>
       <p style={{ fontWeight: 400 }}>
@@ -31,20 +42,27 @@ export const VerifyEmailByCode = (
           </>
         </p>
       </div>
-      <div style={{ lineHeight: "6px" }}>
-        <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-          <>
-            {props.language("happy_scheduling")}, <br />
-            <a
-              href={`mailto:${SUPPORT_MAIL_ADDRESS}`}
-              style={{ color: "#3E3E3E" }}
-              target="_blank"
-              rel="noreferrer">
-              <>{props.language("the_calcom_team", { companyName: SENDER_NAME })}</>
-            </a>
-          </>
-        </p>
-      </div>
+      {!props.hideLogo && (
+        <div style={{ lineHeight: "6px" }}>
+          <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+            <>
+              {props.language("happy_scheduling")}, <br />
+              <a
+                href={`mailto:${SUPPORT_MAIL_ADDRESS}`}
+                style={{ color: "#3E3E3E" }}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <>
+                  {props.language("the_calcom_team", {
+                    companyName: SENDER_NAME,
+                  })}
+                </>
+              </a>
+            </>
+          </p>
+        </div>
+      )}
     </BaseEmailHtml>
   );
 };

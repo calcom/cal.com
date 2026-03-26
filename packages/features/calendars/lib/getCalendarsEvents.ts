@@ -1,16 +1,20 @@
+import process from "node:process";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { decryptSecret } from "@calcom/lib/crypto/keyring";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
-import { getPiiFreeSelectedCalendar, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
+import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type { CalendarFetchMode, EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import { normalizeTimezone } from "./timezone-conversion";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
+
 // only for Google Calendar for now
 export const getCalendarsEventsWithTimezones = async (
   withCredentials: CredentialForCalendarService[],
@@ -77,7 +81,7 @@ export const getCalendarsEventsWithTimezones = async (
 
     return eventBusyDates.map((event) => ({
       ...event,
-      timeZone: event.timeZone || "UTC",
+      timeZone: normalizeTimezone(event.timeZone),
     }));
   });
   const awaitedResults = await Promise.all(results);
@@ -98,7 +102,33 @@ const getCalendarsEvents = async (
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      const calendar = await getCalendar(credential, mode);
+      let key: typeof credential.key;
+      try {
+        if (credential.encryptedKey) {
+          key = JSON.parse(
+            decryptSecret({
+              envelope: JSON.parse(credential.encryptedKey),
+              aad: { type: credential.type },
+            })
+          );
+        } else {
+          key = credential.key;
+        }
+      } catch {
+        log.warn("Failed to decrypt credential key, falling back to legacy key", {
+          credentialId: credential.id,
+        });
+        key = credential.key;
+      }
+
+      const calendar = await getCalendar(
+        {
+          ...credential,
+          // use encrypted secret to get unencrypted calendar creds
+          key,
+        },
+        mode
+      );
       return [calendar, credential] as const;
     })
   );

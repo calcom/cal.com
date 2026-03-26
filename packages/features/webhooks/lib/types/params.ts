@@ -44,6 +44,7 @@ export interface BookingCancelledParams {
     eventTypeId: number | null;
     userId: number | null;
     smsReminderNumber?: string | null;
+    iCalSequence?: number | null;
   };
   eventType: {
     id: number;
@@ -57,6 +58,7 @@ export interface BookingCancelledParams {
   };
   cancelledBy?: string;
   cancellationReason?: string;
+  requestReschedule?: boolean;
   teamId?: number | null;
   orgId?: number | null;
   platformClientId?: string;

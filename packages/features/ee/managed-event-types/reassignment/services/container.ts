@@ -10,7 +10,7 @@ import { ManagedEventAssignmentReasonService } from "./ManagedEventAssignmentRea
 
 /**
  * Dependency Injection Container for Reassignment Services
- * 
+ *
  * This ensures:
  * - Repositories are only instantiated once per request
  * - Services receive explicit dependencies via constructor
@@ -97,4 +97,3 @@ export function createManagedEventReassignmentService(
   const container = new ReassignmentServiceContainer(prisma);
   return container.getManagedEventReassignmentService(luckyUserService);
 }
-

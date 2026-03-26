@@ -4,11 +4,15 @@ import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails/billing-email-service";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -25,14 +29,18 @@ export const handleNoShowFee = async ({
     startTime: Date;
     endTime: Date;
     userPrimaryEmail: string | null;
+    eventTypeId: number | null;
     userId: number | null;
     user?: {
+      id: number;
       email: string;
       name?: string | null;
       locale: string | null;
       timeZone: string;
+      hideBranding: boolean | null;
       profiles: {
         organizationId: number | null;
+        organization: { hideBranding: boolean | null } | null;
       }[];
     } | null;
     eventType: {
@@ -40,6 +48,11 @@ export const handleNoShowFee = async ({
       hideOrganizerEmail: boolean;
       teamId: number | null;
       metadata?: Prisma.JsonValue;
+      team?: {
+        id: number;
+        hideBranding: boolean | null;
+        parent: { hideBranding: boolean | null } | null;
+      } | null;
     } | null;
     attendees: {
       name: string;
@@ -101,10 +114,25 @@ export const handleNoShowFee = async ({
       paymentOption: payment.paymentOption,
     },
     organizationId: booking.user?.profiles?.[0]?.organizationId ?? null,
+    hideBranding: booking.eventTypeId
+      ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventTypeId, {
+          team: booking.eventType?.team
+            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            : null,
+          owner: booking.user
+            ? {
+                id: booking.user.id,
+                hideBranding: booking.user.hideBranding,
+                profiles: booking.user.profiles ?? [],
+              }
+            : null,
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
   if (teamId) {
-    const userIsInTeam = await MembershipRepository.findUniqueByUserIdAndTeamId({
+    const membershipRepository = new MembershipRepository();
+    const userIsInTeam = await membershipRepository.findUniqueByUserIdAndTeamId({
       userId,
       teamId,
     });
@@ -145,12 +173,12 @@ export const handleNoShowFee = async ({
     throw new Error("Payment app not implemented");
   }
   const paymentApp = await paymentAppImportFn;
-  if (!paymentApp?.PaymentService) {
+  if (!paymentApp?.BuildPaymentService) {
     log.error(`Payment service not found for app ${key}`);
     throw new Error("Payment service not found");
   }
-  const PaymentService = paymentApp.PaymentService;
-  const paymentInstance = new PaymentService(paymentCredential) as IAbstractPaymentService;
+  const createPaymentService = paymentApp.BuildPaymentService;
+  const paymentInstance = createPaymentService(paymentCredential) as IAbstractPaymentService;
 
   try {
     const paymentData = await paymentInstance.chargeCard(payment, booking.id);
@@ -164,11 +192,12 @@ export const handleNoShowFee = async ({
 
     return paymentData;
   } catch (err) {
-    let errorMessage = `Error processing paymentId ${payment.id} with error ${err}`;
     if (err instanceof ErrorWithCode && err.code === ErrorCode.ChargeCardFailure) {
-      errorMessage = err.message;
+      log.error(err.message);
+      throw err;
     }
 
+    const errorMessage = `Error processing paymentId ${payment.id} with error ${err}`;
     log.error(errorMessage);
     throw new Error(tOrganizer(errorMessage));
   }

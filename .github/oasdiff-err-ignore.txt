@@ -2,3 +2,513 @@ GET /v2/event-types/{eventTypeId} added to the 'data' response property 'oneOf' 
 GET /v2/event-types/{eventTypeId} added '#/components/schemas/EventTypeOutput_2024_06_14, #/components/schemas/TeamEventTypeOutput_2024_06_14' to the 'data' response property 'oneOf' list for the response status '200'
 GET /v2/bookings/{bookingUid}/recordings added the new required 'header' request parameter 'Authorization'
 GET /v2/bookings/{bookingUid}/transcripts added the new required 'header' request parameter 'Authorization'
+POST /v2/bookings added 'subschema #2, subschema #4' to the 'data' response property 'oneOf' list for the response status '201'
+GET /v2/bookings/{bookingUid} added 'subschema #3, subschema #6' to the 'data' response property 'oneOf' list for the response status '200'
+POST /v2/bookings/{bookingUid}/cancel added 'subschema #3, subschema #6' to the 'data' response property 'oneOf' list for the response status '200'
+POST /v2/bookings/{bookingUid}/confirm added 'subschema #3, subschema #6' to the 'data' response property 'oneOf' list for the response status '200'
+POST /v2/bookings/{bookingUid}/decline added 'subschema #3, subschema #6' to the 'data' response property 'oneOf' list for the response status '200'
+POST /v2/bookings/{bookingUid}/guests added 'subschema #3, subschema #6' to the 'data' response property 'oneOf' list for the response status '200'
+DELETE /v2/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'webhookId'
+GET /v2/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'webhookId'
+DELETE /v2/oauth-clients/{clientId}/webhooks/{webhookId} added the new path request parameter 'webhookId'
+GET /v2/oauth-clients/{clientId}/webhooks/{webhookId} added the new path request parameter 'webhookId'
+DELETE /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'webhookId'
+GET /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'webhookId'
+GET /v2/webhooks/{webhookId} added the new path request parameter 'webhookId'
+GET /v2/event-types/{eventTypeId}/webhooks the 'data/items/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'AFTER_GUESTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'AFTER_HOSTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_CANCELLED' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_CREATED' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_NO_SHOW_UPDATED' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_PAID' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_PAYMENT_INITIATED' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_REJECTED' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_REQUESTED' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_RESCHEDULED' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'DELEGATION_CREDENTIAL_ERROR' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'FORM_SUBMITTED' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'FORM_SUBMITTED_NO_EVENT' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'INSTANT_MEETING' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'MEETING_ENDED' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'MEETING_STARTED' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'OOO_CREATED' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'RECORDING_READY' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'RECORDING_TRANSCRIPTION_GENERATED' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks removed the enum value 'WRONG_ASSIGNMENT_REPORT' of the request property 'triggers'
+POST /v2/event-types/{eventTypeId}/webhooks the 'triggers' request property type/format changed from 'string'/'' to 'array'/''
+POST /v2/event-types/{eventTypeId}/webhooks the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '201'
+DELETE /v2/event-types/{eventTypeId}/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/event-types/{eventTypeId}/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'AFTER_GUESTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'AFTER_HOSTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_CANCELLED' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_CREATED' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_NO_SHOW_UPDATED' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_PAID' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_PAYMENT_INITIATED' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_REJECTED' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_REQUESTED' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_RESCHEDULED' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'DELEGATION_CREDENTIAL_ERROR' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'FORM_SUBMITTED' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'FORM_SUBMITTED_NO_EVENT' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'INSTANT_MEETING' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'MEETING_ENDED' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'MEETING_STARTED' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'OOO_CREATED' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'RECORDING_READY' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'RECORDING_TRANSCRIPTION_GENERATED' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'WRONG_ASSIGNMENT_REPORT' of the request property 'triggers'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} the 'triggers' request property type/format changed from 'string'/'' to 'array'/''
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/oauth-clients/{clientId}/webhooks the 'data/items/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'AFTER_GUESTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'AFTER_HOSTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'BOOKING_CANCELLED' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'BOOKING_CREATED' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'BOOKING_NO_SHOW_UPDATED' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'BOOKING_PAID' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'BOOKING_PAYMENT_INITIATED' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'BOOKING_REJECTED' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'BOOKING_REQUESTED' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'BOOKING_RESCHEDULED' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'DELEGATION_CREDENTIAL_ERROR' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'FORM_SUBMITTED' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'FORM_SUBMITTED_NO_EVENT' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'INSTANT_MEETING' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'MEETING_ENDED' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'MEETING_STARTED' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'OOO_CREATED' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'RECORDING_READY' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'RECORDING_TRANSCRIPTION_GENERATED' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks removed the enum value 'WRONG_ASSIGNMENT_REPORT' of the request property 'triggers'
+POST /v2/oauth-clients/{clientId}/webhooks the 'triggers' request property type/format changed from 'string'/'' to 'array'/''
+POST /v2/oauth-clients/{clientId}/webhooks the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '201'
+DELETE /v2/oauth-clients/{clientId}/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/oauth-clients/{clientId}/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'AFTER_GUESTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'AFTER_HOSTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'BOOKING_CANCELLED' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'BOOKING_CREATED' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'BOOKING_NO_SHOW_UPDATED' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'BOOKING_PAID' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'BOOKING_PAYMENT_INITIATED' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'BOOKING_REJECTED' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'BOOKING_REQUESTED' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'BOOKING_RESCHEDULED' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'DELEGATION_CREDENTIAL_ERROR' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'FORM_SUBMITTED' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'FORM_SUBMITTED_NO_EVENT' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'INSTANT_MEETING' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'MEETING_ENDED' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'MEETING_STARTED' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'OOO_CREATED' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'RECORDING_READY' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'RECORDING_TRANSCRIPTION_GENERATED' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} removed the enum value 'WRONG_ASSIGNMENT_REPORT' of the request property 'triggers'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} the 'triggers' request property type/format changed from 'string'/'' to 'array'/''
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/organizations/{orgId}/webhooks the 'data/items/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'AFTER_GUESTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'AFTER_HOSTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'BOOKING_CANCELLED' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'BOOKING_CREATED' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'BOOKING_NO_SHOW_UPDATED' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'BOOKING_PAID' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'BOOKING_PAYMENT_INITIATED' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'BOOKING_REJECTED' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'BOOKING_REQUESTED' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'BOOKING_RESCHEDULED' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'DELEGATION_CREDENTIAL_ERROR' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'FORM_SUBMITTED' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'FORM_SUBMITTED_NO_EVENT' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'INSTANT_MEETING' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'MEETING_ENDED' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'MEETING_STARTED' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'OOO_CREATED' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'RECORDING_READY' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'RECORDING_TRANSCRIPTION_GENERATED' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks removed the enum value 'WRONG_ASSIGNMENT_REPORT' of the request property 'triggers'
+POST /v2/organizations/{orgId}/webhooks the 'triggers' request property type/format changed from 'string'/'' to 'array'/''
+POST /v2/organizations/{orgId}/webhooks the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '201'
+DELETE /v2/organizations/{orgId}/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/organizations/{orgId}/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'AFTER_GUESTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'AFTER_HOSTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'BOOKING_CANCELLED' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'BOOKING_CREATED' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'BOOKING_NO_SHOW_UPDATED' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'BOOKING_PAID' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'BOOKING_PAYMENT_INITIATED' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'BOOKING_REJECTED' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'BOOKING_REQUESTED' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'BOOKING_RESCHEDULED' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'DELEGATION_CREDENTIAL_ERROR' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'FORM_SUBMITTED' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'FORM_SUBMITTED_NO_EVENT' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'INSTANT_MEETING' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'MEETING_ENDED' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'MEETING_STARTED' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'OOO_CREATED' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'RECORDING_READY' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'RECORDING_TRANSCRIPTION_GENERATED' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} removed the enum value 'WRONG_ASSIGNMENT_REPORT' of the request property 'triggers'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} the 'triggers' request property type/format changed from 'string'/'' to 'array'/''
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks the 'data/items/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'AFTER_GUESTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'AFTER_HOSTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_CANCELLED' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_CREATED' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_NO_SHOW_UPDATED' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_PAID' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_PAYMENT_INITIATED' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_REJECTED' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_REQUESTED' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'BOOKING_RESCHEDULED' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'DELEGATION_CREDENTIAL_ERROR' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'FORM_SUBMITTED' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'FORM_SUBMITTED_NO_EVENT' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'INSTANT_MEETING' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'MEETING_ENDED' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'MEETING_STARTED' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'OOO_CREATED' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'RECORDING_READY' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'RECORDING_TRANSCRIPTION_GENERATED' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks removed the enum value 'WRONG_ASSIGNMENT_REPORT' of the request property 'triggers'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks the 'triggers' request property type/format changed from 'string'/'' to 'array'/''
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '201'
+DELETE /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'AFTER_GUESTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'AFTER_HOSTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_CANCELLED' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_CREATED' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_NO_SHOW_UPDATED' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_PAID' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_PAYMENT_INITIATED' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_REJECTED' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_REQUESTED' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'BOOKING_RESCHEDULED' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'DELEGATION_CREDENTIAL_ERROR' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'FORM_SUBMITTED' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'FORM_SUBMITTED_NO_EVENT' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'INSTANT_MEETING' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'MEETING_ENDED' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'MEETING_STARTED' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'OOO_CREATED' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'RECORDING_READY' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'RECORDING_TRANSCRIPTION_GENERATED' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} removed the enum value 'WRONG_ASSIGNMENT_REPORT' of the request property 'triggers'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} the 'triggers' request property type/format changed from 'string'/'' to 'array'/''
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/webhooks the 'data/items/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+POST /v2/webhooks removed the enum value 'AFTER_GUESTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'AFTER_HOSTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'BOOKING_CANCELLED' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'BOOKING_CREATED' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'BOOKING_NO_SHOW_UPDATED' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'BOOKING_PAID' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'BOOKING_PAYMENT_INITIATED' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'BOOKING_REJECTED' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'BOOKING_REQUESTED' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'BOOKING_RESCHEDULED' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'DELEGATION_CREDENTIAL_ERROR' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'FORM_SUBMITTED' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'FORM_SUBMITTED_NO_EVENT' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'INSTANT_MEETING' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'MEETING_ENDED' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'MEETING_STARTED' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'OOO_CREATED' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'RECORDING_READY' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'RECORDING_TRANSCRIPTION_GENERATED' of the request property 'triggers'
+POST /v2/webhooks removed the enum value 'WRONG_ASSIGNMENT_REPORT' of the request property 'triggers'
+POST /v2/webhooks the 'triggers' request property type/format changed from 'string'/'' to 'array'/''
+POST /v2/webhooks the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '201'
+DELETE /v2/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+GET /v2/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'AFTER_GUESTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'AFTER_HOSTS_CAL_VIDEO_NO_SHOW' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'BOOKING_CANCELLED' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'BOOKING_CREATED' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'BOOKING_NO_SHOW_UPDATED' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'BOOKING_PAID' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'BOOKING_PAYMENT_INITIATED' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'BOOKING_REJECTED' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'BOOKING_REQUESTED' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'BOOKING_RESCHEDULED' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'DELEGATION_CREDENTIAL_ERROR' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'FORM_SUBMITTED' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'FORM_SUBMITTED_NO_EVENT' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'INSTANT_MEETING' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'MEETING_ENDED' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'MEETING_STARTED' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'OOO_CREATED' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'RECORDING_READY' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'RECORDING_TRANSCRIPTION_GENERATED' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} removed the enum value 'WRONG_ASSIGNMENT_REPORT' of the request property 'triggers'
+PATCH /v2/webhooks/{webhookId} the 'triggers' request property type/format changed from 'string'/'' to 'array'/''
+PATCH /v2/webhooks/{webhookId} the 'data/triggers/items/' response's property type/format changed from 'object'/'' to 'string'/'' for status '200'
+DELETE /v2/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'eventTypeId'
+GET /v2/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'eventTypeId'
+PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'eventTypeId'
+DELETE /v2/oauth-clients/{clientId}/webhooks/{webhookId} added the new path request parameter 'clientId'
+GET /v2/oauth-clients/{clientId}/webhooks/{webhookId} added the new path request parameter 'clientId'
+PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId} added the new path request parameter 'clientId'
+DELETE /v2/organizations/{orgId}/organizations/{managedOrganizationId} added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/organizations/{managedOrganizationId} added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId} added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId} added the new path request parameter 'teamId'
+GET /v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references added the new path request parameter 'teamId'
+GET /v2/organizations/{orgId}/teams/{teamId}/conferencing added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId}/conferencing/default added the new path request parameter 'orgId'
+POST /v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/default added the new path request parameter 'orgId'
+DELETE /v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/disconnect added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/auth-url for the 'path' request parameter 'orgId', the type/format was changed from 'string'/'' to 'number'/''
+GET /v2/organizations/{orgId}/teams/{teamId}/event-types added the new path request parameter 'orgId'
+DELETE /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId} added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId} added the new path request parameter 'orgId'
+PATCH /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId} added the new path request parameter 'orgId'
+POST /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/create-phone-call added the new path request parameter 'teamId'
+GET /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links added the new path request parameter 'orgId'
+POST /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links added the new path request parameter 'orgId'
+DELETE /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links/{linkId} added the new path request parameter 'orgId'
+PATCH /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links/{linkId} added the new path request parameter 'orgId'
+PATCH /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses/{responseId} added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId}/stripe/check added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId}/stripe/connect for the 'path' request parameter 'orgId', the type/format was changed from 'string'/'' to 'number'/''
+GET /v2/organizations/{orgId}/teams/{teamId}/stripe/save added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails added the new path request parameter 'orgId'
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/request added the new path request parameter 'orgId'
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/request added the new path request parameter 'teamId'
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id} added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones added the new path request parameter 'orgId'
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/request added the new path request parameter 'orgId'
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/request added the new path request parameter 'teamId'
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id} added the new path request parameter 'orgId'
+POST /v2/organizations/{orgId}/teams/{teamId}/workflows added the new path request parameter 'orgId'
+POST /v2/organizations/{orgId}/teams/{teamId}/workflows/routing-form added the new path request parameter 'orgId'
+DELETE /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId} added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId} added the new path request parameter 'orgId'
+PATCH /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId} added the new path request parameter 'orgId'
+DELETE /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}/routing-form added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}/routing-form added the new path request parameter 'orgId'
+PATCH /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}/routing-form added the new path request parameter 'orgId'
+POST /v2/organizations/{orgId}/users added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/users/{userId}/ooo added the new path request parameter 'orgId'
+POST /v2/organizations/{orgId}/users/{userId}/ooo added the new path request parameter 'orgId'
+DELETE /v2/organizations/{orgId}/users/{userId}/ooo/{oooId} added the new path request parameter 'orgId'
+DELETE /v2/organizations/{orgId}/users/{userId}/ooo/{oooId} added the new path request parameter 'userId'
+PATCH /v2/organizations/{orgId}/users/{userId}/ooo/{oooId} added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/users/{userId}/schedules added the new path request parameter 'orgId'
+POST /v2/organizations/{orgId}/users/{userId}/schedules added the new path request parameter 'orgId'
+DELETE /v2/organizations/{orgId}/users/{userId}/schedules/{scheduleId} added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/users/{userId}/schedules/{scheduleId} added the new path request parameter 'orgId'
+PATCH /v2/organizations/{orgId}/users/{userId}/schedules/{scheduleId} added the new path request parameter 'orgId'
+DELETE /v2/organizations/{orgId}/webhooks/{webhookId} added the new path request parameter 'orgId'
+GET /v2/organizations/{orgId}/webhooks/{webhookId} added the new path request parameter 'orgId'
+PATCH /v2/organizations/{orgId}/webhooks/{webhookId} added the new path request parameter 'orgId'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/create-phone-call added the new path request parameter 'teamId'
+DELETE /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks added the new path request parameter 'teamId'
+GET /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks added the new path request parameter 'teamId'
+POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks added the new path request parameter 'teamId'
+DELETE /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'eventTypeId'
+DELETE /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'teamId'
+GET /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'eventTypeId'
+GET /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'teamId'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'eventTypeId'
+PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId} added the new path request parameter 'teamId'
+POST /v2/teams/{teamId}/verified-resources/emails/verification-code/request added the new path request parameter 'teamId'
+POST /v2/teams/{teamId}/verified-resources/phones/verification-code/request added the new path request parameter 'teamId'
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses the 'data' response's property type/format changed from 'object'/'' to 'array'/'' for status '200'
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/createdAt' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/formFillerId' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/formId' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/id' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/response' from the response with the '200' status
+GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses removed the required property 'data/routedToBookingUid' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses the 'data' response's property type/format changed from 'object'/'' to 'array'/'' for status '200'
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/createdAt' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/formFillerId' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/formId' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/id' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/response' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses removed the required property 'data/routedToBookingUid' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails the 'data' response's property type/format changed from 'object'/'' to 'array'/'' for status '200'
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails removed the required property 'data/availability' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails removed the required property 'data/id' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails removed the required property 'data/isDefault' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails removed the required property 'data/isLastSchedule' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails removed the required property 'data/isManaged' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails removed the required property 'data/name' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails removed the required property 'data/readOnly' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails removed the required property 'data/schedule' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails removed the required property 'data/timeZone' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails removed the required property 'data/workingHours' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/availability' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/isDefault' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/isLastSchedule' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/isManaged' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/name' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/readOnly' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/schedule' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/timeZone' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/workingHours' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/availability' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/isDefault' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/isLastSchedule' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/isManaged' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/name' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/readOnly' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/schedule' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/timeZone' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/workingHours' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones the 'data' response's property type/format changed from 'object'/'' to 'array'/'' for status '200'
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones removed the required property 'data/availability' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones removed the required property 'data/id' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones removed the required property 'data/isDefault' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones removed the required property 'data/isLastSchedule' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones removed the required property 'data/isManaged' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones removed the required property 'data/name' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones removed the required property 'data/readOnly' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones removed the required property 'data/schedule' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones removed the required property 'data/timeZone' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones removed the required property 'data/workingHours' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/availability' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/isDefault' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/isLastSchedule' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/isManaged' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/name' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/readOnly' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/schedule' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/timeZone' from the response with the '200' status
+POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/workingHours' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/availability' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/isDefault' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/isLastSchedule' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/isManaged' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/name' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/readOnly' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/schedule' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/timeZone' from the response with the '200' status
+GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/workingHours' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails the 'data' response's property type/format changed from 'object'/'' to 'array'/'' for status '200'
+GET /v2/teams/{teamId}/verified-resources/emails removed the required property 'data/availability' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails removed the required property 'data/id' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails removed the required property 'data/isDefault' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails removed the required property 'data/isLastSchedule' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails removed the required property 'data/isManaged' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails removed the required property 'data/name' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails removed the required property 'data/readOnly' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails removed the required property 'data/schedule' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails removed the required property 'data/timeZone' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails removed the required property 'data/workingHours' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/availability' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/isDefault' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/isLastSchedule' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/isManaged' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/name' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/readOnly' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/schedule' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/timeZone' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/emails/verification-code/verify removed the required property 'data/workingHours' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/availability' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/isDefault' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/isLastSchedule' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/isManaged' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/name' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/readOnly' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/schedule' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/timeZone' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/emails/{id} removed the required property 'data/workingHours' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones the 'data' response's property type/format changed from 'object'/'' to 'array'/'' for status '200'
+GET /v2/teams/{teamId}/verified-resources/phones removed the required property 'data/availability' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones removed the required property 'data/id' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones removed the required property 'data/isDefault' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones removed the required property 'data/isLastSchedule' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones removed the required property 'data/isManaged' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones removed the required property 'data/name' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones removed the required property 'data/readOnly' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones removed the required property 'data/schedule' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones removed the required property 'data/timeZone' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones removed the required property 'data/workingHours' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/availability' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/isDefault' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/isLastSchedule' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/isManaged' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/name' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/readOnly' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/schedule' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/timeZone' from the response with the '200' status
+POST /v2/teams/{teamId}/verified-resources/phones/verification-code/verify removed the required property 'data/workingHours' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/availability' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/isDefault' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/isLastSchedule' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/isManaged' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/name' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/readOnly' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/schedule' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/timeZone' from the response with the '200' status
+GET /v2/teams/{teamId}/verified-resources/phones/{id} removed the required property 'data/workingHours' from the response with the '200' status
+GET /v2/verified-resources/emails the 'data' response's property type/format changed from 'object'/'' to 'array'/'' for status '200'
+GET /v2/verified-resources/emails removed the required property 'data/availability' from the response with the '200' status
+GET /v2/verified-resources/emails removed the required property 'data/id' from the response with the '200' status
+GET /v2/verified-resources/emails removed the required property 'data/isDefault' from the response with the '200' status
+GET /v2/verified-resources/emails removed the required property 'data/isLastSchedule' from the response with the '200' status
+GET /v2/verified-resources/emails removed the required property 'data/isManaged' from the response with the '200' status
+GET /v2/verified-resources/emails removed the required property 'data/name' from the response with the '200' status
+GET /v2/verified-resources/emails removed the required property 'data/readOnly' from the response with the '200' status
+GET /v2/verified-resources/emails removed the required property 'data/schedule' from the response with the '200' status
+GET /v2/verified-resources/emails removed the required property 'data/timeZone' from the response with the '200' status
+GET /v2/verified-resources/emails removed the required property 'data/workingHours' from the response with the '200' status
+POST /v2/verified-resources/emails/verification-code/verify removed the required property 'data/availability' from the response with the '200' status
+POST /v2/verified-resources/emails/verification-code/verify removed the required property 'data/isDefault' from the response with the '200' status
+POST /v2/verified-resources/emails/verification-code/verify removed the required property 'data/isLastSchedule' from the response with the '200' status
+POST /v2/verified-resources/emails/verification-code/verify removed the required property 'data/isManaged' from the response with the '200' status
+POST /v2/verified-resources/emails/verification-code/verify removed the required property 'data/name' from the response with the '200' status
+POST /v2/verified-resources/emails/verification-code/verify removed the required property 'data/readOnly' from the response with the '200' status
+POST /v2/verified-resources/emails/verification-code/verify removed the required property 'data/schedule' from the response with the '200' status
+POST /v2/verified-resources/emails/verification-code/verify removed the required property 'data/timeZone' from the response with the '200' status
+POST /v2/verified-resources/emails/verification-code/verify removed the required property 'data/workingHours' from the response with the '200' status
+GET /v2/verified-resources/emails/{id} removed the required property 'data/availability' from the response with the '200' status
+GET /v2/verified-resources/emails/{id} removed the required property 'data/isDefault' from the response with the '200' status
+GET /v2/verified-resources/emails/{id} removed the required property 'data/isLastSchedule' from the response with the '200' status
+GET /v2/verified-resources/emails/{id} removed the required property 'data/isManaged' from the response with the '200' status
+GET /v2/verified-resources/emails/{id} removed the required property 'data/name' from the response with the '200' status
+GET /v2/verified-resources/emails/{id} removed the required property 'data/readOnly' from the response with the '200' status
+GET /v2/verified-resources/emails/{id} removed the required property 'data/schedule' from the response with the '200' status
+GET /v2/verified-resources/emails/{id} removed the required property 'data/timeZone' from the response with the '200' status
+GET /v2/verified-resources/emails/{id} removed the required property 'data/workingHours' from the response with the '200' status
+GET /v2/verified-resources/phones the 'data' response's property type/format changed from 'object'/'' to 'array'/'' for status '200'
+GET /v2/verified-resources/phones removed the required property 'data/availability' from the response with the '200' status
+GET /v2/verified-resources/phones removed the required property 'data/id' from the response with the '200' status
+GET /v2/verified-resources/phones removed the required property 'data/isDefault' from the response with the '200' status
+GET /v2/verified-resources/phones removed the required property 'data/isLastSchedule' from the response with the '200' status
+GET /v2/verified-resources/phones removed the required property 'data/isManaged' from the response with the '200' status
+GET /v2/verified-resources/phones removed the required property 'data/name' from the response with the '200' status
+GET /v2/verified-resources/phones removed the required property 'data/readOnly' from the response with the '200' status
+GET /v2/verified-resources/phones removed the required property 'data/schedule' from the response with the '200' status
+GET /v2/verified-resources/phones removed the required property 'data/timeZone' from the response with the '200' status
+GET /v2/verified-resources/phones removed the required property 'data/workingHours' from the response with the '200' status
+POST /v2/verified-resources/phones/verification-code/verify removed the required property 'data/availability' from the response with the '200' status
+POST /v2/verified-resources/phones/verification-code/verify removed the required property 'data/isDefault' from the response with the '200' status
+POST /v2/verified-resources/phones/verification-code/verify removed the required property 'data/isLastSchedule' from the response with the '200' status
+POST /v2/verified-resources/phones/verification-code/verify removed the required property 'data/isManaged' from the response with the '200' status
+POST /v2/verified-resources/phones/verification-code/verify removed the required property 'data/name' from the response with the '200' status
+POST /v2/verified-resources/phones/verification-code/verify removed the required property 'data/readOnly' from the response with the '200' status
+POST /v2/verified-resources/phones/verification-code/verify removed the required property 'data/schedule' from the response with the '200' status
+POST /v2/verified-resources/phones/verification-code/verify removed the required property 'data/timeZone' from the response with the '200' status
+POST /v2/verified-resources/phones/verification-code/verify removed the required property 'data/workingHours' from the response with the '200' status
+GET /v2/verified-resources/phones/{id} removed the required property 'data/availability' from the response with the '200' status
+GET /v2/verified-resources/phones/{id} removed the required property 'data/isDefault' from the response with the '200' status
+GET /v2/verified-resources/phones/{id} removed the required property 'data/isLastSchedule' from the response with the '200' status
+GET /v2/verified-resources/phones/{id} removed the required property 'data/isManaged' from the response with the '200' status
+GET /v2/verified-resources/phones/{id} removed the required property 'data/name' from the response with the '200' status
+GET /v2/verified-resources/phones/{id} removed the required property 'data/readOnly' from the response with the '200' status
+GET /v2/verified-resources/phones/{id} removed the required property 'data/schedule' from the response with the '200' status
+GET /v2/verified-resources/phones/{id} removed the required property 'data/timeZone' from the response with the '200' status
+GET /v2/verified-resources/phones/{id} removed the required property 'data/workingHours' from the response with the '200' status

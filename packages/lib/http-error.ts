@@ -37,8 +37,6 @@ export class HttpError<TCode extends number = number> extends Error {
       url: response.url,
       method: request.method,
       statusCode: response.status,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore the data property is a custom one from ErrorWithCode
       data: parsedError.data as Record<string, unknown>,
     });
   }

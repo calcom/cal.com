@@ -406,10 +406,7 @@ describe("createCRMEvent", () => {
       .mockResolvedValueOnce(mockSalesforceCredential)
       .mockResolvedValueOnce(mockHubspotCredential);
 
-    prismaMock.credential.findMany.mockResolvedValueOnce([
-      mockSalesforceCredential,
-      mockHubspotCredential,
-    ]);
+    prismaMock.credential.findMany.mockResolvedValueOnce([mockSalesforceCredential, mockHubspotCredential]);
 
     prismaMock.bookingReference.findMany.mockResolvedValueOnce([]);
 

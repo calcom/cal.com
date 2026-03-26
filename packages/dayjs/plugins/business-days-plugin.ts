@@ -15,43 +15,33 @@ const BusinessDaysPlugin: PluginFunc<BusinessDaysPluginOptions> = (
 ) => {
   const defaultWorkingWeekdays = [1, 2, 3, 4, 5];
 
-  dayjsFactory.getWorkingWeekdays = function (): number[] {
-    return options.workingWeekdays || defaultWorkingWeekdays;
-  };
+  dayjsFactory.getWorkingWeekdays = (): number[] => options.workingWeekdays || defaultWorkingWeekdays;
 
-  dayjsFactory.setWorkingWeekdays = function (workingWeekdays: number[]): void {
+  dayjsFactory.setWorkingWeekdays = (workingWeekdays: number[]): void => {
     options.workingWeekdays = workingWeekdays;
   };
 
-  dayjsFactory.getHolidays = function (): string[] {
-    return options.holidays || [];
-  };
+  dayjsFactory.getHolidays = (): string[] => options.holidays || [];
 
-  dayjsFactory.setHolidays = function (holidays: string[]): void {
+  dayjsFactory.setHolidays = (holidays: string[]): void => {
     options.holidays = holidays;
   };
 
-  dayjsFactory.getHolidayFormat = function (): string | undefined {
-    return options.holidayFormat;
-  };
+  dayjsFactory.getHolidayFormat = (): string | undefined => options.holidayFormat;
 
-  dayjsFactory.setHolidayFormat = function (holidayFormat: string): void {
+  dayjsFactory.setHolidayFormat = (holidayFormat: string): void => {
     options.holidayFormat = holidayFormat;
   };
 
-  dayjsFactory.getAdditionalWorkingDays = function (): string[] {
-    return options.additionalWorkingDays || [];
-  };
+  dayjsFactory.getAdditionalWorkingDays = (): string[] => options.additionalWorkingDays || [];
 
-  dayjsFactory.setAdditionalWorkingDays = function (additionalWorkingDays: string[]): void {
+  dayjsFactory.setAdditionalWorkingDays = (additionalWorkingDays: string[]): void => {
     options.additionalWorkingDays = additionalWorkingDays;
   };
 
-  dayjsFactory.getAdditionalWorkingDayFormat = function (): string | undefined {
-    return options.additionalWorkingDayFormat;
-  };
+  dayjsFactory.getAdditionalWorkingDayFormat = (): string | undefined => options.additionalWorkingDayFormat;
 
-  dayjsFactory.setAdditionalWorkingDayFormat = function (additionalWorkingDayFormat: string): void {
+  dayjsFactory.setAdditionalWorkingDayFormat = (additionalWorkingDayFormat: string): void => {
     options.additionalWorkingDayFormat = additionalWorkingDayFormat;
   };
 

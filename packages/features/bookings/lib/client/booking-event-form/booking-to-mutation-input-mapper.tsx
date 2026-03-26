@@ -32,6 +32,7 @@ export type BookingOptions = {
   routingFormSearchParams?: RoutingFormSearchParams;
   isDryRunProp?: boolean;
   verificationCode?: string;
+  rrHostSubsetIds?: number[];
 };
 
 export const mapBookingToMutationInput = ({
@@ -56,6 +57,7 @@ export const mapBookingToMutationInput = ({
   routingFormSearchParams,
   isDryRunProp,
   verificationCode,
+  rrHostSubsetIds,
 }: BookingOptions): BookingCreateBody => {
   const searchParams = new URLSearchParams(routingFormSearchParams ?? window.location.search);
   const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
@@ -91,6 +93,7 @@ export const mapBookingToMutationInput = ({
     crmRecordId,
     orgSlug,
     routedTeamMemberIds,
+    rrHostSubsetIds,
     routingFormResponseId,
     skipContactOwner,
     // In case of rerouting, the form responses are actually the responses that we need to update.

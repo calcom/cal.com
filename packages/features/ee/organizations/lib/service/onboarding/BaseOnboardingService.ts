@@ -17,7 +17,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { uploadLogo } from "@calcom/lib/server/avatar";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { isBase64Image, resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
@@ -612,10 +612,12 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     for (const member of invitedMembers) {
       let targetTeamId: number | undefined;
 
-      if (member.teamId !== undefined) {
+      // For new teams (teamId === -1), multiple teams share the same -1 ID, so we must use teamName to match
+      if (member.teamId !== undefined && member.teamId !== -1) {
         targetTeamId = teamIdMap.get(member.teamId) || member.teamId;
         log.debug(`Member ${member.email}: teamId ${member.teamId} -> resolved to ${targetTeamId}`);
       } else if (member.teamName) {
+        // New team or teamId is -1: use teamName to match
         targetTeamId = teamNameToId.get(member.teamName.toLowerCase());
         log.debug(
           `Member ${member.email}: teamName "${member.teamName}" -> resolved to ${

@@ -38,6 +38,7 @@ To create a new webhook subscription, visit `/settings/developer/webhooks` and p
     - `Booking No-show Updated`
     - `After Hosts Didn't Join Cal Video`
     - `After Guests Didn't Join Cal Video`
+    - `Wrong Assignment Report`
   </Step>
   <Step title="Secret">
     You can provide a secret key with this webhook to [verify it](/docs/core-features/webhooks#verifying-the-authenticity-of-the-received-payload) on the subscriber URL when receiving a payload. This helps confirm whether the payload is authentic or has been tampered with. You can leave it blank if you don't wish to secure the webhook with a secret key.
@@ -311,7 +312,8 @@ Select a version and trigger event to view the example payload:
             "requiresConfirmation": true,
             "price": null,
             "currency": "usd",
-            "status": "CANCELLED"
+            "status": "CANCELLED",
+            "requestReschedule": false
           }
         }
         ```
@@ -1459,6 +1461,51 @@ Select a version and trigger event to view the example payload:
         }
         ```
       </Accordion>
+      <Accordion title="WRONG_ASSIGNMENT_REPORT">
+        This webhook is triggered when a team member reports that a booking from a routing form was assigned to the wrong person. This is useful for tracking routing accuracy and improving CRM data quality.
+
+        <Note>
+          This webhook only fires for bookings that came through a routing form and have an assignment reason.
+        </Note>
+
+        ```json
+        {
+          "triggerEvent": "WRONG_ASSIGNMENT_REPORT",
+          "createdAt": "2025-01-15T10:30:00.000Z",
+          "payload": {
+            "booking": {
+              "uid": "abc123def456",
+              "id": 12345,
+              "title": "Sales Call between Team and Lead",
+              "startTime": "2025-01-15T14:00:00.000Z",
+              "endTime": "2025-01-15T14:30:00.000Z",
+              "status": "ACCEPTED",
+              "eventType": {
+                "id": 100,
+                "title": "Sales Call",
+                "slug": "sales-call",
+                "teamId": 50
+              }
+            },
+            "report": {
+              "reportedBy": {
+                "id": 1,
+                "email": "reporter@example.com",
+                "name": "Reporter Name"
+              },
+              "routingReason": "Routed based on company size: Enterprise",
+              "guest": "lead@company.com",
+              "host": {
+                "email": "assigned-rep@example.com",
+                "name": "Assigned Rep"
+              },
+              "correctAssignee": "correct-rep@example.com",
+              "additionalNotes": "This lead should have been routed to the Enterprise team based on their company size."
+            }
+          }
+        }
+        ```
+      </Accordion>
     </AccordionGroup>
   </Tab>
 </Tabs>
@@ -1651,7 +1698,7 @@ where `{{type}}` represents the event type slug and `{{title}}` represents the t
 
 | Variable           | Type     | Description                                                                                                                                                                                                                                                                                                                    |
 | ------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| triggerEvent       | String   | The name of the trigger event [BOOKING_CREATED, BOOKING_RESCHEDULED, BOOKING_CANCELLED, MEETING_ENDED, BOOKING_REJECTED, BOOKING_REQUESTED, BOOKING_PAYMENT_INITIATED, BOOKING_PAID, MEETING_STARTED, RECORDING_READY, FORM_SUBMITTED, BOOKING_NO_SHOW_UPDATED, AFTER_HOSTS_CAL_VIDEO_NO_SHOW, AFTER_GUESTS_CAL_VIDEO_NO_SHOW] |
+| triggerEvent       | String   | The name of the trigger event [BOOKING_CREATED, BOOKING_RESCHEDULED, BOOKING_CANCELLED, MEETING_ENDED, BOOKING_REJECTED, BOOKING_REQUESTED, BOOKING_PAYMENT_INITIATED, BOOKING_PAID, MEETING_STARTED, RECORDING_READY, FORM_SUBMITTED, BOOKING_NO_SHOW_UPDATED, AFTER_HOSTS_CAL_VIDEO_NO_SHOW, AFTER_GUESTS_CAL_VIDEO_NO_SHOW, WRONG_ASSIGNMENT_REPORT] |
 | createdAt          | Datetime | The time of the webhook                                                                                                                                                                                                                                                                                                        |
 | type               | String   | The event type slug                                                                                                                                                                                                                                                                                                            |
 | title              | String   | The event type name                                                                                                                                                                                                                                                                                                            |

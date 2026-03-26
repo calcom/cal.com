@@ -1,23 +1,22 @@
-import { type TFunction } from "i18next";
+import type { TFunction } from "i18next";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useWatch } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
 import type { RetellAgentWithDetails } from "@calcom/features/calAIPhone/providers/retellAI";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import PhoneInput from "@calcom/features/components/phone-input";
 import {
-  isSMSAction,
-  isWhatsappAction,
   getTemplateBodyForAction,
-  shouldScheduleEmailReminder,
-  isSMSOrWhatsappAction,
+  hasCalAIAction,
   isCalAIAction,
   isFormTrigger,
-  hasCalAIAction,
+  isSMSAction,
+  isSMSOrWhatsappAction,
+  isWhatsappAction,
+  shouldScheduleEmailReminder,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "@calcom/features/ee/workflows/lib/constants";
 import {
@@ -27,6 +26,7 @@ import {
 import emailRatingTemplate from "@calcom/features/ee/workflows/lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "@calcom/features/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import type { FormValues } from "@calcom/features/ee/workflows/lib/types";
+import PhoneInput from "@calcom/web/components/phone-input";
 import "@calcom/features/ee/workflows/style/styles.css";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { formatPhoneNumber } from "@calcom/lib/formatPhoneNumber";
@@ -48,7 +48,7 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge, InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -56,26 +56,26 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { AddVariablesDropdown } from "@calcom/ui/components/editor";
-import { Editor } from "@calcom/ui/components/editor";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { EmailField } from "@calcom/ui/components/form";
-import { TextArea } from "@calcom/ui/components/form";
-import { Input } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { MultiSelectCheckbox } from "@calcom/ui/components/form";
+import { AddVariablesDropdown, Editor } from "@calcom/ui/components/editor";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import {
+  CheckboxField,
+  EmailField,
+  Input,
+  Label,
+  MultiSelectCheckbox,
+  Select,
+  TextArea,
+  TextField,
+} from "@calcom/ui/components/form";
+import { CircleHelpIcon, InfoIcon, PhoneIcon } from "@coss/ui/icons";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-import { useHasPaidPlan, useHasActiveTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
-
+import { useHasActiveTeamPlan, useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
+import { AgentConfigurationSheet }from "./agent-configuration/AgentConfigurationSheet";
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 import { WebCallDialog } from "./WebCallDialog";
-import { AgentConfigurationSheet } from "./agent-configuration/AgentConfigurationSheet";
 
 type User = RouterOutputs["viewer"]["me"]["get"];
 
@@ -426,7 +426,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
         .toUpperCase()
         .replace(/ /g, "_")}}${currentEmailSubject.substring(cursorPosition)}`;
-      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
+      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable, {
+        shouldDirty: true,
+      });
     }
   };
 
@@ -475,7 +477,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const verifyEmailCodeMutation = trpc.viewer.workflows.verifyEmailCode.useMutation({
     onSuccess: (isVerified) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
-      setEmailVerified(true);
+      setEmailVerified(isVerified);
       if (
         step &&
         form?.formState?.errors?.steps &&
@@ -544,15 +546,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       const isCurrentFormTrigger = isFormTrigger(currentTrigger);
                       const isNewFormTrigger = isFormTrigger(triggerValue);
 
-                      form.setValue("trigger", triggerValue);
+                      form.setValue("trigger", triggerValue, { shouldDirty: true });
 
                       // Reset activeOn when switching between form and non-form triggers
                       if (isCurrentFormTrigger !== isNewFormTrigger) {
-                        form.setValue("activeOn", []);
+                        form.setValue("activeOn", [], { shouldDirty: true });
                         if (setSelectedOptions) {
                           setSelectedOptions([]);
                         }
-                        form.setValue("selectAll", false);
+                        form.setValue("selectAll", false, { shouldDirty: true });
                       }
 
                       const newTimeSectionText = getTimeSectionText(triggerValue, t);
@@ -562,11 +564,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           triggerValue === WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
                           triggerValue === WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
                         ) {
-                          form.setValue("time", 5);
-                          form.setValue("timeUnit", TimeUnit.MINUTE);
+                          form.setValue("time", 5, { shouldDirty: true });
+                          form.setValue("timeUnit", TimeUnit.MINUTE, { shouldDirty: true });
                         } else {
-                          form.setValue("time", 24);
-                          form.setValue("timeUnit", TimeUnit.HOUR);
+                          form.setValue("time", 24, { shouldDirty: true });
+                          form.setValue("timeUnit", TimeUnit.HOUR, { shouldDirty: true });
                         }
                       } else {
                         setTimeSectionText(null);
@@ -586,7 +588,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                   template: WorkflowTemplates.CUSTOM,
                                 }
                           );
-                          form.setValue("steps", updatedSteps);
+                          form.setValue("steps", updatedSteps, { shouldDirty: true });
                           setUpdateTemplate(!updateTemplate);
                         }
                       }
@@ -641,14 +643,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       setSelected={setSelectedOptions}
                       selected={form.getValues("selectAll") ? allOptions : selectedOptions}
                       setValue={(s: Option[]) => {
-                        form.setValue("activeOn", s);
+                        form.setValue("activeOn", s, { shouldDirty: true });
                       }}
                       countText={
                         isOrganization
                           ? "count_team"
                           : isFormTrigger(form.getValues("trigger"))
-                          ? "nr_routing_form"
-                          : "nr_event_type"
+                            ? "nr_routing_form"
+                            : "nr_event_type"
                       }
                     />
                   );
@@ -664,8 +666,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           isOrganization
                             ? t("apply_to_all_teams")
                             : isFormTrigger(form.getValues("trigger"))
-                            ? t("apply_to_all_routing_forms")
-                            : t("apply_to_all_event_types")
+                              ? t("apply_to_all_routing_forms")
+                              : t("apply_to_all_event_types")
                         }
                         disabled={props.readOnly}
                         descriptionClassName="ml-0"
@@ -673,7 +675,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           onChange(e);
                           if (e.target.value) {
                             setSelectedOptions(allOptions);
-                            form.setValue("activeOn", allOptions);
+                            form.setValue("activeOn", allOptions, { shouldDirty: true });
                           }
                         }}
                         checked={value}
@@ -684,9 +686,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               )}
             </div>
           )}
-          {!!timeSectionText && (
+          {!!timeSectionText && steps.some((s) => isSMSAction(s.action)) && (
             <div className="mt-1 flex text-gray-500">
-              <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
+              <InfoIcon className="mr-1 mt-0.5 h-4 w-4" />
               <p className="text-sm">{t("testing_sms_workflow_info_message")}</p>
             </div>
           )}
@@ -798,9 +800,20 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           form.setValue(`steps.${step.stepNumber - 1}.agentId`, null);
                         }
 
+                        if (
+                          val.value !== WorkflowActions.EMAIL_ATTENDEE &&
+                          val.value !== WorkflowActions.SMS_ATTENDEE
+                        ) {
+                          form.setValue(`steps.${step.stepNumber - 1}.autoTranslateEnabled`, false, {
+                            shouldDirty: true,
+                          });
+                        }
+
                         form.setValue(`steps.${step.stepNumber - 1}.sendTo`, null);
                         form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
-                        form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
+                        form.setValue(`steps.${step.stepNumber - 1}.action`, val.value, {
+                          shouldDirty: true,
+                        });
                         setUpdateTemplate(!updateTemplate);
                       }
                     }}
@@ -831,7 +844,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         {...form.register(`steps.${step.stepNumber - 1}.sender`)}
                       />
                       <div className="mt-1.5 flex items-center gap-1">
-                        <Icon name="info" size="10" className="text-gray-500" />
+                        <InfoIcon size={10} className="text-gray-500" />
                         <div className="text-subtle text-xs">{t("sender_id_info")}</div>
                       </div>
                     </div>
@@ -896,14 +909,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return;
                   }
                   if (!props.readOnly) {
-                    setAgentConfigurationSheet({ open: true, activeTab: "outgoingCalls" });
+                    setAgentConfigurationSheet({
+                      open: true,
+                      activeTab: "outgoingCalls",
+                    });
                   }
                 }}>
                 <div>
                   <h3 className="text-emphasis text-base font-medium">{t("cal_ai_agent")}</h3>
                   {arePhoneNumbersActive.length > 0 ? (
                     <div className="flex items-center gap-2">
-                      <Icon name="phone" className="text-emphasis h-4 w-4" />
+                      <PhoneIcon className="text-emphasis h-4 w-4" />
                       <span className="text-emphasis text-sm">
                         {formatPhoneNumber(arePhoneNumbersActive[0].phoneNumber)}
                       </span>
@@ -1015,7 +1031,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           type="button"
                           StartIcon="pencil"
                           onClick={() =>
-                            setAgentConfigurationSheet({ open: true, activeTab: "outgoingCalls" })
+                            setAgentConfigurationSheet({
+                              open: true,
+                              activeTab: "outgoingCalls",
+                            })
                           }>
                           {t("edit")}
                         </DropdownItem>
@@ -1132,7 +1151,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       description={t("make_phone_number_required")}
                       descriptionClassName="ml-0"
                       onChange={(e) =>
-                        form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked)
+                        form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked, {
+                          shouldDirty: true,
+                        })
                       }
                     />
                   )}
@@ -1288,7 +1309,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             }
                           }
                           field.onChange(value);
-                          form.setValue(`steps.${step.stepNumber - 1}.template`, value);
+                          form.setValue(`steps.${step.stepNumber - 1}.template`, value, {
+                            shouldDirty: true,
+                          });
                           setUpdateTemplate(!updateTemplate);
                         }
                       }}
@@ -1319,7 +1342,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             </div>
           )}
           {!isCalAIAction(form.getValues(`steps.${step.stepNumber - 1}.action`)) && (
-            <div className="bg-cal-muted border-muted mt-3 rounded-2xl border p-3">
+            <div className="bg-cal-muted border-muted mt-3 rounded-2xl border py-1 px-3">
               {isEmailSubjectNeeded && (
                 <div className="mb-6">
                   <div className="flex items-center">
@@ -1366,7 +1389,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               <Editor
                 getText={() => props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || ""}
                 setText={(text: string) => {
-                  props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                  props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text, {
+                    shouldDirty: true,
+                  });
                   props.form.clearErrors();
                 }}
                 variables={!isFormTrigger(trigger) ? DYNAMIC_TEXT_VARIABLES : undefined}
@@ -1381,7 +1406,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   (hasActiveTeamPlan || isSMSAction(step.action))
                 }
                 excludedToolbarItems={
-                  isSMSAction(step.action) ? ["blockType", "bold", "italic", "link"] : ["link"]
+                  !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
                 }
                 plainText={isSMSAction(step.action)}
               />
@@ -1392,7 +1417,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                   </p>
                 )}
-              {isEmailSubjectNeeded && (
+              {isEmailSubjectNeeded && trigger !== WorkflowTriggerEvents.BOOKING_REQUESTED && (
                 <div className="mt-2">
                   <Controller
                     name={`steps.${step.stepNumber - 1}.includeCalendarEvent`}
@@ -1406,18 +1431,65 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         description={t("include_calendar_event")}
                         descriptionClassName="ml-0"
                         onChange={(e) =>
-                          form.setValue(`steps.${step.stepNumber - 1}.includeCalendarEvent`, e.target.checked)
+                          form.setValue(
+                            `steps.${step.stepNumber - 1}.includeCalendarEvent`,
+                            e.target.checked,
+                            { shouldDirty: true }
+                          )
                         }
                       />
                     )}
                   />
                 </div>
               )}
+              {(step.action === WorkflowActions.EMAIL_ATTENDEE ||
+                step.action === WorkflowActions.SMS_ATTENDEE) && (
+                <div className="mt-2">
+                  <div className="flex items-center gap-2">
+                    <Controller
+                      name={`steps.${step.stepNumber - 1}.autoTranslateEnabled`}
+                      control={form.control}
+                      render={() => (
+                        <CheckboxField
+                          disabled={props.readOnly || !props.user.organizationId}
+                          defaultChecked={
+                            form.getValues(`steps.${step.stepNumber - 1}.autoTranslateEnabled`) || false
+                          }
+                          description={t("auto_translate_for_attendees")}
+                          descriptionClassName="ml-0"
+                          onChange={(e) =>
+                            form.setValue(
+                              `steps.${step.stepNumber - 1}.autoTranslateEnabled`,
+                              e.target.checked,
+                              { shouldDirty: true }
+                            )
+                          }
+                        />
+                      )}
+                    />
+                    {!props.user.organizationId && (
+                      <Badge variant="gray" size="sm">
+                        {t("upgrade_to_organizations")}
+                      </Badge>
+                    )}
+                  </div>
+                  {props.user.organizationId &&
+                    form.watch(`steps.${step.stepNumber - 1}.autoTranslateEnabled`) && (
+                      <p className="text-subtle ml-6 mt-1 text-xs">
+                        {t("auto_translate_source_language_hint", {
+                          language: new Intl.DisplayNames([i18n.language], { type: "language" }).of(
+                            props.user.locale || "en"
+                          ),
+                        })}
+                      </p>
+                    )}
+                </div>
+              )}
               {!props.readOnly && (
                 <div className="ml-1 mt-2">
                   <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                     <div className="text-subtle ml-1 flex items-center gap-2">
-                      <Icon name="circle-help" className="h-3 w-3" />
+                      <CircleHelpIcon className="h-3 w-3" />
                       <p className="text-left text-xs">
                         {isFormTrigger(trigger)
                           ? t("using_form_responses_as_variables")
@@ -1656,7 +1728,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               ).length > 0 && (
                 <div className="bg-cal-muted rounded-lg p-3">
                   <div className="flex items-center gap-2">
-                    <Icon name="phone" className="text-emphasis h-4 w-4" />
+                    <PhoneIcon className="text-emphasis h-4 w-4" />
                     <span className="text-emphasis text-sm font-medium">
                       {formatPhoneNumber(
                         getActivePhoneNumbers(
@@ -1717,7 +1789,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     <>
                       <div className="bg-attention rounded-lg p-3">
                         <div className="flex items-start gap-2">
-                          <Icon name="info" className="text-attention mt-0.5 h-4 w-4" />
+                          <InfoIcon className="text-attention mt-0.5 h-4 w-4" />
                           <div className="stack-y-2">
                             <p className="text-attention text-sm font-medium">{t("this_action_will_also")}</p>
                             <ul className="text-attention stack-y-1 list-inside list-disc text-sm">
@@ -1732,7 +1804,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       {relevantPhoneNumbers.map((phone) => (
                         <div key={phone.phoneNumber} className="bg-cal-muted rounded-lg p-3">
                           <div className="flex items-center gap-2">
-                            <Icon name="phone" className="text-emphasis h-4 w-4" />
+                            <PhoneIcon className="text-emphasis h-4 w-4" />
                             <span className="text-emphasis text-sm font-medium">
                               {formatPhoneNumber(phone.phoneNumber)}
                             </span>
@@ -1769,7 +1841,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       }
                       return updatedStep;
                     });
-                  form.setValue("steps", updatedSteps);
+                  form.setValue("steps", updatedSteps, { shouldDirty: true });
                   if (setReload) {
                     setReload(!reload);
                   }

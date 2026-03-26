@@ -10,7 +10,7 @@ export const useUrlMatchesCurrentUrl = (url: string, matchFullPath?: boolean) =>
   const pathname = usePathname() as null | string;
   const searchParams = useCompatSearchParams();
   const query = searchParams?.toString();
-  let pathnameWithQuery;
+  let pathnameWithQuery: string | null;
   if (query) {
     pathnameWithQuery = `${pathname}?${query}`;
   } else {

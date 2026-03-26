@@ -1,7 +1,6 @@
 import { check, group } from "k6";
 import http from "k6/http";
-
-import { randomSleep, BASE_URL, randomQueryParam } from "./config.js";
+import { BASE_URL, randomQueryParam, randomSleep } from "./config.js";
 
 export function viewBookingPage(username, eventSlug) {
   return group("View Booking Page", () => {

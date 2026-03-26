@@ -1,11 +1,10 @@
 "use client";
 
-import Link from "next/link";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
+import { ArrowRightIcon, CheckIcon, CircleXIcon } from "@coss/ui/icons";
+import Link from "next/link";
 
 export const AppDependencyComponent = ({
   appName,
@@ -19,18 +18,14 @@ export const AppDependencyComponent = ({
   const hasUnmetDependencies = dependencyData ? dependencyData.some((dep) => !dep.installed) : false;
 
   return (
-    <div
-      className={classNames(
-        "rounded-md px-4 py-3",
-        hasUnmetDependencies ? "bg-error" : "bg-subtle"
-      )}>
+    <div className={classNames("rounded-md px-4 py-3", hasUnmetDependencies ? "bg-error" : "bg-subtle")}>
       {dependencyData &&
         dependencyData.map((dependency) => {
           return dependency.installed ? (
             <div className="items-start space-x-2.5">
               <div className="flex items-start">
                 <div>
-                  <Icon name="check" className="mr-2 mt-1 font-semibold" />
+                  <CheckIcon className="mr-2 mt-1 font-semibold" />
                 </div>
                 <div>
                   <span className="font-semibold">
@@ -54,7 +49,7 @@ export const AppDependencyComponent = ({
             <div className="items-start space-x-2.5">
               <div className="text-error flex items-start">
                 <div>
-                  <Icon name="circle-x" className="mr-2 mt-1 font-semibold" />
+                  <CircleXIcon className="mr-2 mt-1 font-semibold" />
                 </div>
                 <div>
                   <span className="font-semibold">
@@ -73,7 +68,7 @@ export const AppDependencyComponent = ({
                           <span className="mr-1">
                             {t("connect_app", { dependencyName: dependency.name })}
                           </span>
-                          <Icon name="arrow-right" />
+                          <ArrowRightIcon />
                         </Link>
                       </>
                     </div>

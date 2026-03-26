@@ -132,6 +132,7 @@ export default function BookingPageTagManager({
           });
 
           return (
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: Analytics script injection
             <Script
               data-testid={`cal-analytics-app-${appId}`}
               src={parseValue(script.src)}

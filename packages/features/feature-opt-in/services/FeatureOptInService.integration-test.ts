@@ -1,10 +1,21 @@
-import { afterEach, describe, expect, it } from "vitest";
-
+import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
 import type { FeatureId } from "@calcom/features/flags/config";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { FeatureOptInService } from "./FeatureOptInService";
+import type { IFeatureOptInService } from "./IFeatureOptInService";
+
+// Mock isFeatureAllowedForScope to always return true for integration tests.
+// The scope validation logic is tested in unit tests; integration tests focus on database behavior.
+vi.mock("../config", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../config")>();
+  return {
+    ...actual,
+    isFeatureAllowedForScope: () => true,
+  };
+});
 
 // Helper to generate unique identifiers per test
 const uniqueId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -30,7 +41,7 @@ interface TestEntities {
   team: { id: number };
   team2: { id: number };
   featuresRepository: FeaturesRepository;
-  service: FeatureOptInService;
+  service: IFeatureOptInService;
   createdFeatures: string[];
   setupFeature: (enabled?: boolean) => Promise<FeatureId>;
 }
@@ -77,8 +88,8 @@ async function setup(): Promise<TestEntities> {
     },
   });
 
-  const featuresRepository = new FeaturesRepository(prisma);
-  const service = new FeatureOptInService(featuresRepository);
+  const featuresRepository = getFeaturesRepository();
+  const service = getFeatureOptInService();
 
   // Helper to create a feature for a test and track it for cleanup
   const setupFeature = async (enabled = true): Promise<FeatureId> => {

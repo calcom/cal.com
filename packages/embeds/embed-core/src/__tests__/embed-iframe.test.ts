@@ -356,4 +356,63 @@ describe("embed-iframe", async () => {
       expect(embedStore.viewId).toBe(3);
     });
   });
+
+  describe("useSlotsViewOnSmallScreen parameter parsing", () => {
+    let embedStore: typeof import("../embed-iframe/lib/embedStore").embedStore;
+
+    beforeEach(async () => {
+      // Reset modules to ensure fresh import
+      vi.resetModules();
+      ({ embedStore } = await import("../embed-iframe/lib/embedStore"));
+      vi.useRealTimers();
+
+      // Mock window properties needed by main()
+      const mockTop = {};
+      Object.defineProperty(window, "top", {
+        value: mockTop,
+        writable: true,
+        configurable: true,
+      });
+      Object.defineProperty(window, "isEmbed", {
+        value: () => true,
+        writable: true,
+        configurable: true,
+      });
+      window.getEmbedNamespace = vi.fn(() => "default");
+      window.getEmbedTheme = vi.fn(() => null);
+    });
+
+    afterEach(() => {
+      vi.resetModules();
+      vi.clearAllMocks();
+    });
+
+    it("should default to false when parameter is not present", async () => {
+      fakeCurrentDocumentUrl(); // No useSlotsViewOnSmallScreen param
+      await import("../embed-iframe"); // This triggers main()
+
+      expect(embedStore.uiConfig?.useSlotsViewOnSmallScreen).toBe(false);
+    });
+
+    it("should be true when parameter is 'true'", async () => {
+      fakeCurrentDocumentUrl({ params: { useSlotsViewOnSmallScreen: "true" } });
+      await import("../embed-iframe"); // This triggers main()
+
+      expect(embedStore.uiConfig?.useSlotsViewOnSmallScreen).toBe(true);
+    });
+
+    it("should be false when parameter is 'false'", async () => {
+      fakeCurrentDocumentUrl({ params: { useSlotsViewOnSmallScreen: "false" } });
+      await import("../embed-iframe"); // This triggers main()
+
+      expect(embedStore.uiConfig?.useSlotsViewOnSmallScreen).toBe(false);
+    });
+
+    it("should be false when parameter has any other value", async () => {
+      fakeCurrentDocumentUrl({ params: { useSlotsViewOnSmallScreen: "invalid" } });
+      await import("../embed-iframe"); // This triggers main()
+
+      expect(embedStore.uiConfig?.useSlotsViewOnSmallScreen).toBe(false);
+    });
+  });
 });

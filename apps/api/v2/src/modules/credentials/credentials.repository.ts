@@ -1,14 +1,16 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { Injectable } from "@nestjs/common";
-
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
 import { credentialForCalendarServiceSelect } from "@calcom/platform-libraries";
 import type { Prisma } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 
 @Injectable()
 export class CredentialsRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async upsertUserAppCredential(
     type: keyof typeof APPS_TYPE_ID_MAPPING,
@@ -60,6 +62,21 @@ export class CredentialsRepository {
     return this.dbWrite.prisma.credential.findFirst({ where: { type, userId } });
   }
 
+  /** Find a user's credential by type with delegation info (for unified calendar API). */
+  findCredentialWithDelegationByTypeAndUserId(type: string, userId: number) {
+    return this.dbRead.prisma.credential.findFirst({
+      where: { type, userId },
+      select: {
+        id: true,
+        type: true,
+        key: true,
+        invalid: true,
+        delegationCredentialId: true,
+        user: { select: { email: true } },
+      },
+    });
+  }
+
   findAllCredentialsByTypeAndUserId(type: string, userId: number) {
     return this.dbWrite.prisma.credential.findMany({ where: { type, userId } });
   }
@@ -88,6 +105,7 @@ export class CredentialsRepository {
         id: true,
         type: true,
         key: true,
+        encryptedKey: true,
         userId: true,
         teamId: true,
         appId: true,
@@ -133,6 +151,21 @@ export class CredentialsRepository {
             email: true,
           },
         },
+      },
+    });
+  }
+
+  /** Find a user's credential by id only (for connection-scoped API). */
+  async findCredentialByIdAndUserId(credentialId: number, userId: number) {
+    return this.dbRead.prisma.credential.findFirst({
+      where: { id: credentialId, userId },
+      select: {
+        id: true,
+        type: true,
+        key: true,
+        invalid: true,
+        delegationCredentialId: true,
+        user: { select: { email: true } },
       },
     });
   }

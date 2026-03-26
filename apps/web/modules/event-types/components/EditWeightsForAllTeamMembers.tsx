@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useState, useEffect, useRef, useMemo } from "react";
-
+import { useTeamMembersWithSegmentPlatform } from "@calcom/atoms/event-types/hooks/useTeamMembersWithSegmentPlatform";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -10,10 +8,9 @@ import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { buttonClasses } from "@calcom/ui/components/button";
-import { Button } from "@calcom/ui/components/button";
+import { Button, buttonClasses } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { ChevronDownIcon, InfoIcon, SearchIcon, UploadIcon } from "@coss/ui/icons";
 import {
   Sheet,
   SheetBody,
@@ -24,11 +21,9 @@ import {
   SheetTitle,
 } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
-
-import {
-  useTeamMembersWithSegment,
-  useTeamMembersWithSegmentPlatform,
-} from "../../../../../packages/platform/atoms/event-types/hooks/useTeamMembersWithSegment";
+import { useTeamMembersWithSegment } from "@calcom/web/modules/event-types/hooks/useTeamMembersWithSegment";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type TeamMemberItemProps = {
   member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };
@@ -102,7 +97,6 @@ interface Props {
   teamMembers: TeamMember[];
   value: Host[];
   onChange: (hosts: Host[]) => void;
-  assignAllTeamMembers: boolean;
   assignRRMembersUsingSegment: boolean;
   teamId?: number;
   queryValue?: AttributesQueryValue | null;
@@ -112,7 +106,6 @@ export const EditWeightsForAllTeamMembers = ({
   teamMembers: initialTeamMembers,
   value,
   onChange,
-  assignAllTeamMembers,
   assignRRMembersUsingSegment,
   teamId,
   queryValue,
@@ -240,13 +233,9 @@ export const EditWeightsForAllTeamMembers = ({
           member.email.toLowerCase().includes(searchQuery.toLowerCase())
       )
       .filter((member) => {
-        // When assignAllTeamMembers is false, only include members that exist in value array
-        return (
-          assignAllTeamMembers ||
-          value.some((host) => !host.isFixed && host.userId === parseInt(member.value, 10))
-        );
+        return value.some((host) => !host.isFixed && host.userId === parseInt(member.value, 10));
       });
-  }, [teamMembers, localWeights, searchQuery, assignAllTeamMembers, value]);
+  }, [teamMembers, localWeights, searchQuery, value]);
 
   return (
     <>
@@ -283,7 +272,7 @@ export const EditWeightsForAllTeamMembers = ({
             <SheetBody className="mt-4 flex h-full flex-col stack-y-6 p-1">
               <div className="flex justify-start gap-2">
                 <label className={buttonClasses({ color: "secondary" })}>
-                  <Icon name="upload" className="mr-2 h-4 w-4" />
+                  <UploadIcon className="mr-2 h-4 w-4" />
                   <input type="file" accept=".csv" className="hidden" onChange={handleUploadCsv} />
                   {t("upload")}
                 </label>
@@ -296,7 +285,7 @@ export const EditWeightsForAllTeamMembers = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
                 addOnLeading={
-                  <Icon name="search" className="text-subtle h-4 w-4" aria-hidden="true" focusable="false" />
+                  <SearchIcon className="text-subtle h-4 w-4" />
                 }
               />
 
@@ -315,10 +304,10 @@ export const EditWeightsForAllTeamMembers = ({
                     className="flex w-full items-center justify-between rounded-md border bg-red-50 p-3 text-sm text-red-900"
                     onClick={() => setIsErrorsExpanded(!isErrorsExpanded)}>
                     <div className="flex items-center space-x-2">
-                      <Icon name="info" className="h-4 w-4" />
+                      <InfoIcon className="h-4 w-4" />
                       <span>{t("csv_upload_errors", { count: uploadErrors.length })}</span>
                     </div>
-                    <Icon name="chevron-down" className="h-4 w-4" />
+                    <ChevronDownIcon className="h-4 w-4" />
                   </button>
                   {isErrorsExpanded && (
                     <div className="mt-2 stack-y-2">

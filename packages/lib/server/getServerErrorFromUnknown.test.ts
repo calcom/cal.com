@@ -20,6 +20,7 @@ const test400Codes = [
   ErrorCode.BookerLimitExceeded,
   ErrorCode.BookerLimitExceededReschedule,
   ErrorCode.ChargeCardFailure,
+  ErrorCode.CollectCardFailure,
 ];
 
 const test404Codes = [

@@ -1,11 +1,11 @@
-import type { GlobalCal, EmbedEvent } from "../../src/embed";
+import type { EmbedEvent, GlobalCal } from "../../src/embed";
 
 const Cal = window.Cal as GlobalCal;
 Cal.config = Cal.config || {};
 Cal.config.forwardQueryParams = true;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const callback = function (e: any) {
+const callback = (e: any) => {
   const detail = e.detail;
 };
 
@@ -45,21 +45,17 @@ if (themeInParam && !theme) {
 
 const calLink = searchParams.get("cal-link");
 
-function fakeEvent({
-  namespace,
-  eventType,
-  data
-}) {
+function fakeEvent({ namespace, eventType, data }) {
   window.postMessage({
     fullType: `CAL:${namespace}:${eventType}`,
     namespace,
     originator: "CAL",
     type: eventType,
     data,
-  })
+  });
 }
 
-window.heavilyCustomizeUi = function ({ namespace }) {
+window.heavilyCustomizeUi = ({ namespace }) => {
   Cal.ns[namespace]("ui", {
     theme: "light",
     cssVarsPerTheme: {
@@ -94,11 +90,11 @@ window.heavilyCustomizeUi = function ({ namespace }) {
   });
 };
 
-window.fakeErrorScenario = function ({ namespace }) {
+window.fakeErrorScenario = ({ namespace }) => {
   fakeEvent({
     namespace,
     eventType: "linkFailed",
-    data: { code: 500 }
+    data: { code: 500 },
   });
 };
 
@@ -137,7 +133,7 @@ if (only === "all" || only === "ns:second") {
   Cal.ns.second(
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-second .place",
       calLink: "pro?case=2",
@@ -166,7 +162,7 @@ if (only === "all" || only === "ns:third") {
     [
       "inline",
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       {
         elementOrSelector: "#cal-booking-place-third .place",
         calLink: "pro/30min",
@@ -217,7 +213,7 @@ if (only === "all" || only === "ns:fourth") {
     [
       "inline",
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       {
         elementOrSelector: "#cal-booking-place-fourth .place",
         calLink: "team/seeded-team",
@@ -262,7 +258,7 @@ if (only === "all" || only === "ns:corpTest") {
   Cal.ns.corpTest([
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-corpTest .place",
       calLink: "pro",
@@ -283,7 +279,7 @@ if (only === "all" || only === "ns:fifth") {
   Cal.ns.fifth([
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-fifth .place",
       calLink: "team/seeded-team/collective-seeded-team-event",
@@ -330,7 +326,7 @@ if (only === "all" || only === "inline-routing-form") {
   Cal.ns["inline-routing-form"]([
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-inline-routing-form .place",
       calLink: "forms/948ae412-d995-4865-875a-48302588de03",
@@ -355,7 +351,7 @@ if (only === "all" || only === "ns:hideEventTypeDetails") {
     [
       "inline",
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
+      //@ts-expect-error
       {
         elementOrSelector: `#cal-booking-place-${identifier} .place`,
         calLink: "free/30min",
@@ -528,7 +524,7 @@ if (only === "all" || only == "ns:monthView") {
   Cal.ns.monthView(
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-monthView .place",
       calLink: "free/30min",
@@ -553,7 +549,7 @@ if (only === "all" || only == "ns:weekView") {
   Cal.ns.weekView(
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-weekView .place",
       calLink: "free/30min",
@@ -582,7 +578,7 @@ if (only === "all" || only == "ns:columnView") {
   Cal.ns.columnView(
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-columnView .place",
       calLink: "free/30min",
@@ -602,6 +598,39 @@ if (only === "all" || only == "ns:columnView") {
   });
 }
 
+if (only === "all" || only == "ns:twoStepSlotSelection") {
+  Cal("init", "twoStepSlotSelection", {
+    debug: true,
+    origin: origin,
+  });
+
+  Cal.ns.twoStepSlotSelection(
+    "inline",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-expect-error
+    {
+      elementOrSelector: "#cal-booking-place-twoStepSlotSelection .place",
+      calLink: "free/30min",
+      config: {
+        iframeAttrs: {
+          id: "cal-booking-place-twoStepSlotSelection-iframe",
+        },
+        "flag.coep": "true",
+        name: "John",
+        email: "john@booker.com",
+        notes: ["test"],
+        guests: ["guest@example.com"],
+        useSlotsViewOnSmallScreen: "true",
+      },
+    }
+  );
+
+  Cal.ns.twoStepSlotSelection("on", {
+    action: "*",
+    callback,
+  });
+}
+
 if (only === "all" || only == "ns:columnViewHideEventTypeDetails") {
   // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
   Cal("init", "columnViewHideEventTypeDetails", {
@@ -612,7 +641,7 @@ if (only === "all" || only == "ns:columnViewHideEventTypeDetails") {
   Cal.ns.columnViewHideEventTypeDetails(
     "inline",
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     {
       elementOrSelector: "#cal-booking-place-columnViewHideEventTypeDetails .place",
       calLink: "free/30min",

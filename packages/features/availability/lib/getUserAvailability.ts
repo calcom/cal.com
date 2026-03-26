@@ -1,6 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
-import { z } from "zod";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -10,7 +7,7 @@ import {
   getBusyTimesFromTeamLimits,
 } from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
@@ -29,20 +26,24 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type {
+  Availability,
   Booking,
-  User,
   OutOfOfficeEntry,
   OutOfOfficeReason,
   EventType as PrismaEventType,
-  Availability,
   SelectedCalendar,
   TravelSchedule,
+  User,
 } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarFetchMode, EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
-import type { TimeRange } from "@calcom/types/schedule";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { TimeRange, WorkingHours as WorkingHoursWithUserId } from "@calcom/types/schedule";
+import type { Ensure, Optional } from "@calcom/types/utils";
+import * as Sentry from "@sentry/nextjs";
+import { z } from "zod";
+import { detectEventTypeScheduleForUser } from "./detectEventTypeScheduleForUser";
 
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 
@@ -114,8 +115,6 @@ export type GetUserAvailabilityInitialData = {
     id: number;
     email: string;
     bufferTime: number;
-    startTime: number;
-    endTime: number;
     timeZone: string;
     availability: Availability[];
     timeFormat: number | null;
@@ -169,9 +168,32 @@ export type CurrentSeats = Awaited<
   ReturnType<(typeof UserAvailabilityService)["prototype"]["_getCurrentSeats"]>
 >;
 
-export type GetUserAvailabilityResult = Awaited<
-  ReturnType<(typeof UserAvailabilityService)["prototype"]["_getUserAvailability"]>
->;
+type UserAvailabilityBusyDetails = Optional<EventBusyDetails, "source">;
+
+export type GetUserAvailabilityResult = {
+  busy: UserAvailabilityBusyDetails[];
+  timeZone: string;
+  dateRanges: {
+    start: dayjs.Dayjs;
+    end: dayjs.Dayjs;
+  }[];
+  oooExcludedDateRanges: {
+    start: dayjs.Dayjs;
+    end: dayjs.Dayjs;
+  }[];
+  workingHours: WorkingHoursWithUserId[];
+  dateOverrides: TimeRange[];
+  currentSeats:
+    | {
+        uid: string;
+        startTime: Date;
+        _count: {
+          attendees: number;
+        };
+      }[]
+    | null;
+  datesOutOfOffice?: IOutOfOfficeData;
+};
 
 export interface IFromUser {
   id: number;
@@ -319,11 +341,27 @@ export class UserAvailabilityService {
 
   getCurrentSeats = withReporting(this._getCurrentSeats.bind(this), "getCurrentSeats");
 
+  private async parseLimits(eventType: { durationLimits?: unknown; bookingLimits?: unknown } | null) {
+    const bookingLimits =
+      eventType?.bookingLimits &&
+      typeof eventType.bookingLimits === "object" &&
+      Object.keys(eventType.bookingLimits).length > 0
+        ? parseBookingLimit(eventType.bookingLimits)
+        : null;
+    const durationLimits =
+      eventType?.durationLimits &&
+      typeof eventType.durationLimits === "object" &&
+      Object.keys(eventType.durationLimits).length > 0
+        ? parseDurationLimit(eventType.durationLimits)
+        : null;
+    return { bookingLimits, durationLimits };
+  }
+
   /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
   async _getUserAvailability(
     params: GetUserAvailabilityParams,
     initialData?: GetUserAvailabilityInitialData
-  ) {
+  ): Promise<GetUserAvailabilityResult> {
     const {
       username,
       userId,
@@ -337,6 +375,7 @@ export class UserAvailabilityService {
       bypassBusyCalendarTimes = false,
       silentlyHandleCalendarFailures = false,
       mode = "none",
+      withSource = false,
     } = params;
 
     log.debug(
@@ -352,7 +391,6 @@ export class UserAvailabilityService {
 
     let eventType: EventType | null = initialData?.eventType || null;
     if (!eventType && eventTypeId) eventType = await this.getEventType(eventTypeId);
-
     /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
     current bookings with a seats event type and display them on the calendar, even if they are full */
     let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
@@ -360,78 +398,151 @@ export class UserAvailabilityService {
       currentSeats = await this.getCurrentSeats(eventType, dateFrom, dateTo);
     }
 
-    const userSchedule = user.schedules.filter(
-      (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
-    )[0];
+    const { isDefaultSchedule, isTimezoneSet, schedule } = detectEventTypeScheduleForUser({
+      eventType,
+      user,
+    });
 
-    const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
+    if (
+      !(
+        schedule?.availability ||
+        (eventType?.availability.length ? eventType.availability : user.availability)
+      )
+    ) {
+      throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
+    }
 
-    // TODO: It uses default timezone of user. Should we use timezone of team ?
-    const fallbackTimezoneIfScheduleIsMissing = eventType?.timeZone || user.timeZone;
+    const availability = (
+      schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
+    ).map((a) => ({
+      ...a,
+      userId: user.id,
+    }));
 
-    const fallbackSchedule = {
-      availability: [
-        {
-          startTime: new Date("1970-01-01T09:00:00Z"),
-          endTime: new Date("1970-01-01T17:00:00Z"),
-          days: [1, 2, 3, 4, 5], // Monday to Friday
-          date: null,
-        },
-      ],
-      id: 0,
+    let calendarTimezone: string | null = null;
+    let finalTimezone: string | null = null;
 
-      timeZone: fallbackTimezoneIfScheduleIsMissing,
-    };
+    if (!isTimezoneSet) {
+      calendarTimezone = await this.getTimezoneFromDelegatedCalendars(user);
+      if (calendarTimezone) {
+        finalTimezone = calendarTimezone;
+      }
+    }
 
-    // possible timezones that have been set by or for a user
-    const potentialSchedule = eventType?.schedule
-      ? eventType.schedule
-      : hostSchedule
-        ? hostSchedule
-        : userSchedule;
+    if (!finalTimezone) {
+      finalTimezone = schedule.timeZone;
+    }
 
-    // if no schedules set by or for a user, use fallbackSchedule
-    const schedule = potentialSchedule ?? fallbackSchedule;
+    const workingHours = getWorkingHours({ timeZone: finalTimezone }, availability);
 
-    const bookingLimits =
-      eventType?.bookingLimits &&
-      typeof eventType.bookingLimits === "object" &&
-      Object.keys(eventType.bookingLimits).length > 0
-        ? parseBookingLimit(eventType.bookingLimits)
-        : null;
+    const dateOverrides: TimeRange[] = [];
+    // NOTE: getSchedule is currently calling this function for every user in a team event
+    // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
+    // since other callers do using this data.
+    if (returnDateOverrides) {
+      const calculateDateOverridesSpan = Sentry.startInactiveSpan({ name: "calculateDateOverrides" });
+      const availabilityWithDates = availability.filter((availability) => !!availability.date);
 
-    const durationLimits =
-      eventType?.durationLimits &&
-      typeof eventType.durationLimits === "object" &&
-      Object.keys(eventType.durationLimits).length > 0
-        ? parseDurationLimit(eventType.durationLimits)
-        : null;
+      for (let i = 0; i < availabilityWithDates.length; i++) {
+        const override = availabilityWithDates[i];
+        const startTime = dayjs.utc(override.startTime);
+        const endTime = dayjs.utc(override.endTime);
+        const overrideStartDate = dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute());
+        const overrideEndDate = dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute());
+        if (
+          overrideStartDate.isBetween(dateFrom, dateTo, null, "[]") ||
+          overrideEndDate.isBetween(dateFrom, dateTo, null, "[]")
+        ) {
+          dateOverrides.push({
+            start: overrideStartDate.toDate(),
+            end: overrideEndDate.toDate(),
+          });
+        }
+      }
+
+      calculateDateOverridesSpan.end();
+    }
+
+    const outOfOfficeDays =
+      initialData?.outOfOfficeDays ??
+      (await this.dependencies.oooRepo.findUserOOODays({
+        userId: user.id,
+        dateFrom: dateFrom.toISOString(),
+        dateTo: dateTo.toISOString(),
+      }));
+
+    const datesOutOfOffice: IOutOfOfficeData = this.calculateOutOfOfficeRanges(outOfOfficeDays, availability);
+
+    const holidayBlockedDates = await this.calculateHolidayBlockedDates(
+      user.id,
+      dateFrom.toDate(),
+      dateTo.toDate(),
+      availability
+    );
+
+    for (const [date, holidayData] of Object.entries(holidayBlockedDates)) {
+      if (!datesOutOfOffice[date]) {
+        datesOutOfOffice[date] = holidayData;
+      }
+    }
+
+    const travelSchedules: {
+      startDate: Dayjs;
+      endDate?: Dayjs;
+      timeZone: string;
+    }[] = [];
+
+    if (isDefaultSchedule) {
+      travelSchedules.push(
+        ...user.travelSchedules.map((schedule) => {
+          let endDate: Dayjs | undefined;
+          if (schedule.endDate) {
+            endDate = dayjs(schedule.endDate);
+          }
+          return {
+            startDate: dayjs(schedule.startDate),
+            endDate,
+            timeZone: schedule.timeZone,
+          };
+        })
+      );
+    }
+
+    const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
+      dateFrom,
+      dateTo,
+      availability,
+      timeZone: finalTimezone,
+      travelSchedules,
+      outOfOffice: datesOutOfOffice,
+    });
+
+    if (dateRanges.length === 0)
+      return {
+        busy: [],
+        timeZone: finalTimezone,
+        dateRanges: [],
+        oooExcludedDateRanges: [],
+        workingHours: [],
+        dateOverrides: [],
+        currentSeats: [],
+        datesOutOfOffice: undefined,
+      };
+
+    const { bookingLimits, durationLimits } = await this.parseLimits(eventType);
 
     // TODO: only query what we need after applying limits (shrink date range)
     const getBusyTimesStart = dateFrom.toISOString();
     const getBusyTimesEnd = dateTo.toISOString();
 
     const selectedCalendars = eventType?.useEventLevelSelectedCalendars
-      ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
+      ? user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventType.id)
       : user.userLevelSelectedCalendars;
 
-    const isTimezoneSet = Boolean(potentialSchedule && potentialSchedule.timeZone !== null);
-
-    // this timezone is synced with google/outlook calendars timezone usingg delegated credentials
-    // it's a fallback for delegated credentials users who want to sync their timezone with third party calendars
-    const calendarTimezone = !isTimezoneSet ? await this.getTimezoneFromDelegatedCalendars(user) : null;
-
-    const finalTimezone =
-      !isTimezoneSet && calendarTimezone
-        ? calendarTimezone
-        : schedule?.timeZone || fallbackTimezoneIfScheduleIsMissing;
-
     let busyTimesFromLimits: EventBusyDetails[] = [];
-
     if (initialData?.busyTimesFromLimits && initialData?.eventTypeForLimits) {
       busyTimesFromLimits = initialData.busyTimesFromLimits.get(user.id) || [];
     } else if (eventType && (bookingLimits || durationLimits)) {
-      // Fall back to individual query if not available in initialData
       busyTimesFromLimits = await getBusyTimesFromLimits(
         bookingLimits,
         durationLimits,
@@ -506,128 +617,28 @@ export class UserAvailabilityService {
       };
     }
 
-    const detailedBusyTimes: EventBusyDetails[] = [
+    const detailedBusyTimesWithSource: EventBusyDetails[] = [
       ...busyTimes.map((a) => ({
         ...a,
         start: dayjs(a.start).toISOString(),
         end: dayjs(a.end).toISOString(),
         title: a.title,
-        source: params.withSource ? a.source : undefined,
+        source: a.source,
       })),
       ...busyTimesFromLimits,
       ...busyTimesFromTeamLimits,
     ];
 
-    const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
+    const detailedBusyTimes: UserAvailabilityBusyDetails[] = withSource
+      ? detailedBusyTimesWithSource
+      : detailedBusyTimesWithSource.map(({ source, ...rest }) => rest);
 
     log.debug(
       `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - usingSchedule: ${safeStringify({
         chosenSchedule: schedule,
         eventTypeSchedule: eventType?.schedule,
-        userSchedule: userSchedule,
-        hostSchedule: hostSchedule,
       })}`
     );
-
-    if (
-      !(
-        schedule?.availability ||
-        (eventType?.availability.length ? eventType.availability : user.availability)
-      )
-    ) {
-      throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
-    }
-
-    const availability = (
-      schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
-    ).map((a) => ({
-      ...a,
-      userId: user.id,
-    }));
-
-    const workingHours = getWorkingHours({ timeZone: finalTimezone }, availability);
-
-    const dateOverrides: TimeRange[] = [];
-    // NOTE: getSchedule is currently calling this function for every user in a team event
-    // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
-    // since other callers do using this data.
-    if (returnDateOverrides) {
-      const calculateDateOverridesSpan = Sentry.startInactiveSpan({ name: "calculateDateOverrides" });
-      const availabilityWithDates = availability.filter((availability) => !!availability.date);
-
-      for (let i = 0; i < availabilityWithDates.length; i++) {
-        const override = availabilityWithDates[i];
-        const startTime = dayjs.utc(override.startTime);
-        const endTime = dayjs.utc(override.endTime);
-        const overrideStartDate = dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute());
-        const overrideEndDate = dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute());
-        if (
-          overrideStartDate.isBetween(dateFrom, dateTo, null, "[]") ||
-          overrideEndDate.isBetween(dateFrom, dateTo, null, "[]")
-        ) {
-          dateOverrides.push({
-            start: overrideStartDate.toDate(),
-            end: overrideEndDate.toDate(),
-          });
-        }
-      }
-
-      calculateDateOverridesSpan.end();
-    }
-
-    const outOfOfficeDays =
-      initialData?.outOfOfficeDays ??
-      (await this.dependencies.oooRepo.findUserOOODays({
-        userId: user.id,
-        dateFrom: dateFrom.toISOString(),
-        dateTo: dateTo.toISOString(),
-      }));
-
-    const datesOutOfOffice: IOutOfOfficeData = this.calculateOutOfOfficeRanges(outOfOfficeDays, availability);
-
-    const holidayBlockedDates = await this.calculateHolidayBlockedDates(
-      user.id,
-      dateFrom.toDate(),
-      dateTo.toDate(),
-      availability
-    );
-
-    for (const [date, holidayData] of Object.entries(holidayBlockedDates)) {
-      if (!datesOutOfOffice[date]) {
-        datesOutOfOffice[date] = holidayData;
-      }
-    }
-
-    const travelSchedules: {
-      startDate: dayjs.Dayjs;
-      endDate?: dayjs.Dayjs;
-      timeZone: string;
-    }[] = [];
-
-    if (isDefaultSchedule) {
-      travelSchedules.push(
-        ...user.travelSchedules.map((schedule) => {
-          let endDate: Dayjs | undefined;
-          if (schedule.endDate) {
-            endDate = dayjs(schedule.endDate);
-          }
-          return {
-            startDate: dayjs(schedule.startDate),
-            endDate,
-            timeZone: schedule.timeZone,
-          };
-        })
-      );
-    }
-
-    const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
-      dateFrom,
-      dateTo,
-      availability,
-      timeZone: finalTimezone,
-      travelSchedules,
-      outOfOffice: datesOutOfOffice,
-    });
 
     const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
       start: dayjs(busy.start),
@@ -652,6 +663,56 @@ export class UserAvailabilityService {
       `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Result: ${safeStringify(result)}`
     );
 
+    return result;
+  }
+
+  /**
+   * This fn mainly uses _getUserAvailability but sends busy times from limits too to _getUserAvailability as expected by _getUserAvailability.
+   */
+  async getUserAvailabilityIncludingBusyTimesFromLimits(
+    params: GetUserAvailabilityParams,
+    initialData: Ensure<GetUserAvailabilityInitialData, "user">
+  ): Promise<GetUserAvailabilityResult> {
+    const { user } = initialData || {};
+    const { dateFrom, dateTo, eventTypeId } = params;
+    let eventType: EventType | null = initialData?.eventType || null;
+    if (!eventType && eventTypeId) eventType = await this.getEventType(eventTypeId);
+
+    const { bookingLimits, durationLimits } = await this.parseLimits(eventType);
+
+    let busyTimesFromLimitsBookings: EventBusyDetails[] | undefined =
+      initialData?.busyTimesFromLimitsBookings;
+    if (!busyTimesFromLimitsBookings && eventType && (bookingLimits || durationLimits)) {
+      const busyTimesService = getBusyTimesService();
+      const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
+        dateFrom.toISOString(),
+        dateTo.toISOString(),
+        bookingLimits,
+        durationLimits
+      );
+
+      // For team events with booking/duration limits, fetch bookings for all team members
+      // to accurately calculate if limits are reached for the event
+      const userIdsForLimitCheck =
+        eventType.hosts && eventType.hosts.length > 0
+          ? eventType.hosts.map((host) => host.user.id)
+          : [user.id];
+
+      busyTimesFromLimitsBookings = await busyTimesService.getBusyTimesForLimitChecks({
+        userIds: userIdsForLimitCheck,
+        eventTypeId: eventType.id,
+        startDate: limitDateFrom.format(),
+        endDate: limitDateTo.format(),
+        rescheduleUid: initialData?.rescheduleUid ?? undefined,
+        bookingLimits,
+        durationLimits,
+      });
+    }
+    const result = await this._getUserAvailability(params, {
+      ...initialData,
+      ...(eventType ? { eventType } : {}),
+      ...(busyTimesFromLimitsBookings ? { busyTimesFromLimitsBookings } : {}),
+    });
     return result;
   }
 

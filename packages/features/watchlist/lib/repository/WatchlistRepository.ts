@@ -1,13 +1,12 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { WatchlistAction, WatchlistSource } from "@calcom/prisma/enums";
-
 import type {
-  IWatchlistRepository,
-  CreateWatchlistInput,
   CheckWatchlistInput,
-  WatchlistEntry,
+  CreateWatchlistInput,
   FindAllEntriesInput,
+  IWatchlistRepository,
   WatchlistAuditEntry,
+  WatchlistEntry,
 } from "./IWatchlistRepository";
 
 export class WatchlistRepository implements IWatchlistRepository {
@@ -169,6 +168,17 @@ export class WatchlistRepository implements IWatchlistRepository {
       | null;
     auditHistory: WatchlistAuditEntry[];
   }> {
+    const bookingReportSelect = {
+      select: {
+        booking: {
+          select: {
+            uid: true,
+            title: true,
+          },
+        },
+      },
+    } as const;
+
     const entry = await this.prismaClient.watchlist.findUnique({
       where: { id },
       select: {
@@ -181,16 +191,8 @@ export class WatchlistRepository implements IWatchlistRepository {
         isGlobal: true,
         source: true,
         lastUpdatedAt: true,
-        bookingReports: {
-          select: {
-            booking: {
-              select: {
-                uid: true,
-                title: true,
-              },
-            },
-          },
-        },
+        bookingReports: bookingReportSelect,
+        globalBookingReports: bookingReportSelect,
         audits: {
           select: {
             id: true,
@@ -209,6 +211,8 @@ export class WatchlistRepository implements IWatchlistRepository {
       },
     });
 
+    const allBookingReports = [...(entry?.bookingReports ?? []), ...(entry?.globalBookingReports ?? [])];
+
     return {
       entry: entry
         ? {
@@ -221,7 +225,7 @@ export class WatchlistRepository implements IWatchlistRepository {
             isGlobal: entry.isGlobal,
             source: entry.source,
             lastUpdatedAt: entry.lastUpdatedAt,
-            bookingReports: entry.bookingReports,
+            bookingReports: allBookingReports,
           }
         : null,
       auditHistory: entry?.audits || [],
@@ -233,6 +237,9 @@ export class WatchlistRepository implements IWatchlistRepository {
       id: string;
       isGlobal: boolean;
       organizationId: number | null;
+      source: WatchlistSource;
+      type: WatchlistEntry["type"];
+      value: string;
     }>
   > {
     return this.prismaClient.watchlist.findMany({
@@ -241,6 +248,9 @@ export class WatchlistRepository implements IWatchlistRepository {
         id: true,
         isGlobal: true,
         organizationId: true,
+        source: true,
+        type: true,
+        value: true,
       },
     });
   }

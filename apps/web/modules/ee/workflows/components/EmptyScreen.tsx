@@ -119,7 +119,7 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
           <Icon name="zap" className="dark:text-default inline-block h-10 w-10 stroke-[1.3px]" />
         </div>
         <div className="max-w-[420px] text-center">
-          <h2 className="font-heading mt-6 text-xl dark:text-gray-300">{t("workflows")}</h2>
+          <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{t("workflows")}</h2>
           <p className="text-default line-clamp-2 mt-3 text-sm font-normal leading-6 dark:text-gray-300">
             {t("no_workflows_description")}
           </p>

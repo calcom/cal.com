@@ -7,13 +7,16 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { findUniqueDelegationCalendarCredential } from "@calcom/app-store/delegationCredential";
-import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
+import {
+  createGoogleCalendarServiceWithGoogleType,
+  type GoogleCalendar,
+} from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { CalendarAppDelegationCredentialInvalidGrantError } from "@calcom/lib/CalendarAppError";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { SelectedCalendarRepository } from "@calcom/features/selectedCalendar/repositories/SelectedCalendarRepository";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 import type { Ensure } from "@calcom/types/utils";
 
@@ -135,7 +138,7 @@ async function getCalendarService(delegationUserCredential: DelegationUserCreden
     return null;
   }
 
-  const googleCalendarService = new GoogleCalendarService(
+  const googleCalendarService = createGoogleCalendarServiceWithGoogleType(
     credentialForCalendarService as CredentialForCalendarServiceWithEmail
   );
 
@@ -146,7 +149,7 @@ async function fetchPrimaryCalendarId({
   googleCalendarService,
   delegationUserCredential,
 }: {
-  googleCalendarService: GoogleCalendarService;
+  googleCalendarService: GoogleCalendar;
   delegationUserCredential: DelegationUserCredentialWithEnsuredUser;
 }) {
   let primaryCalendarId;
@@ -264,10 +267,13 @@ export async function handleCreateSelectedCalendars() {
   }
 
   // Groups delegationUserCredentials by delegationCredentialId
-  const groupedDelegationUserCredentials = allDelegationUserCredentials.reduce((acc, curr) => {
-    acc[curr.delegationCredentialId] = [...(acc[curr.delegationCredentialId] || []), curr];
-    return acc;
-  }, {} as Record<string, typeof allDelegationUserCredentials>);
+  const groupedDelegationUserCredentials = allDelegationUserCredentials.reduce(
+    (acc, curr) => {
+      acc[curr.delegationCredentialId] = [...(acc[curr.delegationCredentialId] || []), curr];
+      return acc;
+    },
+    {} as Record<string, typeof allDelegationUserCredentials>
+  );
 
   let totalSuccess = 0;
   let totalFailures = 0;
@@ -276,9 +282,8 @@ export async function handleCreateSelectedCalendars() {
     groupedDelegationUserCredentials
   )) {
     log.info(`Processing delegation user credentials for delegationCredentialId: ${delegationCredentialId}`);
-    const delegationUserCredentialsToProcess = await getDelegationUserCredentialsToProcess(
-      delegationUserCredentials
-    );
+    const delegationUserCredentialsToProcess =
+      await getDelegationUserCredentialsToProcess(delegationUserCredentials);
     log.info(
       `Found ${delegationUserCredentialsToProcess.length} delegationUserCredentials to process for delegationCredentialId: ${delegationCredentialId}`
     );

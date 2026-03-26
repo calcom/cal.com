@@ -13,9 +13,9 @@
   "scripts": {
     "embed-dev": "yarn workspace @calcom/embed-core dev",
     "embed-web-start": "yarn workspace @calcom/web start",
-    "__build": "yarn tailwind && vite build && tsc --emitDeclarationOnly --declarationDir dist && cp -r ../../../apps/web/public/embed ./dist/",
+    "__build": "yarn tailwind && vite build && tsc --emitDeclarationOnly --declarationDir dist && npx shx cp -r ../../../apps/web/public/embed ./dist/",
     "__dev": "yarn tailwind && vite build --mode development",
-    "build": "rm -rf dist && NEXT_PUBLIC_EMBED_FINGER_PRINT=$(git rev-parse --short HEAD) NEXT_PUBLIC_EMBED_VERSION=$(node -p 'require(\"./package.json\").version') yarn __build",
+    "build": "npx rimraf dist && NEXT_PUBLIC_EMBED_FINGER_PRINT=$(git rev-parse --short HEAD) NEXT_PUBLIC_EMBED_VERSION=$(node -p 'require(\"./package.json\").version') yarn __build",
     "build-preview": "PREVIEW_BUILD=1 yarn __build ",
     "vite": "vite",
     "tailwind": "tailwindcss --input ./src/styles.css --output ./src/tailwind.generated.css",
@@ -35,7 +35,7 @@
     "embed-tests-update-snapshots:ci": "yarn embed-tests-quick --update-snapshots",
     "withEmbedPublishEnv": "NEXT_PUBLIC_EMBED_LIB_URL='https://app.cal.com/embed/embed.js' NEXT_PUBLIC_WEBAPP_URL='https://app.cal.com' yarn",
     "prepack": "yarn ../../../ lint --filter='@calcom/embed-core' && yarn withEmbedPublishEnv build",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf ../../../apps/web/public/embed"
+    "clean": "npx rimraf .turbo node_modules ../../../apps/web/public/embed"
   },
   "files": [
     "dist"

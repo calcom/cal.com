@@ -1,9 +1,8 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
-
+import type { CalendarEvent, ConferenceData, Person } from "@calcom/types/Calendar";
 import type { WebhookVersion } from "../interface/IWebhookRepository";
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 export interface BaseEventDTO {
   triggerEvent: WebhookTriggerEvents;
@@ -50,9 +49,11 @@ export interface BookingCancelledDTO extends BaseEventDTO {
     eventTypeId: number | null;
     userId: number | null;
     smsReminderNumber?: string | null;
+    iCalSequence?: number | null;
   };
   cancelledBy?: string;
   cancellationReason?: string;
+  requestReschedule?: boolean;
 }
 
 export interface BookingRejectedDTO extends BaseEventDTO {
@@ -81,6 +82,7 @@ export interface BookingRequestedDTO extends BaseEventDTO {
     eventTypeId: number | null;
     userId: number | null;
   };
+  metadata?: Record<string, unknown>;
 }
 
 export interface BookingRescheduledDTO extends BaseEventDTO {
@@ -582,6 +584,7 @@ export type EventPayloadType = CalendarEvent &
     rescheduledBy?: string;
     cancelledBy?: string;
     paymentData?: Record<string, unknown>;
+    requestReschedule?: boolean;
   };
 
 // dto/types.ts

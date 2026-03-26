@@ -17,7 +17,7 @@ export const OAuthClientsList = ({ oauthClients, isDeleting, handleDelete }: OAu
     <div className="mb-10">
       <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
         <div className="flex w-full flex-col">
-          <h1 className="font-heading text-emphasis mb-1 text-xl leading-5 tracking-wide">
+          <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
             OAuth Clients
           </h1>
           <p className="text-default text-sm ltr:mr-4 rtl:ml-4">

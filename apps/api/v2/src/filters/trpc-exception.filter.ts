@@ -116,7 +116,7 @@ export class TRPCExceptionFilter implements ExceptionFilter {
     };
 
     const statusCode = errorDefinition.statusCode;
-    const errorMessage = errorDefinition.message;
+    const errorMessage = exception.message || errorDefinition.message;
 
     const requestId = request.headers["X-Request-Id"] ?? "unknown-request-id";
     response.setHeader("X-Request-Id", requestId.toString());

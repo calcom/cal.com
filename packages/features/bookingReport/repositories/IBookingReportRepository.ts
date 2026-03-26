@@ -76,6 +76,11 @@ export interface BookingReportWithDetails {
   } | null;
 }
 
+export interface GroupedBookingReportWithDetails extends BookingReportWithDetails {
+  reportCount: number;
+  reports: BookingReportWithDetails[];
+}
+
 export interface IBookingReportRepository {
   createReport(input: CreateBookingReportInput): Promise<{ id: string }>;
 
@@ -87,6 +92,18 @@ export interface IBookingReportRepository {
     filters?: ListBookingReportsFilters;
   }): Promise<{
     rows: BookingReportWithDetails[];
+    meta: { totalRowCount: number };
+  }>;
+
+  findGroupedReportedBookings(params: {
+    organizationId?: number;
+    skip?: number;
+    take?: number;
+    searchTerm?: string;
+    filters?: ListBookingReportsFilters;
+    systemFilters?: SystemBookingReportsFilters;
+  }): Promise<{
+    rows: GroupedBookingReportWithDetails[];
     meta: { totalRowCount: number };
   }>;
 
@@ -102,12 +119,6 @@ export interface IBookingReportRepository {
     status: BookingReportStatus;
     organizationId?: number;
   }): Promise<void>;
-
-  bulkUpdateReportStatus(params: {
-    reportIds: string[];
-    status: BookingReportStatus;
-    organizationId?: number;
-  }): Promise<{ updated: number }>;
 
   bulkLinkWatchlistWithStatus(params: {
     links: Array<{ reportId: string; watchlistId: string }>;
@@ -134,4 +145,33 @@ export interface IBookingReportRepository {
   }): Promise<{ updated: number }>;
 
   countSystemPendingReports(): Promise<number>;
+
+  dismissReportsByEmail(params: {
+    email: string;
+    status: BookingReportStatus;
+    organizationId: number;
+  }): Promise<{ count: number }>;
+
+  dismissSystemReportsByEmail(params: {
+    email: string;
+    systemStatus: SystemReportStatus;
+  }): Promise<{ count: number }>;
+
+  findPendingReportsByEmail(params: {
+    email: string;
+    organizationId: number;
+  }): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>>;
+
+  findPendingReportsByDomain(params: {
+    domain: string;
+    organizationId: number;
+  }): Promise<Array<{ id: string; bookerEmail: string; watchlistId: string | null }>>;
+
+  findPendingSystemReportsByEmail(params: {
+    email: string;
+  }): Promise<Array<{ id: string; bookerEmail: string; globalWatchlistId: string | null }>>;
+
+  findPendingSystemReportsByDomain(params: {
+    domain: string;
+  }): Promise<Array<{ id: string; bookerEmail: string; globalWatchlistId: string | null }>>;
 }

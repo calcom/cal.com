@@ -92,6 +92,11 @@ describe("BookingWebhookFactory", () => {
         "description",
         "customInputs",
         "responses",
+        "eventTitle",
+        "eventTypeId",
+        "length",
+        "requestReschedule",
+        "iCalSequence",
         "userFieldsResponses",
         "startTime",
         "endTime",
@@ -104,6 +109,7 @@ describe("BookingWebhookFactory", () => {
         "smsReminderNumber",
         "cancellationReason",
         "cancelledBy",
+        "status",
       ];
       const actualKeys = Object.keys(payload).sort();
       expect(actualKeys).toEqual(expectedKeys.sort());

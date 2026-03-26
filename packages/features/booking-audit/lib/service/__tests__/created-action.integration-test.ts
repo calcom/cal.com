@@ -92,6 +92,7 @@ describe("Created Action Integration", () => {
           startTime: testData.booking.startTime.getTime(),
           endTime: testData.booking.endTime.getTime(),
           status: testData.booking.status,
+          hostUserUuid: testData.owner.uuid,
         },
         timestamp: Date.now(),
       });
@@ -138,6 +139,7 @@ describe("Created Action Integration", () => {
           startTime: testData.booking.startTime.getTime(),
           endTime: testData.booking.endTime.getTime(),
           status: testData.booking.status,
+          hostUserUuid: testData.owner.uuid,
         },
         timestamp: Date.now(),
       });
@@ -172,6 +174,7 @@ describe("Created Action Integration", () => {
           startTime: testData.booking.startTime.getTime(),
           endTime: testData.booking.endTime.getTime(),
           status: testData.booking.status,
+          hostUserUuid: testData.owner.uuid,
         },
         timestamp: Date.now(),
         context: {
@@ -211,6 +214,7 @@ describe("Created Action Integration", () => {
           startTime: testData.booking.startTime.getTime(),
           endTime: testData.booking.endTime.getTime(),
           status: testData.booking.status,
+          hostUserUuid: testData.owner.uuid,
         },
         timestamp: Date.now(),
       });
@@ -275,6 +279,7 @@ describe("Created Action Integration", () => {
                 startTime: testData.booking.startTime.getTime(),
                 endTime: testData.booking.endTime.getTime(),
                 status: testData.booking.status,
+                hostUserUuid: testData.owner.uuid,
               },
             },
             {
@@ -283,6 +288,7 @@ describe("Created Action Integration", () => {
                 startTime: booking2.startTime.getTime(),
                 endTime: booking2.endTime.getTime(),
                 status: booking2.status,
+                hostUserUuid: testData.owner.uuid,
               },
             },
             {
@@ -291,6 +297,7 @@ describe("Created Action Integration", () => {
                 startTime: booking3.startTime.getTime(),
                 endTime: booking3.endTime.getTime(),
                 status: booking3.status,
+                hostUserUuid: testData.owner.uuid,
               },
             },
           ],

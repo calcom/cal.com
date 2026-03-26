@@ -15,7 +15,7 @@ export const AttendeeRequestEmail = (props: React.ComponentProps<typeof Attendee
             props.calEvent.recurringEvent?.count
               ? "user_needs_to_confirm_or_reject_booking_recurring"
               : "user_needs_to_confirm_or_reject_booking",
-            { user: props.calEvent.organizer.name }
+            { user: props.calEvent.organizer.name, interpolation: { escapeValue: false } }
           )}
         </>
       }

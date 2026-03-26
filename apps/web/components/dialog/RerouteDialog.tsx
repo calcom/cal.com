@@ -804,7 +804,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
     <div>
       <div>
         <Link
-          className="text-emphasis font-heading mb-4 flex underline"
+          className="text-emphasis text-semibold font-cal mb-4 flex underline"
           href={`/apps/routing-forms/form-edit/${form.id}`}
           target="_blank">
           {form.name}
@@ -903,7 +903,7 @@ export const RerouteDialog = ({ isOpenDialog, setIsOpenDialog, booking }: Rerout
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent preventCloseOnOutsideClick  enableOverflow>
+      <DialogContent preventCloseOnOutsideClick enableOverflow>
         <DialogHeader title={t("reroute_booking")} subtitle={t("reroute_booking_description")} />
         <RerouteDialogContentAndFooter
           booking={teamEventTypeBooking}

@@ -16,7 +16,7 @@ export const getMeetingInformationHandler = async ({ ctx: _ctx, input }: GetMeet
   const { roomName } = input;
 
   try {
-    const dailyVideoAdapterImport = VideoApiAdapterMap["dailyvideo"];
+    const dailyVideoAdapterImport = VideoApiAdapterMap.dailyvideo;
     if (!dailyVideoAdapterImport) {
       throw new TRPCError({
         code: "BAD_REQUEST",

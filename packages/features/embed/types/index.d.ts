@@ -7,6 +7,7 @@ export type EmbedType = "inline" | "floating-popup" | "element-click" | "email" 
 type EmbedConfig = {
   layout?: BookerLayouts;
   theme?: Theme;
+  useSlotsViewOnSmallScreen?: "true" | "false";
 };
 
 export type EmbedState = {

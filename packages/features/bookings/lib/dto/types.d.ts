@@ -34,12 +34,13 @@ export type PlatformParams = {
 
 export type CreateBookingMeta = {
   userId?: number;
+  userUuid?: string;
   // These used to come from headers but now we're passing them as params
   hostname?: string;
   forcedSlug?: string;
   noEmail?: boolean;
   traceContext?: TraceContext;
-  impersonatedByUserUuid?: string;
+  impersonatedByUserUuid: string | null;
 } & PlatformParams;
 
 export type BookingHandlerInput = {

@@ -1,6 +1,5 @@
-import type { WebhookTriggerEvents, UserPermissionRole } from "@calcom/prisma/enums";
-
-import type { Webhook, WebhookSubscriber, WebhookGroup } from "../dto/types";
+import type { UserPermissionRole, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { Webhook, WebhookGroup, WebhookSubscriber } from "../dto/types";
 
 /**
  * Webhook Version enum - defines the payload format versions.
@@ -8,20 +7,20 @@ import type { Webhook, WebhookSubscriber, WebhookGroup } from "../dto/types";
  * This is a TypeScript-only enum (not Prisma).
  * DB operations go through the repository which enforces these values.
  */
-export const WebhookVersion = {
+const WebhookVersion = {
   V_2021_10_20: "2021-10-20",
 } as const;
 
-export type WebhookVersion = (typeof WebhookVersion)[keyof typeof WebhookVersion];
+type WebhookVersion = (typeof WebhookVersion)[keyof typeof WebhookVersion];
 
 /**
  * Default webhook version - used for new webhooks and as fallback
  */
-export const DEFAULT_WEBHOOK_VERSION = WebhookVersion.V_2021_10_20;
+const DEFAULT_WEBHOOK_VERSION: WebhookVersion = WebhookVersion.V_2021_10_20;
 
-const VALID_WEBHOOK_VERSIONS = new Set<string>(Object.values(WebhookVersion));
+const VALID_WEBHOOK_VERSIONS: Set<string> = new Set<string>(Object.values(WebhookVersion));
 
-
+export { WebhookVersion, DEFAULT_WEBHOOK_VERSION, VALID_WEBHOOK_VERSIONS };
 export function isValidWebhookVersion(value: string): value is WebhookVersion {
   return VALID_WEBHOOK_VERSIONS.has(value);
 }
@@ -71,6 +70,10 @@ export interface IWebhookRepository {
     timeUnit: string | null;
     version: WebhookVersion;
   }>;
+  findByOrgIdAndTrigger(options: {
+    orgId: number;
+    triggerEvent: WebhookTriggerEvents;
+  }): Promise<WebhookSubscriber[]>;
   getFilteredWebhooksForUser(options: { userId: number; userRole?: UserPermissionRole }): Promise<{
     webhookGroups: WebhookGroup[];
     profiles: {
@@ -84,4 +87,3 @@ export interface IWebhookRepository {
   }>;
   listWebhooks(options: ListWebhooksOptions): Promise<Webhook[]>;
 }
-

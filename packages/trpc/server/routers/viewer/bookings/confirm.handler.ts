@@ -2,24 +2,36 @@ import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/d
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails/email-manager";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getAssignmentReasonCategory } from "@calcom/features/bookings/lib/getAssignmentReasonCategory";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
@@ -27,9 +39,8 @@ import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
 import { TRPCError } from "@trpc/server";
-
+import { v4 as uuidv4 } from "uuid";
 import type { TrpcSessionUser } from "../../../types";
 import type { TConfirmInputSchema } from "./confirm.schema";
 
@@ -41,10 +52,76 @@ type ConfirmOptions = {
     >;
     traceContext: TraceContext;
   };
-  input: TConfirmInputSchema;
+  input: TConfirmInputSchema & { actionSource: ValidActionSource; actor: Actor; impersonatedByUserUuid: string | null };
 };
 
+async function fireRejectionEvent({
+  actor,
+  organizationId,
+  actionSource,
+  rejectedBookings,
+  rejectionReason,
+  isBookingAuditEnabled,
+  tracingLogger,
+  impersonatedByUserUuid,
+}: {
+  actor: Actor;
+  organizationId: number | null;
+  rejectionReason: string | null;
+  actionSource: ValidActionSource;
+  rejectedBookings: {
+    uid: string;
+    oldStatus: BookingStatus;
+  }[];
+  isBookingAuditEnabled: boolean;
+  tracingLogger: ISimpleLogger;
+  impersonatedByUserUuid: string | null;
+}): Promise<void> {
+  try {
+    const bookingEventHandlerService = getBookingEventHandlerService();
+    if (rejectedBookings.length > 1) {
+      const operationId = uuidv4();
+      const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
+      await bookingEventHandlerService.onBulkBookingsRejected({
+        bookings: rejectedBookings.map((booking) => ({
+          bookingUid: booking.uid,
+          auditData: {
+            rejectionReason,
+            status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
+          },
+        })),
+        actor,
+        organizationId,
+        operationId,
+        source: actionSource,
+        context,
+        isBookingAuditEnabled,
+      });
+    } else if (rejectedBookings.length === 1) {
+      const booking = rejectedBookings[0];
+      const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
+      await bookingEventHandlerService.onBookingRejected({
+        bookingUid: booking.uid,
+        actor,
+        organizationId,
+        auditData: {
+          rejectionReason,
+          status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
+        },
+        source: actionSource,
+        context,
+        isBookingAuditEnabled,
+      });
+    }
+  } catch (error) {
+    tracingLogger.error("Error firing booking rejection event", safeStringify(error));
+  }
+}
+/**
+ * TODO: Convert it to a service as this fn is the single point of entry across trpc, magic-links, and API v2
+ */
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
+  const log = logger.getSubLogger({ prefix: ["confirmHandler"] });
   const {
     bookingId,
     recurringEventId,
@@ -52,6 +129,9 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     confirmed,
     emailsEnabled,
     platformClientParams,
+    actionSource,
+    actor,
+    impersonatedByUserUuid,
   } = input;
 
   const booking = await prisma.booking.findUniqueOrThrow({
@@ -87,7 +167,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           hideCalendarNotes: true,
           hideCalendarEventDetails: true,
           disableGuests: true,
+          disableCancelling: true,
+          disableRescheduling: true,
           customReplyToEmail: true,
+          seatsPerTimeSlot: true,
+          seatsShowAttendees: true,
           metadata: true,
           locations: true,
           team: {
@@ -95,6 +179,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: { select: { hideBranding: true } },
             },
           },
           workflows: {
@@ -125,6 +211,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           name: true,
           destinationCalendar: true,
           locale: true,
+          hideBranding: true,
+          profiles: {
+            select: {
+              organization: { select: { hideBranding: true } },
+            },
+          },
         },
       },
       id: true,
@@ -135,6 +227,16 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       recurringEventId: true,
       status: true,
       smsReminderNumber: true,
+      assignmentReason: {
+        select: {
+          reasonEnum: true,
+          reasonString: true,
+        },
+        orderBy: {
+          createdAt: "desc" as const,
+        },
+        take: 1,
+      },
     },
   });
 
@@ -241,14 +343,18 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     destinationCalendar: booking.destinationCalendar
       ? [booking.destinationCalendar]
       : booking.user?.destinationCalendar
-      ? [booking.user?.destinationCalendar]
-      : [],
+        ? [booking.user?.destinationCalendar]
+        : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
     hideOrganizerEmail: booking.eventType?.hideOrganizerEmail,
     hideCalendarNotes: booking.eventType?.hideCalendarNotes,
     hideCalendarEventDetails: booking.eventType?.hideCalendarEventDetails,
     eventTypeId: booking.eventType?.id,
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+    seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+    disableCancelling: booking.eventType?.disableCancelling ?? false,
+    disableRescheduling: booking.eventType?.disableRescheduling ?? false,
     team: booking.eventType?.team
       ? {
           name: booking.eventType.team.name,
@@ -259,6 +365,24 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     ...(platformClientParams ? platformClientParams : {}),
     organizationId: organizerOrganizationId ?? booking.eventType?.team?.parentId ?? null,
     additionalNotes: booking.description,
+    assignmentReason: booking.assignmentReason?.[0]?.reasonEnum
+      ? {
+          category: getAssignmentReasonCategory(booking.assignmentReason[0].reasonEnum),
+          details: booking.assignmentReason[0].reasonString ?? null,
+        }
+      : null,
+    hideBranding: booking.eventType?.id
+      ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventType.id, {
+          team: booking.eventType.team
+            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            : null,
+          owner: {
+            id: user.id,
+            hideBranding: user.hideBranding,
+            profiles: user.profiles ?? [],
+          },
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
@@ -331,22 +455,47 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       emailsEnabled,
       platformClientParams,
       traceContext,
+      actionSource,
+      actor,
+      impersonatedByUserUuid,
     });
   } else {
     evt.rejectionReason = rejectionReason;
+    let rejectedBookings: {
+      uid: string;
+      oldStatus: BookingStatus;
+    }[] = [];
+
     if (recurringEventId) {
       // The booking to reject is a recurring event and comes from /booking/upcoming, proceeding to mark all related
       // bookings as rejected.
-      await prisma.booking.updateMany({
+      const unconfirmedRecurringBookings = await prisma.booking.findMany({
         where: {
           recurringEventId,
           status: BookingStatus.PENDING,
+        },
+        select: {
+          uid: true,
+          status: true,
+        },
+      });
+
+      await prisma.booking.updateMany({
+        where: {
+          uid: {
+            in: unconfirmedRecurringBookings.map((booking) => booking.uid),
+          },
         },
         data: {
           status: BookingStatus.REJECTED,
           rejectionReason,
         },
       });
+
+      rejectedBookings = unconfirmedRecurringBookings.map((recurringBooking) => ({
+        uid: recurringBooking.uid,
+        oldStatus: recurringBooking.status,
+      }));
     } else {
       // handle refunds
       if (booking.payment.length) {
@@ -366,6 +515,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           rejectionReason,
         },
       });
+
+      rejectedBookings = [
+        {
+          uid: booking.uid,
+          oldStatus: booking.status,
+        },
+      ];
     }
 
     if (emailsEnabled) {
@@ -380,6 +536,22 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     });
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+
+    const featuresRepository = getFeaturesRepository();
+    const isBookingAuditEnabled = orgId
+      ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+      : false;
+
+    await fireRejectionEvent({
+      actor,
+      actionSource,
+      organizationId: orgId ?? null,
+      rejectionReason: rejectionReason ?? null,
+      rejectedBookings,
+      isBookingAuditEnabled,
+      tracingLogger: log,
+      impersonatedByUserUuid,
+    });
 
     // send BOOKING_REJECTED webhooks
     const subscriberOptions: GetSubscriberOptions = {
@@ -399,8 +571,9 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       currency: booking.eventType?.currency,
       length: booking.eventType?.length,
     };
+    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
     const webhookData: EventPayloadType = {
-      ...evt,
+      ...evtWithoutAssignmentReason,
       ...eventTypeInfo,
       bookingId,
       eventTypeId: booking.eventType?.id,
@@ -424,7 +597,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
             slug: booking.eventType?.slug as string,
           },
         },
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding: evt.hideBranding,
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
         creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });

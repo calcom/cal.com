@@ -1,16 +1,16 @@
-import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
-import { ApiProperty as DocsProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
+import { ApiHideProperty, ApiPropertyOptional, ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
-  IsString,
-  IsNumber,
-  IsBoolean,
-  IsOptional,
-  ValidateNested,
-  Min,
   IsArray,
+  IsBoolean,
   IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested,
 } from "class-validator";
+import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
 
 export const CREATE_EVENT_LENGTH_EXAMPLE = 60;
 export const CREATE_EVENT_SLUG_EXAMPLE = "cooking-class";
@@ -76,13 +76,19 @@ export class CreateEventTypeInput_2024_04_15 {
   @IsOptional()
   @IsInt()
   @Min(0)
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description:
+      "Extra time automatically blocked on your calendar before a meeting starts. This gives you time to prepare, review notes, or transition from your previous activity.",
+  })
   beforeEventBuffer?: number;
 
   @IsOptional()
   @IsInt()
   @Min(0)
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    description:
+      "Extra time automatically blocked on your calendar after a meeting ends. This gives you time to wrap up, add notes, or decompress before your next commitment.",
+  })
   afterEventBuffer?: number;
 
   // @ApiHideProperty()

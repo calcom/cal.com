@@ -59,6 +59,11 @@ export interface BookingReport {
   organization?: { name: string } | null;
 }
 
+export interface GroupedBookingReport extends BookingReport {
+  reportCount: number;
+  reports: BookingReport[];
+}
+
 export interface CreateBlocklistEntryFormData {
   type: WatchlistType;
   value: string;

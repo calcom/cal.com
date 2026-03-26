@@ -73,6 +73,21 @@ export class AtomsSchedulesController {
     };
   }
 
+  @Get("/schedules/event-type/:eventSlug")
+  @Version(VERSION_NEUTRAL)
+  @UseGuards(ApiAuthGuard)
+  @Permissions([SCHEDULE_READ])
+  async getScheduleByEventSlug(
+    @GetUser() user: UserWithProfile,
+    @Param("eventSlug") eventSlug: string
+  ): Promise<ApiResponse<unknown>> {
+    const schedule = await this.schedulesService.getScheduleByEventSlug(user, eventSlug);
+    return {
+      status: SUCCESS_STATUS,
+      data: schedule,
+    };
+  }
+
   @Get("/schedules/all")
   @Version(VERSION_NEUTRAL)
   @UseGuards(ApiAuthGuard)

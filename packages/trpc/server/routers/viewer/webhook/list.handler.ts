@@ -1,7 +1,6 @@
+import { getWebhookFeature } from "@calcom/features/di/webhooks/containers/webhook";
 import type { Webhook } from "@calcom/features/webhooks/lib/dto/types";
-import { WebhookRepository } from "@calcom/features/webhooks/lib/repository/WebhookRepository";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TListInputSchema } from "./list.schema";
 
 type ListOptions = {
@@ -12,7 +11,7 @@ type ListOptions = {
 };
 
 export const listHandler = async ({ ctx, input }: ListOptions): Promise<Webhook[]> => {
-  const repository = WebhookRepository.getInstance();
+  const { repository } = getWebhookFeature();
 
   return repository.listWebhooks({
     userId: ctx.user.id,

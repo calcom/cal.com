@@ -23,7 +23,7 @@ export const EmptyState = ({
   buttonDataTestId,
 }: EmptyStateProps) => {
   return (
-    <div className="border-sublte bg-cal-muted flex flex-col items-center gap-6 rounded-xl border p-11">
+    <div className="border-subtle bg-cal-muted flex flex-col items-center gap-6 rounded-xl border p-11">
       <div className="mb-3 grid">
         {/* Icon card - Top */}
         <div className="bg-default border-subtle z-30 col-start-1 col-end-1 row-start-1 row-end-1 h-10 w-10 transform rounded-md border shadow-sm">
@@ -47,7 +47,9 @@ export const EmptyState = ({
         />
       </div>
       <div className="w-full">
-        <h1 className="text-emphasis line-clamp-1 text-center text-lg font-semibold">{header}</h1>
+        <h1 className="text-emphasis line-clamp-1 text-center text-lg font-semibold">
+          {header}
+        </h1>
         <p className="mt-2 line-clamp-1 text-center text-sm leading-normal transition-all duration-200 ease-in-out hover:line-clamp-none">
           {text}
         </p>
@@ -56,7 +58,8 @@ export const EmptyState = ({
         data-testid={buttonDataTestId}
         StartIcon={buttonStartIcon}
         onClick={buttonOnClick}
-        className={buttonClassName}>
+        className={buttonClassName}
+      >
         {buttonText}
       </Button>
     </div>

@@ -207,6 +207,7 @@ export class TeamRepository {
         parentId,
       },
       select,
+      orderBy: { id: "asc" },
     });
   }
 
@@ -468,6 +469,20 @@ export class TeamRepository {
     });
   }
 
+  async findOrganizationIdBySlug({ slug }: { slug: string }): Promise<number | null> {
+    const org = await this.prismaClient.team.findFirst({
+      where: {
+        slug,
+        parentId: null,
+        isOrganization: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return org?.id ?? null;
+  }
+
   async isSlugAvailableForUpdate({
     slug,
     teamId,
@@ -529,7 +544,12 @@ export class TeamRepository {
   async findTeamsForCreditCheck({ teamIds }: { teamIds: number[] }) {
     return await this.prismaClient.team.findMany({
       where: { id: { in: teamIds } },
-      select: { id: true, isOrganization: true, parentId: true, parent: { select: { id: true } } },
+      select: {
+        id: true,
+        isOrganization: true,
+        parentId: true,
+        parent: { select: { id: true } },
+      },
     });
   }
 
@@ -554,7 +574,7 @@ export class TeamRepository {
     const users = await this.prismaClient.$queryRaw<UserResult[]>`
       SELECT DISTINCT u.id, u.name, u.email, u.locale
       FROM "Membership" m
-      INNER JOIN "User" u ON m."userId" = u.id
+      INNER JOIN "users" u ON m."userId" = u.id
       LEFT JOIN "Role" r ON m."customRoleId" = r.id
       LEFT JOIN "TeamFeatures" f ON m."teamId" = f."teamId" AND f."featureId" = 'pbac' AND f.enabled = true
       WHERE m."teamId" = ${teamId}
@@ -582,7 +602,10 @@ export class TeamRepository {
     return users;
   }
 
-  private parsePermission(permission: string): { resource: string; action: string } {
+  private parsePermission(permission: string): {
+    resource: string;
+    action: string;
+  } {
     const lastDotIndex = permission.lastIndexOf(".");
     const resource = permission.substring(0, lastDotIndex);
     const action = permission.substring(lastDotIndex + 1);
@@ -597,6 +620,16 @@ export class TeamRepository {
           parentId: orgId, // Finds any team whose orgId is NOT the target ID
         },
       },
+    });
+  }
+
+  async findByIdsAndOrgId({ teamIds, orgId }: { teamIds: number[]; orgId: number }) {
+    return await this.prismaClient.team.findMany({
+      where: {
+        id: { in: teamIds },
+        OR: [{ id: orgId }, { parentId: orgId }],
+      },
+      select: { id: true },
     });
   }
 

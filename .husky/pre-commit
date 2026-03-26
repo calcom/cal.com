@@ -3,5 +3,5 @@ if [ -f .git/MERGE_HEAD ]; then
   exit 0
 fi
 
-yarn lint-staged
+yarn lint-staged --verbose
 yarn app-store:build && git add packages/app-store/*.generated.*

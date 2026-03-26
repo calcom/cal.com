@@ -36,13 +36,15 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
   userName,
 }) => {
   const parsedMetaData = EventTypeMetaDataSchema.safeParse(metadata);
-  const multipleDuration = parsedMetaData.success && parsedMetaData.data?.multipleDuration 
-    ? parsedMetaData.data.multipleDuration 
-    : [];
+  const multipleDuration =
+    parsedMetaData.success && parsedMetaData.data?.multipleDuration
+      ? parsedMetaData.data.multipleDuration
+      : [];
 
-  const durations = multipleDuration.length > 0
-    ? [length, ...multipleDuration.filter((duration) => duration !== length)].sort()
-    : [length];
+  const durations =
+    multipleDuration.length > 0
+      ? [length, ...multipleDuration.filter((duration) => duration !== length)].sort()
+      : [length];
   return (
     <div
       data-testid={`select-event-type-${id}`}
@@ -63,9 +65,9 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
             </small>
           </div>
           {Boolean(description) && (
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML
             <div
               className="text-subtle line-clamp-4 wrap-break-word text-sm sm:max-w-[650px] [&>*:not(:first-child)]:hidden [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-               
               dangerouslySetInnerHTML={{
                 __html: markdownToSafeHTML(description),
               }}
@@ -85,6 +87,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
   );
 };
 const EventTypeGroup: FC<EventTypeGroupProps> = ({ groupIndex, userName, ...props }) => {
+  const { t } = useLocale();
   const { control } = useFormContext<TEventTypesForm>();
   const { fields, update } = useFieldArray({
     control,
@@ -96,7 +99,7 @@ const EventTypeGroup: FC<EventTypeGroupProps> = ({ groupIndex, userName, ...prop
     <div className="mt-10">
       <div className="mb-2 flex items-center">
         <Avatar
-          alt=""
+          alt={t("app_icon", { app: props.slug })}
           imageSrc={props.image} // if no image, use default avatar
           size="md"
           className="mt-1 inline-flex justify-center"
@@ -119,7 +122,9 @@ const EventTypeGroup: FC<EventTypeGroupProps> = ({ groupIndex, userName, ...prop
                 />
               ))
             ) : (
-              <div className="text-subtle bg-cal-muted w-full p-2  text-center text-sm">Team has no Events</div>
+              <div className="text-subtle bg-cal-muted w-full p-2  text-center text-sm">
+                Team has no Events
+              </div>
             )}
           </ul>
         </ScrollableArea>

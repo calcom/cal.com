@@ -1,31 +1,41 @@
+import { Module } from "@nestjs/common";
+import { BookingAttendeesController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/booking-attendees.controller";
 import { BookingGuestsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/booking-guests.controller";
 import { BookingLocationController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/booking-location.controller";
 import { BookingsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/bookings.controller";
 import { BookingPbacGuard } from "@/ee/bookings/2024-08-13/guards/booking-pbac.guard";
 import { BookingReferencesRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/booking-references.repository";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
+import { BookingAttendeesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-attendees.service";
 import { BookingGuestsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-guests.service";
+import { BookingLocationCalendarSyncService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-location-calendar-sync.service";
+import { BookingLocationCredentialService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-location-credential.service";
+import { BookingLocationIntegrationService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-location-integration.service";
 import { BookingLocationService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-location.service";
+import { BookingVideoService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-video.service";
 import { BookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-references.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { CalVideoOutputService } from "@/ee/bookings/2024-08-13/services/cal-video.output.service";
 import { CalVideoService } from "@/ee/bookings/2024-08-13/services/cal-video.service";
 import { ErrorsBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/errors.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
-import { OutputBookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output-booking-references.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
+import { OutputBookingReferencesService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output-booking-references.service";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
-import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { BookingAttendeesModule } from "@/lib/modules/booking-attendees.module";
+import { BookingEventHandlerModule } from "@/lib/modules/booking-event-handler.module";
 import { InstantBookingModule } from "@/lib/modules/instant-booking.module";
 import { RecurringBookingModule } from "@/lib/modules/recurring-booking.module";
 import { RegularBookingModule } from "@/lib/modules/regular-booking.module";
+import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { BillingModule } from "@/modules/billing/billing.module";
@@ -49,7 +59,6 @@ import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [
@@ -71,6 +80,8 @@ import { Module } from "@nestjs/common";
     RegularBookingModule,
     RecurringBookingModule,
     InstantBookingModule,
+    BookingEventHandlerModule,
+    BookingAttendeesModule,
   ],
   providers: [
     TokensRepository,
@@ -78,6 +89,7 @@ import { Module } from "@nestjs/common";
     OAuthClientRepository,
     OAuthClientUsersService,
     BookingsService_2024_08_13,
+    BookingAttendeesService_2024_08_13,
     BookingGuestsService_2024_08_13,
     InputBookingsService_2024_08_13,
     OutputBookingsService_2024_08_13,
@@ -102,10 +114,16 @@ import { Module } from "@nestjs/common";
     CalVideoService,
     CalVideoOutputService,
     BookingPbacGuard,
+    BookingLocationCalendarSyncService_2024_08_13,
+    BookingLocationCredentialService_2024_08_13,
+    BookingLocationIntegrationService_2024_08_13,
     BookingLocationService_2024_08_13,
+    BookingVideoService_2024_08_13,
+    PrismaFeaturesRepository,
   ],
   controllers: [
     BookingsController_2024_08_13,
+    BookingAttendeesController_2024_08_13,
     BookingGuestsController_2024_08_13,
     BookingLocationController_2024_08_13,
   ],

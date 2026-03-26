@@ -71,6 +71,16 @@ const getUserBooking = async (uid: string) => {
           utm_content: true,
         },
       },
+      assignmentReason: {
+        select: {
+          reasonEnum: true,
+          reasonString: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 1,
+      },
     },
   });
 

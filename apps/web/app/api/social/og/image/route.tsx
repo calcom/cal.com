@@ -77,13 +77,11 @@ async function handler(req: NextRequest) {
 
           const etag = await getOGImageVersion("meeting");
           const img = new ImageResponse(
-            (
-              <Meeting
-                title={title}
-                profile={{ name: meetingProfileName, image: meetingImage }}
-                users={names.map((name, index) => ({ name, username: usernames[index] }))}
-              />
-            ),
+            <Meeting
+              title={title}
+              profile={{ name: meetingProfileName, image: meetingImage }}
+              users={names.map((name, index) => ({ name, username: usernames[index] }))}
+            />,
             ogConfig
           );
 

@@ -22,23 +22,22 @@ export type CreateInnerContextOptions = {
   sourceIp?: string;
   session?: Session | null;
   locale: string;
-  user?:
-    | Omit<
-        PrismaUser,
-        | "locale"
-        | "twoFactorSecret"
-        | "emailVerified"
-        | "password"
-        | "identityProviderId"
-        | "invitedTo"
-        | "allowDynamicBooking"
-        | "verified"
-      > & {
-        locale: Exclude<PrismaUser["locale"], null>;
-        credentials?: Credential[];
-        selectedCalendars?: Partial<SelectedCalendar>[];
-        rawAvatar?: string;
-      };
+  user?: Omit<
+    PrismaUser,
+    | "locale"
+    | "twoFactorSecret"
+    | "emailVerified"
+    | "password"
+    | "identityProviderId"
+    | "invitedTo"
+    | "allowDynamicBooking"
+    | "verified"
+  > & {
+    locale: Exclude<PrismaUser["locale"], null>;
+    credentials?: Credential[];
+    selectedCalendars?: Partial<SelectedCalendar>[];
+    rawAvatar?: string;
+  };
   i18n?: Awaited<ReturnType<typeof serverSideTranslations>>;
 } & Partial<CreateContextOptions>;
 

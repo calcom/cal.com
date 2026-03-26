@@ -1,5 +1,4 @@
 import type { NextApiRequest } from "next";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getRecurringBookingService } from "@calcom/features/bookings/di/RecurringBookingService.container";
 import type { BookingResponse } from "@calcom/features/bookings/types";
@@ -54,7 +53,9 @@ async function handler(req: NextApiRequest & RequestMeta) {
       platformRescheduleUrl: req.platformRescheduleUrl,
       platformBookingLocation: req.platformBookingLocation,
       noEmail: req.noEmail,
+      impersonatedByUserUuid: session?.user?.impersonatedBy?.uuid ?? null,
     },
+    creationSource: "WEBAPP",
   });
 
   return createdBookings;

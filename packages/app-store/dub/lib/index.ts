@@ -1,1 +1,1 @@
-export { default as AnalyticsService } from "./AnalyticsService";
+export { default as BuildAnalyticsService } from "./AnalyticsService";

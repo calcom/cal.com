@@ -4,10 +4,7 @@ description: Find out how to use Cal "atoms" to integrate scheduling into your p
 "icon": "rocket"
 ---
 
-## 1. Unlocking access to atoms
-1. Sign up for a Platform account [here](https://app.cal.com/signup?redirect=https://app.cal.com/settings/platform/new)
-
-## 2. Setting up an OAuth client
+## 1. Setting up an OAuth client
 
 Once your account is created, the next step is to create an OAuth client. This allows you to connect your users to Cal and handle their scheduling with atoms.
 
@@ -23,7 +20,7 @@ Once your account is created, the next step is to create an OAuth client. This a
         4. Profile: When you proceed to the chapter 2, you will create your users on our end, so that we can manage their scheduling. Profile permissions allow to either read or update users you create on our end.
         5. Apps: used to connect Google Calendar, Zoom, Microsoft Teams, etc. to atoms.
 
-## 3. Creating managed users connected to the OAuth client
+## 2. Creating managed users connected to the OAuth client
 
 In order for atoms to handle scheduling on behalf of your users, you have to create what we call a “managed user” for each of your users.
 
@@ -93,7 +90,7 @@ Second, if `timeZone` is passed in the request, the user's default schedule from
 if the `timeZone` is not passed,  then user has no default schedule and user can't be booked and user can't set availability using the `AvailabilitySettings` atom. You will have to set it up manually via the `/schedules` endpoints.
 We recommend setting the `timeZone` for ease of use.
 
-## 4. Backend: setting up a refresh token endpoint
+## 3. Backend: setting up a refresh token endpoint
 
 You have to set up an endpoint on your server to which atoms can send an expired access token and receive new one in return. This exchange will be automatically handled by atoms when you provide this endpoint URL when setting up frontend in the next step.
 
@@ -122,7 +119,7 @@ Shortly:
 The atoms will now use the new access token to handle scheduling on behalf of your user. Access token expires after 60 minutes and atoms
 then will make a request to your refresh token endpoint to get a new access token while also refreshing the refresh token.
 
-## 5. Managing refresh token expiry
+## 4. Managing refresh token expiry
 
 Each refresh token is valid for 1 year. When a managed user's access token is refreshed, the refresh token is refreshed too.
 However, to make sure that refresh tokens do not expire for less active users you have 2 options:
@@ -132,11 +129,11 @@ is about to expire, then refresh tokens using the [`/refresh`](https://cal.com/d
 refresh token has expired, call the [`/force-refresh`](https://cal.com/docs/api-reference/v2/platform-managed-users/force-refresh-tokens) endpoint - it allows you to refresh managed user tokens
 using only the OAuth client ID and client secret and is intended to be used in cases when one of the tokens is lost or the refresh token is expired.
 
-## 6. Frontend: setting up atoms
+## 5. Frontend: setting up atoms
 
 Atoms are customizable UI components handling scheduling on behalf of your users.
 
-### 6.1 Install the atoms package
+### 5.1 Install the atoms package
 
 npm:
 
@@ -156,7 +153,7 @@ pnpm:
 pnpm add @calcom/atoms
 ```
 
-### 6.2 Set up environment variables
+### 5.2 Set up environment variables
 
 CAL_OAUTH_CLIENT_ID: OAuth client ID
 
@@ -241,7 +238,7 @@ function MyApp({ Component, pageProps }) {
 export default MyApp;
 ```
 
-## 7. Frontend: using atoms
+## 6. Frontend: using atoms
 
 It’s very easy, just import the atom and drop it in code! For example, for users to connect their Google Calendar drop in "Connect.GoogleCalendar" component - it will handle everything.
 
@@ -288,7 +285,7 @@ other more complex atoms will expose multiple classNames and props to react to e
 />;
 ```
 
-## 8. Front-end: passing additional props to CalProvider
+## 7. Front-end: passing additional props to CalProvider
 
 The CalProvider component offers several additional props to customize its behavior and appearance:
 1. autoUpdateTimezone: By default, the atoms automatically update the user's timezone. You can disable this feature by setting autoUpdateTimezone to false.

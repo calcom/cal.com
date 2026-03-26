@@ -19,7 +19,7 @@ export default function PostHogPageView() {
   const posthog = usePostHog();
 
   useEffect(() => {
-    const shouldTrack = TRACKED_ROUTES.some(route => pathname?.startsWith(route));
+    const shouldTrack = TRACKED_ROUTES.some((route) => pathname?.startsWith(route));
 
     if (!shouldTrack) return;
 

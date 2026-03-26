@@ -1,5 +1,20 @@
-import { bootstrap } from "@/bootstrap";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ApiSuccessResponse } from "@calcom/platform-types";
+import { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import { INestApplication } from "@nestjs/common";
+import { NestExpressApplication } from "@nestjs/platform-express";
+import { Test } from "@nestjs/testing";
+import request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
+import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
+import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { AppModule } from "@/app.module";
+import { bootstrap } from "@/bootstrap";
 import { EmailService } from "@/modules/email/email.service";
 import {
   CreateManagedUserData,
@@ -13,32 +28,15 @@ import { CreateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/cre
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import {
+  PLATFORM_USER_AND_PLATFORM_TEAM_CREATED_WITH_DIFFERENT_OAUTH_CLIENTS_ERROR,
   PLATFORM_USER_BEING_ADDED_TO_REGULAR_TEAM_ERROR,
   REGULAR_USER_BEING_ADDED_TO_PLATFORM_TEAM_ERROR,
-  PLATFORM_USER_AND_PLATFORM_TEAM_CREATED_WITH_DIFFERENT_OAUTH_CLIENTS_ERROR,
 } from "@/modules/teams/memberships/services/teams-memberships.service";
 import { TeamsMembershipsModule } from "@/modules/teams/memberships/teams-memberships.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { UsersModule } from "@/modules/users/users.module";
-import { INestApplication } from "@nestjs/common";
-import { NestExpressApplication } from "@nestjs/platform-express";
-import { Test } from "@nestjs/testing";
-import * as request from "supertest";
-import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
-import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
-import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
-import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
-import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
-import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomString } from "test/utils/randomString";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiSuccessResponse } from "@calcom/platform-types";
-import { PlatformOAuthClient, User } from "@calcom/prisma/client";
-import { Team } from "@calcom/prisma/client";
 
 describe("Organizations Teams Memberships Endpoints", () => {
   let app: INestApplication;

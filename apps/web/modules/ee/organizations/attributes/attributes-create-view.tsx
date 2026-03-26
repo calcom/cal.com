@@ -70,7 +70,7 @@ function CreateAttributeHeader(props: { isPending: boolean }) {
             href="/settings/organizations/attributes">
             <span className="sr-only">{t("back_to_attributes")}</span>
           </Button>
-          <div className="font-heading text-cal flex space-x-1 text-xl leading-none">
+          <div className="font-cal text-cal flex space-x-1 text-xl font-semibold leading-none">
             <h1 className="text-emphasis">{t("attribute")}</h1>
             {watchedTitle && (
               <>

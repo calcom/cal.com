@@ -4,12 +4,15 @@ export { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/
 export { ScheduleRepository as PrismaScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 export { BookingRepository as PrismaBookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 export { EventTypeRepository as PrismaEventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-export { RoutingFormResponseRepository as PrismaRoutingFormResponseRepository } from "@calcom/lib/server/repository/formResponse";
+export { RoutingFormResponseRepository as PrismaRoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 export { PrismaSelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/PrismaSelectedSlotRepository";
 export { TeamRepository as PrismaTeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 export { UserRepository as PrismaUserRepository } from "@calcom/features/users/repositories/UserRepository";
 export { FeaturesRepository as PrismaFeaturesRepository } from "@calcom/features/flags/features.repository";
 export { MembershipRepository as PrismaMembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 export { HostRepository as PrismaHostRepository } from "@calcom/features/host/repositories/HostRepository";
+export { BookingReferenceRepository as PrismaBookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
+export { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/repositories/PrismaBookingAttendeeRepository";
+export { ProfileRepository as PrismaProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 export { AccessCodeRepository as PrismaAccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 export { OAuthClientRepository as PrismaOAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";

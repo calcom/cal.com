@@ -13,6 +13,7 @@ import { RoutingFormsModule } from "@/modules/routing-forms/routing-forms.module
 import { SlotsModule_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slots.module";
 import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
+import { TeamsInviteModule } from "@/modules/teams/invite/teams-invite.module";
 import { TeamsMembershipsModule } from "@/modules/teams/memberships/teams-memberships.module";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
@@ -32,6 +33,7 @@ import { Module } from "@nestjs/common";
     BookingsModule_2024_04_15,
     BookingsModule_2024_08_13,
     TeamsMembershipsModule,
+    TeamsInviteModule,
     SlotsModule_2024_04_15,
     SlotsModule_2024_09_04,
     TeamsModule,

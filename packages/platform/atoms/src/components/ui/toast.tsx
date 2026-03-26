@@ -9,7 +9,7 @@ import type {
 } from "react";
 import { forwardRef } from "react";
 
-import { Icon } from "@calcom/ui/components/icon";
+import { XIcon } from "@coss/ui/icons";
 
 import { cn } from "../../lib/utils";
 
@@ -83,7 +83,7 @@ const ToastClose = forwardRef<
     )}
     toast-close=""
     {...props}>
-    <Icon name="x" className="h-4 w-4" />
+    <XIcon className="h-4 w-4" />
   </ToastPrimitives.Close>
 ));
 ToastClose.displayName = ToastPrimitives.Close.displayName;

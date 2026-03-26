@@ -127,4 +127,49 @@ test.describe("Embed Pages", () => {
       expect(embedTheme).toBe(theme);
     });
   });
+
+  test.describe("useSlotsViewOnSmallScreen", () => {
+    test("should enable slots view on small screen when parameter is 'true'", async ({
+      page,
+    }) => {
+      await page.evaluate(() => {
+        window.name = "cal-embed=";
+      });
+      await page.goto("http://localhost:3000/free/30min/embed?useSlotsViewOnSmallScreen=true");
+
+      const useSlotsViewOnSmallScreen = await page.evaluate(() => {
+        return window.CalEmbed?.embedStore?.uiConfig?.useSlotsViewOnSmallScreen;
+      });
+
+      expect(useSlotsViewOnSmallScreen).toBe(true);
+    });
+
+    test("should default to false when parameter is not present", async ({
+      page,
+    }) => {
+      await page.evaluate(() => {
+        window.name = "cal-embed=";
+      });
+      await page.goto("http://localhost:3000/free/30min/embed");
+
+      const useSlotsViewOnSmallScreen = await page.evaluate(() => {
+        return window.CalEmbed?.embedStore?.uiConfig?.useSlotsViewOnSmallScreen;
+      });
+
+      expect(useSlotsViewOnSmallScreen).toBe(false);
+    });
+
+    test("should be false when parameter is 'false'", async ({ page }) => {
+      await page.evaluate(() => {
+        window.name = "cal-embed=";
+      });
+      await page.goto("http://localhost:3000/free/30min/embed?useSlotsViewOnSmallScreen=false");
+
+      const useSlotsViewOnSmallScreen = await page.evaluate(() => {
+        return window.CalEmbed?.embedStore?.uiConfig?.useSlotsViewOnSmallScreen;
+      });
+
+      expect(useSlotsViewOnSmallScreen).toBe(false);
+    });
+  });
 });

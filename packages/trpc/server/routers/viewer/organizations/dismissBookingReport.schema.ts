@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ZDismissBookingReportInputSchema = z.object({
-  reportId: z.string().uuid(),
+  email: z.string().email(),
 });
 
 export type TDismissBookingReportInputSchema = z.infer<typeof ZDismissBookingReportInputSchema>;

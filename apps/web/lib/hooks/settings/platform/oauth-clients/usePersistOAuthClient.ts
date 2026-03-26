@@ -143,7 +143,11 @@ export const useSubscribeTeamToStripe = (
     onSuccess,
     onError,
     teamId,
-  }: { teamId?: number | null; onSuccess: (redirectUrl: string) => void; onError: () => void } = {
+  }: {
+    teamId?: number | null;
+    onSuccess: (redirectUrl: string) => void;
+    onError: () => void;
+  } = {
     onSuccess: () => {
       return;
     },
@@ -180,7 +184,11 @@ export const useUpgradeTeamSubscriptionInStripe = (
     onSuccess,
     onError,
     teamId,
-  }: { teamId?: number | null; onSuccess: (redirectUrl: string) => void; onError: () => void } = {
+  }: {
+    teamId?: number | null;
+    onSuccess: (redirectUrl: string) => void;
+    onError: () => void;
+  } = {
     onSuccess: () => {
       return;
     },

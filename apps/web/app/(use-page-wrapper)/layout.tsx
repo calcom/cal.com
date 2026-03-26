@@ -25,6 +25,7 @@ export default async function PageWrapperLayout({ children }: { children: React.
       <PageWrapper requiresLicense={false} nonce={nonce}>
         {children}
         {scripts.map((script) => (
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: Injected scripts from env vars
           <Script
             key={script.id}
             nonce={nonce}

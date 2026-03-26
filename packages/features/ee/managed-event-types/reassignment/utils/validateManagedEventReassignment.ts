@@ -16,11 +16,9 @@ interface ValidateReassignmentResult {
   };
 }
 
-
-
 /**
  * Validates that a booking can be reassigned
- * 
+ *
  * @throws Error if booking is already cancelled
  * @throws Error if booking has already ended
  * @throws Error if booking is recurring (Phase 1 limitation)
@@ -29,7 +27,6 @@ export async function validateManagedEventReassignment({
   bookingId,
   bookingRepository,
 }: ValidateReassignmentParams): Promise<ValidateReassignmentResult> {
-
   const booking = await bookingRepository.findByIdForReassignmentValidation(bookingId);
 
   if (!booking) {
@@ -45,11 +42,8 @@ export async function validateManagedEventReassignment({
   }
 
   if (booking.recurringEventId) {
-    throw new Error(
-      "Reassignment of recurring bookings is not yet supported for managed events"
-    );
+    throw new Error("Reassignment of recurring bookings is not yet supported for managed events");
   }
 
   return { booking };
 }
-

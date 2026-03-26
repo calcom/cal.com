@@ -59,16 +59,24 @@ export function GatedFeaturesModal() {
           <div className="flex flex-col gap-1 ml-6">
             <ul className="list-disc">
               {features.map((feature) => (
-                <li className="text-sm text-default font-medium" key={feature}>{t(feature)}</li>
+                <li className="text-sm text-default font-medium" key={feature}>
+                  {t(feature)}
+                </li>
               ))}
             </ul>
           </div>
         </div>
         <div className="w-full bg-muted border-subtle flex items-center justify-between rounded-b-2xl border-t px-6 py-5">
-          <Button color="minimal" onClick={close}>{t("dismiss")}</Button>
+          <Button color="minimal" onClick={close}>
+            {t("dismiss")}
+          </Button>
           <div className="flex gap-2">
-            <Button color="secondary" target="_blank" rel="noopener noreferrer" href={learnMoreUrl}>{t("learn_more")}</Button>
-            <Button color="primary" href={ctaUrl}>{t("upgrade")}</Button>
+            <Button color="secondary" target="_blank" rel="noopener noreferrer" href={learnMoreUrl}>
+              {t("learn_more")}
+            </Button>
+            <Button color="primary" href={ctaUrl}>
+              {t("upgrade")}
+            </Button>
           </div>
         </div>
       </DialogContent>

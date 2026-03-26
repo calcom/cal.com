@@ -138,9 +138,10 @@ const noOpSpan: TelemetrySpan = {
  * Creates a console-logging span for local development when Sentry is not configured.
  * Tracks attributes and logs them with duration when the span completes.
  */
-function createConsoleSpan(
-  options: TelemetrySpanOptions
-): { span: TelemetrySpan; logCompletion: (durationMs: number, error?: unknown) => void } {
+function createConsoleSpan(options: TelemetrySpanOptions): {
+  span: TelemetrySpan;
+  logCompletion: (durationMs: number, error?: unknown) => void;
+} {
   const attributes: Record<string, string | number | boolean> = { ...options.attributes };
 
   const span: TelemetrySpan = {

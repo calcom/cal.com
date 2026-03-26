@@ -3,8 +3,8 @@
 import React, { Suspense } from "react";
 
 import classNames from "@calcom/ui/classNames";
-import { Icon } from "@calcom/ui/components/icon";
 import { Button } from "@calcom/ui/components/button";
+import { LoaderIcon } from "@coss/ui/icons";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 type HeaderPropsBase = {
@@ -39,7 +39,7 @@ export default function Header({
   onBackButtonClick,
 }: HeaderProps) {
   const { t } = useLocale();
-  
+
   return (
     <div>
       <header
@@ -63,7 +63,7 @@ export default function Header({
             )}
             <div>
               {title ? (
-                <h1 className="font-heading text-emphasis mb-1 text-xl leading-5 tracking-wide">
+                <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
                   {title}
                 </h1>
               ) : (
@@ -79,7 +79,7 @@ export default function Header({
           <div className={classNames("shrink-0", ctaClassName)}>{CTA}</div>
         </div>
       </header>
-      <Suspense fallback={<Icon name="loader" className="mx-auto my-5 animate-spin" />}>{children}</Suspense>
+      <Suspense fallback={<LoaderIcon className="mx-auto my-5 animate-spin" />}>{children}</Suspense>
     </div>
   );
 }

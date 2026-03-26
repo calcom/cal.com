@@ -4,8 +4,8 @@ import type z from "zod";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { IBookingPaymentRepository } from "@calcom/lib/server/repository/BookingPaymentRepository.interface";
-import { PrismaBookingPaymentRepository } from "@calcom/lib/server/repository/PrismaBookingPaymentRepository";
+import type { IBookingPaymentRepository } from "@calcom/features/bookings/repositories/BookingPaymentRepository.interface";
+import { PrismaBookingPaymentRepository } from "@calcom/features/bookings/repositories/PrismaBookingPaymentRepository";
 import type { Booking, Payment, PaymentOption } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -36,7 +36,7 @@ interface BTCPayInvoice {
   [key: string]: any;
 }
 
-export class PaymentService implements IAbstractPaymentService {
+class BTCPayServerPaymentService implements IAbstractPaymentService {
   private credentials: z.infer<typeof btcpayCredentialKeysSchema> | null;
   private bookingPaymentRepository: IBookingPaymentRepository;
 
@@ -202,4 +202,13 @@ export class PaymentService implements IAbstractPaymentService {
   isSetupAlready(): boolean {
     return !!this.credentials;
   }
+}
+
+/**
+ * Factory function that creates a BTCPay Server Payment service instance.
+ * This is exported instead of the class to prevent internal types
+ * from leaking into the emitted .d.ts file.
+ */
+export function BuildPaymentService(credentials: { key: Prisma.JsonValue }): IAbstractPaymentService {
+  return new BTCPayServerPaymentService(credentials);
 }

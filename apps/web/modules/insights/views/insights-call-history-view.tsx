@@ -4,14 +4,11 @@ import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } fro
 import { usePathname } from "next/navigation";
 import { useMemo, useState, useReducer } from "react";
 
-import {
-  DataTableProvider,
-  ColumnFilterType,
-  convertFacetedValuesToMap,
-  useDataTable,
-} from "@calcom/features/data-table";
+import { ColumnFilterType, convertFacetedValuesToMap } from "@calcom/features/data-table";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { DataTableWrapper, DataTableToolbar, DataTableFilters } from "~/data-table/components";
-import { useSegments } from "@calcom/features/data-table/hooks/useSegments";
+import { useSegments } from "~/data-table/hooks/useSegments";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { CallDetailsState, CallDetailsAction } from "@calcom/features/ee/workflows/lib/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -19,6 +16,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { CallDetailsSheet } from "@calcom/web/modules/ee/workflows/components/CallDetailsSheet";
 
@@ -106,8 +104,8 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
         call.call_analysis?.user_sentiment?.toLowerCase() === "positive"
           ? "positive"
           : call.call_analysis?.user_sentiment?.toLowerCase() === "negative"
-          ? "negative"
-          : "neutral",
+            ? "negative"
+            : "neutral",
       from: "from_number" in call ? call.from_number || t("unknown") : t("unknown"),
       to: "to_number" in call ? call.to_number || t("unknown") : t("unknown"),
       callCreated: call.call_analysis?.call_successful ?? true,
@@ -315,6 +313,13 @@ function CallHistoryContent({ org: _org }: CallHistoryProps) {
             headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("no_call_history")}
             description={t("no_call_history_description")}
             className="mb-16"
+            buttonRaw={
+              !searchTerm && (
+                <Button href="/workflow/new?action=calAi&templateWorkflowId=wf-11">
+                  {t("create_first_workflow")}
+                </Button>
+              )
+            }
           />
         }
       />

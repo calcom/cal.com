@@ -21,14 +21,17 @@ export class PermissionCheckService {
   private readonly logger = logger.getSubLogger({ prefix: ["PermissionCheckService"] });
   private readonly featuresRepository: FeaturesRepository;
   private readonly permissionService: PermissionService;
+  private readonly membershipRepository: MembershipRepository;
 
   constructor(
     private readonly repository: IPermissionRepository = new PermissionRepository(),
     featuresRepository: FeaturesRepository = new FeaturesRepository(prisma),
-    permissionService: PermissionService = new PermissionService()
+    permissionService: PermissionService = new PermissionService(),
+    membershipRepository: MembershipRepository = new MembershipRepository()
   ) {
     this.featuresRepository = featuresRepository;
     this.permissionService = permissionService;
+    this.membershipRepository = membershipRepository;
   }
 
   async getUserPermissions(userId: number): Promise<TeamPermissions[]> {
@@ -119,7 +122,7 @@ export class PermissionCheckService {
       }
 
       // Fallback to role-based check - use highest role between team and org membership
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      const membership = await this.membershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });
@@ -129,11 +132,11 @@ export class PermissionCheckService {
       // Check if team has parent org and get org membership
       const team = await this.repository.getTeamById(teamId);
       if (team?.parentId) {
-        const orgMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+        const orgMembership = await this.membershipRepository.findUniqueByUserIdAndTeamId({
           userId,
           teamId: team.parentId,
         });
-        
+
         // Use the highest role between team and org
         if (orgMembership) {
           effectiveRole = this.getHighestRole(effectiveRole, orgMembership.role);
@@ -183,7 +186,7 @@ export class PermissionCheckService {
       }
 
       // Fallback to role-based check - use highest role between team and org membership
-      const membership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+      const membership = await this.membershipRepository.findUniqueByUserIdAndTeamId({
         userId,
         teamId,
       });
@@ -193,11 +196,11 @@ export class PermissionCheckService {
       // Check if team has parent org and get org membership
       const team = await this.repository.getTeamById(teamId);
       if (team?.parentId) {
-        const orgMembership = await MembershipRepository.findUniqueByUserIdAndTeamId({
+        const orgMembership = await this.membershipRepository.findUniqueByUserIdAndTeamId({
           userId,
           teamId: team.parentId,
         });
-        
+
         // Use the highest role between team and org
         if (orgMembership) {
           effectiveRole = this.getHighestRole(effectiveRole, orgMembership.role);
@@ -290,10 +293,7 @@ export class PermissionCheckService {
     return allowedRoles.includes(userRole);
   }
 
-  private getHighestRole(
-    role1: MembershipRole | null,
-    role2: MembershipRole | null
-  ): MembershipRole | null {
+  private getHighestRole(role1: MembershipRole | null, role2: MembershipRole | null): MembershipRole | null {
     if (!role1) return role2;
     if (!role2) return role1;
 
@@ -308,15 +308,18 @@ export class PermissionCheckService {
 
   /**
    * Gets all team IDs where the user has a specific permission
+   * @param orgId Optional organization ID to scope results to. When provided, only returns teams within this organization.
    */
   async getTeamIdsWithPermission({
     userId,
     permission,
     fallbackRoles,
+    orgId,
   }: {
     userId: number;
     permission: PermissionString;
     fallbackRoles: MembershipRole[];
+    orgId?: number;
   }): Promise<number[]> {
     try {
       const validationResult = this.permissionService.validatePermission(permission);
@@ -325,7 +328,12 @@ export class PermissionCheckService {
         return [];
       }
 
-      return await this.repository.getTeamIdsWithPermission({ userId, permission, fallbackRoles });
+      return await this.repository.getTeamIdsWithPermission({
+        userId,
+        permission,
+        fallbackRoles,
+        orgId,
+      });
     } catch (error) {
       this.logger.error(error);
       return [];
@@ -334,15 +342,18 @@ export class PermissionCheckService {
 
   /**
    * Gets all team IDs where the user has all of the specified permissions
+   * @param orgId Optional organization ID to scope results to. When provided, only returns teams within this organization.
    */
   async getTeamIdsWithPermissions({
     userId,
     permissions,
     fallbackRoles,
+    orgId,
   }: {
     userId: number;
     permissions: PermissionString[];
     fallbackRoles: MembershipRole[];
+    orgId?: number;
   }): Promise<number[]> {
     try {
       const validationResult = this.permissionService.validatePermissions(permissions);
@@ -351,7 +362,12 @@ export class PermissionCheckService {
         return [];
       }
 
-      return await this.repository.getTeamIdsWithPermissions({ userId, permissions, fallbackRoles });
+      return await this.repository.getTeamIdsWithPermissions({
+        userId,
+        permissions,
+        fallbackRoles,
+        orgId,
+      });
     } catch (error) {
       this.logger.error(error);
       return [];

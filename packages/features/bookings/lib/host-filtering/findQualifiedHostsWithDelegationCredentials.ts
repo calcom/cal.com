@@ -78,9 +78,10 @@ export class QualifiedHostsService {
     T extends {
       email: string;
       id: number;
+      uuid: string;
       credentials: CredentialPayload[];
       userLevelSelectedCalendars: SelectedCalendar[];
-    } & Record<string, unknown>
+    } & Record<string, unknown>,
   >({
     eventType,
     rescheduleUid,

@@ -7,7 +7,7 @@ import dayjs from "@calcom/dayjs";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { PeriodType } from "@calcom/prisma/enums";
 
-import { DatePicker } from "../DatePicker";
+import { DatePicker } from "../components/DatePicker";
 
 const noop = () => {
   /* noop */

@@ -3,8 +3,8 @@ import {
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
 } from "@calcom/platform-enums";
 import {
-  type CreateEventTypeInput_2024_06_14,
   type BusinessDaysWindow_2024_06_14,
+  type CreateEventTypeInput_2024_06_14,
   type RangeWindow_2024_06_14,
   type TransformFutureBookingsLimitSchema_2024_06_14,
 } from "@calcom/platform-types";
@@ -24,7 +24,7 @@ export function transformFutureBookingLimitsApiToInternal(
     case BookingWindowPeriodInputTypeEnum_2024_06_14.businessDays:
       return {
         periodDays: (inputBookingLimits as BusinessDaysWindow_2024_06_14).value,
-        periodType: !!(inputBookingLimits as BusinessDaysWindow_2024_06_14).rolling
+        periodType: (inputBookingLimits as BusinessDaysWindow_2024_06_14).rolling
           ? BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING_WINDOW
           : BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING,
         periodCountCalendarDays: false,
@@ -32,17 +32,20 @@ export function transformFutureBookingLimitsApiToInternal(
     case BookingWindowPeriodInputTypeEnum_2024_06_14.calendarDays:
       return {
         periodDays: (inputBookingLimits as BusinessDaysWindow_2024_06_14).value,
-        periodType: !!(inputBookingLimits as BusinessDaysWindow_2024_06_14).rolling
+        periodType: (inputBookingLimits as BusinessDaysWindow_2024_06_14).rolling
           ? BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING_WINDOW
           : BookingWindowPeriodOutputTypeEnum_2024_06_14.ROLLING,
         periodCountCalendarDays: true,
       };
-    case BookingWindowPeriodInputTypeEnum_2024_06_14.range:
+    case BookingWindowPeriodInputTypeEnum_2024_06_14.range: {
+      const startDateStr = (inputBookingLimits as RangeWindow_2024_06_14).value[0].slice(0, 10);
+      const endDateStr = (inputBookingLimits as RangeWindow_2024_06_14).value[1].slice(0, 10);
       return {
         periodType: BookingWindowPeriodOutputTypeEnum_2024_06_14.RANGE,
-        periodStartDate: new Date((inputBookingLimits as RangeWindow_2024_06_14).value[0]),
-        periodEndDate: new Date((inputBookingLimits as RangeWindow_2024_06_14).value[1]),
+        periodStartDate: new Date(startDateStr),
+        periodEndDate: new Date(endDateStr),
       };
+    }
     default:
       return undefined;
   }

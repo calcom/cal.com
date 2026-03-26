@@ -1,7 +1,8 @@
-import type { NextRequest } from "next/server";
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
+import type { NextRequest } from "next/server";
 import type { Mock } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 const mockConfirmHandler = confirmHandler as unknown as Mock<typeof confirmHandler>;
 
 vi.mock("app/api/defaultResponderForAppDir", () => ({
@@ -65,6 +66,10 @@ vi.mock("@calcom/lib/tracing/factory", () => ({
   },
 }));
 
+vi.mock("@calcom/features/booking-audit/lib/makeActor", () => ({
+  makeUserActor: vi.fn().mockReturnValue({ type: "user", id: "test-uuid" }),
+}));
+
 // Store for mock request body - will be set by tests
 let mockRequestBody: Record<string, unknown> = {};
 
@@ -76,6 +81,9 @@ function setMockRequestBody(body: Record<string, unknown>) {
   mockRequestBody = body;
 }
 
+// Vitest sets NEXT_PUBLIC_WEBAPP_URL to http://app.cal.local:3000 (see vitest.config.mts)
+const EXPECTED_REDIRECT_ORIGIN = "http://app.cal.local:3000";
+
 function expectErrorRedirect(res: Response, path: string, error: string) {
   const location = res.headers.get("location");
   expect(location).toBeTruthy();
@@ -84,8 +92,10 @@ function expectErrorRedirect(res: Response, path: string, error: string) {
   expect(redirectUrl.searchParams.get("error")).toBe(error);
 }
 
+import process from "node:process";
 // Import after mocks are set up
 import { GET, POST } from "../route";
+
 const DB = {
   bookings: {} as Record<
     string,
@@ -175,20 +185,43 @@ describe("verify-booking-token route", () => {
   });
 
   describe("GET handler", () => {
-    it("should redirect to booking page with error when action is reject (requires POST)", async () => {
+    it("should process rejection via GET (for email clients that don't support POST)", async () => {
+      createMockBooking({
+        id: 1,
+        uid: "abc123",
+        oneTimePassword: "test-token",
+        recurringEventId: null,
+      });
+      createMockUser({
+        id: 42,
+        uuid: "user-uuid",
+        email: "test@example.com",
+        username: "testuser",
+        role: "USER",
+        destinationCalendar: null,
+      });
+
       const baseUrl =
         "https://app.example.com/api/verify-booking-token?action=reject&token=test-token&bookingUid=abc123&userId=42";
       const req = createMockRequest(baseUrl, "GET");
-
       const res = await GET(req, { params: Promise.resolve({}) });
       const location = res.headers.get("location");
 
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://app.example.com");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(redirectUrl.pathname).toBe("/booking/abc123");
-      expect(redirectUrl.searchParams.get("error")).toBe("Rejection requires POST method");
+      expect(redirectUrl.searchParams.get("error")).toBeNull();
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            bookingId: 1,
+            confirmed: false,
+            actionSource: "MAGIC_LINK",
+          }),
+        })
+      );
     });
 
     it("should redirect with error when query params are invalid (missing action)", async () => {
@@ -202,7 +235,7 @@ describe("verify-booking-token route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://app.example.com");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(redirectUrl.pathname).toBe("/booking/abc123");
       expect(redirectUrl.searchParams.get("error")).toBe("Error confirming booking");
     });
@@ -218,12 +251,12 @@ describe("verify-booking-token route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://app.example.com");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(redirectUrl.pathname).toBe("/booking/abc123");
       expect(redirectUrl.searchParams.get("error")).toBe("Error confirming booking");
     });
 
-    it("should preserve the request origin in redirect URL (not hardcode localhost)", async () => {
+    it("should use WEBAPP_URL for redirects (fixes localhost when behind proxy)", async () => {
       const baseUrl =
         "https://custom-domain.example.org/api/verify-booking-token?action=reject&token=t&bookingUid=booking-uid&userId=1";
       const req = createMockRequest(baseUrl, "GET");
@@ -234,7 +267,7 @@ describe("verify-booking-token route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://custom-domain.example.org");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(location).not.toContain("localhost");
     });
 
@@ -256,7 +289,7 @@ describe("verify-booking-token route", () => {
   describe("POST handler", () => {
     it("should redirect with status 303 when query params are invalid", async () => {
       const baseUrl =
-        "https://app.example.com/api/verify-booking-token?token=test-token&bookingUid=abc123&userId=42";
+        "https://app.example.com/api/verify-booking-token?token=test-token&bookingUid=abc123&userId=42&action=reject";
       const req = createMockRequest(baseUrl, "POST");
 
       const res = await POST(req, { params: Promise.resolve({}) });
@@ -267,14 +300,14 @@ describe("verify-booking-token route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://app.example.com");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(redirectUrl.pathname).toBe("/booking/abc123");
       expect(redirectUrl.searchParams.get("error")).toBe("Error confirming booking");
     });
 
-    it("should preserve the request origin in POST redirect URL", async () => {
+    it("should use WEBAPP_URL for POST redirects (fixes localhost when behind proxy)", async () => {
       const baseUrl =
-        "https://self-hosted.company.com/api/verify-booking-token?bookingUid=uid123&token=t&userId=1";
+        "https://self-hosted.company.com/api/verify-booking-token?bookingUid=uid123&token=t&userId=1&action=reject";
       const req = createMockRequest(baseUrl, "POST");
 
       const res = await POST(req, { params: Promise.resolve({}) });
@@ -283,13 +316,13 @@ describe("verify-booking-token route", () => {
       expect(location).toBeTruthy();
       const redirectUrl = new URL(location!);
 
-      expect(redirectUrl.origin).toBe("https://self-hosted.company.com");
+      expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
       expect(location).not.toContain("localhost");
     });
   });
 
   describe("redirect URL construction", () => {
-    it("should construct redirect URLs relative to the request URL, not hardcoded origins", async () => {
+    it("should construct redirect URLs using WEBAPP_URL regardless of request origin", async () => {
       const testOrigins = [
         "https://app.cal.com",
         "https://acme.cal.com",
@@ -308,9 +341,122 @@ describe("verify-booking-token route", () => {
         expect(location).toBeTruthy();
         const redirectUrl = new URL(location!);
 
-        expect(redirectUrl.origin).toBe(origin);
+        expect(redirectUrl.origin).toBe(EXPECTED_REDIRECT_ORIGIN);
         expect(redirectUrl.pathname).toBe("/booking/test-uid");
       }
+    });
+  });
+
+  describe("successful booking confirmation", () => {
+    it("should call confirmHandler with correct arguments for accept action", async () => {
+      createMockBooking({
+        id: 1,
+        uid: "booking-uid",
+        oneTimePassword: "valid-token",
+        recurringEventId: null,
+      });
+      createMockUser({
+        id: 42,
+        uuid: "user-uuid",
+        email: "test@example.com",
+        username: "testuser",
+        role: "USER",
+        destinationCalendar: null,
+      });
+
+      const req = createMockRequest(
+        "https://app.example.com/api/verify-booking-token?action=accept&token=valid-token&bookingUid=booking-uid&userId=42",
+        "GET"
+      );
+      await GET(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            bookingId: 1,
+            confirmed: true,
+            emailsEnabled: true,
+            actionSource: "MAGIC_LINK",
+          }),
+        })
+      );
+    });
+
+    it("should redirect with error when booking not found", async () => {
+      createMockUser({
+        id: 42,
+        uuid: "user-uuid",
+        email: "test@example.com",
+        username: "testuser",
+        role: "USER",
+        destinationCalendar: null,
+      });
+
+      const req = createMockRequest(
+        "https://app.example.com/api/verify-booking-token?action=accept&token=invalid-token&bookingUid=booking-uid&userId=42",
+        "GET"
+      );
+      const res = await GET(req, { params: Promise.resolve({}) });
+
+      expectErrorRedirect(res, "/booking/booking-uid", "Error confirming booking");
+      expect(mockConfirmHandler).not.toHaveBeenCalled();
+    });
+
+    it("should redirect with error when user not found", async () => {
+      createMockBooking({
+        id: 1,
+        uid: "booking-uid",
+        oneTimePassword: "valid-token",
+      });
+
+      const req = createMockRequest(
+        "https://app.example.com/api/verify-booking-token?action=accept&token=valid-token&bookingUid=booking-uid&userId=999",
+        "GET"
+      );
+
+      const res = await GET(req, { params: Promise.resolve({}) });
+
+      expectErrorRedirect(res, "/booking/booking-uid", "Error confirming booking");
+      expect(mockConfirmHandler).not.toHaveBeenCalled();
+    });
+
+    it("should call confirmHandler with reject action and reason for POST request", async () => {
+      createMockBooking({
+        id: 1,
+        uid: "booking-uid",
+        oneTimePassword: "valid-token",
+      });
+      createMockUser({
+        id: 42,
+        uuid: "user-uuid",
+        email: "test@example.com",
+        username: "testuser",
+        role: "USER",
+        destinationCalendar: null,
+      });
+
+      // Set the mock body for parseRequestData
+      setMockRequestBody({ reason: "test" });
+
+      const req = createMockRequest(
+        "https://app.example.com/api/verify-booking-token?action=reject&token=valid-token&bookingUid=booking-uid&userId=42",
+        "POST",
+        { reason: "test" }
+      );
+      await POST(req, { params: Promise.resolve({}) });
+
+      expect(mockConfirmHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          input: expect.objectContaining({
+            bookingId: 1,
+            confirmed: false,
+            reason: "test",
+            emailsEnabled: true,
+            actionSource: "MAGIC_LINK",
+            actor: { type: "user", id: "test-uuid" },
+          }),
+        })
+      );
     });
   });
 });

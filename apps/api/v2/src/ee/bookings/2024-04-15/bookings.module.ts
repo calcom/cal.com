@@ -27,6 +27,7 @@ import { TokensModule } from "@/modules/tokens/tokens.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
+import { BookingEventHandlerModule } from "@/lib/modules/booking-event-handler.module";
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { Module } from "@nestjs/common";
     RegularBookingModule,
     RecurringBookingModule,
     InstantBookingModule,
+    BookingEventHandlerModule,
   ],
   providers: [
     TokensRepository,

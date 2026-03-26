@@ -1,5 +1,5 @@
-import { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
 import { getBookingAccessService } from "@calcom/features/di/containers/BookingAccessService";
+import { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
@@ -31,6 +31,8 @@ export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassi
     bookingId,
     orgId: ctx.user.organizationId,
     reassignedById: ctx.user.id,
+    actionSource: "WEBAPP",
+    reassignedByUuid: ctx.user.uuid,
   });
 };
 

@@ -110,10 +110,34 @@ export class WorkflowReminderRepository {
       where: {
         id,
       },
-      include: {
+      select: {
+        seatReferenceId: true,
         workflowStep: {
-          include: {
-            workflow: true,
+          select: {
+            id: true,
+            verifiedAt: true,
+            action: true,
+            template: true,
+            includeCalendarEvent: true,
+            reminderBody: true,
+            sendTo: true,
+            emailSubject: true,
+            sender: true,
+            numberVerificationPending: true,
+            numberRequired: true,
+            autoTranslateEnabled: true,
+            sourceLocale: true,
+            workflow: {
+              select: {
+                id: true,
+                name: true,
+                trigger: true,
+                time: true,
+                timeUnit: true,
+                userId: true,
+                teamId: true,
+              },
+            },
           },
         },
       },

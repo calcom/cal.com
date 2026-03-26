@@ -55,6 +55,23 @@ jobs:
 
       - uses: ./.github/actions/yarn-install
 
+      # 1. Generate Prisma Client
+      # This is required so Trigger.dev can find the database types during bundling
+      - name: Generate Prisma Client
+        run: yarn prisma generate
+
+      # 2. Deploy Trigger.dev tasks
+      # We use --skip-promotion to get a version without making it live yet
+      - name: Deploy Trigger.dev
+        id: deploy-trigger
+        env:
+          TRIGGER_ACCESS_TOKEN: ${{ secrets.TRIGGER_ACCESS_TOKEN }}
+          TRIGGER_DEV_PROJECT_REF: ${{ secrets.TRIGGER_DEV_PROJECT_REF }}
+        run: |
+          # The CLI outputs the version; id allows us to access outputs.deploymentVersion
+          cd packages/features
+          yarn deploy:trigger:ci
+
       - name: Bump version
         env:
           VERSION: ${{ inputs.next_version }}
@@ -62,10 +79,30 @@ jobs:
           cd apps/web
           yarn version "$VERSION"
 
+      # 3. Update .env.production files
+      # We inject the Trigger version into the apps so they stay in sync
+      - name: Update Env Files
+        run: |
+          VERSION="${{ steps.deploy-trigger.outputs.deploymentVersion }}"
+    
+          # Create the TypeScript content
+          CONTENT="export const TRIGGER_VERSION = '$VERSION';"
+    
+          # Write to the specific paths
+          echo "$CONTENT" > apps/web/trigger.version.ts
+          echo "$CONTENT" > apps/api/v2/trigger.version.ts
+          echo "$CONTENT" > apps/api/v1/trigger.version.js
+    
+          # Force add to git since these are likely in .gitignore
+          git add -f apps/web/trigger.version.ts apps/api/v2/trigger.version.ts apps/api/v1/trigger.version.js
+
+      # 4. Commit everything together
       - name: Commit changes
         env:
           VERSION: ${{ inputs.next_version }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
+          gh auth setup-git
           git add .
           git commit -m "chore: release v$VERSION"
           git push
@@ -73,5 +110,5 @@ jobs:
       - name: Draft release
         run: gh release create v$VERSION --generate-notes --draft
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           VERSION: ${{ inputs.next_version }}

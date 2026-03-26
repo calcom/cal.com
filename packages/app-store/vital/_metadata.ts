@@ -1,10 +1,8 @@
 import type { AppMeta } from "@calcom/types/App";
 
-import _package from "./package.json";
-
 export const metadata = {
   name: "Vital",
-  description: _package.description,
+  description: "Connect your health data or wearables to trigger actions on your calendar.",
   installed: true,
   category: "automation",
   categories: ["automation"],

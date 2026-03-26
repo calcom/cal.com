@@ -90,7 +90,7 @@ const CreateConnectionDialog = ({
             });
           }}>
           <div className="mb-1">
-            <h2 className="font-heading text-emphasis text-xl tracking-wide">
+            <h2 className="font-semi-bold font-cal text-emphasis text-xl tracking-wide">
               {t("sso_saml_configuration_title")}
             </h2>
             <p className="text-subtle mb-5 mt-1 text-sm">{t("sso_saml_configuration_description")}</p>

@@ -8,6 +8,7 @@ import {
   getBillingProviderService,
   getTeamBillingServiceFactory,
 } from "@calcom/features/ee/billing/di/containers/Billing";
+import { extractBillingDataFromStripeSubscription } from "@calcom/features/ee/billing/lib/stripe-subscription-utils";
 import { Plan, SubscriptionStatus } from "@calcom/features/ee/billing/repository/billing/IBillingRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -94,7 +95,11 @@ async function getHandler(req: NextRequest) {
 
   if (checkoutSession && subscription) {
     const billingProviderService = getBillingProviderService();
-    const { subscriptionStart } = billingProviderService.extractSubscriptionDates(subscription);
+    const { subscriptionStart, subscriptionEnd, subscriptionTrialEnd } =
+      billingProviderService.extractSubscriptionDates(subscription);
+
+    const { billingPeriod, pricePerSeat, paidSeats } = extractBillingDataFromStripeSubscription(subscription);
+
     const teamBillingServiceFactory = getTeamBillingServiceFactory();
     const teamBillingService = teamBillingServiceFactory.init(team);
     await teamBillingService.saveTeamBilling({
@@ -105,7 +110,12 @@ async function getHandler(req: NextRequest) {
       // TODO: Implement true subscription status when webhook events are implemented
       status: SubscriptionStatus.ACTIVE,
       planName: Plan.TEAM,
-      subscriptionStart,
+      subscriptionStart: subscriptionStart ?? undefined,
+      subscriptionEnd: subscriptionEnd ?? undefined,
+      subscriptionTrialEnd: subscriptionTrialEnd ?? undefined,
+      billingPeriod,
+      pricePerSeat,
+      paidSeats,
     });
   }
 
@@ -123,7 +133,7 @@ async function getHandler(req: NextRequest) {
 
   // redirect to team screen
   return NextResponse.redirect(
-    new URL(`/settings/teams/${team.id}/onboard-members?event=team_created`, req.nextUrl.origin),
+    new URL(`/settings/teams/${team.id}/onboard-members?event=team_created`, WEBAPP_URL),
     { status: 302 }
   );
 }

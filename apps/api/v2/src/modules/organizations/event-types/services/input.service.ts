@@ -316,6 +316,7 @@ export class InputOrganizationsEventTypesService {
     }
 
     if (inputEventType.hosts) {
+      await this.validateHosts(teamId, inputEventType.hosts);
       return inputEventType.hosts.map((host) => host.userId);
     }
 
@@ -354,6 +355,7 @@ export class InputOrganizationsEventTypesService {
     }
 
     if (inputEventType.hosts) {
+      await this.validateHosts(teamId, inputEventType.hosts);
       return inputEventType.hosts.map((host) => host.userId);
     }
 

@@ -1,12 +1,9 @@
 /**
  * @vitest-environment node
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  BookingStatus,
-  WebhookTriggerEvents,
-  WorkflowTriggerEvents,
-} from "@calcom/prisma/enums";
+
+import { BookingStatus, WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handlePaymentSuccess } from "./handlePaymentSuccess";
 
 // Mock dependencies
@@ -16,12 +13,9 @@ vi.mock("@calcom/features/webhooks/lib/sendOrSchedulePayload");
 vi.mock("@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType");
 vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService");
 vi.mock("@calcom/features/tasker");
-vi.mock(
-  "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials",
-  () => ({
-    getAllCredentialsIncludeServiceAccountKey: vi.fn().mockResolvedValue([]),
-  })
-);
+vi.mock("@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials", () => ({
+  getAllCredentialsIncludeServiceAccountKey: vi.fn().mockResolvedValue([]),
+}));
 vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
   UserRepository: class {
     constructor() {}
@@ -51,15 +45,12 @@ vi.mock("@calcom/features/ee/organizations/lib/getBookerUrlServer");
 vi.mock("@calcom/lib/getTeamIdFromEventType");
 vi.mock("@calcom/lib/CalEventParser");
 vi.mock("@calcom/features/ee/billing/credit-service");
-vi.mock(
-  "@calcom/features/platform-oauth-client/platform-oauth-client.repository",
-  () => ({
-    PlatformOAuthClientRepository: class {
-      constructor() {}
-      getByUserId = vi.fn().mockResolvedValue(null);
-    },
-  })
-);
+vi.mock("@calcom/features/platform-oauth-client/platform-oauth-client.repository", () => ({
+  PlatformOAuthClientRepository: class {
+    constructor() {}
+    getByUserId = vi.fn().mockResolvedValue(null);
+  },
+}));
 vi.mock("@calcom/features/platform-oauth-client/get-platform-params");
 vi.mock("@calcom/features/bookings/lib/handleConfirmation");
 vi.mock("@calcom/features/bookings/lib/handleBookingRequested");
@@ -74,7 +65,6 @@ vi.mock("@calcom/lib/logger", () => ({
     })),
   },
 }));
-// Mock routing-forms modules to prevent async import issues during test teardown
 vi.mock("@calcom/features/routing-forms/lib/findFieldValueByIdentifier", () => ({
   findFieldValueByIdentifier: vi.fn(),
 }));
@@ -82,19 +72,39 @@ vi.mock("@calcom/app-store/routing-forms/lib/findFieldValueByIdentifier", () => 
   findFieldValueByIdentifier: vi.fn(),
 }));
 
+vi.mock("@calcom/app-store/_utils/getCalendar", () => ({
+  getCalendar: vi.fn().mockReturnValue(null),
+}));
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+  findUniqueDelegationCalendarCredential: vi.fn(),
+  getAllDelegationCredentialsForUserIncludeServiceAccountKey: vi.fn(),
+  getDelegationCredentialOrFindRegularCredential: vi.fn(),
+}));
+
+vi.mock("@calcom/features/calendars/lib/CalendarManager", () => ({
+  getBusyCalendarTimes: vi.fn().mockResolvedValue([]),
+  createEvent: vi.fn().mockResolvedValue({}),
+  updateEvent: vi.fn().mockResolvedValue({}),
+  deleteEvent: vi.fn().mockResolvedValue({}),
+}));
+
 import { getBooking } from "@calcom/features/bookings/lib/payment/getBooking";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import { CreditService } from "@calcom/features/ee/billing/credit-service";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
-import prisma from "@calcom/prisma";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { CreditService } from "@calcom/features/ee/billing/credit-service";
-import type { TraceContext } from "@calcom/lib/tracing";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import type { TraceContext } from "@calcom/lib/tracing";
+import prisma from "@calcom/prisma";
 
 describe("handlePaymentSuccess", () => {
   const mockBookingId = 1;
@@ -229,23 +239,24 @@ describe("handlePaymentSuccess", () => {
 
     // Mock workflow functions
     vi.mocked(getAllWorkflowsFromEventType).mockResolvedValue([mockWorkflow]);
-    vi.mocked(
-      WorkflowService.scheduleWorkflowsFilteredByTriggerEvent
-    ).mockResolvedValue(undefined);
+    vi.mocked(WorkflowService.scheduleWorkflowsFilteredByTriggerEvent).mockResolvedValue(undefined);
 
     // Mock utility functions
     vi.mocked(getOrgIdFromMemberOrTeamId).mockResolvedValue(undefined);
     vi.mocked(getBookerBaseUrl).mockResolvedValue("https://cal.com");
     vi.mocked(getTeamIdFromEventType).mockResolvedValue(null);
     vi.mocked(getVideoCallUrlFromCalEvent).mockReturnValue("");
-    vi.mocked(CreditService.prototype.hasAvailableCredits).mockResolvedValue(
-      true
-    );
+    vi.mocked(CreditService.prototype.hasAvailableCredits).mockResolvedValue(true);
   });
 
   it("should trigger BOOKING_PAID webhooks with correct payload", async () => {
     await expect(
-      handlePaymentSuccess(mockPaymentId, mockBookingId, mockTraceContext)
+      handlePaymentSuccess({
+        paymentId: mockPaymentId,
+        appSlug: "stripe",
+        bookingId: mockBookingId,
+        traceContext: mockTraceContext,
+      })
     ).rejects.toThrow(); // Function throws HttpCode 200 at the end
 
     // Verify webhooks were fetched
@@ -283,19 +294,19 @@ describe("handlePaymentSuccess", () => {
 
   it("should trigger BOOKING_PAID workflows with correct calendar event", async () => {
     await expect(
-      handlePaymentSuccess(mockPaymentId, mockBookingId, mockTraceContext)
+      handlePaymentSuccess({
+        paymentId: mockPaymentId,
+        appSlug: "stripe",
+        bookingId: mockBookingId,
+        traceContext: mockTraceContext,
+      })
     ).rejects.toThrow(); // Function throws HttpCode 200 at the end
 
     // Verify workflows were fetched
-    expect(getAllWorkflowsFromEventType).toHaveBeenCalledWith(
-      mockBooking.eventType,
-      mockBooking.userId
-    );
+    expect(getAllWorkflowsFromEventType).toHaveBeenCalledWith(mockBooking.eventType, mockBooking.userId);
 
     // Verify workflows were scheduled
-    expect(
-      WorkflowService.scheduleWorkflowsFilteredByTriggerEvent
-    ).toHaveBeenCalledWith({
+    expect(WorkflowService.scheduleWorkflowsFilteredByTriggerEvent).toHaveBeenCalledWith({
       workflows: [mockWorkflow],
       smsReminderNumber: null,
       calendarEvent: expect.objectContaining({
@@ -320,7 +331,12 @@ describe("handlePaymentSuccess", () => {
 
     // Should not throw (webhook errors are caught)
     await expect(
-      handlePaymentSuccess(mockPaymentId, mockBookingId, mockTraceContext)
+      handlePaymentSuccess({
+        paymentId: mockPaymentId,
+        appSlug: "stripe",
+        bookingId: mockBookingId,
+        traceContext: mockTraceContext,
+      })
     ).rejects.toThrow(); // Throws HttpCode 200 at the end
 
     // Verify webhook was still attempted
@@ -329,24 +345,30 @@ describe("handlePaymentSuccess", () => {
 
   it("should handle workflow errors gracefully without blocking", async () => {
     const workflowError = new Error("Workflow failed");
-    vi.mocked(
-      WorkflowService.scheduleWorkflowsFilteredByTriggerEvent
-    ).mockRejectedValueOnce(workflowError);
+    vi.mocked(WorkflowService.scheduleWorkflowsFilteredByTriggerEvent).mockRejectedValueOnce(workflowError);
 
     // Should not throw (workflow errors are caught)
     await expect(
-      handlePaymentSuccess(mockPaymentId, mockBookingId, mockTraceContext)
+      handlePaymentSuccess({
+        paymentId: mockPaymentId,
+        appSlug: "stripe",
+        bookingId: mockBookingId,
+        traceContext: mockTraceContext,
+      })
     ).rejects.toThrow(); // Throws HttpCode 200 at the end
 
     // Verify workflow was still attempted
-    expect(
-      WorkflowService.scheduleWorkflowsFilteredByTriggerEvent
-    ).toHaveBeenCalled();
+    expect(WorkflowService.scheduleWorkflowsFilteredByTriggerEvent).toHaveBeenCalled();
   });
 
   it("should include payment metadata in webhook payload", async () => {
     await expect(
-      handlePaymentSuccess(mockPaymentId, mockBookingId, mockTraceContext)
+      handlePaymentSuccess({
+        paymentId: mockPaymentId,
+        appSlug: "stripe",
+        bookingId: mockBookingId,
+        traceContext: mockTraceContext,
+      })
     ).rejects.toThrow(); // Function throws HttpCode 200 at the end
 
     expect(sendPayload).toHaveBeenCalledWith(

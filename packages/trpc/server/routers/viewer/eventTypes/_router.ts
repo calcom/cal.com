@@ -10,7 +10,14 @@ import { ZGetActiveOnOptionsSchema } from "./getActiveOnOptions.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
+import { ZGetChildrenForAssignmentInputSchema } from "./getChildrenForAssignment.schema";
+import { ZExportHostsForWeightsInputSchema } from "./exportHostsForWeights.schema";
+import { ZGetHostsForAssignmentInputSchema } from "./getHostsForAssignment.schema";
+import { ZGetHostsForAvailabilityInputSchema } from "./getHostsForAvailability.schema";
+import { ZGetHostsWithLocationOptionsInputSchema } from "./getHostsWithLocationOptions.schema";
+import { ZMassApplyHostLocationInputSchema } from "./massApplyHostLocation.schema";
 import { get } from "./procedures/get";
+import { ZSearchTeamMembersInputSchema } from "./searchTeamMembers.schema";
 import { createEventPbacProcedure } from "./util";
 
 export const eventTypesRouter = router({
@@ -145,4 +152,99 @@ export const eventTypesRouter = router({
       input,
     });
   }),
+
+  getHostsForAvailability: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZGetHostsForAvailabilityInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getHostsForAvailabilityHandler } = await import("./getHostsForAvailability.handler");
+
+      return getHostsForAvailabilityHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  getHostsForAssignment: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZGetHostsForAssignmentInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getHostsForAssignmentHandler } = await import("./getHostsForAssignment.handler");
+
+      return getHostsForAssignmentHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  exportHostsForWeights: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZExportHostsForWeightsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { exportHostsForWeightsHandler } = await import("./exportHostsForWeights.handler");
+
+      return exportHostsForWeightsHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  getChildrenForAssignment: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZGetChildrenForAssignmentInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getChildrenForAssignmentHandler } = await import("./getChildrenForAssignment.handler");
+
+      return getChildrenForAssignmentHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  getHostsWithLocationOptions: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZGetHostsWithLocationOptionsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getHostsWithLocationOptionsHandler } = await import("./getHostsWithLocationOptions.handler");
+
+      return getHostsWithLocationOptionsHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  massApplyHostLocation: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZMassApplyHostLocationInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const { massApplyHostLocationHandler } = await import("./massApplyHostLocation.handler");
+
+      return massApplyHostLocationHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  searchTeamMembers: authedProcedure
+    .input(ZSearchTeamMembersInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { searchTeamMembersHandler } = await import("./searchTeamMembers.handler");
+
+      return searchTeamMembersHandler({
+        ctx,
+        input,
+      });
+    }),
 });

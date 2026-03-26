@@ -101,8 +101,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       webhooks: _webhooks,
 
       schedule: _schedule,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
+      // @ts-expect-error - descriptionAsSafeHTML is added on the fly using a prisma middleware it shouldn't be used to create event type. Such a property doesn't exist on schema
       descriptionAsSafeHTML: _descriptionAsSafeHTML,
       secondaryEmailId,
       instantMeetingScheduleId: _instantMeetingScheduleId,
@@ -226,15 +225,17 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       eventType: newEventType,
     };
   } catch (error) {
+    if (error instanceof TRPCError) {
+      throw error;
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      
       if (Array.isArray(error.meta?.target) && error.meta?.target.includes("slug")) {
         throw new TRPCError({
           code: "CONFLICT",
           message: "duplicate_event_slug_conflict",
         });
       }
-      
+
       throw new TRPCError({
         code: "CONFLICT",
         message: "Unique constraint violation while creating a duplicate event.",

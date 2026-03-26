@@ -6,10 +6,16 @@
   "logo": "icon.svg",
   "url": "https://github.com/eluce2",
   "variant": "other",
-  "categories": ["automation"],
+  "categories": [
+    "automation"
+  ],
   "publisher": "Eric Luce",
   "email": "info@restlessmindstech.com",
   "description": "Quickly share your [Cal.com](https://cal.com) meeting links with Raycast",
   "__createdUsingCli": true,
-  "isOAuth": false
+  "isOAuth": false,
+  "externalLink": {
+    "url": "raycast://extensions/eluce2/cal-com-share-meeting-links?source=webstore",
+    "newTab": true
+  }
 }

@@ -12,6 +12,11 @@ import { createEventPbacProcedure, ensureEmailOrPhoneNumberIsPresent } from "../
 // Mock dependencies
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("createEventPbacProcedure", () => {
   let mockPermissionCheckService: {
     checkPermission: Mock;
@@ -44,7 +49,9 @@ describe("createEventPbacProcedure", () => {
       checkPermission: vi.fn(),
     };
 
-    vi.mocked(PermissionCheckService).mockImplementation(function() { return mockPermissionCheckService as any; });
+    vi.mocked(PermissionCheckService).mockImplementation(function () {
+      return mockPermissionCheckService as any;
+    });
   });
 
   describe("personal events", () => {
