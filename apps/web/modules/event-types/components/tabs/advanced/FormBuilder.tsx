@@ -1,13 +1,11 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useState } from "react";
-import type { SubmitHandler, UseFormReturn } from "react-hook-form";
-import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
-import type { z } from "zod";
-import { ZodError } from "zod";
-
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
+import type { fieldsSchema } from "@calcom/features/form-builder/schema";
+import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
+import { getConfig as getVariantsConfig } from "@calcom/features/form-builder/utils/variantsConfig";
 import { getCurrencySymbol } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -17,26 +15,26 @@ import { excludeOrRequireEmailSchema } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
-import { ToggleGroup } from "@calcom/ui/components/form";
 import {
-  Switch,
   CheckboxField,
-  SelectField,
   Form,
   Input,
   InputField,
   Label,
+  SelectField,
+  Switch,
+  ToggleGroup,
 } from "@calcom/ui/components/form";
-import { ArrowDownIcon, ArrowUpIcon, MailIcon, PhoneIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
-import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
-import type { fieldsSchema } from "@calcom/features/form-builder/schema";
-import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
-import { getConfig as getVariantsConfig } from "@calcom/features/form-builder/utils/variantsConfig";
+import { ArrowDownIcon, ArrowUpIcon, MailIcon, PhoneIcon } from "@coss/ui/icons";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useEffect, useState } from "react";
+import type { SubmitHandler, UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
+import type { z } from "zod";
+import { ZodError } from "zod";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -455,7 +453,7 @@ function Options({
   label = "Options",
   value,
 
-  onChange = () => { },
+  onChange = () => {},
   className = "",
   readOnly = false,
   showPrice = false,
@@ -593,7 +591,11 @@ const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormFie
   );
 };
 
-function getFieldLabelString(field: RhfFormField, t: (key: string) => string): string {
+/**
+ * Resolves the display label for a field as a plain string.
+ * Shared by FieldLabel (for rendering) and FieldEditDialog (for the modal title).
+ */
+function resolveFieldLabelAsString(field: RhfFormField, t: (key: string) => string): string {
   const fieldTypeConfig = fieldTypesConfigMap[field.type];
   const fieldTypeConfigVariantsConfig = fieldTypeConfig?.variantsConfig;
   const fieldTypeConfigVariants = fieldTypeConfigVariantsConfig?.variants;
@@ -665,9 +667,8 @@ function FieldEditDialog({
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
 
-  const dialogTitle = isFieldEditMode && dialog.data
-    ? getFieldLabelString(dialog.data, t)
-    : t("add_a_booking_question");
+  const dialogTitle =
+    isFieldEditMode && dialog.data ? resolveFieldLabelAsString(dialog.data, t) : t("add_a_booking_question");
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
@@ -941,42 +942,18 @@ function FieldWithLengthCheckSupport({
  */
 function FieldLabel({ field }: { field: RhfFormField }) {
   const { t } = useLocale();
-  const fieldTypeConfig = fieldTypesConfigMap[field.type];
-  const fieldTypeConfigVariantsConfig = fieldTypeConfig?.variantsConfig;
-  const fieldTypeConfigVariants = fieldTypeConfigVariantsConfig?.variants;
-  const variantsConfig = field.variantsConfig;
-  const variantsConfigVariants = variantsConfig?.variants;
-  const defaultVariant = fieldTypeConfigVariantsConfig?.defaultVariant;
-  if (!fieldTypeConfigVariants || !variantsConfig) {
-    if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
-      return (
-        // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTMLClient
-        <span
-          dangerouslySetInnerHTML={{
-            // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
-            __html: markdownToSafeHTMLClient(field.label?.trim() || t(field.defaultLabel || "") || ""),
-          }}
-        />
-      );
-    } else {
-      return <span>{field.label?.trim() || t(field.defaultLabel || "")}</span>;
-    }
-  }
-  const variant = field.variant || defaultVariant;
-  if (!variant) {
-    throw new Error(
-      `Field has \`variantsConfig\` but no \`defaultVariant\`${JSON.stringify(fieldTypeConfigVariantsConfig)}`
+  if (fieldsThatSupportLabelAsSafeHtml.includes(field.type) && !field.variantsConfig) {
+    return (
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTMLClient
+      <span
+        dangerouslySetInnerHTML={{
+          // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
+          __html: markdownToSafeHTMLClient(resolveFieldLabelAsString(field, t)),
+        }}
+      />
     );
   }
-  const variantData = variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants];
-  const firstField = variantData?.fields?.[0];
-  const label = firstField?.label?.trim() ? firstField.label : "";
-  const firstFieldName = firstField?.name;
-  const defaultLabelFromTypeConfig =
-    fieldTypeConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fieldsMap?.[
-      firstFieldName as keyof (typeof fieldTypeConfigVariants)[typeof variant]["fieldsMap"]
-    ]?.defaultLabel || "";
-  return <span>{t(label || defaultLabelFromTypeConfig)}</span>;
+  return <span>{resolveFieldLabelAsString(field, t)}</span>;
 }
 
 function VariantSelector() {
@@ -1062,7 +1039,7 @@ function VariantFields({
           const rhfVariantFieldPrefix = `variantsConfig.variants.${variantName}.fields.${index}` as const;
           const fieldTypeConfigVariants =
             fieldTypeConfigVariantsConfig.variants[
-            variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
+              variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
             ];
           const appUiFieldConfig =
             fieldTypeConfigVariants.fieldsMap[f.name as keyof typeof fieldTypeConfigVariants.fieldsMap];
