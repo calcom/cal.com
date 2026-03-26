@@ -632,7 +632,7 @@ export const scheduleEmailReminder = async (params: EmailNotificationParameters)
       isMandatoryReminder || false,
       batchId
     );
-  } else {
+  } else if (scheduledTimestamp.isAfter(dayjs().subtract(1, "hour"))) {
     // Schedule for future delivery when valid timestamp exists
     await handleScheduledEmailDispatch(
       sendTo,
