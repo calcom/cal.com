@@ -1,13 +1,13 @@
-import type { NextRequest } from "next/server";
-import TwilioClient from "twilio";
-import { v4 as uuidv4 } from "uuid";
-
+import process from "node:process";
 import { IS_API_V2_E2E, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
+import type { NextRequest } from "next/server";
+import TwilioClient from "twilio";
+import { v4 as uuidv4 } from "uuid";
 
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
@@ -373,14 +373,19 @@ export async function determineOptOutType(
 export async function deleteMultipleScheduledSMS(referenceIds: string[]) {
   const twilio = createTwilioClient();
 
-  const pLimit = (await import("p-limit")).default;
-  const limit = pLimit(10);
+  const concurrencyLimit = 10;
 
-  await Promise.allSettled(
-    referenceIds.map((referenceId) => {
-      return limit(() => twilio.messages(referenceId).update({ status: "canceled" })).catch((error) => {
-        log.error(`Error canceling scheduled SMS with id ${referenceId}`, error);
-      });
-    })
-  );
+  for (let i = 0; i < referenceIds.length; i += concurrencyLimit) {
+    const batch = referenceIds.slice(i, i + concurrencyLimit);
+    await Promise.allSettled(
+      batch.map((referenceId) =>
+        twilio
+          .messages(referenceId)
+          .update({ status: "canceled" })
+          .catch((error) => {
+            log.error(`Error canceling scheduled SMS with id ${referenceId}`, error);
+          })
+      )
+    );
+  }
 }
