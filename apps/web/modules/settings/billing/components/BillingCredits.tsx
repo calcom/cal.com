@@ -13,7 +13,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Badge } from "@coss/ui/components/badge";
 import { Button } from "@coss/ui/components/button";
 import {
   Card,
@@ -34,8 +33,6 @@ import {
   ComboboxValue,
 } from "@coss/ui/components/combobox";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@coss/ui/components/field";
-import { FieldGrid } from "@coss/ui/shared/field-grid";
-import { FieldsetLegend } from "@coss/ui/components/fieldset";
 import { Form } from "@coss/ui/components/form";
 import { Group } from "@coss/ui/components/group";
 import { InputGroup, InputGroupAddon, InputGroupText } from "@coss/ui/components/input-group";
@@ -44,12 +41,14 @@ import { Progress } from "@coss/ui/components/progress";
 import { SelectButton } from "@coss/ui/components/select";
 import { Tooltip, TooltipPopup, TooltipProvider, TooltipTrigger } from "@coss/ui/components/tooltip";
 import { InfoIcon, SearchIcon } from "@coss/ui/icons";
+import { ListItem, ListItemContent, ListItemHeader, ListItemTitle } from "@coss/ui/shared/list-item";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { MemberInvitationModalWithoutMembers } from "~/ee/teams/components/MemberInvitationModal";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 
 import { BillingCreditsSkeleton } from "./BillingCreditsSkeleton";
+import { Label } from "@coss/ui/components/label";
 
 type MonthOption = {
   value: string;
@@ -71,18 +70,18 @@ const CreditRow = ({ label, value, isBold = false, underline, className = "" }: 
   return (
     <div
       className={classNames(
-        `py-1.5 px-2.5 flex justify-between`,
+        `py-1.5 first:pt-0 last:pb-0 flex justify-between`,
         underline === "dashed"
           ? "border-b border-dashed"
           : underline === "solid" ? "border-b" : undefined,
         className
       )}>
       <span
-        className={classNames("text-sm", isBold ? "font-semibold" : "font-medium text-muted-foreground")}>
+        className={classNames("text-sm", isBold ? "font-medium" : "text-muted-foreground")}>
         {label}
       </span>
       <span
-        className={classNames(`text-sm`, isBold ? "font-semibold" : "font-medium text-muted-foreground")}>
+        className={classNames(`text-sm`, isBold ? "font-medium" : "text-muted-foreground")}>
         {numberFormatter.format(value)}
       </span>
     </div>
@@ -216,10 +215,10 @@ export default function BillingCredits() {
           <CardFrameDescription>{t("view_and_manage_credits")}</CardFrameDescription>
         </CardFrameHeader>
         <Card className="rounded-b-none!">
-          <CardPanel>
-            <FieldGrid>
-              {totalCredits > 0 ? (
-                <div className="md:col-span-2 flex flex-col gap-4">
+          <CardPanel className="p-0">
+            {totalCredits > 0 ? (
+              <ListItem className="*:py-6">
+                <ListItemContent>
                   <div>
                     <CreditRow
                       label={t("monthly_credits")}
@@ -233,9 +232,12 @@ export default function BillingCredits() {
                       value={creditsData.credits.totalRemainingMonthlyCredits}
                     />
                   </div>
-                  <Progress value={100 - teamCreditsPercentageUsed} />
+                  <Progress
+                    value={100 - teamCreditsPercentageUsed}
+                    className="**:data-[slot=progress-indicator]:bg-success"
+                  />
                   {/*750 credits per tip*/}
-                  <div className="flex flex-1 justify-between items-center">
+                  <div className="flex flex-1 items-center justify-between">
                     <p className="text-sm text-muted-foreground">
                       {orgSlug ? t("credits_per_tip_org") : t("credits_per_tip_teams")}
                     </p>
@@ -243,113 +245,124 @@ export default function BillingCredits() {
                       {t("add_members_no_ellipsis")}
                     </Button>
                   </div>
-                </div>
-              ) : null}
-              {/*Additional Credits*/}
-              <div className="flex items-center gap-2">
-                <FieldsetLegend className="inline text-sm" render={<div />}>
-                  {t("current_balance")}{" "}
-                  <Badge variant="secondary" size="lg">
-                    {numberFormatter.format(creditsData.credits.additionalCredits)}
-                  </Badge>{" "}
-                </FieldsetLegend>
-                <TooltipProvider delay={0}>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <InfoIcon className="size-3.5 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipPopup className="max-w-48 text-center">{t("view_additional_credits_expense_tip")}</TooltipPopup>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              {/* Users who are part of a team cannot buy personal credits */}
-              {teamId || !isUserInTeam ? (
-                <Form onSubmit={handleSubmit(onSubmit)} className="contents">
-                  <Controller
-                    name="quantity"
-                    control={control}
-                    rules={{
-                      required: t("error_required_field"),
-                      min: {
-                        value: 50,
-                        message: t("minimum_of_credits_required"),
-                      },
-                    }}
-                    render={({
-                      field: { name, value, onBlur, onChange, ref },
-                      fieldState: { invalid, error },
-                    }) => (
-                      <Field name={name} invalid={invalid} className="md:col-start-1">
-                        <FieldLabel>{t("additional_credits")}</FieldLabel>
-                        <Group aria-label={t("additional_credits")} className="w-full gap-2">
-                          <InputGroup>
-                            <NumberField
-                              aria-label={t("credits")}
-                              value={value}
-                              onValueChange={(nextValue) => onChange(nextValue ?? 0)}>
-                              <NumberFieldInput className="text-left" onBlur={onBlur} ref={ref} />
-                            </NumberField>
-                            <InputGroupAddon align="inline-end">
-                              <InputGroupText>{t("credits")}</InputGroupText>
-                            </InputGroupAddon>
-                          </InputGroup>
-                          <div>
-                            <Button variant="outline" type="submit" data-testid="buy-credits">
-                              {t("buy")}
-                            </Button>
+                </ListItemContent>
+              </ListItem>
+            ) : null}
+            {/* Users who are part of a team cannot buy personal credits */}
+            {teamId || !isUserInTeam ? (
+              <ListItem className="*:py-6">
+                <ListItemContent>
+                  <Form onSubmit={handleSubmit(onSubmit)} className="contents">
+                    <Controller
+                      name="quantity"
+                      control={control}
+                      rules={{
+                        required: t("error_required_field"),
+                        min: {
+                          value: 50,
+                          message: t("minimum_of_credits_required"),
+                        },
+                      }}
+                      render={({
+                        field: { name, value, onBlur, onChange, ref },
+                        fieldState: { invalid, error },
+                      }) => (
+                        <Field name={name} invalid={invalid}>
+                          <div className="flex w-full justify-between gap-2">
+                            <FieldLabel>{t("additional_credits")}</FieldLabel>
+                            <div className="flex items-center gap-2">
+                              <Label className="inline" render={<div />}>
+                                <span className="text-muted-foreground font-normal">{t("current_balance")} </span>
+                                <span>
+                                  {numberFormatter.format(creditsData.credits.additionalCredits)}
+                                </span>
+                              </Label>
+                              <TooltipProvider delay={0}>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <InfoIcon className="size-3.5 text-muted-foreground" />
+                                  </TooltipTrigger>
+                                  <TooltipPopup className="max-w-48 text-center">
+                                    {t("view_additional_credits_expense_tip")}
+                                  </TooltipPopup>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
                           </div>
-                        </Group>
-                        <FieldDescription>
-                          <LearnMoreLink
-                            t={t}
-                            i18nKey="credit_worth_description"
-                            href="https://cal.com/help/billing-and-usage/messaging-credits"
+                          <Group aria-label={t("additional_credits")} className="w-full gap-2">
+                            <InputGroup>
+                              <NumberField
+                                aria-label={t("credits")}
+                                value={value}
+                                onValueChange={(nextValue) => onChange(nextValue ?? 0)}>
+                                <NumberFieldInput className="text-left" onBlur={onBlur} ref={ref} />
+                              </NumberField>
+                              <InputGroupAddon align="inline-end">
+                                <InputGroupText>{t("credits")}</InputGroupText>
+                              </InputGroupAddon>
+                            </InputGroup>
+                            <div>
+                              <Button variant="outline" type="submit" data-testid="buy-credits">
+                                {t("buy")}
+                              </Button>
+                            </div>
+                          </Group>
+                          <FieldDescription>
+                            <LearnMoreLink
+                              t={t}
+                              i18nKey="credit_worth_description"
+                              href="https://cal.com/help/billing-and-usage/messaging-credits"
+                            />
+                          </FieldDescription>
+                          <FieldError match={!!error}>{error?.message ?? t("invalid_input")}</FieldError>
+                        </Field>
+                      )}
+                    />
+                  </Form>
+                </ListItemContent>
+              </ListItem>
+            ) : null}
+            {/* Download Expense Log */}
+            <ListItem className="*:py-6">
+              <ListItemContent>
+                <Field className="md:col-start-1">
+                  <FieldLabel>{t("download_expense_log")}</FieldLabel>
+                  <Group aria-label={t("download_expense_log")} className="w-full gap-2">
+                    <Combobox
+                      autoHighlight
+                      items={monthOptions}
+                      onValueChange={(item) => item && setSelectedMonth(item)}
+                      value={selectedMonth}>
+                      <ComboboxTrigger render={<SelectButton />}>
+                        <ComboboxValue />
+                      </ComboboxTrigger>
+                      <ComboboxPopup aria-label={t("select")}>
+                        <div className="border-b p-2">
+                          <ComboboxInput
+                            placeholder={t("search")}
+                            showTrigger={false}
+                            startAddon={<SearchIcon />}
                           />
-                        </FieldDescription>
-                        <FieldError match={!!error}>{error?.message ?? t("invalid_input")}</FieldError>
-                      </Field>
-                    )}
-                  />
-                </Form>
-              ) : null}
-              {/*Download Expense Log*/}
-              <Field className="md:col-start-1">
-                <FieldLabel>{t("download_expense_log")}</FieldLabel>
-                <Group aria-label={t("download_expense_log")} className="w-full gap-2">
-                  <Combobox
-                    autoHighlight
-                    items={monthOptions}
-                    onValueChange={(item) => item && setSelectedMonth(item)}
-                    value={selectedMonth}>
-                    <ComboboxTrigger render={<SelectButton />} >
-                      <ComboboxValue />
-                    </ComboboxTrigger>
-                    <ComboboxPopup aria-label={t("select")}>
-                      <div className="border-b p-2">
-                        <ComboboxInput
-                          placeholder={t("search")}
-                          showTrigger={false}
-                          startAddon={<SearchIcon />}
-                        />
-                      </div>
-                      <ComboboxEmpty>{t("no_results")}</ComboboxEmpty>
-                      <ComboboxList>
-                        {(item: MonthOption) => (
-                          <ComboboxItem key={item.value} value={item}>
-                            {item.label}
-                          </ComboboxItem>
-                        )}
-                      </ComboboxList>
-                    </ComboboxPopup>
-                  </Combobox>
-                  <div>
-                    <Button variant="outline" onClick={handleDownload} loading={isDownloading}>
-                      {t("download")}
-                    </Button>
-                  </div>
-                </Group>
-              </Field>
-            </FieldGrid>
+                        </div>
+                        <ComboboxEmpty>{t("no_results")}</ComboboxEmpty>
+                        <ComboboxList>
+                          {(item: MonthOption) => (
+                            <ComboboxItem key={item.value} value={item}>
+                              {item.label}
+                            </ComboboxItem>
+                          )}
+                        </ComboboxList>
+                      </ComboboxPopup>
+                    </Combobox>
+                    <div>
+                      <Button variant="outline" onClick={handleDownload} loading={isDownloading}>
+                        {t("download")}
+                      </Button>
+                    </div>
+                  </Group>
+                </Field>
+              </ListItemContent>
+            </ListItem>
           </CardPanel>
         </Card>
       </CardFrame>

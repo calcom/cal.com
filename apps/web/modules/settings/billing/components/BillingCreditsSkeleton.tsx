@@ -10,7 +10,6 @@ import {
   CardPanel,
 } from "@coss/ui/components/card";
 import { Skeleton } from "@coss/ui/components/skeleton";
-import { FieldGrid } from "@coss/ui/shared/field-grid";
 
 export function BillingCreditsSkeleton() {
   const { t } = useLocale();
@@ -23,11 +22,11 @@ export function BillingCreditsSkeleton() {
       </CardFrameHeader>
       <Card className="rounded-b-none!">
         <CardPanel>
-          <FieldGrid>
+          <div className="flex flex-col gap-12">
             {/* Credits section */}
-            <div className="md:col-span-2 flex flex-col gap-4">
-              <div>
-                <div className="py-2 flex justify-between gap-2">
+            <div className="md:col-span-2 flex flex-col gap-3">
+              <div className="divide-y divide-transparent">
+                <div className="pb-2 pt-0.5 flex justify-between gap-2">
                   <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-4 w-12" />
                 </div>
@@ -35,7 +34,7 @@ export function BillingCreditsSkeleton() {
                   <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-4 w-12" />
                 </div>
-                <div className="py-2 flex justify-between gap-2">
+                <div className="pt-2 pb-0.5 flex justify-between gap-2">
                   <Skeleton className="h-4 w-32" />
                   <Skeleton className="h-4 w-12" />
                 </div>
@@ -46,8 +45,6 @@ export function BillingCreditsSkeleton() {
                 <Skeleton className="w-28 h-8 sm:h-7 rounded-lg" />
               </div>
             </div>
-            {/* Current balance */}
-            <Skeleton className="h-4.5 my-0.5 w-32" />
             {/* Fields */}
             <div className="flex flex-col items-start gap-2 md:col-start-1">
               <Skeleton className="h-4 w-32" />
@@ -58,7 +55,7 @@ export function BillingCreditsSkeleton() {
               <Skeleton className="h-4 w-32" />
               <Skeleton className="h-9 sm:h-8 w-full rounded-lg" />
             </div>
-          </FieldGrid>
+          </div>
         </CardPanel>
       </Card>
     </CardFrame>
