@@ -283,6 +283,49 @@ describe("FormBuilder", () => {
     });
   });
 
+  describe("Dialog Title Tests", () => {
+    beforeEach(() => {
+      renderComponent({ formBuilderProps: mockProps, formDefaultValues: {} });
+    });
+
+    it("Should show 'add_a_booking_question' as dialog title when adding a new field", () => {
+      pageObject.openAddFieldDialog();
+      expect(screen.getByTestId("dialog-title")).toHaveTextContent("add_a_booking_question");
+    });
+
+    it("Should show field label as dialog title when editing an existing field", async () => {
+      await verifier.verifyFieldAddition({
+        fieldType: "text",
+        identifier: "custom-question",
+        label: "Custom Question",
+      });
+
+      pageObject.openEditFieldDialog({ identifier: "custom-question" });
+      expect(screen.getByTestId("dialog-title")).toHaveTextContent("Custom Question");
+    });
+
+    it("Should show correct label for each edited field", async () => {
+      await verifier.verifyFieldAddition({
+        fieldType: "text",
+        identifier: "first-question",
+        label: "First Question",
+      });
+
+      await verifier.verifyFieldAddition({
+        fieldType: "textarea",
+        identifier: "second-question",
+        label: "Second Question",
+      });
+
+      const dialog1 = pageObject.openEditFieldDialog({ identifier: "first-question" });
+      expect(screen.getByTestId("dialog-title")).toHaveTextContent("First Question");
+      pageObject.dialog.close({ dialog: dialog1 });
+
+      pageObject.openEditFieldDialog({ identifier: "second-question" });
+      expect(screen.getByTestId("dialog-title")).toHaveTextContent("Second Question");
+    });
+  });
+
   describe("Guests Field Validation Tests", () => {
     beforeEach(() => {
       renderComponent({ formBuilderProps: mockProps, formDefaultValues: {} });
