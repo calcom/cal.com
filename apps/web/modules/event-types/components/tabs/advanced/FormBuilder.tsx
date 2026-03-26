@@ -593,6 +593,34 @@ const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormFie
   );
 };
 
+function getFieldLabelString(field: RhfFormField, t: (key: string) => string): string {
+  const fieldTypeConfig = fieldTypesConfigMap[field.type];
+  const fieldTypeConfigVariantsConfig = fieldTypeConfig?.variantsConfig;
+  const fieldTypeConfigVariants = fieldTypeConfigVariantsConfig?.variants;
+  const variantsConfig = field.variantsConfig;
+  const variantsConfigVariants = variantsConfig?.variants;
+  const defaultVariant = fieldTypeConfigVariantsConfig?.defaultVariant;
+
+  if (!fieldTypeConfigVariants || !variantsConfig) {
+    return field.label?.trim() || t(field.defaultLabel || "") || "";
+  }
+
+  const variant = field.variant || defaultVariant;
+  if (!variant) {
+    return "";
+  }
+
+  const variantData = variantsConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants];
+  const firstField = variantData?.fields?.[0];
+  const label = firstField?.label?.trim() ? firstField.label : "";
+  const firstFieldName = firstField?.name;
+  const defaultLabelFromTypeConfig =
+    fieldTypeConfigVariants?.[variant as keyof typeof fieldTypeConfigVariants]?.fieldsMap?.[
+      firstFieldName as keyof (typeof fieldTypeConfigVariants)[typeof variant]["fieldsMap"]
+    ]?.defaultLabel || "";
+  return t(label || defaultLabelFromTypeConfig);
+}
+
 function FieldEditDialog({
   dialog,
   onOpenChange,
@@ -637,13 +665,17 @@ function FieldEditDialog({
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
 
+  const dialogTitle = isFieldEditMode && dialog.data
+    ? getFieldLabelString(dialog.data, t)
+    : t("add_a_booking_question");
+
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
       <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
           <div className="h-auto max-h-[85vh]">
             <DialogHeader
-              title={t("add_a_booking_question")}
+              title={dialogTitle}
               subtitle={
                 <LearnMoreLink
                   t={t}
