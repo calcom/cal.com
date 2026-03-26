@@ -38,6 +38,7 @@ interface GoogleCalError extends Error {
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
+const GOOGLE_MEET_URL_RETRY_DELAYS_MS = [250, 500, 1000] as const;
 // eslint-disable-next-line turbo/no-undeclared-env-vars -- GOOGLE_WEBHOOK_URL only for local testing
 const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
 const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
@@ -73,6 +74,61 @@ export default class GoogleCalendarService implements Calendar {
   public async authedCalendar(): Promise<calendar_v3.Calendar> {
     this.log.debug("Getting authed calendar");
     return this.auth.getClient();
+  }
+
+  private async delay(ms: number) {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private extractMeetingUrl(event?: calendar_v3.Schema$Event | null): string | undefined {
+    if (!event) {
+      return undefined;
+    }
+
+    if (typeof event.hangoutLink === "string" && event.hangoutLink.length > 0) {
+      return event.hangoutLink;
+    }
+
+    const entryPoints = event.conferenceData?.entryPoints;
+    if (!entryPoints?.length) {
+      return undefined;
+    }
+
+    return (
+      entryPoints.find((entryPoint) => entryPoint.entryPointType === "video" && !!entryPoint.uri)?.uri ??
+      undefined
+    );
+  }
+
+  private async waitForGoogleMeetUrl({
+    calendar,
+    calendarId,
+    eventId,
+  }: {
+    calendar: calendar_v3.Calendar;
+    calendarId: string;
+    eventId: string;
+  }): Promise<calendar_v3.Schema$Event | null> {
+    let lastKnownEvent: calendar_v3.Schema$Event | null = null;
+
+    for (let index = 0; index <= GOOGLE_MEET_URL_RETRY_DELAYS_MS.length; index++) {
+      const eventResponse = await calendar.events.get({
+        calendarId,
+        eventId,
+      });
+      lastKnownEvent = eventResponse.data;
+
+      const meetingUrl = this.extractMeetingUrl(lastKnownEvent);
+      if (meetingUrl) {
+        return lastKnownEvent;
+      }
+
+      if (index < GOOGLE_MEET_URL_RETRY_DELAYS_MS.length) {
+        await this.delay(GOOGLE_MEET_URL_RETRY_DELAYS_MS[index]);
+      }
+    }
+
+    return lastKnownEvent;
   }
 
   private getAttendees = ({
@@ -295,7 +351,17 @@ export default class GoogleCalendarService implements Calendar {
         }
       }
 
-      if (event && event.id && event.hangoutLink) {
+      if (event?.id && calEvent.location === MeetLocationType) {
+        const eventWithConference = await this.waitForGoogleMeetUrl({
+          calendar,
+          calendarId: selectedCalendar,
+          eventId: event.id,
+        });
+        event = eventWithConference || event;
+      }
+
+      const meetingUrl = this.extractMeetingUrl(event);
+      if (event && event.id && meetingUrl) {
         await calendar.events.patch({
           // Update the same event but this time we know the hangout link
           calendarId: selectedCalendar,
@@ -303,10 +369,15 @@ export default class GoogleCalendarService implements Calendar {
           requestBody: {
             description: getRichDescription({
               ...calEvent,
-              additionalInformation: { hangoutLink: event.hangoutLink },
+              additionalInformation: { hangoutLink: meetingUrl },
             }),
           },
           sendUpdates: "none",
+        });
+      } else if (calEvent.location === MeetLocationType) {
+        this.log.warn("Google Meet URL missing after creating event", {
+          eventId: event?.id,
+          selectedCalendar,
         });
       }
 
@@ -316,7 +387,7 @@ export default class GoogleCalendarService implements Calendar {
         id: event?.id || "",
         thirdPartyRecurringEventId: recurringEventId,
         additionalInfo: {
-          hangoutLink: event?.hangoutLink || "",
+          hangoutLink: meetingUrl || "",
         },
         type: "google_calendar",
         password: "",
@@ -421,7 +492,19 @@ export default class GoogleCalendarService implements Calendar {
         endTime: evt?.data.end,
       });
 
-      if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
+      if (evt?.data?.id && event.location === MeetLocationType) {
+        const eventWithConference = await this.waitForGoogleMeetUrl({
+          calendar,
+          calendarId: selectedCalendar,
+          eventId: evt.data.id,
+        });
+        if (eventWithConference) {
+          evt.data = eventWithConference;
+        }
+      }
+
+      const meetingUrl = this.extractMeetingUrl(evt?.data);
+      if (evt?.data?.id && meetingUrl && event.location === MeetLocationType) {
         calendar.events.patch({
           // Update the same event but this time we know the hangout link
           calendarId: selectedCalendar,
@@ -429,7 +512,7 @@ export default class GoogleCalendarService implements Calendar {
           requestBody: {
             description: getRichDescription({
               ...event,
-              additionalInformation: { hangoutLink: evt.data.hangoutLink },
+              additionalInformation: { hangoutLink: meetingUrl },
             }),
           },
           sendUpdates: "none",
@@ -439,13 +522,18 @@ export default class GoogleCalendarService implements Calendar {
           ...evt.data,
           id: evt.data.id || "",
           additionalInfo: {
-            hangoutLink: evt.data.hangoutLink || "",
+            hangoutLink: meetingUrl || "",
           },
           type: "google_calendar",
           password: "",
           url: "",
           iCalUID: evt.data.iCalUID,
         };
+      } else if (event.location === MeetLocationType) {
+        this.log.warn("Google Meet URL missing after updating event", {
+          uid,
+          selectedCalendar,
+        });
       }
       return evt?.data;
     } catch (error) {
@@ -1423,7 +1511,19 @@ export default class GoogleCalendarService implements Calendar {
       });
 
       // 6. If there's a hangout link and we need to update the description
-      if (patchResponse.data.id && patchResponse.data.hangoutLink && event.location === MeetLocationType) {
+      if (patchResponse?.data?.id && event.location === MeetLocationType) {
+        const eventWithConference = await this.waitForGoogleMeetUrl({
+          calendar,
+          calendarId: selectedCalendar,
+          eventId: patchResponse.data.id,
+        });
+        if (eventWithConference) {
+          patchResponse.data = eventWithConference;
+        }
+      }
+
+      const meetingUrl = this.extractMeetingUrl(patchResponse?.data);
+      if (patchResponse?.data?.id && meetingUrl && event.location === MeetLocationType) {
         try {
           await calendar.events.patch({
             calendarId: selectedCalendar,
@@ -1431,7 +1531,7 @@ export default class GoogleCalendarService implements Calendar {
             requestBody: {
               description: getRichDescription({
                 ...event,
-                additionalInformation: { hangoutLink: patchResponse.data.hangoutLink },
+                additionalInformation: { hangoutLink: meetingUrl },
               }),
             },
             sendUpdates: "none",
@@ -1453,7 +1553,7 @@ export default class GoogleCalendarService implements Calendar {
         url: "",
         iCalUID: patchResponse.data.iCalUID,
         additionalInfo: {
-          hangoutLink: patchResponse.data.hangoutLink || "",
+          hangoutLink: meetingUrl || "",
         },
       };
     } catch (error) {
