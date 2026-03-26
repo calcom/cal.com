@@ -909,6 +909,41 @@ export class AvailableSlotsService {
       this.getOOODates(startTimeDate, endTimeDate, allUserIds),
     ]);
 
+    const currentBookingsByUserId = new Map<number, typeof currentBookingsAllUsers>();
+    const currentBookingsByAttendeeEmail = new Map<string, typeof currentBookingsAllUsers>();
+
+    currentBookingsAllUsers.forEach((booking) => {
+      if (booking.userId != null) {
+        const existingBookings = currentBookingsByUserId.get(booking.userId);
+        if (existingBookings) {
+          existingBookings.push(booking);
+        } else {
+          currentBookingsByUserId.set(booking.userId, [booking]);
+        }
+      }
+
+      const attendeeEmails = new Set(booking.attendees?.map((attendee) => attendee.email) ?? []);
+
+      attendeeEmails.forEach((attendeeEmail) => {
+        const existingBookings = currentBookingsByAttendeeEmail.get(attendeeEmail);
+        if (existingBookings) {
+          existingBookings.push(booking);
+        } else {
+          currentBookingsByAttendeeEmail.set(attendeeEmail, [booking]);
+        }
+      });
+    });
+
+    const outOfOfficeDaysByUserId = new Map<number, typeof outOfOfficeDaysAllUsers>();
+    outOfOfficeDaysAllUsers.forEach((outOfOfficeDay) => {
+      const existingOutOfOfficeDays = outOfOfficeDaysByUserId.get(outOfOfficeDay.user.id);
+      if (existingOutOfOfficeDays) {
+        existingOutOfOfficeDays.push(outOfOfficeDay);
+      } else {
+        outOfOfficeDaysByUserId.set(outOfOfficeDay.user.id, [outOfOfficeDay]);
+      }
+    });
+
     const bookingLimits =
       eventType?.bookingLimits &&
       typeof eventType?.bookingLimits === "object" &&
@@ -940,22 +975,8 @@ export class AvailableSlotsService {
         });
     }
 
-    let busyTimesFromLimitsMap: Map<number, EventBusyDetails[]> | undefined;
-    if (eventType && (bookingLimits || durationLimits)) {
-      const usersForLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
-      const eventTimeZone = eventType.schedule?.timeZone ?? usersWithCredentials[0]?.timeZone ?? "UTC";
-      busyTimesFromLimitsMap = await this.getBusyTimesFromLimitsForUsers(
-        usersForLimits,
-        bookingLimits,
-        durationLimits,
-        startTime,
-        endTime,
-        typeof input.duration === "number" ? input.duration : undefined,
-        eventType,
-        eventTimeZone,
-        input.rescheduleUid || undefined
-      );
-    }
+    const usersForLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
+    const eventTimeZone = eventType?.schedule?.timeZone ?? usersWithCredentials[0]?.timeZone ?? "UTC";
 
     const teamForBookingLimits =
       eventType?.team ??
@@ -963,11 +984,31 @@ export class AvailableSlotsService {
 
     const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
 
-    let teamBookingLimitsMap: Map<number, EventBusyDetails[]> | undefined;
+    let busyTimesFromLimitsPromise: Promise<Map<number, EventBusyDetails[]> | undefined> =
+      Promise.resolve(undefined);
+    if (eventType && (bookingLimits || durationLimits)) {
+      let durationInput: number | undefined;
+      if (typeof input.duration === "number") {
+        durationInput = input.duration;
+      }
+      busyTimesFromLimitsPromise = this.getBusyTimesFromLimitsForUsers(
+        usersForLimits,
+        bookingLimits,
+        durationLimits,
+        startTime,
+        endTime,
+        durationInput,
+        eventType,
+        eventTimeZone,
+        input.rescheduleUid || undefined
+      );
+    }
+
+    let teamBookingLimitsPromise: Promise<Map<number, EventBusyDetails[]> | undefined> =
+      Promise.resolve(undefined);
     if (teamForBookingLimits && teamBookingLimits) {
       const usersForTeamLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
-      const eventTimeZone = eventType.schedule?.timeZone ?? usersWithCredentials[0]?.timeZone ?? "UTC";
-      teamBookingLimitsMap = await this.getBusyTimesFromTeamLimitsForUsers(
+      teamBookingLimitsPromise = this.getBusyTimesFromTeamLimitsForUsers(
         usersForTeamLimits,
         teamBookingLimits,
         startTime,
@@ -978,19 +1019,42 @@ export class AvailableSlotsService {
         input.rescheduleUid || undefined
       );
     }
+
+    const [busyTimesFromLimitsMap, teamBookingLimitsMap] = await Promise.all([
+      busyTimesFromLimitsPromise,
+      teamBookingLimitsPromise,
+    ]);
+
     function _enrichUsersWithData() {
       return usersWithCredentials.map((currentUser) => {
+        const seenBookingIds = new Set<number>();
+        const userCurrentBookings: typeof currentBookingsAllUsers = [];
+
+        for (const booking of currentBookingsByUserId.get(currentUser.id) ?? []) {
+          if (seenBookingIds.has(booking.id)) {
+            continue;
+          }
+
+          seenBookingIds.add(booking.id);
+          userCurrentBookings.push(booking);
+        }
+
+        for (const booking of currentBookingsByAttendeeEmail.get(currentUser.email) ?? []) {
+          if (seenBookingIds.has(booking.id)) {
+            continue;
+          }
+
+          seenBookingIds.add(booking.id);
+          userCurrentBookings.push(booking);
+        }
+
         return {
           ...currentUser,
-          currentBookings: currentBookingsAllUsers
-            .filter(
-              (b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email)
-            )
-            .map((bookings) => {
-              const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
-              return bookingWithoutAttendees;
-            }),
-          outOfOfficeDays: outOfOfficeDaysAllUsers.filter((o) => o.user.id === currentUser.id),
+          currentBookings: userCurrentBookings.map((booking) => {
+            const { attendees: _attendees, ...bookingWithoutAttendees } = booking;
+            return bookingWithoutAttendees;
+          }),
+          outOfOfficeDays: outOfOfficeDaysByUserId.get(currentUser.id) ?? [],
         };
       });
     }

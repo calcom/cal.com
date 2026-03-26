@@ -588,11 +588,18 @@ export class UserAvailabilityService {
       ? user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventType.id)
       : user.userLevelSelectedCalendars;
 
-    let busyTimesFromLimits: EventBusyDetails[] = [];
+    const teamForBookingLimits =
+      initialData?.teamForBookingLimits ??
+      eventType?.team ??
+      (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
+
+    const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
+
+    let eventTypeLimitsPromise: Promise<EventBusyDetails[]> = Promise.resolve([]);
     if (initialData?.busyTimesFromLimits && initialData?.eventTypeForLimits) {
-      busyTimesFromLimits = initialData.busyTimesFromLimits.get(user.id) || [];
+      eventTypeLimitsPromise = Promise.resolve(initialData.busyTimesFromLimits.get(user.id) ?? []);
     } else if (eventType && (bookingLimits || durationLimits)) {
-      busyTimesFromLimits = await getBusyTimesFromLimits(
+      eventTypeLimitsPromise = getBusyTimesFromLimits(
         bookingLimits,
         durationLimits,
         dateFrom.tz(finalTimezone),
@@ -605,20 +612,11 @@ export class UserAvailabilityService {
       );
     }
 
-    const teamForBookingLimits =
-      initialData?.teamForBookingLimits ??
-      eventType?.team ??
-      (eventType?.parent?.team?.includeManagedEventsInLimits ? eventType?.parent?.team : null);
-
-    const teamBookingLimits = parseBookingLimit(teamForBookingLimits?.bookingLimits);
-
-    let busyTimesFromTeamLimits: EventBusyDetails[] = [];
-
+    let teamLimitsPromise: Promise<EventBusyDetails[]> = Promise.resolve([]);
     if (initialData?.teamBookingLimits && teamForBookingLimits) {
-      busyTimesFromTeamLimits = initialData.teamBookingLimits.get(user.id) || [];
+      teamLimitsPromise = Promise.resolve(initialData.teamBookingLimits.get(user.id) ?? []);
     } else if (teamForBookingLimits && teamBookingLimits) {
-      // Fall back to individual query if not available in initialData
-      busyTimesFromTeamLimits = await getBusyTimesFromTeamLimits(
+      teamLimitsPromise = getBusyTimesFromTeamLimits(
         user,
         teamBookingLimits,
         dateFrom.tz(finalTimezone),
@@ -629,6 +627,11 @@ export class UserAvailabilityService {
         initialData?.rescheduleUid ?? undefined
       );
     }
+
+    const [busyTimesFromLimits, busyTimesFromTeamLimits] = await Promise.all([
+      eventTypeLimitsPromise,
+      teamLimitsPromise,
+    ]);
 
     let busyTimes = [];
     try {
