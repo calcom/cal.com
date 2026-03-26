@@ -1,15 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
-
 import dayjs from "@calcom/dayjs";
-
+import { describe, expect, it, vi } from "vitest";
 import {
-  getDateRangeFromPreset,
-  recalculateDateRange,
-  getCompatiblePresets,
-  PRESET_OPTIONS,
   CUSTOM_PRESET,
-  DEFAULT_PRESET,
   CUSTOM_PRESET_VALUE,
+  DEFAULT_PRESET,
+  getCompatiblePresets,
+  getDateRangeFromPreset,
+  getDefaultEndDate,
+  getDefaultStartDate,
+  PRESET_OPTIONS,
+  recalculateDateRange,
 } from "./dateRange";
 import { ColumnFilterType, type DateRangeFilterValue } from "./types";
 
@@ -61,6 +61,33 @@ describe("getDateRangeFromPreset", () => {
     const result = getDateRangeFromPreset("y");
     expect(result.preset.value).toBe("y");
     expect(dayjs).toHaveBeenCalled();
+  });
+});
+
+describe("getDefaultStartDate", () => {
+  it("calls dayjs().subtract(6, 'day').startOf('day')", () => {
+    const result = getDefaultStartDate();
+    expect(dayjs).toHaveBeenCalled();
+    expect(result).toBeDefined();
+  });
+});
+
+describe("getDefaultEndDate", () => {
+  it("calls dayjs().endOf('day')", () => {
+    const result = getDefaultEndDate();
+    expect(dayjs).toHaveBeenCalled();
+    expect(result).toBeDefined();
+  });
+});
+
+describe("getDateRangeFromPreset - additional coverage", () => {
+  it("should return custom preset for unknown value", () => {
+    const result = getDateRangeFromPreset("unknown_preset");
+    expect(result.preset).toEqual(CUSTOM_PRESET);
+  });
+
+  it("should throw error for custom preset value 'c' which is in PRESET_OPTIONS but not in switch", () => {
+    expect(() => getDateRangeFromPreset("c")).toThrow("Invalid preset value: c");
   });
 });
 

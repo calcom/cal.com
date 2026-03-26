@@ -1,12 +1,11 @@
 import { describe, expect, test } from "vitest";
-
 import {
-  normalizeEmail,
-  normalizeDomain,
-  extractDomainFromEmail,
-  normalizeUsername,
-  getWildcardPatternsForDomain,
   domainMatchesWatchlistEntry,
+  extractDomainFromEmail,
+  getWildcardPatternsForDomain,
+  normalizeDomain,
+  normalizeEmail,
+  normalizeUsername,
 } from "./normalization";
 
 describe("normalization", () => {
@@ -92,6 +91,44 @@ describe("normalization", () => {
 
     test("should throw on invalid usernames", () => {
       expect(() => normalizeUsername("")).toThrow("Invalid username: must be a non-empty string");
+    });
+  });
+
+  describe("normalizeEmail - additional coverage", () => {
+    test("should handle plus-tagged emails", () => {
+      expect(normalizeEmail("user+tag@gmail.com")).toBe("user+tag@gmail.com");
+    });
+
+    test("should handle emails with dots in local part", () => {
+      expect(normalizeEmail("first.last@example.com")).toBe("first.last@example.com");
+    });
+  });
+
+  describe("normalizeDomain - additional coverage", () => {
+    test("should handle single-label domains with valid characters", () => {
+      expect(() => normalizeDomain("localhost")).not.toThrow();
+      expect(normalizeDomain("localhost")).toBe("localhost");
+    });
+
+    test("should handle domain with hyphens", () => {
+      expect(normalizeDomain("my-domain.co.uk")).toBe("my-domain.co.uk");
+    });
+  });
+
+  describe("extractDomainFromEmail - additional coverage", () => {
+    test("should extract domain from emails with plus tags", () => {
+      expect(extractDomainFromEmail("user+tag@Example.COM")).toBe("example.com");
+    });
+  });
+
+  describe("normalizeUsername - additional coverage", () => {
+    test("should handle non-string input gracefully", () => {
+      expect(() => normalizeUsername(null as unknown as string)).toThrow(
+        "Invalid username: must be a non-empty string"
+      );
+      expect(() => normalizeUsername(undefined as unknown as string)).toThrow(
+        "Invalid username: must be a non-empty string"
+      );
     });
   });
 

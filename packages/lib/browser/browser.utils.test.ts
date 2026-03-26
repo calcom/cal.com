@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@calcom/embed-core/embed-iframe", () => ({
   sdkActionManager: {
@@ -6,7 +6,7 @@ vi.mock("@calcom/embed-core/embed-iframe", () => ({
   },
 }));
 
-import { getBrowserInfo, isSafariBrowser } from "./browser.utils";
+import { getBrowserInfo, isSafariBrowser, scrollIntoViewSmooth } from "./browser.utils";
 
 describe("getBrowserInfo", () => {
   afterEach(() => {
@@ -81,5 +81,73 @@ describe("isSafariBrowser", () => {
     });
 
     expect(isSafariBrowser()).toBe(false);
+  });
+});
+
+describe("scrollIntoViewSmooth", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("calls scrollIntoView on the element", () => {
+    const scrollIntoViewMock = vi.fn();
+    const element = {
+      getBoundingClientRect: vi.fn().mockReturnValue({ top: 100 }),
+      scrollIntoView: scrollIntoViewMock,
+    } as unknown as HTMLElement;
+
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 Firefox/121.0",
+    });
+
+    scrollIntoViewSmooth(element);
+
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: "smooth" });
+  });
+
+  it("returns early without Safari workaround when isEmbed is false", () => {
+    const scrollIntoViewMock = vi.fn();
+    const element = {
+      getBoundingClientRect: vi.fn().mockReturnValue({ top: 100 }),
+      scrollIntoView: scrollIntoViewMock,
+    } as unknown as HTMLElement;
+
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 Firefox/121.0",
+    });
+    vi.stubGlobal("requestAnimationFrame", vi.fn());
+
+    scrollIntoViewSmooth(element, false);
+
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: "smooth" });
+    // requestAnimationFrame should NOT be called when isEmbed=false
+    expect(requestAnimationFrame).not.toHaveBeenCalled();
+  });
+
+  it("schedules Safari workaround check when isEmbed is true", () => {
+    const rafCallbacks: (() => void)[] = [];
+    const scrollIntoViewMock = vi.fn();
+    const element = {
+      getBoundingClientRect: vi.fn().mockReturnValue({ top: 100 }),
+      scrollIntoView: scrollIntoViewMock,
+    } as unknown as HTMLElement;
+
+    vi.stubGlobal("window", {});
+    vi.stubGlobal("navigator", {
+      userAgent:
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+    });
+    vi.stubGlobal("requestAnimationFrame", (cb: () => void) => {
+      rafCallbacks.push(cb);
+    });
+
+    scrollIntoViewSmooth(element, true);
+
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({ behavior: "smooth" });
+    // Should have called requestAnimationFrame for the Safari workaround check
+    expect(rafCallbacks.length).toBeGreaterThan(0);
   });
 });

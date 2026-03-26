@@ -1,6 +1,5 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-
-import { decryptSecret, encryptSecret, getKeyMaterial, decryptAndMaybeReencrypt } from "./keyring";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { decryptAndMaybeReencrypt, decryptSecret, encryptSecret, getKeyMaterial } from "./keyring";
 
 // Generate a valid 32-byte key encoded as base64url
 const TEST_KEY_K1 = Buffer.from("a]".repeat(16)).toString("base64url"); // 32 bytes
@@ -30,6 +29,13 @@ describe("getKeyMaterial", () => {
   it("is case-insensitive for kid lookup (uppercases)", () => {
     const key = getKeyMaterial("CREDENTIALS", "k1");
     expect(key.length).toBe(32);
+  });
+
+  it("throws for invalid key length (not 32 bytes)", () => {
+    // Set a key that's only 16 bytes (not 32)
+    const shortKey = Buffer.from("a".repeat(16)).toString("base64url");
+    vi.stubEnv("CALCOM_KEYRING_CREDENTIALS_SHORT", shortKey);
+    expect(() => getKeyMaterial("CREDENTIALS", "SHORT")).toThrow("Invalid key length");
   });
 });
 
