@@ -39,6 +39,8 @@
    <a href="https://cal.com/figma"><img src="https://img.shields.io/badge/Figma-Design%20System-blueviolet"></a>
    <a href="https://contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
    <a href="https://console.algora.io/org/cal/bounties?status=open"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fcal%2Fbounties%3Fstatus%3Dopen" /></a>
+   <a href="https://github.com/calcom/cal/actions/workflows/coverage-baseline.yml"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fcalcom.github.io%2Fcal%2Fbadges%2Fcoverage-unit.json" alt="Unit Coverage"></a>
+   <a href="https://github.com/calcom/cal/actions/workflows/coverage-baseline.yml"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fcalcom.github.io%2Fcal%2Fbadges%2Fcoverage-integration.json" alt="Integration Coverage"></a>
 </p>
 
 <!-- ABOUT THE PROJECT -->

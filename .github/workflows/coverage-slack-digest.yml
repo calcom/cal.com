@@ -1,0 +1,101 @@
+name: Coverage Slack Digest
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Every Monday at 9am UTC
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  digest:
+    name: Post Coverage Digest to Slack
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Download latest unit coverage baseline
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: coverage-baseline.yml
+          branch: main
+          name: coverage-baseline-unit
+          path: coverage/unit
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      - name: Download latest integration coverage baseline
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: coverage-baseline.yml
+          branch: main
+          name: coverage-baseline-integration
+          path: coverage/integration
+          if_no_artifact_found: warn
+        continue-on-error: true
+
+      - name: Build and send Slack message
+        uses: actions/github-script@v7
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.COVERAGE_SLACK_WEBHOOK_URL }}
+        with:
+          script: |
+            const fs = require('fs');
+
+            const metrics = ['statements', 'branches', 'functions', 'lines'];
+
+            function loadCoverage(filePath) {
+              try {
+                return JSON.parse(fs.readFileSync(filePath, 'utf8')).total;
+              } catch {
+                return null;
+              }
+            }
+
+            function formatSection(label, data) {
+              if (!data) return `*${label}*\n> No coverage data available.\n`;
+              let text = `*${label}*\n`;
+              for (const m of metrics) {
+                const pct = data[m].pct.toFixed(1);
+                const icon = data[m].pct >= 80 ? ':large_green_circle:' : data[m].pct >= 60 ? ':large_yellow_circle:' : ':red_circle:';
+                text += `${icon}  ${m}: *${pct}%* (${data[m].covered}/${data[m].total})\n`;
+              }
+              return text;
+            }
+
+            const unit = loadCoverage('coverage/unit/coverage-summary.json');
+            const integration = loadCoverage('coverage/integration/coverage-summary.json');
+
+            if (!unit && !integration) {
+              core.warning('No coverage data found. Skipping Slack notification.');
+              return;
+            }
+
+            const date = new Date().toISOString().split('T')[0];
+            const repoUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}`;
+            const actionsUrl = `${repoUrl}/actions/workflows/coverage-baseline.yml`;
+
+            let text = `:bar_chart: *Weekly Coverage Report* — ${date}\n\n`;
+            text += formatSection('Unit Tests', unit);
+            text += '\n';
+            text += formatSection('Integration Tests', integration);
+            text += `\n<${actionsUrl}|View latest baseline run>`;
+
+            const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+            if (!webhookUrl) {
+              core.warning('COVERAGE_SLACK_WEBHOOK_URL secret is not set. Printing message to logs instead.');
+              core.info(text);
+              return;
+            }
+
+            const response = await fetch(webhookUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text }),
+            });
+
+            if (!response.ok) {
+              core.setFailed(`Slack webhook returned ${response.status}: ${await response.text()}`);
+            } else {
+              core.info('Coverage digest posted to Slack successfully.');
+            }
