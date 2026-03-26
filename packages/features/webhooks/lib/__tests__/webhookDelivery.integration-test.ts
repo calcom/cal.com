@@ -500,7 +500,7 @@ describe("Webhook Producer Integration", () => {
       const recordingId = "test-recording-id";
       const bookingUid = "test-booking-uid-recording";
 
-      await producer.queueRecordingReadyWebhook({
+      await producer.queueRecordingWebhook(WebhookTriggerEvents.RECORDING_READY, {
         recordingId,
         bookingUid,
         eventTypeId: testEventType.id,
@@ -522,7 +522,7 @@ describe("Webhook Producer Integration", () => {
       const recordingId = "test-recording-id-team";
       const bookingUid = "test-booking-uid-recording-team";
 
-      await producer.queueRecordingReadyWebhook({
+      await producer.queueRecordingWebhook(WebhookTriggerEvents.RECORDING_READY, {
         recordingId,
         bookingUid,
         eventTypeId: testEventType.id,
