@@ -1,0 +1,1 @@
+export { AnimatedGridBackground } from "./AnimatedGridBackground";

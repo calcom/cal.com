@@ -184,5 +184,6 @@
   "syncpack": {
     "filter": "^(?!@calcom).*",
     "semverRange": ""
-  }
+  },
+  "dependencies": {}
 }

@@ -4225,6 +4225,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@dimforge/rapier3d-compat@npm:~0.12.0":
+  version: 0.12.0
+  resolution: "@dimforge/rapier3d-compat@npm:0.12.0"
+  checksum: 10/56cd538b59d534d2ed91de3eb7efd804af5defe146f65294e8ce81982a4bd6c27d61c1014c15a77bb5f5eff0de7a12fbc9b16bf895a2ec56ea5496fd80c78e26
+  languageName: node
+  linkType: hard
+
 "@discoveryjs/json-ext@npm:0.5.7":
   version: 0.5.7
   resolution: "@discoveryjs/json-ext@npm:0.5.7"
@@ -15178,6 +15185,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tweenjs/tween.js@npm:~23.1.3":
+  version: 23.1.3
+  resolution: "@tweenjs/tween.js@npm:23.1.3"
+  checksum: 10/10ecaf311c975162459bd016ef7eb1f3118a257050c4886de9737dee823fc829100a0887f3fc298f7a5577140eac054f9609b823eb0748ca7b653ec85ffba75e
+  languageName: node
+  linkType: hard
+
 "@tybys/wasm-util@npm:^0.10.1":
   version: 0.10.1
   resolution: "@tybys/wasm-util@npm:0.10.1"
@@ -16123,6 +16137,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/stats.js@npm:*":
+  version: 0.17.4
+  resolution: "@types/stats.js@npm:0.17.4"
+  checksum: 10/6f1a20e09da0c0b371b3c095b2787a91a9397944679aa506a0886160faf0ad185b911a34b4ec325f146810c5be969f085e81264e2dbe39fd57eb8ff98347b5f4
+  languageName: node
+  linkType: hard
+
 "@types/statuses@npm:^2.0.4":
   version: 2.0.5
   resolution: "@types/statuses@npm:2.0.5"
@@ -16174,6 +16195,21 @@ __metadata:
   dependencies:
     "@types/jest": "npm:*"
   checksum: 10/26d768b3de5c71ecef683aa0e968ec2bb7f4626d78718132fa5a9c2064f9237836135e2551aa048c728407760d51d985a9d58a14528f2679a35d18d5ca200f08
+  languageName: node
+  linkType: hard
+
+"@types/three@npm:^0.183.1":
+  version: 0.183.1
+  resolution: "@types/three@npm:0.183.1"
+  dependencies:
+    "@dimforge/rapier3d-compat": "npm:~0.12.0"
+    "@tweenjs/tween.js": "npm:~23.1.3"
+    "@types/stats.js": "npm:*"
+    "@types/webxr": "npm:>=0.5.17"
+    "@webgpu/types": "npm:*"
+    fflate: "npm:~0.8.2"
+    meshoptimizer: "npm:~1.0.1"
+  checksum: 10/057ff3e22251448f6e68cf37752b3f669dd69ec1a67fedcfbbe40d6408df04a9a6b6c77bfb0e4ca433eb092ee95dad9b0a379c98617bae546b71d2cbe4b3a137
   languageName: node
   linkType: hard
 
@@ -16281,6 +16317,13 @@ __metadata:
   version: 6.1.1
   resolution: "@types/webidl-conversions@npm:6.1.1"
   checksum: 10/bd0faad4dfec232010d96a42fbd7b5ac4df557899050a6676a75d30ced8553f19e5a3c747fd2b4317f2810d4cf5d2d6dd47ad22ecfb9e6b21119aba678b8897f
+  languageName: node
+  linkType: hard
+
+"@types/webxr@npm:>=0.5.17":
+  version: 0.5.24
+  resolution: "@types/webxr@npm:0.5.24"
+  checksum: 10/780afba558f73588922c2e71a6dcffd29d132179c5ddf290e9e5fe43a8a5eedd34dc7395209c19c06aa7a916cd2230a9d6f3f3afb2c7a9f6c820dc1f775f266a
   languageName: node
   linkType: hard
 
@@ -16874,6 +16917,13 @@ __metadata:
   version: 3.0.0
   resolution: "@webbtc/webln-types@npm:3.0.0"
   checksum: 10/683b3074495ac3447bd9ef00dcea7ad4edb393c72553580e89f0fb6f683169bc23b8f3e1b799755bd3efd6e5f8d910adc9296a50b084de40869b1cbb4ad23f43
+  languageName: node
+  linkType: hard
+
+"@webgpu/types@npm:*":
+  version: 0.1.69
+  resolution: "@webgpu/types@npm:0.1.69"
+  checksum: 10/f6037e9586c20c0192cc9e82f0d4bcbeda4c22c7611dd1903a82ff4fd5b1564663511e9f4c9803641a028bc3eb43703da43b010d3ae2a859bff9ba858e44281d
   languageName: node
   linkType: hard
 
@@ -18493,6 +18543,7 @@ __metadata:
     "@snaplet/copycat": "npm:4.1.0"
     "@testing-library/jest-dom": "npm:5.17.0"
     "@testing-library/react": "npm:16.0.1"
+    "@types/three": "npm:^0.183.1"
     "@vitest/coverage-v8": "npm:4.0.16"
     "@vitest/ui": "npm:4.0.16"
     c8: "npm:7.13.0"
@@ -18509,6 +18560,7 @@ __metadata:
     node-ical: "npm:0.16.1"
     prismock: "npm:1.35.3"
     resize-observer-polyfill: "npm:1.5.1"
+    three: "npm:^0.183.2"
     tsc-absolute: "npm:1.0.0"
     turbo: "npm:2.7.1"
     typescript: "npm:5.9.3"
@@ -22777,7 +22829,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fflate@npm:^0.8.2":
+"fflate@npm:^0.8.2, fflate@npm:~0.8.2":
   version: 0.8.2
   resolution: "fflate@npm:0.8.2"
   checksum: 10/2bd26ba6d235d428de793c6a0cd1aaa96a06269ebd4e21b46c8fd1bd136abc631acf27e188d47c3936db090bf3e1ede11d15ce9eae9bffdc4bfe1b9dc66ca9cb
@@ -28666,6 +28718,13 @@ __metadata:
     "@types/node":
       optional: true
   checksum: 10/1893d226866058a32161ab069294a1a16975c765416a2b05165dfafba07cd958ca12503e35c621ffe736c62d935ccb1ce60cb723e2a9e0b85e02bb3236722ef6
+  languageName: node
+  linkType: hard
+
+"meshoptimizer@npm:~1.0.1":
+  version: 1.0.1
+  resolution: "meshoptimizer@npm:1.0.1"
+  checksum: 10/e5ab737b0619f3180dff29ea1eec7273f4a97595d01ad65d43c27f4f9d1070df7e69854608c0b1ab7b3221e777b89d1244e370b00bebb6d5d984323176d66ac6
   languageName: node
   linkType: hard
 
@@ -37082,6 +37141,13 @@ __metadata:
   version: 1.0.2
   resolution: "thirty-two@npm:1.0.2"
   checksum: 10/f6700b31d16ef942fdc0d14daed8a2f69ea8b60b0e85db8b83adf58d84bbeafe95a17d343ab55efaae571bb5148b62fc0ee12b04781323bf7af7d7e9693eec76
+  languageName: node
+  linkType: hard
+
+"three@npm:^0.183.2":
+  version: 0.183.2
+  resolution: "three@npm:0.183.2"
+  checksum: 10/e002bbb299f2d72b84633b363bc7237d91d26e01eeb8ad0e9faefc9584ce22b8901962d397ffa38536ea244f7599e678ac0c323324ceab0ff587419cbe21b3e9
   languageName: node
   linkType: hard
 

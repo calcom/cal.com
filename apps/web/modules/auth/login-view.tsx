@@ -11,6 +11,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Icon } from "@calcom/ui/components/icon";
 import { SAMLLogin } from "@calcom/web/modules/auth/components/SAMLLogin";
 import { LastUsed, useLastUsed } from "@calcom/web/modules/auth/hooks/useLastUsed";
+import { AnimatedGridBackground } from "@calcom/web/modules/auth/world-map";
 import AddToHomescreen from "@components/AddToHomescreen";
 import BackupCode from "@components/auth/BackupCode";
 import TwoFactor from "@components/auth/TwoFactor";
@@ -47,62 +48,7 @@ const GoogleIcon = () => (
   <img className="size-4" src="/google-icon-colored.svg" alt="" />
 );
 
-function BackgroundGrid() {
-  const rows = 9;
-  const cols = 18;
-  const size = 60;
-  const gap = 8;
-  const radius = 8;
-  const width = cols * size + (cols - 1) * gap;
-  const height = rows * size + (rows - 1) * gap;
 
-  return (
-    <div className="pointer-events-none absolute inset-0 flex items-center justify-center overflow-hidden">
-      <svg
-        width={width}
-        height={height}
-        viewBox={`0 0 ${width} ${height}`}
-        fill="none"
-        className="[--grid-fill:#f7f7f7] [--grid-stroke:rgba(34,42,53,0.08)] dark:[--grid-fill:#1f1f1f] dark:[--grid-stroke:rgba(255,255,255,0.08)]">
-        <defs>
-          <radialGradient id="gridFade" cx="50%" cy="50%" rx="70%" ry="70%">
-            <stop offset="20%" stopColor="white" stopOpacity="1" />
-            <stop offset="100%" stopColor="white" stopOpacity="0" />
-          </radialGradient>
-          <mask id="gridMask">
-            <rect width={width} height={height} fill="url(#gridFade)" />
-          </mask>
-          <filter id="gridShadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="rgba(34,42,53,0.05)" />
-            <feDropShadow dx="0" dy="1" stdDeviation="2" floodColor="rgba(19,19,22,0.03)" />
-          </filter>
-        </defs>
-        <g mask="url(#gridMask)">
-          {Array.from({ length: rows * cols }).map((_, i) => {
-            const col = i % cols;
-            const row = Math.floor(i / cols);
-            const x = col * (size + gap);
-            const y = row * (size + gap);
-            return (
-              <rect
-                key={i}
-                x={x}
-                y={y}
-                width={size}
-                height={size}
-                rx={radius}
-                fill="var(--grid-fill)"
-                stroke="var(--grid-stroke)"
-                strokeWidth="1"
-                filter="url(#gridShadow)"
-              />
-            );
-          })}
-        </g>
-      </svg>
-    </div>
-  );
-}
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Login({
   csrfToken,
@@ -197,30 +143,28 @@ export default function Login({
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-default/80 px-4 py-10">
-      <BackgroundGrid />
+      <AnimatedGridBackground />
 
       <div className="relative z-10 flex w-full max-w-md flex-col items-center">
         {/* Main Card */}
         <FormProvider {...methods}>
-          <CardFrame className="w-full">
+          <CardFrame className="w-full shadow-lg/5">
             <Card>
               <CardPanel className="p-10">
                 {/* Logo */}
-                <div className="mb-2 text-center">
-                  <h1 className="font-cal text-xl font-bold text-emphasis">Cal.com</h1>
-                </div>
+                <h1 className="font-cal mb-1 text-center text-xl font-bold text-emphasis">Cal.com</h1>
 
                 {/* Heading */}
-                <p className="mb-8 text-center text-sm text-subtle" data-testid="login-subtitle">
+                <p className="mb-6 text-center text-sm text-subtle" data-testid="login-subtitle">
                   {twoFactorRequired ? t("2fa_code") : t("welcome_back_sign_in")}
                 </p>
                 {/* Social Login Buttons */}
                 {!twoFactorRequired && showSocialLogin && (
                   <>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
                       {isGoogleLoginEnabled && (
                         <Button
-                          className="w-full"
+                          className="flex-1"
                           disabled={formState.isSubmitting}
                           data-testid="google"
                           onClick={async (e) => {
@@ -238,7 +182,7 @@ export default function Login({
                       {isOutlookLoginEnabled && (
                         <Button
                           variant="outline"
-                          className="w-full"
+                          className="flex-1"
                           data-testid="microsoft"
                           onClick={async (e) => {
                             e.preventDefault();
@@ -333,7 +277,7 @@ export default function Login({
                   {/* Submit Button */}
                   <Button
                     type="submit"
-                    variant="outline"
+
                     className="mt-8 w-full"
                     disabled={formState.isSubmitting}>
                     {twoFactorRequired ? t("submit") : t("continue")}
@@ -420,7 +364,6 @@ export default function Login({
             )}
           </CardFrame>
         </FormProvider>
-
 
       </div>
 

@@ -145,11 +145,13 @@
     "sonner": "1.7.4",
     "stripe": "9.16.0",
     "superjson": "1.9.1",
+    "three": "^0.183.2",
     "turndown": "7.2.0",
     "uuid": "8.3.2",
     "zod": "3.25.76"
   },
   "devDependencies": {
+    "@types/three": "^0.183.1",
     "@babel/core": "7.26.10",
     "@biomejs/biome": "2.3.10",
     "@calcom/config": "workspace:*",
