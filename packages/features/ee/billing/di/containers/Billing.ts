@@ -1,5 +1,6 @@
 import { createContainer } from "@calcom/features/di/di";
 import type { AdminBillingRepository } from "../../repository/adminBilling/AdminBillingRepository";
+import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
 import type { OrgDunningRepository } from "../../repository/dunning/OrgDunningRepository";
 import type { TeamDunningRepository } from "../../repository/dunning/TeamDunningRepository";
 import type { ITeamBillingDataRepository } from "../../repository/teamBillingData/ITeamBillingDataRepository";
@@ -84,4 +85,10 @@ export function getDunningEmailService(): DunningEmailService {
 
 export function getAdminBillingRepository(): AdminBillingRepository {
   return billingContainer.get<AdminBillingRepository>(DI_TOKENS.ADMIN_BILLING_REPOSITORY);
+}
+
+export function getBillingRepositoryFactory(): (isOrganization: boolean) => IBillingRepository {
+  return billingContainer.get<(isOrganization: boolean) => IBillingRepository>(
+    DI_TOKENS.BILLING_REPOSITORY_FACTORY
+  );
 }

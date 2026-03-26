@@ -1,11 +1,13 @@
-import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Billing";
+import {
+  getBillingProviderService,
+  getBillingRepositoryFactory,
+} from "@calcom/ee/billing/di/containers/Billing";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TListInvoicesInputSchema } from "./listInvoices.schema";
@@ -56,9 +58,9 @@ export const listInvoicesHandler = async ({ ctx, input }: ListInvoicesOptions) =
 
   const { teamId, limit, cursor, startDate, endDate } = input;
 
-  // Get team
+  // Get team to determine type and check permissions
   const teamRepository = new TeamRepository(prisma);
-  const team = await teamRepository.findByIdIncludePlatformBilling({ id: teamId });
+  const team = await teamRepository.findById({ id: teamId });
 
   if (!team) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
@@ -80,30 +82,18 @@ export const listInvoicesHandler = async ({ ctx, input }: ListInvoicesOptions) =
     });
   }
 
-  // Get subscription ID from team metadata or platformBilling
-  let subscriptionId: string | null = null;
+  // Look up billing record from TeamBilling or OrganizationBilling table
+  const billingRepository = getBillingRepositoryFactory()(team.isOrganization);
+  const billingRecord = await billingRepository.findFullByTeamId(teamId);
 
-  if (team.isPlatform) {
-    subscriptionId = team.platformBilling?.subscriptionId || null;
-  } else {
-    const metadata = teamMetadataSchema.safeParse(team.metadata);
-    subscriptionId = metadata.success ? metadata.data?.subscriptionId || null : null;
-  }
-
-  if (!subscriptionId) {
+  if (!billingRecord) {
     return { invoices: [] as Invoice[], hasMore: false, nextCursor: null };
   }
 
+  const { subscriptionId, customerId } = billingRecord;
+
   try {
     const billingService = getBillingProviderService();
-
-    // Get customer ID from subscription
-    const subscription = await billingService.getSubscription(subscriptionId);
-    const customerId = subscription?.customer;
-
-    if (!customerId) {
-      return { invoices: [] as Invoice[], hasMore: false, nextCursor: null };
-    }
 
     // Fetch invoices using the billing service, filtered by subscription and date range
     const invoicesResponse = await billingService.listInvoices({
