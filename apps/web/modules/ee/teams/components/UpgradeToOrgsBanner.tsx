@@ -61,7 +61,7 @@ export function UpgradeToOrgsBanner() {
         <CardPanel className="-p-6">
           <div className="grid grid-cols-1 md:grid-cols-3">
             {items.map((item) => (
-              <div key={item.titleKey} className="border-subtle flex flex-col justify-end overflow-hidden border-b last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0">
+              <div key={item.titleKey} className="border-subtle flex flex-col overflow-hidden border-b last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0">
                 <div
                   className="relative h-[94px] overflow-hidden"
                   style={
@@ -77,8 +77,8 @@ export function UpgradeToOrgsBanner() {
                     fill
                     className="object-cover object-[center_var(--offset-base)] sm:object-[center_var(--offset-sm)] md:object-[center_var(--offset-md)]"
                   />
-                  <div className="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-linear-to-b from-white to-transparent" />
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-white to-transparent" />
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-linear-to-b from-default to-transparent" />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-default to-transparent" />
                 </div>
                 <div className="flex flex-col gap-2 px-5 pb-5 pt-[26px]">
                   <h3 className="text-base font-semibold">{t(item.titleKey)}</h3>
