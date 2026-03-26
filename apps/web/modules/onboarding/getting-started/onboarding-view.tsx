@@ -1,10 +1,11 @@
 "use client";
 
 import { AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import { useEffect, useRef, useTransition } from "react";
 
+import { BILLING_PLANS, BILLING_PRICING } from "@calcom/features/ee/billing/constants";
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -13,6 +14,9 @@ import { Button } from "@calcom/ui/components/button";
 import { type IconName } from "@calcom/ui/components/icon";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
 import { useHasTeamMembership } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
+import type { BillingPeriod } from "~/billing/components/BillingPeriodToggle";
+import { BillingPeriodToggle } from "~/billing/components/BillingPeriodToggle";
+import { formatCents } from "~/billing/lib/plan-data";
 
 import { OnboardingCard } from "../components/OnboardingCard";
 import { OnboardingLayout } from "../components/OnboardingLayout";
@@ -27,8 +31,19 @@ type OnboardingViewProps = {
 
 export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { getQueryString } = useOnboardingQueryParams();
   const { t } = useLocale();
+
+  // Derive billing period directly from URL — single source of truth
+  const billingPeriod: BillingPeriod = searchParams?.get("bp") === "m" ? "monthly" : "annual";
+
+  const handleBillingPeriodChange = (period: BillingPeriod) => {
+    const params = new URLSearchParams(searchParams?.toString() ?? "");
+    params.set("bp", period === "annual" ? "a" : "m");
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
   const { selectedPlan, setSelectedPlan, resetOnboardingPreservingPlan } = useOnboardingStore();
   const previousPlanRef = useRef<PlanType | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -96,6 +111,9 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     organization: "users",
   };
 
+  const teamPrice = formatCents(BILLING_PRICING[BILLING_PLANS.TEAMS][billingPeriod]);
+  const orgPrice = formatCents(BILLING_PRICING[BILLING_PLANS.ORGANIZATIONS][billingPeriod]);
+
   const allPlans = [
     {
       id: "personal" as PlanType,
@@ -108,7 +126,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     {
       id: "team" as PlanType,
       title: t("onboarding_plan_team_title"),
-      badge: t("onboarding_plan_team_badge"),
+      badge: `${teamPrice}/${t("upgrade_price_per_month_user")}`,
       description: t("onboarding_plan_team_description"),
       icon: planIconByType.team,
       variant: "team" as const,
@@ -116,7 +134,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     {
       id: "organization" as PlanType,
       title: t("onboarding_plan_organization_title"),
-      badge: t("onboarding_plan_organization_badge"),
+      badge: `${orgPrice}/${t("upgrade_price_per_month_user")}`,
       description: t("onboarding_plan_organization_description"),
       icon: planIconByType.organization,
       variant: "organization" as const,
@@ -150,8 +168,21 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
         <OnboardingCard
           title={t("onboarding_select_plan")}
           subtitle={t("onboarding_welcome_question")}
+          headerAction={
+            (selectedPlan === "team" || selectedPlan === "organization") ? (
+              <BillingPeriodToggle
+                billingPeriod={billingPeriod}
+                onBillingPeriodChange={handleBillingPeriodChange}
+                compact
+                tracking={{
+                  source: "onboarding_getting_started",
+                  target: selectedPlan,
+                }}
+              />
+            ) : undefined
+          }
           footer={
-            <div className="flex w-full justify-end gap-2">
+            <div className="flex w-full items-center justify-end">
               <Button
                 data-testid="onboarding-continue-btn"
                 color="primary"

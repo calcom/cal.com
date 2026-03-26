@@ -11,6 +11,7 @@ type OnboardingCardProps = {
   subtitle: string;
   children?: ReactNode;
   footer?: ReactNode;
+  headerAction?: ReactNode;
   isLoading?: boolean;
   floatingFooter?: boolean;
 };
@@ -20,6 +21,7 @@ export const OnboardingCard = ({
   subtitle,
   children,
   footer,
+  headerAction,
   isLoading,
   floatingFooter = false,
 }: OnboardingCardProps) => {
@@ -56,9 +58,12 @@ export const OnboardingCard = ({
             ease: "backOut",
           }}>
           {/* Card Header */}
-          <div className="mb-2 flex w-full gap-1.5 py-2  md:mb-0 md:py-4">
+          <div className="mb-2 flex w-full items-start gap-1.5 py-2 md:mb-0 md:py-4">
             <div className="flex w-full flex-col gap-2">
-              <h1 className="font-cal text-xl font-semibold leading-6">{title}</h1>
+              <div className="flex w-full items-center justify-between">
+                <h1 className="font-cal text-xl font-semibold leading-6">{title}</h1>
+                {headerAction && <div className="flex-shrink-0">{headerAction}</div>}
+              </div>
               <p className="text-subtle text-sm leading-tight">{subtitle}</p>
             </div>
           </div>

@@ -8,6 +8,7 @@ export type BillingPeriod = "annual" | "monthly";
 interface BillingPeriodToggleProps {
   billingPeriod: BillingPeriod;
   onBillingPeriodChange: (period: BillingPeriod) => void;
+  compact?: boolean;
   tracking?: {
     source: string;
     target: string;
@@ -17,6 +18,7 @@ interface BillingPeriodToggleProps {
 export function BillingPeriodToggle({
   billingPeriod,
   onBillingPeriodChange,
+  compact = false,
   tracking,
 }: BillingPeriodToggleProps): JSX.Element {
   const { t } = useLocale();
@@ -37,21 +39,25 @@ export function BillingPeriodToggle({
           }
         }
       }}
-      className="rounded-lg bg-muted p-1"
+      className={compact ? "rounded-md bg-muted p-0.5" : "rounded-lg bg-muted p-1"}
       size="sm"
     >
       <Toggle
         value="monthly"
-        className="ml-1 rounded-md data-pressed:bg-default data-pressed:shadow-sm"
+        className={compact
+          ? "ml-0.5 rounded-[5px] px-2 py-1 text-xs data-pressed:bg-default data-pressed:shadow-sm"
+          : "ml-1 rounded-md data-pressed:bg-default data-pressed:shadow-sm"}
       >
         {t("monthly")}
       </Toggle>
       <Toggle
         value="annual"
-        className="gap-1 rounded-md data-pressed:bg-default data-pressed:shadow-sm"
+        className={compact
+          ? "gap-1 rounded-[5px] px-2 py-1 text-xs data-pressed:bg-default data-pressed:shadow-sm"
+          : "gap-1 rounded-md data-pressed:bg-default data-pressed:shadow-sm"}
       >
         {t("upgrade_billing_annual")}
-        <Badge variant="info" size="sm">
+        <Badge variant="info" size="sm" className={compact ? "text-[10px] px-1 py-0" : ""}>
           {t("discount_25")}
         </Badge>
       </Toggle>
