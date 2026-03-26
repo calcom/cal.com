@@ -47,8 +47,8 @@ import {
   TextField,
 } from "@calcom/ui/components/form";
 import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
-import { WideUpgradeBannerForRedirectUrl } from "@calcom/web/modules/billing/upgrade-banners/WideUpgradeBannerForRedirectUrl";
 import { useHasActiveTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
+import { WideUpgradeBannerForRedirectUrl } from "@calcom/web/modules/billing/upgrade-banners/WideUpgradeBannerForRedirectUrl";
 import {
   SelectedCalendarSettingsScope,
   SelectedCalendarsSettingsWebWrapper,
@@ -927,84 +927,87 @@ export const EventAdvancedTab = ({
         name="successRedirectUrl"
         render={({ field: { value, onChange } }) => (
           <>
-            {isRedirectUrlDisabled ? (
+            {isRedirectUrlDisabled && !isPlatform ? (
               <WideUpgradeBannerForRedirectUrl />
             ) : (
-            <SettingsToggle
-              labelClassName={classNames("text-sm", customClassNames?.bookingRedirect?.label)}
-              toggleSwitchAtTheEnd={true}
-              switchContainerClassName={classNames(
-                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                redirectUrlVisible && "rounded-b-none",
-                customClassNames?.bookingRedirect?.container
-              )}
-              childrenClassName={classNames("lg:ml-0", customClassNames?.bookingRedirect?.children)}
-              descriptionClassName={customClassNames?.bookingRedirect?.description}
-              Badge={
-                !isPlatform && !isRedirectUrlGrandfathered ? (
-                  <UpgradeTeamsBadge checkForActiveStatus tracking="redirect-url" />
-                ) : undefined
-              }
-              title={t("redirect_success_booking")}
-              data-testid="redirect-success-booking"
-              {...successRedirectUrlLocked}
-              disabled={successRedirectUrlLocked.disabled}
-              description={t("redirect_url_description")}
-              checked={redirectUrlVisible}
-              onCheckedChange={(e) => {
-                setRedirectUrlVisible(e);
-                onChange(e ? value : "");
-              }}>
-              <div
-                className={classNames(
-                  "border-subtle rounded-b-lg border border-t-0 p-6",
-                  customClassNames?.bookingRedirect?.redirectUrlInput?.container
-                )}>
-                <TextField
-                  className={classNames("w-full", customClassNames?.bookingRedirect?.redirectUrlInput?.input)}
-                  label={t("redirect_success_booking")}
-                  labelClassName={customClassNames?.bookingRedirect?.redirectUrlInput?.label}
-                  labelSrOnly
-                  disabled={successRedirectUrlLocked.disabled}
-                  placeholder={t("external_redirect_url")}
-                  data-testid="external-redirect-url"
-                  required={redirectUrlVisible}
-                  type="text"
-                  {...formMethods.register("successRedirectUrl")}
-                />
-
+              <SettingsToggle
+                labelClassName={classNames("text-sm", customClassNames?.bookingRedirect?.label)}
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                  redirectUrlVisible && "rounded-b-none",
+                  customClassNames?.bookingRedirect?.container
+                )}
+                childrenClassName={classNames("lg:ml-0", customClassNames?.bookingRedirect?.children)}
+                descriptionClassName={customClassNames?.bookingRedirect?.description}
+                Badge={
+                  !isPlatform && !isRedirectUrlGrandfathered ? (
+                    <UpgradeTeamsBadge checkForActiveStatus tracking="redirect-url" />
+                  ) : undefined
+                }
+                title={t("redirect_success_booking")}
+                data-testid="redirect-success-booking"
+                {...successRedirectUrlLocked}
+                disabled={successRedirectUrlLocked.disabled}
+                description={t("redirect_url_description")}
+                checked={redirectUrlVisible}
+                onCheckedChange={(e) => {
+                  setRedirectUrlVisible(e);
+                  onChange(e ? value : "");
+                }}>
                 <div
                   className={classNames(
-                    "mt-4",
-                    customClassNames?.bookingRedirect?.forwardParamsCheckbox?.container
+                    "border-subtle rounded-b-lg border border-t-0 p-6",
+                    customClassNames?.bookingRedirect?.redirectUrlInput?.container
                   )}>
-                  <Controller
-                    name="forwardParamsSuccessRedirect"
-                    render={({ field: { value, onChange } }) => (
-                      <CheckboxField
-                        description={t("forward_params_redirect")}
-                        disabled={successRedirectUrlLocked.disabled}
-                        className={customClassNames?.bookingRedirect?.forwardParamsCheckbox?.checkbox}
-                        descriptionClassName={
-                          customClassNames?.bookingRedirect?.forwardParamsCheckbox?.description
-                        }
-                        onChange={(e) => onChange(e)}
-                        checked={value}
-                      />
+                  <TextField
+                    className={classNames(
+                      "w-full",
+                      customClassNames?.bookingRedirect?.redirectUrlInput?.input
                     )}
+                    label={t("redirect_success_booking")}
+                    labelClassName={customClassNames?.bookingRedirect?.redirectUrlInput?.label}
+                    labelSrOnly
+                    disabled={successRedirectUrlLocked.disabled}
+                    placeholder={t("external_redirect_url")}
+                    data-testid="external-redirect-url"
+                    required={redirectUrlVisible}
+                    type="text"
+                    {...formMethods.register("successRedirectUrl")}
                   />
+
+                  <div
+                    className={classNames(
+                      "mt-4",
+                      customClassNames?.bookingRedirect?.forwardParamsCheckbox?.container
+                    )}>
+                    <Controller
+                      name="forwardParamsSuccessRedirect"
+                      render={({ field: { value, onChange } }) => (
+                        <CheckboxField
+                          description={t("forward_params_redirect")}
+                          disabled={successRedirectUrlLocked.disabled}
+                          className={customClassNames?.bookingRedirect?.forwardParamsCheckbox?.checkbox}
+                          descriptionClassName={
+                            customClassNames?.bookingRedirect?.forwardParamsCheckbox?.description
+                          }
+                          onChange={(e) => onChange(e)}
+                          checked={value}
+                        />
+                      )}
+                    />
+                  </div>
+                  <div
+                    className={classNames(
+                      "p-1 text-sm text-orange-600",
+                      formMethods.getValues("successRedirectUrl") ? "block" : "hidden",
+                      customClassNames?.bookingRedirect?.error
+                    )}
+                    data-testid="redirect-url-warning">
+                    {t("redirect_url_warning")}
+                  </div>
                 </div>
-                <div
-                  className={classNames(
-                    "p-1 text-sm text-orange-600",
-                    formMethods.getValues("successRedirectUrl") ? "block" : "hidden",
-                    customClassNames?.bookingRedirect?.error
-                  )}
-                  data-testid="redirect-url-warning">
-                  {t("redirect_url_warning")}
-                </div>
-              </div>
-            </SettingsToggle>
+              </SettingsToggle>
             )}
           </>
         )}
@@ -1412,7 +1415,7 @@ export const EventAdvancedTab = ({
                   );
                 }}>
                 {isPlatform && (
-                  <AddVerifiedEmail username={eventType.users[0]?.name || "there"} showToast={showToast} />
+                  <AddVerifiedEmail username={eventType.users[0]?.name || "there"} showToast={showToast} isPlatform={isPlatform} />
                 )}
                 <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                   <SelectField

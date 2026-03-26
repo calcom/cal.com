@@ -16,9 +16,10 @@ import { useVerifyEmail } from "../../../../../packages/platform/atoms/hooks/use
 type AddVerifiedEmailProps = {
   username?: string;
   showToast: (message: string, variant: "success" | "warning" | "error") => void;
+  isPlatform?: boolean;
 };
 
-const AddVerifiedEmail = ({ username, showToast }: AddVerifiedEmailProps) => {
+const AddVerifiedEmail = ({ username, showToast, isPlatform = false }: AddVerifiedEmailProps) => {
   const { t } = useLocale();
   const [verifiedEmail, setVerifiedEmail] = useState("");
   const [isEmailVerificationModalVisible, setIsEmailVerificationModalVisible] = useState(false);
@@ -97,6 +98,7 @@ const AddVerifiedEmail = ({ username, showToast }: AddVerifiedEmailProps) => {
           resetErrors={verifyCode.resetErrors}
           isPending={verifyCode.isPending}
           setIsPending={verifyCode.setIsPending}
+          isPlatform={isPlatform}
         />
       </>
     </div>

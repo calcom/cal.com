@@ -3,8 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { Dialog as ControlledDialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Dialog as BaseDialog } from "@calcom/ui/components/dialog";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
 import { Input } from "@calcom/ui/components/form";
@@ -85,6 +86,9 @@ export const VerifyCodeDialog = ({
   useEffect(() => setValue(""), [isOpenDialog]);
 
   const digitClassName = "h-12 w-12 text-xl! text-center";
+
+  // controlled-dialog uses useRouter from next/navigation which isn't available outside Next.js
+  const Dialog = isPlatform ? BaseDialog : ControlledDialog;
 
   return (
     <Dialog
