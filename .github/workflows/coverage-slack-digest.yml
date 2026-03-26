@@ -19,6 +19,7 @@ jobs:
         with:
           workflow: coverage-baseline.yml
           branch: main
+          workflow_conclusion: ''
           name: coverage-baseline-unit
           path: coverage/unit
           if_no_artifact_found: warn
@@ -29,6 +30,7 @@ jobs:
         with:
           workflow: coverage-baseline.yml
           branch: main
+          workflow_conclusion: ''
           name: coverage-baseline-integration
           path: coverage/integration
           if_no_artifact_found: warn
