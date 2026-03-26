@@ -1,7 +1,5 @@
-import type { TFunction } from "i18next";
-
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
-
+import type { TFunction } from "i18next";
 import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
 
@@ -16,6 +14,7 @@ export type OrganizationAdminNoSlotsEmailInput = {
   endTime: string;
   teamSlug: string;
   editLink: string;
+  rrHostSubsetIds?: number[];
 };
 
 export default class OrganizationAdminNoSlotsEmail extends BaseEmail {
@@ -38,14 +37,19 @@ export default class OrganizationAdminNoSlotsEmail extends BaseEmail {
   }
 
   protected getTextBody(): string {
+    const rrSubsetNotice =
+      this.adminNoSlots.rrHostSubsetIds && this.adminNoSlots.rrHostSubsetIds.length > 0
+        ? `\nNote: This booking request was restricted to a round-robin host subset (user IDs: ${this.adminNoSlots.rrHostSubsetIds.join(", ")}). Only these specific hosts were considered for availability.\n`
+        : "";
+
     return `
 Hi Admins,
 
 It has been brought to our attention that ${this.adminNoSlots.user} has not had availability users have visited ${this.adminNoSlots.user}/${this.adminNoSlots.slug}.
-
-There’s a few reasons why this could be happening
+${rrSubsetNotice}
+There's a few reasons why this could be happening
 * The user does not have any calendars connected
-* Their schedules attached to this event are not enabled
+* Their schedules attached to this event are not enabled${this.adminNoSlots.rrHostSubsetIds?.length ? "\n* The round-robin host subset passed may be too restrictive" : ""}
 
 We recommend checking their availability to resolve this
     `;

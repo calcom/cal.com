@@ -1,7 +1,5 @@
-import type { TFunction } from "i18next";
-
 import ServerTrans from "@calcom/lib/components/ServerTrans";
-
+import type { TFunction } from "i18next";
 import { BaseEmailHtml, CallToAction } from "../components";
 
 export type OrganizationAdminNoSlotsEmailInput = {
@@ -15,6 +13,7 @@ export type OrganizationAdminNoSlotsEmailInput = {
   endTime: string;
   editLink: string;
   teamSlug: string;
+  rrHostSubsetIds?: number[];
 };
 
 export const OrganizationAdminNoSlotsEmail = (
@@ -37,6 +36,15 @@ export const OrganizationAdminNoSlotsEmail = (
           values={{ username: props.user, slug: props.slug }}
         />
       </p>
+      {props.rrHostSubsetIds && props.rrHostSubsetIds.length > 0 && (
+        <p style={{ fontWeight: 400, fontSize: "16px", lineHeight: "24px" }}>
+          <>
+            {props.language("org_admin_no_slots|rr_subset_notice", {
+              userIds: props.rrHostSubsetIds.join(", "),
+            })}
+          </>
+        </p>
+      )}
       <div style={{ marginTop: "3rem", marginBottom: "0.75rem" }}>
         <CallToAction
           label={props.language("org_admin_no_slots|cta")}

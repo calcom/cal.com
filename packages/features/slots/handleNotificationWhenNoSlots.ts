@@ -1,10 +1,12 @@
+import process from "node:process";
 import type { Dayjs } from "@calcom/dayjs";
 import { sendOrganizationAdminNoSlotsNotification } from "@calcom/emails/organization-email-service";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
-import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/i18n/server";
+import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 
 type EventDetails = {
   username: string;
@@ -14,6 +16,8 @@ type EventDetails = {
   visitorTimezone?: string;
   visitorUid?: string;
 };
+
+const log = logger.getSubLogger({ prefix: ["[noSlotsNotification]"] });
 
 // Incase any updates are made - lets version the key so we can invalidate
 const REDIS_KEY_VERSION = "V1";
@@ -52,15 +56,27 @@ export class NoSlotsNotificationService {
     eventDetails,
     orgDetails,
     teamId,
+    rrHostSubsetIds,
   }: {
     eventDetails: EventDetails;
     orgDetails: { currentOrgDomain: string | null };
     teamId?: number;
+    rrHostSubsetIds?: number[];
   }) {
     // Check for org
     if (!orgDetails.currentOrgDomain || !teamId) return;
     const UPSTASH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_TOKEN && process.env.UPSTASH_REDIS_REST_URL;
     if (!UPSTASH_ENV_FOUND) return;
+
+    const hasRRSubsetHosts = rrHostSubsetIds && rrHostSubsetIds.length > 0;
+    log.info("Handling no-slots notification", {
+      username: eventDetails.username,
+      eventSlug: eventDetails.eventSlug,
+      teamId,
+      orgDomain: orgDetails.currentOrgDomain,
+      hasRRSubsetHosts,
+      rrHostSubsetIds: hasRRSubsetHosts ? rrHostSubsetIds : undefined,
+    });
 
     // Check org has this setting enabled
     const orgSettings = await this.dependencies.teamRepo.findOrganizationSettingsBySlug({
@@ -111,7 +127,17 @@ export class NoSlotsNotificationService {
           // For now navigate here - when impersonation via parameter has been pushed we will impersonate and then navigate to availability
           editLink: `${WEBAPP_URL}/availability?type=team`,
           teamSlug: teamSlug?.slug ?? "",
+          rrHostSubsetIds: hasRRSubsetHosts ? rrHostSubsetIds : undefined,
         };
+
+        log.info("Sending no-slots notification email", {
+          to: admin.user.email,
+          user: eventDetails.username,
+          eventSlug: eventDetails.eventSlug,
+          teamId,
+          hasRRSubsetHosts,
+          rrHostSubsetIds: hasRRSubsetHosts ? rrHostSubsetIds : undefined,
+        });
 
         emailsToSend.push(sendOrganizationAdminNoSlotsNotification(payload));
       }

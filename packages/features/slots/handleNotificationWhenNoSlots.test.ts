@@ -1,5 +1,6 @@
 import i18nMock from "@calcom/testing/lib/__mocks__/libServerI18n";
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
+import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import * as CalcomEmails from "@calcom/emails/organization-email-service";
 import { getNoSlotsNotificationService } from "@calcom/features/di/containers/NoSlotsNotification";
@@ -489,5 +490,151 @@ describe("(Orgs) Send admin notifications when a user has no availability", () =
     expect(firstEventKey).not.toBe(secondEventKey);
     expect(firstEventKey).toContain("event1");
     expect(secondEventKey).toContain("event2");
+  });
+
+  it("Should include rrHostSubsetIds in the email payload when provided", async () => {
+    const redisService = new RedisService();
+    const mocked = vi.mocked(redisService);
+
+    prismaMock.team.findFirst.mockResolvedValue({
+      organizationSettings: {
+        adminGetsNoSlotsNotification: true,
+      },
+    });
+
+    prismaMock.membership.findMany.mockResolvedValue([
+      {
+        user: {
+          email: "admin@test.com",
+          locale: "en",
+        },
+      },
+    ]);
+
+    const eventDetails = {
+      username: "user1",
+      eventSlug: "event1",
+      startTime: dayjs(),
+      endTime: dayjs().add(1, "hour"),
+    };
+
+    const orgDetails = {
+      currentOrgDomain: "org1",
+      isValidOrgDomain: true,
+    };
+
+    mocked.lrange.mockResolvedValueOnce([""]);
+
+    const service = getNoSlotsNotificationService();
+    await service.handleNotificationWhenNoSlots({
+      eventDetails,
+      orgDetails,
+      teamId: 123,
+      rrHostSubsetIds: [10, 20, 30],
+    });
+
+    expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).toHaveBeenCalledTimes(1);
+    expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rrHostSubsetIds: [10, 20, 30],
+      })
+    );
+  });
+
+  it("Should not include rrHostSubsetIds in the email payload when not provided", async () => {
+    const redisService = new RedisService();
+    const mocked = vi.mocked(redisService);
+
+    prismaMock.team.findFirst.mockResolvedValue({
+      organizationSettings: {
+        adminGetsNoSlotsNotification: true,
+      },
+    });
+
+    prismaMock.membership.findMany.mockResolvedValue([
+      {
+        user: {
+          email: "admin@test.com",
+          locale: "en",
+        },
+      },
+    ]);
+
+    const eventDetails = {
+      username: "user1",
+      eventSlug: "event1",
+      startTime: dayjs(),
+      endTime: dayjs().add(1, "hour"),
+    };
+
+    const orgDetails = {
+      currentOrgDomain: "org1",
+      isValidOrgDomain: true,
+    };
+
+    mocked.lrange.mockResolvedValueOnce([""]);
+
+    const service = getNoSlotsNotificationService();
+    await service.handleNotificationWhenNoSlots({
+      eventDetails,
+      orgDetails,
+      teamId: 123,
+    });
+
+    expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).toHaveBeenCalledTimes(1);
+    expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rrHostSubsetIds: undefined,
+      })
+    );
+  });
+
+  it("Should not include rrHostSubsetIds in the email payload when empty array is provided", async () => {
+    const redisService = new RedisService();
+    const mocked = vi.mocked(redisService);
+
+    prismaMock.team.findFirst.mockResolvedValue({
+      organizationSettings: {
+        adminGetsNoSlotsNotification: true,
+      },
+    });
+
+    prismaMock.membership.findMany.mockResolvedValue([
+      {
+        user: {
+          email: "admin@test.com",
+          locale: "en",
+        },
+      },
+    ]);
+
+    const eventDetails = {
+      username: "user1",
+      eventSlug: "event1",
+      startTime: dayjs(),
+      endTime: dayjs().add(1, "hour"),
+    };
+
+    const orgDetails = {
+      currentOrgDomain: "org1",
+      isValidOrgDomain: true,
+    };
+
+    mocked.lrange.mockResolvedValueOnce([""]);
+
+    const service = getNoSlotsNotificationService();
+    await service.handleNotificationWhenNoSlots({
+      eventDetails,
+      orgDetails,
+      teamId: 123,
+      rrHostSubsetIds: [],
+    });
+
+    expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).toHaveBeenCalledTimes(1);
+    expect(CalcomEmails.sendOrganizationAdminNoSlotsNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rrHostSubsetIds: undefined,
+      })
+    );
   });
 });
