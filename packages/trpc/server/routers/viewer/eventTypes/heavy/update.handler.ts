@@ -368,7 +368,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         id: instantMeetingSchedule,
       },
     };
-  } else if (schedule === null) {
+  } else if (instantMeetingSchedule === null || schedule === null) {
     data.instantMeetingSchedule = {
       disconnect: true,
     };
