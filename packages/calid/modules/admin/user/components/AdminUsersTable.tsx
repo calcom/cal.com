@@ -501,11 +501,11 @@ export const AdminUsersTable = () => {
                           </span>
                         )}
                         {user.locked && <Icon name="lock" />}
-                        {getIsEnterpriseUser(user.metadata) && (
+                        {/* {getIsEnterpriseUser(user.metadata) && (
                           <span className="text-default rounded bg-blue-100 px-2 py-1 text-xs font-semibold">
                             Enterprise
                           </span>
-                        )}
+                        )} */}
                       </div>
                       <span className="break-all">{user.email}</span>
                     </div>
@@ -565,18 +565,18 @@ export const AdminUsersTable = () => {
                           onClick: () => lockUserAccount.mutate({ userId: user.id, locked: !user.locked }),
                           icon: "lock",
                         },
-                        {
-                          id: "toggle-enterprise",
-                          label: getIsEnterpriseUser(user.metadata)
-                            ? "Disable Enterprise"
-                            : "Enable Enterprise",
-                          onClick: () =>
-                            toggleEnterpriseUser.mutate({
-                              userId: user.id,
-                              isEnterprise: !getIsEnterpriseUser(user.metadata),
-                            }),
-                          icon: "building",
-                        },
+                        // {
+                        //   id: "toggle-enterprise",
+                        //   label: getIsEnterpriseUser(user.metadata)
+                        //     ? "Disable Enterprise"
+                        //     : "Enable Enterprise",
+                        //   onClick: () =>
+                        //     toggleEnterpriseUser.mutate({
+                        //       userId: user.id,
+                        //       isEnterprise: !getIsEnterpriseUser(user.metadata),
+                        //     }),
+                        //   icon: "building",
+                        // },
                         {
                           id: "delete",
                           label: "Delete",
