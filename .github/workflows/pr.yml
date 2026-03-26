@@ -50,9 +50,10 @@ jobs:
           key: ${{ steps.cache-db-key.outputs.key }}
           lookup-only: true
       - name: Check for files requiring all checks (with exclusions)
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         id: filter-exclusions
         with:
+          token: ${{ github.token }}
           predicate-quantifier: "every"
           filters: |
             has-files-requiring-all-checks:
@@ -66,9 +67,10 @@ jobs:
               - '!packages/i18n/locales/**/common.json'
               - '!i18n.lock'
       - name: Check for specific path changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         id: filter-inclusions
         with:
+          token: ${{ github.token }}
           filters: |
             has-docs-changes:
               - "docs/**"
