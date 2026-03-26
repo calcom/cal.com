@@ -131,7 +131,7 @@ export class NoSlotsNotificationService {
         };
 
         log.info("Sending no-slots notification email", {
-          to: admin.user.email,
+          recipientType: "org-admin",
           user: eventDetails.username,
           eventSlug: eventDetails.eventSlug,
           teamId,

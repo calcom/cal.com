@@ -39,7 +39,9 @@ export default class OrganizationAdminNoSlotsEmail extends BaseEmail {
   protected getTextBody(): string {
     const rrSubsetNotice =
       this.adminNoSlots.rrHostSubsetIds && this.adminNoSlots.rrHostSubsetIds.length > 0
-        ? `\nNote: This booking request was restricted to a round-robin host subset (user IDs: ${this.adminNoSlots.rrHostSubsetIds.join(", ")}). Only these specific hosts were considered for availability.\n`
+        ? `\n${this.adminNoSlots.language("org_admin_no_slots|rr_subset_notice", {
+            userIds: this.adminNoSlots.rrHostSubsetIds.join(", "),
+          })}\n`
         : "";
 
     return `
