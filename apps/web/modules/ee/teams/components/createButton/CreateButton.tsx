@@ -1,7 +1,5 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -19,6 +17,9 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { Icon } from "@calcom/ui/components/icon";
 import type { IconName } from "@calcom/ui/components/icon/icon-names";
+import { usePathname, useRouter } from "next/navigation";
+import type React from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface Option {
   platform?: boolean;
@@ -47,6 +48,70 @@ export type CreateBtnProps = {
   className?: string;
   additionalMenuItems?: AdditionalMenuItem[];
 };
+
+const SCROLL_THRESHOLD = 5;
+
+function ScrollableDropdownOptions({ subtitle, children }: { subtitle?: string; children: React.ReactNode }) {
+  const [showBottomGradient, setShowBottomGradient] = useState(false);
+  const [showTopGradient, setShowTopGradient] = useState(false);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  const updateGradients = useCallback(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = node;
+    const top = scrollTop > SCROLL_THRESHOLD;
+    const bottom = scrollTop + clientHeight < scrollHeight - SCROLL_THRESHOLD;
+
+    setShowTopGradient((prev) => (prev === top ? prev : top));
+    setShowBottomGradient((prev) => (prev === bottom ? prev : bottom));
+  }, []);
+
+  const setRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      scrollRef.current = node;
+      updateGradients();
+    },
+    [updateGradients]
+  );
+
+  useEffect(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+
+    const resizeObserver = new ResizeObserver(updateGradients);
+    resizeObserver.observe(node);
+
+    return () => resizeObserver.disconnect();
+  }, [updateGradients]);
+
+  return (
+    <div className="relative">
+      <div
+        ref={setRef}
+        onScroll={updateGradients}
+        className="scroll-bar max-h-72 overflow-y-auto overflow-x-hidden">
+        <DropdownMenuLabel>
+          <div className="w-48 text-left text-xs">{subtitle}</div>
+        </DropdownMenuLabel>
+        {children}
+      </div>
+      {showTopGradient && (
+        <div
+          className="from-default pointer-events-none absolute left-0 right-0 top-0 h-8 bg-gradient-to-b to-transparent"
+          aria-hidden="true"
+        />
+      )}
+      {showBottomGradient && (
+        <div
+          className="from-default pointer-events-none absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t to-transparent"
+          aria-hidden="true"
+        />
+      )}
+    </div>
+  );
+}
 
 /**
  * @deprecated use CreateButtonWithTeamsList instead
@@ -133,29 +198,28 @@ export function CreateButton(props: CreateBtnProps) {
               {buttonText ? buttonText : t("new")}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent sideOffset={14} align="end" className="scroll-bar max-h-60 overflow-y-auto">
-            <DropdownMenuLabel>
-              <div className="w-48 text-left text-xs">{subtitle}</div>
-            </DropdownMenuLabel>
-            {options.map((option, idx) => (
-              <DropdownMenuItem key={option.label}>
-                <DropdownItem
-                  type="button"
-                  data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
-                  CustomStartIcon={<Avatar alt={option.label || ""} imageSrc={option.image} size="sm" />}
-                  onClick={() =>
-                    CreateDialog
-                      ? openModal(option)
-                      : createFunction
-                        ? createFunction(option.teamId || undefined, option.platform)
-                        : null
-                  }>
-                  {" "}
-                  {/*improve this code */}
-                  <span>{option.label}</span>
-                </DropdownItem>
-              </DropdownMenuItem>
-            ))}
+          <DropdownMenuContent sideOffset={14} align="end">
+            <ScrollableDropdownOptions subtitle={subtitle}>
+              {options.map((option, idx) => (
+                <DropdownMenuItem key={option.label}>
+                  <DropdownItem
+                    type="button"
+                    data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
+                    CustomStartIcon={<Avatar alt={option.label || ""} imageSrc={option.image} size="sm" />}
+                    onClick={() =>
+                      CreateDialog
+                        ? openModal(option)
+                        : createFunction
+                          ? createFunction(option.teamId || undefined, option.platform)
+                          : null
+                    }>
+                    {" "}
+                    {/*improve this code */}
+                    <span>{option.label}</span>
+                  </DropdownItem>
+                </DropdownMenuItem>
+              ))}
+            </ScrollableDropdownOptions>
             {hasAdditionalItems && (
               <>
                 <DropdownMenuSeparator />
