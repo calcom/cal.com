@@ -320,7 +320,9 @@ export default function BannerUploader({
         enableOverflow={false}>
         <DialogHeader>
           <DialogTitle>{t("upload_target", { target: fieldName || target })}</DialogTitle>
-          <DialogDescription>{t("image_limits", { limit: `${width}x${height}` })}</DialogDescription>
+          {width && height && (
+            <DialogDescription>{t("image_limits", { limit: `${width}x${height}` })}</DialogDescription>
+          )}
         </DialogHeader>
         <div className="overflow-hidden">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">

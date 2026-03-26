@@ -30,7 +30,9 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
 
   const selectedTime = req.cookies["selectedTime"] || "";
   const slot = query.slot || "";
-  if (slot && slot !== selectedTime) {
+  const queryRescheduleUid = query.rescheduleUid || "";
+
+  if (!queryRescheduleUid && slot && slot !== selectedTime) {
     const protocol = req.headers["x-forwarded-proto"] || "http";
     const host = req.headers["host"];
     const pathname = `/team/${params?.slug}/${params?.type}`;
