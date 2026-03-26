@@ -224,16 +224,15 @@ export interface RecordingReadyDTO extends BaseEventDTO {
   downloadLink: string;
 }
 
+export interface TranscriptionDownloadLinks {
+  transcription?: Array<{ format: string; link: string }>;
+  recording?: string;
+}
+
 export interface TranscriptionGeneratedDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED;
   evt: CalendarEvent;
-  downloadLinks?: {
-    transcription?: Array<{
-      format: string;
-      link: string;
-    }>;
-    recording?: string;
-  };
+  downloadLinks?: TranscriptionDownloadLinks;
 }
 
 export interface FormSubmittedNoEventDTO extends BaseEventDTO {

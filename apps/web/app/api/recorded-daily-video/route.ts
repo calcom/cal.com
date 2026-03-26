@@ -1,15 +1,10 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { createHmac } from "node:crypto";
-import { headers } from "next/headers";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-
-import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getRoomNameFromRecordingId } from "@calcom/app-store/dailyvideo/lib";
 import {
   sendDailyVideoRecordingEmails,
   sendDailyVideoTranscriptEmails,
 } from "@calcom/emails/daily-video-emails";
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import {
   getAllTranscriptsAccessLinkFromMeetingId,
   submitBatchProcessorTranscriptionJob,
@@ -25,15 +20,19 @@ import { getBooking } from "@calcom/web/lib/daily-webhook/getBooking";
 import { getBookingReference } from "@calcom/web/lib/daily-webhook/getBookingReference";
 import { getCalendarEvent } from "@calcom/web/lib/daily-webhook/getCalendarEvent";
 import {
+  batchProcessorJobFinishedSchema,
   meetingEndedSchema,
   recordingReadySchema,
-  batchProcessorJobFinishedSchema,
   testRequestSchema,
 } from "@calcom/web/lib/daily-webhook/schema";
 import {
   triggerRecordingReadyWebhook,
   triggerTranscriptionGeneratedWebhook,
 } from "@calcom/web/lib/daily-webhook/triggerWebhooks";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { headers } from "next/headers";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
@@ -119,9 +118,9 @@ export async function postHandler(request: NextRequest) {
       const tasks = [
         {
           fn: triggerRecordingReadyWebhook({
-            evt,
-            downloadLink,
+            recordingId: recording_id,
             booking: {
+              uid: booking.uid,
               userId: booking?.user?.id,
               eventTypeId: booking.eventTypeId,
               eventTypeParentId: booking.eventType?.parentId,
@@ -198,19 +197,11 @@ export async function postHandler(request: NextRequest) {
         },
       });
 
-      const [evt, recording, batchProcessorJobAccessLink] = await Promise.all([
-        getCalendarEvent(booking),
-        getProxyDownloadLinkOfCalVideo(input.recordingId),
-        getBatchProcessorJobAccessLink(id),
-      ]);
-
       await triggerTranscriptionGeneratedWebhook({
-        evt,
-        downloadLinks: {
-          transcription: batchProcessorJobAccessLink.transcription,
-          recording,
-        },
+        recordingId: input.recordingId,
+        batchProcessorJobId: id,
         booking: {
+          uid: booking.uid,
           userId: booking?.user?.id,
           eventTypeId: booking.eventTypeId,
           eventTypeParentId: booking.eventType?.parentId,

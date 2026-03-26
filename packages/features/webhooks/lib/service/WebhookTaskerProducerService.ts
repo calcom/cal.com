@@ -1,6 +1,6 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { v4 as uuidv4 } from "uuid";
-import type { PaymentTriggerEvents } from "../factory/versioned/PayloadBuilderFactory";
+import type { PaymentTriggerEvents, RecordingTriggerEvents } from "../factory/versioned/PayloadBuilderFactory";
 import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
 import type {
@@ -84,25 +84,30 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
     await this.queueTask(operationId, taskPayload);
   }
 
-  async queueRecordingReadyWebhook(params: QueueRecordingWebhookParams): Promise<void> {
+  async queueRecordingWebhook(
+    triggerEvent: RecordingTriggerEvents,
+    params: QueueRecordingWebhookParams
+  ): Promise<void> {
     const operationId = params.operationId || uuidv4();
 
     this.log.debug("Queueing recording webhook task", {
       operationId,
-      triggerEvent: WebhookTriggerEvents.RECORDING_READY,
+      triggerEvent,
       recordingId: params.recordingId,
       bookingUid: params.bookingUid,
     });
 
     const taskPayload: WebhookTaskPayload = {
       operationId,
-      triggerEvent: WebhookTriggerEvents.RECORDING_READY,
+      triggerEvent,
       recordingId: params.recordingId,
       bookingUid: params.bookingUid,
       eventTypeId: params.eventTypeId,
       teamId: params.teamId,
       userId: params.userId,
+      orgId: params.orgId,
       oAuthClientId: params.oAuthClientId,
+      batchProcessorJobId: params.batchProcessorJobId,
       metadata: params.metadata,
       timestamp: new Date().toISOString(),
     };

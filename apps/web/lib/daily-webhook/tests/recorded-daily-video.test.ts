@@ -12,7 +12,6 @@ import { getBatchProcessorJobAccessLink, getRoomNameFromRecordingId } from "@cal
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { expectWebhookToHaveBeenCalledWith } from "@calcom/testing/lib/bookingScenario/expects";
 import * as recordedDailyVideoRoute from "@calcom/web/app/api/recorded-daily-video/route";
 import { NextRequest } from "next/server";
 import { createMocks } from "node-mocks-http";
@@ -72,6 +71,18 @@ vi.mock("@calcom/lib/videoTokens", () => {
     generateVideoToken: vi.fn().mockReturnValue("MOCK_TOKEN"),
   };
 });
+
+const mockProducer = vi.hoisted(() => ({
+  queueRecordingWebhook: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@calcom/features/di/webhooks/containers/webhook", () => ({
+  getWebhookProducer: () => mockProducer,
+}));
+
+vi.mock("@calcom/lib/getOrgIdFromMemberOrTeamId", () => ({
+  default: vi.fn().mockResolvedValue(null),
+}));
 
 vi.mock("app/api/defaultResponderForAppDir", () => {
   return {
@@ -282,24 +293,16 @@ describe("Handler: /api/recorded-daily-video", () => {
         throw error;
       }
 
-      await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
-        triggerEvent: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
-        payload: {
-          type: "Test Booking Title",
-          uid: bookingUid,
-          downloadLinks: {
-            transcription: TRANSCRIPTION_ACCESS_LINK.transcription,
-            recording: `${WEBAPP_URL}/api/video/recording?token=MOCK_TOKEN`,
-          },
-          organizer: {
-            email: organizer.email,
-            name: organizer.name,
-            timeZone: organizer.timeZone,
-            language: { locale: "en" },
-            utcOffset: 330,
-          },
-        },
-      });
+      expect(mockProducer.queueRecordingWebhook).toHaveBeenCalledWith(
+        "RECORDING_TRANSCRIPTION_GENERATED",
+        expect.objectContaining({
+          recordingId: BATCH_PROCESSOR_JOB_FINSISHED_PAYLOAD.payload.input.recordingId,
+          bookingUid,
+          eventTypeId: 1,
+          userId: organizer.id,
+          batchProcessorJobId: BATCH_PROCESSOR_JOB_FINSISHED_PAYLOAD.payload.id,
+        })
+      );
     },
     timeout
   );

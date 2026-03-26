@@ -1,119 +1,63 @@
-import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import type { CalendarEvent } from "@calcom/types/Calendar";
-
-const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler:triggerRecordingReadyWebhook"] });
 
 type Booking = {
   userId: number | undefined;
   eventTypeId: number | null;
   eventTypeParentId: number | null | undefined;
   teamId?: number | null;
+  uid: string;
 };
 
-const getWebhooksByEventTrigger = async (eventTrigger: WebhookTriggerEvents, booking: Booking) => {
+async function resolveSubscriberContext(booking: Booking) {
   const isTeamBooking = booking.teamId;
   const isBookingForManagedEventtype = booking.teamId && booking.eventTypeParentId;
   const triggerForUser = !isTeamBooking || isBookingForManagedEventtype;
-  const organizerUserId = triggerForUser ? booking.userId : null;
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId: booking.teamId });
-
-  const subscriberOptions = {
-    userId: organizerUserId,
-    eventTypeId: booking.eventTypeId,
-    triggerEvent: eventTrigger,
+  const userId = triggerForUser ? booking.userId : null;
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId: booking.teamId });
+  return {
+    userId: userId ?? undefined,
     teamId: booking.teamId,
-    orgId,
+    orgId: orgId ?? undefined,
   };
-
-  return getWebhooks(subscriberOptions);
-};
+}
 
 export const triggerRecordingReadyWebhook = async ({
-  evt,
-  downloadLink,
+  recordingId,
   booking,
 }: {
-  evt: CalendarEvent;
-  downloadLink: string;
+  recordingId: string;
   booking: Booking;
 }) => {
-  const eventTrigger: WebhookTriggerEvents = "RECORDING_READY";
-  const webhooks = await getWebhooksByEventTrigger(eventTrigger, booking);
+  const subscriberContext = await resolveSubscriberContext(booking);
+  const producer = getWebhookProducer();
 
-  log.debug(
-    "Webhooks:",
-    safeStringify({
-      webhooks,
-    })
-  );
-
-  const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
-  const payload: EventPayloadType = {
-    ...evtWithoutAssignmentReason,
-    downloadLink,
-  };
-
-  const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, payload).catch((e) => {
-      log.error(
-        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
+  await producer.queueRecordingWebhook(WebhookTriggerEvents.RECORDING_READY, {
+    recordingId,
+    bookingUid: booking.uid,
+    eventTypeId: booking.eventTypeId ?? undefined,
+    ...subscriberContext,
+  });
 };
 
 export const triggerTranscriptionGeneratedWebhook = async ({
-  evt,
-  downloadLinks,
+  recordingId,
+  batchProcessorJobId,
   booking,
 }: {
-  evt: CalendarEvent;
-  downloadLinks?: {
-    transcription: TGetTranscriptAccessLink["transcription"];
-    recording: string;
-  };
+  recordingId: string;
+  batchProcessorJobId: string;
   booking: Booking;
 }) => {
-  const webhooks = await getWebhooksByEventTrigger(
-    WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
-    booking
-  );
+  const subscriberContext = await resolveSubscriberContext(booking);
+  const producer = getWebhookProducer();
 
-  log.debug(
-    "Webhooks:",
-    safeStringify({
-      webhooks,
-    })
-  );
-
-  const { assignmentReason: _emailAssignmentReason2, ...evtWithoutAssignmentReason2 } = evt;
-  const payload: EventPayloadType = {
-    ...evtWithoutAssignmentReason2,
-    downloadLinks,
-  };
-
-  const promises = webhooks.map((webhook) =>
-    sendPayload(
-      webhook.secret,
-      WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
-      new Date().toISOString(),
-      webhook,
-      payload
-    ).catch((e) => {
-      log.error(
-        `Error executing webhook for event: ${WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
+  await producer.queueRecordingWebhook(WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED, {
+    recordingId,
+    bookingUid: booking.uid,
+    eventTypeId: booking.eventTypeId ?? undefined,
+    ...subscriberContext,
+    batchProcessorJobId,
+  });
 };

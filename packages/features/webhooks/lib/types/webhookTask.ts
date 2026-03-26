@@ -80,7 +80,9 @@ export const recordingWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
   eventTypeId: z.number().optional(),
   teamId: z.number().nullable().optional(),
   userId: z.number().optional(),
+  orgId: z.number().optional(),
   oAuthClientId: z.string().nullable().optional(),
+  batchProcessorJobId: z.string().optional(),
 });
 
 /**
@@ -181,6 +183,32 @@ export const webhookTaskPayloadSchema = z.discriminatedUnion("triggerEvent", [
   routingFormFallbackHitWebhookTaskPayloadSchema,
   wrongAssignmentWebhookTaskPayloadSchema,
 ]);
+
+/**
+ * Shape of transcription download links returned by RecordingWebhookDataFetcher
+ * after resolving the batch processor job via batchProcessorJobId.
+ */
+export const transcriptionDownloadLinksSchema = z.object({
+  transcription: z.array(z.object({ format: z.string(), link: z.string() })).optional(),
+  recording: z.string().optional(),
+});
+
+
+export interface TranscriptionDownloadLinks {
+  transcription?: Array<{ format: string; link: string }>;
+  recording?: string;
+}
+
+/**
+ * Shape returned by RecordingWebhookDataFetcher.fetchEventData().
+ * Used by the consumer to avoid `as` casts on the generic eventData bag.
+ */
+export const recordingEventDataSchema = z.object({
+  calendarEvent: z.record(z.unknown()),
+  booking: z.object({ id: z.number().optional() }).optional(),
+  downloadLink: z.string().optional(),
+  downloadLinks: transcriptionDownloadLinksSchema.optional(),
+});
 
 /**
  * Metadata schema for BOOKING_NO_SHOW_UPDATED webhooks.
@@ -289,7 +317,22 @@ export const routingFormFallbackHitEventDataSchema = z.object({
 export type BookingWebhookTaskPayload = z.infer<typeof bookingWebhookTaskPayloadSchema>;
 export type PaymentWebhookTaskPayload = z.infer<typeof paymentWebhookTaskPayloadSchema>;
 export type FormWebhookTaskPayload = z.infer<typeof formWebhookTaskPayloadSchema>;
-export type RecordingWebhookTaskPayload = z.infer<typeof recordingWebhookTaskPayloadSchema>;
+export interface RecordingWebhookTaskPayload {
+  operationId: string;
+  timestamp: string;
+  metadata?: Record<string, unknown>;
+  triggerEvent:
+    | typeof WebhookTriggerEvents.RECORDING_READY
+    | typeof WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED;
+  recordingId: string;
+  bookingUid: string;
+  eventTypeId?: number;
+  teamId?: number | null;
+  userId?: number;
+  orgId?: number;
+  oAuthClientId?: string | null;
+  batchProcessorJobId?: string;
+}
 export type OOOWebhookTaskPayload = z.infer<typeof oooWebhookTaskPayloadSchema>;
 export type RoutingFormFallbackHitWebhookTaskPayload = z.infer<
   typeof routingFormFallbackHitWebhookTaskPayloadSchema

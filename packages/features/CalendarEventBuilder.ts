@@ -25,6 +25,18 @@ const APP_TYPE_TO_NAME_MAP = new Map<string, string>(ALL_APPS.map((app) => [app.
 export type BookingForCalEventBuilder = NonNullable<
   Awaited<ReturnType<BookingRepository["getBookingForCalEventBuilder"]>>
 >;
+export type MinimalCalendarEvent = Pick<
+  CalendarEvent,
+  | "type"
+  | "title"
+  | "description"
+  | "startTime"
+  | "endTime"
+  | "organizer"
+  | "attendees"
+  | "uid"
+  | "customReplyToEmail"
+>;
 export type BookingMetaOptions = {
   conferenceCredentialId?: number;
   platformClientId?: string;
@@ -81,6 +93,49 @@ export class CalendarEventBuilder {
 
   static fromEvent(event: Partial<CalendarEvent>) {
     return new CalendarEventBuilder(event);
+  }
+
+  /**
+   * Builds a minimal CalendarEvent from a booking whose organizer (`user`) or
+   * `eventType` may have been deleted.  Unlike {@link fromBooking}, this method
+   * does **not** throw when those relations are absent — it falls back to
+   * sensible defaults so that downstream consumers (e.g. recording webhooks)
+   * are never blocked by stale data.
+   */
+  static async fromBookingWithOptionalRelations(booking: BookingForCalEventBuilder): Promise<MinimalCalendarEvent> {
+    const t = await getTranslation(booking.user?.locale ?? "en", "common");
+
+    const attendeesList = await Promise.all(
+      booking.attendees.map(async (attendee) => ({
+        id: attendee.id,
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        language: {
+          translate: await getTranslation(attendee.locale ?? "en", "common"),
+          locale: attendee.locale ?? "en",
+        },
+      }))
+    );
+
+    const event: MinimalCalendarEvent = {
+      type: booking.title,
+      title: booking.title,
+      description: booking.description || undefined,
+      startTime: booking.startTime.toISOString(),
+      endTime: booking.endTime.toISOString(),
+      organizer: {
+        email: booking.userPrimaryEmail || booking.user?.email || "Email-less",
+        name: booking.user?.name || "Nameless",
+        timeZone: booking.user?.timeZone || "Europe/London",
+        language: { translate: t, locale: booking.user?.locale ?? "en" },
+      },
+      attendees: attendeesList,
+      uid: booking.uid,
+      customReplyToEmail: booking.eventType?.customReplyToEmail,
+    };
+
+    return event;
   }
 
   /**

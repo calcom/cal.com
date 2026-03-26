@@ -8,7 +8,9 @@ import type {
   BookingRequestedDTO,
   BookingRescheduledDTO,
   OOOCreatedDTO,
+  RecordingReadyDTO,
   RoutingFormFallbackHitDTO,
+  TranscriptionGeneratedDTO,
   WebhookEventDTO,
   WebhookSubscriber,
   WrongAssignmentReportDTO,
@@ -23,12 +25,13 @@ import type { IWebhookService } from "../interface/services";
 import type {
   BookingWebhookTaskPayload,
   RoutingFormFallbackHitWebhookTaskPayload,
-  WrongAssignmentMetadata,
   WebhookTaskPayload,
+  WrongAssignmentMetadata,
 } from "../types/webhookTask";
 import {
   noShowEventDataSchema,
   oooEntrySchema,
+  recordingEventDataSchema,
   routingFormFallbackHitEventDataSchema,
 } from "../types/webhookTask";
 
@@ -228,6 +231,13 @@ export class WebhookTaskConsumer {
 
     const { triggerEvent, timestamp } = payload;
 
+    if (
+      triggerEvent === WebhookTriggerEvents.RECORDING_READY ||
+      triggerEvent === WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED
+    ) {
+      return this.buildRecordingDTO(eventData, payload);
+    }
+
     if (triggerEvent === WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT) {
       return this.buildWrongAssignmentDTO(eventData, timestamp);
     }
@@ -362,6 +372,57 @@ export class WebhookTaskConsumer {
         this.log.warn("Unsupported trigger event for DTO building", { triggerEvent });
         return null;
     }
+  }
+
+  private buildRecordingDTO(
+    eventData: Record<string, unknown>,
+    payload: WebhookTaskPayload
+  ): RecordingReadyDTO | TranscriptionGeneratedDTO | null {
+    const parsed = recordingEventDataSchema.safeParse(eventData);
+    if (!parsed.success) {
+      this.log.warn("Failed to validate recording event data for DTO", {
+        errors: parsed.error.flatten().fieldErrors,
+        triggerEvent: payload.triggerEvent,
+      });
+      return null;
+    }
+
+    const { calendarEvent, booking, downloadLink, downloadLinks } = parsed.data;
+
+    const baseFields = {
+      createdAt: payload.timestamp,
+      bookingId: booking?.id,
+      eventTypeId: "eventTypeId" in payload ? payload.eventTypeId : undefined,
+      userId: "userId" in payload ? payload.userId : undefined,
+      teamId: "teamId" in payload ? payload.teamId : undefined,
+      orgId: "orgId" in payload ? payload.orgId : undefined,
+      platformClientId: "oAuthClientId" in payload ? payload.oAuthClientId : undefined,
+    };
+
+    if (payload.triggerEvent === WebhookTriggerEvents.RECORDING_READY) {
+      if (!downloadLink) {
+        this.log.warn("Missing downloadLink for RECORDING_READY DTO");
+        return null;
+      }
+      return {
+        ...baseFields,
+        triggerEvent: WebhookTriggerEvents.RECORDING_READY,
+        evt: calendarEvent as unknown as CalendarEvent,
+        downloadLink,
+      } satisfies RecordingReadyDTO;
+    }
+
+    if (!downloadLinks) {
+      this.log.warn("Missing downloadLinks for RECORDING_TRANSCRIPTION_GENERATED DTO");
+      return null;
+    }
+
+    return {
+      ...baseFields,
+      triggerEvent: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
+      evt: calendarEvent as unknown as CalendarEvent,
+      downloadLinks,
+    } satisfies TranscriptionGeneratedDTO;
   }
 
   private buildWrongAssignmentDTO(

@@ -1,4 +1,5 @@
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { RecordingTriggerEvents } from "../factory/versioned/PayloadBuilderFactory";
 import type { RoutingFormFallbackHitMetadata } from "../types/webhookTask";
 
 /**
@@ -99,8 +100,14 @@ export interface QueueRecordingWebhookParams extends BaseQueueWebhookParams {
   /** User ID */
   userId?: number;
 
+  /** Organization ID */
+  orgId?: number;
+
   /** OAuth Client ID (for platform webhooks) */
   oAuthClientId?: string | null;
+
+  /** Batch processor job ID (for RECORDING_TRANSCRIPTION_GENERATED — used by the data fetcher to resolve transcription links) */
+  batchProcessorJobId?: string;
 }
 
 /**
@@ -213,9 +220,13 @@ export interface IWebhookProducerService {
   queueFormSubmittedWebhook(params: QueueFormWebhookParams): Promise<void>;
 
   /**
-   * Queue a webhook delivery task for RECORDING_READY event
+   * Queue a webhook delivery task for recording-related events
+   * (RECORDING_READY, RECORDING_TRANSCRIPTION_GENERATED)
    */
-  queueRecordingReadyWebhook(params: QueueRecordingWebhookParams): Promise<void>;
+  queueRecordingWebhook(
+    triggerEvent: RecordingTriggerEvents,
+    params: QueueRecordingWebhookParams
+  ): Promise<void>;
 
   /**
    * Queue a webhook delivery task for OOO_CREATED event

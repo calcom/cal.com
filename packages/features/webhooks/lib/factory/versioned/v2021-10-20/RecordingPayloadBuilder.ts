@@ -1,4 +1,6 @@
+import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { RecordingReadyDTO, TranscriptionGeneratedDTO } from "../../../dto/types";
 import type { WebhookPayload } from "../../types";
@@ -7,13 +9,11 @@ import { BaseRecordingPayloadBuilder } from "../../base/BaseRecordingPayloadBuil
 /**
  * Recording payload builder for webhook version 2021-10-20.
  *
- * This is the initial recording webhook payload format.
- * It handles both RECORDING_READY and RECORDING_TRANSCRIPTION_GENERATED events.
+ * Matches the legacy payload shape: CalendarEvent fields spread flat
+ * (minus assignmentReason) plus downloadLink / downloadLinks,
+ * with utcOffset on organizer and attendees.
  */
 export class RecordingPayloadBuilder extends BaseRecordingPayloadBuilder {
-  /**
-   * Build the recording webhook payload for v2021-10-20.
-   */
   build(dto: RecordingReadyDTO | TranscriptionGeneratedDTO): WebhookPayload {
     if (dto.triggerEvent === WebhookTriggerEvents.RECORDING_READY) {
       return this.buildRecordingReadyPayload(dto as RecordingReadyDTO);
@@ -22,25 +22,49 @@ export class RecordingPayloadBuilder extends BaseRecordingPayloadBuilder {
     return this.buildTranscriptionPayload(dto as TranscriptionGeneratedDTO);
   }
 
-  /**
-   * Build recording ready payload for v2021-10-20.
-   */
   private buildRecordingReadyPayload(dto: RecordingReadyDTO): WebhookPayload {
+    const evtWithOffsets = this.addUTCOffsets(dto.evt);
     return {
       triggerEvent: dto.triggerEvent,
       createdAt: dto.createdAt,
-      payload: { downloadLink: dto.downloadLink },
+      payload: {
+        ...this.stripAssignmentReason(evtWithOffsets),
+        downloadLink: dto.downloadLink,
+      },
     };
   }
 
-  /**
-   * Build transcription generated payload for v2021-10-20.
-   */
   private buildTranscriptionPayload(dto: TranscriptionGeneratedDTO): WebhookPayload {
+    const evtWithOffsets = this.addUTCOffsets(dto.evt);
     return {
       triggerEvent: dto.triggerEvent,
       createdAt: dto.createdAt,
-      payload: { downloadLinks: dto.downloadLinks },
+      payload: {
+        ...this.stripAssignmentReason(evtWithOffsets),
+        downloadLinks: dto.downloadLinks,
+      },
     };
+  }
+
+  private addUTCOffsets(evt: CalendarEvent) {
+    const organizer = evt.organizer
+      ? {
+          ...evt.organizer,
+          utcOffset: getUTCOffsetByTimezone(evt.organizer.timeZone, evt.startTime),
+        }
+      : evt.organizer;
+
+    const attendees =
+      evt.attendees?.map((a) => ({
+        ...a,
+        utcOffset: getUTCOffsetByTimezone(a.timeZone, evt.startTime),
+      })) ?? [];
+
+    return { ...evt, organizer, attendees };
+  }
+
+  private stripAssignmentReason(evt: CalendarEvent): Omit<CalendarEvent, "assignmentReason"> {
+    const { assignmentReason: _unused, ...rest } = evt;
+    return rest;
   }
 }

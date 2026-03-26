@@ -318,8 +318,8 @@ describe("WebhookTaskerProducerService", () => {
       );
     });
 
-    it("should have queueRecordingReadyWebhook", async () => {
-      await producer.queueRecordingReadyWebhook({
+    it("should queue RECORDING_READY via queueRecordingWebhook", async () => {
+      await producer.queueRecordingWebhook(WebhookTriggerEvents.RECORDING_READY, {
         recordingId: "rec-123",
         bookingUid: "booking-123",
       });
