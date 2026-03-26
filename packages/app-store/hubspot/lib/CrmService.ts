@@ -3,14 +3,14 @@
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { PrismaTrackingRepository } from "@calcom/features/bookings/repositories/PrismaTrackingRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { checkIfFreeEmailDomain } from "@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import getLabelValueMapFromResponses from "@calcom/lib/bookings/getLabelValueMapFromResponses";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { PrismaTrackingRepository } from "@calcom/features/bookings/repositories/PrismaTrackingRepository";
 import prisma from "@calcom/prisma";
 import type { CalEventResponses, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -23,7 +23,7 @@ import type {
   SimplePublicObjectInput,
 } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 import type { z } from "zod";
-import { CrmFieldType, DateFieldType } from "../../_lib/crm-enums";
+import { CrmFieldType, DateFieldType, WhenToWrite } from "../../_lib/crm-enums";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { HubspotToken } from "../api/callback";
@@ -89,13 +89,13 @@ class HubspotCalendarService implements CRM {
   `;
   };
 
-  private async ensureFieldsExistOnMeeting(fieldsToTest: string[]) {
-    const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOnMeeting]`] });
+  private async ensureFieldsExistOnObject(fieldsToTest: string[], objectType: "meetings" | "contacts") {
+    const log = logger.getSubLogger({ prefix: [`[ensureFieldsExistOn${objectType}]`] });
     const fieldSet = new Set(fieldsToTest);
     const foundFields: Array<{ name: string; type: string; [key: string]: any }> = [];
 
     try {
-      const properties = await this.hubspotClient.crm.properties.coreApi.getAll("meetings");
+      const properties = await this.hubspotClient.crm.properties.coreApi.getAll(objectType);
 
       for (const property of properties.results) {
         if (foundFields.length === fieldSet.size) break;
@@ -110,14 +110,13 @@ class HubspotCalendarService implements CRM {
 
       if (missingFields.length > 0) {
         log.warn(
-          `The following fields do not exist in HubSpot and will be skipped: ${missingFields.join(", ")}. Meeting creation will continue without these fields.`
+          `The following fields do not exist in HubSpot ${objectType} and will be skipped: ${missingFields.join(", ")}.`
         );
       }
 
       return foundFields;
     } catch (e: any) {
-      log.error(`Error ensuring fields ${fieldsToTest} exist on Meeting object with error ${e}`);
-      // Return empty array to gracefully degrade - meeting creation will proceed without custom field validation
+      log.error(`Error ensuring fields ${fieldsToTest} exist on ${objectType} object with error ${e}`);
       return [];
     }
   }
@@ -259,7 +258,10 @@ class HubspotCalendarService implements CRM {
     if (!appOptions?.onBookingWriteToEventObjectFields) return {};
 
     const customFieldInputs = customFieldInputsEnabled
-      ? await this.ensureFieldsExistOnMeeting(Object.keys(appOptions.onBookingWriteToEventObjectFields))
+      ? await this.ensureFieldsExistOnObject(
+          Object.keys(appOptions.onBookingWriteToEventObjectFields),
+          "meetings"
+        )
       : [];
 
     const confirmedCustomFieldInputs: Record<string, any> = {};
@@ -284,6 +286,84 @@ class HubspotCalendarService implements CRM {
     this.log.info(`Writing to meeting fields: ${Object.keys(confirmedCustomFieldInputs)}`);
 
     return confirmedCustomFieldInputs;
+  }
+
+  private async writeToContactRecord(contactId: string, event: CalendarEvent) {
+    const appOptions = this.getAppOptions();
+
+    const customFieldInputsEnabled =
+      appOptions?.onBookingWriteToContactRecord && appOptions?.onBookingWriteToContactRecordFields;
+
+    if (!customFieldInputsEnabled) return;
+
+    if (!appOptions?.onBookingWriteToContactRecordFields) return;
+
+    const customFieldInputs = await this.ensureFieldsExistOnObject(
+      Object.keys(appOptions.onBookingWriteToContactRecordFields),
+      "contacts"
+    );
+
+    if (customFieldInputs.length === 0) return;
+
+    const hasFieldEmptyFields = customFieldInputs.some(
+      (field) =>
+        appOptions.onBookingWriteToContactRecordFields![field.name]?.whenToWrite === WhenToWrite.FIELD_EMPTY
+    );
+
+    let currentContactProperties: Record<string, string> = {};
+    if (hasFieldEmptyFields) {
+      try {
+        const fieldNames = customFieldInputs.map((f) => f.name);
+        const contact = await this.hubspotClient.crm.contacts.basicApi.getById(contactId, fieldNames);
+        currentContactProperties = contact.properties ?? {};
+      } catch (error) {
+        this.log.error(`Error fetching current contact properties for ${contactId}:`, error);
+        return;
+      }
+    }
+
+    const confirmedCustomFieldInputs: Record<string, string | boolean> = {};
+
+    for (const field of customFieldInputs) {
+      const fieldConfig = appOptions.onBookingWriteToContactRecordFields[field.name];
+
+      if (fieldConfig.whenToWrite === WhenToWrite.FIELD_EMPTY && currentContactProperties[field.name]) {
+        this.log.info(
+          `Field ${field.name} on contact ${contactId} already has value, skipping (whenToWrite=FIELD_EMPTY)`
+        );
+        continue;
+      }
+
+      const fieldValue = await this.getFieldValue({
+        fieldValue: fieldConfig.value,
+        fieldType: fieldConfig.fieldType,
+        calEventResponses: event.responses,
+        bookingUid: event?.uid,
+        startTime: event.startTime,
+        fieldName: field.name,
+      });
+
+      if (fieldValue !== null) {
+        confirmedCustomFieldInputs[field.name] = fieldValue;
+      }
+    }
+
+    if (Object.keys(confirmedCustomFieldInputs).length === 0) return;
+
+    this.log.info(`Writing to contact ${contactId} fields: ${Object.keys(confirmedCustomFieldInputs)}`);
+
+    try {
+      await this.hubspotClient.crm.contacts.basicApi.update(contactId, {
+        properties: Object.fromEntries(
+          Object.entries(confirmedCustomFieldInputs).map(([key, value]) => [
+            key,
+            typeof value === "boolean" ? (value ? "true" : "false") : value,
+          ])
+        ),
+      });
+    } catch (error) {
+      this.log.error(`Error writing to contact record ${contactId}:`, error);
+    }
   }
 
   private hubspotCreateMeeting = async (event: CalendarEvent, hubspotOwnerId?: string) => {
@@ -457,6 +537,10 @@ class HubspotCalendarService implements CRM {
           );
         }
 
+        if (firstContact?.id && appOptions?.onBookingWriteToContactRecord) {
+          await this.writeToContactRecord(firstContact.id, event);
+        }
+
         return Promise.resolve({
           uid: meetingEvent.id,
           id: meetingEvent.id,
@@ -578,7 +662,7 @@ class HubspotCalendarService implements CRM {
         lastname,
         email: attendee.email,
       };
-      
+
       if (attendee.phone) {
         properties.phone = attendee.phone;
       }

@@ -14,6 +14,8 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   onBookingWriteToEventObjectFields: z.record(z.string(), writeToBookingEntry).optional(),
   roundRobinLeadSkip: z.boolean().optional(),
   ifFreeEmailDomainSkipOwnerCheck: z.boolean().optional(),
+  onBookingWriteToContactRecord: z.boolean().optional(),
+  onBookingWriteToContactRecordFields: z.record(z.string(), writeToBookingEntry).optional(),
 });
 
 export const appKeysSchema = z.object({

@@ -34,6 +34,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const onBookingWriteToEventObjectFields = getAppData("onBookingWriteToEventObjectFields") ?? {};
   const roundRobinLeadSkip = getAppData("roundRobinLeadSkip") ?? false;
   const ifFreeEmailDomainSkipOwnerCheck = getAppData("ifFreeEmailDomainSkipOwnerCheck") ?? false;
+  const onBookingWriteToContactRecord = getAppData("onBookingWriteToContactRecord") ?? false;
+  const onBookingWriteToContactRecordFields = getAppData("onBookingWriteToContactRecordFields") ?? {};
 
   return (
     <AppCard
@@ -131,6 +133,27 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
               CrmFieldType.CUSTOM,
             ]}
             supportedWriteTriggers={[WhenToWrite.EVERY_BOOKING]}
+          />
+        </Section.SubSection>
+
+        <Section.SubSection>
+          <WriteToObjectSettings
+            bookingAction={BookingActionEnum.ON_BOOKING}
+            optionLabel={t("on_booking_write_to_contact_record")}
+            optionEnabled={onBookingWriteToContactRecord}
+            writeToObjectData={onBookingWriteToContactRecordFields}
+            optionSwitchOnChange={(checked: boolean): void => {
+              setAppData("onBookingWriteToContactRecord", checked);
+            }}
+            updateWriteToObjectData={(data): void => setAppData("onBookingWriteToContactRecordFields", data)}
+            supportedFieldTypes={[
+              CrmFieldType.TEXT,
+              CrmFieldType.DATE,
+              CrmFieldType.PHONE,
+              CrmFieldType.CHECKBOX,
+              CrmFieldType.CUSTOM,
+            ]}
+            supportedWriteTriggers={[WhenToWrite.EVERY_BOOKING, WhenToWrite.FIELD_EMPTY]}
           />
         </Section.SubSection>
 
