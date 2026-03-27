@@ -2061,9 +2061,10 @@ export class BookingRepository implements IBookingRepository {
         destinationCalendar: true,
         references: true,
         user: {
-          include: {
+          select: {
+            id: true,
+            email: true,
             destinationCalendar: true,
-            credentials: true,
             profiles: {
               select: {
                 organizationId: true,

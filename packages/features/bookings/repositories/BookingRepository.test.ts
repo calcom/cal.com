@@ -65,6 +65,36 @@ describe("BookingRepository", () => {
     });
   });
 
+  describe("findByIdIncludeDestinationCalendar", () => {
+    it("should not select credentials on the user relation", async () => {
+      mockPrismaClient.booking.findUnique.mockResolvedValue(null);
+
+      await repository.findByIdIncludeDestinationCalendar(123);
+
+      const call = mockPrismaClient.booking.findUnique.mock.calls[0][0];
+      const userSelect = call.include.user.select;
+
+      expect(userSelect).toBeDefined();
+      expect(userSelect.id).toBe(true);
+      expect(userSelect.email).toBe(true);
+      expect(userSelect.destinationCalendar).toBe(true);
+      expect(userSelect.profiles).toBeDefined();
+      expect(userSelect).not.toHaveProperty("credentials");
+    });
+
+    it("should query by booking id", async () => {
+      mockPrismaClient.booking.findUnique.mockResolvedValue(null);
+
+      await repository.findByIdIncludeDestinationCalendar(456);
+
+      expect(mockPrismaClient.booking.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 456 },
+        })
+      );
+    });
+  });
+
   describe("findLatestBookingInRescheduleChain", () => {
     const mockBooking = { uid: "booking-3", eventType: { id: 1 } };
 
