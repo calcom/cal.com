@@ -130,7 +130,14 @@ describe("permission traversal - dependents", () => {
     expect(dependents).toEqual(expect.arrayContaining(["post.publish", "moderation.archive"]));
     expect(dependents).not.toContain("moderation.read");
   });
+});
 
+describe("splitPermission error handling", () => {
+  it("throws for permission string without a dot separator", () => {
+    expect(() => traversePermissions("invalidpermission", "dependencies")).toThrow(
+      "Invalid permission format: invalidpermission"
+    );
+  });
 });
 
 describe("wrapper helpers", () => {

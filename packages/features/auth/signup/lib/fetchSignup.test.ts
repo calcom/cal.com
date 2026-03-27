@@ -1,7 +1,11 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SIGNUP_ERROR_CODES } from "../constants";
-import { fetchSignup, isUserAlreadyExistsError, hasCheckoutSession, isAccountUnderReview } from "./fetchSignup";
+import {
+  fetchSignup,
+  hasCheckoutSession,
+  isAccountUnderReview,
+  isUserAlreadyExistsError,
+} from "./fetchSignup";
 
 function createJsonResponse(json: unknown, status = 200) {
   return new Response(JSON.stringify(json), {
@@ -46,6 +50,68 @@ describe("fetchSignup", () => {
     if (!result.ok) {
       expect(result.status).toBe(409);
     }
+  });
+
+  it("returns INVALID_SERVER_RESPONSE when content-type is not JSON", async () => {
+    fetchSpy.mockResolvedValue(
+      new Response("Internal Server Error", {
+        status: 500,
+        headers: { "content-type": "text/html" },
+      })
+    );
+
+    const result = await fetchSignup({
+      email: "test@example.com",
+      password: "password123",
+      language: "en",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.status).toBe(500);
+      expect(result.error.message).toBe(SIGNUP_ERROR_CODES.INVALID_SERVER_RESPONSE);
+    }
+  });
+
+  it("passes cf-access-token header with provided cfToken", async () => {
+    fetchSpy.mockResolvedValue(createJsonResponse({ message: "Created user" }));
+
+    await fetchSignup(
+      {
+        email: "test@example.com",
+        password: "password123",
+        language: "en",
+      },
+      "my-cf-token"
+    );
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "cf-access-token": "my-cf-token",
+        }),
+      })
+    );
+  });
+
+  it("uses 'invalid-token' as default cf-access-token when cfToken is not provided", async () => {
+    fetchSpy.mockResolvedValue(createJsonResponse({ message: "Created user" }));
+
+    await fetchSignup({
+      email: "test@example.com",
+      password: "password123",
+      language: "en",
+    });
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "cf-access-token": "invalid-token",
+        }),
+      })
+    );
   });
 });
 

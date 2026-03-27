@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { sortAvailabilityStrings } from "./weekstart";
 
 describe("Weekstart tests", () => {
@@ -78,6 +77,25 @@ describe("Weekstart tests", () => {
       const result = input.sort(sortAvailabilityStrings("en-US", "Tuesday"));
 
       expect(result).toEqual(expected);
+    });
+  });
+
+  describe("fn: sortAvailabilityStrings - unmatched day strings", () => {
+    it("should return -1 for day strings that do not match any weekday name", () => {
+      const sorter = sortAvailabilityStrings("en-US", "Sunday");
+      const input = ["NotADay, 9:00 AM - 5:00 PM", "Mon, 7:45 AM - 4:15 PM"];
+      const result = input.sort(sorter);
+      // "NotADay" gets index -1, "Mon" gets index 1, so NotADay sorts before Mon
+      expect(result[0]).toBe("NotADay, 9:00 AM - 5:00 PM");
+      expect(result[1]).toBe("Mon, 7:45 AM - 4:15 PM");
+    });
+
+    it("should handle two unmatched day strings equally", () => {
+      const sorter = sortAvailabilityStrings("en-US", "Sunday");
+      const input = ["Unknown1, 9:00 AM", "Unknown2, 10:00 AM"];
+      const result = input.sort(sorter);
+      // Both get -1, so relative order is stable (0 diff)
+      expect(result).toHaveLength(2);
     });
   });
 });

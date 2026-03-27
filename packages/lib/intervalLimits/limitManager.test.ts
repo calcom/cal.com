@@ -117,6 +117,42 @@ describe("LimitManager", () => {
 
       expect(manager.isAlreadyBusy(start, "month")).toBe(false);
     });
+
+    it("returns true for week when both months spanning the week are busy", () => {
+      const manager = new LimitManager();
+      // Use a date at the end of a month so the week spans two months
+      const start = dayjs("2024-06-30T10:00:00Z").utc();
+
+      // Mark both June and July as busy
+      manager.addBusyTime({ start: start.startOf("month"), unit: "month", title: "test", source: "test" });
+      manager.addBusyTime({
+        start: start.endOf("week").startOf("month"),
+        unit: "month",
+        title: "test",
+        source: "test",
+      });
+
+      expect(manager.isAlreadyBusy(start, "week")).toBe(true);
+    });
+
+    it("returns false for week when only one month of a cross-month week is busy", () => {
+      const manager = new LimitManager();
+      const start = dayjs("2024-06-30T10:00:00Z").utc();
+
+      // Only mark June as busy, not July
+      manager.addBusyTime({ start: start.startOf("month"), unit: "month", title: "test", source: "test" });
+
+      expect(manager.isAlreadyBusy(start, "week")).toBe(false);
+    });
+
+    it("returns true for week when same week is already busy", () => {
+      const manager = new LimitManager();
+      const start = dayjs("2024-06-15T10:00:00Z").utc();
+
+      manager.addBusyTime({ start: start.startOf("week"), unit: "week", title: "test", source: "test" });
+
+      expect(manager.isAlreadyBusy(start, "week")).toBe(true);
+    });
   });
 
   describe("mergeBusyTimes", () => {

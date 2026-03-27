@@ -1,6 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-
 import type { CredentialPayload } from "@calcom/types/Credential";
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../analytics.services.generated", () => ({
   AnalyticsServiceMap: {
@@ -46,6 +45,12 @@ describe("getAnalyticsService", () => {
 
   it("should return null for unknown analytics type", async () => {
     const credential = makeCredential({ type: "unknown_analytics" });
+    const result = await getAnalyticsService({ credential });
+    expect(result).toBeNull();
+  });
+
+  it("should return null when createAnalyticsService is not a function", async () => {
+    const credential = makeCredential({ type: "nodefault_analytics" });
     const result = await getAnalyticsService({ credential });
     expect(result).toBeNull();
   });

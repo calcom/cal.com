@@ -87,6 +87,12 @@ describe("videoTokens", () => {
       expect(result).toEqual({ valid: false });
     });
 
+    it("returns invalid when token causes an exception (null input)", () => {
+      // Force the catch block by passing a value that causes split to throw
+      const result = verifyVideoToken(null as unknown as string);
+      expect(result).toEqual({ valid: false });
+    });
+
     it("uses environment variable for secret", () => {
       const token = generateVideoToken("rec_env");
       const result = verifyVideoToken(token);

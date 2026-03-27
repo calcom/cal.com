@@ -1,5 +1,4 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getTrackingFromCookies } from "./server";
 
 describe("getTrackingFromCookies", () => {
@@ -127,6 +126,25 @@ describe("getTrackingFromCookies", () => {
       const query = { other_param: "value" };
       const result = getTrackingFromCookies({}, query);
       expect(result.utm_source).toBeUndefined();
+    });
+
+    it("returns null from parseUtm when all UTM values are undefined", () => {
+      // Query with keys that exist but all values parse as undefined in the schema
+      const cookies = {
+        utm_data: JSON.stringify({}),
+      };
+      const result = getTrackingFromCookies(cookies);
+      expect(result.utm_source).toBeUndefined();
+      expect(result).toEqual({});
+    });
+
+    it("falls back to cookie when query has UTM params but all undefined", () => {
+      const cookies = {
+        utm_data: JSON.stringify({ utm_source: "cookie-fallback" }),
+      };
+      // Pass query with no UTM keys so utmData is null from query
+      const result = getTrackingFromCookies(cookies, {});
+      expect(result.utm_source).toBe("cookie-fallback");
     });
   });
 
