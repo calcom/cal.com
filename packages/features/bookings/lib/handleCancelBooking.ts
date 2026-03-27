@@ -32,10 +32,8 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import {
-  cancelNoShowTasksForBooking,
-  deleteWebhookScheduledTriggers,
-} from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
+import { cancelNoShowTasksForBooking } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -683,9 +681,16 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     const webhookTriggerPromises = [];
     const workflowReminderPromises = [];
 
+    const webhookProducer = getWebhookProducer();
+
     for (const booking of updatedBookings) {
-      // delete scheduled webhook triggers of cancelled bookings
-      webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
+      // cancel scheduled meeting webhooks for cancelled bookings
+      webhookTriggerPromises.push(
+        webhookProducer.cancelMeetingWebhooks({
+          bookingId: booking.id,
+          bookingUid: booking.uid,
+        })
+      );
       webhookTriggerPromises.push(cancelNoShowTasksForBooking({ bookingUid: booking.uid }));
 
       //Workflows - cancel all reminders for cancelled bookings

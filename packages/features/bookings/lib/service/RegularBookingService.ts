@@ -61,13 +61,8 @@ import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/h
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
-import {
-  cancelNoShowTasksForBooking,
-  deleteWebhookScheduledTriggers,
-  scheduleTrigger,
-} from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { cancelNoShowTasksForBooking } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
@@ -1632,24 +1627,6 @@ async function handler(
 
   subscriberOptions.triggerEvent = eventTrigger;
 
-  const subscriberOptionsMeetingEnded = {
-    userId: triggerForUser ? organizerUser.id : null,
-    eventTypeId,
-    triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-    teamId,
-    orgId,
-    oAuthClientId: platformClientId,
-  };
-
-  const subscriberOptionsMeetingStarted = {
-    userId: triggerForUser ? organizerUser.id : null,
-    eventTypeId,
-    triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-    teamId,
-    orgId,
-    oAuthClientId: platformClientId,
-  };
-
   const workflows = await getAllWorkflowsFromEventType(
     {
       ...eventType,
@@ -2623,61 +2600,45 @@ async function handler(
 
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
-    const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
-    const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
-
-    const deleteWebhookScheduledTriggerPromises: Promise<unknown>[] = [];
-    const scheduleTriggerPromises = [];
+    const cancelAndNoShowPromises: Promise<unknown>[] = [];
 
     if (rescheduleUid && originalRescheduledBooking) {
       //delete all scheduled triggers for meeting ended and meeting started of booking
-      deleteWebhookScheduledTriggerPromises.push(
-        deleteWebhookScheduledTriggers({
-          booking: originalRescheduledBooking,
-          isDryRun,
+      cancelAndNoShowPromises.push(
+        deps.webhookProducer.cancelMeetingWebhooks({
+          bookingId: originalRescheduledBooking.id,
+          bookingUid: originalRescheduledBooking.uid,
         })
       );
-      deleteWebhookScheduledTriggerPromises.push(
+      cancelAndNoShowPromises.push(
         cancelNoShowTasksForBooking({
           bookingUid: originalRescheduledBooking.uid,
         })
       );
     }
 
-    if (booking && booking.status === BookingStatus.ACCEPTED) {
-      const bookingWithCalEventResponses = {
-        ...booking,
-        responses: reqBody.calEventResponses,
+    if (booking && booking.status === BookingStatus.ACCEPTED && !isDryRun) {
+      const meetingWebhookParams = {
+        bookingId: booking.id,
+        bookingUid: booking.uid,
+        startTime: booking.startTime.toISOString(),
+        endTime: booking.endTime.toISOString(),
+        eventTypeId: eventTypeId ?? undefined,
+        teamId: teamId ?? undefined,
+        userId: organizerUserId ?? undefined,
+        orgId: orgId ?? undefined,
+        oAuthClientId: platformClientId ?? undefined,
       };
-      for (const subscriber of subscribersMeetingEnded) {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking: bookingWithCalEventResponses,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-            isDryRun,
-          })
-        );
-      }
 
-      for (const subscriber of subscribersMeetingStarted) {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking: bookingWithCalEventResponses,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-            isDryRun,
-          })
-        );
-      }
+      cancelAndNoShowPromises.push(
+        deps.webhookProducer.queueMeetingEndedWebhook(meetingWebhookParams)
+      );
+      cancelAndNoShowPromises.push(
+        deps.webhookProducer.queueMeetingStartedWebhook(meetingWebhookParams)
+      );
     }
 
-    const scheduledTriggerResults = await Promise.allSettled([
-      ...deleteWebhookScheduledTriggerPromises,
-      ...scheduleTriggerPromises,
-    ]);
+    const scheduledTriggerResults = await Promise.allSettled(cancelAndNoShowPromises);
     const failures = scheduledTriggerResults.filter((result) => result.status === "rejected");
 
     if (failures.length > 0) {

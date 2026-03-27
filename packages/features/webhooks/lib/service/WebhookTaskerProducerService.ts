@@ -3,13 +3,16 @@ import { v4 as uuidv4 } from "uuid";
 import type { BookingTriggerEvents, PaymentTriggerEvents } from "../factory/versioned/PayloadBuilderFactory";
 import type { ILogger } from "../interface/infrastructure";
 import type {
+  CancelMeetingWebhookParams,
   IWebhookProducerService,
   QueueBookingWebhookParams,
   QueueFormWebhookParams,
+  QueueMeetingWebhookParams,
   QueueOOOWebhookParams,
   QueuePaymentWebhookParams,
   QueueRecordingWebhookParams,
 } from "../interface/WebhookProducerService";
+import type { MeetingWebhookTaskPayload } from "../types/webhookTask";
 import type { WebhookTasker } from "../tasker/WebhookTasker";
 import type { WebhookTaskPayload } from "../types/webhookTask";
 
@@ -146,6 +149,37 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
     await this.queueTask(operationId, taskPayload);
   }
 
+  async queueMeetingStartedWebhook(params: QueueMeetingWebhookParams): Promise<void> {
+    await this.queueMeetingWebhook(WebhookTriggerEvents.MEETING_STARTED, params);
+  }
+
+  async queueMeetingEndedWebhook(params: QueueMeetingWebhookParams): Promise<void> {
+    await this.queueMeetingWebhook(WebhookTriggerEvents.MEETING_ENDED, params);
+  }
+
+  async cancelMeetingWebhooks(params: CancelMeetingWebhookParams): Promise<void> {
+    this.log.debug("Cancelling meeting webhooks", {
+      bookingId: params.bookingId,
+      bookingUid: params.bookingUid,
+    });
+
+    try {
+      await this.deps.webhookTasker.cancelMeetingWebhook({
+        bookingId: params.bookingId,
+        bookingUid: params.bookingUid,
+      });
+      this.log.debug("Meeting webhook cancellation queued", {
+        bookingId: params.bookingId,
+      });
+    } catch (error) {
+      this.log.error("Failed to cancel meeting webhooks", {
+        bookingId: params.bookingId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
+  }
+
   /**
    * Internal helper to queue booking-related webhooks
    */
@@ -210,6 +244,52 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
     };
 
     await this.queueTask(operationId, taskPayload);
+  }
+
+  /**
+   * Internal helper to queue meeting-related webhooks (MEETING_STARTED / MEETING_ENDED)
+   */
+  private async queueMeetingWebhook(
+    triggerEvent:
+      | typeof WebhookTriggerEvents.MEETING_STARTED
+      | typeof WebhookTriggerEvents.MEETING_ENDED,
+    params: QueueMeetingWebhookParams
+  ): Promise<void> {
+    const operationId = params.operationId || uuidv4();
+
+    this.log.debug("Queueing meeting webhook task", {
+      operationId,
+      triggerEvent,
+      bookingId: params.bookingId,
+      bookingUid: params.bookingUid,
+    });
+
+    const taskPayload: MeetingWebhookTaskPayload = {
+      operationId,
+      triggerEvent,
+      bookingId: params.bookingId,
+      bookingUid: params.bookingUid,
+      startTime: params.startTime,
+      endTime: params.endTime,
+      eventTypeId: params.eventTypeId,
+      teamId: params.teamId,
+      userId: params.userId,
+      orgId: params.orgId,
+      oAuthClientId: params.oAuthClientId,
+      metadata: params.metadata,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      const result = await this.deps.webhookTasker.scheduleMeetingWebhook(taskPayload);
+      this.log.debug("Meeting webhook task queued", { operationId, taskId: result.taskId });
+    } catch (error) {
+      this.log.error("Failed to queue meeting webhook task", {
+        operationId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
   }
 
   /**

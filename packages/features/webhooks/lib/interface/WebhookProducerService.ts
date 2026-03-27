@@ -107,6 +107,51 @@ export interface QueueOOOWebhookParams extends BaseQueueWebhookParams {
 }
 
 /**
+ * Parameters for queueing meeting-related webhooks (MEETING_STARTED, MEETING_ENDED)
+ *
+ * These webhooks are delayed - they fire at the meeting start/end time.
+ */
+export interface QueueMeetingWebhookParams extends BaseQueueWebhookParams {
+  /** Booking ID (required for scheduling) */
+  bookingId: number;
+
+  /** Booking UID (required) */
+  bookingUid: string;
+
+  /** Meeting start time (ISO string) */
+  startTime: string;
+
+  /** Meeting end time (ISO string) */
+  endTime: string;
+
+  /** Event Type ID */
+  eventTypeId?: number;
+
+  /** Team ID */
+  teamId?: number | null;
+
+  /** User ID */
+  userId?: number | null;
+
+  /** Organization ID */
+  orgId?: number;
+
+  /** OAuth Client ID (for platform webhooks) */
+  oAuthClientId?: string | null;
+}
+
+/**
+ * Parameters for cancelling meeting webhooks
+ */
+export interface CancelMeetingWebhookParams {
+  /** Booking ID */
+  bookingId: number;
+
+  /** Booking UID */
+  bookingUid: string;
+}
+
+/**
  * Lightweight Producer Service for queueing webhook delivery tasks.
  *
  * This service has NO heavy dependencies (no Prisma, no repositories).
@@ -172,4 +217,21 @@ export interface IWebhookProducerService {
    * Queue a webhook delivery task for OOO_CREATED event
    */
   queueOOOCreatedWebhook(params: QueueOOOWebhookParams): Promise<void>;
+
+  /**
+   * Queue a delayed webhook delivery task for MEETING_STARTED event.
+   * The webhook fires at the meeting start time.
+   */
+  queueMeetingStartedWebhook(params: QueueMeetingWebhookParams): Promise<void>;
+
+  /**
+   * Queue a delayed webhook delivery task for MEETING_ENDED event.
+   * The webhook fires at the meeting end time.
+   */
+  queueMeetingEndedWebhook(params: QueueMeetingWebhookParams): Promise<void>;
+
+  /**
+   * Cancel previously scheduled MEETING_STARTED and MEETING_ENDED webhooks for a booking.
+   */
+  cancelMeetingWebhooks(params: CancelMeetingWebhookParams): Promise<void>;
 }

@@ -92,6 +92,35 @@ export const oooWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
 });
 
 /**
+ * Meeting webhook task payload
+ * Used for: MEETING_STARTED, MEETING_ENDED
+ *
+ * These webhooks are delayed - they fire at the meeting start/end time.
+ * Contains booking timing info so taskers can schedule the delay.
+ */
+export const meetingWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
+  triggerEvent: z.enum([WebhookTriggerEvents.MEETING_STARTED, WebhookTriggerEvents.MEETING_ENDED]),
+  bookingId: z.number(),
+  bookingUid: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
+  eventTypeId: z.number().optional(),
+  teamId: z.number().nullable().optional(),
+  userId: z.number().nullable().optional(),
+  orgId: z.number().optional(),
+  oAuthClientId: z.string().nullable().optional(),
+});
+
+/**
+ * Cancel meeting webhook task payload
+ * Used to cancel previously scheduled MEETING_STARTED/MEETING_ENDED webhooks.
+ */
+export const cancelMeetingWebhookPayloadSchema = z.object({
+  bookingId: z.number(),
+  bookingUid: z.string(),
+});
+
+/**
  * Discriminated union of all webhook task payload schemas
  */
 export const webhookTaskPayloadSchema = z.discriminatedUnion("triggerEvent", [
@@ -100,6 +129,7 @@ export const webhookTaskPayloadSchema = z.discriminatedUnion("triggerEvent", [
   formWebhookTaskPayloadSchema,
   recordingWebhookTaskPayloadSchema,
   oooWebhookTaskPayloadSchema,
+  meetingWebhookTaskPayloadSchema,
 ]);
 
 /**
@@ -115,6 +145,8 @@ export type PaymentWebhookTaskPayload = z.infer<typeof paymentWebhookTaskPayload
 export type FormWebhookTaskPayload = z.infer<typeof formWebhookTaskPayloadSchema>;
 export type RecordingWebhookTaskPayload = z.infer<typeof recordingWebhookTaskPayloadSchema>;
 export type OOOWebhookTaskPayload = z.infer<typeof oooWebhookTaskPayloadSchema>;
+export type MeetingWebhookTaskPayload = z.infer<typeof meetingWebhookTaskPayloadSchema>;
+export type CancelMeetingWebhookPayload = z.infer<typeof cancelMeetingWebhookPayloadSchema>;
 
 /**
  * Union type of all webhook task payloads

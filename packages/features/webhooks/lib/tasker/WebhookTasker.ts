@@ -1,7 +1,7 @@
 import { Tasker } from "@calcom/lib/tasker/Tasker";
 import type { ILogger } from "@calcom/lib/tasker/types";
 
-import type { WebhookTaskPayload } from "../types/webhookTask";
+import type { CancelMeetingWebhookPayload, MeetingWebhookTaskPayload, WebhookTaskPayload } from "../types/webhookTask";
 import type { WebhookSyncTasker } from "./WebhookSyncTasker";
 import type { WebhookTriggerTasker } from "./WebhookTriggerTasker";
 import type { IWebhookTasker, WebhookDeliveryResult } from "./types";
@@ -40,5 +40,13 @@ export class WebhookTasker extends Tasker<IWebhookTasker> {
 
   async deliverWebhook(payload: WebhookTaskPayload): Promise<WebhookDeliveryResult> {
     return await this.dispatch("deliverWebhook", payload);
+  }
+
+  async scheduleMeetingWebhook(payload: MeetingWebhookTaskPayload): Promise<WebhookDeliveryResult> {
+    return await this.dispatch("scheduleMeetingWebhook", payload);
+  }
+
+  async cancelMeetingWebhook(payload: CancelMeetingWebhookPayload): Promise<void> {
+    return await this.dispatch("cancelMeetingWebhook", payload);
   }
 }
