@@ -47,6 +47,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           select: {
             id: true,
             name: true,
+            bannerUrl: true,
             parentId: true,
             bookingLimits: true,
             includeManagedEventsInLimits: true,
@@ -59,6 +60,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           select: {
             id: true,
             name: true,
+            bannerUrl: true,
             roundRobinResetInterval: true,
             roundRobinTimestampBasis: true,
           },
