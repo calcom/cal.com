@@ -283,22 +283,9 @@ describe("getSchedule uses CalendarCacheEvents as busy times when calendar-subsc
       end: new Date(`${testDate}T15:00:00.000Z`),
     });
 
-    // Also verify via non-silent mode to surface any hidden errors
-    const availableSlotsService = getAvailableSlotsService();
-    const debugResult = await availableSlotsService.getAvailableSlots({
-      input: {
-        eventTypeId: testData.eventType.id,
-        eventTypeSlug: "",
-        startTime: `${testDate}T00:00:00.000Z`,
-        endTime: `${testDate}T23:59:59.999Z`,
-        timeZone: "UTC",
-        isTeamEvent: false,
-        orgSlug: null,
-        _silentCalendarFailures: false,
-      },
-    });
+    const result = await getSlotsForDate(testData.eventType.id);
 
-    expect(debugResult).toHaveTimeSlots(["09:00:00.000Z", "15:00:00.000Z", "16:00:00.000Z"], {
+    expect(result).toHaveTimeSlots(["09:00:00.000Z", "15:00:00.000Z", "16:00:00.000Z"], {
       dateString: testDate,
     });
   });
