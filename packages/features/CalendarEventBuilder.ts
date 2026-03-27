@@ -11,6 +11,7 @@ import {
 import { getTranslation } from "@calcom/i18n/server";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
 import type { Attendee, BookingSeat, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
@@ -20,6 +21,7 @@ import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 import type { TFunction } from "i18next";
 import type { z } from "zod";
 
+const log = logger.getSubLogger({ prefix: ["CalendarEventBuilder"] });
 const APP_TYPE_TO_NAME_MAP = new Map<string, string>(ALL_APPS.map((app) => [app.type, app.name]));
 
 export type BookingForCalEventBuilder = NonNullable<
@@ -662,15 +664,36 @@ export class CalendarEventBuilder {
     return this;
   }
 
+  /**
+   * Returns the list of required field names that are currently missing (falsy) on the
+   * partially-built event.  An empty array means every required field is present.
+   */
+  getMissingRequiredFields(): string[] {
+    const requiredFields: Record<string, unknown> = {
+      startTime: this.event.startTime,
+      endTime: this.event.endTime,
+      type: this.event.type,
+      bookerUrl: this.event.bookerUrl,
+      title: this.event.title,
+    };
+
+    return Object.entries(requiredFields)
+      .filter(([, value]) => !value)
+      .map(([key]) => key);
+  }
+
   build(): CalendarEvent | null {
-    // Validate required fields
-    if (
-      !this.event.startTime ||
-      !this.event.endTime ||
-      !this.event.type ||
-      !this.event.bookerUrl ||
-      !this.event.title
-    ) {
+    const missingFields = this.getMissingRequiredFields();
+
+    if (missingFields.length > 0) {
+      log.error(
+        `Failed to build calendar event due to missing required fields: ${missingFields.join(", ")}`,
+        safeStringify({
+          missingFields,
+          eventTypeId: this.event.eventTypeId,
+          uid: this.event.uid,
+        })
+      );
       return null;
     }
 

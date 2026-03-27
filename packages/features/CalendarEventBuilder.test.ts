@@ -831,6 +831,53 @@ describe("CalendarEventBuilder", () => {
     expect(builder.build()).toBeNull();
   });
 
+  describe("getMissingRequiredFields", () => {
+    it("should return all required fields when builder is empty", () => {
+      const builder = new CalendarEventBuilder();
+      expect(builder.getMissingRequiredFields()).toEqual(
+        expect.arrayContaining(["startTime", "endTime", "type", "bookerUrl", "title"])
+      );
+      expect(builder.getMissingRequiredFields()).toHaveLength(5);
+    });
+
+    it("should return only the fields that are still missing", () => {
+      const builder = new CalendarEventBuilder().withBasicDetails({
+        bookerUrl: "https://cal.com/user/test-slug",
+        title: "Test Event",
+        startTime: mockStartTime,
+        endTime: mockEndTime,
+      });
+      // bookerUrl, title, startTime, endTime are set but type is still missing
+      expect(builder.getMissingRequiredFields()).toEqual(["type"]);
+    });
+
+    it("should return an empty array when all required fields are present", () => {
+      const builder = new CalendarEventBuilder()
+        .withBasicDetails({
+          bookerUrl: "https://cal.com/user/test-slug",
+          title: "Test Event",
+          startTime: mockStartTime,
+          endTime: mockEndTime,
+        })
+        .withEventType({
+          slug: "test-slug",
+          id: 123,
+        });
+      expect(builder.getMissingRequiredFields()).toEqual([]);
+    });
+
+    it("should detect multiple missing fields", () => {
+      // Only set bookerUrl via fromEvent
+      const builder = CalendarEventBuilder.fromEvent({ bookerUrl: "https://cal.com" });
+      const missing = builder.getMissingRequiredFields();
+      expect(missing).toContain("startTime");
+      expect(missing).toContain("endTime");
+      expect(missing).toContain("type");
+      expect(missing).toContain("title");
+      expect(missing).not.toContain("bookerUrl");
+    });
+  });
+
   it("should create an event from an existing event", () => {
     const existingEvent = {
       title: "Existing Event",
