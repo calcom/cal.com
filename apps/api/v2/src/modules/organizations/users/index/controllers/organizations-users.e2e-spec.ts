@@ -15,6 +15,7 @@ import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EmailService } from "@/modules/email/email.service";
 import { GetOrganizationsUsersInput } from "@/modules/organizations/users/index/inputs/get-organization-users.input";
 import { GetOrgUsersWithProfileOutput } from "@/modules/organizations/users/index/outputs/get-organization-users.output";
@@ -478,6 +479,80 @@ describe("Organizations Users Endpoints", () => {
 
       // Clean up the created user
       await userRepositoryFixture.deleteByEmail(testEmail);
+    });
+
+    it("should call setDefaultCalendars when creating a new org user", async () => {
+      const testEmail = `org-calendars-${randomString()}@api.com`;
+      const newOrgUser: CreateUserInput = {
+        email: testEmail,
+        bio,
+        metadata,
+      };
+
+      const emailSpy = jest
+        .spyOn(EmailService.prototype, "sendSignupToOrganizationEmail")
+        .mockImplementation(() => Promise.resolve());
+      const setDefaultCalendarsSpy = jest
+        .spyOn(CalendarsService.prototype, "setDefaultCalendars")
+        .mockResolvedValue({
+          connectedCalendars: [],
+          destinationCalendar: { integration: "", externalId: "" },
+        });
+
+      let createdUserId: number | undefined;
+      try {
+        const { body } = await request(app.getHttpServer())
+          .post(`/v2/organizations/${org.id}/users`)
+          .send(newOrgUser)
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json");
+
+        expect(body.status).toBe(SUCCESS_STATUS);
+        createdUserId = body.data.id;
+        expect(setDefaultCalendarsSpy).toHaveBeenCalledWith(createdUserId);
+      } finally {
+        emailSpy.mockRestore();
+        setDefaultCalendarsSpy.mockRestore();
+        if (createdUserId) {
+          await userRepositoryFixture.deleteByEmail(testEmail);
+        }
+      }
+    });
+
+    it("should still create org user successfully when setDefaultCalendars throws", async () => {
+      const testEmail = `org-cal-fail-${randomString()}@api.com`;
+      const newOrgUser: CreateUserInput = {
+        email: testEmail,
+        bio,
+        metadata,
+      };
+
+      const emailSpy = jest
+        .spyOn(EmailService.prototype, "sendSignupToOrganizationEmail")
+        .mockImplementation(() => Promise.resolve());
+      const setDefaultCalendarsSpy = jest
+        .spyOn(CalendarsService.prototype, "setDefaultCalendars")
+        .mockRejectedValue(new Error("Calendar provider unavailable"));
+
+      let createdUserId: number | undefined;
+      try {
+        const { body } = await request(app.getHttpServer())
+          .post(`/v2/organizations/${org.id}/users`)
+          .send(newOrgUser)
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json");
+
+        expect(body.status).toBe(SUCCESS_STATUS);
+        expect(body.data.email).toBe(testEmail);
+        createdUserId = body.data.id;
+        expect(setDefaultCalendarsSpy).toHaveBeenCalledWith(createdUserId);
+      } finally {
+        emailSpy.mockRestore();
+        setDefaultCalendarsSpy.mockRestore();
+        if (createdUserId) {
+          await userRepositoryFixture.deleteByEmail(testEmail);
+        }
+      }
     });
 
     it("should delete an org user", async () => {

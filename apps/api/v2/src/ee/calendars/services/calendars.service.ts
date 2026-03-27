@@ -79,6 +79,12 @@ export class CalendarsService {
     return result;
   }
 
+  // We call getCalendars with ensureDefaultSelectedCalendars=true because under the hood
+  // it performs write operations to set up default selected calendars in the database.
+  async setDefaultCalendars(userId: number) {
+    return this.getCalendars(userId, true);
+  }
+
   async getBusyTimes(
     calendarsToLoad: Calendar[],
     userId: User["id"],

@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { BookingsModule_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.module";
+import { CalendarsModule } from "@/ee/calendars/calendars.module";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaBookingReportRepository } from "@/lib/repositories/prisma-booking-report.repository";
 import { PrismaOrganizationSettingsRepository } from "@/lib/repositories/prisma-organization-settings.repository";
@@ -19,7 +20,7 @@ import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 
 @Module({
-  imports: [BookingsModule_2024_08_13, PrismaModule, StripeModule, RedisModule, MembershipsModule],
+  imports: [BookingsModule_2024_08_13, CalendarsModule, PrismaModule, StripeModule, RedisModule, MembershipsModule],
   providers: [
     OrganizationsRepository,
     OrganizationsTeamsRepository,

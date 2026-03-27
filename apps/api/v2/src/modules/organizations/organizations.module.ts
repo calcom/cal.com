@@ -1,4 +1,5 @@
 import { Logger, Module } from "@nestjs/common";
+import { CalendarsModule } from "@/ee/calendars/calendars.module";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { OrganizationsEventTypesPrivateLinksController_2024_06_14 } from "@/ee/event-types-private-links/2024-06-14/controllers/organizations-event-types-private-links.controller";
 import { OrganizationsEventTypesPrivateLinksController_2024_09_04 } from "@/ee/event-types-private-links/2024-09-04/controllers/organizations-event-types-private-links.controller";
@@ -106,6 +107,7 @@ import { WorkflowsRepository } from "@/modules/workflows/workflows.repository";
     OrganizationsStripeModule,
     OrganizationsTeamsRoutingFormsModule,
     MembershipsModule,
+    CalendarsModule,
     OrganizationsConferencingModule,
     EventTypesPrivateLinksModule_2024_09_04,
     EventTypesPrivateLinksModule_2024_06_14,

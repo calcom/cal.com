@@ -4,8 +4,9 @@ import {
   getUsernameValidationService,
 } from "@calcom/platform-libraries";
 import type { Team } from "@calcom/prisma/client";
-import { ConflictException, ForbiddenException, Injectable } from "@nestjs/common";
+import { ConflictException, ForbiddenException, Injectable, Logger } from "@nestjs/common";
 import { plainToInstance } from "class-transformer";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EmailService } from "@/modules/email/email.service";
 import { CreateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/create-organization-user.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/users/index/inputs/update-organization-user.input";
@@ -14,9 +15,12 @@ import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 
 @Injectable()
 export class OrganizationsUsersService {
+  private readonly logger = new Logger("OrganizationsUsersService");
+
   constructor(
     private readonly organizationsUsersRepository: OrganizationsUsersRepository,
-    private readonly emailService: EmailService
+    private readonly emailService: EmailService,
+    private readonly calendarsService: CalendarsService
   ) {}
 
   async getUsers(
@@ -113,6 +117,12 @@ export class OrganizationsUsersService {
         locale: user?.locale,
         inviterName,
       });
+    }
+
+    try {
+      await this.calendarsService.setDefaultCalendars(user.id);
+    } catch (_err) {
+      this.logger.error(`Could not set default calendars for new organization user with id ${user.id}`);
     }
 
     return user;

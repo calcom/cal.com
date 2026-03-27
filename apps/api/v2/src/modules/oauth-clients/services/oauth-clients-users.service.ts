@@ -103,10 +103,9 @@ export class OAuthClientUsersService {
     }
 
     try {
-      this.logger.log(`Setting default calendars in db for user with id ${user.id}`);
-      await this.calendarsService.getCalendars(user.id, true);
+      await this.calendarsService.setDefaultCalendars(user.id);
     } catch (_err) {
-      this.logger.error(`Could not get calendars of new managed user with id ${user.id}`);
+      this.logger.error(`Could not set default calendars for new managed user with id ${user.id}`);
     }
 
     return {
