@@ -196,6 +196,7 @@ export const eventTypeLocations = z.array(
     // TODO: Couldn't find a way to make it a union of types from App Store locations
     // Creating a dynamic union by iterating over the object doesn't seem to make TS happy
     type: z.string(),
+    label: z.string().optional(),
     address: z.string().optional(),
     link: z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),

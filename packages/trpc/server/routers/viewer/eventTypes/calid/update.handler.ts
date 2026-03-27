@@ -248,7 +248,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   if (shouldResetShowBusySlots) {
     data.showBusySlots = Prisma.DbNull;
   }
-  data.locations = locations ?? undefined;
+  const isEnterpriseUser = !!isPrismaObjOrUndefined(ctx.user.metadata)?.isEnterprise;
+  const sanitizedLocations = locations?.map((location) => {
+    if (isEnterpriseUser) {
+      return location;
+    }
+    const { label: _label, ...locationWithoutLabel } = location;
+    return locationWithoutLabel;
+  });
+  data.locations = sanitizedLocations ?? undefined;
 
   if (periodType) {
     const normalizedPeriodType = handlePeriodType(periodType);

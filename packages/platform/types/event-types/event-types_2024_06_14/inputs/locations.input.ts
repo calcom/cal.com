@@ -1,7 +1,7 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsUrl, IsIn, IsPhoneNumber, IsBoolean, MinLength } from "class-validator";
+import { IsString, IsUrl, IsIn, IsPhoneNumber, IsBoolean, IsOptional, MinLength } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
@@ -29,6 +29,11 @@ export class InputAddressLocation_2024_06_14 {
   @IsBoolean()
   @DocsProperty()
   public!: boolean;
+
+  @IsOptional()
+  @IsString()
+  @DocsProperty({ required: false, example: "Online meeting" })
+  label?: string;
 }
 
 export class InputOrganizersDefaultApp_2024_06_14 {
@@ -38,6 +43,11 @@ export class InputOrganizersDefaultApp_2024_06_14 {
     description: "only allowed value for type is `organizersDefaultApp`",
   })
   type!: "organizersDefaultApp";
+
+  @IsOptional()
+  @IsString()
+  @DocsProperty({ required: false, example: "Online meeting" })
+  label?: string;
 }
 
 export class InputLinkLocation_2024_06_14 {
@@ -52,6 +62,11 @@ export class InputLinkLocation_2024_06_14 {
   @IsBoolean()
   @DocsProperty()
   public!: boolean;
+
+  @IsOptional()
+  @IsString()
+  @DocsProperty({ required: false, example: "Online meeting" })
+  label?: string;
 }
 
 export const supportedIntegrations = ["cal-video", "google-meet", "office365-video", "zoom"] as const;
@@ -65,6 +80,11 @@ export class InputIntegrationLocation_2024_06_14 {
   @IsIn(supportedIntegrations)
   @DocsProperty({ example: supportedIntegrations[0], enum: supportedIntegrations })
   integration!: Integration_2024_06_14;
+
+  @IsOptional()
+  @IsString()
+  @DocsProperty({ required: false, example: "Online meeting" })
+  label?: string;
 }
 
 export class InputPhoneLocation_2024_06_14 {
@@ -79,6 +99,11 @@ export class InputPhoneLocation_2024_06_14 {
   @IsBoolean()
   @DocsProperty()
   public!: boolean;
+
+  @IsOptional()
+  @IsString()
+  @DocsProperty({ required: false, example: "Online meeting" })
+  label?: string;
 }
 
 export class InputAttendeeAddressLocation_2024_06_14 {
@@ -88,11 +113,21 @@ export class InputAttendeeAddressLocation_2024_06_14 {
     description: "only allowed value for type is `attendeeAddress`",
   })
   type!: "attendeeAddress";
+
+  @IsOptional()
+  @IsString()
+  @DocsProperty({ required: false, example: "Online meeting" })
+  label?: string;
 }
 export class InputAttendeePhoneLocation_2024_06_14 {
   @IsIn(inputLocations)
   @DocsProperty({ example: "attendeePhone", description: "only allowed value for type is `attendeePhone`" })
   type!: "attendeePhone";
+
+  @IsOptional()
+  @IsString()
+  @DocsProperty({ required: false, example: "Online meeting" })
+  label?: string;
 }
 
 export class InputAttendeeDefinedLocation_2024_06_14 {
@@ -102,6 +137,11 @@ export class InputAttendeeDefinedLocation_2024_06_14 {
     description: "only allowed value for type is `attendeeDefined`",
   })
   type!: "attendeeDefined";
+
+  @IsOptional()
+  @IsString()
+  @DocsProperty({ required: false, example: "Online meeting" })
+  label?: string;
 }
 
 export type InputLocation_2024_06_14 =

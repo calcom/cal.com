@@ -83,6 +83,14 @@ export class OutputIntegrationLocation_2024_06_14 {
     description: "Credential ID associated with the integration",
   })
   credentialId?: number;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    type: String,
+    example: "Online meeting",
+  })
+  label?: string;
 }
 
 export class OutputOrganizersDefaultAppLocation_2024_06_14 {
@@ -92,6 +100,14 @@ export class OutputOrganizersDefaultAppLocation_2024_06_14 {
     description: "only allowed value for type is `organizersDefaultApp`",
   })
   type!: "organizersDefaultApp";
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    type: String,
+    example: "Online meeting",
+  })
+  label?: string;
 }
 
 export class OutputUnknownLocation_2024_06_14 {
@@ -102,6 +118,14 @@ export class OutputUnknownLocation_2024_06_14 {
   @IsString()
   @DocsProperty()
   location!: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    type: String,
+    example: "Online meeting",
+  })
+  label?: string;
 }
 
 export type OutputLocation_2024_06_14 =

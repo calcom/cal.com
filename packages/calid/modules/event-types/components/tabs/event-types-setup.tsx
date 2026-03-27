@@ -1,4 +1,5 @@
 import { Button } from "@calid/features/ui/components/button";
+
 import { InputField, TextField } from "@calid/features/ui/components/input/input";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import type { TFunction } from "i18next";
@@ -31,6 +32,7 @@ import { Skeleton } from "@calcom/ui/components/skeleton";
 
 import { isManagedEventType } from "../../utils/event-types-utils";
 import { FieldPermissionIndicator, useFieldPermissions } from "./hooks/useFieldPermissions";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -492,6 +494,10 @@ export const EventSetup = (props: EventSetupTabProps) => {
   const session = useSession();
   const formMethods = useFormContext<FormValues>();
 
+  const currentUser = useMeQuery();
+
+  const isEnterpriseUser = !!currentUser?.data?.isEnterprise;
+
   const { eventType, team, customClassNames, teamMembers } = props;
   const member = useMemo(() => {
     const foundMember = teamMembers.find((mem) => mem.user?.id === session.data?.user.id);
@@ -630,6 +636,7 @@ export const EventSetup = (props: EventSetupTabProps) => {
           render={() => (
             <Locations
               showAppStoreLink={true}
+              isEnterpriseUser={isEnterpriseUser}
               isManagedEventType={isManagedEventType}
               isChildrenManagedEventType={isManagedEventType}
               disableLocationProp={fieldPermissions.getFieldState("locations").isDisabled}

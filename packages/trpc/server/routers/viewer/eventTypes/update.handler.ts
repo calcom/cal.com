@@ -239,7 +239,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         ? null
         : rest.maxLeadThreshold,
   };
-  data.locations = locations ?? undefined;
+  const isEnterpriseUser = !!isPrismaObjOrUndefined(ctx.user.metadata)?.isEnterprise;
+  const sanitizedLocations = locations?.map((location) => {
+    if (isEnterpriseUser) {
+      return location;
+    }
+    const { label: _label, ...locationWithoutLabel } = location;
+    return locationWithoutLabel;
+  });
+  data.locations = sanitizedLocations ?? undefined;
 
   if (periodType) {
     data.periodType = handlePeriodType(periodType);

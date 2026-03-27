@@ -41,6 +41,7 @@ export type TeamMember = {
 
 type EventLocation = {
   type: EventLocationType["type"];
+  label?: string;
   address?: string;
   attendeeAddress?: string;
   somewhereElse?: string;

@@ -17,6 +17,7 @@ import type {
   FormValues,
 } from "@calcom/features/eventtypes/lib/types";
 import CheckboxField from "@calcom/features/form/components/CheckboxField";
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import type {
   LocationSelectCustomClassNames,
   SingleValueLocationOption,
@@ -27,7 +28,9 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Input } from "@calcom/ui/components/form";
+import { Label } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
 export type TEventTypeLocation = Pick<EventTypeSetupProps["eventType"], "locations" | "calVideoSettings">;
@@ -57,6 +60,7 @@ type LocationsProps = {
   team: { id: number } | null;
   destinationCalendar: TDestinationCalendar;
   showAppStoreLink: boolean;
+  isEnterpriseUser?: boolean;
   isChildrenManagedEventType?: boolean;
   isManagedEventType?: boolean;
   disableLocationProp?: boolean;
@@ -175,6 +179,7 @@ const Locations: React.FC<LocationsProps> = ({
   formState,
   team,
   eventType,
+  isEnterpriseUser,
   prefillLocation,
   customClassNames,
   ...props
@@ -231,6 +236,33 @@ const Locations: React.FC<LocationsProps> = ({
   const [selectedNewOption, setSelectedNewOption] = useState<SingleValueLocationOption | null>(
     defaultInitialLocation
   );
+  const [labelEditorLocationIndex, setLabelEditorLocationIndex] = useState<number | null>(null);
+  const [locationLabelDraft, setLocationLabelDraft] = useState("");
+
+  const openLocationLabelEditor = (index: number) => {
+    const currentLabel = getValues("locations")[index]?.label || "";
+    setLocationLabelDraft(currentLabel);
+    setLabelEditorLocationIndex(index);
+  };
+
+  const saveLocationLabel = () => {
+    if (labelEditorLocationIndex === null) {
+      return;
+    }
+
+    const location = getValues("locations")[labelEditorLocationIndex];
+    if (!location) {
+      setLabelEditorLocationIndex(null);
+      return;
+    }
+
+    const normalizedLabel = locationLabelDraft.trim();
+    updateLocationField(labelEditorLocationIndex, {
+      ...location,
+      label: normalizedLabel ? normalizedLabel : undefined,
+    });
+    setLabelEditorLocationIndex(null);
+  };
 
   useEffect(() => {
     if (!!prefillLocation) {
@@ -260,24 +292,49 @@ const Locations: React.FC<LocationsProps> = ({
         {locationFields.map((field, index) => {
           const eventLocationType = getEventLocationType(field.type);
           const defaultLocation = field;
+          const currentLocation = getValues("locations")[index];
+          const customLocationLabel = currentLocation?.label?.trim();
 
           const isCalVideo = field.type === "integrations:daily";
 
           const option = getLocationFromType(field.type, locationOptions);
+          const hasCustomLabel = !!(option && customLocationLabel && customLocationLabel !== option.label);
+          const selectedOption = option
+            ? {
+                ...option,
+                label: hasCustomLabel ? customLocationLabel : option.label,
+              }
+            : null;
           return (
             <li key={field.id}>
               <div className="flex w-full items-center">
+                {isEnterpriseUser && (
+                  <button
+                    type="button"
+                    className="hover:text-emphasis text-subtle mr-1.5 h-9 min-h-9 px-2"
+                    onClick={() => openLocationLabelEditor(index)}
+                    aria-label="Edit location label">
+                    <Icon name="pencil" className="h-4 w-4" />
+                  </button>
+                )}
                 <LocationSelect
                   name={`locations[${index}].type`}
                   placeholder={t("select")}
                   options={locationOptions}
                   isDisabled={disableLocationProp}
-                  defaultValue={option}
+                  value={selectedOption}
                   isSearchable={false}
                   className={classNames(
                     "block min-w-0 flex-1 rounded-sm text-sm",
                     customClassNames?.locationSelect?.selectWrapper
                   )}
+                  classNames={{
+                    singleValue: () =>
+                      classNames(
+                        hasCustomLabel ? "font-semibold" : "text-default",
+                        "placeholder:text-muted"
+                      ),
+                  }}
                   customClassNames={customClassNames?.locationSelect}
                   menuPlacement="auto"
                   onChange={(e: SingleValueLocationOption) => {
@@ -299,6 +356,9 @@ const Locations: React.FC<LocationsProps> = ({
                       if (canAddLocation) {
                         updateLocationField(index, {
                           type: newLocationType,
+                          ...(field.label && {
+                            label: field.label,
+                          }),
                           ...(e.credentialId && {
                             credentialId: e.credentialId,
                             teamName: e.teamName ?? undefined,
@@ -310,6 +370,9 @@ const Locations: React.FC<LocationsProps> = ({
                       } else {
                         updateLocationField(index, {
                           type: field.type,
+                          ...(field.label && {
+                            label: field.label,
+                          }),
                           ...(field.credentialId && {
                             credentialId: field.credentialId,
                             teamName: field.teamName ?? undefined,
@@ -638,6 +701,30 @@ const Locations: React.FC<LocationsProps> = ({
           />
         </p>
       )}
+      <Dialog
+        open={labelEditorLocationIndex !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setLabelEditorLocationIndex(null);
+          }
+        }}>
+        <DialogContent title="Location Label">
+          <div className="mb-4">
+            <Label htmlFor="location-label-input">Display label</Label>
+            <Input
+              id="location-label-input"
+              value={locationLabelDraft}
+              onChange={(e) => setLocationLabelDraft(e.target.value)}
+              placeholder="Online meeting"
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <DialogClose />
+            <Button onClick={saveLocationLabel}>{t("confirm")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
