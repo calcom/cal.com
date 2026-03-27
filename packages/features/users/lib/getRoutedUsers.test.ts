@@ -1,10 +1,19 @@
-import { describe, it, expect, vi } from "vitest";
-
+import { describe, expect, it, vi } from "vitest";
 import { getRoutedUsersWithContactOwnerAndFixedUsers } from "./getRoutedUsers";
 
 vi.mock("@calcom/prisma", () => {
   return {
     default: vi.fn(),
+  };
+});
+
+// Mock delegationCredential to prevent heavy transitive imports
+// (delegationCredential -> getCalendar -> calendar.services.generated -> CalendarService -> ics/tsdav)
+// that can cause "Closing rpc while fetch was pending" flakes when the vitest worker shuts down
+// before all async module resolution completes.
+vi.mock("@calcom/app-store/delegationCredential", () => {
+  return {
+    enrichHostsWithDelegationCredentials: vi.fn().mockResolvedValue([]),
   };
 });
 
