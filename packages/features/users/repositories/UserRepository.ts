@@ -1515,4 +1515,24 @@ export class UserRepository {
 
     return { email: user.email, username: user.username };
   }
+
+  /**
+   * Find Cal.com users by their email addresses (case-insensitive).
+   * Used to identify which attendees are Cal.com users when rescheduling.
+   */
+  async findCalUsersByEmails({ emails }: { emails: string[] }) {
+    if (!emails.length) return [];
+    return this.prismaClient.user.findMany({
+      where: {
+        email: {
+          in: emails.map((e) => e.toLowerCase()),
+          mode: "insensitive",
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+  }
 }
