@@ -1,10 +1,10 @@
 "use client";
 
+import { sdkActionManager } from "@calid/embed-runtime/embed-iframe";
 import { Button } from "@calid/features/ui/components/button";
 import { Icon } from "@calid/features/ui/components/icon";
 import { useCallback, useState } from "react";
 
-import { sdkActionManager } from "@calid/embed-runtime/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
@@ -246,12 +246,30 @@ export default function CancelBooking(props: Props) {
                     cancellationReason,
                   } as unknown;
 
+                  let result: { cancelRedirectUrl?: string | null } | null = null;
+                  try {
+                    result = await res.json();
+                  } catch {
+                    result = null;
+                  }
+
                   if (res.status >= 200 && res.status < 300) {
                     // tested by apps/web/playwright/booking-pages.e2e.ts
                     sdkActionManager?.fire("bookingCancelled", {
                       ...bookingCancelledEventProps,
                       booking: bookingWithCancellationReason,
                     });
+                    const cancelRedirectUrl =
+                      typeof result?.cancelRedirectUrl === "string" &&
+                      result.cancelRedirectUrl.trim().length > 0
+                        ? result.cancelRedirectUrl
+                        : null;
+
+                    if (cancelRedirectUrl) {
+                      window.location.assign(cancelRedirectUrl);
+                      return;
+                    }
+
                     refreshData();
                   } else {
                     setLoading(false);

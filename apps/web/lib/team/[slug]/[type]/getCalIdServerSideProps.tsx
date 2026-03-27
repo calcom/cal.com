@@ -287,8 +287,10 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
       themeBasis: calIdTeam.slug,
       orgBannerUrl: calIdTeam.bannerUrl ?? "",
       customBannerLogoPosition:
-        (isPrismaObjOrUndefined(calIdTeam.metadata)?.customBannerLogoPosition as "top" | "bottom" | undefined) ??
-        "bottom",
+        (isPrismaObjOrUndefined(calIdTeam.metadata)?.customBannerLogoPosition as
+          | "top"
+          | "bottom"
+          | undefined) ?? "bottom",
       faviconUrl: calIdTeam.faviconUrl ?? null,
       teamMemberEmail,
       crmOwnerRecordType,
