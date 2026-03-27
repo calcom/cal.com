@@ -2,7 +2,7 @@ import { logger, runs, schemaTask, type TaskWithSchema } from "@trigger.dev/sdk"
 
 import { cancelMeetingWebhookPayloadSchema } from "../../types/webhookTask";
 import { webhookDeliveryTaskConfig } from "./config";
-import { scheduleMeetingWebhook } from "./schedule-meeting-webhook";
+import { deliverWebhook } from "./deliver-webhook";
 
 const CANCEL_MEETING_WEBHOOK_JOB_ID = "webhook.cancel-meeting" as const;
 
@@ -10,11 +10,10 @@ const CANCEL_MEETING_WEBHOOK_JOB_ID = "webhook.cancel-meeting" as const;
  * Trigger.dev task to cancel previously scheduled meeting webhooks.
  *
  * When a booking is cancelled, this task finds and cancels all pending
- * trigger.dev runs tagged with the booking ID that were created by
- * the schedule-meeting-webhook task.
+ * delayed deliver-webhook runs tagged with the booking ID.
  *
- * It also deletes any webhookScheduledTriggers DB entries as a safety net
- * (in case the sync tasker was used as a fallback).
+ * Falls back to deleting webhookScheduledTriggers DB entries only if
+ * no trigger.dev runs were found (i.e. the sync tasker was used).
  */
 export const cancelMeetingWebhook: TaskWithSchema<
   typeof CANCEL_MEETING_WEBHOOK_JOB_ID,
@@ -31,10 +30,9 @@ export const cancelMeetingWebhook: TaskWithSchema<
       let cancelled = 0;
       let failed = 0;
 
-      // Find and cancel all pending trigger.dev runs for this booking's meeting webhooks
       for await (const run of runs.list({
         tag: bookingTag,
-        taskIdentifier: [scheduleMeetingWebhook.id],
+        taskIdentifier: [deliverWebhook.id],
         status: ["QUEUED", "DELAYED"],
       })) {
         try {
@@ -45,13 +43,15 @@ export const cancelMeetingWebhook: TaskWithSchema<
         }
       }
 
-      // Also delete webhookScheduledTriggers DB entries as a safety net
-      const { deleteWebhookScheduledTriggers } = await import(
-        "@calcom/features/webhooks/lib/scheduleTrigger"
-      );
-      await deleteWebhookScheduledTriggers({
-        booking: { id: payload.bookingId, uid: payload.bookingUid },
-      });
+      // Only fall back to DB cleanup if no trigger.dev runs were found
+      if (cancelled === 0 && failed === 0) {
+        const { deleteWebhookScheduledTriggers } = await import(
+          "@calcom/features/webhooks/lib/scheduleTrigger"
+        );
+        await deleteWebhookScheduledTriggers({
+          booking: { id: payload.bookingId, uid: payload.bookingUid },
+        });
+      }
 
       logger.info("Meeting webhook cancellation completed", {
         taskId,

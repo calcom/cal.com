@@ -27,6 +27,9 @@ const mockWebhookProducer: MockWebhookProducer = vi.hoisted(() => ({
   queueFormSubmittedWebhook: vi.fn().mockResolvedValue(undefined),
   queueRecordingReadyWebhook: vi.fn().mockResolvedValue(undefined),
   queueOOOCreatedWebhook: vi.fn().mockResolvedValue(undefined),
+  queueMeetingStartedWebhook: vi.fn().mockResolvedValue(undefined),
+  queueMeetingEndedWebhook: vi.fn().mockResolvedValue(undefined),
+  cancelMeetingWebhooks: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@calcom/features/webhooks/lib/service/WebhookTaskerProducerService", () => {
@@ -42,6 +45,9 @@ vi.mock("@calcom/features/webhooks/lib/service/WebhookTaskerProducerService", ()
     queueFormSubmittedWebhook = mockWebhookProducer.queueFormSubmittedWebhook;
     queueRecordingReadyWebhook = mockWebhookProducer.queueRecordingReadyWebhook;
     queueOOOCreatedWebhook = mockWebhookProducer.queueOOOCreatedWebhook;
+    queueMeetingStartedWebhook = mockWebhookProducer.queueMeetingStartedWebhook;
+    queueMeetingEndedWebhook = mockWebhookProducer.queueMeetingEndedWebhook;
+    cancelMeetingWebhooks = mockWebhookProducer.cancelMeetingWebhooks;
   };
   return { WebhookTaskerProducerService: MockProducer };
 });

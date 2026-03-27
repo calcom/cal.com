@@ -12,6 +12,9 @@ export type MockWebhookProducer = {
   queueFormSubmittedWebhook: ReturnType<typeof vi.fn>;
   queueRecordingReadyWebhook: ReturnType<typeof vi.fn>;
   queueOOOCreatedWebhook: ReturnType<typeof vi.fn>;
+  queueMeetingStartedWebhook: ReturnType<typeof vi.fn>;
+  queueMeetingEndedWebhook: ReturnType<typeof vi.fn>;
+  cancelMeetingWebhooks: ReturnType<typeof vi.fn>;
 };
 
 export function createMockWebhookProducer(): MockWebhookProducer {
@@ -27,6 +30,9 @@ export function createMockWebhookProducer(): MockWebhookProducer {
     queueFormSubmittedWebhook: vi.fn().mockResolvedValue(undefined),
     queueRecordingReadyWebhook: vi.fn().mockResolvedValue(undefined),
     queueOOOCreatedWebhook: vi.fn().mockResolvedValue(undefined),
+    queueMeetingStartedWebhook: vi.fn().mockResolvedValue(undefined),
+    queueMeetingEndedWebhook: vi.fn().mockResolvedValue(undefined),
+    cancelMeetingWebhooks: vi.fn().mockResolvedValue(undefined),
   };
 }
 
