@@ -31,7 +31,7 @@ function createMockContext(overrides: Partial<BookingActionContext> = {}): Booki
       description: "Test meeting description",
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
-      createdAt: now,
+      createdAt: now.toISOString(),
       updatedAt: now,
       status: BookingStatus.ACCEPTED,
       paid: false,
