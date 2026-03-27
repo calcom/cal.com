@@ -699,11 +699,14 @@ describe("BookingRepository (Integration Tests)", () => {
     });
 
     describe("noShowHost on attendee email branch", () => {
-      it("should still include attendee-email-matched bookings where host is a no-show when noShow filtering is enabled", async () => {
-        // This documents the existing behavior: noShowHost filter only applies
-        // to the userId branch, not the attendee email branch.
-        // A booking matched via attendee email where the host was a no-show
-        // IS included even when includeNoShowInRRCalculation=false.
+      it("should exclude attendee-email-matched bookings where host is a no-show when noShow filtering is enabled", async () => {
+        // Previously the noShowHost filter only applied to the userId branch
+        // in SQL, not the attendee email branch. Now that noShow filtering is
+        // done in application code (for performance — eliminates O(n) EXISTS
+        // semi-join probes), noShowHost is applied uniformly to all bookings
+        // regardless of which UNION branch produced them. This is slightly
+        // stricter but more consistent: if the host no-showed, the booking
+        // shouldn't count toward anyone's round-robin balance.
         const booking = await prisma.booking.create({
           data: {
             userId: otherUserId, // different organizer (host)
@@ -737,10 +740,9 @@ describe("BookingRepository (Integration Tests)", () => {
           rrTimestampBasis: RRTimestampBasis.START_TIME,
         });
 
-        // The booking IS included because noShowHost filtering only applies
-        // to the userId branch (matching original behavior)
-        expect(bookings).toHaveLength(1);
-        expect(bookings[0].id).toBe(booking.id);
+        // The booking is excluded because noShowHost filtering now applies
+        // uniformly to all bookings (moved from SQL to application layer)
+        expect(bookings).toHaveLength(0);
       });
     });
 

@@ -1,15 +1,12 @@
 import CalendarManagerMock from "@calcom/features/calendars/lib/__mocks__/CalendarManager";
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { v4 as uuid } from "uuid";
-import { expect, it, describe, vi, beforeAll } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
-import { buildUser, buildBooking } from "@calcom/lib/test/builder";
+import { buildBooking, buildUser } from "@calcom/lib/test/builder";
 import { AttributeType, RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
-
-import { getIntervalStartDate, getIntervalEndDate } from "./getLuckyUser";
+import { v4 as uuid } from "uuid";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+import { getIntervalEndDate, getIntervalStartDate } from "./getLuckyUser";
 
 const luckyUserService = getLuckyUserService();
 
@@ -634,24 +631,28 @@ describe("maximize availability and weights", () => {
     ]);
 
     // bookings of current month
+    const attendeesWithNoShow = [{ email: "attendee@example.com", noShow: false }];
     prismaMock.$queryRaw.mockResolvedValue([{ id: 4 }, { id: 5 }]);
     prismaMock.booking.findMany.mockResolvedValue([
       buildBooking({
         id: 4,
         userId: 1,
         createdAt: dayjs().subtract(2, "days").toDate(),
+        attendees: attendeesWithNoShow,
       }),
       // happened during OOO of userId 1
       buildBooking({
         id: 4,
         userId: 2,
         createdAt: dayjs().subtract(6, "days").toDate(),
+        attendees: attendeesWithNoShow,
       }),
       // happened during OOO of userId 1
       buildBooking({
         id: 5,
         userId: 2,
         createdAt: dayjs().subtract(7, "days").toDate(),
+        attendees: attendeesWithNoShow,
       }),
     ]);
 
@@ -922,16 +923,19 @@ describe("maximize availability and weights", () => {
     // getAllBookingsForRoundRobin uses raw SQL UNION to get booking IDs,
     // then fetches full records via findMany with { id: { in: [...] } }.
     // Mock $queryRaw to return booking IDs, and findMany to return full records.
+    const attendeesWithNoShow = [{ email: "attendee@example.com", noShow: false }];
     const firstCallBookings = [
       buildBooking({
         id: 4,
         userId: 2,
         createdAt: dayjs(middleOfMonth).subtract(2, "days").toDate(),
+        attendees: attendeesWithNoShow,
       }),
       buildBooking({
         id: 5,
         userId: 2,
         createdAt: dayjs(middleOfMonth).subtract(5, "days").toDate(),
+        attendees: attendeesWithNoShow,
       }),
     ];
     prismaMock.$queryRaw.mockResolvedValue([{ id: 4 }, { id: 5 }]);
@@ -956,11 +960,13 @@ describe("maximize availability and weights", () => {
         id: 4,
         userId: 2,
         createdAt: dayjs(middleOfMonth).add(2, "days").toDate(),
+        attendees: attendeesWithNoShow,
       }),
       buildBooking({
         id: 5,
         userId: 2,
         createdAt: dayjs(middleOfMonth).add(5, "days").toDate(),
+        attendees: attendeesWithNoShow,
       }),
     ];
     prismaMock.$queryRaw.mockResolvedValue([{ id: 4 }, { id: 5 }]);
