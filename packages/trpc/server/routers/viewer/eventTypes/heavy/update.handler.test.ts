@@ -56,4 +56,56 @@ describe("update.handler", () => {
       expect(nullResult).not.toEqual(emptyArrayResult);
     });
   });
+
+  describe("instantMeetingSchedule connect/disconnect logic", () => {
+    type ScheduleAction = { connect: { id: number } } | { disconnect: true } | undefined;
+
+    function getInstantMeetingScheduleAction(
+      instantMeetingSchedule: number | null | undefined,
+      schedule: number | null | undefined
+    ): ScheduleAction {
+      if (instantMeetingSchedule) {
+        return {
+          connect: {
+            id: instantMeetingSchedule,
+          },
+        };
+      } else if (instantMeetingSchedule === null || schedule === null) {
+        return {
+          disconnect: true,
+        };
+      }
+      return undefined;
+    }
+
+    it("should connect when instantMeetingSchedule is a valid ID", () => {
+      const result = getInstantMeetingScheduleAction(42, undefined);
+      expect(result).toEqual({ connect: { id: 42 } });
+    });
+
+    it("should disconnect when instantMeetingSchedule is explicitly null", () => {
+      const result = getInstantMeetingScheduleAction(null, undefined);
+      expect(result).toEqual({ disconnect: true });
+    });
+
+    it("should disconnect when schedule is null (even if instantMeetingSchedule is undefined)", () => {
+      const result = getInstantMeetingScheduleAction(undefined, null);
+      expect(result).toEqual({ disconnect: true });
+    });
+
+    it("should disconnect when both instantMeetingSchedule and schedule are null", () => {
+      const result = getInstantMeetingScheduleAction(null, null);
+      expect(result).toEqual({ disconnect: true });
+    });
+
+    it("should return undefined when both are undefined (no action needed)", () => {
+      const result = getInstantMeetingScheduleAction(undefined, undefined);
+      expect(result).toBeUndefined();
+    });
+
+    it("should connect when instantMeetingSchedule has a value regardless of schedule", () => {
+      const result = getInstantMeetingScheduleAction(10, null);
+      expect(result).toEqual({ connect: { id: 10 } });
+    });
+  });
 });

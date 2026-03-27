@@ -111,6 +111,7 @@ export type FormValues = {
   isInstantEvent: boolean;
   instantMeetingParameters: string[];
   instantMeetingExpiryTimeOffsetInSeconds: number;
+  instantMeetingSchedule: number | null;
   length: number;
   offsetStart: number;
   description: string;
