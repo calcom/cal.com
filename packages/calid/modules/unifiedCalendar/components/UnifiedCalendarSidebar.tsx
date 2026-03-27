@@ -28,7 +28,7 @@ interface UnifiedCalendarSidebarProps {
   pendingSyncCalendarIds?: Set<string>;
 }
 
-const MAX_CALENDAR_NAME_LENGTH = 22;
+const MAX_CALENDAR_NAME_LENGTH = 18;
 
 export const UnifiedCalendarSidebar = ({
   calendars,

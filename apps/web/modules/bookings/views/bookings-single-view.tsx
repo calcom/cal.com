@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  useEmbedNonStylesConfig,
+  useIsBackgroundTransparent,
+  useIsEmbed,
+} from "@calid/embed-runtime/embed-iframe";
 import { generateRecurringInstances } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import { Alert } from "@calid/features/ui/components/alert";
 import { Badge } from "@calid/features/ui/components/badge";
@@ -26,11 +31,6 @@ import {
 } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
-import {
-  useEmbedNonStylesConfig,
-  useIsBackgroundTransparent,
-  useIsEmbed,
-} from "@calid/embed-runtime/embed-iframe";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { SystemField, TITLE_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
@@ -97,6 +97,23 @@ const useBrandColors = ({
     darkVal: darkBrandColor,
   });
   useCalcomTheme(brandTheme);
+};
+
+const inferProviderNameFromMeetingUrl = (meetingUrl?: string) => {
+  if (!meetingUrl) {
+    return undefined;
+  }
+
+  const normalizedUrl = meetingUrl.toLowerCase();
+  if (
+    normalizedUrl.includes("meet.google.com") ||
+    normalizedUrl.includes("g.co/meet") ||
+    normalizedUrl.includes("google.com/meet")
+  ) {
+    return getEventLocationTypeFromVideoProvider("google_meet_video")?.label || "Google Meet";
+  }
+
+  return undefined;
 };
 
 export default function Success(props: PageProps) {
@@ -364,8 +381,12 @@ export default function Success(props: PageProps) {
 
   const providerName =
     getEventLocationTypeFromVideoProvider(resolvedVideoProvider)?.label ||
-    guessEventLocationType(location)?.label;
-  const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
+    guessEventLocationType(location)?.label ||
+    inferProviderNameFromMeetingUrl(locationToDisplay) ||
+    inferProviderNameFromMeetingUrl(locationVideoCallUrl || location);
+  const rescheduleProviderName =
+    guessEventLocationType(rescheduleLocation)?.label ||
+    inferProviderNameFromMeetingUrl(rescheduleLocationToDisplay);
   const isBookingInPast = new Date(bookingInfo.endTime) < new Date();
   const isReschedulable = !isCancelled;
 
@@ -615,13 +636,13 @@ export default function Success(props: PageProps) {
                                 ? eventType.bookingFields.find((e) => e.name === "rescheduleReason")?.label
                                 : t("reschedule_reason")}
                             </div>
-                            <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
+                            <div className="ml-8 col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
                           </>
                         )}
                         {isCancelled && bookingInfo?.cancelledBy && (
                           <>
                             <div className="font-medium">{t("cancelled_by")}</div>
-                            <div className="col-span-2 mb-6 last:mb-0">
+                            <div className="ml-8 col-span-2 mb-6 last:mb-0">
                               <p className="break-words">{bookingInfo?.cancelledBy}</p>
                             </div>
                           </>
@@ -629,7 +650,7 @@ export default function Success(props: PageProps) {
                         {previousBooking && (
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
-                            <div className="col-span-2 mb-6 last:mb-0">
+                            <div className="ml-8 col-span-2 mb-6 last:mb-0">
                               <p className="break-words">{previousBooking?.rescheduledBy}</p>
                               <Link className="text-sm underline" href={`/booking/${previousBooking?.uid}`}>
                                 {t("original_booking")}
@@ -638,11 +659,11 @@ export default function Success(props: PageProps) {
                           </>
                         )}
                         <div className="font-medium">{t("what")}</div>
-                        <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
+                        <div className="ml-8 col-span-2 mb-6 last:mb-0" data-testid="booking-title">
                           {isRoundRobin ? bookingInfo.title : eventName}
                         </div>
                         <div className="font-medium">{t("when")}</div>
-                        <div className="col-span-2 mb-6 last:mb-0">
+                        <div className="ml-8 col-span-2 mb-6 last:mb-0">
                           {!isRecurringBooking && reschedule && !!formerTime && (
                             <p className="line-through">
                               <RecurringBookings
@@ -671,7 +692,7 @@ export default function Success(props: PageProps) {
                         {(bookingInfo?.user || bookingInfo?.attendees) && (
                           <>
                             <div className="font-medium">{t("who")}</div>
-                            <div className="col-span-2 last:mb-0">
+                            <div className="ml-8 col-span-2 last:mb-0">
                               {bookingInfo?.user && (
                                 <div className="mb-3">
                                   <div>
@@ -696,8 +717,8 @@ export default function Success(props: PageProps) {
                                       </span>
                                       {bookingInfo.paid &&
                                         bookingInfo.isASeatedBooking /* This means booking is paid and has seats as responses for seated bookings are stored in `BookingSeat` */ &&
-                                        (attendee.bookingSeat?.payment?.some((p) => p.success) > 0 ? (
-                                          attendee.bookingSeat.payment.some(
+                                        (attendee.bookingSeat?.payment?.some((p) => p.success) ? (
+                                          attendee.bookingSeat!.payment.some(
                                             (p) => p.success && !p.refunded
                                           ) ? (
                                             <Badge variant="success">{t("paid")}</Badge>
@@ -726,7 +747,7 @@ export default function Success(props: PageProps) {
                         {locationToDisplay && !isCancelled && (
                           <>
                             <div className="mt-3 font-medium">{t("where")}</div>
-                            <div className="col-span-2 mt-3" data-testid="where">
+                            <div className="ml-8 col-span-2 mt-3" data-testid="where">
                               {!rescheduleLocation || locationToDisplay === rescheduleLocationToDisplay ? (
                                 <DisplayLocation
                                   locationToDisplay={locationToDisplay}
@@ -758,7 +779,7 @@ export default function Success(props: PageProps) {
                                 ? t("complete_your_booking")
                                 : t("payment")}
                             </div>
-                            <div className="col-span-2 mb-2 mt-3">
+                            <div className="ml-8 col-span-2 mb-2 mt-3">
                               <Price
                                 currency={props.paymentStatus.currency}
                                 price={props.paymentStatus.amount}
@@ -770,13 +791,15 @@ export default function Success(props: PageProps) {
                         {rescheduledToUid ? <RescheduledToLink rescheduledToUid={rescheduledToUid} /> : null}
 
                         {bookingInfo?.description && (
+                          !(eventType.bookingFields.find((e: any) => e.name === "notes")?.hidden ?? false)
+                        ) && (
                           <>
                             <div className="mt-9 font-medium">
-                              {eventType.bookingFields.find((e) => e.name === "notes")?.label
-                                ? eventType.bookingFields.find((e) => e.name === "notes")?.label
+                              {eventType.bookingFields.find((e: any) => e.name === "notes")?.label
+                                ? eventType.bookingFields.find((e: any) => e.name === "notes")?.label
                                 : t("additional_notes")}
                             </div>
-                            <div className="col-span-2 mb-2 mt-9">
+                            <div className="ml-8 col-span-2 mb-2 mt-9">
                               <p className="break-words">{bookingInfo.description}</p>
                             </div>
                           </>
@@ -784,7 +807,7 @@ export default function Success(props: PageProps) {
                         {!!utmParams && isHost && (
                           <>
                             <div className="mt-9 pr-2 font-medium sm:pr-0">{t("utm_params")}</div>
-                            <div className="col-span-2 mb-2 ml-3 mt-9 sm:ml-0">
+                            <div className="ml-8 col-span-2 mb-2 mt-9 sm:ml-0">
                               <button
                                 data-testid="utm-dropdown"
                                 onClick={() => {
@@ -826,6 +849,8 @@ export default function Success(props: PageProps) {
 
                           if (!bookingInfo.responses[field.name]) return null;
 
+                          if (field.hidden) return null;
+
                           const response = bookingInfo.responses[field.name];
 
                           const isSystemField = SystemField.safeParse(field.name);
@@ -842,7 +867,7 @@ export default function Success(props: PageProps) {
                                   __html: markdownToSafeHTML(label),
                                 }}
                               />
-                              <div className="col-span-2 mb-6 mt-3 last:mb-0">
+                              <div className="ml-8 col-span-2 mb-6 mt-3 last:mb-0">
                                 <div
                                   className="text-default break-words"
                                   data-testid="field-response"

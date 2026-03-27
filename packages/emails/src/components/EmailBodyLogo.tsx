@@ -18,8 +18,20 @@ const EmailBodyLogo = ({
     return null;
   }
 
-  // const image = `${WEBAPP_URL}/emails/logo.png`;
-  const image = bannerUrl ? `${WEBAPP_URL}${bannerUrl}` : `${WEBAPP_URL}/emails/logo.png`;
+  const image = (() => {
+    if (!bannerUrl) return `${WEBAPP_URL}/emails/logo.png`;
+    if (
+      bannerUrl.startsWith("http://") ||
+      bannerUrl.startsWith("https://") ||
+      bannerUrl.startsWith("data:")
+    ) {
+      return bannerUrl;
+    }
+    if (bannerUrl.startsWith("/")) {
+      return `${WEBAPP_URL}${bannerUrl}`;
+    }
+    return `${WEBAPP_URL}/${bannerUrl}`;
+  })();
 
   return (
     <>

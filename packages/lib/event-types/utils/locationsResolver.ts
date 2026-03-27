@@ -12,6 +12,7 @@ export const locationsResolver = (t: TFunction) => {
       z
         .object({
           type: z.string(),
+          label: z.string().optional(),
           address: z.string().optional(),
           link: z.string().url().optional(),
           phone: z

@@ -41,6 +41,12 @@ interface TeamCustomBrandingViewProps {
   teamId: number;
 }
 
+type CustomBannerLogoPosition = "top" | "bottom";
+const withCacheBust = (url: string | null | undefined, cacheKey: number) => {
+  if (!url || url.startsWith("data:")) return url ?? null;
+  return `${url}${url.includes("?") ? "&" : "?"}v=${cacheKey}`;
+};
+
 export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingViewProps) {
   const { t } = useLocale();
   const router = useRouter();
@@ -60,6 +66,14 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
   const [lightModeError, setLightModeError] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingPublicBanner, setUploadingPublicBanner] = useState(false);
+  const [customBannerLogoPosition, setCustomBannerLogoPosition] =
+    useState<CustomBannerLogoPosition>("bottom");
+  const [logoCacheKey, setLogoCacheKey] = useState(0);
+  const [faviconCacheKey, setFaviconCacheKey] = useState(0);
+  const [headerCacheKey, setHeaderCacheKey] = useState(0);
+  const [publicBannerUrlPreview, setPublicBannerUrlPreview] = useState<string | null>(
+    (isPrismaObjOrUndefined(team?.metadata)?.headerUrl as string | null) ?? null
+  );
 
   const brandColorsForm = useForm<TeamBrandColorsSetting>({
     resolver: zodResolver(brandColorsFormSchema),
@@ -106,6 +120,7 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
     try {
       const updatedTeam = await mutation.mutateAsync({ id: teamId, ...payload });
       triggerToast(t("team_settings_updated_successfully"), "success");
+      utils.viewer.calidTeams.get.setData({ teamId }, (prev) => (prev ? { ...prev, ...updatedTeam } : prev));
       await utils.viewer.calidTeams.get.invalidate({ teamId });
       if (updatedTeam?.slug) {
         await revalidateCalIdTeamDataCache({
@@ -119,8 +134,10 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
           slug: updatedTeam.slug,
         });
       }
+      return updatedTeam;
     } catch (error: unknown) {
       triggerToast(error instanceof Error ? error.message : String(error), "error");
+      return null;
     }
   };
 
@@ -157,6 +174,11 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
       publicBannerFormMethods.reset({
         headerUrl: (isPrismaObjOrUndefined(team.metadata)?.headerUrl as string | null) ?? null,
       });
+      const metadata = isPrismaObjOrUndefined(team.metadata);
+      const metadataLogoPosition = metadata?.customBannerLogoPosition;
+      setCustomBannerLogoPosition(metadataLogoPosition === "top" ? "top" : "bottom");
+      setPublicBannerUrlPreview((isPrismaObjOrUndefined(team.metadata)?.headerUrl as string | null) ?? null);
+      setHeaderCacheKey(Date.now());
     }
   }, [team, brandColorsForm, bannerFormMethods, faviconFormMethods, publicBannerFormMethods]);
 
@@ -175,18 +197,30 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
     dark: team?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
   };
 
-  const publicBannerUrl = (isPrismaObjOrUndefined(team?.metadata)?.headerUrl as string | null) ?? null;
+  const publicBannerUrl = publicBannerUrlPreview;
 
   const handlePublicBannerUpdate = async (newHeaderUrl: string | null) => {
+    const previousHeaderUrl = publicBannerUrlPreview;
     setUploadingPublicBanner(true);
+    setPublicBannerUrlPreview(newHeaderUrl);
+    setHeaderCacheKey(Date.now());
     try {
-      await updateTeamSetting({
+      const updatedTeam = await updateTeamSetting({
         metadata: {
           ...isPrismaObjOrUndefined(team?.metadata),
           headerUrl: newHeaderUrl,
         },
       });
+      if (!updatedTeam) {
+        setPublicBannerUrlPreview(previousHeaderUrl);
+        setHeaderCacheKey(Date.now());
+        return;
+      }
       publicBannerFormMethods.reset({ headerUrl: newHeaderUrl });
+      setHeaderCacheKey(Date.now());
+    } catch {
+      setPublicBannerUrlPreview(previousHeaderUrl);
+      setHeaderCacheKey(Date.now());
     } finally {
       setUploadingPublicBanner(false);
     }
@@ -204,7 +238,11 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                 {!publicBannerUrl ? (
                   <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
                 ) : (
-                  <img className="h-full w-full object-cover" src={publicBannerUrl} alt="Header background" />
+                  <img
+                    className="h-full w-full object-cover"
+                    src={withCacheBust(publicBannerUrl, headerCacheKey) ?? undefined}
+                    alt="Header background"
+                  />
                 )}
               </div>
 
@@ -222,7 +260,10 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                   handleAvatarChange={async (newHeaderUrl) => {
                     await handlePublicBannerUpdate(newHeaderUrl);
                   }}
-                  imageSrc={getPlaceholderHeader(publicBannerUrl, publicBannerUrl) ?? undefined}
+                  imageSrc={getPlaceholderHeader(
+                    withCacheBust(publicBannerUrl, headerCacheKey),
+                    withCacheBust(publicBannerUrl, headerCacheKey)
+                  )}
                 />
                 {publicBannerUrl && (
                   <Button
@@ -380,7 +421,14 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                           </div>
 
                           <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-                            <Avatar imageSrc={getBrandLogoUrl({ bannerUrl: value })} size="lg" alt="" />
+                            <Avatar
+                              imageSrc={
+                                withCacheBust(getBrandLogoUrl({ bannerUrl: value }), logoCacheKey) ??
+                                undefined
+                              }
+                              size="lg"
+                              alt=""
+                            />
                             <div className="flex flex-wrap items-center gap-2">
                               <div className="flex">
                                 <CustomBannerUploader
@@ -393,6 +441,7 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                                   handleAvatarChange={(newAvatar) => {
                                     setUploadingBanner(true);
                                     onChange(newAvatar);
+                                    setLogoCacheKey(Date.now());
                                     updateTeamSetting({ bannerUrl: newAvatar })
                                       .then(() => {
                                         const faviconValue = faviconFormMethods.getValues("faviconUrl");
@@ -402,7 +451,10 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                                         setUploadingBanner(false);
                                       });
                                   }}
-                                  imageSrc={getBrandLogoUrl({ bannerUrl: value })}
+                                  imageSrc={
+                                    withCacheBust(getBrandLogoUrl({ bannerUrl: value }), logoCacheKey) ??
+                                    undefined
+                                  }
                                   mimeType="image/*"
                                 />
                               </div>
@@ -412,6 +464,7 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                                   StartIcon="trash"
                                   onClick={() => {
                                     onChange(null);
+                                    setLogoCacheKey(Date.now());
                                     updateTeamSetting({ bannerUrl: "delete" }).then(() => {
                                       const faviconValue = faviconFormMethods.getValues("faviconUrl");
                                       if (!faviconValue) {
@@ -424,6 +477,50 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                               )}
                             </div>
                           </div>
+                          {value && (
+                            <div className="mt-4">
+                              <div className="text-sm font-medium">{t("brand_logo_position")}</div>
+                              <div className="text-subtle mb-2 text-sm">{t("brand_logo_position_description")}</div>
+                              <div className="flex gap-2">
+                                <Button
+                                  type="button"
+                                  color={customBannerLogoPosition === "top" ? "primary" : "secondary"}
+                                  disabled={mutation.isPending}
+                                  onClick={async () => {
+                                    if (customBannerLogoPosition === "top") {
+                                      return;
+                                    }
+                                    setCustomBannerLogoPosition("top");
+                                    await updateTeamSetting({
+                                      metadata: {
+                                        ...isPrismaObjOrUndefined(team?.metadata),
+                                        customBannerLogoPosition: "top",
+                                      },
+                                    });
+                                  }}>
+                                  {t("logo_position_top")}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  color={customBannerLogoPosition === "bottom" ? "primary" : "secondary"}
+                                  disabled={mutation.isPending}
+                                  onClick={async () => {
+                                    if (customBannerLogoPosition === "bottom") {
+                                      return;
+                                    }
+                                    setCustomBannerLogoPosition("bottom");
+                                    await updateTeamSetting({
+                                      metadata: {
+                                        ...isPrismaObjOrUndefined(team?.metadata),
+                                        customBannerLogoPosition: "bottom",
+                                      },
+                                    });
+                                  }}>
+                                  {t("logo_position_bottom")}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     }}
@@ -456,7 +553,12 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                           <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
                             <Avatar
                               alt={team?.name || "Team Favicon"}
-                              imageSrc={getBrandLogoUrl({ faviconUrl: value }, true)}
+                              imageSrc={
+                                withCacheBust(
+                                  getBrandLogoUrl({ faviconUrl: value }, true),
+                                  faviconCacheKey
+                                ) ?? undefined
+                              }
                               size="lg"
                             />
                             <div className="flex flex-wrap items-center gap-2">
@@ -469,6 +571,7 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                                 handleAvatarChange={(newAvatar) => {
                                   setUploadingBanner(true);
                                   onChange(newAvatar);
+                                  setFaviconCacheKey(Date.now());
                                   updateTeamSetting({ faviconUrl: newAvatar })
                                     .then(() => {
                                       const bannerValue = bannerFormMethods.getValues("bannerUrl");
@@ -478,7 +581,13 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                                       setUploadingBanner(false);
                                     });
                                 }}
-                                imageSrc={getBrandLogoUrl({ faviconUrl: value }, true)}
+                                imageSrc={
+                                  withCacheBust(
+                                    getBrandLogoUrl({ faviconUrl: value }, true),
+                                    faviconCacheKey
+                                  ) ?? undefined
+                                }
+                                fileSize={1}
                               />
 
                               {showRemoveFaviconButton && (
@@ -487,6 +596,7 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                                   StartIcon="trash"
                                   onClick={() => {
                                     onChange(null);
+                                    setFaviconCacheKey(Date.now());
                                     updateTeamSetting({ faviconUrl: "delete" }).then(() => {
                                       const bannerValue = bannerFormMethods.getValues("bannerUrl");
                                       if (!bannerValue) {

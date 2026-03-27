@@ -227,6 +227,49 @@ function isSameUTC(a: Date, b: Date): boolean {
   return dayjs(a).utc().isSame(dayjs(b).utc(), "second");
 }
 
+function propagateGoogleMeetUrl({
+  bookingLocation,
+  meetingUrl,
+  evt,
+  referencesToCreate,
+  loggerWithEventDetails,
+  phase,
+}: {
+  bookingLocation: string;
+  meetingUrl?: string;
+  evt: CalendarEvent;
+  referencesToCreate: PartialReference[];
+  loggerWithEventDetails: ReturnType<typeof createLoggerWithEventDetails>;
+  phase: "create" | "reschedule";
+}) {
+  if (bookingLocation !== MeetLocationType) {
+    return;
+  }
+
+  if (!meetingUrl || !meetingUrl.startsWith("http")) {
+    loggerWithEventDetails.warn(
+      "Google Meet URL missing after calendar operation",
+      safeStringify({
+        phase,
+        bookingUid: evt.uid,
+        locationType: bookingLocation,
+        referenceTypes: referencesToCreate.map((ref) => ref.type),
+      })
+    );
+    return;
+  }
+
+  evt.location = meetingUrl;
+  referencesToCreate.forEach((reference) => {
+    if (
+      (reference.type === "google_calendar" || reference.type === "google_meet_video") &&
+      !reference.meetingUrl
+    ) {
+      reference.meetingUrl = meetingUrl;
+    }
+  });
+}
+
 type BookingDataSchemaGetter =
   | typeof getBookingDataSchema
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
@@ -356,6 +399,7 @@ export const buildEventForTeamEventType = async ({
   team?: {
     id: number;
     name: string;
+    bannerUrl?: string | null;
   } | null;
 }) => {
   // not null assertion.
@@ -399,7 +443,10 @@ export const buildEventForTeamEventType = async ({
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  evt = CalendarEventBuilder.fromEvent(evt)
+  evt = CalendarEventBuilder.fromEvent({
+    ...evt,
+    bannerUrl: team?.bannerUrl ?? evt.bannerUrl ?? null,
+  })
     .withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
     .build();
 
@@ -1385,6 +1432,11 @@ async function handler(
     .withRescheduleInstance(rescheduleInstance) // Add rescheduleInstance to the calendar event if present
     .build();
 
+  evt = {
+    ...evt,
+    bannerUrl: organizerUser.bannerUrl ?? null,
+  };
+
   if (input.bookingData.thirdPartyRecurringEventId) {
     evt = CalendarEventBuilder.fromEvent(evt)
       .withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
@@ -1396,7 +1448,15 @@ async function handler(
       existingEvent: evt,
       schedulingType: eventType.schedulingType,
       users,
-      team: eventType.calIdTeam,
+      team: eventType.calIdTeam
+        ? eventType.calIdTeam
+        : eventType.team
+        ? {
+            id: eventType.team.id,
+            name: eventType.team.name,
+            bannerUrl: eventType.team.bannerUrl ?? null,
+          }
+        : null,
       organizerUser,
     });
   }
@@ -2045,6 +2105,14 @@ async function handler(
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
           getVideoCallUrlFromCalEvent(evt) ||
           videoCallUrl;
+        propagateGoogleMeetUrl({
+          bookingLocation,
+          meetingUrl: conferenceDetails.meetingUrl,
+          evt,
+          referencesToCreate,
+          loggerWithEventDetails,
+          phase: "reschedule",
+        });
       }
 
       const calendarResult = results.find((result) => result.type.includes("_calendar"));
@@ -2280,6 +2348,14 @@ async function handler(
           conferenceDetails.meetingUrl ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
           videoCallUrl;
+        propagateGoogleMeetUrl({
+          bookingLocation,
+          meetingUrl: conferenceDetails.meetingUrl,
+          evt,
+          referencesToCreate,
+          loggerWithEventDetails,
+          phase: "create",
+        });
 
         if (!isDryRun && evt.iCalUID !== booking.iCalUID) {
           // The eventManager could change the iCalUID. At this point we can update the DB record
@@ -2570,6 +2646,17 @@ async function handler(
 
   try {
     if (!isDryRun) {
+      if (bookingLocation === MeetLocationType && (!evt.location || !evt.location.startsWith("http"))) {
+        loggerWithEventDetails.warn(
+          "Persisting booking without canonical Google Meet URL",
+          safeStringify({
+            bookingUid: booking.uid,
+            locationType: bookingLocation,
+            persistedLocation: evt.location,
+          })
+        );
+      }
+
       await prisma.booking.update({
         where: {
           uid: booking.uid,

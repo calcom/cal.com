@@ -210,7 +210,7 @@ export default function BannerUploader({
     const limit = 1 * 1000000; // 1MB
 
     if (file.size > limit) {
-      triggerToast(t("image_size_limit_exceed_1mb"), "error");
+      triggerToast(t("image_size_limit_exceed", { size: "1MB" }), "error");
       return;
     }
 
@@ -320,7 +320,9 @@ export default function BannerUploader({
         enableOverflow={false}>
         <DialogHeader>
           <DialogTitle>{t("upload_target", { target: fieldName || target })}</DialogTitle>
-          <DialogDescription>{t("image_limits", { limit: `${width}x${height}` })}</DialogDescription>
+          {width && height && (
+            <DialogDescription>{t("image_limits", { limit: `${width}x${height}` })}</DialogDescription>
+          )}
         </DialogHeader>
         <div className="overflow-hidden">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">

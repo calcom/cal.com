@@ -65,33 +65,41 @@ const buildFormStateWithNoErrors = (formState?: FormState) => {
 const getMockFormContext = ({
   formState,
   responses,
+  prefill,
 }: {
   formState: FormState;
-  responses: Record<string, string | string[]>;
+  responses: Record<string, unknown>;
+  prefill?: {
+    sourceByField: Record<string, "query" | "reschedule">;
+    valueByField: Record<string, unknown>;
+  };
 }) => {
   return {
     formState,
     control: {} as Control,
     getValues: () => ({
       responses,
+      __prefill: prefill,
     }),
   };
 };
 
-function mockFormContext({ formState, responses }: { formState: any; responses: any }) {
-  (vi.mocked(useFormContext) as any).mockReturnValue(getMockFormContext({ formState, responses }));
+function mockFormContext({ formState, responses, prefill }: { formState: any; responses: any; prefill?: any }) {
+  (vi.mocked(useFormContext) as any).mockReturnValue(getMockFormContext({ formState, responses, prefill }));
 }
 
 function mockScenario({
   formState,
   responses,
   searchParams,
+  prefill,
 }: {
   formState: any;
   responses: any;
   searchParams: any;
+  prefill?: any;
 }) {
-  mockFormContext({ formState, responses });
+  mockFormContext({ formState, responses, prefill });
   vi.mocked(useRouterQuery).mockReturnValue(searchParams);
 }
 
@@ -480,6 +488,56 @@ describe("useShouldBeDisabledDueToPrefill", () => {
       });
       const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
 
+      expect(shouldBeDisabled).toBe(false);
+    });
+
+    test("should return `true` when field is prefilled from reschedule metadata", () => {
+      const field = {
+        ...defaultField,
+        disableOnPrefill: true,
+      };
+      mockScenario({
+        formState: buildFormStateWithNoErrors(),
+        responses: {
+          [field.name]: "TestValue",
+        },
+        searchParams: {},
+        prefill: {
+          sourceByField: {
+            [field.name]: "reschedule",
+          },
+          valueByField: {
+            [field.name]: "TestValue",
+          },
+        },
+      });
+
+      const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+      expect(shouldBeDisabled).toBe(true);
+    });
+
+    test("should return `false` when field value has changed from reschedule prefill metadata", () => {
+      const field = {
+        ...defaultField,
+        disableOnPrefill: true,
+      };
+      mockScenario({
+        formState: buildFormStateWithNoErrors(),
+        responses: {
+          [field.name]: "Changed",
+        },
+        searchParams: {},
+        prefill: {
+          sourceByField: {
+            [field.name]: "reschedule",
+          },
+          valueByField: {
+            [field.name]: "TestValue",
+          },
+        },
+      });
+
+      const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
       expect(shouldBeDisabled).toBe(false);
     });
   });

@@ -827,6 +827,9 @@ export const EventAdvanced = ({
     !!formMethods.getValues("multiplePrivateLinks")?.length
   );
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
+  const [cancelRedirectUrlVisible, setCancelRedirectUrlVisible] = useState(
+    !!formMethods.getValues("cancelRedirectUrl")
+  );
   const [customReplyToEmailVisible, setCustomReplyToEmailVisible] = useState(
     !!formMethods.getValues("customReplyToEmail")
   );
@@ -836,6 +839,12 @@ export const EventAdvanced = ({
     const currentValue = formMethods.getValues("successRedirectUrl") || "";
     const hasActualUrl = currentValue.trim().length > 0;
     setRedirectUrlVisible(hasActualUrl);
+  }, [formMethods]);
+
+  useEffect(() => {
+    const currentValue = formMethods.getValues("cancelRedirectUrl") || "";
+    const hasActualUrl = currentValue.trim().length > 0;
+    setCancelRedirectUrlVisible(hasActualUrl);
   }, [formMethods]);
 
   const customReplyToEmailValue = formMethods.watch("customReplyToEmail");
@@ -1291,6 +1300,81 @@ export const EventAdvanced = ({
             </SettingsToggle>
           );
         }}
+      />
+
+      {/* Cancellation Redirect Configuration */}
+      <Controller
+        name="cancelRedirectUrl"
+        rules={{
+          required: cancelRedirectUrlVisible ? t("redirect_url_required") : false,
+          pattern: {
+            value: /^(https?:\/\/)([\w-]+(\.[\w-]+)+)([\/\w .-]*)*\/?$/,
+            message: t("invalid_url_error_message", {
+              label: t("redirect_after_cancel"),
+              sampleUrl: "https://example.com",
+            }),
+          },
+        }}
+        render={({ field, fieldState }) => (
+          <SettingsToggle
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(cancelRedirectUrlVisible && "rounded-b-none")}
+            childrenClassName="lg:ml-0"
+            title={t("redirect_after_cancel")}
+            data-testid="redirect-after-cancel"
+            description={t("redirect_cancel_url_description")}
+            checked={cancelRedirectUrlVisible}
+            onCheckedChange={(e) => {
+              if (e) {
+                field.onChange(field.value || "");
+              } else {
+                field.onChange("");
+              }
+              setCancelRedirectUrlVisible(e);
+            }}
+            fieldPermissions={fieldPermissions}
+            fieldName="cancelRedirectUrl"
+            lockedIcon={
+              <FieldPermissionIndicator
+                fieldName="cancelRedirectUrl"
+                fieldPermissions={fieldPermissions}
+                t={t}
+              />
+            }>
+            <TextField
+              className="w-full"
+              label={t("redirect_after_cancel")}
+              labelSrOnly
+              placeholder={t("external_redirect_url")}
+              data-testid="external-cancel-redirect-url"
+              required={cancelRedirectUrlVisible}
+              type="text"
+              value={field.value || ""}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+              ref={field.ref}
+              disabled={fieldPermissions.getFieldState("cancelRedirectUrl").isDisabled}
+              LockedIcon={
+                <FieldPermissionIndicator
+                  fieldName="cancelRedirectUrl"
+                  fieldPermissions={fieldPermissions}
+                  t={t}
+                />
+              }
+            />
+
+            {fieldState.error && <p className="mt-2 text-sm text-red-600">{fieldState.error.message}</p>}
+
+            <div
+              className={classNames(
+                "p-1 text-sm text-orange-600",
+                formMethods.getValues("cancelRedirectUrl") ? "block" : "hidden"
+              )}
+              data-testid="cancel-redirect-url-warning">
+              {t("redirect_url_warning_cancel")}
+            </div>
+          </SettingsToggle>
+        )}
       />
 
       {/* Private Links Management */}

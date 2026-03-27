@@ -76,6 +76,26 @@ export default class GoogleCalendarService implements Calendar {
     return this.auth.getClient();
   }
 
+  private extractMeetingUrl(event?: calendar_v3.Schema$Event | null): string | undefined {
+    if (!event) {
+      return undefined;
+    }
+
+    if (typeof event.hangoutLink === "string" && event.hangoutLink.length > 0) {
+      return event.hangoutLink;
+    }
+
+    const entryPoints = event.conferenceData?.entryPoints;
+    if (!entryPoints?.length) {
+      return undefined;
+    }
+
+    return (
+      entryPoints.find((entryPoint) => entryPoint.entryPointType === "video" && !!entryPoint.uri)?.uri ??
+      undefined
+    );
+  }
+
   private getAttendees = ({
     event,
     hostExternalCalendarId,
@@ -292,7 +312,6 @@ export default class GoogleCalendarService implements Calendar {
           sendUpdates: "none",
         });
         event = eventResponse.data;
-        console.log("in_here_eventResponse", event.conferenceData.entryPoints);
         if (event.recurrence) {
           if (event.recurrence.length > 0) {
             recurringEventId = event.id;
@@ -301,18 +320,35 @@ export default class GoogleCalendarService implements Calendar {
         }
       }
 
-      if (event && event.id && event.hangoutLink) {
-        await calendar.events.patch({
-          // Update the same event but this time we know the hangout link
-          calendarId: selectedCalendar,
-          eventId: event.id || "",
-          requestBody: {
-            description: getRichDescription({
-              ...calEvent,
-              additionalInformation: { hangoutLink: event.hangoutLink },
-            }),
-          },
-          sendUpdates: "none",
+      const meetingUrl = this.extractMeetingUrl(event);
+      if (event && event.id && meetingUrl) {
+        try {
+          await calendar.events.patch({
+            // Update the same event but this time we know the hangout link
+            calendarId: selectedCalendar,
+            eventId: event.id || "",
+            requestBody: {
+              description: getRichDescription({
+                ...calEvent,
+                additionalInformation: { hangoutLink: meetingUrl },
+              }),
+            },
+            sendUpdates: "none",
+          });
+        } catch (patchError) {
+          this.log.warn(
+            "Failed to patch Google event description with Meet URL after create",
+            safeStringify({
+              patchError,
+              eventId: event.id,
+              selectedCalendar,
+            })
+          );
+        }
+      } else if (calEvent.location === MeetLocationType) {
+        this.log.warn("Google Meet URL missing after creating event", {
+          eventId: event?.id,
+          selectedCalendar,
         });
       }
 
@@ -322,7 +358,7 @@ export default class GoogleCalendarService implements Calendar {
         id: event?.id || "",
         thirdPartyRecurringEventId: recurringEventId,
         additionalInfo: {
-          hangoutLink: event?.hangoutLink || "",
+          hangoutLink: meetingUrl || "",
         },
         type: "google_calendar",
         password: "",
@@ -432,31 +468,48 @@ export default class GoogleCalendarService implements Calendar {
         endTime: evt?.data.end,
       });
 
-      if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
-        calendar.events.patch({
-          // Update the same event but this time we know the hangout link
-          calendarId: selectedCalendar,
-          eventId: evt.data.id || "",
-          requestBody: {
-            description: getRichDescription({
-              ...event,
-              additionalInformation: { hangoutLink: evt.data.hangoutLink },
-            }),
-          },
-          sendUpdates: "none",
-        });
+      const meetingUrl = this.extractMeetingUrl(evt?.data);
+      if (evt?.data?.id && meetingUrl && event.location === MeetLocationType) {
+        try {
+          await calendar.events.patch({
+            // Update the same event but this time we know the hangout link
+            calendarId: selectedCalendar,
+            eventId: evt.data.id || "",
+            requestBody: {
+              description: getRichDescription({
+                ...event,
+                additionalInformation: { hangoutLink: meetingUrl },
+              }),
+            },
+            sendUpdates: "none",
+          });
+        } catch (patchError) {
+          this.log.warn(
+            "Failed to patch Google event description with Meet URL after update",
+            safeStringify({
+              patchError,
+              uid,
+              selectedCalendar,
+            })
+          );
+        }
         return {
           uid: "",
           ...evt.data,
           id: evt.data.id || "",
           additionalInfo: {
-            hangoutLink: evt.data.hangoutLink || "",
+            hangoutLink: meetingUrl || "",
           },
           type: "google_calendar",
           password: "",
           url: "",
           iCalUID: evt.data.iCalUID,
         };
+      } else if (event.location === MeetLocationType) {
+        this.log.warn("Google Meet URL missing after updating event", {
+          uid,
+          selectedCalendar,
+        });
       }
       return evt?.data;
     } catch (error) {
@@ -1439,7 +1492,8 @@ export default class GoogleCalendarService implements Calendar {
       });
 
       // 6. If there's a hangout link and we need to update the description
-      if (patchResponse.data.id && patchResponse.data.hangoutLink && event.location === MeetLocationType) {
+      const meetingUrl = this.extractMeetingUrl(patchResponse?.data);
+      if (patchResponse?.data?.id && meetingUrl && event.location === MeetLocationType) {
         try {
           await calendar.events.patch({
             calendarId: selectedCalendar,
@@ -1447,7 +1501,7 @@ export default class GoogleCalendarService implements Calendar {
             requestBody: {
               description: getRichDescription({
                 ...event,
-                additionalInformation: { hangoutLink: patchResponse.data.hangoutLink },
+                additionalInformation: { hangoutLink: meetingUrl },
               }),
             },
             sendUpdates: "none",
@@ -1469,7 +1523,7 @@ export default class GoogleCalendarService implements Calendar {
         url: "",
         iCalUID: patchResponse.data.iCalUID,
         additionalInfo: {
-          hangoutLink: patchResponse.data.hangoutLink || "",
+          hangoutLink: meetingUrl || "",
         },
       };
     } catch (error) {
