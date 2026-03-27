@@ -1,4 +1,3 @@
-import process from "node:process";
 import type { scheduleClassNames } from "@calcom/atoms/availability/types";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
