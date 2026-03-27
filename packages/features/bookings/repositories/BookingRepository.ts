@@ -1611,7 +1611,23 @@ export class BookingRepository implements IBookingRepository {
           in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
         },
       },
-      include: {
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        startTime: true,
+        endTime: true,
+        description: true,
+        location: true,
+        responses: true,
+        metadata: true,
+        paid: true,
+        recurringEventId: true,
+        iCalUID: true,
+        iCalSequence: true,
+        status: true,
+        rescheduled: true,
+        userId: true,
         attendees: {
           select: {
             name: true,
@@ -1619,7 +1635,16 @@ export class BookingRepository implements IBookingRepository {
             locale: true,
             timeZone: true,
             phoneNumber: true,
-            ...(seatsEventType && { bookingSeat: true, id: true }),
+            ...(seatsEventType && {
+              bookingSeat: {
+                select: {
+                  id: true,
+                  referenceUid: true,
+                  data: true,
+                },
+              },
+              id: true,
+            }),
           },
         },
         user: {
@@ -1645,10 +1670,34 @@ export class BookingRepository implements IBookingRepository {
             userId: true,
           },
         },
+        // TODO: Scope destinationCalendar to explicit fields once downstream CalendarEvent type accepts a narrower type
         destinationCalendar: true,
-        payment: true,
-        references: true,
-        workflowReminders: true,
+        payment: {
+          select: {
+            id: true,
+            success: true,
+          },
+        },
+        references: {
+          select: {
+            id: true,
+            uid: true,
+            type: true,
+            meetingId: true,
+            meetingUrl: true,
+            meetingPassword: true,
+            credentialId: true,
+            delegationCredentialId: true,
+            domainWideDelegationCredentialId: true,
+            externalCalendarId: true,
+            bookingId: true,
+            thirdPartyRecurringEventId: true,
+            deleted: true,
+          },
+        },
+        workflowReminders: {
+          select: workflowReminderSelect,
+        },
       },
     });
   }
