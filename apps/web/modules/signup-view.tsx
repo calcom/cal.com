@@ -77,7 +77,6 @@ export default function Signup({
     hasUpper: false,
     hasNumber: false,
     hasSpecial: false,
-    noRepeat: true,
   });
 
   const searchParams = useCompatSearchParams();
@@ -129,7 +128,6 @@ export default function Signup({
       hasUpper: regex.upper.test(watchedPassword),
       hasNumber: regex.number.test(watchedPassword),
       hasSpecial: regex.special.test(watchedPassword),
-      noRepeat: !regex.repeat.test(watchedPassword),
     };
 
     setPasswordChecks(checks);
@@ -148,7 +146,7 @@ export default function Signup({
     };
 
     let level = strengthLevels.weak;
-    if (checks.length && checks.noRepeat) {
+    if (checks.length) {
       if (score >= 4) level = strengthLevels.strong;
       else if (checks.hasLower && checks.hasUpper && checks.hasNumber) level = strengthLevels.acceptable;
     }
