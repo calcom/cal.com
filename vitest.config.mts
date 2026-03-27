@@ -155,6 +155,9 @@ function setEnvVariablesThatAreUsedBeforeSetup() {
   process.env.DAILY_API_KEY = "MOCK_DAILY_API_KEY";
   // With same env variable, we can test both non org and org booking scenarios
   process.env.NEXT_PUBLIC_WEBAPP_URL = "http://app.cal.local:3000";
+  // CI (e.g. coverage-baseline) may set NEXT_PUBLIC_IS_E2E=1; app-store generated maps
+  // (CalendarServiceMap, etc.) stub to {} when it is "1". Unit/integration tests need real maps.
+  process.env.NEXT_PUBLIC_IS_E2E = "";
   process.env.CALCOM_SERVICE_ACCOUNT_ENCRYPTION_KEY = "UNIT_TEST_ENCRYPTION_KEY";
   process.env.STRIPE_PRIVATE_KEY = process.env.STRIPE_PRIVATE_KEY || "sk_test_dummy_unit_test_key";
 }

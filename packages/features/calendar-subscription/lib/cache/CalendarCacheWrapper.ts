@@ -55,10 +55,10 @@ export class CalendarCacheWrapper implements Calendar {
    * complete event data beyond this horizon.
    */
   private isDateRangeBeyondCacheLimit(dateTo: string): boolean {
-    const requestedEnd = new Date(dateTo).getTime();
-    const now = new Date(Date.now());
-    now.setMonth(now.getMonth() + CalendarCacheWrapper.MAX_CACHE_RANGE_MONTHS);
-    return requestedEnd > now.getTime();
+    const requestedEnd = new Date(dateTo);
+    const cacheLimit = new Date();
+    cacheLimit.setMonth(cacheLimit.getMonth() + CalendarCacheWrapper.MAX_CACHE_RANGE_MONTHS);
+    return requestedEnd > cacheLimit;
   }
 
   private isStale(calendar: IntegrationCalendar): boolean {
