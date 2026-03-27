@@ -79,7 +79,14 @@ jobs:
               return;
             }
 
+            // Tolerance for coverage drops (percentage points).
+            // The baseline is computed from the latest main, which may include
+            // test-improvement commits that the PR branch hasn't rebased onto yet.
+            // A small tolerance prevents false failures from this baseline drift.
+            const DROP_TOLERANCE = -0.5;
+
             let dropped = false;
+            const droppedDetails = [];
             let summary = '## Coverage Report\n\n';
 
             function buildTable(label, prData, baseData) {
@@ -105,9 +112,18 @@ jobs:
               for (const m of metrics) {
                 const diff = prData[m].pct - baseData[m].pct;
                 const sign = diff >= 0 ? '+' : '';
-                const icon = diff < 0 ? ' :red_circle:' : (diff > 0 ? ' :green_circle:' : '');
+                const icon = diff < DROP_TOLERANCE ? ' :red_circle:' : (diff > 0 ? ' :green_circle:' : '');
                 const delta = `${sign}${diff.toFixed(2)}%${icon}`;
-                if (diff < 0) dropped = true;
+                if (diff < DROP_TOLERANCE) {
+                  dropped = true;
+                  droppedDetails.push({
+                    category: label,
+                    metric: m,
+                    main: baseData[m].pct.toFixed(2),
+                    pr: prData[m].pct.toFixed(2),
+                    diff: diff.toFixed(2),
+                  });
+                }
                 table += `| ${m} | ${baseData[m].pct.toFixed(2)}% | ${prData[m].pct.toFixed(2)}% | ${delta} |\n`;
               }
               return table + '\n';
@@ -161,10 +177,38 @@ jobs:
               summary += '> **Note:** Aggregate numbers are approximate — unit and integration coverage instrument the same source files, so covered/total counts are summed across both and may double-count.\n\n';
             }
 
+            if (dropped) {
+              summary += '---\n\n';
+              summary += '### :x: Coverage Regression Detected\n\n';
+              summary += 'The following metrics dropped by more than the allowed tolerance ';
+              summary += `(${Math.abs(DROP_TOLERANCE)}%):\n\n`;
+              summary += '| Category | Metric | main | PR | Drop |\n';
+              summary += '|----------|--------|-----:|---:|-----:|\n';
+              for (const d of droppedDetails) {
+                summary += `| ${d.category} | ${d.metric} | ${d.main}% | ${d.pr}% | ${d.diff}% |\n`;
+              }
+
+              summary += '\n### How to fix\n\n';
+              summary += '1. **Merge the latest `main`** into your branch — the baseline may include ';
+              summary += 'tests from recently merged PRs that your branch doesn\'t have yet:\n';
+              summary += '   ```bash\n   git fetch origin main && git merge origin/main\n   ```\n';
+              summary += '2. **Add tests for new or changed code.** Every new function, branch, ';
+              summary += 'or module should have corresponding unit or integration tests. ';
+              summary += 'Run coverage locally to find uncovered lines:\n';
+              summary += '   ```bash\n';
+              summary += '   # Unit test coverage\n';
+              summary += '   TZ=UTC yarn vitest run --coverage\n\n';
+              summary += '   # Integration test coverage\n';
+              summary += '   VITEST_MODE=integration yarn vitest run --coverage\n';
+              summary += '   ```\n';
+              summary += '   Then open `coverage/index.html` to see which lines need tests.\n';
+              summary += '3. **Re-push** once coverage is back above the baseline.\n';
+            }
+
             await core.summary.addRaw(summary).write();
 
             if (dropped) {
-              core.setFailed('Coverage dropped compared to main. Please add tests to maintain or improve coverage.');
+              core.setFailed(`Coverage dropped by more than ${Math.abs(DROP_TOLERANCE)}% compared to main. See the job summary above for details and how to fix.`);
             } else {
               core.info('Coverage is stable or improved compared to main.');
             }
