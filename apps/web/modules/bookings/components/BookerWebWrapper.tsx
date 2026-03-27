@@ -28,6 +28,10 @@ import { useCalendars } from "../hooks/useCalendars";
 import { useSlots } from "../hooks/useSlots";
 import { useVerifyCode } from "../hooks/useVerifyCode";
 import { useVerifyEmail } from "../hooks/useVerifyEmail";
+import {
+  getInstantMeetingConnectUrl,
+  getInstantMeetingFallbackUrl,
+} from "../lib/getInstantMeetingFallbackUrl";
 import { Booker as BookerComponent } from "./Booker";
 
 export type BookerWebWrapperAtomProps = BookerProps & {
@@ -217,10 +221,13 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
     <BookerComponent
       {...props}
       onGoBackInstantMeeting={() => {
-        if (pathname) window.location.href = pathname;
+        if (pathname) {
+          window.location.href = getInstantMeetingFallbackUrl(pathname, window.location.search);
+        }
       }}
       onConnectNowInstantMeeting={() => {
-        const newPath = `${pathname}?isInstantMeeting=true`;
+        if (!pathname) return;
+        const newPath = getInstantMeetingConnectUrl(pathname, window.location.search);
 
         if (isEmbed) {
           const fullUrl = `${new URL(document.URL).origin}/${newPath}`;
