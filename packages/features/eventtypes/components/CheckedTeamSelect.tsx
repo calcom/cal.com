@@ -8,6 +8,7 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { getReactSelectProps } from "@calcom/ui/components/form";
+import { inputStyles } from "@calcom/ui/components/form/inputs/TextField";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
@@ -163,12 +164,50 @@ export const CheckedTeamSelect = ({
         formatCreateLabel={formatCreateLabel}
         isMulti
         className={classNames("text-sm", customClassNames?.hostsSelect?.select)}
+        styles={{
+          control: (base) =>
+            Object.assign({}, base, {
+              minHeight: "32px",
+              height: "auto",
+            }),
+        }}
         classNames={{
-          control: () => "rounded-md",
+          input: () => "text-emphasis",
           option: (state) => {
             const data = state.data as CheckedSelectOption;
-            return data.isEmailInvite ? "italic text-subtle" : "";
+            return classNames(
+              "bg-default flex cursor-pointer justify-between py-2 px-3 rounded-md text-default items-center",
+              state.isFocused && "bg-subtle",
+              state.isDisabled && "bg-cal-muted",
+              state.isSelected && "bg-emphasis text-default",
+              data.isEmailInvite && "italic text-subtle"
+            );
           },
+          placeholder: (state) => classNames("text-muted", state.isFocused && "hidden"),
+          dropdownIndicator: () => "text-default w-4 h-4 flex items-center justify-center",
+          control: (state) =>
+            classNames(
+              inputStyles(),
+              state.hasValue ? "p-1 h-fit" : "px-3 h-fit",
+              state.isDisabled && "bg-subtle !cursor-not-allowed !pointer-events-auto hover:border-subtle",
+              "rounded-[10px]",
+              "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused focus-within:ring-0 flex! **:[input]:leading-none text-sm"
+            ),
+          singleValue: () => "text-default placeholder:text-muted",
+          valueContainer: () => "text-default placeholder:text-muted flex gap-1",
+          multiValue: () =>
+            "font-medium inline-flex items-center justify-center rounded bg-emphasis text-emphasis leading-none text-xs py-1 px-1.5 leading-none rounded-lg",
+          menu: () =>
+            "rounded-lg bg-default text-sm leading-4 text-default mt-1 border border-subtle shadow-dropdown p-1",
+          menuList: () => "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col space-y-1",
+          indicatorsContainer: (state) =>
+            classNames(
+              "flex items-start! justify-center mt-1 h-full",
+              state.selectProps.menuIsOpen
+                ? "rotate-180 transition-transform w-4 h-4"
+                : "transition-transform w-4 h-4 text-default"
+            ),
+          multiValueRemove: () => "text-default py-auto",
         }}
       />
       {/* This class name conditional looks a bit odd but it allows a seamless transition when using autoanimate

@@ -83,7 +83,13 @@ const CheckedHostField = ({
       <div>
         {labelText ? <Label>{labelText}</Label> : <></>}
         <CheckedTeamSelect
-          isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
+          isOptionDisabled={(option) =>
+            !!value.find(
+              (host) =>
+                host.userId.toString() === option.value ||
+                (host.isEmailInvite && host.email === option.email)
+            )
+          }
           onChange={(options) => {
             onChange &&
               onChange(
