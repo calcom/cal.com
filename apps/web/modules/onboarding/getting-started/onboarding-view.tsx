@@ -1,28 +1,26 @@
 "use client";
 
-import { AnimatePresence } from "framer-motion";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import posthog from "posthog-js";
-import { useEffect, useRef, useTransition } from "react";
-
 import { BILLING_PLANS, BILLING_PRICING } from "@calcom/features/ee/billing/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { type IconName } from "@calcom/ui/components/icon";
+import type { IconName } from "@calcom/ui/components/icon";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
 import { useHasTeamMembership } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
+import { AnimatePresence } from "framer-motion";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
+import { useEffect, useRef, useTransition } from "react";
 import type { BillingPeriod } from "~/billing/components/BillingPeriodToggle";
 import { BillingPeriodToggle } from "~/billing/components/BillingPeriodToggle";
-import { formatCents } from "~/billing/lib/plan-data";
-
+import { formatCentsRaw } from "~/billing/lib/plan-data";
 import { OnboardingCard } from "../components/OnboardingCard";
 import { OnboardingLayout } from "../components/OnboardingLayout";
 import { OnboardingContinuationPrompt } from "../components/onboarding-continuation-prompt";
-import { useOnboardingQueryParams } from "../hooks/useOnboardingQueryParams";
 import { PlanIcon } from "../components/plan-icon";
-import { useOnboardingStore, type PlanType } from "../store/onboarding-store";
+import { useOnboardingQueryParams } from "../hooks/useOnboardingQueryParams";
+import { type PlanType, useOnboardingStore } from "../store/onboarding-store";
 
 type OnboardingViewProps = {
   userEmail: string;
@@ -110,8 +108,8 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     organization: "users",
   };
 
-  const teamPrice = formatCents(BILLING_PRICING[BILLING_PLANS.TEAMS][billingPeriod]);
-  const orgPrice = formatCents(BILLING_PRICING[BILLING_PLANS.ORGANIZATIONS][billingPeriod]);
+  const teamPrice = formatCentsRaw(BILLING_PRICING[BILLING_PLANS.TEAMS][billingPeriod]);
+  const orgPrice = formatCentsRaw(BILLING_PRICING[BILLING_PLANS.ORGANIZATIONS][billingPeriod]);
 
   const allPlans = [
     {
@@ -125,7 +123,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     {
       id: "team" as PlanType,
       title: t("onboarding_plan_team_title"),
-      badge: `${teamPrice}/${t("upgrade_price_per_month_user")}`,
+      badge: t("onboarding_plan_team_badge", { price: teamPrice }),
       description: t("onboarding_plan_team_description"),
       icon: planIconByType.team,
       variant: "team" as const,
@@ -133,7 +131,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
     {
       id: "organization" as PlanType,
       title: t("onboarding_plan_organization_title"),
-      badge: `${orgPrice}/${t("upgrade_price_per_month_user")}`,
+      badge: t("onboarding_plan_organization_badge", { price: orgPrice }),
       description: t("onboarding_plan_organization_description"),
       icon: planIconByType.organization,
       variant: "organization" as const,
@@ -162,7 +160,7 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
           title={t("onboarding_select_plan")}
           subtitle={t("onboarding_welcome_question")}
           headerAction={
-            (selectedPlan === "team" || selectedPlan === "organization") ? (
+            selectedPlan === "team" || selectedPlan === "organization" ? (
               <BillingPeriodToggle
                 billingPeriod={billingPeriod}
                 onBillingPeriodChange={handleBillingPeriodChange}

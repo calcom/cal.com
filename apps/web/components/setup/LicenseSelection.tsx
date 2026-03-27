@@ -1,5 +1,12 @@
 "use client";
 
+import { BILLING_PLANS, BILLING_PRICING } from "@calcom/features/ee/billing/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
+import { CheckIcon, LoaderIcon } from "@coss/ui/icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
@@ -7,13 +14,7 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { Controller, FormProvider, useForm, useFormState } from "react-hook-form";
 import { z } from "zod";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { TextField } from "@calcom/ui/components/form";
-import { CheckIcon, LoaderIcon } from "@coss/ui/icons";
+import { formatCentsRaw } from "~/billing/lib/plan-data";
 
 type LicenseSelectionFormValues = {
   licenseKey: string;
@@ -140,7 +141,11 @@ const LicenseSelection = (
               value === "EXISTING" && "ring-2 ring-black"
             )}>
             <h2 className="font-cal text-emphasis text-xl">{t("enter_license_key")}</h2>
-            <p className="font-medium text-green-800">{t("enter_existing_license")}</p>
+            <p className="font-medium text-green-800">
+              {t("enter_existing_license", {
+                price: formatCentsRaw(BILLING_PRICING[BILLING_PLANS.TEAMS].monthly),
+              })}
+            </p>
             <p className="text-subtle">{t("enter_your_license_key")}</p>
             <p className="text-subtle text-xs">
               {t("need_a_license")}{" "}

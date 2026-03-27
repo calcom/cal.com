@@ -5,6 +5,12 @@ export function formatCents(cents: number): string {
   return `$${cents % 100 === 0 ? dollars : dollars.toFixed(2)}`;
 }
 
+/** Formats cents to a dollar amount string without currency symbol, for use in i18n interpolation. */
+export function formatCentsRaw(cents: number): string {
+  const dollars = cents / 100;
+  return cents % 100 === 0 ? String(dollars) : dollars.toFixed(2);
+}
+
 export function teamFeatures(t: (key: string) => string): PlanFeature[] {
   return [
     { text: t("upgrade_feature_round_robin") },

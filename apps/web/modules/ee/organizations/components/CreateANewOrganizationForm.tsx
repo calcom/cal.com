@@ -1,5 +1,6 @@
 "use client";
 
+import { BILLING_PLANS, BILLING_PRICING } from "@calcom/features/ee/billing/constants";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
@@ -19,6 +20,7 @@ import type { SessionContextValue } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { formatCentsRaw } from "~/billing/lib/plan-data";
 
 function extractDomainFromEmail(email: string) {
   const match = email.match(/^(?:.*?:\/\/)?.*?([\w-]*(?:\.\w{2,}|\.\w{2,}\.\w{2}))(?:[/?#:]|$)/);
@@ -49,8 +51,18 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   // Let self-hosters create an organization with their own email. Hosted's Admin already has an organization for their email
   const defaultOrgOwnerEmail = (!isAdmin || IS_SELF_HOSTED ? session.data.user.email : null) ?? "";
   const { useOnboardingStore, isBillingEnabled } = useOnboarding();
-  const { slug, name, orgOwnerEmail, billingPeriod, billingMode, pricePerSeat, seats, minSeats, onboardingId, reset } =
-    useOnboardingStore();
+  const {
+    slug,
+    name,
+    orgOwnerEmail,
+    billingPeriod,
+    billingMode,
+    pricePerSeat,
+    seats,
+    minSeats,
+    onboardingId,
+    reset,
+  } = useOnboardingStore();
 
   // For non-admin users, always use the current session email to prevent stale cached email issues.
   // This handles the case where a user changes their email in settings and returns to org creation.
@@ -165,7 +177,11 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
               // Admin creating for someone else - submit immediately with just Step 1 data
               if (!intentToCreateOrgMutation.isPending) {
                 setServerErrorMessage(null);
-                intentToCreateOrgMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP, ...(promoCode && { promoCode }) });
+                intentToCreateOrgMutation.mutate({
+                  ...v,
+                  creationSource: CreationSource.WEBAPP,
+                  ...(promoCode && { promoCode }),
+                });
               }
             } else {
               // Regular user or admin creating for self - store locally and continue
@@ -448,7 +464,11 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
                       billingPeriod === BillingPeriod.ANNUALLY ? "(billed annually)" : ""
                     }`}</p>
                   ) : (
-                    <p>{t("organization_price_per_user_month")}</p>
+                    <p>
+                      {t("organization_price_per_user_month", {
+                        price: formatCentsRaw(BILLING_PRICING[BILLING_PLANS.ORGANIZATIONS].monthly),
+                      })}
+                    </p>
                   )}
                 </RadioArea.Item>
               </RadioArea.Group>
