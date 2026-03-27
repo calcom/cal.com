@@ -19,6 +19,7 @@ type UpdatedAttendee = {
   phoneNumber: string | null;
   bookingId: number | null;
   noShow: boolean | null;
+  createdAt: Date | null;
 };
 
 const markGuestAsNoshowInBooking = async ({

@@ -62,6 +62,16 @@ export class SeatedAttendee extends BookingAttendee {
   @Expose()
   seatUid!: string;
 
+  @ApiPropertyOptional({
+    type: String,
+    example: "2024-08-13T15:30:00Z",
+    description: "The date and time when the attendee joined the seated booking.",
+  })
+  @IsDateString()
+  @IsOptional()
+  @Expose()
+  createdAt?: string;
+
   @ApiProperty({
     type: Object,
     description:
