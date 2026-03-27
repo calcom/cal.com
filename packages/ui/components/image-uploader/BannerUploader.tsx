@@ -95,7 +95,7 @@ export default function BannerUploader({
     const file = e.target.files[0];
 
     if (file.size > limit) {
-      showToast(t("image_size_limit_exceed"), "error");
+      showToast(t("image_size_limit_exceed", { size: "5MB" }), "error");
     } else {
       setFile(file);
     }
