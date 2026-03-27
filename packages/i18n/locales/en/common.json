@@ -632,6 +632,7 @@
   "meeting_ended": "Meeting ended",
   "form_submitted": "Form submitted",
   "form_submitted_no_event": "Form submitted, no event booked",
+  "routing_form_fallback_hit": "Routing form fallback hit",
   "booking_paid": "Booking paid",
   "ooo_created": "Out of office created",
   "booking_no_show_updated": "Booking no-show updated",
