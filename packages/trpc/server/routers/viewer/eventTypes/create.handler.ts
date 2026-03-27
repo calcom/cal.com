@@ -56,8 +56,16 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const locations: EventTypeLocation[] =
     inputLocations && inputLocations.length !== 0 ? inputLocations : await getDefaultLocations(ctx.user);
+  const isEnterpriseUser = !!isPrismaObjOrUndefined(ctx.user.metadata)?.isEnterprise;
+  const sanitizedLocations = locations.map((location) => {
+    if (isEnterpriseUser) {
+      return location;
+    }
+    const { label: _label, ...locationWithoutLabel } = location;
+    return locationWithoutLabel;
+  });
 
-  const isCalVideoLocationActive = locations.some((location) => location.type === DailyLocationType);
+  const isCalVideoLocationActive = sanitizedLocations.some((location) => location.type === DailyLocationType);
 
   const data: Prisma.EventTypeCreateInput = {
     ...rest,
@@ -65,7 +73,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     metadata: (metadata as Prisma.InputJsonObject) ?? undefined,
     // Only connecting the current user for non-managed event types and non team event types
     users: isManagedEventType || schedulingType ? undefined : { connect: { id: userId } },
-    locations,
+    locations: sanitizedLocations,
     schedule: scheduleId ? { connect: { id: scheduleId } } : undefined,
   };
 

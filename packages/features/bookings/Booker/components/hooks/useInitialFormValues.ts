@@ -24,6 +24,19 @@ type UseInitialFormValuesProps = {
   clientId?: string;
 };
 
+type PrefillSource = "query" | "reschedule";
+
+type PrefillMetadata = {
+  sourceByField: Record<string, PrefillSource>;
+  valueByField: Record<string, unknown>;
+};
+
+type InitialFormValues = {
+  responses?: Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>;
+  bookingId?: number;
+  __prefill?: PrefillMetadata;
+};
+
 // Add this stable hash function
 function getStableHash(obj: Record<string, string | string[]>) {
   return Object.entries(obj)
@@ -67,10 +80,7 @@ export function useInitialFormValues({
   const stableHashExtraOptions = getStableHash(extraOptions);
 
   const [initialValuesState, setInitialValuesState] = useState<{
-    values: {
-      responses?: Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>;
-      bookingId?: number;
-    };
+    values: InitialFormValues;
     key: string;
   }>({
     values: {},
@@ -126,12 +136,21 @@ export function useInitialFormValues({
       if (!isRescheduling) {
         const defaults = {
           responses: {} as Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>,
-        };
+          __prefill: {
+            sourceByField: {},
+            valueByField: {},
+          } as PrefillMetadata,
+        } satisfies InitialFormValues;
 
         const responses = eventType.bookingFields.reduce((responses, field) => {
+          const prefilledValue = parsedQuery[field.name];
+          if (prefilledValue !== undefined) {
+            defaults.__prefill!.sourceByField[field.name] = "query";
+            defaults.__prefill!.valueByField[field.name] = prefilledValue;
+          }
           return {
             ...responses,
-            [field.name]: parsedQuery[field.name] || undefined,
+            [field.name]: prefilledValue || undefined,
           };
         }, {});
 
@@ -156,12 +175,21 @@ export function useInitialFormValues({
       const defaults = {
         responses: {} as Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>,
         bookingId: bookingData?.id,
-      };
+        __prefill: {
+          sourceByField: {},
+          valueByField: {},
+        } as PrefillMetadata,
+      } satisfies InitialFormValues;
 
       const responses = eventType.bookingFields.reduce((responses, field) => {
+        const prefilledValue = bookingData?.responses[field.name];
+        if (prefilledValue !== undefined) {
+          defaults.__prefill!.sourceByField[field.name] = "reschedule";
+          defaults.__prefill!.valueByField[field.name] = prefilledValue;
+        }
         return {
           ...responses,
-          [field.name]: bookingData?.responses[field.name],
+          [field.name]: prefilledValue,
         };
       }, {});
       defaults.responses = {

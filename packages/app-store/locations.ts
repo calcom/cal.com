@@ -202,6 +202,7 @@ const translateAbleKeys = [
 
 export type LocationObject = {
   type: string;
+  label?: string;
   address?: string;
   displayLocationPublicly?: boolean;
   credentialId?: number;
@@ -500,6 +501,8 @@ export const getTranslatedLocation = (
   t: TFunction
 ) => {
   if (!eventLocationType) return null;
+  const customLabel = location.label?.trim();
+  if (customLabel) return customLabel;
   const locationKey = z.string().default("").parse(locationKeyToString(location));
   const translatedLocation = location.type.startsWith("integrations:")
     ? eventLocationType.label

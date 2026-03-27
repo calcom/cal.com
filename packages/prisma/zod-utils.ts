@@ -88,6 +88,11 @@ export const eventTypeAppMetadataOptionalSchema = EventTypeAppMetadataSchema.opt
 const _eventTypeMetaDataSchemaWithoutApps = z.object({
   smartContractAddress: z.string().optional(),
   blockchainId: z.number().optional(),
+  cancelRedirectUrl: z
+    .string()
+    .url()
+    .regex(/^http(s)?:\/\/.*/)
+    .optional(),
   multipleDuration: z.number().array().optional(),
   giphyThankYouPage: z.string().optional(),
   additionalNotesRequired: z.boolean().optional(),
@@ -191,6 +196,7 @@ export const eventTypeLocations = z.array(
     // TODO: Couldn't find a way to make it a union of types from App Store locations
     // Creating a dynamic union by iterating over the object doesn't seem to make TS happy
     type: z.string(),
+    label: z.string().optional(),
     address: z.string().optional(),
     link: z.string().url().optional(),
     displayLocationPublicly: z.boolean().optional(),
@@ -448,6 +454,7 @@ export const teamMetadataSchema = z
       })
       .optional(),
     billingPeriod: z.nativeEnum(BillingPeriod).optional(),
+    customBannerLogoPosition: z.enum(["top", "bottom"]).optional(),
   })
   .partial()
   .nullable();

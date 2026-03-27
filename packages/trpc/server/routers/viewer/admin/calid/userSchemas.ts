@@ -4,6 +4,9 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 import { _UserModel as User } from "@calcom/prisma/zod";
 
 export const userIdSchema = z.object({ userId: z.coerce.number() });
+export const userEnterpriseSchema = userIdSchema.extend({
+  isEnterprise: z.boolean(),
+});
 
 export const userBodySchema = User.pick({
   name: true,
@@ -37,6 +40,7 @@ export const userListSchema = z.object({
 });
 
 export type TUserIdSchema = z.infer<typeof userIdSchema>;
+export type TUserEnterpriseSchema = z.infer<typeof userEnterpriseSchema>;
 export type TUserBodySchema = z.infer<typeof userBodySchema>;
 export type TUserUpdateSchema = z.infer<typeof userUpdateSchema>;
 export type TUserListSchema = z.infer<typeof userListSchema>;

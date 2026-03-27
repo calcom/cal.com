@@ -350,7 +350,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const selectedTime = req.cookies["selectedTime"] || "";
   const slot = context.query.slot || "";
 
-  if (slot && slot !== selectedTime) {
+  const queryRescheduleUid = context.query.rescheduleUid;
+
+  if (!queryRescheduleUid && slot && slot !== selectedTime) {
     const protocol = req.headers["x-forwarded-proto"] || "http";
     const host = req.headers["host"];
     const pathname = `/${params?.user}/${params?.type}`;

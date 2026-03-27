@@ -31,6 +31,7 @@ function Type({
   eventData,
   isInstantMeeting,
   orgBannerUrl,
+  customBannerLogoPosition,
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
@@ -64,6 +65,7 @@ function Type({
             eventData.length
           )}
           orgBannerUrl={orgBannerUrl}
+          customBannerLogoPosition={customBannerLogoPosition}
           eventTypes={[]}
           teamMemberEmail={teamMemberEmail}
           crmOwnerRecordType={crmOwnerRecordType}

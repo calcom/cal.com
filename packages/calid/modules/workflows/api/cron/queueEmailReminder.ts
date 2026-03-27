@@ -587,8 +587,8 @@ const processNotificationScheduling = async (): Promise<PartialCalIdWorkflowRemi
                       bookingSeatReferenceUid: notification.seatReferenceId,
                     }),
                     ...(notification.workflowStep?.id && { workflowStepId: notification.workflowStep.id }),
-                    ...(notification.workflowStep?.workflowId && {
-                      workflowId: notification.workflowStep.workflowId,
+                    ...(notification.workflowStep?.workflow?.id && {
+                      workflowId: notification.workflowStep.workflow?.id ,
                     }),
                   },
                 });

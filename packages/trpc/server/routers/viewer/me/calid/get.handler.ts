@@ -142,6 +142,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     ...profileData,
     secondaryEmails,
     isPremium: userMetadataPrased?.isPremium,
+    isEnterprise: userMetadataPrased?.isEnterprise,
     ...(passwordAdded ? { passwordAdded } : {}),
     isTeamAdminOrOwner,
     bannerUrl: user.bannerUrl,

@@ -40,6 +40,9 @@ const STATUS_FILTER_OPTIONS = [
   { value: "LOCKED", label: "Locked" },
 ];
 
+const getIsEnterpriseUser = (metadata: unknown) =>
+  !!(metadata && typeof metadata === "object" && "isEnterprise" in metadata && metadata.isEnterprise);
+
 export const AdminUsersTable = () => {
   const { t } = useLocale();
   const router = useRouter();
@@ -64,6 +67,7 @@ export const AdminUsersTable = () => {
   const [impersonateUser, setImpersonateUser] = useState<string | null>(null);
   const [showImpersonateModal, setShowImpersonateModal] = useState(false);
   const lastLockUserId = useRef<number | null>(null);
+  const lastEnterpriseMutation = useRef<{ userId: number; isEnterprise: boolean } | null>(null);
 
   const queryInput = useMemo(
     () => ({
@@ -136,6 +140,36 @@ export const AdminUsersTable = () => {
         };
       });
       utils.viewer.admin.calid.users.listPaginated.invalidate();
+    },
+  });
+
+  const toggleEnterpriseUser = trpc.viewer.admin.calid.users.setEnterprise.useMutation({
+    onMutate: (input) => {
+      lastEnterpriseMutation.current = { userId: input.userId, isEnterprise: input.isEnterprise };
+    },
+    onSuccess: ({ user }) => {
+      const isEnterprise = getIsEnterpriseUser(user.metadata);
+      triggerToast(
+        isEnterprise ? "Enterprise access enabled for user" : "Enterprise access disabled for user",
+        "success"
+      );
+      utils.viewer.admin.calid.users.listPaginated.setData(queryInput, (cachedData) => {
+        if (!cachedData) return cachedData;
+        const mutationInfo = lastEnterpriseMutation.current;
+        if (!mutationInfo) return cachedData;
+        return {
+          ...cachedData,
+          rows: cachedData.rows.map((row) =>
+            row.id === mutationInfo.userId
+              ? { ...row, metadata: { ...(row.metadata as Record<string, unknown>), isEnterprise } }
+              : row
+          ),
+        };
+      });
+      utils.viewer.admin.calid.users.listPaginated.invalidate();
+    },
+    onError: () => {
+      triggerToast("There has been an error updating enterprise status.", "error");
     },
   });
 
@@ -467,6 +501,11 @@ export const AdminUsersTable = () => {
                           </span>
                         )}
                         {user.locked && <Icon name="lock" />}
+                        {/* {getIsEnterpriseUser(user.metadata) && (
+                          <span className="text-default rounded bg-blue-100 px-2 py-1 text-xs font-semibold">
+                            Enterprise
+                          </span>
+                        )} */}
                       </div>
                       <span className="break-all">{user.email}</span>
                     </div>
@@ -526,6 +565,18 @@ export const AdminUsersTable = () => {
                           onClick: () => lockUserAccount.mutate({ userId: user.id, locked: !user.locked }),
                           icon: "lock",
                         },
+                        // {
+                        //   id: "toggle-enterprise",
+                        //   label: getIsEnterpriseUser(user.metadata)
+                        //     ? "Disable Enterprise"
+                        //     : "Enable Enterprise",
+                        //   onClick: () =>
+                        //     toggleEnterpriseUser.mutate({
+                        //       userId: user.id,
+                        //       isEnterprise: !getIsEnterpriseUser(user.metadata),
+                        //     }),
+                        //   icon: "building",
+                        // },
                         {
                           id: "delete",
                           label: "Delete",

@@ -42,6 +42,10 @@ function isEqual(searchParamValue: string | string[], formValue: string[] | stri
   return intersected(formValueToArray, urlValueToArray);
 }
 
+function isStringOrStringArray(value: unknown): value is string | string[] {
+  return typeof value === "string" || Array.isArray(value);
+}
+
 export const useShouldBeDisabledDueToPrefill = (field: FieldProps): boolean => {
   const { getValues, formState } = useFormContext();
   const toPrefillValues = useRouterQuery();
@@ -58,7 +62,14 @@ export const useShouldBeDisabledDueToPrefill = (field: FieldProps): boolean => {
     return false;
   }
 
-  const prefilledValues = getValues()?.responses || {};
+  const formValues = getValues() || {};
+  const prefilledValues = formValues?.responses || {};
+  const prefillMetadata = formValues?.__prefill as
+    | {
+        sourceByField?: Record<string, "query" | "reschedule">;
+        valueByField?: Record<string, unknown>;
+      }
+    | undefined;
   // radioInput and variantsConfig type fields have complex transformations, so we can't directly compare them with search params
   // e.g. name = John Doe in search params will be transformed to {firstName: John, lastName: Doe} and we can't directly compare it with toPrefill value
   const shouldMatchPrefilledValue = field.type !== "radioInput" && !field.variantsConfig;
@@ -68,7 +79,11 @@ export const useShouldBeDisabledDueToPrefill = (field: FieldProps): boolean => {
     return false;
   }
 
-  const searchParamValue = toPrefillValues[field.name];
+  const sourceByField = prefillMetadata?.sourceByField || {};
+  const valueByField = prefillMetadata?.valueByField || {};
+  const sourcePrefilledValue = valueByField[field.name];
+  const hasKnownPrefillSource = !!sourceByField[field.name] && isValueSet(sourcePrefilledValue);
+  const searchParamValue = hasKnownPrefillSource ? sourcePrefilledValue : toPrefillValues[field.name];
   const prefilledValue = prefilledValues[field.name];
 
   if (!shouldMatchPrefilledValue) {
@@ -85,19 +100,23 @@ export const useShouldBeDisabledDueToPrefill = (field: FieldProps): boolean => {
     return false;
   }
 
-  if (!toPrefillValues) {
-    // If there are no toPrefillValues, nothing can be prefilled and thus nothing should be disabled
+  if (!isValueSet(searchParamValue)) {
+    // If there is no value that prefilled this field, there is nothing to lock.
     return false;
   }
 
   // If the specified prefill value is filled, then we disable the field. If it is changed due to some reason, then we don't disable the field
-  if (searchParamValue == prefilledValue?.toString()) {
+  if (String(searchParamValue) == prefilledValue?.toString()) {
     return true;
+  }
+
+  if (!isStringOrStringArray(searchParamValue)) {
+    return false;
   }
 
   return isEqual(searchParamValue, prefilledValue);
 
-  function isValueSet(value: string | string[] | null | undefined): boolean {
+  function isValueSet(value: unknown): boolean {
     return value !== null && value !== undefined && value !== "";
   }
 

@@ -30,7 +30,9 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
 
   const selectedTime = req.cookies["selectedTime"] || "";
   const slot = query.slot || "";
-  if (slot && slot !== selectedTime) {
+  const queryRescheduleUid = query.rescheduleUid || "";
+
+  if (!queryRescheduleUid && slot && slot !== selectedTime) {
     const protocol = req.headers["x-forwarded-proto"] || "http";
     const host = req.headers["host"];
     const pathname = `/team/${params?.slug}/${params?.type}`;
@@ -286,6 +288,11 @@ export const getCalIdServerSideProps = async (context: GetServerSidePropsContext
       isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
       themeBasis: calIdTeam.slug,
       orgBannerUrl: calIdTeam.bannerUrl ?? "",
+      customBannerLogoPosition:
+        (isPrismaObjOrUndefined(calIdTeam.metadata)?.customBannerLogoPosition as
+          | "top"
+          | "bottom"
+          | undefined) ?? "bottom",
       faviconUrl: calIdTeam.faviconUrl ?? null,
       teamMemberEmail,
       crmOwnerRecordType,
@@ -320,6 +327,7 @@ const getCalIdTeamWithEventsData = async (teamSlug: string, meetingSlug: string)
         brandColor: true,
         darkBrandColor: true,
         theme: true,
+        metadata: true,
         eventTypes: {
           where: {
             slug: meetingSlug,

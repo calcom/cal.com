@@ -18,6 +18,24 @@
       "restart": true
     },
     {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Connector (TurboRepo)",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceFolder}/node_modules/.bin/tsx",
+        "watch",
+        "--env-file=.env",
+        "src/server.ts"
+      ],
+      "cwd": "${workspaceFolder}/apps/connector",
+      "console": "integratedTerminal",
+      "outputCapture": "std",
+      "sourceMaps": true,
+      "restart": true
+    },
+    {
       "name": "Attach to Next.js",
       "type": "node",
       "request": "attach",
