@@ -26,6 +26,6 @@ export function getReplyToHeader(
     return {};
   }
 
-  const replyTo = emailArray.length === 1 ? emailArray[0] : emailArray;
+  const replyTo = emailArray.join(", ");
   return { replyTo };
 }
