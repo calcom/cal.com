@@ -38,7 +38,7 @@
    <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+label:%22%F0%9F%99%8B%F0%9F%8F%BB%E2%80%8D%E2%99%82%EF%B8%8Fhelp+wanted%22"><img src="https://img.shields.io/badge/Help%20Wanted-Contribute-blue"></a>
    <a href="https://cal.com/figma"><img src="https://img.shields.io/badge/Figma-Design%20System-blueviolet"></a>
    <a href="https://contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
-[![Stack Health](https://indiestack.ai/api/badge/health/calcom/cal.com.svg)](https://indiestack.ai/audit?repo=calcom/cal.com)
+   <a href="https://indiestack.ai/audit?repo=calcom/cal.com"><img src="https://indiestack.ai/api/badge/health/calcom/cal.com.svg" alt="Stack Health"></a>
    <a href="https://console.algora.io/org/cal/bounties?status=open"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fconsole.algora.io%2Fapi%2Fshields%2Fcal%2Fbounties%3Fstatus%3Dopen" /></a>
 </p>
 
