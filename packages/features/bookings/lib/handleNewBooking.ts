@@ -398,6 +398,7 @@ export const buildEventForTeamEventType = async ({
   team?: {
     id: number;
     name: string;
+    bannerUrl?: string | null;
   } | null;
 }) => {
   // not null assertion.
@@ -441,7 +442,10 @@ export const buildEventForTeamEventType = async ({
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  evt = CalendarEventBuilder.fromEvent(evt)
+  evt = CalendarEventBuilder.fromEvent({
+    ...evt,
+    bannerUrl: team?.bannerUrl ?? evt.bannerUrl ?? null,
+  })
     .withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
     .build();
 
@@ -1427,6 +1431,11 @@ async function handler(
     .withRescheduleInstance(rescheduleInstance) // Add rescheduleInstance to the calendar event if present
     .build();
 
+  evt = {
+    ...evt,
+    bannerUrl: organizerUser.bannerUrl ?? null,
+  };
+
   if (input.bookingData.thirdPartyRecurringEventId) {
     evt = CalendarEventBuilder.fromEvent(evt)
       .withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
@@ -1438,7 +1447,15 @@ async function handler(
       existingEvent: evt,
       schedulingType: eventType.schedulingType,
       users,
-      team: eventType.calIdTeam,
+      team: eventType.calIdTeam
+        ? eventType.calIdTeam
+        : eventType.team
+        ? {
+            id: eventType.team.id,
+            name: eventType.team.name,
+            bannerUrl: eventType.team.bannerUrl ?? null,
+          }
+        : null,
       organizerUser,
     });
   }

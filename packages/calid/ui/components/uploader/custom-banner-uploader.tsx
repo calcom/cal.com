@@ -210,7 +210,7 @@ export default function BannerUploader({
     const limit = 1 * 1000000; // 1MB
 
     if (file.size > limit) {
-      triggerToast(t("image_size_limit_exceed_1mb"), "error");
+      triggerToast(t("image_size_limit_exceed", { size: "1MB" }), "error");
       return;
     }
 

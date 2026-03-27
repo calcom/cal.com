@@ -1,4 +1,3 @@
-// Image Uploader
 "use client";
 
 import { Button, type ButtonProps, type ButtonColor } from "@calid/features/ui/components/button";
@@ -106,7 +105,7 @@ export default function ImageUploader({
     const file = e.target.files[0];
 
     if (file.size > limit) {
-      triggerToast(t("image_size_limit_exceed"), "error");
+      triggerToast(t("image_size_limit_exceed", { size: "5MB" }), "error");
     } else {
       setFile(file);
     }
