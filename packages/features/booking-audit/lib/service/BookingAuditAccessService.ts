@@ -2,21 +2,9 @@ import type { BookingRepository } from "@calcom/features/bookings/repositories/B
 import type { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { BookingAuditErrorCode } from "../BookingAuditResult";
 
-export enum BookingAuditErrorCode {
-  ORGANIZATION_ID_REQUIRED = "ORGANIZATION_ID_REQUIRED",
-  BOOKING_NOT_FOUND_OR_PERMISSION_DENIED = "BOOKING_NOT_FOUND_OR_PERMISSION_DENIED",
-  BOOKING_HAS_NO_OWNER = "BOOKING_HAS_NO_OWNER",
-  OWNER_NOT_IN_ORGANIZATION = "OWNER_NOT_IN_ORGANIZATION",
-  PERMISSION_DENIED = "PERMISSION_DENIED",
-}
-
-export class BookingAuditPermissionError extends Error {
-  constructor(public readonly code: BookingAuditErrorCode) {
-    super(code);
-    this.name = "BookingAuditPermissionError";
-  }
-}
+type AccessResult = { success: true } | { success: false; code: BookingAuditErrorCode };
 
 interface BookingAuditAccessServiceDeps {
   bookingRepository: BookingRepository;
@@ -40,10 +28,12 @@ export class BookingAuditAccessService {
   }
 
   /**
-   * Check if user has permission to view audit logs for a booking
-   * Throws BookingAuditPermissionError if access is denied
+   * Check if user has permission to view audit logs for a booking.
+   *
+   * First checks whether the booking belongs to the user's organization,
+   * then verifies the user has PBAC permission to view audit logs.
    */
-  async assertPermissions({
+  async checkPermissions({
     bookingUid,
     userId,
     organizationId,
@@ -51,56 +41,68 @@ export class BookingAuditAccessService {
     bookingUid: string;
     userId: number;
     organizationId: number | null;
-  }): Promise<void> {
+  }): Promise<AccessResult> {
+    // Pre-condition: organization context must be provided
     if (!organizationId) {
-      throw new BookingAuditPermissionError(BookingAuditErrorCode.ORGANIZATION_ID_REQUIRED);
+      return { success: false, code: BookingAuditErrorCode.NO_ORGANIZATION_CONTEXT };
     }
 
     const booking = await this.bookingRepository.findByUidIncludeEventType({ bookingUid });
     if (!booking) {
-      throw new BookingAuditPermissionError(BookingAuditErrorCode.BOOKING_NOT_FOUND_OR_PERMISSION_DENIED);
+      return { success: false, code: BookingAuditErrorCode.BOOKING_NOT_FOUND_OR_NO_ACCESS };
     }
 
     const bookingEventType = booking.eventType;
     const bookingEventTypeTeamId = bookingEventType?.teamId ?? bookingEventType?.parent?.teamId;
 
+    // Check if this booking belongs to the user's organization
     if (bookingEventTypeTeamId) {
-      const hasAccess = await this.permissionCheckService.checkPermission({
+      // Team booking: check if the team belongs to the user's organization
+      const teamParentId = bookingEventType?.teamId
+        ? bookingEventType.team?.parentId
+        : bookingEventType?.parent?.team?.parentId;
+      const isTeamInOrg = bookingEventTypeTeamId === organizationId || teamParentId === organizationId;
+      if (!isTeamInOrg) {
+        return { success: false, code: BookingAuditErrorCode.TEAM_EVENT_TYPE_NOT_IN_ORGANIZATION };
+      }
+    } else {
+      // Personal booking: check if the booking owner is in the user's organization
+      const bookingOwnerId = booking.userId;
+      if (!bookingOwnerId) {
+        return { success: false, code: BookingAuditErrorCode.BOOKING_HAS_NO_OWNER };
+      }
+      const isBookingOwnerMemberOfOrganization = await this.membershipRepository.hasMembership({
+        userId: bookingOwnerId,
+        teamId: organizationId,
+      });
+      if (!isBookingOwnerMemberOfOrganization) {
+        return { success: false, code: BookingAuditErrorCode.BOOKING_OWNER_NOT_IN_ORGANIZATION };
+      }
+    }
+
+    // Check if the user has PBAC permission to view audit logs
+    if (bookingEventTypeTeamId) {
+      const hasTeamAccess = await this.permissionCheckService.checkPermission({
         userId,
         teamId: bookingEventTypeTeamId,
         permission: "booking.readTeamAuditLogs",
         fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
       });
-      if (hasAccess) {
-        return;
+      if (hasTeamAccess) {
+        return { success: true };
       }
     }
 
-    const bookingOwnerId = booking.userId;
-
-    if (!bookingOwnerId) {
-      throw new BookingAuditPermissionError(BookingAuditErrorCode.BOOKING_HAS_NO_OWNER);
-    }
-
-    const isBookingOwnerMemberOfOrganization = await this.membershipRepository.hasMembership({
-      userId: bookingOwnerId,
-      teamId: organizationId,
-    });
-
-    if (!isBookingOwnerMemberOfOrganization) {
-      throw new BookingAuditPermissionError(BookingAuditErrorCode.OWNER_NOT_IN_ORGANIZATION);
-    }
-
-    const hasAccess = await this.permissionCheckService.checkPermission({
+    const hasOrgAccess = await this.permissionCheckService.checkPermission({
       userId,
       teamId: organizationId,
       permission: "booking.readOrgAuditLogs",
       fallbackRoles: [MembershipRole.OWNER, MembershipRole.ADMIN],
     });
 
-    if (hasAccess) {
-      return;
+    if (hasOrgAccess) {
+      return { success: true };
     }
-    throw new BookingAuditPermissionError(BookingAuditErrorCode.PERMISSION_DENIED);
+    return { success: false, code: BookingAuditErrorCode.ORG_MEMBER_PERMISSION_DENIED };
   }
 }

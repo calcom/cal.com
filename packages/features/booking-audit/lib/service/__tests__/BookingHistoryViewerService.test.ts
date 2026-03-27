@@ -1,6 +1,7 @@
 import type { RoutingFormResponseRepositoryInterface } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository.interface";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { BookingAuditErrorCode } from "../../BookingAuditResult";
 import type { DisplayBookingAuditLog } from "../BookingAuditViewerService";
 import { BookingHistoryViewerService } from "../BookingHistoryViewerService";
 
@@ -132,23 +133,48 @@ describe("BookingHistoryViewerService", () => {
   });
 
   describe("getHistoryForBooking", () => {
-    describe("when audit viewer service throws", () => {
-      it("propagates the error from the audit viewer service", async () => {
-        deps.bookingAuditViewerService.getAuditLogsForBooking.mockRejectedValue(
-          new Error("Permission denied")
-        );
+    describe("when audit viewer service returns failure", () => {
+      it("propagates the error code from the audit viewer service", async () => {
+        deps.bookingAuditViewerService.getAuditLogsForBooking.mockResolvedValue({
+          success: false,
+          code: BookingAuditErrorCode.BOOKING_NOT_FOUND_OR_NO_ACCESS,
+        });
 
-        await expect(service.getHistoryForBooking(defaultParams)).rejects.toThrow("Permission denied");
+        const result = await service.getHistoryForBooking(defaultParams);
+
+        expect(result).toEqual({
+          success: false,
+          code: BookingAuditErrorCode.BOOKING_NOT_FOUND_OR_NO_ACCESS,
+        });
       });
 
       it("does not query for form responses on access failure", async () => {
-        deps.bookingAuditViewerService.getAuditLogsForBooking.mockRejectedValue(
-          new Error("Permission denied")
-        );
+        deps.bookingAuditViewerService.getAuditLogsForBooking.mockResolvedValue({
+          success: false,
+          code: BookingAuditErrorCode.NO_ORGANIZATION_CONTEXT,
+        });
 
-        await expect(service.getHistoryForBooking(defaultParams)).rejects.toThrow();
+        await service.getHistoryForBooking(defaultParams);
 
         expect(deps.routingFormResponseRepository.findByBookingUidIncludeForm).not.toHaveBeenCalled();
+      });
+
+      it.each([
+        BookingAuditErrorCode.NO_ORGANIZATION_CONTEXT,
+        BookingAuditErrorCode.BOOKING_NOT_FOUND_OR_NO_ACCESS,
+        BookingAuditErrorCode.BOOKING_HAS_NO_OWNER,
+        BookingAuditErrorCode.BOOKING_OWNER_NOT_IN_ORGANIZATION,
+        BookingAuditErrorCode.TEAM_EVENT_TYPE_NOT_IN_ORGANIZATION,
+        BookingAuditErrorCode.ORG_MEMBER_PERMISSION_DENIED,
+      ])("propagates error code: %s", async (errorCode) => {
+        deps.bookingAuditViewerService.getAuditLogsForBooking.mockResolvedValue({
+          success: false,
+          code: errorCode,
+        });
+
+        const result = await service.getHistoryForBooking(defaultParams);
+
+        expect(result).toEqual({ success: false, code: errorCode });
       });
     });
 
@@ -161,8 +187,8 @@ describe("BookingHistoryViewerService", () => {
         });
 
         deps.bookingAuditViewerService.getAuditLogsForBooking.mockResolvedValue({
-          bookingUid: BOOKING_UID,
-          auditLogs: [auditLog],
+          success: true,
+          data: { bookingUid: BOOKING_UID, auditLogs: [auditLog] },
         });
 
         const formResponse = createMockFormResponse({ createdAt: LATEST });
@@ -170,33 +196,39 @@ describe("BookingHistoryViewerService", () => {
 
         const result = await service.getHistoryForBooking(defaultParams);
 
-        expect(result.bookingUid).toBe(BOOKING_UID);
-        expect(result.auditLogs).toHaveLength(2);
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+
+        expect(result.data.bookingUid).toBe(BOOKING_UID);
+        expect(result.data.auditLogs).toHaveLength(2);
         // Latest first (form submission at 12:00), then audit log at 08:00
-        expect(result.auditLogs[0].id).toBe("form-submission-1");
-        expect(result.auditLogs[1].id).toBe("audit-1");
+        expect(result.data.auditLogs[0].id).toBe("form-submission-1");
+        expect(result.data.auditLogs[1].id).toBe("audit-1");
       });
 
       it("returns only audit logs when no form response exists", async () => {
         const auditLog = createMockAuditLog({ id: "audit-1" });
 
         deps.bookingAuditViewerService.getAuditLogsForBooking.mockResolvedValue({
-          bookingUid: BOOKING_UID,
-          auditLogs: [auditLog],
+          success: true,
+          data: { bookingUid: BOOKING_UID, auditLogs: [auditLog] },
         });
 
         deps.routingFormResponseRepository.findByBookingUidIncludeForm.mockResolvedValue(null);
 
         const result = await service.getHistoryForBooking(defaultParams);
 
-        expect(result.auditLogs).toHaveLength(1);
-        expect(result.auditLogs[0].id).toBe("audit-1");
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+
+        expect(result.data.auditLogs).toHaveLength(1);
+        expect(result.data.auditLogs[0].id).toBe("audit-1");
       });
 
       it("returns only form log when audit logs are empty", async () => {
         deps.bookingAuditViewerService.getAuditLogsForBooking.mockResolvedValue({
-          bookingUid: BOOKING_UID,
-          auditLogs: [],
+          success: true,
+          data: { bookingUid: BOOKING_UID, auditLogs: [] },
         });
 
         const formResponse = createMockFormResponse({ createdAt: NOW });
@@ -204,27 +236,33 @@ describe("BookingHistoryViewerService", () => {
 
         const result = await service.getHistoryForBooking(defaultParams);
 
-        expect(result.auditLogs).toHaveLength(1);
-        expect(result.auditLogs[0].id).toBe("form-submission-1");
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+
+        expect(result.data.auditLogs).toHaveLength(1);
+        expect(result.data.auditLogs[0].id).toBe("form-submission-1");
       });
 
       it("returns empty logs when both audit logs and form response are empty/null", async () => {
         deps.bookingAuditViewerService.getAuditLogsForBooking.mockResolvedValue({
-          bookingUid: BOOKING_UID,
-          auditLogs: [],
+          success: true,
+          data: { bookingUid: BOOKING_UID, auditLogs: [] },
         });
 
         deps.routingFormResponseRepository.findByBookingUidIncludeForm.mockResolvedValue(null);
 
         const result = await service.getHistoryForBooking(defaultParams);
 
-        expect(result.auditLogs).toHaveLength(0);
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+
+        expect(result.data.auditLogs).toHaveLength(0);
       });
 
       it("passes correct bookingUid to routingFormResponseRepository", async () => {
         deps.bookingAuditViewerService.getAuditLogsForBooking.mockResolvedValue({
-          bookingUid: BOOKING_UID,
-          auditLogs: [],
+          success: true,
+          data: { bookingUid: BOOKING_UID, auditLogs: [] },
         });
 
         deps.routingFormResponseRepository.findByBookingUidIncludeForm.mockResolvedValue(null);
@@ -238,8 +276,8 @@ describe("BookingHistoryViewerService", () => {
 
       it("passes correct params to bookingAuditViewerService", async () => {
         deps.bookingAuditViewerService.getAuditLogsForBooking.mockResolvedValue({
-          bookingUid: BOOKING_UID,
-          auditLogs: [],
+          success: true,
+          data: { bookingUid: BOOKING_UID, auditLogs: [] },
         });
 
         deps.routingFormResponseRepository.findByBookingUidIncludeForm.mockResolvedValue(null);
@@ -253,8 +291,8 @@ describe("BookingHistoryViewerService", () => {
     describe("form submission entry creation", () => {
       beforeEach(() => {
         deps.bookingAuditViewerService.getAuditLogsForBooking.mockResolvedValue({
-          bookingUid: BOOKING_UID,
-          auditLogs: [],
+          success: true,
+          data: { bookingUid: BOOKING_UID, auditLogs: [] },
         });
       });
 
@@ -264,7 +302,10 @@ describe("BookingHistoryViewerService", () => {
 
         const result = await service.getHistoryForBooking(defaultParams);
 
-        const formEntry = result.auditLogs[0];
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+
+        const formEntry = result.data.auditLogs[0];
         expect(formEntry).toMatchObject({
           id: "form-submission-42",
           bookingUid: BOOKING_UID,
@@ -291,7 +332,10 @@ describe("BookingHistoryViewerService", () => {
 
         const result = await service.getHistoryForBooking(defaultParams);
 
-        const actor = result.auditLogs[0].actor;
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+
+        const actor = result.data.auditLogs[0].actor;
         expect(actor).toMatchObject({
           id: "form-submission-actor-7",
           type: "GUEST",
@@ -315,8 +359,11 @@ describe("BookingHistoryViewerService", () => {
 
         const result = await service.getHistoryForBooking(defaultParams);
 
-        expect(result.auditLogs[0].actor.displayName).toBe("Guest");
-        expect(result.auditLogs[0].actor.displayEmail).toBeNull();
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+
+        expect(result.data.auditLogs[0].actor.displayName).toBe("Guest");
+        expect(result.data.auditLogs[0].actor.displayEmail).toBeNull();
       });
 
       it("uses 'Guest' as displayName when email field value is not a string (array)", async () => {
@@ -330,8 +377,11 @@ describe("BookingHistoryViewerService", () => {
 
         const result = await service.getHistoryForBooking(defaultParams);
 
-        expect(result.auditLogs[0].actor.displayName).toBe("Guest");
-        expect(result.auditLogs[0].actor.displayEmail).toBeNull();
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+
+        expect(result.data.auditLogs[0].actor.displayName).toBe("Guest");
+        expect(result.data.auditLogs[0].actor.displayEmail).toBeNull();
       });
 
       it("uses 'Guest' as displayName when email field value is a number", async () => {
@@ -345,7 +395,10 @@ describe("BookingHistoryViewerService", () => {
 
         const result = await service.getHistoryForBooking(defaultParams);
 
-        expect(result.auditLogs[0].actor.displayName).toBe("Guest");
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+
+        expect(result.data.auditLogs[0].actor.displayName).toBe("Guest");
       });
 
       it("passes form response and fields to getFieldResponseByIdentifier", async () => {
@@ -377,13 +430,16 @@ describe("BookingHistoryViewerService", () => {
         const log3 = createMockAuditLog({ id: "newest", timestamp: LATEST.toISOString() });
 
         deps.bookingAuditViewerService.getAuditLogsForBooking.mockResolvedValue({
-          bookingUid: BOOKING_UID,
-          auditLogs: [log1, log3, log2],
+          success: true,
+          data: { bookingUid: BOOKING_UID, auditLogs: [log1, log3, log2] },
         });
 
         const result = await service.getHistoryForBooking(defaultParams);
 
-        expect(result.auditLogs.map((l) => l.id)).toEqual(["newest", "middle", "oldest"]);
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+
+        expect(result.data.auditLogs.map((l) => l.id)).toEqual(["newest", "middle", "oldest"]);
       });
 
       it("interleaves form and audit logs by timestamp", async () => {
@@ -397,8 +453,8 @@ describe("BookingHistoryViewerService", () => {
         });
 
         deps.bookingAuditViewerService.getAuditLogsForBooking.mockResolvedValue({
-          bookingUid: BOOKING_UID,
-          auditLogs: [auditLogEarly, auditLogLate],
+          success: true,
+          data: { bookingUid: BOOKING_UID, auditLogs: [auditLogEarly, auditLogLate] },
         });
 
         // Form submission at NOW (between EARLIER and LATEST)
@@ -407,7 +463,10 @@ describe("BookingHistoryViewerService", () => {
 
         const result = await service.getHistoryForBooking(defaultParams);
 
-        expect(result.auditLogs.map((l) => l.id)).toEqual([
+        expect(result.success).toBe(true);
+        if (!result.success) return;
+
+        expect(result.data.auditLogs.map((l) => l.id)).toEqual([
           "audit-late",
           "form-submission-1",
           "audit-early",

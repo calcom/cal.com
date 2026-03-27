@@ -13,6 +13,7 @@ import {
   createTestOrganization,
   createTestUser,
   enableFeatureForOrganization,
+  expectSuccessResult,
 } from "./integration-utils";
 
 describe("No-Show Updated Action Integration", () => {
@@ -104,13 +105,15 @@ describe("No-Show Updated Action Integration", () => {
         timestamp: Date.now(),
       });
 
-      const result = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
       expect(result.bookingUid).toBe(testData.booking.uid);
       expect(result.auditLogs).toHaveLength(1);
@@ -147,13 +150,15 @@ describe("No-Show Updated Action Integration", () => {
         timestamp: Date.now(),
       });
 
-      const result = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
       expect(result.bookingUid).toBe(testData.booking.uid);
       expect(result.auditLogs).toHaveLength(1);
@@ -210,13 +215,15 @@ describe("No-Show Updated Action Integration", () => {
         timestamp: Date.now(),
       });
 
-      const result = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
       expect(result.auditLogs).toHaveLength(1);
 
@@ -256,13 +263,15 @@ describe("No-Show Updated Action Integration", () => {
         timestamp: Date.now(),
       });
 
-      const result = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
       expect(result.auditLogs).toHaveLength(1);
 
@@ -303,13 +312,15 @@ describe("No-Show Updated Action Integration", () => {
         timestamp: Date.now(),
       });
 
-      const result = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
       expect(result.auditLogs).toHaveLength(1);
 

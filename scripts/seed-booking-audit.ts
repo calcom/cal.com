@@ -558,6 +558,70 @@ async function seedAuditLogsForBooking({
   return auditLogs.length;
 }
 
+async function seedMinimalAuditLogs({
+  bookingUid,
+  userUuid,
+}: {
+  bookingUid: string;
+  userUuid: string;
+}): Promise<number> {
+  const existingLogs = await prisma.bookingAudit.findFirst({
+    where: { bookingUid },
+    select: { id: true },
+  });
+
+  if (existingLogs) {
+    console.log(`  ⏭️ Audit logs already exist for ${bookingUid}, skipping.`);
+    return 0;
+  }
+
+  const userActor = await createUserActor(userUuid);
+  const systemActor = await createSystemActor();
+  const now = Date.now();
+
+  await prisma.bookingAudit.create({
+    data: {
+      bookingUid,
+      actorId: systemActor.id,
+      action: "CREATED",
+      type: "RECORD_CREATED",
+      timestamp: new Date(now - 2 * 60 * 1000),
+      source: "WEBAPP",
+      operationId: uuidv4(),
+      data: {
+        version: 1,
+        fields: {
+          startTime: hoursFromNow(24),
+          endTime: hoursFromNow(24.5),
+          status: BookingStatus.PENDING,
+          hostUserUuid: userUuid,
+          seatReferenceUid: null,
+        },
+      },
+    },
+  });
+
+  await prisma.bookingAudit.create({
+    data: {
+      bookingUid,
+      actorId: userActor.id,
+      action: "ACCEPTED",
+      type: "RECORD_UPDATED",
+      timestamp: new Date(now - 1 * 60 * 1000),
+      source: "WEBAPP",
+      operationId: uuidv4(),
+      data: {
+        version: 1,
+        fields: {
+          status: { old: BookingStatus.PENDING, new: BookingStatus.ACCEPTED },
+        },
+      },
+    },
+  });
+
+  return 2;
+}
+
 export default async function seedBookingAuditLogs() {
   console.log("🔍 Seeding booking audit logs...");
 
@@ -948,6 +1012,301 @@ export default async function seedBookingAuditLogs() {
     console.log(`  ✅ Seats booking: ${seatsBooking.uid} (${seatsBooking.attendees.length} seats)`);
   }
 
+  // --- Permission error test bookings (Scenarios 5-8) ---
+  console.log(`\n📋 Seeding permission error test bookings...`);
+
+  type ErrorBookingInfo = { uid: string; loginAs: string; expectedError: string };
+  const errorBookingResults: Record<string, ErrorBookingInfo | null> = {
+    "5": null,
+    "6": null,
+    "7": null,
+    "8": null,
+  };
+
+  // Scenario 5: Team booking from Dunder Mifflin (TEAM_EVENT_TYPE_NOT_IN_ORGANIZATION)
+  {
+    const dunderOwner = await prisma.user.findFirst({
+      where: { username: "owner1-dunder" },
+      select: { id: true, uuid: true },
+    });
+    const dunderOrg = await prisma.team.findFirst({
+      where: { slug: "dunder-mifflin", isOrganization: true },
+      select: { id: true },
+    });
+    const dunderTeam1 = dunderOrg
+      ? await prisma.team.findFirst({
+          where: { slug: "team1", parentId: dunderOrg.id },
+          select: { id: true },
+        })
+      : null;
+
+    if (dunderOwner && dunderTeam1) {
+      let dunderEventType = await prisma.eventType.findFirst({
+        where: { teamId: dunderTeam1.id, slug: "audit-error-dunder-team" },
+        select: { id: true },
+      });
+      if (!dunderEventType) {
+        dunderEventType = await prisma.eventType.create({
+          data: {
+            title: "Dunder Team Event (Audit Error Test)",
+            slug: "audit-error-dunder-team",
+            length: 30,
+            teamId: dunderTeam1.id,
+          },
+          select: { id: true },
+        });
+      }
+
+      const DUNDER_TITLE = "Error Test: Dunder Mifflin Team Booking";
+      let dunderBooking = await prisma.booking.findFirst({
+        where: { title: DUNDER_TITLE },
+        select: { uid: true },
+      });
+
+      if (!dunderBooking) {
+        const start = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
+        dunderBooking = await prisma.booking.create({
+          data: {
+            uid: uuidv4(),
+            title: DUNDER_TITLE,
+            startTime: start,
+            endTime: new Date(start.getTime() + 30 * 60 * 1000),
+            status: BookingStatus.ACCEPTED,
+            userId: dunderOwner.id,
+            eventTypeId: dunderEventType.id,
+            attendees: {
+              create: [
+                { email: "guest-dunder@example.com", name: "Dunder Guest", timeZone: "UTC" },
+                { email: user.email, name: "Owner 1 (Acme)", timeZone: "UTC" },
+              ],
+            },
+          },
+          select: { uid: true },
+        });
+        await seedMinimalAuditLogs({ bookingUid: dunderBooking.uid, userUuid: dunderOwner.uuid });
+        console.log(`  ✅ Booking 5 (Dunder team): ${dunderBooking.uid}`);
+      } else {
+        console.log(`  ⏭️ Booking 5 already exists: ${dunderBooking.uid}`);
+      }
+
+      errorBookingResults["5"] = {
+        uid: dunderBooking.uid,
+        loginAs: "owner1-acme",
+        expectedError: "TEAM_EVENT_TYPE_NOT_IN_ORGANIZATION",
+      };
+    } else {
+      console.log("  ⚠️ Skipping Scenario 5: owner1-dunder or Dunder Mifflin team1 not found");
+    }
+  }
+
+  // Scenario 6: Standalone team booking (TEAM_EVENT_TYPE_NOT_IN_ORGANIZATION)
+  {
+    const seededTeam = await prisma.team.findFirst({
+      where: { slug: "seeded-team", parentId: null, isOrganization: false },
+      select: { id: true },
+    });
+    const teamproUser = await prisma.user.findFirst({
+      where: { username: "teampro" },
+      select: { id: true, uuid: true },
+    });
+
+    if (seededTeam && teamproUser) {
+      let standaloneEventType = await prisma.eventType.findFirst({
+        where: { teamId: seededTeam.id, slug: "audit-error-standalone-team" },
+        select: { id: true },
+      });
+      if (!standaloneEventType) {
+        standaloneEventType = await prisma.eventType.create({
+          data: {
+            title: "Standalone Team Event (Audit Error Test)",
+            slug: "audit-error-standalone-team",
+            length: 30,
+            teamId: seededTeam.id,
+          },
+          select: { id: true },
+        });
+      }
+
+      const STANDALONE_TITLE = "Error Test: Standalone Team Booking";
+      let standaloneBooking = await prisma.booking.findFirst({
+        where: { title: STANDALONE_TITLE },
+        select: { uid: true },
+      });
+
+      if (!standaloneBooking) {
+        const start = new Date(Date.now() + 11 * 24 * 60 * 60 * 1000);
+        standaloneBooking = await prisma.booking.create({
+          data: {
+            uid: uuidv4(),
+            title: STANDALONE_TITLE,
+            startTime: start,
+            endTime: new Date(start.getTime() + 30 * 60 * 1000),
+            status: BookingStatus.ACCEPTED,
+            userId: teamproUser.id,
+            eventTypeId: standaloneEventType.id,
+            attendees: {
+              create: [
+                { email: "guest-standalone@example.com", name: "Standalone Guest", timeZone: "UTC" },
+                { email: user.email, name: "Owner 1 (Acme)", timeZone: "UTC" },
+              ],
+            },
+          },
+          select: { uid: true },
+        });
+        await seedMinimalAuditLogs({ bookingUid: standaloneBooking.uid, userUuid: teamproUser.uuid });
+        console.log(`  ✅ Booking 6 (standalone team): ${standaloneBooking.uid}`);
+      } else {
+        console.log(`  ⏭️ Booking 6 already exists: ${standaloneBooking.uid}`);
+      }
+
+      errorBookingResults["6"] = {
+        uid: standaloneBooking.uid,
+        loginAs: "owner1-acme",
+        expectedError: "TEAM_EVENT_TYPE_NOT_IN_ORGANIZATION",
+      };
+    } else {
+      console.log("  ⚠️ Skipping Scenario 6: seeded-team or teampro not found");
+    }
+  }
+
+  // Scenario 7: Personal booking from non-org user (BOOKING_OWNER_NOT_IN_ORGANIZATION)
+  {
+    const proUser = await prisma.user.findFirst({
+      where: { username: "pro" },
+      select: { id: true, uuid: true },
+    });
+
+    if (proUser) {
+      let proEventType = await prisma.eventType.findFirst({
+        where: { userId: proUser.id, slug: "audit-error-personal-pro" },
+        select: { id: true },
+      });
+      if (!proEventType) {
+        proEventType = await prisma.eventType.create({
+          data: {
+            title: "Personal Event (Audit Error Test)",
+            slug: "audit-error-personal-pro",
+            length: 30,
+            userId: proUser.id,
+          },
+          select: { id: true },
+        });
+      }
+
+      const PRO_TITLE = "Error Test: Non-Org Personal Booking";
+      let proBooking = await prisma.booking.findFirst({
+        where: { title: PRO_TITLE },
+        select: { uid: true },
+      });
+
+      if (!proBooking) {
+        const start = new Date(Date.now() + 12 * 24 * 60 * 60 * 1000);
+        proBooking = await prisma.booking.create({
+          data: {
+            uid: uuidv4(),
+            title: PRO_TITLE,
+            startTime: start,
+            endTime: new Date(start.getTime() + 30 * 60 * 1000),
+            status: BookingStatus.ACCEPTED,
+            userId: proUser.id,
+            eventTypeId: proEventType.id,
+            attendees: {
+              create: [
+                { email: "guest-pro@example.com", name: "Pro Guest", timeZone: "UTC" },
+                { email: user.email, name: "Owner 1 (Acme)", timeZone: "UTC" },
+              ],
+            },
+          },
+          select: { uid: true },
+        });
+        await seedMinimalAuditLogs({ bookingUid: proBooking.uid, userUuid: proUser.uuid });
+        console.log(`  ✅ Booking 7 (non-org personal): ${proBooking.uid}`);
+      } else {
+        console.log(`  ⏭️ Booking 7 already exists: ${proBooking.uid}`);
+      }
+
+      errorBookingResults["7"] = {
+        uid: proBooking.uid,
+        loginAs: "owner1-acme",
+        expectedError: "BOOKING_OWNER_NOT_IN_ORGANIZATION",
+      };
+    } else {
+      console.log("  ⚠️ Skipping Scenario 7: pro user not found");
+    }
+  }
+
+  // Scenario 8: In-scope booking, viewer lacks PBAC permissions (ORG_MEMBER_PERMISSION_DENIED)
+  {
+    const acmeOrg = await prisma.team.findFirst({
+      where: { slug: "acme", isOrganization: true },
+      select: { id: true },
+    });
+    const acmeTeam1 = acmeOrg
+      ? await prisma.team.findFirst({
+          where: { slug: "team1", parentId: acmeOrg.id },
+          select: { id: true },
+        })
+      : null;
+
+    if (acmeTeam1) {
+      let pbacEventType = await prisma.eventType.findFirst({
+        where: { teamId: acmeTeam1.id, slug: "audit-error-pbac" },
+        select: { id: true },
+      });
+      if (!pbacEventType) {
+        pbacEventType = await prisma.eventType.create({
+          data: {
+            title: "PBAC Test Event (Audit Error Test)",
+            slug: "audit-error-pbac",
+            length: 30,
+            teamId: acmeTeam1.id,
+          },
+          select: { id: true },
+        });
+      }
+
+      const PBAC_TITLE = "Error Test: PBAC Permission Denied";
+      let pbacBooking = await prisma.booking.findFirst({
+        where: { title: PBAC_TITLE },
+        select: { uid: true },
+      });
+
+      if (!pbacBooking) {
+        const start = new Date(Date.now() + 13 * 24 * 60 * 60 * 1000);
+        pbacBooking = await prisma.booking.create({
+          data: {
+            uid: uuidv4(),
+            title: PBAC_TITLE,
+            startTime: start,
+            endTime: new Date(start.getTime() + 30 * 60 * 1000),
+            status: BookingStatus.ACCEPTED,
+            userId: user.id,
+            eventTypeId: pbacEventType.id,
+            attendees: {
+              create: [
+                { email: "guest-pbac@example.com", name: "PBAC Guest", timeZone: "UTC" },
+                { email: "member0-acme@example.com", name: "Member 0 (Acme)", timeZone: "UTC" },
+              ],
+            },
+          },
+          select: { uid: true },
+        });
+        await seedMinimalAuditLogs({ bookingUid: pbacBooking.uid, userUuid: user.uuid });
+        console.log(`  ✅ Booking 8 (PBAC test): ${pbacBooking.uid}`);
+      } else {
+        console.log(`  ⏭️ Booking 8 already exists: ${pbacBooking.uid}`);
+      }
+
+      errorBookingResults["8"] = {
+        uid: pbacBooking.uid,
+        loginAs: "member0-acme",
+        expectedError: "ORG_MEMBER_PERMISSION_DENIED",
+      };
+    } else {
+      console.log("  ⚠️ Skipping Scenario 8: Acme team1 not found");
+    }
+  }
+
   // --- Summary ---
   console.log(`\n📊 Summary:`);
   console.log(`  Booking 1 (audit log viewer): ${booking.uid}`);
@@ -958,6 +1317,15 @@ export default async function seedBookingAuditLogs() {
   console.log(`    ACCEPTED, past — test mark no-show (host + attendee)`);
   console.log(`  Booking 4 (seats): ${seatsBooking.uid}`);
   console.log(`    ACCEPTED, future, ${seatsBooking.attendees.length} seats — test seat actions`);
+
+  console.log(`\n  --- Permission Error Bookings ---`);
+  for (const [key, info] of Object.entries(errorBookingResults)) {
+    if (info) {
+      console.log(`  Booking ${key}: ${info.uid}`);
+      console.log(`    Login as ${info.loginAs} → expected: ${info.expectedError}`);
+    }
+  }
+
   console.log(`\n⚙️  To test real user actions, set ENABLE_ASYNC_TASKER="false" in .env`);
   console.log(`    then restart the dev server for synchronous audit task execution.`);
 }
@@ -969,6 +1337,12 @@ const SEED_GUEST_ACTOR_EMAILS = [
 ];
 const SEED_SYSTEM_ACTOR_EMAIL = "system@system.internal";
 const SEED_APP_ACTOR_EMAIL = "stripe@app.internal";
+const ERROR_TEST_EVENT_SLUGS = [
+  "audit-error-dunder-team",
+  "audit-error-standalone-team",
+  "audit-error-personal-pro",
+  "audit-error-pbac",
+];
 
 async function resetBookingAuditSeed() {
   console.log("🧹 Resetting booking audit seed data...");
@@ -1041,6 +1415,61 @@ async function resetBookingAuditSeed() {
     console.log("  ⏭️ No audit event types found, skipping booking cleanup.");
   }
 
+  // Clean up error test event types and their bookings
+  const errorEventTypes = await prisma.eventType.findMany({
+    where: { slug: { in: ERROR_TEST_EVENT_SLUGS } },
+    select: { id: true },
+  });
+
+  if (errorEventTypes.length > 0) {
+    const errorEtIds = errorEventTypes.map((et) => et.id);
+
+    const errorBookings = await prisma.booking.findMany({
+      where: { eventTypeId: { in: errorEtIds } },
+      select: { id: true, uid: true },
+    });
+    const errorBookingUids = errorBookings.map((b) => b.uid);
+    const errorBookingIds = errorBookings.map((b) => b.id);
+
+    if (errorBookingUids.length > 0) {
+      const auditDeleted = await prisma.bookingAudit.deleteMany({
+        where: { bookingUid: { in: errorBookingUids } },
+      });
+      console.log(`  🗑️  Deleted ${auditDeleted.count} error-test audit log entries`);
+    }
+
+    if (errorBookingIds.length > 0) {
+      const attendeeIds = (
+        await prisma.attendee.findMany({
+          where: { bookingId: { in: errorBookingIds } },
+          select: { id: true },
+        })
+      ).map((a) => a.id);
+
+      await prisma.attendee.deleteMany({ where: { bookingId: { in: errorBookingIds } } });
+      const bookingsDeleted = await prisma.booking.deleteMany({
+        where: { id: { in: errorBookingIds } },
+      });
+      console.log(`  🗑️  Deleted ${bookingsDeleted.count} error-test bookings`);
+
+      if (attendeeIds.length > 0) {
+        await prisma.auditActor.deleteMany({
+          where: { attendeeId: { in: attendeeIds } },
+        });
+      }
+    }
+
+    await prisma.eventType.deleteMany({ where: { id: { in: errorEtIds } } });
+    console.log(`  🗑️  Deleted ${errorEventTypes.length} error-test event types`);
+  }
+
+  // Look up users whose audit actors need cleanup
+  const errorTestUsers = await prisma.user.findMany({
+    where: { username: { in: ["owner1-dunder", "teampro", "pro"] } },
+    select: { uuid: true },
+  });
+  const errorUserUuids = errorTestUsers.map((u) => u.uuid);
+
   const actorEmails = [
     ...SEED_GUEST_ACTOR_EMAILS,
     SEED_SYSTEM_ACTOR_EMAIL,
@@ -1048,7 +1477,7 @@ async function resetBookingAuditSeed() {
   ];
   const actorsDeleted = await prisma.auditActor.deleteMany({
     where: {
-      OR: [{ email: { in: actorEmails } }, { userUuid: user.uuid }],
+      OR: [{ email: { in: actorEmails } }, { userUuid: { in: [user.uuid, ...errorUserUuids] } }],
     },
   });
   console.log(`  🗑️  Deleted ${actorsDeleted.count} audit actors`);

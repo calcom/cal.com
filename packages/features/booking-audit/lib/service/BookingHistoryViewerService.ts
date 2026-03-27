@@ -1,7 +1,7 @@
-import type { RoutingFormResponseRepositoryInterface } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository.interface";
-
-import type { BookingAuditViewerService, DisplayBookingAuditLog } from "./BookingAuditViewerService";
 import { getFieldResponseByIdentifier } from "@calcom/features/routing-forms/lib/getFieldResponseByIdentifier";
+import type { RoutingFormResponseRepositoryInterface } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository.interface";
+import type { BookingAuditResult } from "../BookingAuditResult";
+import type { BookingAuditViewerService, DisplayBookingAuditLog } from "./BookingAuditViewerService";
 
 type GetHistoryForBookingParams = {
   bookingUid: string;
@@ -46,22 +46,27 @@ export class BookingHistoryViewerService {
 
   async getHistoryForBooking(
     params: GetHistoryForBookingParams
-  ): Promise<{ bookingUid: string; auditLogs: BookingHistoryLog[] }> {
+  ): Promise<BookingAuditResult<{ bookingUid: string; auditLogs: BookingHistoryLog[] }>> {
     const { bookingUid } = params;
 
-    const { auditLogs: bookingAuditLogs } =
-      await this.bookingAuditViewerService.getAuditLogsForBooking(params);
+    const result = await this.bookingAuditViewerService.getAuditLogsForBooking(params);
+    if (!result.success) {
+      return { success: false, code: result.code };
+    }
 
     const historyEntries: BookingHistoryLog[] = [
-      ...bookingAuditLogs,
+      ...result.data.auditLogs,
       ...(await this.getFormAuditLogsForBooking(bookingUid)),
     ];
 
     const sortedLogs = this.sortLogsReverseChronologically(historyEntries);
 
     return {
-      bookingUid,
-      auditLogs: sortedLogs,
+      success: true,
+      data: {
+        bookingUid,
+        auditLogs: sortedLogs,
+      },
     };
   }
 

@@ -14,7 +14,6 @@ import type {
   BookingAuditWithActor,
   IBookingAuditRepository,
 } from "../../repository/IBookingAuditRepository";
-import { BookingAuditErrorCode, BookingAuditPermissionError } from "../BookingAuditAccessService";
 import { BookingAuditActionServiceRegistry } from "../BookingAuditActionServiceRegistry";
 import { BookingAuditViewerService } from "../BookingAuditViewerService";
 
@@ -37,7 +36,8 @@ type MockBooking = {
   };
   eventType: {
     teamId: number | null;
-    parent: { teamId: number } | null;
+    team: { parentId: number | null } | null;
+    parent: { teamId: number; team: { parentId: number | null } | null } | null;
     hosts: unknown[];
     users: unknown[];
   } | null;
@@ -70,9 +70,12 @@ const createMockTeamBooking = (
     userId?: number;
     teamId?: number | null;
     parentTeamId?: number;
+    teamParentId?: number;
     fromReschedule?: string | null;
   }
 ) => {
+  const teamId = (overrides && "teamId" in overrides ? overrides.teamId : (overrides?.teamId ?? 100)) ?? null;
+  const teamParentId = overrides?.teamParentId ?? 200;
   const booking: MockBooking = {
     userId: overrides?.userId ?? 456,
     user: {
@@ -80,8 +83,12 @@ const createMockTeamBooking = (
       email: "test@example.com",
     },
     eventType: {
-      teamId: (overrides && "teamId" in overrides ? overrides.teamId : (overrides?.teamId ?? 100)) ?? null,
-      parent: (overrides?.parentTeamId ? { teamId: overrides.parentTeamId } : undefined) ?? null,
+      teamId,
+      team: teamId ? { parentId: teamParentId } : null,
+      parent:
+        (overrides?.parentTeamId
+          ? { teamId: overrides.parentTeamId, team: { parentId: teamParentId } }
+          : undefined) ?? null,
       hosts: [],
       users: [],
     },
@@ -352,9 +359,9 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.bookingUid).toBe("booking-uid-123");
-        expect(result.auditLogs).toHaveLength(1);
-        expect(result.auditLogs[0]).toMatchObject({
+        expect(result.data.bookingUid).toBe("booking-uid-123");
+        expect(result.data.auditLogs).toHaveLength(1);
+        expect(result.data.auditLogs[0]).toMatchObject({
           id: "audit-log-1",
           bookingUid: "booking-uid-123",
           action: "CREATED",
@@ -384,8 +391,8 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs[0].timestamp).toBe("2024-01-15T10:00:00.000Z");
-        expect(result.auditLogs[0].createdAt).toBe("2024-01-15T10:00:00.000Z");
+        expect(result.data.auditLogs[0].timestamp).toBe("2024-01-15T10:00:00.000Z");
+        expect(result.data.auditLogs[0].createdAt).toBe("2024-01-15T10:00:00.000Z");
       });
 
       it("should include action display title with translation key", async () => {
@@ -401,7 +408,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs[0].actionDisplayTitle).toEqual({
+        expect(result.data.auditLogs[0].actionDisplayTitle).toEqual({
           key: "booking_audit_action.created",
           params: {
             host: "Unknown",
@@ -454,10 +461,10 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs).toHaveLength(3);
-        expect(result.auditLogs[0].id).toBe("log-1");
-        expect(result.auditLogs[1].id).toBe("log-2");
-        expect(result.auditLogs[2].id).toBe("log-3");
+        expect(result.data.auditLogs).toHaveLength(3);
+        expect(result.data.auditLogs[0].id).toBe("log-1");
+        expect(result.data.auditLogs[1].id).toBe("log-2");
+        expect(result.data.auditLogs[2].id).toBe("log-3");
       });
 
       it("should return empty array when no audit logs exist", async () => {
@@ -471,8 +478,8 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.bookingUid).toBe("booking-uid-123");
-        expect(result.auditLogs).toEqual([]);
+        expect(result.data.bookingUid).toBe("booking-uid-123");
+        expect(result.data.auditLogs).toEqual([]);
       });
     });
 
@@ -504,7 +511,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         expect(mockUserRepository.findByUuids).toHaveBeenCalledWith({
           uuids: expect.arrayContaining(["user-uuid-456"]),
         });
-        expect(result.auditLogs[0].actor).toMatchObject({
+        expect(result.data.auditLogs[0].actor).toMatchObject({
           displayName: "Jane Smith",
           displayEmail: "jane@example.com",
           displayAvatar: "https://example.com/avatar.jpg",
@@ -526,7 +533,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs[0].actor.displayName).toBe("user@example.com");
+        expect(result.data.auditLogs[0].actor.displayName).toBe("user@example.com");
       });
 
       it("should show 'Deleted User' when user not found in repository", async () => {
@@ -540,7 +547,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs[0].actor).toMatchObject({
+        expect(result.data.auditLogs[0].actor).toMatchObject({
           displayName: "Deleted User",
           displayEmail: null,
           displayAvatar: null,
@@ -570,7 +577,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs[0].actor).toMatchObject({
+        expect(result.data.auditLogs[0].actor).toMatchObject({
           type: "SYSTEM",
           displayName: "Cal.com",
           displayEmail: null,
@@ -594,7 +601,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs[0].actor).toMatchObject({
+        expect(result.data.auditLogs[0].actor).toMatchObject({
           type: "GUEST",
           displayName: "Guest",
           displayEmail: null,
@@ -617,7 +624,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs[0].actor.displayName).toBe("External Guest");
+        expect(result.data.auditLogs[0].actor.displayName).toBe("External Guest");
       });
 
       it("should show 'Attendee' for ATTENDEE actor without name", async () => {
@@ -639,7 +646,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         });
 
         expect(mockAttendeeRepository.findByIds).toHaveBeenCalledWith({ ids: [999] });
-        expect(result.auditLogs[0].actor).toMatchObject({
+        expect(result.data.auditLogs[0].actor).toMatchObject({
           type: "ATTENDEE",
           displayName: "attendee@example.com",
           displayEmail: "attendee@example.com",
@@ -666,8 +673,8 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         });
 
         expect(mockAttendeeRepository.findByIds).toHaveBeenCalledWith({ ids: [888] });
-        expect(result.auditLogs[0].actor.displayName).toBe("Meeting Participant");
-        expect(result.auditLogs[0].actor.displayEmail).toBe("participant@example.com");
+        expect(result.data.auditLogs[0].actor.displayName).toBe("Meeting Participant");
+        expect(result.data.auditLogs[0].actor.displayEmail).toBe("participant@example.com");
       });
 
       it("should show 'Deleted Attendee' when attendee not found in repository", async () => {
@@ -689,7 +696,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         });
 
         expect(mockAttendeeRepository.findByIds).toHaveBeenCalledWith({ ids: [777] });
-        expect(result.auditLogs[0].actor).toMatchObject({
+        expect(result.data.auditLogs[0].actor).toMatchObject({
           type: "ATTENDEE",
           displayName: "Deleted Attendee",
           displayEmail: null,
@@ -734,12 +741,12 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs).toHaveLength(2);
-        expect(result.auditLogs[1].id).toBe("rescheduled-log");
-        expect(result.auditLogs[1].bookingUid).toBe("new-booking-uid");
-        expect(result.auditLogs[1].actionDisplayTitle.key).toBe("booking_audit_action.rescheduled_from");
-        expect(result.auditLogs[1].displayJson).toHaveProperty("rescheduledFromUid", "old-booking-uid");
-        expect(result.auditLogs[0].id).toBe("current-log");
+        expect(result.data.auditLogs).toHaveLength(2);
+        expect(result.data.auditLogs[1].id).toBe("rescheduled-log");
+        expect(result.data.auditLogs[1].bookingUid).toBe("new-booking-uid");
+        expect(result.data.auditLogs[1].actionDisplayTitle.key).toBe("booking_audit_action.rescheduled_from");
+        expect(result.data.auditLogs[1].displayJson).toHaveProperty("rescheduledFromUid", "old-booking-uid");
+        expect(result.data.auditLogs[0].id).toBe("current-log");
       });
 
       it("should not include rescheduled from log when booking was not rescheduled", async () => {
@@ -756,7 +763,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs).toHaveLength(1);
+        expect(result.data.auditLogs).toHaveLength(1);
         expect(mockBookingAuditRepository.findRescheduledLogsOfBooking).not.toHaveBeenCalled();
       });
 
@@ -787,8 +794,8 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs).toHaveLength(1);
-        expect(result.auditLogs[0].id).toBe("audit-log-1");
+        expect(result.data.auditLogs).toHaveLength(1);
+        expect(result.data.auditLogs[0].id).toBe("audit-log-1");
         expect(mockLog.error).toHaveBeenCalledWith(
           "No rescheduled log found for booking old-booking-uid -> new-booking-uid"
         );
@@ -796,51 +803,48 @@ describe("BookingAuditViewerService - Integration Tests", () => {
     });
 
     describe("when permission check fails", () => {
-      it("should throw error when user lacks permission", async () => {
+      it("should return failure result when user lacks permission", async () => {
         createMockTeamBooking("booking-uid-123", { teamId: 100 });
         mockPermissionCheckService.checkPermission.mockResolvedValue(false);
         createMockMembership({ userId: 123, teamId: 100 });
 
-        await expect(
-          service.getAuditLogsForBooking({
-            bookingUid: "booking-uid-123",
-            userId: 123,
-            userEmail: "user@example.com",
-            userTimeZone: "UTC",
-            organizationId: 200,
-          })
-        ).rejects.toThrow(BookingAuditPermissionError);
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
 
+        expect(result.success).toBe(false);
         expect(mockBookingAuditRepository.findAllForBooking).not.toHaveBeenCalled();
       });
 
-      it("should throw error when organization ID is null", async () => {
-        await expect(
-          service.getAuditLogsForBooking({
-            bookingUid: "booking-uid-123",
-            userId: 123,
-            userEmail: "user@example.com",
-            userTimeZone: "UTC",
-            organizationId: null,
-          })
-        ).rejects.toThrow(BookingAuditPermissionError);
+      it("should return failure result when organization ID is null", async () => {
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "booking-uid-123",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: null,
+        });
 
+        expect(result.success).toBe(false);
         expect(mockBookingAuditRepository.findAllForBooking).not.toHaveBeenCalled();
       });
 
-      it("should throw error when booking not found", async () => {
+      it("should return failure result when booking not found", async () => {
         // Don't create booking in DB - should return null
 
-        await expect(
-          service.getAuditLogsForBooking({
-            bookingUid: "non-existent-booking",
-            userId: 123,
-            userEmail: "user@example.com",
-            userTimeZone: "UTC",
-            organizationId: 200,
-          })
-        ).rejects.toThrow(BookingAuditErrorCode.BOOKING_NOT_FOUND_OR_PERMISSION_DENIED);
+        const result = await service.getAuditLogsForBooking({
+          bookingUid: "non-existent-booking",
+          userId: 123,
+          userEmail: "user@example.com",
+          userTimeZone: "UTC",
+          organizationId: 200,
+        });
 
+        expect(result.success).toBe(false);
         expect(mockBookingAuditRepository.findAllForBooking).not.toHaveBeenCalled();
       });
     });
@@ -874,8 +878,8 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs[0].actionDisplayTitle).toHaveProperty("params");
-        expect(result.auditLogs[0].displayJson).toBeDefined();
+        expect(result.data.auditLogs[0].actionDisplayTitle).toHaveProperty("params");
+        expect(result.data.auditLogs[0].displayJson).toBeDefined();
       });
     });
 
@@ -911,10 +915,10 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs).toHaveLength(1);
-        expect(result.auditLogs[0].action).toBe("SEAT_BOOKED");
-        expect(result.auditLogs[0].actionDisplayTitle.key).toBe("booking_audit_action.seat_booked");
-        expect(result.auditLogs[0].displayJson).toBeDefined();
+        expect(result.data.auditLogs).toHaveLength(1);
+        expect(result.data.auditLogs[0].action).toBe("SEAT_BOOKED");
+        expect(result.data.auditLogs[0].actionDisplayTitle.key).toBe("booking_audit_action.seat_booked");
+        expect(result.data.auditLogs[0].displayJson).toBeDefined();
       });
 
       it("should handle SEAT_RESCHEDULED action with time changes", async () => {
@@ -952,12 +956,12 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs).toHaveLength(1);
-        expect(result.auditLogs[0].action).toBe("SEAT_RESCHEDULED");
-        expect(result.auditLogs[0].actionDisplayTitle.key).toBe("booking_audit_action.seat_rescheduled");
-        expect(result.auditLogs[0].actionDisplayTitle.params).toBeDefined();
-        expect(result.auditLogs[0].actionDisplayTitle.components).toBeDefined();
-        expect(result.auditLogs[0].displayJson).toBeDefined();
+        expect(result.data.auditLogs).toHaveLength(1);
+        expect(result.data.auditLogs[0].action).toBe("SEAT_RESCHEDULED");
+        expect(result.data.auditLogs[0].actionDisplayTitle.key).toBe("booking_audit_action.seat_rescheduled");
+        expect(result.data.auditLogs[0].actionDisplayTitle.params).toBeDefined();
+        expect(result.data.auditLogs[0].actionDisplayTitle.components).toBeDefined();
+        expect(result.data.auditLogs[0].displayJson).toBeDefined();
       });
 
       it("should handle SEAT_RESCHEDULED action without moving to different booking", async () => {
@@ -995,9 +999,9 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs).toHaveLength(1);
-        expect(result.auditLogs[0].action).toBe("SEAT_RESCHEDULED");
-        expect(result.auditLogs[0].actionDisplayTitle.components).toBeUndefined();
+        expect(result.data.auditLogs).toHaveLength(1);
+        expect(result.data.auditLogs[0].action).toBe("SEAT_RESCHEDULED");
+        expect(result.data.auditLogs[0].actionDisplayTitle.components).toBeUndefined();
       });
     });
 
@@ -1031,7 +1035,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         expect(mockUserRepository.findByUuids).toHaveBeenCalledWith({
           uuids: expect.arrayContaining(["impersonator-uuid-456"]),
         });
-        expect(result.auditLogs[0].impersonatedBy).toMatchObject({
+        expect(result.data.auditLogs[0].impersonatedBy).toMatchObject({
           displayName: "Admin User",
           displayEmail: "admin@example.com",
           displayAvatar: "https://example.com/admin-avatar.jpg",
@@ -1059,7 +1063,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs[0].impersonatedBy).toMatchObject({
+        expect(result.data.auditLogs[0].impersonatedBy).toMatchObject({
           displayName: "admin@example.com",
           displayEmail: "admin@example.com",
           displayAvatar: null,
@@ -1084,7 +1088,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
         expect(mockUserRepository.findByUuids).toHaveBeenCalledWith({
           uuids: expect.arrayContaining(["impersonator-uuid-456"]),
         });
-        expect(result.auditLogs[0].impersonatedBy).toMatchObject({
+        expect(result.data.auditLogs[0].impersonatedBy).toMatchObject({
           displayName: "Deleted User",
           displayEmail: null,
           displayAvatar: null,
@@ -1106,7 +1110,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs[0].impersonatedBy).toBeNull();
+        expect(result.data.auditLogs[0].impersonatedBy).toBeNull();
       });
 
       it("should return null when impersonatedBy is not in context", async () => {
@@ -1124,7 +1128,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs[0].impersonatedBy).toBeNull();
+        expect(result.data.auditLogs[0].impersonatedBy).toBeNull();
       });
     });
 
@@ -1150,15 +1154,15 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs).toHaveLength(1);
-        expect(result.auditLogs[0].hasError).toBe(true);
-        expect(result.auditLogs[0].actionDisplayTitle).toEqual({
+        expect(result.data.auditLogs).toHaveLength(1);
+        expect(result.data.auditLogs[0].hasError).toBe(true);
+        expect(result.data.auditLogs[0].actionDisplayTitle).toEqual({
           key: "booking_audit_action.error_processing",
           params: { actionType: "CREATED" },
         });
-        expect(result.auditLogs[0].displayJson).toBeNull();
-        expect(result.auditLogs[0].displayFields).toBeNull();
-        expect(result.auditLogs[0].actor.displayName).toBe("Test Actor");
+        expect(result.data.auditLogs[0].displayJson).toBeNull();
+        expect(result.data.auditLogs[0].displayFields).toBeNull();
+        expect(result.data.auditLogs[0].actor.displayName).toBe("Test Actor");
         expect(mockLog.error).toHaveBeenCalledWith(
           expect.stringContaining("Failed to enrich audit log failing-log")
         );
@@ -1181,13 +1185,13 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs).toHaveLength(1);
-        expect(result.auditLogs[0].hasError).toBe(true);
-        expect(result.auditLogs[0].actionDisplayTitle).toEqual({
+        expect(result.data.auditLogs).toHaveLength(1);
+        expect(result.data.auditLogs[0].hasError).toBe(true);
+        expect(result.data.auditLogs[0].actionDisplayTitle).toEqual({
           key: "booking_audit_action.error_processing",
           params: { actionType: "CREATED" },
         });
-        expect(result.auditLogs[0].actor.displayName).toBe("Unknown");
+        expect(result.data.auditLogs[0].actor.displayName).toBe("Unknown");
         expect(mockLog.error).toHaveBeenCalledWith(
           expect.stringContaining("Failed to enrich audit log failing-attendee-log")
         );
@@ -1232,18 +1236,18 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs).toHaveLength(3);
+        expect(result.data.auditLogs).toHaveLength(3);
 
-        expect(result.auditLogs[0].id).toBe("successful-log");
-        expect(result.auditLogs[0].hasError).toBeUndefined();
+        expect(result.data.auditLogs[0].id).toBe("successful-log");
+        expect(result.data.auditLogs[0].hasError).toBeUndefined();
 
-        expect(result.auditLogs[1].id).toBe("failing-log");
-        expect(result.auditLogs[1].hasError).toBe(true);
-        expect(result.auditLogs[1].actor.displayName).toBe("Failing Actor");
+        expect(result.data.auditLogs[1].id).toBe("failing-log");
+        expect(result.data.auditLogs[1].hasError).toBe(true);
+        expect(result.data.auditLogs[1].actor.displayName).toBe("Failing Actor");
 
-        expect(result.auditLogs[2].id).toBe("another-successful-log");
-        expect(result.auditLogs[2].hasError).toBeUndefined();
-        expect(result.auditLogs[2].actor.displayName).toBe("Cal.com");
+        expect(result.data.auditLogs[2].id).toBe("another-successful-log");
+        expect(result.data.auditLogs[2].hasError).toBeUndefined();
+        expect(result.data.auditLogs[2].actor.displayName).toBe("Cal.com");
       });
 
       it("should log error message when enrichment fails", async () => {
@@ -1289,7 +1293,7 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs[0]).toMatchObject({
+        expect(result.data.auditLogs[0]).toMatchObject({
           id: "fallback-test-log",
           bookingUid: "booking-uid-123",
           action: "CREATED",
@@ -1321,8 +1325,8 @@ describe("BookingAuditViewerService - Integration Tests", () => {
           organizationId: 200,
         });
 
-        expect(result.auditLogs[0].hasError).toBe(true);
-        expect(result.auditLogs[0].actor.displayName).toBe("Unknown");
+        expect(result.data.auditLogs[0].hasError).toBe(true);
+        expect(result.data.auditLogs[0].actor.displayName).toBe("Unknown");
       });
     });
   });

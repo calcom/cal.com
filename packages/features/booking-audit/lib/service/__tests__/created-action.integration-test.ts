@@ -14,6 +14,7 @@ import {
   createTestOrganization,
   createTestUser,
   enableFeatureForOrganization,
+  expectSuccessResult,
 } from "./integration-utils";
 
 describe("Created Action Integration", () => {
@@ -98,13 +99,15 @@ describe("Created Action Integration", () => {
         timestamp: Date.now(),
       });
 
-      const result = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
       expect(result.bookingUid).toBe(testData.booking.uid);
       expect(result.auditLogs).toHaveLength(1);
@@ -147,13 +150,15 @@ describe("Created Action Integration", () => {
         timestamp: Date.now(),
       });
 
-      const result = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
       const auditLog = result.auditLogs[0];
       expect(auditLog.actor.displayName).toBe("Test Audit User");
@@ -186,13 +191,15 @@ describe("Created Action Integration", () => {
         },
       });
 
-      const result = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
       expect(result.auditLogs).toHaveLength(1);
 
@@ -224,13 +231,15 @@ describe("Created Action Integration", () => {
         timestamp: Date.now(),
       });
 
-      const ownerResult = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const ownerResult = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
       expect(ownerResult.auditLogs).toHaveLength(1);
 
       const unauthorizedUserId = 999999;
@@ -318,29 +327,35 @@ describe("Created Action Integration", () => {
         organizationId: testData.organization.id,
       });
 
-      const result1 = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result1 = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
-      const result2 = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: booking2.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result2 = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: booking2.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
-      const result3 = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: booking3.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result3 = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: booking3.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
       expect(result1.auditLogs).toHaveLength(1);
       expect(result2.auditLogs).toHaveLength(1);

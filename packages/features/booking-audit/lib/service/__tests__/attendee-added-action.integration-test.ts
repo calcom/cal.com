@@ -13,6 +13,7 @@ import {
   createTestOrganization,
   createTestUser,
   enableFeatureForOrganization,
+  expectSuccessResult,
 } from "./integration-utils";
 
 describe("Attendee Added Action Integration", () => {
@@ -95,13 +96,15 @@ describe("Attendee Added Action Integration", () => {
         timestamp: Date.now(),
       });
 
-      const result = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
       expect(result.bookingUid).toBe(testData.booking.uid);
       expect(result.auditLogs).toHaveLength(1);

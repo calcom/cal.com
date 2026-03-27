@@ -13,6 +13,7 @@ import {
   createTestOrganization,
   createTestUser,
   enableFeatureForOrganization,
+  expectSuccessResult,
 } from "./integration-utils";
 
 describe("Location Changed Action Integration", () => {
@@ -98,13 +99,15 @@ describe("Location Changed Action Integration", () => {
         timestamp: Date.now(),
       });
 
-      const result = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
       expect(result.bookingUid).toBe(testData.booking.uid);
 
@@ -147,13 +150,15 @@ describe("Location Changed Action Integration", () => {
         timestamp: Date.now(),
       });
 
-      const result = await bookingAuditViewerService.getAuditLogsForBooking({
-        bookingUid: testData.booking.uid,
-        userId: testData.owner.id,
-        userEmail: testData.owner.email,
-        userTimeZone: "UTC",
-        organizationId: testData.organization.id,
-      });
+      const result = expectSuccessResult(
+        await bookingAuditViewerService.getAuditLogsForBooking({
+          bookingUid: testData.booking.uid,
+          userId: testData.owner.id,
+          userEmail: testData.owner.email,
+          userTimeZone: "UTC",
+          organizationId: testData.organization.id,
+        })
+      );
 
       const auditLog = result.auditLogs.find((log) => log.operationId === operationId);
       expect(auditLog).toBeDefined();

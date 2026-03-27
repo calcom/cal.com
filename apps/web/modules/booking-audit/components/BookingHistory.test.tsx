@@ -53,6 +53,14 @@ vi.mock("@calcom/web/modules/billing/upgrade-banners/WideUpgradeBannerForBooking
   WideUpgradeBannerForBookingAudit: () => <div data-testid="upgrade-banner">Upgrade required</div>,
 }));
 
+vi.mock("@calcom/ui/components/alert", () => ({
+  Alert: ({ severity, title }: { severity: string; title: string }) => (
+    <div data-testid="alert" data-severity={severity}>
+      <span data-testid="alert-title">{title}</span>
+    </div>
+  ),
+}));
+
 vi.mock("@calcom/ui/components/avatar", () => ({
   Avatar: ({ alt }: { alt?: string }) => <div data-testid="avatar" aria-label={alt} />,
 }));
@@ -133,16 +141,14 @@ function createTestLog(overrides: Record<string, unknown> = {}) {
 
 function mockSuccessResponse(logs: ReturnType<typeof createTestLog>[]) {
   mockUseQuery.mockReturnValue({
-    data: { auditLogs: logs },
+    data: { status: "success", data: { auditLogs: logs } },
     isLoading: false,
     error: null,
   });
 }
 
 function renderBookingHistory(props: Partial<{ bookingUid: string; isOrgUser: boolean }> = {}) {
-  return render(
-    <BookingHistory bookingUid={props.bookingUid ?? "test-uid"} isOrgUser={props.isOrgUser ?? true} />
-  );
+  return render(<BookingHistory bookingUid={props.bookingUid ?? "test-uid"} isOrgUser={props.isOrgUser ?? true} />);
 }
 
 beforeEach(() => {
@@ -156,6 +162,7 @@ describe("BookingHistory", () => {
       renderBookingHistory({ isOrgUser: false });
 
       expect(screen.getByTestId("upgrade-banner")).toBeInTheDocument();
+      expect(screen.queryByTestId("alert")).not.toBeInTheDocument();
       expect(screen.queryByTestId("skeleton")).not.toBeInTheDocument();
     });
 
@@ -181,7 +188,7 @@ describe("BookingHistory", () => {
   });
 
   describe("when the query fails", () => {
-    it("shows an error message", () => {
+    it("shows a generic error alert", () => {
       mockUseQuery.mockReturnValue({
         data: undefined,
         isLoading: false,
@@ -189,8 +196,36 @@ describe("BookingHistory", () => {
       });
       renderBookingHistory();
 
-      expect(screen.getByText("error_loading_booking_logs")).toBeInTheDocument();
-      expect(screen.getByText("Network error")).toBeInTheDocument();
+      const alert = screen.getByTestId("alert");
+      expect(alert).toHaveAttribute("data-severity", "error");
+      expect(screen.getByTestId("alert-title")).toHaveTextContent("error_loading_booking_logs");
+    });
+  });
+
+  describe("when backend returns an info status", () => {
+    it("shows permission-denied alert for users without access", () => {
+      mockUseQuery.mockReturnValue({
+        data: { status: "info", title: "audit_logs_contact_admin_for_permission" },
+        isLoading: false,
+        error: null,
+      });
+      renderBookingHistory();
+
+      const alert = screen.getByTestId("alert");
+      expect(alert).toHaveAttribute("data-severity", "info");
+      expect(screen.getByTestId("alert-title")).toHaveTextContent("audit_logs_contact_admin_for_permission");
+    });
+
+    it("shows not-available alert when audit logs are unavailable", () => {
+      mockUseQuery.mockReturnValue({
+        data: { status: "info", title: "audit_logs_not_available_to_user" },
+        isLoading: false,
+        error: null,
+      });
+      renderBookingHistory();
+
+      expect(screen.getByTestId("alert")).toHaveAttribute("data-severity", "info");
+      expect(screen.getByTestId("alert-title")).toHaveTextContent("audit_logs_not_available_to_user");
     });
   });
 
@@ -287,12 +322,7 @@ describe("BookingHistory", () => {
       it("labels attendee actors with (attendee) role", () => {
         mockSuccessResponse([
           createTestLog({
-            actor: {
-              type: "ATTENDEE",
-              displayName: "Meeting Participant",
-              displayEmail: null,
-              displayAvatar: null,
-            },
+            actor: { type: "ATTENDEE", displayName: "Meeting Participant", displayEmail: null, displayAvatar: null },
           }),
         ]);
         renderBookingHistory();

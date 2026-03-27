@@ -4,6 +4,18 @@ import type { FeatureId } from "@calcom/features/flags/config";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 
+import type { BookingAuditResult } from "../../BookingAuditResult";
+
+/**
+ * Unwraps a BookingAuditResult, failing the test if the result is not successful.
+ */
+export function expectSuccessResult<T>(result: BookingAuditResult<T>): T {
+  if (!result.success) {
+    throw new Error(`Expected success result but got error: ${result.code}`);
+  }
+  return result.data;
+}
+
 export const generateUniqueId = () => {
   return crypto.randomUUID();
 };

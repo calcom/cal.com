@@ -572,9 +572,19 @@ export class BookingRepository implements IBookingRepository {
         eventType: {
           select: {
             teamId: true,
+            team: {
+              select: {
+                parentId: true,
+              },
+            },
             parent: {
               select: {
                 teamId: true,
+                team: {
+                  select: {
+                    parentId: true,
+                  },
+                },
               },
             },
             hosts: {
@@ -620,9 +630,19 @@ export class BookingRepository implements IBookingRepository {
         eventType: {
           select: {
             teamId: true,
+            team: {
+              select: {
+                parentId: true,
+              },
+            },
             parent: {
               select: {
                 teamId: true,
+                team: {
+                  select: {
+                    parentId: true,
+                  },
+                },
               },
             },
             hosts: {

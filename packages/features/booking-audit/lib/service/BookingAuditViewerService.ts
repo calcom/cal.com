@@ -6,6 +6,7 @@ import type { PrismaMembershipRepository } from "@calcom/features/membership/rep
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { DisplayField, TranslationWithParams } from "../actions/IAuditActionService";
 import { RescheduledAuditActionService } from "../actions/RescheduledAuditActionService";
+import type { BookingAuditResult } from "../BookingAuditResult";
 import type { BookingAuditContext } from "../dto/types";
 import type { AuditActorType } from "../repository/IAuditActorRepository";
 import type {
@@ -109,13 +110,16 @@ export class BookingAuditViewerService {
     userEmail: string;
     userTimeZone: string;
     organizationId: number | null;
-  }): Promise<{ bookingUid: string; auditLogs: DisplayBookingAuditLog[] }> {
+  }): Promise<BookingAuditResult<{ bookingUid: string; auditLogs: DisplayBookingAuditLog[] }>> {
     const { bookingUid, userId, userTimeZone, organizationId } = params;
-    await this.accessService.assertPermissions({
+    const access = await this.accessService.checkPermissions({
       bookingUid,
       userId,
       organizationId,
     });
+    if (!access.success) {
+      return { success: false, code: access.code };
+    }
 
     const auditLogs = await this.bookingAuditRepository.findAllForBooking(bookingUid);
 
@@ -156,8 +160,11 @@ export class BookingAuditViewerService {
     }
 
     return {
-      bookingUid: params.bookingUid,
-      auditLogs: enrichedAuditLogs,
+      success: true,
+      data: {
+        bookingUid: params.bookingUid,
+        auditLogs: enrichedAuditLogs,
+      },
     };
   }
 
@@ -362,9 +369,9 @@ export class BookingAuditViewerService {
    * Collect all data requirements from audit logs and action services
    */
   private collectDataRequirements(auditLogs: BookingAuditWithActor[]): DataRequirements {
-    let actorRequirements: DataRequirements[] = [];
-    let serviceRequirements: DataRequirements[] = [];
-    let contextRequirements: DataRequirements[] = [];
+    const actorRequirements: DataRequirements[] = [];
+    const serviceRequirements: DataRequirements[] = [];
+    const contextRequirements: DataRequirements[] = [];
     for (const log of auditLogs) {
       actorRequirements.push(getActorDataRequirements(log.actor));
 

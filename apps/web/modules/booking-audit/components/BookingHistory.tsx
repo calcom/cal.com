@@ -4,6 +4,7 @@ import type { AuditActorType } from "@calcom/features/booking-audit/lib/reposito
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { FilterSearchField, Select } from "@calcom/ui/components/form";
@@ -476,19 +477,16 @@ export function BookingHistory({ bookingUid, isOrgUser }: BookingHistoryProps) {
     return <WideUpgradeBannerForBookingAudit />;
   }
 
-  const auditLogs = data?.auditLogs || [];
+  const auditLogs = (data?.status === "success" && data.data.auditLogs) || [];
 
   const { filteredLogs, actorOptions } = useBookingLogsFilters(auditLogs, searchTerm, actorFilter);
 
   if (error) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <p className="text-red-600 font-medium">{t("error_loading_booking_logs")}</p>
-          <p className="text-sm text-gray-500 mt-2">{error.message}</p>
-        </div>
-      </div>
-    );
+    return <Alert severity="error" title={t("error_loading_booking_logs")} />;
+  }
+
+  if (data?.status === "info") {
+    return <Alert severity="info" title={t(data.title)} />;
   }
 
   if (isLoading) {
