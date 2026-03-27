@@ -1,3 +1,16 @@
+import process from "node:process";
+import type { scheduleClassNames } from "@calcom/atoms/availability/types";
+import type { ConfigType } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
+import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { weekdayNames } from "@calcom/lib/weekday";
+import type { TimeRange } from "@calcom/types/schedule";
+import cn from "@calcom/ui/classNames";
+import { Button } from "@calcom/ui/components/button";
+import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
+import { CheckboxField, Select, Switch } from "@calcom/ui/components/form";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   ArrayPath,
@@ -11,21 +24,6 @@ import type {
 } from "react-hook-form";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { createFilter, type GroupBase, type Props } from "react-select";
-
-import type { scheduleClassNames } from "@calcom/atoms/availability/types";
-import type { ConfigType } from "@calcom/dayjs";
-import dayjs from "@calcom/dayjs";
-import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { weekdayNames } from "@calcom/lib/weekday";
-import type { TimeRange } from "@calcom/types/schedule";
-import cn from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
-import { Select } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 export type { TimeRange };
 
@@ -98,12 +96,12 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
                       previousDayRange && previousDayRange.length > 0 ? previousDayRange : [DEFAULT_DAY_RANGE]
                     ) as TFieldValues[typeof name];
 
-                    setValue(name, newValue);
+                    setValue(name, newValue, { shouldDirty: true });
                   } else {
                     if (watchDayRange && watchDayRange.length > 0) {
                       lastNonEmptyDayRangeRef.current = watchDayRange as unknown as TimeRange[];
                     }
-                    setValue(name, [] as TFieldValues[typeof name]);
+                    setValue(name, [] as TFieldValues[typeof name], { shouldDirty: true });
                   }
                 }}
               />
@@ -170,7 +168,9 @@ const CopyButton = ({
           weekStart={weekStart}
           disabled={parseInt(getValuesFromDayRange.replace(`${fieldArrayName}.`, ""), 10)}
           onClick={(selected) => {
-            selected.forEach((day) => setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange)));
+            selected.forEach((day) =>
+              setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange), { shouldDirty: true })
+            );
             setOpen(false);
           }}
           onCancel={() => setOpen(false)}

@@ -1,22 +1,8 @@
 "use client";
 
-import type { SetStateAction, Dispatch } from "react";
-import React from "react";
-import {
-  useMemo,
-  useState,
-  useEffect,
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-  useCallback,
-} from "react";
-import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
-
 import dayjs from "@calcom/dayjs";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import type {
   BulkUpdatParams,
   EventTypes,
@@ -24,32 +10,32 @@ import type {
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
-import {
-  ScheduleComponent as PlatformSchedule,
-} from "@calcom/features/schedules/components/ScheduleComponent";
-import WebSchedule from "@calcom/web/modules/schedules/components/Schedule";
+import { ScheduleComponent as PlatformSchedule } from "@calcom/features/schedules/components/ScheduleComponent";
+import type { TravelScheduleRepository } from "@calcom/features/travelSchedule/repositories/TravelScheduleRepository";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
-import type { TravelScheduleRepository } from "@calcom/features/travelSchedule/repositories/TravelScheduleRepository";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, DialogTrigger } from "@calcom/ui/components/dialog";
 import { VerticalDivider } from "@calcom/ui/components/divider";
 import { EditableHeading } from "@calcom/ui/components/editable-heading";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Form, Label, Switch } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-import { SkeletonText, SelectSkeletonLoader, Skeleton } from "@calcom/ui/components/skeleton";
+import { SelectSkeletonLoader, Skeleton, SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import WebSchedule from "@calcom/web/modules/schedules/components/Schedule";
 import WebShell from "@calcom/web/modules/shell/Shell";
-
+import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
+import type React from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
 import { Timezone as PlatformTimzoneSelect } from "../timezone/index";
-import type { AvailabilityFormValues, scheduleClassNames, AvailabilitySettingsFormRef } from "./types";
+import type { AvailabilityFormValues, AvailabilitySettingsFormRef, scheduleClassNames } from "./types";
 
 export type Schedule = {
   id: number;
@@ -334,19 +320,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
       control: form.control,
     });
 
-    const initialValuesRef = useRef<AvailabilityFormValues | null>(null);
-    useEffect(() => {
-      initialValuesRef.current = form.getValues() as AvailabilityFormValues;
-    }, [form, schedule]);
-
-    const formHasChanges = useMemo(() => {
-      if (!initialValuesRef.current) return false;
-      try {
-        return (JSON.stringify(form.watch("schedule")) !== JSON.stringify(initialValuesRef.current.availability) || JSON.stringify(watchedValues) !== JSON.stringify(initialValuesRef.current));
-      } catch {
-        return form.formState.isDirty;
-      }
-    }, [watchedValues, form.formState.isDirty]);
+    const { isDirty } = form.formState;
 
     // Trigger callback whenever the form state changes
     useEffect(() => {
@@ -375,6 +349,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
           form.handleSubmit(async (data) => {
             try {
               await handleSubmit(data);
+              form.reset(data);
               callbacksRef?.current?.onSuccess?.();
             } catch (error) {
               callbacksRef?.current?.onError?.(error as Error);
@@ -643,8 +618,7 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
               type="submit"
               form="availability-form"
               loading={isSaving}
-              disabled={isLoading || !formHasChanges}
-            >
+              disabled={isLoading || !isDirty}>
               {t("save")}
             </Button>
             <Button
@@ -660,8 +634,9 @@ export const AvailabilitySettings = forwardRef<AvailabilitySettingsFormRef, Avai
           <Form
             form={form}
             id="availability-form"
-            handleSubmit={async (props) => {
-              handleSubmit(props);
+            handleSubmit={async (values) => {
+              await handleSubmit(values);
+              form.reset(values);
             }}
             className={cn(customClassNames?.formClassName, "flex flex-col sm:mx-0 xl:flex-row xl:space-x-6")}>
             <div className="flex-1">
