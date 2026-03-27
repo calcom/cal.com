@@ -829,6 +829,55 @@ export class AvailableSlotsService {
   }
   private getOOODates = withReporting(this._getOOODates.bind(this), "getOOODates");
 
+  /**
+   * When the host reschedules, check if any attendee is a Cal.com user
+   * and collect their busy times so the host only sees mutually available slots.
+   */
+  private async _getGuestBusyTimesForReschedule({
+    rescheduleUid,
+    schedulingType,
+    dateFrom,
+    dateTo,
+  }: {
+    rescheduleUid: string | null | undefined;
+    schedulingType: SchedulingType | null;
+    dateFrom: Date;
+    dateTo: Date;
+  }): Promise<{ start: Date; end: Date }[]> {
+    if (!rescheduleUid || schedulingType === SchedulingType.COLLECTIVE) {
+      return [];
+    }
+
+    const original = await this.dependencies.bookingRepo.findByUidIncludeAttendeeEmails({
+      uid: rescheduleUid,
+    });
+    if (!original?.attendees?.length) return [];
+
+    const emails = original.attendees
+      .map((a) => a.email)
+      .filter((e): e is string => Boolean(e));
+    if (!emails.length) return [];
+
+    const calUsers = await this.dependencies.userRepo.findByEmails({ emails });
+    if (!calUsers.length) return [];
+
+    const guestBookings = await this.dependencies.bookingRepo.findByUserIdsAndDateRange({
+      userIds: calUsers.map((u) => u.id),
+      userEmails: calUsers.map((u) => u.email),
+      dateFrom,
+      dateTo,
+    });
+
+    // Keep the rescheduled booking's own slot available
+    return guestBookings
+      .filter((b) => b.uid !== rescheduleUid)
+      .map((b) => ({ start: b.startTime, end: b.endTime }));
+  }
+  private getGuestBusyTimesForReschedule = withReporting(
+    this._getGuestBusyTimesForReschedule.bind(this),
+    "getGuestBusyTimesForReschedule"
+  );
+
   private _getUsersWithCredentials({
     hosts,
   }: {
@@ -903,7 +952,7 @@ export class AvailableSlotsService {
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
     const bookingRepo = this.dependencies.bookingRepo;
-    const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
+    const [currentBookingsAllUsers, outOfOfficeDaysAllUsers, guestBusyTimes] = await Promise.all([
       bookingRepo.findAllExistingBookingsForEventTypeBetween({
         startDate: startTimeDate,
         endDate: endTimeDate,
@@ -912,6 +961,12 @@ export class AvailableSlotsService {
         userIdAndEmailMap,
       }),
       this.getOOODates(startTimeDate, endTimeDate, allUserIds),
+      this.getGuestBusyTimesForReschedule({
+        rescheduleUid: input.rescheduleUid,
+        schedulingType: eventType.schedulingType,
+        dateFrom: startTimeDate,
+        dateTo: endTimeDate,
+      }),
     ]);
 
     const bookingLimits =
@@ -1026,6 +1081,7 @@ export class AvailableSlotsService {
         eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
         teamBookingLimits: teamBookingLimitsMap,
         teamForBookingLimits: teamForBookingLimits,
+        guestBusyTimes,
       },
     });
     /* We get all users working hours and busy slots */
