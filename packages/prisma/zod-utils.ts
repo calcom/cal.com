@@ -88,6 +88,11 @@ export const eventTypeAppMetadataOptionalSchema = EventTypeAppMetadataSchema.opt
 const _eventTypeMetaDataSchemaWithoutApps = z.object({
   smartContractAddress: z.string().optional(),
   blockchainId: z.number().optional(),
+  cancelRedirectUrl: z
+    .string()
+    .url()
+    .regex(/^http(s)?:\/\/.*/)
+    .optional(),
   multipleDuration: z.number().array().optional(),
   giphyThankYouPage: z.string().optional(),
   additionalNotesRequired: z.boolean().optional(),
@@ -448,6 +453,7 @@ export const teamMetadataSchema = z
       })
       .optional(),
     billingPeriod: z.nativeEnum(BillingPeriod).optional(),
+    customBannerLogoPosition: z.enum(["top", "bottom"]).optional(),
   })
   .partial()
   .nullable();

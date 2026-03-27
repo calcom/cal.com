@@ -21,6 +21,7 @@ export interface BookerProps {
   brandColor: string;
   username: string;
   orgBannerUrl?: string | null;
+  customBannerLogoPosition?: "top" | "bottom";
   bannerUrl?: string | null;
 
   /*

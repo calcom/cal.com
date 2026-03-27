@@ -431,6 +431,9 @@ export const EventAdvancedTab = ({
       formMethods.getValues("multiplePrivateLinks")?.length !== 0
   );
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
+  const [cancelRedirectUrlVisible, setCancelRedirectUrlVisible] = useState(
+    !!formMethods.getValues("cancelRedirectUrl")
+  );
 
   const bookingFields: Prisma.JsonObject = {};
   const workflows = eventType.calIdWorkflows.map((workflowOnEventType) => workflowOnEventType.workflow);
@@ -499,6 +502,7 @@ export const EventAdvancedTab = ({
   });
 
   const successRedirectUrlLocked = shouldLockDisableProps("successRedirectUrl");
+  const cancelRedirectUrlLocked = shouldLockDisableProps("cancelRedirectUrl");
   const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
   const requiresBookerEmailVerificationProps = shouldLockDisableProps("requiresBookerEmailVerification");
   const sendCalVideoTranscriptionEmailsProps = shouldLockDisableProps("canSendCalVideoTranscriptionEmails");
@@ -879,6 +883,61 @@ export const EventAdvancedTab = ({
                   )}
                   data-testid="redirect-url-warning">
                   {t("redirect_url_warning")}
+                </div>
+              </div>
+            </SettingsToggle>
+          </>
+        )}
+      />
+      <Controller
+        name="cancelRedirectUrl"
+        render={({ field: { value, onChange } }) => (
+          <>
+            <SettingsToggle
+              labelClassName={classNames("text-sm", customClassNames?.bookingRedirect?.label)}
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                cancelRedirectUrlVisible && "rounded-b-none",
+                customClassNames?.bookingRedirect?.container
+              )}
+              childrenClassName={classNames("lg:ml-0", customClassNames?.bookingRedirect?.children)}
+              descriptionClassName={customClassNames?.bookingRedirect?.description}
+              title={t("redirect_after_cancel")}
+              data-testid="redirect-after-cancel"
+              {...cancelRedirectUrlLocked}
+              description={t("redirect_cancel_url_description")}
+              checked={cancelRedirectUrlVisible}
+              onCheckedChange={(e) => {
+                setCancelRedirectUrlVisible(e);
+                onChange(e ? value : "");
+              }}>
+              <div
+                className={classNames(
+                  "border-subtle rounded-b-lg border border-t-0 p-6",
+                  customClassNames?.bookingRedirect?.redirectUrlInput?.container
+                )}>
+                <TextField
+                  className={classNames("w-full", customClassNames?.bookingRedirect?.redirectUrlInput?.input)}
+                  label={t("redirect_after_cancel")}
+                  labelClassName={customClassNames?.bookingRedirect?.redirectUrlInput?.label}
+                  labelSrOnly
+                  disabled={cancelRedirectUrlLocked.disabled}
+                  placeholder={t("external_redirect_url")}
+                  data-testid="external-cancel-redirect-url"
+                  required={cancelRedirectUrlVisible}
+                  type="text"
+                  {...formMethods.register("cancelRedirectUrl")}
+                />
+
+                <div
+                  className={classNames(
+                    "p-1 text-sm text-orange-600",
+                    formMethods.getValues("cancelRedirectUrl") ? "block" : "hidden",
+                    customClassNames?.bookingRedirect?.error
+                  )}
+                  data-testid="cancel-redirect-url-warning">
+                  {t("redirect_url_warning_cancel")}
                 </div>
               </div>
             </SettingsToggle>

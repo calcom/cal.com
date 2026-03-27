@@ -114,6 +114,7 @@ describe("Cancel Booking", () => {
         id: idOfBookingToBeCancelled,
         uid: uidOfBookingToBeCancelled,
         cancelledBy: organizer.email,
+        autoRefund: false,
       },
     });
 
@@ -241,6 +242,7 @@ describe("Cancel Booking", () => {
         id: idOfBookingToBeCancelled,
         uid: uidOfBookingToBeCancelled,
         cancelledBy: organizer.email,
+        autoRefund: false,
       },
     });
 
@@ -306,6 +308,7 @@ describe("Cancel Booking", () => {
             id: 2,
             slotInterval: 30,
             length: 30,
+            metadata: { cancelRedirectUrl: "https://example.com/cancel-success" },
             schedulingType: "ROUND_ROBIN",
             teamId: 1,
             users: [
@@ -395,6 +398,7 @@ describe("Cancel Booking", () => {
         uid: uidOfBookingToBeCancelled,
         cancelledBy: organizer.email,
         cancellationReason: "Testing round robin cancellation with host as attendee",
+        autoRefund: false,
       },
     });
 
@@ -402,6 +406,7 @@ describe("Cancel Booking", () => {
     expect(result.bookingId).toBe(idOfBookingToBeCancelled);
     expect(result.bookingUid).toBe(uidOfBookingToBeCancelled);
     expect(result.onlyRemovedAttendee).toBe(false);
+    expect(result.cancelRedirectUrl).toBe("https://example.com/cancel-success");
 
     expectBookingCancelledWebhookToHaveBeenFired({
       booker: hostAttendee,

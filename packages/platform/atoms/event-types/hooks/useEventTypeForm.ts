@@ -113,6 +113,7 @@ export const useEventTypeForm = ({
       },
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       successRedirectUrl: eventType.successRedirectUrl || "",
+      cancelRedirectUrl: eventType.metadata?.cancelRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
       useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
@@ -196,6 +197,17 @@ export const useEventTypeForm = ({
             .url({
               message: t("invalid_url_error_message", {
                 label: t("redirect_success_booking"),
+                sampleUrl: "https://example.com",
+                interpolation: { escapeValue: false },
+              }),
+            })
+            .optional()
+            .or(z.literal("")),
+          cancelRedirectUrl: z
+            .string()
+            .url({
+              message: t("invalid_url_error_message", {
+                label: t("redirect_after_cancel"),
                 sampleUrl: "https://example.com",
                 interpolation: { escapeValue: false },
               }),
@@ -346,6 +358,7 @@ export const useEventTypeForm = ({
       customReplyToEmail,
       locations,
       metadata,
+      cancelRedirectUrl,
       customInputs,
       assignAllTeamMembers,
       // We don't need to send send these values to the backend
@@ -379,16 +392,28 @@ export const useEventTypeForm = ({
       if (!isValid) throw new Error(t("event_setup_duration_limits_error"));
     }
 
-    const layoutError = validateBookerLayouts(metadata?.bookerLayouts || null);
+    const metadataWithCancelRedirectUrl =
+      cancelRedirectUrl === undefined && metadata === undefined
+        ? undefined
+        : {
+            ...((metadata ?? values.metadata) || {}),
+            ...(cancelRedirectUrl !== undefined
+              ? {
+                  cancelRedirectUrl: cancelRedirectUrl || undefined,
+                }
+              : {}),
+          };
+
+    const layoutError = validateBookerLayouts(metadataWithCancelRedirectUrl?.bookerLayouts || null);
     if (layoutError) throw new Error(t(layoutError));
 
-    if (metadata?.multipleDuration !== undefined) {
-      if (metadata?.multipleDuration.length < 1) {
+    if (metadataWithCancelRedirectUrl?.multipleDuration !== undefined) {
+      if (metadataWithCancelRedirectUrl?.multipleDuration.length < 1) {
         throw new Error(t("event_setup_multiple_duration_error"));
       } else {
         // if length is unchanged, we skip this check
         if (length !== undefined) {
-          if (!length && !metadata?.multipleDuration?.includes(length)) {
+          if (!length && !metadataWithCancelRedirectUrl?.multipleDuration?.includes(length)) {
             //This would work but it leaves the potential of this check being useless. Need to check against length and not eventType.length, but length can be undefined
             throw new Error(t("event_setup_multiple_duration_default_error"));
           }
@@ -398,9 +423,11 @@ export const useEventTypeForm = ({
 
     // Prevent two payment apps to be enabled
     // Ok to cast type here because this metadata will be updated as the event type metadata
-    if (checkForMultiplePaymentApps(metadata)) throw new Error(t("event_setup_multiple_payment_apps_error"));
+    if (checkForMultiplePaymentApps(metadataWithCancelRedirectUrl)) {
+      throw new Error(t("event_setup_multiple_payment_apps_error"));
+    }
 
-    if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
+    if (metadataWithCancelRedirectUrl?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
       throw new Error(t("seats_and_no_show_fee_error"));
     }
 
@@ -425,7 +452,7 @@ export const useEventTypeForm = ({
       seatsPerTimeSlot,
       seatsShowAttendees,
       seatsShowAvailabilityCount,
-      metadata,
+      metadata: metadataWithCancelRedirectUrl,
       customInputs,
       children,
       assignAllTeamMembers,

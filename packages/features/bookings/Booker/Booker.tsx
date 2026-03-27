@@ -71,6 +71,7 @@ const BookerComponent = ({
   verifyCode,
   isPlatform,
   orgBannerUrl,
+  customBannerLogoPosition = "bottom",
   faviconUrl,
   customClassNames,
   areInstantMeetingParametersSet = false,
@@ -144,6 +145,7 @@ const BookerComponent = ({
   const { handleBookEvent, errors, loadingStates, expiryTime, instantVideoMeetingUrl } = bookings;
 
   const watchedCfToken = bookingForm.watch("cfToken");
+  const shouldRenderCustomBannerOnTop = !!orgBannerUrl && customBannerLogoPosition === "top";
 
   const {
     isEmailVerificationModalVisible,
@@ -332,6 +334,11 @@ const BookerComponent = ({
           `${customClassNames?.bookerWrapper}`
         )}>
         <div className="relative">
+          {shouldRenderCustomBannerOnTop && (
+            <div key="logo-top" className={classNames("flex w-full justify-center [&_img]:h-[60px]")}>
+              <Branding bannerUrl={orgBannerUrl} size="sm" />
+            </div>
+          )}
           <div
             ref={animationScope}
             data-testid="booker-container"
@@ -556,9 +563,11 @@ const BookerComponent = ({
               </m.span>
             )} */}
 
-          <div key="logo" className={classNames("my-8 flex w-full justify-center [&_img]:h-[32px]")}>
-            <Branding bannerUrl={orgBannerUrl} size={orgBannerUrl ? "sm" : "xs"} />
-          </div>
+          {!shouldRenderCustomBannerOnTop && (
+            <div key="logo" className={classNames("my-8 flex w-full justify-center [&_img]:h-[32px]")}>
+              <Branding bannerUrl={orgBannerUrl} size={orgBannerUrl ? "sm" : "xs"} />
+            </div>
+          )}
         </div>
       </div>
 

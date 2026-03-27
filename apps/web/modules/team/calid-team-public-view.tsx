@@ -200,6 +200,9 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
   const metadataHeaderUrl =
     headerUrl ?? (isPrismaObjOrUndefined(team?.metadata)?.headerUrl as string | null | undefined) ?? null;
   const resolvedHeader = getPlaceholderHeader(metadataHeaderUrl, team.name);
+  const customBannerLogoPosition = metadata?.customBannerLogoPosition === "top" ? "top" : "bottom";
+  const customBannerLogoUrl = team.bannerUrl ? getBrandLogoUrl({ bannerUrl: team.bannerUrl }) : null;
+  const shouldRenderCustomBannerOnTop = !!team.bannerUrl && customBannerLogoPosition === "top";
 
   return (
     <div className="bg-default flex min-h-screen w-full flex-col">
@@ -210,6 +213,11 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
         }}
       />
       <main className="bg-default h-full w-full">
+        {shouldRenderCustomBannerOnTop && (
+          <div key="logo-top" className="mb-8 mt-8 flex w-full justify-center [&_img]:h-[60px]">
+            <Branding size="xs" bannerUrl={customBannerLogoUrl} />
+          </div>
+        )}
         <div
           className="border-subtle bg-cal-gradient text-default mb-4 flex flex-col items-center bg-cover bg-center p-4"
           style={{
@@ -344,15 +352,16 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain, headerUrl }: Pa
           </>
         )}
 
-        {team.bannerUrl ? (
-          <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
-            <Branding size="xs" bannerUrl={getBrandLogoUrl({ bannerUrl: team.bannerUrl })} />
-          </div>
-        ) : (
-          <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
-            <Branding size="xs" />
-          </div>
-        )}
+        {!shouldRenderCustomBannerOnTop &&
+          (team.bannerUrl ? (
+            <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
+              <Branding size="xs" bannerUrl={customBannerLogoUrl} />
+            </div>
+          ) : (
+            <div key="logo" className="mb-8 flex w-full justify-center [&_img]:h-[32px]">
+              <Branding size="xs" />
+            </div>
+          ))}
       </main>
     </div>
   );

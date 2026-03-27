@@ -155,6 +155,13 @@ export const EventTypeActions = ({
           return current !== defaultVal;
         }
 
+        // Special handling for cancelRedirectUrl (empty string vs actual URL)
+        if (key === "cancelRedirectUrl") {
+          const current = currentValue || "";
+          const defaultVal = defaultValue || "";
+          return current !== defaultVal;
+        }
+
         // Special handling for interfaceLanguage and locations
         if (key === "interfaceLanguage") {
           const current = currentValue || "";

@@ -77,6 +77,7 @@ export type HandleCancelBookingResponse = {
   onlyRemovedAttendee: boolean;
   bookingId: number;
   bookingUid: string;
+  cancelRedirectUrl?: string | null;
   cancelledInstancesCount?: number;
 };
 
@@ -440,6 +441,10 @@ async function handler(input: CancelBookingInput) {
     platformBookingUrl,
   };
 
+  const cancelRedirectUrl =
+    eventTypeMetaDataSchemaWithTypedApps.safeParse(bookingToDelete.eventType?.metadata || null).data
+      ?.cancelRedirectUrl ?? null;
+
   // Handle seated events
   if (!!seatReferenceUid) {
     log.debug("Handling cancellation for seated event", { seatReferenceUid });
@@ -461,6 +466,7 @@ async function handler(input: CancelBookingInput) {
           onlyRemovedAttendee: true,
           bookingId: bookingToDelete.id,
           bookingUid: bookingToDelete.uid,
+          cancelRedirectUrl,
           message: "Attendee successfully removed.",
         } satisfies HandleCancelBookingResponse;
       }
@@ -845,6 +851,7 @@ async function handler(input: CancelBookingInput) {
     onlyRemovedAttendee: false,
     bookingId: bookingToDelete.id,
     bookingUid: bookingToDelete.uid,
+    cancelRedirectUrl,
     ...(deleteType === "instance" && { cancelledInstancesCount }),
   } satisfies HandleCancelBookingResponse;
 }

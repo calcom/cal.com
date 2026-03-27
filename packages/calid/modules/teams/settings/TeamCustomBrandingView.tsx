@@ -41,6 +41,8 @@ interface TeamCustomBrandingViewProps {
   teamId: number;
 }
 
+type CustomBannerLogoPosition = "top" | "bottom";
+
 export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingViewProps) {
   const { t } = useLocale();
   const router = useRouter();
@@ -60,6 +62,8 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
   const [lightModeError, setLightModeError] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [uploadingPublicBanner, setUploadingPublicBanner] = useState(false);
+  const [customBannerLogoPosition, setCustomBannerLogoPosition] =
+    useState<CustomBannerLogoPosition>("bottom");
 
   const brandColorsForm = useForm<TeamBrandColorsSetting>({
     resolver: zodResolver(brandColorsFormSchema),
@@ -157,6 +161,9 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
       publicBannerFormMethods.reset({
         headerUrl: (isPrismaObjOrUndefined(team.metadata)?.headerUrl as string | null) ?? null,
       });
+      const metadata = isPrismaObjOrUndefined(team.metadata);
+      const metadataLogoPosition = metadata?.customBannerLogoPosition;
+      setCustomBannerLogoPosition(metadataLogoPosition === "top" ? "top" : "bottom");
     }
   }, [team, brandColorsForm, bannerFormMethods, faviconFormMethods, publicBannerFormMethods]);
 
@@ -424,6 +431,50 @@ export default function TeamCustomBrandingView({ teamId }: TeamCustomBrandingVie
                               )}
                             </div>
                           </div>
+                          {value && (
+                            <div className="mt-4">
+                              <div className="text-sm font-medium">{t("brand_logo_position")}</div>
+                              <div className="text-subtle mb-2 text-sm">{t("brand_logo_position_description")}</div>
+                              <div className="flex gap-2">
+                                <Button
+                                  type="button"
+                                  color={customBannerLogoPosition === "top" ? "primary" : "secondary"}
+                                  disabled={mutation.isPending}
+                                  onClick={async () => {
+                                    if (customBannerLogoPosition === "top") {
+                                      return;
+                                    }
+                                    setCustomBannerLogoPosition("top");
+                                    await updateTeamSetting({
+                                      metadata: {
+                                        ...isPrismaObjOrUndefined(team?.metadata),
+                                        customBannerLogoPosition: "top",
+                                      },
+                                    });
+                                  }}>
+                                  {t("logo_position_top")}
+                                </Button>
+                                <Button
+                                  type="button"
+                                  color={customBannerLogoPosition === "bottom" ? "primary" : "secondary"}
+                                  disabled={mutation.isPending}
+                                  onClick={async () => {
+                                    if (customBannerLogoPosition === "bottom") {
+                                      return;
+                                    }
+                                    setCustomBannerLogoPosition("bottom");
+                                    await updateTeamSetting({
+                                      metadata: {
+                                        ...isPrismaObjOrUndefined(team?.metadata),
+                                        customBannerLogoPosition: "bottom",
+                                      },
+                                    });
+                                  }}>
+                                  {t("logo_position_bottom")}
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     }}
