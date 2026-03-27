@@ -19,4 +19,13 @@ export class CreateOrganizationUserInput extends CreateUserInput {
   @IsBoolean()
   @ApiPropertyOptional({ type: Boolean, default: true })
   autoAccept = true;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    type: Boolean,
+    default: false,
+    description: "If true, the signup notification email will not be sent to the new user.",
+  })
+  skipNotificationEmail = false;
 }

@@ -105,14 +105,15 @@ export class OrganizationsUsersService {
       updateUserBody
     );
 
-    // Need to send email to new user to create password
-    await this.emailService.sendSignupToOrganizationEmail({
-      usernameOrEmail: userCreateBody.email,
-      orgName: org.name,
-      orgId: org.id,
-      locale: user?.locale,
-      inviterName,
-    });
+    if (!userCreateBody.skipNotificationEmail) {
+      await this.emailService.sendSignupToOrganizationEmail({
+        usernameOrEmail: userCreateBody.email,
+        orgName: org.name,
+        orgId: org.id,
+        locale: user?.locale,
+        inviterName,
+      });
+    }
 
     return user;
   }
