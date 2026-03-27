@@ -2213,4 +2213,49 @@ export class BookingRepository implements IBookingRepository {
       },
     });
   }
+
+  /**
+   * Find a booking by UID and include its attendees' emails.
+   * Used to determine who to check availability for when rescheduling.
+   */
+  async findByUidForAttendeeEmails({ uid }: { uid: string }) {
+    return this.prismaClient.booking.findUnique({
+      where: { uid },
+      select: {
+        uid: true,
+        attendees: {
+          select: { email: true },
+        },
+      },
+    });
+  }
+
+  /**
+   * Find accepted bookings for the given user IDs within a date range.
+   * Used to build guest busy times when the host reschedules.
+   */
+  async findAcceptedBookingsByUserIdsInRange({
+    userIds,
+    startTime,
+    endTime,
+  }: {
+    userIds: number[];
+    startTime: Date;
+    endTime: Date;
+  }) {
+    if (!userIds.length) return [];
+    return this.prismaClient.booking.findMany({
+      where: {
+        userId: { in: userIds },
+        status: BookingStatus.ACCEPTED,
+        startTime: { lt: endTime },
+        endTime: { gt: startTime },
+      },
+      select: {
+        uid: true,
+        startTime: true,
+        endTime: true,
+      },
+    });
+  }
 }
