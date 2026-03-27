@@ -95,12 +95,12 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
                       previousDayRange && previousDayRange.length > 0 ? previousDayRange : [DEFAULT_DAY_RANGE]
                     ) as TFieldValues[typeof name];
 
-                    setValue(name, newValue);
+                    setValue(name, newValue, { shouldDirty: true });
                   } else {
                     if (watchDayRange && watchDayRange.length > 0) {
                       lastNonEmptyDayRangeRef.current = watchDayRange as unknown as TimeRange[];
                     }
-                    setValue(name, [] as TFieldValues[typeof name]);
+                    setValue(name, [] as TFieldValues[typeof name], { shouldDirty: true });
                   }
                 }}
               />
@@ -167,7 +167,9 @@ const CopyButton = ({
           weekStart={weekStart}
           disabled={parseInt(getValuesFromDayRange.replace(`${fieldArrayName}.`, ""), 10)}
           onClick={(selected) => {
-            selected.forEach((day) => setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange)));
+            selected.forEach((day) =>
+              setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange), { shouldDirty: true })
+            );
             setOpen(false);
           }}
           onCancel={() => setOpen(false)}
