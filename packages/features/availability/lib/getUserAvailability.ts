@@ -620,8 +620,8 @@ export class UserAvailabilityService {
 
     const guestBusyTimesFormatted: EventBusyDetails[] = (initialData?.guestBusyTimes ?? []).map(
       (t) => ({
-        start: dayjs(t.start).toISOString(),
-        end: dayjs(t.end).toISOString(),
+        start: dayjs.utc(t.start).toISOString(),
+        end: dayjs.utc(t.end).toISOString(),
         title: "Guest busy",
         source: withSource ? "guest-availability" : undefined,
       })
