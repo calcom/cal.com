@@ -92,7 +92,7 @@
     "classnames": "2.3.2",
     "dompurify": "3.3.2",
     "entities": "4.5.0",
-    "handlebars": "4.7.7",
+    "handlebars": "4.7.9",
     "i18next": "23.2.3",
     "ical.js": "1.5.0",
     "ics": "2.37.0",
@@ -151,7 +151,6 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
-    "@types/three": "^0.183.1",
     "@babel/core": "7.26.10",
     "@biomejs/biome": "2.3.10",
     "@calcom/config": "workspace:*",
@@ -181,6 +180,7 @@
     "@types/remove-markdown": "0.3.1",
     "@types/sanitize-html": "2.9.0",
     "@types/stripe": "8.0.417",
+    "@types/three": "^0.183.1",
     "@types/turndown": "5.0.1",
     "@types/uuid": "8.3.1",
     "autoprefixer": "10.4.19",
