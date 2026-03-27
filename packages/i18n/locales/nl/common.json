@@ -4174,7 +4174,7 @@
   "agplv3_license_description": "Gebruik Cal.com onder de AGPLv3 open source licentie",
   "enter_license_key": "Voer licentiesleutel in",
   "enter_your_license_key": "Toegang tot alle enterprise-functies",
-  "enter_existing_license": "Vanaf €{{price}}/gebruiker per maand",
+  "enter_existing_license": "Vanaf ${{price}}/gebruiker per maand",
   "enter_license_key_description": "Toegang tot alle enterprise-functies",
   "license_key_placeholder": "Voer je licentiesleutel in",
   "save_license_key": "Licentiesleutel opslaan",
