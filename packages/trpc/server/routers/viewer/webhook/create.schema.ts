@@ -1,13 +1,16 @@
-import { z } from "zod";
-
 import { TIME_UNIT } from "@calcom/features/ee/workflows/lib/constants";
 import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
 import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
-
+import { z } from "zod";
 import { webhookIdAndEventTypeIdSchema } from "./types";
 
 export const ZCreateInputSchema = webhookIdAndEventTypeIdSchema.extend({
-  subscriberUrl: z.string().url(),
+  subscriberUrl: z
+    .string()
+    .url()
+    .refine((url) => url.startsWith("https://") || url.startsWith("http://"), {
+      message: "Webhook URL must use http or https protocol",
+    }),
   eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array(),
   active: z.boolean(),
   payloadTemplate: z.string().nullable(),
