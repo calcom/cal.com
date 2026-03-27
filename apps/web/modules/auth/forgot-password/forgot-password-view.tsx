@@ -61,6 +61,10 @@ export default function ForgotPassword(props: PageProps) {
     debounce((args: { email: string }) => submitRef.current(args), 250)
   ).current;
 
+  React.useEffect(() => {
+    return () => debouncedHandleSubmitPasswordRequest.cancel();
+  }, []);
+
   const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
 
