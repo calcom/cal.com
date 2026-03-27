@@ -69,14 +69,19 @@ export const PriorityDialog = (
       if (hostGroupToSort) {
         sortedHostGroup = hostGroupToSort
           .map((host) => {
+            const isTarget = host.isEmailInvite
+              ? option.isEmailInvite && host.email === option.email
+              : host.userId === parseInt(option.value, 10);
             return {
               ...option,
-              value: host.userId.toString(),
-              priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
+              value: host.isEmailInvite ? `email-${host.email}` : host.userId.toString(),
+              priority: isTarget ? newPriority.value : host.priority,
               isFixed: false,
               weight: host.weight,
               groupId: host.groupId,
               userId: host.userId,
+              isEmailInvite: host.isEmailInvite,
+              email: host.email,
             };
           })
           .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
@@ -87,12 +92,14 @@ export const PriorityDialog = (
       const otherGroupsOptions = otherGroupsHosts.map((host) => {
         return {
           ...option,
-          value: host.userId.toString(),
+          value: host.isEmailInvite ? `email-${host.email}` : host.userId.toString(),
           priority: host.priority,
           weight: host.weight,
           isFixed: host.isFixed,
           groupId: host.groupId,
           userId: host.userId,
+          isEmailInvite: host.isEmailInvite,
+          email: host.email,
         };
       });
       const updatedHosts = [...otherGroupsOptions, ...sortedHostGroup];
@@ -150,7 +157,10 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
       const groupedHosts = groupHostsByGroupId({ hosts: rrHosts, hostGroups });
 
       const updateHostWeight = (host: Host) => {
-        if (host.userId === parseInt(option.value, 10)) {
+        const isTarget = host.isEmailInvite
+          ? option.isEmailInvite && host.email === option.email
+          : host.userId === parseInt(option.value, 10);
+        if (isTarget) {
           return { ...host, weight: newWeight };
         }
         return host;
@@ -167,12 +177,13 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
       if (hostGroupToSort) {
         sortedHostGroup = hostGroupToSort
           .map((host) => {
-            const userOption = options.find((opt) => opt.value === host.userId.toString());
+            const hostValue = host.isEmailInvite ? `email-${host.email}` : host.userId.toString();
+            const userOption = options.find((opt) => opt.value === hostValue);
             const updatedHost = updateHostWeight(host);
             return {
               ...updatedHost,
               avatar: userOption?.avatar ?? "",
-              label: userOption?.label ?? host.userId.toString(),
+              label: userOption?.label ?? (host.isEmailInvite ? host.email ?? "" : host.userId.toString()),
             };
           })
           .sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
@@ -181,26 +192,31 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
       const updatedOptions = sortedHostGroup.map((host) => ({
         avatar: host.avatar,
         label: host.label,
-        value: host.userId.toString(),
+        value: host.isEmailInvite ? `email-${host.email}` : host.userId.toString(),
         priority: host.priority,
         weight: host.weight,
         isFixed: host.isFixed,
         groupId: host.groupId,
+        isEmailInvite: host.isEmailInvite,
+        email: host.email,
       }));
 
       // Preserve hosts from other groups
       const otherGroupsHosts = getHostsFromOtherGroups(rrHosts, option.groupId);
 
       const otherGroupsOptions = otherGroupsHosts.map((host) => {
-        const userOption = options.find((opt) => opt.value === host.userId.toString());
+        const hostValue = host.isEmailInvite ? `email-${host.email}` : host.userId.toString();
+        const userOption = options.find((opt) => opt.value === hostValue);
         return {
           avatar: userOption?.avatar ?? "",
-          label: userOption?.label ?? host.userId.toString(),
-          value: host.userId.toString(),
+          label: userOption?.label ?? (host.isEmailInvite ? host.email ?? "" : host.userId.toString()),
+          value: hostValue,
           priority: host.priority,
           weight: host.weight,
           isFixed: host.isFixed,
           groupId: host.groupId,
+          isEmailInvite: host.isEmailInvite,
+          email: host.email,
         };
       });
       const newFullValue = [...otherGroupsOptions, ...updatedOptions];
