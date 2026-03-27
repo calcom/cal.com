@@ -197,7 +197,7 @@ function BookingsContent({ status }: BookingsProps) {
           },
         },
       }),
-      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.team?.id, {
+      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.calIdTeam?.id, {
         id: "teamId",
         header: t("team"),
         enableColumnFilter: true,

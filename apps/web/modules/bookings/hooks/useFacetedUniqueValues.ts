@@ -8,8 +8,11 @@ import { useEventTypes } from "./useEventTypes";
 
 export function useFacetedUniqueValues() {
   const eventTypes = useEventTypes();
-  const { data: teams } = trpc.viewer.teams.list.useQuery();
-  const { data: members } = trpc.viewer.teams.listSimpleMembers.useQuery();
+  const { data: calIdTeams } = trpc.viewer.calidTeams.list.useQuery();
+  const { data: calIdMembers } = trpc.viewer.calidTeams.allTeamsListMembers.useQuery({
+    limit: 500,
+    paging: 0,
+  });
 
   return useCallback(
     (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {
@@ -17,14 +20,24 @@ export function useFacetedUniqueValues() {
         return convertFacetedValuesToMap(eventTypes || []);
       } else if (columnId === "teamId") {
         return convertFacetedValuesToMap(
-          (teams || []).map((team) => ({
+          (calIdTeams || [])
+            .filter((team) => team.acceptedInvitation)
+            .map((team) => ({
             label: team.name,
             value: team.id,
-          }))
+            }))
         );
       } else if (columnId === "userId") {
+        const uniqueMembers = Array.from(
+          new Map(
+            (calIdMembers?.members || [])
+              .filter((member) => member.acceptedInvitation)
+              .map((member) => [member.user.id, member.user])
+          ).values()
+        );
+
         return convertFacetedValuesToMap(
-          (members || [])
+          uniqueMembers
             .map((member) => ({
               label: member.name,
               value: member.id,
@@ -34,6 +47,6 @@ export function useFacetedUniqueValues() {
       }
       return new Map<FacetedValue, number>();
     },
-    [eventTypes, teams, members]
+    [eventTypes, calIdTeams, calIdMembers]
   );
 }
