@@ -33,6 +33,7 @@ jobs:
           branch: main
           name: coverage-baseline-unit
           path: coverage/base/unit
+           workflow_conclusion: ''
           if_no_artifact_found: warn
         continue-on-error: true
 
@@ -43,6 +44,7 @@ jobs:
           branch: main
           name: coverage-baseline-integration
           path: coverage/base/integration
+           workflow_conclusion: ''
           if_no_artifact_found: warn
         continue-on-error: true
 
