@@ -1,21 +1,19 @@
-import { describe, it, expect } from "vitest";
-
 import type { App } from "@calcom/types/App";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
+import { describe, expect, it } from "vitest";
+import type { CredentialDataWithTeamName, LocationOption } from "./utils";
 import {
-  sanitizeAppForViewer,
-  default as getApps,
-  getAppFromSlug,
-  getAppFromLocationValue,
   doesAppSupportTeamInstall,
+  getAppFromLocationValue,
+  getAppFromSlug,
+  getAppName,
+  default as getApps,
+  getAppType,
   getLocalAppMetadata,
   hasIntegrationInstalled,
-  getAppName,
-  getAppType,
   isConferencing,
+  sanitizeAppForViewer,
 } from "./utils";
-import type { CredentialDataWithTeamName, LocationOption } from "./utils";
 
 describe("sanitizeAppForViewer", () => {
   it("should remove key, credential, and credentials properties", () => {
@@ -251,7 +249,11 @@ describe("getAppFromLocationValue", () => {
 describe("doesAppSupportTeamInstall", () => {
   it("should return false for paid apps", () => {
     expect(
-      doesAppSupportTeamInstall({ appCategories: ["conferencing"], concurrentMeetings: undefined, isPaid: true })
+      doesAppSupportTeamInstall({
+        appCategories: ["conferencing"],
+        concurrentMeetings: undefined,
+        isPaid: true,
+      })
     ).toBe(false);
   });
 
@@ -302,7 +304,9 @@ describe("hasIntegrationInstalled", () => {
   });
 
   it("should return false for a nonexistent app type", () => {
-    expect(hasIntegrationInstalled("nonexistent_other" as Parameters<typeof hasIntegrationInstalled>[0])).toBe(false);
+    expect(
+      hasIntegrationInstalled("nonexistent_other" as Parameters<typeof hasIntegrationInstalled>[0])
+    ).toBe(false);
   });
 });
 
@@ -337,6 +341,14 @@ describe("getAppType", () => {
     const paymentApp = apps.find((a) => a.type.endsWith("_payment"));
     if (paymentApp) {
       expect(getAppType(paymentApp.dirName ?? paymentApp.slug)).toBe("Payment");
+    }
+  });
+
+  it("should return Unknown for non-calendar, non-payment type apps", () => {
+    const apps = getLocalAppMetadata();
+    const otherApp = apps.find((a) => !a.type.endsWith("_calendar") && !a.type.endsWith("_payment"));
+    if (otherApp) {
+      expect(getAppType(otherApp.dirName ?? otherApp.slug)).toBe("Unknown");
     }
   });
 });

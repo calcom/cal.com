@@ -1,13 +1,10 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, expect, test, vi, beforeEach } from "vitest";
-
 import tasker from "@calcom/features/tasker";
-
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
   scanWorkflowUrls,
-  submitWorkflowStepForUrlScanning,
   submitUrlForUrlScanning,
+  submitWorkflowStepForUrlScanning,
 } from "../scanWorkflowUrls";
 
 // Mock the urlScanner module
@@ -50,9 +47,9 @@ vi.mock("@calcom/features/ee/api-keys/lib/autoLock", () => ({
   lockUser: vi.fn().mockResolvedValue(undefined),
 }));
 
+import { lockUser } from "@calcom/features/ee/api-keys/lib/autoLock";
 // Import mocked modules for assertions
 import * as urlScanner from "@calcom/features/ee/workflows/lib/urlScanner";
-import { lockUser } from "@calcom/features/ee/api-keys/lib/autoLock";
 
 describe("scanWorkflowUrls", () => {
   beforeEach(() => {
@@ -458,6 +455,41 @@ describe("scanWorkflowUrls", () => {
 
         expect(tasker.create).not.toHaveBeenCalled();
       });
+    });
+  });
+
+  describe("sanitizeUrlForLogging (via scanWorkflowUrls)", () => {
+    test("should handle invalid URLs gracefully when submitting for scanning", async () => {
+      vi.mocked(urlScanner.isUrlScanningEnabled).mockReturnValue(true);
+      // Return error so it logs using sanitizeUrlForLogging with an invalid URL
+      vi.mocked(urlScanner.submitUrlForScanning).mockResolvedValue({ error: "API error" });
+
+      // Create a workflow step
+      await prismock.workflowStep.create({
+        data: {
+          id: 106,
+          stepNumber: 1,
+          action: "EMAIL_HOST",
+          template: "REMINDER",
+          workflowId: 1,
+        },
+      });
+
+      // Use an invalid URL to exercise the sanitizeUrlForLogging catch branch
+      const payload = JSON.stringify({
+        userId: 1,
+        workflowStepId: 106,
+        urls: ["not-a-valid-url"],
+      });
+
+      await scanWorkflowUrls(payload);
+
+      expect(urlScanner.submitUrlForScanning).toHaveBeenCalledWith("not-a-valid-url");
+      // Should still mark as verified (fail-open) since the submission failed
+      const workflowStep = await prismock.workflowStep.findUnique({
+        where: { id: 106 },
+      });
+      expect(workflowStep?.verifiedAt).toBeTruthy();
     });
   });
 });

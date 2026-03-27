@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
-
 import {
-  DEFAULT_SCHEDULE,
-  MINUTES_DAY_END,
-  MINUTES_DAY_START,
-  MINUTES_IN_DAY,
   availabilityAsString,
+  DEFAULT_SCHEDULE,
   defaultDayRange,
   getAvailabilityFromSchedule,
   getWorkingHours,
+  MINUTES_DAY_END,
+  MINUTES_DAY_START,
+  MINUTES_IN_DAY,
 } from "./availability";
 
 describe("defaultDayRange", () => {
@@ -254,6 +253,24 @@ describe("getWorkingHours", () => {
     const result = getWorkingHours({ timeZone: "UTC" }, availability);
     expect(result).toHaveLength(1);
     expect(result[0].startTime).toBeLessThanOrEqual(result[0].endTime);
+  });
+
+  it("skips same-day entry when input endTime is before startTime (inverted range)", () => {
+    // When endTime < startTime in the input, clamping can produce sameDayEndTime < sameDayStartTime
+    const availability = [
+      {
+        days: [1],
+        startTime: new Date("2025-01-01T17:00:00Z"), // 1020 min
+        endTime: new Date("2025-01-01T09:00:00Z"), // 540 min
+      },
+    ];
+
+    // With UTC offset 0: startTime=1020, endTime=540
+    // sameDayStartTime=1020, sameDayEndTime=540 → 540 < 1020 → early return
+    const result = getWorkingHours({ utcOffset: 0 }, availability);
+    // No same-day entry should be pushed (the inverted range is skipped)
+    const sameDayEntry = result.find((wh) => wh.days.includes(1) && wh.startTime === 1020);
+    expect(sameDayEntry).toBeUndefined();
   });
 });
 

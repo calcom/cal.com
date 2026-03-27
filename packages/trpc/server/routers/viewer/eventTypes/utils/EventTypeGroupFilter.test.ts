@@ -1,7 +1,5 @@
-import { describe, it, expect } from "vitest";
-
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { describe, expect, it } from "vitest";
 import { filterEvents } from "./EventTypeGroupFilter";
 import type { TeamPermissions } from "./permissionUtils";
 import type { EventTypeGroup } from "./transformUtils";
@@ -102,6 +100,28 @@ describe("EventTypeGroupFilter", () => {
         .has("unknown.permission" as "eventType.read")
         .get();
 
+      expect(result).toHaveLength(0);
+    });
+
+    it("should exclude team group when teamId is not found in permissionsMap", () => {
+      const unknownTeamGroup: EventTypeGroup = {
+        teamId: 999,
+        bookerUrl: "https://cal.com/unknown-team",
+        membershipRole: MembershipRole.MEMBER,
+        profile: {
+          slug: "unknown-team",
+          name: "Unknown Team",
+          image: "unknown.jpg",
+        },
+        metadata: {
+          membershipCount: 2,
+          readOnly: false,
+        },
+      };
+
+      const result = filterEvents([unknownTeamGroup], mockPermissionsMap).has("eventType.read").get();
+
+      // Team 999 is not in permissionsMap, so it should be excluded
       expect(result).toHaveLength(0);
     });
   });

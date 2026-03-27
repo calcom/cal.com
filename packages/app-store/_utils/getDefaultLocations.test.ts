@@ -1,9 +1,6 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
-
 import { getGoogleMeetCredential, TestData } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-
 import { describe, expect, it } from "vitest";
-
 import { DailyLocationType, MeetLocationType } from "../locations";
 import { getDefaultLocations } from "./getDefaultLocations";
 
@@ -26,7 +23,7 @@ type User = {
         refresh_token?: string;
         scope: string;
       };
-    }
+    },
   ];
 };
 describe("getDefaultLocation ", async () => {
@@ -70,6 +67,25 @@ describe("getDefaultLocation ", async () => {
         type: DailyLocationType,
       })
     );
+  });
+
+  it("should return empty array when daily-video has no api_key", async () => {
+    const user: User = {
+      id: 102,
+      email: "test2@example.com",
+      metadata: {},
+    };
+    await mockUser(user);
+    // Create daily-video app but with empty keys (no api_key)
+    await prismaMock.app.create({
+      data: {
+        ...TestData.apps["daily-video"],
+        enabled: true,
+        keys: {},
+      },
+    });
+    const res = await getDefaultLocations(user);
+    expect(res).toEqual([]);
   });
 });
 

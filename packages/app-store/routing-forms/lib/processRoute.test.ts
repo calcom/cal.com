@@ -1,9 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { FormResponse, SerializableForm } from "../types/types";
 import { findMatchingRoute } from "./processRoute";
 
@@ -82,6 +80,42 @@ describe("findMatchingRoute", () => {
     expect(result).toBeNull();
   });
 
+  it("should skip null routes in the routes array", () => {
+    vi.mocked(evaluateRaqbLogic).mockReturnValue(RaqbLogicResult.MATCH);
+
+    // Create a form with a null route injected via router expansion
+    const form: Pick<SerializableForm<never>, "routes" | "fields"> = {
+      routes: [
+        {
+          id: "router-1",
+          isRouter: true,
+          // routes is undefined, so flatMap produces undefined entries
+          routes: undefined as never,
+        },
+        {
+          id: "route-1",
+          name: "Real Route",
+          isFallback: false,
+          queryValue: { type: "group" },
+          action: { type: "customPageMessage", value: "test" },
+        },
+        {
+          id: "fallback",
+          isFallback: true,
+          queryValue: { type: "group" },
+          action: { type: "customPageMessage", value: "fallback" },
+        },
+      ] as never,
+      fields: [],
+    };
+
+    const response = { "field-1": { value: "test-value" } };
+    const result = findMatchingRoute({ form, response });
+
+    // Should skip null entries and match the real route
+    expect(result).not.toBeNull();
+  });
+
   describe("tracing", () => {
     it("should call routeMatched when a non-fallback route matches", () => {
       vi.mocked(evaluateRaqbLogic).mockReturnValue(RaqbLogicResult.MATCH);
@@ -155,10 +189,7 @@ describe("findMatchingRoute", () => {
     it("should use route id as name when route has no name", () => {
       vi.mocked(evaluateRaqbLogic).mockReturnValue(RaqbLogicResult.MATCH);
 
-      const form = createMockForm([
-        { id: "route-123" },
-        { id: "fallback", isFallback: true },
-      ]);
+      const form = createMockForm([{ id: "route-123" }, { id: "fallback", isFallback: true }]);
 
       const result = findMatchingRoute({
         form,

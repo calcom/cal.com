@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 const appSchema = z.object({
@@ -96,5 +96,28 @@ describe("parseRefreshTokenResponse", () => {
     };
     const result = parseRefreshTokenResponse(response, appSchema);
     expect(result.refresh_token).toBe("existing_refresh");
+  });
+
+  it("should reject minimumTokenResponseSchema when no numeric expiry field exists", async () => {
+    process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT = "https://sync.example.com";
+
+    vi.doMock("@calcom/lib/constants", async (importOriginal) => {
+      const original = (await importOriginal()) as Record<string, unknown>;
+      return {
+        ...original,
+        APP_CREDENTIAL_SHARING_ENABLED: true,
+      };
+    });
+
+    const { default: parseRefreshTokenResponse } = await import("./parseRefreshTokenResponse");
+
+    // Response has access_token but no numeric field for expiry
+    const response = {
+      access_token: "new_access",
+      refresh_token: "some_token",
+    };
+    expect(() => parseRefreshTokenResponse(response, appSchema)).toThrow(
+      "Invalid refreshed tokens were returned"
+    );
   });
 });
