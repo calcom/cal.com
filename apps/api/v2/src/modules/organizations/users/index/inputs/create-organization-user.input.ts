@@ -17,7 +17,12 @@ export class CreateOrganizationUserInput extends CreateUserInput {
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional({ type: Boolean, default: true })
+  @ApiPropertyOptional({
+    type: Boolean,
+    default: true,
+    description:
+      "Must be true to ensure the organization membership is created in accepted state. If false, the user will have a pending membership and will not be able to access the organization.",
+  })
   autoAccept = true;
 
   @IsOptional()

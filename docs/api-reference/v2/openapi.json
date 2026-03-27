@@ -23924,7 +23924,13 @@
           },
           "autoAccept": {
             "type": "boolean",
-            "default": true
+            "default": true,
+            "description": "Must be true to ensure the organization membership is created in accepted state. If false, the user will have a pending membership and will not be able to access the organization."
+          },
+          "skipNotificationEmail": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, the signup notification email will not be sent to the new user."
           }
         },
         "required": ["email"]
@@ -30887,6 +30893,12 @@
           "timeZone": {
             "type": "string"
           },
+          "locale": {
+            "type": "string",
+            "nullable": true,
+            "example": "en",
+            "description": "The user's locale setting"
+          },
           "organizationId": {
             "type": "number",
             "nullable": true
@@ -30906,6 +30918,7 @@
           "defaultScheduleId",
           "weekStart",
           "timeZone",
+          "locale",
           "organizationId"
         ]
       },
@@ -32048,6 +32061,11 @@
           "seatUid": {
             "type": "string",
             "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z",
+            "description": "The date and time when the attendee joined the seated booking."
           },
           "bookingFieldsResponses": {
             "type": "object",
