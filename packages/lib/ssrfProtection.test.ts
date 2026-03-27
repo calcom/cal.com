@@ -58,6 +58,9 @@ describe("isPrivateIP", () => {
 describe("isBlockedHostname", () => {
   it.each([
     "localhost", // loopback hostname
+    "127.0.0.1", // IPv4 loopback
+    "::1", // IPv6 loopback
+    "0.0.0.0", // unspecified address
     "169.254.169.254", // AWS/Azure/DigitalOcean
     "metadata.google.internal", // GCP
     "169.254.169.254.", // trailing dot normalization
@@ -104,7 +107,8 @@ describe("validateUrlForSSRFSync", () => {
     ["http://example.com/logo.png", "Only HTTPS URLs are allowed"],
     ["ftp://example.com/file", "Only HTTPS URLs are allowed"],
     ["data:text/html,<script>alert(1)</script>", "Non-image data URL"],
-    ["https://127.0.0.1/logo.png", "Private IP address"],
+    ["https://127.0.0.1/logo.png", "Blocked hostname"],
+    ["https://0.0.0.0/logo.png", "Blocked hostname"],
     ["https://169.254.169.254/latest/meta-data/", "Blocked hostname"],
     ["https://localhost/logo.png", "Blocked hostname"],
     ["not-a-url", "Invalid URL format"],
