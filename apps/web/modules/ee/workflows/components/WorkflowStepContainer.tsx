@@ -753,6 +753,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           t,
                           template: WorkflowTemplates.REMINDER,
                           timeFormat,
+                          showRescheduleAndCancelSection: true,
                         });
 
                         form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
@@ -1280,6 +1281,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             t,
                             template: value ?? WorkflowTemplates.REMINDER,
                             timeFormat,
+                            showRescheduleAndCancelSection: true,
                           });
 
                           form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
@@ -1294,6 +1296,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                   t,
                                   action,
                                   timeFormat,
+                                  showRescheduleAndCancelSection: true,
                                 }).emailSubject
                               );
                             } else if (value === WorkflowTemplates.RATING) {

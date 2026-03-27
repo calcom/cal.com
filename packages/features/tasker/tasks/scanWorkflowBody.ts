@@ -107,23 +107,42 @@ export async function scanWorkflowBody(payload: string) {
 
       const timeFormat = getTimeFormatStringFromUserTimeFormat(workflowStep.workflow.user?.timeFormat);
 
-      // Determine if body is a template
-      const defaultTemplate = getTemplateBodyForAction({
+      const locale = workflowStep.workflow.user?.locale ?? "en";
+      const t = await getTranslation(locale, "common");
+
+      // Current template includes the reschedule/cancel section
+      const currentTemplate = getTemplateBodyForAction({
         action: workflowStep.action,
-        locale: workflowStep.workflow.user?.locale ?? "en",
-        t: await getTranslation(workflowStep.workflow.user?.locale ?? "en", "common"),
+        locale,
+        t,
         template: workflowStep.template,
         timeFormat,
+        showRescheduleAndCancelSection: true,
       });
 
-      if (!defaultTemplate) {
+      // Legacy template without the reschedule/cancel section
+      const legacyTemplate = getTemplateBodyForAction({
+        action: workflowStep.action,
+        locale,
+        t,
+        template: workflowStep.template,
+        timeFormat,
+        showRescheduleAndCancelSection: false,
+      });
+
+      if (!currentTemplate && !legacyTemplate) {
         log.error(`Template not found for action ${workflowStep.action}, template ${workflowStep.template}`);
         continue;
       }
 
-      if (
-        compareReminderBodyToTemplate({ reminderBody: workflowStep.reminderBody, template: defaultTemplate })
-      ) {
+      const matchesCurrent =
+        currentTemplate &&
+        compareReminderBodyToTemplate({ reminderBody: workflowStep.reminderBody, template: currentTemplate });
+      const matchesLegacy =
+        legacyTemplate &&
+        compareReminderBodyToTemplate({ reminderBody: workflowStep.reminderBody, template: legacyTemplate });
+
+      if (matchesCurrent || matchesLegacy) {
         await prisma.workflowStep.update({
           where: {
             id: workflowStep.id,

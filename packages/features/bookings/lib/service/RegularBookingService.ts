@@ -2860,7 +2860,7 @@ async function handler(
       creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
     });
   } catch (error) {
-    tracingLogger.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
+    tracingLogger.error("Error while scheduling workflow reminders", error instanceof Error ? error.message : error, error instanceof Error ? error.stack : "");
   }
 
   try {

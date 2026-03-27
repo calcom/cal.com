@@ -20,9 +20,22 @@ vi.mock("@calcom/features/profile/lib/hideBranding", () => ({
   getHideBranding: vi.fn().mockResolvedValue(false),
 }));
 
-vi.mock("@calcom/i18n/server", () => ({
-  getTranslation: vi.fn().mockResolvedValue((key: string) => key),
-}));
+vi.mock("@calcom/i18n/server", () => {
+  const interpolationTemplates: Record<string, string> = {
+    need_to_make_a_change_reschedule_cancel: "Need to make a change? {{rescheduleLink}} or {{cancelLink}}",
+    need_to_make_a_change_reschedule: "Need to make a change? {{rescheduleLink}}",
+    need_to_make_a_change_cancel: "Need to make a change? {{cancelLink}}",
+  };
+  return {
+    getTranslation: vi.fn().mockResolvedValue((key: string, options?: Record<string, unknown>) => {
+      const template = interpolationTemplates[key] || key;
+      if (options) {
+        return template.replace(/\{\{(\w+)\}\}/g, (_, k) => String(options[k] ?? ""));
+      }
+      return template;
+    }),
+  };
+});
 
 vi.mock("@calcom/prisma", () => ({
   default: {},
@@ -49,6 +62,22 @@ vi.mock("@calcom/lib/constants", async () => {
     APP_NAME: "Cal.com",
   };
 });
+
+const mockCheckIfTeamHasFeature = vi.fn().mockResolvedValue(true);
+vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
+  getTeamFeatureRepository: vi.fn().mockReturnValue({
+    checkIfTeamHasFeature: (...args: unknown[]) => mockCheckIfTeamHasFeature(...args),
+  }),
+}));
+
+const mockFindEventTypeDisableFlagsByUid = vi.fn().mockResolvedValue({
+  eventType: { disableCancelling: false, disableRescheduling: false },
+});
+vi.mock("@calcom/features/di/containers/BookingRepository", () => ({
+  getBookingRepository: vi.fn().mockReturnValue({
+    findEventTypeDisableFlagsByUid: (...args: unknown[]) => mockFindEventTypeDisableFlagsByUid(...args),
+  }),
+}));
 
 vi.mock("short-uuid", () => ({
   __esModule: true,
@@ -1190,6 +1219,244 @@ describe("EmailWorkflowService", () => {
 
       expect(mockTranslationService.getWorkflowStepTranslation).not.toHaveBeenCalled();
       expect(result.subject).toBe("Original Subject");
+    });
+  });
+
+  describe("generateEmailPayloadForEvtWorkflow - Reschedule and Cancel links in REMINDER template", () => {
+    const mockBookingInfo = {
+      uid: "booking-reminder-123",
+      bookerUrl: "https://cal.com",
+      title: "Reminder Test Meeting",
+      startTime: "2024-12-01T10:00:00Z",
+      endTime: "2024-12-01T11:00:00Z",
+      organizer: {
+        name: "Organizer Name",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+        timeFormat: TimeFormat.TWELVE_HOUR,
+      },
+      attendees: [
+        {
+          name: "Attendee Name",
+          email: "attendee@example.com",
+          timeZone: "UTC",
+          language: { locale: "en" },
+        },
+      ],
+      team: { id: 1, name: "Test Team", members: [] },
+    };
+
+    beforeEach(() => {
+      mockCheckIfTeamHasFeature.mockResolvedValue(true);
+    });
+
+    test("should include reschedule and cancel links in REMINDER template for EMAIL_ATTENDEE", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "",
+        emailBody: "",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).toContain("/reschedule/booking-reminder-123");
+      expect(result.html).toContain("/booking/booking-reminder-123?cancel=true");
+      expect(result.html).toContain("Need to make a change?");
+    });
+
+    test("should include reschedule and cancel links in REMINDER template for EMAIL_HOST", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["organizer@example.com"],
+        hideBranding: false,
+        emailSubject: "",
+        emailBody: "",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_HOST,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).toContain("/reschedule/booking-reminder-123");
+      expect(result.html).toContain("/booking/booking-reminder-123?cancel=true");
+    });
+
+    test("should include cancelledBy param in cancel link for EMAIL_ATTENDEE", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "",
+        emailBody: "",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).toContain("cancelledBy=attendee%40example.com");
+    });
+
+    test("should include rescheduledBy param in reschedule link for EMAIL_ATTENDEE", async () => {
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "",
+        emailBody: "",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).toContain("rescheduledBy=attendee%40example.com");
+    });
+
+    test("should include seatReferenceUid in links for seated events", async () => {
+      vi.mocked(mockBookingSeatRepository.getByReferenceUidWithAttendeeDetails).mockResolvedValue({
+        attendee: {
+          name: "Attendee Name",
+          email: "attendee@example.com",
+          phoneNumber: null,
+          timeZone: "UTC",
+          locale: "en",
+        },
+      });
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        seatReferenceUid: "seat-ref-456",
+        hideBranding: false,
+        emailSubject: "",
+        emailBody: "",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).toContain("seatReferenceUid=seat-ref-456");
+    });
+
+    test("should NOT include reschedule link when disableRescheduling is true", async () => {
+      mockFindEventTypeDisableFlagsByUid.mockResolvedValueOnce({
+        eventType: { disableCancelling: false, disableRescheduling: true },
+      });
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "",
+        emailBody: "",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).not.toContain("/reschedule/");
+      expect(result.html).toContain("/booking/booking-reminder-123?cancel=true");
+    });
+
+    test("should NOT include cancel link when disableCancelling is true", async () => {
+      mockFindEventTypeDisableFlagsByUid.mockResolvedValueOnce({
+        eventType: { disableCancelling: true, disableRescheduling: false },
+      });
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "",
+        emailBody: "",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).toContain("/reschedule/booking-reminder-123");
+      expect(result.html).not.toContain("cancel=true");
+    });
+
+    test("should NOT include any links when both are disabled", async () => {
+      mockFindEventTypeDisableFlagsByUid.mockResolvedValueOnce({
+        eventType: { disableCancelling: true, disableRescheduling: true },
+      });
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "",
+        emailBody: "",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).not.toContain("/reschedule/");
+      expect(result.html).not.toContain("cancel=true");
+      expect(result.html).not.toContain("Need to make a change?");
+    });
+
+    test("should NOT include links when workflow-reminder-links feature flag is disabled", async () => {
+      mockCheckIfTeamHasFeature.mockResolvedValue(false);
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: mockBookingInfo,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "",
+        emailBody: "",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).not.toContain("/reschedule/");
+      expect(result.html).not.toContain("cancel=true");
+      expect(result.html).not.toContain("Need to make a change?");
+    });
+
+    test("should NOT include links when no team is associated", async () => {
+      const bookingWithoutTeam = { ...mockBookingInfo, team: undefined };
+
+      const result = await emailWorkflowService.generateEmailPayloadForEvtWorkflow({
+        evt: bookingWithoutTeam,
+        sendTo: ["attendee@example.com"],
+        hideBranding: false,
+        emailSubject: "",
+        emailBody: "",
+        sender: "Cal.com",
+        action: WorkflowActions.EMAIL_ATTENDEE,
+        template: WorkflowTemplates.REMINDER,
+        includeCalendarEvent: false,
+        triggerEvent: WorkflowTriggerEvents.BEFORE_EVENT,
+      });
+
+      expect(result.html).not.toContain("/reschedule/");
+      expect(result.html).not.toContain("cancel=true");
+      expect(mockCheckIfTeamHasFeature).not.toHaveBeenCalled();
     });
   });
 

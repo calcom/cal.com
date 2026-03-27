@@ -8,7 +8,7 @@ import { getTemplateBodyForAction } from "../actionHelperFunctions";
 import compareReminderBodyToTemplate from "../compareReminderBodyToTemplate";
 import plainTextReminderTemplates from "../reminders/templates/plainTextTemplates";
 
-const tMock = (key: string) => {
+const tMock = (key: string, options?: Record<string, unknown>) => {
   const mocks: Record<string, string> = {
     hi: "Hi",
     reminder: "Reminder",
@@ -24,8 +24,19 @@ const tMock = (key: string) => {
     meeting_satisfaction_question: "How satisfied were you with your recent meeting?",
     meeting_not_joined_question: "didn't join the meeting?",
     reschedule_cta_short: "Reschedule here.",
+    need_to_make_a_change: "Need to make a change?",
+    need_to_make_a_change_reschedule_cancel: "Need to make a change? {{rescheduleLink}} or {{cancelLink}}",
+    need_to_make_a_change_reschedule: "Need to make a change? {{rescheduleLink}}",
+    need_to_make_a_change_cancel: "Need to make a change? {{cancelLink}}",
+    reschedule: "Reschedule",
+    cancel: "Cancel",
+    or_lowercase: "or",
   };
-  return mocks[key] || key;
+  let result = mocks[key] || key;
+  if (options) {
+    result = result.replace(/\{\{(\w+)\}\}/g, (_, k) => String(options[k] ?? ""));
+  }
+  return result;
 };
 
 vi.mock("@calcom/i18n/server", () => {
@@ -55,19 +66,36 @@ describe("compareReminderBodyToTemplate", () => {
   });
 
   describe("email templates", () => {
-    test("reminder", async () => {
+    test("reminder with reschedule section", async () => {
       const template = getTemplateBodyForAction({
         action: WorkflowActions.EMAIL_HOST,
         template: WorkflowTemplates.REMINDER,
         timeFormat: TimeFormat.TWELVE_HOUR,
         locale: "en",
         t: await translation(),
+        showRescheduleAndCancelSection: true,
       });
 
       if (!template) throw new Error("template not found");
 
       const reminderBody = plainTextReminderTemplates.email.reminder;
       expect(compareReminderBodyToTemplate({ reminderBody, template })).toBe(true);
+    });
+
+    test("reminder without reschedule section (legacy)", async () => {
+      const template = getTemplateBodyForAction({
+        action: WorkflowActions.EMAIL_HOST,
+        template: WorkflowTemplates.REMINDER,
+        timeFormat: TimeFormat.TWELVE_HOUR,
+        locale: "en",
+        t: await translation(),
+        showRescheduleAndCancelSection: false,
+      });
+
+      if (!template) throw new Error("template not found");
+
+      // Legacy template should not contain the reschedule section
+      expect(template).not.toContain("need_to_make_a_change");
     });
 
     test("rating", async () => {

@@ -8,6 +8,7 @@ import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builde
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import {
@@ -17,7 +18,6 @@ import {
   buildStandardRescheduleLink,
 } from "@calcom/lib/LinkBuilder";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/i18n/server";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import {
@@ -35,7 +35,7 @@ import {
   getTemplateSubjectForAction,
   isEmailAction,
 } from "../actionHelperFunctions";
-import { detectMatchedTemplate } from "../detectMatchedTemplate";
+import { detectMatchedTemplate, type DefaultTemplates } from "../detectMatchedTemplate";
 import { getWorkflowRecipientEmail } from "../getWorkflowReminders";
 import type { VariablesType } from "../reminders/templates/customTemplate";
 import customTemplate, {
@@ -386,22 +386,41 @@ export class EmailWorkflowService {
 
     // Detect if the email content matches a default template for locale-based regeneration
     const timeFormat = evt.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
-    let defaultTemplates = {
-      reminder: { body: null as string | null, subject: null as string | null },
-      rating: { body: null as string | null, subject: null as string | null },
+    let defaultTemplates: DefaultTemplates = {
+      reminder: { body: null, subject: null },
+      rating: { body: null, subject: null },
     };
 
     if (emailBody) {
       const tEn = await getTranslation("en", "common");
+
+      // Current template body includes the reschedule/cancel section
+      const currentReminderBody = getTemplateBodyForAction({
+        action,
+        template: WorkflowTemplates.REMINDER,
+        locale: "en",
+        t: tEn,
+        timeFormat,
+        showRescheduleAndCancelSection: true,
+      });
+
+      // Legacy template body without the reschedule/cancel section,
+      // needed to recognize existing saved workflows as default templates
+      const legacyReminderBody = getTemplateBodyForAction({
+        action,
+        template: WorkflowTemplates.REMINDER,
+        locale: "en",
+        t: tEn,
+        timeFormat,
+        showRescheduleAndCancelSection: false,
+      });
+
+      const previousReminderBodies = legacyReminderBody ? [legacyReminderBody] : [];
+
       defaultTemplates = {
         reminder: {
-          body: getTemplateBodyForAction({
-            action,
-            template: WorkflowTemplates.REMINDER,
-            locale: "en",
-            t: tEn,
-            timeFormat,
-          }),
+          body: currentReminderBody,
+          previousBodies: previousReminderBodies,
           subject: getTemplateSubjectForAction({
             action,
             template: WorkflowTemplates.REMINDER,
@@ -444,6 +463,47 @@ export class EmailWorkflowService {
           uid: evt.uid,
           location: evt.location,
         }) || bookingMetadataSchema.safeParse(evt.metadata || {}).data?.videoCallUrl;
+
+      const recipientEmail = getWorkflowRecipientEmail({
+        action,
+        attendeeEmail: attendeeToBeUsedInMail.email,
+        organizerEmail: evt.organizer.email,
+        sendToEmail: sendTo[0],
+      });
+
+      const reminderLinksEnabled = await this.isReminderLinksEnabled(evt.team?.id);
+
+      let disableCancelling = false;
+      let disableRescheduling = false;
+
+      if (reminderLinksEnabled && evt.uid) {
+        const flags = await this.getEventTypeDisableFlags(evt.uid);
+        disableCancelling = flags.disableCancelling;
+        disableRescheduling = flags.disableRescheduling;
+      }
+
+      const cancelLink =
+        reminderLinksEnabled && !disableCancelling
+          ? this.buildCancelLink({
+              evt,
+              bookerUrl,
+              recipientEmail,
+              isEmailAttendeeAction,
+              seatReferenceUid,
+            })
+          : undefined;
+
+      const rescheduleLink =
+        reminderLinksEnabled && !disableRescheduling
+          ? this.buildRescheduleLink({
+              evt,
+              bookerUrl,
+              recipientEmail,
+              isEmailAttendeeAction,
+              seatReferenceUid,
+            })
+          : undefined;
+
       emailContent = emailReminderTemplate({
         isEditingMode: false,
         locale,
@@ -459,6 +519,8 @@ export class EmailWorkflowService {
         otherPerson: attendeeName,
         name,
         isBrandingDisabled: hideBranding,
+        cancelLink,
+        rescheduleLink,
       });
     } else if (matchedTemplate === WorkflowTemplates.RATING) {
       emailContent = emailRatingTemplate({
@@ -621,9 +683,7 @@ export class EmailWorkflowService {
     const customReplyToEmail =
       evt?.eventType?.customReplyToEmail || (evt as CalendarEvent).customReplyToEmail;
 
-    const replyTo = evt.hideOrganizerEmail
-      ? customReplyToEmail
-      : customReplyToEmail || evt.organizer.email;
+    const replyTo = evt.hideOrganizerEmail ? customReplyToEmail : customReplyToEmail || evt.organizer.email;
 
     return {
       subject: emailContent.emailSubject,
@@ -631,6 +691,25 @@ export class EmailWorkflowService {
       ...(replyTo && { replyTo }),
       attachments,
       sender,
+    };
+  }
+
+  private async isReminderLinksEnabled(teamId?: number): Promise<boolean> {
+    if (!teamId) return false;
+    const { getTeamFeatureRepository } = await import("@calcom/features/di/containers/TeamFeatureRepository");
+    const teamFeatureRepository = getTeamFeatureRepository();
+    return teamFeatureRepository.checkIfTeamHasFeature(teamId, "workflow-reminder-links");
+  }
+
+  private async getEventTypeDisableFlags(
+    bookingUid: string
+  ): Promise<{ disableCancelling: boolean; disableRescheduling: boolean }> {
+    const { getBookingRepository } = await import("@calcom/features/di/containers/BookingRepository");
+    const bookingRepository = getBookingRepository();
+    const result = await bookingRepository.findEventTypeDisableFlagsByUid(bookingUid);
+    return {
+      disableCancelling: result?.eventType?.disableCancelling ?? false,
+      disableRescheduling: result?.eventType?.disableRescheduling ?? false,
     };
   }
 

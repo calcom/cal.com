@@ -2607,6 +2607,20 @@ export class BookingRepository implements IBookingRepository {
     return { topOrgs, totalOrgCount };
   }
 
+  async findEventTypeDisableFlagsByUid(uid: string) {
+    return this.prismaClient.booking.findUnique({
+      where: { uid },
+      select: {
+        eventType: {
+          select: {
+            disableCancelling: true,
+            disableRescheduling: true,
+          },
+        },
+      },
+    });
+  }
+
   private attendeeEmailFilter(
     where: { email: string } | { email: { endsWith: string } }
   ): Prisma.Sql {

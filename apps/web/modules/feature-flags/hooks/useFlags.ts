@@ -39,6 +39,7 @@ const initialData: AppFlags = {
   "dunning-enforcement": false,
   "signup-watchlist-review": false,
   "sink-shortener": false,
+  "workflow-reminder-links": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

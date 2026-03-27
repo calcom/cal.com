@@ -1,10 +1,29 @@
-import type { TFunction } from "i18next";
-
 import { guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
+import type { TFunction } from "i18next";
+
+function getRescheduleAndCancelHtml(
+  t: TFunction,
+  hasRescheduleLink: boolean,
+  hasCancel: boolean,
+  rescheduleUrl: string,
+  cancelUrl: string
+): string {
+  if (!hasRescheduleLink && !hasCancel) return "";
+
+  const rescheduleLink = hasRescheduleLink ? `<a href="${rescheduleUrl}">${t("reschedule")}</a>` : "";
+  const cancelLink = hasCancel ? `<a href="${cancelUrl}">${t("cancel")}</a>` : "";
+
+  let key: string;
+  if (hasRescheduleLink && hasCancel) key = "need_to_make_a_change_reschedule_cancel";
+  else if (hasRescheduleLink) key = "need_to_make_a_change_reschedule";
+  else key = "need_to_make_a_change_cancel";
+
+  return `<div>${t(key, { rescheduleLink, cancelLink, interpolation: { escapeValue: false } })}</div><br><br>`;
+}
 
 const emailReminderTemplate = ({
   isEditingMode,
@@ -21,6 +40,9 @@ const emailReminderTemplate = ({
   otherPerson,
   name,
   isBrandingDisabled,
+  cancelLink,
+  rescheduleLink,
+  showRescheduleAndCancelSection,
 }: {
   isEditingMode: boolean;
   locale: string;
@@ -36,6 +58,9 @@ const emailReminderTemplate = ({
   otherPerson?: string;
   name?: string;
   isBrandingDisabled?: boolean;
+  cancelLink?: string;
+  rescheduleLink?: string;
+  showRescheduleAndCancelSection?: boolean;
 }) => {
   const currentTimeFormat = timeFormat || TimeFormat.TWELVE_HOUR;
   const dateTimeFormat = `ddd, MMM D, YYYY ${currentTimeFormat}`;
@@ -79,16 +104,39 @@ const emailReminderTemplate = ({
     "location"
   )}: </strong></div>${locationString}<br><br>`;
 
+  const shouldShowRescheduleOrCancelSection =
+    showRescheduleAndCancelSection || Boolean(rescheduleLink) || Boolean(cancelLink);
+
+  let rescheduleUrl = rescheduleLink || "";
+  let cancelUrl = cancelLink || "";
+
+  if (isEditingMode && shouldShowRescheduleOrCancelSection) {
+    rescheduleUrl = "{RESCHEDULE_URL}";
+    cancelUrl = "{CANCEL_URL}";
+  }
+
+  const hasRescheduleLink = shouldShowRescheduleOrCancelSection && (isEditingMode || Boolean(rescheduleLink));
+  const hasCancel = shouldShowRescheduleOrCancelSection && (isEditingMode || Boolean(cancelLink));
+
+  const rescheduleAndCancelHtml = getRescheduleAndCancelHtml(
+    t,
+    hasRescheduleLink,
+    hasCancel,
+    rescheduleUrl,
+    cancelUrl
+  );
+
   const branding =
     !isBrandingDisabled && !isEditingMode ? `<br><br>_<br><br>${t("scheduling_by")} ${APP_NAME}` : "";
 
   const endingHtml = `${branding}</body>`;
 
-  const emailBody = introHtml + eventHtml + dateTimeHtml + attendeeHtml + locationHtml + endingHtml;
+  const emailBody =
+    introHtml + eventHtml + dateTimeHtml + attendeeHtml + locationHtml + rescheduleAndCancelHtml + endingHtml;
 
   return { emailSubject, emailBody };
 };
 
 export default emailReminderTemplate;
 
-export const plainTextTemplate = `Hi {ORGANIZER},This is a reminder about your upcoming event.Event: {EVENT_NAME}Date & Time: {EVENT_DATE_ddd, MMM D, YYYY h:mma} - {EVENT_END_TIME} ({TIMEZONE})Attendees: You & {ATTENDEE}Location: {LOCATION} {MEETING_URL}`;
+export const plainTextTemplate = `Hi {ORGANIZER},This is a reminder about your upcoming event.Event: {EVENT_NAME}Date & Time: {EVENT_DATE_ddd, MMM D, YYYY h:mma} - {EVENT_END_TIME} ({TIMEZONE})Attendees: You & {ATTENDEE}Location: {LOCATION} {MEETING_URL}Need to make a change? Reschedule or Cancel`;

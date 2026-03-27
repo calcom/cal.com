@@ -41,6 +41,7 @@ export type AppFlags = {
   "signup-watchlist-review": boolean;
   "dunning-enforcement": boolean;
   "sink-shortener": boolean;
+  "workflow-reminder-links": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;

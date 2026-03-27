@@ -236,6 +236,121 @@ describe("detectMatchedTemplate", () => {
       });
     });
 
+    describe("legacy template matching via previousBodies", () => {
+      test("returns REMINDER when body matches a previousBody and subject matches", () => {
+        const defaultTemplates = createDefaultTemplates({
+          reminder: {
+            body: "New reminder body with reschedule section",
+            previousBodies: ["Old reminder body without reschedule section"],
+            subject: "Default reminder subject",
+          },
+        });
+
+        const result = detectMatchedTemplate({
+          emailBody: "Old reminder body without reschedule section",
+          emailSubject: "Default reminder subject",
+          template: WorkflowTemplates.REMINDER,
+          defaultTemplates,
+        });
+
+        expect(result).toBe(WorkflowTemplates.REMINDER);
+      });
+
+      test("returns REMINDER when body matches current body (not legacy)", () => {
+        const defaultTemplates = createDefaultTemplates({
+          reminder: {
+            body: "New reminder body with reschedule section",
+            previousBodies: ["Old reminder body without reschedule section"],
+            subject: "Default reminder subject",
+          },
+        });
+
+        const result = detectMatchedTemplate({
+          emailBody: "New reminder body with reschedule section",
+          emailSubject: "Default reminder subject",
+          template: WorkflowTemplates.REMINDER,
+          defaultTemplates,
+        });
+
+        expect(result).toBe(WorkflowTemplates.REMINDER);
+      });
+
+      test("returns null when body matches previousBody but subject is customized", () => {
+        const defaultTemplates = createDefaultTemplates({
+          reminder: {
+            body: "New reminder body",
+            previousBodies: ["Old reminder body"],
+            subject: "Default reminder subject",
+          },
+        });
+
+        const result = detectMatchedTemplate({
+          emailBody: "Old reminder body",
+          emailSubject: "Custom subject",
+          template: WorkflowTemplates.REMINDER,
+          defaultTemplates,
+        });
+
+        expect(result).toBeNull();
+      });
+
+      test("returns null when body matches neither current nor previous", () => {
+        const defaultTemplates = createDefaultTemplates({
+          reminder: {
+            body: "New reminder body",
+            previousBodies: ["Old reminder body"],
+            subject: "Default reminder subject",
+          },
+        });
+
+        const result = detectMatchedTemplate({
+          emailBody: "Completely custom body",
+          emailSubject: "Default reminder subject",
+          template: WorkflowTemplates.REMINDER,
+          defaultTemplates,
+        });
+
+        expect(result).toBeNull();
+      });
+
+      test("works when previousBodies is empty array", () => {
+        const defaultTemplates = createDefaultTemplates({
+          reminder: {
+            body: "Current reminder body",
+            previousBodies: [],
+            subject: "Default reminder subject",
+          },
+        });
+
+        const result = detectMatchedTemplate({
+          emailBody: "Current reminder body",
+          emailSubject: "Default reminder subject",
+          template: WorkflowTemplates.REMINDER,
+          defaultTemplates,
+        });
+
+        expect(result).toBe(WorkflowTemplates.REMINDER);
+      });
+
+      test("works when previousBodies is undefined", () => {
+        const defaultTemplates = createDefaultTemplates({
+          reminder: {
+            body: "Current reminder body",
+            subject: "Default reminder subject",
+          },
+        });
+
+        const result = detectMatchedTemplate({
+          emailBody: "Current reminder body",
+          emailSubject: "Default reminder subject",
+          template: WorkflowTemplates.REMINDER,
+          defaultTemplates,
+        });
+
+        expect(result).toBe(WorkflowTemplates.REMINDER);
+      });
+    });
+
     describe("edge cases", () => {
       test("returns null when default body is null", () => {
         const defaultTemplates = createDefaultTemplates({

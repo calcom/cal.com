@@ -124,12 +124,14 @@ export function getTemplateBodyForAction({
   t,
   template,
   timeFormat,
+  showRescheduleAndCancelSection,
 }: {
   action: WorkflowActions;
   locale: string;
   t: TFunction;
   template: WorkflowTemplates;
   timeFormat: TimeFormat;
+  showRescheduleAndCancelSection?: boolean;
 }): string | null {
   if (isSMSAction(action)) {
     return smsReminderTemplate(true, locale, action, timeFormat);
@@ -141,6 +143,11 @@ export function getTemplateBodyForAction({
   }
 
   // If not a whatsapp action then it's an email action
+  if (template === WorkflowTemplates.REMINDER) {
+    return emailReminderTemplate({ isEditingMode: true, locale, t, action, timeFormat, showRescheduleAndCancelSection })
+      .emailBody;
+  }
+
   const templateFunction = getEmailTemplateFunction(template);
   return templateFunction({ isEditingMode: true, locale, t, action, timeFormat }).emailBody;
 }

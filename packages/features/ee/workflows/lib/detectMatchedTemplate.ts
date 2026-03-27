@@ -3,8 +3,8 @@ import { WorkflowTemplates } from "@calcom/prisma/enums";
 import compareReminderBodyToTemplate from "./compareReminderBodyToTemplate";
 
 export type DefaultTemplates = {
-  reminder: { body: string | null; subject: string | null };
-  rating: { body: string | null; subject: string | null };
+  reminder: { body: string | null; previousBodies?: string[]; subject: string | null };
+  rating: { body: string | null; previousBodies?: string[]; subject: string | null };
 };
 
 export type DetectMatchedTemplateParams = {
@@ -43,8 +43,12 @@ export function detectMatchedTemplate({
   if (emailBody) {
     const { reminder, rating } = defaultTemplates;
 
-    const bodyMatchesReminder =
+    const bodyMatchesCurrentReminder =
       reminder.body && compareReminderBodyToTemplate({ reminderBody: emailBody, template: reminder.body });
+    const bodyMatchesPreviousReminder = reminder.previousBodies?.some(
+      (prevBody) => compareReminderBodyToTemplate({ reminderBody: emailBody, template: prevBody })
+    );
+    const bodyMatchesReminder = bodyMatchesCurrentReminder || bodyMatchesPreviousReminder;
     const subjectMatchesReminder = reminder.subject && emailSubject === reminder.subject;
 
     if (bodyMatchesReminder && subjectMatchesReminder) {
