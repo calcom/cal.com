@@ -2,7 +2,7 @@
 
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
-import { revalidateTag, unstable_cache } from "next/cache";
+import { updateTag, unstable_cache } from "next/cache";
 
 const CACHE_TAGS = {
   HAS_TEAM_PLAN: "MembershipRepository.hasAnyAcceptedMembershipByUserId",
@@ -23,5 +23,5 @@ export const getCachedHasTeamPlan = unstable_cache(
 );
 
 export const revalidateHasTeamPlan = async () => {
-  revalidateTag(CACHE_TAGS.HAS_TEAM_PLAN, "max");
+  updateTag(CACHE_TAGS.HAS_TEAM_PLAN);
 };

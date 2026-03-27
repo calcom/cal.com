@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { updateTag } from "next/cache";
 
 import { TravelScheduleRepository } from "@calcom/features/travelSchedule/repositories/TravelScheduleRepository";
 import { NEXTJS_CACHE_TTL } from "@calcom/lib/constants";
@@ -22,5 +22,5 @@ export const getTravelSchedule = unstable_cache(
 );
 
 export const revalidateTravelSchedules = async () => {
-  revalidateTag(CACHE_TAGS.TRAVEL_SCHEDULES, "max");
+  updateTag(CACHE_TAGS.TRAVEL_SCHEDULES);
 };
