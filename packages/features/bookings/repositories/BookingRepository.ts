@@ -2137,4 +2137,50 @@ export class BookingRepository implements IBookingRepository {
       },
     });
   }
+
+  async findByUidIncludeAttendeeEmails({ uid }: { uid: string }) {
+    return this.prismaClient.booking.findUnique({
+      where: { uid },
+      select: {
+        id: true,
+        uid: true,
+        attendees: { select: { email: true } },
+      },
+    });
+  }
+
+  async findByUserIdsAndDateRange({
+    userIds,
+    userEmails,
+    dateFrom,
+    dateTo,
+  }: {
+    userIds: number[];
+    userEmails: string[];
+    dateFrom: Date;
+    dateTo: Date;
+  }) {
+    if (!userIds.length && !userEmails.length) return [];
+
+    return this.prismaClient.booking.findMany({
+      where: {
+        status: { in: [BookingStatus.ACCEPTED, BookingStatus.PENDING] },
+        AND: [{ startTime: { lt: dateTo } }, { endTime: { gt: dateFrom } }],
+        OR: [
+          ...(userIds.length > 0 ? [{ userId: { in: userIds } }] : []),
+          ...(userEmails.length > 0
+            ? [{ attendees: { some: { email: { in: userEmails, mode: "insensitive" as const } } } }]
+            : []),
+        ],
+      },
+      select: {
+        uid: true,
+        startTime: true,
+        endTime: true,
+        title: true,
+        userId: true,
+        status: true,
+      },
+    });
+  }
 }
