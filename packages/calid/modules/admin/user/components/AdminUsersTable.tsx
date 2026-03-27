@@ -578,6 +578,18 @@ export const AdminUsersTable = () => {
                         //   icon: "building",
                         // },
                         {
+                          id: "toggle-enterprise",
+                          label: getIsEnterpriseUser(user.metadata)
+                            ? "Disable Enterprise"
+                            : "Enable Enterprise",
+                          onClick: () =>
+                            toggleEnterpriseUser.mutate({
+                              userId: user.id,
+                              isEnterprise: !getIsEnterpriseUser(user.metadata),
+                            }),
+                          icon: "building",
+                        },
+                        {
                           id: "delete",
                           label: "Delete",
                           color: "destructive",

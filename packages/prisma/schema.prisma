@@ -604,6 +604,7 @@ model User {
 
   whatsappBusinessPhone WhatsAppBusinessPhone[]
   calIdApiKeys          CalIdApiKey[]
+  calIdContacts         CalIdContact[]
 
   @@unique([email])
   @@unique([email, username])
@@ -3013,6 +3014,22 @@ model CalIdApiKey {
 
   @@index([userId])
   @@index([teamId])
+}
+
+model CalIdContact {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  email     String
+  phone     String   @default("")
+  metadata  Json?
+  notes     String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, createdAt])
 }
 
 model CalIdRateLimit {
