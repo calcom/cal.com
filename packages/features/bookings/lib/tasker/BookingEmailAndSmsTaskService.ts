@@ -27,7 +27,7 @@ export class BookingEmailAndSmsTaskService implements BookingTasks {
     const { bookingId, ...bookingMeta } = payload;
     const { bookingRepository } = this.dependencies;
 
-    const booking = await bookingRepository.getBookingForCalEventBuilder(bookingId);
+    const booking = await bookingRepository.findByIdIncludeEventTypeAttendeesUserAndReferences(bookingId);
     if (!booking) {
       throw new Error(`Booking with id '${bookingId}' was not found.`);
     }

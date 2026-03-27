@@ -9,23 +9,26 @@ vi.mock("@calcom/app-store/zod-utils", () => ({
 const mockGetBooking = vi.fn();
 const mockValidateUserPermissions = vi.fn();
 const mockValidateGuestsFieldEnabled = vi.fn();
-const mockGetOrganizerData = vi.fn();
 const mockSanitizeAndFilterGuests = vi.fn();
 const mockUpdateBookingAttendees = vi.fn();
-const mockPrepareAttendeesList = vi.fn();
-const mockBuildCalendarEvent = vi.fn();
 const mockUpdateCalendarEvent = vi.fn();
 
 vi.mock("@calcom/trpc/server/routers/viewer/bookings/addGuests.handler", () => ({
   getBooking: (...args: unknown[]) => mockGetBooking(...args),
   validateUserPermissions: (...args: unknown[]) => mockValidateUserPermissions(...args),
   validateGuestsFieldEnabled: (...args: unknown[]) => mockValidateGuestsFieldEnabled(...args),
-  getOrganizerData: (...args: unknown[]) => mockGetOrganizerData(...args),
   sanitizeAndFilterGuests: (...args: unknown[]) => mockSanitizeAndFilterGuests(...args),
   updateBookingAttendees: (...args: unknown[]) => mockUpdateBookingAttendees(...args),
-  prepareAttendeesList: (...args: unknown[]) => mockPrepareAttendeesList(...args),
-  buildCalendarEvent: (...args: unknown[]) => mockBuildCalendarEvent(...args),
   updateCalendarEvent: (...args: unknown[]) => mockUpdateCalendarEvent(...args),
+}));
+
+const { mockBuild } = vi.hoisted(() => ({
+  mockBuild: vi.fn().mockReturnValue({ title: "Test Event" }),
+}));
+vi.mock("@calcom/features/CalendarEventBuilder", () => ({
+  CalendarEventBuilder: {
+    fromBooking: vi.fn().mockResolvedValue({ build: (...args: unknown[]) => mockBuild(...args) }),
+  },
 }));
 
 const mockHandleAddAttendee = vi.fn();
@@ -81,13 +84,13 @@ describe("BookingAttendeesService (Integration Tests)", () => {
   const mockBooking = {
     uid: "booking-uid-1",
     userId: 1,
+    user: {
+      id: 1,
+      timeZone: "UTC",
+      locale: "en",
+    },
     eventType: { metadata: {}, schedulingType: null },
     attendees: [],
-  };
-
-  const mockOrganizer = {
-    timeZone: "UTC",
-    locale: "en",
   };
 
   const mockActionSource: ActionSource = { sourceType: "webapp" };
@@ -99,13 +102,12 @@ describe("BookingAttendeesService (Integration Tests)", () => {
     mockGetBooking.mockResolvedValue(mockBooking);
     mockValidateUserPermissions.mockResolvedValue(undefined);
     mockValidateGuestsFieldEnabled.mockReturnValue(undefined);
-    mockGetOrganizerData.mockResolvedValue(mockOrganizer);
     mockSanitizeAndFilterGuests.mockResolvedValue([mockAttendee]);
-    mockBuildCalendarEvent.mockResolvedValue({ title: "Test Event" });
     mockUpdateCalendarEvent.mockResolvedValue(undefined);
     mockHandleAddAttendee.mockResolvedValue(undefined);
     mockOnAttendeeAdded.mockResolvedValue(undefined);
     mockCheckIfTeamHasFeature.mockResolvedValue(false);
+    mockBuild.mockReturnValue({ title: "Test Event" });
   });
 
   describe("addAttendee", () => {
@@ -122,7 +124,7 @@ describe("BookingAttendeesService (Integration Tests)", () => {
       mockUpdateBookingAttendees.mockResolvedValue({
         attendees: [createdAttendee],
       });
-      mockPrepareAttendeesList.mockResolvedValue([createdAttendee]);
+
 
       const result = await service.addAttendee({
         bookingId: 1,
@@ -153,7 +155,7 @@ describe("BookingAttendeesService (Integration Tests)", () => {
         phoneNumber: null,
       };
       mockUpdateBookingAttendees.mockResolvedValue({ attendees: [createdAttendee] });
-      mockPrepareAttendeesList.mockResolvedValue([createdAttendee]);
+
 
       await service.addAttendee({
         bookingId: 1,
@@ -175,7 +177,7 @@ describe("BookingAttendeesService (Integration Tests)", () => {
         phoneNumber: null,
       };
       mockUpdateBookingAttendees.mockResolvedValue({ attendees: [createdAttendee] });
-      mockPrepareAttendeesList.mockResolvedValue([createdAttendee]);
+
 
       await service.addAttendee({
         bookingId: 1,
@@ -198,7 +200,7 @@ describe("BookingAttendeesService (Integration Tests)", () => {
         phoneNumber: null,
       };
       mockUpdateBookingAttendees.mockResolvedValue({ attendees: [createdAttendee] });
-      mockPrepareAttendeesList.mockResolvedValue([createdAttendee]);
+
 
       await service.addAttendee({
         bookingId: 1,
@@ -221,7 +223,7 @@ describe("BookingAttendeesService (Integration Tests)", () => {
         phoneNumber: null,
       };
       mockUpdateBookingAttendees.mockResolvedValue({ attendees: [createdAttendee] });
-      mockPrepareAttendeesList.mockResolvedValue([createdAttendee]);
+
 
       await service.addAttendee({
         bookingId: 1,
@@ -248,7 +250,7 @@ describe("BookingAttendeesService (Integration Tests)", () => {
         phoneNumber: null,
       };
       mockUpdateBookingAttendees.mockResolvedValue({ attendees: [createdAttendee] });
-      mockPrepareAttendeesList.mockResolvedValue([createdAttendee]);
+
       mockCheckIfTeamHasFeature.mockResolvedValue(true);
 
       await service.addAttendee({
@@ -275,7 +277,7 @@ describe("BookingAttendeesService (Integration Tests)", () => {
         phoneNumber: null,
       };
       mockUpdateBookingAttendees.mockResolvedValue({ attendees: [createdAttendee] });
-      mockPrepareAttendeesList.mockResolvedValue([createdAttendee]);
+
 
       await service.addAttendee({
         bookingId: 1,
@@ -292,7 +294,7 @@ describe("BookingAttendeesService (Integration Tests)", () => {
 
     it("throws error when created attendee cannot be found in updated booking", async () => {
       mockUpdateBookingAttendees.mockResolvedValue({ attendees: [] });
-      mockPrepareAttendeesList.mockResolvedValue([]);
+
 
       await expect(
         service.addAttendee({
@@ -342,7 +344,7 @@ describe("BookingAttendeesService (Integration Tests)", () => {
       };
       mockSanitizeAndFilterGuests.mockResolvedValue([attendeeNoTz]);
       mockUpdateBookingAttendees.mockResolvedValue({ attendees: [createdAttendee] });
-      mockPrepareAttendeesList.mockResolvedValue([createdAttendee]);
+
 
       const result = await service.addAttendee({
         bookingId: 1,

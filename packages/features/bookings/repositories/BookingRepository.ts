@@ -304,6 +304,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
       bookingFields: true,
       metadata: true,
       eventName: true,
+      teamId: true,
       team: {
         select: {
           id: true,
@@ -2015,7 +2016,7 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
-  async getBookingForCalEventBuilder(bookingId: number) {
+  async findByIdIncludeEventTypeAttendeesUserAndReferences(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: { id: bookingId },
       select: selectStatementToGetBookingForCalEventBuilder,

@@ -25,7 +25,7 @@ const log = logger.getSubLogger({ prefix: ["CalendarEventBuilder"] });
 const APP_TYPE_TO_NAME_MAP = new Map<string, string>(ALL_APPS.map((app) => [app.type, app.name]));
 
 export type BookingForCalEventBuilder = NonNullable<
-  Awaited<ReturnType<BookingRepository["getBookingForCalEventBuilder"]>>
+  Awaited<ReturnType<BookingRepository["findByIdIncludeEventTypeAttendeesUserAndReferences"]>>
 >;
 export type MinimalCalendarEvent = Pick<
   CalendarEvent,
