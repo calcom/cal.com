@@ -2735,7 +2735,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/lib@workspace:*, @calcom/lib@workspace:packages/lib":
+"@calcom/lib@npm:*, @calcom/lib@workspace:*, @calcom/lib@workspace:packages/lib":
   version: 0.0.0-use.local
   resolution: "@calcom/lib@workspace:packages/lib"
   dependencies:
@@ -2780,9 +2780,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/lyra@workspace:packages/app-store/lyra"
   dependencies:
-    "@calcom/lib": "workspace:*"
-    "@calcom/prisma": "workspace:*"
-    "@calcom/types": "workspace:*"
+    "@calcom/lib": "npm:*"
+    "@calcom/prisma": "npm:*"
+    "@calcom/types": "npm:*"
   languageName: unknown
   linkType: soft
 
@@ -2972,7 +2972,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/prisma@workspace:*, @calcom/prisma@workspace:packages/prisma":
+"@calcom/prisma@npm:*, @calcom/prisma@workspace:*, @calcom/prisma@workspace:packages/prisma":
   version: 0.0.0-use.local
   resolution: "@calcom/prisma@workspace:packages/prisma"
   dependencies:
@@ -3212,7 +3212,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/types@workspace:*, @calcom/types@workspace:packages/types":
+"@calcom/types@npm:*, @calcom/types@workspace:*, @calcom/types@workspace:packages/types":
   version: 0.0.0-use.local
   resolution: "@calcom/types@workspace:packages/types"
   dependencies:
@@ -20661,7 +20661,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:4, debug@npm:^4.0.0, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.3.3, debug@npm:^4.3.4, debug@npm:^4.3.5, debug@npm:^4.4.0, debug@npm:^4.4.1, debug@npm:^4.4.3":
+"debug@npm:4, debug@npm:^4.0.0, debug@npm:^4.1.0, debug@npm:^4.1.1, debug@npm:^4.3.1, debug@npm:^4.3.2, debug@npm:^4.3.3, debug@npm:^4.3.4, debug@npm:^4.3.5, debug@npm:^4.4.0, debug@npm:^4.4.1, debug@npm:^4.4.3, debug@npm:~4.4.1":
   version: 4.4.3
   resolution: "debug@npm:4.4.3"
   dependencies:
@@ -35607,13 +35607,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"socket.io-parser@npm:~4.2.4":
-  version: 4.2.4
-  resolution: "socket.io-parser@npm:4.2.4"
+"socket.io-parser@npm:4.2.6":
+  version: 4.2.6
+  resolution: "socket.io-parser@npm:4.2.6"
   dependencies:
     "@socket.io/component-emitter": "npm:~3.1.0"
-    debug: "npm:~4.3.1"
-  checksum: 10/4be500a9ff7e79c50ec25af11048a3ed34b4c003a9500d656786a1e5bceae68421a8394cf3eb0aa9041f85f36c1a9a737617f4aee91a42ab4ce16ffb2aa0c89c
+    debug: "npm:~4.4.1"
+  checksum: 10/cf8f3e9feee42b2405065bccef732894a0b07b7cb734c4954eb8876d7a0038e7df6e6d06fab3a25f816f5d996917391833d5f06136e8c8c6fbecf5da962c1c9e
   languageName: node
   linkType: hard
 
