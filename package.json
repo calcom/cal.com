@@ -156,6 +156,7 @@
     "picomatch@^4.0.2": "4.0.4",
     "picomatch@^4.0.3": "4.0.4",
     "@modelcontextprotocol/sdk": "1.26.0",
+    "express-rate-limit": "8.2.2",
     "svgo": "4.0.1",
     "js-yaml": "4.1.1",
     "mdast-util-to-hast": "13.2.1",
