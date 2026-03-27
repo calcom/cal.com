@@ -242,4 +242,36 @@ describe("sendPayload", () => {
       expect(body.payload.assignmentReason).toEqual(reasons);
     });
   });
+
+  describe("Zapier payloads", () => {
+    it("should send no-show payloads in Zapier's raw format", async () => {
+      const webhook = {
+        subscriberUrl: "https://example.com/webhook",
+        appId: "zapier",
+        payloadTemplate: null,
+        version: WebhookVersion.V_2021_10_20,
+      };
+
+      await sendPayload("test-secret", "BOOKING_NO_SHOW_UPDATED", "2024-01-01T10:00:00Z", webhook, {
+        bookingUid: "booking-uid-123",
+        bookingId: 123,
+        attendees: [{ email: "attendee@example.com", noShow: true }],
+        message: "attendee@example.com marked as no-show",
+      });
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const [, options] = mockFetch.mock.calls[0];
+      const body = JSON.parse(options.body);
+
+      expect(body).toEqual({
+        bookingUid: "booking-uid-123",
+        bookingId: 123,
+        attendees: [{ email: "attendee@example.com", noShow: true }],
+        message: "attendee@example.com marked as no-show",
+        createdAt: "2024-01-01T10:00:00Z",
+      });
+      expect(body.triggerEvent).toBeUndefined();
+      expect(body.payload).toBeUndefined();
+    });
+  });
 });

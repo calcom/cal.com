@@ -31,4 +31,6 @@ The following API endpoints are maintained for backward compatibility with exist
 - `DELETE /api/integrations/zapier/deleteSubscription` - Unsubscribe from webhooks
 - `GET /api/integrations/zapier/me` - Get user/team information
 
+Existing integrations can subscribe to booking no-show updates through the same webhook subscription endpoint using the `BOOKING_NO_SHOW_UPDATED` trigger.
+
 **Note:** These endpoints support both API key and OAuth authentication for existing integrations. The endpoints are dynamically routed through `/api/integrations/[...args].ts`.
