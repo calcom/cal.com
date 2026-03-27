@@ -3158,6 +3158,7 @@ model AuditActor {
 
   createdAt     DateTime       @default(now())
   bookingAudits BookingAudit[]
+  auditEvents   AuditEvent[]
 
   // TODO: Add pseudonymizedAt and related fields when we anonymize the data on deletion
   @@unique([userUuid])
@@ -3214,6 +3215,122 @@ model BookingAudit {
   @@index([bookingUid])
   @@index([timestamp])
   @@index([operationId])
+}
+
+enum AuditAction {
+  // Security — Wave 1
+  LOGIN                    @map("login")
+  PASSWORD_CHANGED         @map("password_changed")
+  PASSWORD_RESET_REQUESTED @map("password_reset_requested")
+  TWO_FACTOR_ENABLED       @map("two_factor_enabled")
+  TWO_FACTOR_DISABLED      @map("two_factor_disabled")
+  IMPERSONATION_START      @map("impersonation_start")
+  IMPERSONATION_STOP       @map("impersonation_stop")
+  EMAIL_CHANGED            @map("email_changed")
+  ACCOUNT_LOCKED           @map("account_locked")
+  ACCOUNT_UNLOCKED         @map("account_unlocked")
+
+  // Access control — Wave 1
+  MEMBER_ADDED   @map("member_added")
+  MEMBER_REMOVED @map("member_removed")
+  ROLE_CHANGED   @map("role_changed")
+
+  // API credential lifecycle — Wave 1
+  API_KEY_CREATED @map("api_key_created")
+  API_KEY_REVOKED @map("api_key_revoked")
+
+  // Workflow automation
+  WORKFLOW_CREATED  @map("workflow_created")
+  WORKFLOW_MODIFIED @map("workflow_modified")
+  WORKFLOW_DELETED  @map("workflow_deleted")
+}
+
+enum AuditCategory {
+  SECURITY @map("security")
+  ACCESS   @map("access")
+  BILLING  @map("billing")
+  DATA     @map("data")
+}
+
+enum AuditRetentionTier {
+  STANDARD @map("standard")
+  EXTENDED @map("extended")
+}
+
+enum AuditResult {
+  SUCCESS @map("success")
+  FAILURE @map("failure")
+  DENIED  @map("denied")
+}
+
+enum AuditVisibility {
+  CUSTOMER_VISIBLE @map("customer_visible")
+  INTERNAL_ONLY    @map("internal_only")
+}
+
+enum AuditSensitivity {
+  NONE          @map("none")
+  PSEUDONYMIZED @map("pseudonymized")
+  IDENTIFIED    @map("identified")
+}
+
+enum AuditSource {
+  API_V1     @map("api_v1")
+  API_V2     @map("api_v2")
+  WEBAPP     @map("webapp")
+  WEBHOOK    @map("webhook")
+  SYSTEM     @map("system")
+  MAGIC_LINK @map("magic_link")
+  SAML       @map("saml")
+  OAUTH      @map("oauth")
+  UNKNOWN    @map("unknown")
+}
+
+model AuditEvent {
+  id String @id @default(dbgenerated("uuidv7()")) @db.Uuid
+
+  // Who — actor who performed the action, shared with BookingAudit
+  actorId String     @db.Uuid
+  actor   AuditActor @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  // What — action performed, result, domain category, and source channel
+  action   AuditAction
+  result   AuditResult   @default(SUCCESS)
+  category AuditCategory
+  source   AuditSource
+
+  // Where — resource affected by the action
+  // String (not enum) to avoid migrations when new resource types are added
+  targetType String? // e.g., "user", "team", "membership", "apiKey"
+  targetId   String? // ID of the affected resource (plain string, no FK, preserves audit trail)
+
+  // What changed — previous and new state for mutation events
+  previousValue String?
+  newValue      String?
+
+  // When — write time; also serves as business event time (sync write, no queue delay)
+  createdAt DateTime @default(now())
+
+  // Context — correlation and traceability
+  operationId    String // Groups related events (e.g., login + 2FA in one flow, or cross-BookingAudit correlation)
+  orgId          Int? // Organization scope — plain Int, no FK, preserves audit trail after org deletion
+  ipHash         String? // HMAC-SHA-256 of client IP for SIEM geo-correlation without raw PII
+  userAgent      String? // Browser/client identifier for SIEM anomaly detection
+  traceId        String? // OTel trace ID for correlating with application traces in Elastic APM
+  impersonatedBy String? @db.Uuid // UUID of the admin impersonating, if applicable
+
+  // Compliance — classification, retention, and delivery
+  visibility       AuditVisibility    @default(CUSTOMER_VISIBLE) // Controls exposure in customer-facing audit log viewer
+  sensitivityLevel AuditSensitivity   @default(NONE) // PII classification for GDPR data subject requests
+  retentionTier    AuditRetentionTier @default(STANDARD) // Determines ILM policy in Elastic
+  // Delivery tracking — the only mutable field; all other fields are immutable once written
+  deliveredAt      DateTime? // null = pending Elastic delivery, set when confirmed delivered
+
+  @@index([orgId, createdAt])
+  @@index([orgId, action, createdAt])
+  @@index([actorId])
+  @@index([operationId])
+  @@index([createdAt])
 }
 
 enum PhoneNumberSubscriptionStatus {
