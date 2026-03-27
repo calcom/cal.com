@@ -66,7 +66,7 @@ export function keepParentInformedAboutDimensionChanges({ embedStore }: { embedS
   let isInitialDimensionPass = true;
   let isWindowLoadComplete = false;
   runAsap(function informAboutScroll() {
-    // Guard against test environment teardown where document may no longer exist
+    // Can't inform parent about dimensions if document doesn't exist
     if (typeof document === "undefined") {
       return;
     }
