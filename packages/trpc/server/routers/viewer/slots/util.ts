@@ -686,7 +686,7 @@ export class AvailableSlotsService {
 
     const guestBookings = await this.dependencies.bookingRepo.findByUserIdsAndDateRange({
       userIds: calUsers.map((u) => u.id),
-      userEmails: calUsers.map((u) => u.email),
+      userEmails: emails,
       dateFrom,
       dateTo,
     });
