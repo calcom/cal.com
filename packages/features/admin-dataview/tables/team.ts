@@ -1,0 +1,107 @@
+/* v8 ignore start */
+import type { TableDefinition } from "../types";
+
+import { id } from "./_helpers";
+
+export const teamTable: TableDefinition = {
+  modelName: "Team",
+  displayName: "Team",
+  displayNamePlural: "Teams",
+  description: "Teams and organizations",
+  slug: "teams",
+  category: "core",
+  defaultSort: "id",
+  defaultSortDirection: "desc",
+  fields: [
+    id(),
+    { column: "name", label: "Name", type: "string", access: "editable", searchable: true, showInList: true },
+    { column: "slug", label: "Slug", type: "string", access: "editable", searchable: true, showInList: true },
+    { column: "bio", label: "Bio", type: "string", access: "editable", showInList: false },
+    { column: "isOrganization", label: "Is Org", type: "boolean", access: "readonly", showInList: true },
+    { column: "parentId", label: "Parent Org ID", type: "number", access: "readonly", showInList: true },
+    { column: "isPlatform", label: "Is Platform", type: "boolean", access: "readonly", showInList: true },
+    { column: "pendingPayment", label: "Pending Payment", type: "boolean", access: "editable", showInList: true },
+    { column: "hideBranding", label: "Hide Branding", type: "boolean", access: "editable" },
+    { column: "isPrivate", label: "Private", type: "boolean", access: "editable" },
+    { column: "timeZone", label: "Timezone", type: "string", access: "editable" },
+    { column: "createdAt", label: "Created", type: "datetime", access: "readonly", showInList: true },
+    {
+      column: "smsLockState",
+      label: "SMS Lock",
+      type: "enum",
+      access: "editable",
+      enumValues: ["UNLOCKED", "REVIEW_NEEDED", "LOCKED"],
+    },
+    { column: "autoOptInFeatures", label: "Auto Opt-In Features", type: "boolean", access: "editable" },
+
+    {
+      column: "parent",
+      label: "Parent Org",
+      type: "string",
+      access: "readonly",
+      showInList: true,
+      relation: {
+        modelName: "Team",
+        select: { id: true, name: true, slug: true },
+        displayField: "name",
+        linkTo: { slug: "teams", paramField: "id" },
+      },
+    },
+    {
+      column: "members",
+      label: "Members",
+      type: "number",
+      access: "readonly",
+      showInList: true,
+      relation: {
+        modelName: "Membership",
+        select: { id: true, userId: true, role: true, accepted: true, user: { select: { id: true, name: true, email: true } } },
+        displayField: "_count",
+        many: true,
+        take: 20,
+      },
+    },
+
+    { column: "metadata", label: "Metadata", type: "json", access: "hidden" },
+  ],
+  actions: [
+    {
+      id: "verify-org",
+      label: "Verify Organization",
+      icon: "check",
+      variant: "default",
+      mutation: "organizations.adminVerify",
+      buildInput: (row) => ({ orgId: row.id }),
+      condition: (row) => row.isOrganization === true,
+      confirm: { title: "Verify this organization?", description: "This will auto-accept members and set up profiles.", confirmLabel: "Verify" },
+    },
+    {
+      id: "delete-org",
+      label: "Delete Organization",
+      icon: "trash",
+      variant: "destructive",
+      mutation: "organizations.adminDelete",
+      buildInput: (row) => ({ orgId: row.id }),
+      condition: (row) => row.isOrganization === true,
+      confirm: { title: "Delete this organization?", description: "This is permanent and will remove all sub-teams and data.", confirmLabel: "Delete forever" },
+    },
+    {
+      id: "lock-sms-team",
+      label: "Lock SMS",
+      icon: "phone",
+      variant: "destructive",
+      mutation: "admin.setSMSLockState",
+      buildInput: (row) => ({ teamId: row.id, lock: true }),
+      condition: (row) => row.smsLockState !== "LOCKED",
+    },
+    {
+      id: "unlock-sms-team",
+      label: "Unlock SMS",
+      icon: "phone",
+      variant: "default",
+      mutation: "admin.setSMSLockState",
+      buildInput: (row) => ({ teamId: row.id, lock: false }),
+      condition: (row) => row.smsLockState === "LOCKED",
+    },
+  ],
+};
