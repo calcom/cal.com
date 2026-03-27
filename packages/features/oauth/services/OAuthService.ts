@@ -3,6 +3,7 @@ import process from "node:process";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { ALL_KNOWN_SCOPES, isLegacyClient, OAUTH_SCOPES, parseScopeParam, SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
 import type { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
+import type { OAuthAuthorizationRepository } from "@calcom/features/oauth/repositories/OAuthAuthorizationRepository";
 import type { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import type { OAuthRefreshTokenRepository } from "@calcom/features/oauth/repositories/OAuthRefreshTokenRepository";
 import { hashSecretKey } from "@calcom/features/oauth/utils/generateSecret";
@@ -61,12 +62,14 @@ export class OAuthService {
   private readonly teamsRepository: TeamRepository;
   private readonly oAuthClientRepository: OAuthClientRepository;
   private readonly oAuthRefreshTokenRepository: OAuthRefreshTokenRepository;
+  private readonly oAuthAuthorizationRepository: OAuthAuthorizationRepository;
 
   constructor(
     private readonly deps: {
       oAuthClientRepository: OAuthClientRepository;
       accessCodeRepository: AccessCodeRepository;
       oAuthRefreshTokenRepository: OAuthRefreshTokenRepository;
+      oAuthAuthorizationRepository: OAuthAuthorizationRepository;
       teamsRepository: TeamRepository;
     }
   ) {
@@ -74,6 +77,7 @@ export class OAuthService {
     this.teamsRepository = deps.teamsRepository;
     this.oAuthClientRepository = deps.oAuthClientRepository;
     this.oAuthRefreshTokenRepository = deps.oAuthRefreshTokenRepository;
+    this.oAuthAuthorizationRepository = deps.oAuthAuthorizationRepository;
   }
 
   async getClient(clientId: string): Promise<OAuth2Client> {
@@ -201,6 +205,12 @@ export class OAuthService {
       codeChallenge,
       codeChallengeMethod,
     });
+
+    try {
+      await this.oAuthAuthorizationRepository.upsert(clientId, loggedInUserId, requestedScopes);
+    } catch (error) {
+      logger.error("Failed to track OAuth authorization", { clientId, userId: loggedInUserId, error });
+    }
 
     const redirectUrl = this.buildRedirectUrl(redirectUri, {
       code: authorizationCode,
@@ -449,6 +459,15 @@ export class OAuthService {
         newSecret: tokens.refreshTokenSecret,
         expiresInSeconds: tokens.refreshTokenExpiresIn,
       });
+      try {
+        await this.oAuthAuthorizationRepository.updateLastRefreshedAt(clientId, decodedToken.userId);
+      } catch (error) {
+        logger.error("Failed to update OAuth authorization lastRefreshedAt", {
+          clientId,
+          userId: decodedToken.userId,
+          error,
+        });
+      }
     } else if (decodedToken.teamId) {
       await this.oAuthRefreshTokenRepository.rotateTokenForTeam({
         clientId,

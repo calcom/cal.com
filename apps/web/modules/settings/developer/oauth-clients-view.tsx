@@ -114,11 +114,10 @@ const OAuthClientsView = () => {
     <SettingsHeader
       title={t("oauth_clients")}
       description={t("oauth_clients_description")}
-      CTA={newOAuthClientButton}
-      borderInShellHeader={true}>
+      CTA={newOAuthClientButton}>
       <div>
         {oAuthClients && oAuthClients.length > 0 ? (
-          <div className="border-subtle rounded-b-lg border border-t-0">
+          <div className="mt-4">
             <OAuthClientsList
               clients={oAuthClients.map((client) => ({
                 clientId: client.clientId,

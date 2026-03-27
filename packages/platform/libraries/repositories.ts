@@ -17,6 +17,7 @@ export { PrismaOrgMembershipRepository } from "@calcom/features/membership/repos
 export { AccessCodeRepository as PrismaAccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
 export { OAuthClientRepository as PrismaOAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 export { OAuthRefreshTokenRepository as PrismaOAuthRefreshTokenRepository } from "@calcom/features/oauth/repositories/OAuthRefreshTokenRepository";
+export { OAuthAuthorizationRepository as PrismaOAuthAuthorizationRepository } from "@calcom/features/oauth/repositories/OAuthAuthorizationRepository";
 export { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 export { ProfileRepository as PrismaProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 export { RoutingFormResponseRepository as PrismaRoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";

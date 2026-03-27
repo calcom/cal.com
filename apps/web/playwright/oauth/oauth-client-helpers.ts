@@ -1,5 +1,8 @@
-import { expect, type Locator, type Page } from "@playwright/test";
+import { randomBytes } from "node:crypto";
 import path from "node:path";
+
+import type { PrismaClient } from "@calcom/prisma";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 export async function loginAsSeededAdmin(page: Page) {
   await page.goto("/auth/login");
@@ -107,4 +110,87 @@ async function uploadOAuthClientLogo(page: Page, fileName: string): Promise<void
 
 function getFixturePath(fileName: string): string {
   return path.join(path.dirname(__filename), "..", "fixtures", fileName);
+}
+
+export async function createOAuthClientInDb({
+  prisma,
+  name,
+  status = "APPROVED",
+  userId,
+}: {
+  prisma: PrismaClient;
+  name: string;
+  status?: "PENDING" | "APPROVED" | "REJECTED";
+  userId?: number;
+}) {
+  const clientId = randomBytes(32).toString("hex");
+
+  return prisma.oAuthClient.create({
+    data: {
+      clientId,
+      name,
+      redirectUri: "",
+      redirectUris: ["https://example.com"],
+      clientSecret: null,
+      clientType: "CONFIDENTIAL",
+      status,
+      ...(userId && { user: { connect: { id: userId } } }),
+    },
+  });
+}
+
+export type MockAuthorization = {
+  username: string;
+  name: string;
+  scopes: ("READ_BOOKING" | "READ_PROFILE")[];
+  createdAt: Date;
+  lastRefreshedAt: Date | null;
+};
+
+export async function createOAuthClientWithAuthorizations({
+  prisma,
+  name,
+  ownerUserId,
+  users,
+  authorizations,
+}: {
+  prisma: PrismaClient;
+  name: string;
+  ownerUserId: number;
+  users: {
+    create: (opts: { username: string; name: string }) => Promise<{ id: number; email: string }>;
+  };
+  authorizations: MockAuthorization[];
+}) {
+  const client = await createOAuthClientInDb({ prisma, name, userId: ownerUserId });
+
+  const createdUsers = [];
+  for (const auth of authorizations) {
+    const user = await users.create({
+      username: auth.username,
+      name: auth.name,
+    });
+    createdUsers.push(user);
+
+    await prisma.oAuthAuthorization.create({
+      data: {
+        clientId: client.clientId,
+        userId: user.id,
+        scopes: auth.scopes,
+        createdAt: auth.createdAt,
+        lastRefreshedAt: auth.lastRefreshedAt,
+      },
+    });
+  }
+
+  return { client, createdUsers };
+}
+
+export async function cleanupOAuthTestData(prisma: PrismaClient, testPrefix: string) {
+  await prisma.oAuthAuthorization.deleteMany({
+    where: { client: { name: { startsWith: testPrefix } } },
+  });
+  await prisma.oAuthClient.deleteMany({
+    where: { name: { startsWith: testPrefix } },
+  });
 }

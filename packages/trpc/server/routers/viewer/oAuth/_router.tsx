@@ -4,6 +4,8 @@ import { ZCreateClientInputSchema } from "./createClient.schema";
 import { ZDeleteClientInputSchema } from "./deleteClient.schema";
 import { ZGenerateAuthCodeInputSchema } from "./generateAuthCode.schema";
 import { ZGetClientForAuthorizationInputSchema } from "./getClientForAuthorization.schema";
+import { ZCountAuthorizedUsersInputSchema } from "./countAuthorizedUsers.schema";
+import { ZListAuthorizedUsersInputSchema } from "./listAuthorizedUsers.schema";
 import { ZListClientsInputSchema } from "./listClients.schema";
 import { ZCreateClientSecretInputSchema } from "./secrets/create/schema";
 import { ZDeleteClientSecretInputSchema } from "./secrets/delete/schema";
@@ -61,6 +63,28 @@ export const oAuthRouter = router({
       input,
     });
   }),
+
+  listAuthorizedUsers: authedProcedure
+    .input(ZListAuthorizedUsersInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { listAuthorizedUsersHandler } = await import("./listAuthorizedUsers.handler");
+
+      return listAuthorizedUsersHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  countAuthorizedUsers: authedProcedure
+    .input(ZCountAuthorizedUsersInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { countAuthorizedUsersHandler } = await import("./countAuthorizedUsers.handler");
+
+      return countAuthorizedUsersHandler({
+        ctx,
+        input,
+      });
+    }),
 
   listUserClients: authedProcedure.query(async ({ ctx }) => {
     const { listUserClientsHandler } = await import("./listUserClients.handler");

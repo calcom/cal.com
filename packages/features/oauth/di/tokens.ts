@@ -5,6 +5,8 @@ export const OAUTH_DI_TOKENS = {
   ACCESS_CODE_REPOSITORY_MODULE: Symbol("AccessCodeRepositoryModule"),
   OAUTH_REFRESH_TOKEN_REPOSITORY: Symbol("OAuthRefreshTokenRepository"),
   OAUTH_REFRESH_TOKEN_REPOSITORY_MODULE: Symbol("OAuthRefreshTokenRepositoryModule"),
+  OAUTH_AUTHORIZATION_REPOSITORY: Symbol("OAuthAuthorizationRepository"),
+  OAUTH_AUTHORIZATION_REPOSITORY_MODULE: Symbol("OAuthAuthorizationRepositoryModule"),
   OAUTH_SERVICE: Symbol("OAuthService"),
   OAUTH_SERVICE_MODULE: Symbol("OAuthServiceModule"),
 };

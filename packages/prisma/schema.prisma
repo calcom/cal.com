@@ -529,6 +529,7 @@ model User {
   calAiPhoneNumbers              CalAiPhoneNumber[]
   agents                         Agent[]
   oAuthClients                   OAuthClient[]
+  oAuthAuthorizations            OAuthAuthorization[]
   holidaySettings                UserHolidaySettings?
 
   autoOptInFeatures Boolean @default(false)
@@ -1930,8 +1931,9 @@ model OAuthClient {
   scopes          AccessScope[]
   createdAt       DateTime          @default(now())
 
-  refreshTokens OAuthRefreshToken[]
-  clientSecrets OAuthClientSecret[]
+  refreshTokens  OAuthRefreshToken[]
+  clientSecrets  OAuthClientSecret[]
+  authorizations OAuthAuthorization[]
 
   @@index([userId])
 }
@@ -1977,6 +1979,20 @@ model OAuthRefreshToken {
   @@index([clientId, userId])
   @@index([clientId, teamId])
   @@index([expiresAt])
+}
+
+model OAuthAuthorization {
+  id              Int           @id @default(autoincrement())
+  userId          Int
+  clientId        String
+  scopes          AccessScope[]
+  createdAt       DateTime      @default(now())
+  lastRefreshedAt DateTime?
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client          OAuthClient   @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+
+  @@unique([userId, clientId])
+  @@index([clientId])
 }
 
 enum AccessScope {

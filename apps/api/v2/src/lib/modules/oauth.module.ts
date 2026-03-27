@@ -1,4 +1,5 @@
 import { PrismaAccessCodeRepository } from "@/lib/repositories/prisma-access-code.repository";
+import { PrismaOAuthAuthorizationRepository } from "@/lib/repositories/prisma-oauth-authorization.repository";
 import { PrismaOAuthClientRepository } from "@/lib/repositories/prisma-oauth-client.repository";
 import { PrismaOAuthRefreshTokenRepository } from "@/lib/repositories/prisma-oauth-refresh-token.repository";
 import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
@@ -10,6 +11,7 @@ import { Module } from "@nestjs/common";
   imports: [PrismaModule],
   providers: [
     PrismaAccessCodeRepository,
+    PrismaOAuthAuthorizationRepository,
     PrismaOAuthClientRepository,
     PrismaOAuthRefreshTokenRepository,
     PrismaTeamRepository,
