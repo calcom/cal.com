@@ -9,10 +9,9 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { Select, Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
-import { TriangleAlertIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
+import { CalendarIcon, TriangleAlertIcon } from "@coss/ui/icons";
 import { memo, useCallback, useMemo } from "react";
 import { OutOfOfficeToggleGroup } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
 
@@ -328,7 +327,7 @@ export function HolidaysView() {
             ) : (
               <div className="bg-default flex flex-col items-center rounded-md py-14 text-center">
                 <div className="bg-emphasis mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                  <Icon name="calendar" className="text-default h-8 w-8" />
+                  <CalendarIcon className="text-default h-8 w-8" />
                 </div>
                 <h4 className="text-emphasis mb-1 font-medium">{t("no_holidays_selected")}</h4>
                 <p className="text-subtle text-sm">{t("select_country_to_see_holidays")}</p>

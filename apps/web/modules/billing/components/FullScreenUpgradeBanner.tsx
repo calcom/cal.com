@@ -3,7 +3,6 @@
 import { useFillRemainingHeight } from "@calcom/lib/hooks/useFillRemainingHeight";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
-import { Icon } from "@calcom/ui/components/icon";
 import { OrgBadge, TeamBadge } from "@calcom/web/modules/billing/components/PlanBadge";
 import { UpgradePlanDialog } from "@calcom/web/modules/billing/components/UpgradePlanDialog";
 import { Badge } from "@coss/ui/components/badge";
@@ -16,6 +15,7 @@ import {
   DialogPopup,
   DialogTitle,
 } from "@coss/ui/components/dialog";
+import { ArrowRightIcon, ExternalLinkIcon } from "@coss/ui/icons";
 import Image from "next/image";
 import Link from "next/link";
 import posthog from "posthog-js";
@@ -224,7 +224,7 @@ export function FullScreenUpgradeBanner({
                     posthog.capture("fullscreen_upgrade_banner_cta_clicked", { source: tracking, target })
                   }>
                   {t("try_for_free")}
-                  <Icon name="arrow-right" />
+                  <ArrowRightIcon />
                 </Button>
               </UpgradePlanDialog>
               {learnMoreButton &&
@@ -287,7 +287,7 @@ export function FullScreenUpgradeBanner({
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-subtle mt-2 flex items-center gap-1 text-xs hover:underline">
-                <Icon name="external-link" className="h-3 w-3" />
+                <ExternalLinkIcon className="h-3 w-3" />
                 {t("watch_on_youtube")}
               </a>
             </div>
@@ -315,7 +315,7 @@ export function FullScreenUpgradeBanner({
                     })
                   }>
                   {t("get_started")}
-                  <Icon name="arrow-right" />
+                  <ArrowRightIcon />
                 </Button>
               </UpgradePlanDialog>
             </DialogFooter>

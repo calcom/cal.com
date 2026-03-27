@@ -11,11 +11,11 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Form, Label, Select, SettingsToggle } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTravelSchedules } from "@calcom/web/app/cache/travelSchedule";
 import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
+import { InfoIcon } from "@coss/ui/icons";
 import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
@@ -288,7 +288,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               )}
             />
             <div className="text-gray text-subtle mt-2 flex items-center text-xs">
-              <Icon name="info" className="mr-2" />
+              <InfoIcon className="mr-2" />
               {t("timeformat_profile_hint")}
             </div>
             <Controller

@@ -3,7 +3,6 @@
 import { BILLING_PLANS, BILLING_PRICING } from "@calcom/features/ee/billing/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/components/icon";
 import { Alert, AlertDescription, AlertTitle } from "@coss/ui/components/alert";
 import { Badge } from "@coss/ui/components/badge";
 import { Button } from "@coss/ui/components/button";
@@ -17,6 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@coss/ui/components/dialog";
+import { XIcon } from "@coss/ui/icons";
 import posthog from "posthog-js";
 import { useState } from "react";
 import { enterpriseFeatures, formatCents, orgFeatures, teamFeatures } from "../lib/plan-data";
@@ -75,7 +75,7 @@ export function UpgradePlanDialog({
                 tracking={{ source: tracking, target }}
               />
               <DialogClose render={<Button size="icon" variant="ghost" />}>
-                <Icon name="x" />
+                <XIcon />
               </DialogClose>
             </div>
             {info && (

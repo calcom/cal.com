@@ -3,10 +3,10 @@
 import { useClientOnly } from "@calcom/lib/hooks/useClientOnly";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
-import { Icon } from "@calcom/ui/components/icon";
 import { OrgBadge, TeamBadge } from "@calcom/web/modules/billing/components/PlanBadge";
 import { UpgradePlanDialog } from "@calcom/web/modules/billing/components/UpgradePlanDialog";
 import { Button } from "@coss/ui/components/button";
+import { ArrowRightIcon, XIcon } from "@coss/ui/icons";
 import Image from "next/image";
 import Link from "next/link";
 import posthog from "posthog-js";
@@ -86,7 +86,7 @@ export function WideUpgradeBanner({
       <UpgradePlanDialog tracking={tracking} target={target} openLinksInNewTab={openLinksInNewTab}>
         <Button size={isSmall ? "sm" : "default"} variant="outline">
           {button ?? t("upgrade")}
-          <Icon name="arrow-right" />
+          <ArrowRightIcon />
         </Button>
       </UpgradePlanDialog>
     ) : (
@@ -104,7 +104,7 @@ export function WideUpgradeBanner({
             setVisible(false);
             posthog.capture("large_upgrade_banner_dismissed", { source: tracking, target });
           }}>
-          <Icon name="x" className="h-4 w-4" />
+          <XIcon className="h-4 w-4" />
         </Button>
       )}
       {/* Left Content */}

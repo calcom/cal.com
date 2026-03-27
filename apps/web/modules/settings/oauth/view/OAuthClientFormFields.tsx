@@ -9,10 +9,9 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { CheckboxField, Label, Switch, TextArea, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { InfoIcon, KeyIcon } from "@coss/ui/icons";
+import { ChevronRightIcon, InfoIcon, KeyIcon } from "@coss/ui/icons";
 import { useMemo, useState } from "react";
 import type { RegisterOptions, UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
@@ -250,7 +249,7 @@ function OAuthScopeCheckboxes({
               {t("oauth_scopes")}
               <Tooltip content={t("oauth_scopes_description")}>
                 <span>
-                  <Icon name="info" className="text-subtle h-4 w-4" />
+                  <InfoIcon className="text-subtle h-4 w-4" />
                 </span>
               </Tooltip>
             </Label>
@@ -321,8 +320,7 @@ function ScopeCategorySection({
         onClick={() => setExpanded((prev) => !prev)}
         data-testid={`oauth-scope-category-${labelKey}`}>
         <div className="flex items-center gap-2">
-          <Icon
-            name="chevron-right"
+          <ChevronRightIcon
             className={`text-subtle h-4 w-4 transition-transform ${expanded ? "rotate-90" : ""}`}
           />
           <span className="text-emphasis text-sm font-medium">{t(labelKey)}</span>
