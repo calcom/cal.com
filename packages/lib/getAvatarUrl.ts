@@ -26,6 +26,11 @@ export const getBrandLogoUrl = (
 ) => {
   const url = isFavicon ? entity?.faviconUrl : entity?.bannerUrl || entity?.faviconUrl;
   if (url) {
+    // Uploaders can provide local data/blob URLs before persistence.
+    // Return these directly so previews update immediately.
+    if (url.startsWith("data:") || url.startsWith("blob:")) {
+      return url;
+    }
     // If URL starts with http:// or https://, it's absolute
     if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;

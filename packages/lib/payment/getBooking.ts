@@ -69,6 +69,7 @@ export async function getBooking(bookingId: number) {
             select: {
               id: true,
               name: true,
+              bannerUrl: true,
               parentId: true,
             },
           },
@@ -76,6 +77,7 @@ export async function getBooking(bookingId: number) {
             select: {
               id: true,
               name: true,
+              bannerUrl: true,
             },
           },
           calIdWorkflows: {
@@ -106,6 +108,7 @@ export async function getBooking(bookingId: number) {
           timeFormat: true,
           email: true,
           name: true,
+          bannerUrl: true,
           locale: true,
           destinationCalendar: true,
           isPlatformManaged: true,
@@ -206,6 +209,8 @@ export async function getBooking(bookingId: number) {
     destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
     customReplyToEmail: booking.eventType?.customReplyToEmail,
+    bannerUrl:
+      booking.eventType?.calIdTeam?.bannerUrl ?? booking.eventType?.team?.bannerUrl ?? user.bannerUrl ?? null,
   };
 
   return {

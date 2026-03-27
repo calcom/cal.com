@@ -77,6 +77,12 @@ const socialProfilesSchema = z.object({
       .optional(),
   }),
 });
+
+const withCacheBust = (url: string | null | undefined, cacheKey: number) => {
+  if (!url || url.startsWith("data:")) return url ?? null;
+  return `${url}${url.includes("?") ? "&" : "?"}v=${cacheKey}`;
+};
+
 const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get"] }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -188,17 +194,34 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
   });
   const [_orgBase64, setOrgBase64] = useState<string>(user.bannerUrl || "");
   const [uploadingBanner, setUploadingBanner] = useState(false);
+  const [logoCacheKey, setLogoCacheKey] = useState(0);
+  const [faviconCacheKey, setFaviconCacheKey] = useState(0);
+  const [headerCacheKey, setHeaderCacheKey] = useState(0);
+  const [headerUrlPreview, setHeaderUrlPreview] = useState<string | null>(
+    (isPrismaObjOrUndefined(user.metadata)?.headerUrl as string | null) ?? null
+  );
 
-  const bannerUrl = (isPrismaObjOrUndefined(user.metadata)?.headerUrl as string | null) ?? null;
+  const bannerUrl = headerUrlPreview;
 
   const handleBannerUpdate = async (newHeaderUrl: string | null) => {
+    const previousHeaderUrl = headerUrlPreview;
+    setHeaderUrlPreview(newHeaderUrl);
+    setHeaderCacheKey(Date.now());
     setUploadingBanner(true);
-    mutation.mutate({
-      metadata: {
-        ...isPrismaObjOrUndefined(user.metadata),
-        headerUrl: newHeaderUrl,
+    mutation.mutate(
+      {
+        metadata: {
+          ...isPrismaObjOrUndefined(user.metadata),
+          headerUrl: newHeaderUrl,
+        },
       },
-    });
+      {
+        onError: () => {
+          setHeaderUrlPreview(previousHeaderUrl);
+          setHeaderCacheKey(Date.now());
+        },
+      }
+    );
   };
 
   if (isApartOfOrganization) {
@@ -229,7 +252,11 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
             {!bannerUrl ? (
               <div className="bg-cal-gradient dark:bg-cal-gradient h-full w-full" />
             ) : (
-              <img className="h-full w-full object-cover" src={bannerUrl} alt="Header background" />
+              <img
+                className="h-full w-full object-cover"
+                src={withCacheBust(bannerUrl, headerCacheKey) ?? undefined}
+                alt="Header background"
+              />
             )}
           </div>
 
@@ -247,7 +274,10 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
               handleAvatarChange={async (newHeaderUrl) => {
                 await handleBannerUpdate(newHeaderUrl);
               }}
-              imageSrc={getPlaceholderHeader(bannerUrl, bannerUrl) ?? undefined}
+              imageSrc={getPlaceholderHeader(
+                withCacheBust(bannerUrl, headerCacheKey),
+                withCacheBust(bannerUrl, headerCacheKey)
+              )}
             />
             {bannerUrl && (
               <Button
@@ -549,7 +579,13 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                     </div>
 
                     <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-                      <Avatar imageSrc={getBrandLogoUrl({ bannerUrl: value })} size="lg" alt="" />
+                      <Avatar
+                        imageSrc={
+                          withCacheBust(getBrandLogoUrl({ bannerUrl: value }), logoCacheKey) ?? undefined
+                        }
+                        size="lg"
+                        alt=""
+                      />
                       <div className="flex flex-wrap items-center gap-2">
                         <div className="flex">
                           <CustomBannerUploader
@@ -564,9 +600,12 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                             handleAvatarChange={(newAvatar) => {
                               onChange(newAvatar);
                               setOrgBase64(newAvatar);
+                              setLogoCacheKey(Date.now());
                               mutation.mutate({ bannerUrl: newAvatar });
                             }}
-                            imageSrc={getBrandLogoUrl({ bannerUrl: value })}
+                            imageSrc={
+                              withCacheBust(getBrandLogoUrl({ bannerUrl: value }), logoCacheKey) ?? undefined
+                            }
                             mimeType="image/*"
                           />
                         </div>
@@ -576,6 +615,7 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                             StartIcon="trash"
                             onClick={() => {
                               onChange(null);
+                              setLogoCacheKey(Date.now());
                               mutation.mutate({ bannerUrl: "delete" });
                             }}>
                             {t("remove")}
@@ -619,7 +659,10 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                     <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
                       <Avatar
                         alt={user.name || "User Favicon"}
-                        imageSrc={getBrandLogoUrl({ faviconUrl: value }, true)}
+                        imageSrc={
+                          withCacheBust(getBrandLogoUrl({ faviconUrl: value }, true), faviconCacheKey) ??
+                          undefined
+                        }
                         size="lg"
                       />
                       <div className="flex flex-wrap items-center gap-2">
@@ -632,9 +675,13 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                           handleAvatarChange={(newAvatar) => {
                             setOrgBase64(newAvatar);
                             onChange(newAvatar);
+                            setFaviconCacheKey(Date.now());
                             mutation.mutate({ faviconUrl: newAvatar });
                           }}
-                          imageSrc={getBrandLogoUrl({ bannerUrl: value }, true)}
+                          imageSrc={
+                            withCacheBust(getBrandLogoUrl({ faviconUrl: value }, true), faviconCacheKey) ??
+                            undefined
+                          }
                           fileSize={1}
                         />
 
@@ -644,6 +691,7 @@ const CustomBrandingView = ({ user }: { user: RouterOutputs["viewer"]["me"]["get
                             StartIcon="trash"
                             onClick={() => {
                               onChange(null);
+                              setFaviconCacheKey(Date.now());
                               mutation.mutate({ faviconUrl: "delete" });
                             }}>
                             {t("remove")}

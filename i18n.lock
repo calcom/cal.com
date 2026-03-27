@@ -2418,8 +2418,7 @@ checksums:
     email_invite_team: 34d8eaf115741f00922ca0532a408052
     email_invite_team_bulk: badda2994be989859da93ab0ba24304c
     error_collecting_card: 3c142382aeb2f2fc29e3f3b744e4a1fc
-    image_size_limit_exceed: ee124c3a2e8b574881c9d90867055204
-    image_size_limit_exceed_1mb: 05fa08b8deb036fe887aa949a3a08eb7
+    image_size_limit_exceed: 136b3b644bf8ea7a92497efc803180ad
     unauthorized_workflow_error_message: f11d80a4b28918a080bcbeaed0a2b7cd
     inline_embed: b29b97783486f308106ae8cc0f5bcc2e
     load_inline_content: e2f39e035c7626c97b5e25913d137745

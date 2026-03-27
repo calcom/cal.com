@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  useEmbedNonStylesConfig,
+  useIsBackgroundTransparent,
+  useIsEmbed,
+} from "@calid/embed-runtime/embed-iframe";
 import { generateRecurringInstances } from "@calid/features/modules/teams/lib/recurrenceUtil";
 import { Alert } from "@calid/features/ui/components/alert";
 import { Badge } from "@calid/features/ui/components/badge";
@@ -26,11 +31,6 @@ import {
 } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
-import {
-  useEmbedNonStylesConfig,
-  useIsBackgroundTransparent,
-  useIsEmbed,
-} from "@calid/embed-runtime/embed-iframe";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { SystemField, TITLE_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/lib/bookings/getCalendarLinks";
@@ -97,6 +97,23 @@ const useBrandColors = ({
     darkVal: darkBrandColor,
   });
   useCalcomTheme(brandTheme);
+};
+
+const inferProviderNameFromMeetingUrl = (meetingUrl?: string) => {
+  if (!meetingUrl) {
+    return undefined;
+  }
+
+  const normalizedUrl = meetingUrl.toLowerCase();
+  if (
+    normalizedUrl.includes("meet.google.com") ||
+    normalizedUrl.includes("g.co/meet") ||
+    normalizedUrl.includes("google.com/meet")
+  ) {
+    return getEventLocationTypeFromVideoProvider("google_meet_video")?.label || "Google Meet";
+  }
+
+  return undefined;
 };
 
 export default function Success(props: PageProps) {
@@ -364,8 +381,12 @@ export default function Success(props: PageProps) {
 
   const providerName =
     getEventLocationTypeFromVideoProvider(resolvedVideoProvider)?.label ||
-    guessEventLocationType(location)?.label;
-  const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
+    guessEventLocationType(location)?.label ||
+    inferProviderNameFromMeetingUrl(locationToDisplay) ||
+    inferProviderNameFromMeetingUrl(locationVideoCallUrl || location);
+  const rescheduleProviderName =
+    guessEventLocationType(rescheduleLocation)?.label ||
+    inferProviderNameFromMeetingUrl(rescheduleLocationToDisplay);
   const isBookingInPast = new Date(bookingInfo.endTime) < new Date();
   const isReschedulable = !isCancelled;
 
