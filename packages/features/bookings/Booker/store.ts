@@ -9,6 +9,7 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
 import type { BookerState, BookerLayout } from "./types";
+import { getBookingDuration } from "./utils/getBookingDuration";
 import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query-param";
 
 const _iso_3166_1_alpha_2_codes = [
@@ -605,6 +606,18 @@ export const createBookerStore = () =>
         get().crmRecordId === crmRecordId
       )
         return;
+      let selectedDuration: number | null = get().selectedDuration;
+      if (durationConfig?.includes(Number(getQueryParam("duration")))) {
+        selectedDuration = Number(getQueryParam("duration"));
+      } else if (rescheduleUid && bookingData && durationConfig) {
+        selectedDuration = getBookingDuration(bookingData.startTime, bookingData.endTime, durationConfig);
+        if (!selectedDuration && durationConfig.length > 0) {
+          selectedDuration = durationConfig[0];
+        }
+      } else {
+        removeQueryParam("duration");
+      }
+
       set({
         username,
         eventSlug,
@@ -617,6 +630,7 @@ export const createBookerStore = () =>
         layout: layout || BookerLayouts.MONTH_VIEW,
         isTeamEvent: isTeamEvent || false,
         durationConfig,
+        selectedDuration,
         timezone,
         // Preselect today's date in week / column view, since they use this to show the week title.
         selectedDate:
@@ -630,14 +644,6 @@ export const createBookerStore = () =>
         allowUpdatingUrlParams,
         defaultPhoneCountry,
       });
-
-      if (durationConfig?.includes(Number(getQueryParam("duration")))) {
-        set({
-          selectedDuration: Number(getQueryParam("duration")),
-        });
-      } else {
-        removeQueryParam("duration");
-      }
 
       // Unset selected timeslot if user is rescheduling. This could happen
       // if the user reschedules a booking right after the confirmation page.

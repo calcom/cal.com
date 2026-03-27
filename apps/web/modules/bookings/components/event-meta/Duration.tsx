@@ -67,9 +67,12 @@ export const EventDuration = ({
   const isDynamicEvent = "isDynamic" in event && event.isDynamic;
   const isEmbed = useIsEmbed();
   // Sets initial value of selected duration to the default duration.
+  // Skip when rescheduling — the store's initialize sets the correct duration
+  // from the original booking, but this effect fires before initialize (child
+  // effects run before parent effects), which would cause a flash of the wrong value.
   useEffect(() => {
-    // Only store event duration in url if event has multiple durations.
-    if (!selectedDuration && (event.metadata?.multipleDuration || isDynamicEvent))
+    const isRescheduling = new URLSearchParams(window.location.search).has("rescheduleUid");
+    if (!selectedDuration && !isRescheduling && (event.metadata?.multipleDuration || isDynamicEvent))
       setSelectedDuration(event.length);
   }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
 
