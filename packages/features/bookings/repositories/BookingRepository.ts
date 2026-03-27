@@ -2233,20 +2233,36 @@ export class BookingRepository implements IBookingRepository {
   /**
    * Find accepted bookings for the given user IDs within a date range.
    * Used to build guest busy times when the host reschedules.
+   *
+   * Checks both organizer role (userId) and attendee role so bookings where
+   * the Cal user was invited—rather than hosting—are also captured.
    */
   async findAcceptedBookingsByUserIdsInRange({
     userIds,
+    userEmails,
     startTime,
     endTime,
   }: {
     userIds: number[];
+    userEmails: string[];
     startTime: Date;
     endTime: Date;
   }) {
     if (!userIds.length) return [];
     return this.prismaClient.booking.findMany({
       where: {
-        userId: { in: userIds },
+        OR: [
+          { userId: { in: userIds } },
+          ...(userEmails.length
+            ? [
+                {
+                  attendees: {
+                    some: { email: { in: userEmails, mode: "insensitive" as const } },
+                  },
+                },
+              ]
+            : []),
+        ],
         status: BookingStatus.ACCEPTED,
         startTime: { lt: endTime },
         endTime: { gt: startTime },

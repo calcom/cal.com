@@ -866,6 +866,7 @@ export class AvailableSlotsService {
 
     const guestBookings = await this.dependencies.bookingRepo.findAcceptedBookingsByUserIdsInRange({
       userIds: guestUsers.map((u) => u.id),
+      userEmails: guestUsers.map((u) => u.email),
       startTime,
       endTime,
     });

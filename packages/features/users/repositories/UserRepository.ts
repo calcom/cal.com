@@ -1519,15 +1519,26 @@ export class UserRepository {
   /**
    * Find Cal.com users by their email addresses (case-insensitive).
    * Used to identify which attendees are Cal.com users when rescheduling.
+   *
+   * Checks both the primary email and any verified secondary emails so that
+   * attendees who booked with a secondary address are still matched.
    */
   async findCalUsersByEmails({ emails }: { emails: string[] }) {
     if (!emails.length) return [];
+    const normalizedEmails = emails.map((e) => e.toLowerCase());
     return this.prismaClient.user.findMany({
       where: {
-        email: {
-          in: emails.map((e) => e.toLowerCase()),
-          mode: "insensitive",
-        },
+        OR: [
+          { email: { in: normalizedEmails, mode: "insensitive" } },
+          {
+            secondaryEmails: {
+              some: {
+                email: { in: normalizedEmails, mode: "insensitive" },
+                emailVerified: { not: null },
+              },
+            },
+          },
+        ],
       },
       select: {
         id: true,
