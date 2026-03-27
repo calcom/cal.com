@@ -292,6 +292,27 @@ export class UserRepository {
     }));
   }
 
+  async checkIfEmailRequiresVerification({ email }: { email: string }): Promise<boolean> {
+    const normalizedEmail = email.toLowerCase();
+    const result = await this.prismaClient.$queryRaw<Array<{ required: boolean }>>(Prisma.sql`
+      SELECT EXISTS (
+        SELECT 1 FROM "public"."users" u
+        WHERE LOWER(u."email") = ${normalizedEmail}
+          AND u."emailVerified" IS NOT NULL
+          AND u."locked" = FALSE
+          AND u."requiresBookerEmailVerification" = TRUE
+        UNION ALL
+        SELECT 1 FROM "public"."users" u
+        INNER JOIN "public"."SecondaryEmail" se ON se."userId" = u."id"
+        WHERE LOWER(se."email") = ${normalizedEmail}
+          AND se."emailVerified" IS NOT NULL
+          AND u."locked" = FALSE
+          AND u."requiresBookerEmailVerification" = TRUE
+      ) AS "required"
+    `);
+    return result[0]?.required ?? false;
+  }
+
   private async findVerifiedUsersByEmailsRaw(emails: string[]) {
     const emailListSql = Prisma.join(emails.map((e) => Prisma.sql`${e}`));
     return this.prismaClient.$queryRaw<
@@ -310,7 +331,7 @@ export class UserRepository {
       FROM
         "public"."users" AS u
       WHERE
-        u."email" IN (${emailListSql})
+        LOWER(u."email") IN (${emailListSql})
         AND u."emailVerified" IS NOT NULL
         AND u."locked" = FALSE
       UNION
@@ -324,7 +345,7 @@ export class UserRepository {
       INNER JOIN "public"."SecondaryEmail" AS t0
         ON t0."userId" = u."id"
       WHERE
-        t0."email" IN (${emailListSql})
+        LOWER(t0."email") IN (${emailListSql})
         AND t0."emailVerified" IS NOT NULL
         AND u."locked" = FALSE
     `);

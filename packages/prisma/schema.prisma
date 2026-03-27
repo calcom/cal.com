@@ -542,6 +542,7 @@ model User {
   @@index([emailVerified])
   @@index([identityProvider])
   @@index([identityProviderId])
+  // Functional index on LOWER(email) added via raw SQL migration: 20260309000000_add_lower_email_indexes
   @@index([locked])
   @@map(name: "users")
 }
@@ -2439,6 +2440,7 @@ model SecondaryEmail {
   @@unique([userId, email])
   @@index([userId])
   @@index([email, emailVerified])
+  // Functional index on LOWER(email) added via raw SQL migration: 20260309000000_add_lower_email_indexes
 }
 
 // Needed to store tasks that need to be processed by a background worker or Tasker

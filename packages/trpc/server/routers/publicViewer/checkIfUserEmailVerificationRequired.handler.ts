@@ -2,10 +2,17 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-
 import type { TUserEmailVerificationRequiredSchema } from "./checkIfUserEmailVerificationRequired.schema";
 
 const log = logger.getSubLogger({ prefix: ["checkIfUserEmailVerificationRequired"] });
+
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const blacklistedGuestEmails = new Set(
+  (process.env.BLACKLISTED_GUEST_EMAILS ?? "")
+    .split(",")
+    .filter(Boolean)
+    .map((e) => e.trim().toLowerCase())
+);
 
 export const userWithEmailHandler = async ({ input }: { input: TUserEmailVerificationRequiredSchema }) => {
   return checkEmailVerificationRequired(input);
@@ -18,31 +25,25 @@ export const checkEmailVerificationRequired = async ({
   userSessionEmail?: string;
   email: string;
 }) => {
-  const baseEmail = extractBaseEmail(email);
+  const baseEmail = extractBaseEmail(email).toLowerCase();
 
-  const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
-    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
-    : [];
+  if (baseEmail === userSessionEmail?.toLowerCase()) {
+    return false;
+  }
 
-  const blacklistedEmail = blacklistedGuestEmails.find(
-    (guestEmail: string) => guestEmail.toLowerCase() === baseEmail.toLowerCase()
-  );
-
-  if (!!blacklistedEmail && blacklistedEmail !== userSessionEmail) {
-    log.warn(`blacklistedEmail: ${blacklistedEmail}`);
+  if (blacklistedGuestEmails.has(baseEmail)) {
+    log.warn(`blacklistedEmail: ${baseEmail}`);
     return true;
   }
 
   const userRepo = new UserRepository(prisma);
-  const users = await userRepo.findManyByEmailsWithEmailVerificationSettings({ emails: [baseEmail] });
-  const user = users[0];
+  const requiresVerification = await userRepo.checkIfEmailRequiresVerification({ email: baseEmail });
 
-  if (user?.requiresBookerEmailVerification && baseEmail.toLowerCase() !== userSessionEmail?.toLowerCase()) {
+  if (requiresVerification) {
     log.warn(`user email requiring verification: ${baseEmail}`);
-    return true;
   }
 
-  return false;
+  return requiresVerification;
 };
 
 export default userWithEmailHandler;
