@@ -1612,4 +1612,424 @@ describe("BookingRepository (Integration Tests)", () => {
       await prisma.destinationCalendar.delete({ where: { id: destCal.id } });
     });
   });
+
+  describe("getValidBookingFromEventTypeForAttendee", () => {
+    const bookingRepo = new BookingRepository(prisma);
+    const uidPrefix = `valid-booking-test-${Date.now()}`;
+
+    // Track extra resources for cleanup
+    const createdPaymentIds: number[] = [];
+    const createdReferenceIds: number[] = [];
+
+    afterEach(async () => {
+      if (createdPaymentIds.length > 0) {
+        await prisma.payment.deleteMany({ where: { id: { in: createdPaymentIds } } });
+        createdPaymentIds.length = 0;
+      }
+      if (createdReferenceIds.length > 0) {
+        await prisma.bookingReference.deleteMany({ where: { id: { in: createdReferenceIds } } });
+        createdReferenceIds.length = 0;
+      }
+    });
+
+    it("should return null when no booking matches", async () => {
+      const result = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+        eventTypeId: 999999,
+        bookerEmail: "nonexistent@example.com",
+        startTime: new Date("2025-08-01T10:00:00.000Z"),
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it("should find an accepted booking matching eventType, attendee email, and startTime", async () => {
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: `${uidPrefix}-accepted`,
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.ACCEPTED,
+          title: "Accepted Booking",
+          startTime: new Date("2025-08-01T10:00:00.000Z"),
+          endTime: new Date("2025-08-01T10:30:00.000Z"),
+          attendees: {
+            create: {
+              email: "booker-accepted@example.com",
+              name: "Booker",
+              timeZone: "UTC",
+            },
+          },
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const result = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+        eventTypeId: testEventTypeId!,
+        bookerEmail: "booker-accepted@example.com",
+        startTime: new Date("2025-08-01T10:00:00.000Z"),
+      });
+
+      expect(result).not.toBeNull();
+      expect(result!.id).toBe(booking.id);
+      expect(result!.uid).toBe(`${uidPrefix}-accepted`);
+      expect(result!.status).toBe(BookingStatus.ACCEPTED);
+    });
+
+    it("should find a pending booking when filterForUnconfirmed is true", async () => {
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: `${uidPrefix}-pending`,
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.PENDING,
+          title: "Pending Booking",
+          startTime: new Date("2025-08-01T11:00:00.000Z"),
+          endTime: new Date("2025-08-01T11:30:00.000Z"),
+          attendees: {
+            create: {
+              email: "booker-pending@example.com",
+              name: "Booker",
+              timeZone: "UTC",
+            },
+          },
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const result = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+        eventTypeId: testEventTypeId!,
+        bookerEmail: "booker-pending@example.com",
+        startTime: new Date("2025-08-01T11:00:00.000Z"),
+        filterForUnconfirmed: true,
+      });
+
+      expect(result).not.toBeNull();
+      expect(result!.id).toBe(booking.id);
+      expect(result!.status).toBe(BookingStatus.PENDING);
+    });
+
+    it("should return all expected booking scalar fields", async () => {
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: `${uidPrefix}-scalars`,
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.ACCEPTED,
+          title: "Scalar Test Booking",
+          description: "Test description",
+          location: "https://meet.example.com",
+          startTime: new Date("2025-08-01T12:00:00.000Z"),
+          endTime: new Date("2025-08-01T12:30:00.000Z"),
+          paid: true,
+          iCalSequence: 2,
+          attendees: {
+            create: {
+              email: "booker-scalars@example.com",
+              name: "Booker",
+              timeZone: "UTC",
+            },
+          },
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const result = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+        eventTypeId: testEventTypeId!,
+        bookerEmail: "booker-scalars@example.com",
+        startTime: new Date("2025-08-01T12:00:00.000Z"),
+      });
+
+      expect(result).not.toBeNull();
+      expect(result!.id).toBe(booking.id);
+      expect(result!.uid).toBe(`${uidPrefix}-scalars`);
+      expect(result!.title).toBe("Scalar Test Booking");
+      expect(result!.description).toBe("Test description");
+      expect(result!.location).toBe("https://meet.example.com");
+      expect(result!.startTime).toEqual(new Date("2025-08-01T12:00:00.000Z"));
+      expect(result!.endTime).toEqual(new Date("2025-08-01T12:30:00.000Z"));
+      expect(result!.status).toBe(BookingStatus.ACCEPTED);
+      expect(result!.paid).toBe(true);
+      expect(result!.iCalSequence).toBe(2);
+      expect(result!.userId).toBe(testUserId);
+      expect(result!.eventTypeId).toBe(testEventTypeId);
+      expect(result).toHaveProperty("responses");
+      expect(result).toHaveProperty("metadata");
+      expect(result).toHaveProperty("userPrimaryEmail");
+      expect(result).toHaveProperty("creationSource");
+    });
+
+    it("should return scoped attendee fields (name, email, timeZone, locale, phoneNumber)", async () => {
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: `${uidPrefix}-attendees`,
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.ACCEPTED,
+          title: "Attendee Test",
+          startTime: new Date("2025-08-01T13:00:00.000Z"),
+          endTime: new Date("2025-08-01T13:30:00.000Z"),
+          attendees: {
+            create: [
+              {
+                email: "booker-att@example.com",
+                name: "Primary Attendee",
+                timeZone: "America/New_York",
+                locale: "en",
+                phoneNumber: "+1234567890",
+              },
+              {
+                email: "guest@example.com",
+                name: "Guest Attendee",
+                timeZone: "Europe/London",
+                locale: "fr",
+              },
+            ],
+          },
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const result = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+        eventTypeId: testEventTypeId!,
+        bookerEmail: "booker-att@example.com",
+        startTime: new Date("2025-08-01T13:00:00.000Z"),
+      });
+
+      expect(result).not.toBeNull();
+      expect(result!.attendees).toHaveLength(2);
+
+      const primary = result!.attendees.find((a) => a.email === "booker-att@example.com");
+      expect(primary).toBeDefined();
+      expect(primary!.name).toBe("Primary Attendee");
+      expect(primary!.timeZone).toBe("America/New_York");
+      expect(primary!.locale).toBe("en");
+      expect(primary!.phoneNumber).toBe("+1234567890");
+      expect(primary).toHaveProperty("id");
+      expect(primary).toHaveProperty("bookingId");
+      expect(primary).toHaveProperty("noShow");
+      expect(primary).toHaveProperty("createdAt");
+
+      const guest = result!.attendees.find((a) => a.email === "guest@example.com");
+      expect(guest).toBeDefined();
+      expect(guest!.name).toBe("Guest Attendee");
+      expect(guest!.timeZone).toBe("Europe/London");
+    });
+
+    it("should return scoped user fields (id, name, email, timeZone only)", async () => {
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: `${uidPrefix}-user`,
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.ACCEPTED,
+          title: "User Test",
+          startTime: new Date("2025-08-01T14:00:00.000Z"),
+          endTime: new Date("2025-08-01T14:30:00.000Z"),
+          attendees: {
+            create: {
+              email: "booker-user@example.com",
+              name: "Booker",
+              timeZone: "UTC",
+            },
+          },
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const result = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+        eventTypeId: testEventTypeId!,
+        bookerEmail: "booker-user@example.com",
+        startTime: new Date("2025-08-01T14:00:00.000Z"),
+      });
+
+      expect(result).not.toBeNull();
+      expect(result!.user).not.toBeNull();
+      expect(result!.user!.id).toBe(testUserId);
+      expect(result!.user).toHaveProperty("name");
+      expect(result!.user).toHaveProperty("email");
+      expect(result!.user).toHaveProperty("timeZone");
+      // Verify PII fields are NOT included (scoped select)
+      expect(result!.user).not.toHaveProperty("username");
+      expect(result!.user).not.toHaveProperty("bio");
+      expect(result!.user).not.toHaveProperty("avatarUrl");
+      expect(result!.user).not.toHaveProperty("twoFactorSecret");
+      expect(result!.user).not.toHaveProperty("identityProviderId");
+      expect(result!.user).not.toHaveProperty("metadata");
+      expect(result!.user).not.toHaveProperty("role");
+    });
+
+    it("should return scoped payment fields (id, uid only)", async () => {
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: `${uidPrefix}-payment`,
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.ACCEPTED,
+          title: "Payment Test",
+          startTime: new Date("2025-08-01T15:00:00.000Z"),
+          endTime: new Date("2025-08-01T15:30:00.000Z"),
+          attendees: {
+            create: {
+              email: "booker-pay@example.com",
+              name: "Booker",
+              timeZone: "UTC",
+            },
+          },
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      // Create a payment for this booking
+      const payment = await prisma.payment.create({
+        data: {
+          bookingId: booking.id,
+          uid: `${uidPrefix}-pay-uid`,
+          amount: 1000,
+          fee: 50,
+          currency: "usd",
+          success: true,
+          refunded: false,
+          data: {},
+          externalId: `${uidPrefix}-ext-pay`,
+        },
+      });
+      createdPaymentIds.push(payment.id);
+
+      const result = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+        eventTypeId: testEventTypeId!,
+        bookerEmail: "booker-pay@example.com",
+        startTime: new Date("2025-08-01T15:00:00.000Z"),
+      });
+
+      expect(result).not.toBeNull();
+      expect(result!.payment).toHaveLength(1);
+      expect(result!.payment[0].id).toBe(payment.id);
+      expect(result!.payment[0].uid).toBe(`${uidPrefix}-pay-uid`);
+      // Verify all payment fields are explicitly selected (no future fields leak)
+      expect(result!.payment[0]).toHaveProperty("amount");
+      expect(result!.payment[0]).toHaveProperty("fee");
+      expect(result!.payment[0]).toHaveProperty("currency");
+      expect(result!.payment[0]).toHaveProperty("success");
+      expect(result!.payment[0]).toHaveProperty("refunded");
+      expect(result!.payment[0]).toHaveProperty("data");
+      expect(result!.payment[0]).toHaveProperty("externalId");
+      expect(result!.payment[0]).toHaveProperty("appId");
+      expect(result!.payment[0]).toHaveProperty("bookingId");
+      expect(result!.payment[0]).toHaveProperty("paymentOption");
+    });
+
+    it("should return scoped reference fields", async () => {
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: `${uidPrefix}-refs`,
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.ACCEPTED,
+          title: "References Test",
+          startTime: new Date("2025-08-01T16:00:00.000Z"),
+          endTime: new Date("2025-08-01T16:30:00.000Z"),
+          attendees: {
+            create: {
+              email: "booker-refs@example.com",
+              name: "Booker",
+              timeZone: "UTC",
+            },
+          },
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const reference = await prisma.bookingReference.create({
+        data: {
+          bookingId: booking.id,
+          type: "google_calendar",
+          uid: `${uidPrefix}-ref-uid`,
+          meetingId: "meet-123",
+          meetingUrl: "https://meet.google.com/abc",
+          meetingPassword: "pass123",
+          externalCalendarId: "cal@group.calendar.google.com",
+        },
+      });
+      createdReferenceIds.push(reference.id);
+
+      const result = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+        eventTypeId: testEventTypeId!,
+        bookerEmail: "booker-refs@example.com",
+        startTime: new Date("2025-08-01T16:00:00.000Z"),
+      });
+
+      expect(result).not.toBeNull();
+      expect(result!.references).toHaveLength(1);
+      const ref = result!.references[0];
+      expect(ref.id).toBe(reference.id);
+      expect(ref.type).toBe("google_calendar");
+      expect(ref.uid).toBe(`${uidPrefix}-ref-uid`);
+      expect(ref.meetingId).toBe("meet-123");
+      expect(ref.meetingUrl).toBe("https://meet.google.com/abc");
+      expect(ref.meetingPassword).toBe("pass123");
+      expect(ref.externalCalendarId).toBe("cal@group.calendar.google.com");
+      expect(ref).toHaveProperty("credentialId");
+      expect(ref).toHaveProperty("delegationCredentialId");
+    });
+
+    it("should not match a booking with wrong startTime", async () => {
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: `${uidPrefix}-wrong-time`,
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.ACCEPTED,
+          title: "Wrong Time Test",
+          startTime: new Date("2025-08-01T17:00:00.000Z"),
+          endTime: new Date("2025-08-01T17:30:00.000Z"),
+          attendees: {
+            create: {
+              email: "booker-wrongtime@example.com",
+              name: "Booker",
+              timeZone: "UTC",
+            },
+          },
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const result = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+        eventTypeId: testEventTypeId!,
+        bookerEmail: "booker-wrongtime@example.com",
+        startTime: new Date("2025-08-01T18:00:00.000Z"), // Different time
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it("should not return cancelled bookings", async () => {
+      const booking = await prisma.booking.create({
+        data: {
+          userId: testUserId,
+          uid: `${uidPrefix}-cancelled`,
+          eventTypeId: testEventTypeId,
+          status: BookingStatus.CANCELLED,
+          title: "Cancelled Booking",
+          startTime: new Date("2025-08-01T18:00:00.000Z"),
+          endTime: new Date("2025-08-01T18:30:00.000Z"),
+          attendees: {
+            create: {
+              email: "booker-cancelled@example.com",
+              name: "Booker",
+              timeZone: "UTC",
+            },
+          },
+        },
+      });
+      createdBookingIds.push(booking.id);
+
+      const result = await bookingRepo.getValidBookingFromEventTypeForAttendee({
+        eventTypeId: testEventTypeId!,
+        bookerEmail: "booker-cancelled@example.com",
+        startTime: new Date("2025-08-01T18:00:00.000Z"),
+      });
+
+      expect(result).toBeNull();
+    });
+  });
 });
