@@ -639,6 +639,7 @@ export const getOptions = ({
             email: true,
             role: true,
             locale: true,
+            passwordChangedAt: true,
             movedToProfileId: true,
             teams: {
               include: {
@@ -655,6 +656,16 @@ export const getOptions = ({
 
         if (!existingUser) {
           return token;
+        }
+
+        // Invalidate sessions issued before the last password change (#28392).
+        // token.iat is the JWT issued-at timestamp in seconds (set by NextAuth).
+        if (existingUser.passwordChangedAt && token.iat) {
+          const changedAtSeconds = Math.floor(existingUser.passwordChangedAt.getTime() / 1000);
+          if (token.iat < changedAtSeconds) {
+            // Return empty token to force sign-out on next request
+            return {} as JWT;
+          }
         }
 
         // Check if the existingUser has any active teams
