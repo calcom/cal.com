@@ -31,8 +31,7 @@ const CLOUD_METADATA_ENDPOINTS: string[] = [
   "metadata.google.com", // GCP alternate
 ];
 
-// Loopback and unspecified addresses blocked by hostname (defense-in-depth on top of IP range checks)
-const LOOPBACK_HOSTNAMES: string[] = ["localhost", "127.0.0.1", "::1", "0.0.0.0"];
+const LOOPBACK_HOSTNAMES: string[] = ["localhost", "127.0.0.1", "::1", "[::1]", "0.0.0.0"];
 
 // Hostnames blocked on Cal.com SaaS (includes metadata + loopback)
 const BLOCKED_HOSTNAMES: string[] = [...CLOUD_METADATA_ENDPOINTS, ...LOOPBACK_HOSTNAMES];

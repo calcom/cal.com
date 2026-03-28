@@ -57,15 +57,16 @@ describe("isPrivateIP", () => {
 
 describe("isBlockedHostname", () => {
   it.each([
-    "localhost", // loopback hostname
-    "127.0.0.1", // IPv4 loopback
-    "::1", // IPv6 loopback
-    "0.0.0.0", // unspecified address
-    "169.254.169.254", // AWS/Azure/DigitalOcean
-    "metadata.google.internal", // GCP
-    "169.254.169.254.", // trailing dot normalization
-    "METADATA.GOOGLE.INTERNAL", // case insensitive
-  ])("blocks cloud metadata endpoint %s", (hostname) => {
+    "localhost",
+    "127.0.0.1",
+    "::1",
+    "[::1]",
+    "0.0.0.0",
+    "169.254.169.254",
+    "metadata.google.internal",
+    "169.254.169.254.",
+    "METADATA.GOOGLE.INTERNAL",
+  ])("blocks %s", (hostname) => {
     expect(isBlockedHostname(hostname)).toBe(true);
   });
 
@@ -118,7 +119,7 @@ describe("validateUrlForSSRFSync", () => {
   });
 
   it.each([
-    ["https://[::1]/", "Private IP address"],
+    ["https://[::1]/", "Blocked hostname"],
     ["https://[fe80::1]/path", "Private IP address"],
     ["https://[fc00::1]:8080/", "Private IP address"],
     ["https://[::ffff:127.0.0.1]/", "Private IP address"],
