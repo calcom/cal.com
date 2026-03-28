@@ -18,9 +18,6 @@ vi.mock("@calcom/features/watchlist/operations/check-if-users-are-blocked.contro
 vi.mock("@calcom/features/watchlist/lib/telemetry", () => ({
   sentrySpan: vi.fn(),
 }));
-// Prevent vitest worker shutdown race condition: TranslationService transitively imports
-// @calcom/lib/i18n which triggers slow module resolution via vite's RPC. When the worker
-// shuts down before it completes, it causes "Closing rpc while fetch was pending" errors.
 vi.mock("@calcom/lib/i18n", () => ({
   locales: ["en"],
   localeOptions: [{ value: "en", label: "English" }],
