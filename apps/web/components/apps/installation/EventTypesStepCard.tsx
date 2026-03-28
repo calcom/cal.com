@@ -1,8 +1,3 @@
-import type { Dispatch, SetStateAction } from "react";
-import type { FC } from "react";
-import React from "react";
-import { useFieldArray, useFormContext } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -10,8 +5,10 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { ScrollableArea } from "@calcom/ui/components/scrollable";
-
-import type { TEventType, TEventTypesForm, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
+import type { Dispatch, FC, SetStateAction } from "react";
+import React from "react";
+import { useFieldArray, useFormContext } from "react-hook-form";
+import type { TEventType, TEventTypeGroup, TEventTypesForm } from "~/apps/installation/[[...step]]/step-view";
 
 type EventTypesCardProps = {
   userName: string;
@@ -56,9 +53,9 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
         className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-cal checked:border-transparent checked:bg-gray-800 border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
         type="checkbox"
       />
-      <label htmlFor={`${id}`} className="cursor-pointer text-sm">
+      <label htmlFor={`${id}`} className="min-w-0 cursor-pointer text-sm">
         <li>
-          <div>
+          <div className="truncate">
             <span className="text-default font-semibold ltr:mr-1 rtl:ml-1">{title}</span>{" "}
             <small className="text-subtle hidden font-normal sm:inline">
               /{team ? team.slug : userName}/{slug}
