@@ -100,7 +100,9 @@ async function setupBookingsAndOpenSheet({
 
   const firstBookingItem = page.locator(`[data-booking-uid="${fixtures[0].uid}"]`);
   await expect(firstBookingItem).toBeVisible();
-  await firstBookingItem.locator('[role="button"]').first().click();
+  const firstButton = firstBookingItem.locator('[role="button"]').first();
+  await firstButton.waitFor({ state: "visible" });
+  await firstButton.click();
 
   const sheet = page.locator('[role="dialog"]');
   await expect(sheet).toBeVisible();
