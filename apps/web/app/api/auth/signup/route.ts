@@ -6,13 +6,13 @@ import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
+import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { piiHasher } from "@calcom/lib/server/PiiHasher";
 import { prisma } from "@calcom/prisma";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import { type NextRequest, NextResponse } from "next/server";
-import { ZodError } from "zod";
 import calcomSignupHandler from "./handlers/calcomSignupHandler";
 import selfHostedSignupHandler from "./handlers/selfHostedHandler";
 
@@ -69,15 +69,11 @@ async function handler(req: NextRequest) {
 
     return await selfHostedSignupHandler(body);
   } catch (e) {
-    if (e instanceof ZodError) {
-      const message = e.errors.map((err) => `${err.path.join(".")}: ${err.message}`).join(", ");
-      return NextResponse.json({ message }, { status: 400 });
+    const error = getServerErrorFromUnknown(e);
+    if (error.statusCode >= 500) {
+      logger.error(error);
     }
-    if (e instanceof HttpError) {
-      return NextResponse.json({ message: e.message }, { status: e.statusCode });
-    }
-    logger.error(e);
-    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ message: error.message }, { status: error.statusCode });
   }
 }
 

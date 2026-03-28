@@ -917,6 +917,13 @@ export const emailSchemaRefinement = (value: string | null | undefined) => {
   return emailSchema.safeParse(value).success;
 };
 
+const passwordErrorMessages: Record<string, string> = {
+  caplow: "Password must contain both uppercase and lowercase letters",
+  num: "Password must contain at least one number",
+  min: "Password must be at least 7 characters",
+  admin_min: "Password must be at least 15 characters",
+};
+
 export const signupSchema = z.object({
   // Username is marked optional here because it's requirement depends on if it's the Organization invite or a team invite which isn't easily done in zod
   // It's better handled beyond zod in `validateAndGetCorrectedUsernameAndEmail`
@@ -930,7 +937,7 @@ export const signupSchema = z.object({
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: [key],
-          message: key,
+          message: passwordErrorMessages[key] ?? key,
         });
       }
     });
