@@ -204,6 +204,10 @@ export const NavigationItem: React.FC<{
         </Tooltip>
       ) : (
         <Tooltip side="right" content={t(item.name)} className="lg:hidden">
+          {/* Wrap Link in a span to prevent Radix Tooltip from creating nested
+              <a> elements. Tooltip's asChild merges with the first child, so
+              without the wrapper it produces <a><a>...</a></a> (#27984). */}
+          <span className="flex w-full">
           <Link
             data-test-id={item.name}
             onClick={() => trackNavigationClick(item.name)}
@@ -247,6 +251,7 @@ export const NavigationItem: React.FC<{
               <SkeletonText className="h-[20px] w-full" />
             )}
           </Link>
+          </span>
         </Tooltip>
       )}
       {hasChildren && (
