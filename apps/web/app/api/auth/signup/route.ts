@@ -72,6 +72,7 @@ async function handler(req: NextRequest) {
     const error = getServerErrorFromUnknown(e);
     if (error.statusCode >= 500) {
       logger.error(error);
+      return NextResponse.json({ message: "Internal server error" }, { status: error.statusCode });
     }
     return NextResponse.json({ message: error.message }, { status: error.statusCode });
   }
