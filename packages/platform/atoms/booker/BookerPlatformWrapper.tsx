@@ -299,10 +299,10 @@ const BookerPlatformWrapperComponent = (
     teamMemberEmail: teamMemberEmail ?? undefined,
     ...(props.isTeamEvent
       ? {
-        isTeamEvent: props.isTeamEvent,
-        teamId: teamId,
-        rrHostSubsetIds: rrHostSubsetIds,
-      }
+          isTeamEvent: props.isTeamEvent,
+          teamId: teamId,
+          rrHostSubsetIds: rrHostSubsetIds,
+        }
       : {}),
     enabled:
       Boolean(teamId || username) &&
@@ -345,6 +345,14 @@ const BookerPlatformWrapperComponent = (
       if (data?.data?.isDryRun) {
         props?.onDryRunSuccess?.();
       }
+
+      // Decoy bookings from spam/watchlist detection have responses: null.
+      // Early-return to prevent downstream code from crashing on null access.
+      if (data?.data && "isShortCircuitedBooking" in data.data && data.data.isShortCircuitedBooking) {
+        props.onCreateBookingSuccess?.(data);
+        return;
+      }
+
       schedule.refetch();
       props.onCreateBookingSuccess?.(data);
 
@@ -365,6 +373,16 @@ const BookerPlatformWrapperComponent = (
       if (data?.data?.[0]?.isDryRun) {
         props?.onDryRunSuccess?.();
       }
+
+      if (
+        data?.data?.[0] &&
+        "isShortCircuitedBooking" in data.data[0] &&
+        data.data[0].isShortCircuitedBooking
+      ) {
+        props.onCreateRecurringBookingSuccess?.(data);
+        return;
+      }
+
       schedule.refetch();
       props.onCreateRecurringBookingSuccess?.(data);
 
@@ -453,8 +471,8 @@ const BookerPlatformWrapperComponent = (
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
     ...(props.isTeamEvent
       ? {
-        rrHostSubsetIds: rrHostSubsetIds,
-      }
+          rrHostSubsetIds: rrHostSubsetIds,
+        }
       : {}),
   });
 
