@@ -671,30 +671,33 @@ export class AvailableSlotsService {
       return [];
     }
 
-    const original = await this.dependencies.bookingRepo.findByUidIncludeAttendeeEmails({
-      uid: rescheduleUid,
-    });
-    if (!original?.attendees?.length) return [];
+    try {
+      const original = await this.dependencies.bookingRepo.findByUidIncludeAttendeeEmails({
+        uid: rescheduleUid,
+      });
+      if (!original?.attendees?.length) return [];
 
-    const emails = original.attendees
-      .map((a) => a.email)
-      .filter((e): e is string => Boolean(e));
-    if (!emails.length) return [];
+      const emails = original.attendees
+        .map((a) => a.email)
+        .filter((e): e is string => Boolean(e));
+      if (!emails.length) return [];
 
-    const calUsers = await this.dependencies.userRepo.findByEmails({ emails });
-    if (!calUsers.length) return [];
+      const calUsers = await this.dependencies.userRepo.findByEmails({ emails });
+      if (!calUsers.length) return [];
 
-    const guestBookings = await this.dependencies.bookingRepo.findByUserIdsAndDateRange({
-      userIds: calUsers.map((u) => u.id),
-      userEmails: emails,
-      dateFrom,
-      dateTo,
-    });
+      const guestBookings = await this.dependencies.bookingRepo.findByUserIdsAndDateRange({
+        userIds: calUsers.map((u) => u.id),
+        userEmails: emails,
+        dateFrom,
+        dateTo,
+        excludeUid: rescheduleUid,
+      });
 
-    // Keep the rescheduled booking's own slot available
-    return guestBookings
-      .filter((b) => b.uid !== rescheduleUid)
-      .map((b) => ({ start: b.startTime, end: b.endTime }));
+      return guestBookings.map((b) => ({ start: b.startTime, end: b.endTime }));
+    } catch (error) {
+      // Graceful degradation: never block rescheduling if guest lookup fails
+      return [];
+    }
   }
   private getGuestBusyTimesForReschedule = withReporting(
     this._getGuestBusyTimesForReschedule.bind(this),

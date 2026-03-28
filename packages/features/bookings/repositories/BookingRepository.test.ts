@@ -218,5 +218,24 @@ describe("BookingRepository", () => {
         })
       );
     });
+
+    it("should include excludeUid in query when provided", async () => {
+      const repo = new BookingRepository(mockPrisma as unknown as PrismaClient);
+      await repo.findByUserIdsAndDateRange({
+        userIds: [1],
+        userEmails: [],
+        dateFrom,
+        dateTo,
+        excludeUid: "booking-to-exclude",
+      });
+
+      expect(mockPrisma.booking.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            uid: { not: "booking-to-exclude" },
+          }),
+        })
+      );
+    });
   });
 });

@@ -172,7 +172,7 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       ]);
     });
 
-    it("should exclude the rescheduled booking itself from busy times", async () => {
+    it("should pass excludeUid to the booking query to filter at database level", async () => {
       mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails.mockResolvedValue({
         id: 1,
         uid: rescheduleUid,
@@ -180,14 +180,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       });
       mockDependencies.userRepo.findByEmails.mockResolvedValue([{ id: 10, email: "guest@cal.com" }]);
       mockDependencies.bookingRepo.findByUserIdsAndDateRange.mockResolvedValue([
-        {
-          uid: rescheduleUid,
-          startTime: new Date("2026-04-10T14:00:00Z"),
-          endTime: new Date("2026-04-10T15:00:00Z"),
-          title: "Original meeting",
-          userId: 10,
-          status: "ACCEPTED",
-        },
         {
           uid: "different-booking",
           startTime: new Date("2026-04-10T16:00:00Z"),
@@ -205,11 +197,29 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
         dateTo,
       });
 
+      expect(mockDependencies.bookingRepo.findByUserIdsAndDateRange).toHaveBeenCalledWith(
+        expect.objectContaining({ excludeUid: rescheduleUid })
+      );
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
         start: new Date("2026-04-10T16:00:00Z"),
         end: new Date("2026-04-10T17:00:00Z"),
       });
+    });
+
+    it("should return empty array on error (graceful degradation)", async () => {
+      mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails.mockRejectedValue(
+        new Error("Database connection lost")
+      );
+
+      const result = await callGetGuestBusyTimes({
+        rescheduleUid,
+        schedulingType: null,
+        dateFrom,
+        dateTo,
+      });
+
+      expect(result).toEqual([]);
     });
 
     it("should handle multiple guest attendees who are Cal.com users", async () => {

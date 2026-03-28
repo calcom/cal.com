@@ -2154,11 +2154,13 @@ export class BookingRepository implements IBookingRepository {
     userEmails,
     dateFrom,
     dateTo,
+    excludeUid,
   }: {
     userIds: number[];
     userEmails: string[];
     dateFrom: Date;
     dateTo: Date;
+    excludeUid?: string;
   }) {
     if (!userIds.length && !userEmails.length) return [];
 
@@ -2172,6 +2174,7 @@ export class BookingRepository implements IBookingRepository {
             ? [{ attendees: { some: { email: { in: userEmails, mode: "insensitive" as const } } } }]
             : []),
         ],
+        ...(excludeUid ? { uid: { not: excludeUid } } : {}),
       },
       select: {
         uid: true,
