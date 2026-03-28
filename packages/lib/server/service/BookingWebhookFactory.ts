@@ -55,6 +55,10 @@ interface CancelledEventPayload extends BaseWebhookPayload {
   iCalSequence?: number | null;
   eventTitle?: string | null;
   requestReschedule?: boolean;
+  /** Reschedule link for the attendee (only present when requestReschedule is true). */
+  rescheduleLink?: string | null;
+  /** UID of the cancelled booking being rescheduled (only present when requestReschedule is true). */
+  rescheduleUid?: string | null;
 }
 
 export class BookingWebhookFactory {
@@ -134,6 +138,10 @@ export class BookingWebhookFactory {
       iCalSequence: params.iCalSequence ?? null,
       eventTitle: params.eventTitle ?? null,
       requestReschedule: params.requestReschedule ?? false,
+      ...(params.requestReschedule && {
+        rescheduleLink: params.rescheduleLink ?? null,
+        rescheduleUid: params.rescheduleUid ?? null,
+      }),
     };
   }
 }
