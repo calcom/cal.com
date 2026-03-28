@@ -69,6 +69,7 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import { getTranslation } from "@calcom/i18n/server";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
@@ -83,7 +84,6 @@ import { criticalLogger } from "@calcom/lib/logger.server";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
-import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import type { PrismaClient } from "@calcom/prisma";
@@ -101,6 +101,7 @@ import type {
   AppsStatus,
   CalEventResponses,
   CalendarEvent,
+  Person,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -346,6 +347,68 @@ export async function computeTeamData({
 
   const teamMembers = await Promise.all(teamMemberPromises);
   return { teamMembers, teamDestinationCalendars };
+}
+
+async function computeOptionalGuestAttendees({
+  prismaClient,
+  teamId,
+  optionalGuestTeamMemberIds,
+  organizerEmail,
+  blockedEmails,
+}: {
+  prismaClient: PrismaClient;
+  teamId: number;
+  optionalGuestTeamMemberIds: number[];
+  organizerEmail: string;
+  blockedEmails: Set<string>;
+}): Promise<Person[]> {
+  if (optionalGuestTeamMemberIds.length === 0) return [];
+
+  const uniqueOptionalGuestTeamMemberIds = Array.from(new Set(optionalGuestTeamMemberIds));
+  const optionalGuestMemberships = await prismaClient.membership.findMany({
+    where: {
+      teamId,
+      accepted: true,
+      userId: {
+        in: uniqueOptionalGuestTeamMemberIds,
+      },
+    },
+    select: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          timeZone: true,
+          locale: true,
+        },
+      },
+    },
+  });
+
+  const optionalGuestAttendees = await Promise.all(
+    optionalGuestMemberships.flatMap(async ({ user }) => {
+      const normalizedEmail = user.email.toLowerCase();
+      if (normalizedEmail === organizerEmail.toLowerCase()) return [];
+      if (blockedEmails.has(normalizedEmail)) return [];
+
+      return [
+        {
+          id: user.id,
+          email: user.email,
+          name: user.name ?? "",
+          timeZone: user.timeZone,
+          language: {
+            translate: await getTranslation(user.locale ?? "en", "common"),
+            locale: user.locale ?? "en",
+          },
+          optional: true,
+        },
+      ] satisfies Person[];
+    })
+  );
+
+  return optionalGuestAttendees.flat();
 }
 
 function buildTroubleshooterData({
@@ -1487,6 +1550,24 @@ async function handler(
     organizerEmail = eventType.secondaryEmail.email;
   }
 
+  const optionalGuestTeamMemberIds = eventType.metadata?.optionalGuestTeamMemberIds ?? [];
+  const blockedOptionalGuestEmails = new Set(
+    [...attendeesList.map((attendee) => attendee.email), ...users.map((user) => user.email ?? "")]
+      .filter(Boolean)
+      .map((email) => email.toLowerCase())
+  );
+  const optionalGuestAttendees =
+    isTeamEventType && eventType.teamId && optionalGuestTeamMemberIds.length > 0
+      ? await computeOptionalGuestAttendees({
+          prismaClient: deps.prismaClient,
+          teamId: eventType.teamId,
+          optionalGuestTeamMemberIds,
+          organizerEmail,
+          blockedEmails: blockedOptionalGuestEmails,
+        })
+      : [];
+  const calendarAttendeesList = [...attendeesList, ...optionalGuestAttendees];
+
   //update cal event responses with latest location value , later used by webhook
   if (reqBody.calEventResponses)
     reqBody.calEventResponses["location"].value = {
@@ -1527,7 +1608,7 @@ async function handler(
       language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
       timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
     },
-    attendees: attendeesList,
+    attendees: calendarAttendeesList,
     additionalNotes,
   })
     .withEventType({
@@ -2453,7 +2534,7 @@ async function handler(
     isBookingAuditEnabled,
   });
 
-  const webhookLocation= metadata?.videoCallUrl || evt.location;
+  const webhookLocation = metadata?.videoCallUrl || evt.location;
 
   const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const webhookData: EventPayloadType = {

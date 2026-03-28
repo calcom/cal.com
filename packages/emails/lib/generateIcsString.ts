@@ -1,14 +1,12 @@
-import type { TFunction } from "i18next";
-import type { DateArray, ParticipationRole, EventStatus, ParticipationStatus } from "ics";
-import { createEvent } from "ics";
-import { RRule } from "rrule";
-
-import { getRichDescription } from "@calcom/lib/CalEventParser";
-import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { getRichDescription, getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { TFunction } from "i18next";
+import type { DateArray, EventStatus, ParticipationRole, ParticipationStatus } from "ics";
+import { createEvent } from "ics";
+import { RRule } from "rrule";
 
 export enum BookingAction {
   Create = "create",
@@ -61,8 +59,9 @@ const generateIcsString = ({
   const location = getVideoCallUrlFromCalEvent(event) || event.location;
 
   // Taking care of recurrence rule
-  let recurrenceRule: string | undefined = undefined;
-  const icsRole: ParticipationRole = "REQ-PARTICIPANT";
+  let recurrenceRule: string | undefined;
+  const requiredIcsRole: ParticipationRole = "REQ-PARTICIPANT";
+  const optionalIcsRole: ParticipationRole = "OPT-PARTICIPANT";
   if (event.recurringEvent?.count) {
     // ics appends "RRULE:" already, so removing it from RRule generated string
     recurrenceRule = new RRule(event.recurringEvent).toString().replace("RRULE:", "");
@@ -93,7 +92,7 @@ const generateIcsString = ({
         name: attendee.name,
         email: attendee.email,
         partstat,
-        role: icsRole,
+        role: attendee.optional ? optionalIcsRole : requiredIcsRole,
         rsvp: true,
       })),
       ...(event.team?.members
@@ -101,7 +100,7 @@ const generateIcsString = ({
             name: member.name,
             email: member.email,
             partstat,
-            role: icsRole,
+            role: member.optional ? optionalIcsRole : requiredIcsRole,
             rsvp: true,
           }))
         : []),

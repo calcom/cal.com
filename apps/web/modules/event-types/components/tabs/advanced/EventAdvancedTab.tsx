@@ -4,12 +4,12 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Timezone as PlatformTimzoneSelect } from "@calcom/atoms/timezone";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/components/DestinationCalendarSelector";
-import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {
@@ -20,7 +20,6 @@ import type {
   SelectClassNames,
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
 import {
   DEFAULT_DARK_BRAND_COLOR,
   DEFAULT_LIGHT_BRAND_COLOR,
@@ -48,7 +47,8 @@ import {
   Switch,
   TextField,
 } from "@calcom/ui/components/form";
-import { InfoIcon, PencilIcon } from "@coss/ui/icons";
+import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
+import { useHasTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import {
   SelectedCalendarSettingsScope,
   SelectedCalendarsSettingsWebWrapper,
@@ -56,12 +56,13 @@ import {
 } from "@calcom/web/modules/calendars/components/SelectedCalendarsSettingsWebWrapper";
 import { MultiplePrivateLinksController } from "@calcom/web/modules/event-types/components";
 import AddVerifiedEmail from "@calcom/web/modules/event-types/components/AddVerifiedEmail";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
+import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
+import { InfoIcon, PencilIcon } from "@coss/ui/icons";
 import type { Dispatch, SetStateAction } from "react";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
-
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
@@ -112,6 +113,10 @@ export type EventAdvancedTabCustomClassNames = {
 };
 
 type BookingField = z.infer<typeof fieldSchema>;
+type OptionalGuestTeamMemberOption = {
+  value: number;
+  label: string;
+};
 
 export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
   user?: Partial<
@@ -552,6 +557,7 @@ export const EventAdvancedTab = ({
   const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
 
   const customReplyToEmail = formMethods.watch("customReplyToEmail");
+  const { hasTeamPlan } = useHasTeamPlan();
 
   const [eventTypeColorState, setEventTypeColorState] = useState(
     eventType.eventTypeColor || {
@@ -592,6 +598,16 @@ export const EventAdvancedTab = ({
   }
 
   const metadata = formMethods.watch("metadata");
+  const optionalGuestTeamMemberOptions = useMemo<OptionalGuestTeamMemberOption[]>(() => {
+    if (!team?.members?.length) return [];
+    return team.members
+      .filter((member) => member.accepted && !!member.user.email)
+      .map((member) => ({
+        value: member.user.id,
+        label: member.user.name || member.user.email,
+      }));
+  }, [team?.members]);
+
   const paymentAppData = useMemo(() => {
     const _eventType = {
       price: 0,
@@ -1351,6 +1367,42 @@ export const EventAdvancedTab = ({
           />
         )}
       />
+      {!!team && (
+        <Controller
+          name="metadata.optionalGuestTeamMemberIds"
+          render={({ field: { value, onChange } }) => {
+            const selectedIds = value ?? [];
+            const selectedOptions = optionalGuestTeamMemberOptions.filter((option) =>
+              selectedIds.includes(option.value)
+            );
+
+            return (
+              <div className="border-subtle rounded-lg border py-6 px-4 sm:px-6">
+                <div className="mb-4 flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-default text-sm font-semibold">
+                      {t("optional_guest_team_members_title")}
+                    </p>
+                    <p className="text-subtle mt-1 text-sm">{t("optional_guest_team_members_description")}</p>
+                  </div>
+                  {!hasTeamPlan && <UpgradeTeamsBadge checkForActiveStatus />}
+                </div>
+                <Select<OptionalGuestTeamMemberOption, true>
+                  isMulti
+                  placeholder={t("add_team_members_as_optional_guests")}
+                  isDisabled={!hasTeamPlan}
+                  options={optionalGuestTeamMemberOptions}
+                  value={selectedOptions}
+                  closeMenuOnSelect={false}
+                  onChange={(selectedOptions) =>
+                    onChange(selectedOptions.map((selectedOption) => selectedOption.value))
+                  }
+                />
+              </div>
+            );
+          }}
+        />
+      )}
       <>
         <Controller
           name="customReplyToEmail"

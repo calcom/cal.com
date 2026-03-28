@@ -34,6 +34,7 @@ export type Person = {
   email: string;
   timeZone: string;
   language: { translate: TFunction; locale: string };
+  optional?: boolean;
   username?: string;
   usernameInOrg?: string;
   id?: number;
@@ -48,6 +49,7 @@ export type TeamMember = {
   id?: number;
   name: string;
   email: string;
+  optional?: boolean;
   phoneNumber?: string | null;
   timeZone: string;
   language: { translate: TFunction; locale: string };

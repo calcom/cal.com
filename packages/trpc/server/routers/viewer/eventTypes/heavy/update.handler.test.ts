@@ -1,8 +1,63 @@
-import { describe, it, expect } from "vitest";
-
 import { Prisma } from "@calcom/prisma/client";
+import { TRPCError } from "@trpc/server";
+import { describe, expect, it } from "vitest";
+import { normalizeOptionalGuestTeamMemberIds } from "./update.handler";
 
 describe("update.handler", () => {
+  describe("normalizeOptionalGuestTeamMemberIds", () => {
+    it("returns undefined when optional guest ids are not provided", () => {
+      const result = normalizeOptionalGuestTeamMemberIds({
+        optionalGuestTeamMemberIds: undefined,
+        teamId: 1,
+        acceptedTeamMemberIds: [1, 2, 3],
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it("deduplicates optional guest ids while preserving order", () => {
+      const result = normalizeOptionalGuestTeamMemberIds({
+        optionalGuestTeamMemberIds: [3, 2, 3, 1, 2],
+        teamId: 1,
+        acceptedTeamMemberIds: [1, 2, 3],
+      });
+
+      expect(result).toEqual([3, 2, 1]);
+    });
+
+    it("throws BAD_REQUEST for non-team event types", () => {
+      try {
+        normalizeOptionalGuestTeamMemberIds({
+          optionalGuestTeamMemberIds: [1],
+          teamId: undefined,
+          acceptedTeamMemberIds: [1, 2],
+        });
+      } catch (error) {
+        expect(error).toBeInstanceOf(TRPCError);
+        expect((error as TRPCError).code).toBe("BAD_REQUEST");
+        return;
+      }
+
+      throw new Error("Expected TRPCError to be thrown");
+    });
+
+    it("throws FORBIDDEN when a member id does not belong to the team", () => {
+      try {
+        normalizeOptionalGuestTeamMemberIds({
+          optionalGuestTeamMemberIds: [1, 4],
+          teamId: 1,
+          acceptedTeamMemberIds: [1, 2, 3],
+        });
+      } catch (error) {
+        expect(error).toBeInstanceOf(TRPCError);
+        expect((error as TRPCError).code).toBe("FORBIDDEN");
+        return;
+      }
+
+      throw new Error("Expected TRPCError to be thrown");
+    });
+  });
+
   describe("bookingFields null to Prisma.DbNull transformation", () => {
     function transformBookingFields(
       bookingFields: null | undefined | Prisma.InputJsonValue

@@ -1,13 +1,10 @@
-import { describe, expect, vi } from "vitest";
-
 import { ORGANIZER_EMAIL_EXEMPT_DOMAINS } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
-import { buildCalendarEvent, buildPerson } from "@calcom/lib/test/builder";
-import { buildVideoCallData } from "@calcom/lib/test/builder";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import { buildCalendarEvent, buildPerson, buildVideoCallData } from "@calcom/lib/test/builder";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
-
+import type { CalendarEvent } from "@calcom/types/Calendar";
+import { describe, expect, vi } from "vitest";
 import generateIcsString from "./generateIcsString";
 
 const assertHasIcsString = (icsString: string | undefined) => {
@@ -166,6 +163,49 @@ describe("generateIcsString", () => {
       assertHasIcsString(icsString);
 
       expect(icsString).toEqual(expect.stringContaining(`LOCATION:${event.location}`));
+    });
+  });
+  describe("optional attendees", () => {
+    test("marks optional attendees as OPT-PARTICIPANT", () => {
+      const event = buildCalendarEvent({
+        attendees: [
+          buildPerson({ email: "required-attendee@cal.com", optional: false }),
+          buildPerson({ email: "optional-attendee@cal.com", optional: true }),
+        ],
+      });
+
+      const icsString = assertHasIcsString(
+        generateIcsString({
+          event,
+          status: "CONFIRMED",
+        })
+      );
+
+      expect(icsString).toMatch(/optional-attendee@cal\.com/i);
+      expect(icsString).toEqual(expect.stringContaining("ROLE=OPT-PARTICIPANT"));
+      expect(icsString).toEqual(expect.stringContaining("ROLE=REQ-PARTICIPANT"));
+    });
+
+    test("marks optional team members as OPT-PARTICIPANT", () => {
+      const event = buildCalendarEvent({
+        attendees: [buildPerson({ email: "booker@cal.com" })],
+        team: {
+          id: 1,
+          name: "Cal Team",
+          members: [buildPerson({ email: "optional-team-member@cal.com", optional: true })],
+        },
+      });
+
+      const icsString = assertHasIcsString(
+        generateIcsString({
+          event,
+          status: "CONFIRMED",
+        })
+      );
+
+      const unfoldedIcsString = icsString.replace(/\r\n[ \t]/g, "");
+      expect(unfoldedIcsString).toMatch(/optional-team-member@cal\.com/i);
+      expect(unfoldedIcsString).toEqual(expect.stringContaining("ROLE=OPT-PARTICIPANT"));
     });
   });
   describe("error handling", () => {

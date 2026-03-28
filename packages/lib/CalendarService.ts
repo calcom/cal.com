@@ -383,7 +383,12 @@ const injectVTimezone = (
 };
 
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
-  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
+  attendees.map(({ email, name, optional }) => ({
+    name,
+    email,
+    partstat: "NEEDS-ACTION",
+    ...(optional ? { role: "OPT-PARTICIPANT" as const } : {}),
+  }));
 
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";

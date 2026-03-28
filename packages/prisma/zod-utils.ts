@@ -254,6 +254,7 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
       useHostSchedulesForTeamEvent: z.boolean().optional(),
     })
     .optional(),
+  optionalGuestTeamMemberIds: z.array(z.number()).optional(),
   bookerLayouts: bookerLayouts.optional(),
 });
 

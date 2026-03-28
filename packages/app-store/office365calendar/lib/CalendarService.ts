@@ -519,7 +519,7 @@ class Office365CalendarService implements Calendar {
             address: attendee.email,
             name: attendee.name,
           },
-          type: "required" as const,
+          type: attendee.optional ? ("optional" as const) : ("required" as const),
         })),
         ...(event.team?.members
           ? event.team.members

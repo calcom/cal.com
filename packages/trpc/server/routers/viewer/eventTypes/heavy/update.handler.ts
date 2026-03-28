@@ -64,6 +64,39 @@ type UpdateOptions = {
 
 export type UpdateEventTypeReturn = Awaited<ReturnType<typeof updateHandler>>;
 
+type NormalizeOptionalGuestTeamMemberIdsOptions = {
+  optionalGuestTeamMemberIds: number[] | undefined;
+  teamId: number | undefined;
+  acceptedTeamMemberIds: number[];
+};
+
+export const normalizeOptionalGuestTeamMemberIds = ({
+  optionalGuestTeamMemberIds,
+  teamId,
+  acceptedTeamMemberIds,
+}: NormalizeOptionalGuestTeamMemberIdsOptions): number[] | undefined => {
+  if (optionalGuestTeamMemberIds === undefined) return undefined;
+
+  if (!teamId) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Optional guest team members can only be configured for team event types.",
+    });
+  }
+
+  const uniqueOptionalGuestTeamMemberIds = Array.from(new Set(optionalGuestTeamMemberIds));
+  const acceptedTeamMemberIdSet = new Set(acceptedTeamMemberIds);
+
+  if (!uniqueOptionalGuestTeamMemberIds.every((memberId) => acceptedTeamMemberIdSet.has(memberId))) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Optional guest team members must belong to the team.",
+    });
+  }
+
+  return uniqueOptionalGuestTeamMemberIds;
+};
+
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const {
     schedule,
@@ -213,7 +246,23 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   const teamId = input.teamId || eventType.team?.id;
+  const membershipRepo = new MembershipRepository(ctx.prisma);
   const guestsField = bookingFields?.find((field) => field.name === "guests");
+
+  const eventTypeMetadata = input.metadata;
+  const optionalGuestTeamMemberIds = eventTypeMetadata?.optionalGuestTeamMemberIds;
+  if (optionalGuestTeamMemberIds !== undefined && eventTypeMetadata) {
+    const acceptedTeamMemberIds = eventType.team?.id
+      ? await membershipRepo.listAcceptedTeamMemberIds({
+          teamId: eventType.team.id,
+        })
+      : [];
+    eventTypeMetadata.optionalGuestTeamMemberIds = normalizeOptionalGuestTeamMemberIds({
+      optionalGuestTeamMemberIds,
+      teamId: eventType.team?.id,
+      acceptedTeamMemberIds,
+    });
+  }
 
   ensureUniqueBookingFields(bookingFields);
   ensureEmailOrPhoneNumberIsPresent(bookingFields);
@@ -373,8 +422,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       disconnect: true,
     };
   }
-
-  const membershipRepo = new MembershipRepository(ctx.prisma);
 
   if (restrictionScheduleId) {
     // Verify that the user owns the restriction schedule or is a team member

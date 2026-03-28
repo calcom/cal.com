@@ -22,7 +22,6 @@ import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Creden
 import type { calendar_v3 } from "@googleapis/calendar";
 import type { GaxiosResponse } from "googleapis-common";
 import { RRule } from "rrule";
-
 import { AxiosLikeResponseToFetchResponse } from "../../_utils/oauth/AxiosLikeResponseToFetchResponse";
 import { CalendarAuth } from "./CalendarAuth";
 
@@ -137,9 +136,10 @@ class GoogleCalendarService implements Calendar {
       .filter((domain) => domain.trim() !== "")
       .some((domain) => event.organizer.email.toLowerCase().endsWith(domain.toLowerCase()));
 
-    const eventAttendees = event.attendees.map(({ id: _id, ...rest }) => ({
+    const eventAttendees = event.attendees.map(({ id: _id, optional, ...rest }) => ({
       ...rest,
       responseStatus: "accepted",
+      ...(optional ? { optional: true } : {}),
     }));
 
     const attendees: calendar_v3.Schema$EventAttendee[] = [
