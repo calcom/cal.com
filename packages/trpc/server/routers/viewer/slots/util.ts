@@ -659,11 +659,13 @@ export class AvailableSlotsService {
   private async _getGuestBusyTimesForReschedule({
     rescheduleUid,
     schedulingType,
+    hostUserIds,
     dateFrom,
     dateTo,
   }: {
     rescheduleUid: string | null | undefined;
     schedulingType: SchedulingType | null;
+    hostUserIds: number[];
     dateFrom: Date;
     dateTo: Date;
   }): Promise<{ start: Date; end: Date }[]> {
@@ -677,6 +679,13 @@ export class AvailableSlotsService {
       });
       if (!original?.attendees?.length) return [];
 
+      // Only apply guest availability check when the host is rescheduling.
+      // If the booking's host is not in the current event type's host list,
+      // this is an attendee-initiated reschedule — show all slots.
+      if (original.userId && !hostUserIds.includes(original.userId)) {
+        return [];
+      }
+
       const emails = original.attendees
         .map((a) => a.email)
         .filter((e): e is string => Boolean(e));
@@ -685,9 +694,13 @@ export class AvailableSlotsService {
       const calUsers = await this.dependencies.userRepo.findByEmails({ emails });
       if (!calUsers.length) return [];
 
+      // Only use Cal.com user emails for the booking query, not all attendee emails.
+      // This prevents pulling in bookings for non-Cal.com guests via the OR email filter.
+      const calUserEmails = calUsers.map((u) => u.email);
+
       const guestBookings = await this.dependencies.bookingRepo.findByUserIdsAndDateRange({
         userIds: calUsers.map((u) => u.id),
-        userEmails: emails,
+        userEmails: calUserEmails,
         dateFrom,
         dateTo,
         excludeUid: rescheduleUid,
@@ -790,6 +803,7 @@ export class AvailableSlotsService {
       this.getGuestBusyTimesForReschedule({
         rescheduleUid: input.rescheduleUid,
         schedulingType: eventType.schedulingType,
+        hostUserIds: allUserIds,
         dateFrom: startTimeDate,
         dateTo: endTimeDate,
       }),
