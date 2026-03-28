@@ -2,6 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import { getReplyToHeader } from "./getReplyToHeader";
 
+/**
+ * RFC 5322 (Internet Message Format) specifies that the Reply-To header must be
+ * a comma-separated list of addresses, not an array. Many SMTP servers reject arrays.
+ * Spec: https://datatracker.ietf.org/doc/html/rfc5322#section-3.6.2
+ */
+
 vi.mock("./getReplyToEmail", () => ({
   getReplyToEmail: vi.fn((calEvent, excludeOrganizerEmail) => {
     if (excludeOrganizerEmail) return null;
