@@ -1,7 +1,6 @@
-import React from "react";
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 
-import { expect, fn, userEvent, within } from "storybook/test";
+import { expect, fn, userEvent } from "storybook/test";
 
 import { VerifyCodeDialog } from "~/bookings/components/VerifyCodeDialog.tsx";
 
@@ -35,16 +34,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const DarkMode: Story = {
-  decorators: [
-    (Story) => {
-      document.documentElement.classList.add("dark");
-      return (
-        <div className="bg-default text-default min-h-screen p-8">
-          <Story />
-        </div>
-      );
-    },
-  ],
+  globals: { theme: "dark" },
 };
 
 export const WithError: Story = {
@@ -57,16 +47,7 @@ export const WithErrorDarkMode: Story = {
   args: {
     error: "Invalid code. Please try again.",
   },
-  decorators: [
-    (Story) => {
-      document.documentElement.classList.add("dark");
-      return (
-        <div className="bg-default text-default min-h-screen p-8">
-          <Story />
-        </div>
-      );
-    },
-  ],
+  globals: { theme: "dark" },
 };
 
 export const Loading: Story = {
@@ -76,8 +57,7 @@ export const Loading: Story = {
 };
 
 export const ClickSubmit: Story = {
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
+  play: async ({ canvas }) => {
     const submitButton = canvas.getByRole("button", { name: "Submit" });
     await userEvent.click(submitButton);
     await expect(meta.args.verifyCodeWithSessionRequired).toHaveBeenCalledOnce();
@@ -88,8 +68,7 @@ export const SessionNotRequired: Story = {
   args: {
     isUserSessionRequiredToVerify: false,
   },
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
+  play: async ({ canvas }) => {
     const submitButton = canvas.getByRole("button", { name: "Submit" });
     await userEvent.click(submitButton);
     await expect(meta.args.verifyCodeWithSessionNotRequired).toHaveBeenCalledOnce();
