@@ -95,6 +95,19 @@ describe("BookingRepository", () => {
     });
   });
 
+  describe("findByUid", () => {
+    it("should not include unused eventType relation", async () => {
+      mockPrismaClient.booking.findUnique.mockResolvedValue(null);
+
+      await repository.findByUid({ bookingUid: "test-uid" });
+
+      const call = mockPrismaClient.booking.findUnique.mock.calls[0][0];
+
+      expect(call.where).toEqual({ uid: "test-uid" });
+      expect(call).not.toHaveProperty("include");
+    });
+  });
+
   describe("findLatestBookingInRescheduleChain", () => {
     const mockBooking = { uid: "booking-3", eventType: { id: 1 } };
 

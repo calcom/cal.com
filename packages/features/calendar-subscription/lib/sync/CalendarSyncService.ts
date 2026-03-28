@@ -87,7 +87,7 @@ export class CalendarSyncService {
     }
 
     try {
-      let booking = await this.deps.bookingRepository.findBookingByUidWithEventType({ bookingUid });
+      let booking = await this.deps.bookingRepository.findByUid({ bookingUid });
       if (!booking) {
         log.debug("Unable to sync, booking not found in database", { bookingUid });
         return;
@@ -103,7 +103,7 @@ export class CalendarSyncService {
             startTime: instanceStartTime,
           });
           if (correctInstance && correctInstance.uid !== booking.uid) {
-            const resolvedBooking = await this.deps.bookingRepository.findBookingByUidWithEventType({
+            const resolvedBooking = await this.deps.bookingRepository.findByUid({
               bookingUid: correctInstance.uid,
             });
             if (resolvedBooking) {
@@ -228,7 +228,7 @@ export class CalendarSyncService {
     }
 
     try {
-      let booking = await this.deps.bookingRepository.findBookingByUidWithEventType({ bookingUid });
+      let booking = await this.deps.bookingRepository.findByUid({ bookingUid });
       if (!booking) {
         log.debug("Unable to sync, booking not found in database", { bookingUid });
         return;
@@ -242,7 +242,7 @@ export class CalendarSyncService {
           startTime: event.originalStartDate,
         });
         if (correctInstance) {
-          const resolvedBooking = await this.deps.bookingRepository.findBookingByUidWithEventType({
+          const resolvedBooking = await this.deps.bookingRepository.findByUid({
             bookingUid: correctInstance.uid,
           });
           if (resolvedBooking) {
@@ -396,7 +396,7 @@ export class CalendarSyncService {
    * Updates booking fields (title, description, location) when the external calendar
    * event changed metadata without changing time.
    */
-  async updateBookingFields(booking: BookingWithEventType, event: CalendarSubscriptionEventItem) {
+  async updateBookingFields(booking: BookingFromSync, event: CalendarSubscriptionEventItem) {
     const startTime = performance.now();
     const { changed, fields } = hasFieldsChanged(booking, event);
 
@@ -440,9 +440,7 @@ export class CalendarSyncService {
   }
 }
 
-export type BookingWithEventType = NonNullable<
-  Awaited<ReturnType<BookingRepository["findBookingByUidWithEventType"]>>
->;
+export type BookingFromSync = NonNullable<Awaited<ReturnType<BookingRepository["findByUid"]>>>;
 
 type RescheduleBookingData = CreateRegularBookingData & {
   responses: Record<string, unknown>;
@@ -450,7 +448,7 @@ type RescheduleBookingData = CreateRegularBookingData & {
 };
 
 export const buildRescheduleBookingData = (
-  booking: BookingWithEventType,
+  booking: BookingFromSync,
   event: CalendarSubscriptionEventItem
 ): RescheduleBookingData => {
   const fallbackStart = booking.startTime.toISOString();
@@ -478,7 +476,7 @@ export const buildRescheduleBookingData = (
   };
 };
 
-export const extractBookingResponses = (booking: BookingWithEventType): Record<string, unknown> => {
+export const extractBookingResponses = (booking: BookingFromSync): Record<string, unknown> => {
   const rawResponses = booking.responses;
   if (rawResponses && typeof rawResponses === "object" && !Array.isArray(rawResponses)) {
     return rawResponses as Record<string, unknown>;
@@ -503,7 +501,7 @@ export const extractBookingResponses = (booking: BookingWithEventType): Record<s
 };
 
 export const mergeBookingResponsesWithEventData = (
-  booking: BookingWithEventType,
+  booking: BookingFromSync,
   event: CalendarSubscriptionEventItem
 ): Record<string, unknown> => {
   const baseResponses = extractBookingResponses(booking);
@@ -554,7 +552,7 @@ export const buildMetadataFromCalendarEvent = (event: CalendarSubscriptionEventI
 };
 
 export const hasStartTimeChanged = (
-  booking: BookingWithEventType,
+  booking: BookingFromSync,
   event: CalendarSubscriptionEventItem
 ): boolean => {
   if (!event.start) return false;
@@ -562,7 +560,7 @@ export const hasStartTimeChanged = (
 };
 
 export const hasFieldsChanged = (
-  booking: BookingWithEventType,
+  booking: BookingFromSync,
   event: CalendarSubscriptionEventItem
 ): {
   changed: boolean;

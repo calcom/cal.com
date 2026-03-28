@@ -3,7 +3,7 @@ import type { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
-  type BookingWithEventType,
+  type BookingFromSync,
   buildMetadataFromCalendarEvent,
   buildRescheduleBookingData,
   CalendarSyncService,
@@ -40,7 +40,7 @@ vi.mock("@sentry/nextjs", () => ({
   },
 }));
 
-const makeBooking = (overrides: Partial<BookingWithEventType> = {}): BookingWithEventType =>
+const makeBooking = (overrides: Partial<BookingFromSync> = {}): BookingFromSync =>
   ({
     id: 1,
     uid: "booking-uid-123",
@@ -65,7 +65,7 @@ const makeBooking = (overrides: Partial<BookingWithEventType> = {}): BookingWith
     eventTypeId: 10,
     eventType: { id: 10, title: "Standup", length: 60 },
     ...overrides,
-  }) as unknown as BookingWithEventType;
+  }) as unknown as BookingFromSync;
 
 const makeEvent = (
   overrides: Partial<CalendarSubscriptionEventItem> = {}
@@ -470,7 +470,7 @@ describe("CalendarSyncService - skip reschedule when no time change", () => {
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
     } as unknown as BookingRepository;
 
     service = new CalendarSyncService({
@@ -491,7 +491,7 @@ describe("CalendarSyncService - skip reschedule when no time change", () => {
       status: "confirmed",
     });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
@@ -508,7 +508,7 @@ describe("CalendarSyncService - skip reschedule when no time change", () => {
       end: new Date("2024-01-15T15:00:00Z"),
     });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
@@ -519,7 +519,7 @@ describe("CalendarSyncService - skip reschedule when no time change", () => {
     const booking = makeBooking();
     const event = makeEvent({ start: null });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
@@ -535,7 +535,7 @@ describe("iCalUID parsing", () => {
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
     } as unknown as BookingRepository;
 
     service = new CalendarSyncService({
@@ -549,12 +549,12 @@ describe("iCalUID parsing", () => {
     const event = makeEvent({ iCalUID: "uid-part@extra@cal.com", status: "cancelled" });
     const booking = makeBooking({ uid: "uid-part" });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     await service.cancelBooking(event, mockSelectedCalendar.userId);
 
     // split("@") → ["uid-part", "extra", "cal.com"], first element is "uid-part"
-    expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledWith({
+    expect(mockBookingRepository.findByUid).toHaveBeenCalledWith({
       bookingUid: "uid-part",
     });
     expect(mockHandleCancelBooking).toHaveBeenCalled();
@@ -565,11 +565,11 @@ describe("iCalUID parsing", () => {
     const event = makeEvent({ iCalUID: `${uuid}@cal.com` });
     const booking = makeBooking({ uid: uuid });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
-    expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledWith({
+    expect(mockBookingRepository.findByUid).toHaveBeenCalledWith({
       bookingUid: uuid,
     });
   });
@@ -578,12 +578,12 @@ describe("iCalUID parsing", () => {
     const event = makeEvent({ iCalUID: "no-at-sign" });
     const booking = makeBooking({ uid: "no-at-sign" });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
     // split("@") → ["no-at-sign"], first element is "no-at-sign"
-    expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledWith({
+    expect(mockBookingRepository.findByUid).toHaveBeenCalledWith({
       bookingUid: "no-at-sign",
     });
   });
@@ -594,7 +594,7 @@ describe("iCalUID parsing", () => {
     await service.cancelBooking(event, mockSelectedCalendar.userId);
 
     // split("@") → ["", ""], first element is "" which is falsy
-    expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
+    expect(mockBookingRepository.findByUid).not.toHaveBeenCalled();
   });
 
   test("undefined iCalUID returns early", async () => {
@@ -602,7 +602,7 @@ describe("iCalUID parsing", () => {
 
     await service.cancelBooking(event, mockSelectedCalendar.userId);
 
-    expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
+    expect(mockBookingRepository.findByUid).not.toHaveBeenCalled();
   });
 });
 
@@ -664,7 +664,7 @@ describe("CalendarSyncService - booking data updated from external event", () =>
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
     } as unknown as BookingRepository;
 
     service = new CalendarSyncService({
@@ -680,7 +680,7 @@ describe("CalendarSyncService - booking data updated from external event", () =>
     });
     const event = makeEvent({ summary: "New Meeting Title" });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
     const call = mockCreateBooking.mock.calls[0][0];
@@ -694,7 +694,7 @@ describe("CalendarSyncService - booking data updated from external event", () =>
     });
     const event = makeEvent({ description: "Updated meeting agenda" });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
     const call = mockCreateBooking.mock.calls[0][0];
@@ -710,7 +710,7 @@ describe("CalendarSyncService - booking data updated from external event", () =>
     });
     const event = makeEvent({ location: "https://zoom.us/j/123" });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
     const call = mockCreateBooking.mock.calls[0][0];
@@ -732,7 +732,7 @@ describe("CalendarSyncService - booking data updated from external event", () =>
     });
     const event = makeEvent({ summary: null, description: null, location: null });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
     const call = mockCreateBooking.mock.calls[0][0];
@@ -761,7 +761,7 @@ describe("CalendarSyncService - booking data updated from external event", () =>
       location: "Conference Room B",
     });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
     const call = mockCreateBooking.mock.calls[0][0];
@@ -792,7 +792,7 @@ describe("CalendarSyncService - booking data updated from external event", () =>
       timeZone: "America/Sao_Paulo",
     });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
     const call = mockCreateBooking.mock.calls[0][0];
@@ -821,7 +821,7 @@ describe("CalendarSyncService - booking data updated from external event", () =>
       location: "Calendar Location",
     });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
     const call = mockCreateBooking.mock.calls[0][0];
@@ -851,7 +851,7 @@ describe("CalendarSyncService - error isolation", () => {
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
     } as unknown as BookingRepository;
 
     service = new CalendarSyncService({
@@ -872,7 +872,7 @@ describe("CalendarSyncService - error isolation", () => {
     const cancelBooking = makeBooking({ uid: "cancel-uid" });
     const rescheduleBooking = makeBooking({ uid: "reschedule-uid" });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockImplementation(({ bookingUid }: { bookingUid: string }) => {
         if (bookingUid === "cancel-uid") return Promise.resolve(cancelBooking);
@@ -894,7 +894,7 @@ describe("CalendarSyncService - error isolation", () => {
     const event2 = makeEvent({ iCalUID: "uid-2@cal.com", status: "confirmed" });
 
     let callCount = 0;
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockImplementation(() => {
+    mockBookingRepository.findByUid = vi.fn().mockImplementation(() => {
       callCount++;
       if (callCount === 1) return Promise.reject(new Error("DB timeout"));
       return Promise.resolve(makeBooking({ uid: "uid-2" }));
@@ -902,7 +902,7 @@ describe("CalendarSyncService - error isolation", () => {
 
     await service.handleEvents(mockSelectedCalendar, [event1, event2]);
 
-    expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledTimes(2);
+    expect(mockBookingRepository.findByUid).toHaveBeenCalledTimes(2);
     expect(mockCreateBooking).toHaveBeenCalledTimes(1);
   });
 
@@ -914,7 +914,7 @@ describe("CalendarSyncService - error isolation", () => {
     });
     const event = makeEvent({ iCalUID: "my-booking-uid@cal.com", status: "cancelled" });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     await service.cancelBooking(event, 99);
 
@@ -937,7 +937,7 @@ describe("CalendarSyncService - error isolation", () => {
       end: new Date("2024-01-20T15:00:00Z"),
     });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
@@ -957,7 +957,7 @@ describe("CalendarSyncService - error isolation", () => {
     const booking = makeBooking({ eventTypeId: null });
     const event = makeEvent();
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
 
@@ -968,7 +968,7 @@ describe("CalendarSyncService - error isolation", () => {
     const booking = makeBooking({ uid: "booking-uid-123", userId: 99 });
     const event = makeEvent({ iCalUID: "booking-uid-123@cal.com", status: "cancelled" });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     // calendarUserId (42) !== booking.userId (99) → skip
     await service.cancelBooking(event, mockSelectedCalendar.userId);
@@ -983,7 +983,7 @@ describe("CalendarSyncService - error isolation", () => {
       start: new Date("2024-01-20T14:00:00Z"),
     });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     // calendarUserId (42) !== booking.userId (99) → skip
     await service.rescheduleBooking(event, mockSelectedCalendar.userId);
@@ -995,7 +995,7 @@ describe("CalendarSyncService - error isolation", () => {
     const booking = makeBooking({ userId: null });
     const event = makeEvent({ iCalUID: "booking-uid-123@cal.com", status: "cancelled" });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     await service.cancelBooking(event, mockSelectedCalendar.userId);
 
@@ -1006,7 +1006,7 @@ describe("CalendarSyncService - error isolation", () => {
     const booking = makeBooking({ userPrimaryEmail: null });
     const event = makeEvent({ iCalUID: "booking-uid-123@cal.com", status: "cancelled" });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     await service.cancelBooking(event, mockSelectedCalendar.userId);
 
@@ -1020,7 +1020,7 @@ describe("CalendarSyncService - error isolation", () => {
     const bookingA = makeBooking({ uid: "uid-a" });
     const bookingB = makeBooking({ uid: "uid-b" });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockImplementation(({ bookingUid }: { bookingUid: string }) => {
         if (bookingUid === "uid-a") return Promise.resolve(bookingA);
@@ -1039,7 +1039,7 @@ describe("CalendarSyncService - error isolation", () => {
     const tentativeEvent = makeEvent({ iCalUID: "uid-t@cal.com", status: "tentative" });
     const bookingT = makeBooking({ uid: "uid-t" });
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(bookingT);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(bookingT);
 
     await service.handleEvents(mockSelectedCalendar, [tentativeEvent]);
 
@@ -1093,7 +1093,7 @@ describe("Scenario 1: reschedule a single recurring instance", () => {
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
       findLatestBookingInRescheduleChain: vi.fn().mockResolvedValue(null),
       update: vi.fn().mockResolvedValue({}),
       findByRecurringEventIdAndStartTime: vi.fn().mockResolvedValue(null),
@@ -1116,7 +1116,7 @@ describe("Scenario 1: reschedule a single recurring instance", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockResolvedValueOnce(recurringBookings[0]) // iCalUID → booking-1
       .mockResolvedValueOnce(recurringBookings[2]); // resolved → booking-3
@@ -1171,7 +1171,7 @@ describe("Scenario 1: reschedule a single recurring instance", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockResolvedValueOnce(recurringBookings[0])
       .mockResolvedValueOnce(booking3Rescheduled);
@@ -1202,7 +1202,7 @@ describe("Scenario 2: change only location or description (no time change)", () 
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
       findLatestBookingInRescheduleChain: vi.fn().mockResolvedValue(null),
       update: vi.fn().mockResolvedValue({}),
       findByRecurringEventIdAndStartTime: vi.fn().mockResolvedValue(null),
@@ -1224,7 +1224,7 @@ describe("Scenario 2: change only location or description (no time change)", () 
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(singleBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(singleBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -1247,7 +1247,7 @@ describe("Scenario 2: change only location or description (no time change)", () 
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(singleBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(singleBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -1271,7 +1271,7 @@ describe("Scenario 2: change only location or description (no time change)", () 
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(singleBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(singleBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -1303,7 +1303,7 @@ describe("Scenario 2: change only location or description (no time change)", () 
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking2WithSkew);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking2WithSkew);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -1327,7 +1327,7 @@ describe("Scenario 2: change only location or description (no time change)", () 
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(singleBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(singleBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -1347,7 +1347,7 @@ describe("Scenario 2: change only location or description (no time change)", () 
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBookings[0]);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(recurringBookings[0]);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -1364,7 +1364,7 @@ describe("Scenario 3: cancel a single recurring instance", () => {
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
       findLatestBookingInRescheduleChain: vi.fn().mockResolvedValue(null),
       update: vi.fn().mockResolvedValue({}),
       findByRecurringEventIdAndStartTime: vi.fn().mockResolvedValue(null),
@@ -1384,7 +1384,7 @@ describe("Scenario 3: cancel a single recurring instance", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockResolvedValueOnce(recurringBookings[0])
       .mockResolvedValueOnce(recurringBookings[1]);
@@ -1426,7 +1426,7 @@ describe("Scenario 3: cancel a single recurring instance", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockResolvedValueOnce(recurringBookings[0])
       .mockResolvedValueOnce(booking2Rescheduled);
@@ -1457,7 +1457,7 @@ describe("Scenario 3: cancel a single recurring instance", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBookings[0]);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(recurringBookings[0]);
     mockBookingRepository.findByRecurringEventIdAndStartTime = vi
       .fn()
       .mockResolvedValue({ id: 1, uid: "booking-1-uid" });
@@ -1478,7 +1478,7 @@ describe("Scenario 3: cancel a single recurring instance", () => {
       makeEvent({ iCalUID: "booking-uid-123@cal.com", status: "cancelled" }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(singleBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(singleBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockHandleCancelBooking).toHaveBeenCalledTimes(1);
@@ -1502,7 +1502,7 @@ describe("Scenario 4: cancel all remaining recurring instances (this and followi
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
       findLatestBookingInRescheduleChain: vi.fn().mockResolvedValue(null),
       update: vi.fn().mockResolvedValue({}),
       findByRecurringEventIdAndStartTime: vi.fn().mockResolvedValue(null),
@@ -1539,7 +1539,7 @@ describe("Scenario 4: cancel all remaining recurring instances (this and followi
     ];
 
     // Use mockImplementation so concurrent Promise.all calls resolve correctly
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockImplementation(({ bookingUid }: { bookingUid: string }) => {
         const map: Record<string, ReturnType<typeof makeBooking>> = {
@@ -1584,7 +1584,7 @@ describe("Scenario 5: reschedule a single non-recurring event", () => {
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
       findLatestBookingInRescheduleChain: vi.fn().mockResolvedValue(null),
       update: vi.fn().mockResolvedValue({}),
       findByRecurringEventIdAndStartTime: vi.fn().mockResolvedValue(null),
@@ -1605,7 +1605,7 @@ describe("Scenario 5: reschedule a single non-recurring event", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(singleBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(singleBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledTimes(1);
@@ -1638,7 +1638,7 @@ describe("Scenario 5: reschedule a single non-recurring event", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(singleBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(singleBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -1670,7 +1670,7 @@ describe("Scenario 5: reschedule a single non-recurring event", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(rescheduledBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(rescheduledBooking);
     mockBookingRepository.findLatestBookingInRescheduleChain = vi.fn().mockResolvedValue(latestBooking);
 
     await service.handleEvents(mockSelectedCalendar, events);
@@ -1702,7 +1702,7 @@ describe("Scenario 5: reschedule a single non-recurring event", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(singleBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(singleBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -1725,7 +1725,7 @@ describe("Single booking edge cases", () => {
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
       findLatestBookingInRescheduleChain: vi.fn().mockResolvedValue(null),
       update: vi.fn().mockResolvedValue({}),
       findByRecurringEventIdAndStartTime: vi.fn().mockResolvedValue(null),
@@ -1748,7 +1748,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledTimes(1);
@@ -1777,7 +1777,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledTimes(1);
@@ -1805,7 +1805,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(shortBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(shortBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -1833,7 +1833,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(longBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(longBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -1857,7 +1857,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     // hasStartTimeChanged returns false when event.start is null → updateBookingFields only
@@ -1875,7 +1875,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -1898,7 +1898,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -1921,7 +1921,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -1950,7 +1950,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(crossMidnightBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(crossMidnightBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -1975,7 +1975,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -1999,7 +1999,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -2022,7 +2022,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -2047,7 +2047,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -2088,7 +2088,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -2129,7 +2129,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -2169,7 +2169,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -2200,7 +2200,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(rescheduledBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(rescheduledBooking);
     mockBookingRepository.findLatestBookingInRescheduleChain = vi.fn().mockResolvedValue(null);
 
     await service.handleEvents(mockSelectedCalendar, events);
@@ -2227,7 +2227,7 @@ describe("Single booking edge cases", () => {
     await service.handleEvents(mockSelectedCalendar, events);
 
     // Filtered out by @cal.com check in handleEvents
-    expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
+    expect(mockBookingRepository.findByUid).not.toHaveBeenCalled();
     expect(mockCreateBooking).not.toHaveBeenCalled();
   });
 
@@ -2249,7 +2249,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -2276,7 +2276,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -2303,7 +2303,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -2330,7 +2330,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -2361,7 +2361,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -2379,7 +2379,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledWith(
@@ -2402,7 +2402,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     mockCreateBooking.mockRejectedValueOnce(new Error("Booking service error"));
 
     await expect(service.handleEvents(mockSelectedCalendar, events)).resolves.not.toThrow();
@@ -2418,7 +2418,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockHandleCancelBooking).toHaveBeenCalledTimes(1);
@@ -2453,7 +2453,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(rescheduledBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(rescheduledBooking);
     mockBookingRepository.findLatestBookingInRescheduleChain = vi.fn().mockResolvedValue(latestBooking);
 
     await service.handleEvents(mockSelectedCalendar, events);
@@ -2478,7 +2478,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     // Allowed because skipAvailabilityCheck is true
@@ -2506,7 +2506,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     // Allowed because skipBookingTimeOutOfBoundsCheck is true
@@ -2537,7 +2537,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     // Duration preserved from original booking (60 min), not from Google's 24h
@@ -2565,7 +2565,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(cancelledBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(cancelledBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -2583,7 +2583,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(cancelledBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(cancelledBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockHandleCancelBooking).not.toHaveBeenCalled();
@@ -2612,7 +2612,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockImplementation(({ bookingUid }) => {
+    mockBookingRepository.findByUid = vi.fn().mockImplementation(({ bookingUid }) => {
       if (bookingUid === "booking-uid-123") return Promise.resolve(booking1);
       if (bookingUid === "booking-uid-789") return Promise.resolve(booking3);
       return Promise.resolve(null);
@@ -2648,7 +2648,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockImplementation(({ bookingUid }) => {
+    mockBookingRepository.findByUid = vi.fn().mockImplementation(({ bookingUid }) => {
       if (bookingUid === "booking-uid-123") return Promise.resolve(booking1);
       if (bookingUid === "booking-uid-789") return Promise.resolve(booking3);
       return Promise.resolve(null);
@@ -2684,7 +2684,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
 
     await service.handleEvents(mockSelectedCalendar, event1);
     expect(mockCreateBooking).toHaveBeenCalledTimes(1);
@@ -2714,7 +2714,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(bookingA);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(bookingA);
     mockBookingRepository.findLatestBookingInRescheduleChain = vi.fn().mockResolvedValue(bookingD);
 
     await service.handleEvents(mockSelectedCalendar, events);
@@ -2745,7 +2745,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(bookingA);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(bookingA);
     mockBookingRepository.findLatestBookingInRescheduleChain = vi.fn().mockResolvedValue(bookingD);
 
     await service.handleEvents(mockSelectedCalendar, events);
@@ -2775,7 +2775,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     // Same UTC instant — no reschedule triggered
@@ -2798,7 +2798,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     // Different UTC instant → reschedule
@@ -2839,8 +2839,8 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    // findBookingByUidWithEventType returns the original booking 1
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking1);
+    // findByUid returns the original booking 1
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking1);
     // Instance resolution finds booking 1 by originalStartDate
     mockBookingRepository.findByRecurringEventIdAndStartTime = vi
       .fn()
@@ -2876,7 +2876,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     mockBookingRepository.update = vi.fn().mockRejectedValue(new Error("DB write error"));
 
     await expect(service.handleEvents(mockSelectedCalendar, events)).resolves.not.toThrow();
@@ -2895,7 +2895,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     const metadata = mockCreateBooking.mock.calls[0][0].bookingData.metadata;
@@ -2918,7 +2918,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     // Both are processed concurrently — cancel and reschedule both fire
@@ -2938,7 +2938,7 @@ describe("Single booking edge cases", () => {
     await service.handleEvents(mockSelectedCalendar, events);
 
     // Empty iCalUID doesn't end with @cal.com → filtered out
-    expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
+    expect(mockBookingRepository.findByUid).not.toHaveBeenCalled();
   });
 
   test("should handle event with null iCalUID", async () => {
@@ -2953,7 +2953,7 @@ describe("Single booking edge cases", () => {
     await service.handleEvents(mockSelectedCalendar, events);
 
     // null iCalUID → filtered out by the .filter() in handleEvents
-    expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
+    expect(mockBookingRepository.findByUid).not.toHaveBeenCalled();
   });
 
   test("should handle booking with null userId (skip reschedule due to host check)", async () => {
@@ -2970,7 +2970,7 @@ describe("Single booking edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(noUserBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(noUserBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     // booking.userId (null) !== calendarUserId (1) → skipped
@@ -2984,7 +2984,7 @@ describe("Scenario 6: reschedule all remaining recurring instances (this and fol
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
       findLatestBookingInRescheduleChain: vi.fn().mockResolvedValue(null),
       update: vi.fn().mockResolvedValue({}),
       findByRecurringEventIdAndStartTime: vi.fn().mockResolvedValue(null),
@@ -3023,7 +3023,7 @@ describe("Scenario 6: reschedule all remaining recurring instances (this and fol
       },
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockImplementation(({ bookingUid }: { bookingUid: string }) => {
         const map: Record<string, ReturnType<typeof makeBooking>> = {
@@ -3081,7 +3081,7 @@ describe("Scenario 7: originalStartTime doesn't match any booking", () => {
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
       findLatestBookingInRescheduleChain: vi.fn().mockResolvedValue(null),
       update: vi.fn().mockResolvedValue({}),
       findByRecurringEventIdAndStartTime: vi.fn().mockResolvedValue(null),
@@ -3101,7 +3101,7 @@ describe("Scenario 7: originalStartTime doesn't match any booking", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBookings[0]);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(recurringBookings[0]);
     mockBookingRepository.findByRecurringEventIdAndStartTime = vi.fn().mockResolvedValue(null);
 
     await service.handleEvents(mockSelectedCalendar, events);
@@ -3121,7 +3121,7 @@ describe("Scenario 7: originalStartTime doesn't match any booking", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBookings[0]);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(recurringBookings[0]);
     mockBookingRepository.findByRecurringEventIdAndStartTime = vi.fn().mockResolvedValue(null);
 
     await service.handleEvents(mockSelectedCalendar, events);
@@ -3142,7 +3142,7 @@ describe("Scenario 7: originalStartTime doesn't match any booking", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockResolvedValueOnce(recurringBookings[0])
       .mockResolvedValueOnce(recurringBookings[1]);
@@ -3169,7 +3169,7 @@ describe("Scenario 8: originalStartTime is absent", () => {
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
       findLatestBookingInRescheduleChain: vi.fn().mockResolvedValue(null),
       update: vi.fn().mockResolvedValue({}),
       findByRecurringEventIdAndStartTime: vi.fn().mockResolvedValue(null),
@@ -3189,7 +3189,7 @@ describe("Scenario 8: originalStartTime is absent", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockResolvedValueOnce(recurringBookings[0])
       .mockResolvedValueOnce(recurringBookings[2]);
@@ -3220,7 +3220,7 @@ describe("Scenario 8: originalStartTime is absent", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBookings[0]);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(recurringBookings[0]);
     mockBookingRepository.findByRecurringEventIdAndStartTime = vi.fn().mockResolvedValue(null);
 
     await service.handleEvents(mockSelectedCalendar, events);
@@ -3241,7 +3241,7 @@ describe("Scenario 8: originalStartTime is absent", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBookings[0]);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(recurringBookings[0]);
     // Another booking exists at the event time
     mockBookingRepository.findByRecurringEventIdAndStartTime = vi
       .fn()
@@ -3264,7 +3264,7 @@ describe("Scenario 8: originalStartTime is absent", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBookings[0]);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(recurringBookings[0]);
     mockBookingRepository.findByRecurringEventIdAndStartTime = vi.fn().mockResolvedValue(null);
 
     await service.handleEvents(mockSelectedCalendar, events);
@@ -3286,7 +3286,7 @@ describe("Additional edge cases", () => {
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
       findLatestBookingInRescheduleChain: vi.fn().mockResolvedValue(null),
       update: vi.fn().mockResolvedValue({}),
       findByRecurringEventIdAndStartTime: vi.fn().mockResolvedValue(null),
@@ -3317,7 +3317,7 @@ describe("Additional edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockImplementation(({ bookingUid }: { bookingUid: string }) => {
         if (bookingUid === "booking-a-uid") return Promise.resolve(bookingA);
@@ -3354,10 +3354,10 @@ describe("Additional edge cases", () => {
       makeEvent({ iCalUID: "another@outlook.com", status: "cancelled" }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(singleBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(singleBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
-    expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledTimes(1);
+    expect(mockBookingRepository.findByUid).toHaveBeenCalledTimes(1);
     expect(mockHandleCancelBooking).toHaveBeenCalledTimes(1);
   });
 
@@ -3372,7 +3372,7 @@ describe("Additional edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(singleBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(singleBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).toHaveBeenCalledTimes(1);
@@ -3388,7 +3388,7 @@ describe("Additional edge cases", () => {
       makeEvent({ iCalUID: "also-missing@cal.com", status: "cancelled" }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(null);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(null);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -3409,7 +3409,7 @@ describe("Additional edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(bookingNoEventType);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(bookingNoEventType);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -3421,7 +3421,7 @@ describe("Additional edge cases", () => {
       makeEvent({ iCalUID: "booking-uid-123@cal.com", status: "cancelled" }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(bookingNoEmail);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(bookingNoEmail);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockHandleCancelBooking).not.toHaveBeenCalled();
@@ -3448,7 +3448,7 @@ describe("Additional edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockImplementation(({ bookingUid }: { bookingUid: string }) => {
         if (bookingUid === "booking-a-uid") return Promise.resolve(bookingA);
@@ -3466,7 +3466,7 @@ describe("Additional edge cases", () => {
   test("should process empty event list without errors", async () => {
     await expect(service.handleEvents(mockSelectedCalendar, [])).resolves.not.toThrow();
 
-    expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
+    expect(mockBookingRepository.findByUid).not.toHaveBeenCalled();
     expect(mockHandleCancelBooking).not.toHaveBeenCalled();
     expect(mockCreateBooking).not.toHaveBeenCalled();
   });
@@ -3484,7 +3484,7 @@ describe("Additional edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBookings[0]);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(recurringBookings[0]);
     await service.handleEvents(mockSelectedCalendar, events);
 
     // hasStartTimeChanged = false (times match), updateBookingFields called with no changes → no-op
@@ -3502,7 +3502,7 @@ describe("Additional edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(otherUsersBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(otherUsersBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -3515,7 +3515,7 @@ describe("Additional edge cases", () => {
       makeEvent({ iCalUID: "booking-uid-123@cal.com", status: "cancelled" }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(otherUsersBooking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(otherUsersBooking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockHandleCancelBooking).not.toHaveBeenCalled();
@@ -3532,7 +3532,7 @@ describe("Additional edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(booking);
+    mockBookingRepository.findByUid = vi.fn().mockResolvedValue(booking);
     await service.handleEvents(mockSelectedCalendar, events);
 
     expect(mockHandleCancelBooking).toHaveBeenCalledTimes(1);
@@ -3550,7 +3550,7 @@ describe("Additional edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockImplementation(({ bookingUid }: { bookingUid: string }) => {
         if (bookingUid === "booking-1-uid") return Promise.resolve(recurringBookings[0]);
@@ -3579,7 +3579,7 @@ describe("Additional edge cases", () => {
       makeEvent({ iCalUID: "booking-b-uid@cal.com", status: "cancelled" }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockImplementation(({ bookingUid }: { bookingUid: string }) => {
         if (bookingUid === "booking-a-uid") return Promise.resolve(bookingA);
@@ -3613,7 +3613,7 @@ describe("Additional edge cases", () => {
       }),
     ];
 
-    mockBookingRepository.findBookingByUidWithEventType = vi
+    mockBookingRepository.findByUid = vi
       .fn()
       .mockImplementation(({ bookingUid }: { bookingUid: string }) => {
         if (bookingUid === "cancel-uid") return Promise.resolve(cancelBooking);

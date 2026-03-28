@@ -146,7 +146,7 @@ describe("CalendarSyncService", () => {
 
   beforeEach(() => {
     mockBookingRepository = {
-      findBookingByUidWithEventType: vi.fn(),
+      findByUid: vi.fn(),
       findLatestBookingInRescheduleChain: vi.fn().mockResolvedValue(null),
       update: vi.fn().mockResolvedValue({}),
       findByRecurringEventIdAndStartTime: vi.fn().mockResolvedValue(null),
@@ -163,18 +163,18 @@ describe("CalendarSyncService", () => {
     test("should process only Cal.com events", async () => {
       const events = [mockCalComEvent, mockNonCalComEvent, mockCancelledEvent];
 
-      mockBookingRepository.findBookingByUidWithEventType = vi
+      mockBookingRepository.findByUid = vi
         .fn()
         .mockResolvedValueOnce(mockBooking)
         .mockResolvedValueOnce(mockBooking);
 
       await service.handleEvents(mockSelectedCalendar, events);
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledTimes(2);
-      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledWith({
+      expect(mockBookingRepository.findByUid).toHaveBeenCalledTimes(2);
+      expect(mockBookingRepository.findByUid).toHaveBeenCalledWith({
         bookingUid: "test-booking-uid",
       });
-      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledWith({
+      expect(mockBookingRepository.findByUid).toHaveBeenCalledWith({
         bookingUid: "cancelled-booking-uid",
       });
     });
@@ -184,13 +184,13 @@ describe("CalendarSyncService", () => {
 
       await service.handleEvents(mockSelectedCalendar, events);
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
+      expect(mockBookingRepository.findByUid).not.toHaveBeenCalled();
     });
 
     test("should return early when no events", async () => {
       await service.handleEvents(mockSelectedCalendar, []);
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
+      expect(mockBookingRepository.findByUid).not.toHaveBeenCalled();
     });
 
     test("should handle mixed case iCalUID", async () => {
@@ -199,11 +199,11 @@ describe("CalendarSyncService", () => {
         iCalUID: "test-booking-uid@CAL.COM",
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.handleEvents(mockSelectedCalendar, [eventWithMixedCase]);
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledWith({
+      expect(mockBookingRepository.findByUid).toHaveBeenCalledWith({
         bookingUid: "test-booking-uid",
       });
     });
@@ -216,17 +216,17 @@ describe("CalendarSyncService", () => {
 
       await service.handleEvents(mockSelectedCalendar, [eventWithNullUID]);
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
+      expect(mockBookingRepository.findByUid).not.toHaveBeenCalled();
     });
   });
 
   describe("cancelBooking", () => {
     test("should successfully cancel a booking", async () => {
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.cancelBooking(mockCancelledEvent, mockSelectedCalendar.userId);
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledWith({
+      expect(mockBookingRepository.findByUid).toHaveBeenCalledWith({
         bookingUid: "cancelled-booking-uid",
       });
 
@@ -250,7 +250,7 @@ describe("CalendarSyncService", () => {
 
       await service.cancelBooking(eventWithoutUID, mockSelectedCalendar.userId);
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
+      expect(mockBookingRepository.findByUid).not.toHaveBeenCalled();
       expect(mockHandleCancelBooking).not.toHaveBeenCalled();
     });
 
@@ -262,16 +262,16 @@ describe("CalendarSyncService", () => {
 
       await service.cancelBooking(eventWithMalformedUID, mockSelectedCalendar.userId);
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
+      expect(mockBookingRepository.findByUid).not.toHaveBeenCalled();
       expect(mockHandleCancelBooking).not.toHaveBeenCalled();
     });
 
     test("should return early when booking is not found", async () => {
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(null);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(null);
 
       await service.cancelBooking(mockCancelledEvent, mockSelectedCalendar.userId);
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledWith({
+      expect(mockBookingRepository.findByUid).toHaveBeenCalledWith({
         bookingUid: "cancelled-booking-uid",
       });
       expect(mockHandleCancelBooking).not.toHaveBeenCalled();
@@ -300,7 +300,7 @@ describe("CalendarSyncService", () => {
         originalStartDate: new Date("2023-12-29T10:00:00Z"),
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi
+      mockBookingRepository.findByUid = vi
         .fn()
         .mockResolvedValueOnce(recurringBooking)
         .mockResolvedValueOnce(booking5);
@@ -314,7 +314,7 @@ describe("CalendarSyncService", () => {
         recurringEventId: "recurring-event-id-123",
         startTime: new Date("2023-12-29T10:00:00Z"),
       });
-      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledWith({
+      expect(mockBookingRepository.findByUid).toHaveBeenCalledWith({
         bookingUid: "booking-5-uid",
       });
       expect(mockHandleCancelBooking).toHaveBeenCalledWith(
@@ -346,7 +346,7 @@ describe("CalendarSyncService", () => {
         originalStartDate: null,
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi
+      mockBookingRepository.findByUid = vi
         .fn()
         .mockResolvedValueOnce(recurringBooking)
         .mockResolvedValueOnce(booking3);
@@ -397,7 +397,7 @@ describe("CalendarSyncService", () => {
         originalStartDate: new Date("2023-12-29T10:00:00Z"),
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi
+      mockBookingRepository.findByUid = vi
         .fn()
         .mockResolvedValueOnce(recurringBooking)
         .mockResolvedValueOnce(booking5);
@@ -434,7 +434,7 @@ describe("CalendarSyncService", () => {
         originalStartDate: new Date("2023-12-08T10:00:00Z"),
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(recurringBooking);
       // Instance resolution fails — no booking found at Google's reported time
       mockBookingRepository.findByRecurringEventIdAndStartTime = vi.fn().mockResolvedValue(null);
 
@@ -445,7 +445,7 @@ describe("CalendarSyncService", () => {
     });
 
     test("should skip recurring resolution for non-recurring bookings", async () => {
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.cancelBooking(mockCancelledEvent, mockSelectedCalendar.userId);
 
@@ -458,7 +458,7 @@ describe("CalendarSyncService", () => {
     });
 
     test("should handle cancellation errors gracefully without throwing", async () => {
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
       mockHandleCancelBooking.mockRejectedValue(new Error("Cancellation failed"));
 
       // Should not throw - errors are caught and logged
@@ -466,12 +466,12 @@ describe("CalendarSyncService", () => {
         service.cancelBooking(mockCancelledEvent, mockSelectedCalendar.userId)
       ).resolves.not.toThrow();
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalled();
+      expect(mockBookingRepository.findByUid).toHaveBeenCalled();
       expect(mockHandleCancelBooking).toHaveBeenCalled();
     });
 
     test("should handle database errors gracefully without throwing", async () => {
-      mockBookingRepository.findBookingByUidWithEventType = vi
+      mockBookingRepository.findByUid = vi
         .fn()
         .mockRejectedValue(new Error("DB connection failed"));
 
@@ -479,7 +479,7 @@ describe("CalendarSyncService", () => {
         service.cancelBooking(mockCancelledEvent, mockSelectedCalendar.userId)
       ).resolves.not.toThrow();
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalled();
+      expect(mockBookingRepository.findByUid).toHaveBeenCalled();
       expect(mockHandleCancelBooking).not.toHaveBeenCalled();
     });
   });
@@ -495,11 +495,11 @@ describe("CalendarSyncService", () => {
         location: "Updated location",
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.rescheduleBooking(updatedEvent, mockSelectedCalendar.userId);
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledWith({
+      expect(mockBookingRepository.findByUid).toHaveBeenCalledWith({
         bookingUid: "test-booking-uid",
       });
 
@@ -553,7 +553,7 @@ describe("CalendarSyncService", () => {
         end: new Date("2023-12-01T15:30:00Z"), // 90min, but original booking is 60min
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.rescheduleBooking(stretchedEvent, mockSelectedCalendar.userId);
 
@@ -575,7 +575,7 @@ describe("CalendarSyncService", () => {
         end: null,
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.rescheduleBooking(eventWithNullTimes, mockSelectedCalendar.userId);
 
@@ -593,7 +593,7 @@ describe("CalendarSyncService", () => {
         start: new Date("2023-12-01T14:00:00Z"),
         end: new Date("2023-12-01T15:00:00Z"),
       };
-      mockBookingRepository.findBookingByUidWithEventType = vi
+      mockBookingRepository.findByUid = vi
         .fn()
         .mockResolvedValue(bookingWithoutResponses);
 
@@ -641,7 +641,7 @@ describe("CalendarSyncService", () => {
 
       await service.rescheduleBooking(eventWithoutUID, mockSelectedCalendar.userId);
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
+      expect(mockBookingRepository.findByUid).not.toHaveBeenCalled();
       expect(mockCreateBooking).not.toHaveBeenCalled();
     });
 
@@ -653,16 +653,16 @@ describe("CalendarSyncService", () => {
 
       await service.rescheduleBooking(eventWithMalformedUID, mockSelectedCalendar.userId);
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).not.toHaveBeenCalled();
+      expect(mockBookingRepository.findByUid).not.toHaveBeenCalled();
       expect(mockCreateBooking).not.toHaveBeenCalled();
     });
 
     test("should return early when booking is not found", async () => {
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(null);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(null);
 
       await service.rescheduleBooking(mockCalComEvent, mockSelectedCalendar.userId);
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalledWith({
+      expect(mockBookingRepository.findByUid).toHaveBeenCalledWith({
         bookingUid: "test-booking-uid",
       });
       expect(mockCreateBooking).not.toHaveBeenCalled();
@@ -674,7 +674,7 @@ describe("CalendarSyncService", () => {
         start: new Date("2023-12-01T14:00:00Z"),
         end: new Date("2023-12-01T15:00:00Z"),
       };
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
       mockCreateBooking.mockRejectedValue(new Error("Rescheduling failed"));
 
       // Should not throw - errors are caught and logged
@@ -682,12 +682,12 @@ describe("CalendarSyncService", () => {
         service.rescheduleBooking(eventWithDifferentStart, mockSelectedCalendar.userId)
       ).resolves.not.toThrow();
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalled();
+      expect(mockBookingRepository.findByUid).toHaveBeenCalled();
       expect(mockCreateBooking).toHaveBeenCalled();
     });
 
     test("should handle database errors gracefully without throwing", async () => {
-      mockBookingRepository.findBookingByUidWithEventType = vi
+      mockBookingRepository.findByUid = vi
         .fn()
         .mockRejectedValue(new Error("DB connection failed"));
 
@@ -695,7 +695,7 @@ describe("CalendarSyncService", () => {
         service.rescheduleBooking(mockCalComEvent, mockSelectedCalendar.userId)
       ).resolves.not.toThrow();
 
-      expect(mockBookingRepository.findBookingByUidWithEventType).toHaveBeenCalled();
+      expect(mockBookingRepository.findByUid).toHaveBeenCalled();
       expect(mockCreateBooking).not.toHaveBeenCalled();
     });
 
@@ -724,7 +724,7 @@ describe("CalendarSyncService", () => {
         originalStartDate: new Date("2023-12-29T10:00:00Z"),
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi
+      mockBookingRepository.findByUid = vi
         .fn()
         .mockResolvedValueOnce(recurringBooking)
         .mockResolvedValueOnce(booking5);
@@ -782,7 +782,7 @@ describe("CalendarSyncService", () => {
         originalStartDate: new Date("2023-12-29T10:00:00Z"),
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi
+      mockBookingRepository.findByUid = vi
         .fn()
         .mockResolvedValueOnce(recurringBooking) // initial lookup via iCalUID
         .mockResolvedValueOnce(booking5); // resolved instance
@@ -825,7 +825,7 @@ describe("CalendarSyncService", () => {
         recurringEventId: "gcal-recurring-id",
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(recurringBooking);
 
       await service.rescheduleBooking(unmodifiedInstance, mockSelectedCalendar.userId);
 
@@ -853,7 +853,7 @@ describe("CalendarSyncService", () => {
         description: "Updated description from GCal",
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(recurringBooking);
 
       await service.rescheduleBooking(descriptionChangedInstance, mockSelectedCalendar.userId);
 
@@ -884,7 +884,7 @@ describe("CalendarSyncService", () => {
         recurringEventId: "gcal-recurring-id",
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi
+      mockBookingRepository.findByUid = vi
         .fn()
         .mockResolvedValueOnce(recurringBooking)
         .mockResolvedValueOnce(recurringBooking);
@@ -912,7 +912,7 @@ describe("CalendarSyncService", () => {
         recurringEventId: "gcal-recurring-id",
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(recurringBooking);
       // Another booking exists in the series at the event's start time
       mockBookingRepository.findByRecurringEventIdAndStartTime = vi
         .fn()
@@ -940,7 +940,7 @@ describe("CalendarSyncService", () => {
         end: new Date("2023-12-01T17:00:00Z"),
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(recurringBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(recurringBooking);
       // No booking in the series at the new time — this is a real reschedule
       mockBookingRepository.findByRecurringEventIdAndStartTime = vi.fn().mockResolvedValue(null);
 
@@ -961,7 +961,7 @@ describe("CalendarSyncService", () => {
         end: new Date("2023-12-01T15:00:00Z"),
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.rescheduleBooking(eventWithDifferentStart, mockSelectedCalendar.userId);
 
@@ -980,7 +980,7 @@ describe("CalendarSyncService", () => {
         location: mockBooking.location,
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.rescheduleBooking(eventWithNewTitle, mockSelectedCalendar.userId);
 
@@ -1000,7 +1000,7 @@ describe("CalendarSyncService", () => {
         location: "New Office",
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.rescheduleBooking(eventWithNewLocation, mockSelectedCalendar.userId);
 
@@ -1020,7 +1020,7 @@ describe("CalendarSyncService", () => {
         location: mockBooking.location,
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.rescheduleBooking(eventWithNewDescription, mockSelectedCalendar.userId);
 
@@ -1040,7 +1040,7 @@ describe("CalendarSyncService", () => {
         location: "New Loc",
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.rescheduleBooking(eventWithMultipleChanges, mockSelectedCalendar.userId);
 
@@ -1064,7 +1064,7 @@ describe("CalendarSyncService", () => {
         location: mockBooking.location,
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.rescheduleBooking(eventWithSameFields, mockSelectedCalendar.userId);
 
@@ -1081,7 +1081,7 @@ describe("CalendarSyncService", () => {
         location: "New Location",
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.rescheduleBooking(eventWithNullSummary, mockSelectedCalendar.userId);
 
@@ -1098,7 +1098,7 @@ describe("CalendarSyncService", () => {
         summary: "New Title",
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
       (mockBookingRepository.update as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error("DB update failed")
       );
@@ -1118,7 +1118,7 @@ describe("CalendarSyncService", () => {
         summary: "New Title",
       };
 
-      mockBookingRepository.findBookingByUidWithEventType = vi.fn().mockResolvedValue(mockBooking);
+      mockBookingRepository.findByUid = vi.fn().mockResolvedValue(mockBooking);
 
       await service.rescheduleBooking(eventWithTimeAndFieldChange, mockSelectedCalendar.userId);
 
