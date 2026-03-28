@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "calcom-storybook-mcp-server": {
+      "url": "http://localhost:6006/mcp"
+    }
+  }
+}

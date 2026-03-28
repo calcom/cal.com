@@ -1,6 +1,9 @@
 {
   "extends": "@calcom/tsconfig/nextjs.json",
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "baseUrl": ".",
     "paths": {
       "~/*": ["modules/*"],
