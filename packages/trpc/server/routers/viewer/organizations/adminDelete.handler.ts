@@ -1,3 +1,4 @@
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -46,6 +47,21 @@ export const adminDeleteHandler = async ({ input }: AdminDeleteOption) => {
   }
 
   await deleteAllRedirectsForUsers(foundOrg.members.map((member) => member.user));
+
+  // Delete all redirect records that point to the deleted org's domain.
+  // Without this, users following old links (e.g. cal.com/john) are
+  // redirected to the non-existent org domain (e.g. acme.cal.com/john)
+  // indefinitely (#28584).
+  if (foundOrg.slug) {
+    const orgUrlPrefix = getOrgFullOrigin(foundOrg.slug);
+    await prisma.tempOrgRedirect.deleteMany({
+      where: {
+        toUrl: {
+          startsWith: orgUrlPrefix,
+        },
+      },
+    });
+  }
 
   await renameUsersToAvoidUsernameConflicts(foundOrg.members.map((member) => member.user));
   await prisma.team.delete({
