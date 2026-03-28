@@ -1,0 +1,314 @@
+import { SchedulingType } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { IAvailableSlotsService } from "./util";
+import { AvailableSlotsService } from "./util";
+
+describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
+  type GetGuestBusyTimesForReschedule =
+    typeof AvailableSlotsService.prototype._getGuestBusyTimesForReschedule;
+  let service: AvailableSlotsService;
+  let mockDependencies: {
+    bookingRepo: {
+      findByUidIncludeAttendeeEmails: ReturnType<typeof vi.fn>;
+      findByUserIdsAndDateRange: ReturnType<typeof vi.fn>;
+    };
+    userRepo: {
+      findByEmails: ReturnType<typeof vi.fn>;
+    };
+  };
+
+  const dateFrom = new Date("2026-04-01T00:00:00Z");
+  const dateTo = new Date("2026-04-30T23:59:59Z");
+  const rescheduleUid = "booking-uid-123";
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    mockDependencies = {
+      bookingRepo: {
+        findByUidIncludeAttendeeEmails: vi.fn(),
+        findByUserIdsAndDateRange: vi.fn(),
+      },
+      userRepo: {
+        findByEmails: vi.fn(),
+      },
+    };
+
+    service = new AvailableSlotsService(mockDependencies as unknown as IAvailableSlotsService);
+  });
+
+  const callGetGuestBusyTimes = (params: {
+    rescheduleUid: string | null | undefined;
+    schedulingType: SchedulingType | null;
+    dateFrom: Date;
+    dateTo: Date;
+  }) =>
+    (
+      service as unknown as {
+        _getGuestBusyTimesForReschedule: GetGuestBusyTimesForReschedule;
+      }
+    )._getGuestBusyTimesForReschedule(params);
+
+  describe("early-exit conditions", () => {
+    it("should return empty array when rescheduleUid is null", async () => {
+      const result = await callGetGuestBusyTimes({
+        rescheduleUid: null,
+        schedulingType: null,
+        dateFrom,
+        dateTo,
+      });
+
+      expect(result).toEqual([]);
+      expect(mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails).not.toHaveBeenCalled();
+    });
+
+    it("should return empty array when rescheduleUid is undefined", async () => {
+      const result = await callGetGuestBusyTimes({
+        rescheduleUid: undefined,
+        schedulingType: null,
+        dateFrom,
+        dateTo,
+      });
+
+      expect(result).toEqual([]);
+      expect(mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails).not.toHaveBeenCalled();
+    });
+
+    it("should return empty array for COLLECTIVE scheduling type", async () => {
+      const result = await callGetGuestBusyTimes({
+        rescheduleUid,
+        schedulingType: SchedulingType.COLLECTIVE,
+        dateFrom,
+        dateTo,
+      });
+
+      expect(result).toEqual([]);
+      expect(mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails).not.toHaveBeenCalled();
+    });
+
+    it("should return empty array when original booking has no attendees", async () => {
+      mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails.mockResolvedValue({
+        id: 1,
+        uid: rescheduleUid,
+        attendees: [],
+      });
+
+      const result = await callGetGuestBusyTimes({
+        rescheduleUid,
+        schedulingType: null,
+        dateFrom,
+        dateTo,
+      });
+
+      expect(result).toEqual([]);
+      expect(mockDependencies.userRepo.findByEmails).not.toHaveBeenCalled();
+    });
+
+    it("should return empty array when original booking is not found", async () => {
+      mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails.mockResolvedValue(null);
+
+      const result = await callGetGuestBusyTimes({
+        rescheduleUid,
+        schedulingType: null,
+        dateFrom,
+        dateTo,
+      });
+
+      expect(result).toEqual([]);
+      expect(mockDependencies.userRepo.findByEmails).not.toHaveBeenCalled();
+    });
+
+    it("should return empty array when no attendees are Cal.com users", async () => {
+      mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails.mockResolvedValue({
+        id: 1,
+        uid: rescheduleUid,
+        attendees: [{ email: "external@gmail.com" }],
+      });
+      mockDependencies.userRepo.findByEmails.mockResolvedValue([]);
+
+      const result = await callGetGuestBusyTimes({
+        rescheduleUid,
+        schedulingType: null,
+        dateFrom,
+        dateTo,
+      });
+
+      expect(result).toEqual([]);
+      expect(mockDependencies.bookingRepo.findByUserIdsAndDateRange).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("guest busy time collection", () => {
+    it("should return busy times for Cal.com guest users", async () => {
+      mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails.mockResolvedValue({
+        id: 1,
+        uid: rescheduleUid,
+        attendees: [{ email: "guest@cal.com" }],
+      });
+      mockDependencies.userRepo.findByEmails.mockResolvedValue([{ id: 10, email: "guest@cal.com" }]);
+      mockDependencies.bookingRepo.findByUserIdsAndDateRange.mockResolvedValue([
+        {
+          uid: "other-booking-1",
+          startTime: new Date("2026-04-10T09:00:00Z"),
+          endTime: new Date("2026-04-10T10:00:00Z"),
+          title: "Team standup",
+          userId: 10,
+          status: "ACCEPTED",
+        },
+      ]);
+
+      const result = await callGetGuestBusyTimes({
+        rescheduleUid,
+        schedulingType: null,
+        dateFrom,
+        dateTo,
+      });
+
+      expect(result).toEqual([
+        {
+          start: new Date("2026-04-10T09:00:00Z"),
+          end: new Date("2026-04-10T10:00:00Z"),
+        },
+      ]);
+    });
+
+    it("should exclude the rescheduled booking itself from busy times", async () => {
+      mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails.mockResolvedValue({
+        id: 1,
+        uid: rescheduleUid,
+        attendees: [{ email: "guest@cal.com" }],
+      });
+      mockDependencies.userRepo.findByEmails.mockResolvedValue([{ id: 10, email: "guest@cal.com" }]);
+      mockDependencies.bookingRepo.findByUserIdsAndDateRange.mockResolvedValue([
+        {
+          uid: rescheduleUid,
+          startTime: new Date("2026-04-10T14:00:00Z"),
+          endTime: new Date("2026-04-10T15:00:00Z"),
+          title: "Original meeting",
+          userId: 10,
+          status: "ACCEPTED",
+        },
+        {
+          uid: "different-booking",
+          startTime: new Date("2026-04-10T16:00:00Z"),
+          endTime: new Date("2026-04-10T17:00:00Z"),
+          title: "Another meeting",
+          userId: 10,
+          status: "ACCEPTED",
+        },
+      ]);
+
+      const result = await callGetGuestBusyTimes({
+        rescheduleUid,
+        schedulingType: null,
+        dateFrom,
+        dateTo,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual({
+        start: new Date("2026-04-10T16:00:00Z"),
+        end: new Date("2026-04-10T17:00:00Z"),
+      });
+    });
+
+    it("should handle multiple guest attendees who are Cal.com users", async () => {
+      mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails.mockResolvedValue({
+        id: 1,
+        uid: rescheduleUid,
+        attendees: [{ email: "guest1@cal.com" }, { email: "guest2@cal.com" }],
+      });
+      mockDependencies.userRepo.findByEmails.mockResolvedValue([
+        { id: 10, email: "guest1@cal.com" },
+        { id: 20, email: "guest2@cal.com" },
+      ]);
+      mockDependencies.bookingRepo.findByUserIdsAndDateRange.mockResolvedValue([
+        {
+          uid: "booking-a",
+          startTime: new Date("2026-04-10T09:00:00Z"),
+          endTime: new Date("2026-04-10T10:00:00Z"),
+          title: "Guest1 meeting",
+          userId: 10,
+          status: "ACCEPTED",
+        },
+        {
+          uid: "booking-b",
+          startTime: new Date("2026-04-11T14:00:00Z"),
+          endTime: new Date("2026-04-11T15:00:00Z"),
+          title: "Guest2 meeting",
+          userId: 20,
+          status: "ACCEPTED",
+        },
+      ]);
+
+      const result = await callGetGuestBusyTimes({
+        rescheduleUid,
+        schedulingType: null,
+        dateFrom,
+        dateTo,
+      });
+
+      expect(result).toHaveLength(2);
+      expect(mockDependencies.userRepo.findByEmails).toHaveBeenCalledWith({
+        emails: ["guest1@cal.com", "guest2@cal.com"],
+      });
+      expect(mockDependencies.bookingRepo.findByUserIdsAndDateRange).toHaveBeenCalledWith({
+        userIds: [10, 20],
+        userEmails: ["guest1@cal.com", "guest2@cal.com"],
+        dateFrom,
+        dateTo,
+      });
+    });
+
+    it("should work with ROUND_ROBIN scheduling type", async () => {
+      mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails.mockResolvedValue({
+        id: 1,
+        uid: rescheduleUid,
+        attendees: [{ email: "guest@cal.com" }],
+      });
+      mockDependencies.userRepo.findByEmails.mockResolvedValue([{ id: 10, email: "guest@cal.com" }]);
+      mockDependencies.bookingRepo.findByUserIdsAndDateRange.mockResolvedValue([]);
+
+      const result = await callGetGuestBusyTimes({
+        rescheduleUid,
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        dateFrom,
+        dateTo,
+      });
+
+      expect(result).toEqual([]);
+      expect(mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails).toHaveBeenCalledWith({
+        uid: rescheduleUid,
+      });
+    });
+
+    it("should pass correct userIds and emails to findByUserIdsAndDateRange", async () => {
+      mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails.mockResolvedValue({
+        id: 1,
+        uid: rescheduleUid,
+        attendees: [{ email: "cal-user@example.com" }, { email: "external@gmail.com" }],
+      });
+      mockDependencies.userRepo.findByEmails.mockResolvedValue([
+        { id: 42, email: "cal-user@example.com" },
+      ]);
+      mockDependencies.bookingRepo.findByUserIdsAndDateRange.mockResolvedValue([]);
+
+      await callGetGuestBusyTimes({
+        rescheduleUid,
+        schedulingType: null,
+        dateFrom,
+        dateTo,
+      });
+
+      expect(mockDependencies.userRepo.findByEmails).toHaveBeenCalledWith({
+        emails: ["cal-user@example.com", "external@gmail.com"],
+      });
+      expect(mockDependencies.bookingRepo.findByUserIdsAndDateRange).toHaveBeenCalledWith({
+        userIds: [42],
+        userEmails: ["cal-user@example.com", "external@gmail.com"],
+        dateFrom,
+        dateTo,
+      });
+    });
+  });
+});
