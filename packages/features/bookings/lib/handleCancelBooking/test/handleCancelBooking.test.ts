@@ -207,9 +207,12 @@ describe("Cancel Booking", () => {
           {
             id: idOfBookingToBeCancelled,
             uid: uidOfBookingToBeCancelled,
-            // rescheduled=true simulates a booking that was already marked for reschedule
-            // by requestReschedule.handler.ts before handleCancelBooking is called via
-            // another path (e.g. /api/cancel or CalendarSyncService)
+            // rescheduled=true on an ACCEPTED booking simulates the narrow race window
+            // where requestReschedule.handler.ts has set rescheduled=true but the status
+            // update to CANCELLED hasn't landed yet, and a concurrent call (e.g. via
+            // CalendarSyncService or /api/cancel) reaches handleCancelBooking first.
+            // It also covers any external/direct-DB path that sets rescheduled without
+            // updating status atomically.
             rescheduled: true,
             attendees: [
               {
@@ -224,7 +227,7 @@ describe("Cancel Booking", () => {
               name: booker.name,
               location: { optionValue: "", value: BookingLocations.CalVideo },
             },
-            status: BookingStatus.CANCELLED,
+            status: BookingStatus.ACCEPTED,
             startTime: `${plus1DateString}T05:00:00.000Z`,
             endTime: `${plus1DateString}T05:15:00.000Z`,
             metadata: {
