@@ -204,6 +204,7 @@ export const NavigationItem: React.FC<{
         </Tooltip>
       ) : (
         <Tooltip side="right" content={t(item.name)} className="lg:hidden">
+          <span className="flex w-full">
           <Link
             data-test-id={item.name}
             onClick={() => trackNavigationClick(item.name)}
@@ -247,6 +248,7 @@ export const NavigationItem: React.FC<{
               <SkeletonText className="h-[20px] w-full" />
             )}
           </Link>
+          </span>
         </Tooltip>
       )}
       {hasChildren && (
