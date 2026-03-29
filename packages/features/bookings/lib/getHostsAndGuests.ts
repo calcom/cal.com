@@ -4,12 +4,13 @@ export type Host = {
 };
 
 export type Guest = {
+  id?: number;
   email: string;
   name: string;
 };
 
 type BookingInput = {
-  attendees?: { email: string; name: string }[] | null;
+  attendees: { id?: number; email: string; name: string }[] | null;
   user?: { id: number; email: string } | null;
   eventType?: {
     hosts?: { userId: number; user: { email: string } }[];
@@ -43,6 +44,7 @@ export function getHostsAndGuests(booking: BookingInput): { hosts: Host[]; guest
     booking.attendees
       ?.filter((attendee) => !hostEmails.has(attendee.email))
       .map((attendee) => ({
+        id: attendee.id,
         email: attendee.email,
         name: attendee.name,
       })) ?? [];
