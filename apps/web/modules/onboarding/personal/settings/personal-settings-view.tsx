@@ -84,6 +84,8 @@ export const PersonalSettingsView = ({
     },
   });
 
+  const { isValid } = form.formState;
+
   async function updateProfileHandler(newAvatar: string) {
     avatarMutation.mutate({
       avatarUrl: newAvatar,
@@ -133,7 +135,7 @@ export const PersonalSettingsView = ({
                 color="primary"
                 className="rounded-[10px]"
                 loading={mutation.isPending}
-                disabled={mutation.isPending || !form.formState.isValid}>
+                disabled={mutation.isPending || !isValid}>
                 {t("continue")}
               </Button>
             </div>

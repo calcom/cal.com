@@ -1,9 +1,5 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -13,12 +9,12 @@ import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { PasswordField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Form, PasswordField, Select, SettingsToggle } from "@calcom/ui/components/form";
 import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import { signOut, useSession } from "next-auth/react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 type ChangePasswordSessionFormValues = {
   oldPassword: string;
@@ -157,7 +153,9 @@ const PasswordView = ({ user }: PasswordViewProps) => {
     value: mins,
   }));
 
-  const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty;
+  const { isDirty, isSubmitting } = formMethods.formState;
+
+  const isDisabled = isSubmitting || !isDirty;
 
   const passwordMinLength = data?.user.role === "USER" ? 7 : 15;
   const isUser = data?.user.role === "USER";

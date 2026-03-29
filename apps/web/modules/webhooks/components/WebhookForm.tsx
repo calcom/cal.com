@@ -320,6 +320,8 @@ const WebhookForm = (props: {
   const time = formMethods.watch("time");
   const timeUnit = formMethods.watch("timeUnit");
 
+  const { isDirty } = formMethods.formState;
+
   const TIME_UNITS = [TimeUnit.MINUTE, TimeUnit.HOUR, TimeUnit.DAY] as const;
   const timeUnitItems = TIME_UNITS.map((unit) => ({
     value: unit,
@@ -368,7 +370,7 @@ const WebhookForm = (props: {
 
   const canSubmit = isCreating
     ? hasUrl && triggers.length > 0 && (!needsTime || hasTime)
-    : formMethods.formState.isDirty || changeSecret;
+    : isDirty || changeSecret;
 
   useEffect(() => {
     if (isCreating && needsTime && !time && !timeUnit) {
