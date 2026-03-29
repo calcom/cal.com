@@ -1,0 +1,153 @@
+---
+title: "Troubleshooting"
+icon: "triangle-exclamation"
+---
+
+This guide covers the most common issues encountered when self-hosting Cal.com, along with their solutions.
+
+## Onboarding / Setup Issues
+
+### 500 Error During Onboarding (Missing Stripe Key)
+
+**Symptom:** After completing the initial setup wizard and logging in, you see a `500` (Internal Server Error) when accessing the onboarding flow or certain pages.
+
+**Cause:** Cal.com's onboarding flow attempts to initialize Stripe even if you don't plan to use payments. If `STRIPE_PRIVATE_KEY` (and related Stripe variables) are not set, the server throws an unhandled error.
+
+**Solution:** Add the following variables to your `.env` file. You can use placeholder values if you don't need Stripe, but the keys must be present:
+
+```env
+# Stripe (required to prevent 500 errors during onboarding)
+STRIPE_PRIVATE_KEY=sk_test_placeholder
+STRIPE_CLIENT_ID=ca_placeholder
+NEXT_PUBLIC_STRIPE_PUBLIC_KEY=pk_test_placeholder
+STRIPE_WEBHOOK_SECRET=whsec_placeholder
+```
+
+> **Note:** For a production setup with real payments, replace these with your actual Stripe API keys from the [Stripe Dashboard](https://dashboard.stripe.com/apikeys).
+
+Related issue: [#25993](https://github.com/calcom/cal.com/issues/25993)
+
+---
+
+## URL and Redirect Issues
+
+### Redirect to `localhost:3000` After Deployment
+
+**Symptom:** After deploying Cal.com to a server or domain, login redirects or internal links point back to `http://localhost:3000` instead of your actual domain.
+
+**Cause:** The environment variables `NEXTAUTH_URL` and `NEXT_PUBLIC_WEBAPP_URL` are not set to your production domain. These variables tell Cal.com and NextAuth where the app is hosted.
+
+**Solution:** Update your `.env` file to use your actual domain:
+
+```env
+# Replace with your actual domain
+NEXT_PUBLIC_WEBAPP_URL=https://cal.yourdomain.com
+NEXTAUTH_URL=https://cal.yourdomain.com
+```
+
+**Important notes:**
+- Do **not** include a trailing slash.
+- For Docker deployments, these must be set **before** building the image, as `NEXT_PUBLIC_WEBAPP_URL` is a build-time variable. Rebuild the image after changing it.
+- For Vercel deployments, leave `NEXTAUTH_URL` **empty** — Vercel infers it automatically.
+
+Related issue: [#21921](https://github.com/calcom/cal.com/issues/21921)
+
+---
+
+## Docker-Specific Issues
+
+### API v2 Service Not Starting
+
+**Symptom:** After running `docker compose up -d`, the `calcom-api` service fails to start or immediately exits. The web app works, but API v2 endpoints (`/api/v2/...`) return connection errors.
+
+**Cause:** The API v2 service requires several environment variables that are not in the default `.env.example`. The most common missing variables are `REDIS_URL`, `JWT_SECRET`, and `WEB_APP_URL`.
+
+**Solution:** Add the following variables to your root `.env` file (the `docker-compose.yml` passes this to the `calcom-api` service):
+
+```env
+# Required for API v2
+REDIS_URL=redis://redis:6379
+JWT_SECRET=your_random_jwt_secret_here
+WEB_APP_URL=https://cal.yourdomain.com
+
+# Optional API v2 variables
+REDIS_PORT=6379
+LOG_LEVEL=warn
+```
+
+You can generate a secure `JWT_SECRET` with:
+
+```bash
+openssl rand -base64 32
+```
+
+Then restart the stack:
+
+```bash
+docker compose down && docker compose up -d
+```
+
+Check the API v2 service logs for further details if it still fails:
+
+```bash
+docker compose logs calcom-api
+```
+
+---
+
+### `CLIENT_FETCH_ERROR` in Logs
+
+**Symptom:** The following error appears in Docker logs, and login/session fails:
+
+```
+[next-auth][error][CLIENT_FETCH_ERROR]
+request to http://<your-domain>/api/auth/session failed, reason: getaddrinfo ENOTFOUND
+```
+
+**Cause:** The Docker container cannot resolve the external hostname set in `NEXTAUTH_URL` from within the container's network.
+
+**Solution:** Set `NEXTAUTH_URL` to the internal loopback address so the container resolves itself:
+
+```env
+NEXTAUTH_URL=http://localhost:3000/api/auth
+```
+
+If you use a reverse proxy (e.g., Nginx, Traefik), make sure the proxy forwards the `Host` header and the `X-Forwarded-Proto` header correctly so Cal.com generates external-facing URLs properly.
+
+---
+
+### SSL / HTTPS Issues Behind a Reverse Proxy
+
+**Symptom:** Requests fail with SSL certificate errors when Cal.com is behind a load balancer or reverse proxy that handles HTTPS termination.
+
+**Solution:** If your reverse proxy handles SSL termination and forwards traffic to Cal.com over plain HTTP internally, set:
+
+```env
+NODE_TLS_REJECT_UNAUTHORIZED=0
+```
+
+> **Warning:** Only set this if you fully trust the internal network path between your proxy and Cal.com. Do not use this in environments where internal traffic could be intercepted.
+
+---
+
+## Database Issues
+
+### `prisma.user.create()` Fails on First User Setup
+
+**Symptom:** Attempting to create the first admin user results in a Prisma validation error referencing the `metadata` field or `id` field.
+
+**Solution:**
+- Set the `metadata` field to an empty JSON object `{}` instead of leaving it null.
+- Leave the `id` field empty to allow auto-increment.
+
+This is a known issue on certain Cal.com versions. Upgrading to the latest release typically resolves it.
+
+---
+
+## Getting Further Help
+
+If your issue is not listed here:
+
+1. Search the [Cal.com GitHub Issues](https://github.com/calcom/cal.com/issues) — many common problems have documented solutions in issue threads.
+2. Check the [Cal.com Community](https://community.cal.com) forum.
+3. Review the [Docker configuration](./docker) and [Installation guide](./installation) for any steps you may have missed.
