@@ -1,3 +1,4 @@
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
@@ -46,6 +47,17 @@ export const adminDeleteHandler = async ({ input }: AdminDeleteOption) => {
   }
 
   await deleteAllRedirectsForUsers(foundOrg.members.map((member) => member.user));
+
+  if (foundOrg.slug) {
+    const orgUrlPrefix = getOrgFullOrigin(foundOrg.slug);
+    await prisma.tempOrgRedirect.deleteMany({
+      where: {
+        toUrl: {
+          startsWith: orgUrlPrefix,
+        },
+      },
+    });
+  }
 
   await renameUsersToAvoidUsernameConflicts(foundOrg.members.map((member) => member.user));
   await prisma.team.delete({
