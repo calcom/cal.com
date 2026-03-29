@@ -14,6 +14,8 @@ import type { ReactElement } from "react";
 
 import { EventTypesWrapper } from "./EventTypesWrapper";
 
+export const unstable_dynamicStaleTime = 30;
+
 const getCachedEventGroups: (
   headers: ReadonlyHeaders,
   cookies: ReadonlyRequestCookies,

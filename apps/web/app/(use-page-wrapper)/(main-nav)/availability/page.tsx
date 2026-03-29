@@ -19,6 +19,8 @@ import { AvailabilityList, AvailabilityCTA } from "~/availability/availability-v
 
 import { ShellMainAppDir } from "../ShellMainAppDir";
 
+export const unstable_dynamicStaleTime = 30;
+
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("availability"),

@@ -7,6 +7,8 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ServerTeamsListing } from "./server-page";
 
+export const unstable_dynamicStaleTime = 30;
+
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("teams"),

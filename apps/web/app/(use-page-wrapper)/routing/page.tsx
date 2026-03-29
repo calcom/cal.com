@@ -10,6 +10,8 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import Forms from "../apps/routing-forms/forms/[[...pages]]/Forms";
 
+export const unstable_dynamicStaleTime = 30;
+
 const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => `${t("routing_forms")} | Cal.com Forms`,

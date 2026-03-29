@@ -5,6 +5,8 @@
 // import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import LegacyPage from "@calcom/web/modules/ee/workflows/views/WorkflowsPage";
 
+export const unstable_dynamicStaleTime = 30;
+
 const Page = async () => {
   // const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   // const user = session?.user;

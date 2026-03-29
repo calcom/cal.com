@@ -9,6 +9,8 @@ import Shell from "~/shell/Shell";
 import { checkInsightsPagePermission } from "./checkInsightsPagePermission";
 import { getInsightsUpgradeBanner } from "./getInsightsUpgradeBanner";
 
+export const unstable_dynamicStaleTime = 30;
+
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("insights"),

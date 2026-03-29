@@ -13,6 +13,8 @@ import { z } from "zod";
 import { validStatuses } from "~/bookings/lib/validStatuses";
 import BookingsList from "~/bookings/views/bookings-view";
 
+export const unstable_dynamicStaleTime = 30;
+
 const querySchema = z.object({
   status: z.enum(validStatuses),
 });

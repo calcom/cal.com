@@ -11,6 +11,8 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 import AppsPage from "~/apps/apps-view";
 
+export const unstable_dynamicStaleTime = 30;
+
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("app_store"),

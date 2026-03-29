@@ -10,6 +10,8 @@ import { redirect } from "next/navigation";
 import { getOrgMembersPageData } from "~/members/getOrgMembersPageData";
 import { MembersView } from "~/members/members-view";
 
+export const unstable_dynamicStaleTime = 30;
+
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("organization_members"),
