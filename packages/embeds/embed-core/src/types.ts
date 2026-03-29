@@ -10,7 +10,7 @@ export type AllPossibleLayouts = BookerLayouts | "mobile";
 export interface EmbedStyles {
   body?: Pick<CSSProperties, "background">;
   eventTypeListItem?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
-  enabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
+  enabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor" | "cursor">;
   disabledDateButton?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
   availabilityDatePicker?: Pick<CSSProperties, "background" | "color" | "backgroundColor">;
 }
