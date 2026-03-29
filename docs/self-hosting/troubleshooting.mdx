@@ -106,13 +106,19 @@ request to http://<your-domain>/api/auth/session failed, reason: getaddrinfo ENO
 
 **Cause:** The Docker container cannot resolve the external hostname set in `NEXTAUTH_URL` from within the container's network.
 
-**Solution:** Set `NEXTAUTH_URL` to the internal loopback address so the container resolves itself:
+**Solution:** Add your domain to the container's `/etc/hosts` so it resolves to itself:
 
-```env
-NEXTAUTH_URL=http://localhost:3000/api/auth
+```yaml
+# docker-compose.yml
+services:
+  calcom:
+    extra_hosts:
+      - "cal.yourdomain.com:127.0.0.1"
 ```
 
-If you use a reverse proxy (e.g., Nginx, Traefik), make sure the proxy forwards the `Host` header and the `X-Forwarded-Proto` header correctly so Cal.com generates external-facing URLs properly.
+This allows the container to resolve your public domain internally while keeping `NEXTAUTH_URL` set to your public URL (required for OAuth callbacks to work).
+
+> **Why not use `localhost`?** Setting `NEXTAUTH_URL` to `localhost` would fix this DNS error, but **breaks OAuth** — external providers like Google would redirect to `localhost` instead of your domain.
 
 ---
 
@@ -124,13 +130,23 @@ If you use a reverse proxy (e.g., Nginx, Traefik), make sure the proxy forwards 
 
 **Option 1: If your proxy forwards HTTP internally (most common)**
 
-Set `NEXTAUTH_URL` to the internal HTTP address:
+Keep `NEXTAUTH_URL` set to your **public-facing HTTPS URL**:
 
 ```env
-NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_URL=https://cal.yourdomain.com
 ```
 
-Ensure your proxy forwards the `Host` and `X-Forwarded-Proto` headers so Cal.com generates correct external-facing URLs.
+Then configure your reverse proxy to forward these headers so internal requests work correctly:
+
+```nginx
+# Nginx example
+proxy_set_header Host $host;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+```
+
+> **Why not use `localhost`?** Setting `NEXTAUTH_URL=http://localhost:3000` would fix internal SSL errors, but **breaks OAuth callbacks** — external providers (Google, Microsoft) would try to redirect users to `localhost`, which fails. Always use your public URL.
 
 **Option 2: If using self-signed certificates internally**
 
