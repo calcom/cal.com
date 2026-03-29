@@ -220,7 +220,7 @@ describe("BookingRepository", () => {
     });
 
     it("should include excludeUid in query when provided", async () => {
-      const repo = new BookingRepository(mockPrisma as unknown as PrismaClient);
+      const repo = new BookingRepository(mockPrismaClient as unknown as PrismaClient);
       await repo.findByUserIdsAndDateRange({
         userIds: [1],
         userEmails: [],
@@ -229,7 +229,7 @@ describe("BookingRepository", () => {
         excludeUid: "booking-to-exclude",
       });
 
-      expect(mockPrisma.booking.findMany).toHaveBeenCalledWith(
+      expect(mockPrismaClient.booking.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
             uid: { not: "booking-to-exclude" },
