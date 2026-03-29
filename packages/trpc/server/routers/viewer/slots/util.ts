@@ -659,13 +659,11 @@ export class AvailableSlotsService {
   private async _getGuestBusyTimesForReschedule({
     rescheduleUid,
     schedulingType,
-    hostUserIds,
     dateFrom,
     dateTo,
   }: {
     rescheduleUid: string | null | undefined;
     schedulingType: SchedulingType | null;
-    hostUserIds: number[];
     dateFrom: Date;
     dateTo: Date;
   }): Promise<{ start: Date; end: Date }[]> {
@@ -679,12 +677,13 @@ export class AvailableSlotsService {
       });
       if (!original?.attendees?.length) return [];
 
-      // Only apply guest availability check when the host is rescheduling.
-      // If the booking's host is not in the current event type's host list,
-      // this is an attendee-initiated reschedule — show all slots.
-      if (original.userId && !hostUserIds.includes(original.userId)) {
-        return [];
-      }
+      // Note: The slots API does not receive `rescheduledBy` context, so we
+      // cannot distinguish host-initiated from attendee-initiated reschedules
+      // at this layer. We always check guest availability as the safe default:
+      // showing fewer available slots is preferable to risking double-bookings.
+      // Per CarinaWolli's spec, attendee reschedules should show all slots —
+      // if this gating is needed, `rescheduledBy` must be added to the slots
+      // input schema (a separate change).
 
       const emails = original.attendees
         .map((a) => a.email)
@@ -803,7 +802,6 @@ export class AvailableSlotsService {
       this.getGuestBusyTimesForReschedule({
         rescheduleUid: input.rescheduleUid,
         schedulingType: eventType.schedulingType,
-        hostUserIds: allUserIds,
         dateFrom: startTimeDate,
         dateTo: endTimeDate,
       }),

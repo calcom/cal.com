@@ -40,7 +40,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
   const callGetGuestBusyTimes = (params: {
     rescheduleUid: string | null | undefined;
     schedulingType: SchedulingType | null;
-    hostUserIds?: number[];
     dateFrom: Date;
     dateTo: Date;
   }) =>
@@ -55,7 +54,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       const result = await callGetGuestBusyTimes({
         rescheduleUid: null,
         schedulingType: null,
-        hostUserIds: [1],
         dateFrom,
         dateTo,
       });
@@ -68,7 +66,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       const result = await callGetGuestBusyTimes({
         rescheduleUid: undefined,
         schedulingType: null,
-        hostUserIds: [1],
         dateFrom,
         dateTo,
       });
@@ -81,7 +78,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       const result = await callGetGuestBusyTimes({
         rescheduleUid,
         schedulingType: SchedulingType.COLLECTIVE,
-        hostUserIds: [1],
         dateFrom,
         dateTo,
       });
@@ -101,7 +97,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       const result = await callGetGuestBusyTimes({
         rescheduleUid,
         schedulingType: null,
-        hostUserIds: [1],
         dateFrom,
         dateTo,
       });
@@ -116,7 +111,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       const result = await callGetGuestBusyTimes({
         rescheduleUid,
         schedulingType: null,
-        hostUserIds: [1],
         dateFrom,
         dateTo,
       });
@@ -137,7 +131,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       const result = await callGetGuestBusyTimes({
         rescheduleUid,
         schedulingType: null,
-        hostUserIds: [1],
         dateFrom,
         dateTo,
       });
@@ -170,7 +163,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       const result = await callGetGuestBusyTimes({
         rescheduleUid,
         schedulingType: null,
-        hostUserIds: [1],
         dateFrom,
         dateTo,
       });
@@ -205,7 +197,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       const result = await callGetGuestBusyTimes({
         rescheduleUid,
         schedulingType: null,
-        hostUserIds: [1],
         dateFrom,
         dateTo,
       });
@@ -228,34 +219,11 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       const result = await callGetGuestBusyTimes({
         rescheduleUid,
         schedulingType: null,
-        hostUserIds: [1],
         dateFrom,
         dateTo,
       });
 
       expect(result).toEqual([]);
-    });
-
-    it("should skip guest check when attendee (not host) reschedules", async () => {
-      // Booking was created by user 1, but current event hosts are [99]
-      // This means the attendee is rescheduling, not the host
-      mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails.mockResolvedValue({
-        id: 1,
-        uid: rescheduleUid,
-        userId: 1,
-        attendees: [{ email: "guest@cal.com" }],
-      });
-
-      const result = await callGetGuestBusyTimes({
-        rescheduleUid,
-        schedulingType: null,
-        hostUserIds: [99], // Not the booking host
-        dateFrom,
-        dateTo,
-      });
-
-      expect(result).toEqual([]);
-      expect(mockDependencies.userRepo.findByEmails).not.toHaveBeenCalled();
     });
 
     it("should only use Cal.com user emails in booking query, not all attendee emails", async () => {
@@ -277,7 +245,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       await callGetGuestBusyTimes({
         rescheduleUid,
         schedulingType: null,
-        hostUserIds: [1],
         dateFrom,
         dateTo,
       });
@@ -326,7 +293,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       const result = await callGetGuestBusyTimes({
         rescheduleUid,
         schedulingType: null,
-        hostUserIds: [1],
         dateFrom,
         dateTo,
       });
@@ -356,7 +322,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       const result = await callGetGuestBusyTimes({
         rescheduleUid,
         schedulingType: SchedulingType.ROUND_ROBIN,
-        hostUserIds: [1],
         dateFrom,
         dateTo,
       });
@@ -383,7 +348,6 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       await callGetGuestBusyTimes({
         rescheduleUid,
         schedulingType: null,
-        hostUserIds: [1],
         dateFrom,
         dateTo,
       });
@@ -391,11 +355,13 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       expect(mockDependencies.userRepo.findByEmails).toHaveBeenCalledWith({
         emails: ["cal-user@example.com", "external@gmail.com"],
       });
+      // userEmails should only contain Cal.com user emails, not external ones
       expect(mockDependencies.bookingRepo.findByUserIdsAndDateRange).toHaveBeenCalledWith({
         userIds: [42],
-        userEmails: ["cal-user@example.com", "external@gmail.com"],
+        userEmails: ["cal-user@example.com"],
         dateFrom,
         dateTo,
+        excludeUid: rescheduleUid,
       });
     });
   });
