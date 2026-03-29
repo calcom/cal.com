@@ -120,13 +120,33 @@ If you use a reverse proxy (e.g., Nginx, Traefik), make sure the proxy forwards 
 
 **Symptom:** Requests fail with SSL certificate errors when Cal.com is behind a load balancer or reverse proxy that handles HTTPS termination.
 
-**Solution:** If your reverse proxy handles SSL termination and forwards traffic to Cal.com over plain HTTP internally, set:
+**Solution (choose one):**
+
+**Option 1: If your proxy forwards HTTP internally (most common)**
+
+Set `NEXTAUTH_URL` to the internal HTTP address:
+
+```env
+NEXTAUTH_URL=http://localhost:3000
+```
+
+Ensure your proxy forwards the `Host` and `X-Forwarded-Proto` headers so Cal.com generates correct external-facing URLs.
+
+**Option 2: If using self-signed certificates internally**
+
+Add your internal CA to Node's trusted certificates:
+
+```env
+NODE_EXTRA_CA_CERTS=/path/to/your-internal-ca.crt
+```
+
+**Option 3: Last resort (not recommended for production)**
 
 ```env
 NODE_TLS_REJECT_UNAUTHORIZED=0
 ```
 
-> **Warning:** Only set this if you fully trust the internal network path between your proxy and Cal.com. Do not use this in environments where internal traffic could be intercepted.
+> ⚠️ **Security Warning:** This disables **all** TLS certificate verification globally, including external API calls to Stripe, Google Calendar, and other services. This makes your instance vulnerable to man-in-the-middle attacks. Only use this in isolated development environments where you fully control all network traffic.
 
 ---
 
