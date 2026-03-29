@@ -151,6 +151,7 @@ const EventTypeWeb = ({
   const unsavedChangesPendingUrl = useRef<string | null>(null);
   const formIsDirtyRef = useRef(false);
   const skipPopStateRef = useRef(false);
+  const hadPriorHistoryRef = useRef(window.history.length > 1);
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
@@ -519,9 +520,12 @@ const EventTypeWeb = ({
             formIsDirtyRef.current = false;
             if (unsavedChangesPendingUrl.current) {
               appRouter.push(unsavedChangesPendingUrl.current);
-            } else {
+            } else if (hadPriorHistoryRef.current) {
               // Back button: go back past the extra history entry and the current page
               window.history.go(-2);
+            } else {
+              // Direct entry (no prior history): navigate to parent page
+              appRouter.push("/event-types");
             }
           }}
         />
