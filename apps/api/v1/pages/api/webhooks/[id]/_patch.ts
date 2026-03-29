@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { validateUrlForSSRFSync, logBlockedSSRFAttempt } from "@calcom/lib/ssrfProtection";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -76,6 +77,22 @@ export async function patchHandler(req: NextApiRequest) {
     eventTriggers,
     ...data
   } = schemaWebhookEditBodyParams.parse(req.body);
+
+  // SSRF validation for webhook URL (if being updated)
+  if (data.subscriberUrl) {
+    const ssrfValidation = validateUrlForSSRFSync(data.subscriberUrl);
+    if (!ssrfValidation.isValid) {
+      logBlockedSSRFAttempt(data.subscriberUrl, ssrfValidation.error ?? "unknown", {
+        userId,
+        source: "api/v1/webhooks/edit",
+      });
+      throw new HttpError({
+        statusCode: 400,
+        message: `Webhook URL is not allowed: ${ssrfValidation.error}`,
+      });
+    }
+  }
+
   const args: Prisma.WebhookUpdateArgs = { where: { id }, data };
 
   if (eventTypeId) {

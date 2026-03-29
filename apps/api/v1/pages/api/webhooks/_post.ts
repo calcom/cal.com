@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { validateUrlForSSRFSync, logBlockedSSRFAttempt } from "@calcom/lib/ssrfProtection";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 
@@ -73,6 +74,20 @@ async function postHandler(req: NextApiRequest) {
     eventTriggers,
     ...body
   } = schemaWebhookCreateBodyParams.parse(req.body);
+
+  // SSRF validation for webhook URL
+  const ssrfValidation = validateUrlForSSRFSync(body.subscriberUrl);
+  if (!ssrfValidation.isValid) {
+    logBlockedSSRFAttempt(body.subscriberUrl, ssrfValidation.error ?? "unknown", {
+      userId,
+      source: "api/v1/webhooks/create",
+    });
+    throw new HttpError({
+      statusCode: 400,
+      message: `Webhook URL is not allowed: ${ssrfValidation.error}`,
+    });
+  }
+
   const args: Prisma.WebhookCreateArgs = { data: { id: uuidv4(), ...body } };
 
   // If no event type, we assume is for the current user. If admin we run more checks below...
