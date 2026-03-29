@@ -169,97 +169,44 @@ const _ensureAvailableUsers = async (
 
       const restrictionTimezone = eventType.useBookerTimezone
         ? input.timeZone
-        : restrictionSchedule.timeZone!;
+        : restrictionSchedule.timeZone;
 
-      if (!eventType.useBookerTimezone && !restrictionSchedule.timeZone) {
-        loggerWithEventDetails.error(
-          `No timezone is set for the restriction schedule and useBookerTimezone is false`
-        );
-        throw new Error(ErrorCode.BookingNotAllowedByRestrictionSchedule);
-      }
-
-      const restrictionAvailability = restrictionSchedule.availability.map((rule) => ({
-        days: rule.days,
-        startTime: rule.startTime,
-        endTime: rule.endTime,
-        date: rule.date,
-      }));
-
-      const isDefaultSchedule = restrictionSchedule.user.defaultScheduleId === restrictionSchedule.id;
-      const travelSchedules =
-        isDefaultSchedule && !eventType.useBookerTimezone
-          ? restrictionSchedule.user.travelSchedules.map((schedule) => ({
-              startDate: dayjs(schedule.startDate),
-              endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
-              timeZone: schedule.timeZone,
-            }))
-          : [];
-
-      const { dateRanges: restrictionRanges } = buildDateRanges({
-        availability: restrictionAvailability,
+      const restrictionDateRanges = buildDateRanges({
+        availability: restrictionSchedule.availability,
+        dateFrom: startDateTimeUtc.format(),
+        dateTo: endDateTimeUtc.format(),
         timeZone: restrictionTimezone,
-        dateFrom: startDateTimeUtc,
-        dateTo: endDateTimeUtc,
-        travelSchedules,
       });
 
-      if (!hasDateRangeForBooking(restrictionRanges, startDateTimeUtc, endDateTimeUtc)) {
+      if (!hasDateRangeForBooking(restrictionDateRanges, startDateTimeUtc, endDateTimeUtc)) {
         loggerWithEventDetails.error(
-          `Booking outside restriction schedule availability.`,
+          `Booking not in restriction schedule ${eventType.restrictionScheduleId}`,
           piiFreeInputDataForLogging
         );
-        throw new Error(ErrorCode.BookingNotAllowedByRestrictionSchedule);
+        throw new Error(ErrorCode.RestrictionScheduleNotMatched);
       }
     } catch (error) {
-      loggerWithEventDetails.error(`Error checking restriction schedule.`, piiFreeInputDataForLogging);
+      loggerWithEventDetails.error(
+        `Error checking restriction schedule ${eventType.restrictionScheduleId}`,
+        error,
+        piiFreeInputDataForLogging
+      );
       throw error;
     }
   }
 
-  usersAvailability.forEach((userAvailability, index) => {
-    const { oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes } = userAvailability;
-    const user = eventType.users[index];
+  // Check if all users are available for the selected time slot
+  const hasAllUsersAvailable = usersAvailability.every((user) => user.available);
 
-    loggerWithEventDetails.debug(
-      "calendarBusyTimes==>>>",
-      JSON.stringify({ bufferedBusyTimes, dateRanges, isRecurringEvent: eventType.recurringEvent })
+  if (!hasAllUsersAvailable) {
+    loggerWithEventDetails.error(
+      "Not all users are available for the selected time slot",
+      piiFreeInputDataForLogging
     );
-
-    if (!dateRanges.length) {
-      loggerWithEventDetails.error(
-        `User ${user.id} does not have availability at this time.`,
-        piiFreeInputDataForLogging
-      );
-      return;
-    }
-
-    //check if event time is within the date range
-    if (!hasDateRangeForBooking(dateRanges, startDateTimeUtc, endDateTimeUtc)) {
-      loggerWithEventDetails.error(`No date range for booking.`, piiFreeInputDataForLogging);
-      return;
-    }
-
-    try {
-      const foundConflict = checkForConflicts({
-        busy: bufferedBusyTimes,
-        time: startDateTimeUtc,
-        eventLength: duration,
-      });
-      if (!foundConflict) {
-        availableUsers.push({ ...user, availabilityData: userAvailability });
-      }
-    } catch (error) {
-      loggerWithEventDetails.error("Unable set isAvailableToBeBooked. Using true. ", error);
-    }
-  });
-
-  if (availableUsers.length === 0) {
-    loggerWithEventDetails.error(`No available users found.`, piiFreeInputDataForLogging);
-    throw new Error(ErrorCode.NoAvailableUsersFound);
+    throw new Error(ErrorCode.UserNotAvailable);
   }
 
-  // make sure TypeScript understands availableUsers is at least one.
-  return availableUsers.length === 1 ? [availableUsers[0]] : [availableUsers[0], ...availableUsers.slice(1)];
+  return usersAvailability.filter((user) => user.available) as [IsFixedAwareUser, ...IsFixedAwareUser[]];
 };
 
-export const ensureAvailableUsers = withReporting(_ensureAvailableUsers, "ensureAvailableUsers");
+export default _ensureAvailableUsers;
