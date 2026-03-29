@@ -59,6 +59,7 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
   }
 
   const hashedPassword = await hashPassword(newPassword);
+  const now = new Date();
   await prisma.userPassword.upsert({
     where: {
       userId: user.id,
@@ -70,5 +71,10 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
     update: {
       hash: hashedPassword,
     },
+  });
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordChangedAt: now },
   });
 };

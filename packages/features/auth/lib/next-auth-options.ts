@@ -639,6 +639,7 @@ export const getOptions = ({
             email: true,
             role: true,
             locale: true,
+            passwordChangedAt: true,
             movedToProfileId: true,
             teams: {
               include: {
@@ -655,6 +656,13 @@ export const getOptions = ({
 
         if (!existingUser) {
           return token;
+        }
+
+        if (existingUser.passwordChangedAt && token.iat) {
+          const changedAtSeconds = Math.floor(existingUser.passwordChangedAt.getTime() / 1000);
+          if (token.iat <= changedAtSeconds) {
+            return {} as JWT;
+          }
         }
 
         // Check if the existingUser has any active teams
