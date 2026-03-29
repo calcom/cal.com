@@ -346,14 +346,16 @@ const BookerPlatformWrapperComponent = (
         props?.onDryRunSuccess?.();
       }
 
-      // Decoy bookings from spam/watchlist detection have responses: null.
-      // Early-return to prevent downstream code from crashing on null access.
-      if (data?.data && "isShortCircuitedBooking" in data.data && data.data.isShortCircuitedBooking) {
-        props.onCreateBookingSuccess?.(data);
-        return;
+      // Decoy bookings from spam/watchlist detection may have responses: null.
+      // Guard downstream code with optional chaining but do not short-circuit so
+      // the success-redirect path still runs, keeping decoy flow indistinguishable.
+      const isDecoyBooking =
+        data?.data && "isShortCircuitedBooking" in data.data && data.data.isShortCircuitedBooking;
+
+      if (!isDecoyBooking) {
+        schedule.refetch();
       }
 
-      schedule.refetch();
       props.onCreateBookingSuccess?.(data);
 
       if (!preventEventTypeRedirect && !!event?.data?.successRedirectUrl) {
@@ -374,16 +376,15 @@ const BookerPlatformWrapperComponent = (
         props?.onDryRunSuccess?.();
       }
 
-      if (
+      const isDecoyRecurringBooking =
         data?.data?.[0] &&
         "isShortCircuitedBooking" in data.data[0] &&
-        data.data[0].isShortCircuitedBooking
-      ) {
-        props.onCreateRecurringBookingSuccess?.(data);
-        return;
+        data.data[0].isShortCircuitedBooking;
+
+      if (!isDecoyRecurringBooking) {
+        schedule.refetch();
       }
 
-      schedule.refetch();
       props.onCreateRecurringBookingSuccess?.(data);
 
       if (event?.data?.successRedirectUrl) {
