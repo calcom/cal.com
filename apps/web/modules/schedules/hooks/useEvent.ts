@@ -101,6 +101,7 @@ export const useScheduleForEvent = ({
 
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
+  const rescheduledBy = searchParams?.get("rescheduledBy");
 
   const schedule = useSchedule({
     username: usernameFromStore ?? username,
@@ -110,6 +111,7 @@ export const useScheduleForEvent = ({
     selectedDate,
     dayCount,
     rescheduleUid,
+    rescheduledBy,
     month: monthFromStore ?? month,
     duration: durationFromStore ?? duration,
     isTeamEvent,

@@ -2145,6 +2145,7 @@ export class BookingRepository implements IBookingRepository {
         id: true,
         uid: true,
         attendees: { select: { email: true } },
+        user: { select: { email: true } },
       },
     });
   }

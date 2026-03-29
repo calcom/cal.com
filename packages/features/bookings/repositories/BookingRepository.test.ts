@@ -69,11 +69,12 @@ describe("BookingRepository", () => {
   });
 
   describe("findByUidIncludeAttendeeEmails", () => {
-    it("should query booking by uid with attendee emails", async () => {
+    it("should query booking by uid with attendee emails and host user email", async () => {
       const mockBooking = {
         id: 1,
         uid: "test-uid",
         attendees: [{ email: "guest@example.com" }],
+        user: { email: "host@example.com" },
       };
       mockPrismaClient.booking.findUnique.mockResolvedValue(mockBooking);
 
@@ -86,6 +87,7 @@ describe("BookingRepository", () => {
           id: true,
           uid: true,
           attendees: { select: { email: true } },
+          user: { select: { email: true } },
         },
       });
     });
