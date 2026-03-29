@@ -52,6 +52,7 @@ type Props = {
   tabsNavigation: VerticalTabItemProps[];
   allowDelete?: boolean;
   saveButtonRef?: React.RefObject<HTMLButtonElement>;
+  hasUnsavedChanges?: boolean;
 };
 
 function EventTypeSingleLayout({
@@ -70,6 +71,7 @@ function EventTypeSingleLayout({
   tabsNavigation,
   allowDelete = true,
   saveButtonRef,
+  hasUnsavedChanges,
 }: Props) {
   const { t } = useLocale();
   const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
@@ -282,7 +284,7 @@ function EventTypeSingleLayout({
             className="ml-4 lg:ml-0"
             type="submit"
             loading={isUpdateMutationLoading}
-            disabled={!formMethods.formState.isDirty}
+            disabled={hasUnsavedChanges !== undefined ? !hasUnsavedChanges : !formMethods.formState.isDirty}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}

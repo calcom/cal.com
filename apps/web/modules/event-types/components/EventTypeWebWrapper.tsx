@@ -206,7 +206,7 @@ const EventTypeWeb = ({
     },
   });
 
-  const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
+  const { form, handleSubmit, hasUnsavedChanges } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
   const slug = form.watch("slug") ?? eventType.slug;
 
   const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
@@ -409,7 +409,8 @@ const EventTypeWeb = ({
       isUpdating={updateMutation.isPending}
       isPlatform={false}
       tabName={tabName}
-      tabsNavigation={tabsNavigation}>
+      tabsNavigation={tabsNavigation}
+      hasUnsavedChanges={hasUnsavedChanges}>
       <>
         {slugExistsChildrenDialogOpen.length ? (
           <ManagedEventTypeDialog

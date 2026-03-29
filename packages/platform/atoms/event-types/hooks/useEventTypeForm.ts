@@ -15,11 +15,37 @@ import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateI
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { eventTypeBookingFields as eventTypeBookingFieldsSchema } from "@calcom/prisma/zod-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 type Fields = z.infer<typeof eventTypeBookingFieldsSchema>;
+
+/**
+ * Deep equality comparison for form values.
+ * Handles primitives, arrays, plain objects, Date objects, null, and undefined.
+ */
+function deepEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (a == null || b == null) return a === b;
+  if (a instanceof Date && b instanceof Date) {
+    return a.getTime() === b.getTime();
+  }
+  if (typeof a !== typeof b) return false;
+  if (Array.isArray(a)) {
+    if (!Array.isArray(b) || a.length !== b.length) return false;
+    return a.every((item, i) => deepEqual(item, b[i]));
+  }
+  if (typeof a === "object" && typeof b === "object") {
+    const objA = a as Record<string, unknown>;
+    const objB = b as Record<string, unknown>;
+    const keysA = Object.keys(objA);
+    const keysB = Object.keys(objB);
+    if (keysA.length !== keysB.length) return false;
+    return keysA.every((key) => key in objB && deepEqual(objA[key], objB[key]));
+  }
+  return false;
+}
 
 export const useEventTypeForm = ({
   eventType,
@@ -206,6 +232,24 @@ export const useEventTypeForm = ({
 
   // Watch all form values to trigger onFormStateChange on any change
   const watchedValues = form.watch();
+
+  // Track baseline values for true dirty comparison.
+  // Initialized with defaultValues and updated when the form is reset
+  // (e.g., after a successful save), so future comparisons use the
+  // post-save state as the new baseline.
+  const baselineValuesRef = useRef<unknown>(defaultValues);
+
+  useEffect(() => {
+    if (!isFormDirty) {
+      baselineValuesRef.current = form.getValues();
+    }
+  }, [isFormDirty, form]);
+
+  // True unsaved changes detection: handles the case where a user
+  // changes a field and then reverts it back to the original value.
+  // React Hook Form's isDirty stays true in that scenario, but this
+  // correctly detects that no real changes exist.
+  const hasUnsavedChanges = isFormDirty ? !deepEqual(watchedValues, baselineValuesRef.current) : false;
 
   const isObject = <T>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -439,5 +483,5 @@ export const useEventTypeForm = ({
     }
   }, [isFormDirty, dirtyFields, watchedValues, onFormStateChange]);
 
-  return { form, handleSubmit };
+  return { form, handleSubmit, hasUnsavedChanges };
 };
