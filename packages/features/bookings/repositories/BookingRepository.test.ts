@@ -153,4 +153,50 @@ describe("BookingRepository", () => {
       expect(result).toBeNull();
     });
   });
+
+  describe("destinationCalendar scoped select", () => {
+    const expectedDestinationCalendarSelect = {
+      select: {
+        id: true,
+        integration: true,
+        externalId: true,
+        primaryEmail: true,
+        userId: true,
+        credentialId: true,
+      },
+    };
+
+    it("should scope destinationCalendar in findByUidIncludeEventTypeAttendeesAndUser (booking level)", async () => {
+      mockPrismaClient.booking.findUnique.mockResolvedValue(null);
+
+      await repository.findByUidIncludeEventTypeAttendeesAndUser({ bookingUid: "test-uid" });
+
+      const call = mockPrismaClient.booking.findUnique.mock.calls[0][0];
+      expect(call.select.destinationCalendar).toEqual(expectedDestinationCalendarSelect);
+    });
+
+    it("should scope destinationCalendar in findByUidIncludeEventTypeAttendeesAndUser (user level)", async () => {
+      mockPrismaClient.booking.findUnique.mockResolvedValue(null);
+
+      await repository.findByUidIncludeEventTypeAttendeesAndUser({ bookingUid: "test-uid" });
+
+      const call = mockPrismaClient.booking.findUnique.mock.calls[0][0];
+      expect(call.select.user.select.destinationCalendar).toEqual(expectedDestinationCalendarSelect);
+    });
+
+    it("should not include delegationCredentialId or domainWideDelegationCredentialId in destinationCalendar", async () => {
+      mockPrismaClient.booking.findUnique.mockResolvedValue(null);
+
+      await repository.findByUidIncludeEventTypeAttendeesAndUser({ bookingUid: "test-uid" });
+
+      const call = mockPrismaClient.booking.findUnique.mock.calls[0][0];
+      const dcSelect = call.select.destinationCalendar.select;
+      expect(dcSelect).not.toHaveProperty("delegationCredentialId");
+      expect(dcSelect).not.toHaveProperty("domainWideDelegationCredentialId");
+      expect(dcSelect).not.toHaveProperty("eventTypeId");
+      expect(dcSelect).not.toHaveProperty("createdAt");
+      expect(dcSelect).not.toHaveProperty("updatedAt");
+      expect(dcSelect).not.toHaveProperty("customCalendarReminder");
+    });
+  });
 });

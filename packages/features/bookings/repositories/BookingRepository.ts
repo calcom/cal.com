@@ -208,6 +208,15 @@ const buildRoundRobinBookingIdsQuery = ({
   `;
 };
 
+const destinationCalendarSelect: Prisma.DestinationCalendarSelect = {
+  id: true,
+  integration: true,
+  externalId: true,
+  primaryEmail: true,
+  userId: true,
+  credentialId: true,
+};
+
 const selectStatementToGetBookingForCalEventBuilder = {
   id: true,
   uid: true,
@@ -262,7 +271,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
       locale: true,
       timeFormat: true,
       hideBranding: true,
-      destinationCalendar: true,
+      destinationCalendar: { select: destinationCalendarSelect },
       profiles: {
         select: {
           organizationId: true,
@@ -272,7 +281,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
     },
   },
   // destination calendar of the Organizer
-  destinationCalendar: true,
+  destinationCalendar: { select: destinationCalendarSelect },
   eventType: {
     select: {
       id: true,
@@ -332,7 +341,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
           timeZone: true,
           locale: true,
           timeFormat: true,
-          destinationCalendar: true,
+          destinationCalendar: { select: destinationCalendarSelect },
         },
       },
       hosts: {
@@ -348,7 +357,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
               timeZone: true,
               locale: true,
               timeFormat: true,
-              destinationCalendar: true,
+              destinationCalendar: { select: destinationCalendarSelect },
             },
           },
         },
@@ -450,7 +459,7 @@ export class BookingRepository implements IBookingRepository {
         metadata: true,
         uid: true,
         location: true,
-        destinationCalendar: true,
+        destinationCalendar: { select: destinationCalendarSelect },
         smsReminderNumber: true,
         userPrimaryEmail: true,
         eventType: {
@@ -534,7 +543,7 @@ export class BookingRepository implements IBookingRepository {
             uuid: true,
             email: true,
             name: true,
-            destinationCalendar: true,
+            destinationCalendar: { select: destinationCalendarSelect },
             timeZone: true,
             locale: true,
             username: true,
@@ -1653,7 +1662,7 @@ export class BookingRepository implements IBookingRepository {
             locale: true,
             timeZone: true,
             timeFormat: true,
-            destinationCalendar: true,
+            destinationCalendar: { select: destinationCalendarSelect },
             credentials: {
               select: credentialForCalendarServiceSelect,
             },
@@ -1667,8 +1676,7 @@ export class BookingRepository implements IBookingRepository {
             userId: true,
           },
         },
-        // TODO: Scope destinationCalendar to explicit fields once downstream CalendarEvent type accepts a narrower type
-        destinationCalendar: true,
+        destinationCalendar: { select: destinationCalendarSelect },
         payment: {
           select: {
             id: true,
