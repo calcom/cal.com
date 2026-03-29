@@ -1510,7 +1510,7 @@ export class UserRepository {
   async findByEmails({ emails }: { emails: string[] }) {
     if (!emails.length) return [];
 
-    const normalized = [...new Set(emails.map((e) => e.toLowerCase()))];
+    const normalized = Array.from(new Set(emails.map((e) => e.toLowerCase())));
 
     const [byPrimary, bySecondary] = await Promise.all([
       this.prismaClient.user.findMany({

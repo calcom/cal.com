@@ -40,6 +40,7 @@ import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import getSlots from "@calcom/features/schedules/lib/slots";
 import type { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
@@ -66,7 +67,7 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { PeriodType } from "@calcom/prisma/enums";
+import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarFetchMode, EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import { TRPCError } from "@trpc/server";
@@ -684,16 +685,13 @@ export class AvailableSlotsService {
       // without being constrained by other guests' schedules.
       if (rescheduledBy) {
         const hostEmail = original.user?.email;
-        const isHostReschedule =
-          hostEmail && rescheduledBy.toLowerCase() === hostEmail.toLowerCase();
+        const isHostReschedule = hostEmail && rescheduledBy.toLowerCase() === hostEmail.toLowerCase();
         if (!isHostReschedule) {
           return [];
         }
       }
 
-      const emails = original.attendees
-        .map((a) => a.email)
-        .filter((e): e is string => Boolean(e));
+      const emails = original.attendees.map((a) => a.email).filter((e): e is string => Boolean(e));
       if (!emails.length) return [];
 
       const calUsers = await this.dependencies.userRepo.findByEmails({ emails });

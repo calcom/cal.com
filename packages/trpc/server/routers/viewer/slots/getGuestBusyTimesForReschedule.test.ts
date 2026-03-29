@@ -360,15 +360,10 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
       mockDependencies.bookingRepo.findByUidIncludeAttendeeEmails.mockResolvedValue({
         id: 1,
         uid: rescheduleUid,
-        attendees: [
-          { email: "caluser@cal.com" },
-          { email: "external@gmail.com" },
-        ],
+        attendees: [{ email: "caluser@cal.com" }, { email: "external@gmail.com" }],
         user: { email: hostEmail },
       });
-      mockDependencies.userRepo.findByEmails.mockResolvedValue([
-        { id: 10, email: "caluser@cal.com" },
-      ]);
+      mockDependencies.userRepo.findByEmails.mockResolvedValue([{ id: 10, email: "caluser@cal.com" }]);
       mockDependencies.bookingRepo.findByUserIdsAndDateRange.mockResolvedValue([]);
 
       await callGetGuestBusyTimes({
@@ -470,9 +465,7 @@ describe("AvailableSlotsService - _getGuestBusyTimesForReschedule", () => {
         attendees: [{ email: "cal-user@example.com" }, { email: "external@gmail.com" }],
         user: { email: hostEmail },
       });
-      mockDependencies.userRepo.findByEmails.mockResolvedValue([
-        { id: 42, email: "cal-user@example.com" },
-      ]);
+      mockDependencies.userRepo.findByEmails.mockResolvedValue([{ id: 42, email: "cal-user@example.com" }]);
       mockDependencies.bookingRepo.findByUserIdsAndDateRange.mockResolvedValue([]);
 
       await callGetGuestBusyTimes({

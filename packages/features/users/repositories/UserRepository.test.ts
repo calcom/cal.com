@@ -3,6 +3,7 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import type { PrismaClient } from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+
 vi.mock("@calcom/app-store/delegationCredential", () => ({
   enrichHostsWithDelegationCredentials: vi.fn(),
   getUsersCredentialsIncludeServiceAccountKey: vi.fn(),

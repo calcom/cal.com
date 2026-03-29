@@ -6,6 +6,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 
 import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
+import { useStableTimezone } from "@calcom/features/bookings/Booker/hooks/useStableTimezone";
 
 export type useEventReturnType = ReturnType<typeof useEvent>;
 export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEvent>;
