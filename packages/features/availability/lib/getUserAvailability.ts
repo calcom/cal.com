@@ -623,7 +623,7 @@ export class UserAvailabilityService {
         start: dayjs.utc(t.start).toISOString(),
         end: dayjs.utc(t.end).toISOString(),
         title: "Guest busy",
-        source: withSource ? "guest-availability" : undefined,
+        source: withSource ? "guest-availability" : "",
       })
     );
 
