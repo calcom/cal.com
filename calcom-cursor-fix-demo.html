@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cal.com Embed - Date Button Cursor Fix Demo</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #111827;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 40px;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .panel h2 {
+            margin-top: 0;
+            font-size: 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .before h2 {
+            color: #dc2626;
+            border-color: #fecaca;
+        }
+        .after h2 {
+            color: #16a34a;
+            border-color: #bbf7d0;
+        }
+        .calendar-mock {
+            margin-top: 20px;
+        }
+        .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 8px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+        .days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .day.empty {
+            background: transparent;
+        }
+        .day.disabled {
+            color: #d1d5db;
+            background: #f9fafb;
+        }
+        /* BEFORE: No cursor pointer on enabled dates */
+        .before .day.enabled {
+            background: white;
+            color: #374151;
+            border: 2px solid transparent;
+        }
+        .before .day.enabled:hover {
+            border-color: #111827;
+        }
+        /* AFTER: Cursor pointer on enabled dates */
+        .after .day.enabled {
+            background: white;
+            color: #374151;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+        .after .day.enabled:hover {
+            border-color: #111827;
+        }
+        .day.selected {
+            background: #111827 !important;
+            color: white !important;
+        }
+        .cursor-indicator {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .before .cursor-indicator {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        .after .cursor-indicator {
+            background: #f0fdf4;
+            color: #166534;
+        }
+        .code-block {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin-top: 16px;
+        }
+        .code-block .added {
+            color: #86efac;
+            font-weight: bold;
+        }
+        .code-block .removed {
+            color: #fca5a5;
+        }
+        .pr-info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 30px;
+        }
+        .pr-info h3 {
+            margin-top: 0;
+            color: #1e40af;
+        }
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Cal.com Embed Date Button Cursor Fix</h1>
+        <p class="subtitle">PR #28646 - Demonstrating the cursor:pointer addition to enabled date buttons</p>
+        
+        <div class="comparison">
+            <div class="panel before">
+                <h2>❌ BEFORE (No cursor:pointer)</h2>
+                <div class="calendar-mock">
+                    <div class="month-header">
+                        <span>←</span>
+                        <span>March 2025</span>
+                        <span>→</span>
+                    </div>
+                    <div class="weekdays">
+                        <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                    </div>
+                    <div class="days">
+                        <div class="day empty"></div>
+                        <div class="day empty"></div>
+                        <div class="day empty"></div>
+                        <div class="day empty"></div>
+                        <div class="day empty"></div>
+                        <div class="day empty"></div>
+                        <div class="day enabled">1</div>
+                        <div class="day enabled">2</div>
+                        <div class="day enabled">3</div>
+                        <div class="day enabled">4</div>
+                        <div class="day enabled">5</div>
+                        <div class="day enabled">6</div>
+                        <div class="day enabled">7</div>
+                        <div class="day enabled">8</div>
+                        <div class="day selected">9</div>
+                        <div class="day enabled">10</div>
+                        <div class="day enabled">11</div>
+                        <div class="day enabled">12</div>
+                        <div class="day enabled">13</div>
+                        <div class="day enabled">14</div>
+                        <div class="day enabled">15</div>
+                        <div class="day disabled">16</div>
+                        <div class="day disabled">17</div>
+                        <div class="day enabled">18</div>
+                        <div class="day enabled">19</div>
+                        <div class="day enabled">20</div>
+                        <div class="day enabled">21</div>
+                        <div class="day enabled">22</div>
+                    </div>
+                </div>
+                <div class="cursor-indicator">
+                    <strong>Cursor Behavior:</strong> When hovering over enabled dates, the cursor remains the default arrow (↗), giving no visual indication that the date is clickable.
+                </div>
+            </div>
+            
+            <div class="panel after">
+                <h2>✅ AFTER (With cursor:pointer)</h2>
+                <div class="calendar-mock">
+                    <div class="month-header">
+                        <span>←</span>
+                        <span>March 2025</span>
+                        <span>→</span>
+                    </div>
+                    <div class="weekdays">
+                        <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                    </div>
+                    <div class="days">
+                        <div class="day empty"></div>
+                        <div class="day empty"></div>
+                        <div class="day empty"></div>
+                        <div class="day empty"></div>
+                        <div class="day empty"></div>
+                        <div class="day empty"></div>
+                        <div class="day enabled">1</div>
+                        <div class="day enabled">2</div>
+                        <div class="day enabled">3</div>
+                        <div class="day enabled">4</div>
+                        <div class="day enabled">5</div>
+                        <div class="day enabled">6</div>
+                        <div class="day enabled">7</div>
+                        <div class="day enabled">8</div>
+                        <div class="day selected">9</div>
+                        <div class="day enabled">10</div>
+                        <div class="day enabled">11</div>
+                        <div class="day enabled">12</div>
+                        <div class="day enabled">13</div>
+                        <div class="day enabled">14</div>
+                        <div class="day enabled">15</div>
+                        <div class="day disabled">16</div>
+                        <div class="day disabled">17</div>
+                        <div class="day enabled">18</div>
+                        <div class="day enabled">19</div>
+                        <div class="day enabled">20</div>
+                        <div class="day enabled">21</div>
+                        <div class="day enabled">22</div>
+                    </div>
+                </div>
+                <div class="cursor-indicator">
+                    <strong>Cursor Behavior:</strong> When hovering over enabled dates, the cursor changes to a pointer (👆), clearly indicating the date is clickable and improving UX.
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<span class="comment">// File: packages/features/calendars/components/DatePicker.tsx</span>
+<span class="comment">// Line ~75 in the Day component:</span>
+
+style={disabled ? { ...disabledDateButtonEmbedStyles } : { <span class="added">cursor: "pointer",</span> ...enabledDateButtonEmbedStyles }}
+        </div>
+        
+        <div class="code-block">
+<span class="comment">// File: packages/embeds/embed-core/src/types.ts</span>
+<span class="comment">// Added 'cursor' to the enabledDateButton style type:</span>
+
+enabledDateButton?: Pick&lt;CSSProperties, "background" | "color" | "backgroundColor" <span class="added">| "cursor"</span>&gt;;
+        </div>
+        
+        <div class="pr-info">
+            <h3>📋 About This Fix</h3>
+            <p><strong>PR:</strong> #28646</p>
+            <p><strong>Issue:</strong> In the embed view, enabled date buttons didn't show a pointer cursor on hover, making it unclear to users that dates were clickable.</p>
+            <p><strong>Solution:</strong> Added <code>cursor: "pointer"</code> to the inline styles for enabled date buttons in the embed context.</p>
+            <p><strong>Impact:</strong> Improved user experience with clear visual feedback indicating interactivity.</p>
+        </div>
+    </div>
+</body>
+</html>
