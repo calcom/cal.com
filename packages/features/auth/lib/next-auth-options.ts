@@ -661,7 +661,10 @@ export const getOptions = ({
         if (existingUser.passwordChangedAt && token.iat) {
           const changedAtSeconds = Math.floor(existingUser.passwordChangedAt.getTime() / 1000);
           if (token.iat <= changedAtSeconds) {
-            return {} as JWT;
+            // Preserve token shape to avoid downstream crashes (token.email!, token.id, etc.)
+            // but clear identity fields to force re-authentication. email="" ensures
+            // findFirst returns null on subsequent JWT callbacks.
+            return { ...token, email: "", name: "", id: 0 } as JWT;
           }
         }
 
