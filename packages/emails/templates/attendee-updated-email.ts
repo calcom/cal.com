@@ -6,6 +6,8 @@ import renderEmail from "../src/renderEmail";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeUpdatedEmail extends AttendeeScheduledEmail {
+  name = "AttendeeUpdatedEmail";
+
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       icalEvent: generateIcsFile({

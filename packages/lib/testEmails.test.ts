@@ -6,9 +6,9 @@ describe("testEmails", () => {
     resetTestEmails();
   });
 
-  it("returns undefined before any emails are set", () => {
+  it("returns empty array before any emails are set", () => {
     globalThis.testEmails = undefined as unknown as typeof globalThis.testEmails;
-    expect(getTestEmails()).toBeUndefined();
+    expect(getTestEmails()).toEqual([]);
   });
 
   it("initializes the array on first setTestEmail call", () => {

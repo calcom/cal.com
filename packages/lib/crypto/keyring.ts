@@ -1,9 +1,9 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import process from "node:process";
 
-type KeyringName = "CREDENTIALS";
+type KeyringName = "CREDENTIALS" | "SMTP";
 
-type SecretEnvelopeV1 = {
+export type SecretEnvelopeV1 = {
   v: 1;
   alg: "AES-256-GCM";
   ring: KeyringName;

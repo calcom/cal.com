@@ -38,6 +38,7 @@ const initialData: AppFlags = {
   "abuse-scoring": false,
   "dunning-enforcement": false,
   "signup-watchlist-review": false,
+  "custom-smtp-for-orgs": false,
   "sink-shortener": false,
   "workflow-reminder-links": false,
 };

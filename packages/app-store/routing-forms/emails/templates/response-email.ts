@@ -19,6 +19,7 @@ export default class ResponseEmail extends BaseEmail {
     orderedResponses: OrderedResponses;
   }) {
     super();
+    this.name = "ResponseEmail";
     this.form = form;
     this.orderedResponses = orderedResponses;
     this.toAddresses = toAddresses;

@@ -9,6 +9,7 @@ export default class OrganizerRequestedToRescheduleEmail extends OrganizerSchedu
   private metadata: { rescheduleLink: string };
   constructor(calEvent: CalendarEvent, metadata: { rescheduleLink: string }) {
     super({ calEvent });
+    this.name = "OrganizerRequestedToRescheduleEmail";
     this.metadata = metadata;
   }
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {

@@ -7,6 +7,7 @@ import renderEmail from "../src/renderEmail";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
+  name = "OrganizerRescheduledEmail";
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
     return {

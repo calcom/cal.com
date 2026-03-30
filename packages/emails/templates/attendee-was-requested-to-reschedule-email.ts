@@ -10,6 +10,7 @@ export default class AttendeeWasRequestedToRescheduleEmail extends OrganizerSche
   private metadata: { rescheduleLink: string };
   constructor(calEvent: CalendarEvent, metadata: { rescheduleLink: string }) {
     super({ calEvent });
+    this.name = "AttendeeWasRequestedToRescheduleEmail";
     this.metadata = metadata;
     this.t = this.calEvent.attendees[0].language.translate;
   }

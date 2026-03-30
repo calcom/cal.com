@@ -3,7 +3,8 @@ import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 import renderEmail from "../src/renderEmail";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
-export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
+export default class OrganizerAttendeeCancelledSeatEmail extends OrganizerScheduledEmail {
+  name = "OrganizerAttendeeCancelledSeatEmail";
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.calEvent.organizer.email];
     if (this.calEvent.team) {

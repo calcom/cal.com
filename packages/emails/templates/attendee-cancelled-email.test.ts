@@ -55,10 +55,10 @@ const createCalEvent = (overrides: Partial<CalendarEvent> = {}): CalendarEvent =
   }) as CalendarEvent;
 
 describe("AttendeeCancelledEmail", () => {
-  it("sets name to SEND_BOOKING_CONFIRMATION (inherited)", () => {
+  it("sets name to AttendeeCancelledEmail", () => {
     const evt = createCalEvent();
     const email = new TestAttendeeCancelledEmail(evt, evt.attendees[0]);
-    expect(email.name).toBe("SEND_BOOKING_CONFIRMATION");
+    expect(email.name).toBe("AttendeeCancelledEmail");
   });
 
   describe("getNodeMailerPayload", () => {

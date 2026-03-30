@@ -40,6 +40,7 @@ export type AppFlags = {
   "abuse-scoring": boolean;
   "signup-watchlist-review": boolean;
   "dunning-enforcement": boolean;
+  "custom-smtp-for-orgs": boolean;
   "sink-shortener": boolean;
   "workflow-reminder-links": boolean;
 };

@@ -5,6 +5,8 @@ import renderEmail from "../src/renderEmail";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeAddGuestsEmail extends AttendeeScheduledEmail {
+  name = "AttendeeAddGuestsEmail";
+
   async getHtml() {
     return await renderEmail("AttendeeAddGuestsEmail", {
       calEvent: this.calEvent,

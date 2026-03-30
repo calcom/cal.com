@@ -4,6 +4,8 @@ import renderEmail from "../src/renderEmail";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
 export default class AttendeeCancelledSeatEmail extends AttendeeScheduledEmail {
+  name = "AttendeeCancelledSeatEmail";
+
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: `${this.attendee.name} <${this.attendee.email}>`,
