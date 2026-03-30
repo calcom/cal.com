@@ -59,6 +59,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/apps/web/.next
+            !${{ github.workspace }}/apps/web/.next/node_modules
             ${{ github.workspace }}/apps/web/public/embed
             **/.turbo/**
             **/dist/**

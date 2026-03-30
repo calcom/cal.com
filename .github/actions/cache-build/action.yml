@@ -8,12 +8,16 @@ runs:
       uses: ./.github/actions/cache-build-key
       with:
         branch_key: ${{ github.head_ref || github.ref_name }}
+    - name: Remove .next/node_modules to prevent cache restore conflicts
+      shell: bash
+      run: rm -rf apps/web/.next/node_modules/
     - name: Cache production build
       uses: actions/cache@v4
       id: cache-build
       with:
         path: |
           ${{ github.workspace }}/apps/web/.next
+          !${{ github.workspace }}/apps/web/.next/node_modules
           ${{ github.workspace }}/apps/web/public/embed
           **/.turbo/**
           **/dist/**
