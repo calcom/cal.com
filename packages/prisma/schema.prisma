@@ -1002,6 +1002,7 @@ model Booking {
   routingTrace                 RoutingTrace?
 
   // @@partial_index([reassignById])
+  // @@partial_index([userId, recurringEventId], where: recurringEventId IS NOT NULL)
 
   @@index([eventTypeId])
   @@index([userId])
