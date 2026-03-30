@@ -150,6 +150,7 @@ const DateOverrideForm = ({
             excludedDates={excludedDates}
             weekStart={weekStart}
             selected={selectedDates}
+            showExtraDays={false}
             onChange={(day) => {
               if (day) onDateChange(day);
             }}
