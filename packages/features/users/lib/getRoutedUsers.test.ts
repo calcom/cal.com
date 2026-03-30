@@ -1,10 +1,15 @@
-import { describe, it, expect, vi } from "vitest";
-
+import { describe, expect, it, vi } from "vitest";
 import { getRoutedUsersWithContactOwnerAndFixedUsers } from "./getRoutedUsers";
 
 vi.mock("@calcom/prisma", () => {
   return {
     default: vi.fn(),
+  };
+});
+
+vi.mock("@calcom/app-store/delegationCredential", () => {
+  return {
+    enrichHostsWithDelegationCredentials: vi.fn().mockResolvedValue([]),
   };
 });
 
