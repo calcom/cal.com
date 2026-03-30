@@ -100,7 +100,7 @@ export async function handleBookingRequested(args: {
       await WorkflowService.scheduleWorkflowsFilteredByTriggerEvent({
         workflows,
         smsReminderNumber: booking.smsReminderNumber,
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding: evt.hideBranding,
         calendarEvent: {
           ...evt,
           bookerUrl: evt.bookerUrl as string,

@@ -261,16 +261,12 @@ function BookingDetailsSheetInner({
   const recurringInfo =
     booking.recurringEventId && booking.eventType?.recurringEvent
       ? {
-        count: booking.eventType.recurringEvent.count,
-        recurringEvent: booking.eventType.recurringEvent,
-      }
+          count: booking.eventType.recurringEvent.count,
+          recurringEvent: booking.eventType.recurringEvent,
+        }
       : null;
 
-  const customResponses = booking.responses
-    ? Object.entries(booking.responses as Record<string, unknown>)
-      .filter(([fieldName]) => shouldShowFieldInCustomResponses(fieldName))
-      .map(([question, answer]) => [question, answer] as [string, unknown])
-    : [];
+  const responses = (booking.responses ?? {}) as Record<string, unknown>;
 
   const reason =
     booking.assignmentReasonSortedByCreatedAt?.[booking.assignmentReasonSortedByCreatedAt.length - 1];
@@ -424,7 +420,7 @@ function BookingDetailsSheetInner({
                 <AdditionalNotesSection booking={booking} />
 
                 <CustomQuestionsSection
-                  customResponses={customResponses}
+                  responses={responses}
                   bookingFields={booking.eventType?.bookingFields}
                 />
 
@@ -556,7 +552,7 @@ function DisplayTimestamp({
   const start = startTime instanceof Date ? dayjs(startTime).tz(timeZone) : startTime;
   const end = endTime instanceof Date ? dayjs(endTime).tz(timeZone) : endTime;
   const localizedTimezone = timeZone
-    ? formatToLocalizedTimezone(start, language, timeZone) ?? timeZone
+    ? (formatToLocalizedTimezone(start, language, timeZone) ?? timeZone)
     : start.format("Z");
 
   return (
@@ -818,60 +814,40 @@ function SlotsSection({ booking }: { booking: BookingOutput }) {
 }
 
 function CustomQuestionsSection({
-  customResponses,
+  responses,
   bookingFields: rawBookingFields,
 }: {
-  customResponses: [string, unknown][];
+  responses: Record<string, unknown>;
   bookingFields?: unknown;
 }) {
   const { t } = useLocale();
 
-  // Parse and memoize booking fields
   const bookingFields = useMemo(() => {
     if (!rawBookingFields) return undefined;
     const parsed = eventTypeBookingFields.safeParse(rawBookingFields);
     return parsed.success ? parsed.data : undefined;
   }, [rawBookingFields]);
 
-  // Filter out responses with falsy answers or empty arrays
-  const validResponses = useMemo(
-    (): [string, unknown][] =>
-      customResponses.filter(([, answer]) => {
-        if (!answer) return false;
-        if (Array.isArray(answer) && answer.length === 0) return false;
-        return true;
-      }),
-    [customResponses]
-  );
-
-  // Memoize field label lookups
-  const fieldLabels = useMemo(() => {
-    if (!bookingFields) return new Map<string, string>();
-
-    return new Map<string, string>(
-      bookingFields.map(
-        (field) =>
-          [field.name, field.label || t(field.defaultLabel || field.name)] as [
-            string,
-            string
-          ]
-      )
-    );
-  }, [bookingFields, t]);
-
-  if (validResponses.length === 0) {
+  if (!bookingFields) {
     return null;
   }
 
   return (
     <>
-      {validResponses.map(([fieldName, answer], idx) => {
-        const fieldNameStr = String(fieldName);
-        const title: string = fieldLabels.get(fieldNameStr) ?? fieldNameStr;
+      {bookingFields.map((field) => {
+        if (!field) return null;
+        if (!shouldShowFieldInCustomResponses(field.name)) return null;
+
+        const answer = responses[field.name];
+        if (!answer) return null;
+        if (Array.isArray(answer) && answer.length === 0) return null;
+
+        const label = field.label || t(field.defaultLabel || field.name);
+
         return (
-          <Section key={idx} title={title}>
+          <Section key={field.name} title={label}>
             <p className="font-medium text-emphasis text-sm">
-              {String(answer)}
+              {field.type === "boolean" ? (answer ? t("yes") : t("no")) : String(answer)}
             </p>
           </Section>
         );

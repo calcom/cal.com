@@ -9,7 +9,7 @@ import {
   BookingAuditErrorCode,
   BookingAuditPermissionError,
 } from "@calcom/features/booking-audit/lib/service/BookingAuditAccessService";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetBookingHistoryInputSchema } from "./getBookingHistory.schema";

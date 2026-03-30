@@ -1,9 +1,13 @@
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import { BookingEmailSmsHandler } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
-import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import type { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { BookingAttendeesRemoveService } from "@calcom/features/bookings/services/BookingAttendeesRemoveService";
+import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import type { Booking, TUser } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
 import {
@@ -40,7 +44,56 @@ export type CreatedAttendee = {
   phoneNumber: string | null;
 };
 
+type RemoveAttendeeInput = {
+  bookingId: number;
+  attendeeId: number;
+  user: TUser;
+  emailsEnabled?: boolean;
+  actionSource: ActionSource;
+};
+
+export type BookingAttendeesServiceDeps = {
+  bookingEventHandlerService: BookingEventHandlerService;
+  featuresRepository: FeaturesRepository;
+  bookingRepository: BookingRepository;
+  bookingAttendeesRemoveService: BookingAttendeesRemoveService;
+};
+
 export class BookingAttendeesService {
+  constructor(private readonly deps: BookingAttendeesServiceDeps) {}
+
+  async getBookingAttendees(bookingUid: string) {
+    const booking = await this.deps.bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
+      bookingUid,
+    });
+
+    if (!booking) {
+      throw new Error(`Booking with uid ${bookingUid} not found`);
+    }
+
+    return booking.attendees;
+  }
+
+  async getBookingAttendee(bookingUid: string, attendeeId: number) {
+    const booking = await this.deps.bookingRepository.findByUidIncludeEventTypeAttendeesAndUser({
+      bookingUid,
+    });
+
+    if (!booking) {
+      throw new Error(`Booking with uid ${bookingUid} not found`);
+    }
+
+    const attendee = booking.attendees.find((a) => a.id === attendeeId);
+    if (!attendee) {
+      throw new ErrorWithCode(
+        ErrorCode.NotFound,
+        `Attendee with id ${attendeeId} not found in booking ${bookingUid}`
+      );
+    }
+
+    return attendee;
+  }
+
   async addAttendee({
     bookingId,
     attendee,
@@ -85,14 +138,12 @@ export class BookingAttendeesService {
       await this.sendAttendeeNotification(evt, booking, attendeeEmail);
     }
 
-    const bookingEventHandlerService = getBookingEventHandlerService();
-    const featuresRepository = getFeaturesRepository();
     const organizationId = user.organizationId ?? null;
     const isBookingAuditEnabled = organizationId
-      ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+      ? await this.deps.featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
       : false;
 
-    await bookingEventHandlerService.onAttendeeAdded({
+    await this.deps.bookingEventHandlerService.onAttendeeAdded({
       bookingUid: booking.uid,
       actor: makeUserActor(user.uuid),
       organizationId,
@@ -122,6 +173,10 @@ export class BookingAttendeesService {
     };
   }
 
+  async removeAttendee(input: RemoveAttendeeInput) {
+    return this.deps.bookingAttendeesRemoveService.removeAttendee(input);
+  }
+
   private async sendAttendeeNotification(
     evt: CalendarEvent,
     booking: Booking,
@@ -141,3 +196,5 @@ export class BookingAttendeesService {
     });
   }
 }
+
+export type { RemovedAttendee } from "@calcom/features/bookings/services/BookingAttendeesRemoveService";

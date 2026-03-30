@@ -512,7 +512,7 @@ export class CreditService {
         return null; // user has limit already reached or team has already reached limit this month
       }
 
-      const { getTranslation } = await import("@calcom/lib/server/i18n");
+      const { getTranslation } = await import("@calcom/i18n/server");
 
       const teamWithAdmins = creditBalance?.team
         ? {

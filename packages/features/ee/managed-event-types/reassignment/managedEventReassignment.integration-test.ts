@@ -148,7 +148,7 @@ afterEach(async () => {
   const testBookings = await prisma.booking.findMany({
     where: {
       OR: [
-        { uid: { startsWith: "test-booking-" } },
+        { id: { in: bookingIds } },
         { eventTypeId: { in: eventTypeIds } },
         { userId: { in: userIds } },
       ],

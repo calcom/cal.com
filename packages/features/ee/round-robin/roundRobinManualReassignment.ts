@@ -32,7 +32,7 @@ import { SENDER_NAME } from "@calcom/lib/constants";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";

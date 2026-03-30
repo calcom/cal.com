@@ -1,8 +1,10 @@
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
-import { BaseSeatBillingStrategy } from "./ISeatBillingStrategy";
 import type { SeatChangeContext } from "./ISeatBillingStrategy";
+import { BaseSeatBillingStrategy } from "./ISeatBillingStrategy";
 
 export class ImmediateUpdateStrategy extends BaseSeatBillingStrategy {
+  readonly strategyName = "ImmediateUpdate";
+
   constructor(private readonly billingProviderService: IBillingProviderService) {
     super();
   }

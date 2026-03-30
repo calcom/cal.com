@@ -1,6 +1,5 @@
 import { getSeatBillingStrategyFactory } from "@calcom/features/ee/billing/di/containers/Billing";
 import logger from "@calcom/lib/logger";
-
 import type { SWHMap } from "./__handler";
 
 type Data = SWHMap["invoice.upcoming"]["data"];
@@ -29,11 +28,13 @@ const handler = async (data: Data) => {
     const strategy = await factory.createBySubscriptionId(subscriptionId);
     const { applied } = await strategy.onInvoiceUpcoming(subscriptionId);
 
-    if (applied) {
-      log.info("Strategy applied invoice.upcoming handling", { subscriptionId });
-    }
+    log.info("invoice.upcoming handled", {
+      subscriptionId,
+      strategy: strategy.strategyName,
+      applied,
+    });
 
-    return { success: true, highWaterMarkApplied: applied };
+    return { success: true, strategyApplied: applied };
   } catch (error) {
     log.error("Failed to process invoice.upcoming", { subscriptionId, error });
     return { success: false, error: String(error) };

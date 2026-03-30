@@ -3,7 +3,7 @@ import type { DeepMockProxy } from "vitest-mock-extended";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { sendSlugReplacementEmail } from "@calcom/emails/integration-email-service";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";

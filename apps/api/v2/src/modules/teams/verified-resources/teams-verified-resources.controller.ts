@@ -33,7 +33,7 @@ import {
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -44,6 +44,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
 })
 @UseGuards(ApiAuthGuard, RolesGuard)
 @ApiTags("Teams Verified Resources")
+@ApiParam({ name: "teamId", type: Number, required: true })
 export class TeamsVerifiedResourcesController {
   constructor(private readonly verifiedResourcesService: VerifiedResourcesService) {}
   @ApiOperation({

@@ -1,21 +1,71 @@
-import { BookingAttendeesService } from "@calcom/platform-libraries/bookings";
+import { ErrorCode, ErrorWithCode } from "@calcom/platform-libraries/errors";
 import type { AddAttendeeInput_2024_08_13 } from "@calcom/platform-types";
-import { HttpException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { BookingAttendeeOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/add-attendee.output";
+import { BookingAttendeeWithId_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking-attendees.output";
+import { RemovedAttendeeOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/remove-attendee.output";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
+import { BookingAttendeesService } from "@/lib/services/booking-attendees.service";
 import type { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 
 @Injectable()
 export class BookingAttendeesService_2024_08_13 {
-  private bookingAttendeesService: BookingAttendeesService;
-
   constructor(
     private readonly bookingsRepository: BookingsRepository_2024_08_13,
-    private readonly platformBookingsService: PlatformBookingsService
-  ) {
-    this.bookingAttendeesService = new BookingAttendeesService();
+    private readonly platformBookingsService: PlatformBookingsService,
+    private readonly bookingAttendeesService: BookingAttendeesService
+  ) {}
+
+  async getBookingAttendees(bookingUid: string): Promise<BookingAttendeeWithId_2024_08_13[]> {
+    const attendees = await this.bookingAttendeesService.getBookingAttendees(bookingUid);
+
+    return attendees.map((attendee) =>
+      plainToClass(
+        BookingAttendeeWithId_2024_08_13,
+        {
+          id: attendee.id,
+          name: attendee.name,
+          email: attendee.email,
+          displayEmail: this.getDisplayEmail(attendee.email),
+          timeZone: attendee.timeZone,
+          language: attendee.locale ?? undefined,
+          absent: attendee.noShow ?? false,
+          phoneNumber: attendee.phoneNumber ?? undefined,
+        },
+        { strategy: "excludeAll" }
+      )
+    );
+  }
+
+  async getBookingAttendee(
+    bookingUid: string,
+    attendeeId: number
+  ): Promise<BookingAttendeeWithId_2024_08_13> {
+    try {
+      const attendee = await this.bookingAttendeesService.getBookingAttendee(bookingUid, attendeeId);
+
+      return plainToClass(
+        BookingAttendeeWithId_2024_08_13,
+        {
+          id: attendee.id,
+          name: attendee.name,
+          email: attendee.email,
+          displayEmail: this.getDisplayEmail(attendee.email),
+          timeZone: attendee.timeZone,
+          language: attendee.locale ?? undefined,
+          absent: attendee.noShow ?? false,
+          phoneNumber: attendee.phoneNumber ?? undefined,
+        },
+        { strategy: "excludeAll" }
+      );
+    } catch (e) {
+      if (e instanceof ErrorWithCode && e.code === ErrorCode.NotFound) {
+        throw new NotFoundException(e.message);
+      }
+      throw e;
+    }
   }
 
   async addAttendee(
@@ -68,6 +118,58 @@ export class BookingAttendeesService_2024_08_13 {
       },
       { strategy: "excludeAll" }
     );
+  }
+
+  async removeAttendee(
+    bookingUid: string,
+    attendeeId: number,
+    user: ApiAuthGuardUser
+  ): Promise<RemovedAttendeeOutput_2024_08_13> {
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid ${bookingUid} not found`);
+    }
+
+    const platformClientParams = booking.eventTypeId
+      ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
+      : undefined;
+
+    const emailsEnabled = platformClientParams ? platformClientParams.arePlatformEmailsEnabled : true;
+
+    try {
+      const removedAttendee = await this.bookingAttendeesService.removeAttendee({
+        bookingId: booking.id,
+        attendeeId,
+        user: {
+          id: user.id,
+          email: user.email,
+          organizationId: user.organizationId,
+          uuid: user.uuid,
+        },
+        emailsEnabled,
+        actionSource: "API_V2",
+      });
+
+      return plainToClass(
+        RemovedAttendeeOutput_2024_08_13,
+        {
+          id: removedAttendee.id,
+          bookingId: removedAttendee.bookingId,
+          name: removedAttendee.name,
+          email: removedAttendee.email,
+          timeZone: removedAttendee.timeZone,
+        },
+        { excludeExtraneousValues: true }
+      );
+    } catch (e) {
+      if (e instanceof ErrorWithCode && e.code === ErrorCode.NotFound) {
+        throw new NotFoundException(e.message);
+      }
+      if (e instanceof ErrorWithCode && e.code === ErrorCode.BadRequest) {
+        throw new BadRequestException(e.message);
+      }
+      throw e;
+    }
   }
 
   private getDisplayEmail(email: string): string {
