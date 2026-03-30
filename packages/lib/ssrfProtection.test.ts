@@ -57,12 +57,16 @@ describe("isPrivateIP", () => {
 
 describe("isBlockedHostname", () => {
   it.each([
-    "localhost", // loopback hostname
-    "169.254.169.254", // AWS/Azure/DigitalOcean
-    "metadata.google.internal", // GCP
-    "169.254.169.254.", // trailing dot normalization
-    "METADATA.GOOGLE.INTERNAL", // case insensitive
-  ])("blocks cloud metadata endpoint %s", (hostname) => {
+    "localhost",
+    "127.0.0.1",
+    "::1",
+    "[::1]",
+    "0.0.0.0",
+    "169.254.169.254",
+    "metadata.google.internal",
+    "169.254.169.254.",
+    "METADATA.GOOGLE.INTERNAL",
+  ])("blocks %s", (hostname) => {
     expect(isBlockedHostname(hostname)).toBe(true);
   });
 
@@ -104,7 +108,8 @@ describe("validateUrlForSSRFSync", () => {
     ["http://example.com/logo.png", "Only HTTPS URLs are allowed"],
     ["ftp://example.com/file", "Only HTTPS URLs are allowed"],
     ["data:text/html,<script>alert(1)</script>", "Non-image data URL"],
-    ["https://127.0.0.1/logo.png", "Private IP address"],
+    ["https://127.0.0.1/logo.png", "Blocked hostname"],
+    ["https://0.0.0.0/logo.png", "Blocked hostname"],
     ["https://169.254.169.254/latest/meta-data/", "Blocked hostname"],
     ["https://localhost/logo.png", "Blocked hostname"],
     ["not-a-url", "Invalid URL format"],
@@ -114,7 +119,7 @@ describe("validateUrlForSSRFSync", () => {
   });
 
   it.each([
-    ["https://[::1]/", "Private IP address"],
+    ["https://[::1]/", "Blocked hostname"],
     ["https://[fe80::1]/path", "Private IP address"],
     ["https://[fc00::1]:8080/", "Private IP address"],
     ["https://[::ffff:127.0.0.1]/", "Private IP address"],

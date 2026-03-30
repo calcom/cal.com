@@ -1231,6 +1231,7 @@
   "additional_inputs": "Additional inputs",
   "additional_input_description": "Require scheduler to input additional inputs prior the booking is confirmed",
   "label": "Label",
+  "label_cannot_be_whitespace": "Label cannot be only whitespace",
   "placeholder": "Placeholder",
   "display_add_to_calendar_organizer": "Use \"Add to calendar\" email as the organizer",
   "display_email_as_organizer": "We'll display this email address as the organizer, and send confirmation emails here.",
