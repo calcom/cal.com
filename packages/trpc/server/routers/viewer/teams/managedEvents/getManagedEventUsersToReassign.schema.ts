@@ -10,4 +10,3 @@ export const ZGetManagedEventUsersToReassignInputSchema = z.object({
 export type TGetManagedEventUsersToReassignInputSchema = z.infer<
   typeof ZGetManagedEventUsersToReassignInputSchema
 >;
-

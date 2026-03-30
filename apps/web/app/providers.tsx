@@ -25,15 +25,15 @@ export function Providers({ isEmbed, children, country }: ProvidersProps) {
     <GeoProvider country={country}>
       <SessionProvider>
         <TrpcProvider>
-          {!isEmbed && !isBookingPage && <NotificationSoundHandler />}
-          {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-          <CacheProvider>
-            <WebPushProvider>
-              <ToastProvider>
+          <ToastProvider position="bottom-center">
+            {!isEmbed && !isBookingPage && <NotificationSoundHandler />}
+            {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
+            <CacheProvider>
+              <WebPushProvider>
                 <AnchoredToastProvider>{children}</AnchoredToastProvider>
-              </ToastProvider>
-            </WebPushProvider>
-          </CacheProvider>
+              </WebPushProvider>
+            </CacheProvider>
+          </ToastProvider>
         </TrpcProvider>
       </SessionProvider>
     </GeoProvider>

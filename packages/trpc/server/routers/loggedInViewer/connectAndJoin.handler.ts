@@ -1,17 +1,19 @@
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TConnectAndJoinInputSchema } from "./connectAndJoin.schema";
 
 type Options = {
@@ -31,6 +33,18 @@ export const Handler = async ({ ctx, input }: Options) => {
   }
 
   const tOrganizer = await getTranslation(user?.locale ?? "en", "common");
+
+  const userBrandingInfo = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: {
+      hideBranding: true,
+      profiles: {
+        select: {
+          organization: { select: { hideBranding: true } },
+        },
+      },
+    },
+  });
 
   const instantMeetingToken = await prisma.instantMeetingToken.findUnique({
     select: {
@@ -135,6 +149,8 @@ export const Handler = async ({ ctx, input }: Options) => {
             select: {
               id: true,
               name: true,
+              hideBranding: true,
+              parent: { select: { hideBranding: true } },
             },
           },
         },
@@ -221,6 +237,21 @@ export const Handler = async ({ ctx, input }: Options) => {
           members: [],
         }
       : undefined,
+    hideBranding: updatedBooking.eventTypeId
+      ? await getEventTypeService().shouldHideBrandingForEventType(updatedBooking.eventTypeId, {
+          team: updatedBooking.eventType?.team
+            ? {
+                hideBranding: updatedBooking.eventType.team.hideBranding,
+                parent: updatedBooking.eventType.team.parent,
+              }
+            : null,
+          owner: {
+            id: user.id,
+            hideBranding: userBrandingInfo?.hideBranding ?? null,
+            profiles: userBrandingInfo?.profiles ?? [],
+          },
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(updatedBooking?.eventType?.metadata);

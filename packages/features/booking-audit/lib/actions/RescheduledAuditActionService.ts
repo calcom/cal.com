@@ -1,14 +1,13 @@
 import { z } from "zod";
-
 import { NumberChangeSchema, StringChangeSchema } from "../common/changeSchemas";
 import type { DataRequirements } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
+  BaseStoredAuditData,
+  GetDisplayJsonParams,
+  GetDisplayTitleParams,
   IAuditActionService,
   TranslationWithParams,
-  GetDisplayTitleParams,
-  GetDisplayJsonParams,
-  BaseStoredAuditData,
 } from "./IAuditActionService";
 
 /**
@@ -91,7 +90,7 @@ export class RescheduledAuditActionService implements IAuditActionService {
         newDate,
       },
       components: rescheduledToUid
-        ? [{ type: "link", href: `/booking/${rescheduledToUid}/logs` }]
+        ? [{ type: "link", href: `/bookings?uid=${rescheduledToUid}&activeSegment=history` }]
         : undefined,
     };
   }
@@ -122,7 +121,7 @@ export class RescheduledAuditActionService implements IAuditActionService {
         oldDate,
         newDate,
       },
-      components: [{ type: "link", href: `/booking/${fromRescheduleUid}/logs` }],
+      components: [{ type: "link", href: `/bookings?uid=${fromRescheduleUid}&activeSegment=history` }],
     };
   }
 

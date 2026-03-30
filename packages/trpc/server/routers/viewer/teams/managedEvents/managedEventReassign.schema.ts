@@ -7,4 +7,3 @@ export type TManagedEventReassignInputSchema = {
 export const ZManagedEventReassignInputSchema: z.ZodType<TManagedEventReassignInputSchema> = z.object({
   bookingId: z.number().int(),
 });
-

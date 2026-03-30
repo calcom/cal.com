@@ -36,7 +36,7 @@ vi.mock("@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate", () =>
 }));
 
 // Mock the i18n
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
 
@@ -53,7 +53,6 @@ vi.mock("@calcom/lib/constants", async () => {
     URL_SCANNING_ENABLED: true,
   };
 });
-
 // Import mocked modules for assertions
 import { submitWorkflowStepForUrlScanning } from "../scanWorkflowUrls";
 import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";

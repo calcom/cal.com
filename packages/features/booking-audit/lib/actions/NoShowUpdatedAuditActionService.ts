@@ -5,6 +5,7 @@ import type { DataRequirements } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
   BaseStoredAuditData,
+  DisplayField,
   GetDisplayFieldsParams,
   GetDisplayJsonParams,
   GetDisplayTitleParams,
@@ -111,30 +112,47 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     throw new Error("Audit action data is invalid");
   }
 
-  async getDisplayFields({ storedData, dbStore }: GetDisplayFieldsParams): Promise<
-    Array<{
-      labelKey: string;
-      valueKey?: string;
-      value?: string;
-      values?: string[];
-    }>
-  > {
+  async getDisplayFields({ storedData, dbStore }: GetDisplayFieldsParams): Promise<DisplayField[]> {
     const { fields: parsedFields } = this.parseStored(storedData);
-    const displayFields: { labelKey: string; valueKey?: string; value?: string; values?: string[] }[] = [];
+    const displayFields: DisplayField[] = [];
 
     if (this.isAttendeesNoShowSet(parsedFields)) {
-      const attendeesFieldValues = parsedFields.attendeesNoShow.map((attendee) => {
-        const noShowStatus = attendee.noShow.new ? "Yes" : "No";
-        return `${attendee.attendeeEmail}: ${noShowStatus}`;
+        const attendeesValuesWithParams: TranslationWithParams[] = parsedFields.attendeesNoShow.map((attendee) => ({
+          key: attendee.noShow.new
+            ? "booking_audit_action.attendee_no_show_status_yes"
+            : "booking_audit_action.attendee_no_show_status_no",
+          params: {
+            email: attendee.attendeeEmail,
+          },
+        }));
+      displayFields.push({
+        labelKey: "booking_audit_action.attendees",
+        fieldValue: {
+          type: "translationsWithParams",
+          valuesWithParams: attendeesValuesWithParams,
+        },
       });
-      displayFields.push({ labelKey: "Attendees", values: attendeesFieldValues });
     }
 
     if (this.isHostSet(parsedFields)) {
       const user = dbStore.getUserByUuid(parsedFields.host.userUuid);
       const hostName = user?.name || "Unknown";
-      const hostFieldValue = `${hostName}:${parsedFields.host.noShow.new ? "Yes" : "No"}`;
-      displayFields.push({ labelKey: "Host", value: hostFieldValue });
+      displayFields.push({
+        labelKey: "booking_audit_action.host",
+        fieldValue: {
+          type: "translationsWithParams",
+          valuesWithParams: [
+            {
+              key: parsedFields.host.noShow.new
+                ? "booking_audit_action.host_no_show_status_yes"
+                : "booking_audit_action.host_no_show_status_no",
+              params: {
+                name: hostName,
+              },
+            },
+          ],
+        },
+      });
     }
 
     return displayFields;

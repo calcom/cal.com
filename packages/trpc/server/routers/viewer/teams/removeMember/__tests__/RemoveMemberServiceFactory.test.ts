@@ -1,7 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LegacyRemoveMemberService } from "../LegacyRemoveMemberService";
 import { PBACRemoveMemberService } from "../PBACRemoveMemberService";
 import { RemoveMemberServiceFactory } from "../RemoveMemberServiceFactory";
@@ -9,6 +7,11 @@ import { RemoveMemberServiceFactory } from "../RemoveMemberServiceFactory";
 vi.mock("@calcom/features/flags/features.repository");
 vi.mock("../LegacyRemoveMemberService");
 vi.mock("../PBACRemoveMemberService");
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
 
 describe("RemoveMemberServiceFactory", () => {
   let mockFeaturesRepository: {
@@ -22,7 +25,9 @@ describe("RemoveMemberServiceFactory", () => {
       checkIfTeamHasFeature: vi.fn(),
     };
 
-    vi.mocked(FeaturesRepository).mockImplementation(function() { return mockFeaturesRepository as any; });
+    vi.mocked(FeaturesRepository).mockImplementation(function () {
+      return mockFeaturesRepository as any;
+    });
   });
 
   describe("Service Creation", () => {

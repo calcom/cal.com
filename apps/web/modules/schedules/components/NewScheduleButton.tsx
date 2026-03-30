@@ -79,6 +79,14 @@ export function NewScheduleButton({
             placeholder={t("default_schedule_name")}
             {...register("name", {
               setValueAs: (v) => (!v || v.trim() === "" ? null : v),
+              required:t('required'),
+              pattern:{
+                value: new RegExp(
+                  "^[\\p{L}\\p{M}\\p{N}\\s&\\-_'\\u2018\\u2019@.:,/]+$",
+                  "u"
+                ),
+                message:t("invalid_characters_in_name"),
+              }
             })}
           />
           <DialogFooter>
