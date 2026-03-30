@@ -1,0 +1,67 @@
+name: Semantic Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/package.json"
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Read version and decide if a release is needed
+        id: meta
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./apps/web/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+            echo "::error::apps/web/package.json \"version\" must be semver (e.g. 1.2.3)."
+            exit 1
+          fi
+
+          git fetch --tags --force origin
+
+          if git rev-parse "$VERSION^{tag}" >/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Tag $VERSION already exists — nothing to do."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "No tag $VERSION yet — will create tag and GitHub Release."
+          fi
+
+      - name: Create and push tag
+        if: steps.meta.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.meta.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push origin "refs/tags/$VERSION"
+
+      - name: Create GitHub Release
+        if: steps.meta.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.version }}
+          name: Release ${{ steps.meta.outputs.version }}
+          generate_release_notes: true
