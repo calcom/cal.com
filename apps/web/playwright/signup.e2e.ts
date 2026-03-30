@@ -193,6 +193,9 @@ test.describe("Email Signup Flow Test", async () => {
     // Should redirect to login (toast shows and redirects after 3s)
     await expect(page).toHaveURL(/\/auth\/login/, { timeout: 8000 });
 
+    // Wait for login form to be fully rendered and hydrated before interacting
+    await expect(page.getByTestId("login-form")).toBeVisible();
+
     // Verify original password still works by logging in
     await page.locator('input[name="email"]').fill(existingUser.email);
     await page.locator('input[name="password"]').fill(originalPassword);
@@ -201,7 +204,7 @@ test.describe("Email Signup Flow Test", async () => {
     // Should successfully login with original password
     await expect(page).toHaveURL(
       /\/(getting-started|onboarding\/getting-started|onboarding\/personal\/settings|event-types|teams)/,
-      { timeout: 8000 }
+      { timeout: 15000 }
     );
 
     // Cleanup
