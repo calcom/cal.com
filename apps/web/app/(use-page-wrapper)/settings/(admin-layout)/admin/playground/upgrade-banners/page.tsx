@@ -164,3 +164,5 @@ export default function UpgradeBannersPlayground() {
     </div>
   );
 }
+
+export const unstable_dynamicStaleTime = 30;

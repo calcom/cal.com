@@ -11,3 +11,5 @@ export const generateMetadata = async () =>
 
 const Page = () => <h1>Admin index</h1>;
 export default Page;
+
+export const unstable_dynamicStaleTime = 30;

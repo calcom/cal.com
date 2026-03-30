@@ -16,3 +16,5 @@ const Page = () => {
 };
 
 export default Page;
+
+export const unstable_dynamicStaleTime = 30;

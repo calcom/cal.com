@@ -26,3 +26,5 @@ const Page = async ({ params: _params }: PageProps) => {
 };
 
 export default Page;
+
+export const unstable_dynamicStaleTime = 30;

@@ -31,3 +31,5 @@ const ServerPageWrapper = async () => {
 };
 
 export default ServerPageWrapper;
+
+export const unstable_dynamicStaleTime = 30;

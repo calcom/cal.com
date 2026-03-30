@@ -88,3 +88,5 @@ const Page = async ({ params }: PageParams) => {
 };
 
 export default Page;
+
+export const unstable_dynamicStaleTime = 30;

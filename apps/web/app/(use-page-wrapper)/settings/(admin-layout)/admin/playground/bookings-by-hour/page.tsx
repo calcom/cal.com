@@ -58,3 +58,5 @@ export default function BookingsByHourPlayground() {
     </div>
   );
 }
+
+export const unstable_dynamicStaleTime = 30;

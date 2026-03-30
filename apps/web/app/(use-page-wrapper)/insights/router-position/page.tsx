@@ -35,3 +35,5 @@ export default async function Page() {
     </Shell>
   );
 }
+
+export const unstable_dynamicStaleTime = 30;

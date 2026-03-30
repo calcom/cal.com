@@ -10,3 +10,5 @@ export const generateMetadata = async ({ params }: { params: Promise<{ id: strin
   );
 
 export { default } from "../../members/page";
+
+export const unstable_dynamicStaleTime = 30;

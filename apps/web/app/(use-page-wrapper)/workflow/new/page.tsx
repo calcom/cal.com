@@ -136,3 +136,5 @@ const Page = async ({ searchParams }: PageProps) => {
 };
 
 export default Page;
+
+export const unstable_dynamicStaleTime = 30;

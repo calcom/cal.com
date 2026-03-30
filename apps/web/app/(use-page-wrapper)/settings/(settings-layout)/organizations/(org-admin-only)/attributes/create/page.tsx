@@ -24,3 +24,5 @@ const OrgAttributesCreatePageWrapper = async () => {
 };
 
 export default OrgAttributesCreatePageWrapper;
+
+export const unstable_dynamicStaleTime = 30;

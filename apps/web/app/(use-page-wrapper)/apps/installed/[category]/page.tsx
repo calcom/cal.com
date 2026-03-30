@@ -63,3 +63,5 @@ const InstalledAppsWrapper = async ({ params }: PageProps) => {
 };
 
 export default InstalledAppsWrapper;
+
+export const unstable_dynamicStaleTime = 30;

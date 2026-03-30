@@ -150,3 +150,5 @@ export default function DateRangeFilterPlayground() {
     </div>
   );
 }
+
+export const unstable_dynamicStaleTime = 30;

@@ -32,3 +32,5 @@ export default async function ReferralsPage() {
     </Shell>
   );
 }
+
+export const unstable_dynamicStaleTime = 30;

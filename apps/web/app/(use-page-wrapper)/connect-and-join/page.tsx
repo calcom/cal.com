@@ -22,3 +22,5 @@ const ServerPage = async () => {
   );
 };
 export default ServerPage;
+
+export const unstable_dynamicStaleTime = 30;

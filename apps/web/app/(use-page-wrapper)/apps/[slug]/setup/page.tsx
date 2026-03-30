@@ -37,3 +37,5 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
 };
 
 export default ServerPage;
+
+export const unstable_dynamicStaleTime = 30;

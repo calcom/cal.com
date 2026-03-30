@@ -143,3 +143,5 @@ const Page = async ({ searchParams }: { searchParams: Record<string, string | st
 };
 
 export default Page;
+
+export const unstable_dynamicStaleTime = 30;

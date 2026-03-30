@@ -89,3 +89,5 @@ export default function RoutingFunnelPlayground() {
     </div>
   );
 }
+
+export const unstable_dynamicStaleTime = 30;

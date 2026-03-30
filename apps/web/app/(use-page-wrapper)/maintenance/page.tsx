@@ -15,3 +15,5 @@ export const generateMetadata = async () => {
 };
 
 export default LegacyPage;
+
+export const unstable_dynamicStaleTime = 30;

@@ -52,3 +52,5 @@ async function Page({ params }: _PageProps) {
 }
 
 export default Page;
+
+export const unstable_dynamicStaleTime = 30;

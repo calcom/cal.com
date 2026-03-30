@@ -546,3 +546,5 @@ export default function WeeklyCalendarPlayground() {
     </div>
   );
 }
+
+export const unstable_dynamicStaleTime = 30;

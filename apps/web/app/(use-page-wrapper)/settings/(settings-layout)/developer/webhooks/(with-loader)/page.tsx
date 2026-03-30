@@ -33,3 +33,5 @@ const WebhooksViewServerWrapper = async () => {
 };
 
 export default WebhooksViewServerWrapper;
+
+export const unstable_dynamicStaleTime = 30;

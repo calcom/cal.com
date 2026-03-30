@@ -47,3 +47,5 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
 };
 
 export default Page;
+
+export const unstable_dynamicStaleTime = 30;

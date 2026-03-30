@@ -23,3 +23,5 @@ export default function FullscreenOrgPlayground() {
     />
   );
 }
+
+export const unstable_dynamicStaleTime = 30;
