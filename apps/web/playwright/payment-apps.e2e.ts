@@ -123,15 +123,15 @@ test.describe("Payment app", () => {
 
     await page.goto(`${user.username}/${paymentEvent?.slug}`);
 
-    // expect 200 sats to be displayed in page
-    expect(await page.locator("text=350").first()).toBeTruthy();
+    // expect 350 USD to be displayed in page
+    await expect(page.locator("text=350").first()).toBeVisible();
 
     await selectFirstAvailableTimeSlotNextMonth(page);
-    expect(await page.locator("text=350").first()).toBeTruthy();
+    await expect(page.locator("text=350").first()).toBeVisible();
 
-    // go to /event-types and check if the price is 200 sats
+    // go to /event-types and check if the price is 350 USD
     await page.goto(`event-types/`);
-    expect(await page.locator("text=350").first()).toBeTruthy();
+    await expect(page.locator("text=350").first()).toBeVisible();
   });
 
   test("Should be able to edit paypal price, currency", async ({ page, users }) => {
@@ -170,15 +170,15 @@ test.describe("Payment app", () => {
     await page.goto(`${user.username}/${paymentEvent?.slug}`);
 
     // expect 150 to be displayed in page
-    expect(await page.locator("text=MX$150.00").first()).toBeTruthy();
+    await expect(page.locator("text=MX$150.00").first()).toBeVisible();
 
     await selectFirstAvailableTimeSlotNextMonth(page);
     // expect 150 to be displayed in page
-    expect(await page.locator("text=MX$150.00").first()).toBeTruthy();
+    await expect(page.locator("text=MX$150.00").first()).toBeVisible();
 
     // go to /event-types and check if the price is 150
     await page.goto(`event-types/`);
-    expect(await page.locator("text=MX$150.00").first()).toBeTruthy();
+    await expect(page.locator("text=MX$150.00").first()).toBeVisible();
   });
 
   test("Should display App is not setup already for alby", async ({ page, users }) => {
@@ -203,12 +203,12 @@ test.describe("Payment app", () => {
       await page.locator("#event-type-form").getByRole("switch").click();
 
       // expect text "This app has not been setup yet" to be displayed
-      expect(await page.locator("text=This app has not been setup yet").first()).toBeTruthy();
+      await expect(page.locator("text=This app has not been setup yet").first()).toBeVisible();
 
       await page.getByRole("button", { name: "Setup" }).click();
 
       // Expect "Connect with Alby" to be displayed
-      expect(await page.locator("text=Connect with Alby").first()).toBeTruthy();
+      await expect(page).toHaveURL(/\/apps\/alby\/setup/);
     } finally {
       await cleanupAlbyApp();
     }
@@ -233,12 +233,12 @@ test.describe("Payment app", () => {
     await page.locator("#event-type-form").getByRole("switch").click();
 
     // expect text "This app has not been setup yet" to be displayed
-    expect(await page.locator("text=This app has not been setup yet").first()).toBeTruthy();
+    await expect(page.locator("text=This app has not been setup yet").first()).toBeVisible();
 
     await page.getByRole("button", { name: "Setup" }).click();
 
     // Expect "Getting started with Paypal APP" to be displayed
-    expect(await page.locator("text=Getting started with Paypal APP").first()).toBeTruthy();
+    await expect(page.locator("text=Getting started with Paypal APP").first()).toBeVisible();
   });
 
   /**
@@ -267,7 +267,7 @@ test.describe("Payment app", () => {
 
     await page.locator("#event-type-form").getByRole("switch").click();
     // make sure Tracking ID is displayed
-    expect(await page.locator("text=Tracking ID").first()).toBeTruthy();
+    await expect(page.locator("text=Tracking ID").first()).toBeVisible();
     await page.getByLabel("Tracking ID").click();
     await page.getByLabel("Tracking ID").fill("demo");
     await page.getByTestId("update-eventtype").click();
@@ -313,7 +313,9 @@ test.describe("Payment app", () => {
     await goToAppsTab(page, paymentEvent?.id);
 
     await page.locator("[data-testid='paypal-app-switch']").click();
-    await page.locator("[data-testid='stripe-app-switch']").isDisabled();
+    // After enabling paypal, the paypal switch should be checked and stripe should be unchecked (mutual exclusivity)
+    await expect(page.locator("[data-testid='paypal-app-switch']")).toBeChecked();
+    await expect(page.locator("[data-testid='stripe-app-switch']")).not.toBeChecked();
   });
 
   test("when more than one payment app is installed the price should be updated when changing settings", async ({
