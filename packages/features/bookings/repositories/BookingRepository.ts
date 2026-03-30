@@ -419,6 +419,15 @@ export class BookingRepository implements IBookingRepository {
       where: {
         bookingId,
       },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        timeZone: true,
+        locale: true,
+        phoneNumber: true,
+        noShow: true,
+      },
     });
   }
 
@@ -1422,67 +1431,6 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
-  async findBookingByUidAndUserId({ bookingUid, userId }: { bookingUid: string; userId: number }) {
-    return await this.prismaClient.booking.findFirst({
-      where: {
-        uid: bookingUid,
-        OR: [
-          { userId: userId },
-          {
-            eventType: {
-              hosts: {
-                some: {
-                  userId,
-                },
-              },
-            },
-          },
-          {
-            eventType: {
-              users: {
-                some: {
-                  id: userId,
-                },
-              },
-            },
-          },
-          {
-            eventType: {
-              team: {
-                members: {
-                  some: {
-                    userId,
-                    accepted: true,
-                    role: {
-                      in: ["ADMIN", "OWNER"],
-                    },
-                  },
-                },
-              },
-            },
-          },
-          {
-            eventType: {
-              parent: {
-                team: {
-                  members: {
-                    some: {
-                      userId,
-                      accepted: true,
-                      role: {
-                        in: ["ADMIN", "OWNER"],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        ],
-      },
-    });
-  }
-
   async updateLocationById({
     where: { id },
     data: { location, metadata, referencesToCreate, responses, iCalSequence },
@@ -2104,6 +2052,7 @@ export class BookingRepository implements IBookingRepository {
     return await this.prismaClient.booking.update({
       where,
       data,
+      select: { id: true },
     });
   }
 
@@ -2398,14 +2347,43 @@ export class BookingRepository implements IBookingRepository {
           },
         },
         location: true,
-        attendees: true,
-        references: true,
+        attendees: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            phoneNumber: true,
+          },
+        },
+        references: {
+          select: {
+            id: true,
+            uid: true,
+            type: true,
+            meetingId: true,
+            thirdPartyRecurringEventId: true,
+            meetingPassword: true,
+            meetingUrl: true,
+            bookingId: true,
+            externalCalendarId: true,
+            deleted: true,
+            credentialId: true,
+            delegationCredentialId: true,
+            domainWideDelegationCredentialId: true,
+          },
+        },
         customInputs: true,
         dynamicEventSlugRef: true,
         dynamicGroupSlugRef: true,
-        destinationCalendar: true,
+        destinationCalendar: {
+          select: destinationCalendarSelect,
+        },
         smsReminderNumber: true,
-        workflowReminders: true,
+        workflowReminders: {
+          select: workflowReminderSelect,
+        },
         responses: true,
         iCalUID: true,
         iCalSequence: true,
@@ -2440,6 +2418,7 @@ export class BookingRepository implements IBookingRepository {
         ...(rescheduledBy !== undefined && { rescheduledBy }),
         updatedAt: new Date().toISOString(),
       },
+      select: { id: true },
     });
   }
 

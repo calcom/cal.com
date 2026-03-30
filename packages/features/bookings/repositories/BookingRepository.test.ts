@@ -8,6 +8,11 @@ describe("BookingRepository", () => {
     $queryRaw: ReturnType<typeof vi.fn>;
     booking: {
       findUnique: ReturnType<typeof vi.fn>;
+      findUniqueOrThrow: ReturnType<typeof vi.fn>;
+      update: ReturnType<typeof vi.fn>;
+    };
+    attendee: {
+      findMany: ReturnType<typeof vi.fn>;
     };
   };
 
@@ -18,6 +23,11 @@ describe("BookingRepository", () => {
       $queryRaw: vi.fn(),
       booking: {
         findUnique: vi.fn(),
+        findUniqueOrThrow: vi.fn(),
+        update: vi.fn(),
+      },
+      attendee: {
+        findMany: vi.fn(),
       },
     };
 
@@ -154,6 +164,105 @@ describe("BookingRepository", () => {
     });
   });
 
+  describe("getBookingAttendees", () => {
+    it("should scope attendee query to only needed fields", async () => {
+      mockPrismaClient.attendee.findMany.mockResolvedValue([]);
+
+      await repository.getBookingAttendees(42);
+
+      const call = mockPrismaClient.attendee.findMany.mock.calls[0][0];
+      expect(call.where).toEqual({ bookingId: 42 });
+      expect(call.select).toBeDefined();
+      expect(call.select).toEqual({
+        id: true,
+        email: true,
+        name: true,
+        timeZone: true,
+        locale: true,
+        phoneNumber: true,
+        noShow: true,
+      });
+    });
+  });
+
+  describe("findByUidIncludeEventTypeAndReferences", () => {
+    it("should scope attendees to explicit select instead of bare true", async () => {
+      mockPrismaClient.booking.findUniqueOrThrow.mockResolvedValue({});
+
+      await repository.findByUidIncludeEventTypeAndReferences({ bookingUid: "test-uid" });
+
+      const call = mockPrismaClient.booking.findUniqueOrThrow.mock.calls[0][0];
+      expect(call.select.attendees).toEqual({
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          timeZone: true,
+          locale: true,
+          phoneNumber: true,
+        },
+      });
+    });
+
+    it("should scope references to explicit select instead of bare true", async () => {
+      mockPrismaClient.booking.findUniqueOrThrow.mockResolvedValue({});
+
+      await repository.findByUidIncludeEventTypeAndReferences({ bookingUid: "test-uid" });
+
+      const call = mockPrismaClient.booking.findUniqueOrThrow.mock.calls[0][0];
+      expect(call.select.references).toEqual({
+        select: {
+          id: true,
+          uid: true,
+          type: true,
+          meetingId: true,
+          thirdPartyRecurringEventId: true,
+          meetingPassword: true,
+          meetingUrl: true,
+          bookingId: true,
+          externalCalendarId: true,
+          deleted: true,
+          credentialId: true,
+          delegationCredentialId: true,
+          domainWideDelegationCredentialId: true,
+        },
+      });
+    });
+
+    it("should scope destinationCalendar to explicit select instead of bare true", async () => {
+      mockPrismaClient.booking.findUniqueOrThrow.mockResolvedValue({});
+
+      await repository.findByUidIncludeEventTypeAndReferences({ bookingUid: "test-uid" });
+
+      const call = mockPrismaClient.booking.findUniqueOrThrow.mock.calls[0][0];
+      expect(call.select.destinationCalendar).toEqual({
+        select: {
+          id: true,
+          integration: true,
+          externalId: true,
+          primaryEmail: true,
+          userId: true,
+          credentialId: true,
+        },
+      });
+    });
+
+    it("should scope workflowReminders to explicit select instead of bare true", async () => {
+      mockPrismaClient.booking.findUniqueOrThrow.mockResolvedValue({});
+
+      await repository.findByUidIncludeEventTypeAndReferences({ bookingUid: "test-uid" });
+
+      const call = mockPrismaClient.booking.findUniqueOrThrow.mock.calls[0][0];
+      expect(call.select.workflowReminders).toEqual({
+        select: {
+          id: true,
+          referenceId: true,
+          method: true,
+        },
+      });
+    });
+  });
+
   describe("destinationCalendar scoped select", () => {
     const expectedDestinationCalendarSelect = {
       select: {
@@ -197,6 +306,35 @@ describe("BookingRepository", () => {
       expect(dcSelect).not.toHaveProperty("createdAt");
       expect(dcSelect).not.toHaveProperty("updatedAt");
       expect(dcSelect).not.toHaveProperty("customCalendarReminder");
+    });
+  });
+
+  describe("update", () => {
+    it("should include select with only id to avoid fetching full booking", async () => {
+      mockPrismaClient.booking.update.mockResolvedValue({ id: 1 });
+
+      await repository.update({
+        where: { id: 1 },
+        data: { status: "CANCELLED" as never },
+      });
+
+      const call = mockPrismaClient.booking.update.mock.calls[0][0];
+      expect(call.select).toEqual({ id: true });
+    });
+  });
+
+  describe("updateBookingStatus", () => {
+    it("should include select with only id to avoid fetching full booking", async () => {
+      mockPrismaClient.booking.update.mockResolvedValue({ id: 1 });
+
+      await repository.updateBookingStatus({
+        bookingId: 1,
+        status: "CANCELLED" as never,
+      });
+
+      const call = mockPrismaClient.booking.update.mock.calls[0][0];
+      expect(call.where).toEqual({ id: 1 });
+      expect(call.select).toEqual({ id: true });
     });
   });
 });

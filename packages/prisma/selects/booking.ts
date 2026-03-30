@@ -8,7 +8,16 @@ export const bookingMinimalSelect = {
   customInputs: true,
   startTime: true,
   endTime: true,
-  attendees: true,
+  attendees: {
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      timeZone: true,
+      locale: true,
+      phoneNumber: true,
+    },
+  },
   metadata: true,
   createdAt: true,
 } satisfies Prisma.BookingSelect;

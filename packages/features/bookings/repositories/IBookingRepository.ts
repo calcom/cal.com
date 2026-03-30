@@ -1,5 +1,4 @@
 import type { BookingForCalEventBuilder } from "@calcom/features/CalendarEventBuilder";
-import type { Booking } from "@calcom/prisma/client";
 import type { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 
 export interface BookingWhereInput {
@@ -51,7 +50,7 @@ export interface IBookingRepository {
   // ... Add existing methods as well here
   updateMany(params: { where: BookingWhereInput; data: BookingUpdateData }): Promise<{ count: number }>;
 
-  update(params: { where: BookingWhereUniqueInput; data: BookingUpdateData }): Promise<Booking>;
+  update(params: { where: BookingWhereUniqueInput; data: BookingUpdateData }): Promise<{ id: number }>;
 
   findManyIncludeWorkflowRemindersAndReferences(params: {
     where: BookingWhereInput;
