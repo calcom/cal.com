@@ -1,6 +1,7 @@
 import { ABUSE_RULES_DI_TOKENS } from "@calcom/features/abuse-rules/di/tokens";
 import { ABUSE_SCORING_TASKER_DI_TOKENS } from "@calcom/features/abuse-scoring/di/tasker/tokens";
 import { ABUSE_SCORING_DI_TOKENS } from "@calcom/features/abuse-scoring/di/tokens";
+import { AUDIT_DI_TOKENS } from "@calcom/features/audit/di/tokens";
 import { AUTH_DI_TOKENS } from "@calcom/features/auth/di/tokens";
 import { AVATAR_DI_TOKENS } from "@calcom/features/avatars/di/tokens";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
@@ -97,6 +98,7 @@ export const DI_TOKENS = {
   ORG_MEMBERSHIP_REPOSITORY: Symbol("OrgMembershipRepository"),
   ORG_MEMBERSHIP_REPOSITORY_MODULE: Symbol("OrgMembershipRepositoryModule"),
   // Booking service tokens
+  ...AUDIT_DI_TOKENS,
   ...BOOKING_AUDIT_DI_TOKENS,
   ...BOOKING_REPORT_DI_TOKENS,
   ...BOOKING_DI_TOKENS,

@@ -42,6 +42,8 @@ export type AppFlags = {
   "dunning-enforcement": boolean;
   "custom-smtp-for-orgs": boolean;
   "sink-shortener": boolean;
+  "otel-elastic-export": boolean;
+  "audit-log": boolean;
   "workflow-reminder-links": boolean;
 };
 

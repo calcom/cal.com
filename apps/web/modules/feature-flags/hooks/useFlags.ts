@@ -40,6 +40,8 @@ const initialData: AppFlags = {
   "signup-watchlist-review": false,
   "custom-smtp-for-orgs": false,
   "sink-shortener": false,
+  "otel-elastic-export": false,
+  "audit-log": false,
   "workflow-reminder-links": false,
 };
 

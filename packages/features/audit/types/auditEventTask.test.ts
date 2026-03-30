@@ -53,12 +53,12 @@ describe("AuditEventTaskPayloadSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects negative timestamp", () => {
+  it("rejects negative createdAt", () => {
     const result = AuditEventTaskPayloadSchema.safeParse({ ...buildValidInput(), createdAt: -1 });
     expect(result.success).toBe(false);
   });
 
-  it("rejects non-integer timestamp", () => {
+  it("rejects non-integer createdAt", () => {
     const result = AuditEventTaskPayloadSchema.safeParse({ ...buildValidInput(), createdAt: 1.5 });
     expect(result.success).toBe(false);
   });
