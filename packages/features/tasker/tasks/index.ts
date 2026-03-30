@@ -23,6 +23,8 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   sendSms: () => Promise.resolve(() => Promise.reject(new Error("Not implemented"))),
   translateEventTypeData: () =>
     import("./translateEventTypeData").then((module) => module.translateEventTypeData),
+  translateWorkflowStepData: () =>
+    import("./translateWorkflowStepData").then((module) => module.translateWorkflowStepData),
   createCRMEvent: () => import("./crm/createCRMEvent").then((module) => module.createCRMEvent),
   sendWorkflowEmails: () => import("./sendWorkflowEmails").then((module) => module.sendWorkflowEmails),
   scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),

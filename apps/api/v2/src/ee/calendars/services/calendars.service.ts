@@ -1,4 +1,5 @@
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
+import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import {
   type EventBusyDate,
   getBusyCalendarTimes,
@@ -51,7 +52,10 @@ export class CalendarsService {
       .filter((credential) => !!credential);
   }
 
-  async getCalendars(userId: number, ensureDefaultSelectedCalendars = false) {
+  async getCalendars(
+    userId: number,
+    ensureDefaultSelectedCalendars = false
+  ): Promise<ConnectedDestinationCalendars> {
     const cachedResult = await this.calendarsCacheService.getConnectedAndDestinationCalendarsCache(userId);
 
     if (cachedResult && !ensureDefaultSelectedCalendars) {
@@ -77,6 +81,26 @@ export class CalendarsService {
     await this.calendarsCacheService.setConnectedAndDestinationCalendarsCache(userId, result);
 
     return result;
+  }
+
+  /**
+   * Delegates to getCalendars() (which is cached by CalendarsCacheService) because the
+   * upstream platform-libraries API only supports fetching all credentials at once —
+   * a targeted single-credential query is tracked as a future optimisation.
+   */
+  async getCalendarsForConnection(
+    userId: number,
+    credentialId: number
+  ): Promise<ConnectedDestinationCalendars> {
+    const full = await this.getCalendars(userId);
+    const conn = full.connectedCalendars.find((c) => c.credentialId === credentialId);
+    if (!conn) {
+      throw new NotFoundException("Calendar connection not found");
+    }
+    return {
+      ...full,
+      connectedCalendars: [conn],
+    };
   }
 
   async getBusyTimes(

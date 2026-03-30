@@ -580,5 +580,6 @@ function getTrpcHandlerData({
     },
     input: input,
     source: "WEBAPP" as const,
+    impersonatedByUserUuid: null,
   };
 }

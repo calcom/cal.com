@@ -626,12 +626,6 @@ describe("Organizations Roles Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(pbacOrgUserWithRolePermission.email);
       await userRepositoryFixture.deleteByEmail(pbacOrgUserWithoutRolePermission.email);
       await userRepositoryFixture.deleteByEmail(nonOrgUser.email);
-
-      try {
-        await featuresRepositoryFixture.deleteBySlug("pbac");
-      } catch (error) {
-        console.error("Cleanup error:", error);
-      }
     } catch (error) {
       console.error("Cleanup error:", error);
     } finally {

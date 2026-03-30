@@ -938,6 +938,7 @@ export default function Success(props: PageProps) {
                               payment: props.paymentStatus,
                             }}
                             eventTypeMetadata={eventType.metadata}
+                            requiresCancellationReason={eventType.requiresCancellationReason}
                             profile={{ name: props.profile.name, slug: props.profile.slug }}
                             recurringEvent={eventType.recurringEvent}
                             team={eventType?.team?.name}

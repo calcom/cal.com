@@ -72,6 +72,12 @@ export const queuedResponseHandler = async ({
   }
 
   const chosenRoute = serializableForm.routes?.find((r) => r.id === queuedFormResponse.chosenRouteId);
+  const fallbackAction = queuedFormResponse.fallbackAction as {
+    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    value: string;
+    eventTypeId?: number;
+  } | null;
+
   await onSubmissionOfFormResponse({
     form: {
       ...queuedFormResponse.form,
@@ -79,6 +85,7 @@ export const queuedResponseHandler = async ({
     },
     formResponseInDb: formResponse,
     chosenRouteAction: chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : null) : null,
+    fallbackAction,
   });
 
   return {

@@ -53,42 +53,6 @@ const createTestTeam = async (overrides: { parentId: number }) => {
   return team;
 };
 
-const createTestUser = async (overrides?: { email?: string; username?: string }) => {
-  const timestamp = Date.now() + Math.random();
-  const user = await prisma.user.create({
-    data: {
-      email: overrides?.email ?? `test-user-${timestamp}@example.com`,
-      username: overrides?.username ?? `test-user-${timestamp}`,
-    },
-  });
-  createdResources.users.push(user.id);
-  return user;
-};
-
-const createTestMemberships = async (params: { userId: number; orgId: number; teamId: number }) => {
-  const orgMembership = await prisma.membership.create({
-    data: {
-      userId: params.userId,
-      teamId: params.orgId,
-      role: "MEMBER",
-      accepted: true,
-    },
-  });
-  createdResources.memberships.push(orgMembership.id);
-
-  const teamMembership = await prisma.membership.create({
-    data: {
-      userId: params.userId,
-      teamId: params.teamId,
-      role: "MEMBER",
-      accepted: true,
-    },
-  });
-  createdResources.memberships.push(teamMembership.id);
-
-  return { orgMembership, teamMembership };
-};
-
 const createTestAttribute = async (params: {
   orgId: number;
   id: string;
@@ -122,18 +86,98 @@ const createTestAttribute = async (params: {
   return attribute;
 };
 
-const createTestAttributeAssignment = async (params: {
-  orgMembershipId: number;
-  attributeOptionId: string;
-}) => {
-  const assignment = await prisma.attributeToUser.create({
-    data: {
-      memberId: params.orgMembershipId,
-      attributeOptionId: params.attributeOptionId,
-    },
+const createTestUsers = async (userDataList: { email: string; username: string }[]) => {
+  await prisma.user.createMany({ data: userDataList });
+
+  const users = await prisma.user.findMany({
+    where: { email: { in: userDataList.map((u) => u.email) } },
+    select: { id: true, email: true },
   });
-  createdResources.attributeToUsers.push(assignment.id);
-  return assignment;
+
+  const emailToUser = new Map(users.map((u) => [u.email, u]));
+  const orderedUsers = userDataList.map((ud) => emailToUser.get(ud.email)!);
+
+  createdResources.users.push(...orderedUsers.map((u) => u.id));
+  return orderedUsers;
+};
+
+const createTestMembershipsForUsers = async (params: {
+  userIds: number[];
+  orgId: number;
+  teamId: number;
+}) => {
+  const { userIds, orgId, teamId } = params;
+
+  await prisma.membership.createMany({
+    data: userIds.map((userId) => ({
+      userId,
+      teamId: orgId,
+      role: "MEMBER" as const,
+      accepted: true,
+    })),
+  });
+
+  const orgMemberships = await prisma.membership.findMany({
+    where: { userId: { in: userIds }, teamId: orgId },
+    select: { id: true, userId: true },
+  });
+
+  createdResources.memberships.push(...orgMemberships.map((m) => m.id));
+
+  await prisma.membership.createMany({
+    data: userIds.map((userId) => ({
+      userId,
+      teamId,
+      role: "MEMBER" as const,
+      accepted: true,
+    })),
+  });
+
+  const teamMemberships = await prisma.membership.findMany({
+    where: { userId: { in: userIds }, teamId },
+    select: { id: true },
+  });
+
+  createdResources.memberships.push(...teamMemberships.map((m) => m.id));
+
+  const userIdToOrgMembershipId = new Map(orgMemberships.map((m) => [m.userId, m.id]));
+  return { userIdToOrgMembershipId };
+};
+
+const createTestAttributeAssignments = async (params: {
+  orderedUserIds: number[];
+  userIdToOrgMembershipId: Map<number, number>;
+  membersAttributes: Record<string, string | string[]>[];
+  optionValueToId: Map<string, string>;
+}) => {
+  const { orderedUserIds, userIdToOrgMembershipId, membersAttributes, optionValueToId } = params;
+
+  const assignments: { memberId: number; attributeOptionId: string }[] = [];
+  for (let i = 0; i < orderedUserIds.length; i++) {
+    const orgMembershipId = userIdToOrgMembershipId.get(orderedUserIds[i]);
+    if (!orgMembershipId) continue;
+    for (const [attrId, value] of Object.entries(membersAttributes[i])) {
+      const values = Array.isArray(value) ? value : [value];
+      for (const v of values) {
+        const optionId = optionValueToId.get(`${attrId}:${v}`);
+        if (optionId) {
+          assignments.push({ memberId: orgMembershipId, attributeOptionId: optionId });
+        }
+      }
+    }
+  }
+
+  if (assignments.length > 0) {
+    await prisma.attributeToUser.createMany({ data: assignments });
+
+    const orgMembershipIds = Array.from(new Set(assignments.map((a) => a.memberId)));
+    const created = await prisma.attributeToUser.findMany({
+      where: { memberId: { in: orgMembershipIds } },
+      select: { id: true },
+    });
+
+    createdResources.attributeToUsers.push(...created.map((a) => a.id));
+  }
 };
 
 async function createAttributesScenario(params: {
@@ -167,40 +211,33 @@ async function createAttributesScenario(params: {
     }
   }
 
-  const createdUsers: { userId: number; orgMembershipId: number }[] = [];
+  const numMembers = teamMembersWithAttributeOptionValuePerAttribute.length;
+  const timestamp = Date.now();
 
-  for (const member of teamMembersWithAttributeOptionValuePerAttribute) {
-    let userId: number;
-    if (member.userId) {
-      userId = member.userId;
-      const user = await createTestUser();
-      userId = user.id;
-    } else {
-      const user = await createTestUser();
-      userId = user.id;
-    }
+  const userDataList = Array.from({ length: numMembers }, (_, i) => ({
+    email: `test-user-${timestamp}-${i}@example.com`,
+    username: `test-user-${timestamp}-${i}`,
+  }));
 
-    const { orgMembership } = await createTestMemberships({
-      userId,
-      orgId: testFixtures.org.id,
-      teamId: testFixtures.team.id,
-    });
+  const orderedUsers = await createTestUsers(userDataList);
 
-    for (const [attrId, value] of Object.entries(member.attributes)) {
-      const values = Array.isArray(value) ? value : [value];
-      for (const v of values) {
-        const optionId = optionValueToId.get(`${attrId}:${v}`);
-        if (optionId) {
-          await createTestAttributeAssignment({
-            orgMembershipId: orgMembership.id,
-            attributeOptionId: optionId,
-          });
-        }
-      }
-    }
+  const { userIdToOrgMembershipId } = await createTestMembershipsForUsers({
+    userIds: orderedUsers.map((u) => u.id),
+    orgId: testFixtures.org.id,
+    teamId: testFixtures.team.id,
+  });
 
-    createdUsers.push({ userId, orgMembershipId: orgMembership.id });
-  }
+  await createTestAttributeAssignments({
+    orderedUserIds: orderedUsers.map((u) => u.id),
+    userIdToOrgMembershipId,
+    membersAttributes: teamMembersWithAttributeOptionValuePerAttribute.map((m) => m.attributes),
+    optionValueToId,
+  });
+
+  const createdUsers = orderedUsers.map((user) => ({
+    userId: user.id,
+    orgMembershipId: userIdToOrgMembershipId.get(user.id)!,
+  }));
 
   return { createdAttributes, createdUsers };
 }
@@ -232,7 +269,7 @@ async function createHugeAttributesOfTypeSingleSelect(params: {
 
   const assignedAttributeOptionIdForEachMember = 1;
 
-  const teamMembersWithAttributeOptionValuePerAttribute = Array.from({ length: numTeamMembers }, (_, i) => ({
+  const teamMembersWithAttributeOptionValuePerAttribute = Array.from({ length: numTeamMembers }, (_, _i) => ({
     attributes: Object.fromEntries(
       Array.from({ length: numAttributesUsedPerTeamMember }, (_, j) => [
         attributes[j].id,

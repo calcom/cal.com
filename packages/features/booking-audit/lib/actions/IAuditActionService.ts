@@ -45,6 +45,21 @@ export type GetDisplayFieldsParams = {
 };
 
 /**
+ * Discriminated union for display field values
+ * Each variant represents a different way to render the field value
+ */
+export type DisplayFieldValue =
+  | { type: "translationKey"; valueKey: string }
+  | { type: "rawValue"; value: string }
+  | { type: "rawValues"; values: string[] }
+  | { type: "translationsWithParams"; valuesWithParams: TranslationWithParams[] };
+
+export type DisplayField = {
+  labelKey: string;
+  fieldValue: DisplayFieldValue;
+};
+
+/**
  * Interface for Audit Action Services
  *
  * Defines the contract that all audit action services must implement.
@@ -116,16 +131,9 @@ export interface IAuditActionService {
    * Optional - implement only if custom display fields are needed
    * @param params - Object containing storedData
    * @param params.storedData - Parsed stored data { version, fields }
-   * @returns Promise of array of field objects with label and value (either translation key or raw value)
+   * @returns Promise of array of DisplayField objects with label and discriminated value type
    */
-  getDisplayFields?(params: GetDisplayFieldsParams): Promise<
-    Array<{
-      labelKey: string; // Translation key for field label
-      valueKey?: string; // Translation key for field value (will be translated)
-      value?: string; // Raw value for field value (will NOT be translated)
-      values?: string[]; // Array of raw values (will NOT be translated, rendered as separate lines)
-    }>
-  >;
+  getDisplayFields?(params: GetDisplayFieldsParams): Promise<DisplayField[]>;
 
   /**
    * Migrate old version data to latest version

@@ -34,7 +34,7 @@ import {
   BadRequestException,
   UnauthorizedException,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { stringify } from "querystring";
@@ -55,6 +55,7 @@ export type OAuthCallbackState = {
   version: API_VERSIONS_VALUES,
 })
 @DocsTags("Orgs / Teams / Stripe")
+@ApiParam({ name: "orgId", type: Number, required: true })
 export class OrganizationsStripeController {
   constructor(
     private readonly organizationsStripeService: OrganizationsStripeService,

@@ -25,6 +25,7 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
           currency: eventType.currency || appMetadata.currency || null,
           // trackingId is legacy way to store value for TRACKING_ID. So, we need to support both.
           TRACKING_ID: appMetadata.TRACKING_ID || appMetadata.trackingId || null,
+          TRACKING_EVENT: appMetadata.trackingEvent || "Lead",
         }
       : null;
   }

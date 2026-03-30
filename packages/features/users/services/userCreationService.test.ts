@@ -6,7 +6,7 @@ import { CreationSource } from "@calcom/prisma/enums";
 
 import { UserCreationService } from "./userCreationService";
 
-vi.mock("@calcom/lib/server/i18n", () => {
+vi.mock("@calcom/i18n/server", () => {
   return {
     getTranslation: async (locale: string, namespace: string) => {
       const t = (key: string) => key;

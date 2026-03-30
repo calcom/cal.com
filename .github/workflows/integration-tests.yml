@@ -48,7 +48,7 @@ jobs:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     services:
       postgres:
-        image: postgres:13
+        image: postgres:18
         credentials:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
