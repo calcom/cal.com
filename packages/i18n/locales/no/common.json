@@ -343,7 +343,6 @@
   "what_booker_should_provide": "Hva din booker bør oppgi for å motta bekreftelser",
   "404_the_user": "Brukernavnet",
   "username": "Brukernavn",
-  "is_still_available": "er fortsatt tilgjengelig.",
   "documentation": "Dokumentasjon",
   "documentation_description": "Finn ut hvordan du integrerer verktøyene våre med appen din",
   "api_reference": "API Referanse",

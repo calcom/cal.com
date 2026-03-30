@@ -343,7 +343,6 @@
   "what_booker_should_provide": "Що повинен надати ваш замовник для отримання підтверджень",
   "404_the_user": "Ім’я користувача",
   "username": "Ім’я користувача",
-  "is_still_available": "ще доступне.",
   "documentation": "Документація",
   "documentation_description": "Дізнайтеся, як інтегрувати наші інструменти у ваш застосунок",
   "api_reference": "Довідник з API",

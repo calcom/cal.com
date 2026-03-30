@@ -343,7 +343,6 @@
   "what_booker_should_provide": "Mit kell megadnia a foglalónak a visszaigazolások fogadásához",
   "404_the_user": "A felhasználónév",
   "username": "Felhasználónév",
-  "is_still_available": "továbbra is elérhető.",
   "documentation": "Dokumentáció",
   "documentation_description": "Ismerje meg, hogyan integrálhatja eszközeinket az alkalmazásba",
   "api_reference": "API referencia",

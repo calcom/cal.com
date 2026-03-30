@@ -343,7 +343,6 @@
   "what_booker_should_provide": "Lo que tu reservador debe proporcionar para recibir confirmaciones",
   "404_the_user": "El Nombre de Usuario",
   "username": "Usuario",
-  "is_still_available": "aún está disponible.",
   "documentation": "Documentación",
   "documentation_description": "Aprende cómo integrar nuestras herramientas con tu aplicación",
   "api_reference": "Referencia de API",

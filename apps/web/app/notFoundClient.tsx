@@ -1,16 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useLayoutEffect } from "react";
-
 import {
   getOrgDomainConfigFromHostname,
   subdomainSuffix,
 } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/components/icon";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useLayoutEffect } from "react";
 
 enum PageType {
   ORG = "ORG",
@@ -115,32 +115,57 @@ export function NotFound({ host }: { host: string }) {
       <main className="mx-auto max-w-xl pb-6 pt-16 sm:pt-24">
         <div className="text-center">
           <p className="text-emphasis text-sm font-semibold uppercase tracking-wide">{t("error_404")}</p>
-          <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
-            {isBookingSuccessPage ? "Booking not found" : t("page_doesnt_exist")}
-          </h1>
           {isSubpage && pageType !== PageType.TEAM ? (
-            <span className="mt-2 inline-block text-lg">{t("check_spelling_mistakes_or_go_back")}</span>
+            <>
+              <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
+                {isBookingSuccessPage ? "Booking not found" : t("page_doesnt_exist")}
+              </h1>
+              <span className="mt-2 inline-block text-lg">{t("check_spelling_mistakes_or_go_back")}</span>
+            </>
           ) : IS_CALCOM ? (
-            <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
-              {t(`404_the_${pageType.toLowerCase()}`)}{" "}
-              {username ? (
-                <>
-                  <strong className="text-blue-500">{username}</strong>
-                  {` ${t("is_still_available")} `}
-                  <span className="text-blue-500">{t("register_now")}</span>.
-                </>
-              ) : null}
-            </a>
+            <>
+              <span className="text-emphasis mt-2 inline-block text-lg">{t("page_doesnt_exist")}</span>
+              <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
+                <ServerTrans
+                  t={t}
+                  i18nKey="username_still_available"
+                  values={{ pageType: t(`404_the_${pageType.toLowerCase()}`), username: username ?? "" }}
+                  components={[
+                    <strong key="username" />,
+                    <span key="available" className="text-green-500" />,
+                  ]}
+                />
+              </h1>
+              <a
+                target="_blank"
+                href={url}
+                rel="noreferrer"
+                className="mt-2 inline-block text-lg font-semibold text-blue-500">
+                {t("register_now")} &rarr;
+              </a>
+            </>
           ) : (
-            <span className="mt-2 inline-block text-lg">
-              {t(`404_the_${pageType.toLowerCase()}`)}{" "}
-              {username ? (
-                <>
-                  <strong className="mt-2 inline-block text-lg text-green-500">{username}</strong>{" "}
-                  {t("is_still_available")}
-                </>
-              ) : null}
-            </span>
+            <>
+              <span className="text-emphasis mt-2 inline-block text-lg">{t("page_doesnt_exist")}</span>
+              <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
+                <ServerTrans
+                  t={t}
+                  i18nKey="username_still_available"
+                  values={{ pageType: t(`404_the_${pageType.toLowerCase()}`), username: username ?? "" }}
+                  components={[
+                    <strong key="username" />,
+                    <span key="available" className="text-green-500" />,
+                  ]}
+                />
+              </h1>
+              <a
+                target="_blank"
+                href={url}
+                rel="noreferrer"
+                className="mt-2 inline-block text-lg font-semibold text-blue-500">
+                {t("register_now")} &rarr;
+              </a>
+            </>
           )}
         </div>
         <div className="mt-12">

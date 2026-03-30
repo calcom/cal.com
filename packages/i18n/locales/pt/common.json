@@ -343,7 +343,6 @@
   "what_booker_should_provide": "O que seu agendador deve fornecer para receber confirmações",
   "404_the_user": "O nome de utilizador",
   "username": "Nome de utilizador",
-  "is_still_available": "ainda está disponível.",
   "documentation": "Documentação",
   "documentation_description": "Saiba como integrar as nossas ferramentas com a sua aplicação",
   "api_reference": "Referência da API",

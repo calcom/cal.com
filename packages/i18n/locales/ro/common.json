@@ -343,7 +343,6 @@
   "what_booker_should_provide": "Ce ar trebui să ofere persoana care rezervă pentru a primi confirmări",
   "404_the_user": "Numele de utilizator",
   "username": "Nume de utilizator",
-  "is_still_available": "este încă disponibil.",
   "documentation": "Documentație",
   "documentation_description": "Aflați cum să integrați instrumentele noastre în aplicația dvs",
   "api_reference": "Referința API",

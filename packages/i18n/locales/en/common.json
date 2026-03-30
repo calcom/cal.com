@@ -343,7 +343,7 @@
   "what_booker_should_provide": "What your booker should provide to receive confirmations",
   "404_the_user": "The username",
   "username": "Username",
-  "is_still_available": "is still available.",
+  "username_still_available": "{{pageType}} <0>{{username}}</0> is still <1>available</1>.",
   "documentation": "Documentation",
   "documentation_description": "Learn how to integrate our tools with your app",
   "api_reference": "API Reference",

@@ -343,7 +343,6 @@
   "what_booker_should_provide": "Cosa deve fornire chi prenota per ricevere le conferme",
   "404_the_user": "Il nome utente",
   "username": "Username",
-  "is_still_available": "è ancora disponibile.",
   "documentation": "Documentazione",
   "documentation_description": "Scopri come integrare i nostri strumenti con la tua app",
   "api_reference": "Riferimento API",

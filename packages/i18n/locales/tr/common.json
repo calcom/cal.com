@@ -343,7 +343,6 @@
   "what_booker_should_provide": "Rezervasyon yapan kişinin onay alabilmesi için sağlaması gerekenler",
   "404_the_user": "Kullanıcı adı",
   "username": "Kullanıcı adı",
-  "is_still_available": "hâlâ müsait.",
   "documentation": "Belgeler",
   "documentation_description": "Araçlarımızı uygulamanızla nasıl entegre edeceğinizi öğrenin",
   "api_reference": "API Referansı",
