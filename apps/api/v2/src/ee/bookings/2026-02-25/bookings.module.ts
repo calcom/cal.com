@@ -23,6 +23,7 @@ import { BookingEventHandlerModule } from "@/lib/modules/booking-event-handler.m
 import { InstantBookingModule } from "@/lib/modules/instant-booking.module";
 import { RecurringBookingModule } from "@/lib/modules/recurring-booking.module";
 import { RegularBookingModule } from "@/lib/modules/regular-booking.module";
+import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { BillingModule } from "@/modules/billing/billing.module";
@@ -97,6 +98,7 @@ import { UsersModule } from "@/modules/users/users.module";
     BookingReferencesService_2024_08_13,
     BookingReferencesRepository_2024_08_13,
     BookingPbacGuard,
+    PrismaEventTypeRepository,
   ],
   controllers: [BookingsController_2026_02_25],
   exports: [BookingsService_2026_02_25, OutputBookingsService_2026_02_25],

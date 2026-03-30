@@ -406,6 +406,16 @@ export class CreateBookingInput_2024_08_13 {
   @IsArray()
   @IsInt({ each: true })
   rrHostSubsetIds?: number[];
+
+  @ApiPropertyOptional({
+    type: Boolean,
+    description:
+      "When true and the authenticated user is a host of the event type, booking time out-of-bounds checks are bypassed allowing bookings outside the normally permitted scheduling window. If the user is not a host or is unauthenticated, this parameter is silently ignored. Only supported on the 2026-02-25 API version.",
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  allowBookingOutOfBounds?: boolean;
 }
 
 export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {
