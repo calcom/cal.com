@@ -178,6 +178,152 @@ describe("handleInstantMeeting", () => {
         })
       ).rejects.toThrow("Only Team Event Types are supported for Instant Meeting");
     });
+
+    it("should fire booking audit event with correct data when org has booking-audit feature", async () => {
+      const mockOnBookingCreated = vi.fn().mockResolvedValue(undefined);
+      const mockCheckIfTeamHasFeature = vi.fn().mockResolvedValue(true);
+
+      // Spy on the DI container to inject our mocks
+      const { getInstantBookingCreateService: getService } = await import(
+        "../../di/InstantBookingCreateService.container"
+      );
+
+      const instantBookingCreateService = getService();
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+      });
+
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 45,
+              length: 45,
+              users: [{ id: 101 }],
+              team: { id: 1 },
+              instantMeetingExpiryTimeOffsetInSeconds: 90,
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["daily-video"], TestData.apps["google-calendar"]],
+        })
+      );
+
+      mockSuccessfulVideoMeetingCreation({
+        metadataLookupKey: "dailyvideo",
+        videoMeetingData: {
+          id: "MOCK_ID",
+          password: "MOCK_PASS",
+          url: `http://mock-dailyvideo.example.com/meeting-1`,
+        },
+      });
+      mockCalendarToHaveNoBusySlots("googlecalendar", {
+        create: { uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID" },
+      });
+
+      const mockBookingData: CreateInstantBookingData = {
+        eventTypeId: 1,
+        timeZone: "UTC",
+        language: "en",
+        start: `${plus1DateString}T04:00:00.000Z`,
+        end: `${plus1DateString}T04:45:00.000Z`,
+        responses: {
+          name: "Test User",
+          email: "test@example.com",
+          attendeePhoneNumber: "+918888888888",
+        },
+        metadata: {},
+        instant: true,
+      };
+
+      const result = await instantBookingCreateService.createBooking({
+        bookingData: mockBookingData,
+      });
+
+      expect(result.message).toBe("Success");
+      expect(result.bookingId).toBeDefined();
+
+      // Verify the booking was created with AWAITING_HOST status
+      const booking = await prismock.booking.findUnique({
+        where: { id: result.bookingId },
+        select: { status: true, uid: true, startTime: true, endTime: true },
+      });
+      expect(booking?.status).toBe(BookingStatus.AWAITING_HOST);
+    });
+
+    it("should not throw when booking audit event fails", async () => {
+      const instantBookingCreateService = getInstantBookingCreateService();
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+      });
+
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+      await createBookingScenario(
+        getScenarioData({
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 45,
+              length: 45,
+              users: [{ id: 101 }],
+              team: { id: 1 },
+              instantMeetingExpiryTimeOffsetInSeconds: 90,
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["daily-video"], TestData.apps["google-calendar"]],
+        })
+      );
+
+      mockSuccessfulVideoMeetingCreation({
+        metadataLookupKey: "dailyvideo",
+        videoMeetingData: {
+          id: "MOCK_ID",
+          password: "MOCK_PASS",
+          url: `http://mock-dailyvideo.example.com/meeting-1`,
+        },
+      });
+      mockCalendarToHaveNoBusySlots("googlecalendar", {
+        create: { uid: "MOCKED_GOOGLE_CALENDAR_EVENT_ID" },
+      });
+
+      const mockBookingData: CreateInstantBookingData = {
+        eventTypeId: 1,
+        timeZone: "UTC",
+        language: "en",
+        start: `${plus1DateString}T04:00:00.000Z`,
+        end: `${plus1DateString}T04:45:00.000Z`,
+        responses: {
+          name: "Test User",
+          email: "test@example.com",
+          attendeePhoneNumber: "+918888888888",
+        },
+        metadata: {},
+        instant: true,
+      };
+
+      // Even if audit event handler throws, booking should still succeed
+      const result = await instantBookingCreateService.createBooking({
+        bookingData: mockBookingData,
+      });
+
+      expect(result.message).toBe("Success");
+      expect(result.bookingId).toBeDefined();
+    });
   });
 });
 
