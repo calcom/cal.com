@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
       data: qs.stringify(formData),
     });
-  
+    dzyloTokenInfo.data.expiry_date = Math.round(Date.now() + (dzyloTokenInfo.data.expires_in - 60) * 1000);  //expiry date = expires_in - graceTime (in seconds)
     await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, dzyloTokenInfo.data, req);
   
     const state = decodeOAuthState(req);
