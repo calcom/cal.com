@@ -1,5 +1,6 @@
 import process from "node:process";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { decryptSecret } from "@calcom/lib/crypto/keyring";
 import { isDelegationCredential } from "@calcom/lib/delegationCredential";
@@ -21,11 +22,15 @@ export const getCalendarsEventsWithTimezones = async ({
   dateFrom,
   dateTo,
   selectedCalendars,
+  prefetchedCalendarCacheEventRepository,
+  calendarCacheEnabledForUserIds,
 }: {
   credentials: CredentialForCalendarService[];
   dateFrom: string;
   dateTo: string;
   selectedCalendars: SelectedCalendar[];
+  prefetchedCalendarCacheEventRepository?: ICalendarCacheEventRepository | null;
+  calendarCacheEnabledForUserIds?: Set<number>;
 }): Promise<(EventBusyDate & { timeZone: string })[][]> => {
   const calendarCredentials = credentials
     .filter((credential) => credential.type === "google_calendar")
@@ -34,7 +39,7 @@ export const getCalendarsEventsWithTimezones = async ({
 
   const calendarAndCredentialPairs = await Promise.all(
     calendarCredentials.map(async (credential) => {
-      const calendar = await getCalendar({ credential, mode: "slots" });
+      const calendar = await getCalendar({ credential, mode: "slots", prefetchedCalendarCacheEventRepository, calendarCacheEnabledForUserIds });
       return [calendar, credential] as const;
     })
   );
@@ -99,12 +104,16 @@ const getCalendarsEvents = async ({
   dateTo,
   selectedCalendars,
   mode,
+  prefetchedCalendarCacheEventRepository,
+  calendarCacheEnabledForUserIds,
 }: {
   credentials: CredentialForCalendarService[];
   dateFrom: string;
   dateTo: string;
   selectedCalendars: SelectedCalendar[];
   mode: CalendarFetchMode;
+  prefetchedCalendarCacheEventRepository?: ICalendarCacheEventRepository | null;
+  calendarCacheEnabledForUserIds?: Set<number>;
 }): Promise<EventBusyDate[][]> => {
   const calendarCredentials = credentials
     .filter((credential) => credential.type.endsWith("_calendar"))
@@ -139,6 +148,8 @@ const getCalendarsEvents = async ({
           key,
         },
         mode,
+        prefetchedCalendarCacheEventRepository,
+        calendarCacheEnabledForUserIds,
       });
       return [calendar, credential] as const;
     })

@@ -6,7 +6,15 @@ import {
   getBusyTimesFromLimits,
   getBusyTimesFromTeamLimits,
 } from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
+import { getCalendarCacheEventRepository } from "@calcom/features/calendar-subscription/di/CalendarCacheEventRepository.container";
+import { CalendarSubscriptionService } from "@calcom/features/calendar-subscription/lib/CalendarSubscriptionService";
+import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
+import { CalendarCacheWrapper } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheWrapper";
+import { PrefetchedCalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/PrefetchedCalendarCacheEventRepository";
+import { expandDateRangeByUtcOffset } from "@calcom/features/calendars/lib/CalendarManager";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
+import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
@@ -109,6 +117,18 @@ type GetUsersAvailabilityProps = {
 
 export type EventType = Awaited<ReturnType<(typeof UserAvailabilityService)["prototype"]["_getEventType"]>>;
 
+function getSelectedCalendars({
+  user,
+  eventType,
+}: {
+  user: { allSelectedCalendars: SelectedCalendar[]; userLevelSelectedCalendars: SelectedCalendar[] };
+  eventType: { useEventLevelSelectedCalendars: boolean; id: number } | null;
+}): SelectedCalendar[] {
+  return eventType?.useEventLevelSelectedCalendars
+    ? user.allSelectedCalendars.filter((c) => c.eventTypeId === eventType.id)
+    : user.userLevelSelectedCalendars;
+}
+
 export type GetUserAvailabilityInitialData = {
   user: {
     isFixed?: boolean;
@@ -163,6 +183,8 @@ export type GetUserAvailabilityInitialData = {
     includeManagedEventsInLimits: boolean;
   } | null;
   holidayData?: HolidayInitialData | null;
+  prefetchedCalendarCacheEventRepository?: ICalendarCacheEventRepository | null;
+  calendarCacheEnabledForUserIds?: Set<number>;
 };
 
 type HolidayInitialData = {
@@ -584,9 +606,7 @@ export class UserAvailabilityService {
     const getBusyTimesStart = dateFrom.toISOString();
     const getBusyTimesEnd = dateTo.toISOString();
 
-    const selectedCalendars = eventType?.useEventLevelSelectedCalendars
-      ? user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventType.id)
-      : user.userLevelSelectedCalendars;
+    const selectedCalendars = getSelectedCalendars({ user, eventType });
 
     const teamForBookingLimits =
       initialData?.teamForBookingLimits ??
@@ -654,6 +674,8 @@ export class UserAvailabilityService {
         bypassBusyCalendarTimes,
         silentlyHandleCalendarFailures,
         mode,
+        prefetchedCalendarCacheEventRepository: initialData?.prefetchedCalendarCacheEventRepository,
+        calendarCacheEnabledForUserIds: initialData?.calendarCacheEnabledForUserIds,
       });
     } catch (error) {
       log.error(`Error fetching busy times for user ${username}:`, error);
@@ -860,7 +882,26 @@ export class UserAvailabilityService {
       throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
     }
 
-    const holidayDataByUserId = await this.prefetchHolidayData({ users, params });
+    let eventType: EventType | null = initialData?.eventType || null;
+    if (!eventType && params.eventTypeId) {
+      eventType = await this.getEventType(params.eventTypeId);
+    }
+
+    const [holidayDataByUserId, calendarCacheEnabledForUserIds] = await Promise.all([
+      this.prefetchHolidayData({ users, params }),
+      this.prefetchCalendarCacheFlags({ users, mode: params.mode }),
+    ]);
+
+    // Batch prefetch CalendarCacheEvents for all cache-enabled users' synced calendars.
+    // This eliminates N individual DB queries (one per user per credential) by fetching
+    // all cached calendar events in a single query, then serving them from memory.
+    const prefetchedCalendarCacheEventRepository = await this.prefetchCalendarCacheEvents({
+      users,
+      eventType,
+      calendarCacheEnabledForUserIds,
+      dateFrom: params.dateFrom,
+      dateTo: params.dateTo,
+    });
 
     return await Promise.all(
       users.map((user) =>
@@ -872,10 +913,13 @@ export class UserAvailabilityService {
           },
           initialData: {
             ...initialData,
+            eventType,
             user,
             currentBookings: user.currentBookings,
             outOfOfficeDays: user.outOfOfficeDays,
             holidayData: holidayDataByUserId.get(user.id) ?? null,
+            calendarCacheEnabledForUserIds,
+            prefetchedCalendarCacheEventRepository,
           },
         })
       )
@@ -952,6 +996,80 @@ export class UserAvailabilityService {
     });
 
     return getHolidayDataMap({ userIds: allUserIds, holidayDatesByCountry });
+  }
+
+  /**
+   * Batch-prefetches calendar cache feature flags for all users.
+   * Checks the global FF once, then uses a single batch query to find enabled user IDs.
+   * This eliminates 2N per-credential FF queries in getCalendar.
+   */
+  async prefetchCalendarCacheFlags({
+    users,
+    mode,
+  }: {
+    users: GetUsersAvailabilityProps["users"];
+    mode?: CalendarFetchMode;
+  }): Promise<Set<number>> {
+    if (mode !== "slots") return new Set();
+
+    const featureRepository = getFeatureRepository();
+    const isGloballyEnabled = await featureRepository.checkIfFeatureIsEnabledGlobally(
+      CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+    );
+
+    if (!isGloballyEnabled) return new Set();
+
+    const userFeatureRepository = getUserFeatureRepository();
+    const allUserIds = users.map((u) => u.id);
+
+    return userFeatureRepository.checkIfUsersHaveFeatureNonHierarchical(
+      allUserIds,
+      CalendarSubscriptionService.CALENDAR_SUBSCRIPTION_CACHE_FEATURE
+    );
+  }
+
+  /**
+   * Batch prefetch CalendarCacheEvents for all cache-enabled users' synced calendars.
+   * Returns a PrefetchedCalendarCacheEventRepository that serves events from memory,
+   * eliminating N individual DB queries (one per user per credential).
+   */
+  async prefetchCalendarCacheEvents({
+    users,
+    eventType,
+    calendarCacheEnabledForUserIds,
+    dateFrom,
+    dateTo,
+  }: {
+    users: GetUsersAvailabilityProps["users"];
+    eventType: EventType | null;
+    calendarCacheEnabledForUserIds: Set<number>;
+    dateFrom: Dayjs;
+    dateTo: Dayjs;
+  }): Promise<ICalendarCacheEventRepository | null> {
+    if (calendarCacheEnabledForUserIds.size === 0) return null;
+
+    const allSyncedCalendarIds = users
+      .filter((user) => calendarCacheEnabledForUserIds.has(user.id))
+      .flatMap((user) => getSelectedCalendars({ user, eventType }))
+      .filter(
+        (cal): cal is typeof cal & { id: string } => CalendarCacheWrapper.isSyncedCalendar(cal) && !!cal.id
+      )
+      .map((cal) => cal.id);
+
+    if (allSyncedCalendarIds.length === 0) return null;
+
+    const { start: expandedStart, end: expandedEnd } = expandDateRangeByUtcOffset(
+      dateFrom.toISOString(),
+      dateTo.toISOString()
+    );
+
+    const cacheRepo = getCalendarCacheEventRepository();
+    const allCachedEvents = await cacheRepo.findAllBySelectedCalendarIdsBetween(
+      allSyncedCalendarIds,
+      new Date(expandedStart),
+      new Date(expandedEnd)
+    );
+    return new PrefetchedCalendarCacheEventRepository(allCachedEvents);
   }
 
   /**

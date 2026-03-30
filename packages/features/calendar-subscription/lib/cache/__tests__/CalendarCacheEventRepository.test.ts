@@ -74,6 +74,7 @@ describe("CalendarCacheEventRepository", () => {
           start: true,
           end: true,
           timeZone: true,
+          selectedCalendarId: true,
         },
       });
 

@@ -21,6 +21,7 @@ export interface IUserFeatureRepository {
   setAutoOptIn(userId: number, enabled: boolean): Promise<void>;
   checkIfUserHasFeature(userId: number, slug: string): Promise<boolean>;
   checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean>;
+  checkIfUsersHaveFeatureNonHierarchical(userIds: number[], slug: string): Promise<Set<number>>;
 }
 
 export class PrismaUserFeatureRepository implements IUserFeatureRepository {
@@ -197,6 +198,52 @@ export class PrismaUserFeatureRepository implements IUserFeatureRepository {
       );
 
       return userBelongsToTeamWithFeature;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
+
+  /**
+   * Batch version: checks which users from a list have access to a feature (non-hierarchical).
+   * Returns a Set of user IDs that have the feature enabled (via direct assignment or team membership).
+   * Single query instead of N per-user queries.
+   */
+  async checkIfUsersHaveFeatureNonHierarchical(userIds: number[], slug: string): Promise<Set<number>> {
+    if (userIds.length === 0) return new Set();
+
+    try {
+      const result = await this.prisma.$queryRaw<{ userId: number }[]>(
+        Prisma.sql`
+          SELECT DISTINCT u_id AS "userId"
+          FROM unnest(${userIds}::int[]) AS u_id
+          WHERE EXISTS (
+            SELECT 1 FROM "UserFeatures" uf
+            WHERE uf."userId" = u_id
+              AND uf."featureId" = ${slug}
+              AND uf."enabled" = true
+          )
+          OR (
+            NOT EXISTS (
+              SELECT 1 FROM "UserFeatures" uf
+              WHERE uf."userId" = u_id
+                AND uf."featureId" = ${slug}
+            )
+            AND EXISTS (
+              SELECT 1
+              FROM "Team" t
+              INNER JOIN "Membership" m ON m."teamId" = t.id
+              INNER JOIN "TeamFeatures" tf ON tf."teamId" = t.id
+              WHERE m."userId" = u_id
+                AND m.accepted = true
+                AND tf."featureId" = ${slug}
+                AND tf."enabled" = true
+            )
+          )
+        `
+      );
+
+      return new Set(result.map((r) => r.userId));
     } catch (err) {
       captureException(err);
       throw err;

@@ -1,5 +1,6 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { MeetLocationType } from "@calcom/app-store/locations";
+import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import getCalendarsEvents, {
@@ -27,6 +28,22 @@ import type { EventResult } from "@calcom/types/EventManager";
 import { sortBy } from "lodash";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
+
+// Buffer hours to expand the date range when fetching calendar events.
+// These account for the widest UTC offset ranges to avoid missing events near day boundaries.
+export const UTC_MINUS_BUFFER_HOURS = 11;
+export const UTC_PLUS_BUFFER_HOURS = 14;
+
+/**
+ * Expands a date range by the UTC offset buffer hours to avoid missing events near day boundaries.
+ * Subtracts 11h from start (UTC-11 Samoa) and adds 14h to end (UTC+14 Kiribati).
+ */
+export function expandDateRangeByUtcOffset(dateFrom: string, dateTo: string): { start: string; end: string } {
+  return {
+    start: dayjs(dateFrom).subtract(UTC_MINUS_BUFFER_HOURS, "hours").format(),
+    end: dayjs(dateTo).add(UTC_PLUS_BUFFER_HOURS, "hours").format(),
+  };
+}
 
 /**
  * Process the calendar event by generating description and removing attendees if needed
@@ -299,7 +316,9 @@ export const getBusyCalendarTimes = async ({
   dateTo,
   selectedCalendars,
   mode,
+  prefetchedCalendarCacheEventRepository,
   includeTimeZone,
+  calendarCacheEnabledForUserIds,
 }: {
   /**
    * credentials can possibly have duplicate credential in case DelegationCredential is enabled.
@@ -307,14 +326,15 @@ export const getBusyCalendarTimes = async ({
    * So, there could be multiple credentials for the same user.
    * 1. Delegated Credential - that fetches events for john@acme.com
    * 2. Regular Credential - that fetches events for john@personal.com
-   *
    */
   credentials: CredentialForCalendarService[];
   dateFrom: string;
   dateTo: string;
   selectedCalendars: SelectedCalendar[];
   mode?: CalendarFetchMode;
+  prefetchedCalendarCacheEventRepository?: ICalendarCacheEventRepository | null;
   includeTimeZone?: boolean;
+  calendarCacheEnabledForUserIds?: Set<number>;
 }) => {
   let results: (EventBusyDate & { timeZone?: string })[][] = [];
 
@@ -333,10 +353,9 @@ export const getBusyCalendarTimes = async ({
   }
 
   // const months = getMonths(dateFrom, dateTo);
-  // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
-  const startDate = dayjs(dateFrom).subtract(11, "hours").format();
-  // Add 14 hours from the start date to avoid problems in UTC+ time zones.
-  const endDate = dayjs(dateTo).add(14, "hours").format();
+  const expanded = expandDateRangeByUtcOffset(dateFrom, dateTo);
+  const startDate = expanded.start;
+  const endDate = expanded.end;
   try {
     if (includeTimeZone) {
       results = await getCalendarsEventsWithTimezones({
@@ -344,6 +363,8 @@ export const getBusyCalendarTimes = async ({
         dateFrom: startDate,
         dateTo: endDate,
         selectedCalendars,
+        prefetchedCalendarCacheEventRepository,
+        calendarCacheEnabledForUserIds,
       });
     } else {
       results = await getCalendarsEvents({
@@ -352,6 +373,8 @@ export const getBusyCalendarTimes = async ({
         dateTo: endDate,
         selectedCalendars,
         mode: mode ?? "slots",
+        prefetchedCalendarCacheEventRepository,
+        calendarCacheEnabledForUserIds,
       });
     }
   } catch (e) {

@@ -14,7 +14,7 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
     selectedCalendarId: string[],
     start: Date,
     end: Date
-  ): Promise<Pick<CalendarCacheEvent, "start" | "end" | "timeZone">[]> {
+  ): Promise<Pick<CalendarCacheEvent, "start" | "end" | "timeZone" | "selectedCalendarId">[]> {
     return this.prismaClient.calendarCacheEvent.findMany({
       where: {
         selectedCalendarId: {
@@ -26,6 +26,7 @@ export class CalendarCacheEventRepository implements ICalendarCacheEventReposito
         start: true,
         end: true,
         timeZone: true,
+        selectedCalendarId: true,
       },
     });
   }

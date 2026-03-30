@@ -17,6 +17,10 @@ export class CalendarCacheWrapper implements Calendar {
   static STALE_SYNC_THRESHOLD_MS = 7 * 24 * 60 * 60 * 1000; // 1 week
   static MAX_CACHE_RANGE_MONTHS = 3;
 
+  static isSyncedCalendar(cal: { syncToken?: string | null; syncSubscribedAt?: Date | null }): boolean {
+    return Boolean(cal.syncToken && cal.syncSubscribedAt);
+  }
+
   constructor(
     private deps: {
       originalCalendar: Calendar;
@@ -146,8 +150,8 @@ export class CalendarCacheWrapper implements Calendar {
       return this.deps.originalCalendar.getAvailability(params);
     }
 
-    const synced = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
-    const unsynced = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
+    const synced = selectedCalendars.filter(CalendarCacheWrapper.isSyncedCalendar);
+    const unsynced = selectedCalendars.filter((c) => !CalendarCacheWrapper.isSyncedCalendar(c));
 
     const { fresh: withSync, stale } = this.splitByFreshness(synced);
     const withoutSync = [...unsynced, ...stale];
@@ -246,8 +250,8 @@ export class CalendarCacheWrapper implements Calendar {
       return (await this.deps.originalCalendar.getAvailabilityWithTimeZones?.(params)) ?? [];
     }
 
-    const synced = selectedCalendars.filter((c) => c.syncToken && c.syncSubscribedAt);
-    const unsynced = selectedCalendars.filter((c) => !c.syncToken || !c.syncSubscribedAt);
+    const synced = selectedCalendars.filter(CalendarCacheWrapper.isSyncedCalendar);
+    const unsynced = selectedCalendars.filter((c) => !CalendarCacheWrapper.isSyncedCalendar(c));
 
     const { fresh: withSync, stale } = this.splitByFreshness(synced);
     const withoutSync = [...unsynced, ...stale];

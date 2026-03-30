@@ -1,5 +1,7 @@
 import dayjs from "@calcom/dayjs";
+import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import { SchedulingType } from "@calcom/prisma/enums";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type GetUserAvailabilityInitialData,
@@ -36,6 +38,10 @@ vi.mock("@calcom/lib/holidays/HolidayService", () => ({
 
 vi.mock("@calcom/lib/holidays/getHolidayEmoji", () => ({
   getHolidayEmoji: vi.fn().mockReturnValue("🎄"),
+}));
+
+vi.mock("@calcom/features/calendar-subscription/di/CalendarCacheEventRepository.container", () => ({
+  getCalendarCacheEventRepository: vi.fn(),
 }));
 
 vi.mock("@sentry/nextjs", () => ({
@@ -1379,6 +1385,298 @@ describe("UserAvailabilityService", () => {
         settings: { userId: 2, countryCode: null, disabledIds: [] },
         dates: null,
       });
+    });
+  });
+
+  describe("prefetchCalendarCacheEvents", () => {
+    function createSelectedCalendar(overrides: Partial<SelectedCalendar> = {}): SelectedCalendar {
+      return {
+        id: "cal-1",
+        userId: 1,
+        integration: "google_calendar",
+        externalId: "primary",
+        credentialId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        googleChannelId: null,
+        googleChannelKind: null,
+        googleChannelResourceId: null,
+        googleChannelResourceUri: null,
+        googleChannelExpiration: null,
+        channelId: null,
+        channelKind: null,
+        channelResourceId: null,
+        channelResourceUri: null,
+        channelExpiration: null,
+        syncSubscribedAt: new Date(),
+        syncToken: "sync-token-123",
+        syncSubscribedErrorCount: 0,
+        syncErrorCount: 0,
+        watchAttempts: 0,
+        unwatchAttempts: 0,
+        maxAttempts: 0,
+        domainWideDelegationCredentialId: null,
+        eventTypeId: null,
+        ...overrides,
+      } as SelectedCalendar;
+    }
+
+    it("should return null when no users have calendar cache enabled", async () => {
+      const result = await service.prefetchCalendarCacheEvents({
+        users: [createMockUser({ id: 1 })],
+        eventType: null,
+        calendarCacheEnabledForUserIds: new Set(),
+        dateFrom: dayjs("2024-01-15T00:00:00Z"),
+        dateTo: dayjs("2024-01-16T00:00:00Z"),
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it("should return null when cache-enabled users have no synced calendars", async () => {
+      const user = createMockUser({
+        id: 1,
+        userLevelSelectedCalendars: [
+          createSelectedCalendar({ syncToken: null, syncSubscribedAt: null }),
+        ],
+      });
+
+      const result = await service.prefetchCalendarCacheEvents({
+        users: [user],
+        eventType: null,
+        calendarCacheEnabledForUserIds: new Set([1]),
+        dateFrom: dayjs("2024-01-15T00:00:00Z"),
+        dateTo: dayjs("2024-01-16T00:00:00Z"),
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it("should return null when synced calendars have no id", async () => {
+      const user = createMockUser({
+        id: 1,
+        userLevelSelectedCalendars: [
+          createSelectedCalendar({ id: "", syncToken: "token", syncSubscribedAt: new Date() }),
+        ],
+      });
+
+      const result = await service.prefetchCalendarCacheEvents({
+        users: [user],
+        eventType: null,
+        calendarCacheEnabledForUserIds: new Set([1]),
+        dateFrom: dayjs("2024-01-15T00:00:00Z"),
+        dateTo: dayjs("2024-01-16T00:00:00Z"),
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it("should fetch cached events and return PrefetchedCalendarCacheEventRepository", async () => {
+      const { getCalendarCacheEventRepository } = await import(
+        "@calcom/features/calendar-subscription/di/CalendarCacheEventRepository.container"
+      );
+
+      const cachedEvents = [
+        {
+          start: new Date("2024-01-15T10:00:00Z"),
+          end: new Date("2024-01-15T11:00:00Z"),
+          timeZone: "UTC",
+          selectedCalendarId: "cal-1",
+        },
+      ];
+
+      vi.mocked(getCalendarCacheEventRepository).mockReturnValue({
+        findAllBySelectedCalendarIdsBetween: vi.fn().mockResolvedValue(cachedEvents),
+      } as unknown as ICalendarCacheEventRepository);
+
+      const user = createMockUser({
+        id: 1,
+        userLevelSelectedCalendars: [
+          createSelectedCalendar({
+            id: "cal-1",
+            syncToken: "sync-token",
+            syncSubscribedAt: new Date(),
+          }),
+        ],
+      });
+
+      const result = await service.prefetchCalendarCacheEvents({
+        users: [user],
+        eventType: null,
+        calendarCacheEnabledForUserIds: new Set([1]),
+        dateFrom: dayjs("2024-01-15T00:00:00Z"),
+        dateTo: dayjs("2024-01-16T00:00:00Z"),
+      });
+
+      expect(result).not.toBeNull();
+      // Verify the returned repo can serve events
+      const events = await result!.findAllBySelectedCalendarIdsBetween(
+        ["cal-1"],
+        new Date("2024-01-15T00:00:00Z"),
+        new Date("2024-01-16T00:00:00Z")
+      );
+      expect(events).toHaveLength(1);
+      expect(events[0].selectedCalendarId).toBe("cal-1");
+    });
+
+    it("should only include calendars from cache-enabled users", async () => {
+      const { getCalendarCacheEventRepository } = await import(
+        "@calcom/features/calendar-subscription/di/CalendarCacheEventRepository.container"
+      );
+
+      const mockFindAll = vi.fn().mockResolvedValue([]);
+      vi.mocked(getCalendarCacheEventRepository).mockReturnValue({
+        findAllBySelectedCalendarIdsBetween: mockFindAll,
+      } as unknown as ICalendarCacheEventRepository);
+
+      const user1 = createMockUser({
+        id: 1,
+        userLevelSelectedCalendars: [
+          createSelectedCalendar({ id: "cal-user1", syncToken: "token", syncSubscribedAt: new Date() }),
+        ],
+      });
+      const user2 = createMockUser({
+        id: 2,
+        userLevelSelectedCalendars: [
+          createSelectedCalendar({ id: "cal-user2", syncToken: "token", syncSubscribedAt: new Date() }),
+        ],
+      });
+
+      // Only user 1 has cache enabled
+      await service.prefetchCalendarCacheEvents({
+        users: [user1, user2],
+        eventType: null,
+        calendarCacheEnabledForUserIds: new Set([1]),
+        dateFrom: dayjs("2024-01-15T00:00:00Z"),
+        dateTo: dayjs("2024-01-16T00:00:00Z"),
+      });
+
+      // Should only query for user1's calendar
+      expect(mockFindAll).toHaveBeenCalledWith(
+        ["cal-user1"],
+        expect.any(Date),
+        expect.any(Date)
+      );
+    });
+
+    it("should use event-level calendars when eventType has useEventLevelSelectedCalendars", async () => {
+      const { getCalendarCacheEventRepository } = await import(
+        "@calcom/features/calendar-subscription/di/CalendarCacheEventRepository.container"
+      );
+
+      const mockFindAll = vi.fn().mockResolvedValue([]);
+      vi.mocked(getCalendarCacheEventRepository).mockReturnValue({
+        findAllBySelectedCalendarIdsBetween: mockFindAll,
+      } as unknown as ICalendarCacheEventRepository);
+
+      const user = createMockUser({
+        id: 1,
+        userLevelSelectedCalendars: [
+          createSelectedCalendar({ id: "user-cal", syncToken: "token", syncSubscribedAt: new Date() }),
+        ],
+        allSelectedCalendars: [
+          createSelectedCalendar({
+            id: "event-cal",
+            syncToken: "token",
+            syncSubscribedAt: new Date(),
+            eventTypeId: 42,
+          }),
+          createSelectedCalendar({ id: "user-cal", syncToken: "token", syncSubscribedAt: new Date() }),
+        ],
+      });
+
+      const eventType = {
+        useEventLevelSelectedCalendars: true,
+        id: 42,
+      };
+
+      await service.prefetchCalendarCacheEvents({
+        users: [user],
+        eventType: eventType as never,
+        calendarCacheEnabledForUserIds: new Set([1]),
+        dateFrom: dayjs("2024-01-15T00:00:00Z"),
+        dateTo: dayjs("2024-01-16T00:00:00Z"),
+      });
+
+      // Should only query for the event-type-level calendar
+      expect(mockFindAll).toHaveBeenCalledWith(
+        ["event-cal"],
+        expect.any(Date),
+        expect.any(Date)
+      );
+    });
+
+    it("should aggregate calendars across multiple cache-enabled users", async () => {
+      const { getCalendarCacheEventRepository } = await import(
+        "@calcom/features/calendar-subscription/di/CalendarCacheEventRepository.container"
+      );
+
+      const mockFindAll = vi.fn().mockResolvedValue([]);
+      vi.mocked(getCalendarCacheEventRepository).mockReturnValue({
+        findAllBySelectedCalendarIdsBetween: mockFindAll,
+      } as unknown as ICalendarCacheEventRepository);
+
+      const user1 = createMockUser({
+        id: 1,
+        userLevelSelectedCalendars: [
+          createSelectedCalendar({ id: "cal-a", syncToken: "token", syncSubscribedAt: new Date() }),
+        ],
+      });
+      const user2 = createMockUser({
+        id: 2,
+        userLevelSelectedCalendars: [
+          createSelectedCalendar({ id: "cal-b", syncToken: "token", syncSubscribedAt: new Date() }),
+        ],
+      });
+
+      await service.prefetchCalendarCacheEvents({
+        users: [user1, user2],
+        eventType: null,
+        calendarCacheEnabledForUserIds: new Set([1, 2]),
+        dateFrom: dayjs("2024-01-15T00:00:00Z"),
+        dateTo: dayjs("2024-01-16T00:00:00Z"),
+      });
+
+      // Should query for both users' calendars in a single call
+      expect(mockFindAll).toHaveBeenCalledWith(
+        expect.arrayContaining(["cal-a", "cal-b"]),
+        expect.any(Date),
+        expect.any(Date)
+      );
+    });
+
+    it("should expand date range by UTC offset for the query", async () => {
+      const { getCalendarCacheEventRepository } = await import(
+        "@calcom/features/calendar-subscription/di/CalendarCacheEventRepository.container"
+      );
+
+      const mockFindAll = vi.fn().mockResolvedValue([]);
+      vi.mocked(getCalendarCacheEventRepository).mockReturnValue({
+        findAllBySelectedCalendarIdsBetween: mockFindAll,
+      } as unknown as ICalendarCacheEventRepository);
+
+      const user = createMockUser({
+        id: 1,
+        userLevelSelectedCalendars: [
+          createSelectedCalendar({ id: "cal-1", syncToken: "token", syncSubscribedAt: new Date() }),
+        ],
+      });
+
+      const dateFrom = dayjs("2024-01-15T00:00:00Z");
+      const dateTo = dayjs("2024-01-16T00:00:00Z");
+
+      await service.prefetchCalendarCacheEvents({
+        users: [user],
+        eventType: null,
+        calendarCacheEnabledForUserIds: new Set([1]),
+        dateFrom,
+        dateTo,
+      });
+
+      // The date range should be expanded (start subtracted by 11h, end added by 14h)
+      const [, startArg, endArg] = mockFindAll.mock.calls[0];
+      expect(startArg.getTime()).toBeLessThan(dateFrom.toDate().getTime());
+      expect(endArg.getTime()).toBeGreaterThan(dateTo.toDate().getTime());
     });
   });
 });

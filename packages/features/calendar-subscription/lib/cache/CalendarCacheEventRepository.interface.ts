@@ -37,5 +37,5 @@ export interface ICalendarCacheEventRepository {
     selectedCalendarId: string[],
     start: Date,
     end: Date
-  ): Promise<Pick<CalendarCacheEvent, "start" | "end" | "timeZone">[]>;
+  ): Promise<Pick<CalendarCacheEvent, "start" | "end" | "timeZone" | "selectedCalendarId">[]>;
 }

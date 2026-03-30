@@ -71,4 +71,8 @@ export class CachedUserFeatureRepository implements IUserFeatureRepository {
   async checkIfUserHasFeatureNonHierarchical(userId: number, slug: string): Promise<boolean> {
     return this.prismaUserFeatureRepository.checkIfUserHasFeatureNonHierarchical(userId, slug);
   }
+
+  async checkIfUsersHaveFeatureNonHierarchical(userIds: number[], slug: string): Promise<Set<number>> {
+    return this.prismaUserFeatureRepository.checkIfUsersHaveFeatureNonHierarchical(userIds, slug);
+  }
 }

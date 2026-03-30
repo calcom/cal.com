@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import { subtract } from "@calcom/features/schedules/lib/date-ranges";
@@ -54,6 +55,8 @@ export class BusyTimesService {
     bypassBusyCalendarTimes: boolean;
     silentlyHandleCalendarFailures?: boolean;
     mode?: CalendarFetchMode;
+    prefetchedCalendarCacheEventRepository?: ICalendarCacheEventRepository | null;
+    calendarCacheEnabledForUserIds?: Set<number>;
   }) {
     const {
       credentials,
@@ -200,6 +203,8 @@ export class BusyTimesService {
         dateTo: endTime,
         selectedCalendars,
         mode,
+        prefetchedCalendarCacheEventRepository: params.prefetchedCalendarCacheEventRepository,
+        calendarCacheEnabledForUserIds: params.calendarCacheEnabledForUserIds,
       });
 
       if (!calendarBusyTimesQuery.success) {
