@@ -1,6 +1,4 @@
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import { prisma } from "@calcom/prisma";
-
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import type { TrpcSessionUser } from "../../../types";
 
 type ListOptions = {
@@ -10,6 +8,6 @@ type ListOptions = {
 };
 
 export const listOwnedTeamsHandler = async ({ ctx }: ListOptions) => {
-  const teamRepository = new TeamRepository(prisma);
+  const teamRepository = getTeamRepository();
   return await teamRepository.findOwnedTeamsByUserId({ userId: ctx.user.id });
 };

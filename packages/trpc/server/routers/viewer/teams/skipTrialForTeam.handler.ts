@@ -1,11 +1,10 @@
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
@@ -39,7 +38,7 @@ export const skipTrialForTeamHandler = async ({ ctx, input }: SkipTrialForTeamOp
   }
 
   try {
-    const teamRepository = new TeamRepository(prisma);
+    const teamRepository = getTeamRepository();
     const team = await teamRepository.findById({ id: teamId });
 
     if (!team) {

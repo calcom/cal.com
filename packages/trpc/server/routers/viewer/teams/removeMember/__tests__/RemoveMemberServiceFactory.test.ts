@@ -3,43 +3,51 @@ import { LegacyRemoveMemberService } from "../LegacyRemoveMemberService";
 import { PBACRemoveMemberService } from "../PBACRemoveMemberService";
 import { RemoveMemberServiceFactory } from "../RemoveMemberServiceFactory";
 
-const mockCheckIfTeamHasFeature = vi.fn();
+const hoistedMocks: {
+  mockCheckIfTeamHasFeature: ReturnType<typeof vi.fn>;
+  mockGetTeamRepository: ReturnType<typeof vi.fn>;
+} = vi.hoisted(() => ({
+  mockCheckIfTeamHasFeature: vi.fn(),
+  mockGetTeamRepository: vi.fn(() => ({})),
+}));
+
 vi.mock("@calcom/features/di/containers/TeamFeatureRepository", () => ({
   getTeamFeatureRepository: vi.fn(() => ({
-    checkIfTeamHasFeature: mockCheckIfTeamHasFeature,
+    checkIfTeamHasFeature: hoistedMocks.mockCheckIfTeamHasFeature,
   })),
+}));
+vi.mock("@calcom/features/di/containers/TeamRepository", () => ({
+  getTeamRepository: hoistedMocks.mockGetTeamRepository,
 }));
 vi.mock("../LegacyRemoveMemberService");
 vi.mock("../PBACRemoveMemberService");
 
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-  prisma: {},
-}));
-
 describe("RemoveMemberServiceFactory", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    hoistedMocks.mockGetTeamRepository.mockReturnValue({});
   });
 
   describe("Service Creation", () => {
     it("should create LegacyRemoveMemberService when PBAC is disabled", async () => {
-      mockCheckIfTeamHasFeature.mockResolvedValue(false);
+      hoistedMocks.mockCheckIfTeamHasFeature.mockResolvedValue(false);
 
       const teamId = 1;
       const service = await RemoveMemberServiceFactory.create(teamId);
 
-      expect(mockCheckIfTeamHasFeature).toHaveBeenCalledWith(teamId, "pbac");
+      expect(hoistedMocks.mockCheckIfTeamHasFeature).toHaveBeenCalledWith(teamId, "pbac");
+      expect(hoistedMocks.mockGetTeamRepository).toHaveBeenCalledTimes(1);
       expect(service).toBeInstanceOf(LegacyRemoveMemberService);
     });
 
     it("should create PBACRemoveMemberService when PBAC is enabled", async () => {
-      mockCheckIfTeamHasFeature.mockResolvedValue(true);
+      hoistedMocks.mockCheckIfTeamHasFeature.mockResolvedValue(true);
 
       const teamId = 1;
       const service = await RemoveMemberServiceFactory.create(teamId);
 
-      expect(mockCheckIfTeamHasFeature).toHaveBeenCalledWith(teamId, "pbac");
+      expect(hoistedMocks.mockCheckIfTeamHasFeature).toHaveBeenCalledWith(teamId, "pbac");
+      expect(hoistedMocks.mockGetTeamRepository).toHaveBeenCalledTimes(1);
       expect(service).toBeInstanceOf(PBACRemoveMemberService);
     });
   });
@@ -47,9 +55,9 @@ describe("RemoveMemberServiceFactory", () => {
   describe("Service Creation for Different Teams", () => {
     it("should create different services for different teams", async () => {
       // Team 1 has PBAC disabled
-      mockCheckIfTeamHasFeature.mockResolvedValueOnce(false);
+      hoistedMocks.mockCheckIfTeamHasFeature.mockResolvedValueOnce(false);
       // Team 2 has PBAC enabled
-      mockCheckIfTeamHasFeature.mockResolvedValueOnce(true);
+      hoistedMocks.mockCheckIfTeamHasFeature.mockResolvedValueOnce(true);
 
       const service1 = await RemoveMemberServiceFactory.create(1);
       const service2 = await RemoveMemberServiceFactory.create(2);
@@ -58,13 +66,14 @@ describe("RemoveMemberServiceFactory", () => {
       expect(service2).toBeInstanceOf(PBACRemoveMemberService);
       expect(service1).not.toBe(service2);
 
-      expect(mockCheckIfTeamHasFeature).toHaveBeenCalledTimes(2);
-      expect(mockCheckIfTeamHasFeature).toHaveBeenCalledWith(1, "pbac");
-      expect(mockCheckIfTeamHasFeature).toHaveBeenCalledWith(2, "pbac");
+      expect(hoistedMocks.mockCheckIfTeamHasFeature).toHaveBeenCalledTimes(2);
+      expect(hoistedMocks.mockGetTeamRepository).toHaveBeenCalledTimes(2);
+      expect(hoistedMocks.mockCheckIfTeamHasFeature).toHaveBeenCalledWith(1, "pbac");
+      expect(hoistedMocks.mockCheckIfTeamHasFeature).toHaveBeenCalledWith(2, "pbac");
     });
 
     it("should create service for each call (no caching in current implementation)", async () => {
-      mockCheckIfTeamHasFeature.mockResolvedValue(true);
+      hoistedMocks.mockCheckIfTeamHasFeature.mockResolvedValue(true);
 
       const teamId = 1;
 
@@ -78,20 +87,21 @@ describe("RemoveMemberServiceFactory", () => {
       expect(service2).not.toBe(service3);
 
       // Feature flag should be called each time
-      expect(mockCheckIfTeamHasFeature).toHaveBeenCalledTimes(3);
+      expect(hoistedMocks.mockCheckIfTeamHasFeature).toHaveBeenCalledTimes(3);
+      expect(hoistedMocks.mockGetTeamRepository).toHaveBeenCalledTimes(3);
     });
   });
 
   describe("Error Handling", () => {
     it("should propagate errors from features repository", async () => {
       const error = new Error("Features repository error");
-      mockCheckIfTeamHasFeature.mockRejectedValue(error);
+      hoistedMocks.mockCheckIfTeamHasFeature.mockRejectedValue(error);
 
       await expect(RemoveMemberServiceFactory.create(1)).rejects.toThrow("Features repository error");
     });
 
     it("should handle null/undefined feature flag gracefully", async () => {
-      mockCheckIfTeamHasFeature.mockResolvedValue(null as any);
+      hoistedMocks.mockCheckIfTeamHasFeature.mockResolvedValue(null);
 
       const service = await RemoveMemberServiceFactory.create(1);
 

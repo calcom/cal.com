@@ -2,11 +2,10 @@ import {
   getBillingProviderService,
   getBillingRepositoryFactory,
 } from "@calcom/ee/billing/di/containers/Billing";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
@@ -59,7 +58,7 @@ export const listInvoicesHandler = async ({ ctx, input }: ListInvoicesOptions) =
   const { teamId, limit, cursor, startDate, endDate } = input;
 
   // Get team to determine type and check permissions
-  const teamRepository = new TeamRepository(prisma);
+  const teamRepository = getTeamRepository();
   const team = await teamRepository.findById({ id: teamId });
 
   if (!team) {

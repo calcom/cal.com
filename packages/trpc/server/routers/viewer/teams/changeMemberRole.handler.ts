@@ -1,10 +1,8 @@
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
 
 type ChangeMemberRoleOptions = {
@@ -16,7 +14,7 @@ type ChangeMemberRoleOptions = {
 
 export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOptions) => {
   // Get team info to check if it's part of an organization
-  const teamRepo = new TeamRepository(prisma);
+  const teamRepo = getTeamRepository();
   const team = await teamRepo.findById({ id: input.teamId });
   if (!team) {
     throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });

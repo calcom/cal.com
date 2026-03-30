@@ -1,10 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
 import { RRTimestampBasis } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TrpcSessionUser } from "../../../types";
 import { updateHandler } from "./update.handler";
 import type { TUpdateInputSchema } from "./update.schema";
@@ -33,12 +31,10 @@ vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
   }),
 }));
 
-vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
-  TeamRepository: vi.fn().mockImplementation(function () {
-    return {
-      isSlugAvailableForUpdate: vi.fn().mockResolvedValue(true),
-    };
-  }),
+vi.mock("@calcom/features/di/containers/TeamRepository", () => ({
+  getTeamRepository: vi.fn(() => ({
+    isSlugAvailableForUpdate: vi.fn().mockResolvedValue(true),
+  })),
 }));
 
 vi.mock("@calcom/lib/server/avatar", () => ({
@@ -71,9 +67,9 @@ describe("updateHandler - Permission Check Tests", () => {
     vi.mocked(PermissionCheckService).mockImplementation(function () {
       return mockPermissionCheckService as unknown as InstanceType<typeof PermissionCheckService>;
     });
-    vi.mocked(TeamRepository).mockImplementation(function () {
-      return mockTeamRepository as unknown as InstanceType<typeof TeamRepository>;
-    });
+    vi.mocked(getTeamRepository).mockReturnValue(
+      mockTeamRepository as unknown as ReturnType<typeof getTeamRepository>
+    );
   });
 
   describe("Permission Check Service", () => {
