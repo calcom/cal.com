@@ -17,13 +17,13 @@ function createMockRepo(overrides: Partial<IExperimentRepository> = {}): IExperi
 
 function runningExperiment(
   slug: string,
-  variants: { variantSlug: string; weight: number }[]
+  variants: { variantSlug: string; label: string | null; weight: number }[]
 ): ExperimentWithVariants {
-  return { slug, status: "RUNNING", winner: null, variants };
+  return { slug, label: null, description: null, status: "RUNNING", winner: null, variants };
 }
 
 function rolledOutExperiment(slug: string, winner: string | null): ExperimentWithVariants {
-  return { slug, status: "ROLLED_OUT", winner, variants: [] };
+  return { slug, label: null, description: null, status: "ROLLED_OUT", winner, variants: [] };
 }
 
 describe("ExperimentService", () => {
@@ -38,7 +38,7 @@ describe("ExperimentService", () => {
   describe("getAllRunningConfigs", () => {
     it("returns mapped configs from running experiments", async () => {
       const experiments: ExperimentWithVariants[] = [
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", weight: 50 }]),
+        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }]),
       ];
       vi.mocked(mockRepo.findAllRunning).mockResolvedValue(experiments);
 
@@ -71,7 +71,7 @@ describe("ExperimentService", () => {
         },
       ];
 
-      const result = await service.getVariantsForUser(42, "INDIVIDUALS", configs);
+      const result = await service.getVariantsForUser({ userId: 42, userPlan: "INDIVIDUALS", configs });
       expect(result).toHaveProperty("billing-upgrade-cta");
       expect(["upgrade_button", null]).toContain(result["billing-upgrade-cta"]);
     });
@@ -86,8 +86,8 @@ describe("ExperimentService", () => {
         },
       ];
 
-      const result1 = await service.getVariantsForUser(42, "INDIVIDUALS", configs);
-      const result2 = await service.getVariantsForUser(42, "INDIVIDUALS", configs);
+      const result1 = await service.getVariantsForUser({ userId: 42, userPlan: "INDIVIDUALS", configs });
+      const result2 = await service.getVariantsForUser({ userId: 42, userPlan: "INDIVIDUALS", configs });
       expect(result1["billing-upgrade-cta"]).toBe(result2["billing-upgrade-cta"]);
     });
 
@@ -101,7 +101,7 @@ describe("ExperimentService", () => {
         },
       ];
 
-      const result = await service.getVariantsForUser(42, "ENTERPRISE", configs);
+      const result = await service.getVariantsForUser({ userId: 42, userPlan: "ENTERPRISE", configs });
       expect(result["billing-upgrade-cta"]).toBeNull();
     });
 
@@ -110,14 +110,14 @@ describe("ExperimentService", () => {
         { slug: "billing-upgrade-cta", status: "ROLLED_OUT", winner: "upgrade_button", variants: [] },
       ];
 
-      const result = await service.getVariantsForUser(42, "INDIVIDUALS", configs);
+      const result = await service.getVariantsForUser({ userId: 42, userPlan: "INDIVIDUALS", configs });
       expect(result["billing-upgrade-cta"]).toBe("upgrade_button");
     });
 
     it("returns null winner for rolled-out experiments where control won", async () => {
       const configs = [{ slug: "billing-upgrade-cta", status: "ROLLED_OUT", winner: null, variants: [] }];
 
-      const result = await service.getVariantsForUser(42, "INDIVIDUALS", configs);
+      const result = await service.getVariantsForUser({ userId: 42, userPlan: "INDIVIDUALS", configs });
       expect(result["billing-upgrade-cta"]).toBeNull();
     });
   });
@@ -136,9 +136,11 @@ describe("ExperimentService", () => {
     it("returns null for DRAFT experiments", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue({
         slug: "billing-upgrade-cta",
+        label: null,
+        description: null,
         status: "DRAFT",
         winner: null,
-        variants: [{ variantSlug: "upgrade_button", weight: 50 }],
+        variants: [{ variantSlug: "upgrade_button", label: null, weight: 50 }],
       });
 
       const result = await service.getVariant(42, "billing-upgrade-cta");
@@ -148,9 +150,11 @@ describe("ExperimentService", () => {
     it("returns null for STOPPED experiments", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue({
         slug: "billing-upgrade-cta",
+        label: null,
+        description: null,
         status: "STOPPED",
         winner: null,
-        variants: [{ variantSlug: "upgrade_button", weight: 50 }],
+        variants: [{ variantSlug: "upgrade_button", label: null, weight: 50 }],
       });
 
       const result = await service.getVariant(42, "billing-upgrade-cta");
@@ -168,7 +172,7 @@ describe("ExperimentService", () => {
 
     it("returns deterministic variant for RUNNING experiments", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", weight: 50 }])
+        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
       );
 
       const result1 = await service.getVariant(42, "billing-upgrade-cta");
@@ -180,8 +184,8 @@ describe("ExperimentService", () => {
   describe("getAllConfigs", () => {
     it("returns mapped configs from all experiments", async () => {
       const experiments: ExperimentWithVariants[] = [
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", weight: 50 }]),
-        { slug: "another-exp", status: "DRAFT", winner: null, variants: [] },
+        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }]),
+        { slug: "another-exp", label: null, description: null, status: "DRAFT", winner: null, variants: [] },
       ];
       vi.mocked(mockRepo.findAll).mockResolvedValue(experiments);
 
@@ -195,81 +199,135 @@ describe("ExperimentService", () => {
 
   describe("updateStatus", () => {
     it("throws NotFound when experiment does not exist", async () => {
-      await expect(service.updateStatus("nonexistent", "RUNNING")).rejects.toThrow(ErrorWithCode);
+      await expect(service.updateStatus({ slug: "nonexistent", status: "RUNNING", userId: 1 })).rejects.toThrow(
+        ErrorWithCode
+      );
     });
 
     it("updates status when experiment exists", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", weight: 50 }])
+        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
       );
 
-      await service.updateStatus("billing-upgrade-cta", "STOPPED");
+      await service.updateStatus({ slug: "billing-upgrade-cta", status: "STOPPED", userId: 1 });
 
-      expect(mockRepo.updateStatus).toHaveBeenCalledWith("billing-upgrade-cta", "STOPPED");
+      expect(mockRepo.updateStatus).toHaveBeenCalledWith({
+        slug: "billing-upgrade-cta",
+        status: "STOPPED",
+        userId: 1,
+      });
     });
   });
 
   describe("updateVariantWeight", () => {
     it("throws NotFound when experiment does not exist", async () => {
-      await expect(service.updateVariantWeight("nonexistent", "variant_a", 50)).rejects.toThrow(
-        ErrorWithCode
-      );
+      await expect(
+        service.updateVariantWeight({ experimentSlug: "nonexistent", variantSlug: "variant_a", weight: 50, userId: 1 })
+      ).rejects.toThrow(ErrorWithCode);
     });
 
     it("throws BadRequest when weight is negative", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", weight: 50 }])
+        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
       );
 
-      await expect(service.updateVariantWeight("billing-upgrade-cta", "upgrade_button", -1)).rejects.toThrow(
-        ErrorWithCode
-      );
+      await expect(
+        service.updateVariantWeight({
+          experimentSlug: "billing-upgrade-cta",
+          variantSlug: "upgrade_button",
+          weight: -1,
+          userId: 1,
+        })
+      ).rejects.toThrow(ErrorWithCode);
     });
 
     it("throws BadRequest when weight exceeds 100", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", weight: 50 }])
+        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
       );
 
-      await expect(service.updateVariantWeight("billing-upgrade-cta", "upgrade_button", 101)).rejects.toThrow(
-        ErrorWithCode
+      await expect(
+        service.updateVariantWeight({
+          experimentSlug: "billing-upgrade-cta",
+          variantSlug: "upgrade_button",
+          weight: 101,
+          userId: 1,
+        })
+      ).rejects.toThrow(ErrorWithCode);
+    });
+
+    it("throws BadRequest when total variant weights exceed 100", async () => {
+      vi.mocked(mockRepo.findBySlug).mockResolvedValue(
+        runningExperiment("billing-upgrade-cta", [
+          { variantSlug: "variant_a", label: null, weight: 60 },
+          { variantSlug: "variant_b", label: null, weight: 30 },
+        ])
       );
+
+      await expect(
+        service.updateVariantWeight({
+          experimentSlug: "billing-upgrade-cta",
+          variantSlug: "variant_a",
+          weight: 80,
+          userId: 1,
+        })
+      ).rejects.toThrow(ErrorWithCode);
     });
 
     it("updates weight when experiment exists and weight is valid", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", weight: 50 }])
+        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
       );
 
-      await service.updateVariantWeight("billing-upgrade-cta", "upgrade_button", 75);
+      await service.updateVariantWeight({
+        experimentSlug: "billing-upgrade-cta",
+        variantSlug: "upgrade_button",
+        weight: 75,
+        userId: 1,
+      });
 
-      expect(mockRepo.updateVariantWeight).toHaveBeenCalledWith("billing-upgrade-cta", "upgrade_button", 75);
+      expect(mockRepo.updateVariantWeight).toHaveBeenCalledWith({
+        experimentSlug: "billing-upgrade-cta",
+        variantSlug: "upgrade_button",
+        weight: 75,
+        userId: 1,
+      });
     });
   });
 
   describe("setWinner", () => {
     it("throws NotFound when experiment does not exist", async () => {
-      await expect(service.setWinner("nonexistent", "variant_a")).rejects.toThrow(ErrorWithCode);
+      await expect(
+        service.setWinner({ slug: "nonexistent", variantSlug: "variant_a", userId: 1 })
+      ).rejects.toThrow(ErrorWithCode);
     });
 
     it("sets winner when experiment exists", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", weight: 50 }])
+        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
       );
 
-      await service.setWinner("billing-upgrade-cta", "upgrade_button");
+      await service.setWinner({ slug: "billing-upgrade-cta", variantSlug: "upgrade_button", userId: 1 });
 
-      expect(mockRepo.setWinner).toHaveBeenCalledWith("billing-upgrade-cta", "upgrade_button");
+      expect(mockRepo.setWinner).toHaveBeenCalledWith({
+        slug: "billing-upgrade-cta",
+        variantSlug: "upgrade_button",
+        userId: 1,
+      });
     });
 
     it("sets null winner (control wins) when experiment exists", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", weight: 50 }])
+        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
       );
 
-      await service.setWinner("billing-upgrade-cta", null);
+      await service.setWinner({ slug: "billing-upgrade-cta", variantSlug: null, userId: 1 });
 
-      expect(mockRepo.setWinner).toHaveBeenCalledWith("billing-upgrade-cta", null);
+      expect(mockRepo.setWinner).toHaveBeenCalledWith({
+        slug: "billing-upgrade-cta",
+        variantSlug: null,
+        userId: 1,
+      });
     });
   });
 });

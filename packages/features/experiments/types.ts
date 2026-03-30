@@ -13,11 +13,14 @@ export type ExperimentStatusType = (typeof EXPERIMENT_STATUS)[keyof typeof EXPER
 
 export const ExperimentVariantSchema = z.object({
   variantSlug: z.string(),
+  label: z.string().nullable(),
   weight: z.number(),
 });
 
 export const ExperimentWithVariantsSchema = z.object({
   slug: z.string(),
+  label: z.string().nullable(),
+  description: z.string().nullable(),
   status: ExperimentStatusSchema,
   winner: z.string().nullable(),
   variants: z.array(ExperimentVariantSchema),

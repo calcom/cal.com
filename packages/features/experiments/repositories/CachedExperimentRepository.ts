@@ -1,7 +1,12 @@
 import { Memoize, Unmemoize } from "@calcom/features/cache";
-import type { ExperimentStatusType } from "../types";
 import { ExperimentWithVariantsArraySchema, ExperimentWithVariantsSchema } from "../types";
-import type { ExperimentWithVariants, IExperimentRepository } from "./IExperimentRepository";
+import type {
+  ExperimentWithVariants,
+  IExperimentRepository,
+  SetWinnerInput,
+  UpdateStatusInput,
+  UpdateVariantWeightInput,
+} from "./IExperimentRepository";
 
 const CACHE_PREFIX = "experiments";
 const KEY = {
@@ -38,23 +43,27 @@ export class CachedExperimentRepository implements IExperimentRepository {
   }
 
   @Unmemoize({
-    keys: (slug: string) => [KEY.bySlug(slug), KEY.allRunning(), KEY.all()],
+    keys: ({ slug }: UpdateStatusInput) => [KEY.bySlug(slug), KEY.allRunning(), KEY.all()],
   })
-  async updateStatus(slug: string, status: ExperimentStatusType, now?: Date): Promise<void> {
-    return this.prismaExperimentRepository.updateStatus(slug, status, now);
+  async updateStatus(input: UpdateStatusInput): Promise<void> {
+    return this.prismaExperimentRepository.updateStatus(input);
   }
 
   @Unmemoize({
-    keys: (experimentSlug: string) => [KEY.bySlug(experimentSlug), KEY.allRunning(), KEY.all()],
+    keys: ({ experimentSlug }: UpdateVariantWeightInput) => [
+      KEY.bySlug(experimentSlug),
+      KEY.allRunning(),
+      KEY.all(),
+    ],
   })
-  async updateVariantWeight(experimentSlug: string, variantSlug: string, weight: number): Promise<void> {
-    return this.prismaExperimentRepository.updateVariantWeight(experimentSlug, variantSlug, weight);
+  async updateVariantWeight(input: UpdateVariantWeightInput): Promise<void> {
+    return this.prismaExperimentRepository.updateVariantWeight(input);
   }
 
   @Unmemoize({
-    keys: (slug: string) => [KEY.bySlug(slug), KEY.allRunning(), KEY.all()],
+    keys: ({ slug }: SetWinnerInput) => [KEY.bySlug(slug), KEY.allRunning(), KEY.all()],
   })
-  async setWinner(slug: string, variantSlug: string | null): Promise<void> {
-    return this.prismaExperimentRepository.setWinner(slug, variantSlug);
+  async setWinner(input: SetWinnerInput): Promise<void> {
+    return this.prismaExperimentRepository.setWinner(input);
   }
 }

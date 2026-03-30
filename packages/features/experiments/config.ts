@@ -1,6 +1,9 @@
+// Sentinel value stored in sessionStorage and sent to analytics when a user
+// is in the control group (i.e. no variant assigned).
+export const CONTROL_GROUP = "control";
+
 export const EXPERIMENTS = {
   "billing-upgrade-cta": {
-    description: "Replace 'Manage billing' with 'Upgrade' button",
     variants: ["upgrade_button"],
     target: "logged-in",
   },

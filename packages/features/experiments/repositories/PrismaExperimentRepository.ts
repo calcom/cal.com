@@ -1,7 +1,13 @@
 import type { PrismaClient } from "@calcom/prisma/client";
 import { ExperimentStatus } from "@calcom/prisma/client";
 import type { ExperimentStatusType } from "../types";
-import type { ExperimentWithVariants, IExperimentRepository } from "./IExperimentRepository";
+import type {
+  ExperimentWithVariants,
+  IExperimentRepository,
+  SetWinnerInput,
+  UpdateStatusInput,
+  UpdateVariantWeightInput,
+} from "./IExperimentRepository";
 
 const STATUS_TO_PRISMA: Record<ExperimentStatusType, ExperimentStatus> = {
   DRAFT: ExperimentStatus.DRAFT,
@@ -12,11 +18,14 @@ const STATUS_TO_PRISMA: Record<ExperimentStatusType, ExperimentStatus> = {
 
 const experimentSelect = {
   slug: true,
+  label: true,
+  description: true,
   status: true,
   winner: true,
   variants: {
     select: {
       variantSlug: true,
+      label: true,
       weight: true,
     },
   },
@@ -46,9 +55,9 @@ export class PrismaExperimentRepository implements IExperimentRepository {
     });
   }
 
-  async updateStatus(slug: string, status: ExperimentStatusType, now?: Date): Promise<void> {
+  async updateStatus({ slug, status, userId, now }: UpdateStatusInput): Promise<void> {
     const prismaStatus = STATUS_TO_PRISMA[status];
-    const data: Record<string, unknown> = { status: prismaStatus };
+    const data: Record<string, unknown> = { status: prismaStatus, updatedById: userId };
     const timestamp = now ?? new Date();
 
     if (prismaStatus === ExperimentStatus.RUNNING) {
@@ -63,20 +72,20 @@ export class PrismaExperimentRepository implements IExperimentRepository {
     });
   }
 
-  async updateVariantWeight(experimentSlug: string, variantSlug: string, weight: number): Promise<void> {
+  async updateVariantWeight({ experimentSlug, variantSlug, weight, userId }: UpdateVariantWeightInput): Promise<void> {
     await this.prisma.experimentVariant.upsert({
       where: {
         experimentSlug_variantSlug: { experimentSlug, variantSlug },
       },
-      update: { weight },
-      create: { experimentSlug, variantSlug, weight },
+      update: { weight, updatedById: userId },
+      create: { experimentSlug, variantSlug, weight, createdById: userId, updatedById: userId },
     });
   }
 
-  async setWinner(slug: string, variantSlug: string | null): Promise<void> {
+  async setWinner({ slug, variantSlug, userId }: SetWinnerInput): Promise<void> {
     await this.prisma.experiment.update({
       where: { slug },
-      data: { winner: variantSlug, status: ExperimentStatus.ROLLED_OUT, stoppedAt: new Date() },
+      data: { winner: variantSlug, status: ExperimentStatus.ROLLED_OUT, stoppedAt: new Date(), updatedById: userId },
     });
   }
 }

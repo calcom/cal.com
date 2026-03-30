@@ -33,6 +33,7 @@ import {
   workspacePlatformUpdateSchema,
   workspacePlatformUpdateServiceAccountSchema,
 } from "./workspacePlatform/schema";
+import { experimentsRouter } from "./experiments/_router";
 
 const NAMESPACE = "admin";
 
@@ -152,6 +153,7 @@ export const adminRouter = router({
     const { default: handler } = await import("./transferBilling.handler");
     return handler(opts);
   }),
+  experiments: experimentsRouter,
   searchUsersByEmail: authedAdminProcedure.input(ZSearchUsersByEmailSchema).query(async (opts) => {
     const { default: handler } = await import("./searchUsersByEmail.handler");
     return handler(opts);

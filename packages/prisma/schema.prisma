@@ -1858,6 +1858,8 @@ enum ExperimentStatus {
 
 model Experiment {
   slug        String              @id
+  label       String?
+  description String?
   status      ExperimentStatus    @default(DRAFT)
   winner      String?
   startedAt   DateTime?
@@ -1876,6 +1878,7 @@ model Experiment {
 model ExperimentVariant {
   experimentSlug String
   variantSlug    String
+  label          String?
   weight         Int
   experiment     Experiment @relation(fields: [experimentSlug], references: [slug], onDelete: Cascade)
   createdBy      User?      @relation("CreatedExperimentVariants", fields: [createdById], references: [id], onDelete: SetNull)

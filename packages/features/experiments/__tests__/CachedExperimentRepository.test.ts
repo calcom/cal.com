@@ -33,9 +33,11 @@ vi.mock("@calcom/features/di/containers/Redis", () => ({
 
 const runningExperiment: ExperimentWithVariants = {
   slug: "billing-upgrade-cta",
+  label: null,
+  description: null,
   status: "RUNNING",
   winner: null,
-  variants: [{ variantSlug: "upgrade_button", weight: 50 }],
+  variants: [{ variantSlug: "upgrade_button", label: null, weight: 50 }],
 };
 
 describe("CachedExperimentRepository", () => {
@@ -110,9 +112,9 @@ describe("CachedExperimentRepository", () => {
     it("delegates to inner repo and invalidates cache", async () => {
       vi.mocked(mockRedis.del).mockResolvedValue(1);
 
-      await cachedRepo.updateStatus("billing-upgrade-cta", "STOPPED");
+      await cachedRepo.updateStatus({ slug: "billing-upgrade-cta", status: "STOPPED", userId: 1 });
 
-      expect(innerRepo.updateStatus).toHaveBeenCalledWith("billing-upgrade-cta", "STOPPED", undefined);
+      expect(innerRepo.updateStatus).toHaveBeenCalledWith({ slug: "billing-upgrade-cta", status: "STOPPED", userId: 1 });
       expect(mockRedis.del).toHaveBeenCalled();
     });
   });
@@ -121,9 +123,9 @@ describe("CachedExperimentRepository", () => {
     it("delegates to inner repo and invalidates cache", async () => {
       vi.mocked(mockRedis.del).mockResolvedValue(1);
 
-      await cachedRepo.updateVariantWeight("billing-upgrade-cta", "upgrade_button", 75);
+      await cachedRepo.updateVariantWeight({ experimentSlug: "billing-upgrade-cta", variantSlug: "upgrade_button", weight: 75, userId: 1 });
 
-      expect(innerRepo.updateVariantWeight).toHaveBeenCalledWith("billing-upgrade-cta", "upgrade_button", 75);
+      expect(innerRepo.updateVariantWeight).toHaveBeenCalledWith({ experimentSlug: "billing-upgrade-cta", variantSlug: "upgrade_button", weight: 75, userId: 1 });
       expect(mockRedis.del).toHaveBeenCalled();
     });
   });
@@ -132,9 +134,9 @@ describe("CachedExperimentRepository", () => {
     it("delegates to inner repo and invalidates cache", async () => {
       vi.mocked(mockRedis.del).mockResolvedValue(1);
 
-      await cachedRepo.setWinner("billing-upgrade-cta", "upgrade_button");
+      await cachedRepo.setWinner({ slug: "billing-upgrade-cta", variantSlug: "upgrade_button", userId: 1 });
 
-      expect(innerRepo.setWinner).toHaveBeenCalledWith("billing-upgrade-cta", "upgrade_button");
+      expect(innerRepo.setWinner).toHaveBeenCalledWith({ slug: "billing-upgrade-cta", variantSlug: "upgrade_button", userId: 1 });
       expect(mockRedis.del).toHaveBeenCalled();
     });
   });

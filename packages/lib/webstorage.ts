@@ -30,6 +30,20 @@ export const localStorage = {
       return;
     }
   },
+  get length(): number {
+    try {
+      return window.localStorage.length;
+    } catch {
+      return 0;
+    }
+  },
+  key(index: number): string | null {
+    try {
+      return window.localStorage.key(index);
+    } catch {
+      return null;
+    }
+  },
 };
 
 export const sessionStorage = {
@@ -60,6 +74,22 @@ export const sessionStorage = {
       window.sessionStorage.removeItem(key);
     } catch {
       return;
+    }
+  },
+  get length(): number {
+    try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
+      return window.sessionStorage.length;
+    } catch {
+      return 0;
+    }
+  },
+  key(index: number): string | null {
+    try {
+      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
+      return window.sessionStorage.key(index);
+    } catch {
+      return null;
     }
   },
 };
