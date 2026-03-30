@@ -3,6 +3,7 @@ import qs from "qs";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -24,6 +25,7 @@ export type DzyloContact = {
 };
 
 const BASE_URL = `https://cal-webhook.dzylo.com/api`;
+const log = logger.getSubLogger({ prefix: ["app-store/dzylo/lib/CrmService"] });
 
 class DzyloCrmService implements CRM {
   private integrationName = "";
@@ -246,7 +248,7 @@ class DzyloCrmService implements CRM {
           this.accessToken = dzyloCrmTokenInfo.data.access_token;
         }
       } catch (error) {
-        console.error("Failed to refresh Dzylo token", error);
+        log.error("Failed to refresh Dzylo token", error);
         throw new Error("Failed to refresh Dzylo CRM token");
       }
     };
@@ -294,6 +296,7 @@ class DzyloCrmService implements CRM {
   }
 
   async handleAttendeeNoShow() {
+    console.log("Not implemented");
   }
 }
 const toEpochSecondsUTC = (date: Date) => {
