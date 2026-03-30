@@ -15,6 +15,7 @@ import { TextField } from "@calcom/ui/components/form";
 import { SearchIcon } from "@coss/ui/icons";
 import type { HorizontalTabItemProps } from "@calcom/ui/components/navigation";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce"
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
 
@@ -63,6 +64,7 @@ export type PageProps = {
 export default function Apps({ isAdmin, categories, appStore, userAdminTeams }: PageProps) {
   const { t } = useLocale();
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
+  const debouncedSearchText = useDebounce(searchText, 300)
 
   return (
     <AppsLayout
@@ -83,7 +85,7 @@ export default function Apps({ isAdmin, categories, appStore, userAdminTeams }: 
       headerClassName="sm:hidden lg:block hidden"
       emptyStore={!appStore.length}>
       <div className="flex flex-col gap-y-8">
-        {!searchText && (
+        {!debouncedSearchText && (
           <>
             <AppStoreCategories categories={categories} />
             <PopularAppsSlider items={appStore} />
@@ -92,7 +94,7 @@ export default function Apps({ isAdmin, categories, appStore, userAdminTeams }: 
         )}
         <AllApps
           apps={appStore}
-          searchText={searchText}
+          searchText={debouncedSearchText}
           categories={categories.map((category) => category.name)}
           userAdminTeams={userAdminTeams}
         />
