@@ -474,6 +474,8 @@ describe("sendPayload", () => {
 
       await sendPayload("secret", "BOOKING_CREATED", "2024-01-01T12:00:00.000Z", webhook, {
         uid: "uid-1",
+        bookingId: 42,
+        eventTypeId: 7,
         title: "Meeting",
         startTime: "2024-01-01T10:00:00Z",
         endTime: "2024-01-01T11:00:00Z",
@@ -496,13 +498,20 @@ describe("sendPayload", () => {
             language: { locale: "en", translate: (key: string) => key },
           },
         ],
-        type: "test",
+        type: "my-event-slug",
         description: "",
         location: "",
       } as unknown as Parameters<typeof sendPayload>[4]);
 
       const [, options] = mockFetch.mock.calls[0];
       const body = JSON.parse(options.body);
+      expect(body.bookingId).toBe(42);
+      expect(body.eventType).toEqual(
+        expect.objectContaining({
+          id: 7,
+          slug: "my-event-slug",
+        })
+      );
       expect(body.attendees[0].phoneNumber).toBe("+15550002222");
       expect(body.smsReminderNumber).toBe("+15551234567");
     });

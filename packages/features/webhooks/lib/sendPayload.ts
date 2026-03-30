@@ -146,6 +146,7 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
 
   const body = {
     uid: data.uid,
+    bookingId: data.bookingId ?? null,
     title: data.title,
     description: data.description,
     customInputs: data.customInputs,
@@ -166,6 +167,8 @@ function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt
       locale: data.organizer.locale,
     },
     eventType: {
+      id: data.eventTypeId ?? null,
+      slug: data.type ?? null,
       title: data.eventTitle,
       description: data.eventDescription,
       requiresConfirmation: data.requiresConfirmation,

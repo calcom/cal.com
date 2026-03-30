@@ -806,6 +806,8 @@ describe("WebhookService", () => {
       const subscriber = createSubscriber({ appId: "zapier" });
       const eventPayload = {
         uid: "booking-uid-123",
+        bookingId: 1001,
+        eventTypeId: 55,
         title: "Test Meeting",
         startTime: "2024-03-15T10:00:00Z",
         endTime: "2024-03-15T11:00:00Z",
@@ -838,8 +840,11 @@ describe("WebhookService", () => {
       const [, options] = mockFetch.mock.calls[0];
       const body = JSON.parse(options.body);
       expect(body.uid).toBe("booking-uid-123");
+      expect(body.bookingId).toBe(1001);
       expect(body.title).toBe("Test Meeting");
       expect(body.eventType).toEqual({
+        id: 55,
+        slug: "test-event",
         title: "30 Min Meeting",
         description: null,
         requiresConfirmation: null,
