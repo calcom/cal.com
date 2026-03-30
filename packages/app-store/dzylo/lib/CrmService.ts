@@ -17,6 +17,7 @@ export type DzyloToken = {
   expires_in: number;
   access_token: string;
   refresh_token: string;
+  expiry_date: number;
 };
 
 export type DzyloContact = {
@@ -203,7 +204,7 @@ class DzyloCrmService implements CRM {
       throw new HttpError({ statusCode: 400, message: "Dzylo Crm client secret is missing." });
     const credentialKey = credential.key as unknown as DzyloToken;
     const isTokenValid = (token: DzyloToken) => {
-      const isValid = token && token.access_token && token.expires_in && token.expires_in > Date.now();
+      const isValid = token && token.access_token && token.expiry_date && token.expiry_date > Date.now();
       if (isValid) {
         this.accessToken = token.access_token;
       }
@@ -234,6 +235,8 @@ class DzyloCrmService implements CRM {
         );
         if (!dzyloCrmTokenInfo.data.error) {
           const newTokenData = dzyloCrmTokenInfo.data as DzyloToken;
+          // set expiry date as offset from current time with grace period of 60seconds.
+          newTokenData.expiry_date = Math.round(Date.now() + (newTokenData.expires_in - 60) * 1000);
           await prisma.credential.update({
             where: {
               id: credential.id,
@@ -241,7 +244,7 @@ class DzyloCrmService implements CRM {
             data: {
               key: {
                 ...newTokenData,
-                refresh_token: newTokenData.refresh_token,
+                refresh_token: newTokenData.refresh_token ?? credentialKey.refresh_token,
               },
             },
           });
