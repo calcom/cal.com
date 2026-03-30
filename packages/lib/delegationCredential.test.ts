@@ -114,3 +114,36 @@ describe("buildNonDelegationCredentials", () => {
     });
   });
 });
+
+describe("isInDbDelegationCredential (tested via buildNonDelegationCredential)", () => {
+  it("should return null for in-DB delegation credential (positive id + delegationCredentialId)", () => {
+    // isInDbDelegationCredential returns true -> buildNonDelegationCredential returns null
+    const cred = { id: 500, delegationCredentialId: 100, type: "google_calendar" };
+    expect(buildNonDelegationCredential(cred)).toBeNull();
+  });
+
+  it("should NOT filter credential without delegationCredentialId", () => {
+    // isInDbDelegationCredential returns false (no delegationCredentialId)
+    const cred = { id: 500, type: "google_calendar" };
+    expect(buildNonDelegationCredential(cred)).not.toBeNull();
+  });
+
+  it("should NOT filter credential with id=0 (falsy id means not in-DB delegation)", () => {
+    // isInDbDelegationCredential returns false because id is falsy (0)
+    // buildNonDelegationCredential still builds a non-delegation credential from it
+    const cred = { id: 0, delegationCredentialId: 100, type: "google_calendar" };
+    const result = buildNonDelegationCredential(cred);
+    expect(result).not.toBeNull();
+    expect(result).toHaveProperty("delegatedTo", null);
+  });
+
+  it("should filter in-DB delegation credentials from array", () => {
+    const credentials = [
+      { id: 1, type: "google_calendar" },
+      { id: 500, delegationCredentialId: 100, type: "zoom" },
+      { id: 3, type: "stripe" },
+    ];
+    const result = buildNonDelegationCredentials(credentials);
+    expect(result).toHaveLength(2);
+  });
+});

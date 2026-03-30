@@ -377,3 +377,62 @@ describe("isTimeViolatingFutureLimit", () => {
     expect(result).toBe(false);
   });
 });
+
+// Import the default export for testing isOutOfBounds function
+import isOutOfBoundsDefault from "./isOutOfBounds";
+
+describe("isOutOfBounds (default export)", () => {
+  it("returns true when time is within minimum booking notice", () => {
+    const nearFuture = dayjs().add(5, "minutes");
+    const result = isOutOfBoundsDefault(
+      nearFuture,
+      {
+        periodType: PeriodType.UNLIMITED,
+        periodDays: null,
+        periodCountCalendarDays: null,
+        periodStartDate: null,
+        periodEndDate: null,
+        eventUtcOffset: 0,
+        bookerUtcOffset: 0,
+      },
+      120 // 120 min notice - nearFuture is only 5 min away
+    );
+    expect(result).toBe(true);
+  });
+
+  it("returns true when time is out of bounds by period", () => {
+    const farFuture = dayjs().add(365, "days");
+    const result = isOutOfBoundsDefault(
+      farFuture,
+      {
+        periodType: PeriodType.ROLLING,
+        periodDays: 7,
+        periodCountCalendarDays: true,
+        periodStartDate: null,
+        periodEndDate: null,
+        eventUtcOffset: 0,
+        bookerUtcOffset: 0,
+      },
+      0
+    );
+    expect(result).toBe(true);
+  });
+
+  it("returns false when time is within bounds", () => {
+    const tomorrow = dayjs().add(1, "day");
+    const result = isOutOfBoundsDefault(
+      tomorrow,
+      {
+        periodType: PeriodType.UNLIMITED,
+        periodDays: null,
+        periodCountCalendarDays: null,
+        periodStartDate: null,
+        periodEndDate: null,
+        eventUtcOffset: 0,
+        bookerUtcOffset: 0,
+      },
+      0
+    );
+    expect(result).toBe(false);
+  });
+});

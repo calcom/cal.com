@@ -254,3 +254,33 @@ describe("Unmemoize decorator (TC39 2023-05 format)", () => {
     expect(mockRedis.del).not.toHaveBeenCalled();
   });
 });
+
+describe("Unmemoize - uncovered error paths", () => {
+  beforeEach(() => {
+    mockRedis = createMockRedis();
+    vi.clearAllMocks();
+  });
+
+  it("should handle cache invalidation failure gracefully", async () => {
+    vi.mocked(mockRedis.del).mockRejectedValue(new Error("Redis connection failed"));
+
+    class TestRepo {
+      @Unmemoize({ keys: (id: number) => [`test:${id}`] })
+      async delete(id: number) {
+        return { id };
+      }
+    }
+
+    const repo = new TestRepo();
+    const result = await repo.delete(1);
+    expect(result).toEqual({ id: 1 });
+  });
+
+  it("should throw when applied to non-method", () => {
+    expect(() => {
+      const decorator = Unmemoize({ keys: () => ["test"] });
+      const descriptor = { value: "not a function" } as unknown as TypedPropertyDescriptor<unknown>;
+      (decorator as any)({}, "prop", descriptor);
+    }).toThrow("@Unmemoize can only be applied to methods");
+  });
+});

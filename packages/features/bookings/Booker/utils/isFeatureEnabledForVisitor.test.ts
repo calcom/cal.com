@@ -103,3 +103,20 @@ describe("isVisitorWithinPercentage", () => {
     });
   });
 });
+
+describe("E2E environment", () => {
+  it("should return true when NEXT_PUBLIC_IS_E2E is set", () => {
+    const originalEnv = process.env.NEXT_PUBLIC_IS_E2E;
+    try {
+      process.env.NEXT_PUBLIC_IS_E2E = "1";
+      expect(isVisitorWithinPercentage({ percentage: 0 })).toBe(true);
+      expect(isVisitorWithinPercentage({ percentage: 50 })).toBe(true);
+    } finally {
+      if (originalEnv === undefined) {
+        delete process.env.NEXT_PUBLIC_IS_E2E;
+      } else {
+        process.env.NEXT_PUBLIC_IS_E2E = originalEnv;
+      }
+    }
+  });
+});

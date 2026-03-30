@@ -68,3 +68,23 @@ describe("checkRateLimitAndThrowError", () => {
     await expect(checkRateLimitAndThrowError({ rateLimitingType, identifier })).resolves.not.toThrow();
   });
 });
+
+  it("should call onRateLimiterResponse callback when provided", async () => {
+    process.env.UNKEY_ROOT_KEY = "unkey_mock";
+    const mockResponse = {
+      limit: 10,
+      remaining: 5,
+      reset: Date.now() + 10000,
+      success: true,
+    } as RatelimitResponse;
+
+    vi.mocked(rateLimiter).mockReturnValue(() => mockResponse);
+
+    const onRateLimiterResponse = vi.fn();
+    const identifier = "test-identifier";
+    const rateLimitingType = "core";
+
+    await checkRateLimitAndThrowError({ rateLimitingType, identifier, onRateLimiterResponse });
+
+    expect(onRateLimiterResponse).toHaveBeenCalledWith(mockResponse);
+  });

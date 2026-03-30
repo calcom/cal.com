@@ -266,3 +266,59 @@ describe("Memoize decorator (TC39 2023-05 format)", () => {
     expect(mockRedis.set).toHaveBeenCalledWith("test:1", { id: 1 }, { ttl: 5000 });
   });
 });
+
+describe("Memoize - error paths", () => {
+  let mockRedis: ReturnType<typeof import("@calcom/features/redis/IRedisService").IRedisService>;
+
+  beforeEach(() => {
+    mockRedis = {
+      get: vi.fn(),
+      set: vi.fn(),
+      del: vi.fn(),
+      expire: vi.fn(),
+      lrange: vi.fn(),
+      lpush: vi.fn(),
+    };
+    vi.clearAllMocks();
+  });
+
+  it("should handle cache read failure gracefully", async () => {
+    vi.mocked(mockRedis.get).mockRejectedValue(new Error("Redis connection failed"));
+    vi.mocked(mockRedis.set).mockResolvedValue("OK");
+
+    class TestRepo {
+      @Memoize({ key: (id: number) => `test:${id}` })
+      async find(id: number) {
+        return { id };
+      }
+    }
+
+    const repo = new TestRepo();
+    const result = await repo.find(1);
+    expect(result).toEqual({ id: 1 });
+  });
+
+  it("should handle cache write failure gracefully", async () => {
+    vi.mocked(mockRedis.get).mockResolvedValue(null);
+    vi.mocked(mockRedis.set).mockRejectedValue(new Error("Redis write failed"));
+
+    class TestRepo {
+      @Memoize({ key: (id: number) => `test:${id}` })
+      async find(id: number) {
+        return { id };
+      }
+    }
+
+    const repo = new TestRepo();
+    const result = await repo.find(1);
+    expect(result).toEqual({ id: 1 });
+  });
+
+  it("should throw when applied to non-method", () => {
+    expect(() => {
+      const decorator = Memoize({ key: () => "test" });
+      const descriptor = { value: "not a function" } as unknown as TypedPropertyDescriptor<unknown>;
+      (decorator as any)({}, "prop", descriptor);
+    }).toThrow("@Memoize can only be applied to methods");
+  });
+});
