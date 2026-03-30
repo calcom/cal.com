@@ -260,6 +260,12 @@ describe("handleInstantMeeting", () => {
     });
 
     it("should not throw when booking audit event fails", async () => {
+      // Simulate an audit failure by making onBookingCreated throw
+      const { BookingEventHandlerService } = await import("../onBookingEvents/BookingEventHandlerService");
+      const onBookingCreatedSpy = vi
+        .spyOn(BookingEventHandlerService.prototype, "onBookingCreated")
+        .mockRejectedValue(new Error("Audit event handler failure"));
+
       const instantBookingCreateService = getInstantBookingCreateService();
       const organizer = getOrganizer({
         name: "Organizer",
@@ -323,6 +329,10 @@ describe("handleInstantMeeting", () => {
 
       expect(result.message).toBe("Success");
       expect(result.bookingId).toBeDefined();
+      // Verify the audit handler was actually called (and failed)
+      expect(onBookingCreatedSpy).toHaveBeenCalled();
+
+      onBookingCreatedSpy.mockRestore();
     });
   });
 });
