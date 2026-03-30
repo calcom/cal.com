@@ -15,6 +15,26 @@ import {
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
+class LocationOption {
+  @IsString()
+  @ApiProperty({ description: "Display label for this location option", example: "Google Meet" })
+  label!: string;
+
+  @IsString()
+  @ApiProperty({ description: "Location type identifier", example: "integrations:google:meet" })
+  value!: string;
+
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({ description: "Icon identifier for this location option" })
+  icon?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({ description: "Whether this location option is disabled", default: false })
+  disabled?: boolean;
+}
+
 class Integration {
   @IsOptional()
   @IsObject()
@@ -87,9 +107,10 @@ class Integration {
   @ApiProperty()
   email!: string;
 
-  @IsObject()
-  @ApiProperty({ type: Object, nullable: true })
-  locationOption!: object | null;
+  @ValidateNested()
+  @IsOptional()
+  @ApiProperty({ type: LocationOption, nullable: true, description: "Location option for this integration" })
+  locationOption!: LocationOption | null;
 }
 
 class Primary {
@@ -223,7 +244,7 @@ class DestinationCalendar {
   primaryEmail!: string | null;
 
   @IsInt()
-  @ApiProperty({ nullable: true })
+  @ApiProperty({ type: Number, nullable: true })
   userId!: number | null;
 
   @IsOptional()

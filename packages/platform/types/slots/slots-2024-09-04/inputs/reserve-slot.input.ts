@@ -10,6 +10,7 @@ export class ReserveSlotInput_2024_09_04 {
   @ApiProperty({
     example: "2024-09-04T09:00:00Z",
     description: "ISO 8601 datestring in UTC timezone representing available slot.",
+    format: "date-time",
   })
   slotStart!: string;
 

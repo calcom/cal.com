@@ -10,6 +10,7 @@ export class RescheduleBookingInput_2024_08_13 {
   @ApiProperty({
     description: "Start time in ISO 8601 format for the new booking",
     example: "2024-08-13T10:00:00Z",
+    format: "date-time",
   })
   start!: string;
 
@@ -49,6 +50,7 @@ export class RescheduleSeatedBookingInput_2024_08_13 {
   @ApiProperty({
     description: "Start time in ISO 8601 format for the new booking",
     example: "2024-08-13T10:00:00Z",
+    format: "date-time",
   })
   start!: string;
 

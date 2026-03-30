@@ -18602,7 +18602,8 @@
           },
           "createdDate": {
             "type": "string",
-            "example": "2024-04-01T00:00:00.000Z"
+            "example": "2024-04-01T00:00:00.000Z",
+            "format": "date-time"
           },
           "timeFormat": {
             "type": "number",
@@ -26562,12 +26563,14 @@
           "createdAt": {
             "type": "string",
             "description": "Timestamp of creation",
-            "example": "2024-05-12T10:00:00.000Z"
+            "example": "2024-05-12T10:00:00.000Z",
+            "format": "date-time"
           },
           "updatedAt": {
             "type": "string",
             "description": "Timestamp of last update",
-            "example": "2024-05-12T11:30:00.000Z"
+            "example": "2024-05-12T11:30:00.000Z",
+            "format": "date-time"
           },
           "type": {
             "type": "string",
@@ -26754,12 +26757,14 @@
           "createdAt": {
             "type": "string",
             "description": "Timestamp of creation",
-            "example": "2024-05-12T10:00:00.000Z"
+            "example": "2024-05-12T10:00:00.000Z",
+            "format": "date-time"
           },
           "updatedAt": {
             "type": "string",
             "description": "Timestamp of last update",
-            "example": "2024-05-12T11:30:00.000Z"
+            "example": "2024-05-12T11:30:00.000Z",
+            "format": "date-time"
           },
           "type": {
             "type": "string",
@@ -29175,6 +29180,31 @@
         },
         "required": ["status", "data"]
       },
+      "LocationOption": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "Display label for this location option",
+            "example": "Google Meet"
+          },
+          "value": {
+            "type": "string",
+            "description": "Location type identifier",
+            "example": "integrations:google:meet"
+          },
+          "icon": {
+            "type": "string",
+            "description": "Icon identifier for this location option"
+          },
+          "disabled": {
+            "type": "boolean",
+            "description": "Whether this location option is disabled",
+            "default": false
+          }
+        },
+        "required": ["label", "value"]
+      },
       "Integration": {
         "type": "object",
         "properties": {
@@ -29231,8 +29261,13 @@
             "type": "string"
           },
           "locationOption": {
-            "type": "object",
-            "nullable": true
+            "nullable": true,
+            "description": "Location option for this integration",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LocationOption"
+              }
+            ]
           }
         },
         "required": [
@@ -30727,13 +30762,25 @@
             "type": "number",
             "example": 0
           },
+          "routes": {
+            "type": "object",
+            "nullable": true,
+            "description": "Routing form routes configuration"
+          },
           "createdAt": {
             "type": "string",
-            "example": "2024-03-28T10:00:00.000Z"
+            "example": "2024-03-28T10:00:00.000Z",
+            "format": "date-time"
           },
           "updatedAt": {
             "type": "string",
-            "example": "2024-03-28T10:00:00.000Z"
+            "example": "2024-03-28T10:00:00.000Z",
+            "format": "date-time"
+          },
+          "fields": {
+            "type": "object",
+            "nullable": true,
+            "description": "Routing form fields configuration"
           },
           "userId": {
             "type": "number",
@@ -30748,20 +30795,13 @@
             "type": "boolean",
             "example": false
           },
-          "id": {
-            "type": "string"
-          },
-          "routes": {
-            "type": "object",
-            "nullable": true
-          },
-          "fields": {
-            "type": "object",
-            "nullable": true
-          },
           "settings": {
             "type": "object",
-            "nullable": true
+            "nullable": true,
+            "description": "Routing form settings"
+          },
+          "id": {
+            "type": "string"
           }
         },
         "required": [
@@ -30773,10 +30813,7 @@
           "userId",
           "teamId",
           "disabled",
-          "id",
-          "routes",
-          "fields",
-          "settings"
+          "id"
         ]
       },
       "GetRoutingFormsOutput": {

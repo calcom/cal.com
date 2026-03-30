@@ -125,11 +125,11 @@ export class BaseWorkflowOutput {
   @Expose()
   teamId?: number;
 
-  @ApiPropertyOptional({ description: "Timestamp of creation", example: "2024-05-12T10:00:00.000Z", type: String })
+  @ApiPropertyOptional({ description: "Timestamp of creation", example: "2024-05-12T10:00:00.000Z", type: String, format: "date-time" })
   @Expose()
   createdAt?: Date | string;
 
-  @ApiPropertyOptional({ description: "Timestamp of last update", example: "2024-05-12T11:30:00.000Z", type: String })
+  @ApiPropertyOptional({ description: "Timestamp of last update", example: "2024-05-12T11:30:00.000Z", type: String, format: "date-time" })
   @Expose()
   updatedAt?: Date | string;
 }

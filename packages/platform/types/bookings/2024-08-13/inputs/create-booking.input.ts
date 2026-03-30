@@ -223,6 +223,7 @@ export class CreateBookingInput_2024_08_13 {
     type: String,
     description: "The start time of the booking in ISO 8601 format in UTC timezone.",
     example: "2024-08-13T09:00:00Z",
+    format: "date-time",
   })
   @IsDateString()
   start!: string;

@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import { IsEnum } from "class-validator";
 
@@ -12,7 +12,7 @@ export class RoutingFormOutput {
   @Expose()
   name!: string;
 
-  @ApiProperty({ example: "This is the description." })
+  @ApiProperty({ example: "This is the description.", type: String, nullable: true })
   @Expose()
   description!: string | null;
 
@@ -20,17 +20,19 @@ export class RoutingFormOutput {
   @Expose()
   position!: number;
 
+  @ApiPropertyOptional({ type: Object, nullable: true, description: "Routing form routes configuration" })
   @Expose()
   routes!: Record<string, unknown> | null;
 
-  @ApiProperty({ example: "2024-03-28T10:00:00.000Z" })
+  @ApiProperty({ example: "2024-03-28T10:00:00.000Z", format: "date-time" })
   @Expose()
   createdAt!: string;
 
-  @ApiProperty({ example: "2024-03-28T10:00:00.000Z" })
+  @ApiProperty({ example: "2024-03-28T10:00:00.000Z", format: "date-time" })
   @Expose()
   updatedAt!: string;
 
+  @ApiPropertyOptional({ type: Object, nullable: true, description: "Routing form fields configuration" })
   @Expose()
   fields!: Record<string, unknown> | null;
 
@@ -38,7 +40,7 @@ export class RoutingFormOutput {
   @Expose()
   userId!: number;
 
-  @ApiProperty({ example: 4214321 })
+  @ApiProperty({ example: 4214321, type: Number, nullable: true })
   @Expose()
   teamId!: number | null;
 
@@ -46,6 +48,7 @@ export class RoutingFormOutput {
   @Expose()
   disabled!: boolean;
 
+  @ApiPropertyOptional({ type: Object, nullable: true, description: "Routing form settings" })
   @Expose()
   settings!: Record<string, unknown> | null;
 }

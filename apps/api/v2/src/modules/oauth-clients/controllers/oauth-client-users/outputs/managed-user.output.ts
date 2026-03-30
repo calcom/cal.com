@@ -32,7 +32,7 @@ export class ManagedUserOutput {
   @Expose()
   weekStart!: string;
 
-  @ApiProperty({ type: String, example: "2024-04-01T00:00:00.000Z" })
+  @ApiProperty({ type: String, example: "2024-04-01T00:00:00.000Z", format: "date-time" })
   @Transform(({ value }) => value.toISOString())
   @Expose()
   createdDate!: Date;

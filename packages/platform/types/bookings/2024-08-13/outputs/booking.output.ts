@@ -217,12 +217,12 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   rescheduledToUid?: string;
 
-  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z" })
+  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z", format: "date-time" })
   @IsDateString()
   @Expose()
   start!: string;
 
-  @ApiProperty({ type: String, example: "2024-08-13T16:30:00Z" })
+  @ApiProperty({ type: String, example: "2024-08-13T16:30:00Z", format: "date-time" })
   @IsDateString()
   @Expose()
   end!: string;
@@ -268,12 +268,12 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   absentHost!: boolean;
 
-  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z" })
+  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z", format: "date-time" })
   @IsDateString()
   @Expose()
   createdAt!: string;
 
-  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z" })
+  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z", format: "date-time" })
   @IsDateString()
   @Expose()
   updatedAt!: string | null;

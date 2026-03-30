@@ -12,6 +12,7 @@ export class ReserveSlotOutput_2024_09_04 {
   @ApiProperty({
     example: "2024-09-04T09:00:00Z",
     description: "ISO 8601 datestring in UTC timezone representing available slot.",
+    format: "date-time",
   })
   @Expose()
   slotStart!: string;
@@ -20,6 +21,7 @@ export class ReserveSlotOutput_2024_09_04 {
   @ApiProperty({
     example: "2024-09-04T10:00:00Z",
     description: "ISO 8601 datestring in UTC timezone representing slot end.",
+    format: "date-time",
   })
   @Expose()
   slotEnd!: string;
@@ -54,6 +56,7 @@ export class ReserveSlotOutput_2024_09_04 {
   @ApiProperty({
     example: "2023-09-04T10:00:00Z",
     description: "ISO 8601 datestring in UTC timezone representing time until which the slot is reserved.",
+    format: "date-time",
   })
   @Expose()
   reservationUntil!: string;
