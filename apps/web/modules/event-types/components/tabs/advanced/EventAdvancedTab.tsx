@@ -29,7 +29,11 @@ import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { extractHostTimezone } from "@calcom/lib/hashedLinksUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
-import { CancellationReasonRequirement, SchedulingType } from "@calcom/prisma/enums";
+import {
+  CancellationReasonRequirement,
+  DisableCancelRescheduleScope,
+  SchedulingType,
+} from "@calcom/prisma/enums";
 import type { EditableSchema, fieldSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -179,8 +183,8 @@ const destinationCalendarComponents = {
     );
     const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
     return (
-      <div className="border-subtle stack-y-6 rounded-lg border p-6">
-        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
+      <div className="p-6 rounded-lg border border-subtle stack-y-6">
+        <div className="flex flex-col stack-y-4 lg:stack-y-0 lg:flex-row lg:space-x-4">
           {showConnectedCalendarSettings && (
             <div
               className={classNames(
@@ -207,7 +211,7 @@ const destinationCalendarComponents = {
                   />
                 )}
               />
-              <p className="text-subtle text-sm">{t("select_which_cal")}</p>
+              <p className="text-sm text-subtle">{t("select_which_cal")}</p>
             </div>
           )}
           <div className={classNames("w-full", customClassNames?.eventName?.container)}>
@@ -241,7 +245,7 @@ const destinationCalendarComponents = {
                 label={
                   <>
                     {t("display_add_to_calendar_organizer")}
-                    <InfoIcon className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md" />
+                    <InfoIcon className="inline w-4 h-4 rounded-md text-default hover:text-attention hover:bg-attention ms-1" />
                   </>
                 }
                 checked={useEventTypeDestinationCalendarEmail}
@@ -258,7 +262,7 @@ const destinationCalendarComponents = {
             </div>
           )}
           {!showConnectedCalendarSettings && !isTeamEventType && (
-            <p className="text-emphasis mb-2 block text-sm font-medium leading-none">
+            <p className="block mb-2 text-sm font-medium leading-none text-emphasis">
               {t("add_to_calendar")}
             </p>
           )}
@@ -269,7 +273,7 @@ const destinationCalendarComponents = {
                 <SelectField
                   placeholder={
                     selectedSecondaryEmailId === -1 && (
-                      <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
+                      <span className="overflow-hidden min-w-0 truncate whitespace-nowrap text-default">
                         <Badge variant="blue">{t("default")}</Badge> {userEmail}
                       </span>
                     )
@@ -302,22 +306,22 @@ const destinationCalendarComponents = {
   },
   DestinationCalendarSettingsSkeleton() {
     return (
-      <div className="border-subtle stack-y-6 rounded-lg border p-6">
-        <div className="stack-y-4 lg:stack-y-0 flex flex-col lg:flex-row lg:space-x-4">
-          <div className="flex w-full flex-col">
-            <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
-            <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
-            <div className="bg-emphasis mt-2 h-4 w-48 animate-pulse rounded-md" />
+      <div className="p-6 rounded-lg border border-subtle stack-y-6">
+        <div className="flex flex-col stack-y-4 lg:stack-y-0 lg:flex-row lg:space-x-4">
+          <div className="flex flex-col w-full">
+            <div className="w-32 h-4 rounded-md animate-pulse bg-emphasis" />
+            <div className="mt-2 w-full h-10 rounded-md animate-pulse bg-emphasis" />
+            <div className="mt-2 w-48 h-4 rounded-md animate-pulse bg-emphasis" />
           </div>
           <div className="w-full">
-            <div className="bg-emphasis h-4 w-32 animate-pulse rounded-md" />
-            <div className="bg-emphasis mt-2 h-10 w-full animate-pulse rounded-md" />
+            <div className="w-32 h-4 rounded-md animate-pulse bg-emphasis" />
+            <div className="mt-2 w-full h-10 rounded-md animate-pulse bg-emphasis" />
           </div>
         </div>
         <div className="stack-y-2">
-          <div className="bg-emphasis h-6 w-64 animate-pulse rounded-md" />
-          <div className="bg-emphasis h-10 w-full animate-pulse rounded-md" />
-          <div className="bg-emphasis h-4 w-48 animate-pulse rounded-md" />
+          <div className="w-64 h-6 rounded-md animate-pulse bg-emphasis" />
+          <div className="w-full h-10 rounded-md animate-pulse bg-emphasis" />
+          <div className="w-48 h-4 rounded-md animate-pulse bg-emphasis" />
         </div>
       </div>
     );
@@ -447,7 +451,8 @@ export const EventAdvancedTab = ({
     setInterfaceLanguageVisible(watchedInterfaceLanguage !== null && watchedInterfaceLanguage !== undefined);
   }, [watchedInterfaceLanguage]);
   const isRedirectUrlGrandfathered = !!eventType.successRedirectUrl;
-  const isRedirectUrlDisabled = !isRedirectUrlGrandfathered && !hasActiveTeamPlan;
+  const isRedirectUrlDisabled =
+    !isRedirectUrlGrandfathered && !hasActiveTeamPlan;
 
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
   const [noRoutingFormRedirectUrlVisible, setNoRoutingFormRedirectUrlVisible] = useState(
@@ -622,7 +627,7 @@ export const EventAdvancedTab = ({
   const TimezoneSelect = TimezoneSelectProp ?? WebTimezoneSelect;
 
   return (
-    <div className="stack-y-4 flex flex-col">
+    <div className="flex flex-col stack-y-4">
       <calendarComponents.CalendarSettings
         verifiedSecondaryEmails={verifiedSecondaryEmails}
         userEmail={userEmail}
@@ -646,9 +651,9 @@ export const EventAdvancedTab = ({
         />
       )}
 
-      <div className="border-subtle bg-cal-muted rounded-lg border p-1">
+      <div className="p-1 rounded-lg border border-subtle bg-cal-muted">
         <div className="p-5">
-          <div className="text-default text-sm font-semibold leading-none ltr:mr-1 rtl:ml-1">
+          <div className="text-sm font-semibold leading-none text-default ltr:mr-1 rtl:ml-1">
             {t("booking_questions_title")}
           </div>
           <p className="text-subtle wrap-break-word mt-1 max-w-[280px] text-sm sm:max-w-[500px]">
@@ -659,7 +664,7 @@ export const EventAdvancedTab = ({
             />
           </p>
         </div>
-        <div className="border-subtle bg-default rounded-lg border p-5">
+        <div className="p-5 rounded-lg border border-subtle bg-default">
           <FormBuilder
             showPhoneAndEmailToggle
             title={t("confirmation")}
@@ -690,7 +695,10 @@ export const EventAdvancedTab = ({
           name="requiresCancellationReason"
           render={({ field: { value, onChange } }) => {
             const cancellationReasonOptions = [
-              { value: CancellationReasonRequirement.MANDATORY_BOTH, label: t("mandatory_for_both") },
+              {
+                value: CancellationReasonRequirement.MANDATORY_BOTH,
+                label: t("mandatory_for_both"),
+              },
               {
                 value: CancellationReasonRequirement.MANDATORY_HOST_ONLY,
                 label: t("mandatory_for_host_only"),
@@ -699,18 +707,28 @@ export const EventAdvancedTab = ({
                 value: CancellationReasonRequirement.MANDATORY_ATTENDEE_ONLY,
                 label: t("mandatory_for_attendee_only"),
               },
-              { value: CancellationReasonRequirement.OPTIONAL_BOTH, label: t("optional_for_both") },
+              {
+                value: CancellationReasonRequirement.OPTIONAL_BOTH,
+                label: t("optional_for_both"),
+              },
             ];
             return (
-              <div className="border-subtle rounded-lg border px-4 py-6 sm:px-6">
-                <div className="flex items-center justify-between">
+              <div className="px-4 py-6 rounded-lg border border-subtle sm:px-6">
+                <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-default text-sm font-semibold">{t("require_cancellation_reason")}</p>
-                    <p className="text-default text-sm">{t("require_cancellation_reason_description")}</p>
+                    <p className="text-sm font-semibold text-default">
+                      {t("require_cancellation_reason")}
+                    </p>
+                    <p className="text-sm text-default">
+                      {t("require_cancellation_reason_description")}
+                    </p>
                   </div>
                   <Select
                     value={cancellationReasonOptions.find(
-                      (opt) => opt.value === (value || CancellationReasonRequirement.MANDATORY_HOST_ONLY)
+                      (opt) =>
+                        opt.value ===
+                        (value ||
+                          CancellationReasonRequirement.MANDATORY_HOST_ONLY)
                     )}
                     options={cancellationReasonOptions}
                     onChange={(selected) => onChange(selected?.value)}
@@ -736,27 +754,67 @@ export const EventAdvancedTab = ({
         <>
           <Controller
             name="disabledCancelling"
-            render={({ field: { onChange, value } }) => (
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_cancelling")}
-                data-testid="disable-cancelling-toggle"
-                {...disableCancellingLocked}
-                description={
-                  <LearnMoreLink
-                    t={t}
-                    i18nKey="description_disable_cancelling"
-                    href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-cancelling"
-                  />
-                }
-                checked={value}
-                onCheckedChange={(val) => {
-                  onChange(val);
-                }}
-              />
-            )}
+            render={({ field: { onChange, value } }) => {
+              const disableCancellingScopeOptions = [
+                {
+                  value: DisableCancelRescheduleScope.HOST_AND_ATTENDEE,
+                  label: t("disable_scope_host_and_attendee"),
+                },
+                {
+                  value: DisableCancelRescheduleScope.ATTENDEE_ONLY,
+                  label: t("disable_scope_attendee_only"),
+                },
+              ];
+              return (
+                <SettingsToggle
+                  labelClassName="text-sm"
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName={classNames(
+                    "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                    value && "rounded-b-none"
+                  )}
+                  childrenClassName="lg:ml-0"
+                  title={t("disable_cancelling")}
+                  data-testid="disable-cancelling-toggle"
+                  {...disableCancellingLocked}
+                  description={
+                    <LearnMoreLink
+                      t={t}
+                      i18nKey="description_disable_cancelling"
+                      href="https://cal.com/help/event-types/disable-canceling-rescheduling#disable-cancelling"
+                    />
+                  }
+                  checked={value}
+                  onCheckedChange={(val) => {
+                    onChange(val);
+                  }}
+                >
+                  {value && (
+                    <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
+                      <Controller
+                        name="disableCancellingScope"
+                        render={({
+                          field: { value: scopeValue, onChange: onScopeChange },
+                        }) => (
+                          <Select
+                            value={disableCancellingScopeOptions.find(
+                              (opt) =>
+                                opt.value ===
+                                (scopeValue || DisableCancelRescheduleScope.HOST_AND_ATTENDEE)
+                            )}
+                            options={disableCancellingScopeOptions}
+                            onChange={(selected) =>
+                              onScopeChange(selected?.value)
+                            }
+                            className="w-52"
+                          />
+                        )}
+                      />
+                    </div>
+                  )}
+                </SettingsToggle>
+              );
+            }}
           />
 
           <DisableReschedulingController
@@ -1097,7 +1155,7 @@ export const EventAdvancedTab = ({
                   setMultiplePrivateLinksVisible(e);
                 }}>
                 {!isManagedEventType && (
-                  <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                  <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
                     <MultiplePrivateLinksController
                       team={team}
                       bookerUrl={eventType.bookerUrl}
@@ -1318,14 +1376,14 @@ export const EventAdvancedTab = ({
               data-testid="lock-timezone-toggle"
               childrenClassName="lg:ml-0">
               {showSelector && (
-                <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
+                <div className="flex flex-col gap-6 p-6 rounded-b-lg border border-t-0 border-subtle">
                   <div>
                     <Controller
                       name="lockedTimeZone"
                       control={formMethods.control}
                       render={({ field: { value } }) => (
                         <>
-                          <Label className="text-default mb-2 block text-sm font-medium">
+                          <Label className="block mb-2 text-sm font-medium text-default">
                             <>{t("timezone")}</>
                           </Label>
                           <TimezoneSelect
@@ -1417,7 +1475,7 @@ export const EventAdvancedTab = ({
                 {isPlatform && (
                   <AddVerifiedEmail username={eventType.users[0]?.name || "there"} showToast={showToast} isPlatform={isPlatform} />
                 )}
-                <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
                   <SelectField
                     className="w-full"
                     label={t("custom_reply_to_email_title")}

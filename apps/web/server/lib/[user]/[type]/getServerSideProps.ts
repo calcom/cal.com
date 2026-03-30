@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
+import { isActionDisabledByScope } from "@calcom/features/bookings/lib/isActionDisabledByScope";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
@@ -47,7 +48,14 @@ async function processReschedule({
 
   const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
 
-  if (booking?.eventType?.disableRescheduling) {
+  if (
+    isActionDisabledByScope({
+      disableFlag: booking?.eventType?.disableRescheduling,
+      scope: booking?.eventType?.disableReschedulingScope,
+      // For [user] pages, the booking owner is the host. This is correct for individual events.
+      isHost: !!(session?.user?.id && booking?.userId === session.user.id),
+    })
+  ) {
     return {
       redirect: {
         destination: `/booking/${rescheduleUid}`,

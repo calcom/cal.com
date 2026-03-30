@@ -13,6 +13,7 @@ import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
+import { DisableCancelRescheduleScope } from "@calcom/prisma/enums";
 import { eventTypeBookingFields as eventTypeBookingFieldsSchema } from "@calcom/prisma/zod-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
@@ -96,7 +97,9 @@ export const useEventTypeForm = ({
       minimumBookingNotice: eventType.minimumBookingNotice,
       minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
       disabledCancelling: eventType.disableCancelling ?? false,
+      disableCancellingScope: eventType.disableCancellingScope ?? DisableCancelRescheduleScope.HOST_AND_ATTENDEE,
       disabledRescheduling: eventType.disableRescheduling ?? false,
+      disableReschedulingScope: eventType.disableReschedulingScope ?? DisableCancelRescheduleScope.HOST_AND_ATTENDEE,
       requiresCancellationReason: eventType.requiresCancellationReason ?? null,
       allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       hideOrganizerEmail: eventType.hideOrganizerEmail,
@@ -386,7 +389,9 @@ export const useEventTypeForm = ({
       users,
       scheduleName,
       disabledCancelling,
+      disableCancellingScope,
       disabledRescheduling,
+      disableReschedulingScope,
       requiresCancellationReason,
       ...rest
     } = input;
@@ -421,7 +426,9 @@ export const useEventTypeForm = ({
       assignAllTeamMembers,
       multiplePrivateLinks: values.multiplePrivateLinks,
       disableCancelling: disabledCancelling,
+      disableCancellingScope,
       disableRescheduling: disabledRescheduling,
+      disableReschedulingScope,
       requiresCancellationReason,
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }

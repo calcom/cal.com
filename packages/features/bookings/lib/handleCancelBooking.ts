@@ -59,6 +59,7 @@ import type { z } from "zod";
 import { BookingRepository } from "../repositories/BookingRepository";
 import { PrismaBookingAttendeeRepository } from "../repositories/PrismaBookingAttendeeRepository";
 import { isCancellationReasonRequired } from "./cancellationReason";
+import { isActionDisabledByScope } from "./isActionDisabledByScope";
 import type {
   CancelBookingMeta,
   CancelRegularBookingData,
@@ -209,15 +210,28 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  if (bookingToDelete.eventType?.disableCancelling) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "This event type does not allow cancellations",
-    });
-  }
-
   const isCancellationUserHost =
     bookingToDelete.userId === userId || bookingToDelete.user.email === cancelledBy;
+
+  if (bookingToDelete.eventType?.disableCancelling) {
+    // Only use authenticated userId for scope check — cancelledBy is untrusted user input.
+    const isAuthenticatedHost =
+      bookingToDelete.userId === userId ||
+      bookingToDelete.eventType.hosts.some((host) => host.user.id === userId);
+
+    if (
+      isActionDisabledByScope({
+        disableFlag: bookingToDelete.eventType.disableCancelling,
+        scope: bookingToDelete.eventType.disableCancellingScope,
+        isHost: !!isAuthenticatedHost,
+      })
+    ) {
+      throw new HttpError({
+        statusCode: 400,
+        message: "This event type does not allow cancellations",
+      });
+    }
+  }
 
   const isReasonRequired = isCancellationReasonRequired(
     bookingToDelete.eventType?.requiresCancellationReason,

@@ -8,6 +8,7 @@ import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import type {
   CancellationReasonRequirement,
+  DisableCancelRescheduleScope,
   MembershipRole,
   PeriodType,
   SchedulingType,
@@ -135,7 +136,9 @@ export type FormValues = {
   schedule: number | null;
   useEventLevelSelectedCalendars: boolean;
   disabledCancelling: boolean;
+  disableCancellingScope: DisableCancelRescheduleScope;
   disabledRescheduling: boolean;
+  disableReschedulingScope: DisableCancelRescheduleScope;
   requiresCancellationReason: CancellationReasonRequirement | null;
   minimumRescheduleNotice: number | null;
   periodType: PeriodType;
@@ -398,7 +401,9 @@ export type EventTypeUpdateInput = {
   onlyShowFirstAvailableSlot?: boolean;
   showOptimizedSlots?: boolean | null;
   disableCancelling?: boolean | null;
+  disableCancellingScope?: DisableCancelRescheduleScope | null;
   disableRescheduling?: boolean | null;
+  disableReschedulingScope?: DisableCancelRescheduleScope | null;
   requiresCancellationReason?: CancellationReasonRequirement | null;
   minimumRescheduleNotice?: number | null;
   seatsShowAttendees?: boolean | null;

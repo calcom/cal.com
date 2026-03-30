@@ -1578,7 +1578,9 @@ async function handler(
       seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
       customReplyToEmail: eventType.customReplyToEmail,
       disableRescheduling: eventType.disableRescheduling ?? false,
+      disableReschedulingScope: eventType.disableReschedulingScope ?? null,
       disableCancelling: eventType.disableCancelling ?? false,
+      disableCancellingScope: eventType.disableCancellingScope ?? null,
     })
     .withOrganizer({
       id: organizerUser.id,

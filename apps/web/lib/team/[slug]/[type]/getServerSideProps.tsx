@@ -1,5 +1,6 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import { isActionDisabledByScope } from "@calcom/features/bookings/lib/isActionDisabledByScope";
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
@@ -74,8 +75,21 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  if (rescheduleUid && eventData.disableRescheduling) {
-    return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
+  if (rescheduleUid) {
+    // Scope-aware: if ATTENDEE_ONLY, allow hosts to reschedule; otherwise block everyone
+    const isAttendeeOnly = eventData.disableReschedulingScope === "ATTENDEE_ONLY";
+    const session = isAttendeeOnly ? await getServerSession({ req }) : null;
+    const isHost = !!(session?.user?.email && eventData.hosts.some((h) => h.user.email === session.user.email));
+
+    if (
+      isActionDisabledByScope({
+        disableFlag: eventData.disableRescheduling,
+        scope: eventData.disableReschedulingScope,
+        isHost,
+      })
+    ) {
+      return { redirect: { destination: `/booking/${rescheduleUid}`, permanent: false } };
+    }
   }
 
   const eventTypeId = eventData.id;
@@ -282,6 +296,7 @@ const getTeamWithEventsData = async (
           hidden: true,
           disableCancelling: true,
           disableRescheduling: true,
+          disableReschedulingScope: true,
           allowReschedulingCancelledBookings: true,
           redirectUrlOnNoRoutingFormResponse: true,
           interfaceLanguage: true,

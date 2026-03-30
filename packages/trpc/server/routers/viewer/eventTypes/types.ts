@@ -165,7 +165,9 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     onlyShowFirstAvailableSlot: z.boolean().optional(),
     showOptimizedSlots: z.boolean().nullable().optional(),
     disableCancelling: z.boolean().nullable().optional(),
+    disableCancellingScope: z.enum(["HOST_AND_ATTENDEE", "ATTENDEE_ONLY"]).nullable().optional(),
     disableRescheduling: z.boolean().nullable().optional(),
+    disableReschedulingScope: z.enum(["HOST_AND_ATTENDEE", "ATTENDEE_ONLY"]).nullable().optional(),
     requiresCancellationReason: z
       .enum(["MANDATORY_BOTH", "MANDATORY_HOST_ONLY", "MANDATORY_ATTENDEE_ONLY", "OPTIONAL_BOTH"])
       .nullable()

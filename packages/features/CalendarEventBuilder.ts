@@ -255,7 +255,9 @@ export class CalendarEventBuilder {
         seatsShowAvailabilityCount: !!eventType.seatsShowAvailabilityCount,
         customReplyToEmail: eventType.customReplyToEmail,
         disableRescheduling: eventType.disableRescheduling ?? false,
+        disableReschedulingScope: eventType.disableReschedulingScope ?? null,
         disableCancelling: eventType.disableCancelling ?? false,
+        disableCancellingScope: eventType.disableCancellingScope ?? null,
       })
       .withOrganizer(organizerPerson)
       .withAttendees(attendeesList)
@@ -418,7 +420,9 @@ export class CalendarEventBuilder {
     seatsShowAvailabilityCount?: boolean | null;
     customReplyToEmail?: string | null;
     disableRescheduling?: boolean;
+    disableReschedulingScope?: string | null;
     disableCancelling?: boolean;
+    disableCancellingScope?: string | null;
   }) {
     this.event = {
       ...this.event,
@@ -435,7 +439,9 @@ export class CalendarEventBuilder {
       seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
       customReplyToEmail: eventType.customReplyToEmail,
       disableRescheduling: eventType.disableRescheduling ?? false,
+      disableReschedulingScope: eventType.disableReschedulingScope ?? null,
       disableCancelling: eventType.disableCancelling ?? false,
+      disableCancellingScope: eventType.disableCancellingScope ?? null,
     };
     return this;
   }

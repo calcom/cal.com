@@ -153,6 +153,11 @@ enum CancellationReasonRequirement {
   OPTIONAL_BOTH
 }
 
+enum DisableCancelRescheduleScope {
+  HOST_AND_ATTENDEE
+  ATTENDEE_ONLY
+}
+
 model EventType {
   id                Int     @id @default(autoincrement())
   /// @zod.string.min(1)
@@ -208,41 +213,43 @@ model EventType {
   requiresBookerEmailVerification    Boolean                @default(false)
   canSendCalVideoTranscriptionEmails Boolean                @default(true)
 
-  autoTranslateDescriptionEnabled          Boolean                   @default(false)
-  autoTranslateInstantMeetingTitleEnabled  Boolean                   @default(true)
+  autoTranslateDescriptionEnabled          Boolean                       @default(false)
+  autoTranslateInstantMeetingTitleEnabled  Boolean                       @default(true)
   /// @zod.import(["import { recurringEventType } from '../../zod-utils'"]).custom.use(recurringEventType)
   recurringEvent                           Json?
-  disableGuests                            Boolean                   @default(false)
-  hideCalendarNotes                        Boolean                   @default(false)
-  hideCalendarEventDetails                 Boolean                   @default(false)
+  disableGuests                            Boolean                       @default(false)
+  hideCalendarNotes                        Boolean                       @default(false)
+  hideCalendarEventDetails                 Boolean                       @default(false)
   /// @zod.number.min(0)
-  minimumBookingNotice                     Int                       @default(120)
-  beforeEventBuffer                        Int                       @default(0)
-  afterEventBuffer                         Int                       @default(0)
+  minimumBookingNotice                     Int                           @default(120)
+  beforeEventBuffer                        Int                           @default(0)
+  afterEventBuffer                         Int                           @default(0)
   seatsPerTimeSlot                         Int?
-  onlyShowFirstAvailableSlot               Boolean                   @default(false)
-  showOptimizedSlots                       Boolean?                  @default(false)
-  disableCancelling                        Boolean?                  @default(false)
-  disableRescheduling                      Boolean?                  @default(false)
+  onlyShowFirstAvailableSlot               Boolean                       @default(false)
+  showOptimizedSlots                       Boolean?                      @default(false)
+  disableCancelling                        Boolean?                      @default(false)
+  disableCancellingScope                   DisableCancelRescheduleScope? @default(HOST_AND_ATTENDEE)
+  disableRescheduling                      Boolean?                      @default(false)
+  disableReschedulingScope                 DisableCancelRescheduleScope? @default(HOST_AND_ATTENDEE)
   /// @zod.number.min(0)
   minimumRescheduleNotice                  Int?
-  seatsShowAttendees                       Boolean?                  @default(false)
-  seatsShowAvailabilityCount               Boolean?                  @default(true)
+  seatsShowAttendees                       Boolean?                      @default(false)
+  seatsShowAvailabilityCount               Boolean?                      @default(true)
   schedulingType                           SchedulingType?
-  schedule                                 Schedule?                 @relation(fields: [scheduleId], references: [id])
+  schedule                                 Schedule?                     @relation(fields: [scheduleId], references: [id])
   scheduleId                               Int?
-  allowReschedulingCancelledBookings       Boolean?                  @default(false)
+  allowReschedulingCancelledBookings       Boolean?                      @default(false)
   // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
-  price                                    Int                       @default(0)
+  price                                    Int                           @default(0)
   // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
-  currency                                 String                    @default("usd")
+  currency                                 String                        @default("usd")
   slotInterval                             Int?
   /// @zod.import(["import { EventTypeMetaDataSchema } from '../../zod-utils'"]).custom.use(EventTypeMetaDataSchema)
   metadata                                 Json?
   /// @zod.import(["import { successRedirectUrl } from '../../zod-utils'"]).custom.use(successRedirectUrl)
   successRedirectUrl                       String?
   successRedirectUrlUpdatedAt              DateTime?
-  forwardParamsSuccessRedirect             Boolean?                  @default(true)
+  forwardParamsSuccessRedirect             Boolean?                      @default(true)
   /// @zod.import(["import { successRedirectUrl } from '../../zod-utils'"]).custom.use(successRedirectUrl)
   redirectUrlOnNoRoutingFormResponse       String?
   workflows                                WorkflowsOnEventTypes[]
@@ -250,27 +257,27 @@ model EventType {
   bookingLimits                            Json?
   /// @zod.import(["import { intervalLimitsType } from '../../zod-utils'"]).custom.use(intervalLimitsType)
   durationLimits                           Json?
-  isInstantEvent                           Boolean                   @default(false)
-  instantMeetingExpiryTimeOffsetInSeconds  Int                       @default(90)
+  isInstantEvent                           Boolean                       @default(false)
+  instantMeetingExpiryTimeOffsetInSeconds  Int                           @default(90)
   instantMeetingScheduleId                 Int?
-  instantMeetingSchedule                   Schedule?                 @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
+  instantMeetingSchedule                   Schedule?                     @relation("InstantMeetingSchedule", fields: [instantMeetingScheduleId], references: [id])
   instantMeetingParameters                 String[]
-  assignAllTeamMembers                     Boolean                   @default(false)
+  assignAllTeamMembers                     Boolean                       @default(false)
   // It is applicable only when assignAllTeamMembers is true and it filters out all the team members using rrSegmentQueryValue
-  assignRRMembersUsingSegment              Boolean                   @default(false)
+  assignRRMembersUsingSegment              Boolean                       @default(false)
   /// @zod.import(["import { rrSegmentQueryValueSchema } from '../../zod-utils'"]).custom.use(rrSegmentQueryValueSchema)
   rrSegmentQueryValue                      Json?
-  useEventTypeDestinationCalendarEmail     Boolean                   @default(false)
+  useEventTypeDestinationCalendarEmail     Boolean                       @default(false)
   aiPhoneCallConfig                        AIPhoneCallConfiguration?
-  isRRWeightsEnabled                       Boolean                   @default(false)
+  isRRWeightsEnabled                       Boolean                       @default(false)
   fieldTranslations                        EventTypeTranslation[]
   maxLeadThreshold                         Int?
-  includeNoShowInRRCalculation             Boolean                   @default(false)
+  includeNoShowInRRCalculation             Boolean                       @default(false)
   selectedCalendars                        SelectedCalendar[]
-  allowReschedulingPastBookings            Boolean                   @default(false)
-  hideOrganizerEmail                       Boolean                   @default(false)
+  allowReschedulingPastBookings            Boolean                       @default(false)
+  hideOrganizerEmail                       Boolean                       @default(false)
   maxActiveBookingsPerBooker               Int?
-  maxActiveBookingPerBookerOfferReschedule Boolean                   @default(false)
+  maxActiveBookingPerBookerOfferReschedule Boolean                       @default(false)
   /// @zod.import(["import { emailSchema } from '../../zod-utils'"]).custom.use(emailSchema)
   customReplyToEmail                       String?
   calVideoSettings                         CalVideoSettings?

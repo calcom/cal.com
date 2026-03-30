@@ -1,4 +1,5 @@
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
+import { isActionDisabledByScope } from "@calcom/features/bookings/lib/isActionDisabledByScope";
 import type { getEventLocationValue } from "@calcom/app-store/locations";
 import { getSuccessPageLocationMessage, guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -200,8 +201,21 @@ function BookingListItem(booking: BookingItemProps) {
   );
   const provider = guessEventLocationType(location);
 
-  const isDisabledCancelling = booking.eventType.disableCancelling;
-  const isDisabledRescheduling = booking.eventType.disableRescheduling;
+  const isHost =
+    booking.loggedInUser.userId === booking.user?.id ||
+    booking.eventType.hosts?.some((h) => h.user?.id === booking.loggedInUser.userId);
+
+  // Scope-aware disable checks: when scope is ATTENDEE_ONLY, hosts can still cancel/reschedule
+  const isDisabledCancelling = isActionDisabledByScope({
+    disableFlag: booking.eventType.disableCancelling,
+    scope: booking.eventType.disableCancellingScope,
+    isHost: !!isHost,
+  });
+  const isDisabledRescheduling = isActionDisabledByScope({
+    disableFlag: booking.eventType.disableRescheduling,
+    scope: booking.eventType.disableReschedulingScope,
+    isHost: !!isHost,
+  });
   const cardCharged = booking?.payment[0]?.success;
 
   const getSeatReferenceUid = () => {

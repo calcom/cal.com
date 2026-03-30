@@ -1,17 +1,24 @@
-import * as RadioGroup from "@radix-ui/react-radio-group";
-import { useEffect, useRef, useState } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { DisableCancelRescheduleScope } from "@calcom/prisma/enums";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
-import type { EventTypeSetup, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import type {
+  EventTypeSetup,
+  FormValues,
+  SettingsToggleClassNames,
+} from "@calcom/features/eventtypes/lib/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
-import { Input } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import {
+  Input,
+  Label,
+  Select,
+  SettingsToggle,
+} from "@calcom/ui/components/form";
 import { RadioField } from "@calcom/ui/components/radio";
+import * as RadioGroup from "@radix-ui/react-radio-group";
+import { useEffect, useRef, useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
 
 export type DisableReschedulingCustomClassNames = SettingsToggleClassNames & {
   radioGroupContainer?: string;
@@ -38,15 +45,23 @@ export default function DisableReschedulingController({
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
-  const currentMinimumRescheduleNotice = formMethods.watch("minimumRescheduleNotice");
-  const [minimumRescheduleNoticeValue, setMinimumRescheduleNoticeValue] = useState<number>(
-    currentMinimumRescheduleNotice && currentMinimumRescheduleNotice > 0 ? currentMinimumRescheduleNotice : 60
+  const currentMinimumRescheduleNotice = formMethods.watch(
+    "minimumRescheduleNotice"
   );
-  const radioGroupOnValueChangeRef = useRef<((val: string) => void) | null>(null);
+  const [minimumRescheduleNoticeValue, setMinimumRescheduleNoticeValue] =
+    useState<number>(
+      currentMinimumRescheduleNotice && currentMinimumRescheduleNotice > 0
+        ? currentMinimumRescheduleNotice
+        : 60
+    );
+  const radioGroupOnValueChangeRef = useRef<((val: string) => void) | null>(
+    null
+  );
 
   const [shouldShowRadioButtons, setShouldShowRadioButtons] = useState(
     disableRescheduling ||
-      (currentMinimumRescheduleNotice !== null && currentMinimumRescheduleNotice > 0) ||
+      (currentMinimumRescheduleNotice !== null &&
+        currentMinimumRescheduleNotice > 0) ||
       eventType.disableRescheduling === true ||
       false
   );
@@ -56,9 +71,17 @@ export default function DisableReschedulingController({
     }
   }, [currentMinimumRescheduleNotice]);
 
-  const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
-  const disableReschedulingLocked = shouldLockDisableProps("disableRescheduling");
-  const minimumRescheduleNoticeLocked = shouldLockDisableProps("minimumRescheduleNotice");
+  const { shouldLockDisableProps } = useLockedFieldsManager({
+    eventType,
+    translate: t,
+    formMethods,
+  });
+  const disableReschedulingLocked = shouldLockDisableProps(
+    "disableRescheduling"
+  );
+  const minimumRescheduleNoticeLocked = shouldLockDisableProps(
+    "minimumRescheduleNotice"
+  );
 
   return (
     <div className="block items-start sm:flex">
@@ -75,7 +98,10 @@ export default function DisableReschedulingController({
                 shouldShowRadioButtons && "rounded-b-none",
                 customClassNames?.container
               )}
-              childrenClassName={classNames("lg:ml-0", customClassNames?.children)}
+              childrenClassName={classNames(
+                "lg:ml-0",
+                customClassNames?.children
+              )}
               descriptionClassName={customClassNames?.description}
               title={t("disable_rescheduling")}
               data-testid="disable-rescheduling-toggle"
@@ -93,49 +119,100 @@ export default function DisableReschedulingController({
                 if (val) {
                   onChange(true);
                   onDisableRescheduling(true);
-                  formMethods.setValue("minimumRescheduleNotice", null, { shouldDirty: true });
+                  formMethods.setValue("minimumRescheduleNotice", null, {
+                    shouldDirty: true,
+                  });
                   setShouldShowRadioButtons(true);
                 } else {
                   onChange(false);
                   onDisableRescheduling(false);
-                  formMethods.setValue("minimumRescheduleNotice", null, { shouldDirty: true });
+                  formMethods.setValue("minimumRescheduleNotice", null, {
+                    shouldDirty: true,
+                  });
                   setShouldShowRadioButtons(false);
                 }
-              }}>
+              }}
+            >
               {shouldShowRadioButtons && (
-                <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
+                  <Controller
+                    name="disableReschedulingScope"
+                    render={({
+                      field: { value: scopeValue, onChange: onScopeChange },
+                    }) => {
+                      const disableReschedulingScopeOptions = [
+                        {
+                          value: DisableCancelRescheduleScope.HOST_AND_ATTENDEE,
+                          label: t("disable_scope_host_and_attendee"),
+                        },
+                        {
+                          value: DisableCancelRescheduleScope.ATTENDEE_ONLY,
+                          label: t("disable_scope_attendee_only"),
+                        },
+                      ];
+                      return (
+                        <div className="mb-4">
+                          <Select
+                            value={disableReschedulingScopeOptions.find(
+                              (opt) =>
+                                opt.value ===
+                                (scopeValue || DisableCancelRescheduleScope.HOST_AND_ATTENDEE)
+                            )}
+                            options={disableReschedulingScopeOptions}
+                            onChange={(selected) =>
+                              onScopeChange(selected?.value)
+                            }
+                            className="w-52"
+                          />
+                        </div>
+                      );
+                    }}
+                  />
                   <RadioGroup.Root
                     value={
                       disableRescheduling
                         ? "always"
-                        : currentMinimumRescheduleNotice !== null && currentMinimumRescheduleNotice > 0
-                          ? "notice"
-                          : "always"
+                        : currentMinimumRescheduleNotice !== null &&
+                          currentMinimumRescheduleNotice > 0
+                        ? "notice"
+                        : "always"
                     }
                     onValueChange={(val) => {
                       const handler = (val: string) => {
                         if (val === "always") {
                           onChange(true);
                           onDisableRescheduling(true);
-                          formMethods.setValue("minimumRescheduleNotice", null, { shouldDirty: true });
+                          formMethods.setValue(
+                            "minimumRescheduleNotice",
+                            null,
+                            { shouldDirty: true }
+                          );
                           setMinimumRescheduleNoticeValue(0);
                         } else if (val === "notice") {
                           onChange(false);
                           onDisableRescheduling(false);
                           const valueToSet =
-                            minimumRescheduleNoticeValue > 0 ? minimumRescheduleNoticeValue : 60;
-                          formMethods.setValue("minimumRescheduleNotice", valueToSet, { shouldDirty: true });
+                            minimumRescheduleNoticeValue > 0
+                              ? minimumRescheduleNoticeValue
+                              : 60;
+                          formMethods.setValue(
+                            "minimumRescheduleNotice",
+                            valueToSet,
+                            { shouldDirty: true }
+                          );
                           setMinimumRescheduleNoticeValue(valueToSet);
                         }
                       };
                       radioGroupOnValueChangeRef.current = handler;
                       handler(val);
-                    }}>
+                    }}
+                  >
                     <div
                       className={classNames(
                         "flex flex-col flex-wrap justify-start gap-y-2",
                         customClassNames?.radioGroupContainer
-                      )}>
+                      )}
+                    >
                       <RadioField
                         label={t("always")}
                         disabled={minimumRescheduleNoticeLocked.disabled}
@@ -147,7 +224,8 @@ export default function DisableReschedulingController({
                         disabled={minimumRescheduleNoticeLocked.disabled}
                         className={classNames(
                           "items-center",
-                          customClassNames?.conditionalRescheduleRadio?.container
+                          customClassNames?.conditionalRescheduleRadio
+                            ?.container
                         )}
                         label={
                           <>
@@ -157,27 +235,38 @@ export default function DisableReschedulingController({
                               components={[
                                 <div
                                   key="when_less_than_minutes_before_meeting"
-                                  className="mx-2 inline-flex items-center">
+                                  className="inline-flex items-center mx-2"
+                                >
                                   <Input
                                     type="number"
                                     min={1}
-                                    disabled={minimumRescheduleNoticeLocked.disabled}
+                                    disabled={
+                                      minimumRescheduleNoticeLocked.disabled
+                                    }
                                     onChange={(evt) => {
                                       const val = Number(evt.target?.value);
                                       if (val > 0) {
                                         setMinimumRescheduleNoticeValue(val);
-                                        formMethods.setValue("minimumRescheduleNotice", val, {
-                                          shouldDirty: true,
-                                        });
-                                        radioGroupOnValueChangeRef.current?.("notice");
+                                        formMethods.setValue(
+                                          "minimumRescheduleNotice",
+                                          val,
+                                          {
+                                            shouldDirty: true,
+                                          }
+                                        );
+                                        radioGroupOnValueChangeRef.current?.(
+                                          "notice"
+                                        );
                                       }
                                     }}
                                     className={classNames(
                                       "border-default m-0! block w-20 text-sm [appearance:textfield] focus:z-10",
-                                      customClassNames?.conditionalRescheduleRadio?.timeInput
+                                      customClassNames
+                                        ?.conditionalRescheduleRadio?.timeInput
                                     )}
                                     defaultValue={
-                                      currentMinimumRescheduleNotice && currentMinimumRescheduleNotice > 0
+                                      currentMinimumRescheduleNotice &&
+                                      currentMinimumRescheduleNotice > 0
                                         ? currentMinimumRescheduleNotice
                                         : 60
                                     }

@@ -97,7 +97,9 @@ export async function getBooking(bookingId: number) {
           seatsPerTimeSlot: true,
           seatsShowAttendees: true,
           disableCancelling: true,
+          disableCancellingScope: true,
           disableRescheduling: true,
+          disableReschedulingScope: true,
         },
       },
       metadata: true,
@@ -227,7 +229,9 @@ export async function getBooking(bookingId: number) {
         } satisfies EventTypeBrandingData)
       : false,
     disableCancelling: booking.eventType?.disableCancelling ?? false,
+    disableCancellingScope: booking.eventType?.disableCancellingScope ?? null,
     disableRescheduling: booking.eventType?.disableRescheduling ?? false,
+    disableReschedulingScope: booking.eventType?.disableReschedulingScope ?? null,
   };
 
   return {

@@ -1,3 +1,4 @@
+import { isActionDisabledByScope } from "@calcom/features/bookings/lib/isActionDisabledByScope";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -194,16 +195,26 @@ export function BookingActionsDropdown({
   const userSeat = booking.seatsReferences.find((seat) => !!userEmail && seat.attendee?.email === userEmail);
   const isAttendee = !!userSeat;
 
-  // Check if the logged-in user is the host/owner of the booking
-  const isHost = booking.loggedInUser.userId === booking.user?.id;
+  const isHost =
+    booking.loggedInUser.userId === booking.user?.id ||
+    !!booking.eventType.hosts?.some((h) => h.user?.id === booking.loggedInUser.userId);
 
   const isCalVideoLocation =
     !booking.location ||
     booking.location === "integrations:daily" ||
     (typeof booking.location === "string" && booking.location.trim() === "");
 
-  const isDisabledCancelling = booking.eventType.disableCancelling;
-  const isDisabledRescheduling = booking.eventType.disableRescheduling;
+  // Scope-aware disable checks: when scope is ATTENDEE_ONLY, hosts can still cancel/reschedule
+  const isDisabledCancelling = isActionDisabledByScope({
+    disableFlag: booking.eventType.disableCancelling,
+    scope: booking.eventType.disableCancellingScope,
+    isHost,
+  });
+  const isDisabledRescheduling = isActionDisabledByScope({
+    disableFlag: booking.eventType.disableRescheduling,
+    scope: booking.eventType.disableReschedulingScope,
+    isHost,
+  });
 
   const getSeatReferenceUid = () => {
     return userSeat?.referenceUid;

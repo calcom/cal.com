@@ -1,3 +1,4 @@
+import { isActionDisabledByScope } from "@calcom/features/bookings/lib/isActionDisabledByScope";
 import { getBookingUrl, getCancelLink, getRescheduleLink } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -32,8 +33,21 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
 
   const isOriginalAttendee = props.attendee.email === props.calEvent.attendees[0]?.email;
   const isOrganizer = props.calEvent.organizer.email === props.attendee.email;
-  const hasCancelLink = Boolean(cancelLink) && !props.calEvent.disableCancelling;
-  const hasRescheduleLink = Boolean(rescheduleLink) && !props.calEvent.disableRescheduling;
+  // Scope-aware disable checks: when scope is ATTENDEE_ONLY, organizers can still cancel/reschedule
+  const hasCancelLink =
+    Boolean(cancelLink) &&
+    !isActionDisabledByScope({
+      disableFlag: props.calEvent.disableCancelling,
+      scope: props.calEvent.disableCancellingScope,
+      isHost: isOrganizer,
+    });
+  const hasRescheduleLink =
+    Boolean(rescheduleLink) &&
+    !isActionDisabledByScope({
+      disableFlag: props.calEvent.disableRescheduling,
+      scope: props.calEvent.disableReschedulingScope,
+      isHost: isOrganizer,
+    });
   const hasBookingLink = Boolean(bookingLink);
   const isRecurringEvent = props.calEvent.recurringEvent;
   const shouldDisplayRescheduleLink = Boolean(hasRescheduleLink && !isRecurringEvent);

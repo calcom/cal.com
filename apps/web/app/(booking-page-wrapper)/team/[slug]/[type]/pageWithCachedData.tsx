@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, type GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { isActionDisabledByScope } from "@calcom/features/bookings/lib/isActionDisabledByScope";
 import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import type { TeamData } from "@calcom/features/ee/teams/lib/getTeamData";
@@ -159,7 +160,18 @@ const CachedTeamBooker = async ({ params, searchParams }: PageProps) => {
   if (rescheduleUid) {
     const session = await getServerSession({ req: legacyCtx.req });
     bookingForReschedule = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-    if (enrichedEventType.disableRescheduling) return redirect(`/booking/${rescheduleUid}`);
+    // Scope-aware: if ATTENDEE_ONLY, allow hosts to reschedule; otherwise block everyone
+    if (
+      isActionDisabledByScope({
+        disableFlag: enrichedEventType.disableRescheduling,
+        scope: enrichedEventType.disableReschedulingScope,
+        isHost: !!(
+          session?.user?.id && enrichedEventType.hosts?.some((h) => h.user.id === session.user.id)
+        ),
+      })
+    ) {
+      return redirect(`/booking/${rescheduleUid}`);
+    }
 
     if (
       bookingForReschedule?.status === BookingStatus.CANCELLED &&

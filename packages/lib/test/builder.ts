@@ -2,7 +2,7 @@ import getICalUID from "@calcom/emails/lib/getICalUID";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import type { Booking, BookingReference, EventType, Prisma, Webhook } from "@calcom/prisma/client";
-import { BookingStatus, CreationSource } from "@calcom/prisma/enums";
+import { BookingStatus, CreationSource, DisableCancelRescheduleScope } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 import { faker } from "@faker-js/faker";
 import type { TFunction } from "i18next";
@@ -127,7 +127,9 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     seatsPerTimeSlot: null,
     seatsShowAttendees: null,
     disableCancelling: false,
+    disableCancellingScope: DisableCancelRescheduleScope.HOST_AND_ATTENDEE,
     disableRescheduling: false,
+    disableReschedulingScope: DisableCancelRescheduleScope.HOST_AND_ATTENDEE,
     minimumRescheduleNotice: null,
     allowReschedulingCancelledBookings: false,
     seatsShowAvailabilityCount: null,

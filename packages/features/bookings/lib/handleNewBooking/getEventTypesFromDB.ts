@@ -22,8 +22,10 @@ const getEventTypesFromDBSelect = {
   restrictionScheduleId: true,
   useBookerTimezone: true,
   disableRescheduling: true,
+  disableReschedulingScope: true,
   minimumRescheduleNotice: true,
   disableCancelling: true,
+  disableCancellingScope: true,
   users: {
     select: {
       credentials: {

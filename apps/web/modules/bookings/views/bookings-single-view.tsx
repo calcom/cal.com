@@ -22,6 +22,7 @@ import {
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
+import { isActionDisabledByScope } from "@calcom/features/bookings/lib/isActionDisabledByScope";
 import { getCalendarLinks, CalendarLinkType } from "@calcom/features/bookings/lib/getCalendarLinks";
 import { RATING_OPTIONS, validateRating } from "@calcom/features/bookings/lib/rating";
 import { isWithinMinimumRescheduleNotice as isWithinMinimumRescheduleNoticeUtil } from "@calcom/features/bookings/lib/reschedule/isWithinMinimumRescheduleNotice";
@@ -398,10 +399,18 @@ export default function Success(props: PageProps) {
   const isRerouting = searchParams?.get("cal.rerouting") === "true";
   const isRescheduled = bookingInfo?.rescheduled;
 
-  const canCancelOrReschedule = !eventType?.disableCancelling || !eventType?.disableRescheduling;
-
-  const canCancel = !eventType?.disableCancelling;
-  const canReschedule = !eventType?.disableRescheduling;
+  // Scope-aware disable checks: when scope is ATTENDEE_ONLY, hosts can still cancel/reschedule
+  const canCancel = !isActionDisabledByScope({
+    disableFlag: eventType?.disableCancelling,
+    scope: eventType?.disableCancellingScope,
+    isHost: !!isHost,
+  });
+  const canReschedule = !isActionDisabledByScope({
+    disableFlag: eventType?.disableRescheduling,
+    scope: eventType?.disableReschedulingScope,
+    isHost: !!isHost,
+  });
+  const canCancelOrReschedule = canCancel || canReschedule;
 
   // Check if reschedule should be disabled due to minimum reschedule notice
   // Use server-side computed isHost prop instead of client-side computation

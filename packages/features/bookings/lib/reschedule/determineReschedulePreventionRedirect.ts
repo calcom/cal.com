@@ -6,6 +6,7 @@ import { getSafe } from "@calcom/lib/getSafe";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { JsonValue } from "@calcom/types/Json";
 
+import { isActionDisabledByScope } from "../isActionDisabledByScope";
 import { isWithinMinimumRescheduleNotice } from "./isWithinMinimumRescheduleNotice";
 
 export type ReschedulePreventionRedirectInput = {
@@ -18,6 +19,7 @@ export type ReschedulePreventionRedirectInput = {
     userId: number | null; // Booking organizer's user ID
     eventType: {
       disableRescheduling: boolean;
+      disableReschedulingScope?: string | null;
       allowReschedulingPastBookings: boolean;
       allowBookingFromCancelledBookingReschedule: boolean;
       minimumRescheduleNotice: number | null;
@@ -71,8 +73,14 @@ export function determineReschedulePreventionRedirect(
 ): ReschedulePreventionRedirectResult {
   const { booking, eventUrl, forceRescheduleForCancelledBooking, bookingSeat } = input;
 
-  const isDisabledRescheduling = booking.eventType.disableRescheduling;
-  if (isDisabledRescheduling) {
+  if (
+    isActionDisabledByScope({
+      disableFlag: booking.eventType.disableRescheduling,
+      scope: booking.eventType.disableReschedulingScope,
+      // Check both booking owner AND event type hosts for round-robin/collective support
+      isHost: !!(input.currentUserId && booking.userId && input.currentUserId === booking.userId),
+    })
+  ) {
     return `/booking/${booking.uid}`;
   }
 
