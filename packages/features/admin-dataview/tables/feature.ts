@@ -38,7 +38,7 @@ export const featureTable: TableDefinition = {
       mutation: "admin.toggleFeatureFlag",
       buildInput: (row) => ({ slug: row.slug, enabled: false }),
       condition: (row) => row.enabled === true,
-      confirm: { title: "Disable this feature flag?", description: "This may affect users who depend on this feature." },
+      confirm: { title: "Disable {{slug}}?", description: "Disabling {{slug}} may affect users who depend on this feature." },
     },
   ],
 };

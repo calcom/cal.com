@@ -73,7 +73,7 @@ export const teamTable: TableDefinition = {
       mutation: "organizations.adminVerify",
       buildInput: (row) => ({ orgId: row.id }),
       condition: (row) => row.isOrganization === true,
-      confirm: { title: "Verify this organization?", description: "This will auto-accept members and set up profiles.", confirmLabel: "Verify" },
+      confirm: { title: "Verify {{name}}?", description: "This will auto-accept all members of {{name}} and set up their profiles.", confirmLabel: "Verify" },
     },
     {
       id: "delete-org",
@@ -83,7 +83,7 @@ export const teamTable: TableDefinition = {
       mutation: "organizations.adminDelete",
       buildInput: (row) => ({ orgId: row.id }),
       condition: (row) => row.isOrganization === true,
-      confirm: { title: "Delete this organization?", description: "This is permanent and will remove all sub-teams and data.", confirmLabel: "Delete forever" },
+      confirm: { title: "Delete {{name}}?", description: "This will permanently delete {{name}} (ID: {{id}}) and all its sub-teams and data. This cannot be undone.", confirmLabel: "Delete forever" },
     },
     {
       id: "lock-sms-team",
@@ -102,6 +102,21 @@ export const teamTable: TableDefinition = {
       mutation: "admin.setSMSLockState",
       buildInput: (row) => ({ teamId: row.id, lock: false }),
       condition: (row) => row.smsLockState === "LOCKED",
+    },
+    {
+      id: "transfer-ownership",
+      label: "Transfer Ownership",
+      icon: "arrow-right",
+      variant: "default",
+      mutation: "admin.transferOwnership",
+      buildInput: (row) => ({ teamId: row.id }),
+      formId: "transfer-ownership",
+    },
+  ],
+  panels: [
+    {
+      id: "billing",
+      label: "Billing & Subscription",
     },
   ],
 };

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { readonlyPrisma } from "@calcom/prisma";
+
 import { getAdminDataViewService, getAdminTableRegistry } from "../di/container";
 
 const ZListInput = z.object({
@@ -83,5 +85,103 @@ export function createAdminDataViewRouter(
         filters: { [input.fkColumn]: input.fkValue },
       });
     }),
+
+    billingByTeamId: authedAdminProcedure
+      .input(z.object({ teamId: z.number() }))
+      .query(async ({ input }) => {
+        const { teamId } = input;
+
+        const billingSelect = {
+          id: true,
+          customerId: true,
+          subscriptionId: true,
+          status: true,
+          planName: true,
+          billingPeriod: true,
+          billingMode: true,
+          pricePerSeat: true,
+          paidSeats: true,
+          minSeats: true,
+          highWaterMark: true,
+          subscriptionStart: true,
+          subscriptionTrialEnd: true,
+          subscriptionEnd: true,
+          teamId: true,
+          createdAt: true,
+          updatedAt: true,
+          dunningStatus: {
+            select: {
+              status: true,
+              firstFailedAt: true,
+              lastFailedAt: true,
+              failureReason: true,
+              invoiceUrl: true,
+              notificationsSent: true,
+            },
+          },
+        } as const;
+
+        const [teamBilling, orgBilling, seatChanges] = await Promise.all([
+          readonlyPrisma.teamBilling.findUnique({
+            where: { teamId },
+            select: billingSelect,
+          }),
+          readonlyPrisma.organizationBilling.findUnique({
+            where: { teamId },
+            select: billingSelect,
+          }),
+          readonlyPrisma.seatChangeLog.findMany({
+            where: { teamId },
+            orderBy: { createdAt: "desc" },
+            take: 20,
+            select: {
+              id: true,
+              changeType: true,
+              seatCount: true,
+              userId: true,
+              changeDate: true,
+              monthKey: true,
+            },
+          }),
+        ]);
+
+        const billing = teamBilling ?? orgBilling;
+
+        return {
+          hasBilling: !!billing,
+          entityType: orgBilling ? "organization" : "team",
+          billing: billing
+            ? {
+                id: billing.id,
+                customerId: billing.customerId,
+                subscriptionId: billing.subscriptionId,
+                status: billing.status,
+                planName: billing.planName,
+                billingPeriod: billing.billingPeriod,
+                billingMode: billing.billingMode,
+                pricePerSeat: billing.pricePerSeat,
+                paidSeats: billing.paidSeats,
+                minSeats: billing.minSeats,
+                highWaterMark: billing.highWaterMark,
+                subscriptionStart: billing.subscriptionStart,
+                subscriptionTrialEnd: billing.subscriptionTrialEnd,
+                subscriptionEnd: billing.subscriptionEnd,
+                createdAt: billing.createdAt,
+                updatedAt: billing.updatedAt,
+                dunning: billing.dunningStatus
+                  ? {
+                      status: billing.dunningStatus.status,
+                      firstFailedAt: billing.dunningStatus.firstFailedAt,
+                      lastFailedAt: billing.dunningStatus.lastFailedAt,
+                      failureReason: billing.dunningStatus.failureReason,
+                      invoiceUrl: billing.dunningStatus.invoiceUrl,
+                      notificationsSent: billing.dunningStatus.notificationsSent,
+                    }
+                  : null,
+              }
+            : null,
+          seatChanges,
+        };
+      }),
   });
 }

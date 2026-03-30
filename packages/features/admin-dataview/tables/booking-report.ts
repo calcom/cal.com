@@ -68,7 +68,7 @@ export const bookingReportTable: TableDefinition = {
       mutation: "admin.watchlist.addToWatchlist",
       buildInput: (row) => ({ email: row.bookerEmail, type: "EMAIL", description: `Blocked from report ${row.id}` }),
       condition: (row) => row.systemStatus === "PENDING",
-      confirm: { title: "Block this booker?", description: "They will be added to the global watchlist and blocked from future bookings." },
+      confirm: { title: "Block {{bookerEmail}}?", description: "{{bookerEmail}} will be added to the global watchlist and blocked from future bookings." },
     },
   ],
 };

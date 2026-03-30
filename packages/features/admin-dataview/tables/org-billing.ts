@@ -65,7 +65,7 @@ export const orgBillingTable: TableDefinition = {
       variant: "default",
       mutation: "admin.refreshDunning",
       buildInput: (row) => ({ billingId: row.id, entityType: "organization" }),
-      confirm: { title: "Resolve dunning?", description: "This marks the payment as succeeded and moves dunning status to CURRENT." },
+      confirm: { title: "Resolve dunning for {{teamId}}?", description: "This marks the payment as succeeded and moves dunning status to CURRENT." },
     },
     {
       id: "transfer-billing-org",
@@ -74,6 +74,7 @@ export const orgBillingTable: TableDefinition = {
       variant: "default",
       mutation: "admin.transferBilling",
       buildInput: (row) => ({ billingId: row.id, entityType: "organization", mode: "preview" }),
+      formId: "transfer-billing",
     },
   ],
 };

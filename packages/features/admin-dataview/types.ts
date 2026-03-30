@@ -115,6 +115,21 @@ export interface TableDefinition {
   pageSize?: number;
   /** Actions that can be performed on records in this table */
   actions?: ActionDefinition[];
+  /** Custom panels shown in the detail view (e.g. billing, audit log) */
+  panels?: PanelDefinition[];
+}
+
+/**
+ * A custom panel rendered in the record detail view.
+ * The `id` maps to a registered panel component on the frontend.
+ */
+export interface PanelDefinition {
+  /** Must match a registered panel component (e.g. "billing") */
+  id: string;
+  /** Label shown as the panel header */
+  label: string;
+  /** Only show this panel when condition returns true */
+  condition?: (row: Record<string, unknown>) => boolean;
 }
 
 /**
@@ -145,6 +160,12 @@ export interface ActionDefinition {
     description: string;
     confirmLabel?: string;
   };
+  /**
+   * If set, this action opens a custom form component instead of
+   * calling a mutation directly. The `formId` maps to a registered
+   * form component on the frontend.
+   */
+  formId?: string;
 }
 
 /** The full registry is just a readonly array of table definitions */

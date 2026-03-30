@@ -31,7 +31,7 @@ export const watchlistTable: TableDefinition = {
       variant: "destructive",
       mutation: "admin.watchlist.delete",
       buildInput: (row) => ({ id: row.id }),
-      confirm: { title: "Delete watchlist entry?", description: "This will remove the entry from the watchlist." },
+      confirm: { title: "Delete {{value}}?", description: "This will remove {{type}} entry {{value}} from the watchlist." },
     },
   ],
 };

@@ -1,3 +1,5 @@
+import { createAdminDataViewRouter } from "@calcom/features/admin-dataview/server/trpc-router";
+
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
@@ -173,4 +175,5 @@ export const adminRouter = router({
   abuseRules: abuseRulesRouter,
   abuseScoring: abuseScoringRouter,
   watchlist: watchlistRouter,
+  dataview: createAdminDataViewRouter(router, authedAdminProcedure),
 });

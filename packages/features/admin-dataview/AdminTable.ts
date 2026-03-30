@@ -15,6 +15,7 @@ export class AdminTable {
   get category() { return this.def.category; }
   get fields() { return this.def.fields; }
   get actions() { return this.def.actions; }
+  get panels() { return this.def.panels; }
   get pageSize() { return this.def.pageSize ?? 50; }
   get defaultSort() { return this.def.defaultSort ?? this.primaryKeyColumn; }
   get defaultSortDirection() { return this.def.defaultSortDirection ?? "desc" as const; }

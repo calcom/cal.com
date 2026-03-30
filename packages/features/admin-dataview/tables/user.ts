@@ -84,7 +84,7 @@ export const userTable: TableDefinition = {
       mutation: "admin.lockUserAccount",
       buildInput: (row) => ({ userId: row.id, locked: true }),
       condition: (row) => !row.locked,
-      confirm: { title: "Lock this user?", description: "They will be unable to log in or use the platform.", confirmLabel: "Lock" },
+      confirm: { title: "Lock {{name}}?", description: "{{email}} will be unable to log in or use the platform.", confirmLabel: "Lock" },
     },
     {
       id: "unlock",
@@ -110,7 +110,7 @@ export const userTable: TableDefinition = {
       variant: "destructive",
       mutation: "admin.removeTwoFactor",
       buildInput: (row) => ({ userId: row.id }),
-      confirm: { title: "Remove two-factor auth?", description: "This will disable 2FA for this user. They can re-enable it themselves.", confirmLabel: "Remove 2FA" },
+      confirm: { title: "Remove 2FA for {{name}}?", description: "This will disable two-factor auth for {{email}}. They can re-enable it themselves.", confirmLabel: "Remove 2FA" },
     },
     {
       id: "verify-workflows",
@@ -161,7 +161,7 @@ export const userTable: TableDefinition = {
       variant: "destructive",
       mutation: "users.delete",
       buildInput: (row) => ({ userId: row.id }),
-      confirm: { title: "Permanently delete this user?", description: "This cannot be undone. All their data, bookings, and event types will be removed.", confirmLabel: "Delete forever" },
+      confirm: { title: "Delete {{name}}?", description: "This will permanently delete {{email}} (ID: {{id}}). All their data, bookings, and event types will be removed. This cannot be undone.", confirmLabel: "Delete forever" },
     },
   ],
 };
