@@ -5,11 +5,13 @@ import {
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
 import { IsUserOOO } from "@/modules/ooo/guards/is-user-ooo";
@@ -50,7 +52,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
   version: API_VERSIONS_VALUES,
 })
 @UseInterceptors(ClassSerializerInterceptor)
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @UseGuards(IsOrgGuard)
 @DocsTags("Orgs / Users / OOO")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
@@ -64,6 +66,7 @@ export class OrganizationsUsersOOOController {
   ) {}
 
   @Get("/users/:userId/ooo")
+  @Pbac(["ooo.read"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
@@ -82,6 +85,7 @@ export class OrganizationsUsersOOOController {
   }
 
   @Post("/users/:userId/ooo")
+  @Pbac(["ooo.create"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
@@ -98,6 +102,7 @@ export class OrganizationsUsersOOOController {
   }
 
   @Patch("/users/:userId/ooo/:oooId")
+  @Pbac(["ooo.update"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg, IsUserOOO)
@@ -116,6 +121,7 @@ export class OrganizationsUsersOOOController {
   }
 
   @Delete("/users/:userId/ooo/:oooId")
+  @Pbac(["ooo.delete"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg, IsUserOOO)
@@ -132,6 +138,7 @@ export class OrganizationsUsersOOOController {
   }
 
   @Get("/ooo")
+  @Pbac(["ooo.read"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Get all out-of-office entries for organization users" })

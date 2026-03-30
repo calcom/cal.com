@@ -34,11 +34,13 @@ import {
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { OrganizationsBookingsBlockService } from "@/modules/organizations/bookings/services/organizations-bookings-block.service";
 import { OrganizationsBookingsReportService } from "@/modules/organizations/bookings/services/organizations-bookings-report.service";
@@ -48,7 +50,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
   path: "/v2/organizations/:orgId/bookings",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Bookings")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -63,8 +65,13 @@ export class OrganizationsBookingsController {
   ) {}
 
   @Get("/")
-  @ApiOperation({ summary: "Get organization bookings" })
+  @ApiOperation({
+    summary: "Get organization bookings",
+    description:
+      "Required membership role: `org admin`. PBAC permission: `booking.readOrgBookings`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("ORG_ADMIN")
+  @Pbac(["booking.readOrgBookings"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["ORG_BOOKING_READ"])
   @HttpCode(HttpStatus.OK)

@@ -1,51 +1,52 @@
+import { CAL_VIDEO, GOOGLE_MEET, OFFICE_365_VIDEO, SUCCESS_STATUS, ZOOM } from "@calcom/platform-constants";
+import {
+  BadRequestException,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  Redirect,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToInstance } from "class-transformer";
+import { Request } from "express";
+import { stringify } from "querystring";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import {
+  ConferencingAppOutputResponseDto,
+  ConferencingAppsOutputDto,
+  ConferencingAppsOutputResponseDto,
+  DisconnectConferencingAppOutputResponseDto,
+} from "@/modules/conferencing/outputs/get-conferencing-apps.output";
 import {
   ConferencingAppsOauthUrlOutputDto,
   GetConferencingAppsOauthUrlResponseDto,
 } from "@/modules/conferencing/outputs/get-conferencing-apps-oauth-url";
-import {
-  ConferencingAppsOutputResponseDto,
-  ConferencingAppOutputResponseDto,
-  ConferencingAppsOutputDto,
-  DisconnectConferencingAppOutputResponseDto,
-} from "@/modules/conferencing/outputs/get-conferencing-apps.output";
 import { GetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/get-default-conferencing-app.output";
 import { SetDefaultConferencingAppOutputResponseDto } from "@/modules/conferencing/outputs/set-default-conferencing-app.output";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { OrganizationsConferencingService } from "@/modules/organizations/conferencing/services/organizations-conferencing.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  Get,
-  Query,
-  HttpCode,
-  HttpStatus,
-  UseGuards,
-  Post,
-  Param,
-  Delete,
-  Headers,
-  Req,
-  ParseIntPipe,
-  BadRequestException,
-  Redirect,
-} from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags, ApiParam } from "@nestjs/swagger";
-import { plainToInstance } from "class-transformer";
-import { Request } from "express";
-import { stringify } from "querystring";
-
-import { GOOGLE_MEET, ZOOM, SUCCESS_STATUS, OFFICE_365_VIDEO, CAL_VIDEO } from "@calcom/platform-constants";
 
 export type OAuthCallbackState = {
   accessToken: string;
@@ -71,16 +72,29 @@ export class OrganizationsConferencingController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["team.update"])
   @ApiParam({
     name: "app",
     description: "Conferencing application type",
     enum: [GOOGLE_MEET],
     required: true,
   })
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Post("/teams/:teamId/conferencing/:app/connect")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Connect your conferencing application to a team" })
+  @ApiOperation({
+    summary: "Connect your conferencing application to a team",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async connectTeamApp(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -97,16 +111,29 @@ export class OrganizationsConferencingController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @Pbac(["team.update"])
   @ApiParam({
     name: "app",
     description: "Conferencing application type",
     enum: [ZOOM, OFFICE_365_VIDEO],
     required: true,
   })
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Get("/teams/:teamId/conferencing/:app/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get OAuth conferencing app's auth URL for a team" })
+  @ApiOperation({
+    summary: "Get OAuth conferencing app's auth URL for a team",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async getTeamOAuthUrl(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
@@ -138,10 +165,23 @@ export class OrganizationsConferencingController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Pbac(["team.read"])
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Get("/teams/:teamId/conferencing")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "List team conferencing applications" })
+  @ApiOperation({
+    summary: "List team conferencing applications",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async listTeamConferencingApps(
     @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<ConferencingAppsOutputResponseDto> {
@@ -157,10 +197,23 @@ export class OrganizationsConferencingController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Pbac(["team.update"])
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Post("/teams/:teamId/conferencing/:app/default")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Set team default conferencing application" })
+  @ApiOperation({
+    summary: "Set team default conferencing application",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @ApiParam({
     name: "app",
     description: "Conferencing application type",
@@ -181,10 +234,23 @@ export class OrganizationsConferencingController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Pbac(["team.read"])
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Get("/teams/:teamId/conferencing/default")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get team default conferencing application" })
+  @ApiOperation({
+    summary: "Get team default conferencing application",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async getTeamDefaultApp(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number
@@ -198,10 +264,23 @@ export class OrganizationsConferencingController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Pbac(["team.update"])
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Delete("/teams/:teamId/conferencing/:app/disconnect")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Disconnect team conferencing application" })
+  @ApiOperation({
+    summary: "Disconnect team conferencing application",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @ApiParam({
     name: "app",
     description: "Conferencing application type",
@@ -224,10 +303,23 @@ export class OrganizationsConferencingController {
 
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @Pbac(["team.update"])
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Get("/teams/:teamId/conferencing/:app/oauth/callback")
   @Redirect(undefined, 301)
-  @ApiOperation({ summary: "Save conferencing app OAuth credentials" })
+  @ApiOperation({
+    summary: "Save conferencing app OAuth credentials",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async saveTeamOauthCredentials(
     @Query("state") state: string,
     @Query("code") code: string,

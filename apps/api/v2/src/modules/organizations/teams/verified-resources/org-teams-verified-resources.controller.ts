@@ -1,12 +1,30 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { RequestEmailVerificationInput } from "@/modules/verified-resources/inputs/request-email-verification.input";
@@ -26,28 +44,19 @@ import {
   TeamVerifiedPhonesOutput,
 } from "@/modules/verified-resources/outputs/verified-phone.output";
 import { VerifiedResourcesService } from "@/modules/verified-resources/services/verified-resources.service";
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  ParseIntPipe,
-  Post,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/verified-resources",
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(
+  ApiAuthGuard,
+  IsOrgGuard,
+  PbacGuard,
+  RolesGuard,
+  IsTeamInOrg,
+  PlatformPlanGuard,
+  IsAdminAPIEnabledGuard
+)
 @ApiTags("Organization Team Verified Resources")
 @ApiParam({ name: "orgId", type: Number, required: true })
 @ApiParam({ name: "teamId", type: Number, required: true })
@@ -55,9 +64,11 @@ export class OrgTeamsVerifiedResourcesController {
   constructor(private readonly verifiedResourcesService: VerifiedResourcesService) {}
   @ApiOperation({
     summary: "Request email verification code",
-    description: `Sends a verification code to the email`,
+    description:
+      "Sends a verification code to the email. Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
   })
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.update"])
   @Throttle({
     limit: 3,
     ttl: 60000,
@@ -85,10 +96,12 @@ export class OrgTeamsVerifiedResourcesController {
 
   @ApiOperation({
     summary: "Request phone number verification code",
-    description: `Sends a verification code to the phone number`,
+    description:
+      "Sends a verification code to the phone number. Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.update"])
   @Throttle({
     limit: 3,
     ttl: 60000,
@@ -111,10 +124,12 @@ export class OrgTeamsVerifiedResourcesController {
 
   @ApiOperation({
     summary: "Verify an email for an org team",
-    description: `Use code to verify an email`,
+    description:
+      "Use code to verify an email. Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.update"])
   @PlatformPlan("ESSENTIALS")
   @Post("/emails/verification-code/verify")
   @HttpCode(HttpStatus.OK)
@@ -137,10 +152,12 @@ export class OrgTeamsVerifiedResourcesController {
 
   @ApiOperation({
     summary: "Verify a phone number for an org team",
-    description: `Use code to verify a phone number`,
+    description:
+      "Use code to verify a phone number. Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.update"])
   @PlatformPlan("ESSENTIALS")
   @Post("/phones/verification-code/verify")
   @Throttle({
@@ -169,9 +186,12 @@ export class OrgTeamsVerifiedResourcesController {
 
   @ApiOperation({
     summary: "Get list of verified emails of an org team",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.read"])
   @PlatformPlan("ESSENTIALS")
   @Get("/emails")
   @HttpCode(HttpStatus.OK)
@@ -192,11 +212,14 @@ export class OrgTeamsVerifiedResourcesController {
 
   @ApiOperation({
     summary: "Get list of verified phone numbers of an org team",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @PlatformPlan("ESSENTIALS")
   @Get("/phones")
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.read"])
   @HttpCode(HttpStatus.OK)
   async getVerifiedPhoneNumbers(
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -217,9 +240,12 @@ export class OrgTeamsVerifiedResourcesController {
 
   @ApiOperation({
     summary: "Get verified email of an org team by id",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.read"])
   @PlatformPlan("ESSENTIALS")
   @Get("/emails/:id")
   @HttpCode(HttpStatus.OK)
@@ -236,9 +262,12 @@ export class OrgTeamsVerifiedResourcesController {
 
   @ApiOperation({
     summary: "Get verified phone number of an org team by id",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
   })
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Roles("TEAM_ADMIN")
+  @Pbac(["team.read"])
   @PlatformPlan("ESSENTIALS")
   @Get("/phones/:id")
   @HttpCode(HttpStatus.OK)

@@ -1,3 +1,18 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
@@ -6,11 +21,13 @@ import {
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { IsEventTypeWorkflowInTeam } from "@/modules/auth/guards/workflows/is-event-type-workflow-in-team";
@@ -21,8 +38,8 @@ import { CreateFormWorkflowDto } from "@/modules/workflows/inputs/create-form-wo
 import { UpdateEventTypeWorkflowDto } from "@/modules/workflows/inputs/update-event-type-workflow.input";
 import { UpdateFormWorkflowDto } from "@/modules/workflows/inputs/update-form-workflow.input";
 import {
-  GetEventTypeWorkflowsOutput,
   GetEventTypeWorkflowOutput,
+  GetEventTypeWorkflowsOutput,
 } from "@/modules/workflows/outputs/event-type-workflow.output";
 import {
   GetRoutingFormWorkflowOutput,
@@ -30,29 +47,21 @@ import {
 } from "@/modules/workflows/outputs/routing-form-workflow.output";
 import { TeamEventTypeWorkflowsService } from "@/modules/workflows/services/team-event-type-workflows.service";
 import { TeamRoutingFormWorkflowsService } from "@/modules/workflows/services/team-routing-form-workflows.service";
-import {
-  Controller,
-  Get,
-  Patch,
-  Post,
-  Param,
-  ParseIntPipe,
-  Query,
-  UseGuards,
-  Body,
-  Delete,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/workflows",
   version: API_VERSIONS_VALUES,
 })
 @ApiTags("Orgs / Teams / Workflows")
-@UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, PlatformPlanGuard, RolesGuard, IsAdminAPIEnabledGuard)
+@UseGuards(
+  ApiAuthGuard,
+  IsOrgGuard,
+  IsTeamInOrg,
+  PbacGuard,
+  RolesGuard,
+  PlatformPlanGuard,
+  IsAdminAPIEnabledGuard
+)
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
@@ -65,8 +74,13 @@ export class OrganizationTeamWorkflowsController {
   ) {}
 
   @Get("/")
-  @ApiOperation({ summary: "Get organization team workflows" })
+  @ApiOperation({
+    summary: "Get organization team workflows",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `workflow.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_ADMIN")
+  @Pbac(["workflow.read"])
   @PlatformPlan("SCALE")
   async getWorkflows(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -81,8 +95,13 @@ export class OrganizationTeamWorkflowsController {
   }
 
   @Get("/routing-form")
-  @ApiOperation({ summary: "Get organization team workflows" })
+  @ApiOperation({
+    summary: "Get organization team workflows",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `workflow.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_ADMIN")
+  @Pbac(["workflow.read"])
   @PlatformPlan("SCALE")
   async getRoutingFormWorkflows(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -98,8 +117,13 @@ export class OrganizationTeamWorkflowsController {
 
   @Get("/:workflowId")
   @UseGuards(IsEventTypeWorkflowInTeam)
-  @ApiOperation({ summary: "Get organization team workflow" })
+  @ApiOperation({
+    summary: "Get organization team workflow",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `workflow.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_ADMIN")
+  @Pbac(["workflow.read"])
   @PlatformPlan("SCALE")
   async getWorkflowById(
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -112,8 +136,13 @@ export class OrganizationTeamWorkflowsController {
 
   @Get("/:workflowId/routing-form")
   @UseGuards(IsRoutingFormWorkflowInTeam)
-  @ApiOperation({ summary: "Get organization team workflow" })
+  @ApiOperation({
+    summary: "Get organization team workflow",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `workflow.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_ADMIN")
+  @Pbac(["workflow.read"])
   @PlatformPlan("SCALE")
   async getRoutingFormWorkflowById(
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -128,8 +157,13 @@ export class OrganizationTeamWorkflowsController {
   }
 
   @Post("/")
-  @ApiOperation({ summary: "Create organization team workflow for event-types" })
+  @ApiOperation({
+    summary: "Create organization team workflow for event-types",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `workflow.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_ADMIN")
+  @Pbac(["workflow.create"])
   @PlatformPlan("SCALE")
   async createEventTypeWorkflow(
     @GetUser() user: UserWithProfile,
@@ -141,8 +175,13 @@ export class OrganizationTeamWorkflowsController {
   }
 
   @Post("/routing-form")
-  @ApiOperation({ summary: "Create organization team workflow for routing-forms" })
+  @ApiOperation({
+    summary: "Create organization team workflow for routing-forms",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `workflow.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_ADMIN")
+  @Pbac(["workflow.create"])
   @PlatformPlan("SCALE")
   async createFormWorkflow(
     @GetUser() user: UserWithProfile,
@@ -155,8 +194,13 @@ export class OrganizationTeamWorkflowsController {
 
   @Patch("/:workflowId")
   @UseGuards(IsEventTypeWorkflowInTeam)
-  @ApiOperation({ summary: "Update organization team workflow" })
+  @ApiOperation({
+    summary: "Update organization team workflow",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `workflow.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_ADMIN")
+  @Pbac(["workflow.update"])
   @PlatformPlan("SCALE")
   async updateWorkflow(
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -175,8 +219,13 @@ export class OrganizationTeamWorkflowsController {
 
   @Patch("/:workflowId/routing-form")
   @UseGuards(IsRoutingFormWorkflowInTeam)
-  @ApiOperation({ summary: "Update organization routing form team workflow" })
+  @ApiOperation({
+    summary: "Update organization routing form team workflow",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `workflow.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_ADMIN")
+  @Pbac(["workflow.update"])
   @PlatformPlan("SCALE")
   async updateRoutingFormWorkflow(
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -195,8 +244,13 @@ export class OrganizationTeamWorkflowsController {
 
   @Delete("/:workflowId")
   @UseGuards(IsEventTypeWorkflowInTeam)
-  @ApiOperation({ summary: "Delete organization team workflow" })
+  @ApiOperation({
+    summary: "Delete organization team workflow",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `workflow.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_ADMIN")
+  @Pbac(["workflow.delete"])
   @PlatformPlan("SCALE")
   async deleteWorkflow(
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -208,8 +262,13 @@ export class OrganizationTeamWorkflowsController {
 
   @Delete("/:workflowId/routing-form")
   @UseGuards(IsRoutingFormWorkflowInTeam)
-  @ApiOperation({ summary: "Delete organization team routing-form workflow" })
+  @ApiOperation({
+    summary: "Delete organization team routing-form workflow",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `workflow.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_ADMIN")
+  @Pbac(["workflow.delete"])
   @PlatformPlan("SCALE")
   async deleteRoutingFormWorkflow(
     @Param("teamId", ParseIntPipe) teamId: number,

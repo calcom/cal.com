@@ -61,7 +61,7 @@ export class OrganizationsRolesController {
   @Pbac(["role.create"])
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Create a new organization role" })
+  @ApiOperation({ summary: "Create a new organization role", description: "Required membership role: `org admin`. PBAC permission: `role.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control" })
   async createRole(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateOrgRoleInput
@@ -78,7 +78,7 @@ export class OrganizationsRolesController {
   @Pbac(["role.read"])
   @Get("/:roleId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get a specific organization role" })
+  @ApiOperation({ summary: "Get a specific organization role", description: "Required membership role: `org admin`. PBAC permission: `role.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control" })
   async getRole(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("roleId") roleId: string
@@ -95,7 +95,7 @@ export class OrganizationsRolesController {
   @Pbac(["role.read"])
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get all organization roles" })
+  @ApiOperation({ summary: "Get all organization roles", description: "Required membership role: `org admin`. PBAC permission: `role.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control" })
   async getAllRoles(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
@@ -113,7 +113,7 @@ export class OrganizationsRolesController {
   @Pbac(["role.update"])
   @Patch("/:roleId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Update an organization role" })
+  @ApiOperation({ summary: "Update an organization role", description: "Required membership role: `org admin`. PBAC permission: `role.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control" })
   async updateRole(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("roleId") roleId: string,
@@ -131,7 +131,7 @@ export class OrganizationsRolesController {
   @Pbac(["role.delete"])
   @Delete("/:roleId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Delete an organization role" })
+  @ApiOperation({ summary: "Delete an organization role", description: "Required membership role: `org admin`. PBAC permission: `role.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control" })
   async deleteRole(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("roleId") roleId: string

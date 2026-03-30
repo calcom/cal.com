@@ -10,12 +10,14 @@ import {
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { IsUserInOrgTeam } from "@/modules/auth/guards/users/is-user-in-org-team.guard";
@@ -29,7 +31,15 @@ import { TeamsSchedulesService } from "@/modules/teams/schedules/services/teams-
   path: "/v2/organizations/:orgId/teams/:teamId",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(
+  ApiAuthGuard,
+  IsOrgGuard,
+  IsTeamInOrg,
+  PbacGuard,
+  RolesGuard,
+  PlatformPlanGuard,
+  IsAdminAPIEnabledGuard
+)
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
 @ApiHeader(OPTIONAL_API_KEY_HEADER)
@@ -42,11 +52,16 @@ export class OrganizationsTeamsSchedulesController {
 
   @UseGuards(IsTeamInOrg)
   @Roles("TEAM_ADMIN")
+  @Pbac(["availability.read"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["TEAM_SCHEDULE_READ"])
   @Get("/schedules")
   @DocsTags("Orgs / Teams / Schedules")
-  @ApiOperation({ summary: "Get all team member schedules" })
+  @ApiOperation({
+    summary: "Get all team member schedules",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `availability.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async getTeamSchedules(
     // note(Lauris): putting orgId so swagger is generated correctly
     @Param("orgId", ParseIntPipe) _orgId: number,
@@ -64,6 +79,7 @@ export class OrganizationsTeamsSchedulesController {
   }
 
   @Roles("TEAM_ADMIN")
+  @Pbac(["availability.read"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["TEAM_SCHEDULE_READ"])
   @UseGuards(IsUserInOrgTeam)
@@ -71,6 +87,8 @@ export class OrganizationsTeamsSchedulesController {
   @DocsTags("Orgs / Teams / Users / Schedules")
   @ApiOperation({
     summary: "Get schedules of a team member",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `availability.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
   })
   async getUserSchedules(
     // note(Lauris): putting orgId and teamId so swagger is generated correctly

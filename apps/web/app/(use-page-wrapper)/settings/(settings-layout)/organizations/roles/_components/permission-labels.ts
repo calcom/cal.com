@@ -113,6 +113,11 @@ export const PERMISSION_LABELS: PermissionLabelsMap = {
       i18nKey: "pbac_action_password_reset",
       descriptionI18nKey: "pbac_desc_reset_password_organization_members",
     },
+    editUsers: {
+      i18nKey: "pbac_action_edit_users",
+      descriptionI18nKey: "pbac_desc_edit_organization_users",
+    },
+    delete: { i18nKey: "pbac_action_delete", descriptionI18nKey: "pbac_desc_delete_organization" },
   },
   [Resource.Booking]: {
     read: { i18nKey: "pbac_action_read", descriptionI18nKey: "pbac_desc_view_bookings" },

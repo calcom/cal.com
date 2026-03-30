@@ -1,11 +1,28 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
+import { Request } from "express";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsRoutingFormInTeam } from "@/modules/auth/guards/routing-forms/is-routing-form-in-team.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
@@ -16,22 +33,6 @@ import { CreateRoutingFormResponseOutput } from "@/modules/organizations/routing
 import { UpdateRoutingFormResponseOutput } from "@/modules/organizations/routing-forms/outputs/update-routing-form-response.output";
 import { GetRoutingFormResponsesOutput } from "@/modules/organizations/teams/routing-forms/outputs/get-routing-form-responses.output";
 import { OrganizationsTeamsRoutingFormsResponsesService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms-responses.service";
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Param,
-  ParseIntPipe,
-  Query,
-  UseGuards,
-  Body,
-  Req,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger";
-import { Request } from "express";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/routing-forms/:routingFormId/responses",
@@ -43,8 +44,9 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
   IsOrgGuard,
   IsTeamInOrg,
   IsRoutingFormInTeam,
-  PlatformPlanGuard,
+  PbacGuard,
   RolesGuard,
+  PlatformPlanGuard,
   IsAdminAPIEnabledGuard
 )
 @ApiHeader(API_KEY_HEADER)
@@ -57,8 +59,13 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
   ) {}
 
   @Get("/")
-  @ApiOperation({ summary: "Get organization team routing form responses" })
+  @ApiOperation({
+    summary: "Get organization team routing form responses",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `routingForm.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_ADMIN")
+  @Pbac(["routingForm.read"])
   @PlatformPlan("ESSENTIALS")
   async getRoutingFormResponses(
     @Param("routingFormId") routingFormId: string,
@@ -84,8 +91,13 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
   }
 
   @Post("/")
-  @ApiOperation({ summary: "Create routing form response and get available slots" })
+  @ApiOperation({
+    summary: "Create routing form response and get available slots",
+    description:
+      "Required membership role: `team member`. PBAC permission: `routingForm.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_MEMBER")
+  @Pbac(["routingForm.create"])
   @PlatformPlan("ESSENTIALS")
   async createRoutingFormResponse(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -108,8 +120,13 @@ export class OrganizationsTeamsRoutingFormsResponsesController {
   }
 
   @Patch("/:responseId")
-  @ApiOperation({ summary: "Update routing form response" })
+  @ApiOperation({
+    summary: "Update routing form response",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `routingForm.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_ADMIN")
+  @Pbac(["routingForm.update"])
   @PlatformPlan("ESSENTIALS")
   async updateRoutingFormResponse(
     @Param("teamId", ParseIntPipe) teamId: number,

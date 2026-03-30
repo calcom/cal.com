@@ -1,11 +1,32 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Query,
+  Redirect,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
+import { Request } from "express";
+import { stringify } from "querystring";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { OrganizationsStripeService } from "@/modules/organizations/stripe/services/organizations-stripe.service";
@@ -19,26 +40,6 @@ import { StripeService } from "@/modules/stripe/stripe.service";
 import { getOnErrorReturnToValueFromQueryState } from "@/modules/stripe/utils/getReturnToValueFromQueryState";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  Get,
-  Query,
-  HttpCode,
-  HttpStatus,
-  UseGuards,
-  Param,
-  Headers,
-  Req,
-  ParseIntPipe,
-  Redirect,
-  BadRequestException,
-} from "@nestjs/common";
-import { ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-import { Request } from "express";
-import { stringify } from "querystring";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 export type OAuthCallbackState = {
   accessToken: string;
@@ -62,11 +63,24 @@ export class OrganizationsStripeController {
   ) {}
 
   @Roles("TEAM_ADMIN")
+  @Pbac(["organization.manageBilling"])
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Get("/connect")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get Stripe connect URL for a team" })
+  @ApiOperation({
+    summary: "Get Stripe connect URL for a team",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `organization.manageBilling`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async getTeamStripeConnectUrl(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
@@ -80,9 +94,9 @@ export class OrganizationsStripeController {
     const accessToken = authorization.replace("Bearer ", "");
 
     const state: OAuthCallbackState = {
-      onErrorReturnTo: !!onErrorReturnTo ? onErrorReturnTo : origin,
+      onErrorReturnTo: onErrorReturnTo ? onErrorReturnTo : origin,
       fromApp: false,
-      returnTo: !!returnTo ? returnTo : origin,
+      returnTo: returnTo ? returnTo : origin,
       accessToken,
       teamId,
       orgId,
@@ -101,11 +115,24 @@ export class OrganizationsStripeController {
   }
 
   @Roles("TEAM_ADMIN")
+  @Pbac(["organization.manageBilling"])
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Get("/check")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Check team Stripe connection" })
+  @ApiOperation({
+    summary: "Check team Stripe connection",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `organization.manageBilling`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async checkTeamStripeConnection(
     @Param("teamId", ParseIntPipe) teamId: number
   ): Promise<StripCredentialsCheckOutputResponseDto> {
@@ -113,11 +140,24 @@ export class OrganizationsStripeController {
   }
 
   @Roles("TEAM_ADMIN")
+  @Pbac(["organization.manageBilling"])
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Get("/save")
   @Redirect(undefined, 301)
-  @ApiOperation({ summary: "Save Stripe credentials" })
+  @ApiOperation({
+    summary: "Save Stripe credentials",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `organization.manageBilling`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async save(
     @Query("state") state: string,
     @Query("code") code: string,

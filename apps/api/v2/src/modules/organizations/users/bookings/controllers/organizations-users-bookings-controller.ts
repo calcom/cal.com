@@ -5,11 +5,13 @@ import {
   OPTIONAL_API_KEY_OR_ACCESS_TOKEN_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
 import { OrganizationUsersBookingsService } from "@/modules/organizations/users/bookings/services/organization-users-bookings.service";
@@ -23,7 +25,7 @@ import { GetBookingsInput_2024_08_13, GetBookingsOutput_2024_08_13 } from "@calc
   path: "/v2/organizations/:orgId/users/:userId/bookings",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsUserInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsUserInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Users / Bookings")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -32,6 +34,7 @@ export class OrganizationsUsersBookingsController {
   constructor(private readonly organizationUsersBookingsService: OrganizationUsersBookingsService) {}
 
   @Get("/")
+  @Pbac(["booking.readOrgBookings"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Get all bookings for an organization user" })

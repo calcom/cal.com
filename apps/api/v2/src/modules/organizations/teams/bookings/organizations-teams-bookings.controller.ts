@@ -16,6 +16,7 @@ import {
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
@@ -23,6 +24,7 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { GetOrganizationsTeamsBookingsInput_2024_08_13 } from "@/modules/organizations/teams/bookings/inputs/get-organizations-teams-bookings.input";
@@ -32,7 +34,15 @@ import { UserWithProfile } from "@/modules/users/users.repository";
   path: "/v2/organizations/:orgId/teams/:teamId/bookings",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(
+  ApiAuthGuard,
+  IsOrgGuard,
+  PbacGuard,
+  RolesGuard,
+  IsTeamInOrg,
+  PlatformPlanGuard,
+  IsAdminAPIEnabledGuard
+)
 @DocsTags("Orgs / Teams / Bookings")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -46,8 +56,13 @@ export class OrganizationsTeamsBookingsController {
   ) {}
 
   @Get("/")
-  @ApiOperation({ summary: "Get organization team bookings" })
+  @ApiOperation({
+    summary: "Get organization team bookings",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `booking.readTeamBookings`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @Roles("TEAM_ADMIN")
+  @Pbac(["booking.readTeamBookings"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["TEAM_BOOKING_READ"])
   @HttpCode(HttpStatus.OK)
@@ -72,12 +87,14 @@ export class OrganizationsTeamsBookingsController {
   @Get("/:bookingUid/references")
   @PlatformPlan("SCALE")
   @Roles("TEAM_ADMIN")
+  @Pbac(["booking.readTeamBookings"])
   @Permissions([BOOKING_READ])
   @OAuthPermissions(["TEAM_BOOKING_READ"])
   @UseGuards(
     ApiAuthGuard,
     BookingUidGuard,
     IsOrgGuard,
+    PbacGuard,
     RolesGuard,
     IsTeamInOrg,
     PlatformPlanGuard,
@@ -85,6 +102,8 @@ export class OrganizationsTeamsBookingsController {
   )
   @ApiOperation({
     summary: "Get booking references",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `booking.readTeamBookings`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
   })
   @HttpCode(HttpStatus.OK)
   async getBookingReferences(

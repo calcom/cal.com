@@ -5,6 +5,7 @@
       "get": {
         "operationId": "OrganizationsAttributesController_getOrganizationAttributes",
         "summary": "Get all attributes",
+        "description": "Required membership role: `org member`. PBAC permission: `organization.attributes.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -66,6 +67,7 @@
       "post": {
         "operationId": "OrganizationsAttributesController_createOrganizationAttribute",
         "summary": "Create an attribute",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.attributes.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -114,6 +116,7 @@
       "get": {
         "operationId": "OrganizationsAttributesController_getOrganizationAttribute",
         "summary": "Get an attribute",
+        "description": "Required membership role: `org member`. PBAC permission: `organization.attributes.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -158,6 +161,7 @@
       "patch": {
         "operationId": "OrganizationsAttributesController_updateOrganizationAttribute",
         "summary": "Update an attribute",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.attributes.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -212,6 +216,7 @@
       "delete": {
         "operationId": "OrganizationsAttributesController_deleteOrganizationAttribute",
         "summary": "Delete an attribute",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.attributes.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -258,6 +263,7 @@
       "post": {
         "operationId": "OrganizationsAttributesOptionsController_createOrganizationAttributeOption",
         "summary": "Create an attribute option",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.attributes.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -312,6 +318,7 @@
       "get": {
         "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeOptions",
         "summary": "Get all attribute options",
+        "description": "Required membership role: `org member`. PBAC permission: `organization.attributes.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -358,6 +365,7 @@
       "delete": {
         "operationId": "OrganizationsAttributesOptionsController_deleteOrganizationAttributeOption",
         "summary": "Delete an attribute option",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.attributes.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -410,6 +418,7 @@
       "patch": {
         "operationId": "OrganizationsAttributesOptionsController_updateOrganizationAttributeOption",
         "summary": "Update an attribute option",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.attributes.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -474,6 +483,7 @@
       "get": {
         "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeAssignedOptions",
         "summary": "Get all assigned attribute options by attribute ID",
+        "description": "Required membership role: `org member`. PBAC permission: `organization.attributes.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -564,6 +574,7 @@
       "get": {
         "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeAssignedOptionsBySlug",
         "summary": "Get all assigned attribute options by attribute slug",
+        "description": "Required membership role: `org member`. PBAC permission: `organization.attributes.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -654,6 +665,7 @@
       "post": {
         "operationId": "OrganizationsAttributesOptionsController_assignOrganizationAttributeOptionToUser",
         "summary": "Assign an attribute to a user",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.attributes.editUsers`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -708,6 +720,7 @@
       "get": {
         "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeOptionsForUser",
         "summary": "Get all attribute options for a user",
+        "description": "Required membership role: `org member`. PBAC permission: `organization.attributes.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -754,6 +767,7 @@
       "delete": {
         "operationId": "OrganizationsAttributesOptionsController_unassignOrganizationAttributeOptionFromUser",
         "summary": "Unassign an attribute from a user",
+        "description": "Required membership role: `org member`. PBAC permission: `organization.attributes.editUsers`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -808,6 +822,7 @@
       "get": {
         "operationId": "OrganizationsBookingsController_getAllOrgTeamBookings",
         "summary": "Get organization bookings",
+        "description": "Required membership role: `org admin`. PBAC permission: `booking.readOrgBookings`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -1218,6 +1233,7 @@
       "post": {
         "operationId": "OrganizationsDelegationCredentialController_createDelegationCredential",
         "summary": "Save delegation credentials for your organization",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -1284,6 +1300,7 @@
       "patch": {
         "operationId": "OrganizationsDelegationCredentialController_updateDelegationCredential",
         "summary": "Update delegation credentials of your organization",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -1358,6 +1375,7 @@
       "get": {
         "operationId": "OrganizationsMembershipsController_getAllMemberships",
         "summary": "Get all memberships",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.listMembers`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -1437,6 +1455,7 @@
       "post": {
         "operationId": "OrganizationsMembershipsController_createMembership",
         "summary": "Create a membership",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.invite`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -1503,6 +1522,7 @@
       "get": {
         "operationId": "OrganizationsMembershipsController_getOrgMembership",
         "summary": "Get a membership",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.listMembers`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -1565,6 +1585,7 @@
       "delete": {
         "operationId": "OrganizationsMembershipsController_deleteMembership",
         "summary": "Delete a membership",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.remove`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -1627,6 +1648,7 @@
       "patch": {
         "operationId": "OrganizationsMembershipsController_updateMembership",
         "summary": "Update a membership",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.changeMemberRole`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -1701,6 +1723,7 @@
       "post": {
         "operationId": "OrganizationsRolesController_createRole",
         "summary": "Create a new organization role",
+        "description": "Required membership role: `org admin`. PBAC permission: `role.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -1765,6 +1788,7 @@
       "get": {
         "operationId": "OrganizationsRolesController_getAllRoles",
         "summary": "Get all organization roles",
+        "description": "Required membership role: `org admin`. PBAC permission: `role.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -1846,6 +1870,7 @@
       "get": {
         "operationId": "OrganizationsRolesController_getRole",
         "summary": "Get a specific organization role",
+        "description": "Required membership role: `org admin`. PBAC permission: `role.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -1908,6 +1933,7 @@
       "patch": {
         "operationId": "OrganizationsRolesController_updateRole",
         "summary": "Update an organization role",
+        "description": "Required membership role: `org admin`. PBAC permission: `role.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -1980,6 +2006,7 @@
       "delete": {
         "operationId": "OrganizationsRolesController_deleteRole",
         "summary": "Delete an organization role",
+        "description": "Required membership role: `org admin`. PBAC permission: `role.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -2044,6 +2071,7 @@
       "post": {
         "operationId": "OrganizationsRolesPermissionsController_addPermissions",
         "summary": "Add permissions to an organization role (single or batch)",
+        "description": "Required membership role: `org admin`. PBAC permission: `role.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -2116,6 +2144,7 @@
       "get": {
         "operationId": "OrganizationsRolesPermissionsController_listPermissions",
         "summary": "List permissions for an organization role",
+        "description": "Required membership role: `org admin`. PBAC permission: `role.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -2178,6 +2207,7 @@
       "put": {
         "operationId": "OrganizationsRolesPermissionsController_setPermissions",
         "summary": "Replace all permissions for an organization role",
+        "description": "Required membership role: `org admin`. PBAC permission: `role.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -2250,6 +2280,7 @@
       "delete": {
         "operationId": "OrganizationsRolesPermissionsController_removePermissions",
         "summary": "Remove multiple permissions from an organization role",
+        "description": "Required membership role: `org admin`. PBAC permission: `role.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -2334,7 +2365,9 @@
                   "organization.changeMemberRole",
                   "organization.impersonate",
                   "organization.passwordReset",
+                  "organization.editUsers",
                   "organization.update",
+                  "organization.delete",
                   "booking.read",
                   "booking.readOrgBookings",
                   "booking.readRecordings",
@@ -2381,6 +2414,7 @@
       "delete": {
         "operationId": "OrganizationsRolesPermissionsController_removePermission",
         "summary": "Remove a permission from an organization role",
+        "description": "Required membership role: `org admin`. PBAC permission: `role.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -2446,6 +2480,7 @@
       "get": {
         "operationId": "OrganizationsRoutingFormsController_getOrganizationRoutingForms",
         "summary": "Get organization routing forms",
+        "description": "Required membership role: `org admin`. PBAC permission: `routingForm.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -2584,6 +2619,7 @@
       "get": {
         "operationId": "OrganizationsRoutingFormsResponsesController_getRoutingFormResponses",
         "summary": "Get routing form responses",
+        "description": "Required membership role: `org admin`. PBAC permission: `routingForm.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -2715,6 +2751,7 @@
       "post": {
         "operationId": "OrganizationsRoutingFormsResponsesController_createRoutingFormResponse",
         "summary": "Create routing form response and get available slots",
+        "description": "Required membership role: `org admin`. PBAC permission: `routingForm.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -2832,6 +2869,7 @@
       "patch": {
         "operationId": "OrganizationsRoutingFormsResponsesController_updateRoutingFormResponse",
         "summary": "Update routing form response",
+        "description": "Required membership role: `org admin`. PBAC permission: `routingForm.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -2896,6 +2934,7 @@
       "get": {
         "operationId": "OrganizationsSchedulesController_getOrganizationSchedules",
         "summary": "Get all schedules",
+        "description": "Required membership role: `org admin`. PBAC permission: `availability.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -2977,6 +3016,7 @@
       "get": {
         "operationId": "OrganizationsTeamsController_getAllTeams",
         "summary": "Get all teams",
+        "description": "Required membership role: `org admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -3056,6 +3096,7 @@
       "post": {
         "operationId": "OrganizationsTeamsController_createTeam",
         "summary": "Create a team",
+        "description": "Required membership role: `org admin`. PBAC permission: `team.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -3122,6 +3163,7 @@
       "get": {
         "operationId": "OrganizationsTeamsController_getMyTeams",
         "summary": "Get teams membership for user",
+        "description": "Required membership role: `org member`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -3203,6 +3245,7 @@
       "get": {
         "operationId": "OrganizationsTeamsController_getTeam",
         "summary": "Get a team",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -3265,6 +3308,7 @@
       "delete": {
         "operationId": "OrganizationsTeamsController_deleteTeam",
         "summary": "Delete a team",
+        "description": "Required membership role: `org admin`. PBAC permission: `team.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -3327,6 +3371,7 @@
       "patch": {
         "operationId": "OrganizationsTeamsController_updateTeam",
         "summary": "Update a team",
+        "description": "Required membership role: `org admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -3401,6 +3446,7 @@
       "get": {
         "operationId": "OrganizationsTeamsBookingsController_getAllOrgTeamBookings",
         "summary": "Get organization team bookings",
+        "description": "Required membership role: `team admin`. PBAC permission: `booking.readTeamBookings`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -3605,6 +3651,7 @@
       "get": {
         "operationId": "OrganizationsTeamsBookingsController_getBookingReferences",
         "summary": "Get booking references",
+        "description": "Required membership role: `team admin`. PBAC permission: `booking.readTeamBookings`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -3695,6 +3742,7 @@
       "post": {
         "operationId": "OrganizationsConferencingController_connectTeamApp",
         "summary": "Connect your conferencing application to a team",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "teamId",
@@ -3742,6 +3790,7 @@
       "get": {
         "operationId": "OrganizationsConferencingController_getTeamOAuthUrl",
         "summary": "Get OAuth conferencing app's auth URL for a team",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -3813,6 +3862,7 @@
       "get": {
         "operationId": "OrganizationsConferencingController_listTeamConferencingApps",
         "summary": "List team conferencing applications",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "teamId",
@@ -3850,6 +3900,7 @@
       "post": {
         "operationId": "OrganizationsConferencingController_setTeamDefaultApp",
         "summary": "Set team default conferencing application",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "teamId",
@@ -3897,6 +3948,7 @@
       "get": {
         "operationId": "OrganizationsConferencingController_getTeamDefaultApp",
         "summary": "Get team default conferencing application",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "teamId",
@@ -3934,6 +3986,7 @@
       "delete": {
         "operationId": "OrganizationsConferencingController_disconnectTeamApp",
         "summary": "Disconnect team conferencing application",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "teamId",
@@ -3981,6 +4034,7 @@
       "get": {
         "operationId": "OrganizationsConferencingController_saveTeamOauthCredentials",
         "summary": "Save conferencing app OAuth credentials",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "state",
@@ -4035,6 +4089,7 @@
       "post": {
         "operationId": "OrganizationsEventTypesController_createTeamEventType",
         "summary": "Create an event type",
+        "description": "Required membership role: `team admin`. PBAC permission: `eventType.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -4200,6 +4255,7 @@
       "get": {
         "operationId": "OrganizationsEventTypesController_getTeamEventType",
         "summary": "Get an event type",
+        "description": "Required membership role: `team admin`. PBAC permission: `eventType.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -4270,6 +4326,7 @@
       "patch": {
         "operationId": "OrganizationsEventTypesController_updateTeamEventType",
         "summary": "Update a team event type",
+        "description": "Required membership role: `team admin`. PBAC permission: `eventType.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -4350,6 +4407,7 @@
       "delete": {
         "operationId": "OrganizationsEventTypesController_deleteTeamEventType",
         "summary": "Delete a team event type",
+        "description": "Required membership role: `team admin`. PBAC permission: `eventType.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -4422,6 +4480,7 @@
       "post": {
         "operationId": "OrganizationsEventTypesController_createPhoneCall",
         "summary": "Create a phone call",
+        "description": "Required membership role: `team admin`. PBAC permission: `eventType.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -4504,7 +4563,7 @@
       "get": {
         "operationId": "OrganizationsEventTypesController_getTeamsEventTypes",
         "summary": "Get all team event types",
-        "description": "Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts \"asc\" (oldest first) or \"desc\" (newest first). When not provided, no explicit ordering is applied.",
+        "description": "Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts \"asc\" (oldest first) or \"desc\" (newest first). When not provided, no explicit ordering is applied. Required membership role: `team admin`. PBAC permission: `eventType.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -4946,6 +5005,7 @@
       "post": {
         "operationId": "OrganizationsTeamsInviteController_createInvite",
         "summary": "Create team invite link",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.invite`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -5010,6 +5070,7 @@
       "get": {
         "operationId": "OrganizationsTeamsMembershipsController_getAllOrgTeamMemberships",
         "summary": "Get all memberships",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.listMembers`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -5097,6 +5158,7 @@
       "post": {
         "operationId": "OrganizationsTeamsMembershipsController_createOrgTeamMembership",
         "summary": "Create a membership",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.invite`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -5171,6 +5233,7 @@
       "get": {
         "operationId": "OrganizationsTeamsMembershipsController_getOrgTeamMembership",
         "summary": "Get a membership",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.listMembers`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -5241,6 +5304,7 @@
       "delete": {
         "operationId": "OrganizationsTeamsMembershipsController_deleteOrgTeamMembership",
         "summary": "Delete a membership",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.remove`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -5311,6 +5375,7 @@
       "patch": {
         "operationId": "OrganizationsTeamsMembershipsController_updateOrgTeamMembership",
         "summary": "Update a membership",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.changeMemberRole`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -6196,6 +6261,7 @@
       "get": {
         "operationId": "OrganizationsTeamsRoutingFormsController_getTeamRoutingForms",
         "summary": "Get team routing forms",
+        "description": "Required membership role: `team admin`. PBAC permission: `routingForm.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -6329,6 +6395,7 @@
       "get": {
         "operationId": "OrganizationsTeamsRoutingFormsResponsesController_getRoutingFormResponses",
         "summary": "Get organization team routing form responses",
+        "description": "Required membership role: `team admin`. PBAC permission: `routingForm.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -6468,6 +6535,7 @@
       "post": {
         "operationId": "OrganizationsTeamsRoutingFormsResponsesController_createRoutingFormResponse",
         "summary": "Create routing form response and get available slots",
+        "description": "Required membership role: `team member`. PBAC permission: `routingForm.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -6593,6 +6661,7 @@
       "patch": {
         "operationId": "OrganizationsTeamsRoutingFormsResponsesController_updateRoutingFormResponse",
         "summary": "Update routing form response",
+        "description": "Required membership role: `team admin`. PBAC permission: `routingForm.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -6665,6 +6734,7 @@
       "get": {
         "operationId": "OrganizationsTeamsSchedulesController_getTeamSchedules",
         "summary": "Get all team member schedules",
+        "description": "Required membership role: `team admin`. PBAC permission: `availability.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -6764,6 +6834,7 @@
       "get": {
         "operationId": "OrganizationsStripeController_getTeamStripeConnectUrl",
         "summary": "Get Stripe connect URL for a team",
+        "description": "Required membership role: `team admin`. PBAC permission: `organization.manageBilling`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -6825,6 +6896,7 @@
       "get": {
         "operationId": "OrganizationsStripeController_checkTeamStripeConnection",
         "summary": "Check team Stripe connection",
+        "description": "Required membership role: `team admin`. PBAC permission: `organization.manageBilling`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "teamId",
@@ -6862,6 +6934,7 @@
       "get": {
         "operationId": "OrganizationsStripeController_save",
         "summary": "Save Stripe credentials",
+        "description": "Required membership role: `team admin`. PBAC permission: `organization.manageBilling`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "state",
@@ -6915,6 +6988,7 @@
       "get": {
         "operationId": "OrganizationsTeamsSchedulesController_getUserSchedules",
         "summary": "Get schedules of a team member",
+        "description": "Required membership role: `team admin`. PBAC permission: `availability.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -6997,6 +7071,7 @@
       "get": {
         "operationId": "OrganizationTeamWorkflowsController_getWorkflows",
         "summary": "Get organization team workflows",
+        "description": "Required membership role: `team admin`. PBAC permission: `workflow.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -7084,6 +7159,7 @@
       "post": {
         "operationId": "OrganizationTeamWorkflowsController_createEventTypeWorkflow",
         "summary": "Create organization team workflow for event-types",
+        "description": "Required membership role: `team admin`. PBAC permission: `workflow.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -7158,6 +7234,7 @@
       "get": {
         "operationId": "OrganizationTeamWorkflowsController_getRoutingFormWorkflows",
         "summary": "Get organization team workflows",
+        "description": "Required membership role: `team admin`. PBAC permission: `workflow.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -7245,6 +7322,7 @@
       "post": {
         "operationId": "OrganizationTeamWorkflowsController_createFormWorkflow",
         "summary": "Create organization team workflow for routing-forms",
+        "description": "Required membership role: `team admin`. PBAC permission: `workflow.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -7319,6 +7397,7 @@
       "get": {
         "operationId": "OrganizationTeamWorkflowsController_getWorkflowById",
         "summary": "Get organization team workflow",
+        "description": "Required membership role: `team admin`. PBAC permission: `workflow.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -7389,6 +7468,7 @@
       "patch": {
         "operationId": "OrganizationTeamWorkflowsController_updateWorkflow",
         "summary": "Update organization team workflow",
+        "description": "Required membership role: `team admin`. PBAC permission: `workflow.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -7469,6 +7549,7 @@
       "delete": {
         "operationId": "OrganizationTeamWorkflowsController_deleteWorkflow",
         "summary": "Delete organization team workflow",
+        "description": "Required membership role: `team admin`. PBAC permission: `workflow.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -7534,6 +7615,7 @@
       "get": {
         "operationId": "OrganizationTeamWorkflowsController_getRoutingFormWorkflowById",
         "summary": "Get organization team workflow",
+        "description": "Required membership role: `team admin`. PBAC permission: `workflow.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -7604,6 +7686,7 @@
       "patch": {
         "operationId": "OrganizationTeamWorkflowsController_updateRoutingFormWorkflow",
         "summary": "Update organization routing form team workflow",
+        "description": "Required membership role: `team admin`. PBAC permission: `workflow.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -7684,6 +7767,7 @@
       "delete": {
         "operationId": "OrganizationTeamWorkflowsController_deleteRoutingFormWorkflow",
         "summary": "Delete organization team routing-form workflow",
+        "description": "Required membership role: `team admin`. PBAC permission: `workflow.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -7749,6 +7833,7 @@
       "get": {
         "operationId": "OrganizationsUsersController_getOrganizationsUsers",
         "summary": "Get all users",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.listMembers`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -7877,6 +7962,7 @@
       "post": {
         "operationId": "OrganizationsUsersController_createOrganizationUser",
         "summary": "Create a user",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.invite`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -7943,6 +8029,7 @@
       "patch": {
         "operationId": "OrganizationsUsersController_updateOrganizationUser",
         "summary": "Update a user",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.editUsers`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -8015,6 +8102,7 @@
       "delete": {
         "operationId": "OrganizationsUsersController_deleteOrganizationUser",
         "summary": "Delete a user",
+        "description": "Required membership role: `org admin`. PBAC permission: `organization.remove`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -8794,6 +8882,7 @@
       "post": {
         "operationId": "OrganizationsSchedulesController_createUserSchedule",
         "summary": "Create a schedule",
+        "description": "Required membership role: `org admin`. PBAC permission: `availability.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -8866,6 +8955,7 @@
       "get": {
         "operationId": "OrganizationsSchedulesController_getUserSchedules",
         "summary": "Get all schedules",
+        "description": "Required membership role: `org admin`. PBAC permission: `availability.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -8930,6 +9020,7 @@
       "get": {
         "operationId": "OrganizationsSchedulesController_getUserSchedule",
         "summary": "Get a schedule",
+        "description": "Required membership role: `org admin`. PBAC permission: `availability.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -9000,6 +9091,7 @@
       "patch": {
         "operationId": "OrganizationsSchedulesController_updateUserSchedule",
         "summary": "Update a schedule",
+        "description": "Required membership role: `org admin`. PBAC permission: `availability.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -9080,6 +9172,7 @@
       "delete": {
         "operationId": "OrganizationsSchedulesController_deleteUserSchedule",
         "summary": "Delete a schedule",
+        "description": "Required membership role: `org admin`. PBAC permission: `availability.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -9152,6 +9245,7 @@
       "get": {
         "operationId": "OrganizationsWebhooksController_getAllOrganizationWebhooks",
         "summary": "Get all webhooks",
+        "description": "Required membership role: `org admin`. PBAC permission: `webhook.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -9231,6 +9325,7 @@
       "post": {
         "operationId": "OrganizationsWebhooksController_createOrganizationWebhook",
         "summary": "Create a webhook",
+        "description": "Required membership role: `org admin`. PBAC permission: `webhook.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -9297,6 +9392,7 @@
       "get": {
         "operationId": "OrganizationsWebhooksController_getOrganizationWebhook",
         "summary": "Get a webhook",
+        "description": "Required membership role: `org admin`. PBAC permission: `webhook.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -9359,6 +9455,7 @@
       "delete": {
         "operationId": "OrganizationsWebhooksController_deleteWebhook",
         "summary": "Delete a webhook",
+        "description": "Required membership role: `org admin`. PBAC permission: `webhook.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -9421,6 +9518,7 @@
       "patch": {
         "operationId": "OrganizationsWebhooksController_updateOrgWebhook",
         "summary": "Update a webhook",
+        "description": "Required membership role: `org admin`. PBAC permission: `webhook.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -13495,7 +13593,7 @@
       "post": {
         "operationId": "OrganizationsOrganizationsController_createOrganization",
         "summary": "Create an organization within an organization",
-        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+        "description": "For platform, the plan must be 'SCALE' or higher to access this endpoint. Required membership role: `org admin`. PBAC permission: `organization.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -13551,7 +13649,7 @@
       "get": {
         "operationId": "OrganizationsOrganizationsController_getOrganizations",
         "summary": "Get all organizations within an organization",
-        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+        "description": "For platform, the plan must be 'SCALE' or higher to access this endpoint. Required membership role: `org admin`. PBAC permission: `organization.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -13654,7 +13752,7 @@
       "get": {
         "operationId": "OrganizationsOrganizationsController_getOrganization",
         "summary": "Get an organization within an organization",
-        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+        "description": "For platform, the plan must be 'SCALE' or higher to access this endpoint. Required membership role: `org admin`. PBAC permission: `organization.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -13708,7 +13806,7 @@
       "patch": {
         "operationId": "OrganizationsOrganizationsController_updateOrganization",
         "summary": "Update an organization within an organization",
-        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+        "description": "For platform, the plan must be 'SCALE' or higher to access this endpoint. Required membership role: `org admin`. PBAC permission: `organization.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -13772,7 +13870,7 @@
       "delete": {
         "operationId": "OrganizationsOrganizationsController_deleteOrganization",
         "summary": "Delete an organization within an organization",
-        "description": "Requires the user to have at least the 'ORG_ADMIN' role within the organization. Additionally, for platform, the plan must be 'SCALE' or higher to access this endpoint.",
+        "description": "For platform, the plan must be 'SCALE' or higher to access this endpoint. Required membership role: `org admin`. PBAC permission: `organization.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "x-cal-secret-key",
@@ -13972,7 +14070,7 @@
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_requestEmailVerificationCode",
         "summary": "Request email verification code",
-        "description": "Sends a verification code to the email",
+        "description": "Sends a verification code to the email. Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -14029,7 +14127,7 @@
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_requestPhoneVerificationCode",
         "summary": "Request phone number verification code",
-        "description": "Sends a verification code to the phone number",
+        "description": "Sends a verification code to the phone number. Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "Authorization",
@@ -14086,7 +14184,7 @@
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_verifyEmail",
         "summary": "Verify an email for an org team",
-        "description": "Use code to verify an email",
+        "description": "Use code to verify an email. Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "teamId",
@@ -14143,7 +14241,7 @@
       "post": {
         "operationId": "OrgTeamsVerifiedResourcesController_verifyPhoneNumber",
         "summary": "Verify a phone number for an org team",
-        "description": "Use code to verify a phone number",
+        "description": "Use code to verify a phone number. Required membership role: `team admin`. PBAC permission: `team.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "teamId",
@@ -14200,6 +14298,7 @@
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedEmails",
         "summary": "Get list of verified emails of an org team",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "teamId",
@@ -14271,6 +14370,7 @@
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneNumbers",
         "summary": "Get list of verified phone numbers of an org team",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "teamId",
@@ -14342,6 +14442,7 @@
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedEmailById",
         "summary": "Get verified email of an org team by id",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "id",
@@ -14396,6 +14497,7 @@
       "get": {
         "operationId": "OrgTeamsVerifiedResourcesController_getVerifiedPhoneById",
         "summary": "Get verified phone number of an org team by id",
+        "description": "Required membership role: `team admin`. PBAC permission: `team.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
         "parameters": [
           {
             "name": "teamId",
@@ -29651,7 +29753,9 @@
                 "organization.changeMemberRole",
                 "organization.impersonate",
                 "organization.passwordReset",
+                "organization.editUsers",
                 "organization.update",
+                "organization.delete",
                 "booking.read",
                 "booking.readOrgBookings",
                 "booking.readRecordings",
@@ -29759,7 +29863,9 @@
                 "organization.changeMemberRole",
                 "organization.impersonate",
                 "organization.passwordReset",
+                "organization.editUsers",
                 "organization.update",
+                "organization.delete",
                 "booking.read",
                 "booking.readOrgBookings",
                 "booking.readRecordings",
@@ -29895,7 +30001,9 @@
                 "organization.changeMemberRole",
                 "organization.impersonate",
                 "organization.passwordReset",
+                "organization.editUsers",
                 "organization.update",
+                "organization.delete",
                 "booking.read",
                 "booking.readOrgBookings",
                 "booking.readRecordings",
@@ -30002,7 +30110,9 @@
                 "organization.changeMemberRole",
                 "organization.impersonate",
                 "organization.passwordReset",
+                "organization.editUsers",
                 "organization.update",
+                "organization.delete",
                 "booking.read",
                 "booking.readOrgBookings",
                 "booking.readRecordings",

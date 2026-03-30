@@ -360,8 +360,20 @@ export const PERMISSION_REGISTRY = {
       scope: [Scope.Organization],
       dependsOn: ["organization.listMembers"],
     },
+    [CustomAction.EditUsers]: {
+      description: "Edit organization user profiles",
+      category: "org",
+      scope: [Scope.Organization],
+      dependsOn: ["organization.read", "organization.listMembers"],
+    },
     [CrudAction.Update]: {
       description: "Edit organization settings",
+      category: "org",
+      scope: [Scope.Organization],
+      dependsOn: ["organization.read"],
+    },
+    [CrudAction.Delete]: {
+      description: "Delete organization",
       category: "org",
       scope: [Scope.Organization],
       dependsOn: ["organization.read"],

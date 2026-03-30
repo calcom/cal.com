@@ -1,3 +1,20 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SkipTakePagination } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
@@ -6,12 +23,14 @@ import {
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsMembershipInOrg } from "@/modules/auth/guards/memberships/is-membership-in-org.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/create-organization-membership.input";
 import { UpdateOrgMembershipDto } from "@/modules/organizations/memberships/inputs/update-organization-membership.input";
@@ -21,30 +40,12 @@ import { GetAllOrgMemberships } from "@/modules/organizations/memberships/output
 import { GetOrgMembership } from "@/modules/organizations/memberships/outputs/get-membership.output";
 import { UpdateOrgMembership } from "@/modules/organizations/memberships/outputs/update-membership.output";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Param,
-  ParseIntPipe,
-  Query,
-  Delete,
-  Patch,
-  Post,
-  Body,
-  HttpCode,
-  HttpStatus,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/memberships",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Memberships")
 @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
 @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -53,11 +54,16 @@ export class OrganizationsMembershipsController {
   constructor(private organizationsMembershipService: OrganizationsMembershipService) {}
 
   @Roles("ORG_ADMIN")
+  @Pbac(["organization.listMembers"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["ORG_MEMBERSHIP_READ"])
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get all memberships" })
+  @ApiOperation({
+    summary: "Get all memberships",
+    description:
+      "Required membership role: `org admin`. PBAC permission: `organization.listMembers`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async getAllMemberships(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
@@ -75,11 +81,16 @@ export class OrganizationsMembershipsController {
   }
 
   @Roles("ORG_ADMIN")
+  @Pbac(["organization.invite"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["ORG_MEMBERSHIP_WRITE"])
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Create a membership" })
+  @ApiOperation({
+    summary: "Create a membership",
+    description:
+      "Required membership role: `org admin`. PBAC permission: `organization.invite`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async createMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateOrgMembershipDto
@@ -92,12 +103,17 @@ export class OrganizationsMembershipsController {
   }
 
   @Roles("ORG_ADMIN")
+  @Pbac(["organization.listMembers"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["ORG_MEMBERSHIP_READ"])
   @UseGuards(IsMembershipInOrg)
   @Get("/:membershipId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get a membership" })
+  @ApiOperation({
+    summary: "Get a membership",
+    description:
+      "Required membership role: `org admin`. PBAC permission: `organization.listMembers`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async getOrgMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number
@@ -110,12 +126,17 @@ export class OrganizationsMembershipsController {
   }
 
   @Roles("ORG_ADMIN")
+  @Pbac(["organization.remove"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["ORG_MEMBERSHIP_WRITE"])
   @UseGuards(IsMembershipInOrg)
   @Delete("/:membershipId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Delete a membership" })
+  @ApiOperation({
+    summary: "Delete a membership",
+    description:
+      "Required membership role: `org admin`. PBAC permission: `organization.remove`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async deleteMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number
@@ -129,11 +150,16 @@ export class OrganizationsMembershipsController {
 
   @UseGuards(IsMembershipInOrg)
   @Roles("ORG_ADMIN")
+  @Pbac(["organization.changeMemberRole"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["ORG_MEMBERSHIP_WRITE"])
   @Patch("/:membershipId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Update a membership" })
+  @ApiOperation({
+    summary: "Update a membership",
+    description:
+      "Required membership role: `org admin`. PBAC permission: `organization.changeMemberRole`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async updateMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number,

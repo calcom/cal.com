@@ -154,24 +154,4 @@ export class PbacGuard implements CanActivate {
       ttl: 300_000,
     });
   }
-
-  throwForbiddenError(
-    userId: number,
-    teamId: string,
-    orgId: string,
-    requiredPermissions: PermissionString[]
-  ) {
-    let errorMessage = `PbacGuard - user with id=${userId} does not have the minimum required permissions=${requiredPermissions.join(
-      ","
-    )} `;
-    if (teamId) {
-      errorMessage += `within team with id=${teamId}`;
-    }
-    if (orgId) {
-      errorMessage += `within organization with id=${orgId}`;
-    }
-    errorMessage += `.`;
-
-    throw new ForbiddenException(errorMessage);
-  }
 }

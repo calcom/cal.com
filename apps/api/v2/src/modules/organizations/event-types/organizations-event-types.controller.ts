@@ -34,12 +34,14 @@ import {
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { PbacGuard } from "@/modules/auth/guards/pbac/pbac.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
@@ -77,11 +79,24 @@ export class OrganizationsEventTypesController {
   ) {}
 
   @Roles("TEAM_ADMIN")
+  @Pbac(["eventType.create"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Post("/teams/:teamId/event-types")
-  @ApiOperation({ summary: "Create an event type" })
+  @ApiOperation({
+    summary: "Create an event type",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `eventType.create`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async createTeamEventType(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -112,11 +127,24 @@ export class OrganizationsEventTypesController {
   }
 
   @Roles("TEAM_ADMIN")
+  @Pbac(["eventType.read"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["TEAM_EVENT_TYPE_READ"])
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Get("/teams/:teamId/event-types/:eventTypeId")
-  @ApiOperation({ summary: "Get an event type" })
+  @ApiOperation({
+    summary: "Get an event type",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `eventType.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async getTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId") eventTypeId: number
@@ -136,10 +164,15 @@ export class OrganizationsEventTypesController {
   }
 
   @Roles("TEAM_ADMIN")
+  @Pbac(["eventType.update"])
   @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   @Post("/teams/:teamId/event-types/:eventTypeId/create-phone-call")
-  @UseGuards(ApiAuthGuard, IsOrgGuard, IsTeamInOrg, RolesGuard)
-  @ApiOperation({ summary: "Create a phone call" })
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, IsTeamInOrg)
+  @ApiOperation({
+    summary: "Create a phone call",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `eventType.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   @ApiParam({ name: "teamId", type: Number, required: true })
   async createPhoneCall(
     @Param("eventTypeId") eventTypeId: number,
@@ -198,14 +231,15 @@ export class OrganizationsEventTypesController {
   }
 
   @Roles("TEAM_ADMIN")
+  @Pbac(["eventType.read"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["ORG_EVENT_TYPE_READ"])
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, PbacGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @Get("/teams/event-types")
   @ApiOperation({
     summary: "Get all team event types",
     description:
-      'Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts "asc" (oldest first) or "desc" (newest first). When not provided, no explicit ordering is applied.',
+      'Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts "asc" (oldest first) or "desc" (newest first). When not provided, no explicit ordering is applied. Required membership role: `team admin`. PBAC permission: `eventType.read`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control',
   })
   async getTeamsEventTypes(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -226,11 +260,24 @@ export class OrganizationsEventTypesController {
   }
 
   @Roles("TEAM_ADMIN")
+  @Pbac(["eventType.update"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Patch("/teams/:teamId/event-types/:eventTypeId")
-  @ApiOperation({ summary: "Update a team event type" })
+  @ApiOperation({
+    summary: "Update a team event type",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `eventType.update`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async updateTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
@@ -258,12 +305,25 @@ export class OrganizationsEventTypesController {
   }
 
   @Roles("TEAM_ADMIN")
+  @Pbac(["eventType.delete"])
   @PlatformPlan("ESSENTIALS")
   @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
-  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
+  @UseGuards(
+    ApiAuthGuard,
+    IsOrgGuard,
+    PbacGuard,
+    RolesGuard,
+    IsTeamInOrg,
+    PlatformPlanGuard,
+    IsAdminAPIEnabledGuard
+  )
   @Delete("/teams/:teamId/event-types/:eventTypeId")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Delete a team event type" })
+  @ApiOperation({
+    summary: "Delete a team event type",
+    description:
+      "Required membership role: `team admin`. PBAC permission: `eventType.delete`. Learn more about API access control at https://cal.com/docs/api-reference/v2/access-control",
+  })
   async deleteTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
