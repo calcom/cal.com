@@ -161,5 +161,15 @@
   "meeting_not_joined_question": "nepiedalījāties sanāksmē?",
   "reschedule_cta_short": "Pārzīmēt šeit.",
   "you_and_conjunction": "Jūs &",
-  "email_survey_triggered_by_workflow": "Šo aptauju aktivizēja darbplūsma Cal."
+  "email_survey_triggered_by_workflow": "Šo aptauju aktivizēja darbplūsma Cal.",
+  "this_meeting_is_in_the_past": "Šī tikšanās ir pagātnē.",
+  "stop": "Apturēt",
+  "stop_transcription": "Apturēt transkripciju",
+  "start_recording": "Sākt ierakstīšanu",
+  "stop_recording": "Apturēt ierakstīšanu",
+  "stopping": "Aptur..",
+  "please_wait_while_we_start_transcription": "Lūdzu, uzgaidiet, kamēr sākam transkripciju",
+  "please_wait_while_we_stop_transcription": "Lūdzu, uzgaidiet, kamēr apturam transkripciju",
+  "please_wait_while_we_start_recording": "Lūdzu, uzgaidiet, kamēr sākam ierakstīšanu",
+  "please_wait_while_we_stop_recording": "Lūdzu, uzgaidiet, kamēr apturam ierakstīšanu"
 }

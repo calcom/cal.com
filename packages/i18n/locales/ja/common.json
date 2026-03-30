@@ -5069,5 +5069,15 @@
   "all_conditions": "すべての条件(AND)",
   "any_condition": "いずれかの条件(OR)",
   "pbac_resource_blocklist": "ブロックリスト",
+  "this_meeting_is_in_the_past": "この会議は過去のものです。",
+  "stop": "停止",
+  "stop_transcription": "文字起こしを停止",
+  "start_recording": "録画を開始",
+  "stop_recording": "録画を停止",
+  "stopping": "停止中..",
+  "please_wait_while_we_start_transcription": "文字起こしを開始しています。しばらくお待ちください",
+  "please_wait_while_we_stop_transcription": "文字起こしを停止しています。しばらくお待ちください",
+  "please_wait_while_we_start_recording": "録画を開始しています。しばらくお待ちください",
+  "please_wait_while_we_stop_recording": "録画を停止しています。しばらくお待ちください",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -1,9 +1,8 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { DailyCall } from "@daily-co/daily-js";
-import { useTranscription, useRecording } from "@daily-co/daily-react";
-import { useDaily, useDailyEvent } from "@daily-co/daily-react";
-import React, { Fragment, useCallback, useRef, useState, useLayoutEffect, useEffect } from "react";
-
-import { BUTTONS } from "./button-states";
+import { useDaily, useDailyEvent, useRecording, useTranscription } from "@daily-co/daily-react";
+import React, { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { getButtonStates } from "./button-states";
 
 export type DailyCustomTrayButtonVisualState = "default" | "sidebar-open" | "active";
 
@@ -31,6 +30,7 @@ type CalVideoCallbacksParams = {
   showTranscriptionButton: boolean;
   enableAutomaticTranscription: boolean;
   enableAutomaticRecordingForOrganizer: boolean;
+  t: (key: string) => string;
 };
 
 export const createCalVideoCallbacks = (params: CalVideoCallbacksParams) => {
@@ -42,7 +42,10 @@ export const createCalVideoCallbacks = (params: CalVideoCallbacksParams) => {
     showTranscriptionButton,
     enableAutomaticTranscription,
     enableAutomaticRecordingForOrganizer,
+    t,
   } = params;
+
+  const BUTTONS = getButtonStates(t);
 
   const startRecording = () => {
     daily?.startRecording({
@@ -179,6 +182,8 @@ export const CalVideoPremiumFeatures = ({
   const transcription = useTranscription();
   const recording = useRecording();
 
+  const { t } = useLocale();
+
   const callbacks = createCalVideoCallbacks({
     daily,
     recording,
@@ -187,6 +192,7 @@ export const CalVideoPremiumFeatures = ({
     showTranscriptionButton,
     enableAutomaticTranscription,
     enableAutomaticRecordingForOrganizer,
+    t,
   });
 
   useDailyEvent(

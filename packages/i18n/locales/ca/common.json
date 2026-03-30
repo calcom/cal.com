@@ -5069,5 +5069,15 @@
   "all_conditions": "Totes les condicions (I)",
   "any_condition": "Qualsevol condició (O)",
   "pbac_resource_blocklist": "Llista de bloqueig",
+  "this_meeting_is_in_the_past": "Aquesta reunió ja ha passat.",
+  "stop": "Atura",
+  "stop_transcription": "Atura la transcripció",
+  "start_recording": "Inicia la gravació",
+  "stop_recording": "Atura la gravació",
+  "stopping": "Aturant..",
+  "please_wait_while_we_start_transcription": "Espereu mentre iniciem la transcripció",
+  "please_wait_while_we_stop_transcription": "Espereu mentre aturem la transcripció",
+  "please_wait_while_we_start_recording": "Espereu mentre iniciem la gravació",
+  "please_wait_while_we_stop_recording": "Espereu mentre aturem la gravació",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

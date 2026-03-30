@@ -5069,5 +5069,15 @@
   "all_conditions": "جميع الشروط (و)",
   "any_condition": "أي شرط (أو)",
   "pbac_resource_blocklist": "القائمة السوداء",
+  "this_meeting_is_in_the_past": "هذا الاجتماع قد انتهى.",
+  "stop": "إيقاف",
+  "stop_transcription": "إيقاف النسخ",
+  "start_recording": "بدء التسجيل",
+  "stop_recording": "إيقاف التسجيل",
+  "stopping": "جارٍ الإيقاف..",
+  "please_wait_while_we_start_transcription": "يرجى الانتظار بينما نبدأ النسخ",
+  "please_wait_while_we_stop_transcription": "يرجى الانتظار بينما نوقف النسخ",
+  "please_wait_while_we_start_recording": "يرجى الانتظار بينما نبدأ التسجيل",
+  "please_wait_while_we_stop_recording": "يرجى الانتظار بينما نوقف التسجيل",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

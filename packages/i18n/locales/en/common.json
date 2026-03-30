@@ -5135,5 +5135,15 @@
   "all_conditions": "All conditions (AND)",
   "any_condition": "Any condition (OR)",
   "pbac_resource_blocklist": "Blocklist",
+  "this_meeting_is_in_the_past": "This meeting is in the past.",
+  "stop": "Stop",
+  "stop_transcription": "Stop transcription",
+  "start_recording": "Start recording",
+  "stop_recording": "Stop recording",
+  "stopping": "Stopping..",
+  "please_wait_while_we_start_transcription": "Please wait while we start transcription",
+  "please_wait_while_we_stop_transcription": "Please wait while we stop transcription",
+  "please_wait_while_we_start_recording": "Please wait while we start recording",
+  "please_wait_while_we_stop_recording": "Please wait while we stop recording",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -1,7 +1,6 @@
 import type { DailyCall } from "@daily-co/daily-js";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-import { BUTTONS } from "../button-states";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getButtonStates } from "../button-states";
 import { createCalVideoCallbacks } from "../cal-video-premium-features";
 
 vi.mock("@calcom/lib/constants", () => ({
@@ -27,6 +26,9 @@ const createMockTranscription = (isTranscribing = false) => ({
   isTranscribing,
 });
 
+const mockT = (key: string) => key;
+const BUTTONS = getButtonStates(mockT);
+
 describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -42,6 +44,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: true,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       callbacks.onMeetingJoined();
@@ -59,6 +62,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: true,
+        t: mockT,
       });
 
       callbacks.onMeetingJoined();
@@ -79,6 +83,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: true,
         enableAutomaticRecordingForOrganizer: true,
+        t: mockT,
       });
 
       callbacks.onMeetingJoined();
@@ -96,6 +101,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: true,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       callbacks.onMeetingJoined();
@@ -112,6 +118,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: true,
+        t: mockT,
       });
 
       callbacks.onMeetingJoined();
@@ -130,6 +137,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       await callbacks.onCustomButtonClick({ button_id: "recording" });
@@ -154,6 +162,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       await callbacks.onCustomButtonClick({ button_id: "recording" });
@@ -177,6 +186,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       await callbacks.onCustomButtonClick({ button_id: "transcription" });
@@ -198,6 +208,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       await callbacks.onCustomButtonClick({ button_id: "transcription" });
@@ -221,6 +232,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       callbacks.onRecordingStarted();
@@ -242,6 +254,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       callbacks.onRecordingStopped();
@@ -263,6 +276,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       callbacks.onTranscriptionStarted();
@@ -284,6 +298,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       callbacks.onTranscriptionStopped();
@@ -305,6 +320,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       await callbacks.toggleRecording();
@@ -329,6 +345,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       await callbacks.toggleRecording();
@@ -352,6 +369,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       await callbacks.toggleTranscription();
@@ -373,6 +391,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       await callbacks.toggleTranscription();
@@ -396,6 +415,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       callbacks.updateCustomTrayButtons({
@@ -418,6 +438,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: false,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       callbacks.updateCustomTrayButtons({
@@ -438,6 +459,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       callbacks.updateCustomTrayButtons({
@@ -458,6 +480,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       callbacks.updateCustomTrayButtons({});
@@ -479,6 +502,7 @@ describe("CalVideoPremiumFeatures - End-to-End Callback Tests", () => {
         showTranscriptionButton: true,
         enableAutomaticTranscription: false,
         enableAutomaticRecordingForOrganizer: false,
+        t: mockT,
       });
 
       callbacks.startRecording();

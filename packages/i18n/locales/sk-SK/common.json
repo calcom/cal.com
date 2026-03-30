@@ -5069,5 +5069,15 @@
   "all_conditions": "Všetky podmienky (AND)",
   "any_condition": "Ľubovoľná podmienka (OR)",
   "pbac_resource_blocklist": "Zoznam blokovaných",
+  "this_meeting_is_in_the_past": "Toto stretnutie je v minulosti.",
+  "stop": "Zastaviť",
+  "stop_transcription": "Zastaviť prepis",
+  "start_recording": "Začať nahrávanie",
+  "stop_recording": "Zastaviť nahrávanie",
+  "stopping": "Zastavovanie..",
+  "please_wait_while_we_start_transcription": "Počkajte prosím, kým spustíme prepis",
+  "please_wait_while_we_stop_transcription": "Počkajte prosím, kým zastavíme prepis",
+  "please_wait_while_we_start_recording": "Počkajte prosím, kým spustíme nahrávanie",
+  "please_wait_while_we_stop_recording": "Počkajte prosím, kým zastavíme nahrávanie",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

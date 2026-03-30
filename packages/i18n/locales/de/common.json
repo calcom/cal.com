@@ -5069,5 +5069,15 @@
   "all_conditions": "Alle Bedingungen (UND)",
   "any_condition": "Beliebige Bedingung (ODER)",
   "pbac_resource_blocklist": "Sperrliste",
+  "this_meeting_is_in_the_past": "Dieses Meeting liegt in der Vergangenheit.",
+  "stop": "Stopp",
+  "stop_transcription": "Transkription stoppen",
+  "start_recording": "Aufnahme starten",
+  "stop_recording": "Aufnahme stoppen",
+  "stopping": "Wird gestoppt..",
+  "please_wait_while_we_start_transcription": "Bitte warten Sie, während wir die Transkription starten",
+  "please_wait_while_we_stop_transcription": "Bitte warten Sie, während wir die Transkription stoppen",
+  "please_wait_while_we_start_recording": "Bitte warten Sie, während wir die Aufnahme starten",
+  "please_wait_while_we_stop_recording": "Bitte warten Sie, während wir die Aufnahme stoppen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

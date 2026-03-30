@@ -210,5 +210,15 @@
   "meeting_not_joined_question": "கூட்டத்தில் சேரவில்லையா?",
   "reschedule_cta_short": "இங்கே மீண்டும் ஷெடியூல் செய்யவும்.",
   "you_and_conjunction": "நீங்கள் &",
-  "email_survey_triggered_by_workflow": "இந்த ஆய்வு Cal-ல் உள்ள பணிப்பாய்வு மூலம் தூண்டப்பட்டது."
+  "email_survey_triggered_by_workflow": "இந்த ஆய்வு Cal-ல் உள்ள பணிப்பாய்வு மூலம் தூண்டப்பட்டது.",
+  "this_meeting_is_in_the_past": "இந்தக் கூட்டம் கடந்துவிட்டது.",
+  "stop": "நிறுத்து",
+  "stop_transcription": "படியெடுப்பை நிறுத்து",
+  "start_recording": "பதிவு தொடங்கு",
+  "stop_recording": "பதிவை நிறுத்து",
+  "stopping": "நிறுத்துகிறது..",
+  "please_wait_while_we_start_transcription": "படியெடுப்பைத் தொடங்கும்போது காத்திருக்கவும்",
+  "please_wait_while_we_stop_transcription": "படியெடுப்பை நிறுத்தும்போது காத்திருக்கவும்",
+  "please_wait_while_we_start_recording": "பதிவைத் தொடங்கும்போது காத்திருக்கவும்",
+  "please_wait_while_we_stop_recording": "பதிவை நிறுத்தும்போது காத்திருக்கவும்"
 }

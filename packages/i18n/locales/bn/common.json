@@ -5069,5 +5069,15 @@
   "all_conditions": "সব শর্ত (AND)",
   "any_condition": "যেকোনো শর্ত (OR)",
   "pbac_resource_blocklist": "ব্লকলিস্ট",
+  "this_meeting_is_in_the_past": "এই মিটিংটি অতীতে হয়ে গেছে।",
+  "stop": "থামান",
+  "stop_transcription": "ট্রান্সক্রিপশন বন্ধ করুন",
+  "start_recording": "রেকর্ডিং শুরু করুন",
+  "stop_recording": "রেকর্ডিং বন্ধ করুন",
+  "stopping": "থামছে..",
+  "please_wait_while_we_start_transcription": "ট্রান্সক্রিপশন শুরু হওয়ার জন্য অপেক্ষা করুন",
+  "please_wait_while_we_stop_transcription": "ট্রান্সক্রিপশন বন্ধ হওয়ার জন্য অপেক্ষা করুন",
+  "please_wait_while_we_start_recording": "রেকর্ডিং শুরু হওয়ার জন্য অপেক্ষা করুন",
+  "please_wait_while_we_stop_recording": "রেকর্ডিং বন্ধ হওয়ার জন্য অপেক্ষা করুন",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑ুষান্ত"
 }

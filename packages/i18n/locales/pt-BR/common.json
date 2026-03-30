@@ -5069,5 +5069,15 @@
   "all_conditions": "Todas as condições (E)",
   "any_condition": "Qualquer condição (OU)",
   "pbac_resource_blocklist": "Lista de bloqueio",
+  "this_meeting_is_in_the_past": "Esta reunião já passou.",
+  "stop": "Parar",
+  "stop_transcription": "Parar transcrição",
+  "start_recording": "Iniciar gravação",
+  "stop_recording": "Parar gravação",
+  "stopping": "Parando..",
+  "please_wait_while_we_start_transcription": "Aguarde enquanto iniciamos a transcrição",
+  "please_wait_while_we_stop_transcription": "Aguarde enquanto paramos a transcrição",
+  "please_wait_while_we_start_recording": "Aguarde enquanto iniciamos a gravação",
+  "please_wait_while_we_stop_recording": "Aguarde enquanto paramos a gravação",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -6,7 +6,6 @@ import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui/components/button";
 import { CalendarIcon, XIcon } from "@coss/ui/icons";
-
 import type { getServerSideProps } from "@lib/video/meeting-ended/[uid]/getServerSideProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
@@ -33,7 +32,7 @@ export default function MeetingUnavailable(props: PageProps) {
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
                     <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-headline">
-                      This meeting is in the past.
+                      {t("this_meeting_is_in_the_past")}
                     </h3>
                   </div>
                   <div className="mt-4 border-b border-t py-4">

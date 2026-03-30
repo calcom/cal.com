@@ -5069,5 +5069,15 @@
   "all_conditions": "Όλες οι συνθήκες (AND)",
   "any_condition": "Οποιαδήποτε συνθήκη (OR)",
   "pbac_resource_blocklist": "Λίστα αποκλεισμού",
+  "this_meeting_is_in_the_past": "Αυτή η συνάντηση έχει παρέλθει.",
+  "stop": "Διακοπή",
+  "stop_transcription": "Διακοπή μεταγραφής",
+  "start_recording": "Έναρξη εγγραφής",
+  "stop_recording": "Διακοπή εγγραφής",
+  "stopping": "Διακοπή..",
+  "please_wait_while_we_start_transcription": "Παρακαλώ περιμένετε ενώ ξεκινάμε τη μεταγραφή",
+  "please_wait_while_we_stop_transcription": "Παρακαλώ περιμένετε ενώ σταματάμε τη μεταγραφή",
+  "please_wait_while_we_start_recording": "Παρακαλώ περιμένετε ενώ ξεκινάμε την εγγραφή",
+  "please_wait_while_we_stop_recording": "Παρακαλώ περιμένετε ενώ σταματάμε την εγγραφή",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

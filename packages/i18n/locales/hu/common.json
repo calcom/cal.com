@@ -5069,5 +5069,15 @@
   "all_conditions": "Minden feltétel (ÉS)",
   "any_condition": "Bármely feltétel (VAGY)",
   "pbac_resource_blocklist": "Tiltólista",
+  "this_meeting_is_in_the_past": "Ez a megbeszélés a múltban volt.",
+  "stop": "Leállítás",
+  "stop_transcription": "Átírás leállítása",
+  "start_recording": "Felvétel indítása",
+  "stop_recording": "Felvétel leállítása",
+  "stopping": "Leállítás..",
+  "please_wait_while_we_start_transcription": "Kérjük, várjon, amíg elindítjuk az átírást",
+  "please_wait_while_we_stop_transcription": "Kérjük, várjon, amíg leállítjuk az átírást",
+  "please_wait_while_we_start_recording": "Kérjük, várjon, amíg elindítjuk a felvételt",
+  "please_wait_while_we_stop_recording": "Kérjük, várjon, amíg leállítjuk a felvételt",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

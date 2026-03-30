@@ -5069,5 +5069,15 @@
   "all_conditions": "Всички условия (И)",
   "any_condition": "Някое от условията (ИЛИ)",
   "pbac_resource_blocklist": "Черен списък",
+  "this_meeting_is_in_the_past": "Тази среща е в миналото.",
+  "stop": "Спри",
+  "stop_transcription": "Спри транскрипцията",
+  "start_recording": "Започни запис",
+  "stop_recording": "Спри записа",
+  "stopping": "Спиране..",
+  "please_wait_while_we_start_transcription": "Моля, изчакайте, докато стартираме транскрипцията",
+  "please_wait_while_we_stop_transcription": "Моля, изчакайте, докато спрем транскрипцията",
+  "please_wait_while_we_start_recording": "Моля, изчакайте, докато стартираме записа",
+  "please_wait_while_we_stop_recording": "Моля, изчакайте, докато спрем записа",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

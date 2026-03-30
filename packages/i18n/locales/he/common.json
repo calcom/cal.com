@@ -5069,5 +5069,15 @@
   "all_conditions": "כל התנאים (AND)",
   "any_condition": "כל תנאי (OR)",
   "pbac_resource_blocklist": "רשימת חסימה",
+  "this_meeting_is_in_the_past": "פגישה זו כבר עברה.",
+  "stop": "עצור",
+  "stop_transcription": "עצור תמלול",
+  "start_recording": "התחל הקלטה",
+  "stop_recording": "עצור הקלטה",
+  "stopping": "עוצר..",
+  "please_wait_while_we_start_transcription": "אנא המתן בזמן שאנו מתחילים את התמלול",
+  "please_wait_while_we_stop_transcription": "אנא המתן בזמן שאנו עוצרים את התמלול",
+  "please_wait_while_we_start_recording": "אנא המתן בזמן שאנו מתחילים את ההקלטה",
+  "please_wait_while_we_stop_recording": "אנא המתן בזמן שאנו עוצרים את ההקלטה",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

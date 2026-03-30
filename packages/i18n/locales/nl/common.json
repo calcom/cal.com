@@ -5069,5 +5069,15 @@
   "all_conditions": "Alle voorwaarden (EN)",
   "any_condition": "Elke voorwaarde (OF)",
   "pbac_resource_blocklist": "Blokkeerlijst",
+  "this_meeting_is_in_the_past": "Deze vergadering is in het verleden.",
+  "stop": "Stop",
+  "stop_transcription": "Stop transcriptie",
+  "start_recording": "Start opname",
+  "stop_recording": "Stop opname",
+  "stopping": "Stoppen..",
+  "please_wait_while_we_start_transcription": "Even geduld terwijl we de transcriptie starten",
+  "please_wait_while_we_stop_transcription": "Even geduld terwijl we de transcriptie stoppen",
+  "please_wait_while_we_start_recording": "Even geduld terwijl we de opname starten",
+  "please_wait_while_we_stop_recording": "Even geduld terwijl we de opname stoppen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

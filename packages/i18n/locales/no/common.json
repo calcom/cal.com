@@ -5069,5 +5069,15 @@
   "all_conditions": "Alle betingelser (OG)",
   "any_condition": "Én betingelse (ELLER)",
   "pbac_resource_blocklist": "Blokkeringsliste",
+  "this_meeting_is_in_the_past": "Dette møtet er i fortiden.",
+  "stop": "Stopp",
+  "stop_transcription": "Stopp transkripsjon",
+  "start_recording": "Start opptak",
+  "stop_recording": "Stopp opptak",
+  "stopping": "Stopper..",
+  "please_wait_while_we_start_transcription": "Vennligst vent mens vi starter transkripsjonen",
+  "please_wait_while_we_stop_transcription": "Vennligst vent mens vi stopper transkripsjonen",
+  "please_wait_while_we_start_recording": "Vennligst vent mens vi starter opptaket",
+  "please_wait_while_we_stop_recording": "Vennligst vent mens vi stopper opptaket",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

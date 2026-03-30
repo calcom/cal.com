@@ -66,5 +66,15 @@
   "meeting_not_joined_question": "nezúčastnili ste sa stretnutia?",
   "reschedule_cta_short": "Preplánujte tu.",
   "you_and_conjunction": "Vy &",
-  "email_survey_triggered_by_workflow": "Tento prieskum bol spustený pracovným postupom v Cal."
+  "email_survey_triggered_by_workflow": "Tento prieskum bol spustený pracovným postupom v Cal.",
+  "this_meeting_is_in_the_past": "Toto stretnutie je v minulosti.",
+  "stop": "Zastaviť",
+  "stop_transcription": "Zastaviť prepis",
+  "start_recording": "Začať nahrávanie",
+  "stop_recording": "Zastaviť nahrávanie",
+  "stopping": "Zastavovanie..",
+  "please_wait_while_we_start_transcription": "Počkajte prosím, kým spustíme prepis",
+  "please_wait_while_we_stop_transcription": "Počkajte prosím, kým zastavíme prepis",
+  "please_wait_while_we_start_recording": "Počkajte prosím, kým spustíme nahrávanie",
+  "please_wait_while_we_stop_recording": "Počkajte prosím, kým zastavíme nahrávanie"
 }

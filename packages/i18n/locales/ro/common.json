@@ -5069,5 +5069,15 @@
   "all_conditions": "Toate condițiile (ȘI)",
   "any_condition": "Oricare condiție (SAU)",
   "pbac_resource_blocklist": "Lista de blocare",
+  "this_meeting_is_in_the_past": "Această întâlnire a trecut.",
+  "stop": "Oprește",
+  "stop_transcription": "Oprește transcrierea",
+  "start_recording": "Începe înregistrarea",
+  "stop_recording": "Oprește înregistrarea",
+  "stopping": "Se oprește..",
+  "please_wait_while_we_start_transcription": "Vă rugăm așteptați în timp ce pornim transcrierea",
+  "please_wait_while_we_stop_transcription": "Vă rugăm așteptați în timp ce oprim transcrierea",
+  "please_wait_while_we_start_recording": "Vă rugăm așteptați în timp ce pornim înregistrarea",
+  "please_wait_while_we_stop_recording": "Vă rugăm așteptați în timp ce oprim înregistrarea",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

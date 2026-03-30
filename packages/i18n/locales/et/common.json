@@ -5069,5 +5069,15 @@
   "all_conditions": "Kõik tingimused (JA)",
   "any_condition": "Suvaline tingimus (VÕI)",
   "pbac_resource_blocklist": "Blokeerimisnimekiri",
+  "this_meeting_is_in_the_past": "See kohtumine on möödas.",
+  "stop": "Peata",
+  "stop_transcription": "Peata transkriptsioon",
+  "start_recording": "Alusta salvestamist",
+  "stop_recording": "Peata salvestamine",
+  "stopping": "Peatamine..",
+  "please_wait_while_we_start_transcription": "Palun oodake, kuni käivitame transkriptsiooni",
+  "please_wait_while_we_stop_transcription": "Palun oodake, kuni peatame transkriptsiooni",
+  "please_wait_while_we_start_recording": "Palun oodake, kuni käivitame salvestamise",
+  "please_wait_while_we_stop_recording": "Palun oodake, kuni peatame salvestamise",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -5069,5 +5069,15 @@
   "all_conditions": "Все условия (И)",
   "any_condition": "Любое условие (ИЛИ)",
   "pbac_resource_blocklist": "Список блокировки",
+  "this_meeting_is_in_the_past": "Эта встреча уже прошла.",
+  "stop": "Остановить",
+  "stop_transcription": "Остановить транскрипцию",
+  "start_recording": "Начать запись",
+  "stop_recording": "Остановить запись",
+  "stopping": "Остановка..",
+  "please_wait_while_we_start_transcription": "Пожалуйста, подождите, пока мы запускаем транскрипцию",
+  "please_wait_while_we_stop_transcription": "Пожалуйста, подождите, пока мы останавливаем транскрипцию",
+  "please_wait_while_we_start_recording": "Пожалуйста, подождите, пока мы запускаем запись",
+  "please_wait_while_we_stop_recording": "Пожалуйста, подождите, пока мы останавливаем запись",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

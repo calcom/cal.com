@@ -5069,5 +5069,15 @@
   "all_conditions": "모든 조건 (AND)",
   "any_condition": "임의 조건 (OR)",
   "pbac_resource_blocklist": "차단 목록",
+  "this_meeting_is_in_the_past": "이 회의는 이미 종료되었습니다.",
+  "stop": "중지",
+  "stop_transcription": "텍스트 변환 중지",
+  "start_recording": "녹음 시작",
+  "stop_recording": "녹음 중지",
+  "stopping": "중지 중..",
+  "please_wait_while_we_start_transcription": "텍스트 변환을 시작하는 중입니다. 잠시 기다려 주세요",
+  "please_wait_while_we_stop_transcription": "텍스트 변환을 중지하는 중입니다. 잠시 기다려 주세요",
+  "please_wait_while_we_start_recording": "녹음을 시작하는 중입니다. 잠시 기다려 주세요",
+  "please_wait_while_we_stop_recording": "녹음을 중지하는 중입니다. 잠시 기다려 주세요",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

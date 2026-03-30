@@ -5069,5 +5069,15 @@
   "all_conditions": "Tutte le condizioni (AND)",
   "any_condition": "Qualsiasi condizione (OR)",
   "pbac_resource_blocklist": "Lista di blocco",
+  "this_meeting_is_in_the_past": "Questa riunione è nel passato.",
+  "stop": "Ferma",
+  "stop_transcription": "Ferma la trascrizione",
+  "start_recording": "Avvia la registrazione",
+  "stop_recording": "Ferma la registrazione",
+  "stopping": "Arresto in corso..",
+  "please_wait_while_we_start_transcription": "Attendere mentre avviamo la trascrizione",
+  "please_wait_while_we_stop_transcription": "Attendere mentre fermiamo la trascrizione",
+  "please_wait_while_we_start_recording": "Attendere mentre avviamo la registrazione",
+  "please_wait_while_we_stop_recording": "Attendere mentre fermiamo la registrazione",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

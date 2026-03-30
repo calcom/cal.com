@@ -5069,5 +5069,15 @@
   "all_conditions": "Усі умови (І)",
   "any_condition": "Будь-яка умова (АБО)",
   "pbac_resource_blocklist": "Чорний список",
+  "this_meeting_is_in_the_past": "Ця зустріч вже минула.",
+  "stop": "Зупинити",
+  "stop_transcription": "Зупинити транскрипцію",
+  "start_recording": "Почати запис",
+  "stop_recording": "Зупинити запис",
+  "stopping": "Зупинка..",
+  "please_wait_while_we_start_transcription": "Будь ласка, зачекайте, поки ми запускаємо транскрипцію",
+  "please_wait_while_we_stop_transcription": "Будь ласка, зачекайте, поки ми зупиняємо транскрипцію",
+  "please_wait_while_we_start_recording": "Будь ласка, зачекайте, поки ми запускаємо запис",
+  "please_wait_while_we_stop_recording": "Будь ласка, зачекайте, поки ми зупиняємо запис",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

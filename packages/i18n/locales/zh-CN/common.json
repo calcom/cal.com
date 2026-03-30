@@ -5069,5 +5069,15 @@
   "all_conditions": "所有条件(AND)",
   "any_condition": "任意条件(OR)",
   "pbac_resource_blocklist": "阻止列表",
+  "this_meeting_is_in_the_past": "此会议已结束。",
+  "stop": "停止",
+  "stop_transcription": "停止转录",
+  "start_recording": "开始录制",
+  "stop_recording": "停止录制",
+  "stopping": "正在停止..",
+  "please_wait_while_we_start_transcription": "正在启动转录，请稍候",
+  "please_wait_while_we_stop_transcription": "正在停止转录，请稍候",
+  "please_wait_while_we_start_recording": "正在启动录制，请稍候",
+  "please_wait_while_we_stop_recording": "正在停止录制，请稍候",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

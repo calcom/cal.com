@@ -5069,5 +5069,15 @@
   "all_conditions": "លក្ខខណ្ឌទាំងអស់ (AND)",
   "any_condition": "លក្ខខណ្ឌណាមួយ (OR)",
   "pbac_resource_blocklist": "បញ្ជីហាមឃាត់",
+  "this_meeting_is_in_the_past": "កិច្ចប្រជុំនេះបានកន្លងផុតហើយ។",
+  "stop": "បញ្ឈប់",
+  "stop_transcription": "បញ្ឈប់ការចម្លងអត្ថបទ",
+  "start_recording": "ចាប់ផ្តើមថត",
+  "stop_recording": "បញ្ឈប់ការថត",
+  "stopping": "កំពុងបញ្ឈប់..",
+  "please_wait_while_we_start_transcription": "សូមរង់ចាំខណៈពេលដែលយើងចាប់ផ្តើមការចម្លងអត្ថបទ",
+  "please_wait_while_we_stop_transcription": "សូមរង់ចាំខណៈពេលដែលយើងបញ្ឈប់ការចម្លងអត្ថបទ",
+  "please_wait_while_we_start_recording": "សូមរង់ចាំខណៈពេលដែលយើងចាប់ផ្តើមថត",
+  "please_wait_while_we_stop_recording": "សូមរង់ចាំខណៈពេលដែលយើងបញ្ឈប់ការថត",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

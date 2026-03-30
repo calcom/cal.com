@@ -5069,5 +5069,15 @@
   "all_conditions": "Kaikki ehdot (JA)",
   "any_condition": "Mikä tahansa ehto (TAI)",
   "pbac_resource_blocklist": "Estolista",
+  "this_meeting_is_in_the_past": "Tämä tapaaminen on menneisyydessä.",
+  "stop": "Pysäytä",
+  "stop_transcription": "Pysäytä litterointi",
+  "start_recording": "Aloita tallennus",
+  "stop_recording": "Pysäytä tallennus",
+  "stopping": "Pysäytetään..",
+  "please_wait_while_we_start_transcription": "Odota, kunnes litterointi käynnistyy",
+  "please_wait_while_we_stop_transcription": "Odota, kunnes litterointi pysähtyy",
+  "please_wait_while_we_start_recording": "Odota, kunnes tallennus käynnistyy",
+  "please_wait_while_we_stop_recording": "Odota, kunnes tallennus pysähtyy",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

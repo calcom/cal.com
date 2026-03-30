@@ -5069,5 +5069,15 @@
   "all_conditions": "Všechny podmínky (A)",
   "any_condition": "Jakákoli podmínka (NEBO)",
   "pbac_resource_blocklist": "Seznam blokovaných",
+  "this_meeting_is_in_the_past": "Tato schůzka je v minulosti.",
+  "stop": "Zastavit",
+  "stop_transcription": "Zastavit přepis",
+  "start_recording": "Zahájit nahrávání",
+  "stop_recording": "Zastavit nahrávání",
+  "stopping": "Zastavování..",
+  "please_wait_while_we_start_transcription": "Počkejte prosím, než spustíme přepis",
+  "please_wait_while_we_stop_transcription": "Počkejte prosím, než zastavíme přepis",
+  "please_wait_while_we_start_recording": "Počkejte prosím, než spustíme nahrávání",
+  "please_wait_while_we_stop_recording": "Počkejte prosím, než zastavíme nahrávání",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

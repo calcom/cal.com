@@ -5069,5 +5069,15 @@
   "all_conditions": "Tüm koşullar (VE)",
   "any_condition": "Herhangi bir koşul (VEYA)",
   "pbac_resource_blocklist": "Engelleme Listesi",
+  "this_meeting_is_in_the_past": "Bu toplantı geçmişte kaldı.",
+  "stop": "Durdur",
+  "stop_transcription": "Transkripsiyonu durdur",
+  "start_recording": "Kaydı başlat",
+  "stop_recording": "Kaydı durdur",
+  "stopping": "Durduruluyor..",
+  "please_wait_while_we_start_transcription": "Transkripsiyon başlatılırken lütfen bekleyin",
+  "please_wait_while_we_stop_transcription": "Transkripsiyon durdurulurken lütfen bekleyin",
+  "please_wait_while_we_start_recording": "Kayıt başlatılırken lütfen bekleyin",
+  "please_wait_while_we_stop_recording": "Kayıt durdurulurken lütfen bekleyin",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

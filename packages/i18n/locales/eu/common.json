@@ -5069,5 +5069,15 @@
   "all_conditions": "Baldintza guztiak (ETA)",
   "any_condition": "Edozein baldintza (EDO)",
   "pbac_resource_blocklist": "Blokeo-zerrenda",
+  "this_meeting_is_in_the_past": "Bilera hau iraganean da.",
+  "stop": "Gelditu",
+  "stop_transcription": "Gelditu transkripzioa",
+  "start_recording": "Hasi grabatzen",
+  "stop_recording": "Gelditu grabaketa",
+  "stopping": "Gelditzen..",
+  "please_wait_while_we_start_transcription": "Itxaron transkripzioa hasten dugun bitartean",
+  "please_wait_while_we_stop_transcription": "Itxaron transkripzioa gelditzen dugun bitartean",
+  "please_wait_while_we_start_recording": "Itxaron grabaketa hasten dugun bitartean",
+  "please_wait_while_we_stop_recording": "Itxaron grabaketa gelditzen dugun bitartean",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

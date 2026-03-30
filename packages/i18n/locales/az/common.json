@@ -5069,5 +5069,15 @@
   "all_conditions": "Bütün şərtlər (VƏ)",
   "any_condition": "İstənilən şərt (VƏ YA)",
   "pbac_resource_blocklist": "Qara siyahı",
+  "this_meeting_is_in_the_past": "Bu görüş artıq keçmişdədir.",
+  "stop": "Dayandır",
+  "stop_transcription": "Transkripsiyani dayandır",
+  "start_recording": "Yazını başlat",
+  "stop_recording": "Yazını dayandır",
+  "stopping": "Dayandırılır..",
+  "please_wait_while_we_start_transcription": "Transkripsiya başladılarkən gözləyin",
+  "please_wait_while_we_stop_transcription": "Transkripsiya dayandırılarkən gözləyin",
+  "please_wait_while_we_start_recording": "Yazı başladılarkən gözləyin",
+  "please_wait_while_we_stop_recording": "Yazı dayandırılarkən gözləyin",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

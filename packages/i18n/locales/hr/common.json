@@ -452,5 +452,15 @@
   "meeting_not_joined_question": "niste prisustvovali sastanku?",
   "reschedule_cta_short": "Zakažite ponovno ovdje.",
   "you_and_conjunction": "Vi &",
-  "email_survey_triggered_by_workflow": "Ova anketa je pokrenuta Workflow-om u Calu."
+  "email_survey_triggered_by_workflow": "Ova anketa je pokrenuta Workflow-om u Calu.",
+  "this_meeting_is_in_the_past": "Ovaj sastanak je u prošlosti.",
+  "stop": "Zaustavi",
+  "stop_transcription": "Zaustavi transkripciju",
+  "start_recording": "Započni snimanje",
+  "stop_recording": "Zaustavi snimanje",
+  "stopping": "Zaustavljanje..",
+  "please_wait_while_we_start_transcription": "Molimo pričekajte dok pokrećemo transkripciju",
+  "please_wait_while_we_stop_transcription": "Molimo pričekajte dok zaustavljamo transkripciju",
+  "please_wait_while_we_start_recording": "Molimo pričekajte dok pokrećemo snimanje",
+  "please_wait_while_we_stop_recording": "Molimo pričekajte dok zaustavljamo snimanje"
 }

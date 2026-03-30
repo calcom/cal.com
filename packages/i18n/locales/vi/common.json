@@ -5069,5 +5069,15 @@
   "all_conditions": "Tất cả điều kiện (VÀ)",
   "any_condition": "Bất kỳ điều kiện nào (HOẶC)",
   "pbac_resource_blocklist": "Danh sách chặn",
+  "this_meeting_is_in_the_past": "Cuộc họảp này đã kết thúc.",
+  "stop": "Dừng",
+  "stop_transcription": "Dừng chuyển ngữ",
+  "start_recording": "Bắt đầu ghi",
+  "stop_recording": "Dừng ghi",
+  "stopping": "Đang dừng..",
+  "please_wait_while_we_start_transcription": "Vui lòng chờ trong khi chúng tôi bắt đầu chuyển ngữ",
+  "please_wait_while_we_stop_transcription": "Vui lòng chờ trong khi chúng tôi dừng chuyển ngữ",
+  "please_wait_while_we_start_recording": "Vui lòng chờ trong khi chúng tôi bắt đầu ghi",
+  "please_wait_while_we_stop_recording": "Vui lòng chờ trong khi chúng tôi dừng ghi",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

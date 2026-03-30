@@ -5069,5 +5069,15 @@
   "all_conditions": "所有條件 (AND)",
   "any_condition": "任一條件 (OR)",
   "pbac_resource_blocklist": "封鎖清單",
+  "this_meeting_is_in_the_past": "此會議已結束。",
+  "stop": "停止",
+  "stop_transcription": "停止轉錄",
+  "start_recording": "開始錄製",
+  "stop_recording": "停止錄製",
+  "stopping": "正在停止..",
+  "please_wait_while_we_start_transcription": "正在啟動轉錄，請稍候",
+  "please_wait_while_we_stop_transcription": "正在停止轉錄，請稍候",
+  "please_wait_while_we_start_recording": "正在啟動錄製，請稍候",
+  "please_wait_while_we_stop_recording": "正在停止錄製，請稍候",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -165,5 +165,15 @@
   "meeting_not_joined_question": "tidak bergabung dengan rapat?",
   "reschedule_cta_short": "Jadwal ulang di sini.",
   "you_and_conjunction": "Anda &",
-  "email_survey_triggered_by_workflow": "Survei ini dipicu oleh Workflow di Cal."
+  "email_survey_triggered_by_workflow": "Survei ini dipicu oleh Workflow di Cal.",
+  "this_meeting_is_in_the_past": "Rapat ini sudah berlalu.",
+  "stop": "Hentikan",
+  "stop_transcription": "Hentikan transkripsi",
+  "start_recording": "Mulai rekaman",
+  "stop_recording": "Hentikan rekaman",
+  "stopping": "Menghentikan..",
+  "please_wait_while_we_start_transcription": "Harap tunggu sementara kami memulai transkripsi",
+  "please_wait_while_we_stop_transcription": "Harap tunggu sementara kami menghentikan transkripsi",
+  "please_wait_while_we_start_recording": "Harap tunggu sementara kami memulai rekaman",
+  "please_wait_while_we_stop_recording": "Harap tunggu sementara kami menghentikan rekaman"
 }

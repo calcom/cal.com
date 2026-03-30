@@ -5069,5 +5069,15 @@
   "all_conditions": "Svi uslovi (AND)",
   "any_condition": "Bilo koji uslov (OR)",
   "pbac_resource_blocklist": "Lista blokiranih",
+  "this_meeting_is_in_the_past": "Овај састанак је у прошлости.",
+  "stop": "Заустави",
+  "stop_transcription": "Заустави транскрипцију",
+  "start_recording": "Започни снимање",
+  "stop_recording": "Заустави снимање",
+  "stopping": "Заустављање..",
+  "please_wait_while_we_start_transcription": "Молимо сачекајте док покрећемо транскрипцију",
+  "please_wait_while_we_stop_transcription": "Молимо сачекајте док заустављамо транскрипцију",
+  "please_wait_while_we_start_recording": "Молимо сачекајте док покрећемо снимање",
+  "please_wait_while_we_stop_recording": "Молимо сачекајте док заустављамо снимање",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

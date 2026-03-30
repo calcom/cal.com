@@ -5069,5 +5069,15 @@
   "all_conditions": "Alla villkor (OCH)",
   "any_condition": "Något villkor (ELLER)",
   "pbac_resource_blocklist": "Blocklista",
+  "this_meeting_is_in_the_past": "Detta möte har redan passerat.",
+  "stop": "Stoppa",
+  "stop_transcription": "Stoppa transkription",
+  "start_recording": "Starta inspelning",
+  "stop_recording": "Stoppa inspelning",
+  "stopping": "Stoppar..",
+  "please_wait_while_we_start_transcription": "Vänta medan vi startar transkriptionen",
+  "please_wait_while_we_stop_transcription": "Vänta medan vi stoppar transkriptionen",
+  "please_wait_while_we_start_recording": "Vänta medan vi startar inspelningen",
+  "please_wait_while_we_stop_recording": "Vänta medan vi stoppar inspelningen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
