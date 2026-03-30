@@ -193,8 +193,18 @@ export const AvailabilityCTA = ({ canViewTeamAvailability }: AvailabilityCTAProp
 
   const toggleGroupOptions = [
     { value: "mine", label: t("my_availability") },
-    ...(canViewTeamAvailability ? [{ value: "team", label: t("team_availability"), onClick: () => { posthog.capture("team_availability_toggle_clicked") } }] : []),
-  ]
+    ...(canViewTeamAvailability
+      ? [
+          {
+            value: "team",
+            label: t("team_availability"),
+            onClick: () => {
+              posthog.capture("team_availability_toggle_clicked");
+            },
+          },
+        ]
+      : []),
+  ];
 
   // Get a new searchParams string by merging the current
   // searchParams with a provided key/value pair

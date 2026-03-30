@@ -35,12 +35,10 @@ export const THRESHOLDS = {
   },
 };
 
-export const TEST_USERS = new SharedArray("users", function () {
-  return [
-    { username: __ENV.TEST_USER_FREE || "free", password: __ENV.TEST_PASSWORD_FREE || "free" },
-    { username: __ENV.TEST_USER_PRO || "pro", password: __ENV.TEST_PASSWORD_PRO || "pro" },
-  ];
-});
+export const TEST_USERS = new SharedArray("users", () => [
+  { username: __ENV.TEST_USER_FREE || "free", password: __ENV.TEST_PASSWORD_FREE || "free" },
+  { username: __ENV.TEST_USER_PRO || "pro", password: __ENV.TEST_PASSWORD_PRO || "pro" },
+]);
 
 export function getRandomUser() {
   return TEST_USERS[Math.floor(Math.random() * TEST_USERS.length)];

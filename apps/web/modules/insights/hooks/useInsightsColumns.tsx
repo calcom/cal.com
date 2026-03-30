@@ -165,18 +165,21 @@ export const useInsightsColumns = ({
         const filterType = isSingleSelect
           ? ColumnFilterType.SINGLE_SELECT
           : isNumber
-          ? ColumnFilterType.NUMBER
-          : isText
-          ? ColumnFilterType.TEXT
-          : ColumnFilterType.MULTI_SELECT;
+            ? ColumnFilterType.NUMBER
+            : isText
+              ? ColumnFilterType.TEXT
+              : ColumnFilterType.MULTI_SELECT;
 
         const optionMap =
-          fieldHeader.options?.reduce((acc, option) => {
-            if (option.id) {
-              acc[option.id] = option.label;
-            }
-            return acc;
-          }, {} as Record<string, string>) ?? {};
+          fieldHeader.options?.reduce(
+            (acc, option) => {
+              if (option.id) {
+                acc[option.id] = option.label;
+              }
+              return acc;
+            },
+            {} as Record<string, string>
+          ) ?? {};
 
         return columnHelper.accessor((row) => row.fields.find((field) => field.fieldId === fieldHeader.id), {
           id: fieldHeader.id,

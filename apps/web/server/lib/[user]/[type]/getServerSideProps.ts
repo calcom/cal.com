@@ -172,7 +172,13 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   // Don't redirect if this is a reschedule or seated booking flow
   const hasRoutingFormResponse =
     context.query["cal.routingFormResponseId"] || context.query["cal.queuedFormResponseId"];
-  if (!hasRoutingFormResponse && !rescheduleUid && !bookingUid && "redirectUrlOnNoRoutingFormResponse" in eventData && eventData.redirectUrlOnNoRoutingFormResponse) {
+  if (
+    !hasRoutingFormResponse &&
+    !rescheduleUid &&
+    !bookingUid &&
+    "redirectUrlOnNoRoutingFormResponse" in eventData &&
+    eventData.redirectUrlOnNoRoutingFormResponse
+  ) {
     return {
       redirect: {
         destination: eventData.redirectUrlOnNoRoutingFormResponse,
@@ -267,26 +273,32 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     session?.user?.id
   );
 
-    if (!eventData) {
-      return {
-        notFound: true,
-      } as const;
-    }
+  if (!eventData) {
+    return {
+      notFound: true,
+    } as const;
+  }
 
-    // Redirect if no routing form response and redirect URL is configured
-    // Don't redirect if this is a reschedule or seated booking flow
-    const hasRoutingFormResponse =
-      context.query["cal.routingFormResponseId"] || context.query["cal.queuedFormResponseId"];
-    if (!hasRoutingFormResponse && !rescheduleUid && !bookingUid && "redirectUrlOnNoRoutingFormResponse" in eventData && eventData.redirectUrlOnNoRoutingFormResponse) {
-      return {
-        redirect: {
-          destination: eventData.redirectUrlOnNoRoutingFormResponse,
-          permanent: false,
-        },
-      };
-    }
+  // Redirect if no routing form response and redirect URL is configured
+  // Don't redirect if this is a reschedule or seated booking flow
+  const hasRoutingFormResponse =
+    context.query["cal.routingFormResponseId"] || context.query["cal.queuedFormResponseId"];
+  if (
+    !hasRoutingFormResponse &&
+    !rescheduleUid &&
+    !bookingUid &&
+    "redirectUrlOnNoRoutingFormResponse" in eventData &&
+    eventData.redirectUrlOnNoRoutingFormResponse
+  ) {
+    return {
+      redirect: {
+        destination: eventData.redirectUrlOnNoRoutingFormResponse,
+        permanent: false,
+      },
+    };
+  }
 
-    const allowSEOIndexing= org
+  const allowSEOIndexing = org
     ? user?.profile?.organization?.organizationSettings?.allowSEOIndexing
       ? user?.allowSEOIndexing
       : false

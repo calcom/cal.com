@@ -2,7 +2,7 @@ import type { ExpressionBuilder, StringReference } from "kysely";
 import { sql } from "kysely";
 
 export function traverseJSON<DB, TB extends keyof DB>(
-  eb: ExpressionBuilder<DB, TB>,
+  _eb: ExpressionBuilder<DB, TB>,
   column: StringReference<DB, TB>,
   path: string | [string, ...string[]]
 ) {

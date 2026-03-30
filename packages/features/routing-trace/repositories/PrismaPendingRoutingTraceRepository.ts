@@ -8,9 +8,7 @@ import type {
   PendingRoutingTraceRecord,
 } from "./PendingRoutingTraceRepository.interface";
 
-export class PrismaPendingRoutingTraceRepository
-  implements IPendingRoutingTraceRepository
-{
+export class PrismaPendingRoutingTraceRepository implements IPendingRoutingTraceRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(args: IPendingRoutingTraceRepositoryCreateArgs): Promise<void> {
@@ -18,12 +16,8 @@ export class PrismaPendingRoutingTraceRepository
       data: {
         createdAt: new Date(),
         trace: args.trace as Prisma.InputJsonValue,
-        formResponseId:
-          "formResponseId" in args ? args.formResponseId : undefined,
-        queuedFormResponseId:
-          "queuedFormResponseId" in args
-            ? args.queuedFormResponseId
-            : undefined,
+        formResponseId: "formResponseId" in args ? args.formResponseId : undefined,
+        queuedFormResponseId: "queuedFormResponseId" in args ? args.queuedFormResponseId : undefined,
       },
     });
   }
@@ -39,9 +33,7 @@ export class PrismaPendingRoutingTraceRepository
     };
   }
 
-  async findByQueuedFormResponseId(
-    queuedFormResponseId: string
-  ): Promise<PendingRoutingTraceRecord | null> {
+  async findByQueuedFormResponseId(queuedFormResponseId: string): Promise<PendingRoutingTraceRecord | null> {
     const result = await this.prisma.pendingRoutingTrace.findUnique({
       where: { queuedFormResponseId },
     });
@@ -52,10 +44,7 @@ export class PrismaPendingRoutingTraceRepository
     };
   }
 
-  async linkToFormResponse(args: {
-    queuedFormResponseId: string;
-    formResponseId: number;
-  }): Promise<void> {
+  async linkToFormResponse(args: { queuedFormResponseId: string; formResponseId: number }): Promise<void> {
     await this.prisma.pendingRoutingTrace.update({
       where: { queuedFormResponseId: args.queuedFormResponseId },
       data: { formResponseId: args.formResponseId },

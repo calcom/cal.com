@@ -27,9 +27,9 @@ const Page = async () => {
   const organizationRepository = getOrganizationRepository();
   const otherTeams = organizationId
     ? await organizationRepository.findTeamsInOrgIamNotPartOf({
-      userId: session?.user.id,
-      parentId: organizationId,
-    })
+        userId: session?.user.id,
+        parentId: organizationId,
+      })
     : [];
 
   return (

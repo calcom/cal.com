@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 
 import { BillingPeriodService } from "../BillingPeriodService";
@@ -29,13 +28,23 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
+const mockFeaturesRepository = {
+  checkIfFeatureIsEnabledGlobally: vi.fn(),
+};
+
+vi.mock("@calcom/features/di/containers/FeaturesRepository", () => ({
+  getFeaturesRepository: () => mockFeaturesRepository,
+}));
+
 describe("BillingPeriodService", () => {
   let service: BillingPeriodService;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(FeaturesRepository.prototype, "checkIfFeatureIsEnabledGlobally").mockResolvedValue(true);
-    service = new BillingPeriodService();
+    mockFeaturesRepository.checkIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+    service = new BillingPeriodService({
+      featuresRepository: mockFeaturesRepository as any,
+    });
   });
 
   describe("isAnnualPlan", () => {
@@ -263,6 +272,7 @@ describe("BillingPeriodService", () => {
         teamBilling: {
           id: 1,
           billingPeriod: "ANNUALLY",
+          billingMode: "SEATS",
           subscriptionStart,
           subscriptionEnd,
           subscriptionTrialEnd: null,
@@ -277,6 +287,7 @@ describe("BillingPeriodService", () => {
 
       expect(result).toEqual({
         billingPeriod: "ANNUALLY",
+        billingMode: "SEATS",
         subscriptionStart,
         subscriptionEnd,
         trialEnd: null,
@@ -323,6 +334,7 @@ describe("BillingPeriodService", () => {
 
       expect(result).toEqual({
         billingPeriod: null,
+        billingMode: null,
         subscriptionStart: null,
         subscriptionEnd: null,
         trialEnd: null,

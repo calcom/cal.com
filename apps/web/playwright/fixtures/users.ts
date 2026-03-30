@@ -993,7 +993,7 @@ const createUser = (
       profileUsername: opts?.profileUsername,
     }),
     schedules:
-      opts?.completedOnboarding ?? true
+      (opts?.completedOnboarding ?? true)
         ? {
             create: {
               name: "Working Hours",
@@ -1114,11 +1114,7 @@ export async function login(
 /**
  * Helper to retry network requests that may fail with transient errors like ECONNRESET
  */
-async function retryOnNetworkError<T>(
-  fn: () => Promise<T>,
-  maxRetries = 3,
-  delayMs = 500
-): Promise<T> {
+async function retryOnNetworkError<T>(fn: () => Promise<T>, maxRetries = 3, delayMs = 500): Promise<T> {
   let lastError: Error | undefined;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {

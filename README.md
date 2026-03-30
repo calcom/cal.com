@@ -149,6 +149,13 @@ Here is what you need to be able to run Cal.com.
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
    - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
+     
+ > **Windows users:** Replace the `packages/prisma/.env` symlink with a real copy to avoid a Prisma error (`unexpected character / in variable name`):
+ >
+ > ```sh
+ > # Git Bash / WSL
+ > rm packages/prisma/.env && cp .env packages/prisma/.env
+ > ```
 
 5. Setup Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
@@ -473,6 +480,29 @@ If you are evaluating Cal.com or running with minimal to no modifications, this 
 
    Most configurations can be left as-is, but for configuration options see [Important Run-time variables](#important-run-time-variables) below.
 
+   **Required Secret Keys**
+
+   Before starting, you must generate secure values for `NEXTAUTH_SECRET` and `CALENDSO_ENCRYPTION_KEY`. Using the default `secret` placeholder in production is a security risk.
+
+   Generate `NEXTAUTH_SECRET` (cookie encryption key):
+
+   ```bash
+   openssl rand -base64 32
+   ```
+
+   Generate `CALENDSO_ENCRYPTION_KEY` (must be 32 bytes for AES256):
+
+   ```bash
+   openssl rand -base64 24
+   ```
+
+   Update your `.env` file with these values:
+
+   ```env
+   NEXTAUTH_SECRET=<your_generated_secret>
+   CALENDSO_ENCRYPTION_KEY=<your_generated_key>
+   ```
+
    **Push Notifications (VAPID Keys)**
    If you see an error like:
 
@@ -534,6 +564,8 @@ If you are evaluating Cal.com or running with minimal to no modifications, this 
 
 6. Open a browser to [http://localhost:3000](http://localhost:3000), or your defined NEXT_PUBLIC_WEBAPP_URL. The first time you run Cal.com, a setup wizard will initialize. Define your first user, and you're ready to go!
 
+   **Note for first-time setup (Calendar integration)**: During the setup wizard, you may encounter a "Connect your Calendar" step that appears to be required. If you do not wish to connect a calendar at this time, you can skip this step by navigating directly to the dashboard at `<NEXT_PUBLIC_WEBAPP_URL>/event-types`. Calendar integrations can be added later from the Settings > Integrations page.
+
 #### Updating Cal.com
 
 1. Stop the Cal.com stack
@@ -557,31 +589,23 @@ If you are evaluating Cal.com or running with minimal to no modifications, this 
 
 #### (Advanced users) Build and Run Cal.com
 
-1. Clone calcom/docker.
+1. Clone calcom/cal.com.
 
    ```bash
-   git clone https://github.com/calcom/cal.com.git calcom-docker
+   git clone https://github.com/calcom/cal.com.git
    ```
 
 2. Change into the directory
 
    ```bash
-   cd calcom-docker
+   cd cal.com
    ```
 
-3. Update the calcom submodule. This project depends on the Cal.com source code, which is included here as a Git submodule. To make sure you get everything you need, update the submodule with the command below.
-
-   ```bash
-   git submodule update --remote --init
-   ```
-
-   Note: DO NOT use recursive submodule update, otherwise you will receive a git authentication error.
-
-4. Rename `.env.example` to `.env` and then update `.env`
+3. Rename `.env.example` to `.env` and then update `.env`
 
    For configuration options see [Build-time variables](#build-time-variables) below. Update the appropriate values in your .env file, then proceed.
 
-5. Build the Cal.com docker image:
+4. Build the Cal.com docker image:
 
    Note: Due to application configuration requirements, an available database is currently required during the build process.
 
@@ -593,13 +617,13 @@ If you are evaluating Cal.com or running with minimal to no modifications, this 
    docker compose up -d database
    ```
 
-6. Build Cal.com via docker compose (DOCKER_BUILDKIT=0 must be provided to allow a network bridge to be used at build time. This requirement will be removed in the future)
+5. Build Cal.com via docker compose (DOCKER_BUILDKIT=0 must be provided to allow a network bridge to be used at build time. This requirement will be removed in the future)
 
    ```bash
    DOCKER_BUILDKIT=0 docker compose build calcom
    ```
 
-7. Start Cal.com via docker compose
+6. Start Cal.com via docker compose
 
    (Most basic users, and for First Run) To run the complete stack, which includes a local Postgres database, Cal.com web app, and Prisma Studio:
 
@@ -621,7 +645,7 @@ If you are evaluating Cal.com or running with minimal to no modifications, this 
 
    **Note: to run in attached mode for debugging, remove `-d` from your desired run command.**
 
-8. Open a browser to [http://localhost:3000](http://localhost:3000), or your defined NEXT_PUBLIC_WEBAPP_URL. The first time you run Cal.com, a setup wizard will initialize. Define your first user, and you're ready to go!
+7. Open a browser to [http://localhost:3000](http://localhost:3000), or your defined NEXT_PUBLIC_WEBAPP_URL. The first time you run Cal.com, a setup wizard will initialize. Define your first user, and you're ready to go!
 
 #### Configuration
 
@@ -635,8 +659,8 @@ These variables must also be provided at runtime
 | CALCOM_LICENSE_KEY      | Enterprise License Key                                                                                                                                                           | optional |                                                                     |
 | NEXT_PUBLIC_WEBAPP_URL  | Base URL of the site. NOTE: if this value differs from the value used at build-time, there will be a slight delay during container start (to update the statically built files). | optional | `http://localhost:3000`                                             |
 | NEXTAUTH_URL            | Location of the auth server. By default, this is the Cal.com docker instance itself.                                                                                             | optional | `{NEXT_PUBLIC_WEBAPP_URL}/api/auth`                                 |
-| NEXTAUTH_SECRET         | must match build variable                                                                                                                                                        | required | `secret`                                                            |
-| CALENDSO_ENCRYPTION_KEY | must match build variable                                                                                                                                                        | required | `secret`                                                            |
+| NEXTAUTH_SECRET         | Cookie encryption key. Must match build variable. Generate with: `openssl rand -base64 32`                                                                                       | required | `secret`                                                            |
+| CALENDSO_ENCRYPTION_KEY | Authentication encryption key (32 bytes for AES256). Must match build variable. Generate with: `openssl rand -base64 24`                                                         | required | `secret`                                                            |
 
 ##### Build-time variables
 
@@ -671,7 +695,7 @@ Certain versions may have trouble creating a user if the field `metadata` is emp
 
 ##### CLIENT_FETCH_ERROR
 
-If you experience this error, it may be the way the default Auth callback in the server is using the WEBAPP_URL as a base url. The container does not necessarily have access to the same DNS as your local machine, and therefor needs to be configured to resolve to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth`, to help the backend loop back to itself.
+If you experience this error, it may be the way the default Auth callback in the server is using the WEBAPP_URL as a base url. The container does not necessarily have access to the same DNS as your local machine, and therefore needs to be configured to resolve to itself. You may be able to correct this by configuring `NEXTAUTH_URL=http://localhost:3000/api/auth`, to help the backend loop back to itself.
 
 ```
 docker-calcom-1  | @calcom/web:start: [next-auth][error][CLIENT_FETCH_ERROR]
@@ -767,11 +791,14 @@ Cal.com, Inc. is a commercial open source company, which means some parts of thi
 
 <img width="100%" src="https://repobeats.axiom.co/api/embed/6bfca2f20f39738048b6e70ca205efde46352c3d.svg" />
 
-<!-- CONTRIBUTING -->
-
 ## Contributing
+We ❤️ contributions! Whether it’s fixing a typo, improving documentation, or building new features, your help makes Cal.com better.
 
-Please see our [contributing guide](/CONTRIBUTING.md).
+- Check out our [Contributing Guide](./CONTRIBUTING.md) for detailed steps.
+- Join the discussion on [GitHub Discussions](https://github.com/calcom/cal.com/discussions) or our community channels.
+- Please follow our coding standards and commit message conventions to keep the project consistent.
+
+Even small improvements matter — thank you for helping us grow!
 
 ### Good First Issues
 
@@ -983,12 +1010,6 @@ An example of good readme is [atoms readme](https://github.com/calcom/cal.com/bl
 
 1. Follow semantic versioning when using changesets.
 2. Mark breaking changes using `❗️Breaking change`
-
-<!-- LICENSE -->
-
-## License
-
-Distributed under the [AGPLv3 License](https://github.com/calcom/cal.com/blob/main/LICENSE). See `LICENSE` for more information.
 
 <!-- ACKNOWLEDGEMENTS -->
 

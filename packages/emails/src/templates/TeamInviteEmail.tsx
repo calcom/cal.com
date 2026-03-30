@@ -136,7 +136,7 @@ export const TeamInviteEmail = (
       parentTeamName: props.parentTeamName,
       prevLink: props.prevLink,
       newLink: props.newLink,
-      orgName: props.parentTeamName ?? props.isOrg ? props.teamName : "",
+      orgName: (props.parentTeamName ?? props.isOrg) ? props.teamName : "",
       prevLinkWithoutProtocol: props.prevLink?.replace(/https?:\/\//, ""),
       newLinkWithoutProtocol: props.newLink?.replace(/https?:\/\//, ""),
     };

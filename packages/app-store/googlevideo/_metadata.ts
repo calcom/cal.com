@@ -1,11 +1,11 @@
+import process from "node:process";
 import { validJson } from "@calcom/lib/jsonUtils";
 import type { AppMeta } from "@calcom/types/App";
 
-import _package from "./package.json";
-
 export const metadata = {
   name: "Google Meet",
-  description: _package.description,
+  description:
+    "Google Meet is Google's web-based video conferencing platform, designed to compete with major conferencing platforms.",
   installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
   slug: "google-meet",
   category: "conferencing",

@@ -127,7 +127,7 @@ html.todesktop.dark {
  * Override the default tailwindcss-forms styling (default is: 'colors.blue.600')
  * @see: https://github.com/tailwindlabs/tailwindcss-forms/issues/14#issuecomment-1005376006
  */
- @layer base {
+@layer base {
   [type="text"]:focus,
   [type="email"]:focus,
   [type="url"]:focus,

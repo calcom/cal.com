@@ -82,8 +82,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         redirect: {
           permanent: false,
           // App Router doesn't have access to the current path directly, so we build it manually
-          destination: `${redirectWithOriginAndSearchString.origin ?? ""}/d/${link}/${slug}${redirectWithOriginAndSearchString.searchString
-            }`,
+          destination: `${redirectWithOriginAndSearchString.origin ?? ""}/d/${link}/${slug}${
+            redirectWithOriginAndSearchString.searchString
+          }`,
         },
       };
     }

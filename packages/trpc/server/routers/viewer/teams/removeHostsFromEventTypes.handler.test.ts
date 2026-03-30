@@ -130,9 +130,7 @@ describe("removeHostsFromEventTypesHandler", () => {
     });
 
     // Mock that only userId 101 is a team member, 102 is not
-    (MembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([
-      { userId: 101 },
-    ]);
+    (MembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([{ userId: 101 }]);
 
     const mockDeleteResult = { count: 1 };
     (prisma.host.deleteMany as any).mockResolvedValue(mockDeleteResult);
@@ -284,9 +282,7 @@ describe("removeHostsFromEventTypesHandler", () => {
     });
 
     // User 999 is a valid team member
-    (MembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([
-      { userId: 999 },
-    ]);
+    (MembershipRepository.findAcceptedMembershipsByUserIdsInTeam as any).mockResolvedValue([{ userId: 999 }]);
 
     // But they're not a host on any of the event types
     const mockDeleteResult = { count: 0 };

@@ -1,11 +1,10 @@
+import { randomBytes } from "node:crypto";
+import process from "node:process";
+import { APP_NAME, IS_MAILHOG_ENABLED, IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 import type { Browser, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { hashSync } from "bcryptjs";
-import { randomBytes } from "node:crypto";
-
-import { APP_NAME, IS_PREMIUM_USERNAME_ENABLED, IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
-
 import { test } from "./lib/fixtures";
 import { localize } from "./lib/localize";
 import { getEmailsReceivedByUser, getInviteLink } from "./lib/testUtils";
@@ -188,7 +187,10 @@ test.describe("Email Signup Flow Test", async () => {
     await page.locator('button[type="submit"]').click();
 
     // Should successfully login with original password
-    await expect(page).toHaveURL(/\/(getting-started|event-types|teams)/, { timeout: 8000 });
+    await expect(page).toHaveURL(
+      /\/(getting-started|onboarding\/getting-started|onboarding\/personal\/settings|event-types|teams)/,
+      { timeout: 8000 }
+    );
 
     // Cleanup
     await prisma.verificationToken.deleteMany({ where: { token } });
@@ -226,7 +228,7 @@ test.describe("Email Signup Flow Test", async () => {
     // Verify that the username is the same as the one provided and isn't accidentally changed to email derived username - That happens only for organization member signup
     expect(dbUser?.username).toBe(userToCreate.username);
   });
-  
+
   test("Signup fields prefilled with query params", async ({ page, users: _users }) => {
     const signupUrlWithParams = "/signup?username=rick-jones&email=rick-jones%40example.com";
     await page.goto(signupUrlWithParams);
@@ -393,7 +395,10 @@ test.describe("Email Signup Flow Test", async () => {
       // Check required fields
       await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
       await newPage.locator("button[type=submit]").click();
-      await newPage.waitForURL("/getting-started?from=signup");
+      await newPage.waitForURL((url) => {
+        const path = url.pathname;
+        return /\/(getting-started|onboarding\/(getting-started|personal\/settings))/.test(path);
+      });
       await newPage.close();
       await context.close();
     });
@@ -422,7 +427,11 @@ test.describe("Email Signup Flow Test", async () => {
     await expect(submitButton).toBeEnabled();
   });
 
-  test("Signup with org invite link creates user and joins organization", async ({ page, users, browser }) => {
+  test("Signup with org invite link creates user and joins organization", async ({
+    page,
+    users,
+    browser,
+  }) => {
     const orgOwner = await users.create(undefined, { hasTeam: true, isOrg: true });
     const { team: org } = await orgOwner.getOrgMembership();
     await orgOwner.apiLogin();
@@ -458,7 +467,7 @@ test.describe("Email Signup Flow Test", async () => {
 
     await page.goto(`/settings/teams/${subTeam.id}/members`);
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500);
+    await expect(page.getByTestId("new-member-button")).toBeVisible();
     await page.getByTestId("new-member-button").click();
     const inviteLink = await getInviteLink(page);
 
@@ -486,11 +495,7 @@ test.describe("Email Signup Flow Test", async () => {
     });
   });
 
-  test("Signup with email-based token still works (regression test)", async ({
-    page,
-    prisma,
-    users,
-  }) => {
+  test("Signup with email-based token still works (regression test)", async ({ page, prisma, users }) => {
     const token = randomBytes(32).toString("hex");
     const userToCreate = users.buildForSignup({
       username: "email-token-user",
@@ -524,7 +529,9 @@ test.describe("Email Signup Flow Test", async () => {
     await page.locator('input[name="password"]').fill("Password99!");
     await page.getByTestId("signup-submit-button").click();
 
-    await expect(page).toHaveURL(/\/getting-started|\/auth\/verify-email/);
+    await expect(page).toHaveURL(
+      /\/(getting-started|onboarding\/(getting-started|personal\/settings))|\/auth\/verify-email/
+    );
 
     const createdUser = await prisma.user.findUnique({
       where: { email: userToCreate.email },
@@ -539,11 +546,9 @@ test.describe("Email Signup Flow Test", async () => {
       },
     });
 
-    expect(createdUser).toBeTruthy();
-    const membership = createdUser?.teams.find(
-      (m) => m.teamId === emailToken.teamId
-    );
-    expect(membership).toBeTruthy();
+    expect(createdUser).not.toBeNull();
+    const membership = createdUser?.teams.find((m) => m.teamId === emailToken.teamId);
+    expect(membership).not.toBeUndefined();
     expect(membership?.accepted).toBe(true);
 
     await prisma.user.delete({ where: { id: createdUser!.id } });
@@ -596,7 +601,7 @@ async function expectUserToBeAMemberOfTeam({
 }) {
   await page.goto(`/settings/teams/${teamId}/members`);
   await page.waitForLoadState("domcontentloaded");
-  await page.waitForTimeout(1000);
+  await expect(page.locator(`[data-testid="member-${username}"]`)).toBeVisible();
   expect(
     (
       await page
@@ -635,6 +640,9 @@ async function signupFromInviteLink({
   await inviteLinkPage.locator("input[name=email]").fill(email);
   await inviteLinkPage.locator("input[name=password]").fill(`P4ssw0rd!`);
   await inviteLinkPage.locator("button[type=submit]").click();
-  await inviteLinkPage.waitForURL("/getting-started");
+  await inviteLinkPage.waitForURL((url) => {
+    const path = url.pathname;
+    return /\/(getting-started|onboarding\/(getting-started|personal\/settings))/.test(path);
+  });
   await context.close();
 }

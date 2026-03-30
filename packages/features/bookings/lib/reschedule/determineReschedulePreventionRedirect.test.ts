@@ -38,27 +38,27 @@ const createTestBooking = (overrides?: {
   const defaultEndTime = futureDate(5);
   const defaultStartTime = new Date(defaultEndTime.getTime() - 30 * 60 * 1000); // 30 minutes before endTime
   return {
-  uid: overrides?.uid || "test-booking-uid",
-  status: overrides?.status || BookingStatus.ACCEPTED,
+    uid: overrides?.uid || "test-booking-uid",
+    status: overrides?.status || BookingStatus.ACCEPTED,
     startTime: overrides?.startTime !== undefined ? overrides.startTime : defaultStartTime,
     endTime: overrides?.endTime !== undefined ? overrides.endTime : defaultEndTime,
-  responses: overrides?.responses || {
-    name: "John Doe",
-    email: "john.doe@example.com",
-  },
-  userId: overrides?.userId !== undefined ? overrides.userId : 1,
-  eventType:
-    overrides?.eventType !== undefined
-      ? overrides.eventType
-      : // Default values from DB
-        {
-          disableRescheduling: false,
-          allowReschedulingPastBookings: false,
-          allowBookingFromCancelledBookingReschedule: false,
+    responses: overrides?.responses || {
+      name: "John Doe",
+      email: "john.doe@example.com",
+    },
+    userId: overrides?.userId !== undefined ? overrides.userId : 1,
+    eventType:
+      overrides?.eventType !== undefined
+        ? overrides.eventType
+        : // Default values from DB
+          {
+            disableRescheduling: false,
+            allowReschedulingPastBookings: false,
+            allowBookingFromCancelledBookingReschedule: false,
             minimumRescheduleNotice: null,
-          teamId: null,
-        },
-  dynamicEventSlugRef: overrides?.dynamicEventSlugRef !== undefined ? overrides.dynamicEventSlugRef : null,
+            teamId: null,
+          },
+    dynamicEventSlugRef: overrides?.dynamicEventSlugRef !== undefined ? overrides.dynamicEventSlugRef : null,
   };
 };
 

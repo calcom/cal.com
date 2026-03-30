@@ -16,7 +16,6 @@ vi.mock("@calcom/app-store/_utils/payments/getPaymentAppData", () => ({
 vi.mock("./handlePaymentRefund", () => ({
   handlePaymentRefund: vi.fn(),
 }));
-
 const mockedGetPaymentAppData = vi.mocked(getPaymentAppData);
 
 describe("processPaymentRefund", () => {

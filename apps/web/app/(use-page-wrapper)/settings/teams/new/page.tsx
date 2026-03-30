@@ -1,6 +1,12 @@
 import { _generateMetadata } from "app/_utils";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import CreateNewTeamView, { LayoutWrapper } from "~/settings/teams/new/create-new-team-view";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+
+import { CreateNewTeamView, LayoutWrapper } from "~/settings/teams/new/create-new-team-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -12,9 +18,17 @@ export const generateMetadata = async () =>
   );
 
 const ServerPage = async () => {
+  const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+
+  if (!session?.user?.id) {
+    return redirect("/auth/login");
+  }
+
+  const userEmail = session.user.email || "";
+
   return (
     <LayoutWrapper>
-      <CreateNewTeamView />
+      <CreateNewTeamView userEmail={userEmail} />
     </LayoutWrapper>
   );
 };

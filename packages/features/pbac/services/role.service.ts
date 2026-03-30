@@ -44,9 +44,9 @@ export class RoleService {
   async assignRoleToMember(roleId: string, membershipId: number) {
     const role = await this.repository.findById(roleId);
     if (!role) throw new Error("Role not found");
-    
+
     const membershipRole = this.getMembershipRoleFromRoleId(roleId);
-    
+
     await db.membership.update({
       where: { id: membershipId },
       data: {

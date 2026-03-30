@@ -30,16 +30,19 @@ export function Setup(props: PageProps) {
     props.hasValidLicense ? "EXISTING" : "FREE"
   );
 
+  const hasLicenseStep = !props.hasValidLicense && !hasPickedAGPLv3;
+
   const defaultStep = useMemo(() => {
     if (props.userCount > 0) {
-      if (!props.hasValidLicense && !hasPickedAGPLv3) {
+      if (hasLicenseStep) {
         return SETUP_VIEW_SETPS.LICENSE;
       } else {
-        return SETUP_VIEW_SETPS.APPS;
+        // License step is not shown, so apps step is at position 2 instead of 3
+        return SETUP_VIEW_SETPS.APPS - 1;
       }
     }
     return SETUP_VIEW_SETPS.ADMIN_USER;
-  }, [props.userCount, props.hasValidLicense, hasPickedAGPLv3]);
+  }, [props.userCount, hasLicenseStep]);
 
   const steps: WizardStep[] = [
     {
@@ -52,13 +55,7 @@ export function Setup(props: PageProps) {
             setIsPending(true);
           }}
           onSuccess={() => {
-            // If there's already a valid license or user picked AGPLv3, skip to apps step
-            if (props.hasValidLicense || hasPickedAGPLv3) {
-              nav.onNext();
-              nav.onNext(); // Skip license step
-            } else {
-              nav.onNext();
-            }
+            nav.onNext();
           }}
           onError={() => {
             setIsPending(false);
@@ -71,7 +68,7 @@ export function Setup(props: PageProps) {
   ];
 
   // Only show license selection step if there's no valid license already and AGPLv3 wasn't picked
-  if (!props.hasValidLicense && !hasPickedAGPLv3) {
+  if (hasLicenseStep) {
     steps.push({
       title: t("choose_a_license"),
       description: t("choose_license_description"),

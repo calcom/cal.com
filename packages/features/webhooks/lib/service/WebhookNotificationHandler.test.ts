@@ -154,7 +154,10 @@ describe("WebhookNotificationHandler", () => {
     it("should use factory to build payload", async () => {
       await handler.handleNotification(mockDTO);
 
-      expect(mockFactory.getBuilder).toHaveBeenCalledWith(WebhookVersion.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
+      expect(mockFactory.getBuilder).toHaveBeenCalledWith(
+        WebhookVersion.V_2021_10_20,
+        WebhookTriggerEvents.BOOKING_CREATED
+      );
     });
 
     it("should process webhooks with built payload", async () => {
@@ -302,8 +305,10 @@ describe("WebhookNotificationHandler", () => {
 
       await handler.handleNotification(dto);
 
-      expect(mockFactory.getBuilder).toHaveBeenCalledWith(WebhookVersion.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
+      expect(mockFactory.getBuilder).toHaveBeenCalledWith(
+        WebhookVersion.V_2021_10_20,
+        WebhookTriggerEvents.BOOKING_CREATED
+      );
     });
   });
 });
-

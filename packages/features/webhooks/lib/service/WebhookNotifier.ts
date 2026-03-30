@@ -5,7 +5,10 @@ import type { IWebhookNotifier, IWebhookNotificationHandler } from "../interface
 export class WebhookNotifier implements IWebhookNotifier {
   private readonly log: ILogger;
 
-  constructor(private readonly handler: IWebhookNotificationHandler, logger: ILogger) {
+  constructor(
+    private readonly handler: IWebhookNotificationHandler,
+    logger: ILogger
+  ) {
     this.log = logger.getSubLogger({ prefix: ["[WebhookNotifier]"] });
   }
 

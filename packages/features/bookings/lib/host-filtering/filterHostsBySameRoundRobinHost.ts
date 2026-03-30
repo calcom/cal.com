@@ -12,7 +12,7 @@ export class FilterHostsService {
     T extends {
       isFixed: false; // ensure no fixed hosts are passed.
       user: { id: number; email: string };
-    }
+    },
   >({
     hosts,
     rescheduleUid,

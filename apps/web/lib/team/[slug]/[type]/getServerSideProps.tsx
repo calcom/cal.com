@@ -61,7 +61,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // Redirect if no routing form response and redirect URL is configured
   // Don't redirect if this is a reschedule flow or seated booking flow
   const hasRoutingFormResponse = query["cal.routingFormResponseId"] || query["cal.queuedFormResponseId"];
-  if (!hasRoutingFormResponse && !rescheduleUid && !bookingUid && eventData.redirectUrlOnNoRoutingFormResponse) {
+  if (
+    !hasRoutingFormResponse &&
+    !rescheduleUid &&
+    !bookingUid &&
+    eventData.redirectUrlOnNoRoutingFormResponse
+  ) {
     return {
       redirect: {
         destination: eventData.redirectUrlOnNoRoutingFormResponse,
@@ -106,7 +111,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const log = logger.getSubLogger({ prefix: ["team-event-ssr", `${teamSlug}/${meetingSlug}`] });
   const featureRepo = new FeaturesRepository(prisma);
   const [eventHostsUserData, crmResult, teamHasApiV2Route, booking] = await Promise.all([
-    getUsersData(team.isPrivate, eventTypeId, eventData.hosts.map((h) => h.user)).catch((err) => {
+    getUsersData(
+      team.isPrivate,
+      eventTypeId,
+      eventData.hosts.map((h) => h.user)
+    ).catch((err) => {
       log.error("Failed to get users data", err);
       throw err;
     }),

@@ -401,31 +401,40 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
   const { t, i18n } = useLocale();
   const formMethods = useFormContext<FormValues>();
 
-
   const hasTeamLimits = () => {
-    const team = eventType.team as { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean } | null | undefined;
-    const parentTeam = (eventType.parent as { team?: { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean } } | null | undefined)?.team;
+    const team = eventType.team as
+      | { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean }
+      | null
+      | undefined;
+    const parentTeam = (
+      eventType.parent as
+        | { team?: { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean } }
+        | null
+        | undefined
+    )?.team;
 
-    const teamHasLimits =
-      !!team?.bookingLimits && Object.keys(team.bookingLimits).length > 0;
+    const teamHasLimits = !!team?.bookingLimits && Object.keys(team.bookingLimits).length > 0;
 
     const parentTeamHasLimits =
-      !!parentTeam?.bookingLimits &&
-      Object.keys(parentTeam.bookingLimits).length > 0;
+      !!parentTeam?.bookingLimits && Object.keys(parentTeam.bookingLimits).length > 0;
 
-    const includeManaged =
-      !!parentTeam?.includeManagedEventsInLimits ||
-      !!team?.includeManagedEventsInLimits;
+    const includeManaged = !!parentTeam?.includeManagedEventsInLimits || !!team?.includeManagedEventsInLimits;
 
     if (teamHasLimits) {
-      if(eventType.schedulingType === SchedulingType.MANAGED) return includeManaged;
+      if (eventType.schedulingType === SchedulingType.MANAGED) return includeManaged;
       return true;
     }
 
     return parentTeamHasLimits && includeManaged;
   };
 
-  const TeamLimitsBadge = ({ isManagedChild, teamId }: { isManagedChild: boolean, teamId?: number | null }) => {
+  const TeamLimitsBadge = ({
+    isManagedChild,
+    teamId,
+  }: {
+    isManagedChild: boolean;
+    teamId?: number | null;
+  }) => {
     const badge = (
       <Badge variant="blue" className="text-xs cursor-pointer hover:opacity-80">
         {t("team_limits_apply")}
@@ -438,11 +447,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
 
     if (teamId) {
       return (
-        <Link
-          href={`/settings/teams/${teamId}/settings`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
+        <Link href={`/settings/teams/${teamId}/settings`} target="_blank" rel="noopener noreferrer">
           {badge}
         </Link>
       );
@@ -654,7 +659,8 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
               title={t("limit_booking_frequency")}
               Badge={
                 hasTeamLimits()
-                  ? TeamLimitsBadge({ isManagedChild: !!eventType.parent, teamId: eventType.team?.id }) : null
+                  ? TeamLimitsBadge({ isManagedChild: !!eventType.parent, teamId: eventType.team?.id })
+                  : null
               }
               {...bookingLimitsLocked}
               description={

@@ -10,7 +10,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { routingFormsComponents } from "./app-routing.client-config";
 
 const normalizePages = (pages: string[] | string | undefined) => {
-  const normalizedPages = Array.isArray(pages) ? pages : pages?.split("/") ?? [];
+  const normalizedPages = Array.isArray(pages) ? pages : (pages?.split("/") ?? []);
   return normalizedPages[0];
 };
 

@@ -11,6 +11,7 @@ const handlers = {
   "invoice.paid": () => import("./_invoice.paid"),
   "invoice.payment_failed": () => import("./_invoice.payment_failed"),
   "invoice.payment_succeeded": () => import("./_invoice.payment_succeeded"),
+  "invoice.upcoming": () => import("./_invoice.upcoming"),
   "checkout.session.completed": () => import("./_checkout.session.completed"),
 };
 

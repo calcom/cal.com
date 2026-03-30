@@ -2,6 +2,7 @@ import { v4 } from "uuid";
 
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { updateTriggerForExistingBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
@@ -22,6 +23,15 @@ type CreateOptions = {
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { user } = ctx;
+
+  // SSRF validation for webhook URL
+  const validation = validateUrlForSSRFSync(input.subscriberUrl);
+  if (!validation.isValid) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Webhook URL is not allowed: ${validation.error}`,
+    });
+  }
 
   const webhookData: Prisma.WebhookCreateInput = {
     id: v4(),

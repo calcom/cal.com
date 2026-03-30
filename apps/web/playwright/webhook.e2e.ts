@@ -1,10 +1,8 @@
-import { expect } from "@playwright/test";
-import { v4 as uuidv4 } from "uuid";
-
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-
+import { expect } from "@playwright/test";
+import { v4 as uuidv4 } from "uuid";
 import { test } from "./lib/fixtures";
 import {
   bookOptinEvent,
@@ -900,7 +898,9 @@ test.describe("Webhook deletion", async () => {
 
     await expect(page.getByTestId("dialog-confirmation")).toBeVisible();
 
-    const deleteResponsePromise = page.waitForResponse((res) => res.url().includes("/api/trpc/webhook/delete"));
+    const deleteResponsePromise = page.waitForResponse((res) =>
+      res.url().includes("/api/trpc/webhook/delete")
+    );
     await page.getByTestId("dialog-confirmation").click();
     const deleteResponse = await deleteResponsePromise;
     expect(deleteResponse.ok()).toBe(true);

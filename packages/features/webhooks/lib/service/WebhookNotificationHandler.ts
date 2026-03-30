@@ -77,7 +77,10 @@ export class WebhookNotificationHandler implements IWebhookNotificationHandler {
    * 2. Build version-specific payloads per subscriber
    * 3. Group subscribers by version for efficiency
    */
-  private createPayload(dto: WebhookEventDTO, version: WebhookVersion = DEFAULT_WEBHOOK_VERSION): WebhookPayload {
+  private createPayload(
+    dto: WebhookEventDTO,
+    version: WebhookVersion = DEFAULT_WEBHOOK_VERSION
+  ): WebhookPayload {
     // Get version-specific builder from factory - handles all event types
     const builder = this.payloadBuilderFactory.getBuilder(version, dto.triggerEvent);
     return builder.build(dto);

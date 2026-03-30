@@ -18,7 +18,7 @@ import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Switch } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { LockIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
@@ -148,13 +148,13 @@ const WorkflowListItem = (props: ItemProps) => {
               workflow.readOnly && props.isChildrenManagedEventType
                 ? "locked_by_team_admin"
                 : isActive
-                ? "turn_off"
-                : "turn_on"
+                  ? "turn_off"
+                  : "turn_on"
             ) as string
           }>
           <div className="flex items-center ltr:mr-2 rtl:ml-2">
             {workflow.readOnly && props.isChildrenManagedEventType && (
-              <Icon name="lock" className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
+              <LockIcon className="text-subtle h-4 w-4 ltr:mr-2 rtl:ml-2" />
             )}
             <Switch
               checked={isActive}
@@ -203,7 +203,7 @@ function EventWorkflowsTab(props: Props) {
         const dataWf = data.workflows.find((wf) => wf.id === workflowOnEventType.id);
         return {
           ...workflowOnEventType,
-          readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : dataWf?.readOnly ?? false,
+          readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : (dataWf?.readOnly ?? false),
         } as WorkflowType;
       });
 

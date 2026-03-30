@@ -98,7 +98,9 @@ export interface OnboardingState {
   setInviteRole: (role: InviteRole) => void;
 
   // Migration actions
-  setMigratedMembers: (members: { email: string; name?: string; teamId: number; role: "MEMBER" | "ADMIN" }[]) => void;
+  setMigratedMembers: (
+    members: { email: string; name?: string; teamId: number; role: "MEMBER" | "ADMIN" }[]
+  ) => void;
 
   // Team actions
   setTeamDetails: (details: Partial<TeamDetails>) => void;
@@ -204,7 +206,7 @@ export const useOnboardingStore = create<OnboardingState>()(
     {
       name: "cal-onboarding-storage", // Storage key
       storage: onboardingIndexedDBStorage, // Use IndexedDB instead of localStorage for larger capacity
-      // Version 0: Had issue with Image sizes being too large. 
+      // Version 0: Had issue with Image sizes being too large.
       // Version 1: We fixed that and also migrated to version-1 to facilitate one-time cleanup of all oversized images.
       version: 1,
       migrate: (persistedState, version) => {

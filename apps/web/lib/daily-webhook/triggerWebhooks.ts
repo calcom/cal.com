@@ -54,8 +54,9 @@ export const triggerRecordingReadyWebhook = async ({
     })
   );
 
+  const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const payload: EventPayloadType = {
-    ...evt,
+    ...evtWithoutAssignmentReason,
     downloadLink,
   };
 
@@ -94,8 +95,9 @@ export const triggerTranscriptionGeneratedWebhook = async ({
     })
   );
 
+  const { assignmentReason: _emailAssignmentReason2, ...evtWithoutAssignmentReason2 } = evt;
   const payload: EventPayloadType = {
-    ...evt,
+    ...evtWithoutAssignmentReason2,
     downloadLinks,
   };
 

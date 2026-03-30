@@ -1,7 +1,6 @@
 import { Text } from "ink";
 import TextInput from "ink-text-input";
-import React, { useEffect, useState } from "react";
-
+import { useEffect, useState } from "react";
 import { ImportantText } from "../components/ImportantText";
 import { Message } from "../components/Message";
 import { BaseAppFork, generateAppFiles } from "../core";
@@ -22,7 +21,7 @@ export default function DeleteForm({ slug, action }: { slug: string; action: "de
     if (!app) {
       setState("APP_NOT_EXISTS");
     }
-  }, []);
+  }, [app]);
 
   useEffect(() => {
     if (state === "DELETION_CONFIRMATION_SUCCESSFUL") {
@@ -33,7 +32,7 @@ export default function DeleteForm({ slug, action }: { slug: string; action: "de
         setState("DELETION_COMPLETED");
       })();
     }
-  }, [slug, state]);
+  }, [slug, state, isTemplate]);
 
   if (state === "INITIALIZED") {
     return (

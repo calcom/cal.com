@@ -251,18 +251,21 @@ export function ensureUniqueBookingFields(fields: TUpdateInputSchema["bookingFie
     return;
   }
 
-  fields.reduce((discoveredFields, field) => {
-    if (discoveredFields[field.name]) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Duplicate booking field name: ${field.name}`,
-      });
-    }
+  fields.reduce(
+    (discoveredFields, field) => {
+      if (discoveredFields[field.name]) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Duplicate booking field name: ${field.name}`,
+        });
+      }
 
-    discoveredFields[field.name] = true;
+      discoveredFields[field.name] = true;
 
-    return discoveredFields;
-  }, {} as Record<string, true>);
+      return discoveredFields;
+    },
+    {} as Record<string, true>
+  );
 }
 
 export function ensureEmailOrPhoneNumberIsPresent(fields: TUpdateInputSchema["bookingFields"]) {
