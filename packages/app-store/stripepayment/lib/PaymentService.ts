@@ -292,6 +292,7 @@ class StripePaymentService implements IAbstractPaymentService {
         },
         data: {
           success: true,
+          externalId: paymentIntent.id,
           data: {
             ...paymentObject,
             paymentIntent,
