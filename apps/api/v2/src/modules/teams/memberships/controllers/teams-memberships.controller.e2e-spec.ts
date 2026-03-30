@@ -744,6 +744,129 @@ describe("Teams Memberships Endpoints", () => {
       });
     });
 
+    describe("managed event type slug conflict resolution on member addition", () => {
+      it("should rename and hide personal event type with conflicting slug when creating membership with accepted=true", async () => {
+        const conflictingSlug = managedEventType.slug;
+
+        // Create a new user who has a personal event type with the same slug as the team's managed event type
+        const conflictUserEmail = `slug-conflict-create-${randomString()}@api.com`;
+        const conflictUser = await userRepositoryFixture.create({
+          email: conflictUserEmail,
+          username: conflictUserEmail,
+        });
+
+        const personalEventType = await eventTypesRepositoryFixture.create(
+          {
+            title: "Personal event to be replaced",
+            slug: conflictingSlug,
+            length: 30,
+          },
+          conflictUser.id
+        );
+
+        // Verify the personal event type exists
+        const eventTypesBefore = await eventTypesRepositoryFixture.getAllUserEventTypes(conflictUser.id);
+        expect(eventTypesBefore.some((et) => et.id === personalEventType.id)).toBe(true);
+
+        // Add user to team with accepted=true — this triggers updateNewTeamMemberEventTypes
+        const createBody: CreateTeamMembershipInput = {
+          userId: conflictUser.id,
+          accepted: true,
+          role: "MEMBER",
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/v2/teams/${team.id}/memberships`)
+          .send(createBody)
+          .expect(201);
+
+        const responseBody: CreateTeamMembershipOutput = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data.accepted).toEqual(true);
+
+        const eventTypesAfter = await eventTypesRepositoryFixture.getAllUserEventTypes(conflictUser.id);
+
+        const renamedPersonal = eventTypesAfter.find((et) => et.id === personalEventType.id);
+        expect(renamedPersonal).toBeDefined();
+        expect(renamedPersonal!.hidden).toBe(true);
+        expect(renamedPersonal!.slug).toBe(`${conflictingSlug}-personal-${personalEventType.id}`);
+        expect(renamedPersonal!.title).toBe("Personal event to be replaced [Personal]");
+
+        const slugEvents = eventTypesAfter.filter((et) => et.slug === conflictingSlug);
+        expect(slugEvents.length).toEqual(1);
+        expect(slugEvents[0].parentId).not.toBeNull();
+
+        await request(app.getHttpServer())
+          .delete(`/v2/teams/${team.id}/memberships/${responseBody.data.id}`)
+          .expect(200);
+        await userRepositoryFixture.deleteByEmail(conflictUserEmail);
+      });
+
+      it("should rename and hide personal event type with conflicting slug when membership transitions to accepted=true via PATCH", async () => {
+        const conflictingSlug = managedEventType.slug;
+
+        // Create a new user who has a personal event type with the same slug
+        const conflictUserEmail = `slug-conflict-patch-${randomString()}@api.com`;
+        const conflictUser = await userRepositoryFixture.create({
+          email: conflictUserEmail,
+          username: conflictUserEmail,
+        });
+
+        const personalEventType = await eventTypesRepositoryFixture.create(
+          {
+            title: "Personal event to be replaced on accept",
+            slug: conflictingSlug,
+            length: 30,
+          },
+          conflictUser.id
+        );
+
+        // Create membership as pending (accepted=false) — no event types should be assigned yet
+        const createBody: CreateTeamMembershipInput = {
+          userId: conflictUser.id,
+          accepted: false,
+          role: "MEMBER",
+        };
+
+        const createResponse = await request(app.getHttpServer())
+          .post(`/v2/teams/${team.id}/memberships`)
+          .send(createBody)
+          .expect(201);
+
+        const pendingMembership: TeamMembershipOutput = createResponse.body.data;
+        expect(pendingMembership.accepted).toEqual(false);
+
+        // Personal event type should still exist
+        const eventTypesWhilePending = await eventTypesRepositoryFixture.getAllUserEventTypes(conflictUser.id);
+        expect(eventTypesWhilePending.some((et) => et.id === personalEventType.id)).toBe(true);
+
+        // Now accept the membership via PATCH — this triggers updateNewTeamMemberEventTypes
+        const patchResponse = await request(app.getHttpServer())
+          .patch(`/v2/teams/${team.id}/memberships/${pendingMembership.id}`)
+          .send({ accepted: true } satisfies UpdateTeamMembershipInput)
+          .expect(200);
+
+        expect(patchResponse.body.data.accepted).toEqual(true);
+
+        const eventTypesAfter = await eventTypesRepositoryFixture.getAllUserEventTypes(conflictUser.id);
+
+        const renamedPersonal = eventTypesAfter.find((et) => et.id === personalEventType.id);
+        expect(renamedPersonal).toBeDefined();
+        expect(renamedPersonal!.hidden).toBe(true);
+        expect(renamedPersonal!.slug).toBe(`${conflictingSlug}-personal-${personalEventType.id}`);
+        expect(renamedPersonal!.title).toBe("Personal event to be replaced on accept [Personal]");
+
+        const slugEvents = eventTypesAfter.filter((et) => et.slug === conflictingSlug);
+        expect(slugEvents.length).toEqual(1);
+        expect(slugEvents[0].parentId).not.toBeNull();
+
+        await request(app.getHttpServer())
+          .delete(`/v2/teams/${team.id}/memberships/${pendingMembership.id}`)
+          .expect(200);
+        await userRepositoryFixture.deleteByEmail(conflictUserEmail);
+      });
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(teamAdmin.email);
       await userRepositoryFixture.deleteByEmail(teammateInvitedViaApi.email);

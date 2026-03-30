@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import { getEventTypeRepository } from "@calcom/features/di/containers/EventTypeRepository";
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { getTeam, getOrg } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -498,27 +499,57 @@ async function getEventTypesToAddNewMembers(teamId: number) {
   });
 }
 
+/**
+ * Hides and renames personal (non-managed) event types whose slugs conflict with managed
+ * event types about to be created for these users. This prevents unique constraint
+ * violations on (userId, slug) when creating managed children, while preserving the
+ * personal event type and its existing bookings.
+ */
+async function fixConflictingPersonalEventTypes({
+  userIds,
+  conflictingEventSlugs,
+  tx,
+}: {
+  userIds: number[];
+  conflictingEventSlugs: string[];
+  tx?: Prisma.TransactionClient;
+}) {
+  if (conflictingEventSlugs.length === 0 || userIds.length === 0) return;
+  const eventTypeRepository = getEventTypeRepository();
+  await eventTypeRepository.hideAndRenamePersonalByUserIdsAndSlugs({ userIds, slugs: conflictingEventSlugs, tx });
+}
+
 export async function updateNewTeamMemberEventTypes(userId: number, teamId: number) {
   const eventTypesToAdd = await getEventTypesToAddNewMembers(teamId);
 
   if (eventTypesToAdd.length > 0) {
-    await prisma.$transaction(
-      eventTypesToAdd.map((eventType) => {
-        if (eventType.schedulingType === "MANAGED") {
-          return prisma.eventType.create({
-            data: generateNewChildEventTypeDataForDB({
-              eventType,
-              userId,
-            }),
-          });
-        } else {
-          return prisma.eventType.update({
-            where: { id: eventType.id },
-            data: { hosts: { create: [{ userId, isFixed: eventType.schedulingType === "COLLECTIVE" }] } },
-          });
-        }
-      })
-    );
+    const managedEventTypes = eventTypesToAdd.filter((et) => et.schedulingType === "MANAGED");
+
+    await prisma.$transaction(async (tx) => {
+      await fixConflictingPersonalEventTypes({
+        userIds: [userId],
+        conflictingEventSlugs: managedEventTypes.map((et) => et.slug),
+        tx,
+      });
+
+      await Promise.all(
+        eventTypesToAdd.map((eventType) => {
+          if (eventType.schedulingType === "MANAGED") {
+            return tx.eventType.create({
+              data: generateNewChildEventTypeDataForDB({
+                eventType,
+                userId,
+              }),
+            });
+          } else {
+            return tx.eventType.update({
+              where: { id: eventType.id },
+              data: { hosts: { create: [{ userId, isFixed: eventType.schedulingType === "COLLECTIVE" }] } },
+            });
+          }
+        })
+      );
+    });
   }
 }
 
@@ -531,6 +562,11 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
 
   const managedEventTypes = eventTypesToAdd.filter((eventType) => eventType.schedulingType === "MANAGED");
   const teamEventTypes = eventTypesToAdd.filter((eventType) => eventType.schedulingType !== "MANAGED");
+
+  await fixConflictingPersonalEventTypes({
+    userIds,
+    conflictingEventSlugs: managedEventTypes.map((et) => et.slug),
+  });
 
   await Promise.allSettled([
     prisma.eventType

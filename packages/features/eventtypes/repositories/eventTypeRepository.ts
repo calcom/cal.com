@@ -10,7 +10,8 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect, userSelect as userSelectWithSelectedCalendars } from "@calcom/prisma";
-import type { Prisma, EventType as PrismaEventType } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
+import type { EventType as PrismaEventType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
@@ -80,6 +81,33 @@ function usersWithSelectedCalendars<
 
 export class EventTypeRepository implements IEventTypesRepository {
   constructor(private prismaClient: PrismaClient) {}
+
+  async hideAndRenamePersonalByUserIdsAndSlugs({
+    userIds,
+    slugs,
+    tx,
+  }: {
+    userIds: number[];
+    slugs: string[];
+    tx?: Prisma.TransactionClient;
+  }): Promise<{ count: number }> {
+    const client = (tx ?? this.prismaClient) as PrismaClient;
+    const userIdsSql = Prisma.join(userIds);
+    const slugsSql = Prisma.join(slugs);
+    // Raw SQL because the new slug/title are derived from the row's own columns (id, slug, title),
+    // which Prisma's update API doesn't support — it can't reference a record's current values.
+    const count = await client.$executeRaw`
+      UPDATE "EventType"
+      SET slug   = slug || '-personal-' || id::text,
+          title  = title || ' [Personal]',
+          hidden = true
+      WHERE "userId" IN (${userIdsSql})
+        AND slug IN (${slugsSql})
+        AND "parentId" IS NULL
+        AND "teamId" IS NULL
+    `;
+    return { count };
+  }
 
   async findParentEventTypeId(eventTypeId: number): Promise<number | null> {
     const managedChildEventType = await this.prismaClient.eventType.findFirst({
