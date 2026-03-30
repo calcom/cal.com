@@ -25,7 +25,7 @@ import type { EventLimitsTabCustomClassNames } from "@calcom/web/modules/event-t
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { EventRecurringTabCustomClassNames } from "@calcom/web/modules/event-types/components/tabs/recurring/RecurringEventController";
 import { useQueryClient } from "@tanstack/react-query";
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useDeleteEventTypeById } from "../../hooks/event-types/private/useDeleteEventTypeById";
 import { useDeleteTeamEventTypeById } from "../../hooks/event-types/private/useDeleteTeamEventTypeById";
 import { useAtomsContext } from "../../hooks/useAtomsContext";
@@ -235,76 +235,97 @@ const EventType = forwardRef<
     }
   };
 
-  const tabMap = {
-    setup: tabs.includes("setup") ? (
-      <SetupTab
-        eventType={eventType}
-        locationOptions={locationOptions}
-        team={team}
-        teamMembers={teamMembers}
-        destinationCalendar={destinationCalendar}
-        customClassNames={customClassNames?.eventSetupTab}
-      />
-    ) : (
-      <></>
-    ),
-    availability: tabs.includes("availability") ? (
-      <EventAvailabilityTabPlatformWrapper
-        eventType={eventType}
-        isTeamEvent={!!team}
-        user={user?.data}
-        teamId={team?.id}
-        customClassNames={customClassNames?.eventAvailabilityTab}
-      />
-    ) : (
-      <></>
-    ),
-    team: tabs.includes("team") ? (
-      <EventTeamAssignmentTabPlatformWrapper
-        team={team}
-        eventType={eventType}
-        teamMembers={teamMembers}
-        customClassNames={customClassNames?.eventAssignmentTab}
-        orgId={organizationId}
-      />
-    ) : (
-      <></>
-    ),
-    advanced: tabs.includes("advanced") ? (
-      <EventAdvancedPlatformWrapper
-        eventType={eventType}
-        team={team}
-        user={user?.data}
-        isUserLoading={isUserLoading}
-        showToast={showToast}
-        customClassNames={customClassNames?.eventAdvancedTab}
-      />
-    ) : (
-      <></>
-    ),
-    payments: tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
-    limits: tabs.includes("limits") ? (
-      <EventLimitsTabPlatformWrapper
-        eventType={eventType}
-        customClassNames={customClassNames?.eventLimitsTab}
-      />
-    ) : (
-      <></>
-    ),
-    instant: <></>,
-    recurring: tabs.includes("recurring") ? (
-      <EventRecurringTabPlatformWrapper
-        eventType={eventType}
-        customClassNames={customClassNames?.eventRecurringTab}
-      />
-    ) : (
-      <></>
-    ),
-    apps: <></>,
-    workflows: <></>,
-    webhooks: <></>,
-    ai: <></>,
-  } as const;
+  const tabMap = useMemo(
+    () => ({
+      setup: () =>
+        tabs.includes("setup") ? (
+          <SetupTab
+            eventType={eventType}
+            locationOptions={locationOptions}
+            team={team}
+            teamMembers={teamMembers}
+            destinationCalendar={destinationCalendar}
+            customClassNames={customClassNames?.eventSetupTab}
+          />
+        ) : (
+          <></>
+        ),
+      availability: () =>
+        tabs.includes("availability") ? (
+          <EventAvailabilityTabPlatformWrapper
+            eventType={eventType}
+            isTeamEvent={!!team}
+            user={user?.data}
+            teamId={team?.id}
+            customClassNames={customClassNames?.eventAvailabilityTab}
+          />
+        ) : (
+          <></>
+        ),
+      team: () =>
+        tabs.includes("team") ? (
+          <EventTeamAssignmentTabPlatformWrapper
+            team={team}
+            eventType={eventType}
+            teamMembers={teamMembers}
+            customClassNames={customClassNames?.eventAssignmentTab}
+            orgId={organizationId}
+          />
+        ) : (
+          <></>
+        ),
+      advanced: () =>
+        tabs.includes("advanced") ? (
+          <EventAdvancedPlatformWrapper
+            eventType={eventType}
+            team={team}
+            user={user?.data}
+            isUserLoading={isUserLoading}
+            showToast={showToast}
+            customClassNames={customClassNames?.eventAdvancedTab}
+          />
+        ) : (
+          <></>
+        ),
+      payments: () =>
+        tabs.includes("payments") ? <EventPaymentsTabPlatformWrapper eventType={eventType} /> : <></>,
+      limits: () =>
+        tabs.includes("limits") ? (
+          <EventLimitsTabPlatformWrapper
+            eventType={eventType}
+            customClassNames={customClassNames?.eventLimitsTab}
+          />
+        ) : (
+          <></>
+        ),
+      instant: () => <></>,
+      recurring: () =>
+        tabs.includes("recurring") ? (
+          <EventRecurringTabPlatformWrapper
+            eventType={eventType}
+            customClassNames={customClassNames?.eventRecurringTab}
+          />
+        ) : (
+          <></>
+        ),
+      apps: () => <></>,
+      workflows: () => <></>,
+      webhooks: () => <></>,
+      ai: () => <></>,
+    }),
+    [
+      tabs,
+      eventType,
+      locationOptions,
+      team,
+      teamMembers,
+      destinationCalendar,
+      customClassNames,
+      user?.data,
+      isUserLoading,
+      organizationId,
+    ]
+  );
 
   useHandleRouteChange({
     watchTrigger: null,

@@ -71,6 +71,8 @@ export const useTabsNavigations = ({
   const enabledWorkflowsNumber = allActiveWorkflows ? allActiveWorkflows.length : 0;
 
   const eventTypeId = formMethods.getValues("id");
+  const schedule = formMethods.getValues("schedule");
+  const scheduleName = formMethods.getValues("scheduleName");
 
   const EventTypeTabs = useMemo(() => {
     const navigation: VerticalTabItemProps[] = getNavigation({
@@ -100,15 +102,15 @@ export const useTabsNavigations = ({
       icon: "calendar",
       info:
         isManagedEventType || isChildrenManagedEventType
-          ? formMethods.getValues("schedule") === null
+          ? schedule === null
             ? t("members_default_schedule")
             : isChildrenManagedEventType
-              ? `${formMethods.getValues("scheduleName")
-                ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
+              ? `${scheduleName
+                ? `${scheduleName} - ${t("managed")}`
                 : t(`default_schedule_name`)
               }`
-              : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`)
-          : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`),
+              : scheduleName ?? t(`default_schedule_name`)
+          : scheduleName ?? t(`default_schedule_name`),
       "data-testid": "availability",
     });
     // If there is a team put this navigation item within the tabs
@@ -160,7 +162,8 @@ export const useTabsNavigations = ({
     activeWebhooksNumber,
     canReadWorkflows,
     eventType.id,
-    formMethods,
+    schedule,
+    scheduleName,
   ]);
 
   return { tabsNavigation: EventTypeTabs };

@@ -464,18 +464,18 @@ export type EventTypeUpdateInput = {
 };
 
 export type TabMap = {
-  advanced: React.ReactNode;
-  ai?: React.ReactNode;
-  apps?: React.ReactNode;
-  availability: React.ReactNode;
-  instant?: React.ReactNode;
-  limits: React.ReactNode;
-  recurring: React.ReactNode;
-  setup: React.ReactNode;
-  team?: React.ReactNode;
-  webhooks?: React.ReactNode;
-  workflows?: React.ReactNode;
-  payments?: React.ReactNode;
+  advanced: () => React.ReactNode;
+  ai?: () => React.ReactNode;
+  apps?: () => React.ReactNode;
+  availability: () => React.ReactNode;
+  instant?: () => React.ReactNode;
+  limits: () => React.ReactNode;
+  recurring: () => React.ReactNode;
+  setup: () => React.ReactNode;
+  team?: () => React.ReactNode;
+  webhooks?: () => React.ReactNode;
+  workflows?: () => React.ReactNode;
+  payments?: () => React.ReactNode;
 };
 
 export type SettingsToggleClassNames = {

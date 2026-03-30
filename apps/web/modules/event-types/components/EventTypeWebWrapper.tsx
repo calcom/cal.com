@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -231,61 +231,78 @@ const EventTypeWeb = ({
     eventType.slug
   }`;
 
-  const tabMap = {
-    setup: (
-      <EventSetupTab
-        eventType={eventType}
-        locationOptions={locationOptions}
-        team={team}
-        teamMembers={teamMembers}
-        destinationCalendar={destinationCalendar}
-      />
-    ),
-    availability: (
-      <EventAvailabilityTab
-        eventType={eventType}
-        isTeamEvent={!!team}
-        user={user}
-        teamMembers={teamMembers}
-      />
-    ),
-    team: (
-      <EventTeamAssignmentTab
-        orgId={orgBranding?.id ?? null}
-        teamMembers={teamMembers}
-        team={team}
-        eventType={eventType}
-      />
-    ),
-    limits: <EventLimitsTab eventType={eventType} />,
-    advanced: (
-      <EventAdvancedTab
-        eventType={eventType}
-        team={team}
-        user={user}
-        isUserLoading={isLoggedInUserPending}
-        showToast={showToast}
-        orgId={orgBranding?.id ?? null}
-      />
-    ),
-    instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
-    recurring: <EventRecurringTab eventType={eventType} />,
-    apps: (
-      <EventAppsTab
-        eventType={{ ...eventType, URL: permalink }}
-        eventTypeApps={eventTypeApps}
-        isPendingApps={isPendingApps}
-      />
-    ),
-    workflows:
-      allActiveWorkflows && canReadWorkflows ? (
-        <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
-      ) : (
-        <></>
+  const tabMap = useMemo(
+    () => ({
+      setup: () => (
+        <EventSetupTab
+          eventType={eventType}
+          locationOptions={locationOptions}
+          team={team}
+          teamMembers={teamMembers}
+          destinationCalendar={destinationCalendar}
+        />
       ),
-    webhooks: <EventWebhooksTab eventType={eventType} />,
-    ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
-  } as const;
+      availability: () => (
+        <EventAvailabilityTab
+          eventType={eventType}
+          isTeamEvent={!!team}
+          user={user}
+          teamMembers={teamMembers}
+        />
+      ),
+      team: () => (
+        <EventTeamAssignmentTab
+          orgId={orgBranding?.id ?? null}
+          teamMembers={teamMembers}
+          team={team}
+          eventType={eventType}
+        />
+      ),
+      limits: () => <EventLimitsTab eventType={eventType} />,
+      advanced: () => (
+        <EventAdvancedTab
+          eventType={eventType}
+          team={team}
+          user={user}
+          isUserLoading={isLoggedInUserPending}
+          showToast={showToast}
+          orgId={orgBranding?.id ?? null}
+        />
+      ),
+      instant: () => <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
+      recurring: () => <EventRecurringTab eventType={eventType} />,
+      apps: () => (
+        <EventAppsTab
+          eventType={{ ...eventType, URL: permalink }}
+          eventTypeApps={eventTypeApps}
+          isPendingApps={isPendingApps}
+        />
+      ),
+      workflows: () =>
+        allActiveWorkflows && canReadWorkflows ? (
+          <EventWorkflowsTab eventType={eventType} workflows={allActiveWorkflows} />
+        ) : (
+          <></>
+        ),
+      webhooks: () => <EventWebhooksTab eventType={eventType} />,
+      ai: () => <EventAITab eventType={eventType} isTeamEvent={!!team} />,
+    }),
+    [
+      eventType,
+      locationOptions,
+      team,
+      teamMembers,
+      destinationCalendar,
+      user,
+      isLoggedInUserPending,
+      orgBranding?.id,
+      permalink,
+      eventTypeApps,
+      isPendingApps,
+      allActiveWorkflows,
+      canReadWorkflows,
+    ]
+  );
 
   useHandleRouteChange({
     watchTrigger: pathname,

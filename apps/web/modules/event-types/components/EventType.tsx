@@ -108,7 +108,7 @@ export const EventType = ({
         saveButtonRef={saveButtonRef}
         Shell={Shell}>
         <Form form={formMethods} id="event-type-form" handleSubmit={handleSubmit}>
-          <div ref={animationParentRef}>{tabMap[tabName]}</div>
+          <div ref={animationParentRef}>{tabMap[tabName]?.()}</div>
         </Form>
       </EventTypeSingleLayout>
       {children}
