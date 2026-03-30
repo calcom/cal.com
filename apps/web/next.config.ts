@@ -228,7 +228,7 @@ const nextConfig = (phase: string): NextConfig => {
   }
 
   return {
-    allowedDevOrigins: ["app.cal.local", "app.cal.dev"],
+    allowedDevOrigins: ["*.cal.local", "*.cal.dev"],
     output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
     serverExternalPackages: [
       "deasync",
