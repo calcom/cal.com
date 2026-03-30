@@ -55,7 +55,7 @@ function createTeamBlockedWarningFn(
   return (feature: NormalizedFeature): string | null => {
     const blockingState = blockingStateMap.get(feature.slug);
     if (blockingState?.orgState === "disabled") {
-      return t("feature_blocked_by_org_warning");
+      return t("feature_org_disabled");
     }
     return null;
   };
@@ -120,7 +120,7 @@ export function useTeamFeatureOptIn(teamId: number): UseFeatureOptInResult {
     setAutoOptIn,
     isStateMutationPending: setStateMutation.isPending,
     isAutoOptInMutationPending: setAutoOptInMutation.isPending,
-    toggleLabels: { enabled: t("allow"), disabled: t("block"), inherit: t("let_users_decide") },
+    toggleLabels: { enabled: t("enable"), disabled: t("disable"), inherit: t("let_users_decide") },
     autoOptInDescription: t("auto_opt_in_experimental_description_team"),
     getBlockedWarning,
     isBlockedByHigherLevel,

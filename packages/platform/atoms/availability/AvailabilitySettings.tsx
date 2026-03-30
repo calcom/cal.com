@@ -1,7 +1,8 @@
 "use client";
 
 import type { SetStateAction, Dispatch } from "react";
-import React, {
+import React from "react";
+import {
   useMemo,
   useState,
   useEffect,
@@ -15,17 +16,18 @@ import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "re
 import dayjs from "@calcom/dayjs";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { TimezoneSelect as WebTimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import type {
   BulkUpdatParams,
   EventTypes,
-} from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
-import { BulkEditDefaultForEventsModal } from "@calcom/web/modules/event-types/components/BulkEditDefaultForEventsModal";
+} from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
+import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import DateOverrideInputDialog from "@calcom/features/schedules/components/DateOverrideInputDialog";
 import DateOverrideList from "@calcom/features/schedules/components/DateOverrideList";
-import WebSchedule, {
+import {
   ScheduleComponent as PlatformSchedule,
-} from "@calcom/features/schedules/components/Schedule";
+} from "@calcom/features/schedules/components/ScheduleComponent";
+import WebSchedule from "@calcom/web/modules/schedules/components/Schedule";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { sortAvailabilityStrings } from "@calcom/lib/weekstart";

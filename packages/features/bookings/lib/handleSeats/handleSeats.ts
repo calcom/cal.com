@@ -3,6 +3,7 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
+import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -28,6 +29,8 @@ const fireBookingEvents = async ({
   rescheduledBy,
   actionSource,
   actorUserUuid,
+  impersonatedByUserUuid,
+  isBookingAuditEnabled,
   deps,
 }: {
   previousSeatedBooking: SeatedBooking;
@@ -40,6 +43,8 @@ const fireBookingEvents = async ({
   rescheduledBy: string | undefined;
   actionSource: ActionSource;
   actorUserUuid: string | null;
+  impersonatedByUserUuid: string | null;
+  isBookingAuditEnabled: boolean;
   deps: {
     bookingEventHandler: BookingEventHandlerService;
     logger: ISimpleLogger;
@@ -71,6 +76,8 @@ const fireBookingEvents = async ({
     if (!seatReferenceUid) {
       return;
     }
+
+    const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
 
     if (rescheduleUid && originalRescheduledBooking) {
       const movedToDifferentBooking = newBooking.uid && newBooking.uid !== previousSeatedBooking.uid;
@@ -104,6 +111,8 @@ const fireBookingEvents = async ({
           },
         },
         source: actionSource,
+        context: auditContext,
+        isBookingAuditEnabled,
       });
     } else {
       await deps.bookingEventHandler.onSeatBooked({
@@ -118,6 +127,8 @@ const fireBookingEvents = async ({
           endTime: previousSeatedBooking.endTime.getTime(),
         },
         source: actionSource,
+        context: auditContext,
+        isBookingAuditEnabled,
       });
     }
   } catch (error) {
@@ -125,7 +136,10 @@ const fireBookingEvents = async ({
   }
 };
 
-const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
+const handleSeats = async (
+  newSeatedBookingObject: NewSeatedBookingObject,
+  featuresRepository: FeaturesRepository
+) => {
   const {
     eventType,
     reqBodyUser,
@@ -151,6 +165,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     fullName,
     traceContext,
     actionSource,
+    impersonatedByUserUuid,
     deps: { bookingEventHandler },
   } = newSeatedBookingObject;
   // TODO: We could allow doing more things to support good dry run for seats
@@ -221,6 +236,10 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking
   if (resultBooking) {
+    const isBookingAuditEnabled = organizationId
+      ? await featuresRepository.checkIfTeamHasFeature(organizationId, "booking-audit")
+      : false;
+
     await fireBookingEvents({
       previousSeatedBooking: seatedBooking,
       newBooking: resultBooking,
@@ -232,6 +251,8 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       rescheduledBy,
       actionSource,
       actorUserUuid: reqUserUuid ?? null,
+      impersonatedByUserUuid,
+      isBookingAuditEnabled,
       deps: { bookingEventHandler, logger: loggerWithEventDetails },
     });
     const metadata = {
@@ -271,8 +292,9 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
     }
 
+    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
     const webhookData: EventPayloadType = {
-      ...evt,
+      ...evtWithoutAssignmentReason,
       ...eventTypeInfo,
       uid: resultBooking?.uid || uid,
       bookingId: seatedBooking?.id,

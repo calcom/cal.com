@@ -8,12 +8,16 @@ export const calendarsQueue = queue({
 });
 
 export const calendarsTaskConfig: CalendarsTask = {
+  machine: "small-2x",
   queue: calendarsQueue,
   retry: {
     maxAttempts: 3,
     factor: 2,
-    minTimeoutInMs: 1000,
-    maxTimeoutInMs: 10000,
+    minTimeoutInMs: 60000,
+    maxTimeoutInMs: 300000,
     randomize: true,
+    outOfMemory: {
+      machine: "medium-1x",
+    },
   },
 };

@@ -36,7 +36,7 @@
     "@sentry/nextjs": "10.33.0",
     "bcryptjs": "2.4.3",
     "memory-cache": "0.2.0",
-    "next": "16.1.0",
+    "next": "16.1.5",
     "next-api-middleware": "1.0.1",
     "next-axiom": "0.17.0",
     "next-swagger-doc": "0.3.6",

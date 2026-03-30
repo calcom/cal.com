@@ -16,10 +16,13 @@ export const filterQuerySchemaStrict: z.ZodType<TFilterQuerySchemaStrict> = z.ob
   schedulingTypes: z.nativeEnum(SchedulingType).array().optional(),
 });
 
-export type TEventTypeInputSchema = {
-  filters?: TFilterQuerySchemaStrict;
-  forRoutingForms?: boolean;
-} | null | undefined;
+export type TEventTypeInputSchema =
+  | {
+      filters?: TFilterQuerySchemaStrict;
+      forRoutingForms?: boolean;
+    }
+  | null
+  | undefined;
 
 export const ZEventTypeInputSchema: z.ZodType<TEventTypeInputSchema> = z
   .object({
@@ -46,7 +49,11 @@ export type TGetEventTypesFromGroupSchema = {
   searchQuery?: string;
 };
 
-export const ZGetEventTypesFromGroupSchema: z.ZodType<TGetEventTypesFromGroupSchema, z.ZodTypeDef, TGetEventTypesFromGroupSchemaInput> = z.object({
+export const ZGetEventTypesFromGroupSchema: z.ZodType<
+  TGetEventTypesFromGroupSchema,
+  z.ZodTypeDef,
+  TGetEventTypesFromGroupSchemaInput
+> = z.object({
   filters: filterQuerySchemaStrict.optional(),
   forRoutingForms: z.boolean().optional(),
   cursor: z.number().nullish(),

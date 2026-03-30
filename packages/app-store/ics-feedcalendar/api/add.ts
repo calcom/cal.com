@@ -37,6 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: 0,
         ...data,
         user: { email: user.email },
+        encryptedKey: null,
       });
       const listedCals = await dav.listCalendars();
 

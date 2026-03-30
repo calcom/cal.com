@@ -59,7 +59,7 @@ test.describe("Locale-specific pages must not 404", () => {
       });
 
       test(`/${locale}/teams page shouldn't 404`, async ({ page, users }) => {
-        const user = await users.create();
+        const user = await users.create(undefined, { hasTeam: true });
         await user.apiLogin();
         const response = await page.goto(`/${locale}/teams`);
         expect(response?.status()).not.toBe(404);
@@ -67,7 +67,7 @@ test.describe("Locale-specific pages must not 404", () => {
       });
 
       test(`/${locale}/routing page shouldn't 404`, async ({ page, users }) => {
-        const user = await users.create();
+        const user = await users.create(undefined, { hasTeam: true });
         await user.apiLogin();
         const response = await page.goto(`/${locale}/routing`);
         expect(response?.status()).not.toBe(404);
@@ -75,7 +75,7 @@ test.describe("Locale-specific pages must not 404", () => {
       });
 
       test(`/${locale}/insights page shouldn't 404`, async ({ page, users }) => {
-        const user = await users.create();
+        const user = await users.create(undefined, { hasTeam: true });
         await user.apiLogin();
         const response = await page.goto(`/${locale}/insights`);
         expect(response?.status()).not.toBe(404);

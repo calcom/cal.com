@@ -2,10 +2,12 @@ import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 import { ZBillingPortalLinkSchema } from "./billingPortalLink.schema";
+import { ZCreateCouponSchema } from "./createCoupon.schema";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
+import { ZMoveTeamToOrgSchema } from "./moveTeamToOrg.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZResendPurchaseCompleteEmailSchema } from "./resendPurchaseCompleteEmail.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
@@ -13,14 +15,14 @@ import { ZSetSMSLockState } from "./setSMSLockState.schema";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
 import { ZAdminUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.schema";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
+import { watchlistRouter } from "./watchlist/_router";
 import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
 import {
   workspacePlatformCreateSchema,
+  workspacePlatformToggleEnabledSchema,
   workspacePlatformUpdateSchema,
   workspacePlatformUpdateServiceAccountSchema,
-  workspacePlatformToggleEnabledSchema,
 } from "./workspacePlatform/schema";
-import { watchlistRouter } from "./watchlist/_router";
 
 const NAMESPACE = "admin";
 
@@ -58,6 +60,10 @@ export const adminRouter = router({
       const { default: handler } = await import("./createSelfHostedLicenseKey.handler");
       return handler(opts);
     }),
+  createCoupon: authedAdminProcedure.input(ZCreateCouponSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./createCoupon.handler");
+    return handler(opts);
+  }),
   resendPurchaseCompleteEmail: authedAdminProcedure
     .input(ZResendPurchaseCompleteEmailSchema)
     .mutation(async (opts) => {
@@ -90,6 +96,10 @@ export const adminRouter = router({
       const { default: handler } = await import("./unassignFeatureFromTeam.handler");
       return handler(opts);
     }),
+  moveTeamToOrg: authedAdminProcedure.input(ZMoveTeamToOrgSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./moveTeamToOrg.handler");
+    return handler(opts);
+  }),
   workspacePlatform: router({
     list: authedAdminProcedure.query(async () => {
       const { default: handler } = await import("./workspacePlatform/list.handler");

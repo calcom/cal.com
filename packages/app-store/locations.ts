@@ -192,7 +192,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.UserPhone,
-    label: "organizer_phone_number",
+    label: "phone_call",
     messageForOrganizer: "Provide your phone number",
     organizerInputType: "phone",
     organizerInputLabel: "phone_number",
@@ -209,7 +209,7 @@ const translateAbleKeys = [
   "in_person",
   "attendee_phone_number",
   "link_meeting",
-  "organizer_phone_number",
+  "phone_call",
   "organizer_default_conferencing_app",
   "somewhere_else",
   "custom_attendee_location",

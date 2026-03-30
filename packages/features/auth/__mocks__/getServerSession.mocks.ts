@@ -77,7 +77,9 @@ function createDeploymentRepositoryMock(): {
 }
 
 function createUserRepositoryMock(): {
-  UserRepository: new (_prisma: PrismaClient) => {
+  UserRepository: new (
+    _prisma: PrismaClient
+  ) => {
     enrichUserWithTheProfile: (params: { user: User }) => Promise<User & { profile: null }>;
   };
 } {

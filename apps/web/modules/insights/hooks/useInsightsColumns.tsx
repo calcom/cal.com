@@ -16,13 +16,13 @@ import { BookedByCell } from "../components/BookedByCell";
 import { BookingAtCell } from "../components/BookingAtCell";
 import { BookingStatusBadge } from "../components/BookingStatusBadge";
 import { ResponseValueCell } from "../components/ResponseValueCell";
-import type { HeaderRow, RoutingFormTableRow } from "@calcom/features/insights/lib/types";
+import type { HeaderRow, RoutingFormTableRow } from "@calcom/web/modules/insights/lib/types";
 import {
   ZResponseMultipleValues,
   ZResponseSingleValue,
   ZResponseTextValue,
   ZResponseNumericValue,
-} from "@calcom/features/insights/lib/types";
+} from "@calcom/web/modules/insights/lib/types";
 
 export const useInsightsColumns = ({
   headers,
@@ -165,18 +165,21 @@ export const useInsightsColumns = ({
         const filterType = isSingleSelect
           ? ColumnFilterType.SINGLE_SELECT
           : isNumber
-          ? ColumnFilterType.NUMBER
-          : isText
-          ? ColumnFilterType.TEXT
-          : ColumnFilterType.MULTI_SELECT;
+            ? ColumnFilterType.NUMBER
+            : isText
+              ? ColumnFilterType.TEXT
+              : ColumnFilterType.MULTI_SELECT;
 
         const optionMap =
-          fieldHeader.options?.reduce((acc, option) => {
-            if (option.id) {
-              acc[option.id] = option.label;
-            }
-            return acc;
-          }, {} as Record<string, string>) ?? {};
+          fieldHeader.options?.reduce(
+            (acc, option) => {
+              if (option.id) {
+                acc[option.id] = option.label;
+              }
+              return acc;
+            },
+            {} as Record<string, string>
+          ) ?? {};
 
         return columnHelper.accessor((row) => row.fields.find((field) => field.fieldId === fieldHeader.id), {
           id: fieldHeader.id,

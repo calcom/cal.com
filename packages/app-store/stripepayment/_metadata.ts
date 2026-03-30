@@ -1,10 +1,10 @@
+import process from "node:process";
 import type { AppMeta } from "@calcom/types/App";
-
-import _package from "./package.json";
 
 export const metadata = {
   name: "Stripe",
-  description: _package.description,
+  description:
+    "A Saas company a payment processing software, and application programming interfaces for e-commerce websites and mobile applications.",
   installed: !!(
     process.env.STRIPE_CLIENT_ID &&
     process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&

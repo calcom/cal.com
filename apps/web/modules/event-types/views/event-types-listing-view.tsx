@@ -34,7 +34,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label, Switch, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { SearchIcon } from "@coss/ui/icons";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
@@ -214,9 +214,11 @@ const Item = ({
         </Badge>
       )}
       {showAssignedBadge && (
-        <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
-          {t("assigned")}
-        </Badge>
+        <Tooltip content={t("you_are_assigned_to_this_event")}>
+          <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
+            {t("assigned")}
+          </Badge>
+        </Tooltip>
       )}
     </div>
   );
@@ -256,9 +258,11 @@ const Item = ({
                 </Badge>
               )}
               {showAssignedBadge && (
-                <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
-                  {t("assigned")}
-                </Badge>
+                <Tooltip content={t("you_are_assigned_to_this_event")}>
+                  <Badge variant="blue" className="ml-2" data-testid="assigned-badge">
+                    {t("assigned")}
+                  </Badge>
+                </Tooltip>
               )}
             </div>
             <EventTypeDescription
@@ -428,14 +432,15 @@ export const InfiniteEventTypeList = ({
       if (value) newSearchParams.set(key, value.toString());
       if (value === null) newSearchParams.delete(key);
     }
-    setParamsIfDefined("dialog", "duplicate");
-    setParamsIfDefined("title", eventType.title);
-    setParamsIfDefined("description", eventType.description);
-    setParamsIfDefined("slug", eventType.slug);
-    setParamsIfDefined("id", eventType.id);
-    setParamsIfDefined("length", eventType.length);
-    setParamsIfDefined("pageSlug", group.profile.slug);
-    router.push(`${pathname}?${newSearchParams.toString()}`);
+        setParamsIfDefined("dialog", "duplicate");
+        setParamsIfDefined("title", eventType.title);
+        setParamsIfDefined("description", eventType.description);
+        setParamsIfDefined("slug", eventType.slug);
+        setParamsIfDefined("id", eventType.id);
+        setParamsIfDefined("length", eventType.length);
+        setParamsIfDefined("pageSlug", group.profile.slug);
+        setParamsIfDefined("schedulingType", eventType.schedulingType);
+        router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
@@ -691,18 +696,16 @@ export const InfiniteEventTypeList = ({
                                   </DropdownMenuItem>
                                 )}
                                 {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                                {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
-                                  <>
-                                    <DropdownMenuItem className="outline-none">
-                                      <DropdownItem
-                                        type="button"
-                                        data-testid={`event-type-duplicate-${type.id}`}
-                                        StartIcon="copy"
-                                        onClick={() => openDuplicateModal(type, group)}>
-                                        {t("duplicate")}
-                                      </DropdownItem>
-                                    </DropdownMenuItem>
-                                  </>
+                                {!readOnly && !isChildrenManagedEventType && (
+                                  <DropdownMenuItem className="outline-none">
+                                    <DropdownItem
+                                      type="button"
+                                      data-testid={`event-type-duplicate-${type.id}`}
+                                      StartIcon="copy"
+                                      onClick={() => openDuplicateModal(type, group)}>
+                                      {t("duplicate")}
+                                    </DropdownItem>
+                                  </DropdownMenuItem>
                                 )}
                                 {!isManagedEventType && (
                                   <DropdownMenuItem className="outline-none">
@@ -808,7 +811,7 @@ export const InfiniteEventTypeList = ({
                               </DropdownItem>
                             </DropdownMenuItem>
                           )}
-                          {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
+                          {!readOnly && !isChildrenManagedEventType && (
                             <DropdownMenuItem className="outline-none">
                               <DropdownItem
                                 onClick={() => openDuplicateModal(type, group)}
@@ -924,7 +927,7 @@ const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
     <div className="flex items-center gap-4">
       <TextField
         className="max-w-64"
-        addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+        addOnLeading={<SearchIcon className="text-subtle h-4 w-4" />}
         containerClassName="max-w-64 focus:ring-offset-0!"
         type="search"
         value={searchTerm}

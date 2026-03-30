@@ -4,6 +4,7 @@ import {
   IsArray,
   IsEmail,
   ArrayMinSize,
+  ArrayMaxSize,
   IsString,
   IsOptional,
   IsTimeZone,
@@ -67,12 +68,13 @@ class Guest {
 
 export class AddGuestsInput_2024_08_13 {
   @ArrayMinSize(1)
+  @ArrayMaxSize(10, { message: "Cannot add more than 10 guests at a time" })
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => Guest)
   @ApiProperty({
     type: [Guest],
-    description: "Array of guests to add to the booking",
+    description: "Array of guests to add to the booking. Maximum 10 guests per request.",
     example: [
       {
         email: "john.doe@example.com",

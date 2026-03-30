@@ -7,18 +7,16 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { Icon } from "@calcom/ui/components/icon";
+import { ChevronLeftIcon, ChevronRightIcon } from "@coss/ui/icons";
 import { getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import React, { useEffect, useMemo } from "react";
 import { useBookingCalendarData } from "~/bookings/hooks/useBookingCalendarData";
 import { useBookingFilters } from "~/bookings/hooks/useBookingFilters";
 import { useCalendarAllowedFilters } from "~/bookings/hooks/useCalendarAllowedFilters";
 import { useCalendarAutoSelector } from "~/bookings/hooks/useCalendarAutoSelector";
-import { useCalendarNavigationCapabilities } from "~/bookings/hooks/useCalendarNavigationCapabilities";
 import { useCurrentWeekStart } from "~/bookings/hooks/useCurrentWeekStart";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import { DataTableFilters } from "~/data-table/components/filters";
-
 import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
 import { getWeekStart } from "../lib/weekUtils";
 import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
@@ -138,11 +136,11 @@ function BookingCalendarInner({
           <ButtonGroup combined>
             <Button color="secondary" onClick={goToPreviousWeek}>
               <span className="sr-only">{t("view_previous_week")}</span>
-              <Icon name="chevron-left" className="h-4 w-4" />
+              <ChevronLeftIcon className="h-4 w-4" />
             </Button>
             <Button color="secondary" onClick={goToNextWeek}>
               <span className="sr-only">{t("view_next_week")}</span>
-              <Icon name="chevron-right" className="h-4 w-4" />
+              <ChevronRightIcon className="h-4 w-4" />
             </Button>
           </ButtonGroup>
           <ViewToggleButton bookingsV3Enabled={bookingsV3Enabled} />
@@ -224,15 +222,15 @@ export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
 
   // Create navigation capabilities for calendar view
   // This hook handles probe queries and prefetching internally
-  const capabilities = useCalendarNavigationCapabilities({
-    currentWeekStart,
-    setCurrentWeekStart,
-    userWeekStart,
-    filters: { statuses: STATUSES, userIds },
-  });
+  // const capabilities = useCalendarNavigationCapabilities({
+  //   currentWeekStart,
+  //   setCurrentWeekStart,
+  //   userWeekStart,
+  //   filters: { statuses: STATUSES, userIds },
+  // });
 
   return (
-    <BookingDetailsSheetStoreProvider bookings={bookings} capabilities={capabilities}>
+    <BookingDetailsSheetStoreProvider bookings={bookings}>
       <BookingCalendarInner
         {...props}
         data={data}

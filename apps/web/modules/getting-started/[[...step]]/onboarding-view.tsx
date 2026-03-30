@@ -16,7 +16,7 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { StepCard } from "@calcom/ui/components/card";
 import { Steps } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { LoaderIcon } from "@coss/ui/icons";
 
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
@@ -41,33 +41,33 @@ const getStepsAndHeadersForUser = (t: TFunction) => {
     subtitle: string[];
     skipText?: string;
   }[] = [
-      {
-        title: t("welcome_to_cal_header", { appName: APP_NAME }),
-        subtitle: [t("we_just_need_basic_info")],
-      },
-      {
-        title: t("connect_your_calendar"),
-        subtitle: [t("connect_your_calendar_instructions")],
-        skipText: t("connect_calendar_later"),
-      },
-      {
-        title: t("connect_your_video_app"),
-        subtitle: [t("connect_your_video_app_instructions")],
-        skipText: t("set_up_later"),
-      },
-      {
-        title: t("set_availability"),
-        subtitle: [
-          `${t("set_availability_getting_started_subtitle_1")} ${t(
-            "set_availability_getting_started_subtitle_2"
-          )}`,
-        ],
-      },
-      {
-        title: t("nearly_there"),
-        subtitle: [t("nearly_there_instructions")],
-      },
-    ];
+    {
+      title: t("welcome_to_cal_header", { appName: APP_NAME }),
+      subtitle: [t("we_just_need_basic_info")],
+    },
+    {
+      title: t("connect_your_calendar"),
+      subtitle: [t("connect_your_calendar_instructions")],
+      skipText: t("connect_calendar_later"),
+    },
+    {
+      title: t("connect_your_video_app"),
+      subtitle: [t("connect_your_video_app_instructions")],
+      skipText: t("set_up_later"),
+    },
+    {
+      title: t("set_availability"),
+      subtitle: [
+        `${t("set_availability_getting_started_subtitle_1")} ${t(
+          "set_availability_getting_started_subtitle_2"
+        )}`,
+      ],
+    },
+    {
+      title: t("nearly_there"),
+      subtitle: [t("nearly_there_instructions")],
+    },
+  ];
 
   return {
     steps: [...BASE_STEPS],
@@ -176,7 +176,7 @@ const OnboardingPage = (props: PageProps) => {
               <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToStep} />
             </div>
             <StepCard>
-              <Suspense fallback={<Icon name="loader" />}>
+              <Suspense fallback={<LoaderIcon />}>
                 {currentStep === "user-settings" && (
                   <UserSettings nextStep={goToNextStep} hideUsername={from === "signup"} user={user} />
                 )}

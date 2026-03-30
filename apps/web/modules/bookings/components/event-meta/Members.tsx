@@ -19,6 +19,7 @@ export interface EventMembersProps {
   entity: BookerEvent["entity"];
   isPrivateLink: boolean;
   roundRobinHideOrgAndTeam?: boolean;
+  hideOrgTeamAvatar?: boolean;
 }
 
 export const EventMembers = ({
@@ -28,6 +29,7 @@ export const EventMembers = ({
   entity,
   isPrivateLink,
   roundRobinHideOrgAndTeam,
+  hideOrgTeamAvatar,
 }: EventMembersProps) => {
   const username = useBookerStore((state) => state.username);
   const isDynamic = !!(username && username.indexOf("+") > -1);
@@ -46,8 +48,12 @@ export const EventMembers = ({
     return <div className="h-6" />;
   }
 
+  if (schedulingType === SchedulingType.ROUND_ROBIN && hideOrgTeamAvatar) {
+    return <p className="text-subtle pt-6 text-sm font-semibold">{profile.name}</p>;
+  }
+
   const orgOrTeamAvatarItem =
-    isDynamic || (!profile.image && !entity.logoUrl) || !entity.teamSlug
+    hideOrgTeamAvatar || isDynamic || (!profile.image && !entity.logoUrl) || !entity.teamSlug
       ? []
       : [
           {
@@ -56,8 +62,8 @@ export const EventMembers = ({
               isEmbed || isPlatform || isPrivateLink || entity.hideProfileLink
                 ? null
                 : entity.teamSlug
-                ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
-                : getBookerBaseUrlSync(entity.orgSlug),
+                  ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
+                  : getBookerBaseUrlSync(entity.orgSlug),
             image: entity.logoUrl ?? profile.image ?? "",
             alt: entity.name ?? profile.name ?? "",
             title: entity.name ?? profile.name ?? "",

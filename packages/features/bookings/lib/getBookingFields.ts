@@ -36,7 +36,7 @@ export const getSmsReminderNumberField = () =>
     defaultLabel: "number_text_notifications",
     defaultPlaceholder: "enter_phone_number",
     editable: "system",
-  } as const);
+  }) as const;
 
 export const getSmsReminderNumberSource = ({
   workflowId,
@@ -59,7 +59,7 @@ export const getAIAgentCallPhoneNumberField = () =>
     defaultLabel: "phone_number_for_ai_call",
     defaultPlaceholder: "enter_phone_number",
     editable: "system",
-  } as const);
+  }) as const;
 
 export const getAIAgentCallPhoneNumberSource = ({
   workflowId,

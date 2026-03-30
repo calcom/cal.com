@@ -1,48 +1,61 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { useReducer, useState } from "react";
-
 import AccountDialog from "@calcom/app-store/office365video/components/AccountDialog";
-import { AppList } from "@calcom/web/modules/apps/components/AppList";
-import DisconnectIntegrationModal from "@calcom/web/modules/apps/components/DisconnectIntegrationModal";
+import { AppList } from "@calcom/features/apps/components/AppList";
+import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
+import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
+import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { GOOGLE_MEET, OFFICE_365_VIDEO, ZOOM } from "@calcom/platform-constants";
-import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui/components/button";
 import {
   Dropdown,
-  DropdownMenuTrigger,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
+  DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
-
+import { useQueryClient } from "@tanstack/react-query";
+import { useReducer, useState } from "react";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
-import type {
-  BulkUpdatParams,
-  UpdateUsersDefaultConferencingAppParams,
-} from "./ConferencingAppsViewWebWrapper";
+import { cn } from "../../src/lib/utils";
+import AppListCardPlatformWrapper from "./AppListCardPlatformWrapper";
 import { useAtomBulkUpdateEventTypesToDefaultLocation } from "./hooks/useAtomBulkUpdateEventTypesToDefaultLocation";
 import { useAtomGetEventTypes } from "./hooks/useAtomGetEventTypes";
 import {
-  useAtomsGetInstalledConferencingApps,
   QUERY_KEY as atomsConferencingAppsQueryKey,
+  useAtomsGetInstalledConferencingApps,
 } from "./hooks/useAtomsGetInstalledConferencingApps";
 import { useConnect } from "./hooks/useConnect";
 import { useDeleteCredential } from "./hooks/useDeleteCredential";
 import {
-  useGetDefaultConferencingApp,
   QUERY_KEY as defaultConferencingAppQueryKey,
+  useGetDefaultConferencingApp,
 } from "./hooks/useGetDefaultConferencingApp";
 import { useUpdateUserDefaultConferencingApp } from "./hooks/useUpdateUserDefaultConferencingApp";
 
 type ConferencingAppSlug = typeof GOOGLE_MEET | typeof ZOOM | typeof OFFICE_365_VIDEO;
+
+export type ConferencingAppsCustomClassNames = {
+  containerClassName?: string;
+  headerClassName?: string;
+  headerTitleClassName?: string;
+  headerDescriptionClassName?: string;
+  addButtonClassName?: string;
+  addDropdownClassName?: string;
+  appListClassName?: string;
+  appCardClassName?: string;
+  appCardMenuClassName?: string;
+  emptyScreenClassName?: string;
+  emptyScreenIconWrapperClassName?: string;
+  emptyScreenIconClassName?: string;
+  skeletonClassName?: string;
+};
 
 type ConferencingAppsViewPlatformWrapperProps = {
   disableToasts?: boolean;
@@ -51,13 +64,14 @@ type ConferencingAppsViewPlatformWrapperProps = {
   teamId?: number;
   apps?: ConferencingAppSlug[];
   disableBulkUpdateEventTypes?: boolean;
+  customClassNames?: ConferencingAppsCustomClassNames;
 };
 
 type RemoveAppParams = { callback: () => void; app?: App["slug"] };
 
-const SkeletonLoader = () => {
+const SkeletonLoader = ({ className }: { className?: string }) => {
   return (
-    <SkeletonContainer>
+    <SkeletonContainer className={className}>
       <div className="divide-subtle border-subtle stack-y-6 rounded-b-lg border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -79,6 +93,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   teamId,
   apps,
   disableBulkUpdateEventTypes = false,
+  customClassNames,
 }: ConferencingAppsViewPlatformWrapperProps) => {
   const { t } = useLocale();
   const queryClient = useQueryClient();
@@ -200,15 +215,23 @@ export const ConferencingAppsViewPlatformWrapper = ({
     teamId,
   });
 
-  const AddConferencingButtonPlatform = ({ installedApps }: { installedApps?: Array<{ slug: string }> }) => {
+  const AddConferencingButtonPlatform = ({
+    installedApps,
+    buttonClassName,
+    dropdownClassName,
+  }: {
+    installedApps?: Array<{ slug: string }>;
+    buttonClassName?: string;
+    dropdownClassName?: string;
+  }) => {
     return (
       <Dropdown>
         <DropdownMenuTrigger asChild>
-          <Button color="secondary" StartIcon="plus">
+          <Button color="secondary" StartIcon="plus" className={buttonClassName}>
             {t("add")}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent>
+        <DropdownMenuContent className={dropdownClassName}>
           {/* Show Google Meet if it's not installed and either no apps filter is provided or it's in the apps filter */}
           {installedApps &&
             !installedApps.find((app) => app.slug === GOOGLE_MEET) &&
@@ -247,50 +270,70 @@ export const ConferencingAppsViewPlatformWrapper = ({
   };
 
   return (
-    <AtomsWrapper>
+    <AtomsWrapper customClassName={customClassNames?.containerClassName}>
       <SettingsHeader
         title={t("conferencing")}
         description={t("conferencing_description")}
-        CTA={<AddConferencingButtonPlatform installedApps={installedIntegrationsQuery.data?.items} />}
+        CTA={
+          <AddConferencingButtonPlatform
+            installedApps={installedIntegrationsQuery.data?.items}
+            buttonClassName={customClassNames?.addButtonClassName}
+            dropdownClassName={customClassNames?.addDropdownClassName}
+          />
+        }
         borderInShellHeader={true}>
         <>
           <div className="bg-default w-full sm:mx-0 xl:mt-0">
-            <QueryCell
-              query={installedIntegrationsQuery}
-              customLoader={<SkeletonLoader />}
-              success={({ data }) => {
-                if (!data.items.length) {
-                  return (
-                    <EmptyScreen
-                      Icon="calendar"
-                      headline={t("no_category_apps", {
-                        category: t("conferencing").toLowerCase(),
-                      })}
-                      description={t("no_category_apps_description_conferencing")}
-                      buttonRaw={<AddConferencingButtonPlatform installedApps={data?.items} />}
-                    />
-                  );
-                }
-                return (
-                  <AppList
-                    listClassName="rounded-lg rounded-t-none border-t-0 max-w-full"
-                    handleDisconnect={handleDisconnect}
-                    data={data}
-                    variant="conferencing"
-                    defaultConferencingApp={defaultConferencingApp}
-                    handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
-                    handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
-                    isBulkUpdateDefaultLocationPending={bulkUpdateEventTypesToDefaultLocation?.isPending}
-                    eventTypes={eventTypesQuery?.eventTypes}
-                    isEventTypesFetching={isEventTypesFetching}
-                    handleConnectDisconnectIntegrationMenuToggle={
-                      handleConnectDisconnectIntegrationMenuToggle
-                    }
-                    handleBulkEditDialogToggle={handleBulkEditDialogToggle}
+            {installedIntegrationsQuery.status === "pending" ? (
+              <SkeletonLoader className={customClassNames?.skeletonClassName} />
+            ) : installedIntegrationsQuery.status === "error" ? (
+              <EmptyScreen
+                Icon="calendar"
+                headline={t("no_category_apps", {
+                  category: t("conferencing").toLowerCase(),
+                })}
+                description={t("no_category_apps_description_conferencing")}
+              />
+            ) : !installedIntegrationsQuery.data.items.length ? (
+              <EmptyScreen
+                Icon="calendar"
+                headline={t("no_category_apps", {
+                  category: t("conferencing").toLowerCase(),
+                })}
+                description={t("no_category_apps_description_conferencing")}
+                buttonRaw={
+                  <AddConferencingButtonPlatform
+                    installedApps={installedIntegrationsQuery.data?.items}
+                    buttonClassName={customClassNames?.addButtonClassName}
+                    dropdownClassName={customClassNames?.addDropdownClassName}
                   />
-                );
-              }}
-            />
+                }
+                className={customClassNames?.emptyScreenClassName}
+                iconWrapperClassName={customClassNames?.emptyScreenIconWrapperClassName}
+                iconClassName={customClassNames?.emptyScreenIconClassName}
+              />
+            ) : (
+              <AppList
+                listClassName={cn(
+                  "rounded-lg rounded-t-none border-t-0 max-w-full",
+                  customClassNames?.appListClassName
+                )}
+                appCardClassName={customClassNames?.appCardClassName}
+                appCardMenuClassName={customClassNames?.appCardMenuClassName}
+                handleDisconnect={handleDisconnect}
+                data={installedIntegrationsQuery.data}
+                variant="conferencing"
+                defaultConferencingApp={defaultConferencingApp}
+                handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
+                handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
+                isBulkUpdateDefaultLocationPending={bulkUpdateEventTypesToDefaultLocation?.isPending}
+                eventTypes={eventTypesQuery?.eventTypes}
+                isEventTypesFetching={isEventTypesFetching}
+                handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
+                handleBulkEditDialogToggle={handleBulkEditDialogToggle}
+                AppListCardComponent={AppListCardPlatformWrapper}
+              />
+            )}
           </div>
           <DisconnectIntegrationModal
             handleModelClose={handleModelClose}
@@ -298,6 +341,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
             credentialId={modal.credentialId}
             app={modal.app}
             handleRemoveApp={handleRemoveApp}
+            isPlatform={true}
           />
 
           <AccountDialog

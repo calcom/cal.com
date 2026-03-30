@@ -1,12 +1,10 @@
-import useApp from "@calcom/features/apps/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
-
+import useAddAppMutation from "../_utils/useAddAppMutation";
 import { InstallAppButton } from "../InstallAppButton";
 import type { AppCardApp } from "../types";
-import useAddAppMutation from "../_utils/useAddAppMutation";
 
 type AppData = Pick<AppCardApp, "type" | "variant" | "slug" | "teamsPlanRequired">;
 
@@ -14,28 +12,23 @@ type AppData = Pick<AppCardApp, "type" | "variant" | "slug" | "teamsPlanRequired
  * Use this component to allow installing an app from anywhere on the app.
  * Use of this component requires you to remove custom InstallAppButtonComponent so that it can manage the redirection itself.
  *
- * When `app` prop is provided, it will use that data directly instead of fetching via useApp.
- * This is useful when the app data is already available (e.g., from the integrations query)
- * to avoid redundant API calls that can cause URL length issues when batched.
+ * The `app` prop must be provided with the necessary app data.
+ * This avoids redundant API calls and prevents the app-store package from depending on the features package.
  */
 export default function OmniInstallAppButton({
-  appId,
-  app: appProp,
+  app,
   className,
   returnTo,
   teamId,
   onAppInstallSuccess,
 }: {
-  appId: string;
-  app?: AppData;
+  app: AppData;
   className: string;
   onAppInstallSuccess: () => void;
   returnTo?: string;
   teamId?: number;
 }) {
   const { t } = useLocale();
-  const { data: fetchedApp } = useApp(appId, { enabled: !appProp });
-  const app = appProp ?? fetchedApp;
 
   const mutation = useAddAppMutation(null, {
     returnTo,
@@ -48,10 +41,6 @@ export default function OmniInstallAppButton({
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
     },
   });
-
-  if (!app) {
-    return null;
-  }
 
   return (
     <InstallAppButton

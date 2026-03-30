@@ -49,6 +49,7 @@ import type {
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import type { BookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/location.input";
+import type { UpdateBookingInputLocation_2024_08_13 } from "@calcom/platform-types/bookings/2024-08-13/inputs/update-location.input";
 import type { EventType } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & {
@@ -190,7 +191,10 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: inputBooking.eventTypeId,
       timeZone: inputBooking.attendee.timeZone,
       language: inputBooking.attendee.language || "en",
-      metadata: inputBooking.metadata || {},
+      metadata: {
+        ...(inputBooking.metadata || {}),
+        ...(platformClientId && { platformClientId }),
+      },
       hasHashedBookingLink: false,
       guests,
       verificationCode: inputBooking.emailVerificationCode,
@@ -303,7 +307,7 @@ export class InputBookingsService_2024_08_13 {
     } as unknown as BookingRequest;
   }
 
-  transformLocation(location: string | BookingInputLocation_2024_08_13): {
+  transformLocation(location: string | BookingInputLocation_2024_08_13 | UpdateBookingInputLocation_2024_08_13): {
     value: string;
     optionValue: string;
   } {

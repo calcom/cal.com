@@ -7,6 +7,8 @@ export { getBulkUserEventTypes, getBulkTeamEventTypes } from "@calcom/app-store/
 export { createHandler as createEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/heavy/create.handler";
 export { updateHandler as updateEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/heavy/update.handler";
 
+export { listWithTeamHandler } from "@calcom/trpc/server/routers/viewer/eventTypes/listWithTeam.handler";
+
 export type { TUpdateInputSchema as TUpdateEventTypeInputSchema } from "@calcom/trpc/server/routers/viewer/eventTypes/heavy/update.schema";
 export type { EventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";
 export { getEventTypesPublic } from "@calcom/features/eventtypes/lib/getEventTypesPublic";

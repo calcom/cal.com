@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/co
 import { Form, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 
-import { useDataTable } from "@calcom/features/data-table/hooks";
+import { useDataTable } from "~/data-table/hooks";
 import type { CombinedFilterSegment } from "@calcom/features/data-table/lib/types";
 
 type FormValues = {

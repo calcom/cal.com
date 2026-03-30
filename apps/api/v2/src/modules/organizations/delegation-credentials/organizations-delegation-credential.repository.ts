@@ -37,7 +37,7 @@ export class OrganizationsDelegationCredentialRepository {
       },
       where: {
         organizationId: orgId,
-        user: { email: { endsWith: domain } },
+        user: { email: { endsWith: `@${domain}`, mode: "insensitive" } },
       },
     });
   }

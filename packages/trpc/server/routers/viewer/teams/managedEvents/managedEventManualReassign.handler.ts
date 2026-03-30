@@ -42,4 +42,3 @@ export const managedEventManualReassignHandler = async ({
 };
 
 export default managedEventManualReassignHandler;
-

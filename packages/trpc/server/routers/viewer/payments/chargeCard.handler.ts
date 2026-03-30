@@ -58,10 +58,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
         });
       }
 
-      if (
-        message.includes("User ID is required") ||
-        message.includes("No payment credential found")
-      ) {
+      if (message.includes("User ID is required") || message.includes("No payment credential found")) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message,

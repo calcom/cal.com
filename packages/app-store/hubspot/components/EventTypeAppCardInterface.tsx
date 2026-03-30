@@ -1,18 +1,18 @@
-import { usePathname } from "next/navigation";
-
-import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
-import { CrmFieldType } from "@calcom/app-store/_lib/crm-enums";
 import WriteToObjectSettings, {
   BookingActionEnum,
 } from "@calcom/app-store/_components/crm/WriteToObjectSettings";
+import { CrmFieldType } from "@calcom/app-store/_lib/crm-enums";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SchedulingType } from "@calcom/prisma/enums";
+import { Alert } from "@calcom/ui/components/alert";
 import { Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
-
+import { usePathname } from "next/navigation";
 import type { appDataSchema } from "../zod";
 import { WhenToWrite } from "../zod";
 
@@ -32,6 +32,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const overwriteContactOwner = getAppData("overwriteContactOwner") ?? false;
   const onBookingWriteToEventObject = getAppData("onBookingWriteToEventObject") ?? false;
   const onBookingWriteToEventObjectFields = getAppData("onBookingWriteToEventObjectFields") ?? {};
+  const roundRobinLeadSkip = getAppData("roundRobinLeadSkip") ?? false;
+  const ifFreeEmailDomainSkipOwnerCheck = getAppData("ifFreeEmailDomainSkipOwnerCheck") ?? false;
 
   return (
     <AppCard
@@ -131,6 +133,47 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
             supportedWriteTriggers={[WhenToWrite.EVERY_BOOKING]}
           />
         </Section.SubSection>
+
+        {eventType.schedulingType === SchedulingType.ROUND_ROBIN ? (
+          <>
+            <Section.SubSection>
+              <Section.SubSectionHeader
+                icon="users"
+                title={t("crm_book_directly_with_attendee_owner", { appName: app.name })}
+                labelFor="book-directly-with-attendee-owner">
+                <Switch
+                  size="sm"
+                  id="book-directly-with-attendee-owner"
+                  checked={roundRobinLeadSkip}
+                  onCheckedChange={(checked) => {
+                    setAppData("roundRobinLeadSkip", checked);
+                    if (checked) {
+                      setAppData("enabled", checked);
+                    }
+                  }}
+                />
+              </Section.SubSectionHeader>
+            </Section.SubSection>
+            {roundRobinLeadSkip && (
+              <Section.SubSection>
+                <Section.SubSectionHeader
+                  icon="users"
+                  title={t("crm_if_free_email_domain_skip_owner_check")}
+                  labelFor="if-free-email-domain-skip-owner-check">
+                  <Switch
+                    size="sm"
+                    id="if-free-email-domain-skip-owner-check"
+                    checked={ifFreeEmailDomainSkipOwnerCheck}
+                    onCheckedChange={(checked) => {
+                      setAppData("ifFreeEmailDomainSkipOwnerCheck", checked);
+                    }}
+                  />
+                </Section.SubSectionHeader>
+                <Alert severity="info" title={t("skip_rr_description")} />
+              </Section.SubSection>
+            )}
+          </>
+        ) : null}
       </Section.Content>
     </AppCard>
   );

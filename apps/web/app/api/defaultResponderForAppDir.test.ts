@@ -47,9 +47,7 @@ describe("defaultResponderForAppDir", () => {
   });
 
   it("should respond with status code 409 for NoAvailableUsersFound", async () => {
-    const f = vi
-      .fn()
-      .mockRejectedValue(new Error(ErrorCode.NoAvailableUsersFound));
+    const f = vi.fn().mockRejectedValue(new Error(ErrorCode.NoAvailableUsersFound));
     const req = { method: "GET", url: "/api/test" } as unknown as NextRequest;
     const params = Promise.resolve<Params>({});
 
@@ -65,9 +63,7 @@ describe("defaultResponderForAppDir", () => {
   });
 
   it("should respond with a 429 status code for rate limit errors", async () => {
-    const f = vi
-      .fn()
-      .mockRejectedValue(new TRPCError({ code: "TOO_MANY_REQUESTS" }));
+    const f = vi.fn().mockRejectedValue(new TRPCError({ code: "TOO_MANY_REQUESTS" }));
     const req = { method: "POST", url: "/api/test" } as unknown as NextRequest;
     const params = Promise.resolve<Params>({});
 

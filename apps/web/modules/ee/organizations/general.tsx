@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { TimezoneSelect } from "@calcom/features/components/timezone-select";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { DisableAutofillOnBookingPageSwitch } from "~/ee/organizations/components/DisableAutofillOnBookingPageSwitch";
 import { DisablePhoneOnlySMSNotificationsSwitch } from "~/ee/organizations/components/DisablePhoneOnlySMSNotificationsSwitch";

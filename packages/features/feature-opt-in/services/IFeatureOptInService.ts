@@ -64,11 +64,11 @@ export interface IFeatureOptInService {
     teamIds: number[];
     featureIds: FeatureId[];
   }): Promise<Record<string, ResolvedFeatureState>>;
-  listFeaturesForUser(input: {
+  resolveFeatureStates(input: {
     userId: number;
-    orgId: number | null;
-    teamIds: number[];
-  }): Promise<ResolvedFeatureState[]>;
+    featureIds: FeatureId[];
+  }): Promise<Record<string, ResolvedFeatureState>>;
+  listFeaturesForUser(input: { userId: number }): Promise<ResolvedFeatureState[]>;
   listFeaturesForTeam(input: {
     teamId: number;
     parentOrgId?: number | null;

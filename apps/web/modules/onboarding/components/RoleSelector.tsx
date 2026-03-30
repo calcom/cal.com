@@ -29,10 +29,7 @@ export const RoleSelector = ({ value, onValueChange, showInfoBadge = false }: Ro
         />
         {showInfoBadge && <InfoBadge content={t("onboarding_modify_roles_later")} />}
       </div>
-      {!showInfoBadge && (
-        <span className="text-subtle text-sm">{t("onboarding_modify_roles_later")}</span>
-      )}
+      {!showInfoBadge && <span className="text-subtle text-sm">{t("onboarding_modify_roles_later")}</span>}
     </div>
   );
 };
-

@@ -18,6 +18,7 @@ export type BookingActionsStore = {
   rerouteDialogIsOpen: boolean;
   isCancelDialogOpen: boolean;
   isOpenWrongAssignmentDialog: boolean;
+  isOpenRoutingTraceSheet: boolean;
 
   // Dialog setters
   setRejectionDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -33,6 +34,7 @@ export type BookingActionsStore = {
   setRerouteDialogIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsCancelDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setIsOpenWrongAssignmentDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpenRoutingTraceSheet: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 export const createBookingActionsStore = () => {
@@ -51,6 +53,7 @@ export const createBookingActionsStore = () => {
     rerouteDialogIsOpen: false,
     isCancelDialogOpen: false,
     isOpenWrongAssignmentDialog: false,
+    isOpenRoutingTraceSheet: false,
 
     // Dialog setters
     setRejectionDialogIsOpen: (isOpen) =>
@@ -108,6 +111,11 @@ export const createBookingActionsStore = () => {
       set((state) => ({
         isOpenWrongAssignmentDialog:
           typeof isOpen === "function" ? isOpen(state.isOpenWrongAssignmentDialog) : isOpen,
+      })),
+    setIsOpenRoutingTraceSheet: (isOpen) =>
+      set((state) => ({
+        isOpenRoutingTraceSheet:
+          typeof isOpen === "function" ? isOpen(state.isOpenRoutingTraceSheet) : isOpen,
       })),
   }));
 };
