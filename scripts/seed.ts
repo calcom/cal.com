@@ -329,7 +329,12 @@ async function createOrganizationAndAddMembersAndTeams({
   });
 
   if (existingTeam) {
-    console.log(`Organization with slug '${orgData.slug}' already exists, skipping.`);
+    console.log(`Organization with slug '${orgData.slug}' already exists, ensuring settings are up to date.`);
+    await prisma.organizationSettings.upsert({
+      where: { organizationId: existingTeam.id },
+      update: { ...orgData.organizationSettings },
+      create: { organizationId: existingTeam.id, ...orgData.organizationSettings },
+    });
     return;
   }
 
@@ -341,14 +346,13 @@ async function createOrganizationAndAddMembersAndTeams({
     };
   })[] = [];
 
-  try {
-    const batchSize = 50;
-    // Process members in batches of  in parallel
-    for (let i = 0; i < orgMembers.length; i += batchSize) {
-      const batch = orgMembers.slice(i, i + batchSize);
+  const batchSize = 50;
+  for (let i = 0; i < orgMembers.length; i += batchSize) {
+    const batch = orgMembers.slice(i, i + batchSize);
 
-      const batchResults = await Promise.all(
-        batch.map(async (member) => {
+    const batchResults = await Promise.all(
+      batch.map(async (member) => {
+        try {
           const newUser = await createUserAndEventType({
             user: {
               ...member.memberData,
@@ -375,13 +379,6 @@ async function createOrganizationAndAddMembersAndTeams({
             ],
           });
 
-          const orgMemberInDb = {
-            ...newUser,
-            inTeams: member.inTeams,
-            orgMembership: member.orgMembership,
-            orgProfile: member.orgProfile,
-          };
-
           // Create temp org redirect with upsert to handle duplicates
           await prisma.tempOrgRedirect.upsert({
             where: {
@@ -402,26 +399,45 @@ async function createOrganizationAndAddMembersAndTeams({
             },
           });
 
-          return orgMemberInDb;
-        })
-      );
+          return {
+            ...newUser,
+            inTeams: member.inTeams,
+            orgMembership: member.orgMembership,
+            orgProfile: member.orgProfile,
+          };
+        } catch (e) {
+          if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+            console.log("Organization member already seeded, skipping");
+            const existingUser = await prisma.user.findUnique({
+              where: {
+                email_username: {
+                  email: member.memberData.email,
+                  username: member.memberData.username,
+                },
+              },
+            });
+            if (!existingUser) throw e;
+            return {
+              ...existingUser,
+              inTeams: member.inTeams,
+              orgMembership: member.orgMembership,
+              orgProfile: member.orgProfile,
+            };
+          }
+          throw e;
+        }
+      })
+    );
 
-      orgMembersInDb.push(...batchResults);
-    }
-  } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      if (e.code === "P2002") {
-        console.log(`One of the organization members already exists, skipping the entire seeding`);
-        return;
-      }
-    }
-    console.error(e);
+    orgMembersInDb.push(...batchResults.filter((r): r is NonNullable<typeof r> => r !== null));
   }
 
-  await Promise.all([
+  await Promise.all(
     usersOutsideOrg.map(async (user) => {
-      return await prisma.user.create({
-        data: {
+      await prisma.user.upsert({
+        where: { email_username: { email: user.email, username: user.username } },
+        update: {},
+        create: {
           username: user.username,
           name: user.name,
           email: user.email,
@@ -433,8 +449,8 @@ async function createOrganizationAndAddMembersAndTeams({
           },
         },
       });
-    }),
-  ]);
+    })
+  );
 
   const { organizationSettings, ...restOrgData } = orgData;
 
