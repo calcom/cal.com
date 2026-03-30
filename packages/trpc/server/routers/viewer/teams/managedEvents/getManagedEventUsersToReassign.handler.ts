@@ -14,7 +14,6 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TGetManagedEventUsersToReassignInputSchema } from "./getManagedEventUsersToReassign.schema";
 
-
 type GetManagedEventUsersToReassignOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -40,7 +39,6 @@ async function getManagedEventUsersFromDB({
   limit?: number;
   excludeUserId?: number;
 }) {
-
   const eventTypeRepository = new EventTypeRepository(prisma);
   const { totalCount, items, hasMore, nextCursor } = await eventTypeRepository.listChildEventTypes({
     parentEventTypeId,
@@ -80,7 +78,7 @@ export const getManagedEventUsersToReassign = async ({
   const eventTypeRepository = new EventTypeRepository(prisma);
 
   const booking = await bookingRepository.findByIdForTargetEventTypeSearch(bookingId);
-  
+
   if (!booking) {
     throw new Error(`Booking ${bookingId} not found`);
   }
@@ -90,7 +88,7 @@ export const getManagedEventUsersToReassign = async ({
   }
 
   const childEventType = await eventTypeRepository.findByIdWithParent(booking.eventTypeId);
-  
+
   if (!childEventType) {
     throw new Error(`Event type ${booking.eventTypeId} not found`);
   }
@@ -152,4 +150,3 @@ export const getManagedEventUsersToReassign = async ({
 };
 
 export default getManagedEventUsersToReassign;
-

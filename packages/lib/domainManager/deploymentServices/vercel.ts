@@ -81,7 +81,7 @@ function handleDomainCreationError(error: {
   domain?: string | null;
   message?: string | null;
   invalidToken?: boolean | null;
-}){
+}) {
   // Vercel returns "forbidden" for various permission issues, not just domain ownership
   if (error.code === "forbidden") {
     const errorMessage =
@@ -130,7 +130,7 @@ function handleDomainDeletionError(error: {
   domain?: string | null;
   message?: string | null;
   invalidToken?: boolean | null;
-}){
+}) {
   if (error.code === "not_found") {
     // Domain is already deleted
     return true;

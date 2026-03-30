@@ -15,6 +15,7 @@ export interface IUseVerifyEmailProps {
   onVerifyEmail?: () => void;
   name?: string | { firstName: string; lastname?: string };
   requiresBookerEmailVerification?: boolean;
+  eventTypeId?: number;
 }
 
 export type UseVerifyEmailReturnType = ReturnType<typeof useVerifyEmail>;
@@ -22,6 +23,7 @@ export type UseVerifyEmailReturnType = ReturnType<typeof useVerifyEmail>;
 interface RequestEmailVerificationInput {
   email: string;
   username?: string;
+  eventTypeId?: number;
 }
 
 export const useVerifyEmail = ({
@@ -29,6 +31,7 @@ export const useVerifyEmail = ({
   name,
   requiresBookerEmailVerification,
   onVerifyEmail,
+  eventTypeId,
 }: IUseVerifyEmailProps) => {
   const [isEmailVerificationModalVisible, setEmailVerificationModalVisible] = useState(false);
   const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
@@ -85,6 +88,7 @@ export const useVerifyEmail = ({
     sendEmailVerificationMutation.mutate({
       email,
       username: typeof name === "string" ? name : name?.firstName,
+      eventTypeId,
     });
   };
 

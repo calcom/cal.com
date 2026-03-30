@@ -269,7 +269,13 @@ describe("DistributedTracing", () => {
       tracing.getTracingLogger(context);
 
       expect(mockLogger.getSubLogger).toHaveBeenCalledWith({
-        prefix: ["distributed-trace", "trace:trace_123", "span:span_456", "op:test_operation", "userId:user_789"],
+        prefix: [
+          "distributed-trace",
+          "trace:trace_123",
+          "span:span_456",
+          "op:test_operation",
+          "userId:user_789",
+        ],
       });
     });
 
@@ -287,7 +293,13 @@ describe("DistributedTracing", () => {
       tracing.getTracingLogger(context);
 
       expect(mockLogger.getSubLogger).toHaveBeenCalledWith({
-        prefix: ["distributed-trace", "trace:trace_123", "span:span_456", "op:test_operation", "userId:user_789"],
+        prefix: [
+          "distributed-trace",
+          "trace:trace_123",
+          "span:span_456",
+          "op:test_operation",
+          "userId:user_789",
+        ],
       });
     });
   });

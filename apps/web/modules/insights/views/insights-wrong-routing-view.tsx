@@ -1,6 +1,6 @@
 "use client";
 
-import { DataTableProvider } from "@calcom/features/data-table/DataTableProvider";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { useSegments } from "~/data-table/hooks/useSegments";
 import { WrongAssignmentReportsDashboard } from "@calcom/web/modules/insights/components/routing";
 

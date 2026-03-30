@@ -42,4 +42,3 @@ export const managedEventReassignHandler = async ({ ctx, input }: ManagedEventRe
 };
 
 export default managedEventReassignHandler;
-

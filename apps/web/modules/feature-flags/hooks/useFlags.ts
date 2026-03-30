@@ -37,6 +37,8 @@ const initialData: AppFlags = {
   "hwm-seating": false,
   "active-user-billing": false,
   "sidebar-tips": false,
+  "signup-watchlist-review": false,
+  "sink-shortener": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

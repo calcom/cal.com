@@ -1,6 +1,6 @@
 "use client";
 
-import { useDataTable, useFilterValue, ZSingleSelectFilterValue } from "@calcom/features/data-table";
+import { ZSingleSelectFilterValue } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WrongAssignmentReportStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -30,6 +30,8 @@ import {
 import { useWrongAssignmentFacetedUniqueValues } from "@calcom/web/modules/insights/hooks/useWrongAssignmentFacetedUniqueValues";
 import { createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
 import { useCallback, useMemo, useState } from "react";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useFilterValue } from "~/data-table/hooks/useFilterValue";
 import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
 
 type TabType = "pending" | "handled";

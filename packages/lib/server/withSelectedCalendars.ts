@@ -13,7 +13,7 @@ export function withSelectedCalendars<
   },
   TUser extends {
     selectedCalendars: TCalendar[];
-  }
+  },
 >(user: UserWithLegacySelectedCalendars<TCalendar, TUser>): UserWithSelectedCalendars<TCalendar, TUser> {
   // We are renaming selectedCalendars to allSelectedCalendars to make it clear that it contains all the calendars including eventType calendars
   const { selectedCalendars, ...restUser } = user;

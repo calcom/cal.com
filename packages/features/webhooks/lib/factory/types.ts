@@ -1,8 +1,8 @@
 import type {
-  EventPayloadType,
-  OOOEntryPayloadType,
   BookingNoShowUpdatedPayload,
   DelegationCredentialErrorPayloadType,
+  EventPayloadType,
+  OOOEntryPayloadType,
 } from "../dto/types";
 
 export interface FormSubmittedPayload {

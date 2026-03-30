@@ -178,6 +178,20 @@
       }
     },
     {
+      "includes": ["packages/embeds/embed-core/**/*.{ts,tsx,js,jsx}"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useNodejsImportProtocol": "off",
+            "noProcessEnv": "off"
+          },
+          "correctness": {
+            "noProcessGlobal": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["apps/api/v2/**/*.ts", "apps/api/v2/**/*.controller.ts"],
       "linter": {
         "rules": {

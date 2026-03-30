@@ -163,7 +163,7 @@ export interface IconProps {
 }
 
 function createIcon(Icon: LucideIcon, testId: string) {
-  return function WrappedIcon({ size, className, onClick }: IconProps) {
+  return function WrappedIcon({ size = 16, className, onClick }: IconProps) {
     return <Icon size={size} className={className} onClick={onClick} data-testid={testId} />;
   };
 }

@@ -5,7 +5,9 @@ import { describe, expect, it } from "vitest";
 import { useCompatSearchParams } from "./useCompatSearchParams";
 
 vi.mock("next/navigation", () => ({
-  ReadonlyURLSearchParams: vi.fn().mockImplementation(function(a) { return a; }),
+  ReadonlyURLSearchParams: vi.fn().mockImplementation(function (a) {
+    return a;
+  }),
 }));
 
 describe("useCompatSearchParams hook", () => {

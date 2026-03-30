@@ -1,7 +1,5 @@
 "use client";
 
-import { memo, useMemo, useCallback } from "react";
-
 import dayjs from "@calcom/dayjs";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { getHolidayEmoji } from "@calcom/lib/holidays/getHolidayEmoji";
@@ -10,12 +8,12 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { Select } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { Select, Switch } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
-import { CalendarIcon, TriangleAlertIcon } from "@coss/ui/icons";
+import { TriangleAlertIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { memo, useCallback, useMemo } from "react";
 import { OutOfOfficeToggleGroup } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
 
 function HolidaysCTA() {
@@ -244,25 +242,37 @@ export function HolidaysView() {
 
   if (isLoading) {
     return (
-      <SettingsHeader title={t("holidays")} description={t("holidays_description")} CTA={<HolidaysCTA />}>
-        <SkeletonContainer>
-          <div className="space-y-4">
-            <SkeletonText className="h-10 w-64" />
-            <SkeletonText className="h-64 w-full" />
-          </div>
-        </SkeletonContainer>
+      <SettingsHeader
+        title={t("holidays")}
+        description={t("holidays_description")}
+        borderInShellHeader={true}
+        CTA={<HolidaysCTA />}>
+        <div className="border-subtle rounded-b-lg border border-t-0 px-4 py-6 sm:px-6">
+          <SkeletonContainer>
+            <div className="space-y-4">
+              <SkeletonText className="h-10 w-64" />
+              <SkeletonText className="h-64 w-full" />
+            </div>
+          </SkeletonContainer>
+        </div>
       </SettingsHeader>
     );
   }
 
   if (hasError) {
     return (
-      <SettingsHeader title={t("holidays")} description={t("holidays_description")} CTA={<HolidaysCTA />}>
-        <Alert
-          severity="error"
-          title={t("something_went_wrong")}
-          message={countriesError?.message || settingsError?.message}
-        />
+      <SettingsHeader
+        title={t("holidays")}
+        description={t("holidays_description")}
+        borderInShellHeader={true}
+        CTA={<HolidaysCTA />}>
+        <div className="border-subtle rounded-b-lg border border-t-0 px-4 py-6 sm:px-6">
+          <Alert
+            severity="error"
+            title={t("something_went_wrong")}
+            message={countriesError?.message || settingsError?.message}
+          />
+        </div>
       </SettingsHeader>
     );
   }
@@ -271,57 +281,60 @@ export function HolidaysView() {
     <SettingsHeader
       title={t("out_of_office")}
       description={t("out_of_office_description")}
+      borderInShellHeader={true}
       CTA={<HolidaysCTA />}>
-      <div className="space-y-6">
-        {conflictsData?.conflicts && conflictsData.conflicts.length > 0 && (
-          <ConflictWarning conflicts={conflictsData.conflicts} />
-        )}
-
-        <div className="border-subtle bg-muted overflow-hidden rounded-lg border p-5">
-          {/* Header with title and country selector */}
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h3 className="text-emphasis font-semibold">{t("holidays")}</h3>
-              <p className="text-subtle text-sm">{t("holidays_description")}</p>
-            </div>
-            <CountrySelector
-              countries={countries || []}
-              value={settings?.countryCode || ""}
-              onChange={handleCountryChange}
-              isLoading={isLoadingCountries}
-            />
-          </div>
-
-          {/* Holidays list - inner container */}
-          {settings?.countryCode ? (
-            <div className="border-subtle bg-default overflow-hidden rounded-md border">
-              {settings.holidays && settings.holidays.length > 0 ? (
-                settings.holidays.map((holiday) => (
-                  <HolidayListItem
-                    key={holiday.id}
-                    holiday={holiday}
-                    onToggle={handleToggleHoliday}
-                    isToggling={
-                      toggleHolidayMutation.isPending &&
-                      toggleHolidayMutation.variables?.holidayId === holiday.id
-                    }
-                  />
-                ))
-              ) : (
-                <div className="text-subtle py-8 text-center text-sm">
-                  {t("no_holidays_found_for_country")}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="bg-default flex flex-col items-center rounded-md py-14 text-center">
-              <div className="bg-emphasis mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-                <CalendarIcon className="text-default h-8 w-8" />
-              </div>
-              <h4 className="text-emphasis mb-1 font-medium">{t("no_holidays_selected")}</h4>
-              <p className="text-subtle text-sm">{t("select_country_to_see_holidays")}</p>
-            </div>
+      <div className="border-subtle rounded-b-lg border border-t-0 px-4 py-6 sm:px-6">
+        <div className="space-y-6">
+          {conflictsData?.conflicts && conflictsData.conflicts.length > 0 && (
+            <ConflictWarning conflicts={conflictsData.conflicts} />
           )}
+
+          <div className="border-subtle bg-muted overflow-hidden rounded-lg border p-5">
+            {/* Header with title and country selector */}
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-emphasis font-semibold">{t("holidays")}</h3>
+                <p className="text-subtle text-sm">{t("holidays_description")}</p>
+              </div>
+              <CountrySelector
+                countries={countries || []}
+                value={settings?.countryCode || ""}
+                onChange={handleCountryChange}
+                isLoading={isLoadingCountries}
+              />
+            </div>
+
+            {/* Holidays list - inner container */}
+            {settings?.countryCode ? (
+              <div className="border-subtle bg-default overflow-hidden rounded-md border justify-between">
+                {settings.holidays && settings.holidays.length > 0 ? (
+                  settings.holidays.map((holiday) => (
+                    <HolidayListItem
+                      key={holiday.id}
+                      holiday={holiday}
+                      onToggle={handleToggleHoliday}
+                      isToggling={
+                        toggleHolidayMutation.isPending &&
+                        toggleHolidayMutation.variables?.holidayId === holiday.id
+                      }
+                    />
+                  ))
+                ) : (
+                  <div className="text-subtle py-8 text-center text-sm">
+                    {t("no_holidays_found_for_country")}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-default flex flex-col items-center rounded-md py-14 text-center">
+                <div className="bg-emphasis mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                  <Icon name="calendar" className="text-default h-8 w-8" />
+                </div>
+                <h4 className="text-emphasis mb-1 font-medium">{t("no_holidays_selected")}</h4>
+                <p className="text-subtle text-sm">{t("select_country_to_see_holidays")}</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </SettingsHeader>

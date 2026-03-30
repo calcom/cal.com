@@ -44,7 +44,7 @@ vi.mock("@calcom/features/webhooks/lib/sendPayload");
 vi.mock("@calcom/prisma", () => ({
   default: {},
 }));
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => {
     const translations: Record<string, string> = {
       wrong_assignment_already_reported:

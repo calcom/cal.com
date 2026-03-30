@@ -16,10 +16,7 @@ type UpdateAttributeSyncOptions = {
   input: ZUpdateAttributeSyncSchema;
 };
 
-const updateAttributeSyncHandler = async ({
-  ctx,
-  input,
-}: UpdateAttributeSyncOptions) => {
+const updateAttributeSyncHandler = async ({ ctx, input }: UpdateAttributeSyncOptions) => {
   const org = ctx.user.organization;
 
   if (!org?.id) {
@@ -32,8 +29,7 @@ const updateAttributeSyncHandler = async ({
   const integrationAttributeSyncService = getIntegrationAttributeSyncService();
 
   // Verify the sync exists and belongs to the user's organization
-  const integrationAttributeSync =
-    await integrationAttributeSyncService.getById(input.id);
+  const integrationAttributeSync = await integrationAttributeSyncService.getById(input.id);
 
   if (!integrationAttributeSync) throw new TRPCError({ code: "NOT_FOUND" });
 

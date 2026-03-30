@@ -84,7 +84,7 @@ const Day = ({
       type="button"
       style={disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
       className={classNames(
-        "disabled:text-bookinglighter absolute bottom-0 left-0 right-0 top-0 mx-auto w-full rounded-md border-2 border-transparent text-center text-sm font-medium transition disabled:cursor-default disabled:border-transparent disabled:font-light ",
+        "disabled:text-bookinglighter absolute bottom-0 left-0 right-0 top-0 mx-auto w-full cursor-pointer rounded-md border-2 border-transparent text-center text-sm font-medium transition disabled:cursor-default disabled:border-transparent disabled:font-light ",
         active
           ? "bg-brand-default text-brand"
           : !disabled
