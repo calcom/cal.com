@@ -32,6 +32,695 @@
               "api-reference/v2/v1-v2-differences",
               "agents"
             ]
+          },
+          {
+            "group": "CORE",
+            "pages": [
+              {
+                "group": "Me",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/me",
+                  "PATCH /v2/me"
+                ]
+              },
+              {
+                "group": "Bookings",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/bookings",
+                  "GET /v2/bookings",
+                  "GET /v2/bookings/by-seat/{seatUid}",
+                  "GET /v2/bookings/{bookingUid}",
+                  "GET /v2/bookings/{bookingUid}/recordings",
+                  "GET /v2/bookings/{bookingUid}/transcripts",
+                  "POST /v2/bookings/{bookingUid}/reschedule",
+                  "POST /v2/bookings/{bookingUid}/cancel",
+                  "POST /v2/bookings/{bookingUid}/mark-absent",
+                  "POST /v2/bookings/{bookingUid}/reassign",
+                  "POST /v2/bookings/{bookingUid}/reassign/{userId}",
+                  "POST /v2/bookings/{bookingUid}/confirm",
+                  "POST /v2/bookings/{bookingUid}/decline",
+                  "GET /v2/bookings/{bookingUid}/calendar-links",
+                  "GET /v2/bookings/{bookingUid}/references",
+                  "GET /v2/bookings/{bookingUid}/conferencing-sessions",
+                  "PATCH /v2/bookings/{bookingUid}/location",
+                  {
+                    "group": "Attendees",
+                    "expanded": false,
+                    "pages": [
+                      "GET /v2/bookings/{bookingUid}/attendees",
+                      "POST /v2/bookings/{bookingUid}/attendees",
+                      "GET /v2/bookings/{bookingUid}/attendees/{attendeeId}"
+                    ]
+                  },
+                  {
+                    "group": "Guests",
+                    "expanded": false,
+                    "pages": [
+                      "POST /v2/bookings/{bookingUid}/guests"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Schedules",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/schedules",
+                  "GET /v2/schedules",
+                  "GET /v2/schedules/default",
+                  "GET /v2/schedules/{scheduleId}",
+                  "PATCH /v2/schedules/{scheduleId}",
+                  "DELETE /v2/schedules/{scheduleId}"
+                ]
+              },
+              {
+                "group": "Slots",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/slots",
+                  "POST /v2/slots/reservations",
+                  "GET /v2/slots/reservations/{uid}",
+                  "PATCH /v2/slots/reservations/{uid}",
+                  "DELETE /v2/slots/reservations/{uid}"
+                ]
+              },
+              {
+                "group": "Out of Office",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/me/ooo",
+                  "POST /v2/me/ooo",
+                  "PATCH /v2/me/ooo/{oooId}",
+                  "DELETE /v2/me/ooo/{oooId}"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "CALENDARS",
+            "pages": [
+              {
+                "group": "Calendars",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/calendars/ics-feed/save",
+                  "GET /v2/calendars/ics-feed/check",
+                  "GET /v2/calendars/busy-times",
+                  "GET /v2/calendars",
+                  "GET /v2/calendars/{calendar}/connect",
+                  "GET /v2/calendars/{calendar}/save",
+                  "POST /v2/calendars/{calendar}/credentials",
+                  "GET /v2/calendars/{calendar}/check",
+                  "POST /v2/calendars/{calendar}/disconnect"
+                ]
+              },
+              {
+                "group": "Cal Unified Calendars",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/calendars/{calendar}/event/{eventUid}",
+                  "PATCH /v2/calendars/{calendar}/events/{eventUid}"
+                ]
+              },
+              {
+                "group": "Selected Calendars",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/selected-calendars",
+                  "DELETE /v2/selected-calendars"
+                ]
+              },
+              {
+                "group": "Destination Calendars",
+                "expanded": false,
+                "pages": [
+                  "PUT /v2/destination-calendars"
+                ]
+              },
+              {
+                "group": "Conferencing",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/conferencing/{app}/connect",
+                  "GET /v2/conferencing/{app}/oauth/auth-url",
+                  "GET /v2/conferencing/{app}/oauth/callback",
+                  "GET /v2/conferencing",
+                  "POST /v2/conferencing/{app}/default",
+                  "GET /v2/conferencing/default",
+                  "DELETE /v2/conferencing/{app}/disconnect"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "EVENT TYPES & AUTOMATION",
+            "pages": [
+              {
+                "group": "Event Types",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/event-types",
+                  "GET /v2/event-types",
+                  "GET /v2/event-types/{eventTypeId}",
+                  "PATCH /v2/event-types/{eventTypeId}",
+                  "DELETE /v2/event-types/{eventTypeId}",
+                  {
+                    "group": "Webhooks",
+                    "expanded": false,
+                    "pages": [
+                      "POST /v2/event-types/{eventTypeId}/webhooks",
+                      "GET /v2/event-types/{eventTypeId}/webhooks",
+                      "DELETE /v2/event-types/{eventTypeId}/webhooks",
+                      "PATCH /v2/event-types/{eventTypeId}/webhooks/{webhookId}",
+                      "GET /v2/event-types/{eventTypeId}/webhooks/{webhookId}",
+                      "DELETE /v2/event-types/{eventTypeId}/webhooks/{webhookId}"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Event Types Private Links",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/event-types/{eventTypeId}/private-links",
+                  "GET /v2/event-types/{eventTypeId}/private-links",
+                  "PATCH /v2/event-types/{eventTypeId}/private-links/{linkId}",
+                  "DELETE /v2/event-types/{eventTypeId}/private-links/{linkId}"
+                ]
+              },
+              {
+                "group": "Routing Forms",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/routing-forms/{routingFormId}/calculate-slots"
+                ]
+              },
+              {
+                "group": "Webhooks",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/webhooks",
+                  "GET /v2/webhooks",
+                  "PATCH /v2/webhooks/{webhookId}",
+                  "GET /v2/webhooks/{webhookId}",
+                  "DELETE /v2/webhooks/{webhookId}"
+                ]
+              },
+              {
+                "group": "Stripe",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/stripe/connect",
+                  "GET /v2/stripe/save",
+                  "GET /v2/stripe/check"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "TEAMS",
+            "pages": [
+              {
+                "group": "Teams",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/teams",
+                  "GET /v2/teams",
+                  "GET /v2/teams/{teamId}",
+                  "PATCH /v2/teams/{teamId}",
+                  "DELETE /v2/teams/{teamId}",
+                  "GET /v2/teams/{teamId}/bookings",
+                  {
+                    "group": "Event Types",
+                    "expanded": false,
+                    "pages": [
+                      "POST /v2/teams/{teamId}/event-types",
+                      "GET /v2/teams/{teamId}/event-types",
+                      "GET /v2/teams/{teamId}/event-types/{eventTypeId}",
+                      "PATCH /v2/teams/{teamId}/event-types/{eventTypeId}",
+                      "DELETE /v2/teams/{teamId}/event-types/{eventTypeId}",
+                      "POST /v2/teams/{teamId}/event-types/{eventTypeId}/create-phone-call",
+                      {
+                        "group": "Webhooks",
+                        "expanded": false,
+                        "pages": [
+                          "POST /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks",
+                          "GET /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks",
+                          "DELETE /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks",
+                          "PATCH /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId}",
+                          "GET /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId}",
+                          "DELETE /v2/teams/{teamId}/event-types/{eventTypeId}/webhooks/{webhookId}"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Invite",
+                    "expanded": false,
+                    "pages": [
+                      "POST /v2/teams/{teamId}/invite"
+                    ]
+                  },
+                  {
+                    "group": "Memberships",
+                    "expanded": false,
+                    "pages": [
+                      "POST /v2/teams/{teamId}/memberships",
+                      "GET /v2/teams/{teamId}/memberships",
+                      "GET /v2/teams/{teamId}/memberships/{membershipId}",
+                      "PATCH /v2/teams/{teamId}/memberships/{membershipId}",
+                      "DELETE /v2/teams/{teamId}/memberships/{membershipId}"
+                    ]
+                  },
+                  "GET /v2/teams/{teamId}/schedules",
+                  {
+                    "group": "Users / OOO",
+                    "expanded": false,
+                    "pages": [
+                      "GET /v2/teams/{teamId}/users/{userId}/ooo",
+                      "POST /v2/teams/{teamId}/users/{userId}/ooo",
+                      "PATCH /v2/teams/{teamId}/users/{userId}/ooo/{oooId}",
+                      "DELETE /v2/teams/{teamId}/users/{userId}/ooo/{oooId}"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Teams Verified Resources",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/teams/{teamId}/verified-resources/emails/verification-code/request",
+                  "POST /v2/teams/{teamId}/verified-resources/phones/verification-code/request",
+                  "POST /v2/teams/{teamId}/verified-resources/emails/verification-code/verify",
+                  "POST /v2/teams/{teamId}/verified-resources/phones/verification-code/verify",
+                  "GET /v2/teams/{teamId}/verified-resources/emails",
+                  "GET /v2/teams/{teamId}/verified-resources/phones",
+                  "GET /v2/teams/{teamId}/verified-resources/emails/{id}",
+                  "GET /v2/teams/{teamId}/verified-resources/phones/{id}"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "ORGANIZATIONS",
+            "pages": [
+              {
+                "group": "Managed Orgs",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/organizations/{orgId}/organizations",
+                  "GET /v2/organizations/{orgId}/organizations",
+                  "GET /v2/organizations/{orgId}/organizations/{managedOrganizationId}",
+                  "PATCH /v2/organizations/{orgId}/organizations/{managedOrganizationId}",
+                  "DELETE /v2/organizations/{orgId}/organizations/{managedOrganizationId}"
+                ]
+              },
+              {
+                "group": "Attributes",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/organizations/{orgId}/attributes",
+                  "POST /v2/organizations/{orgId}/attributes",
+                  "GET /v2/organizations/{orgId}/attributes/{attributeId}",
+                  "PATCH /v2/organizations/{orgId}/attributes/{attributeId}",
+                  "DELETE /v2/organizations/{orgId}/attributes/{attributeId}",
+                  {
+                    "group": "Options",
+                    "expanded": false,
+                    "pages": [
+                      "POST /v2/organizations/{orgId}/attributes/{attributeId}/options",
+                      "GET /v2/organizations/{orgId}/attributes/{attributeId}/options",
+                      "DELETE /v2/organizations/{orgId}/attributes/{attributeId}/options/{optionId}",
+                      "PATCH /v2/organizations/{orgId}/attributes/{attributeId}/options/{optionId}",
+                      "GET /v2/organizations/{orgId}/attributes/{attributeId}/options/assigned",
+                      "GET /v2/organizations/{orgId}/attributes/slugs/{attributeSlug}/options/assigned",
+                      "POST /v2/organizations/{orgId}/attributes/options/{userId}",
+                      "GET /v2/organizations/{orgId}/attributes/options/{userId}",
+                      "DELETE /v2/organizations/{orgId}/attributes/options/{userId}/{attributeOptionId}"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Bookings",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/organizations/{orgId}/bookings",
+                  "POST /v2/organizations/{orgId}/bookings/block",
+                  "POST /v2/organizations/{orgId}/bookings/report"
+                ]
+              },
+              {
+                "group": "Delegation Credentials",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/organizations/{orgId}/delegation-credentials",
+                  "PATCH /v2/organizations/{orgId}/delegation-credentials/{credentialId}"
+                ]
+              },
+              {
+                "group": "Memberships",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/organizations/{orgId}/memberships",
+                  "POST /v2/organizations/{orgId}/memberships",
+                  "GET /v2/organizations/{orgId}/memberships/{membershipId}",
+                  "DELETE /v2/organizations/{orgId}/memberships/{membershipId}",
+                  "PATCH /v2/organizations/{orgId}/memberships/{membershipId}"
+                ]
+              },
+              {
+                "group": "Roles",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/organizations/{orgId}/roles",
+                  "GET /v2/organizations/{orgId}/roles",
+                  "GET /v2/organizations/{orgId}/roles/{roleId}",
+                  "PATCH /v2/organizations/{orgId}/roles/{roleId}",
+                  "DELETE /v2/organizations/{orgId}/roles/{roleId}",
+                  {
+                    "group": "Permissions",
+                    "expanded": false,
+                    "pages": [
+                      "POST /v2/organizations/{orgId}/roles/{roleId}/permissions",
+                      "GET /v2/organizations/{orgId}/roles/{roleId}/permissions",
+                      "PUT /v2/organizations/{orgId}/roles/{roleId}/permissions",
+                      "DELETE /v2/organizations/{orgId}/roles/{roleId}/permissions",
+                      "DELETE /v2/organizations/{orgId}/roles/{roleId}/permissions/{permission}"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Routing Forms",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/organizations/{orgId}/routing-forms",
+                  "GET /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses",
+                  "POST /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses",
+                  "PATCH /v2/organizations/{orgId}/routing-forms/{routingFormId}/responses/{responseId}"
+                ]
+              },
+              {
+                "group": "Schedules",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/organizations/{orgId}/schedules"
+                ]
+              },
+              {
+                "group": "Users",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/organizations/{orgId}/users",
+                  "POST /v2/organizations/{orgId}/users",
+                  "PATCH /v2/organizations/{orgId}/users/{userId}",
+                  "DELETE /v2/organizations/{orgId}/users/{userId}",
+                  {
+                    "group": "Bookings",
+                    "expanded": false,
+                    "pages": [
+                      "GET /v2/organizations/{orgId}/users/{userId}/bookings"
+                    ]
+                  },
+                  {
+                    "group": "OOO",
+                    "expanded": false,
+                    "pages": [
+                      "GET /v2/organizations/{orgId}/users/{userId}/ooo",
+                      "POST /v2/organizations/{orgId}/users/{userId}/ooo",
+                      "PATCH /v2/organizations/{orgId}/users/{userId}/ooo/{oooId}",
+                      "DELETE /v2/organizations/{orgId}/users/{userId}/ooo/{oooId}",
+                      "GET /v2/organizations/{orgId}/ooo"
+                    ]
+                  },
+                  {
+                    "group": "Schedules",
+                    "expanded": false,
+                    "pages": [
+                      "POST /v2/organizations/{orgId}/users/{userId}/schedules",
+                      "GET /v2/organizations/{orgId}/users/{userId}/schedules",
+                      "GET /v2/organizations/{orgId}/users/{userId}/schedules/{scheduleId}",
+                      "PATCH /v2/organizations/{orgId}/users/{userId}/schedules/{scheduleId}",
+                      "DELETE /v2/organizations/{orgId}/users/{userId}/schedules/{scheduleId}"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Teams",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/organizations/{orgId}/teams",
+                  "POST /v2/organizations/{orgId}/teams",
+                  "GET /v2/organizations/{orgId}/teams/me",
+                  "GET /v2/organizations/{orgId}/teams/{teamId}",
+                  "DELETE /v2/organizations/{orgId}/teams/{teamId}",
+                  "PATCH /v2/organizations/{orgId}/teams/{teamId}",
+                  {
+                    "group": "Bookings",
+                    "expanded": false,
+                    "pages": [
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/bookings",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/bookings/{bookingUid}/references"
+                    ]
+                  },
+                  {
+                    "group": "Conferencing",
+                    "expanded": false,
+                    "pages": [
+                      "POST /v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/connect",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/auth-url",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/conferencing",
+                      "POST /v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/default",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/conferencing/default",
+                      "DELETE /v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/disconnect",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/conferencing/{app}/oauth/callback"
+                    ]
+                  },
+                  {
+                    "group": "Event Types",
+                    "expanded": false,
+                    "pages": [
+                      "POST /v2/organizations/{orgId}/teams/{teamId}/event-types",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/event-types",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}",
+                      "PATCH /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}",
+                      "DELETE /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}",
+                      "POST /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/create-phone-call",
+                      "GET /v2/organizations/{orgId}/teams/event-types",
+                      {
+                        "group": "Private Links",
+                        "expanded": false,
+                        "pages": [
+                          "POST /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links",
+                          "GET /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links",
+                          "PATCH /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links/{linkId}",
+                          "DELETE /v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}/private-links/{linkId}"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Invite",
+                    "expanded": false,
+                    "pages": [
+                      "POST /v2/organizations/{orgId}/teams/{teamId}/invite"
+                    ]
+                  },
+                  {
+                    "group": "Memberships",
+                    "expanded": false,
+                    "pages": [
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/memberships",
+                      "POST /v2/organizations/{orgId}/teams/{teamId}/memberships",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/memberships/{membershipId}",
+                      "DELETE /v2/organizations/{orgId}/teams/{teamId}/memberships/{membershipId}",
+                      "PATCH /v2/organizations/{orgId}/teams/{teamId}/memberships/{membershipId}"
+                    ]
+                  },
+                  {
+                    "group": "Roles",
+                    "expanded": false,
+                    "pages": [
+                      "POST /v2/organizations/{orgId}/teams/{teamId}/roles",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/roles",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/roles/{roleId}",
+                      "PATCH /v2/organizations/{orgId}/teams/{teamId}/roles/{roleId}",
+                      "DELETE /v2/organizations/{orgId}/teams/{teamId}/roles/{roleId}",
+                      {
+                        "group": "Permissions",
+                        "expanded": false,
+                        "pages": [
+                          "POST /v2/organizations/{orgId}/teams/{teamId}/roles/{roleId}/permissions",
+                          "GET /v2/organizations/{orgId}/teams/{teamId}/roles/{roleId}/permissions",
+                          "PUT /v2/organizations/{orgId}/teams/{teamId}/roles/{roleId}/permissions",
+                          "DELETE /v2/organizations/{orgId}/teams/{teamId}/roles/{roleId}/permissions",
+                          "DELETE /v2/organizations/{orgId}/teams/{teamId}/roles/{roleId}/permissions/{permission}"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Routing Forms",
+                    "expanded": false,
+                    "pages": [
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms",
+                      {
+                        "group": "Responses",
+                        "expanded": false,
+                        "pages": [
+                          "GET /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses",
+                          "POST /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses",
+                          "PATCH /v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses/{responseId}"
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "group": "Schedules",
+                    "expanded": false,
+                    "pages": [
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/schedules"
+                    ]
+                  },
+                  {
+                    "group": "Stripe",
+                    "expanded": false,
+                    "pages": [
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/stripe/connect",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/stripe/check",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/stripe/save"
+                    ]
+                  },
+                  {
+                    "group": "Users / Schedules",
+                    "expanded": false,
+                    "pages": [
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/users/{userId}/schedules"
+                    ]
+                  },
+                  {
+                    "group": "Workflows",
+                    "expanded": false,
+                    "pages": [
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/workflows",
+                      "POST /v2/organizations/{orgId}/teams/{teamId}/workflows",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/workflows/routing-form",
+                      "POST /v2/organizations/{orgId}/teams/{teamId}/workflows/routing-form",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}",
+                      "PATCH /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}",
+                      "DELETE /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}",
+                      "GET /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}/routing-form",
+                      "PATCH /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}/routing-form",
+                      "DELETE /v2/organizations/{orgId}/teams/{teamId}/workflows/{workflowId}/routing-form"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Webhooks",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/organizations/{orgId}/webhooks",
+                  "POST /v2/organizations/{orgId}/webhooks",
+                  "GET /v2/organizations/{orgId}/webhooks/{webhookId}",
+                  "DELETE /v2/organizations/{orgId}/webhooks/{webhookId}",
+                  "PATCH /v2/organizations/{orgId}/webhooks/{webhookId}"
+                ]
+              },
+              {
+                "group": "Organization Team Verified Resources",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/request",
+                  "POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/request",
+                  "POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/verification-code/verify",
+                  "POST /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/verification-code/verify",
+                  "GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails",
+                  "GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones",
+                  "GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/emails/{id}",
+                  "GET /v2/organizations/{orgId}/teams/{teamId}/verified-resources/phones/{id}"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "AUTH & ACCESS",
+            "pages": [
+              {
+                "group": "Api Keys",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/api-keys/refresh"
+                ]
+              },
+              {
+                "group": "OAuth2",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/auth/oauth2/clients/{clientId}",
+                  "POST /v2/auth/oauth2/token"
+                ]
+              },
+              {
+                "group": "Verified Resources",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/verified-resources/emails/verification-code/request",
+                  "POST /v2/verified-resources/phones/verification-code/request",
+                  "POST /v2/verified-resources/emails/verification-code/verify",
+                  "POST /v2/verified-resources/phones/verification-code/verify",
+                  "GET /v2/verified-resources/emails",
+                  "GET /v2/verified-resources/phones",
+                  "GET /v2/verified-resources/emails/{id}",
+                  "GET /v2/verified-resources/phones/{id}"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "DEPRECATED",
+            "pages": [
+              {
+                "group": "Platform OAuth Clients",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/oauth-clients",
+                  "GET /v2/oauth-clients",
+                  "GET /v2/oauth-clients/{clientId}",
+                  "PATCH /v2/oauth-clients/{clientId}",
+                  "DELETE /v2/oauth-clients/{clientId}"
+                ]
+              },
+              {
+                "group": "Platform / Managed Users",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/oauth-clients/{clientId}/users",
+                  "POST /v2/oauth-clients/{clientId}/users",
+                  "GET /v2/oauth-clients/{clientId}/users/{userId}",
+                  "PATCH /v2/oauth-clients/{clientId}/users/{userId}",
+                  "DELETE /v2/oauth-clients/{clientId}/users/{userId}",
+                  "POST /v2/oauth-clients/{clientId}/users/{userId}/force-refresh",
+                  "POST /v2/oauth/{clientId}/refresh"
+                ]
+              },
+              {
+                "group": "Platform / Webhooks",
+                "expanded": false,
+                "pages": [
+                  "POST /v2/oauth-clients/{clientId}/webhooks",
+                  "GET /v2/oauth-clients/{clientId}/webhooks",
+                  "DELETE /v2/oauth-clients/{clientId}/webhooks",
+                  "PATCH /v2/oauth-clients/{clientId}/webhooks/{webhookId}",
+                  "GET /v2/oauth-clients/{clientId}/webhooks/{webhookId}",
+                  "DELETE /v2/oauth-clients/{clientId}/webhooks/{webhookId}"
+                ]
+              }
+            ]
           }
         ]
       },
@@ -40,19 +729,33 @@
         "groups": [
           {
             "group": "Getting Started",
-            "pages": ["atoms/introduction", "atoms/setup", "atoms/cal-oauth-provider"]
+            "pages": [
+              "atoms/introduction",
+              "atoms/setup",
+              "atoms/cal-oauth-provider"
+            ]
           },
           {
             "group": "Booking",
-            "pages": ["atoms/booker", "atoms/booker-embed"]
+            "pages": [
+              "atoms/booker",
+              "atoms/booker-embed"
+            ]
           },
           {
             "group": "Event Types",
-            "pages": ["atoms/event-type", "atoms/list-event-types"]
+            "pages": [
+              "atoms/event-type",
+              "atoms/list-event-types"
+            ]
           },
           {
             "group": "Availability",
-            "pages": ["atoms/availability-settings", "atoms/create-schedule", "atoms/list-schedules"]
+            "pages": [
+              "atoms/availability-settings",
+              "atoms/create-schedule",
+              "atoms/list-schedules"
+            ]
           },
           {
             "group": "Calendars",
@@ -66,11 +769,17 @@
           },
           {
             "group": "Integrations",
-            "pages": ["atoms/conferencing-apps", "atoms/stripe-connect", "atoms/payment-form"]
+            "pages": [
+              "atoms/conferencing-apps",
+              "atoms/stripe-connect",
+              "atoms/payment-form"
+            ]
           },
           {
             "group": "Utility",
-            "pages": ["atoms/troubleshooter"]
+            "pages": [
+              "atoms/troubleshooter"
+            ]
           },
           {
             "group": "Guides",
@@ -98,7 +807,9 @@
         "groups": [
           {
             "group": "Getting Started",
-            "pages": ["developing/local-development"]
+            "pages": [
+              "developing/local-development"
+            ]
           },
           {
             "group": "Open Source Contribution",
@@ -115,7 +826,9 @@
               {
                 "group": "API Development",
                 "icon": "brackets-curly",
-                "pages": ["developing/guides/api/how-to-setup-api-in-a-local-instance"]
+                "pages": [
+                  "developing/guides/api/how-to-setup-api-in-a-local-instance"
+                ]
               },
               {
                 "group": "App Store and Integration",
@@ -138,27 +851,37 @@
               {
                 "group": "Automation",
                 "icon": "webhook",
-                "pages": ["developing/guides/automation/webhooks"]
+                "pages": [
+                  "developing/guides/automation/webhooks"
+                ]
               },
               {
                 "group": "Atoms",
                 "icon": "atom",
-                "pages": ["developing/guides/atoms/add-changesets"]
+                "pages": [
+                  "developing/guides/atoms/add-changesets"
+                ]
               },
               {
                 "group": "Email",
                 "icon": "inbox",
-                "pages": ["developing/guides/email/setup-mailtrap-for-email-testing"]
+                "pages": [
+                  "developing/guides/email/setup-mailtrap-for-email-testing"
+                ]
               },
               {
                 "group": "Embeds",
                 "icon": "code-simple",
-                "pages": ["developing/guides/embeds/embed-events"]
+                "pages": [
+                  "developing/guides/embeds/embed-events"
+                ]
               },
               {
                 "group": "Insights",
                 "icon": "chart-bar",
-                "pages": ["developing/guides/insights/add-new-booking-charts"]
+                "pages": [
+                  "developing/guides/insights/add-new-booking-charts"
+                ]
               }
             ]
           }
@@ -218,7 +941,9 @@
               {
                 "group": "App Store and Integration",
                 "icon": "grid",
-                "pages": ["self-hosting/guides/appstore-and-integration/syncing-third-party-apps"]
+                "pages": [
+                  "self-hosting/guides/appstore-and-integration/syncing-third-party-apps"
+                ]
               },
               {
                 "group": "White Labeling",
@@ -232,7 +957,9 @@
               {
                 "group": "Sponsorship",
                 "icon": "money-check-dollar",
-                "pages": ["self-hosting/guides/sponsorship/can-calcom-sponsor-my-open-source-project"]
+                "pages": [
+                  "self-hosting/guides/sponsorship/can-calcom-sponsor-my-open-source-project"
+                ]
               },
               {
                 "group": "Organizations",
@@ -300,6 +1027,12 @@
     }
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude", "perplexity"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity"
+    ]
   }
 }
