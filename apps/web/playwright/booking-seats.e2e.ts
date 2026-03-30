@@ -1,10 +1,8 @@
-import { expect } from "@playwright/test";
-import { v4 as uuidv4 } from "uuid";
-
 import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-
+import { expect } from "@playwright/test";
+import { v4 as uuidv4 } from "uuid";
 import { test } from "./lib/fixtures";
 import {
   confirmReschedule,
@@ -43,6 +41,7 @@ test.describe("Booking with Seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { email: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -136,6 +135,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { email: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -203,6 +203,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { email: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -282,6 +283,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { email: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -475,6 +477,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { email: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -522,6 +525,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { email: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -540,10 +544,11 @@ test.describe("Reschedule for booking with seats", () => {
       data: bookingSeats,
     });
 
-    const references = await prisma.bookingSeat.findMany({
-      where: { bookingId: booking.id },
-      orderBy: { id: "asc" },
-    });
+    // Find the seat reference for the second attendee by email
+    const secondAttendeeSeat = bookingSeats.find(
+      (seat) => seat.data.responses.email === "second+seats@cal.com"
+    );
+    if (!secondAttendeeSeat) throw new Error("Could not find seat for second attendee");
 
     const secondUser = await users.create({
       name: "Jane Second",
@@ -575,7 +580,7 @@ test.describe("Reschedule for booking with seats", () => {
 
     await page.waitForURL((url) => {
       const rescheduleUid = url.searchParams.get("rescheduleUid");
-      return !!rescheduleUid && rescheduleUid === references[1].referenceUid;
+      return !!rescheduleUid && rescheduleUid === secondAttendeeSeat.referenceUid;
     });
 
     await expect(page.getByText("Seats available").first()).toBeVisible();
