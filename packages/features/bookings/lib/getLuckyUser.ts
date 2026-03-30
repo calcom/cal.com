@@ -781,13 +781,17 @@ export class LuckyUserService implements ILuckyUserService {
     const intervalStartDate = getIntervalStartDate({ interval, rrTimestampBasis, meetingStartTime });
     const intervalEndDate = getIntervalEndDate({ interval, rrTimestampBasis, meetingStartTime });
 
+    // Query bookings once for ALL RR hosts, then derive available/not-available
+    // subsets in memory. Previously this fired 3 overlapping DB queries (available
+    // users, not-available users, all hosts) — the third being a superset of the
+    // first two. With 53 users each query was expensive enough to push the total
+    // request past the Postgres statement timeout.
     const [
       userBusyTimesOfInterval,
-      bookingsOfAvailableUsersOfInterval,
-      bookingsOfNotAvailableUsersOfInterval,
       allRRHostsBookingsOfInterval,
       allRRHostsCreatedInInterval,
       organizersWithLastCreated,
+      oooEntries,
     ] = await Promise.all([
       this.getCalendarBusyTimesOfInterval(
         allRRHosts.map((host) => host.user),
@@ -795,26 +799,6 @@ export class LuckyUserService implements ILuckyUserService {
         rrTimestampBasis,
         meetingStartTime
       ),
-      this.getBookingsOfInterval({
-        eventTypeId: eventType.id,
-        users: availableUsers.map((user) => {
-          return { id: user.id, email: user.email };
-        }),
-        virtualQueuesData: virtualQueuesData ?? null,
-        interval,
-        includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
-        rrTimestampBasis,
-        meetingStartTime,
-      }),
-      this.getBookingsOfInterval({
-        eventTypeId: eventType.id,
-        users: notAvailableHosts,
-        virtualQueuesData: virtualQueuesData ?? null,
-        interval,
-        includeNoShowInRRCalculation: eventType.includeNoShowInRRCalculation,
-        rrTimestampBasis,
-        meetingStartTime,
-      }),
       this.getBookingsOfInterval({
         eventTypeId: eventType.id,
         users: allRRHosts.map((host) => {
@@ -835,7 +819,38 @@ export class LuckyUserService implements ILuckyUserService {
         userIds: availableUsers.map((user) => user.id),
         eventTypeId: eventType.id,
       }),
+      this.oooRepository.findOOOEntriesInInterval({
+        userIds: allRRHosts.map((host) => host.user.id),
+        startDate: intervalStartDate,
+        endDate: intervalEndDate,
+      }),
     ]);
+
+    // Derive available/not-available booking subsets from the single query result.
+    // A booking belongs to a user if they are the organizer (userId) or an attendee (email).
+    const availableUserIds = new Set(availableUsers.map((user) => user.id));
+    const availableUserEmails = new Set(availableUsers.map((user) => user.email));
+    const notAvailableHostIds = new Set(notAvailableHosts.map((host) => host.id));
+    const notAvailableHostEmails = new Set(notAvailableHosts.map((host) => host.email));
+
+    // Mirror the DB matching logic: a booking counts for a user if they are
+    // the organizer (booking.userId) OR listed as an attendee (attendee email).
+    // This matches the two UNION branches in buildRoundRobinBookingIdsQuery.
+    const bookingsOfAvailableUsersOfInterval = allRRHostsBookingsOfInterval.filter(
+      (booking) =>
+        (booking.userId !== null && availableUserIds.has(booking.userId)) ||
+        booking.attendees.some((a) => a.email !== null && availableUserEmails.has(a.email))
+    );
+
+    // Same logic for not-available hosts. A booking may appear in BOTH lists
+    // if it involves users from both groups (e.g. organizer is available but an
+    // attendee is not-available). This is intentional and matches the previous
+    // behavior where 3 independent DB queries could return overlapping results.
+    const bookingsOfNotAvailableUsersOfInterval = allRRHostsBookingsOfInterval.filter(
+      (booking) =>
+        (booking.userId !== null && notAvailableHostIds.has(booking.userId)) ||
+        booking.attendees.some((a) => a.email !== null && notAvailableHostEmails.has(a.email))
+    );
 
     const userFullDayBusyTimes = new Map<number, { start: Date; end: Date }[]>();
 
@@ -855,12 +870,6 @@ export class LuckyUserService implements ILuckyUserService {
         .map((busyTime) => ({ start: new Date(busyTime.start), end: new Date(busyTime.end) }));
 
       userFullDayBusyTimes.set(userBusyTime.userId, fullDayBusyTimes);
-    });
-
-    const oooEntries = await this.oooRepository.findOOOEntriesInInterval({
-      userIds: allRRHosts.map((host) => host.user.id),
-      startDate: intervalStartDate,
-      endDate: intervalEndDate,
     });
 
     const oooEntriesGroupedByUserId = new Map<number, { start: Date; end: Date }[]>();

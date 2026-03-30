@@ -985,6 +985,122 @@ describe("maximize availability and weights", () => {
       })
     ).resolves.toStrictEqual(users[0]);
   });
+
+  it("correctly partitions bookings when some RR hosts are not available", async () => {
+    // 4 RR hosts total, only user 1 and user 2 are available.
+    // Users 3 and 4 are not available but their bookings still count toward
+    // the total pool (used to compute target booking counts per weight).
+    const availableUser1 = buildUser({
+      id: 1,
+      username: "available1",
+      name: "Available User 1",
+      email: "available1@example.com",
+      priority: 3,
+      weight: 100,
+      bookings: [{ createdAt: new Date("2022-01-25T06:30:00.000Z") }],
+    });
+    const availableUser2 = buildUser({
+      id: 2,
+      username: "available2",
+      name: "Available User 2",
+      email: "available2@example.com",
+      priority: 3,
+      weight: 100,
+      bookings: [
+        { createdAt: new Date("2022-01-25T05:30:00.000Z") },
+        { createdAt: new Date("2022-01-25T04:30:00.000Z") },
+      ],
+    });
+    const users: GetLuckyUserAvailableUsersType = [availableUser1, availableUser2];
+
+    const allRRHosts = [
+      {
+        user: { id: 1, email: "available1@example.com", credentials: [], userLevelSelectedCalendars: [] },
+        weight: 100,
+        createdAt: new Date(0),
+      },
+      {
+        user: { id: 2, email: "available2@example.com", credentials: [], userLevelSelectedCalendars: [] },
+        weight: 100,
+        createdAt: new Date(0),
+      },
+      {
+        user: { id: 3, email: "notavail1@example.com", credentials: [], userLevelSelectedCalendars: [] },
+        weight: 100,
+        createdAt: new Date(0),
+      },
+      {
+        user: { id: 4, email: "notavail2@example.com", credentials: [], userLevelSelectedCalendars: [] },
+        weight: 100,
+        createdAt: new Date(0),
+      },
+    ];
+
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue({ success: true, data: [] });
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+    prismaMock.user.findMany.mockResolvedValue(users);
+    prismaMock.host.findMany.mockResolvedValue([]);
+
+    const attendeesWithNoShow = [{ email: "attendee@example.com", noShow: false }];
+
+    // The single query returns bookings for ALL 4 hosts.
+    // In-memory filtering must correctly split them.
+    prismaMock.$queryRaw.mockResolvedValue([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }]);
+    prismaMock.booking.findMany.mockResolvedValue([
+      // Available user 1: 1 booking
+      buildBooking({
+        id: 1,
+        userId: 1,
+        createdAt: new Date("2022-01-25T06:30:00.000Z"),
+        attendees: attendeesWithNoShow,
+      }),
+      // Available user 2: 2 bookings
+      buildBooking({
+        id: 2,
+        userId: 2,
+        createdAt: new Date("2022-01-25T05:30:00.000Z"),
+        attendees: attendeesWithNoShow,
+      }),
+      buildBooking({
+        id: 3,
+        userId: 2,
+        createdAt: new Date("2022-01-25T04:30:00.000Z"),
+        attendees: attendeesWithNoShow,
+      }),
+      // Not-available user 3: 1 booking
+      buildBooking({
+        id: 4,
+        userId: 3,
+        createdAt: new Date("2022-01-25T03:30:00.000Z"),
+        attendees: attendeesWithNoShow,
+      }),
+      // Not-available user 4: 1 booking
+      buildBooking({
+        id: 5,
+        userId: 4,
+        createdAt: new Date("2022-01-25T02:30:00.000Z"),
+        attendees: attendeesWithNoShow,
+      }),
+    ]);
+
+    // User 1 has 1 booking, user 2 has 2 bookings (equal weights).
+    // Not-available bookings raise the total pool to 5 but only affect
+    // target calculations — user 1 still has the bigger shortfall so
+    // should be selected.
+    await expect(
+      luckyUserService.getLuckyUser({
+        availableUsers: users,
+        eventType: {
+          id: 1,
+          isRRWeightsEnabled: true,
+          team: { rrResetInterval: RRResetInterval.MONTH, rrTimestampBasis: RRTimestampBasis.CREATED_AT },
+          includeNoShowInRRCalculation: false,
+        },
+        allRRHosts,
+        routingFormResponse: null,
+      })
+    ).resolves.toStrictEqual(availableUser1);
+  });
 });
 
 describe("attribute weights and virtual queues", () => {
