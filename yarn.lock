@@ -2239,6 +2239,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/calendar-adapter@workspace:packages/infra/adapters/calendar":
+  version: 0.0.0-use.local
+  resolution: "@calcom/calendar-adapter@workspace:packages/infra/adapters/calendar"
+  dependencies:
+    "@biomejs/biome": "npm:2.3.10"
+    "@calcom/tsconfig": "workspace:*"
+    "@calcom/types": "workspace:*"
+    "@googleapis/calendar": "npm:9.7.9"
+    ews-javascript-api: "npm:0.11.0"
+    ical.js: "npm:1.5.0"
+    tsc-absolute: "npm:1.0.0"
+    tsdav: "npm:2.0.3"
+    typescript: "npm:5.9.3"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/campfire@workspace:packages/app-store/campfire":
   version: 0.0.0-use.local
   resolution: "@calcom/campfire@workspace:packages/app-store/campfire"

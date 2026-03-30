@@ -1,0 +1,47 @@
+{
+  "name": "@calcom/calendar-adapter",
+  "private": true,
+  "version": "0.0.0",
+  "license": "MIT",
+  "sideEffects": false,
+  "exports": {
+    "./CalendarAdapter": "./src/CalendarAdapter.ts",
+    "./CalendarAdapterTypes": "./src/CalendarAdapterTypes.ts",
+    "./createCalendarAdapter": "./src/createCalendarAdapter.ts",
+    "./ObservableCalendarAdapter": "./src/ObservableCalendarAdapter.ts"
+  },
+  "typesVersions": {
+    "*": {
+      "CalendarAdapter": [
+        "./src/CalendarAdapter.ts"
+      ],
+      "CalendarAdapterTypes": [
+        "./src/CalendarAdapterTypes.ts"
+      ],
+      "createCalendarAdapter": [
+        "./src/createCalendarAdapter.ts"
+      ],
+      "ObservableCalendarAdapter": [
+        "./src/ObservableCalendarAdapter.ts"
+      ]
+    }
+  },
+  "scripts": {
+    "lint": "biome lint src",
+    "lint:fix": "biome lint --write src",
+    "type-check": "tsc --pretty --noEmit",
+    "type-check:ci": "tsc-absolute --pretty --noEmit"
+  },
+  "dependencies": {
+    "@googleapis/calendar": "9.7.9",
+    "ews-javascript-api": "0.11.0",
+    "ical.js": "1.5.0",
+    "tsdav": "2.0.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.10",
+    "@calcom/tsconfig": "workspace:*",
+    "tsc-absolute": "1.0.0",
+    "typescript": "5.9.3"
+  }
+}
