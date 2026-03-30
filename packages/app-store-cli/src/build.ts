@@ -350,19 +350,37 @@ function generateFiles() {
     })
   );
 
-  crmOutput.push(
-    ...getExportedObject(
-      "CrmServiceMap",
-      {
-        importConfig: {
-          fileToBeImported: "lib/CrmService.ts",
-          importName: "default",
-        },
-        lazyImport: true,
+  const crmServices = getExportedObject(
+    "CrmServiceMap",
+    {
+      importConfig: {
+        fileToBeImported: "lib/CrmService.ts",
+        importName: "default",
       },
-      isCrmApp
-    )
+      lazyImport: true,
+    },
+    isCrmApp
   );
+
+  const crmExportLineIndex = crmServices.findIndex((line) =>
+    line.startsWith("export const CrmServiceMap")
+  );
+  if (crmExportLineIndex !== -1) {
+    const crmExportLine = crmServices[crmExportLineIndex];
+    const crmObjectContent = crmServices.slice(crmExportLineIndex + 1, -1);
+
+    crmOutput.push(
+      ...crmServices.slice(0, crmExportLineIndex),
+      crmExportLine.replace(
+        "export const CrmServiceMap = {",
+        "export const CrmServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
+      ),
+      ...crmObjectContent,
+      "};"
+    );
+  } else {
+    crmOutput.push(...crmServices);
+  }
 
   const calendarOutput = [];
   const calendarServices = getExportedObject(
@@ -386,6 +404,7 @@ function generateFiles() {
     const objectContent = calendarServices.slice(exportLineIndex + 1, -1); // Remove export line and closing brace
 
     calendarOutput.push(
+      ...calendarServices.slice(0, exportLineIndex),
       exportLine.replace(
         "export const CalendarServiceMap = {",
         "export const CalendarServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
@@ -423,6 +442,7 @@ function generateFiles() {
     const objectContent = analyticsServices.slice(analyticsExportLineIndex + 1, -1);
 
     analyticsOutput.push(
+      ...analyticsServices.slice(0, analyticsExportLineIndex),
       exportLine.replace(
         "export const AnalyticsServiceMap = {",
         "export const AnalyticsServiceMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"
@@ -450,7 +470,19 @@ function generateFiles() {
     }
   );
 
-  paymentOutput.push(...paymentServices);
+  // Append .catch() to each eager import() in PaymentServiceMap so that unhandled
+  // promise rejections (caused by Node.js trying to load raw .ts files during
+  // E2E server startup) don't crash the process. Unlike CrmServiceMap which uses
+  // the NEXT_PUBLIC_IS_E2E guard, PaymentServiceMap must stay populated because
+  // payment-apps.e2e.ts tests depend on the map entries being present.
+  // In the bundled Next.js app the imports always succeed, so .catch() is never invoked.
+  paymentOutput.push(
+    ...paymentServices.map((line) =>
+      line.includes("import(")
+        ? line.replace(/import\(([^)]+)\),/, "import($1).catch(() => ({}) as any),")
+        : line
+    )
+  );
 
   const videoOutput = [];
   const videoAdapters = getExportedObject(
@@ -475,6 +507,7 @@ function generateFiles() {
     const objectContent = videoAdapters.slice(videoExportLineIndex + 1, -1);
 
     videoOutput.push(
+      ...videoAdapters.slice(0, videoExportLineIndex),
       exportLine.replace(
         "export const VideoApiAdapterMap = {",
         "export const VideoApiAdapterMap = process.env.NEXT_PUBLIC_IS_E2E === '1' ? {} : {"

@@ -9,8 +9,10 @@ import type { EventTypeTranslation } from "@calcom/prisma/client";
 import type {
   CancellationReasonRequirement,
   DisableCancelRescheduleScope,
+  EventTypeAutoTranslatedField,
   MembershipRole,
   PeriodType,
+  RRTimestampBasis,
   SchedulingType,
 } from "@calcom/prisma/enums";
 import type {
@@ -23,6 +25,7 @@ import type {
   eventTypeColor,
 } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
+import type { JsonValue } from "@calcom/types/Json";
 import type { UserProfile } from "@calcom/types/UserProfile";
 import type { z } from "zod";
 import type { EventType } from "./getEventTypeById";
@@ -535,3 +538,53 @@ export type CalVideoSettings = {
   redirectUrlOnExit?: string | null;
   requireEmailForGuests?: boolean | null;
 } | null;
+
+export type EventTypeFullDetail = {
+  title: string;
+  locations: JsonValue;
+  description: string | null;
+  seatsPerTimeSlot: number | null;
+  recurringEvent: JsonValue;
+  maxActiveBookingsPerBooker: number | null;
+  fieldTranslations: { field: EventTypeAutoTranslatedField }[];
+  successRedirectUrl: string | null;
+  isRRWeightsEnabled: boolean;
+  hosts: { userId: number; priority: number | null; weight: number | null; isFixed: boolean }[];
+  aiPhoneCallConfig: {
+    generalPrompt: string | null;
+    beginMessage: string | null;
+    enabled: boolean;
+    llmId: string | null;
+  } | null;
+  calVideoSettings: {
+    disableRecordingForOrganizer: boolean;
+    disableRecordingForGuests: boolean;
+    enableAutomaticTranscription: boolean;
+    enableAutomaticRecordingForOrganizer: boolean;
+    requireEmailForGuests: boolean;
+    disableTranscriptionForGuests: boolean;
+    disableTranscriptionForOrganizer: boolean;
+    redirectUrlOnExit: string | null;
+  } | null;
+  children: { userId: number | null }[];
+  workflows: { workflowId: number }[];
+  hostGroups: { id: string; name: string }[];
+  team: {
+    id: number;
+    name: string;
+    slug: string | null;
+    parentId: number | null;
+    rrTimestampBasis: RRTimestampBasis;
+    parent: { slug: string | null } | null;
+    members: {
+      role: string;
+      accepted: boolean;
+      user: {
+        name: string | null;
+        id: number;
+        email: string;
+        eventTypes: { slug: string }[];
+      };
+    }[];
+  } | null;
+};

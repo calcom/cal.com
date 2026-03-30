@@ -1,5 +1,6 @@
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import type { IEventTypesRepository } from "@calcom/features/eventtypes/eventtypes.repository.interface";
+import type { EventTypeFullDetail } from "@calcom/features/eventtypes/lib/types";
 import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import type { UserWithLegacySelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
@@ -10,9 +11,9 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { eventTypeSelect } from "@calcom/lib/server/eventTypeSelect";
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect, userSelect as userSelectWithSelectedCalendars } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 import type { EventType as PrismaEventType } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { Prisma } from "@calcom/prisma/client";
+import { MembershipRole, type WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
@@ -1853,6 +1854,201 @@ export class EventTypeRepository implements IEventTypesRepository {
           },
         },
       },
+    });
+  }
+
+  async findByIdWithFullDetail({ id }: { id: number }): Promise<EventTypeFullDetail> {
+    return this.prismaClient.eventType.findUniqueOrThrow({
+      where: { id },
+      select: {
+        title: true,
+        locations: true,
+        description: true,
+        seatsPerTimeSlot: true,
+        recurringEvent: true,
+        maxActiveBookingsPerBooker: true,
+        fieldTranslations: {
+          select: { field: true },
+        },
+        successRedirectUrl: true,
+        isRRWeightsEnabled: true,
+        hosts: {
+          select: { userId: true, priority: true, weight: true, isFixed: true },
+        },
+        aiPhoneCallConfig: {
+          select: {
+            generalPrompt: true,
+            beginMessage: true,
+            enabled: true,
+            llmId: true,
+          },
+        },
+        calVideoSettings: {
+          select: {
+            disableRecordingForOrganizer: true,
+            disableRecordingForGuests: true,
+            enableAutomaticTranscription: true,
+            enableAutomaticRecordingForOrganizer: true,
+            requireEmailForGuests: true,
+            disableTranscriptionForGuests: true,
+            disableTranscriptionForOrganizer: true,
+            redirectUrlOnExit: true,
+          },
+        },
+        children: { select: { userId: true } },
+        workflows: { select: { workflowId: true } },
+        hostGroups: { select: { id: true, name: true } },
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            parentId: true,
+            rrTimestampBasis: true,
+            parent: { select: { slug: true } },
+            members: {
+              select: {
+                role: true,
+                accepted: true,
+                user: {
+                  select: {
+                    name: true,
+                    id: true,
+                    email: true,
+                    eventTypes: { select: { slug: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async updateById({
+    id,
+    data,
+    select,
+  }: {
+    id: number;
+    data: Prisma.EventTypeUpdateInput;
+    select: Prisma.EventTypeSelect;
+  }) {
+    return this.prismaClient.eventType.update({
+      where: { id },
+      data,
+      select,
+    });
+  }
+
+  async syncHostGroups({
+    eventTypeId,
+    hostGroups,
+  }: {
+    eventTypeId: number;
+    hostGroups: { id: string; name: string }[];
+  }) {
+    const existingHostGroups = await this.prismaClient.hostGroup.findMany({
+      where: { eventTypeId },
+      select: { id: true, name: true },
+    });
+
+    const existingGroupsMap = new Map(existingHostGroups.map((group) => [group.id, group]));
+    const newGroupsMap = new Map(hostGroups.map((group) => [group.id, group]));
+
+    const groupsToCreate = hostGroups.filter((group) => !existingGroupsMap.has(group.id));
+    const groupsToUpdate = hostGroups.filter((group) => existingGroupsMap.has(group.id));
+    const groupsToDelete = existingHostGroups.filter((existingGroup) => !newGroupsMap.has(existingGroup.id));
+
+    await this.prismaClient.$transaction(async (tx) => {
+      if (groupsToCreate.length > 0) {
+        await tx.hostGroup.createMany({
+          data: groupsToCreate.map((group) => ({
+            id: group.id,
+            name: group.name,
+            eventTypeId,
+          })),
+        });
+      }
+
+      for (const group of groupsToUpdate) {
+        await tx.hostGroup.update({
+          where: { id: group.id },
+          data: { name: group.name },
+        });
+      }
+
+      if (groupsToDelete.length > 0) {
+        await tx.hostGroup.deleteMany({
+          where: { id: { in: groupsToDelete.map((group) => group.id) } },
+        });
+      }
+    });
+  }
+
+  async deleteHostLocations(deletions: { userId: number; eventTypeId: number }[]) {
+    return this.prismaClient.hostLocation.deleteMany({
+      where: { OR: deletions },
+    });
+  }
+
+  async deleteEmptyHostGroups({ eventTypeId }: { eventTypeId: number }) {
+    return this.prismaClient.hostGroup.deleteMany({
+      where: {
+        eventTypeId,
+        hosts: { none: {} },
+      },
+    });
+  }
+
+  async findWorkflowsByEventTypeIdAndTrigger({
+    eventTypeId,
+    trigger,
+  }: {
+    eventTypeId: number;
+    trigger: WorkflowTriggerEvents;
+  }) {
+    return this.prismaClient.workflow.findMany({
+      where: {
+        activeOn: { some: { eventTypeId } },
+        trigger,
+      },
+      select: {
+        id: true,
+        trigger: true,
+        steps: { select: { action: true } },
+      },
+    });
+  }
+
+  async findVerifiedSecondaryEmail({ id, userId }: { id: number; userId: number }) {
+    return this.prismaClient.secondaryEmail.findUnique({
+      where: { id, userId },
+      select: { id: true, emailVerified: true },
+    });
+  }
+
+  async upsertAIPhoneCallConfig({
+    eventTypeId,
+    config,
+  }: {
+    eventTypeId: number;
+    config: Prisma.AIPhoneCallConfigurationCreateWithoutEventTypeInput;
+  }) {
+    return this.prismaClient.aIPhoneCallConfiguration.upsert({
+      where: { eventTypeId },
+      update: config,
+      create: {
+        ...config,
+        eventTypeId,
+      },
+    });
+  }
+
+  async deleteAIPhoneCallConfig({ eventTypeId }: { eventTypeId: number }) {
+    return this.prismaClient.aIPhoneCallConfiguration.delete({
+      where: { eventTypeId },
     });
   }
 
