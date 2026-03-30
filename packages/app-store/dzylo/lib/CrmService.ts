@@ -237,18 +237,20 @@ class DzyloCrmService implements CRM {
           const newTokenData = dzyloCrmTokenInfo.data as DzyloToken;
           // set expiry date as offset from current time with grace period of 60seconds.
           newTokenData.expiry_date = Math.round(Date.now() + (newTokenData.expires_in - 60) * 1000);
+          const updatedCredentialKey = {
+            ...newTokenData,
+            refresh_token: newTokenData.refresh_token ?? credentialKey.refresh_token,
+          };
           await prisma.credential.update({
             where: {
               id: credential.id,
             },
             data: {
-              key: {
-                ...newTokenData,
-                refresh_token: newTokenData.refresh_token ?? credentialKey.refresh_token,
-              },
+              key: updatedCredentialKey,
             },
           });
-          this.accessToken = dzyloCrmTokenInfo.data.access_token;
+          Object.assign(credentialKey, updatedCredentialKey);
+          this.accessToken = updatedCredentialKey.access_token;
         }
       } catch (error) {
         log.error("Failed to refresh Dzylo token", error);
