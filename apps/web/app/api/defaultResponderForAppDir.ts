@@ -61,9 +61,12 @@ export const defaultResponderForAppDir = <T extends NextResponse | Response = Ne
         captureException(error);
       }
 
+      // Never leak internal details on 5xx responses
+      const isServerError = serverError.statusCode >= 500;
+
       return NextResponse.json(
         {
-          message: serverError.message,
+          message: isServerError ? "Internal server error" : serverError.message,
           url: serverError.url,
           method: serverError.method,
         },

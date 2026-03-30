@@ -77,4 +77,20 @@ describe("defaultResponderForAppDir", () => {
       method: undefined,
     });
   });
+
+  it("should redact error message for 5xx responses", async () => {
+    const f = vi.fn().mockRejectedValue(new Error("sensitive database connection string leaked"));
+    const req = { method: "POST", url: "/api/test" } as unknown as NextRequest;
+    const params = Promise.resolve<Params>({});
+
+    const response = await defaultResponderForAppDir(f)(req, { params });
+    const json = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(json).toEqual({
+      message: "Internal server error",
+      url: undefined,
+      method: undefined,
+    });
+  });
 });
