@@ -1,6 +1,10 @@
 import { v4 } from "uuid";
 
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
+import { emitAuditEvent } from "@calcom/features/audit/di/AuditProducerService.container";
+import { AuditActions } from "@calcom/features/audit/types/auditAction";
+import { AuditSources } from "@calcom/features/audit/types/auditSource";
+import { AuditTargets } from "@calcom/features/audit/types/auditTarget";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -10,7 +14,8 @@ import type { TCreateInputSchema } from "./create.schema";
 
 type CreateHandlerOptions = {
   ctx: {
-    user: Pick<NonNullable<TrpcSessionUser>, "id">;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "uuid" | "organizationId">;
+    sourceIp?: string;
   };
   input: TCreateInputSchema;
 };
@@ -25,9 +30,11 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
   /** Only admin or owner can create apiKeys of team (if teamId is passed) */
   await checkPermissions({ userId, teamId, role: { in: [MembershipRole.OWNER, MembershipRole.ADMIN] } });
 
+  const apiKeyId = v4();
+
   await prisma.apiKey.create({
     data: {
-      id: v4(),
+      id: apiKeyId,
       userId: ctx.user.id,
       teamId,
       ...rest,
@@ -35,6 +42,16 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
       expiresAt: neverExpires ? null : rest.expiresAt,
       hashedKey: hashedApiKey,
     },
+  });
+
+  void emitAuditEvent({
+    actor: { userUuid: ctx.user.uuid },
+    action: AuditActions.API_KEY_CREATED,
+    source: AuditSources.WEBAPP,
+    targetType: AuditTargets.apiKey,
+    targetId: apiKeyId,
+    orgId: ctx.user.organizationId ?? null,
+    ip: ctx.sourceIp,
   });
 
   const apiKeyPrefix = process.env.API_KEY_PREFIX ?? "cal_";
