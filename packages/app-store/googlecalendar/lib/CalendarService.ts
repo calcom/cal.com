@@ -89,6 +89,48 @@ interface GoogleCalError extends Error {
   code?: number;
 }
 
+const RATE_LIMIT_MAX_RETRIES = 3;
+const RATE_LIMIT_BASE_DELAY_MS = 1000;
+
+/**
+ * Checks if a Google API error is a rate limit error.
+ * Google returns 403 with "Rate Limit Exceeded" or 429 for rate limiting.
+ * See: https://developers.google.com/workspace/calendar/api/guides/quota
+ */
+function isRateLimitError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  const err = error as {
+    status?: number;
+    code?: string | number;
+    message?: string;
+    errors?: Array<{ reason?: string }>;
+    response?: {
+      status?: number;
+      data?: { error?: { errors?: { reason?: string }[]; message?: string } };
+    };
+  };
+
+  if (err.response?.status === 429 || err.status === 429) return true;
+  const codeFromErr = typeof err.code === "string" ? Number(err.code) : err.code;
+  if (codeFromErr === 429) return true;
+
+  const apiErrors = err.response?.data?.error?.errors ?? err.errors;
+  if (
+    apiErrors?.some(
+      (e) => e.reason === "rateLimitExceeded" || e.reason === "userRateLimitExceeded"
+    )
+  ) {
+    return true;
+  }
+
+  const combinedMessage = [err.message, err.response?.data?.error?.message].filter(Boolean).join(" ");
+  if (combinedMessage.toLowerCase().includes("rate limit")) {
+    return true;
+  }
+
+  return false;
+}
+
 const isGaxiosResponse = (
   error: unknown
 ): error is GaxiosResponse<calendar_v3.Schema$Event> =>
@@ -108,6 +150,29 @@ class GoogleCalendarService implements Calendar {
     this.credential = credential;
     this.auth = new CalendarAuth(credential);
     this.log = log.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+  }
+
+  /**
+   * Retries a Google API call with exponential backoff when rate-limited.
+   * Google Calendar API can rate-limit writes to the same calendar/event in quick succession.
+   * See: https://developers.google.com/workspace/calendar/api/guides/quota
+   */
+  private async withRateLimitRetry<T>(operation: () => Promise<T>, operationName: string): Promise<T> {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        if (!isRateLimitError(error) || attempt >= RATE_LIMIT_MAX_RETRIES) {
+          throw error;
+        }
+        const delayMs = RATE_LIMIT_BASE_DELAY_MS * 2 ** attempt;
+        this.log.warn(
+          `Google API rate limit hit during ${operationName}, retrying in ${delayMs}ms (retry ${attempt + 1} of ${RATE_LIMIT_MAX_RETRIES})`,
+          safeStringify({ retry: attempt + 1, maxRetries: RATE_LIMIT_MAX_RETRIES, delayMs })
+        );
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+    }
   }
 
   private async getReminderDuration(
@@ -327,12 +392,16 @@ class GoogleCalendarService implements Calendar {
           });
         }
       } else {
-        const eventResponse = await calendar.events.insert({
-          calendarId: selectedCalendar,
-          requestBody: payload,
-          conferenceDataVersion: 1,
-          sendUpdates: "none",
-        });
+        const eventResponse = await this.withRateLimitRetry(
+          () =>
+            calendar.events.insert({
+              calendarId: selectedCalendar,
+              requestBody: payload,
+              conferenceDataVersion: 1,
+              sendUpdates: "none",
+            }),
+          "events.insert"
+        );
         event = eventResponse.data;
         if (event.recurrence) {
           if (event.recurrence.length > 0) {
@@ -363,35 +432,39 @@ class GoogleCalendarService implements Calendar {
       }
 
       if (event && event.id && event.hangoutLink) {
+        const eventId = event.id;
+        const hangoutLink = event.hangoutLink;
         // Delay before patching: Google rate-limits quick successive writes to the same event.
         // See: https://developers.google.com/workspace/calendar/api/guides/quota
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        await calendar.events
-          .patch({
-            calendarId: selectedCalendar,
-            eventId: event.id || "",
-            requestBody: {
-              description: getRichDescription({
-                ...calEvent,
-                additionalInformation: { hangoutLink: event.hangoutLink },
-              }),
-              location: getLocation({
-                videoCallData: calEvent.videoCallData,
-                additionalInformation: {
-                  ...calEvent.additionalInformation,
-                  hangoutLink: event.hangoutLink,
-                },
-                location: calEvent.location,
-                uid: calEvent.uid,
-              }),
-            },
-          })
-          .catch((error) => {
-            this.log.info(
-              "Non-critical: failed to update event description with Meet link",
-              safeStringify({ error: error?.message, eventId: event?.id, selectedCalendar })
-            );
-          });
+        await this.withRateLimitRetry(
+          () =>
+            calendar.events.patch({
+              calendarId: selectedCalendar,
+              eventId,
+              requestBody: {
+                description: getRichDescription({
+                  ...calEvent,
+                  additionalInformation: { hangoutLink },
+                }),
+                location: getLocation({
+                  videoCallData: calEvent.videoCallData,
+                  additionalInformation: {
+                    ...calEvent.additionalInformation,
+                    hangoutLink,
+                  },
+                  location: calEvent.location,
+                  uid: calEvent.uid,
+                }),
+              },
+            }),
+          "events.patch (Meet link description)"
+        ).catch((error) => {
+          this.log.info(
+            "Non-critical: failed to update event description with Meet link",
+            safeStringify({ error: error?.message, eventId, selectedCalendar })
+          );
+        });
       }
 
       return {
@@ -491,14 +564,18 @@ class GoogleCalendarService implements Calendar {
         : undefined) || "primary";
 
     try {
-      const evt = await calendar.events.update({
-        calendarId: selectedCalendar,
-        eventId: uid,
-        sendNotifications: true,
-        sendUpdates: "none",
-        requestBody: payload,
-        conferenceDataVersion: 1,
-      });
+      const evt = await this.withRateLimitRetry(
+        () =>
+          calendar.events.update({
+            calendarId: selectedCalendar,
+            eventId: uid,
+            sendNotifications: true,
+            sendUpdates: "none",
+            requestBody: payload,
+            conferenceDataVersion: 1,
+          }),
+        "events.update"
+      );
 
       this.log.debug("Updated Google Calendar Event", {
         startTime: evt?.data.start,
@@ -511,35 +588,39 @@ class GoogleCalendarService implements Calendar {
         evt.data.hangoutLink &&
         event.location === MeetLocationType
       ) {
+        const eventId = evt.data.id;
+        const hangoutLink = evt.data.hangoutLink;
         // Delay before patching: Google rate-limits quick successive writes to the same event.
         // See: https://developers.google.com/workspace/calendar/api/guides/quota
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        await calendar.events
-          .patch({
-            calendarId: selectedCalendar,
-            eventId: evt.data.id || "",
-            requestBody: {
-              description: getRichDescription({
-                ...event,
-                additionalInformation: { hangoutLink: evt.data.hangoutLink },
-              }),
-              location: getLocation({
-                videoCallData: event.videoCallData,
-                additionalInformation: {
-                  ...event.additionalInformation,
-                  hangoutLink: evt.data.hangoutLink,
-                },
-                location: event.location,
-                uid: event.uid,
-              }),
-            },
-          })
-          .catch((error) => {
-            this.log.info(
-              "Non-critical: failed to update event description with Meet link",
-              safeStringify({ error: error?.message, eventId: evt.data.id, selectedCalendar })
-            );
-          });
+        await this.withRateLimitRetry(
+          () =>
+            calendar.events.patch({
+              calendarId: selectedCalendar,
+              eventId,
+              requestBody: {
+                description: getRichDescription({
+                  ...event,
+                  additionalInformation: { hangoutLink },
+                }),
+                location: getLocation({
+                  videoCallData: event.videoCallData,
+                  additionalInformation: {
+                    ...event.additionalInformation,
+                    hangoutLink,
+                  },
+                  location: event.location,
+                  uid: event.uid,
+                }),
+              },
+            }),
+          "events.patch (Meet link description)"
+        ).catch((error) => {
+          this.log.info(
+            "Non-critical: failed to update event description with Meet link",
+            safeStringify({ error: error?.message, eventId, selectedCalendar })
+          );
+        });
         return {
           uid: "",
           ...evt.data,
