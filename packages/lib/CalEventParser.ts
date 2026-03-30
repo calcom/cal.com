@@ -14,6 +14,7 @@ import type {
 } from "@calcom/types/Calendar";
 
 import { WEBAPP_URL } from "./constants";
+import { isValidHttpUrl } from "./isValidHttpUrl";
 import isSmsCalEmail from "./isSmsCalEmail";
 import {
   buildPlatformCancelLink,
@@ -205,15 +206,8 @@ export const getProviderName = (location?: string | null): string => {
     }
     return locationName[0].toUpperCase() + locationName.slice(1);
   }
-  if (location) {
-    try {
-      const url = new URL(location);
-      if (url.protocol === "http:" || url.protocol === "https:") {
-        return location;
-      }
-    } catch {
-      // Not a valid URL — fall through
-    }
+  if (location && isValidHttpUrl(location)) {
+    return location;
   }
   return "";
 };
