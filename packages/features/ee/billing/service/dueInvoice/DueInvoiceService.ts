@@ -1,7 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma as defaultPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TeamRepository } from "../../../teams/repositories/TeamRepository";
 
 export interface CanInviteResult {
@@ -119,43 +118,88 @@ export class DueInvoiceService {
   }
 
   /**
-   * Get banner data for a user - returns overdue prorations for teams where user has billing permission
+   * Get banner data for a user - returns overdue prorations for teams where user has billing permission,
+   * plus prorations with mailto: invoiceUrl for any team/org the user is a member of.
    */
   async getBannerDataForUser(userId: number): Promise<BannerData[]> {
     const teamRepository = new TeamRepository(this.prisma);
 
-    // Get teams where user has billing permission (ADMIN/OWNER or specific permission)
-    const teamsWithBillingPermission = await this.findTeamsWithBillingPermission(userId, teamRepository);
-
-    if (teamsWithBillingPermission.length === 0) {
-      return [];
-    }
-
-    const teamIds = teamsWithBillingPermission.map((t) => t.id);
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - BLOCKING_THRESHOLD_DAYS);
 
-    // Get overdue prorations for these teams
-    const overdueProrations = await this.prisma.monthlyProration.findMany({
-      where: {
-        teamId: { in: teamIds },
-        status: {
-          in: ["FAILED", "INVOICE_CREATED"],
-        },
-      },
-      include: {
-        team: {
+    // Run both queries in parallel:
+    // 1. Teams where user has billing permission (existing behavior)
+    // 2. All teams where user is a member (for mailto: invoiceUrl prorations)
+    const [teamsWithBillingPermission, allMemberTeamIds] = await Promise.all([
+      this.findTeamsWithBillingPermission(userId, teamRepository),
+      this.findAllMemberTeamIds(userId),
+    ]);
+
+    const billingTeamIds = teamsWithBillingPermission.map((t) => t.id);
+
+    // Find team IDs that user is a member of but does NOT have billing permission for
+    const nonBillingTeamIds = allMemberTeamIds.filter((id) => !billingTeamIds.includes(id));
+
+    // Build queries in parallel:
+    // 1. All overdue prorations for billing-permitted teams (existing behavior)
+    // 2. Overdue prorations with mailto: invoiceUrl for non-billing teams
+    const prorationQueries = [];
+
+    if (billingTeamIds.length > 0) {
+      prorationQueries.push(
+        this.prisma.monthlyProration.findMany({
+          where: {
+            teamId: { in: billingTeamIds },
+            status: { in: ["FAILED", "INVOICE_CREATED"] },
+          },
           select: {
             id: true,
-            name: true,
-            isOrganization: true,
+            teamId: true,
+            proratedAmount: true,
+            createdAt: true,
+            monthKey: true,
+            invoiceUrl: true,
+            team: { select: { id: true, name: true, isOrganization: true } },
           },
-        },
-      },
-      orderBy: { createdAt: "asc" },
+          orderBy: { createdAt: "asc" },
+        })
+      );
+    }
+
+    if (nonBillingTeamIds.length > 0) {
+      prorationQueries.push(
+        this.prisma.monthlyProration.findMany({
+          where: {
+            teamId: { in: nonBillingTeamIds },
+            status: { in: ["FAILED", "INVOICE_CREATED"] },
+            invoiceUrl: { startsWith: "mailto:" },
+          },
+          select: {
+            id: true,
+            teamId: true,
+            proratedAmount: true,
+            createdAt: true,
+            monthKey: true,
+            invoiceUrl: true,
+            team: { select: { id: true, name: true, isOrganization: true } },
+          },
+          orderBy: { createdAt: "asc" },
+        })
+      );
+    }
+
+    const results = await Promise.all(prorationQueries);
+    const allProrations = results.flat();
+
+    // Deduplicate by proration ID (in case of overlap)
+    const seen = new Set<string>();
+    const uniqueProrations = allProrations.filter((p) => {
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
     });
 
-    return overdueProrations.map((proration) => ({
+    return uniqueProrations.map((proration) => ({
       teamId: proration.teamId,
       teamName: proration.team.name,
       isOrganization: proration.team.isOrganization,
@@ -165,6 +209,23 @@ export class DueInvoiceService {
       monthKey: proration.monthKey,
       invoiceUrl: proration.invoiceUrl,
     }));
+  }
+
+  /**
+   * Find all team IDs where user is an accepted member
+   */
+  private async findAllMemberTeamIds(userId: number): Promise<number[]> {
+    const memberships = await this.prisma.membership.findMany({
+      where: {
+        userId,
+        accepted: true,
+      },
+      select: {
+        teamId: true,
+      },
+    });
+
+    return memberships.map((m) => m.teamId);
   }
 
   /**
