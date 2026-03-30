@@ -544,11 +544,10 @@ test.describe("Reschedule for booking with seats", () => {
       data: bookingSeats,
     });
 
-    // Find the seat reference for the second attendee by email
-    const secondAttendeeSeat = bookingSeats.find(
-      (seat) => seat.data.responses.email === "second+seats@cal.com"
-    );
-    if (!secondAttendeeSeat) throw new Error("Could not find seat for second attendee");
+    const references = await prisma.bookingSeat.findMany({
+      where: { bookingId: booking.id },
+      orderBy: { id: "asc" },
+    });
 
     const secondUser = await users.create({
       name: "Jane Second",
@@ -580,7 +579,7 @@ test.describe("Reschedule for booking with seats", () => {
 
     await page.waitForURL((url) => {
       const rescheduleUid = url.searchParams.get("rescheduleUid");
-      return !!rescheduleUid && rescheduleUid === secondAttendeeSeat.referenceUid;
+      return !!rescheduleUid && rescheduleUid === references[1].referenceUid;
     });
 
     await expect(page.getByText("Seats available").first()).toBeVisible();
