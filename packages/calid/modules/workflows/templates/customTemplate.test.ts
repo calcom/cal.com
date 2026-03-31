@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import dayjs from "@calcom/dayjs";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 
 import customTemplate, { evaluateConditionals } from "./customTemplate";
@@ -96,5 +97,19 @@ describe("customTemplate response tokens", () => {
     );
 
     expect(result.text).toBe("Store: Zoya UB City");
+  });
+
+  it("supports ordinal day tokens in EVENT_DATE custom formats", () => {
+    const result = customTemplate(
+      "Date: {EVENT_DATE_Do MMMM, YYYY}",
+      {
+        eventStartTime: dayjs("2026-03-19T14:00:00"),
+      },
+      "en",
+      TimeFormat.TWELVE_HOUR,
+      true
+    );
+
+    expect(result.text).toBe("Date: 19th March, 2026");
   });
 });
