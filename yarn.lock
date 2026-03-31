@@ -2485,6 +2485,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/famulor@workspace:packages/app-store/famulor":
+  version: 0.0.0-use.local
+  resolution: "@calcom/famulor@workspace:packages/app-store/famulor"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/types": "workspace:*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/fathom@workspace:packages/app-store/fathom":
   version: 0.0.0-use.local
   resolution: "@calcom/fathom@workspace:packages/app-store/fathom"
