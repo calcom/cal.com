@@ -6,8 +6,37 @@ env:
 permissions:
   contents: read
 jobs:
-  test:
-    name: Unit
+  unit-shard:
+    name: Unit (${{ matrix.shard }}/${{ strategy.job-total }})
+    timeout-minutes: 20
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+      - uses: ./.github/actions/yarn-install
+      - run: yarn prisma generate
+      - name: Run Tests
+        env:
+          VITEST_BLOB_REPORTER: "true"
+        run: TZ=UTC yarn vitest run --shard=${{ matrix.shard }}/${{ strategy.job-total }} --coverage
+      - name: Upload Vitest blob report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-blob-${{ matrix.shard }}
+          path: ${{ github.workspace }}/.vitest-reports
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+
+  timezone:
+    name: Timezone Tests
     timeout-minutes: 20
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
@@ -17,13 +46,34 @@ jobs:
       - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
       - run: yarn prisma generate
-      - run: TZ=UTC yarn vitest run --coverage
       - run: TZ=America/Los_Angeles VITEST_MODE=timezone yarn vitest run
+
+  unit-merge:
+    name: Merge Unit Coverage
+    needs: unit-shard
+    if: needs.unit-shard.result == 'success'
+    timeout-minutes: 15
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+      - uses: ./.github/actions/yarn-install
+      - name: Download Vitest blob reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: vitest-blob-*
+          merge-multiple: true
+          path: ${{ github.workspace }}/.vitest-reports
+      - name: Merge reports and coverage
+        run: |
+          mkdir -p .vitest-reports
+          TZ=UTC yarn vitest --merge-reports=.vitest-reports --coverage
       - name: Upload unit coverage
-        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: unit-coverage
-          path: coverage/coverage-summary.json
+          path: ${{ github.workspace }}/coverage/coverage-summary.json
           if-no-files-found: warn
           retention-days: 7

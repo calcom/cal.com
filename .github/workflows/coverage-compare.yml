@@ -30,10 +30,10 @@ jobs:
         uses: dawidd6/action-download-artifact@v6
         with:
           workflow: coverage-baseline.yml
+          workflow_conclusion: completed
           branch: main
           name: coverage-baseline-unit
           path: coverage/base/unit
-          workflow_conclusion: ''
           if_no_artifact_found: warn
         continue-on-error: true
 
@@ -41,10 +41,10 @@ jobs:
         uses: dawidd6/action-download-artifact@v6
         with:
           workflow: coverage-baseline.yml
+          workflow_conclusion: completed
           branch: main
           name: coverage-baseline-integration
           path: coverage/base/integration
-          workflow_conclusion: ''
           if_no_artifact_found: warn
         continue-on-error: true
 

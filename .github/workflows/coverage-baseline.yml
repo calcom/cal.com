@@ -24,8 +24,39 @@ env:
   LINGO_DOT_DEV_API_KEY: ${{ secrets.CI_LINGO_DOT_DEV_API_KEY }}
 
 jobs:
-  unit-baseline:
-    name: Unit Coverage Baseline
+  unit-baseline-shard:
+    name: Unit Baseline (${{ matrix.shard }}/${{ strategy.job-total }})
+    timeout-minutes: 10
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+      - uses: ./.github/actions/cache-checkout
+      - uses: ./.github/actions/yarn-install
+      - run: yarn prisma generate
+      - name: Run Tests
+        env:
+          VITEST_BLOB_REPORTER: "true"
+        run: TZ=UTC yarn vitest run --shard=${{ matrix.shard }}/${{ strategy.job-total }} --coverage
+      - name: Upload Vitest blob report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-baseline-blob-${{ matrix.shard }}
+          path: ${{ github.workspace }}/.vitest-reports
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7
+
+  unit-baseline-merge:
+    name: Merge unit coverage baseline
+    needs: unit-baseline-shard
+    if: needs.unit-baseline-shard.result == 'success'
     timeout-minutes: 10
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
@@ -34,14 +65,21 @@ jobs:
           sparse-checkout: .github
       - uses: ./.github/actions/cache-checkout
       - uses: ./.github/actions/yarn-install
-      - run: yarn prisma generate
-      - name: Run unit tests with coverage
-        run: TZ=UTC yarn vitest run --coverage
+      - name: Download Vitest blob reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: vitest-baseline-blob-*
+          merge-multiple: true
+          path: ${{ github.workspace }}/.vitest-reports
+      - name: Merge reports and coverage
+        run: |
+          mkdir -p .vitest-reports
+          TZ=UTC yarn vitest --merge-reports=.vitest-reports --coverage
       - name: Upload unit coverage baseline
         uses: actions/upload-artifact@v4
         with:
           name: coverage-baseline-unit
-          path: coverage/coverage-summary.json
+          path: ${{ github.workspace }}/coverage/coverage-summary.json
           retention-days: 90
       - name: Write unit coverage summary
         if: always()
@@ -150,7 +188,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-baseline-integration
-          path: coverage/coverage-summary.json
+          path: ${{ github.workspace }}/coverage/coverage-summary.json
           retention-days: 90
       - name: Write integration coverage summary
         if: always()
@@ -176,8 +214,8 @@ jobs:
 
   publish-badges:
     name: Publish Coverage Badges
-    needs: [unit-baseline, integration-baseline]
-    if: always() && (needs.unit-baseline.result == 'success' || needs.integration-baseline.result == 'success')
+    needs: [unit-baseline-merge, integration-baseline]
+    if: always() && (needs.unit-baseline-merge.result == 'success' || needs.integration-baseline.result == 'success')
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Download unit coverage baseline
