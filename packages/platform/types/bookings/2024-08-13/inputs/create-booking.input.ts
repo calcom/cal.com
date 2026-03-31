@@ -411,6 +411,16 @@ export class CreateBookingInput_2024_08_13 {
   @ApiPropertyOptional({
     type: Boolean,
     description:
+      "When true and the authenticated user is a host of the event type, availability conflict checks are bypassed. If the user is not a host or is unauthenticated, this parameter is silently ignored.",
+    example: true,
+  })
+  @IsOptional()
+  @IsBoolean()
+  allowConflicts?: boolean;
+
+  @ApiPropertyOptional({
+    type: Boolean,
+    description:
       "When true and the authenticated user is a host of the event type, booking time out-of-bounds checks are bypassed allowing bookings outside the normally permitted scheduling window. If the user is not a host or is unauthenticated, this parameter is silently ignored. Only supported on the 2026-02-25 API version.",
     example: true,
   })

@@ -147,6 +147,8 @@ export class BookingsService_2024_08_13 {
 
       body.eventTypeId = eventType.id;
 
+      const skipAvailabilityCheck = await this.resolveSkipAvailabilityCheck(body, eventType.id, authUser);
+
       const skipBookingTimeOutOfBoundsCheck = await this.resolveSkipBookingTimeOutOfBoundsCheck(
         body,
         eventType.id,
@@ -168,11 +170,12 @@ export class BookingsService_2024_08_13 {
           body,
           eventType,
           userIsEventTypeAdminOrOwner,
+          skipAvailabilityCheck,
           skipBookingTimeOutOfBoundsCheck
         );
       }
       if (isRecurring && !isSeated) {
-        return await this.createRecurringBooking(request, body, eventType, skipBookingTimeOutOfBoundsCheck);
+        return await this.createRecurringBooking(request, body, eventType, skipAvailabilityCheck, skipBookingTimeOutOfBoundsCheck);
       }
       if (isSeated) {
         return await this.createSeatedBooking(
@@ -180,14 +183,23 @@ export class BookingsService_2024_08_13 {
           body,
           eventType,
           userIsEventTypeAdminOrOwner,
+          skipAvailabilityCheck,
           skipBookingTimeOutOfBoundsCheck
         );
       }
 
-      return await this.createRegularBooking(request, body, eventType, skipBookingTimeOutOfBoundsCheck);
+      return await this.createRegularBooking(request, body, eventType, skipAvailabilityCheck, skipBookingTimeOutOfBoundsCheck);
     } catch (error) {
       this.errorsBookingsService.handleBookingError(error, bookingTeamEventType);
     }
+  }
+
+  protected async resolveSkipAvailabilityCheck(
+    _body: CreateBookingInput,
+    _eventTypeId: number,
+    _authUser: AuthOptionalUser
+  ): Promise<boolean> {
+    return false;
   }
 
   protected async resolveSkipBookingTimeOutOfBoundsCheck(
@@ -483,6 +495,7 @@ export class BookingsService_2024_08_13 {
     request: Request,
     body: CreateRecurringBookingInput_2024_08_13,
     eventType: EventTypeWithOwnerAndTeam,
+    skipAvailabilityCheck = false,
     skipBookingTimeOutOfBoundsCheck = false
   ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
@@ -499,6 +512,7 @@ export class BookingsService_2024_08_13 {
         platformBookingLocation: bookingRequest.platformBookingLocation,
         noEmail: bookingRequest.noEmail,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        skipAvailabilityCheck,
         skipBookingTimeOutOfBoundsCheck,
       },
       creationSource: "API_V2",
@@ -516,6 +530,7 @@ export class BookingsService_2024_08_13 {
     body: CreateRecurringBookingInput_2024_08_13,
     eventType: EventTypeWithOwnerAndTeam,
     userIsEventTypeAdminOrOwner: boolean,
+    skipAvailabilityCheck = false,
     skipBookingTimeOutOfBoundsCheck = false
   ) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body, eventType);
@@ -531,6 +546,7 @@ export class BookingsService_2024_08_13 {
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        skipAvailabilityCheck,
         skipBookingTimeOutOfBoundsCheck,
       },
       creationSource: "API_V2",
@@ -549,6 +565,7 @@ export class BookingsService_2024_08_13 {
     request: Request,
     body: CreateBookingInput_2024_08_13,
     eventType: EventTypeWithOwnerAndTeam,
+    skipAvailabilityCheck = false,
     skipBookingTimeOutOfBoundsCheck = false
   ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
@@ -564,6 +581,7 @@ export class BookingsService_2024_08_13 {
         platformBookingUrl: bookingRequest.platformBookingUrl,
         platformBookingLocation: bookingRequest.platformBookingLocation,
         areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+        skipAvailabilityCheck,
         skipBookingTimeOutOfBoundsCheck,
       },
     });
@@ -593,6 +611,7 @@ export class BookingsService_2024_08_13 {
     body: CreateBookingInput_2024_08_13,
     eventType: EventTypeWithOwnerAndTeam,
     userIsEventTypeAdminOrOwner: boolean,
+    skipAvailabilityCheck = false,
     skipBookingTimeOutOfBoundsCheck = false
   ) {
     const bookingRequest = await this.inputService.createBookingRequest(request, body, eventType);
@@ -609,6 +628,7 @@ export class BookingsService_2024_08_13 {
           platformBookingUrl: bookingRequest.platformBookingUrl,
           platformBookingLocation: bookingRequest.platformBookingLocation,
           areCalendarEventsEnabled: bookingRequest.areCalendarEventsEnabled,
+          skipAvailabilityCheck,
           skipBookingTimeOutOfBoundsCheck,
         },
       });

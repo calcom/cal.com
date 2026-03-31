@@ -79,6 +79,23 @@ export class BookingsService_2026_02_25 extends BookingsService_2024_08_13 {
     );
   }
 
+  protected override async resolveSkipAvailabilityCheck(
+    body: CreateBookingInput,
+    eventTypeId: number,
+    authUser: AuthOptionalUser
+  ): Promise<boolean> {
+    if ("allowConflicts" in body && body.allowConflicts && authUser?.id) {
+      const accessibleEventType = await this.prismaEventTypeRepository.findByIdWithUserAccess({
+        id: eventTypeId,
+        userId: authUser.id,
+      });
+      if (accessibleEventType) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   protected override async resolveSkipBookingTimeOutOfBoundsCheck(
     body: CreateBookingInput,
     eventTypeId: number,

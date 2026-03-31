@@ -31429,6 +31429,11 @@
             "description": "Email verification code required when event type has email verification enabled.",
             "example": "123456"
           },
+          "allowConflicts": {
+            "type": "boolean",
+            "description": "When true and the authenticated user is a host of the event type, availability conflict checks are bypassed. If the user is not a host or is unauthenticated, this parameter is silently ignored. Only supported on the 2026-02-25 API version.",
+            "example": true
+          },
           "allowBookingOutOfBounds": {
             "type": "boolean",
             "description": "When true and the authenticated user is a host of the event type, booking time out-of-bounds checks are bypassed allowing bookings outside the normally permitted scheduling window. If the user is not a host or is unauthenticated, this parameter is silently ignored. Only supported on the 2026-02-25 API version.",
@@ -31556,6 +31561,11 @@
             "type": "string",
             "description": "Email verification code required when event type has email verification enabled.",
             "example": "123456"
+          },
+          "allowConflicts": {
+            "type": "boolean",
+            "description": "When true and the authenticated user is a host of the event type, availability conflict checks are bypassed. If the user is not a host or is unauthenticated, this parameter is silently ignored. Only supported on the 2026-02-25 API version.",
+            "example": true
           },
           "allowBookingOutOfBounds": {
             "type": "boolean",
@@ -31689,6 +31699,11 @@
             "type": "string",
             "description": "Email verification code required when event type has email verification enabled.",
             "example": "123456"
+          },
+          "allowConflicts": {
+            "type": "boolean",
+            "description": "When true and the authenticated user is a host of the event type, availability conflict checks are bypassed. If the user is not a host or is unauthenticated, this parameter is silently ignored. Only supported on the 2026-02-25 API version.",
+            "example": true
           },
           "allowBookingOutOfBounds": {
             "type": "boolean",
