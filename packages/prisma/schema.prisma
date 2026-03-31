@@ -301,6 +301,7 @@ model EventType {
   enablePerHostLocations        Boolean                        @default(false)
   shouldMergePhoneSystemFields  Boolean?
 
+  uuid      String?   @default(dbgenerated("uuidv7()")) @db.Uuid
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 

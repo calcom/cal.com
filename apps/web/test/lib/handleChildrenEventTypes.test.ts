@@ -151,6 +151,7 @@ describe("handleChildrenEventTypes", () => {
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
         shouldMergePhoneSystemFields,
+        uuid,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -180,6 +181,7 @@ describe("handleChildrenEventTypes", () => {
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
         shouldMergePhoneSystemFields,
+        uuid,
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
@@ -244,6 +246,7 @@ describe("handleChildrenEventTypes", () => {
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
         shouldMergePhoneSystemFields,
+        uuid,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -373,6 +376,7 @@ describe("handleChildrenEventTypes", () => {
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
         shouldMergePhoneSystemFields,
+        uuid,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -403,6 +407,7 @@ describe("handleChildrenEventTypes", () => {
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
         shouldMergePhoneSystemFields,
+        uuid,
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
@@ -469,6 +474,7 @@ describe("handleChildrenEventTypes", () => {
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
         shouldMergePhoneSystemFields,
+        uuid,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -546,6 +552,7 @@ describe("handleChildrenEventTypes", () => {
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
         shouldMergePhoneSystemFields,
+        uuid,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -583,6 +590,7 @@ describe("handleChildrenEventTypes", () => {
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
         shouldMergePhoneSystemFields,
+        uuid,
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
@@ -611,6 +619,7 @@ describe("handleChildrenEventTypes", () => {
         enablePerHostLocations,
         redirectUrlOnNoRoutingFormResponse,
         shouldMergePhoneSystemFields,
+        uuid,
         ...evType,
       };
 

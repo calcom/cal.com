@@ -175,6 +175,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     requiresCancellationReason: null,
     enablePerHostLocations: false,
     shouldMergePhoneSystemFields: null,
+    uuid: null,
     ...eventType,
   };
 };

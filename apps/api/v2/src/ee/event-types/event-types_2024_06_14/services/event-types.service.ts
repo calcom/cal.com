@@ -286,6 +286,7 @@ export class EventTypesService_2024_06_14 {
     return {
       ownerId: 0,
       ...dynamicEvent,
+      uuid: null,
       users: usersFiltered,
       isInstantEvent: false,
     };
