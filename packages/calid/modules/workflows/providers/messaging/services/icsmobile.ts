@@ -5,12 +5,10 @@ import crypto from "crypto";
 import type { NextRequest } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
-import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { ICSMOBILE_SENDERID } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
-import { SMSLockState } from "@calcom/prisma/enums";
 
 import { FunctionNotImplementedError } from "../../../config/types";
 import type {
@@ -153,44 +151,6 @@ export class IcsMobileSmsProvider implements SmsProvider {
   }
 
   /**
-   * Check if user/team is locked from sending SMS
-   */
-  private async validateSendingPermissions(userId?: number | null, teamId?: number | null): Promise<boolean> {
-    if (teamId) {
-      const team = await prisma.team.findFirst({
-        where: { id: teamId },
-      });
-      return team?.smsLockState === SMSLockState.LOCKED;
-    }
-
-    if (userId) {
-      const memberships = await prisma.membership.findMany({
-        where: { userId },
-        select: {
-          team: {
-            select: { smsLockState: true },
-          },
-        },
-      });
-
-      const lockedMembership = memberships.find(
-        (membership) => membership.team.smsLockState === SMSLockState.LOCKED
-      );
-
-      if (lockedMembership) {
-        return true;
-      }
-
-      const user = await prisma.user.findFirst({
-        where: { id: userId },
-      });
-      return user?.smsLockState === SMSLockState.LOCKED;
-    }
-
-    return false;
-  }
-
-  /**
    * Send an SMS message immediately
    */
   async sendSms(options: SendSmsOptions): Promise<SendSmsResponse> {
@@ -205,17 +165,6 @@ export class IcsMobileSmsProvider implements SmsProvider {
           teamId: options.teamId,
         })
       );
-
-      // Check if user/team is locked
-      const isLocked = await this.validateSendingPermissions(options.userId, options.teamId);
-      if (isLocked) {
-        this.logger.debug(
-          `${
-            options.teamId ? `Team id ${options.teamId}` : `User id ${options.userId}`
-          } is locked for SMS sending`
-        );
-        return { success: false, response: { error: "SMS sending is locked for this user/team" } };
-      }
 
       const normalizedMessage = Array.isArray(options.message)
         ? options.message.join("")
@@ -233,14 +182,6 @@ export class IcsMobileSmsProvider implements SmsProvider {
         });
         console.log("Skipped sending SMS (test mode). SMS available in globalThis.testSMS");
         return { success: true, response: { sid: `test-${uuidv4()}` } };
-      }
-
-      // Check rate limits
-      if (!options.teamId && options.userId) {
-        await checkSMSRateLimit({
-          identifier: `sms:user:${options.userId}`,
-          rateLimitingType: "smsMonth",
-        });
       }
 
       // WhatsApp is not supported by ICSMobile
@@ -339,17 +280,6 @@ export class IcsMobileSmsProvider implements SmsProvider {
    */
   async scheduleSms(options: ScheduleSmsOptions): Promise<SendSmsResponse> {
     try {
-      // Check if user/team is locked
-      const isLocked = await this.validateSendingPermissions(options.userId, options.teamId);
-      if (isLocked) {
-        this.logger.debug(
-          `${
-            options.teamId ? `Team id ${options.teamId}` : `User id ${options.userId}`
-          } is locked for SMS sending`
-        );
-        return { success: false, response: { error: "SMS sending is locked for this user/team" } };
-      }
-
       const normalizedMessage = Array.isArray(options.message)
         ? options.message.join("")
         : String(options.message)
@@ -366,14 +296,6 @@ export class IcsMobileSmsProvider implements SmsProvider {
         });
         console.log("Skipped scheduling SMS (test mode). SMS available in globalThis.testSMS");
         return { success: true, response: { mid: `test-scheduled-${uuidv4()}` } };
-      }
-
-      // Check rate limits
-      if (!options.teamId && options.userId) {
-        await checkSMSRateLimit({
-          identifier: `sms:user:${options.userId}`,
-          rateLimitingType: "smsMonth",
-        });
       }
 
       // WhatsApp is not supported by ICSMobile

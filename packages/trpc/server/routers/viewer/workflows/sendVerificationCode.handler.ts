@@ -2,16 +2,19 @@ import { sendVerificationCode } from "@calid/features/modules/workflows/utils/ph
 
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { CreditsRepository } from "@calcom/lib/server/repository/credits";
+import { getSMSAbuseRequestContext } from "@calcom/lib/smsAbuseRequestContext";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import { TRPCError } from "@trpc/server";
 
+import type { TRPCContext } from "../../../createContext";
 import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
 import type { TSendVerificationCodeInputSchema } from "./sendVerificationCode.schema";
 
 type SendVerificationCodeOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    req: TRPCContext["req"] | undefined;
   };
   input: TSendVerificationCodeInputSchema;
 };
@@ -36,5 +39,8 @@ export const sendVerificationCodeHandler = async ({ ctx, input }: SendVerificati
   }
 
   const { phoneNumber } = input;
-  return sendVerificationCode(phoneNumber);
+  return sendVerificationCode(phoneNumber, {
+    userId: user.id,
+    ...getSMSAbuseRequestContext(ctx.req),
+  });
 };

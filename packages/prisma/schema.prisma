@@ -2228,6 +2228,28 @@ enum SMSLockState {
   REVIEW_NEEDED
 }
 
+enum SMSAbuseEntityType {
+  DEVICE
+  IP
+}
+
+model SMSAbuseLock {
+  id               Int                @id @default(autoincrement())
+  entityType       SMSAbuseEntityType
+  entityIdentifier String
+  lockState        SMSLockState       @default(UNLOCKED)
+  reason           String?
+  provider         String?
+  metadata         Json?
+  lockedAt         DateTime?
+  lastAlertedAt    DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@unique([entityType, entityIdentifier])
+  @@index([entityType, lockState])
+}
+
 model ManagedOrganization {
   managedOrganizationId Int  @unique
   managedOrganization   Team @relation("ManagedOrganization", fields: [managedOrganizationId], references: [id], onDelete: Cascade)
@@ -2772,6 +2794,7 @@ model CalIdTeam {
   internalNotePresets      InternalNotePreset[]
 
   whatsappBusinessPhone WhatsAppBusinessPhone[]
+  smsLockState          SMSLockState            @default(UNLOCKED)
 
   @@unique([slug])
 }

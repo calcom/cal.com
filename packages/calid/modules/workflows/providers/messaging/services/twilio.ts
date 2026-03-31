@@ -3,13 +3,10 @@ import TwilioClient from "twilio";
 import type { Twilio } from "twilio";
 import { v4 as uuidv4 } from "uuid";
 
-import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { IS_DEV, NGROK_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { setTestSMS } from "@calcom/lib/testSMS";
-import prisma from "@calcom/prisma";
 import type { WorkflowTemplates } from "@calcom/prisma/enums";
-import { SMSLockState } from "@calcom/prisma/enums";
 
 import type {
   SmsProvider,
@@ -68,47 +65,6 @@ export class TwilioSmsProvider implements SmsProvider {
   }
 
   /**
-   * Check if user/team is locked from sending SMS
-   */
-  private async validateSendingPermissions(
-    userId?: number | null,
-    organizationId?: number | null
-  ): Promise<boolean> {
-    if (organizationId) {
-      const organization = await prisma.team.findFirst({
-        where: { id: organizationId },
-      });
-      return organization?.smsLockState === SMSLockState.LOCKED;
-    }
-
-    if (userId) {
-      const memberships = await prisma.membership.findMany({
-        where: { userId },
-        select: {
-          team: {
-            select: { smsLockState: true },
-          },
-        },
-      });
-
-      const lockedMembership = memberships.find(
-        (membership) => membership.team.smsLockState === SMSLockState.LOCKED
-      );
-
-      if (lockedMembership) {
-        return true;
-      }
-
-      const user = await prisma.user.findFirst({
-        where: { id: userId },
-      });
-      return user?.smsLockState === SMSLockState.LOCKED;
-    }
-
-    return false;
-  }
-
-  /**
    * Build webhook callback URL
    */
   private buildWebhookCallback(useWhatsApp = false): string | undefined {
@@ -139,17 +95,6 @@ export class TwilioSmsProvider implements SmsProvider {
         })
       );
 
-      // Check if user/team is locked
-      const isLocked = await this.validateSendingPermissions(options.userId, options.teamId);
-      if (isLocked) {
-        this.logger.debug(
-          `${
-            options.teamId ? `Team id ${options.teamId}` : `User id ${options.userId}`
-          } is locked for SMS sending`
-        );
-        return { success: false, response: { error: "SMS sending is locked for this user/team" } };
-      }
-
       // Handle test mode
       if (this.config.isTestMode) {
         setTestSMS({
@@ -161,14 +106,6 @@ export class TwilioSmsProvider implements SmsProvider {
         });
         console.log("Skipped sending SMS (test mode). SMS available in globalThis.testSMS");
         return { success: true, response: { sid: `test-${uuidv4()}` } };
-      }
-
-      // Check rate limits
-      if (!options.teamId && options.userId) {
-        await checkSMSRateLimit({
-          identifier: `sms:user:${options.userId}`,
-          rateLimitingType: "smsMonth",
-        });
       }
 
       const webhookCallback = this.buildWebhookCallback(options.isWhatsApp);
@@ -220,17 +157,6 @@ export class TwilioSmsProvider implements SmsProvider {
    */
   async scheduleSms(options: ScheduleSmsOptions): Promise<SendSmsResponse> {
     try {
-      // Check if user/team is locked
-      const isLocked = await this.validateSendingPermissions(options.userId, options.teamId);
-      if (isLocked) {
-        this.logger.debug(
-          `${
-            options.teamId ? `Team id ${options.teamId}` : `User id ${options.userId}`
-          } is locked for SMS sending`
-        );
-        return { success: false, response: { error: "SMS sending is locked for this user/team" } };
-      }
-
       // Handle test mode
       if (this.config.isTestMode) {
         setTestSMS({
@@ -242,14 +168,6 @@ export class TwilioSmsProvider implements SmsProvider {
         });
         console.log("Skipped scheduling SMS (test mode). SMS available in globalThis.testSMS");
         return { success: true, response: { sid: `test-${uuidv4()}` } };
-      }
-
-      // Check rate limits
-      if (!options.teamId && options.userId) {
-        await checkSMSRateLimit({
-          identifier: `sms:user:${options.userId}`,
-          rateLimitingType: "smsMonth",
-        });
       }
 
       const webhookCallback = this.buildWebhookCallback(options.isWhatsApp);

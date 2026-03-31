@@ -285,7 +285,8 @@ const executeImmediateNotification = async (
       teamRef,
       false,
       workflowTemplate,
-      undefined
+      undefined,
+      undefined //no device/ip context passed here since it is triggered internally
     );
     const msgId = msgRes.response.sid;
     if (msgId && eventTypeRef) {
@@ -326,7 +327,8 @@ const scheduleDelayedNotification = async (
       teamRef,
       false,
       workflowTemplate,
-      undefined
+      undefined,
+      undefined //no device/ip context passed here since it is triggered internally
     );
 
     if (scheduledMessage.response.sid) {

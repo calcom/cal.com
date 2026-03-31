@@ -2,8 +2,17 @@ import prisma from "@calcom/prisma";
 
 import * as smsService from "../providers/messaging/dispatcher";
 
-const initiatePhoneValidation = async (contactNumber: string): Promise<any> => {
-  return smsService.sendVerificationCode(contactNumber);
+type PhoneVerificationContext = {
+  userId?: number | null;
+  calIdTeamId?: number | null;
+  ipAddress?: string | null;
+};
+
+const initiatePhoneValidation = async (
+  contactNumber: string,
+  context?: PhoneVerificationContext
+): Promise<any> => {
+  return smsService.sendVerificationCode(contactNumber, context);
 };
 
 const confirmNumberOwnership = async (
