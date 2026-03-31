@@ -71,7 +71,7 @@ describe("BOOKING_NO_SHOW_UPDATED Trigger", () => {
           WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
         ].includes(event)
       ),
-      fetchEventData: vi.fn().mockResolvedValue(sampleNoShowEventData),
+      fetchEventData: vi.fn().mockResolvedValue({ data: sampleNoShowEventData }),
       getSubscriberContext: vi.fn((payload: BookingWebhookTaskPayload) => ({
         triggerEvent: payload.triggerEvent,
         userId: payload.userId,
@@ -173,10 +173,10 @@ describe("BOOKING_NO_SHOW_UPDATED Trigger", () => {
 
   describe("Missing required fields", () => {
     it("should warn and skip when message is missing", async () => {
-      vi.mocked(mockBookingDataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      vi.mocked(mockBookingDataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ data: {
         noShowAttendees: [{ email: "a@b.com", noShow: true }],
         bookingUid: "uid-1",
-      });
+      } });
 
       const payload: BookingWebhookTaskPayload = {
         operationId: "op-noshow-nomsg",
@@ -197,10 +197,10 @@ describe("BOOKING_NO_SHOW_UPDATED Trigger", () => {
     });
 
     it("should warn and skip when attendees are missing", async () => {
-      vi.mocked(mockBookingDataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      vi.mocked(mockBookingDataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ data: {
         noShowMessage: "No show",
         bookingUid: "uid-2",
-      });
+      } });
 
       const payload: BookingWebhookTaskPayload = {
         operationId: "op-noshow-noatt",
@@ -221,10 +221,10 @@ describe("BOOKING_NO_SHOW_UPDATED Trigger", () => {
     });
 
     it("should warn and skip when bookingUid is missing from event data", async () => {
-      vi.mocked(mockBookingDataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      vi.mocked(mockBookingDataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ data: {
         noShowMessage: "No show",
         noShowAttendees: [{ email: "a@b.com", noShow: true }],
-      });
+      } });
 
       const payload: BookingWebhookTaskPayload = {
         operationId: "op-noshow-nouid",

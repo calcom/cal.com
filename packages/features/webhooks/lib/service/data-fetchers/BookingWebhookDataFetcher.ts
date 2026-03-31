@@ -1,8 +1,13 @@
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getTranslation } from "@calcom/i18n/server";
+import { Prisma } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import type { IWebhookDataFetcher, SubscriberContext } from "../../interface/IWebhookDataFetcher";
+import type {
+  FetchEventDataResult,
+  IWebhookDataFetcher,
+  SubscriberContext,
+} from "../../interface/IWebhookDataFetcher";
 import type { ILogger } from "../../interface/infrastructure";
 import type { BookingWebhookTaskPayload } from "../../types/webhookTask";
 import { noShowMetadataSchema } from "../../types/webhookTask";
@@ -26,12 +31,12 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
     return this.BOOKING_TRIGGERS.has(triggerEvent as never);
   }
 
-  async fetchEventData(payload: BookingWebhookTaskPayload): Promise<Record<string, unknown> | null> {
+  async fetchEventData(payload: BookingWebhookTaskPayload): Promise<FetchEventDataResult> {
     const { bookingUid } = payload;
 
     if (!bookingUid) {
       this.logger.warn("Missing bookingUid for booking webhook");
-      return null;
+      return { data: null };
     }
 
     if (payload.triggerEvent === WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED) {
@@ -44,7 +49,7 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
 
       if (!booking) {
         this.logger.warn("Booking not found", { bookingUid });
-        return null;
+        return { data: null };
       }
 
       // Build CalendarEvent using the builder pattern (same pattern used by email/sms tasks)
@@ -63,7 +68,7 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
 
       if (!calendarEvent) {
         this.logger.error("Failed to build CalendarEvent from booking", { bookingUid });
-        return null;
+        return { data: null };
       }
 
       // For BOOKING_RESCHEDULED or BOOKING_REQUESTED (reschedule requiring confirmation),
@@ -87,17 +92,19 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
 
       // Return complete data needed for webhook payload building
       return {
-        calendarEvent,
-        booking,
-        eventType: booking.eventType,
-        ...(previousBooking ? { previousBooking } : {}),
+        data: {
+          calendarEvent,
+          booking,
+          eventType: booking.eventType,
+          ...(previousBooking ? { previousBooking } : {}),
+        },
       };
     } catch (error) {
       this.logger.error("Error fetching booking data for webhook", {
         bookingUid,
         error: error instanceof Error ? error.message : String(error),
       });
-      return null;
+      return { data: null, error: error instanceof Error ? error : new Error(String(error)) };
     }
   }
 
@@ -116,14 +123,14 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
    * Resolves attendee PII from DB using only the attendeeIds passed through the queue.
    * By the time this runs the attendee.noShow flags have already been persisted.
    */
-  private async fetchNoShowData(payload: BookingWebhookTaskPayload): Promise<Record<string, unknown> | null> {
+  private async fetchNoShowData(payload: BookingWebhookTaskPayload): Promise<FetchEventDataResult> {
     const parsed = noShowMetadataSchema.safeParse(payload.metadata);
 
     if (!parsed.success) {
       this.logger.warn("Missing attendeeIds in no-show metadata", {
         bookingUid: payload.bookingUid,
       });
-      return null;
+      return { data: null };
     }
 
     const { attendeeIds, bookingId, locale } = parsed.data;
@@ -136,7 +143,7 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
           bookingUid: payload.bookingUid,
           attendeeIds,
         });
-        return null;
+        return { data: null };
       }
 
       const t = await getTranslation(locale ?? "en", "common");
@@ -153,17 +160,19 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
       const noShowAttendees = attendees.map((a) => ({ email: a.email, noShow: a.noShow }));
 
       return {
-        noShowMessage: message,
-        noShowAttendees,
-        bookingId,
-        bookingUid: payload.bookingUid,
+        data: {
+          noShowMessage: message,
+          noShowAttendees,
+          bookingId,
+          bookingUid: payload.bookingUid,
+        },
       };
     } catch (error) {
       this.logger.error("Error fetching no-show data for webhook", {
         bookingUid: payload.bookingUid,
         error: error instanceof Error ? error.message : String(error),
       });
-      return null;
+      return { data: null, error: error instanceof Error ? error : new Error(String(error)) };
     }
   }
 }

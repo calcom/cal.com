@@ -2,7 +2,7 @@ import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/Pris
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import dayjs from "@calcom/dayjs";
 
-import type { IWebhookDataFetcher, SubscriberContext } from "../../interface/IWebhookDataFetcher";
+import type { FetchEventDataResult, IWebhookDataFetcher, SubscriberContext } from "../../interface/IWebhookDataFetcher";
 import type { ILogger } from "../../interface/infrastructure";
 import type { OOOWebhookTaskPayload } from "../../types/webhookTask";
 
@@ -16,7 +16,7 @@ export class OOOWebhookDataFetcher implements IWebhookDataFetcher {
     return triggerEvent === WebhookTriggerEvents.OOO_CREATED;
   }
 
-  async fetchEventData(payload: OOOWebhookTaskPayload): Promise<Record<string, unknown> | null> {
+  async fetchEventData(payload: OOOWebhookTaskPayload): Promise<FetchEventDataResult> {
     const { oooEntryId } = payload;
 
     try {
@@ -24,7 +24,7 @@ export class OOOWebhookDataFetcher implements IWebhookDataFetcher {
 
       if (!entry) {
         this.logger.warn("OOO entry not found", { oooEntryId });
-        return null;
+        return { data: null };
       }
 
       const userTimeZone = entry.user.timeZone;
@@ -60,13 +60,13 @@ export class OOOWebhookDataFetcher implements IWebhookDataFetcher {
           : null,
       };
 
-      return { oooEntry };
+      return { data: { oooEntry } };
     } catch (error) {
       this.logger.error("Error fetching OOO data for webhook", {
         oooEntryId,
         error: error instanceof Error ? error.message : String(error),
       });
-      return null;
+      return { data: null, error: error instanceof Error ? error : new Error(String(error)) };
     }
   }
 

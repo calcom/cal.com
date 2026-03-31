@@ -117,9 +117,11 @@ describe("BOOKING_RESCHEDULED Trigger", () => {
         ].includes(event)
       ),
       fetchEventData: vi.fn().mockResolvedValue({
-        calendarEvent: createMockCalendarEvent(),
-        booking: createMockBooking(),
-        previousBooking: createMockPreviousBooking(),
+        data: {
+          calendarEvent: createMockCalendarEvent(),
+          booking: createMockBooking(),
+          previousBooking: createMockPreviousBooking(),
+        },
       }),
       getSubscriberContext: vi.fn((payload: BookingWebhookTaskPayload) => ({
         triggerEvent: payload.triggerEvent,
@@ -438,9 +440,11 @@ describe("BOOKING_RESCHEDULED Trigger", () => {
 
     it("rescheduledBy is undefined when previous booking has null rescheduledBy", async () => {
       vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
-        calendarEvent: createMockCalendarEvent(),
-        booking: createMockBooking(),
-        previousBooking: createMockPreviousBooking({ rescheduledBy: null }),
+        data: {
+          calendarEvent: createMockCalendarEvent(),
+          booking: createMockBooking(),
+          previousBooking: createMockPreviousBooking({ rescheduledBy: null }),
+        },
       });
 
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
@@ -464,19 +468,21 @@ describe("BOOKING_RESCHEDULED Trigger", () => {
 
     it("includes eventTitle, eventDescription, requiresConfirmation, price, currency, and length from event type", async () => {
       vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
-        calendarEvent: createMockCalendarEvent(),
-        booking: createMockBooking({
-          eventType: {
-            id: 456,
-            title: "Rescheduled Consultation",
-            description: "60-minute rescheduled session",
-            requiresConfirmation: false,
-            price: 5000,
-            currency: "GBP",
-            length: 60,
-          },
-        }),
-        previousBooking: createMockPreviousBooking(),
+        data: {
+          calendarEvent: createMockCalendarEvent(),
+          booking: createMockBooking({
+            eventType: {
+              id: 456,
+              title: "Rescheduled Consultation",
+              description: "60-minute rescheduled session",
+              requiresConfirmation: false,
+              price: 5000,
+              currency: "GBP",
+              length: 60,
+            },
+          }),
+          previousBooking: createMockPreviousBooking(),
+        },
       });
 
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
@@ -505,27 +511,29 @@ describe("BOOKING_RESCHEDULED Trigger", () => {
 
     it("includes bookingId, title, location, organizer, and attendees from calendar event", async () => {
       vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
-        calendarEvent: createMockCalendarEvent({
-          title: "My Rescheduled Booking",
-          location: "https://cal.com/video/xyz",
-          organizer: {
-            id: 1,
-            email: "host@example.com",
-            name: "Host User",
-            timeZone: "America/New_York",
-            language: { locale: "en" },
-          },
-          attendees: [
-            {
-              email: "guest@example.com",
-              name: "Guest User",
-              timeZone: "Europe/London",
+        data: {
+          calendarEvent: createMockCalendarEvent({
+            title: "My Rescheduled Booking",
+            location: "https://cal.com/video/xyz",
+            organizer: {
+              id: 1,
+              email: "host@example.com",
+              name: "Host User",
+              timeZone: "America/New_York",
               language: { locale: "en" },
             },
-          ],
-        }),
-        booking: createMockBooking({ id: 999 }),
-        previousBooking: createMockPreviousBooking(),
+            attendees: [
+              {
+                email: "guest@example.com",
+                name: "Guest User",
+                timeZone: "Europe/London",
+                language: { locale: "en" },
+              },
+            ],
+          }),
+          booking: createMockBooking({ id: 999 }),
+          previousBooking: createMockPreviousBooking(),
+        },
       });
 
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
@@ -567,11 +575,13 @@ describe("BOOKING_RESCHEDULED Trigger", () => {
 
     it("includes metadata with videoCallUrl when provided", async () => {
       vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
-        calendarEvent: createMockCalendarEvent(),
-        booking: createMockBooking({
-          metadata: { videoCallUrl: "https://cal.com/video/rescheduled-123" },
-        }),
-        previousBooking: createMockPreviousBooking(),
+        data: {
+          calendarEvent: createMockCalendarEvent(),
+          booking: createMockBooking({
+            metadata: { videoCallUrl: "https://cal.com/video/rescheduled-123" },
+          }),
+          previousBooking: createMockPreviousBooking(),
+        },
       });
 
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);

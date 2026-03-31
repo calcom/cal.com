@@ -106,7 +106,7 @@ describe("FormWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
+      expect(result.data).toBeNull();
       expect(mockLogger.warn).toHaveBeenCalledWith("Missing formId for form webhook");
     });
 
@@ -115,7 +115,7 @@ describe("FormWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toEqual({ formId: "form-123", _scaffold: true });
+      expect(result.data).toEqual({ formId: "form-123", _scaffold: true });
     });
 
     it("should log debug about scaffold phase", async () => {
@@ -137,7 +137,7 @@ describe("FormWebhookDataFetcher", () => {
       const result = await fetcher.fetchEventData(payload);
 
       expect(mockRoutingFormResponseRepository.findByIdIncludeForm).toHaveBeenCalledWith(456);
-      expect(result).toEqual({
+      expect(result.data).toEqual({
         formId: "form-abc",
         formName: "Test Routing Form",
         responseId: 456,
@@ -162,7 +162,7 @@ describe("FormWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toEqual(
+      expect(result.data).toEqual(
         expect.objectContaining({
           fallbackAction: {
             type: "eventTypeRedirectUrl",
@@ -178,7 +178,7 @@ describe("FormWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
+      expect(result.data).toBeNull();
       expect(mockLogger.warn).toHaveBeenCalledWith("Missing formId or responseId for fallback hit webhook");
     });
 
@@ -188,14 +188,14 @@ describe("FormWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
+      expect(result.data).toBeNull();
       expect(mockLogger.warn).toHaveBeenCalledWith(
         "Form response not found for fallback hit webhook",
         expect.objectContaining({ responseId: 456, formId: "form-abc" })
       );
     });
 
-    it("should return null when DB fetch throws an error", async () => {
+    it("should return the error in the result when DB throws", async () => {
       vi.mocked(mockRoutingFormResponseRepository.findByIdIncludeForm).mockRejectedValueOnce(
         new Error("DB connection error")
       );
@@ -203,15 +203,9 @@ describe("FormWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        "Error fetching form response for fallback hit webhook",
-        expect.objectContaining({
-          responseId: 456,
-          formId: "form-abc",
-          error: "DB connection error",
-        })
-      );
+      expect(result.data).toBeNull();
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error?.message).toBe("DB connection error");
     });
 
     it("should handle fallbackAction being optional in metadata", async () => {
@@ -221,7 +215,7 @@ describe("FormWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toEqual({
+      expect(result.data).toEqual({
         formId: "form-abc",
         formName: "Test Routing Form",
         responseId: 456,

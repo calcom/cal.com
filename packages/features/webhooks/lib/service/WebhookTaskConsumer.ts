@@ -1,4 +1,5 @@
 import type { BookingForCalEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { Prisma } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type {
@@ -17,7 +18,7 @@ import type {
 } from "../dto/types";
 import type { WebhookPayload } from "../factory/types";
 import type { PayloadBuilderFactory } from "../factory/versioned/PayloadBuilderFactory";
-import type { IWebhookDataFetcher } from "../interface/IWebhookDataFetcher";
+import type { FetchEventDataResult, IWebhookDataFetcher } from "../interface/IWebhookDataFetcher";
 import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import { DEFAULT_WEBHOOK_VERSION } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
@@ -81,7 +82,7 @@ export class WebhookTaskConsumer {
         operationId: payload.operationId,
       });
 
-      const eventData = await fetcher.fetchEventData(payload);
+      const { data: eventData } = await fetcher.fetchEventData(payload);
 
       if (!eventData) {
         this.log.warn("Event data not found", {
@@ -140,9 +141,10 @@ export class WebhookTaskConsumer {
       return null;
     }
 
-    const eventData = await fetcher.fetchEventData(payload);
+    const result = await fetcher.fetchEventData(payload);
+    this.throwOnFetchError(result, payload.operationId);
 
-    if (!eventData) {
+    if (!result.data) {
       this.log.warn("Event data not found", {
         operationId: payload.operationId,
         triggerEvent: payload.triggerEvent,
@@ -150,7 +152,7 @@ export class WebhookTaskConsumer {
       return null;
     }
 
-    const dto = this.buildDTO(eventData, payload);
+    const dto = this.buildDTO(result.data, payload);
 
     if (!dto) {
       this.log.warn("Failed to build DTO for webhook", {
@@ -173,6 +175,29 @@ export class WebhookTaskConsumer {
    */
   private getDataFetcher(triggerEvent: string): IWebhookDataFetcher | null {
     return this.dataFetchers.find((fetcher) => fetcher.canHandle(triggerEvent as never)) || null;
+  }
+
+  /**
+   * Re-throw the error from a FetchEventDataResult when it is a transient
+   * infrastructure failure (Prisma timeout, connection pool exhaustion, etc.)
+   * so that the caller's retry logic can handle it.
+   */
+  private throwOnFetchError(result: FetchEventDataResult, operationId: string): void {
+    if (!result.error) return;
+
+    const err = result.error;
+    const isPrismaError =
+      err instanceof Prisma.PrismaClientKnownRequestError ||
+      err instanceof Prisma.PrismaClientUnknownRequestError ||
+      err instanceof Prisma.PrismaClientInitializationError;
+
+    if (isPrismaError) {
+      this.log.warn("Rethrowing Prisma error from data fetcher for retry", {
+        operationId,
+        error: err.message,
+      });
+      throw err;
+    }
   }
 
   /**

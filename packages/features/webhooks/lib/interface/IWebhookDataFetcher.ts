@@ -11,6 +11,18 @@ export interface SubscriberContext {
 }
 
 /**
+ * Result of fetching webhook event data.
+ *
+ * - `data` contains the fetched event data, or `null` if the entity was legitimately not found.
+ * - `error` is set when an infrastructure error (e.g. Prisma timeout) occurred during fetching.
+ *   The caller can inspect this to decide whether to retry.
+ */
+export type FetchEventDataResult = {
+  data: Record<string, unknown> | null;
+  error?: Error;
+};
+
+/**
  * Strategy interface for fetching webhook event data
  *
  * Each webhook category (booking, form, recording, etc.) implements this interface
@@ -27,7 +39,7 @@ export interface SubscriberContext {
 export interface IWebhookDataFetcher {
   canHandle(triggerEvent: WebhookTriggerEvents): boolean;
 
-  fetchEventData(payload: WebhookTaskPayload): Promise<Record<string, unknown> | null>;
+  fetchEventData(payload: WebhookTaskPayload): Promise<FetchEventDataResult>;
 
   getSubscriberContext(payload: WebhookTaskPayload): SubscriberContext;
 }

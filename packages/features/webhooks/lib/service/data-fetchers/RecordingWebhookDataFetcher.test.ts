@@ -119,7 +119,7 @@ describe("RecordingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
+      expect(result.data).toBeNull();
       expect(mockLogger.warn).toHaveBeenCalled();
     });
 
@@ -128,7 +128,7 @@ describe("RecordingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
+      expect(result.data).toBeNull();
     });
 
     it("should return null when booking not found", async () => {
@@ -137,7 +137,7 @@ describe("RecordingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
+      expect(result.data).toBeNull();
       expect(mockLogger.warn).toHaveBeenCalled();
     });
 
@@ -147,8 +147,8 @@ describe("RecordingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).not.toBeNull();
-      const evt = result?.calendarEvent as Record<string, unknown>;
+      expect(result.data).not.toBeNull();
+      const evt = result.data?.calendarEvent as Record<string, unknown>;
       expect(evt.type).toBe("Test Event");
       expect(evt.title).toBe("Test Event");
       expect(evt.description).toBe("Test description");
@@ -157,7 +157,7 @@ describe("RecordingWebhookDataFetcher", () => {
       expect(evt.uid).toBe("booking-uid-1");
       expect((evt.organizer as Record<string, unknown>).email).toBe("org@test.com");
       expect((evt.organizer as Record<string, unknown>).name).toBe("Organizer");
-      expect(result?.downloadLink).toBe("https://app.cal.com/api/video/recording?token=mock-token");
+      expect(result.data?.downloadLink).toBe("https://app.cal.com/api/video/recording?token=mock-token");
     });
 
     it("should not include extra fields like location, bookingId, conferenceData", async () => {
@@ -166,7 +166,7 @@ describe("RecordingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      const evt = result?.calendarEvent as Record<string, unknown>;
+      const evt = result.data?.calendarEvent as Record<string, unknown>;
       expect(evt).not.toHaveProperty("location");
       expect(evt).not.toHaveProperty("bookingId");
       expect(evt).not.toHaveProperty("conferenceData");
@@ -181,7 +181,7 @@ describe("RecordingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      const evt = result?.calendarEvent as Record<string, unknown>;
+      const evt = result.data?.calendarEvent as Record<string, unknown>;
       expect(evt.customReplyToEmail).toBe("reply@example.com");
     });
 
@@ -191,7 +191,7 @@ describe("RecordingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      const evt = result?.calendarEvent as Record<string, unknown>;
+      const evt = result.data?.calendarEvent as Record<string, unknown>;
       expect(evt.customReplyToEmail).toBeNull();
     });
 
@@ -201,7 +201,7 @@ describe("RecordingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      const evt = result?.calendarEvent as Record<string, unknown>;
+      const evt = result.data?.calendarEvent as Record<string, unknown>;
       const attendees = evt.attendees as Array<Record<string, unknown>>;
       expect(attendees[0].id).toBe(101);
     });
@@ -214,7 +214,7 @@ describe("RecordingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      const evt = result?.calendarEvent as Record<string, unknown>;
+      const evt = result.data?.calendarEvent as Record<string, unknown>;
       const organizer = evt.organizer as Record<string, unknown>;
       expect(organizer.email).toBe("primary@org.com");
     });
@@ -225,7 +225,7 @@ describe("RecordingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      const evt = result?.calendarEvent as Record<string, unknown>;
+      const evt = result.data?.calendarEvent as Record<string, unknown>;
       const organizer = evt.organizer as Record<string, unknown>;
       expect(organizer.email).toBe("org@test.com");
     });
@@ -234,9 +234,10 @@ describe("RecordingWebhookDataFetcher", () => {
       mockBookingRepository.getBookingForCalEventBuilderFromUid.mockRejectedValue(new Error("DB failure"));
       const payload = createPayload();
 
-      await expect(fetcher.fetchEventData(payload)).rejects.toThrow("DB failure");
-
-      expect(mockLogger.error).toHaveBeenCalled();
+      const result = await fetcher.fetchEventData(payload);
+      expect(result.data).toBeNull();
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error?.message).toBe("DB failure");
     });
 
     it("should return calendarEvent and downloadLinks for RECORDING_TRANSCRIPTION_GENERATED", async () => {
@@ -250,12 +251,12 @@ describe("RecordingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).not.toBeNull();
-      expect(result?.downloadLinks).toEqual({
+      expect(result.data).not.toBeNull();
+      expect(result.data?.downloadLinks).toEqual({
         transcription: [{ format: "txt", link: "https://daily.co/transcript.txt" }],
         recording: "https://app.cal.com/api/video/recording?token=mock-token",
       });
-      expect(result?.downloadLink).toBeUndefined();
+      expect(result.data?.downloadLink).toBeUndefined();
     });
 
     it("should use fallback values when user fields are missing", async () => {
@@ -266,7 +267,7 @@ describe("RecordingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      const evt = result?.calendarEvent as Record<string, unknown>;
+      const evt = result.data?.calendarEvent as Record<string, unknown>;
       const organizer = evt.organizer as Record<string, unknown>;
       expect(organizer.email).toBe("Email-less");
       expect(organizer.name).toBe("Nameless");

@@ -67,7 +67,7 @@ describe("WRONG_ASSIGNMENT_REPORT Trigger", () => {
 
     mockDataFetcher = {
       canHandle: vi.fn((event) => event === WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT),
-      fetchEventData: vi.fn().mockResolvedValue(createMockMetadata()),
+      fetchEventData: vi.fn().mockResolvedValue({ data: createMockMetadata() }),
       getSubscriberContext: vi.fn((payload: WrongAssignmentWebhookTaskPayload) => ({
         triggerEvent: payload.triggerEvent,
         userId: payload.userId ?? undefined,
@@ -152,7 +152,7 @@ describe("WRONG_ASSIGNMENT_REPORT Trigger", () => {
     });
 
     it("should return early when data fetcher returns null", async () => {
-      vi.mocked(mockDataFetcher.fetchEventData).mockResolvedValueOnce(null);
+      vi.mocked(mockDataFetcher.fetchEventData).mockResolvedValueOnce({ data: null });
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
 
       const payload: WrongAssignmentWebhookTaskPayload = {
@@ -238,7 +238,7 @@ describe("WRONG_ASSIGNMENT_REPORT Trigger", () => {
 
     it("payload.booking matches metadata booking fields", async () => {
       const metadata = createMockMetadata();
-      vi.mocked(mockDataFetcher.fetchEventData).mockResolvedValueOnce(metadata);
+      vi.mocked(mockDataFetcher.fetchEventData).mockResolvedValueOnce({ data: metadata });
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
 
       const consumerWithRealBuilder = buildConsumerWithRealBuilder();
@@ -270,7 +270,7 @@ describe("WRONG_ASSIGNMENT_REPORT Trigger", () => {
 
     it("payload.report matches metadata report fields", async () => {
       const metadata = createMockMetadata();
-      vi.mocked(mockDataFetcher.fetchEventData).mockResolvedValueOnce(metadata);
+      vi.mocked(mockDataFetcher.fetchEventData).mockResolvedValueOnce({ data: metadata });
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
 
       const consumerWithRealBuilder = buildConsumerWithRealBuilder();
@@ -315,7 +315,7 @@ describe("WRONG_ASSIGNMENT_REPORT Trigger", () => {
           eventType: null,
         },
       });
-      vi.mocked(mockDataFetcher.fetchEventData).mockResolvedValueOnce(metadata);
+      vi.mocked(mockDataFetcher.fetchEventData).mockResolvedValueOnce({ data: metadata });
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
 
       const consumerWithRealBuilder = buildConsumerWithRealBuilder();
@@ -346,7 +346,7 @@ describe("WRONG_ASSIGNMENT_REPORT Trigger", () => {
           additionalNotes: "No routing reason available",
         },
       });
-      vi.mocked(mockDataFetcher.fetchEventData).mockResolvedValueOnce(metadata);
+      vi.mocked(mockDataFetcher.fetchEventData).mockResolvedValueOnce({ data: metadata });
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
 
       const consumerWithRealBuilder = buildConsumerWithRealBuilder();

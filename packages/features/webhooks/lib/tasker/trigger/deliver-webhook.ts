@@ -45,7 +45,8 @@ const GONE_STATUS_CODE = 410;
  * Prisma error codes that are worth retrying (transient infrastructure issues).
  */
 export const RETRYABLE_PRISMA_CODES = new Set([
-  "P1008", // Query timeout
+  "P1008", // Query timeout,
+  "P2028", // Transaction API error: Transaction already closed
   "P1017", // Server closed connection
   "P2024", // Connection pool timeout
   "P2034", // Transaction conflict

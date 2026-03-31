@@ -67,7 +67,7 @@ describe("OOO_CREATED Trigger", () => {
 
     mockOOODataFetcher = {
       canHandle: vi.fn((event) => event === WebhookTriggerEvents.OOO_CREATED),
-      fetchEventData: vi.fn().mockResolvedValue({ oooEntry: sampleOOOEntry }),
+      fetchEventData: vi.fn().mockResolvedValue({ data: { oooEntry: sampleOOOEntry } }),
       getSubscriberContext: vi.fn((payload: OOOWebhookTaskPayload) => ({
         triggerEvent: payload.triggerEvent,
         userId: payload.userId,
@@ -188,7 +188,7 @@ describe("OOO_CREATED Trigger", () => {
 
   describe("Missing oooEntry", () => {
     it("should warn and skip when event data has no oooEntry", async () => {
-      vi.mocked(mockOOODataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({});
+      vi.mocked(mockOOODataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ data: {} });
 
       const payload: OOOWebhookTaskPayload = {
         operationId: "op-ooo-missing",
@@ -209,7 +209,7 @@ describe("OOO_CREATED Trigger", () => {
     });
 
     it("should warn and skip when fetcher returns null", async () => {
-      vi.mocked(mockOOODataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
+      vi.mocked(mockOOODataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ data: null });
 
       const payload: OOOWebhookTaskPayload = {
         operationId: "op-ooo-null",

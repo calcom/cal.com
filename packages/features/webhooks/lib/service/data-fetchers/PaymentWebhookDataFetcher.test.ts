@@ -61,7 +61,7 @@ describe("PaymentWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
+      expect(result.data).toBeNull();
       expect(mockLogger.warn).toHaveBeenCalledWith("Missing bookingUid for payment webhook");
     });
 
@@ -70,7 +70,7 @@ describe("PaymentWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toEqual({ bookingUid: "pay-uid-1", _scaffold: true });
+      expect(result.data).toEqual({ bookingUid: "pay-uid-1", _scaffold: true });
     });
   });
 

@@ -3,7 +3,7 @@ import type { WrongAssignmentReportRepository } from "@calcom/features/bookings/
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
-import type { IWebhookDataFetcher, SubscriberContext } from "../../interface/IWebhookDataFetcher";
+import type { FetchEventDataResult, IWebhookDataFetcher, SubscriberContext } from "../../interface/IWebhookDataFetcher";
 import type { ILogger } from "../../interface/infrastructure";
 import type { WrongAssignmentWebhookTaskPayload } from "../../types/webhookTask";
 
@@ -19,7 +19,7 @@ export class WrongAssignmentWebhookDataFetcher implements IWebhookDataFetcher {
     return triggerEvent === WebhookTriggerEvents.WRONG_ASSIGNMENT_REPORT;
   }
 
-  async fetchEventData(payload: WrongAssignmentWebhookTaskPayload): Promise<Record<string, unknown> | null> {
+  async fetchEventData(payload: WrongAssignmentWebhookTaskPayload): Promise<FetchEventDataResult> {
     const { wrongAssignmentReportId } = payload;
 
     try {
@@ -35,14 +35,14 @@ export class WrongAssignmentWebhookDataFetcher implements IWebhookDataFetcher {
           wrongAssignmentReportId,
           bookingUid: payload.bookingUid,
         });
-        return null;
+        return { data: null };
       }
 
       if (!booking) {
         this.logger.warn("Booking not found for wrong assignment webhook", {
           bookingUid: payload.bookingUid,
         });
-        return null;
+        return { data: null };
       }
 
       const reporter = report.reportedById
@@ -52,36 +52,38 @@ export class WrongAssignmentWebhookDataFetcher implements IWebhookDataFetcher {
       const teamId = booking.eventType?.team?.id ?? null;
 
       return {
-        booking: {
-          uid: booking.uid,
-          id: booking.id,
-          title: booking.title,
-          startTime: booking.startTime,
-          endTime: booking.endTime,
-          status: booking.status,
-          eventType: booking.eventType
-            ? {
-                id: booking.eventType.id,
-                title: booking.eventType.title,
-                slug: booking.eventType.slug,
-                teamId,
-              }
-            : null,
-        },
-        report: {
-          reportedBy: {
-            id: report.reportedById ?? 0,
-            email: reporter?.email ?? "",
-            name: reporter?.name ?? null,
+        data: {
+          booking: {
+            uid: booking.uid,
+            id: booking.id,
+            title: booking.title,
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+            status: booking.status,
+            eventType: booking.eventType
+              ? {
+                  id: booking.eventType.id,
+                  title: booking.eventType.title,
+                  slug: booking.eventType.slug,
+                  teamId,
+                }
+              : null,
           },
-          firstAssignmentReason: booking.assignmentReason[0]?.reasonString ?? null,
-          guest: booking.attendees[0]?.email ?? null,
-          host: {
-            email: booking.user?.email ?? null,
-            name: booking.user?.name ?? null,
+          report: {
+            reportedBy: {
+              id: report.reportedById ?? 0,
+              email: reporter?.email ?? "",
+              name: reporter?.name ?? null,
+            },
+            firstAssignmentReason: booking.assignmentReason[0]?.reasonString ?? null,
+            guest: booking.attendees[0]?.email ?? null,
+            host: {
+              email: booking.user?.email ?? null,
+              name: booking.user?.name ?? null,
+            },
+            correctAssignee: report.correctAssignee,
+            additionalNotes: report.additionalNotes,
           },
-          correctAssignee: report.correctAssignee,
-          additionalNotes: report.additionalNotes,
         },
       };
     } catch (error) {
@@ -89,7 +91,7 @@ export class WrongAssignmentWebhookDataFetcher implements IWebhookDataFetcher {
         bookingUid: payload.bookingUid,
         error: error instanceof Error ? error.message : String(error),
       });
-      return null;
+      return { data: null, error: error instanceof Error ? error : new Error(String(error)) };
     }
   }
 

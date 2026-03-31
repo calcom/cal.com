@@ -1,5 +1,5 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import type { IWebhookDataFetcher, SubscriberContext } from "../../interface/IWebhookDataFetcher";
+import type { FetchEventDataResult, IWebhookDataFetcher, SubscriberContext } from "../../interface/IWebhookDataFetcher";
 import type { ILogger } from "../../interface/infrastructure";
 import type { PaymentWebhookTaskPayload } from "../../types/webhookTask";
 
@@ -15,17 +15,17 @@ export class PaymentWebhookDataFetcher implements IWebhookDataFetcher {
     return this.PAYMENT_TRIGGERS.has(triggerEvent as never);
   }
 
-  async fetchEventData(payload: PaymentWebhookTaskPayload): Promise<Record<string, unknown> | null> {
+  async fetchEventData(payload: PaymentWebhookTaskPayload): Promise<FetchEventDataResult> {
     const { bookingUid } = payload;
 
     if (!bookingUid) {
       this.logger.warn("Missing bookingUid for payment webhook");
-      return null;
+      return { data: null };
     }
 
     // TODO: Implement using BookingRepository/PaymentRepository (Phase 1+)
     this.logger.debug("Payment data fetch not implemented yet (Phase 0 scaffold)", { bookingUid });
-    return { bookingUid, _scaffold: true };
+    return { data: { bookingUid, _scaffold: true } };
   }
 
   getSubscriberContext(payload: PaymentWebhookTaskPayload): SubscriberContext {

@@ -86,8 +86,8 @@ describe("OOOWebhookDataFetcher", () => {
       const result = await fetcher.fetchEventData(payload);
 
       expect(mockOOORepository.findByIdForWebhook).toHaveBeenCalledWith(42);
-      expect(result).not.toBeNull();
-      const oooEntry = (result as Record<string, unknown>).oooEntry as Record<string, unknown>;
+      expect(result.data).not.toBeNull();
+      const oooEntry = (result.data as Record<string, unknown>).oooEntry as Record<string, unknown>;
       expect(oooEntry.id).toBe(42);
       expect(oooEntry.uuid).toBe("ooo-uuid-123");
       expect(oooEntry.notes).toBe("Sick leave");
@@ -117,7 +117,7 @@ describe("OOOWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      const oooEntry = (result as Record<string, unknown>).oooEntry as Record<string, unknown>;
+      const oooEntry = (result.data as Record<string, unknown>).oooEntry as Record<string, unknown>;
       expect(oooEntry.toUser).toEqual({
         id: 10,
         name: "Backup",
@@ -133,21 +133,19 @@ describe("OOOWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
+      expect(result.data).toBeNull();
       expect(mockLogger.warn).toHaveBeenCalledWith("OOO entry not found", { oooEntryId: 42 });
     });
 
-    it("should return null and log error on DB failure", async () => {
+    it("should return the error in the result when DB throws", async () => {
       mockOOORepository.findByIdForWebhook.mockRejectedValueOnce(new Error("DB timeout"));
       const payload = createPayload();
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
-      expect(mockLogger.error).toHaveBeenCalledWith("Error fetching OOO data for webhook", {
-        oooEntryId: 42,
-        error: "DB timeout",
-      });
+      expect(result.data).toBeNull();
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error?.message).toBe("DB timeout");
     });
   });
 

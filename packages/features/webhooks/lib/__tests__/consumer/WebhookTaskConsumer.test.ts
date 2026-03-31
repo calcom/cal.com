@@ -42,7 +42,7 @@ describe("WebhookTaskConsumer", () => {
 
     const createMockFetcher = (triggerEvents: string[]): IWebhookDataFetcher => ({
       canHandle: vi.fn((event) => triggerEvents.includes(event)),
-      fetchEventData: vi.fn().mockResolvedValue({ _scaffold: true }),
+      fetchEventData: vi.fn().mockResolvedValue({ data: { _scaffold: true } }),
       getSubscriberContext: vi.fn((payload: WebhookTaskPayload) => ({
         triggerEvent: payload.triggerEvent,
         userId: "userId" in payload ? payload.userId : undefined,
@@ -271,7 +271,7 @@ describe("WebhookTaskConsumer", () => {
       ]);
 
       const bookingFetcher = mockDataFetchers[0];
-      (bookingFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
+      (bookingFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ data: null });
 
       await consumer.processWebhookTask(payload, "task-missing");
 

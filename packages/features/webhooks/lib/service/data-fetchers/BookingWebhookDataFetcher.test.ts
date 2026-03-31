@@ -114,7 +114,7 @@ describe("BookingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
+      expect(result.data).toBeNull();
       expect(mockLogger.warn).toHaveBeenCalledWith("Missing bookingUid for booking webhook");
     });
 
@@ -124,7 +124,7 @@ describe("BookingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
+      expect(result.data).toBeNull();
       expect(mockLogger.warn).toHaveBeenCalledWith("Booking not found", { bookingUid: "booking-uid-1" });
     });
 
@@ -137,7 +137,7 @@ describe("BookingWebhookDataFetcher", () => {
       const payload = createPayload();
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
+      expect(result.data).toBeNull();
       expect(mockLogger.error).toHaveBeenCalledWith("Failed to build CalendarEvent from booking", {
         bookingUid: "booking-uid-1",
       });
@@ -153,7 +153,7 @@ describe("BookingWebhookDataFetcher", () => {
       const payload = createPayload();
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toEqual({
+      expect(result.data).toEqual({
         calendarEvent: mockCalendarEvent,
         booking: mockBooking,
         eventType: mockBooking.eventType,
@@ -225,7 +225,7 @@ describe("BookingWebhookDataFetcher", () => {
       });
     });
 
-    it("should catch repository error, log, and return null", async () => {
+    it("should return the error in the result when repository throws", async () => {
       mockBookingRepository.getBookingForCalEventBuilderFromUid.mockRejectedValue(
         new Error("DB connection failed")
       );
@@ -233,11 +233,9 @@ describe("BookingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toBeNull();
-      expect(mockLogger.error).toHaveBeenCalledWith("Error fetching booking data for webhook", {
-        bookingUid: "booking-uid-1",
-        error: "DB connection failed",
-      });
+      expect(result.data).toBeNull();
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error?.message).toBe("DB connection failed");
     });
 
     describe("BOOKING_REQUESTED with fromReschedule", () => {
@@ -266,7 +264,7 @@ describe("BookingWebhookDataFetcher", () => {
         expect(mockBookingRepository.findPreviousBooking).toHaveBeenCalledWith({
           fromReschedule: "original-booking-uid",
         });
-        expect(result).toEqual({
+        expect(result.data).toEqual({
           calendarEvent: { title: "Test" },
           booking: mockBooking,
           eventType: mockBooking.eventType,
@@ -286,7 +284,7 @@ describe("BookingWebhookDataFetcher", () => {
         const result = await fetcher.fetchEventData(payload);
 
         expect(mockBookingRepository.findPreviousBooking).not.toHaveBeenCalled();
-        expect(result).toEqual({
+        expect(result.data).toEqual({
           calendarEvent: { title: "Test" },
           booking: mockBooking,
           eventType: mockBooking.eventType,
@@ -311,7 +309,7 @@ describe("BookingWebhookDataFetcher", () => {
 
         const result = await fetcher.fetchEventData(payload);
 
-        expect(result).toEqual({
+        expect(result.data).toEqual({
           noShowMessage: "user@example.com marked as no-show",
           noShowAttendees: [{ email: "user@example.com", noShow: true }],
           bookingId: 42,
@@ -334,7 +332,7 @@ describe("BookingWebhookDataFetcher", () => {
 
         const result = await fetcher.fetchEventData(payload);
 
-        expect(result).toEqual(
+        expect(result.data).toEqual(
           expect.objectContaining({
             noShowMessage: "user@example.com unmarked as no-show",
             noShowAttendees: [{ email: "user@example.com", noShow: false }],
@@ -356,7 +354,7 @@ describe("BookingWebhookDataFetcher", () => {
 
         const result = await fetcher.fetchEventData(payload);
 
-        expect(result).toEqual({
+        expect(result.data).toEqual({
           noShowMessage: "No-show status updated",
           noShowAttendees: [
             { email: "a@example.com", noShow: true },
@@ -378,7 +376,7 @@ describe("BookingWebhookDataFetcher", () => {
 
         const result = await fetcher.fetchEventData(payload);
 
-        expect(result).toBeNull();
+        expect(result.data).toBeNull();
         expect(mockLogger.warn).toHaveBeenCalledWith(
           "No attendees found for no-show webhook",
           expect.any(Object)
@@ -393,7 +391,7 @@ describe("BookingWebhookDataFetcher", () => {
 
         const result = await fetcher.fetchEventData(payload);
 
-        expect(result).toBeNull();
+        expect(result.data).toBeNull();
         expect(mockLogger.warn).toHaveBeenCalledWith(
           "Missing attendeeIds in no-show metadata",
           expect.any(Object)
@@ -408,7 +406,7 @@ describe("BookingWebhookDataFetcher", () => {
 
         const result = await fetcher.fetchEventData(payload);
 
-        expect(result).toBeNull();
+        expect(result.data).toBeNull();
       });
     });
   });
@@ -480,7 +478,7 @@ describe("BookingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toEqual(
+      expect(result.data).toEqual(
         expect.objectContaining({
           bookingId: 456,
           bookingUid: "booking-noshow-5",
@@ -503,7 +501,7 @@ describe("BookingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      expect(result).toEqual(
+      expect(result.data).toEqual(
         expect.objectContaining({
           bookingId: undefined,
           bookingUid: "booking-noshow-6",

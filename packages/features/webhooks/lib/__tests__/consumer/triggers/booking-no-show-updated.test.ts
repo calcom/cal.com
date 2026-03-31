@@ -64,12 +64,12 @@ describe("BOOKING_NO_SHOW_UPDATED Trigger", () => {
           WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
         ].includes(event)
       ),
-      fetchEventData: vi.fn().mockResolvedValue({
+      fetchEventData: vi.fn().mockResolvedValue({ data: {
         noShowMessage: "attendee@example.com x_marked_as_no_show",
         noShowAttendees: [{ email: "attendee@example.com", noShow: true }],
         bookingId: 42,
         bookingUid: "no-show-uid",
-      }),
+      } }),
       getSubscriberContext: vi.fn((payload: BookingWebhookTaskPayload) => ({
         triggerEvent: payload.triggerEvent,
         userId: payload.userId,
@@ -178,7 +178,7 @@ describe("BOOKING_NO_SHOW_UPDATED Trigger", () => {
       };
 
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
-      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce(null);
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({ data: null });
 
       await consumer.processWebhookTask(payload, "task-noshow-null-data");
 
@@ -308,7 +308,7 @@ describe("BOOKING_NO_SHOW_UPDATED Trigger", () => {
     });
 
     it("handles multiple attendees marked as no-show", async () => {
-      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({ data: {
         noShowMessage: "2 attendees marked as no-show",
         noShowAttendees: [
           { email: "attendee1@example.com", noShow: true },
@@ -316,7 +316,7 @@ describe("BOOKING_NO_SHOW_UPDATED Trigger", () => {
         ],
         bookingId: 99,
         bookingUid: "multi-noshow-uid",
-      });
+      } });
 
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
 
@@ -342,11 +342,11 @@ describe("BOOKING_NO_SHOW_UPDATED Trigger", () => {
     });
 
     it("does not deliver webhook when DTO build returns null due to missing data", async () => {
-      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({ data: {
         noShowMessage: undefined,
         noShowAttendees: undefined,
         bookingUid: undefined,
-      });
+      } });
 
       vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
 

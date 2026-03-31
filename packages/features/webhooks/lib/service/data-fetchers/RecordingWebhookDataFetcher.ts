@@ -4,7 +4,7 @@ import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { generateVideoToken } from "@calcom/lib/videoTokens";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import type { IWebhookDataFetcher, SubscriberContext } from "../../interface/IWebhookDataFetcher";
+import type { FetchEventDataResult, IWebhookDataFetcher, SubscriberContext } from "../../interface/IWebhookDataFetcher";
 import type { ILogger } from "../../interface/infrastructure";
 import type { RecordingWebhookTaskPayload } from "../../types/webhookTask";
 
@@ -23,7 +23,7 @@ export class RecordingWebhookDataFetcher implements IWebhookDataFetcher {
     return this.RECORDING_TRIGGERS.has(triggerEvent as never);
   }
 
-  async fetchEventData(payload: RecordingWebhookTaskPayload): Promise<Record<string, unknown> | null> {
+  async fetchEventData(payload: RecordingWebhookTaskPayload): Promise<FetchEventDataResult> {
     const { recordingId, bookingUid } = payload;
 
     if (!recordingId || !bookingUid) {
@@ -31,7 +31,7 @@ export class RecordingWebhookDataFetcher implements IWebhookDataFetcher {
         recordingId,
         bookingUid,
       });
-      return null;
+      return { data: null };
     }
 
     try {
@@ -39,7 +39,7 @@ export class RecordingWebhookDataFetcher implements IWebhookDataFetcher {
 
       if (!booking) {
         this.logger.warn("Booking not found for recording webhook", { bookingUid });
-        return null;
+        return { data: null };
       }
 
       const calendarEvent = await CalendarEventBuilder.fromBookingWithOptionalRelations(booking);
@@ -54,24 +54,26 @@ export class RecordingWebhookDataFetcher implements IWebhookDataFetcher {
         ]);
 
         return {
-          calendarEvent,
-          booking,
-          downloadLinks: {
-            transcription: accessLink.transcription,
-            recording: recordingLink,
+          data: {
+            calendarEvent,
+            booking,
+            downloadLinks: {
+              transcription: accessLink.transcription,
+              recording: recordingLink,
+            },
           },
         };
       }
 
       const downloadLink = this.generateDownloadLink(recordingId);
-      return { calendarEvent, booking, downloadLink };
+      return { data: { calendarEvent, booking, downloadLink } };
     } catch (error) {
       this.logger.error("Error fetching recording data for webhook", {
         recordingId,
         bookingUid,
         error: error instanceof Error ? error.message : String(error),
       });
-      throw error;
+      return { data: null, error: error instanceof Error ? error : new Error(String(error)) };
     }
   }
 

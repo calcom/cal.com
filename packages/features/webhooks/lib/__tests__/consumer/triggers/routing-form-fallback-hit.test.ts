@@ -58,7 +58,7 @@ describe("ROUTING_FORM_FALLBACK_HIT Trigger", () => {
 
     mockFormDataFetcher = {
       canHandle: vi.fn((event) => event === WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT),
-      fetchEventData: vi.fn().mockResolvedValue(sampleEventData),
+      fetchEventData: vi.fn().mockResolvedValue({ data: sampleEventData }),
       getSubscriberContext: vi.fn((payload: RoutingFormFallbackHitWebhookTaskPayload) => ({
         triggerEvent: payload.triggerEvent,
         userId: payload.userId,
@@ -157,7 +157,7 @@ describe("ROUTING_FORM_FALLBACK_HIT Trigger", () => {
         },
       };
       vi.mocked(mockFormDataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
-        eventDataWithEventType
+        { data: eventDataWithEventType }
       );
 
       const payload: RoutingFormFallbackHitWebhookTaskPayload = {
@@ -198,7 +198,7 @@ describe("ROUTING_FORM_FALLBACK_HIT Trigger", () => {
 
   describe("Missing event data", () => {
     it("should warn and skip when fetcher returns null", async () => {
-      vi.mocked(mockFormDataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
+      vi.mocked(mockFormDataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ data: null });
 
       const payload: RoutingFormFallbackHitWebhookTaskPayload = {
         operationId: "op-fallback-null",
@@ -226,10 +226,10 @@ describe("ROUTING_FORM_FALLBACK_HIT Trigger", () => {
     });
 
     it("should warn and skip when event data fails validation", async () => {
-      vi.mocked(mockFormDataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      vi.mocked(mockFormDataFetcher.fetchEventData as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ data: {
         formId: "form-abc",
         // missing formName and responseId
-      });
+      } });
 
       const payload: RoutingFormFallbackHitWebhookTaskPayload = {
         operationId: "op-fallback-invalid",
