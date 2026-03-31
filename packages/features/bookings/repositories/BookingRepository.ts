@@ -118,13 +118,35 @@ type TeamBookingsMultipleUsersParamsWithCount = TeamBookingsMultipleUsersParamsB
   shouldReturnCount: true;
 };
 
-type TeamBookingsMultipleUsersParamsWithoutCount = TeamBookingsMultipleUsersParamsBase;
+type TeamBookingsMultipleUsersParamsWithoutCount = TeamBookingsMultipleUsersParamsBase & {
+  shouldReturnCount?: false;
+};
 
 type TeamBookingsParamsWithCount = TeamBookingsParamsBase & {
   shouldReturnCount: true;
 };
 
-type TeamBookingsParamsWithoutCount = TeamBookingsParamsBase;
+type TeamBookingsParamsWithoutCount = TeamBookingsParamsBase & {
+  shouldReturnCount?: false;
+};
+
+export type TeamBookingSelectFields = {
+  id: number;
+  startTime: Date;
+  endTime: Date;
+  eventTypeId: number | null;
+  title: string;
+  userId: number | null;
+};
+
+const teamBookingSelect = {
+  id: true,
+  startTime: true,
+  endTime: true,
+  eventTypeId: true,
+  title: true,
+  userId: true,
+} as const satisfies Record<keyof TeamBookingSelectFields, true>;
 
 type ActiveBookingsParams = {
   eventTypeId: number;
@@ -1464,9 +1486,11 @@ export class BookingRepository implements IBookingRepository {
 
   async getAllAcceptedTeamBookingsOfUser(params: TeamBookingsParamsWithCount): Promise<number>;
 
-  async getAllAcceptedTeamBookingsOfUser(params: TeamBookingsParamsWithoutCount): Promise<Array<Booking>>;
+  async getAllAcceptedTeamBookingsOfUser(
+    params: TeamBookingsParamsWithoutCount
+  ): Promise<Array<TeamBookingSelectFields>>;
 
-  async getAllAcceptedTeamBookingsOfUser(params: TeamBookingsParamsBase) {
+  async getAllAcceptedTeamBookingsOfUser(params: TeamBookingsParamsBase): Promise<number | Array<TeamBookingSelectFields>> {
     const { user, teamId, startDate, endDate, excludedUid, shouldReturnCount, includeManagedEvents } = params;
 
     const baseWhere: Prisma.BookingWhereInput = {
@@ -1536,12 +1560,15 @@ export class BookingRepository implements IBookingRepository {
 
       return totalNrOfBooking;
     }
+
     const collectiveRoundRobinBookingsOwner = await this.prismaClient.booking.findMany({
       where: whereCollectiveRoundRobinOwner,
+      select: teamBookingSelect,
     });
 
     const collectiveRoundRobinBookingsAttendee = await this.prismaClient.booking.findMany({
       where: whereCollectiveRoundRobinBookingsAttendee,
+      select: teamBookingSelect,
     });
 
     let managedBookings: typeof collectiveRoundRobinBookingsAttendee = [];
@@ -1549,6 +1576,7 @@ export class BookingRepository implements IBookingRepository {
     if (includeManagedEvents) {
       managedBookings = await this.prismaClient.booking.findMany({
         where: whereManagedBookings,
+        select: teamBookingSelect,
       });
     }
 
@@ -1661,9 +1689,9 @@ export class BookingRepository implements IBookingRepository {
 
   async getAllAcceptedTeamBookingsOfUsers(
     params: TeamBookingsMultipleUsersParamsWithoutCount
-  ): Promise<Array<Booking>>;
+  ): Promise<Array<TeamBookingSelectFields>>;
 
-  async getAllAcceptedTeamBookingsOfUsers(params: TeamBookingsMultipleUsersParamsBase) {
+  async getAllAcceptedTeamBookingsOfUsers(params: TeamBookingsMultipleUsersParamsBase): Promise<number | Array<TeamBookingSelectFields>> {
     const { users, teamId, startDate, endDate, excludedUid, shouldReturnCount, includeManagedEvents } =
       params;
 
@@ -2322,8 +2350,17 @@ export class BookingRepository implements IBookingRepository {
       where: {
         id: bookingId,
       },
-      include: {
-        attendees: true,
+      select: {
+        attendees: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            timeZone: true,
+            locale: true,
+            phoneNumber: true,
+          },
+        },
       },
       data: {
         attendees: {

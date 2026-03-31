@@ -8,8 +8,10 @@ describe("BookingRepository", () => {
     $queryRaw: ReturnType<typeof vi.fn>;
     booking: {
       findUnique: ReturnType<typeof vi.fn>;
+      findMany: ReturnType<typeof vi.fn>;
       findUniqueOrThrow: ReturnType<typeof vi.fn>;
       update: ReturnType<typeof vi.fn>;
+      count: ReturnType<typeof vi.fn>;
     };
     attendee: {
       findMany: ReturnType<typeof vi.fn>;
@@ -23,8 +25,10 @@ describe("BookingRepository", () => {
       $queryRaw: vi.fn(),
       booking: {
         findUnique: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
         findUniqueOrThrow: vi.fn(),
         update: vi.fn(),
+        count: vi.fn().mockResolvedValue(0),
       },
       attendee: {
         findMany: vi.fn(),
@@ -161,6 +165,86 @@ describe("BookingRepository", () => {
       const result = await repository.findLatestBookingInRescheduleChain({ bookingUid: "booking-1" });
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe("updateBookingAttendees", () => {
+    it("should select only required attendee fields, not include all", async () => {
+      mockPrismaClient.booking.update.mockResolvedValue({
+        attendees: [{ id: 1, email: "a@test.com", name: "A", timeZone: "UTC", locale: "en", phoneNumber: null }],
+      });
+
+      await repository.updateBookingAttendees({
+        bookingId: 1,
+        newAttendees: [{ name: "A", email: "a@test.com", timeZone: "UTC", locale: "en" }],
+        updatedResponses: {},
+      });
+
+      const call = mockPrismaClient.booking.update.mock.calls[0][0];
+      expect(call.select.attendees.select).toEqual({
+        id: true,
+        email: true,
+        name: true,
+        timeZone: true,
+        locale: true,
+        phoneNumber: true,
+      });
+      expect(call).not.toHaveProperty("include");
+    });
+  });
+
+  describe("getAllAcceptedTeamBookingsOfUser", () => {
+    const baseParams = {
+      user: { id: 1, email: "user@test.com" },
+      teamId: 10,
+      startDate: new Date("2026-01-01"),
+      endDate: new Date("2026-12-31"),
+      includeManagedEvents: false,
+    };
+
+    it("should select only required fields on findMany queries", async () => {
+      await repository.getAllAcceptedTeamBookingsOfUser(baseParams);
+
+      const expectedSelect = {
+        id: true,
+        startTime: true,
+        endTime: true,
+        eventTypeId: true,
+        title: true,
+        userId: true,
+      };
+
+      for (const call of mockPrismaClient.booking.findMany.mock.calls) {
+        expect(call[0].select).toEqual(expectedSelect);
+      }
+    });
+
+    it("should use count queries when shouldReturnCount is true", async () => {
+      mockPrismaClient.booking.count.mockResolvedValue(5);
+
+      const result = await repository.getAllAcceptedTeamBookingsOfUser({
+        ...baseParams,
+        shouldReturnCount: true,
+      });
+
+      expect(result).toBe(10);
+      expect(mockPrismaClient.booking.count).toHaveBeenCalledTimes(2);
+      expect(mockPrismaClient.booking.findMany).not.toHaveBeenCalled();
+    });
+
+    it("should include managed bookings when includeManagedEvents is true", async () => {
+      await repository.getAllAcceptedTeamBookingsOfUser({
+        ...baseParams,
+        includeManagedEvents: true,
+      });
+
+      expect(mockPrismaClient.booking.findMany).toHaveBeenCalledTimes(3);
+    });
+
+    it("should not query managed bookings when includeManagedEvents is false", async () => {
+      await repository.getAllAcceptedTeamBookingsOfUser(baseParams);
+
+      expect(mockPrismaClient.booking.findMany).toHaveBeenCalledTimes(2);
     });
   });
 

@@ -229,4 +229,5 @@ describe("BookingRepository.getAllAcceptedTeamBookingsOfUsers", () => {
       select: { id: true, parentId: true },
     });
   });
+
 });
