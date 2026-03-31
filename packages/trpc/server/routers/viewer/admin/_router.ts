@@ -23,6 +23,7 @@ import { ZTransferBillingSchema } from "./transferBilling.schema";
 import { ZRecreateOwnershipSchema } from "./recreateOwnership.schema";
 import { ZTransferOwnershipSchema } from "./transferOwnership.schema";
 import { ZAdminUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.schema";
+import { ZUpdateBillingModeSchema } from "./updateBillingMode.schema";
 import { ZUpdateDeploymentBillingSchema } from "./updateDeploymentBilling.schema";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
 import { abuseRulesRouter } from "./abuseRules/_router";
@@ -170,6 +171,10 @@ export const adminRouter = router({
   }),
   recreateOwnership: authedAdminProcedure.input(ZRecreateOwnershipSchema).mutation(async (opts) => {
     const { default: handler } = await import("./recreateOwnership.handler");
+    return handler(opts);
+  }),
+  updateBillingMode: authedAdminProcedure.input(ZUpdateBillingModeSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./updateBillingMode.handler");
     return handler(opts);
   }),
   abuseRules: abuseRulesRouter,

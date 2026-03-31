@@ -4,6 +4,7 @@ import type { AdminTable } from "@calcom/features/admin-dataview/AdminTable";
 
 import { TransferBillingActionForm } from "./TransferBillingActionForm";
 import { TransferOwnershipActionForm } from "./TransferOwnershipActionForm";
+import { UpdateBillingModeForm } from "./UpdateBillingModeForm";
 
 export interface ActionFormProps {
   table: AdminTable;
@@ -15,4 +16,5 @@ export interface ActionFormProps {
 export const ACTION_FORM_COMPONENTS: Record<string, React.ComponentType<ActionFormProps>> = {
   "transfer-billing": TransferBillingActionForm,
   "transfer-ownership": TransferOwnershipActionForm,
+  "update-billing-mode": UpdateBillingModeForm,
 };

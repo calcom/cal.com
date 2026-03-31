@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
+import type { BillingMode } from "@calcom/prisma/enums";
 
 export type AdminBillingRecord = {
   id: string;
@@ -155,6 +156,58 @@ export class AdminBillingRepository {
           },
         });
       }
+    });
+  }
+
+  async updateTeamBillingMode(
+    billingId: string,
+    data: { billingMode: BillingMode; minSeats: number | null; pricePerSeat?: number }
+  ): Promise<void> {
+    await this.prismaClient.teamBilling.update({
+      where: { id: billingId },
+      data,
+      select: { id: true },
+    });
+  }
+
+  async updateOrgBillingMode(
+    billingId: string,
+    data: { billingMode: BillingMode; minSeats: number | null; pricePerSeat?: number }
+  ): Promise<void> {
+    await this.prismaClient.organizationBilling.update({
+      where: { id: billingId },
+      data,
+      select: { id: true },
+    });
+  }
+
+  async findTeamBillingForModeUpdate(billingId: string) {
+    return this.prismaClient.teamBilling.findUnique({
+      where: { id: billingId },
+      select: {
+        subscriptionId: true,
+        subscriptionItemId: true,
+        billingPeriod: true,
+        billingMode: true,
+        minSeats: true,
+        pricePerSeat: true,
+        teamId: true,
+      },
+    });
+  }
+
+  async findOrgBillingForModeUpdate(billingId: string) {
+    return this.prismaClient.organizationBilling.findUnique({
+      where: { id: billingId },
+      select: {
+        subscriptionId: true,
+        subscriptionItemId: true,
+        billingPeriod: true,
+        billingMode: true,
+        minSeats: true,
+        pricePerSeat: true,
+        teamId: true,
+      },
     });
   }
 

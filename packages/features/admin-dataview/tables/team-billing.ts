@@ -64,7 +64,7 @@ export const teamBillingTable: TableDefinition = {
       label: "Billing Mode",
       type: "enum",
       access: "readonly",
-      enumValues: ["SEATS", "USAGE"],
+      enumValues: ["SEATS", "ACTIVE_USERS"],
     },
     {
       column: "pricePerSeat",
@@ -165,6 +165,21 @@ export const teamBillingTable: TableDefinition = {
         mode: "preview",
       }),
       formId: "transfer-billing",
+    },
+    {
+      id: "update-billing-mode-team",
+      label: "Update Billing Mode",
+      icon: "pencil",
+      variant: "default",
+      mutation: "admin.updateBillingMode",
+      buildInput: (row) => ({
+        billingId: row.id,
+        entityType: "team",
+        billingMode: row.billingMode,
+        minSeats: row.minSeats,
+      }),
+      condition: (row) => row.billingPeriod !== "ANNUALLY",
+      formId: "update-billing-mode",
     },
   ],
 };
