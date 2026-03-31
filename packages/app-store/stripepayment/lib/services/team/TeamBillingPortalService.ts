@@ -20,7 +20,7 @@ export class TeamBillingPortalService extends BillingPortalService {
   async getCustomerId(teamId: number): Promise<string | null> {
     const log = logger.getSubLogger({ prefix: ["TeamBillingPortalService", "getCustomerId"] });
 
-    const team = await this.teamRepository.findByIdIncludePlatformBilling({ id: teamId });
+    const team = await this.teamRepository.findByIdIncludeBilling({ id: teamId });
     if (!team) return null;
 
     let teamSubscriptionId = "";
@@ -33,7 +33,7 @@ export class TeamBillingPortalService extends BillingPortalService {
       if (!subscriptionId) return null;
       teamSubscriptionId = subscriptionId;
     } else {
-      const subscriptionId = this.getValidatedTeamSubscriptionId(team.metadata);
+      const subscriptionId = team.teamBilling?.subscriptionId;
 
       if (!subscriptionId) return null;
       teamSubscriptionId = subscriptionId;

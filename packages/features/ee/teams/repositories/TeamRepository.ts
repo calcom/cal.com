@@ -188,12 +188,17 @@ export class TeamRepository {
     return getParsedTeam(team);
   }
 
-  async findByIdIncludePlatformBilling({ id }: { id: number }) {
+  async findByIdIncludeBilling({ id }: { id: number }) {
     const team = await this.prismaClient.team.findUnique({
       where: {
         id,
       },
-      select: { ...teamSelect, platformBilling: true },
+      select: {
+        ...teamSelect,
+        platformBilling: true,
+        teamBilling: { select: { subscriptionId: true } },
+        organizationBilling: { select: { subscriptionId: true } },
+      },
     });
     if (!team) {
       return null;
