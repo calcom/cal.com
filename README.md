@@ -177,8 +177,6 @@ Here is what you need to be able to run Cal.com.
  > # PowerShell (run as Administrator)
  > git clone -c core.symlinks=true https://github.com/calcom/cal.com.git
  > ```
- >
- > See [Git for Windows symlinks](https://github.com/git-for-windows/git/wiki/Symbolic-Links) for more details.
 
 5. Setup Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
