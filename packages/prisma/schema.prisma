@@ -2229,8 +2229,7 @@ enum SMSLockState {
 }
 
 enum SMSAbuseEntityType {
-  USER
-  TEAM
+  DEVICE
   IP
 }
 
@@ -2795,6 +2794,7 @@ model CalIdTeam {
   internalNotePresets      InternalNotePreset[]
 
   whatsappBusinessPhone WhatsAppBusinessPhone[]
+  smsLockState          SMSLockState            @default(UNLOCKED)
 
   @@unique([slug])
 }
