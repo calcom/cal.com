@@ -6127,6 +6127,30 @@ checksums:
     featured_categories: 0a18cd1a63925dc635e3a3f33749545e
     feature_flags: 528c5718e4263ad9d113717eac11d008
     admin_flags_description: b610f48a9b3ac4bb30a2495c5204b6e4
+    experiments: 88c8351315063695b7731430beb73ce0
+    admin_experiments_description: 9aceeb4e3efc7270dbc5cb3e877ca82d
+    experiment_target_logged_in: f29ebb1e0d7f2911eb50422502911887
+    experiment_target_anonymous: a0022acd32e423b832a50e85563bbfc5
+    experiment_started: e7cb6424b2b7cccf7b5271a012d28ba9
+    experiment_stopped: 662e338031f1784d415d2df5eda3f2b6
+    experiment_winner_set: 8dbce662d01554e5d0af48025604701b
+    experiment_weight_updated: 51d043f162c1767601ec677b91711a8b
+    experiment_weight_exceeds_100: f57f4fa25165ffce2e3b7c47a059b86c
+    experiment_status_reset: 9ca48224397efebc95fbc15f9a170a07
+    experiment_preview_activated: 7786b0d00fda84ec07eb50bb78395b9d
+    experiment_preview_cleared: f8fc0752b67bb7b9553562f228176aa3
+    experiment_preview_all_cleared: 23981c303606e8c632fe04a072d5ab3d
+    variant: e9e072f47ce53e126135d6be0ed55e41
+    control: 32947aec8b8613726216b1fb545bf810
+    start: dbe56303d9a6d3fad1a8d4cbcc97f365
+    stop: 4c4b4d44708ba05fe8726cbc80122228
+    restart: bab6232e89f24e3129f8e48268739d5b
+    reset: c19c53a05e21c7f3b395247809a14b51
+    winner: 1507d331d6a89398f86eee312186d9ab
+    roll_out_winner: 75643cd9b154d952fc00e22e480aff7b
+    active_previews: fa53d2a61b849d84520dad366bc2f070
+    active_previews_hint: 4a2df95603db828324f8d3732e9955d7
+    clear_all: 854be0c051e4a3491a2cdd9dd8c1b4d5
     feature_assigned_successfully: 3c024725fbe68daf7a208d3f28edb1aa
     feature_unassigned_successfully: 6601f7487bd4bfbfb47b6606c76e3086
     popular_categories: 6310af11d488cb466ee3c49a3fde30ab
@@ -9781,7 +9805,6 @@ checksums:
     any_condition: a91f73aadbd74c9b4b44ad10599649ea
     pbac_resource_blocklist: 17845897553ffa9b8d09b57e295ed5c7
     this_meeting_is_in_the_past: 0be95a9732b4f7cbc34c0c2c11d64b69
-    stop: 4c4b4d44708ba05fe8726cbc80122228
     stop_transcription: c5c6260f9ba1b461d9c212022148b5cf
     start_recording: 1120c5e5a7a2675d0e7f8cd11afe6cd3
     stop_recording: a6e9fbaf4ebf2d78558608d78a79ab7b
