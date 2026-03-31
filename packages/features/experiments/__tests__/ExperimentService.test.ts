@@ -38,7 +38,7 @@ describe("ExperimentService", () => {
   describe("getAllRunningConfigs", () => {
     it("returns mapped configs from running experiments", async () => {
       const experiments: ExperimentWithVariants[] = [
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }]),
+        runningExperiment("upgrade-dialog-try-cta", [{ variantSlug: "try_cta", label: null, weight: 50 }]),
       ];
       vi.mocked(mockRepo.findAllRunning).mockResolvedValue(experiments);
 
@@ -46,10 +46,10 @@ describe("ExperimentService", () => {
 
       expect(configs).toEqual([
         {
-          slug: "billing-upgrade-cta",
+          slug: "upgrade-dialog-try-cta",
           status: "RUNNING",
           winner: null,
-          variants: [{ slug: "upgrade_button", weight: 50 }],
+          variants: [{ slug: "try_cta", weight: 50 }],
         },
       ]);
     });
@@ -64,61 +64,61 @@ describe("ExperimentService", () => {
     it("assigns variant based on deterministic hash", async () => {
       const configs = [
         {
-          slug: "billing-upgrade-cta",
+          slug: "upgrade-dialog-try-cta", label: null, description: null,
           status: "RUNNING",
           winner: null,
-          variants: [{ slug: "upgrade_button", weight: 50 }],
+          variants: [{ slug: "try_cta", weight: 50 }],
         },
       ];
 
       const result = await service.getVariantsForUser({ userId: 42, userPlan: "INDIVIDUALS", configs });
-      expect(result).toHaveProperty("billing-upgrade-cta");
-      expect(["upgrade_button", null]).toContain(result["billing-upgrade-cta"]);
+      expect(result).toHaveProperty("upgrade-dialog-try-cta");
+      expect(["try_cta", null]).toContain(result["upgrade-dialog-try-cta"]);
     });
 
     it("returns same variant for same user across calls", async () => {
       const configs = [
         {
-          slug: "billing-upgrade-cta",
+          slug: "upgrade-dialog-try-cta", label: null, description: null,
           status: "RUNNING",
           winner: null,
-          variants: [{ slug: "upgrade_button", weight: 50 }],
+          variants: [{ slug: "try_cta", weight: 50 }],
         },
       ];
 
       const result1 = await service.getVariantsForUser({ userId: 42, userPlan: "INDIVIDUALS", configs });
       const result2 = await service.getVariantsForUser({ userId: 42, userPlan: "INDIVIDUALS", configs });
-      expect(result1["billing-upgrade-cta"]).toBe(result2["billing-upgrade-cta"]);
+      expect(result1["upgrade-dialog-try-cta"]).toBe(result2["upgrade-dialog-try-cta"]);
     });
 
     it("returns control for ENTERPRISE users", async () => {
       const configs = [
         {
-          slug: "billing-upgrade-cta",
+          slug: "upgrade-dialog-try-cta", label: null, description: null,
           status: "RUNNING",
           winner: null,
-          variants: [{ slug: "upgrade_button", weight: 100 }],
+          variants: [{ slug: "try_cta", weight: 100 }],
         },
       ];
 
       const result = await service.getVariantsForUser({ userId: 42, userPlan: "ENTERPRISE", configs });
-      expect(result["billing-upgrade-cta"]).toBeNull();
+      expect(result["upgrade-dialog-try-cta"]).toBeNull();
     });
 
     it("returns winner for rolled-out experiments", async () => {
       const configs = [
-        { slug: "billing-upgrade-cta", status: "ROLLED_OUT", winner: "upgrade_button", variants: [] },
+        { slug: "upgrade-dialog-try-cta", status: "ROLLED_OUT", winner: "try_cta", variants: [] },
       ];
 
       const result = await service.getVariantsForUser({ userId: 42, userPlan: "INDIVIDUALS", configs });
-      expect(result["billing-upgrade-cta"]).toBe("upgrade_button");
+      expect(result["upgrade-dialog-try-cta"]).toBe("try_cta");
     });
 
     it("returns null winner for rolled-out experiments where control won", async () => {
-      const configs = [{ slug: "billing-upgrade-cta", status: "ROLLED_OUT", winner: null, variants: [] }];
+      const configs = [{ slug: "upgrade-dialog-try-cta", status: "ROLLED_OUT", winner: null, variants: [] }];
 
       const result = await service.getVariantsForUser({ userId: 42, userPlan: "INDIVIDUALS", configs });
-      expect(result["billing-upgrade-cta"]).toBeNull();
+      expect(result["upgrade-dialog-try-cta"]).toBeNull();
     });
   });
 
@@ -129,54 +129,50 @@ describe("ExperimentService", () => {
     });
 
     it("returns null when experiment not in database", async () => {
-      const result = await service.getVariant(42, "billing-upgrade-cta");
+      const result = await service.getVariant(42, "upgrade-dialog-try-cta");
       expect(result).toBeNull();
     });
 
     it("returns null for DRAFT experiments", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue({
-        slug: "billing-upgrade-cta",
-        label: null,
-        description: null,
+        slug: "upgrade-dialog-try-cta", label: null, description: null,
         status: "DRAFT",
         winner: null,
-        variants: [{ variantSlug: "upgrade_button", label: null, weight: 50 }],
+        variants: [{ variantSlug: "try_cta", label: null, weight: 50 }],
       });
 
-      const result = await service.getVariant(42, "billing-upgrade-cta");
+      const result = await service.getVariant(42, "upgrade-dialog-try-cta");
       expect(result).toBeNull();
     });
 
     it("returns null for STOPPED experiments", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue({
-        slug: "billing-upgrade-cta",
-        label: null,
-        description: null,
+        slug: "upgrade-dialog-try-cta", label: null, description: null,
         status: "STOPPED",
         winner: null,
-        variants: [{ variantSlug: "upgrade_button", label: null, weight: 50 }],
+        variants: [{ variantSlug: "try_cta", label: null, weight: 50 }],
       });
 
-      const result = await service.getVariant(42, "billing-upgrade-cta");
+      const result = await service.getVariant(42, "upgrade-dialog-try-cta");
       expect(result).toBeNull();
     });
 
     it("returns winner for ROLLED_OUT experiments", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        rolledOutExperiment("billing-upgrade-cta", "upgrade_button")
+        rolledOutExperiment("upgrade-dialog-try-cta", "try_cta")
       );
 
-      const result = await service.getVariant(42, "billing-upgrade-cta");
-      expect(result).toBe("upgrade_button");
+      const result = await service.getVariant(42, "upgrade-dialog-try-cta");
+      expect(result).toBe("try_cta");
     });
 
     it("returns deterministic variant for RUNNING experiments", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
+        runningExperiment("upgrade-dialog-try-cta", [{ variantSlug: "try_cta", label: null, weight: 50 }])
       );
 
-      const result1 = await service.getVariant(42, "billing-upgrade-cta");
-      const result2 = await service.getVariant(42, "billing-upgrade-cta");
+      const result1 = await service.getVariant(42, "upgrade-dialog-try-cta");
+      const result2 = await service.getVariant(42, "upgrade-dialog-try-cta");
       expect(result1).toBe(result2);
     });
   });
@@ -184,7 +180,7 @@ describe("ExperimentService", () => {
   describe("getAllConfigs", () => {
     it("returns mapped configs from all experiments", async () => {
       const experiments: ExperimentWithVariants[] = [
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }]),
+        runningExperiment("upgrade-dialog-try-cta", [{ variantSlug: "try_cta", label: null, weight: 50 }]),
         { slug: "another-exp", label: null, description: null, status: "DRAFT", winner: null, variants: [] },
       ];
       vi.mocked(mockRepo.findAll).mockResolvedValue(experiments);
@@ -192,7 +188,7 @@ describe("ExperimentService", () => {
       const configs = await service.getAllConfigs();
 
       expect(configs).toHaveLength(2);
-      expect(configs[0].slug).toBe("billing-upgrade-cta");
+      expect(configs[0].slug).toBe("upgrade-dialog-try-cta");
       expect(configs[1].slug).toBe("another-exp");
     });
   });
@@ -206,13 +202,13 @@ describe("ExperimentService", () => {
 
     it("updates status when experiment exists", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
+        runningExperiment("upgrade-dialog-try-cta", [{ variantSlug: "try_cta", label: null, weight: 50 }])
       );
 
-      await service.updateStatus({ slug: "billing-upgrade-cta", status: "STOPPED", userId: 1 });
+      await service.updateStatus({ slug: "upgrade-dialog-try-cta", status: "STOPPED", userId: 1 });
 
       expect(mockRepo.updateStatus).toHaveBeenCalledWith({
-        slug: "billing-upgrade-cta",
+        slug: "upgrade-dialog-try-cta",
         status: "STOPPED",
         userId: 1,
       });
@@ -228,13 +224,13 @@ describe("ExperimentService", () => {
 
     it("throws BadRequest when weight is negative", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
+        runningExperiment("upgrade-dialog-try-cta", [{ variantSlug: "try_cta", label: null, weight: 50 }])
       );
 
       await expect(
         service.updateVariantWeight({
-          experimentSlug: "billing-upgrade-cta",
-          variantSlug: "upgrade_button",
+          experimentSlug: "upgrade-dialog-try-cta",
+          variantSlug: "try_cta",
           weight: -1,
           userId: 1,
         })
@@ -243,13 +239,13 @@ describe("ExperimentService", () => {
 
     it("throws BadRequest when weight exceeds 100", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
+        runningExperiment("upgrade-dialog-try-cta", [{ variantSlug: "try_cta", label: null, weight: 50 }])
       );
 
       await expect(
         service.updateVariantWeight({
-          experimentSlug: "billing-upgrade-cta",
-          variantSlug: "upgrade_button",
+          experimentSlug: "upgrade-dialog-try-cta",
+          variantSlug: "try_cta",
           weight: 101,
           userId: 1,
         })
@@ -276,19 +272,19 @@ describe("ExperimentService", () => {
 
     it("updates weight when experiment exists and weight is valid", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
+        runningExperiment("upgrade-dialog-try-cta", [{ variantSlug: "try_cta", label: null, weight: 50 }])
       );
 
       await service.updateVariantWeight({
-        experimentSlug: "billing-upgrade-cta",
-        variantSlug: "upgrade_button",
+        experimentSlug: "upgrade-dialog-try-cta",
+        variantSlug: "try_cta",
         weight: 75,
         userId: 1,
       });
 
       expect(mockRepo.updateVariantWeight).toHaveBeenCalledWith({
-        experimentSlug: "billing-upgrade-cta",
-        variantSlug: "upgrade_button",
+        experimentSlug: "upgrade-dialog-try-cta",
+        variantSlug: "try_cta",
         weight: 75,
         userId: 1,
       });
@@ -304,27 +300,27 @@ describe("ExperimentService", () => {
 
     it("sets winner when experiment exists", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
+        runningExperiment("upgrade-dialog-try-cta", [{ variantSlug: "try_cta", label: null, weight: 50 }])
       );
 
-      await service.setWinner({ slug: "billing-upgrade-cta", variantSlug: "upgrade_button", userId: 1 });
+      await service.setWinner({ slug: "upgrade-dialog-try-cta", variantSlug: "try_cta", userId: 1 });
 
       expect(mockRepo.setWinner).toHaveBeenCalledWith({
-        slug: "billing-upgrade-cta",
-        variantSlug: "upgrade_button",
+        slug: "upgrade-dialog-try-cta",
+        variantSlug: "try_cta",
         userId: 1,
       });
     });
 
     it("sets null winner (control wins) when experiment exists", async () => {
       vi.mocked(mockRepo.findBySlug).mockResolvedValue(
-        runningExperiment("billing-upgrade-cta", [{ variantSlug: "upgrade_button", label: null, weight: 50 }])
+        runningExperiment("upgrade-dialog-try-cta", [{ variantSlug: "try_cta", label: null, weight: 50 }])
       );
 
-      await service.setWinner({ slug: "billing-upgrade-cta", variantSlug: null, userId: 1 });
+      await service.setWinner({ slug: "upgrade-dialog-try-cta", variantSlug: null, userId: 1 });
 
       expect(mockRepo.setWinner).toHaveBeenCalledWith({
-        slug: "billing-upgrade-cta",
+        slug: "upgrade-dialog-try-cta",
         variantSlug: null,
         userId: 1,
       });

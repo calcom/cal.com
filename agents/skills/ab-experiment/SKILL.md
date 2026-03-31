@@ -24,17 +24,16 @@ packages/features/experiments/GUIDE.md
 | `packages/features/experiments/config.ts` | Register experiment slugs, variants, and target audience |
 | `packages/features/experiments/GUIDE.md` | Full step-by-step guide |
 | `apps/web/modules/experiments/hooks/useExperiment.ts` | `useExperiment()` hook for components |
-| `apps/web/modules/experiments/provider.tsx` | `ExperimentProvider` context (wraps pages) |
-| `apps/web/modules/experiments/getCachedExperimentData.ts` | Server-side helper for pages |
+| `apps/web/modules/experiments/provider.tsx` | `ExperimentProvider` context (wired at layout level) |
+| `apps/web/modules/experiments/getCachedExperimentData.ts` | Server-side helper (called in layout) |
 | `packages/i18n/locales/en/common.json` | Translation keys for variant text |
 
 ### Adding a new experiment
 
 1. **Register** in `config.ts` — add slug, variants array, and target (`"logged-in"` or `"anonymous"`)
 2. **Seed migration** — create a Prisma migration inserting `Experiment` and `ExperimentVariant` rows with labels
-3. **Wrap page** with `<ExperimentProvider>` using `getCachedExperimentData()` in the server component
-4. **Use hook** — `useExperiment("slug")` in the component, call `trackExposure()` when visible, `trackOutcome()` on success
-5. **Translations** — add any new UI text to `common.json`
+3. **Use hook** — `useExperiment("slug")` in the component, call `trackExposure()` when visible, `trackOutcome()` on success. No need to wrap pages — `ExperimentProvider` is already at layout level for all authenticated pages under `(use-page-wrapper)/`. Public pages (booking pages, routing forms) are NOT covered — add the provider to their layouts if running `target: "anonymous"` experiments there.
+4. **Translations** — add any new UI text to `common.json`
 
 ### `useExperiment` API
 
@@ -52,8 +51,7 @@ const { variant, isControl, trackExposure, trackOutcome } = useExperiment("your-
 
 1. Remove the `useExperiment()` call and variant branching from the component
 2. Remove the entry from `config.ts`
-3. Remove the `<ExperimentProvider>` wrapper if no other experiments use that page
-4. Admin sets the winner in `/settings/admin/experiments`
+3. Admin sets the winner in `/settings/admin/experiments`
 
 ### Example: existing experiment
 

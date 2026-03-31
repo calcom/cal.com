@@ -31,8 +31,8 @@ vi.mock("@calcom/lib/webstorage", () => ({
 
 // Mock config — needs vi.hoisted so it's available at mock definition time
 const mockExperiments = vi.hoisted(() => ({
-  "billing-upgrade-cta": {
-    variants: ["upgrade_button"],
+  "upgrade-dialog-try-cta": {
+    variants: ["try_cta"],
     target: "logged-in",
   },
 }));
@@ -44,7 +44,7 @@ vi.mock("@calcom/features/experiments/config", () => ({
 }));
 
 vi.mock("@calcom/features/experiments/lib/bucketing", () => ({
-  assignVariant: vi.fn(() => "upgrade_button"),
+  assignVariant: vi.fn(() => "try_cta"),
 }));
 
 import { ExperimentContext } from "../provider";
@@ -68,22 +68,22 @@ describe("useExperiment", () => {
     it("returns precomputed variant from context", () => {
       const wrapper = createWrapper({
         configs: [],
-        precomputedVariants: { "billing-upgrade-cta": "upgrade_button" },
+        precomputedVariants: { "upgrade-dialog-try-cta": "try_cta" },
       });
 
-      const { result } = renderHook(() => useExperiment("billing-upgrade-cta"), { wrapper });
+      const { result } = renderHook(() => useExperiment("upgrade-dialog-try-cta"), { wrapper });
 
-      expect(result.current.variant).toBe("upgrade_button");
+      expect(result.current.variant).toBe("try_cta");
       expect(result.current.isControl).toBe(false);
     });
 
     it("returns null (control) when precomputed variant is null", () => {
       const wrapper = createWrapper({
         configs: [],
-        precomputedVariants: { "billing-upgrade-cta": null },
+        precomputedVariants: { "upgrade-dialog-try-cta": null },
       });
 
-      const { result } = renderHook(() => useExperiment("billing-upgrade-cta"), { wrapper });
+      const { result } = renderHook(() => useExperiment("upgrade-dialog-try-cta"), { wrapper });
 
       expect(result.current.variant).toBeNull();
       expect(result.current.isControl).toBe(true);
@@ -95,7 +95,7 @@ describe("useExperiment", () => {
         precomputedVariants: null,
       });
 
-      const { result } = renderHook(() => useExperiment("billing-upgrade-cta"), { wrapper });
+      const { result } = renderHook(() => useExperiment("upgrade-dialog-try-cta"), { wrapper });
 
       expect(result.current.variant).toBeNull();
       expect(result.current.isControl).toBe(true);
@@ -104,7 +104,7 @@ describe("useExperiment", () => {
 
   describe("inactive experiment", () => {
     it("returns INACTIVE_RESULT when no context", () => {
-      const { result } = renderHook(() => useExperiment("billing-upgrade-cta"));
+      const { result } = renderHook(() => useExperiment("upgrade-dialog-try-cta"));
 
       expect(result.current.variant).toBeNull();
       expect(result.current.isControl).toBe(true);
@@ -115,10 +115,10 @@ describe("useExperiment", () => {
     it("does NOT auto-track by default", () => {
       const wrapper = createWrapper({
         configs: [],
-        precomputedVariants: { "billing-upgrade-cta": "upgrade_button" },
+        precomputedVariants: { "upgrade-dialog-try-cta": "try_cta" },
       });
 
-      renderHook(() => useExperiment("billing-upgrade-cta"), { wrapper });
+      renderHook(() => useExperiment("upgrade-dialog-try-cta"), { wrapper });
 
       expect(mockTrackExposure).not.toHaveBeenCalled();
     });
@@ -126,21 +126,21 @@ describe("useExperiment", () => {
     it("auto-tracks when trackExposure option is true", () => {
       const wrapper = createWrapper({
         configs: [],
-        precomputedVariants: { "billing-upgrade-cta": "upgrade_button" },
+        precomputedVariants: { "upgrade-dialog-try-cta": "try_cta" },
       });
 
-      renderHook(() => useExperiment("billing-upgrade-cta", { trackExposure: true }), { wrapper });
+      renderHook(() => useExperiment("upgrade-dialog-try-cta", { trackExposure: true }), { wrapper });
 
-      expect(mockTrackExposure).toHaveBeenCalledWith("billing-upgrade-cta", "upgrade_button");
+      expect(mockTrackExposure).toHaveBeenCalledWith("upgrade-dialog-try-cta", "try_cta");
     });
 
     it("trackExposure() fires only once (deduped)", () => {
       const wrapper = createWrapper({
         configs: [],
-        precomputedVariants: { "billing-upgrade-cta": "upgrade_button" },
+        precomputedVariants: { "upgrade-dialog-try-cta": "try_cta" },
       });
 
-      const { result } = renderHook(() => useExperiment("billing-upgrade-cta"), { wrapper });
+      const { result } = renderHook(() => useExperiment("upgrade-dialog-try-cta"), { wrapper });
 
       act(() => result.current.trackExposure());
       act(() => result.current.trackExposure());
@@ -154,76 +154,76 @@ describe("useExperiment", () => {
     it("trackOutcome fires with correct variant", () => {
       const wrapper = createWrapper({
         configs: [],
-        precomputedVariants: { "billing-upgrade-cta": "upgrade_button" },
+        precomputedVariants: { "upgrade-dialog-try-cta": "try_cta" },
       });
 
-      const { result } = renderHook(() => useExperiment("billing-upgrade-cta"), { wrapper });
+      const { result } = renderHook(() => useExperiment("upgrade-dialog-try-cta"), { wrapper });
 
       act(() => result.current.trackOutcome());
 
-      expect(mockTrackOutcome).toHaveBeenCalledWith("billing-upgrade-cta", "upgrade_button");
+      expect(mockTrackOutcome).toHaveBeenCalledWith("upgrade-dialog-try-cta", "try_cta");
     });
 
     it("trackOutcome fires with null for control group", () => {
       const wrapper = createWrapper({
         configs: [],
-        precomputedVariants: { "billing-upgrade-cta": null },
+        precomputedVariants: { "upgrade-dialog-try-cta": null },
       });
 
-      const { result } = renderHook(() => useExperiment("billing-upgrade-cta"), { wrapper });
+      const { result } = renderHook(() => useExperiment("upgrade-dialog-try-cta"), { wrapper });
 
       act(() => result.current.trackOutcome());
 
-      expect(mockTrackOutcome).toHaveBeenCalledWith("billing-upgrade-cta", null);
+      expect(mockTrackOutcome).toHaveBeenCalledWith("upgrade-dialog-try-cta", null);
     });
   });
 
   describe("admin preview override", () => {
     afterEach(() => {
-      window.sessionStorage.removeItem("exp_override:billing-upgrade-cta");
+      window.sessionStorage.removeItem("exp_override:upgrade-dialog-try-cta");
     });
 
     it("returns override variant when set in sessionStorage", () => {
-      window.sessionStorage.setItem("exp_override:billing-upgrade-cta", "upgrade_button");
+      window.sessionStorage.setItem("exp_override:upgrade-dialog-try-cta", "try_cta");
 
       const wrapper = createWrapper({
         configs: [],
-        precomputedVariants: { "billing-upgrade-cta": null }, // bucketed as control
+        precomputedVariants: { "upgrade-dialog-try-cta": null }, // bucketed as control
       });
 
-      const { result } = renderHook(() => useExperiment("billing-upgrade-cta"), { wrapper });
+      const { result } = renderHook(() => useExperiment("upgrade-dialog-try-cta"), { wrapper });
 
-      expect(result.current.variant).toBe("upgrade_button");
+      expect(result.current.variant).toBe("try_cta");
       expect(result.current.isControl).toBe(false);
     });
 
     it("returns null when override is set to control", () => {
-      window.sessionStorage.setItem("exp_override:billing-upgrade-cta", "control");
+      window.sessionStorage.setItem("exp_override:upgrade-dialog-try-cta", "control");
 
       const wrapper = createWrapper({
         configs: [],
-        precomputedVariants: { "billing-upgrade-cta": "upgrade_button" }, // bucketed as variant
+        precomputedVariants: { "upgrade-dialog-try-cta": "try_cta" }, // bucketed as variant
       });
 
-      const { result } = renderHook(() => useExperiment("billing-upgrade-cta"), { wrapper });
+      const { result } = renderHook(() => useExperiment("upgrade-dialog-try-cta"), { wrapper });
 
       expect(result.current.variant).toBeNull();
       expect(result.current.isControl).toBe(true);
     });
 
     it("tracking uses override variant, not bucketed variant", () => {
-      window.sessionStorage.setItem("exp_override:billing-upgrade-cta", "upgrade_button");
+      window.sessionStorage.setItem("exp_override:upgrade-dialog-try-cta", "try_cta");
 
       const wrapper = createWrapper({
         configs: [],
-        precomputedVariants: { "billing-upgrade-cta": null }, // bucketed as control
+        precomputedVariants: { "upgrade-dialog-try-cta": null }, // bucketed as control
       });
 
-      const { result } = renderHook(() => useExperiment("billing-upgrade-cta"), { wrapper });
+      const { result } = renderHook(() => useExperiment("upgrade-dialog-try-cta"), { wrapper });
 
       act(() => result.current.trackOutcome());
 
-      expect(mockTrackOutcome).toHaveBeenCalledWith("billing-upgrade-cta", "upgrade_button");
+      expect(mockTrackOutcome).toHaveBeenCalledWith("upgrade-dialog-try-cta", "try_cta");
     });
   });
 });

@@ -11,14 +11,14 @@ describe("hashUserToPercent", () => {
   });
 
   it("is deterministic for the same userId and experimentSlug", () => {
-    const a = hashUserToPercent(42, "billing-upgrade-cta");
-    const b = hashUserToPercent(42, "billing-upgrade-cta");
+    const a = hashUserToPercent(42, "upgrade-dialog-try-cta");
+    const b = hashUserToPercent(42, "upgrade-dialog-try-cta");
     expect(a).toBe(b);
   });
 
   it("produces different results for different userIds", () => {
-    const a = hashUserToPercent(1, "billing-upgrade-cta");
-    const b = hashUserToPercent(2, "billing-upgrade-cta");
+    const a = hashUserToPercent(1, "upgrade-dialog-try-cta");
+    const b = hashUserToPercent(2, "upgrade-dialog-try-cta");
     expect(a).not.toBe(b);
   });
 
@@ -47,14 +47,14 @@ describe("assignVariant", () => {
   });
 
   it("assigns to variant when userPercent is within range", () => {
-    const variants = [{ slug: "upgrade_button", weight: 50 }];
-    expect(assignVariant(0, variants)).toBe("upgrade_button");
-    expect(assignVariant(25, variants)).toBe("upgrade_button");
-    expect(assignVariant(49, variants)).toBe("upgrade_button");
+    const variants = [{ slug: "try_cta", weight: 50 }];
+    expect(assignVariant(0, variants)).toBe("try_cta");
+    expect(assignVariant(25, variants)).toBe("try_cta");
+    expect(assignVariant(49, variants)).toBe("try_cta");
   });
 
   it("assigns to control when userPercent is outside variant range", () => {
-    const variants = [{ slug: "upgrade_button", weight: 50 }];
+    const variants = [{ slug: "try_cta", weight: 50 }];
     expect(assignVariant(50, variants)).toBeNull();
     expect(assignVariant(75, variants)).toBeNull();
     expect(assignVariant(99, variants)).toBeNull();
@@ -74,27 +74,27 @@ describe("assignVariant", () => {
   });
 
   it("increasing weight only adds users to variant, never removes", () => {
-    const variantsAt50 = [{ slug: "upgrade_button", weight: 50 }];
-    const variantsAt80 = [{ slug: "upgrade_button", weight: 80 }];
+    const variantsAt50 = [{ slug: "try_cta", weight: 50 }];
+    const variantsAt80 = [{ slug: "try_cta", weight: 80 }];
 
     for (let percent = 0; percent < 100; percent++) {
       const at50 = assignVariant(percent, variantsAt50);
       const at80 = assignVariant(percent, variantsAt80);
-      if (at50 === "upgrade_button") {
-        expect(at80).toBe("upgrade_button");
+      if (at50 === "try_cta") {
+        expect(at80).toBe("try_cta");
       }
     }
   });
 
   it("assigns to variant at weight 100", () => {
-    const variants = [{ slug: "upgrade_button", weight: 100 }];
+    const variants = [{ slug: "try_cta", weight: 100 }];
     for (let percent = 0; percent < 100; percent++) {
-      expect(assignVariant(percent, variants)).toBe("upgrade_button");
+      expect(assignVariant(percent, variants)).toBe("try_cta");
     }
   });
 
   it("returns control at weight 0", () => {
-    const variants = [{ slug: "upgrade_button", weight: 0 }];
+    const variants = [{ slug: "try_cta", weight: 0 }];
     for (let percent = 0; percent < 100; percent++) {
       expect(assignVariant(percent, variants)).toBeNull();
     }

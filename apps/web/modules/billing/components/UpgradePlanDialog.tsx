@@ -17,6 +17,7 @@ import {
   DialogTrigger,
 } from "@coss/ui/components/dialog";
 import { XIcon } from "@coss/ui/icons";
+import { useExperiment } from "@calcom/web/modules/experiments/hooks/useExperiment";
 import posthog from "posthog-js";
 import { useState } from "react";
 import { enterpriseFeatures, formatCents, orgFeatures, teamFeatures } from "../lib/plan-data";
@@ -61,8 +62,19 @@ export function UpgradePlanDialog({
   const teamHref = `/settings/teams/new?bp=${bpParam}`;
   const organizationHref = `/onboarding/organization/details?migrate=true&bp=${bpParam}`;
 
+  const { variant, trackExposure, trackOutcome } = useExperiment("upgrade-dialog-try-cta");
+  const teamButtonText = variant === "try_cta" ? t("try_cta_teams") : t("upgrade_cta_teams");
+  const orgButtonText = variant === "try_cta" ? t("try_cta_orgs") : t("upgrade_cta_orgs");
+
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      trackExposure();
+    }
+    onOpenChange?.(isOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       {children && <DialogTrigger render={children as React.ReactElement} />}
       <DialogPopup className="max-w-3xl" showCloseButton={false} bottomStickOnMobile={false}>
         <DialogHeader>
@@ -98,18 +110,19 @@ export function UpgradePlanDialog({
                   priceSubtext={t("upgrade_price_per_month_user")}
                   description={t("upgrade_plan_team_tagline")}
                   features={teamFeatures(t)}
-                  buttonText={t("upgrade_cta_teams")}
+                  buttonText={teamButtonText}
                   buttonHref={teamHref}
                   buttonTarget={openLinksInNewTab ? "_blank" : undefined}
                   primaryButton={target === "team"}
-                  onCtaClick={() =>
+                  onCtaClick={() => {
+                    trackOutcome();
                     posthog.capture("upgrade_plan_dialog_cta_clicked", {
                       source: tracking,
                       plan: "team",
                       target,
                       billingPeriod,
-                    })
-                  }
+                    });
+                  }}
                 />
               )}
 
@@ -120,18 +133,19 @@ export function UpgradePlanDialog({
                 priceSubtext={t("upgrade_price_per_month_user")}
                 description={t("upgrade_plan_org_tagline")}
                 features={orgFeatures(t)}
-                buttonText={t("upgrade_cta_orgs")}
+                buttonText={orgButtonText}
                 buttonHref={organizationHref}
                 buttonTarget={openLinksInNewTab ? "_blank" : undefined}
                 primaryButton={target === "organization"}
-                onCtaClick={() =>
+                onCtaClick={() => {
+                  trackOutcome();
                   posthog.capture("upgrade_plan_dialog_cta_clicked", {
                     source: tracking,
                     plan: "organization",
                     target,
                     billingPeriod,
-                  })
-                }
+                  });
+                }}
               />
 
               <PlanColumn

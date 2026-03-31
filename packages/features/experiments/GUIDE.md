@@ -54,33 +54,11 @@ ON CONFLICT ("experimentSlug", "variantSlug") DO NOTHING;
 
 Add one `INSERT` per variant. The weight starts at 0 (control gets all traffic) until an admin adjusts it. Labels are displayed in the admin UI; if omitted, the slug is shown instead.
 
-## Step 3: Wire up `ExperimentProvider` in the page
+## Step 3: Use the experiment in your component
 
-The `useExperiment` hook reads from `ExperimentProvider` context. If the provider is missing, the hook gracefully returns control (no crash). But for experiments to actually work, the provider must wrap the component tree.
-
-Add it to the **server component page** (`page.tsx`) that renders your experiment's component:
-
-```typescript
-import { ExperimentProvider } from "@calcom/web/modules/experiments/provider";
-import { getCachedExperimentData } from "@calcom/web/modules/experiments/getCachedExperimentData";
-
-const Page = async () => {
-  const session = await getServerSession({ ... });
-  const experimentData = await getCachedExperimentData(session?.user?.id);
-
-  return (
-    <ExperimentProvider {...experimentData}>
-      <YourPageContent />
-    </ExperimentProvider>
-  );
-};
-```
-
-This fetches experiment configs and precomputes variants server-side — no client-side rerender or flicker. The result is cached per user for 1 hour via `unstable_cache` (tag: `"experiment-data"`).
-
-If the page has multiple return paths (e.g. an upgrade banner for non-paying users), wrap each path that contains your experiment's component.
-
-## Step 4: Use the experiment in your component
+> **Note:** `ExperimentProvider` is already wired up at the layout level (`apps/web/app/(use-page-wrapper)/layout.tsx`). You do NOT need to wrap individual pages — just use the hook directly.
+>
+> **Coverage:** The provider covers all authenticated app pages under `(use-page-wrapper)/`. Public pages like booking pages (`(booking-page-wrapper)/`) and routing forms (`routing-forms/`) are NOT covered. If you need to run `target: "anonymous"` experiments on those pages, you'll need to add `ExperimentProvider` to their layouts separately.
 
 ```typescript
 import { useExperiment } from "@calcom/web/modules/experiments/hooks/useExperiment";
@@ -122,7 +100,7 @@ const { variant, trackExposure, trackOutcome } = useExperiment(slug, options?);
 |--------|---------|-------------|
 | `trackExposure` | `false` | Set to `true` to automatically track exposure on mount. Leave `false` (default) and call `trackExposure()` manually when the variant is actually visible (e.g. when a dialog opens). |
 
-## Step 5: Track the outcome
+## Step 4: Track the outcome
 
 Call `trackOutcome()` when the user completes the desired action. This is what you'll compare between control and variant in PostHog.
 
@@ -139,7 +117,7 @@ const handleUpgrade = () => {
 - `experiment` — the experiment slug
 - `variant` — the assigned variant (or `"control"` for the control group)
 
-## Step 6: Add translations
+## Step 5: Add translations
 
 If your variant changes user-facing text, add translation keys to `packages/i18n/locales/en/common.json`:
 
@@ -149,14 +127,14 @@ If your variant changes user-facing text, add translation keys to `packages/i18n
 }
 ```
 
-## Step 7: Activate via the admin UI
+## Step 6: Activate via the admin UI
 
 1. Navigate to `/settings/admin/experiments`
 2. Find your experiment in the list (it appears from the seed migration in Step 2)
 3. Set variant weights (e.g. 50% control, 50% variant)
 4. Change status from DRAFT to RUNNING
 
-## Step 8: Monitor in PostHog
+## Step 7: Monitor in PostHog
 
 Use PostHog dashboards to track experiment performance:
 
@@ -164,7 +142,7 @@ Use PostHog dashboards to track experiment performance:
 - **Outcome events**: `experiment_outcome` with property `experiment = "your-experiment-slug"`
 - **Conversion rate**: Outcome count / Exposure count, grouped by `variant` property
 
-## Step 9: Conclude the experiment
+## Step 8: Conclude the experiment
 
 Once you have statistically significant results:
 

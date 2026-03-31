@@ -6,8 +6,8 @@ export const CONTROL_GROUP = "control";
 export const EXP_OVERRIDE_PREFIX = "exp_override:";
 
 export const EXPERIMENTS = {
-  "billing-upgrade-cta": {
-    variants: ["upgrade_button"],
+  "upgrade-dialog-try-cta": {
+    variants: ["try_cta"],
     target: "logged-in",
   },
 } as const;
