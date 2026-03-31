@@ -30,6 +30,7 @@ import {
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { addBookingManagementUrlsToWebhookPayload } from "@calcom/features/bookings/lib/addBookingManagementUrlsToWebhookPayload";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
@@ -2609,7 +2610,7 @@ async function handler(
     await handleWebhookTrigger({
       subscriberOptions,
       eventTrigger,
-      webhookData,
+      webhookData: addBookingManagementUrlsToWebhookPayload(webhookData),
       isDryRun,
     });
   } else {

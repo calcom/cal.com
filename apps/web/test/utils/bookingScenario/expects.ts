@@ -275,27 +275,7 @@ export function expectWebhookToHaveBeenCalledWith(
     payload: Record<string, unknown> | null;
   }
 ) {
-  const fetchCalls = fetchMock.mock.calls;
-  const webhooksToSubscriberUrl = fetchCalls.filter((call) => {
-    return call[0] === subscriberUrl;
-  });
-  logger.silly("Scanning fetchCalls for webhook", safeStringify(fetchCalls));
-  const webhookFetchCall = webhooksToSubscriberUrl.find((call) => {
-    const body = call[1]?.body;
-    const parsedBody = JSON.parse((body as string) || "{}");
-    return parsedBody.triggerEvent === data.triggerEvent;
-  });
-
-  if (!webhookFetchCall) {
-    throw new Error(
-      `Webhook not sent to ${subscriberUrl} for ${data.triggerEvent}. All webhooks: ${JSON.stringify(
-        webhooksToSubscriberUrl
-      )}`
-    );
-  }
-  expect(webhookFetchCall[0]).toBe(subscriberUrl);
-  const body = webhookFetchCall[1]?.body;
-  const parsedBody = JSON.parse((body as string) || "{}");
+  const parsedBody = getWebhookBodyForTrigger({ subscriberUrl, triggerEvent: data.triggerEvent });
 
   expect(parsedBody.triggerEvent).toBe(data.triggerEvent);
 
@@ -314,6 +294,36 @@ export function expectWebhookToHaveBeenCalledWith(
       expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
     }
   }
+}
+
+function getWebhookBodyForTrigger({
+  subscriberUrl,
+  triggerEvent,
+}: {
+  subscriberUrl: string;
+  triggerEvent: WebhookTriggerEvents;
+}) {
+  const fetchCalls = fetchMock.mock.calls;
+  const webhooksToSubscriberUrl = fetchCalls.filter((call) => call[0] === subscriberUrl);
+
+  logger.silly("Scanning fetchCalls for webhook", safeStringify(fetchCalls));
+
+  const webhookFetchCall = webhooksToSubscriberUrl.find((call) => {
+    const body = call[1]?.body;
+    const parsedBody = JSON.parse((body as string) || "{}");
+    return parsedBody.triggerEvent === triggerEvent;
+  });
+
+  if (!webhookFetchCall) {
+    throw new Error(
+      `Webhook not sent to ${subscriberUrl} for ${triggerEvent}. All webhooks: ${JSON.stringify(
+        webhooksToSubscriberUrl
+      )}`
+    );
+  }
+
+  expect(webhookFetchCall[0]).toBe(subscriberUrl);
+  return JSON.parse((webhookFetchCall[1]?.body as string) || "{}");
 }
 
 export function expectWorkflowToBeTriggered({
@@ -1008,6 +1018,14 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
       },
     });
   }
+
+  const parsedBody = getWebhookBodyForTrigger({
+    subscriberUrl,
+    triggerEvent: "BOOKING_REQUESTED",
+  });
+
+  expect(parsedBody.payload?.cancellationUrl).toBeUndefined();
+  expect(parsedBody.payload?.rescheduleUrl).toBeUndefined();
 }
 
 export function expectBookingCreatedWebhookToHaveBeenFired({
@@ -1016,6 +1034,8 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   subscriberUrl,
   paidEvent,
   videoCallUrl,
+  cancellationUrl,
+  rescheduleUrl,
   isEmailHidden = false,
   isAttendeePhoneNumberHidden = false,
 }: {
@@ -1025,6 +1045,8 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
   location: string;
   paidEvent?: boolean;
   videoCallUrl?: string | null;
+  cancellationUrl?: string;
+  rescheduleUrl?: string;
   isEmailHidden?: boolean;
   isAttendeePhoneNumberHidden?: boolean;
 }) {
@@ -1035,6 +1057,8 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
         metadata: {
           ...(videoCallUrl ? { videoCallUrl } : null),
         },
+        ...(cancellationUrl ? { cancellationUrl } : null),
+        ...(rescheduleUrl ? { rescheduleUrl } : null),
         responses: {
           name: { label: "your_name", value: booker.name, isHidden: false },
           email: { label: "email_address", value: booker.email, isHidden: isEmailHidden },
@@ -1093,6 +1117,8 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
   location,
   subscriberUrl,
   videoCallUrl,
+  cancellationUrl,
+  rescheduleUrl,
   payload,
 }: {
   organizer: { email: string; name: string };
@@ -1101,12 +1127,16 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
   location: string;
   paidEvent?: boolean;
   videoCallUrl?: string;
+  cancellationUrl?: string;
+  rescheduleUrl?: string;
   payload?: Record<string, unknown>;
 }) {
   expectWebhookToHaveBeenCalledWith(subscriberUrl, {
     triggerEvent: "BOOKING_RESCHEDULED",
     payload: {
       ...payload,
+      ...(cancellationUrl ? { cancellationUrl } : null),
+      ...(rescheduleUrl ? { rescheduleUrl } : null),
       metadata: {
         ...(videoCallUrl ? { videoCallUrl } : null),
       },
