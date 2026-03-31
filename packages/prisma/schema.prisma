@@ -2530,6 +2530,7 @@ model Task {
   lastError           String?
   lastFailedAttemptAt DateTime?
   referenceUid        String?
+  // Partial index on type for pending tasks (WHERE succeededAt IS NULL) — see raw migration
 
   // unique index on referenceUid,type to avoid duplicate tasks
   @@unique([referenceUid, type])
