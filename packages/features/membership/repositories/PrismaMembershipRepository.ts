@@ -420,12 +420,22 @@ export class PrismaMembershipRepository {
                 plan: true,
               },
             },
+            organizationBilling: {
+              select: {
+                planName: true,
+              },
+            },
             parent: {
               select: {
                 isOrganization: true,
                 slug: true,
                 metadata: true,
                 isPlatform: true,
+                organizationBilling: {
+                  select: {
+                    planName: true,
+                  },
+                },
               },
             },
           },

@@ -12,6 +12,7 @@ export interface DunningRecordForBilling {
   entityName: string | null;
   entitySlug: string | null;
   isOrganization: boolean;
+  planName: string | null;
 }
 
 export function toDunningRecordForBilling(
@@ -29,5 +30,6 @@ export function toDunningRecordForBilling(
     entityName: raw.entityName,
     entitySlug: raw.entitySlug,
     isOrganization: raw.isOrganization,
+    planName: raw.planName,
   };
 }

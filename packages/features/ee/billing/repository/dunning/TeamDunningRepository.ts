@@ -1,7 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { DunningStatus } from "@calcom/prisma/client";
-
 import type {
   IDunningRepository,
   RawDunningRecord,
@@ -65,7 +64,11 @@ export class TeamDunningRepository implements IDunningRepository {
         invoiceUrl: true,
         failureReason: true,
         teamBilling: {
-          select: { teamId: true, team: { select: { name: true, slug: true, isOrganization: true } } },
+          select: {
+            teamId: true,
+            planName: true,
+            team: { select: { name: true, slug: true, isOrganization: true } },
+          },
         },
       },
     });
@@ -79,6 +82,7 @@ export class TeamDunningRepository implements IDunningRepository {
       entityName: r.teamBilling.team?.name ?? null,
       entitySlug: r.teamBilling.team?.slug ?? null,
       isOrganization: r.teamBilling.team?.isOrganization ?? false,
+      planName: r.teamBilling.planName,
     }));
   }
 

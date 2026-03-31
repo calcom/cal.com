@@ -1,8 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { BILLING_PLANS, PLATFORM_PLANS_MAP } from "@calcom/features/ee/billing/constants";
 import type { JsonValue } from "@calcom/types/Json";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BillingPlanService } from "../billing-plans";
 
 // Mock the zod-utils module
@@ -12,19 +10,18 @@ vi.mock("@calcom/prisma/zod-utils", () => ({
   },
 }));
 
-// Mock the constants module to control enterprise slugs for testing
+// Mock the constants module (only PLATFORM_ENTERPRISE_SLUGS needed now)
 vi.mock("@calcom/features/ee/billing/constants", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@calcom/features/ee/billing/constants")>();
   return {
     ...actual,
-    ENTERPRISE_SLUGS: ["enterprise-1", "enterprise-2"],
     PLATFORM_ENTERPRISE_SLUGS: ["platform-enterprise-1", "platform-enterprise-2"],
   };
 });
 
 describe("BillingPlanService", () => {
   let service: BillingPlanService;
-  let mockSafeParse: any;
+  let mockSafeParse: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     service = new BillingPlanService();
@@ -47,11 +44,17 @@ describe("BillingPlanService", () => {
         isPlatform: boolean;
         slug: string | null;
         metadata: JsonValue;
+        organizationBilling: {
+          planName: string;
+        } | null;
         parent: {
           isOrganization: boolean;
           slug: string | null;
           isPlatform: boolean;
           metadata: JsonValue;
+          organizationBilling: {
+            planName: string;
+          } | null;
         } | null;
         platformBilling: {
           plan: string;
@@ -67,6 +70,7 @@ describe("BillingPlanService", () => {
       isPlatform: false,
       slug: null,
       metadata: {},
+      organizationBilling: null,
       parent: null,
       platformBilling: null,
       ...overrides.team,
@@ -159,7 +163,7 @@ describe("BillingPlanService", () => {
     });
 
     describe("parent organization subscriptions", () => {
-      it("should return ENTERPRISE for parent org with enterprise slug and subscription", async () => {
+      it("should return ENTERPRISE for parent org with ENTERPRISE planName on billing table", async () => {
         mockSafeParse.mockReturnValueOnce({
           success: true,
           data: { subscriptionId: "sub_parent123" },
@@ -170,9 +174,10 @@ describe("BillingPlanService", () => {
             team: {
               parent: {
                 isOrganization: true,
-                slug: "enterprise-1",
+                slug: "some-org",
                 isPlatform: false,
                 metadata: { subscriptionId: "sub_parent123" },
+                organizationBilling: { planName: "ENTERPRISE" },
               },
             },
           }),
@@ -183,7 +188,7 @@ describe("BillingPlanService", () => {
         expect(mockSafeParse).toHaveBeenCalledWith({ subscriptionId: "sub_parent123" });
       });
 
-      it("should return ORGANIZATIONS for parent org with non-enterprise slug and subscription", async () => {
+      it("should return ORGANIZATIONS for parent org with ORGANIZATION planName on billing table", async () => {
         mockSafeParse.mockReturnValueOnce({
           success: true,
           data: { subscriptionId: "sub_parent456" },
@@ -197,6 +202,31 @@ describe("BillingPlanService", () => {
                 slug: "regular-org",
                 isPlatform: false,
                 metadata: { subscriptionId: "sub_parent456" },
+                organizationBilling: { planName: "ORGANIZATION" },
+              },
+            },
+          }),
+        ];
+
+        const result = await service.getUserPlanByMemberships(memberships);
+        expect(result).toBe(BILLING_PLANS.ORGANIZATIONS);
+      });
+
+      it("should return ORGANIZATIONS for parent org with no organizationBilling record", async () => {
+        mockSafeParse.mockReturnValueOnce({
+          success: true,
+          data: { subscriptionId: "sub_parent789" },
+        });
+
+        const memberships = [
+          createMembership({
+            team: {
+              parent: {
+                isOrganization: true,
+                slug: "org-no-billing",
+                isPlatform: false,
+                metadata: { subscriptionId: "sub_parent789" },
+                organizationBilling: null,
               },
             },
           }),
@@ -223,9 +253,10 @@ describe("BillingPlanService", () => {
               metadata: { subscriptionId: "sub_team789" },
               parent: {
                 isOrganization: true,
-                slug: "enterprise-1",
+                slug: "enterprise-org",
                 isPlatform: true, // This should be skipped
                 metadata: { subscriptionId: "sub_parent123" },
+                organizationBilling: { planName: "ENTERPRISE" },
               },
             },
           }),
@@ -252,9 +283,10 @@ describe("BillingPlanService", () => {
               metadata: { subscriptionId: "sub_team123" },
               parent: {
                 isOrganization: true,
-                slug: "enterprise-1",
+                slug: "enterprise-org",
                 isPlatform: false,
                 metadata: { invalid: "metadata" },
+                organizationBilling: { planName: "ENTERPRISE" },
               },
             },
           }),
@@ -281,9 +313,10 @@ describe("BillingPlanService", () => {
               metadata: { subscriptionId: "sub_team123" },
               parent: {
                 isOrganization: true,
-                slug: "enterprise-1",
+                slug: "enterprise-org",
                 isPlatform: false,
                 metadata: { subscriptionId: null },
+                organizationBilling: { planName: "ENTERPRISE" },
               },
             },
           }),
@@ -295,7 +328,7 @@ describe("BillingPlanService", () => {
     });
 
     describe("team organization subscriptions", () => {
-      it("should return ENTERPRISE for team org with enterprise slug and subscription", async () => {
+      it("should return ENTERPRISE for team org with ENTERPRISE planName on billing table", async () => {
         mockSafeParse
           // Parent metadata parsing (no parent, so empty object gets default empty data)
           .mockReturnValueOnce({
@@ -312,8 +345,9 @@ describe("BillingPlanService", () => {
           createMembership({
             team: {
               isOrganization: true,
-              slug: "enterprise-2",
+              slug: "some-org",
               metadata: { subscriptionId: "sub_team123" },
+              organizationBilling: { planName: "ENTERPRISE" },
             },
           }),
         ];
@@ -322,7 +356,7 @@ describe("BillingPlanService", () => {
         expect(result).toBe(BILLING_PLANS.ENTERPRISE);
       });
 
-      it("should return ORGANIZATIONS for team org with regular slug and subscription", async () => {
+      it("should return ORGANIZATIONS for team org with ORGANIZATION planName on billing table", async () => {
         mockSafeParse
           // Parent metadata parsing (no parent)
           .mockReturnValueOnce({
@@ -341,6 +375,33 @@ describe("BillingPlanService", () => {
               isOrganization: true,
               slug: "regular-team-org",
               metadata: { subscriptionId: "sub_team456" },
+              organizationBilling: { planName: "ORGANIZATION" },
+            },
+          }),
+        ];
+
+        const result = await service.getUserPlanByMemberships(memberships);
+        expect(result).toBe(BILLING_PLANS.ORGANIZATIONS);
+      });
+
+      it("should return ORGANIZATIONS for team org with no organizationBilling record", async () => {
+        mockSafeParse
+          .mockReturnValueOnce({
+            success: true,
+            data: {},
+          })
+          .mockReturnValueOnce({
+            success: true,
+            data: { subscriptionId: "sub_team789" },
+          });
+
+        const memberships = [
+          createMembership({
+            team: {
+              isOrganization: true,
+              slug: "org-no-billing",
+              metadata: { subscriptionId: "sub_team789" },
+              organizationBilling: null,
             },
           }),
         ];
@@ -458,9 +519,10 @@ describe("BillingPlanService", () => {
               metadata: { subscriptionId: "sub_team123" },
               parent: {
                 isOrganization: true,
-                slug: "enterprise-1",
+                slug: "enterprise-org",
                 isPlatform: false,
                 metadata: { subscriptionId: "sub_parent123" },
+                organizationBilling: { planName: "ENTERPRISE" },
               },
             },
           }),
@@ -491,8 +553,9 @@ describe("BillingPlanService", () => {
           createMembership({
             team: {
               isOrganization: true,
-              slug: "enterprise-1",
+              slug: "enterprise-org",
               metadata: { subscriptionId: "sub_enterprise" },
+              organizationBilling: { planName: "ENTERPRISE" },
             },
           }),
         ];
@@ -589,9 +652,10 @@ describe("BillingPlanService", () => {
               metadata: { subscriptionId: "sub_123" },
               parent: {
                 isOrganization: true,
-                slug: "enterprise-1",
+                slug: "enterprise-org",
                 isPlatform: false,
-                metadata: null as any,
+                metadata: null as unknown as JsonValue,
+                organizationBilling: { planName: "ENTERPRISE" },
               },
             },
           }),

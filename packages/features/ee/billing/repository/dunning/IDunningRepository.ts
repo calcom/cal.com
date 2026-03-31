@@ -37,6 +37,7 @@ export interface RawDunningRecordForBilling {
   entityName: string | null;
   entitySlug: string | null;
   isOrganization: boolean;
+  planName: string | null;
 }
 
 export interface RawDunningRecordForBanner {

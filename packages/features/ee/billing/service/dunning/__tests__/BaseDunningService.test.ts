@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
 import type {
   IDunningRepository,
   RawDunningRecordForBilling,
@@ -15,10 +14,6 @@ vi.mock("@calcom/lib/logger", () => ({
       error: vi.fn(),
     }),
   },
-}));
-
-vi.mock("../../../constants", () => ({
-  ENTERPRISE_SLUGS: ["enterprise-acme"],
 }));
 
 function createMockRepository(): {
@@ -82,6 +77,7 @@ function makeRawRecordForBilling(
     entityName: "Team Alpha",
     entitySlug: "team-alpha",
     isOrganization: false,
+    planName: "TEAM",
     ...overrides,
   };
 }
@@ -582,7 +578,7 @@ describe("BaseDunningService", () => {
       ]);
     });
 
-    it("sets isEnterprise true when entitySlug matches ENTERPRISE_SLUGS", async () => {
+    it("sets isEnterprise true when planName is ENTERPRISE", async () => {
       mockRepo.findByBillingIds.mockResolvedValue([
         makeRawRecordForBilling({
           billingFk: "billing_ent",
@@ -591,6 +587,7 @@ describe("BaseDunningService", () => {
           entityName: "Enterprise Acme",
           entitySlug: "enterprise-acme",
           isOrganization: false,
+          planName: "ENTERPRISE",
         }),
       ]);
 
@@ -600,16 +597,30 @@ describe("BaseDunningService", () => {
       expect(result[0].isEnterprise).toBe(true);
     });
 
-    it("sets isEnterprise false when entitySlug is null", async () => {
+    it("sets isEnterprise false when planName is not ENTERPRISE", async () => {
       mockRepo.findByBillingIds.mockResolvedValue([
         makeRawRecordForBilling({
-          billingFk: "billing_no_slug",
+          billingFk: "billing_org",
           teamId: 600,
-          entitySlug: null,
+          planName: "ORGANIZATION",
         }),
       ]);
 
-      const result = await service.getBannerData(["billing_no_slug"]);
+      const result = await service.getBannerData(["billing_org"]);
+
+      expect(result[0].isEnterprise).toBe(false);
+    });
+
+    it("sets isEnterprise false when planName is null", async () => {
+      mockRepo.findByBillingIds.mockResolvedValue([
+        makeRawRecordForBilling({
+          billingFk: "billing_no_plan",
+          teamId: 700,
+          planName: null,
+        }),
+      ]);
+
+      const result = await service.getBannerData(["billing_no_plan"]);
 
       expect(result[0].isEnterprise).toBe(false);
     });

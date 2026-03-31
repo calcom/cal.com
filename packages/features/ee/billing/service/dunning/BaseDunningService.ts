@@ -1,14 +1,12 @@
 import logger from "@calcom/lib/logger";
-
 import type { IDunningRepository } from "../../repository/dunning/IDunningRepository";
-import { ENTERPRISE_SLUGS } from "../../constants";
 import type { DunningRecordForBilling } from "./DunningMapper";
 import { toDunningRecordForBilling } from "./DunningMapper";
 import type { DunningEntityType, DunningStatus } from "./DunningState";
 import { DunningState } from "./DunningState";
 import type { DunningBannerRecord, IDunningService, PaymentFailedParams } from "./IDunningService";
 
-export { SOFT_BLOCK_DAYS, HARD_BLOCK_DAYS, CANCEL_DAYS } from "./DunningState";
+export { CANCEL_DAYS, HARD_BLOCK_DAYS, SOFT_BLOCK_DAYS } from "./DunningState";
 
 const log = logger.getSubLogger({ prefix: ["DunningService"] });
 
@@ -26,7 +24,9 @@ export class BaseDunningService implements IDunningService {
     const { billingId, subscriptionId, failedInvoiceId, invoiceUrl, failureReason } = params;
 
     const raw = await this.deps.dunningRepository.findByBillingId(billingId);
-    const state = raw ? DunningState.fromRecord(raw, this.entityType) : DunningState.initial(billingId, this.entityType);
+    const state = raw
+      ? DunningState.fromRecord(raw, this.entityType)
+      : DunningState.initial(billingId, this.entityType);
 
     const { state: next, isNewDunningRecord } = state.recordPaymentFailure({
       subscriptionId,
@@ -46,7 +46,9 @@ export class BaseDunningService implements IDunningService {
       failureReason: next.failureReason,
     });
 
-    log.info(`Payment failed for ${this.entityType} billing ${billingId}, dunning status set to ${next.status}`);
+    log.info(
+      `Payment failed for ${this.entityType} billing ${billingId}, dunning status set to ${next.status}`
+    );
     return { isNewDunningRecord };
   }
 
@@ -126,7 +128,7 @@ export class BaseDunningService implements IDunningService {
       teamName: r.entityName ?? "",
       isOrganization: r.isOrganization,
       status: r.status,
-      isEnterprise: r.entitySlug ? ENTERPRISE_SLUGS.includes(r.entitySlug) : false,
+      isEnterprise: r.planName === "ENTERPRISE",
       invoiceUrl: r.invoiceUrl,
     }));
   }

@@ -1,7 +1,6 @@
 import {
-  type BillingPlan,
   BILLING_PLANS,
-  ENTERPRISE_SLUGS,
+  type BillingPlan,
   PLATFORM_ENTERPRISE_SLUGS,
   PLATFORM_PLANS_MAP,
 } from "@calcom/features/ee/billing/constants";
@@ -16,11 +15,17 @@ export class BillingPlanService {
         isPlatform: boolean;
         slug: string | null;
         metadata: JsonValue;
+        organizationBilling: {
+          planName: string;
+        } | null;
         parent: {
           isOrganization: boolean;
           slug: string | null;
           isPlatform: boolean;
           metadata: JsonValue;
+          organizationBilling: {
+            planName: string;
+          } | null;
         } | null;
         platformBilling: {
           plan: string;
@@ -48,7 +53,7 @@ export class BillingPlanService {
         parentTeamMetadata?.subscriptionId &&
         !team.parent.isPlatform
       ) {
-        return ENTERPRISE_SLUGS.includes(team.parent.slug ?? "")
+        return team.parent.organizationBilling?.planName === "ENTERPRISE"
           ? BILLING_PLANS.ENTERPRISE
           : BILLING_PLANS.ORGANIZATIONS;
       }
@@ -57,7 +62,7 @@ export class BillingPlanService {
       // (emrysal) if we do an early return on !teamMetadata?.subscriptionId here, the bundler is not smart enough to infer
       // that it shouldn't clear out the BILLING_PLANS before the for() scope finishes.
       if (team.isOrganization && teamMetadata?.subscriptionId) {
-        return ENTERPRISE_SLUGS.includes(team.slug ?? "")
+        return team.organizationBilling?.planName === "ENTERPRISE"
           ? BILLING_PLANS.ENTERPRISE
           : BILLING_PLANS.ORGANIZATIONS;
       }

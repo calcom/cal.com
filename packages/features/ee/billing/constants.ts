@@ -33,7 +33,6 @@ export const PLATFORM_PLANS_MAP: Record<string, BillingPlan> = {
 };
 
 export const PLATFORM_ENTERPRISE_SLUGS = process.env.PLATFORM_ENTERPRISE_SLUGS?.split(",") ?? [];
-export const ENTERPRISE_SLUGS = process.env.ENTERPRISE_SLUGS?.split(",") ?? [];
 
 export const CHECKOUT_SESSION_EXPIRY_MINUTES = Number(process.env.CHECKOUT_SESSION_EXPIRY_MINUTES) || 60;
 
