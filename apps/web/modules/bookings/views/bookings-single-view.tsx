@@ -39,6 +39,7 @@ import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import type { nameObjectSchema } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
+import { generateBrandColorStyles } from "@calcom/lib/getBrandColours";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -150,6 +151,10 @@ export default function Success(props: PageProps) {
   const getFieldLabel = (fieldKey: string, fallback: string) =>
     bookingPageFieldsConfig?.[fieldKey]?.label || fallback;
   const isFieldVisible = (fieldKey: string) => bookingPageFieldsConfig?.[fieldKey]?.visible !== false;
+  const successHeadlineOverride = bookingPageFieldsConfig?.successHeadline?.label?.trim();
+  const successSubheadlineOverride = bookingPageFieldsConfig?.successSubheadline?.label?.trim();
+  const showSuccessHeadline = isFieldVisible("successHeadline");
+  const showSuccessSubheadline = isFieldVisible("successSubheadline");
 
   const {
     allRemainingBookings,
@@ -464,6 +469,8 @@ export default function Success(props: PageProps) {
 
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
+  const resolvedSuccessHeadline = successHeadlineOverride || successPageHeadline;
+  const resolvedSuccessSubheadline = successSubheadlineOverride || getTitle();
 
   try {
     window.dataLayer = window.dataLayer || [];
@@ -539,6 +546,13 @@ export default function Success(props: PageProps) {
       <BookingPageTagManager
         eventType={{ ...eventType, metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata) }}
       />
+
+      <style
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: generateBrandColorStyles(props.profile?.brandColor ?? undefined, props.profile?.darkBrandColor ?? undefined),
+        }}
+      />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-4xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
           <div
@@ -560,7 +574,7 @@ export default function Success(props: PageProps) {
                 )}
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby="modal-headline">
+                aria-labelledby={showSuccessHeadline ? "modal-headline" : undefined}>
                 {!isFeedbackMode && (
                   <>
                     {showTopBanner ? (
@@ -606,16 +620,20 @@ export default function Success(props: PageProps) {
                       </div>
                     )}
                     <div className="mb-8 mt-6 text-center last:mb-0">
-                      <h3
-                        className="text-emphasis text-2xl font-semibold leading-6"
-                        data-testid={isCancelled ? "cancelled-headline" : ""}
-                        id="modal-headline">
-                        {successPageHeadline}
-                      </h3>
+                      {showSuccessHeadline && (
+                        <h3
+                          className="text-emphasis text-2xl font-semibold leading-6"
+                          data-testid={isCancelled ? "cancelled-headline" : ""}
+                          id="modal-headline">
+                          {resolvedSuccessHeadline}
+                        </h3>
+                      )}
 
-                      <div className="mt-1">
-                        <p className="text-default">{getTitle()}</p>
-                      </div>
+                      {showSuccessSubheadline && (
+                        <div className={showSuccessHeadline ? "mt-1" : undefined}>
+                          <p className="text-default">{resolvedSuccessSubheadline}</p>
+                        </div>
+                      )}
                       {props.paymentStatus &&
                         (bookingInfo.status === BookingStatus.CANCELLED ||
                           bookingInfo.status === BookingStatus.REJECTED) && (
@@ -662,14 +680,9 @@ export default function Success(props: PageProps) {
 
                       {showCta && ctaPosition === "top" && (
                         <div className="mt-6 flex justify-center">
-                          <a
-                            href={ctaUrl}
-                            className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-white"
-                            style={{
-                              backgroundColor: props.profile.brandColor || "#111827",
-                            }}>
+                          <Button href={ctaUrl} color="primary">
                             {ctaText}
-                          </a>
+                          </Button>
                         </div>
                       )}
 
@@ -986,14 +999,9 @@ export default function Success(props: PageProps) {
 
                       {showCta && ctaPosition === "bottom" && (
                         <div className="mt-6 flex justify-center">
-                          <a
-                            href={ctaUrl}
-                            className="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-white"
-                            style={{
-                              backgroundColor: props.profile.brandColor || "#111827",
-                            }}>
+                          <Button href={ctaUrl} color="primary">
                             {ctaText}
-                          </a>
+                          </Button>
                         </div>
                       )}
 

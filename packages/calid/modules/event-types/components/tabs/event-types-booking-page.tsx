@@ -23,7 +23,14 @@ import { Controller, useFormContext } from "react-hook-form";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import classNames from "@calcom/ui/classNames";
 
-type BookingPageFieldKey = "what" | "when" | "who" | "where" | "notes";
+type BookingPageFieldKey =
+  | "what"
+  | "when"
+  | "who"
+  | "where"
+  | "notes"
+  | "successHeadline"
+  | "successSubheadline";
 
 export const EventBookingPage = () => {
   const formMethods = useFormContext<FormValues>();
@@ -38,6 +45,15 @@ export const EventBookingPage = () => {
         { key: "who" as const, fallbackLabel: "Who" },
         { key: "where" as const, fallbackLabel: "Where" },
         { key: "notes" as const, fallbackLabel: "Additional notes" },
+      ] satisfies { key: BookingPageFieldKey; fallbackLabel: string }[],
+    []
+  );
+
+  const thankYouHeaderFields = useMemo(
+    () =>
+      [
+        { key: "successHeadline" as const, fallbackLabel: "Success Headline" },
+        { key: "successSubheadline" as const, fallbackLabel: "Success Subheadline" },
       ] satisfies { key: BookingPageFieldKey; fallbackLabel: string }[],
     []
   );
@@ -80,6 +96,51 @@ export const EventBookingPage = () => {
         </CardHeader>
         <CardContent className="space-y-3">
           {bookingPageFields.map((field) => {
+            const currentLabel = getFieldLabel(field.key, field.fallbackLabel);
+            const isVisible = getFieldVisible(field.key);
+            return (
+              <div
+                key={field.key}
+                className="border-subtle flex items-center justify-between rounded-md border px-3 py-2">
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="icon"
+                    color="secondary"
+                    StartIcon="pencil-line"
+                    onClick={() => openEditLabelDialog(field.key, field.fallbackLabel)}
+                    tooltip="Edit"
+                  />
+                  <div>
+                    <p className="text-default text-sm font-medium">{currentLabel}</p>
+                    <p className="text-subtle text-xs">{field.fallbackLabel}</p>
+                  </div>
+                </div>
+                <Switch
+                  checked={isVisible}
+                  onCheckedChange={(checked) =>
+                    formMethods.setValue(
+                      `metadata.bookingPage.thankYouPage.fields.${field.key}.visible`,
+                      checked,
+                      {
+                        shouldDirty: true,
+                      }
+                    )
+                  }
+                />
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Thank You Page Header</CardTitle>
+          <CardDescription>Show/hide and customize the success heading and subtitle text.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {thankYouHeaderFields.map((field) => {
             const currentLabel = getFieldLabel(field.key, field.fallbackLabel);
             const isVisible = getFieldVisible(field.key);
             return (
