@@ -254,12 +254,6 @@ class ImpersonationHandlers {
     const originalUser = await ImpersonationQueries.fetchReturningUser(parsedReturnId);
     if (!originalUser) return undefined;
 
-    const hasOrgContext =
-      originalUser.organizationId || originalUser.profiles.some((p) => p.organizationId !== undefined);
-
-    const canReturn = originalUser.role === "ADMIN" || hasOrgContext;
-    if (!canReturn) return undefined;
-
     const userProfile = await ProfileManager.resolveUserProfile(originalUser);
 
     return {
