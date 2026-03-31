@@ -8,12 +8,12 @@ import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 
 import dayjs from "@calcom/dayjs";
-import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
+import { enforceSMSAbusePrevention } from "@calcom/lib/checkRateLimitAndThrowError";
 import { META_API_VERSION } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-import { SMSLockState, WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
+import { WorkflowMethods, WorkflowStatus } from "@calcom/prisma/enums";
 
 import { META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import type { VariablesType } from "../templates/customTemplate";
@@ -42,7 +42,8 @@ interface MetaMessageConfiguration {
   workflowStepId?: number;
   recipientNumber: string;
   accountId?: number | null;
-  organizationId?: number | null;
+  teamId?: number | null;
+  ipAddress?: string | null;
   templateType?: WorkflowTemplates | null;
   variableData: VariablesType;
   bookingUid?: string | null;
@@ -84,44 +85,6 @@ const META_API_BASE_URL = `https://graph.facebook.com/${META_API_VERSION}`;
 
 // In-memory scheduled message store (replace with Redis/DB in production)
 const scheduledMessages = new Map<string, MetaScheduledMessage>();
-
-const validateSendingPermissions = async (
-  accountId?: number | null,
-  organizationId?: number | null
-): Promise<boolean> => {
-  if (organizationId) {
-    const organizationData = await prisma.team.findFirst({
-      where: { id: organizationId },
-    });
-    return organizationData?.smsLockState === SMSLockState.LOCKED;
-  }
-
-  if (accountId) {
-    const userMemberships = await prisma.membership.findMany({
-      where: { userId: accountId },
-      select: {
-        team: {
-          select: { smsLockState: true },
-        },
-      },
-    });
-
-    const restrictedMembership = userMemberships.find(
-      (membership) => membership.team.smsLockState === SMSLockState.LOCKED
-    );
-
-    if (!!restrictedMembership) {
-      return true;
-    }
-
-    const accountData = await prisma.user.findFirst({
-      where: { id: accountId },
-    });
-    return accountData?.smsLockState === SMSLockState.LOCKED;
-  }
-
-  return false;
-};
 
 const formatPhoneNumber = (phoneNumber: string): string => {
   // Remove whatsapp: prefix if present
@@ -556,7 +519,7 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
         workflowId: config.workflowId,
         phoneNumber: config.recipientNumber,
         userId: config.accountId,
-        teamId: config.organizationId,
+        teamId: config.teamId,
         metaTemplateName: config.metaTemplateName,
         metaPhoneNumberId: config.metaPhoneNumberId,
       })
@@ -615,12 +578,13 @@ const sendMetaWhatsAppMessage = async (config: MetaMessageConfiguration) => {
     }
 
     // Rate limiting
-    if (!config.organizationId && config.accountId) {
-      await checkSMSRateLimit({
-        identifier: `whatsapp:user:${config.accountId}`,
-        rateLimitingType: "smsMonth",
-      });
-    }
+    await enforceSMSAbusePrevention({
+      userId: config.accountId,
+      calIdTeamId: config.teamId,
+      ipAddress: config.ipAddress,
+      provider: "META",
+      channel: "WHATSAPP",
+    });
 
     const formattedRecipient = formatPhoneNumber(config.recipientNumber);
 
@@ -717,6 +681,7 @@ export const sendSMS = async (args: {
   phoneNumber: string;
   userId?: number | null;
   teamId?: number | null;
+  ipAddress?: string | null;
   template?: WorkflowTemplates | null;
   variableData: VariablesType;
   metaTemplateName?: string | null;
@@ -731,7 +696,8 @@ export const sendSMS = async (args: {
     workflowStepId: args.workflowStepId,
     recipientNumber: args.phoneNumber,
     accountId: args.userId,
-    organizationId: args.teamId,
+    teamId: args.teamId,
+    ipAddress: args.ipAddress,
     templateType: args.template,
     variableData: args.variableData,
     metaTemplateName: args?.metaTemplateName,
@@ -747,6 +713,7 @@ export const scheduleSMS = async (args: {
   scheduledDate: Date;
   userId?: number | null;
   teamId?: number | null;
+  ipAddress?: string | null;
   template?: WorkflowTemplates;
   variableData: VariablesType;
   workflowId?: number;
@@ -761,7 +728,8 @@ export const scheduleSMS = async (args: {
     action: args.action,
     recipientNumber: args.phoneNumber,
     accountId: args.userId,
-    organizationId: args.teamId,
+    teamId: args.teamId,
+    ipAddress: args.ipAddress,
     templateType: args.template,
     variableData: args.variableData,
     metaTemplateName: args?.metaTemplateName,
@@ -783,6 +751,14 @@ export const scheduleSMS = async (args: {
  * Schedule a WhatsApp message using the job dispatcher for delayed notifications
  */
 const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) => {
+  await enforceSMSAbusePrevention({
+    userId: config.accountId,
+    calIdTeamId: config.teamId,
+    ipAddress: config.ipAddress,
+    provider: "META",
+    channel: "WHATSAPP",
+  });
+
   // Create a reminder record first (if not exists)
   let reminderId: number;
 
@@ -828,7 +804,7 @@ const scheduleMetaWhatsAppMessage = async (config: MetaScheduledMessageConfig) =
     scheduledDate: config.deliveryTimestamp.toISOString(),
     variableData: config.variableData,
     userId: config.accountId,
-    teamId: config.organizationId,
+    teamId: config.teamId,
     template: config.templateType ?? null,
     metaTemplateName: config.metaTemplateName,
     metaPhoneNumberId: config.metaPhoneNumberId,

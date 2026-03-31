@@ -8,6 +8,8 @@ export interface SendSmsOptions {
   from?: string;
   userId?: number | null;
   teamId?: number | null;
+  ipAddress?: string | null;
+  provider?: string;
   isWhatsApp?: boolean;
   template?: WorkflowTemplates;
   contentVariables?: string;

@@ -1,3 +1,4 @@
+import { enforceSMSAbusePrevention } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { WorkflowTemplates } from "@calcom/prisma/enums";
@@ -172,7 +173,8 @@ export async function sendSMS(
   teamId?: number | null,
   whatsapp = false,
   template?: WorkflowTemplates,
-  contentVariables?: string
+  contentVariables?: string,
+  context?: { ipAddress?: string | null }
 ): Promise<SendSmsResponse> {
   try {
     // Force Twilio for CUSTOM workflows (other providers don't support custom bodies)
@@ -195,10 +197,20 @@ export async function sendSMS(
       from: sender,
       userId,
       teamId,
+      ipAddress: context?.ipAddress,
+      provider: providerName,
       isWhatsApp: whatsapp,
       template,
       contentVariables,
     };
+
+    await enforceSMSAbusePrevention({
+      userId,
+      calIdTeamId: teamId,
+      ipAddress: context?.ipAddress,
+      provider: providerName,
+      channel: whatsapp ? "WHATSAPP" : "SMS",
+    });
 
     return await executeWithFallback(
       "sendSMS",
@@ -229,7 +241,8 @@ export async function scheduleSMS(
   teamId?: number | null,
   whatsapp = false,
   template?: WorkflowTemplates,
-  contentVariables?: string
+  contentVariables?: string,
+  context?: { ipAddress?: string | null }
 ): Promise<SendSmsResponse> {
   try {
     // Force Twilio for CUSTOM workflows (other providers don't support custom bodies)
@@ -254,10 +267,20 @@ export async function scheduleSMS(
       scheduledDate,
       userId,
       teamId,
+      ipAddress: context?.ipAddress,
+      provider: providerName,
       isWhatsApp: whatsapp,
       template,
       contentVariables,
     };
+
+    await enforceSMSAbusePrevention({
+      userId,
+      calIdTeamId: teamId,
+      ipAddress: context?.ipAddress,
+      provider: providerName,
+      channel: whatsapp ? "WHATSAPP" : "SMS",
+    });
 
     return await executeWithFallback(
       "scheduleSMS",
@@ -335,12 +358,27 @@ export async function deleteMultipleScheduledSMS(referenceIds: string[]): Promis
 /**
  * Send a verification code to a phone number using the active provider
  */
-export async function sendVerificationCode(phoneNumber: string): Promise<SendSmsResponse> {
+export async function sendVerificationCode(
+  phoneNumber: string,
+  context?: {
+    userId?: number | null;
+    calIdTeamId?: number | null;
+    ipAddress?: string | null;
+  }
+): Promise<SendSmsResponse> {
   try {
     const { provider, providerName } = await getActiveMessagingProvider();
     const fallbackProvider = getFallbackSmsProvider();
 
     messagingLogger.debug(`Sending verification code via ${providerName}`, { phoneNumber });
+
+    await enforceSMSAbusePrevention({
+      userId: context?.userId,
+      calIdTeamId: context?.calIdTeamId,
+      ipAddress: context?.ipAddress,
+      provider: providerName,
+      channel: "SMS",
+    });
 
     return await executeWithFallback(
       "sendVerificationCode",
