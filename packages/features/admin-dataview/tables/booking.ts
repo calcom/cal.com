@@ -64,4 +64,10 @@ export const bookingTable: TableDefinition = {
     { column: "metadata", label: "Metadata", type: "json", access: "hidden" },
     { column: "responses", label: "Responses", type: "json", access: "hidden" },
   ],
+  panels: [
+    {
+      id: "trigger-runs",
+      label: "Trigger.dev Runs",
+    },
+  ],
 };

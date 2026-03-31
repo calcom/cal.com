@@ -3,6 +3,7 @@ import { z } from "zod";
 import { readonlyPrisma } from "@calcom/prisma";
 
 import { getAdminDataViewService, getAdminTableRegistry } from "../di/container";
+import { AdminTriggerRunsService } from "./trigger-runs.service";
 
 const ZListInput = z.object({
   slug: z.string(),
@@ -182,6 +183,25 @@ export function createAdminDataViewRouter(
             : null,
           seatChanges,
         };
+      }),
+
+    triggerRunsByTag: authedAdminProcedure
+      .input(
+        z.object({
+          tag: z.string().min(1).max(256),
+          limit: z.number().int().min(1).max(50).default(20),
+        })
+      )
+      .query(async ({ input }) => {
+        const triggerService = new AdminTriggerRunsService();
+        return triggerService.listByTag(input);
+      }),
+
+    replayTriggerRun: authedAdminProcedure
+      .input(z.object({ runId: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const triggerService = new AdminTriggerRunsService();
+        return triggerService.replay(input.runId);
       }),
   });
 }

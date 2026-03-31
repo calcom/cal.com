@@ -6,6 +6,7 @@ import { LoaderIcon } from "@coss/ui/icons";
 import { trpc } from "@calcom/trpc/react";
 
 import { BillingPanel } from "./BillingPanel";
+import { TriggerRunsPanel } from "./TriggerRunsPanel";
 
 const PANEL_COMPONENTS: Record<
   string,
@@ -21,6 +22,17 @@ const PANEL_COMPONENTS: Record<
       const { data, isPending } = trpc.viewer.admin.dataview.billingByTeamId.useQuery(
         { teamId },
         { enabled: !!teamId }
+      );
+      return { data, isPending };
+    },
+  },
+  "trigger-runs": {
+    Component: ({ data }) => <TriggerRunsPanel data={data} />,
+    useData: (row) => {
+      const bookingUid = row.uid as string;
+      const { data, isPending } = trpc.viewer.admin.dataview.triggerRunsByTag.useQuery(
+        { tag: `booking:${bookingUid}` },
+        { enabled: !!bookingUid }
       );
       return { data, isPending };
     },
