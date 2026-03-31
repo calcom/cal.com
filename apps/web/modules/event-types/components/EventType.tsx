@@ -62,6 +62,7 @@ export type EventTypeComponentProps = EventTypeSetupProps & {
   isPlatform?: boolean;
   tabName: (typeof tabs)[number];
   tabsNavigation: VerticalTabItemProps[];
+  hasUnsavedChanges: boolean;
   allowDelete?: boolean;
   saveButtonRef?: React.RefObject<HTMLButtonElement>;
 };
@@ -80,6 +81,7 @@ export const EventType = ({
   isDeleting,
   tabsNavigation,
   handleSubmit,
+  hasUnsavedChanges,
   children,
   allowDelete = true,
   saveButtonRef,
@@ -102,6 +104,7 @@ export const EventType = ({
         isDeleting={isDeleting}
         isPlatform={isPlatform}
         allowDelete={allowDelete}
+        hasUnsavedChanges={hasUnsavedChanges}
         tabsNavigation={tabsNavigation}
         saveButtonRef={saveButtonRef}>
         <Form form={formMethods} id="event-type-form" handleSubmit={handleSubmit}>

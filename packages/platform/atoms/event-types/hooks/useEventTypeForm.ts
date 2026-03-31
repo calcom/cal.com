@@ -15,7 +15,8 @@ import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateI
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { eventTypeBookingFields as eventTypeBookingFieldsSchema } from "@calcom/prisma/zod-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
+import isEqual from "lodash/isEqual";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -200,12 +201,22 @@ export const useEventTypeForm = ({
     ),
   });
 
+  const baselineRef = useRef<FormValues>(defaultValues);
+
+  useEffect(() => {
+    baselineRef.current = defaultValues;
+  }, [defaultValues]);
+
   const {
     formState: { isDirty: isFormDirty, dirtyFields },
   } = form;
 
   // Watch all form values to trigger onFormStateChange on any change
   const watchedValues = form.watch();
+
+  const hasUnsavedChanges = useMemo(() => {
+    return !isEqual(baselineRef.current, watchedValues);
+  }, [watchedValues]);
 
   const isObject = <T>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -439,5 +450,5 @@ export const useEventTypeForm = ({
     }
   }, [isFormDirty, dirtyFields, watchedValues, onFormStateChange]);
 
-  return { form, handleSubmit };
+  return { form, handleSubmit, hasUnsavedChanges };
 };
