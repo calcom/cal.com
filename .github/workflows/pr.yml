@@ -31,6 +31,7 @@ jobs:
       has-prisma-changes: ${{ steps.filter-inclusions.outputs.has-prisma-changes }}
       has-agents-changes: ${{ steps.filter-inclusions.outputs.has-agents-changes }}
       has-docs-changes: ${{ steps.filter-inclusions.outputs.has-docs-changes }}
+      has-api-v2-docs-coverage-changes: ${{ steps.filter-inclusions.outputs.has-api-v2-docs-coverage-changes }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' }}
       db-cache-hit: ${{ steps.cache-db-check.outputs.cache-hit }}
@@ -74,6 +75,9 @@ jobs:
           filters: |
             has-docs-changes:
               - "docs/**"
+            has-api-v2-docs-coverage-changes:
+              - "docs/docs.json"
+              - "docs/api-reference/v2/openapi.json"
             has-agents-changes:
               - "agents/**"
             has-api-v2-changes:
@@ -244,7 +248,7 @@ jobs:
   build-docs:
     name: Production builds
     needs: [prepare]
-    if: ${{ needs.prepare.outputs.has-docs-changes == 'true' || (needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true') }}
+    if: ${{ needs.prepare.outputs.has-docs-changes == 'true' || needs.prepare.outputs.has-api-v2-docs-coverage-changes == 'true' || (needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true') }}
     uses: ./.github/workflows/docs-build.yml
     secrets: inherit
 
@@ -388,6 +392,6 @@ jobs:
             needs.validate-agents-format.result != 'success'
           ) ||
           (
-            needs.prepare.outputs.has-docs-changes == 'true' &&
+            (needs.prepare.outputs.has-docs-changes == 'true' || needs.prepare.outputs.has-api-v2-docs-coverage-changes == 'true') &&
             needs.build-docs.result != 'success'
           )
