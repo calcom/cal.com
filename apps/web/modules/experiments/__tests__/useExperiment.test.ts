@@ -22,6 +22,11 @@ vi.mock("@calcom/lib/webstorage", () => ({
       delete mockLocalStorage[key];
     },
   },
+  sessionStorage: {
+    getItem: (key: string) => window.sessionStorage.getItem(key),
+    setItem: (key: string, value: string) => window.sessionStorage.setItem(key, value),
+    removeItem: (key: string) => window.sessionStorage.removeItem(key),
+  },
 }));
 
 // Mock config — needs vi.hoisted so it's available at mock definition time
@@ -45,7 +50,9 @@ vi.mock("@calcom/features/experiments/lib/bucketing", () => ({
 import { ExperimentContext } from "../provider";
 import { useExperiment } from "../hooks/useExperiment";
 
-function createWrapper(contextValue: { configs: unknown[]; precomputedVariants: Record<string, string | null> | null } | null) {
+function createWrapper(
+  contextValue: { configs: unknown[]; precomputedVariants: Record<string, string | null> | null } | null
+) {
   return function Wrapper({ children }: { children: React.ReactNode }) {
     return React.createElement(ExperimentContext.Provider, { value: contextValue as never }, children);
   };
@@ -171,5 +178,52 @@ describe("useExperiment", () => {
     });
   });
 
-  // Admin preview override tests live in PR #342 where the override logic is introduced.
+  describe("admin preview override", () => {
+    afterEach(() => {
+      window.sessionStorage.removeItem("exp_override:billing-upgrade-cta");
+    });
+
+    it("returns override variant when set in sessionStorage", () => {
+      window.sessionStorage.setItem("exp_override:billing-upgrade-cta", "upgrade_button");
+
+      const wrapper = createWrapper({
+        configs: [],
+        precomputedVariants: { "billing-upgrade-cta": null }, // bucketed as control
+      });
+
+      const { result } = renderHook(() => useExperiment("billing-upgrade-cta"), { wrapper });
+
+      expect(result.current.variant).toBe("upgrade_button");
+      expect(result.current.isControl).toBe(false);
+    });
+
+    it("returns null when override is set to control", () => {
+      window.sessionStorage.setItem("exp_override:billing-upgrade-cta", "control");
+
+      const wrapper = createWrapper({
+        configs: [],
+        precomputedVariants: { "billing-upgrade-cta": "upgrade_button" }, // bucketed as variant
+      });
+
+      const { result } = renderHook(() => useExperiment("billing-upgrade-cta"), { wrapper });
+
+      expect(result.current.variant).toBeNull();
+      expect(result.current.isControl).toBe(true);
+    });
+
+    it("tracking uses override variant, not bucketed variant", () => {
+      window.sessionStorage.setItem("exp_override:billing-upgrade-cta", "upgrade_button");
+
+      const wrapper = createWrapper({
+        configs: [],
+        precomputedVariants: { "billing-upgrade-cta": null }, // bucketed as control
+      });
+
+      const { result } = renderHook(() => useExperiment("billing-upgrade-cta"), { wrapper });
+
+      act(() => result.current.trackOutcome());
+
+      expect(mockTrackOutcome).toHaveBeenCalledWith("billing-upgrade-cta", "upgrade_button");
+    });
+  });
 });

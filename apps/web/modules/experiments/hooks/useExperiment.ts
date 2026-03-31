@@ -1,10 +1,15 @@
 "use client";
 
-import { CONTROL_GROUP, EXPERIMENTS, type ExperimentSlug } from "@calcom/features/experiments/config";
+import {
+  CONTROL_GROUP,
+  EXP_OVERRIDE_PREFIX,
+  EXPERIMENTS,
+  type ExperimentSlug,
+} from "@calcom/features/experiments/config";
 import { assignVariant } from "@calcom/features/experiments/lib/bucketing";
 import { trackExperimentExposure, trackExperimentOutcome } from "@calcom/features/experiments/lib/tracking";
 import type { ExperimentConfigDto as ExperimentConfig } from "@calcom/lib/dto/ExperimentConfigDto";
-import { localStorage } from "@calcom/lib/webstorage";
+import { localStorage, sessionStorage } from "@calcom/lib/webstorage";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { ExperimentContext } from "../provider";
@@ -66,7 +71,10 @@ function resolveAnonymousVariant(slug: string, configs: ExperimentConfig[]): str
   );
 }
 
-export function useExperiment(slug: ExperimentSlug, options?: { trackExposure?: boolean }): UseExperimentResult {
+export function useExperiment(
+  slug: ExperimentSlug,
+  options?: { trackExposure?: boolean }
+): UseExperimentResult {
   const context = useContext(ExperimentContext);
   const config = EXPERIMENTS[slug];
   const target: string | undefined = config?.target;
@@ -84,7 +92,14 @@ export function useExperiment(slug: ExperimentSlug, options?: { trackExposure?: 
     return resolveAnonymousVariant(slug, context.configs);
   });
 
-  const variant = target === "logged-in" ? loggedInVariant : anonymousVariant;
+  const bucketedVariant = target === "logged-in" ? loggedInVariant : anonymousVariant;
+
+  // Admin preview: sessionStorage override lets admins see what each variant looks like
+  // without affecting bucketing for real users. Resolved before tracking callbacks so
+  // they capture the correct variant.
+  const override =
+    typeof window !== "undefined" ? sessionStorage.getItem(`${EXP_OVERRIDE_PREFIX}${slug}`) : null;
+  const variant = override !== null ? (override === CONTROL_GROUP ? null : override) : bucketedVariant;
 
   // Exposure is NOT tracked automatically by default — callers must explicitly opt in with
   // { trackExposure: true } or call trackExposure() manually. This avoids false exposures
