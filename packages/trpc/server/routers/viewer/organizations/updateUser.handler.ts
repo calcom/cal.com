@@ -9,9 +9,7 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import assignUserToAttributeHandler from "../attributes/assignUserToAttribute.handler";
 import type { TUpdateUserInputSchema } from "./updateUser.schema";
 
@@ -83,21 +81,25 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   if (!requestedMember)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "User does not belong to your organization" });
 
+  const isEditingSelf = input.userId === userId;
+
   const roleManager = await RoleManagementFactory.getInstance().createRoleManager(organizationId);
 
-  try {
-    await roleManager.checkPermissionToChangeRole(
-      userId,
-      organizationId,
-      "org",
-      requestedMember.id,
-      input.role
-    );
-  } catch (error) {
-    if (error instanceof RoleManagementError) {
-      throw new TRPCError({ code: "UNAUTHORIZED", message: error.message });
+  if (!isEditingSelf) {
+    try {
+      await roleManager.checkPermissionToChangeRole(
+        userId,
+        organizationId,
+        "org",
+        requestedMember.id,
+        input.role
+      );
+    } catch (error) {
+      if (error instanceof RoleManagementError) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: error.message });
+      }
+      throw error;
     }
-    throw error;
   }
 
   await ensureOrganizationIsReviewed(organizationId);
@@ -167,7 +169,9 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
 
   await prisma.$transaction(transactions);
 
-  await roleManager.assignRole(input.userId, organizationId, input.role, requestedMember.id);
+  if (!isEditingSelf) {
+    await roleManager.assignRole(input.userId, organizationId, input.role, requestedMember.id);
+  }
 
   if (input.attributeOptions) {
     await assignUserToAttributeHandler({
@@ -179,7 +183,7 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   }
 
   // We cast to membership role as we know pbac insnt enabled on this instance.
-  if (checkAdminOrOwner(input.role as MembershipRole) && roleManager.isPBACEnabled) {
+  if (!isEditingSelf && checkAdminOrOwner(input.role as MembershipRole) && roleManager.isPBACEnabled) {
     const teamIds = requestedMember.team.children
       .map((sub_team) => sub_team.members.find((item) => item.userId === input.userId)?.teamId)
       .filter(Boolean) as number[]; //filter out undefined

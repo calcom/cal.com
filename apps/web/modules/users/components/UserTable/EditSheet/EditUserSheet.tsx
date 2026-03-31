@@ -1,14 +1,13 @@
-import type { Dispatch } from "react";
-import { shallow } from "zustand/shallow";
-
 import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { Sheet, SheetContent, SheetBody, SheetHeader, SheetFooter } from "@calcom/ui/components/sheet";
+import { Sheet, SheetBody, SheetContent, SheetFooter, SheetHeader } from "@calcom/ui/components/sheet";
 import { Loader } from "@calcom/ui/components/skeleton";
-
+import { useSession } from "next-auth/react";
+import type { Dispatch } from "react";
+import { shallow } from "zustand/shallow";
 import type { UserTableAction, UserTableState } from "../types";
 import { DisplayInfo } from "./DisplayInfo";
 import { EditForm } from "./EditUserForm";
@@ -34,7 +33,9 @@ export function EditUserSheet({
   canChangeMemberRole?: boolean;
 }) {
   const { t } = useLocale();
+  const { data: session } = useSession();
   const { user: selectedUser } = state.editSheet;
+  const isEditingSelf = selectedUser?.id === session?.user?.id;
   const orgBranding = useOrgBranding();
   const [editMode, setEditMode] = useEditMode((state) => [state.editMode, state.setEditMode], shallow);
   const { data: loadedUser, isPending } = trpc.viewer.organizations.getUser.useQuery(
@@ -150,6 +151,7 @@ export function EditUserSheet({
                   domainUrl={orgBranding?.fullDomain ?? WEBAPP_URL}
                   dispatch={dispatch}
                   canEditAttributesForUser={canEditAttributesForUser}
+                  isEditingSelf={isEditingSelf}
                 />
               </>
             )}
