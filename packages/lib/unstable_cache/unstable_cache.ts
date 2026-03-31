@@ -1,6 +1,10 @@
 /**
  * This implementation is adapted from https://github.com/vercel/next.js/issues/51613#issuecomment-1892644565.
- * It is a wrapper around `unstable_cache` that adds serialization and deserialization
+ * It is a wrapper around `unstable_cache` that adds serialization and deserialization.
+ *
+ * When called outside a Next.js request context (e.g. from tRPC handlers), the
+ * incremental cache is unavailable and `unstable_cache` throws. In that case we
+ * fall back to executing the function directly without caching.
  */
 import { unstable_cache } from "next/cache";
 import { parse, stringify } from "superjson";
@@ -18,7 +22,15 @@ export const cache = <T, P extends unknown[]>(
   const cachedFn = unstable_cache(wrap, keys, opts);
 
   return async (...params: P): Promise<T> => {
-    const result = await cachedFn(params);
-    return parse(result);
+    try {
+      const result = await cachedFn(params);
+      return parse(result);
+    } catch (err) {
+      if (err instanceof Error && err.message.includes("incrementalCache")) {
+        // No Next.js cache context available (e.g. tRPC handler) — skip cache
+        return fn(...params);
+      }
+      throw err;
+    }
   };
 };
