@@ -698,16 +698,15 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
 
   const getOtpCooldownKey = useCallback(
     (channel: OtpChannel, step: WorkflowStep) => {
-      return `${channel}:${step.id}:${getOtpIdentity(channel, step.sendTo)}`;
+      return `${channel}:${getOtpIdentity(channel, step.sendTo)}`;
     },
     [getOtpIdentity]
   );
 
   const getCooldownDurationForAttempt = useCallback((attempt: number) => {
-    if (attempt <= 1) return 0;
-    if (attempt === 2) return OTP_FIRST_RESEND_COOLDOWN_MS;
-    if (attempt === 3) return OTP_INITIAL_RESEND_COOLDOWN_MS;
-    const exponentialMs = OTP_INITIAL_RESEND_COOLDOWN_MS * Math.pow(2, attempt - 3);
+    if (attempt <= 1) return OTP_FIRST_RESEND_COOLDOWN_MS;
+    if (attempt === 2) return OTP_INITIAL_RESEND_COOLDOWN_MS;
+    const exponentialMs = OTP_INITIAL_RESEND_COOLDOWN_MS * Math.pow(2, attempt - 2);
     return Math.min(exponentialMs, OTP_COOLDOWN_CAP_MS);
   }, []);
 
