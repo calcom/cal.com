@@ -244,6 +244,7 @@ export function StudioTable({ table, onOpenDetail }: StudioTableProps) {
   const rows = data?.rows ?? [];
   const totalPages = data?.totalPages ?? 1;
   const total = data?.total ?? 0;
+  const isEstimate = data?.isEstimate ?? false;
   const pageSize = table.pageSize;
 
   return (
@@ -263,8 +264,8 @@ export function StudioTable({ table, onOpenDetail }: StudioTableProps) {
               </Link>
             )}
             <h2 className="text-emphasis text-base font-semibold">{table.displayNamePlural}</h2>
-            <Badge variant="gray" size="sm">
-              {isPending ? "…" : total.toLocaleString()} rows
+            <Badge variant="gray" size="sm" title={isEstimate ? "Approximate count from database statistics" : undefined}>
+              {isPending ? "…" : `${isEstimate ? "~" : ""}${total.toLocaleString()}`} rows
             </Badge>
             {activeFilterCount > 0 && (
               <Badge variant="blue" size="sm">
@@ -458,7 +459,7 @@ export function StudioTable({ table, onOpenDetail }: StudioTableProps) {
       <div className="border-subtle bg-default flex items-center justify-between border-t px-4 py-2">
         <span className="text-subtle text-xs">
           {rows.length > 0 ? (page - 1) * pageSize + 1 : 0}–{Math.min(page * pageSize, total)} of{" "}
-          {total.toLocaleString()}
+          {isEstimate ? "~" : ""}{total.toLocaleString()}
         </span>
 
         <div className="flex items-center gap-1">

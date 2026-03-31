@@ -3,6 +3,8 @@ import type { PrismaClient } from "@prisma/client";
 import type { AdminTable } from "../AdminTable";
 import type { AdminTableRegistry } from "../AdminTableRegistry";
 
+const ESTIMATED_COUNT_THRESHOLD = 100_000;
+
 export interface ListParams {
   slug: string;
   page: number;
@@ -19,6 +21,7 @@ export interface ListResult {
   page: number;
   pageSize: number;
   totalPages: number;
+  isEstimate?: boolean;
 }
 
 export interface GetByIdParams {
@@ -47,7 +50,9 @@ export class AdminDataViewService {
     const where = table.buildWhere(params.search, params.filters);
     const select = table.buildPrismaSelect();
 
-    const [rows, total] = await Promise.all([
+    const hasFilters = Object.keys(where).length > 0;
+
+    const [rows, countResult] = await Promise.all([
       delegate.findMany({
         select,
         where,
@@ -55,19 +60,30 @@ export class AdminDataViewService {
         skip,
         take: pageSize,
       }),
-      delegate.count({ where }),
+      hasFilters
+        ? delegate
+            .count({ where })
+            .then((c: number) => ({ total: c, isEstimate: false }))
+        : this.getCountWithEstimateFallback(table, delegate),
     ]);
 
+    const { total, isEstimate } = countResult;
+
     return {
-      rows: (rows as Record<string, unknown>[]).map((r) => table.postProcessRow(r)),
+      rows: (rows as Record<string, unknown>[]).map((r) =>
+        table.postProcessRow(r)
+      ),
       total,
       page,
       pageSize,
       totalPages: Math.ceil(total / pageSize),
+      ...(isEstimate && { isEstimate }),
     };
   }
 
-  async getById(params: GetByIdParams): Promise<Record<string, unknown> | null> {
+  async getById(
+    params: GetByIdParams
+  ): Promise<Record<string, unknown> | null> {
     const table = this.resolveTable(params.slug);
     const delegate = this.getDelegate(table);
     const select = table.buildPrismaSelect();
@@ -92,5 +108,36 @@ export class AdminDataViewService {
   private getDelegate(table: AdminTable): any {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (this.prisma as any)[table.prismaAccessor];
+  }
+
+  private async getCountWithEstimateFallback(
+    table: AdminTable,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delegate: any
+  ): Promise<{ total: number; isEstimate: boolean }> {
+    try {
+      const tableName = this.prismaModelToTableName(table.modelName);
+      const result = (await this.prisma.$queryRawUnsafe(
+        `SELECT reltuples::bigint AS estimate FROM pg_class WHERE relname = $1`,
+        tableName
+      )) as { estimate: bigint }[];
+      const estimate = Number(result[0]?.estimate ?? -1);
+
+      if (estimate > ESTIMATED_COUNT_THRESHOLD) {
+        return { total: estimate, isEstimate: true };
+      }
+    } catch {
+      // Fall through to exact count
+    }
+
+    const total = await delegate.count();
+    return { total, isEstimate: false };
+  }
+
+  private prismaModelToTableName(modelName: string): string {
+    const TABLE_NAME_OVERRIDES: Record<string, string> = {
+      User: "users",
+    };
+    return TABLE_NAME_OVERRIDES[modelName] ?? modelName;
   }
 }
