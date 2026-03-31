@@ -1,10 +1,9 @@
+import type { PlatformOAuthClient } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Injectable } from "@nestjs/common";
-
-import type { PlatformOAuthClient } from "@calcom/prisma/client";
 
 @Injectable()
 export class PlatformBookingsService {
@@ -48,17 +47,45 @@ export class PlatformBookingsService {
     }
 
     if (oAuthClient) {
-      return {
-        platformClientId: oAuthClient.id,
-        platformCancelUrl: oAuthClient.bookingCancelRedirectUri,
-        platformRescheduleUrl: oAuthClient.bookingRescheduleRedirectUri,
-        platformBookingUrl: oAuthClient.bookingRedirectUri,
-        arePlatformEmailsEnabled: oAuthClient.areEmailsEnabled,
-        areCalendarEventsEnabled: oAuthClient.areCalendarEventsEnabled,
-      };
+      return this.buildOAuthClientParams(oAuthClient);
     }
 
     return undefined;
+  }
+
+  async getOAuthClientParamsByUserId(userId: number) {
+    const oAuthClient = await this.oAuthClientRepository.getByUserId(userId);
+
+    if (oAuthClient) {
+      return this.buildOAuthClientParams(oAuthClient);
+    }
+
+    return undefined;
+  }
+
+  async getOAuthClientParamsForBookingCancelled(eventTypeId: number | null, userId: number | null) {
+    // Resolve OAuth client params from event type first. If the event type was deleted,
+    // has no eventTypeId, or the OAuth client lookup fails for any reason, fall back to
+    // resolving directly from the booking's userId. This prevents platform managed users
+    // from being incorrectly required to provide a cancellation reason.
+    let oAuthClientParams = eventTypeId ? await this.getOAuthClientParams(eventTypeId) : undefined;
+
+    if (!oAuthClientParams && userId) {
+      oAuthClientParams = await this.getOAuthClientParamsByUserId(userId);
+    }
+
+    return oAuthClientParams;
+  }
+
+  private buildOAuthClientParams(oAuthClient: PlatformOAuthClient) {
+    return {
+      platformClientId: oAuthClient.id,
+      platformCancelUrl: oAuthClient.bookingCancelRedirectUri,
+      platformRescheduleUrl: oAuthClient.bookingRescheduleRedirectUri,
+      platformBookingUrl: oAuthClient.bookingRedirectUri,
+      arePlatformEmailsEnabled: oAuthClient.areEmailsEnabled,
+      areCalendarEventsEnabled: oAuthClient.areCalendarEventsEnabled,
+    };
   }
 
   async getOAuthClientParamsForEventType(eventType: {
@@ -73,14 +100,7 @@ export class PlatformBookingsService {
     }
 
     if (oAuthClient) {
-      return {
-        platformClientId: oAuthClient.id,
-        platformCancelUrl: oAuthClient.bookingCancelRedirectUri,
-        platformRescheduleUrl: oAuthClient.bookingRescheduleRedirectUri,
-        platformBookingUrl: oAuthClient.bookingRedirectUri,
-        arePlatformEmailsEnabled: oAuthClient.areEmailsEnabled,
-        areCalendarEventsEnabled: oAuthClient.areCalendarEventsEnabled,
-      };
+      return this.buildOAuthClientParams(oAuthClient);
     }
 
     return undefined;

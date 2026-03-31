@@ -27,19 +27,19 @@ jest.mock("@/lib/api-key", () => ({
   stripApiKey: jest.fn((key: string) => key.replace("cal_test_", "")),
 }));
 
+import { ConfigService } from "@nestjs/config";
+import { Test, TestingModule } from "@nestjs/testing";
+import { Request } from "express";
+import { InputBookingsService_2024_08_13 } from "./input.service";
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
+import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { isApiKey } from "@/lib/api-key";
 import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { ConfigService } from "@nestjs/config";
-import { Test, TestingModule } from "@nestjs/testing";
-import { Request } from "express";
-import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
-import { PlatformBookingsService } from "@/ee/bookings/shared/platform-bookings.service";
-import { InputBookingsService_2024_08_13 } from "./input.service";
 
 describe("InputBookingsService_2024_08_13", () => {
   let service: InputBookingsService_2024_08_13;
@@ -108,6 +108,92 @@ describe("InputBookingsService_2024_08_13", () => {
     usersRepository = module.get<UsersRepository>(UsersRepository);
 
     jest.clearAllMocks();
+  });
+
+  describe("createCancelBookingRequest", () => {
+    let bookingsRepository: BookingsRepository_2024_08_13;
+    let platformBookingsService: PlatformBookingsService;
+
+    const mockOAuthClientParams = {
+      platformClientId: "oauth-client-123",
+      platformCancelUrl: "https://example.com/cancel",
+      platformRescheduleUrl: "https://example.com/reschedule",
+      platformBookingUrl: "https://example.com/booking",
+      arePlatformEmailsEnabled: true,
+      areCalendarEventsEnabled: true,
+    };
+
+    function createMockRequest(): Request {
+      return {
+        get: jest.fn(() => undefined),
+        body: {},
+      } as unknown as Request;
+    }
+
+    beforeEach(() => {
+      bookingsRepository = service["bookingsRepository"];
+      platformBookingsService = service["platformBookingsService"];
+      bookingsRepository.getByUid = jest.fn();
+      bookingsRepository.getRecurringByUid = jest.fn().mockResolvedValue([]);
+      platformBookingsService.getOAuthClientParamsForBookingCancelled = jest.fn();
+    });
+
+    it("should resolve oAuthClientParams via getOAuthClientParamsForBookingCancelled", async () => {
+      (bookingsRepository.getByUid as jest.Mock).mockResolvedValue({
+        uid: "booking-uid",
+        eventTypeId: 10,
+        userId: 42,
+        status: "ACCEPTED",
+      });
+      (platformBookingsService.getOAuthClientParamsForBookingCancelled as jest.Mock).mockResolvedValue(
+        mockOAuthClientParams
+      );
+
+      const req = createMockRequest();
+      const result = await service.createCancelBookingRequest(req, "booking-uid", {
+        cancellationReason: "test",
+      });
+
+      expect(platformBookingsService.getOAuthClientParamsForBookingCancelled).toHaveBeenCalledWith(10, 42);
+      expect(result.body).toHaveProperty("noEmail", !mockOAuthClientParams.arePlatformEmailsEnabled);
+    });
+
+    it("should pass null eventTypeId and userId to getOAuthClientParamsForBookingCancelled", async () => {
+      (bookingsRepository.getByUid as jest.Mock).mockResolvedValue({
+        uid: "booking-uid",
+        eventTypeId: null,
+        userId: 42,
+        status: "ACCEPTED",
+      });
+      (platformBookingsService.getOAuthClientParamsForBookingCancelled as jest.Mock).mockResolvedValue(
+        mockOAuthClientParams
+      );
+
+      const req = createMockRequest();
+      const result = await service.createCancelBookingRequest(req, "booking-uid", {
+        cancellationReason: "test",
+      });
+
+      expect(platformBookingsService.getOAuthClientParamsForBookingCancelled).toHaveBeenCalledWith(null, 42);
+      expect(result.body).toHaveProperty("noEmail", !mockOAuthClientParams.arePlatformEmailsEnabled);
+    });
+
+    it("should set noEmail to false when getOAuthClientParamsForBookingCancelled returns undefined (non-platform user)", async () => {
+      (bookingsRepository.getByUid as jest.Mock).mockResolvedValue({
+        uid: "booking-uid",
+        eventTypeId: 10,
+        userId: 42,
+        status: "ACCEPTED",
+      });
+      (platformBookingsService.getOAuthClientParamsForBookingCancelled as jest.Mock).mockResolvedValue(undefined);
+
+      const req = createMockRequest();
+      const result = await service.createCancelBookingRequest(req, "booking-uid", {
+        cancellationReason: "test",
+      });
+
+      expect(result.body).toHaveProperty("noEmail", false);
+    });
   });
 
   describe("getOwner", () => {
