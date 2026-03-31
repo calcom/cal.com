@@ -1832,8 +1832,8 @@ export const EventAdvanced = ({
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(!!value && "rounded-b-none")}
             childrenClassName="lg:ml-0"
-            title={t("show_busy_title")}
-            description={t("show_busy_description")}
+            title={t("look_busy_title")}
+            description={t("look_busy_description")}
             checked={!!value}
             onCheckedChange={(enabled) => {
               onChange(enabled);
@@ -1862,7 +1862,7 @@ export const EventAdvanced = ({
                 render={({ field: { value, onChange } }) => (
                   <Select
                     className="w-full"
-                    placeholder={t("show_busy_percentage_placeholder")}
+                    placeholder={t("look_busy_percentage_placeholder")}
                     value={value ? { value, label: `${value}%` } : null}
                     onChange={(option) => {
                       onChange(option?.value ?? undefined);
@@ -1877,7 +1877,7 @@ export const EventAdvanced = ({
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <TextField
                   className="w-28"
-                  label={t("show_busy_window_days")}
+                  label={t("look_busy_window_days")}
                   type="number"
                   min={1}
                   max={30}
@@ -1888,22 +1888,22 @@ export const EventAdvanced = ({
                   render={({ field: { value, onChange } }) => (
                     <Select
                       className="w-48"
-                      placeholder={t("show_busy_window_type_placeholder")}
+                      placeholder={t("look_busy_window_type_placeholder")}
                       value={
                         value
                           ? {
                               value,
                               label:
                                 value === "business"
-                                  ? t("show_busy_window_business")
-                                  : t("show_busy_window_calendar"),
+                                  ? t("look_busy_window_business")
+                                  : t("look_busy_window_calendar"),
                             }
                           : null
                       }
                       onChange={(option) => onChange(option?.value ?? null)}
                       options={[
-                        { value: "business", label: t("show_busy_window_business") },
-                        { value: "calendar", label: t("show_busy_window_calendar") },
+                        { value: "business", label: t("look_busy_window_business") },
+                        { value: "calendar", label: t("look_busy_window_calendar") },
                       ]}
                     />
                   )}
