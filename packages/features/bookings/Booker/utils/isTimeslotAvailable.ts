@@ -1,5 +1,4 @@
 import dayjs from "@calcom/dayjs";
-
 import type { QuickAvailabilityCheck } from "../types";
 import { isSlotEquivalent, isValidISOFormat } from "./isSlotEquivalent";
 
@@ -50,6 +49,14 @@ function _isSlotPresentInSchedule({
   const slotsInIsoForDate = scheduleData.slots[dateInGMT] as Maybe<SlotsInIso>;
   const slotsInIsoForDateBefore = scheduleData.slots[dateBefore] as Maybe<SlotsInIso>;
   const slotsInIsoForDateAfter = scheduleData.slots[dateAfter] as Maybe<SlotsInIso>;
+
+  // If none of the surrounding dates have any slot data in the schedule,
+  // the schedule doesn't cover this date range. To avoid a false negative
+  // (which would incorrectly disable the confirm button), consider the slot available.
+  // False positives are acceptable per the contract of isTimeSlotAvailable.
+  if (!slotsInIsoForDate && !slotsInIsoForDateBefore && !slotsInIsoForDateAfter) {
+    return true;
+  }
 
   const matchFoundOnDate = _isSlotPresent(slotsInIsoForDate, slotToCheckInIso);
   if (matchFoundOnDate) return true;
