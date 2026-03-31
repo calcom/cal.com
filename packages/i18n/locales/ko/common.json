@@ -343,6 +343,7 @@
   "what_booker_should_provide": "예약자가 확인을 받기 위해 제공해야 할 사항",
   "404_the_user": "사용자 이름",
   "username": "사용자 이름",
+  "username_still_available": "{{pageType}} <0>{{username}}</0>은(는) 아직 <1>사용 가능</1>합니다.",
   "documentation": "정보 관리",
   "documentation_description": "도구를 앱과 통합하는 방법 알아보기",
   "api_reference": "API 참조",

@@ -5004,7 +5004,7 @@ checksums:
     what_booker_should_provide: 1d3f6bb6a874261f9a6f8e037fb60133
     404_the_user: 44a7f00ad59be26279cc448d36413dc3
     username: 2ee65bc2dd2f12cf2672f95b2a054bf8
-    is_still_available: 3b7a9c58064ca5bc84047dff01cda07a
+    username_still_available: cd0b11a0a3abd325daa85ecec745a8ad
     documentation: 1563fcb5ddb5037b0709ccd3dd384a92
     documentation_description: 0b53209605b375546d96e8be405921fd
     api_reference: 7dcc877064bfdf889ec55dbc9e06a242

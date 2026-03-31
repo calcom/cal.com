@@ -343,6 +343,7 @@
   "what_booker_should_provide": "Mitä varaajan tulisi antaa saadakseen vahvistukset",
   "404_the_user": "Käyttäjätunnus",
   "username": "Käyttäjätunnus",
+  "username_still_available": "{{pageType}} <0>{{username}}</0> on edelleen <1>saatavilla</1>.",
   "documentation": "Dokumentaatio",
   "documentation_description": "Opi integroimaan työkalumme sovellukseesi",
   "api_reference": "API-dokumentaatio",

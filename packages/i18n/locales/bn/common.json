@@ -343,6 +343,7 @@
   "what_booker_should_provide": "নিশ্চিতকরণ পেতে আপনার বুকারকে কী প্রদান করতে হবে",
   "404_the_user": "ব্যবহারকারীর নাম",
   "username": "ব্যবহারকারীর নাম",
+  "username_still_available": "{{pageType}} <0>{{username}}</0> এখনও <1>উপলব্ধ</1>।",
   "documentation": "ডকুমেন্টেশন",
   "documentation_description": "কীভাবে আপনার অ্যাপ্লিকেশনটির সাথে আমাদের সরঞ্জামগুলি সংহত করতে হয় তা শিখুন",
   "api_reference": "এপিআই রেফারেন্স",

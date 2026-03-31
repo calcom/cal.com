@@ -343,6 +343,7 @@
   "what_booker_should_provide": "Что должен предоставить ваш бронирующий, чтобы получить подтверждения",
   "404_the_user": "Имя пользователя",
   "username": "Имя пользователя",
+  "username_still_available": "{{pageType}} <0>{{username}}</0> всё ещё <1>доступен</1>.",
   "documentation": "Документация",
   "documentation_description": "Узнайте, как интегрировать наши инструменты с вашим приложением",
   "api_reference": "Справочник API",

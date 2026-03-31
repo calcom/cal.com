@@ -343,6 +343,7 @@
   "what_booker_should_provide": "Lo que tu cliente debe proporcionar para recibir confirmaciones",
   "404_the_user": "El nombre de usuario",
   "username": "Nombre de usuario",
+  "username_still_available": "{{pageType}} <0>{{username}}</0> todavía está <1>disponible</1>.",
   "documentation": "Documentación",
   "documentation_description": "Aprende cómo integrar nuestras herramientas con tu aplicación",
   "api_reference": "Referencia de API",

@@ -343,6 +343,7 @@
   "what_booker_should_provide": "Những gì người đặt lịch cần cung cấp để nhận xác nhận",
   "404_the_user": "Tên người dùng",
   "username": "Tên người dùng",
+  "username_still_available": "{{pageType}} <0>{{username}}</0> vẫn còn <1>trống</1>.",
   "documentation": "Tài liệu",
   "documentation_description": "Tìm hiểu cách tích hợp các công cụ của chúng tôi với ứng dụng của bạn",
   "api_reference": "Tham chiếu API",

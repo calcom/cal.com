@@ -343,6 +343,7 @@
   "what_booker_should_provide": "Mida broneerija peaks kinnituste saamiseks esitama",
   "404_the_user": "Kasutajanimi",
   "username": "Kasutajanimi",
+  "username_still_available": "{{pageType}} <0>{{username}}</0> on endiselt <1>saadaval</1>.",
   "documentation": "Dokumentatsioon",
   "documentation_description": "Õppige, kuidas integreerida meie tööriistu oma rakendusega",
   "api_reference": "API viide",

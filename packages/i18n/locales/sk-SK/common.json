@@ -343,6 +343,7 @@
   "what_booker_should_provide": "Čo by mal váš rezervujúci poskytnúť na prijímanie potvrdení",
   "404_the_user": "Používateľské meno",
   "username": "Používateľské meno",
+  "username_still_available": "{{pageType}} <0>{{username}}</0> je stále <1>dostupné</1>.",
   "documentation": "Dokumentácia",
   "documentation_description": "Naučte sa, ako integrovať naše nástroje do vašej aplikácie",
   "api_reference": "API Referencia",
