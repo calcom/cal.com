@@ -4,8 +4,8 @@ import type { ScheduleWorkflowRemindersArgs } from "@calcom/ee/workflows/lib/rem
 import { scheduleWorkflowReminders } from "@calcom/ee/workflows/lib/reminders/reminderScheduler";
 import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import type { Workflow, WorkflowStep } from "@calcom/ee/workflows/lib/types";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
@@ -51,7 +51,7 @@ export class WorkflowService {
   }
 
   static async deleteWorkflowRemindersOfRemovedTeam(teamId: number) {
-    const teamRepository = new TeamRepository(prisma);
+    const teamRepository = getTeamRepository();
     const team = await teamRepository.findById({ id: teamId });
 
     if (team?.parentId) {
@@ -65,7 +65,7 @@ export class WorkflowService {
         let remainingActiveOnIds = [];
 
         if (workflow.isActiveOnAll) {
-          const teamRepository = new TeamRepository(prisma);
+          const teamRepository = getTeamRepository();
           const allRemainingOrgTeams = await teamRepository.findOrgTeamsExcludingTeam({
             parentId: team.parentId,
             excludeTeamId: team.id,

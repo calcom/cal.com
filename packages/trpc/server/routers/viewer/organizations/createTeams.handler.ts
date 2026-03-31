@@ -1,7 +1,7 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
@@ -243,7 +243,7 @@ async function moveTeam({
   newSlug = newSlug ?? team.slug;
   const orgMetadata = teamMetadataSchema.parse(org.metadata);
   try {
-    const teamRepository = new TeamRepository(prisma);
+    const teamRepository = getTeamRepository();
     const creditService = new CreditService();
 
     await prisma.$transaction(async (tx: PrismaTransaction) => {

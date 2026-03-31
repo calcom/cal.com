@@ -1,12 +1,10 @@
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
-import { TeamDunningRepository } from "@calcom/features/ee/billing/repository/dunning/TeamDunningRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { OrgDunningRepository } from "@calcom/features/ee/billing/repository/dunning/OrgDunningRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { TeamDunningRepository } from "@calcom/features/ee/billing/repository/dunning/TeamDunningRepository";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TRecreateOwnershipInput } from "./recreateOwnership.schema";
 
@@ -38,7 +36,7 @@ export const recreateOwnershipHandler = async ({ ctx, input }: RecreateOwnership
     throw new TRPCError({ code: "BAD_REQUEST", message: "User is already an owner" });
   }
 
-  const teamRepository = new TeamRepository(prisma);
+  const teamRepository = getTeamRepository();
   const team = await teamRepository.findById({ id: teamId });
 
   if (mode === "preview") {

@@ -6,7 +6,6 @@ import { ErrorWithCode } from "@calcom/lib/errors";
 import type { TeamFeatures, UserFeatures } from "@calcom/prisma/client";
 import type { Mock } from "vitest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { IFeatureOptInServiceDeps } from "./FeatureOptInService";
 import { FeatureOptInService } from "./FeatureOptInService";
 
@@ -82,12 +81,12 @@ vi.mock("@calcom/features/pbac/services/permission-check.service", () => ({
 
 // Mock TeamRepository - needs to be a class that can be instantiated
 let mockFindOwnedTeamsByUserId: Mock = vi.fn();
-vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
-  TeamRepository: class {
+vi.mock("@calcom/features/di/containers/TeamRepository", () => ({
+  getTeamRepository: () => ({
     findOwnedTeamsByUserId(...args: unknown[]): unknown {
       return mockFindOwnedTeamsByUserId(...args);
-    }
-  },
+    },
+  }),
 }));
 
 // Mock prisma
@@ -718,8 +717,8 @@ describe("FeatureOptInService", () => {
       vi.doMock("@calcom/features/pbac/services/permission-check.service", () => ({
         PermissionCheckService: vi.fn(() => mockPermissionCheckService),
       }));
-      vi.doMock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
-        TeamRepository: vi.fn(() => mockTeamRepository),
+      vi.doMock("@calcom/features/di/containers/TeamRepository", () => ({
+        getTeamRepository: vi.fn(() => mockTeamRepository),
       }));
     });
 

@@ -1,6 +1,6 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
@@ -46,7 +46,7 @@ export default async function MigrateTeamsPage({ searchParams }: PageProps) {
   }
 
   // Check if user has teams to migrate
-  const teamRepository = new TeamRepository(prisma);
+  const teamRepository = getTeamRepository();
   const ownedTeams = await teamRepository.findOwnedTeamsByUserId({ userId });
 
   // If no teams, redirect to teams step

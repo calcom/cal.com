@@ -1,4 +1,4 @@
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
 import type { WrongAssignmentReportStatus } from "@calcom/prisma/enums";
@@ -130,7 +130,7 @@ describe("WrongAssignmentReportService (Integration Tests)", () => {
 
     const bookingRepo = new BookingRepository(prisma);
     const wrongAssignmentReportRepo = new WrongAssignmentReportRepository(prisma);
-    const teamRepo = new TeamRepository(prisma);
+    const teamRepo = getTeamRepository();
 
     service = new WrongAssignmentReportService({
       bookingRepo,

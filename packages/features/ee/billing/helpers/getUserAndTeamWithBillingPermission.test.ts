@@ -1,23 +1,17 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getUserAndTeamWithBillingPermission } from "./getUserAndTeamWithBillingPermission";
 
+const mockGetTeamRepository = vi.fn();
 const mockFindById = vi.fn();
 const mockFindTeamMembersWithPermission = vi.fn();
 const mockUserFindById = vi.fn();
 const mockGetTranslation = vi.fn();
 
-vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => {
-  return {
-    TeamRepository: class {
-      findById = mockFindById;
-      findTeamMembersWithPermission = mockFindTeamMembersWithPermission;
-    },
-  };
-});
+vi.mock("@calcom/features/di/containers/TeamRepository", () => ({
+  getTeamRepository: (...args: unknown[]) => mockGetTeamRepository(...args),
+}));
 
 vi.mock("@calcom/features/users/repositories/UserRepository", () => {
   return {
@@ -37,6 +31,10 @@ describe("getUserAndTeamWithBillingPermission", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetTeamRepository.mockReturnValue({
+      findById: mockFindById,
+      findTeamMembersWithPermission: mockFindTeamMembersWithPermission,
+    });
     mockGetTranslation.mockResolvedValue(mockTranslationFn);
   });
 

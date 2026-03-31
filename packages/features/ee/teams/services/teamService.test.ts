@@ -1,12 +1,12 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
-import type { Team, Membership, Profile, User, VerificationToken } from "@calcom/prisma/client";
+import type { Membership, Profile, Team, User, VerificationToken } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TeamService } from "./teamService";
@@ -20,7 +20,7 @@ const { MockSeatChangeTrackingService } = vi.hoisted(() => {
 });
 
 vi.mock("@calcom/ee/billing/di/containers/Billing");
-vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
+vi.mock("@calcom/features/di/containers/TeamRepository");
 vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService");
 vi.mock("@calcom/lib/domainManager/organization");
 vi.mock("@calcom/features/ee/teams/lib/removeMember");
@@ -80,10 +80,8 @@ describe("TeamService", () => {
       // @ts-expect-error
       const mockTeamRepo = {
         deleteById: vi.fn().mockResolvedValue(mockDeletedTeam),
-      } as Pick<TeamRepository, "deleteById">;
-      vi.mocked(TeamRepository).mockImplementation(function () {
-        return mockTeamRepo;
-      });
+      } as { deleteById: ReturnType<typeof vi.fn> };
+      vi.mocked(getTeamRepository).mockReturnValue(mockTeamRepo as never);
 
       const result = await TeamService.delete({ id: 1, deletedByUserId: 42 });
 
@@ -108,10 +106,8 @@ describe("TeamService", () => {
       // @ts-expect-error
       const mockTeamRepo = {
         deleteById: vi.fn().mockResolvedValue(mockDeletedTeam),
-      } as Pick<TeamRepository, "deleteById">;
-      vi.mocked(TeamRepository).mockImplementation(function () {
-        return mockTeamRepo;
-      });
+      } as { deleteById: ReturnType<typeof vi.fn> };
+      vi.mocked(getTeamRepository).mockReturnValue(mockTeamRepo as never);
 
       const result = await TeamService.delete({ id: 1, deletedByUserId: 42 });
 

@@ -1,10 +1,10 @@
 import { randomBytes } from "node:crypto";
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { deleteWorkfowRemindersOfRemovedMember } from "@calcom/features/ee/teams/lib/deleteWorkflowRemindersOfRemovedMember";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
@@ -145,7 +145,7 @@ export class TeamService {
     }
 
     // Step 4: Delete the team from the database. This is the core "commit" point.
-    const teamRepo = new TeamRepository(prisma);
+    const teamRepo = getTeamRepository();
     const deletedTeam = await teamRepo.deleteById({ id });
 
     // Step 5: Clean up any final, non-critical external state.

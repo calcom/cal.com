@@ -1,9 +1,8 @@
 import { getFeatureOptInService } from "@calcom/features/di/containers/FeatureOptInService";
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { isOptInFeature } from "@calcom/features/feature-opt-in/config";
-import { prisma } from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
 import type { ZodEnum } from "zod";
 import { z } from "zod";
@@ -20,7 +19,7 @@ const featureStateSchema: ZodEnum<["enabled", "disabled", "inherit"]> = z.enum([
 const featureOptInService: ReturnType<typeof getFeatureOptInService> = getFeatureOptInService();
 const teamFeatureRepository: ReturnType<typeof getTeamFeatureRepository> = getTeamFeatureRepository();
 const userFeatureRepository: ReturnType<typeof getUserFeatureRepository> = getUserFeatureRepository();
-const teamRepository: TeamRepository = new TeamRepository(prisma);
+const teamRepository = getTeamRepository();
 
 export const featureOptInRouter = router({
   /**

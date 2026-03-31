@@ -1,12 +1,9 @@
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { randomString } from "@calcom/lib/random";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
-
 import { prisma } from "@calcom/prisma";
 import { DunningStatus } from "@calcom/prisma/enums";
-
-import { TeamRepository } from "../../../teams/repositories/TeamRepository";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { TeamDunningRepository } from "./TeamDunningRepository";
-
 
 let testBillingId: string;
 let secondBillingId: string;
@@ -34,7 +31,7 @@ async function cleanup() {
 
 describe("TeamDunningRepository (Integration Tests)", () => {
   const repository = new TeamDunningRepository();
-  const teamRepository = new TeamRepository(prisma);
+  const teamRepository = getTeamRepository();
 
   async function createTestTeamWithBilling(suffix: string): Promise<string> {
     const team = await teamRepository.create({

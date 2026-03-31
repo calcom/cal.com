@@ -1,8 +1,7 @@
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { ErrorWithCode } from "@calcom/lib/errors";
-import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { SearchParams } from "app/_types";
 import { unstable_cache } from "next/cache";
@@ -11,7 +10,7 @@ import { TeamsListing } from "~/ee/teams/components/TeamsListing";
 import { TeamsCTA } from "./CTA";
 
 const getTeams = async (userId: number) => {
-  const teamRepo = new TeamRepository(prisma);
+  const teamRepo = getTeamRepository();
   return await teamRepo.findTeamsByUserId({
     userId,
     includeOrgs: true,

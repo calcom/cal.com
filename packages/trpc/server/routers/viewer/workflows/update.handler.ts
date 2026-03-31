@@ -1,6 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import {
   isAttendeeAction,
   isEmailAction,
@@ -98,7 +98,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   if (isOrg) {
     // activeOn are team ids
     if (userWorkflow.isActiveOnAll) {
-      const teamRepo = new TeamRepository(ctx.prisma);
+      const teamRepo = getTeamRepository(ctx.prisma);
       oldActiveOnIds = (
         await teamRepo.findAllByParentId({ parentId: userWorkflow.teamId ?? 0, select: { id: true } })
       ).map((team) => team.id);

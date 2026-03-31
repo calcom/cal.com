@@ -1,9 +1,8 @@
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { WrongAssignmentReportRepository } from "@calcom/features/bookings/repositories/WrongAssignmentReportRepository";
 import { WrongAssignmentReportService } from "@calcom/features/bookings/services/WrongAssignmentReportService";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import prisma from "@calcom/prisma";
-
 import type { TGetWrongAssignmentReportsInputSchema } from "./getWrongAssignmentReports.schema";
 import { statusToEnumMap } from "./getWrongAssignmentReports.schema";
 
@@ -15,7 +14,7 @@ export const getWrongAssignmentReportsHandler = async ({ input }: GetWrongAssign
   const service = new WrongAssignmentReportService({
     bookingRepo: new BookingRepository(prisma),
     wrongAssignmentReportRepo: new WrongAssignmentReportRepository(prisma),
-    teamRepo: new TeamRepository(prisma),
+    teamRepo: getTeamRepository(),
   });
 
   return service.listReports({

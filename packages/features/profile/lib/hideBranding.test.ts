@@ -1,5 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   shouldHideBrandingForEventUsingProfile,
   shouldHideBrandingForTeamEvent,
@@ -7,11 +6,11 @@ import {
 } from "./hideBranding";
 
 // Mock the dependencies
-vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => {
+vi.mock("@calcom/features/di/containers/TeamRepository", () => {
   return {
-    TeamRepository: class MockTeamRepository {
-      findTeamWithParentHideBranding = vi.fn();
-    },
+    getTeamRepository: vi.fn(() => ({
+      findTeamWithParentHideBranding: vi.fn(),
+    })),
   };
 });
 

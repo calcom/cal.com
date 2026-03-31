@@ -1,26 +1,24 @@
-import type { NextApiRequest } from "next";
-import type { Session } from "next-auth";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import type { NextApiRequest } from "next";
+import type { Session } from "next-auth";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   BillingPortalServiceFactory,
-  TeamBillingPortalService,
   OrganizationBillingPortalService,
+  TeamBillingPortalService,
   UserBillingPortalService,
 } from "../../lib/BillingPortalService";
 import * as customerModule from "../../lib/customer";
-import { validateAuthentication, buildReturnUrl } from "../portal";
+import { buildReturnUrl, validateAuthentication } from "../portal";
 
 // Mock dependencies
 vi.mock("@calcom/features/pbac/services/permission-check.service");
-vi.mock("@calcom/features/ee/teams/repositories/TeamRepository");
+vi.mock("@calcom/features/di/containers/TeamRepository");
 vi.mock("../../lib/customer");
 vi.mock("../../lib/server");
 vi.mock("../../lib/subscriptions");
@@ -29,7 +27,7 @@ vi.mock("@calcom/prisma", () => ({
 }));
 
 const mockPermissionService = vi.mocked(PermissionCheckService);
-const mockTeamRepository = vi.mocked(TeamRepository);
+const mockGetTeamRepository = vi.mocked(getTeamRepository);
 const mockCustomerModule = vi.mocked(customerModule);
 
 interface RequestWithSession extends NextApiRequest {
@@ -126,9 +124,7 @@ describe("Portal API - Service-Based Architecture", () => {
       mockTeamRepo = {
         findById: vi.fn(),
       };
-      mockTeamRepository.mockImplementation(function () {
-        return mockTeamRepo as unknown as TeamRepository;
-      });
+      mockGetTeamRepository.mockReturnValue(mockTeamRepo as never);
     });
 
     it("should create OrganizationBillingPortalService for organizations", async () => {
@@ -178,9 +174,7 @@ describe("Portal API - Service-Based Architecture", () => {
       const mockTeamRepo: MockTeamRepository = {
         findById: vi.fn(),
       };
-      mockTeamRepository.mockImplementation(function () {
-        return mockTeamRepo as unknown as TeamRepository;
-      });
+      mockGetTeamRepository.mockReturnValue(mockTeamRepo as never);
 
       service = new TeamBillingPortalService();
     });

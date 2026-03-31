@@ -1,22 +1,21 @@
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { makeSqlCondition } from "@calcom/features/data-table/lib/server";
 import type { FilterValue, TextFilterValue, TypedColumnFilter } from "@calcom/features/data-table/lib/types";
-import type { FilterType } from "@calcom/types/data-table";
 import {
   isMultiSelectFilterValue,
-  isTextFilterValue,
   isNumberFilterValue,
   isSingleSelectFilterValue,
+  isTextFilterValue,
 } from "@calcom/features/data-table/lib/utils";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { FilterType } from "@calcom/types/data-table";
+import { z } from "zod";
 
 export const insightsRoutingServiceOptionsSchema = z.discriminatedUnion("scope", [
   z.object({
@@ -861,7 +860,7 @@ export class InsightsRoutingBaseService {
     options: Extract<InsightsRoutingServiceOptions, { scope: "org" }>
   ): Promise<Prisma.Sql> {
     // Get all teams from the organization
-    const teamRepo = new TeamRepository(this.prisma);
+    const teamRepo = getTeamRepository(this.prisma);
     const teamsFromOrg = await teamRepo.findAllByParentId({
       parentId: options.orgId,
       select: { id: true },
@@ -875,7 +874,7 @@ export class InsightsRoutingBaseService {
   private async buildTeamAuthorizationCondition(
     options: Extract<InsightsRoutingServiceOptions, { scope: "team" }>
   ): Promise<Prisma.Sql> {
-    const teamRepo = new TeamRepository(this.prisma);
+    const teamRepo = getTeamRepository(this.prisma);
 
     if (options.orgId) {
       // team under org

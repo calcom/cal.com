@@ -1,15 +1,12 @@
-import type { NextApiRequest } from "next";
-
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-
 import { TRPCError } from "@trpc/server";
-
+import type { NextApiRequest } from "next";
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 import { schemaTeamReadPublic, schemaTeamUpdateBodyParams } from "~/lib/validations/team";
 
@@ -70,7 +67,7 @@ export async function patchHandler(req: NextApiRequest) {
   if (!team) throw new HttpError({ statusCode: 401, message: "Unauthorized: OWNER or ADMIN required" });
 
   if (data.slug) {
-    const teamRepository = new TeamRepository(prisma);
+    const teamRepository = getTeamRepository();
     const isSlugAvailable = await teamRepository.isSlugAvailableForUpdate({
       slug: data.slug,
       teamId: team.id,

@@ -32,9 +32,9 @@ vi.mock("@calcom/features/bookings/services/BookingAccessService", () => {
     },
   };
 });
-vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => {
+vi.mock("@calcom/features/di/containers/TeamRepository", () => {
   return {
-    TeamRepository: class MockTeamRepository {},
+    getTeamRepository: vi.fn(() => ({})),
   };
 });
 

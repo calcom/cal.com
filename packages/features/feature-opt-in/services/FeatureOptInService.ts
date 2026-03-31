@@ -1,5 +1,5 @@
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import type { FeatureId, FeatureState } from "@calcom/features/flags/config";
 import type { IFeatureRepository } from "@calcom/features/flags/repositories/PrismaFeatureRepository";
 import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
@@ -9,7 +9,6 @@ import type { TeamFeaturesDto } from "@calcom/lib/dto/TeamFeaturesDto";
 import type { UserFeaturesDto } from "@calcom/lib/dto/UserFeaturesDto";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
-import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import {
   getOptInFeatureConfig,
@@ -447,7 +446,7 @@ export class FeatureOptInService implements IFeatureOptInService {
       });
     }
 
-    const teamRepository = new TeamRepository(prisma);
+    const teamRepository = getTeamRepository();
     const adminTeams = await teamRepository.findOwnedTeamsByUserId({ userId });
 
     const nonOrgAdminTeams = adminTeams.filter((team) => !team.isOrganization);

@@ -4,7 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails/billing-email-service";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import {
   type EventTypeBrandingData,
   getEventTypeService,
@@ -13,7 +13,6 @@ import { getTranslation } from "@calcom/i18n/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
-import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
@@ -149,7 +148,7 @@ export const handleNoShowFee = async ({
   });
 
   if (!paymentCredential && teamId) {
-    const teamRepository = new TeamRepository(prisma);
+    const teamRepository = getTeamRepository();
     // See if the team event belongs to an org
     const org = await teamRepository.findParentOrganizationByTeamId(teamId);
 

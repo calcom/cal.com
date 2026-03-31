@@ -1,4 +1,4 @@
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import type { WorkflowListType } from "@calcom/features/ee/workflows/lib/types";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 // import dayjs from "@calcom/dayjs";
@@ -7,7 +7,6 @@ import { addPermissionsToWorkflows } from "@calcom/features/workflows/repositori
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TListInputSchema } from "./list.schema";
 
 type ListOptions = {
@@ -20,7 +19,7 @@ type ListOptions = {
 
 export const listHandler = async ({ ctx, input }: ListOptions) => {
   const workflows: WorkflowListType[] = [];
-  const teamRepository = new TeamRepository(ctx.prisma);
+  const teamRepository = getTeamRepository(ctx.prisma);
 
   const org = await teamRepository.findOrganization({
     teamId: input.teamId,

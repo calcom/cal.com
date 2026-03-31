@@ -1,7 +1,6 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { TrpcSessionUser } from "../../../types";
 
 const { mockFindTeamsNotBelongingToOrgByIds, mockCheckPermission, mockUpdateNewTeamMemberEventTypes } =
@@ -16,8 +15,8 @@ vi.mock("@calcom/prisma", () => ({
   default: prisma,
 }));
 
-vi.mock("@calcom/ee/teams/repositories/TeamRepository", () => ({
-  TeamRepository: vi.fn().mockImplementation(function () {
+vi.mock("@calcom/features/di/containers/TeamRepository", () => ({
+  getTeamRepository: vi.fn().mockImplementation(function () {
     return {
       findTeamsNotBelongingToOrgByIds: mockFindTeamsNotBelongingToOrgByIds,
     };

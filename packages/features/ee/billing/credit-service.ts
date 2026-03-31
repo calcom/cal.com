@@ -2,7 +2,7 @@ import dayjs from "@calcom/dayjs";
 import type { PrismaCreditsRepository } from "@calcom/features/credits/repositories/PrismaCreditsRepository";
 import { getCreditsRepository } from "@calcom/features/di/containers/CreditsRepository";
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { IS_SMS_CREDITS_ENABLED } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
@@ -271,7 +271,7 @@ export class CreditService {
       return null;
     }
 
-    const teamRepository = new TeamRepository(prisma);
+    const teamRepository = getTeamRepository();
     const teams = await teamRepository.findTeamsForCreditCheck({
       teamIds: memberships.map((m) => m.teamId),
     });
@@ -684,7 +684,7 @@ export class CreditService {
   }
 
   async getMonthlyCredits(teamId: number) {
-    const teamRepo = new TeamRepository(prisma);
+    const teamRepo = getTeamRepository();
     const team = await teamRepo.findTeamWithMembers(teamId);
 
     if (!team) return 0;

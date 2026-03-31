@@ -1,8 +1,7 @@
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
@@ -70,7 +69,7 @@ export const transferOwnershipHandler = async ({ ctx, input }: TransferOwnership
   const currentStripeEmail = await getStripeCustomerEmail(customerId);
   const newOwnerEmail = newOwnerMembership.user.email;
 
-  const teamRepository = new TeamRepository(prisma);
+  const teamRepository = getTeamRepository();
   const team = await teamRepository.findById({ id: teamId });
 
   if (mode === "preview") {

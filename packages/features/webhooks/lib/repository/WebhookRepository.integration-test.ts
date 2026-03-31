@@ -1,7 +1,8 @@
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { getWebhookFeature, webhookContainer } from "@calcom/features/di/webhooks/containers/webhook";
 import { WEBHOOK_TOKENS } from "@calcom/features/di/webhooks/Webhooks.tokens";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { IWebhookRepository } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
@@ -41,7 +42,7 @@ describe("WebhookRepository.getSubscribers (integration)", () => {
 
     const prismaClient = webhookContainer.get<PrismaClient>(DI_TOKENS.PRISMA_CLIENT);
     userRepository = new UserRepository(prismaClient);
-    teamRepository = new TeamRepository(prismaClient);
+    teamRepository = getTeamRepository(prismaClient);
     eventTypeRepository = webhookContainer.get<EventTypeRepository>(
       WEBHOOK_TOKENS.WEBHOOK_EVENT_TYPE_REPOSITORY
     );

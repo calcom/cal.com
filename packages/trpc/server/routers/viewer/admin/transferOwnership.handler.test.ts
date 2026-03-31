@@ -31,10 +31,10 @@ vi.mock("@calcom/features/di/containers/MembershipRepository", () => ({
   }),
 }));
 
-vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
-  TeamRepository: class {
-    findById = (...args: unknown[]) => mockFindById(...args);
-  },
+vi.mock("@calcom/features/di/containers/TeamRepository", () => ({
+  getTeamRepository: () => ({
+    findById: (...args: unknown[]) => mockFindById(...args),
+  }),
 }));
 
 import { TRPCError } from "@trpc/server";

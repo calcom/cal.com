@@ -1,7 +1,6 @@
-import type { TFunction } from "i18next";
-
 import { sendOrganizationCreationEmail } from "@calcom/emails/organization-email-service";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
@@ -9,39 +8,38 @@ import {
   findUserToBeOrgOwner,
   setupDomain,
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { uploadLogo } from "@calcom/lib/server/avatar";
-import { getTranslation } from "@calcom/i18n/server";
 import { isBase64Image, resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, Team, User } from "@calcom/prisma/client";
 import { CreationSource, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
-import { userMetadata, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataStrictSchema, userMetadata } from "@calcom/prisma/zod-utils";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
-
+import type { TFunction } from "i18next";
 import { OrganizationPaymentService } from "../../OrganizationPaymentService";
 import { OrganizationPermissionService } from "../../OrganizationPermissionService";
 import type { IOrganizationOnboardingService } from "./IOrganizationOnboardingService";
 import type {
-  TeamInput,
-  InvitedMemberInput,
   CreateOnboardingIntentInput,
+  InvitedMember,
+  InvitedMemberInput,
+  OnboardingIntentResult,
   OnboardingUser,
   OrganizationData,
-  TeamData,
-  InvitedMember,
   OrganizationOnboardingData,
-  OnboardingIntentResult,
+  TeamData,
+  TeamInput,
 } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["BaseOnboardingService"] });
@@ -152,7 +150,7 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
     orgSlug: string,
     teams: TeamInput[] = []
   ): Promise<TeamInput[]> {
-    const teamRepository = new TeamRepository(prisma);
+    const teamRepository = getTeamRepository();
     const ownedTeams = await teamRepository.findOwnedTeamsByUserId({ userId: this.user.id });
 
     const conflictingTeam = ownedTeams.find((team) => team.slug === orgSlug);

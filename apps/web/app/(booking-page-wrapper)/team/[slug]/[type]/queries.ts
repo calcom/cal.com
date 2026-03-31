@@ -1,7 +1,7 @@
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { getTeamData } from "@calcom/features/ee/teams/lib/getTeamData";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import {
   getEventTypeHosts,
   getProfileFromEvent,
@@ -168,7 +168,7 @@ export async function getCRMData(
 }
 
 export async function getTeamId(teamSlug: string, orgSlug: string | null): Promise<number | null> {
-  const teamRepo = new TeamRepository(prisma);
+  const teamRepo = getTeamRepository();
   const team = await teamRepo.findFirstBySlugAndParentSlug({
     slug: teamSlug,
     parentSlug: orgSlug,

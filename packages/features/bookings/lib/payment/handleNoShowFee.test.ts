@@ -1,13 +1,11 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { PaymentServiceMap } from "@calcom/app-store/payment.services.generated";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails/billing-email-service";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
-import { getTranslation } from "@calcom/i18n/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handleNoShowFee } from "./handleNoShowFee";
 
 vi.mock("@calcom/app-store/payment.services.generated", () => ({
@@ -51,8 +49,8 @@ vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository", (
   PrismaMembershipRepository: MockMembershipRepository,
 }));
 
-vi.mock("@calcom/features/ee/teams/repositories/TeamRepository", () => ({
-  TeamRepository: vi.fn().mockImplementation(function () {
+vi.mock("@calcom/features/di/containers/TeamRepository", () => ({
+  getTeamRepository: vi.fn().mockImplementation(function () {
     return {
       findParentOrganizationByTeamId: vi.fn(),
     };
@@ -225,9 +223,7 @@ describe("handleNoShowFee", () => {
       const mockTeamRepository = {
         findParentOrganizationByTeamId: vi.fn().mockResolvedValue({ id: 2 }),
       };
-      vi.mocked(TeamRepository).mockImplementation(function () {
-        return mockTeamRepository;
-      });
+      vi.mocked(getTeamRepository).mockReturnValue(mockTeamRepository as never);
 
       const result = await handleNoShowFee({
         booking: teamBooking,

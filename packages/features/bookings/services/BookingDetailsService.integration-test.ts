@@ -1,15 +1,13 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
-
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PrismaMembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, CreationSource, MembershipRole } from "@calcom/prisma/enums";
-
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { BookingDetailsService } from "./BookingDetailsService";
 
 /**
@@ -38,7 +36,7 @@ describe("BookingDetailsService (Integration Tests)", () => {
   const bookingRepo = new BookingRepository(prisma);
   const userRepo = new UserRepository(prisma);
   const eventTypeRepo = new EventTypeRepository(prisma);
-  const teamRepo = new TeamRepository(prisma);
+  const teamRepo = getTeamRepository();
   const membershipRepo = new PrismaMembershipRepository(prisma);
 
   // Users
@@ -57,12 +55,7 @@ describe("BookingDetailsService (Integration Tests)", () => {
 
   let bookingTimeOffset = 0;
 
-  async function createTestBooking(
-    overrides?: {
-      rescheduled?: boolean;
-      fromReschedule?: string | null;
-    }
-  ) {
+  async function createTestBooking(overrides?: { rescheduled?: boolean; fromReschedule?: string | null }) {
     const offset = bookingTimeOffset++;
     const booking = await prisma.booking.create({
       data: {

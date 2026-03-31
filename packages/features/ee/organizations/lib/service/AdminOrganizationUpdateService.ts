@@ -1,7 +1,8 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import type { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { renameDomain } from "@calcom/lib/domainManager/organization";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import { HttpError } from "@calcom/lib/http-error";
@@ -53,7 +54,7 @@ export class AdminOrganizationUpdateService {
       await throwIfSlugConflicts({
         id,
         slug: newSlug,
-        teamRepository: new TeamRepository(this.deps.prismaClient),
+        teamRepository: getTeamRepository(this.deps.prismaClient),
       });
       const isSlugChanged = newSlug !== oldSlug;
       if (isSlugChanged) {

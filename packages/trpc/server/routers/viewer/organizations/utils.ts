@@ -1,13 +1,11 @@
-import { TeamRepository } from "@calcom/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddMembersToTeams } from "./addMembersToTeams.schema";
 
@@ -19,7 +17,7 @@ interface AddBulkToTeamProps {
 export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => {
   if (!user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const teamRepository = new TeamRepository(prisma);
+  const teamRepository = getTeamRepository();
   const teamsNotBelongingToOrg = await teamRepository.findTeamsNotBelongingToOrgByIds({
     teamIds: input.teamIds,
     orgId: user.organizationId,

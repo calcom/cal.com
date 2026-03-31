@@ -1,10 +1,8 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import type { Team } from "@calcom/prisma/client";
-
-import { getTeam, getOrg, TeamRepository } from "./TeamRepository";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getOrg, getTeam, type TeamRepository } from "./TeamRepository";
 
 const sampleTeamProps = {
   logo: null,
@@ -50,7 +48,7 @@ describe("TeamRepository", () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    teamRepository = new TeamRepository(prismaMock);
+    teamRepository = getTeamRepository(prismaMock);
   });
 
   afterEach(() => {

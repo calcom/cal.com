@@ -1,13 +1,9 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import type { AppFlags } from "@calcom/features/flags/config";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
-import {
-  Resource,
-  CrudAction,
-  Scope,
-} from "@calcom/features/pbac/domain/types/permission-registry";
+import { CrudAction, Resource, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -43,11 +39,7 @@ const getCachedTeamFeature = (teamId: number, feature: keyof AppFlags) =>
     { revalidate: 3600, tags: [`team-features-${teamId}`] }
   );
 
-const getCachedResourcePermissions = (
-  userId: number,
-  teamId: number,
-  resource: Resource
-) =>
+const getCachedResourcePermissions = (userId: number, teamId: number, resource: Resource) =>
   unstable_cache(
     async () => {
       const permissionService = new PermissionCheckService();
@@ -77,18 +69,14 @@ const getCachedTeamPrivacy = (teamId: number) =>
 const getCachedTeamParent = (teamId: number) =>
   unstable_cache(
     async () => {
-      const teamRepository = new TeamRepository(prisma);
+      const teamRepository = getTeamRepository();
       return teamRepository.findParentOrganizationByTeamId(teamId);
     },
     [`team-parent-for-roles-${teamId}`],
     { revalidate: 3600, tags: [`team-parent-${teamId}`] }
   );
 
-export const generateMetadata = async ({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) => {
+export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
   return await _generateMetadata(
     (t) => t("roles_and_permissions"),
@@ -126,10 +114,7 @@ const Page = async ({
   }
 
   // Check if parent team has PBAC feature enabled
-  const parentTeamHasPBACFeature = await getCachedTeamFeature(
-    parent.id,
-    "pbac"
-  )();
+  const parentTeamHasPBACFeature = await getCachedTeamFeature(parent.id, "pbac")();
 
   if (!parentTeamHasPBACFeature) {
     return notFound();
@@ -144,10 +129,7 @@ const Page = async ({
   ]);
 
   // NOTE: this approach of fetching permssions per resource does not account for fall back roles.
-  const roleActions = PermissionMapper.toActionMap(
-    rolePermissions,
-    Resource.Role
-  );
+  const roleActions = PermissionMapper.toActionMap(rolePermissions, Resource.Role);
 
   const canCreate = roleActions[CrudAction.Create] ?? false;
   const canRead = roleActions[CrudAction.Read] ?? false;
@@ -170,8 +152,7 @@ const Page = async ({
       title={t("roles_and_permissions")}
       description={t("roles_and_permissions_description")}
       borderInShellHeader={false}
-      CTA={canCreate ? <CreateRoleCTA /> : null}
-    >
+      CTA={canCreate ? <CreateRoleCTA /> : null}>
       <RolesList
         teamId={teamIdNum}
         roles={roles}

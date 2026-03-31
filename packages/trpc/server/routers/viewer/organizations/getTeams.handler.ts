@@ -1,10 +1,7 @@
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 
 type GetTeamsHandler = {
@@ -35,7 +32,7 @@ export async function getTeamsHandler({ ctx }: GetTeamsHandler) {
     });
   }
 
-  const teamRepository = new TeamRepository(prisma);
+  const teamRepository = getTeamRepository();
   const allOrgTeams = await teamRepository.findAllByParentId({
     parentId: currentUserOrgId,
     select: {

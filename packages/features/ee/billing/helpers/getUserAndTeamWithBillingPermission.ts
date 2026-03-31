@@ -1,10 +1,9 @@
-import type { TFunction } from "i18next";
-
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { getTranslation } from "@calcom/i18n/server";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { TFunction } from "i18next";
 
 interface UserWithBillingAccess {
   id: number;
@@ -36,7 +35,7 @@ export async function getUserAndTeamWithBillingPermission({
   const result: GetUserAndTeamResult = {};
 
   if (teamId) {
-    const teamRepository = new TeamRepository(prismaClient);
+    const teamRepository = getTeamRepository(prismaClient);
     const team = await teamRepository.findById({ id: teamId });
 
     if (!team) {

@@ -1,12 +1,10 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-
-import { getIntegrationAttributeSyncService } from "@calcom/features/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
+import { getIntegrationAttributeSyncService } from "@calcom/features/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { prisma } from "@calcom/prisma";
 import IntegrationAttributeSyncView from "@calcom/web/modules/integration-attribute-sync/components/IntegrationAttributeSyncView";
-
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { validateUserHasOrgPerms } from "../../../actions/validateUserHasOrgPerms";
 
 export const generateMetadata = async () =>
@@ -30,7 +28,7 @@ const Page = async () => {
   const organizationId = session.user.org.id;
 
   const integrationAttributeSyncService = getIntegrationAttributeSyncService();
-  const teamRepository = new TeamRepository(prisma);
+  const teamRepository = getTeamRepository();
   const attributeRepo = new PrismaAttributeRepository(prisma);
 
   const [credentialData, integrationAttributeSyncs, organizationTeams, attributes] = await Promise.all([

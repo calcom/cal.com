@@ -9,7 +9,7 @@ import {
   isTextFilterValue,
 } from "@calcom/features/data-table/lib/utils";
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { extractDateRangeFromColumnFilters } from "@calcom/features/insights/lib/bookingUtils";
 import type { DateRange } from "@calcom/features/insights/server/insightsDateUtils";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -399,7 +399,7 @@ export class InsightsBookingBaseService {
     options: Extract<InsightsBookingServiceOptions, { scope: "org" }>
   ): Promise<Prisma.Sql> {
     // Get all teams from the organization
-    const teamRepo = new TeamRepository(this.prisma);
+    const teamRepo = getTeamRepository(this.prisma);
     const teamsFromOrg = await teamRepo.findAllByParentId({
       parentId: options.orgId,
       select: { id: true },
@@ -430,7 +430,7 @@ export class InsightsBookingBaseService {
   private async buildTeamAuthorizationCondition(
     options: Extract<InsightsBookingServiceOptions, { scope: "team" }>
   ): Promise<Prisma.Sql> {
-    const teamRepo = new TeamRepository(this.prisma);
+    const teamRepo = getTeamRepository(this.prisma);
 
     if (options.orgId) {
       // team under org

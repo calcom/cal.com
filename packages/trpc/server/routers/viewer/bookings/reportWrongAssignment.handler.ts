@@ -2,7 +2,7 @@ import { BookingRepository } from "@calcom/features/bookings/repositories/Bookin
 import { WrongAssignmentReportRepository } from "@calcom/features/bookings/repositories/WrongAssignmentReportRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { WrongAssignmentReportService } from "@calcom/features/bookings/services/WrongAssignmentReportService";
-import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
@@ -31,7 +31,7 @@ export const reportWrongAssignmentHandler = async ({ ctx, input }: ReportWrongAs
   const service = new WrongAssignmentReportService({
     bookingRepo: new BookingRepository(prisma),
     wrongAssignmentReportRepo: new WrongAssignmentReportRepository(prisma),
-    teamRepo: new TeamRepository(prisma),
+    teamRepo: getTeamRepository(),
   });
 
   return service.report({
