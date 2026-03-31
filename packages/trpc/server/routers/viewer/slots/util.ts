@@ -3,11 +3,11 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getAggregatedAvailability } from "@calcom/features/availability/lib/getAggregatedAvailability/getAggregatedAvailability";
-import {
-  type CurrentSeats,
-  type EventType,
-  type GetAvailabilityUser,
-  type UserAvailabilityService,
+import type {
+  CurrentSeats,
+  EventType,
+  GetAvailabilityUser,
+  UserAvailabilityService,
 } from "@calcom/features/availability/lib/getUserAvailability";
 import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
@@ -40,7 +40,6 @@ import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSche
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import LimitManager, { LimitSources } from "@calcom/lib/intervalLimits/limitManager";
-import { isBookingWithinPeriod } from "@calcom/lib/intervalLimits/utils";
 import { calculatePeriodLimits, isTimeViolatingFutureLimit } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -416,6 +415,29 @@ export class AvailableSlotsService {
       durationLimits,
     });
 
+    // Pre-compute day strings and duration minutes once per booking to avoid
+    // repeated dayjs().tz().format() calls in the hot period×booking loops
+    const enrichedBookings = busyTimesFromLimitsBookings.map((booking) => ({
+      ...booking,
+      day: dayjs(booking.start).tz(timeZone).format("YYYY-MM-DD"),
+      durationMinutes: Math.round(
+        (new Date(booking.end as unknown as string).getTime() -
+          new Date(booking.start as unknown as string).getTime()) /
+          60000
+      ),
+    }));
+
+    // Pre-group by userId for O(1) lookup instead of O(n) filter per user
+    const bookingsByUserId = new Map<number | null | undefined, typeof enrichedBookings>();
+    for (const booking of enrichedBookings) {
+      const existing = bookingsByUserId.get(booking.userId);
+      if (existing) {
+        existing.push(booking);
+      } else {
+        bookingsByUserId.set(booking.userId, [booking]);
+      }
+    }
+
     const globalLimitManager = new LimitManager();
 
     if (bookingLimits) {
@@ -434,13 +456,14 @@ export class AvailableSlotsService {
         for (const periodStart of periodStartDates) {
           if (globalLimitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
 
-          const periodEnd = periodStart.endOf(unit);
+          const periodStartDay = periodStart.format("YYYY-MM-DD");
+          const periodEndDay = periodStart.endOf(unit).format("YYYY-MM-DD");
           let totalBookings = 0;
 
           const { title, source } = LimitSources.eventBookingLimit({ limit, unit });
 
-          for (const booking of busyTimesFromLimitsBookings) {
-            if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
+          for (const booking of enrichedBookings) {
+            if (booking.day < periodStartDay || booking.day > periodEndDay) {
               continue;
             }
 
@@ -483,7 +506,7 @@ export class AvailableSlotsService {
     }
 
     for (const user of users) {
-      const userBookings = busyTimesFromLimitsBookings.filter((booking) => booking.userId === user.id);
+      const userBookings = bookingsByUserId.get(user.id) ?? [];
       const limitManager = new LimitManager();
 
       limitManager.mergeBusyTimes(globalLimitManager);
@@ -534,11 +557,12 @@ export class AvailableSlotsService {
               continue;
             }
 
-            const periodEnd = periodStart.endOf(unit);
+            const periodStartDay = periodStart.format("YYYY-MM-DD");
+            const periodEndDay = periodStart.endOf(unit).format("YYYY-MM-DD");
             let totalBookings = 0;
 
             for (const booking of userBookings) {
-              if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
+              if (booking.day < periodStartDay || booking.day > periodEndDay) {
                 continue;
               }
 
@@ -620,14 +644,15 @@ export class AvailableSlotsService {
               continue;
             }
 
-            const periodEnd = periodStart.endOf(unit);
+            const periodStartDay = periodStart.format("YYYY-MM-DD");
+            const periodEndDay = periodStart.endOf(unit).format("YYYY-MM-DD");
             let totalDuration = selectedDuration;
 
             for (const booking of userBookings) {
-              if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
+              if (booking.day < periodStartDay || booking.day > periodEndDay) {
                 continue;
               }
-              totalDuration += dayjs(booking.end).diff(dayjs(booking.start), "minute");
+              totalDuration += booking.durationMinutes;
               if (totalDuration > limit) {
                 limitManager.addBusyTime({
                   start: periodStart,
@@ -680,12 +705,20 @@ export class AvailableSlotsService {
       includeManagedEvents,
     });
 
+    // Use Intl.DateTimeFormat for fast timezone-aware day computation (avoids dayjs.tz per booking)
+    const dayFormatter = new Intl.DateTimeFormat("en-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      timeZone,
+    });
     const busyTimes = bookings.map(({ id, startTime, endTime, eventTypeId, title, userId }) => ({
-      start: dayjs(startTime).toDate(),
-      end: dayjs(endTime).toDate(),
+      start: startTime instanceof Date ? startTime : new Date(startTime),
+      end: endTime instanceof Date ? endTime : new Date(endTime),
       title,
       source: `eventType-${eventTypeId}-booking-${id}`,
       userId,
+      day: dayFormatter.format(startTime instanceof Date ? startTime : new Date(startTime)),
     }));
 
     const globalLimitManager = new LimitManager();
@@ -705,13 +738,14 @@ export class AvailableSlotsService {
       for (const periodStart of periodStartDates) {
         if (globalLimitManager.isAlreadyBusy(periodStart, unit, timeZone)) continue;
 
-        const periodEnd = periodStart.endOf(unit);
+        const periodStartDay = periodStart.format("YYYY-MM-DD");
+        const periodEndDay = periodStart.endOf(unit).format("YYYY-MM-DD");
         let totalBookings = 0;
 
         const { title, source } = LimitSources.teamBookingLimit({ limit, unit });
 
         for (const booking of busyTimes) {
-          if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
+          if (booking.day < periodStartDay || booking.day > periodEndDay) {
             continue;
           }
 
@@ -730,10 +764,21 @@ export class AvailableSlotsService {
       }
     }
 
+    // Pre-group bookings by userId for O(1) lookup instead of O(n) filter per user
+    const busyTimesByUserId = new Map<number | null, typeof busyTimes>();
+    for (const bt of busyTimes) {
+      const existing = busyTimesByUserId.get(bt.userId);
+      if (existing) {
+        existing.push(bt);
+      } else {
+        busyTimesByUserId.set(bt.userId, [bt]);
+      }
+    }
+
     const userBusyTimesMap = new Map();
 
     for (const user of users) {
-      const userBusyTimes = busyTimes.filter((busyTime) => busyTime.userId === user.id);
+      const userBusyTimes = busyTimesByUserId.get(user.id) ?? [];
       const limitManager = new LimitManager();
 
       limitManager.mergeBusyTimes(globalLimitManager);
@@ -784,11 +829,12 @@ export class AvailableSlotsService {
             continue;
           }
 
-          const periodEnd = periodStart.endOf(unit);
+          const periodStartDay = periodStart.format("YYYY-MM-DD");
+          const periodEndDay = periodStart.endOf(unit).format("YYYY-MM-DD");
           let totalBookings = 0;
 
           for (const booking of userBusyTimes) {
-            if (!isBookingWithinPeriod(booking, periodStart, periodEnd, timeZone)) {
+            if (booking.day < periodStartDay || booking.day > periodEndDay) {
               continue;
             }
 
@@ -845,7 +891,6 @@ export class AvailableSlotsService {
 
     return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
   }
-
 
   private async calculateHostsAndAvailabilities({
     input,
