@@ -31,6 +31,14 @@ interface IInstantBookingCreateServiceDependencies {
   prismaClient: PrismaClient;
 }
 
+const parseBrowserSubscription = (subscription: string) => {
+  try {
+    return subscriptionSchema.safeParse(JSON.parse(subscription));
+  } catch {
+    return subscriptionSchema.safeParse(null);
+  }
+};
+
 const handleInstantMeetingWebhookTrigger = async (args: {
   eventTypeId: number;
   webhookData: Record<string, unknown>;
@@ -124,6 +132,7 @@ const triggerBrowserNotifications = async (args: {
         select: {
           id: true,
           NotificationsSubscriptions: {
+            where: { type: "WEB_PUSH" },
             select: {
               id: true,
               subscription: true,
@@ -134,30 +143,33 @@ const triggerBrowserNotifications = async (args: {
     },
   });
 
-  const promises = subscribers.map((sub) => {
-    const subscription = sub.user?.NotificationsSubscriptions?.[0]?.subscription;
-    if (!subscription) return Promise.resolve();
+  const promises = subscribers.flatMap((sub) => {
+    const subscriptions = sub.user?.NotificationsSubscriptions ?? [];
+    return subscriptions.map((notifSub) => {
+      const { subscription } = notifSub;
+      if (!subscription) return Promise.resolve();
 
-    const parsedSubscription = subscriptionSchema.safeParse(JSON.parse(subscription));
+      const parsedSubscription = parseBrowserSubscription(subscription);
 
-    if (!parsedSubscription.success) {
-      logger.error("Invalid subscription", parsedSubscription.error, JSON.stringify(sub.user));
-      return Promise.resolve();
-    }
+      if (!parsedSubscription.success) {
+        logger.error("Invalid subscription", parsedSubscription.error, JSON.stringify(sub.user));
+        return Promise.resolve();
+      }
 
-    return sendNotification({
-      subscription: {
-        endpoint: parsedSubscription.data.endpoint,
-        keys: {
-          auth: parsedSubscription.data.keys.auth,
-          p256dh: parsedSubscription.data.keys.p256dh,
+      return sendNotification({
+        subscription: {
+          endpoint: parsedSubscription.data.endpoint,
+          keys: {
+            auth: parsedSubscription.data.keys.auth,
+            p256dh: parsedSubscription.data.keys.p256dh,
+          },
         },
-      },
-      title: title,
-      body: "User is waiting for you to join. Click to Connect",
-      url: connectAndJoinUrl,
-      type: "INSTANT_MEETING",
-      requireInteraction: false,
+        title: title,
+        body: "User is waiting for you to join. Click to Connect",
+        url: connectAndJoinUrl,
+        type: "INSTANT_MEETING",
+        requireInteraction: false,
+      });
     });
   });
 

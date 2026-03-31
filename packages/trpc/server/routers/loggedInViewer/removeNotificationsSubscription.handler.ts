@@ -1,32 +1,46 @@
+import { subscriptionSchema } from "@calcom/features/instant-meeting/schema";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import { TRPCError } from "@trpc/server";
 import type { TRemoveNotificationsSubscriptionInputSchema } from "./removeNotificationsSubscription.schema";
 
-type AddSecondaryEmailOptions = {
+type RemoveNotificationsSubscriptionOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TRemoveNotificationsSubscriptionInputSchema;
 };
 
-export const removeNotificationsSubscriptionHandler = async ({ ctx }: AddSecondaryEmailOptions) => {
+const parseBrowserSubscription = (subscription: string) => {
+  try {
+    return subscriptionSchema.safeParse(JSON.parse(subscription));
+  } catch {
+    return subscriptionSchema.safeParse(null);
+  }
+};
+
+export const removeNotificationsSubscriptionHandler = async ({
+  ctx,
+  input,
+}: RemoveNotificationsSubscriptionOptions) => {
   const { user } = ctx;
 
-  // We just use findFirst because there will only be single unique subscription for a user
-  const subscriptionToDelete = await prisma.notificationsSubscriptions.findFirst({
-    where: {
-      userId: user.id,
-    },
-  });
+  const parsedSubscription = parseBrowserSubscription(input.subscription);
 
-  if (subscriptionToDelete) {
-    await prisma.notificationsSubscriptions.delete({
-      where: {
-        id: subscriptionToDelete.id,
-      },
+  if (!parsedSubscription.success) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Invalid subscription",
     });
   }
+
+  await prisma.notificationsSubscriptions.deleteMany({
+    where: {
+      userId: user.id,
+      type: "WEB_PUSH",
+      identifier: parsedSubscription.data.endpoint,
+    },
+  });
 
   return {
     message: "Subscription removed successfully",

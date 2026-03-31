@@ -3,12 +3,10 @@ import { sendNotification } from "@calcom/features/notifications/sendNotificatio
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TAddNotificationsSubscriptionInputSchema } from "./addNotificationsSubscription.schema";
 
-type AddSecondaryEmailOptions = {
+type AddNotificationsSubscriptionOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
@@ -17,11 +15,22 @@ type AddSecondaryEmailOptions = {
 
 const log = logger.getSubLogger({ prefix: ["[addNotificationsSubscriptionHandler]"] });
 
-export const addNotificationsSubscriptionHandler = async ({ ctx, input }: AddSecondaryEmailOptions) => {
+const parseBrowserSubscription = (subscription: string) => {
+  try {
+    return subscriptionSchema.safeParse(JSON.parse(subscription));
+  } catch {
+    return subscriptionSchema.safeParse(null);
+  }
+};
+
+export const addNotificationsSubscriptionHandler = async ({
+  ctx,
+  input,
+}: AddNotificationsSubscriptionOptions) => {
   const { user } = ctx;
   const { subscription } = input;
 
-  const parsedSubscription = subscriptionSchema.safeParse(JSON.parse(subscription));
+  const parsedSubscription = parseBrowserSubscription(subscription);
 
   if (!parsedSubscription.success) {
     log.error("Invalid subscription", parsedSubscription.error, JSON.stringify(subscription));
@@ -31,20 +40,28 @@ export const addNotificationsSubscriptionHandler = async ({ ctx, input }: AddSec
     });
   }
 
-  const existingSubscription = await prisma.notificationsSubscriptions.findFirst({
-    where: { userId: user.id },
-  });
+  const endpoint = parsedSubscription.data.endpoint;
 
-  if (!existingSubscription) {
-    await prisma.notificationsSubscriptions.create({
-      data: { userId: user.id, subscription },
-    });
-  } else {
-    await prisma.notificationsSubscriptions.update({
-      where: { id: existingSubscription.id },
-      data: { userId: user.id, subscription },
-    });
-  }
+  await prisma.notificationsSubscriptions.upsert({
+    where: {
+      userId_type_identifier: {
+        userId: user.id,
+        type: "WEB_PUSH",
+        identifier: endpoint,
+      },
+    },
+    create: {
+      userId: user.id,
+      subscription,
+      type: "WEB_PUSH",
+      platform: "WEB",
+      identifier: endpoint,
+    },
+    update: {
+      subscription,
+      lastSeenAt: new Date(),
+    },
+  });
 
   // send test notification
   sendNotification({
