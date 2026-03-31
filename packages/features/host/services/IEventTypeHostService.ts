@@ -11,6 +11,7 @@ export type AvailabilityHost = {
   scheduleId: number | null;
   groupId: string | null;
   name: string | null;
+  email: string;
   avatarUrl: string | null;
 };
 
@@ -88,6 +89,14 @@ export type ExportWeightsResponse = {
   members: ExportedWeightMember[];
 };
 
+export type AllHostsResponse = {
+  hosts: AvailabilityHost[];
+};
+
+export type AllAssignmentChildrenResponse = {
+  children: AssignmentChild[];
+};
+
 // --- Service Interface ---
 
 export interface IEventTypeHostService {
@@ -129,4 +138,8 @@ export interface IEventTypeHostService {
     attributesQueryValue?: AttributesQueryValue | null;
     organizationId: number | null;
   }): Promise<ExportWeightsResponse>;
+
+  getAllHosts(input: { eventTypeId: number }): Promise<AllHostsResponse>;
+
+  getAllChildrenForAssignment(input: { eventTypeId: number }): Promise<AllAssignmentChildrenResponse>;
 }

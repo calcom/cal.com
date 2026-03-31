@@ -5,6 +5,7 @@ import { MembershipService } from "./MembershipService";
 
 const mockMembershipRepository = {
   findUniqueByUserIdAndTeamId: vi.fn(),
+  findAllAcceptedMembers: vi.fn(),
 } as unknown as PrismaMembershipRepository;
 
 const service = new MembershipService(mockMembershipRepository);
@@ -94,6 +95,66 @@ describe("MembershipService", () => {
         isOwner: true,
         role: "OWNER",
       });
+    });
+  });
+
+  describe("getAllTeamMembers", () => {
+    it("should map memberships to TeamMember DTOs", async () => {
+      vi.mocked(mockMembershipRepository.findAllAcceptedMembers).mockResolvedValue([
+        {
+          user: {
+            id: 1,
+            name: "Alice",
+            email: "alice@test.com",
+            avatarUrl: "https://example.com/alice.png",
+            username: "alice",
+            defaultScheduleId: 10,
+          },
+          role: MembershipRole.ADMIN,
+        },
+        {
+          user: {
+            id: 2,
+            name: "Bob",
+            email: "bob@test.com",
+            avatarUrl: null,
+            username: "bob",
+            defaultScheduleId: null,
+          },
+          role: MembershipRole.MEMBER,
+        },
+      ]);
+
+      const result = await service.getAllTeamMembers({ teamId: 42 });
+
+      expect(mockMembershipRepository.findAllAcceptedMembers).toHaveBeenCalledWith({ teamId: 42 });
+      expect(result.members).toHaveLength(2);
+      expect(result.members[0]).toEqual({
+        userId: 1,
+        name: "Alice",
+        email: "alice@test.com",
+        avatarUrl: "https://example.com/alice.png",
+        username: "alice",
+        defaultScheduleId: 10,
+        role: MembershipRole.ADMIN,
+      });
+      expect(result.members[1]).toEqual({
+        userId: 2,
+        name: "Bob",
+        email: "bob@test.com",
+        avatarUrl: null,
+        username: "bob",
+        defaultScheduleId: null,
+        role: MembershipRole.MEMBER,
+      });
+    });
+
+    it("should return empty members array when no accepted members exist", async () => {
+      vi.mocked(mockMembershipRepository.findAllAcceptedMembers).mockResolvedValue([]);
+
+      const result = await service.getAllTeamMembers({ teamId: 99 });
+
+      expect(result.members).toHaveLength(0);
     });
   });
 });

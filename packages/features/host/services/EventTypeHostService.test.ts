@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the repositories and external dependencies
 vi.mock("@calcom/features/host/repositories/HostRepository");
@@ -8,11 +8,11 @@ vi.mock("@calcom/features/membership/repositories/PrismaMembershipRepository");
 vi.mock("@calcom/features/eventtypes/repositories/eventTypeRepository");
 vi.mock("@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic");
 
-import { EventTypeHostService } from "./EventTypeHostService";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
 import { PrismaMembershipRepository as MembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
+import { EventTypeHostService } from "./EventTypeHostService";
 
 const mockPrisma = {} as never;
 
@@ -220,7 +220,7 @@ describe("EventTypeHostService", () => {
   });
 
   describe("getChildrenForAssignment", () => {
-    it("should map and filter children with null owners", async () => {
+    it("should map children to AssignmentChild DTOs (null owners filtered at DB level)", async () => {
       const service = createService();
       const hostRepo = getHostRepoInstance();
 
@@ -236,7 +236,7 @@ describe("EventTypeHostService", () => {
             id: 11,
             slug: "child-2",
             hidden: true,
-            owner: null,
+            owner: { id: 2, name: "Bob", email: "bob@test.com", username: "bob", avatarUrl: null },
           },
         ],
         nextCursor: undefined,
@@ -248,8 +248,7 @@ describe("EventTypeHostService", () => {
         limit: 20,
       });
 
-      // Should filter out item with null owner
-      expect(result.children).toHaveLength(1);
+      expect(result.children).toHaveLength(2);
       expect(result.children[0]).toEqual({
         childEventTypeId: 10,
         slug: "child-1",
@@ -259,6 +258,18 @@ describe("EventTypeHostService", () => {
           name: "Alice",
           email: "alice@test.com",
           username: "alice",
+          avatarUrl: null,
+        },
+      });
+      expect(result.children[1]).toEqual({
+        childEventTypeId: 11,
+        slug: "child-2",
+        hidden: true,
+        owner: {
+          id: 2,
+          name: "Bob",
+          email: "bob@test.com",
+          username: "bob",
           avatarUrl: null,
         },
       });
@@ -464,7 +475,10 @@ describe("EventTypeHostService", () => {
         { userId: 3, weight: 50, user: { name: "Charlie", email: "charlie@test.com", avatarUrl: null } },
       ]);
       vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
-        teamMembersMatchingAttributeLogic: [{ odataUserId: 1, odataEmail: "alice@test.com", userId: 1 }, { odataUserId: 3, odataEmail: "charlie@test.com", userId: 3 }],
+        teamMembersMatchingAttributeLogic: [
+          { odataUserId: 1, odataEmail: "alice@test.com", userId: 1 },
+          { odataUserId: 3, odataEmail: "charlie@test.com", userId: 3 },
+        ],
         mainAttributeLogicBuildingWarnings: [],
         troubleshooter: null,
       } as never);
@@ -523,6 +537,162 @@ describe("EventTypeHostService", () => {
       });
 
       expect(result.members).toHaveLength(0);
+    });
+  });
+
+  describe("getAllHosts", () => {
+    it("should map repository items to AvailabilityHost DTOs with email", async () => {
+      const service = createService();
+      const hostRepo = getHostRepoInstance();
+
+      vi.mocked(hostRepo.findAllHostsIncludeUser).mockResolvedValue([
+        {
+          userId: 1,
+          isFixed: true,
+          priority: 2,
+          weight: 150,
+          scheduleId: 10,
+          groupId: "g1",
+          user: { name: "Alice", email: "alice@test.com", avatarUrl: "https://example.com/alice.png" },
+        },
+        {
+          userId: 2,
+          isFixed: false,
+          priority: 1,
+          weight: 200,
+          scheduleId: null,
+          groupId: null,
+          user: { name: "Bob", email: "bob@test.com", avatarUrl: null },
+        },
+      ]);
+
+      const result = await service.getAllHosts({ eventTypeId: 100 });
+
+      expect(hostRepo.findAllHostsIncludeUser).toHaveBeenCalledWith({ eventTypeId: 100 });
+      expect(result.hosts).toHaveLength(2);
+      expect(result.hosts[0]).toEqual({
+        userId: 1,
+        isFixed: true,
+        priority: 2,
+        weight: 150,
+        scheduleId: 10,
+        groupId: "g1",
+        name: "Alice",
+        email: "alice@test.com",
+        avatarUrl: "https://example.com/alice.png",
+      });
+      expect(result.hosts[1]).toEqual({
+        userId: 2,
+        isFixed: false,
+        priority: 1,
+        weight: 200,
+        scheduleId: null,
+        groupId: null,
+        name: "Bob",
+        email: "bob@test.com",
+        avatarUrl: null,
+      });
+    });
+
+    it("should default priority to 0 and weight to 100 when null", async () => {
+      const service = createService();
+      const hostRepo = getHostRepoInstance();
+
+      vi.mocked(hostRepo.findAllHostsIncludeUser).mockResolvedValue([
+        {
+          userId: 3,
+          isFixed: false,
+          priority: null,
+          weight: null,
+          scheduleId: null,
+          groupId: null,
+          user: { name: null, email: "user3@test.com", avatarUrl: null },
+        },
+      ]);
+
+      const result = await service.getAllHosts({ eventTypeId: 1 });
+
+      expect(result.hosts[0].priority).toBe(0);
+      expect(result.hosts[0].weight).toBe(100);
+    });
+
+    it("should return empty hosts array when no hosts exist", async () => {
+      const service = createService();
+      const hostRepo = getHostRepoInstance();
+
+      vi.mocked(hostRepo.findAllHostsIncludeUser).mockResolvedValue([]);
+
+      const result = await service.getAllHosts({ eventTypeId: 999 });
+
+      expect(result.hosts).toHaveLength(0);
+    });
+  });
+
+  describe("getAllChildrenForAssignment", () => {
+    it("should map repository items to AssignmentChild DTOs", async () => {
+      const service = createService();
+      const hostRepo = getHostRepoInstance();
+
+      vi.mocked(hostRepo.findAllChildrenForAssignment).mockResolvedValue([
+        {
+          id: 10,
+          slug: "child-1",
+          hidden: false,
+          owner: { id: 1, name: "Alice", email: "alice@test.com", username: "alice", avatarUrl: null },
+        },
+        {
+          id: 11,
+          slug: "child-2",
+          hidden: true,
+          owner: {
+            id: 2,
+            name: "Bob",
+            email: "bob@test.com",
+            username: "bob",
+            avatarUrl: "https://example.com/bob.png",
+          },
+        },
+      ]);
+
+      const result = await service.getAllChildrenForAssignment({ eventTypeId: 100 });
+
+      expect(hostRepo.findAllChildrenForAssignment).toHaveBeenCalledWith({ eventTypeId: 100 });
+      expect(result.children).toHaveLength(2);
+      expect(result.children[0]).toEqual({
+        childEventTypeId: 10,
+        slug: "child-1",
+        hidden: false,
+        owner: {
+          id: 1,
+          name: "Alice",
+          email: "alice@test.com",
+          username: "alice",
+          avatarUrl: null,
+        },
+      });
+      expect(result.children[1]).toEqual({
+        childEventTypeId: 11,
+        slug: "child-2",
+        hidden: true,
+        owner: {
+          id: 2,
+          name: "Bob",
+          email: "bob@test.com",
+          username: "bob",
+          avatarUrl: "https://example.com/bob.png",
+        },
+      });
+    });
+
+    it("should return empty children array when no children exist", async () => {
+      const service = createService();
+      const hostRepo = getHostRepoInstance();
+
+      vi.mocked(hostRepo.findAllChildrenForAssignment).mockResolvedValue([]);
+
+      const result = await service.getAllChildrenForAssignment({ eventTypeId: 999 });
+
+      expect(result.children).toHaveLength(0);
     });
   });
 });

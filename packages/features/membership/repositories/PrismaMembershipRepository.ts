@@ -758,6 +758,26 @@ export class PrismaMembershipRepository {
     });
   }
 
+  async findAllAcceptedMembers({ teamId }: { teamId: number }) {
+    return this.prismaClient.membership.findMany({
+      where: { teamId, accepted: true },
+      orderBy: { user: { id: "asc" } },
+      select: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+            username: true,
+            defaultScheduleId: true,
+          },
+        },
+        role: true,
+      },
+    });
+  }
+
   /**
    * Checks if a user has any team membership (pending or accepted).
    * Used during onboarding to detect users who signed up via invite token,

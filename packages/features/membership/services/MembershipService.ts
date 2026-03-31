@@ -8,6 +8,20 @@ export type MembershipCheckResult = {
   role?: MembershipRole;
 };
 
+export type TeamMember = {
+  userId: number;
+  name: string | null;
+  email: string;
+  avatarUrl: string | null;
+  username: string | null;
+  defaultScheduleId: number | null;
+  role: MembershipRole;
+};
+
+export type AllTeamMembersResponse = {
+  members: TeamMember[];
+};
+
 export class MembershipService {
   constructor(private readonly membershipRepository: PrismaMembershipRepository) {}
 
@@ -36,5 +50,21 @@ export class MembershipService {
       isOwner,
       role,
     };
+  }
+
+  async getAllTeamMembers({ teamId }: { teamId: number }): Promise<AllTeamMembersResponse> {
+    const memberships = await this.membershipRepository.findAllAcceptedMembers({ teamId });
+
+    const members: TeamMember[] = memberships.map((membership) => ({
+      userId: membership.user.id,
+      name: membership.user.name,
+      email: membership.user.email,
+      avatarUrl: membership.user.avatarUrl,
+      username: membership.user.username,
+      defaultScheduleId: membership.user.defaultScheduleId,
+      role: membership.role,
+    }));
+
+    return { members };
   }
 }

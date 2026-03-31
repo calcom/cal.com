@@ -1,17 +1,18 @@
-import { z } from "zod";
-
 import { logP } from "@calcom/lib/perf";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { z } from "zod";
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZDeleteInputSchema } from "./delete.schema";
+import { ZExportHostsForWeightsInputSchema } from "./exportHostsForWeights.schema";
 import { ZGetActiveOnOptionsSchema } from "./getActiveOnOptions.schema";
+import { ZGetAllChildrenForAssignmentInputSchema } from "./getAllChildrenForAssignment.schema";
+import { ZGetAllHostsForAvailabilityInputSchema } from "./getAllHostsForAvailability.schema";
+import { ZGetAllTeamMembersInputSchema } from "./getAllTeamMembers.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
+import { ZGetChildrenForAssignmentInputSchema } from "./getChildrenForAssignment.schema";
 import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
-import { ZGetChildrenForAssignmentInputSchema } from "./getChildrenForAssignment.schema";
-import { ZExportHostsForWeightsInputSchema } from "./exportHostsForWeights.schema";
 import { ZGetHostsForAssignmentInputSchema } from "./getHostsForAssignment.schema";
 import { ZGetHostsForAvailabilityInputSchema } from "./getHostsForAvailability.schema";
 import { ZGetHostsWithLocationOptionsInputSchema } from "./getHostsWithLocationOptions.schema";
@@ -237,12 +238,49 @@ export const eventTypesRouter = router({
       });
     }),
 
-  searchTeamMembers: authedProcedure
-    .input(ZSearchTeamMembersInputSchema)
-    .query(async ({ ctx, input }) => {
-      const { searchTeamMembersHandler } = await import("./searchTeamMembers.handler");
+  searchTeamMembers: authedProcedure.input(ZSearchTeamMembersInputSchema).query(async ({ ctx, input }) => {
+    const { searchTeamMembersHandler } = await import("./searchTeamMembers.handler");
 
-      return searchTeamMembersHandler({
+    return searchTeamMembersHandler({
+      ctx,
+      input,
+    });
+  }),
+
+  getAllHosts: createEventPbacProcedure("eventType.update", [MembershipRole.ADMIN, MembershipRole.OWNER])
+    .input(ZGetAllHostsForAvailabilityInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getAllHostsHandler } = await import("./getAllHostsForAvailability.handler");
+
+      return getAllHostsHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  getAllTeamMembers: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZGetAllTeamMembersInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getAllTeamMembersHandler } = await import("./getAllTeamMembers.handler");
+
+      return getAllTeamMembersHandler({
+        ctx,
+        input,
+      });
+    }),
+
+  getAllChildrenForAssignment: createEventPbacProcedure("eventType.update", [
+    MembershipRole.ADMIN,
+    MembershipRole.OWNER,
+  ])
+    .input(ZGetAllChildrenForAssignmentInputSchema)
+    .query(async ({ ctx, input }) => {
+      const { getAllChildrenForAssignmentHandler } = await import("./getAllChildrenForAssignment.handler");
+
+      return getAllChildrenForAssignmentHandler({
         ctx,
         input,
       });

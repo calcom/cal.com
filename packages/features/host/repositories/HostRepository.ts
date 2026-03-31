@@ -175,6 +175,7 @@ export class HostRepository {
         user: {
           select: {
             name: true,
+            email: true,
             avatarUrl: true,
             timeZone: true,
           },
@@ -203,13 +204,14 @@ export class HostRepository {
     search?: string;
     memberUserIds?: number[];
   }) {
-    const userIdFilter = memberUserIds !== undefined
-      ? cursor
-        ? { in: memberUserIds, gt: cursor }
-        : { in: memberUserIds }
-      : cursor
-        ? { gt: cursor }
-        : undefined;
+    const userIdFilter =
+      memberUserIds !== undefined
+        ? cursor
+          ? { in: memberUserIds, gt: cursor }
+          : { in: memberUserIds }
+        : cursor
+          ? { gt: cursor }
+          : undefined;
 
     const hosts = await this.prismaClient.host.findMany({
       where: {
@@ -277,6 +279,28 @@ export class HostRepository {
     });
   }
 
+  async findAllHostsIncludeUser({ eventTypeId }: { eventTypeId: number }) {
+    return this.prismaClient.host.findMany({
+      where: { eventTypeId },
+      select: {
+        userId: true,
+        isFixed: true,
+        priority: true,
+        weight: true,
+        scheduleId: true,
+        groupId: true,
+        user: {
+          select: {
+            name: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: [{ userId: "asc" }],
+    });
+  }
+
   async findChildrenForAssignmentPaginated({
     eventTypeId,
     cursor,
@@ -291,6 +315,7 @@ export class HostRepository {
     const children = await this.prismaClient.eventType.findMany({
       where: {
         parentId: eventTypeId,
+        owner: { isNot: null },
         ...(cursor && { id: { gt: cursor } }),
         ...(search && {
           OR: [
@@ -322,6 +347,27 @@ export class HostRepository {
     const nextCursor = hasMore ? items[items.length - 1].id : undefined;
 
     return { items, nextCursor, hasMore };
+  }
+
+  async findAllChildrenForAssignment({ eventTypeId }: { eventTypeId: number }) {
+    return this.prismaClient.eventType.findMany({
+      where: { parentId: eventTypeId, owner: { isNot: null } },
+      select: {
+        id: true,
+        slug: true,
+        hidden: true,
+        owner: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: [{ id: "asc" }],
+    });
   }
 
   async findHostsWithConferencingCredentials(eventTypeId: number) {

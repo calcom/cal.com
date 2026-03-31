@@ -1,12 +1,13 @@
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
-import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
 import { PrismaMembershipRepository as MembershipRepository } from "@calcom/features/membership/repositories/PrismaMembershipRepository";
-import type { PrismaClient } from "@calcom/prisma/client";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
 import { ErrorWithCode } from "@calcom/lib/errors";
-
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
+import type { PrismaClient } from "@calcom/prisma/client";
 import type {
+  AllAssignmentChildrenResponse,
+  AllHostsResponse,
   AssignmentChild,
   AssignmentHost,
   AvailabilityHost,
@@ -57,6 +58,7 @@ export class EventTypeHostService implements IEventTypeHostService {
       scheduleId: item.scheduleId,
       groupId: item.groupId,
       name: item.user.name,
+      email: item.user.email,
       avatarUrl: item.user.avatarUrl,
     }));
 
@@ -111,26 +113,25 @@ export class EventTypeHostService implements IEventTypeHostService {
     limit: number;
     search?: string;
   }): Promise<PaginatedAssignmentChildrenResponse> {
-    const { items, nextCursor, hasMore } =
-      await this.hostRepository.findChildrenForAssignmentPaginated({
-        eventTypeId,
-        cursor,
-        limit,
-        search,
-      });
+    const { items, nextCursor, hasMore } = await this.hostRepository.findChildrenForAssignmentPaginated({
+      eventTypeId,
+      cursor,
+      limit,
+      search,
+    });
 
     const children: AssignmentChild[] = items
-      .filter((item) => item.owner !== null)
+      .filter((item): item is typeof item & { owner: NonNullable<typeof item.owner> } => item.owner !== null)
       .map((item) => ({
         childEventTypeId: item.id,
         slug: item.slug,
         hidden: item.hidden,
         owner: {
-          id: item.owner!.id,
-          name: item.owner!.name,
-          email: item.owner!.email,
-          username: item.owner!.username,
-          avatarUrl: item.owner!.avatarUrl,
+          id: item.owner.id,
+          name: item.owner.name,
+          email: item.owner.email,
+          username: item.owner.username,
+          avatarUrl: item.owner.avatarUrl,
         },
       }));
 
@@ -270,5 +271,48 @@ export class EventTypeHostService implements IEventTypeHostService {
     if (!teamMembersMatchingAttributeLogic) return null;
 
     return new Set(teamMembersMatchingAttributeLogic.map((m) => m.userId));
+  }
+
+  async getAllHosts({ eventTypeId }: { eventTypeId: number }): Promise<AllHostsResponse> {
+    const items = await this.hostRepository.findAllHostsIncludeUser({ eventTypeId });
+
+    const hosts: AvailabilityHost[] = items.map((item) => ({
+      userId: item.userId,
+      isFixed: item.isFixed,
+      priority: item.priority ?? 0,
+      weight: item.weight ?? 100,
+      scheduleId: item.scheduleId,
+      groupId: item.groupId,
+      name: item.user.name,
+      email: item.user.email,
+      avatarUrl: item.user.avatarUrl,
+    }));
+
+    return { hosts };
+  }
+
+  async getAllChildrenForAssignment({
+    eventTypeId,
+  }: {
+    eventTypeId: number;
+  }): Promise<AllAssignmentChildrenResponse> {
+    const items = await this.hostRepository.findAllChildrenForAssignment({ eventTypeId });
+
+    const children: AssignmentChild[] = items
+      .filter((item): item is typeof item & { owner: NonNullable<typeof item.owner> } => item.owner !== null)
+      .map((item) => ({
+        childEventTypeId: item.id,
+        slug: item.slug,
+        hidden: item.hidden,
+        owner: {
+          id: item.owner.id,
+          name: item.owner.name,
+          email: item.owner.email,
+          username: item.owner.username,
+          avatarUrl: item.owner.avatarUrl,
+        },
+      }));
+
+    return { children };
   }
 }
