@@ -84,9 +84,32 @@ vi.mock("@calcom/prisma", async (importOriginal) => {
 
   prismockInstance = new PrismockClientClass();
 
-  if (!prismockInstance.$queryRaw) {
+  {
+    const originalQueryRaw = prismockInstance.$queryRaw?.bind(prismockInstance);
     Object.defineProperty(prismockInstance, "$queryRaw", {
-      value: async () => {
+      value: async (...args: unknown[]) => {
+        const raw = String(args[0] ?? "");
+        const sql = Array.isArray(args[0]) ? (args[0] as string[]).join("") : raw;
+        // Fallback for getAllAcceptedTeamBookingsOfUsers raw UNION ALL query:
+        // return all accepted bookings from prismock's in-memory store so
+        // the post-filter step handles the rest.
+        if (sql.includes("UNION ALL") && sql.includes("Booking") && sql.includes("Attendee")) {
+          return prismockInstance.booking.findMany({
+            where: { status: "ACCEPTED" },
+            select: {
+              id: true,
+              uid: true,
+              startTime: true,
+              endTime: true,
+              eventTypeId: true,
+              title: true,
+              userId: true,
+            },
+          });
+        }
+        if (originalQueryRaw) {
+          return originalQueryRaw(...args);
+        }
         throw new Error("$queryRaw is not implemented in prismock. Use vi.spyOn to mock it in your test.");
       },
       writable: true,

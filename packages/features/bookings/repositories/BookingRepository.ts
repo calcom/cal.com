@@ -1667,66 +1667,84 @@ export class BookingRepository implements IBookingRepository {
     const { users, teamId, startDate, endDate, excludedUid, shouldReturnCount, includeManagedEvents } =
       params;
 
-    const baseWhere: Prisma.BookingWhereInput = {
-      status: BookingStatus.ACCEPTED,
-      startTime: {
-        gte: startDate,
-      },
-      endTime: {
-        lte: endDate,
-      },
-      ...(excludedUid && {
-        uid: {
-          not: excludedUid,
-        },
-      }),
-    };
+    if (users.length === 0) return shouldReturnCount ? 0 : [];
 
-    const userIdSet = new Set(users.map((user) => user.id));
-    const userEmailSet = new Set(users.map((user) => user.email));
+    const userIds = users.map((u) => u.id);
+    const userEmails = users.map((u) => u.email);
 
-    const teamBookingsQuery = this.prismaClient.booking.findMany({
-      where: {
-        ...baseWhere,
-        eventType: { teamId },
-      },
-      include: {
-        attendees: {
-          select: { email: true },
-        },
-      },
+    // Run both queries in parallel to avoid sequential network round-trips.
+    // Step 1: Team event type IDs (small indexed lookup on EventType(teamId) and EventType(parentId, teamId))
+    // Step 2: User bookings via raw SQL UNION ALL (user-first, no EventType join)
+    //   Branch 1 uses Booking(userId, status, startTime) index.
+    //   Branch 2 uses Attendee(email, bookingId) index.
+    //   UNION ALL avoids expensive sort/hash deduplication — duplicates removed in post-filter.
+    const teamEventTypesQuery = this.prismaClient.eventType.findMany({
+      where: includeManagedEvents ? { OR: [{ teamId }, { parent: { teamId } }] } : { teamId },
+      select: { id: true, parentId: true },
     });
 
-    const managedBookingsQuery = includeManagedEvents
-      ? this.prismaClient.booking.findMany({
-          where: {
-            ...baseWhere,
-            eventType: { parent: { teamId } },
-          },
-        })
-      : Promise.resolve([] as Booking[]);
+    const bookingsQuery = this.prismaClient.$queryRaw<
+      { id: number; uid: string; startTime: Date; endTime: Date; eventTypeId: number | null; title: string; userId: number | null }[]
+    >`
+      SELECT b."id", b."uid", b."startTime", b."endTime", b."eventTypeId", b.title, b."userId"
+      FROM "Booking" b
+      WHERE b."status" = 'accepted'::"BookingStatus"
+        AND b."userId" IN (${Prisma.join(userIds)})
+        AND b."startTime" >= ${startDate}
+        AND b."endTime" <= ${endDate}
 
-    const [allTeamBookings, allManagedBookings] = await Promise.all([
-      teamBookingsQuery,
-      managedBookingsQuery,
-    ]);
+      UNION ALL
 
-    const relevantTeamBookings = allTeamBookings.filter((booking) => {
-      if (booking.userId !== null && userIdSet.has(booking.userId)) {
-        return true;
+      SELECT b."id", b."uid", b."startTime", b."endTime", b."eventTypeId", b.title, b."userId"
+      FROM "Booking" b
+      INNER JOIN "Attendee" a ON a."bookingId" = b."id"
+        AND a."email" IN (${Prisma.join(userEmails)})
+      WHERE b."status" = 'accepted'::"BookingStatus"
+        AND b."startTime" >= ${startDate}
+        AND b."endTime" <= ${endDate}
+    `;
+
+    const [eventTypes, rows] = await Promise.all([teamEventTypesQuery, bookingsQuery]);
+
+    // Direct team event types (parentId is null) vs managed event types (parentId is set)
+    const directTeamEventTypeIds = new Set<number>();
+    const managedEventTypeIds = new Set<number>();
+    for (const et of eventTypes) {
+      if (et.parentId) {
+        managedEventTypeIds.add(et.id);
+      } else {
+        directTeamEventTypeIds.add(et.id);
       }
-      return booking.attendees.some((attendee) => userEmailSet.has(attendee.email));
-    });
+    }
+    const userIdSet = new Set(userIds);
 
-    const relevantManagedBookings = allManagedBookings.filter(
-      (booking) => booking.userId !== null && userIdSet.has(booking.userId)
-    );
+    // Step 3: Post-filter for team membership, excludedUid, and duplicates.
+    // Team membership filter eliminates near-zero rows in practice since users
+    // typically belong to only one high-traffic team.
+    // Managed event bookings are only counted when the user is the organizer (userId match),
+    // not when they appear as an attendee — a teammate can book another teammate's managed event.
+    const seen = new Set<number>();
+    const bookings = rows.filter((booking) => {
+      // Deduplicate across UNION ALL branches
+      if (seen.has(booking.id)) return false;
+      seen.add(booking.id);
+      // Skip the booking being rescheduled
+      if (excludedUid && booking.uid === excludedUid) return false;
+      if (!booking.eventTypeId) return false;
+      // Team event type bookings: include if user is organizer or attendee
+      if (directTeamEventTypeIds.has(booking.eventTypeId)) return true;
+      // Managed event type bookings: include only if user is the organizer
+      if (managedEventTypeIds.has(booking.eventTypeId)) {
+        return booking.userId !== null && userIdSet.has(booking.userId);
+      }
+      return false;
+    });
 
     if (shouldReturnCount) {
-      return relevantTeamBookings.length + relevantManagedBookings.length;
+      return bookings.length;
     }
 
-    return [...relevantTeamBookings, ...relevantManagedBookings];
+    return bookings;
   }
 
   async getValidBookingFromEventTypeForAttendee({
