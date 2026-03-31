@@ -72,6 +72,7 @@ describe("UserDropdown", () => {
   let mockSupportOpen: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.clearAllMocks();
 
     mockBeacon = vi.fn();
@@ -97,6 +98,7 @@ describe("UserDropdown", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     delete window.Beacon;
     delete window.Support;
   });
@@ -172,16 +174,13 @@ describe("UserDropdown", () => {
         configurable: true,
       });
 
-      // Wait for the polling interval to detect Beacon
-      await waitFor(
-        () => {
-          expect(mockBeacon).toHaveBeenCalledWith("session-data", {
-            username: "testuser",
-            screenResolution: "1920x1080",
-          });
-        },
-        { timeout: 2000 }
-      );
+      // Advance fake timers to trigger the polling interval
+      await vi.advanceTimersByTimeAsync(1000);
+
+      expect(mockBeacon).toHaveBeenCalledWith("session-data", {
+        username: "testuser",
+        screenResolution: "1920x1080",
+      });
     });
 
     it("should update Beacon session-data when username changes", async () => {

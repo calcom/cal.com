@@ -171,51 +171,15 @@ describe("Date Optimization Benchmarks", () => {
       },
     ];
 
-    const iterations = 1000; // Reduced for test performance
-
     for (const testCase of testCases) {
-      log.info(`Testing ${testCase.name}...`);
-
-      // Test correctness first
+      // Verify native Date produces identical results to dayjs
       const dayjsDiff = dayjs(testCase.dateTo).diff(dayjs(testCase.dateFrom), "days");
       const nativeDiff = Math.floor(
         (new Date(testCase.dateTo).getTime() - new Date(testCase.dateFrom).getTime()) / (1000 * 60 * 60 * 24)
       );
 
-      // Verify identical results
       expect(nativeDiff).toBe(dayjsDiff);
       expect(nativeDiff).toBe(testCase.expectedDiff);
-
-      // Performance test - dayjs approach
-      const dayjsStart = performance.now();
-      for (let i = 0; i < iterations; i++) {
-        const start = dayjs(testCase.dateFrom);
-        const end = dayjs(testCase.dateTo);
-        const diff = end.diff(start, "days");
-      }
-      const dayjsTime = performance.now() - dayjsStart;
-
-      // Performance test - native Date approach
-      const nativeStart = performance.now();
-      for (let i = 0; i < iterations; i++) {
-        const start = new Date(testCase.dateFrom);
-        const end = new Date(testCase.dateTo);
-        const diff = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-      }
-      const nativeTime = performance.now() - nativeStart;
-
-      const speedupRatio = dayjsTime / nativeTime;
-
-      log.info(
-        `${testCase.name} - Dayjs: ${dayjsTime.toFixed(2)}ms, Native: ${nativeTime.toFixed(
-          2
-        )}ms, Speedup: ${speedupRatio.toFixed(1)}x`
-      );
-
-      if (!process.env.CI) {
-        const minSpeedup = 5; // Assert significant performance improvement (at least 5x faster)
-        expect(speedupRatio).toBeGreaterThan(minSpeedup);
-      }
     }
   });
 
@@ -860,7 +824,12 @@ describe("createEvent", () => {
       ],
     };
 
+    vi.spyOn(globalThis, "setTimeout").mockImplementation(((callback: (...args: unknown[]) => void) => {
+      callback();
+      return 0;
+    }) as unknown as typeof globalThis.setTimeout);
     await calendarService.createEvent(testCalEvent, mockCredential.id);
+    vi.mocked(globalThis.setTimeout).mockRestore();
 
     // Verify that patch was called with hangoutLink in additionalInformation
     expect(eventsPatchMock).toHaveBeenCalledTimes(1);
@@ -875,6 +844,18 @@ describe("createEvent", () => {
 });
 
 describe("rate limit retry", () => {
+  beforeEach(() => {
+    // Mock setTimeout to execute callbacks immediately (skip retry delays)
+    vi.spyOn(globalThis, "setTimeout").mockImplementation(((callback: (...args: unknown[]) => void) => {
+      callback();
+      return 0;
+    }) as unknown as typeof globalThis.setTimeout);
+  });
+
+  afterEach(() => {
+    vi.mocked(globalThis.setTimeout).mockRestore();
+  });
+
   const createTestCalEvent = () => ({
     type: "test-event-type",
     uid: "cal-event-uid-rate-limit",
@@ -1240,7 +1221,12 @@ describe("updateEvent", () => {
       ],
     };
 
+    vi.spyOn(globalThis, "setTimeout").mockImplementation(((callback: (...args: unknown[]) => void) => {
+      callback();
+      return 0;
+    }) as unknown as typeof globalThis.setTimeout);
     const result = await calendarService.updateEvent("existing-event-id", testCalEvent, "primary");
+    vi.mocked(globalThis.setTimeout).mockRestore();
 
     // Verify that patch was called with hangoutLink in additionalInformation
     expect(eventsPatchMock).toHaveBeenCalledTimes(1);

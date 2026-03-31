@@ -18,12 +18,15 @@ function mockResponse(status: number, body = "", headers: Record<string, string>
 
 describe("fetchWithRetry", () => {
   beforeEach(() => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.stubGlobal("fetch", vi.fn());
+    // Mock setTimeout to execute callbacks immediately (skip retry delays)
+    vi.spyOn(globalThis, "setTimeout").mockImplementation(((callback: (...args: unknown[]) => void) => {
+      callback();
+      return 0;
+    }) as unknown as typeof globalThis.setTimeout);
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 

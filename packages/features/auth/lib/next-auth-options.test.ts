@@ -70,13 +70,12 @@ vi.mock("@calcom/lib/env", () => ({
   isENVDev: false,
 }));
 
-describe("authorizeCredentials", () => {
-  let authorizeCredentials: typeof import("./next-auth-options").authorizeCredentials;
+// Import once at module level — vi.mock() stubs are already in place
+const { authorizeCredentials } = await import("./next-auth-options");
 
-  beforeEach(async () => {
+describe("authorizeCredentials", () => {
+  beforeEach(() => {
     vi.clearAllMocks();
-    const authModule = await import("./next-auth-options");
-    authorizeCredentials = authModule.authorizeCredentials;
   });
 
   it("delegates to AuthCredentialsService.authorize", async () => {
