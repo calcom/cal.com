@@ -32,6 +32,7 @@ import { metadata as exchange2013calendar__metadata_ts } from "./exchange2013cal
 import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016calendar/_metadata";
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
 import facetime_config_json from "./facetime/config.json";
+import famulor_config_json from "./famulor/config.json";
 import fathom_config_json from "./fathom/config.json";
 import { metadata as feishucalendar__metadata_ts } from "./feishucalendar/_metadata";
 import fonio_ai_config_json from "./fonio-ai/config.json";
@@ -144,6 +145,7 @@ export const appStoreMetadata = {
   exchange2016calendar: exchange2016calendar__metadata_ts,
   exchangecalendar: exchangecalendar_config_json,
   facetime: facetime_config_json,
+  famulor: famulor_config_json,
   fathom: fathom_config_json,
   feishucalendar: feishucalendar__metadata_ts,
   "fonio-ai": fonio_ai_config_json,
