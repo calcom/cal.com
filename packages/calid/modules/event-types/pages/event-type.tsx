@@ -32,6 +32,7 @@ import { EventTypeActions } from "../components/event-types-action";
 import { EventAdvanced } from "../components/tabs/event-types-advanced";
 import { EventApps } from "../components/tabs/event-types-apps";
 import { EventAvailability } from "../components/tabs/event-types-availability";
+import { EventBookingPage } from "../components/tabs/event-types-booking-page";
 import { EventEmbed } from "../components/tabs/event-types-embed";
 import { EventLimits } from "../components/tabs/event-types-limit";
 import { EventRecurring } from "../components/tabs/event-types-recurring";
@@ -39,7 +40,7 @@ import { EventSetup } from "../components/tabs/event-types-setup";
 import { EventTeamAssignmentTab } from "../components/tabs/event-types-team-assignment";
 import { EventWebhooks } from "../components/tabs/event-types-webhook";
 import { EventWorkflows } from "../components/tabs/event-types-workflows";
-import { isManagedEventType } from "../utils/event-types-utils";
+import { isEnterpriseEventOwner, isManagedEventType } from "../utils/event-types-utils";
 import { TabSkeleton } from "./tab-skeleton";
 
 type CalIdEventTypeData = RouterOutputs["viewer"]["eventTypes"]["calid_get"];
@@ -62,6 +63,7 @@ const getTabs = (currentPath: string): HorizontalTabItemProps[] => [
   { name: "Workflows", icon: "workflow", href: `${currentPath}?tabName=workflows` },
   { name: "Webhooks", icon: "webhook", href: `${currentPath}?tabName=webhooks` },
   { name: "Recurring", icon: "refresh-ccw", href: `${currentPath}?tabName=recurring` },
+  { name: "Booking Page", icon: "settings", href: `${currentPath}?tabName=booking-page` },
   { name: "Embed", icon: "clipboard", href: `${currentPath}?tabName=embed` },
 ];
 
@@ -113,6 +115,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
         "workflows",
         "webhooks",
         "ai",
+        "booking-page",
         "embed",
       ])
       .optional()
@@ -184,6 +187,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
 
   const eventTypesLockedByOrg = (eventType as any).team?.parent?.organizationSettings
     ?.lockEventTypeCreationForUsers;
+  const isEnterpriseOwner = isEnterpriseEventOwner(eventType, effectiveTeam);
 
   // Data fetching
   const { data: _eventTypeApps } = trpc.viewer.apps.calid_integrations.useQuery({
@@ -393,6 +397,7 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     webhooks: <EventWebhooks eventType={eventType as any} />,
     ai: <div />,
     // <EventAITab eventType={eventType} isTeamEvent={!!team} />
+    "booking-page": <EventBookingPage />,
     embed: <EventEmbed eventId={eventType.id} calLink={embedLink} />,
   } as const;
 
@@ -431,6 +436,9 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
     if (tabItem.name === "Embed") {
       return !isManagedEventType(eventType as any);
     }
+    if (tabItem.name === "Booking Page") {
+      return isEnterpriseOwner;
+    }
     return true;
   });
 
@@ -440,6 +448,9 @@ const EventTypeWithNewUI = ({ id, ...rest }: any) => {
   const renderTabContent = () => {
     if (isInitialLoad) {
       return <LoadingSkeleton />;
+    }
+    if (activeTab === "booking-page" && !isEnterpriseOwner) {
+      return tabMap.setup;
     }
     const validTab = activeTab as keyof typeof tabMap;
     return tabMap[validTab] || tabMap.setup;

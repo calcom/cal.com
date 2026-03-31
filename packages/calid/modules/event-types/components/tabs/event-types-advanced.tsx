@@ -67,6 +67,8 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Select } from "@calcom/ui/components/form";
 
+import { isEnterpriseEventOwner } from "../../utils/event-types-utils";
+
 import { FieldPermissionIndicator, useFieldPermissions } from "./hooks/useFieldPermissions";
 
 type BookingField = z.infer<typeof fieldSchema>;
@@ -875,6 +877,9 @@ export const EventAdvanced = ({
     (field) => field.name === "name"
   );
   const isSplit = nameBookingField?.variant === "firstAndLastName";
+
+  const effectiveTeam = (eventType as any).calIdTeam;
+  const isEnterprise = isEnterpriseEventOwner(eventType, effectiveTeam);
 
   // Create event name object for preview and validation
   const eventNameObject: EventNameObjectType = {
@@ -1752,7 +1757,7 @@ export const EventAdvanced = ({
 
       {/* Email Notification Controls */}
       {canDisableParticipantNotifications(workflows) &&
-        (!user?.metadata?.isEnterprise || !disableAllAttendeeEmails) && (
+        (!isEnterprise || !disableAllAttendeeEmails) && (
           <Controller
             name="metadata.disableStandardEmails.confirmation.attendee"
             render={({ field: { value, onChange } }) => (
@@ -1777,7 +1782,7 @@ export const EventAdvanced = ({
         )}
 
       {canDisableOrganizerNotifications(workflows) &&
-        (!user?.metadata?.isEnterprise || !disableAllHostEmails) && (
+        (!isEnterprise || !disableAllHostEmails) && (
           <Controller
             name="metadata.disableStandardEmails.confirmation.host"
             defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
@@ -1802,7 +1807,7 @@ export const EventAdvanced = ({
           />
         )}
 
-      {user?.metadata?.isEnterprise && (
+      {isEnterprise && (
         <>
           <Controller
             name="metadata.disableStandardEmails.all.attendee"

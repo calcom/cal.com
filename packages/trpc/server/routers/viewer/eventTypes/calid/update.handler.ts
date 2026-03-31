@@ -64,6 +64,18 @@ type UpdateOptions = {
 
 export type UpdateEventTypeReturn = Awaited<ReturnType<typeof updateHandler>>;
 
+const sanitizeBookingPageMetadata = (
+  metadata: Prisma.InputJsonObject | null,
+  isEnterpriseContext: boolean
+): Prisma.InputJsonObject | null => {
+  if (!metadata || isEnterpriseContext) return metadata;
+  const metadataObj = metadata as Prisma.InputJsonObject & { bookingPage?: unknown };
+  // Prevent non-enterprise users/teams from persisting Booking Page settings.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { bookingPage: _bookingPage, ...restMetadata } = metadataObj;
+  return restMetadata;
+};
+
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const {
     schedule,
@@ -162,6 +174,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           id: true,
           name: true,
           slug: true,
+          metadata: true,
           members: {
             select: {
               role: true,
@@ -248,9 +261,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   if (shouldResetShowBusySlots) {
     data.showBusySlots = Prisma.DbNull;
   }
-  const isEnterpriseUser = !!isPrismaObjOrUndefined(ctx.user.metadata)?.isEnterprise;
+  const isEnterpriseUser = !eventType.calIdTeam && !!isPrismaObjOrUndefined(ctx.user.metadata)?.isEnterprise;
+  const isEnterpriseTeam = !!isPrismaObjOrUndefined(eventType.calIdTeam?.metadata)?.isEnterprise;
+  const isEnterpriseContext = isEnterpriseUser || isEnterpriseTeam;
+  if (data.metadata && data.metadata !== Prisma.DbNull) {
+    data.metadata = sanitizeBookingPageMetadata(data.metadata as Prisma.InputJsonObject, isEnterpriseContext);
+  }
   const sanitizedLocations = locations?.map((location) => {
-    if (isEnterpriseUser) {
+    if (isEnterpriseContext) {
       return location;
     }
     const { label: _label, ...locationWithoutLabel } = location;
