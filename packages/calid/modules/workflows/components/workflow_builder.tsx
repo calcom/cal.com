@@ -41,6 +41,7 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat, TimeFormat } from "@calcom/lib/timeFormat";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { MembershipRole, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -51,11 +52,7 @@ import { Editor } from "@calcom/ui/components/editor";
 import { AddVariablesDropdown } from "@calcom/ui/components/editor";
 import { Radio, RadioField, RadioGroup, RadioIndicator } from "@calcom/ui/components/radio";
 
-import {
-  CAL_ID_HTML_MARKER,
-  DYNAMIC_TEXT_VARIABLES,
-  META_DYNAMIC_TEXT_VARIABLES,
-} from "../config/constants";
+import { CAL_ID_HTML_MARKER, DYNAMIC_TEXT_VARIABLES, META_DYNAMIC_TEXT_VARIABLES } from "../config/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../config/utils";
 import {
   isSMSAction,
@@ -142,6 +139,21 @@ const PREVIEW_TEMPLATE_KEYS = [
   "CANCELLATION_REASON",
   "RESPONSES",
 ] as const;
+
+type OtpChannel = "phone" | "email";
+
+type OtpCooldownState = {
+  attempts: number;
+  cooldownUntil: number;
+  lastRequestAt: number;
+  lastActivityAt: number;
+};
+
+const OTP_COOLDOWN_STORAGE_KEY = "calid_workflow_otp_cooldowns_v1";
+const OTP_INACTIVITY_RESET_MS = 30 * 60 * 1000;
+const OTP_COOLDOWN_CAP_MS = 10 * 60 * 1000;
+const OTP_FIRST_RESEND_COOLDOWN_MS = 5 * 1000;
+const OTP_INITIAL_RESEND_COOLDOWN_MS = 30 * 1000;
 
 const evaluatePreview = (html: string, variableMapping: Record<string, any>): string => {
   let result = html;
@@ -426,6 +438,8 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const [emailVerificationStatus, setEmailVerificationStatus] = useState<{ [stepId: string]: boolean }>({});
   const [otpSentForPhone, setOtpSentForPhone] = useState<{ [stepId: string]: boolean }>({});
   const [otpSentForEmail, setOtpSentForEmail] = useState<{ [stepId: string]: boolean }>({});
+  const [otpCooldowns, setOtpCooldowns] = useState<Record<string, OtpCooldownState>>({});
+  const [otpNowMs, setOtpNowMs] = useState<number>(() => Date.now());
   const [useRawHtmlEditor, setUseRawHtmlEditor] = useState<{ [stepId: string]: boolean }>({});
   const [variableMappingJson, setVariableMappingJson] = useState<{ [stepId: string]: string }>({});
   const [variableMappingError, setVariableMappingError] = useState<{
@@ -438,6 +452,36 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   // Template update tracker
   const [updateTemplate, setUpdateTemplate] = useState<{ [stepId: string]: number }>({});
 
+  useEffect(() => {
+    try {
+      const rawCooldowns = localStorage.getItem(OTP_COOLDOWN_STORAGE_KEY);
+      if (!rawCooldowns) return;
+      const parsed = JSON.parse(rawCooldowns) as Record<string, OtpCooldownState>;
+      const now = Date.now();
+      const filtered = Object.fromEntries(
+        Object.entries(parsed).filter(
+          ([, value]) =>
+            typeof value?.lastActivityAt === "number" && now - value.lastActivityAt < OTP_INACTIVITY_RESET_MS
+        )
+      );
+      setOtpCooldowns(filtered);
+    } catch {
+      setOtpCooldowns({});
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(OTP_COOLDOWN_STORAGE_KEY, JSON.stringify(otpCooldowns));
+  }, [otpCooldowns]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setOtpNowMs(Date.now());
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
   // Get trigger and template options
   const triggerOptions = getWorkflowTriggerOptions(t);
 
@@ -449,6 +493,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         steps.forEach((step) => {
           if (step.sendTo === variables.phoneNumber) {
             setOtpSentForPhone((prev) => ({ ...prev, [step.id.toString()]: true }));
+            registerOtpSendSuccess("phone", step);
           }
         });
       }
@@ -474,6 +519,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
               newStatus[step.id.toString()] = true;
               setOtpSentForPhone((prevOtp) => ({ ...prevOtp, [step.id.toString()]: false }));
               setVerificationCodes((prevCodes) => ({ ...prevCodes, [step.id.toString()]: "" }));
+              clearOtpCooldownForStep("phone", step);
             }
           });
           return newStatus;
@@ -526,6 +572,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
         steps.forEach((step) => {
           if (step.sendTo === variables.email) {
             setOtpSentForEmail((prev) => ({ ...prev, [step.id.toString()]: true }));
+            registerOtpSendSuccess("email", step);
           }
         });
       }
@@ -550,6 +597,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
               newStatus[step.id.toString()] = true;
               setOtpSentForEmail((prevOtp) => ({ ...prevOtp, [step.id.toString()]: false }));
               setVerificationCodes((prevCodes) => ({ ...prevCodes, [step.id.toString()]: "" }));
+              clearOtpCooldownForStep("email", step);
             }
           });
           return newStatus;
@@ -641,6 +689,74 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email || "");
   }, []);
+
+  const getOtpIdentity = useCallback((channel: OtpChannel, sendTo?: string | null) => {
+    const value = sendTo || "";
+    if (channel === "phone") return value.replace(/\s/g, "");
+    return value.trim().toLowerCase();
+  }, []);
+
+  const getOtpCooldownKey = useCallback(
+    (channel: OtpChannel, step: WorkflowStep) => {
+      return `${channel}:${step.id}:${getOtpIdentity(channel, step.sendTo)}`;
+    },
+    [getOtpIdentity]
+  );
+
+  const getCooldownDurationForAttempt = useCallback((attempt: number) => {
+    if (attempt <= 1) return 0;
+    if (attempt === 2) return OTP_FIRST_RESEND_COOLDOWN_MS;
+    if (attempt === 3) return OTP_INITIAL_RESEND_COOLDOWN_MS;
+    const exponentialMs = OTP_INITIAL_RESEND_COOLDOWN_MS * Math.pow(2, attempt - 3);
+    return Math.min(exponentialMs, OTP_COOLDOWN_CAP_MS);
+  }, []);
+
+  const getOtpRemainingMs = useCallback(
+    (channel: OtpChannel, step: WorkflowStep) => {
+      const key = getOtpCooldownKey(channel, step);
+      const state = otpCooldowns[key];
+      if (!state) return 0;
+      if (otpNowMs - state.lastActivityAt >= OTP_INACTIVITY_RESET_MS) return 0;
+      return Math.max(0, state.cooldownUntil - otpNowMs);
+    },
+    [getOtpCooldownKey, otpCooldowns, otpNowMs]
+  );
+
+  const registerOtpSendSuccess = useCallback(
+    (channel: OtpChannel, step: WorkflowStep) => {
+      const key = getOtpCooldownKey(channel, step);
+      const now = Date.now();
+      setOtpCooldowns((prev) => {
+        const existing = prev[key];
+        const isInactive = !existing || now - existing.lastActivityAt >= OTP_INACTIVITY_RESET_MS;
+        const attempts = (isInactive ? 0 : existing.attempts) + 1;
+        const cooldownMs = getCooldownDurationForAttempt(attempts);
+        return {
+          ...prev,
+          [key]: {
+            attempts,
+            cooldownUntil: now + cooldownMs,
+            lastRequestAt: now,
+            lastActivityAt: now,
+          },
+        };
+      });
+    },
+    [getCooldownDurationForAttempt, getOtpCooldownKey]
+  );
+
+  const clearOtpCooldownForStep = useCallback(
+    (channel: OtpChannel, step: WorkflowStep) => {
+      const key = getOtpCooldownKey(channel, step);
+      setOtpCooldowns((prev) => {
+        if (!prev[key]) return prev;
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    },
+    [getOtpCooldownKey]
+  );
 
   const triggerTemplateUpdate = useCallback((stepId: number) => {
     setUpdateTemplate((prev) => ({
@@ -1370,12 +1486,18 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const handleSendVerificationCode = useCallback(
     (step: WorkflowStep) => {
       if (isSMSOrWhatsappAction(step.action) && step.sendTo) {
+        const remainingMs = getOtpRemainingMs("phone", step);
+        if (remainingMs > 0) {
+          const remainingSeconds = Math.ceil(remainingMs / 1000);
+          triggerToast(`Please wait ${remainingSeconds}s before requesting another code.`, "error");
+          return;
+        }
         sendVerificationCodeMutation.mutate({
           phoneNumber: step.sendTo,
         });
       }
     },
-    [sendVerificationCodeMutation]
+    [getOtpRemainingMs, sendVerificationCodeMutation]
   );
 
   const handleVerifyPhoneNumber = useCallback(
@@ -1397,13 +1519,19 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
   const handleSendEmailVerification = useCallback(
     (step: WorkflowStep) => {
       if (step.sendTo) {
+        const remainingMs = getOtpRemainingMs("email", step);
+        if (remainingMs > 0) {
+          const remainingSeconds = Math.ceil(remainingMs / 1000);
+          triggerToast(`Please wait ${remainingSeconds}s before requesting another code.`, "error");
+          return;
+        }
         sendEmailVerificationCodeMutation.mutate({
           email: step.sendTo,
           isVerifyingEmail: true,
         });
       }
     },
-    [sendEmailVerificationCodeMutation]
+    [getOtpRemainingMs, sendEmailVerificationCodeMutation]
   );
 
   const handleVerifyEmail = useCallback(
@@ -1698,6 +1826,12 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                       const isEmailOtpSent = otpSentForEmail[stepId] || false;
                       const isPhoneValid = isValidPhoneNumber(step.sendTo || "");
                       const isEmailValid = isValidEmail(step.sendTo || "");
+                      const phoneCooldownRemainingMs = getOtpRemainingMs("phone", step);
+                      const emailCooldownRemainingMs = getOtpRemainingMs("email", step);
+                      const phoneCooldownSeconds = Math.ceil(phoneCooldownRemainingMs / 1000);
+                      const emailCooldownSeconds = Math.ceil(emailCooldownRemainingMs / 1000);
+                      const isPhoneCooldownActive = phoneCooldownRemainingMs > 0;
+                      const isEmailCooldownActive = emailCooldownRemainingMs > 0;
 
                       return (
                         <div key={step.id} className="border-default rounded-md border p-6">
@@ -1776,6 +1910,7 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                                   ...prev,
                                                   [stepId]: "",
                                                 }));
+                                                clearOtpCooldownForStep("phone", step);
                                                 updateAction(step.id, "sendTo", val);
                                                 onChange(val);
                                               }}
@@ -1784,13 +1919,21 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                         />
                                         <Button
                                           color="secondary"
-                                          disabled={isNumberVerified || readOnly || !isPhoneValid}
+                                          disabled={
+                                            isNumberVerified ||
+                                            readOnly ||
+                                            !isPhoneValid ||
+                                            isPhoneCooldownActive ||
+                                            sendVerificationCodeMutation.isPending
+                                          }
                                           className={cn(
                                             "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
                                             isNumberVerified ? "hidden" : "mt-3 sm:mt-0"
                                           )}
                                           onClick={() => handleSendVerificationCode(step)}>
-                                          {t("send_code")}
+                                          {isPhoneCooldownActive
+                                            ? `Resend in ${phoneCooldownSeconds}s`
+                                            : t("send_code")}
                                         </Button>
                                       </div>
 
@@ -2024,18 +2167,27 @@ export const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ workflowId, bu
                                               ...prev,
                                               [stepId]: "",
                                             }));
+                                            clearOtpCooldownForStep("email", step);
                                             updateAction(step.id, "sendTo", e.target.value);
                                           }}
                                         />
                                         <Button
                                           color="secondary"
-                                          disabled={isEmailVerified || readOnly || !isEmailValid}
+                                          disabled={
+                                            isEmailVerified ||
+                                            readOnly ||
+                                            !isEmailValid ||
+                                            isEmailCooldownActive ||
+                                            sendEmailVerificationCodeMutation.isPending
+                                          }
                                           className={cn(
                                             "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
                                             isEmailVerified ? "hidden" : "mt-3 sm:mt-0"
                                           )}
                                           onClick={() => handleSendEmailVerification(step)}>
-                                          {t("send_code")}
+                                          {isEmailCooldownActive
+                                            ? `Resend in ${emailCooldownSeconds}s`
+                                            : t("send_code")}
                                         </Button>
                                       </div>
 
