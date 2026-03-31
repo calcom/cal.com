@@ -1,18 +1,18 @@
 import { describe, expect, test } from "vitest";
 
-import { AppleCalendarAdapter } from "../adapters/AppleCalendarAdapter";
-import { BaseByteDanceCalendarAdapter } from "../adapters/BaseByteDanceCalendarAdapter";
-import { CalDAVCalendarAdapter } from "../adapters/CalDAVCalendarAdapter";
-import { ExchangeCalendarAdapter } from "../adapters/ExchangeCalendarAdapter";
-import { FeishuCalendarAdapter } from "../adapters/FeishuCalendarAdapter";
-import { GoogleCalendarAdapter } from "../adapters/GoogleCalendarAdapter";
-import { ICSFeedCalendarAdapter } from "../adapters/ICSFeedCalendarAdapter";
-import { LarkCalendarAdapter } from "../adapters/LarkCalendarAdapter";
-import { Office365CalendarAdapter } from "../adapters/Office365CalendarAdapter";
-import { ZohoCalendarAdapter } from "../adapters/ZohoCalendarAdapter";
-import type { CalendarAdapter } from "../CalendarAdapter";
-import type { CalendarCredential } from "../CalendarAdapterTypes";
-import { NoOpCalendarAdapter } from "../NoOpCalendarAdapter";
+import { AppleCalendarAdapter } from "../adapters/apple-calendar-adapter";
+import { BaseByteDanceCalendarAdapter } from "../adapters/base-byte-dance-calendar-adapter";
+import { CalDAVCalendarAdapter } from "../adapters/caldav-calendar-adapter";
+import { ExchangeCalendarAdapter } from "../adapters/exchange-calendar-adapter";
+import { FeishuCalendarAdapter } from "../adapters/feishu-calendar-adapter";
+import { GoogleCalendarAdapter } from "../adapters/google-calendar-adapter";
+import { ICSFeedCalendarAdapter } from "../adapters/ics-feed-calendar-adapter";
+import { LarkCalendarAdapter } from "../adapters/lark-calendar-adapter";
+import { Office365CalendarAdapter } from "../adapters/office365-calendar-adapter";
+import { ZohoCalendarAdapter } from "../adapters/zoho-calendar-adapter";
+import type { CalendarAdapter } from "../calendar-adapter";
+import type { CalendarCredential } from "../calendar-adapter-types";
+import { NoOpCalendarAdapter } from "../no-op-calendar-adapter";
 
 interface ProviderTestCase {
   name: string;

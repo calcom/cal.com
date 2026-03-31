@@ -5,24 +5,24 @@
   "license": "MIT",
   "sideEffects": false,
   "exports": {
-    "./CalendarAdapter": "./src/CalendarAdapter.ts",
-    "./CalendarAdapterTypes": "./src/CalendarAdapterTypes.ts",
-    "./createCalendarAdapter": "./src/createCalendarAdapter.ts",
-    "./ObservableCalendarAdapter": "./src/ObservableCalendarAdapter.ts"
+    "./calendar-adapter": "./src/calendar-adapter.ts",
+    "./calendar-adapter-types": "./src/calendar-adapter-types.ts",
+    "./create-calendar-adapter": "./src/create-calendar-adapter.ts",
+    "./observable-calendar-adapter": "./src/observable-calendar-adapter.ts"
   },
   "typesVersions": {
     "*": {
-      "CalendarAdapter": [
-        "./src/CalendarAdapter.ts"
+      "calendar-adapter": [
+        "./src/calendar-adapter.ts"
       ],
-      "CalendarAdapterTypes": [
-        "./src/CalendarAdapterTypes.ts"
+      "calendar-adapter-types": [
+        "./src/calendar-adapter-types.ts"
       ],
-      "createCalendarAdapter": [
-        "./src/createCalendarAdapter.ts"
+      "create-calendar-adapter": [
+        "./src/create-calendar-adapter.ts"
       ],
-      "ObservableCalendarAdapter": [
-        "./src/ObservableCalendarAdapter.ts"
+      "observable-calendar-adapter": [
+        "./src/observable-calendar-adapter.ts"
       ]
     }
   },

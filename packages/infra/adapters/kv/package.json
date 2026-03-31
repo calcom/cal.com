@@ -5,16 +5,16 @@
   "license": "MIT",
   "sideEffects": false,
   "exports": {
-    "./KVAdapter": "./src/KVAdapter.ts",
-    "./createKVAdapter": "./src/createKVAdapter.ts"
+    "./kv-adapter": "./src/kv-adapter.ts",
+    "./create-kv-adapter": "./src/create-kv-adapter.ts"
   },
   "typesVersions": {
     "*": {
-      "KVAdapter": [
-        "./src/KVAdapter.ts"
+      "kv-adapter": [
+        "./src/kv-adapter.ts"
       ],
-      "createKVAdapter": [
-        "./src/createKVAdapter.ts"
+      "create-kv-adapter": [
+        "./src/create-kv-adapter.ts"
       ]
     }
   },
