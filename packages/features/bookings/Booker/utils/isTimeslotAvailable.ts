@@ -1,5 +1,4 @@
 import dayjs from "@calcom/dayjs";
-
 import type { QuickAvailabilityCheck } from "../types";
 import { isSlotEquivalent, isValidISOFormat } from "./isSlotEquivalent";
 
@@ -50,6 +49,33 @@ function _isSlotPresentInSchedule({
   const slotsInIsoForDate = scheduleData.slots[dateInGMT] as Maybe<SlotsInIso>;
   const slotsInIsoForDateBefore = scheduleData.slots[dateBefore] as Maybe<SlotsInIso>;
   const slotsInIsoForDateAfter = scheduleData.slots[dateAfter] as Maybe<SlotsInIso>;
+
+  // When none of the 3 surrounding dates have slot entries, determine whether the
+  // schedule simply doesn't cover this date range (stale data from a different view,
+  // e.g. column view month navigation with keepPreviousData) vs. the date range is
+  // covered but all slots are genuinely exhausted (e.g. booking/duration limits hit).
+  if (!slotsInIsoForDate && !slotsInIsoForDateBefore && !slotsInIsoForDateAfter) {
+    const scheduleDates = Object.keys(scheduleData.slots);
+
+    if (scheduleDates.length === 0) {
+      return false;
+    }
+
+    // YYYY-MM-DD sorts lexicographically
+    let minDate = scheduleDates[0];
+    let maxDate = scheduleDates[0];
+    for (const d of scheduleDates) {
+      if (d < minDate) minDate = d;
+      if (d > maxDate) maxDate = d;
+    }
+
+    // All 3 surrounding dates fall outside the schedule's coverage
+    if (dateAfter < minDate || dateBefore > maxDate) {
+      return true;
+    }
+
+    return false;
+  }
 
   const matchFoundOnDate = _isSlotPresent(slotsInIsoForDate, slotToCheckInIso);
   if (matchFoundOnDate) return true;

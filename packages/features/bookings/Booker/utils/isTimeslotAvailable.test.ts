@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import type { QuickAvailabilityCheck } from "../types";
 import { isTimeSlotAvailable } from "./isTimeslotAvailable";
 
@@ -201,6 +200,74 @@ describe("isTimeSlotAvailable", () => {
     });
 
     expect(result).toBe(true);
+  });
+
+  it("should return true (avoid false negative) when slot date is outside the schedule's date range", () => {
+    const slotToCheckInIso = "2024-04-15T10:30:00.000Z";
+    const quickAvailabilityChecks: QuickAvailabilityCheck[] = [];
+
+    const result = isTimeSlotAvailable({
+      scheduleData: {
+        slots: {
+          "2024-03-20": [{ time: "2024-03-20T10:30:00.000Z" }],
+          "2024-03-21": [{ time: "2024-03-21T10:30:00.000Z" }],
+        },
+      },
+      slotToCheckInIso,
+      quickAvailabilityChecks,
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it("should return false when schedule is loaded but completely empty (all slots exhausted)", () => {
+    const slotToCheckInIso = "2024-02-08T10:30:00.000Z";
+    const quickAvailabilityChecks: QuickAvailabilityCheck[] = [];
+
+    const result = isTimeSlotAvailable({
+      scheduleData: {
+        slots: {},
+      },
+      slotToCheckInIso,
+      quickAvailabilityChecks,
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it("should return false when schedule covers the date range but slot is not present", () => {
+    const slotToCheckInIso = "2024-02-08T10:30:00.000Z";
+    const quickAvailabilityChecks: QuickAvailabilityCheck[] = [];
+
+    const result = isTimeSlotAvailable({
+      scheduleData: {
+        slots: {
+          "2024-02-08": [{ time: "2024-02-08T14:00:00.000Z" }],
+        },
+      },
+      slotToCheckInIso,
+      quickAvailabilityChecks,
+    });
+
+    expect(result).toBe(false);
+  });
+
+  it("should return false when surrounding dates have no entries but date is within schedule range", () => {
+    const slotToCheckInIso = "2024-02-15T10:30:00.000Z";
+    const quickAvailabilityChecks: QuickAvailabilityCheck[] = [];
+
+    const result = isTimeSlotAvailable({
+      scheduleData: {
+        slots: {
+          "2024-02-10": [{ time: "2024-02-10T10:30:00.000Z" }],
+          "2024-02-20": [{ time: "2024-02-20T10:30:00.000Z" }],
+        },
+      },
+      slotToCheckInIso,
+      quickAvailabilityChecks,
+    });
+
+    expect(result).toBe(false);
   });
 
   it("should return true(give a false positive) when the date string is not in the expected format", () => {
