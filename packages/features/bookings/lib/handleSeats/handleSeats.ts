@@ -3,6 +3,7 @@ import { scheduleWorkflowReminders } from "@calid/features/modules/workflows/uti
 import { uuid } from "short-uuid";
 
 import dayjs from "@calcom/dayjs";
+import { addBookingManagementUrlsToWebhookPayload } from "@calcom/features/bookings/lib/addBookingManagementUrlsToWebhookPayload";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -207,7 +208,12 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       rescheduledBy,
     };
 
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, isDryRun });
+    await handleWebhookTrigger({
+      subscriberOptions,
+      eventTrigger,
+      webhookData: addBookingManagementUrlsToWebhookPayload(webhookData),
+      isDryRun,
+    });
   }
 
   return resultBooking;

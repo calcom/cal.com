@@ -6,7 +6,7 @@ title: "Webhooks"
 Webhooks offer a great way to automate the flow with other apps when invitees schedule, cancel or reschedule events, or when the meeting ends. 
 <iframe style={{ width: "100%", maxWidth: "560px" }} height="315" src="https://www.youtube.com/embed/Yy9me5E09LA?si=_2Mz-CKL2ajsFivd" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
-The webhook subscription allows you to listen to specific trigger events, such as when a booking has been scheduled, for example. You can always listen to the webhook by providing a custom subscriber URL with your own development work. However, if you wish to trigger automations without any development work, you can use the integration with Zapier which connects Cal.com to your apps.
+The webhook subscription allows you to listen to specific trigger events, such as when a booking has been scheduled, for example. You can always listen to the webhook by providing a custom subscriber URL with your own development work. However, if you wish to trigger automations without any development work, you can use the integration with Zapier which connects Cal ID to your apps.
 
 <Note>
 Please note that the webhooks can be associated with user as well as individual event types, including team event types.
@@ -138,6 +138,8 @@ To create a new webhook subscription, visit `/settings/developer/webhooks` and p
         "length": 60,
         "bookingId": 91,
         "metadata": {},
+        "cancellationUrl": "https://cal.id/booking/bFJeNb2uX8ANpT3JL5EfXw?cancel=true&allRemainingBookings=false",
+        "rescheduleUrl": "https://cal.id/reschedule/bFJeNb2uX8ANpT3JL5EfXw",
         "status": "ACCEPTED"
     }
 }
@@ -194,6 +196,8 @@ where `{{type}}` represents the event type slug and `{{title}}` represents the t
 | attendees          | Person[]     | The event booker & any guests                                                                                                                                 |
 | uid                | String       | The UID of the booking                                                                                                                                        |
 | rescheduleUid      | String       | The UID for rescheduling                                                                                                                                      |
+| cancellationUrl    | String       | Public booking cancellation link. Sent when available for accepted bookings (e.g. BOOKING_CREATED and BOOKING_RESCHEDULED).                                 |
+| rescheduleUrl      | String       | Public booking reschedule link. Sent when available for accepted bookings (e.g. BOOKING_CREATED and BOOKING_RESCHEDULED).                                   |
 | cancellationReason | String       | Reason for cancellation                                                                                                                                       |
 | rejectionReason    | String       | Reason for rejection                                                                                                                                          |
 | team.name          | String       | Name of the team booked                                                                                                                                       |

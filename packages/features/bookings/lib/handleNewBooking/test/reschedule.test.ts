@@ -288,6 +288,8 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
+            cancellationUrl: `${WEBAPP_URL}/booking/${createdBooking.uid}?cancel=true&allRemainingBookings=false`,
+            rescheduleUrl: `${WEBAPP_URL}/reschedule/${createdBooking.uid}`,
             payload: {
               rescheduledBy: organizer.email,
             },

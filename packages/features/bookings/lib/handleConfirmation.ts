@@ -31,6 +31,7 @@ import { EventTypeMetaDataSchema, eventTypeAppMetadataOptionalSchema } from "@ca
 import { getAllCalIdWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util.calid";
 import type { AdditionalInformation, CalendarEvent, RecurringEvent, Person } from "@calcom/types/Calendar";
 
+import { addBookingManagementUrlsToWebhookPayload } from "./addBookingManagementUrlsToWebhookPayload";
 import { getCalEventResponses } from "./getCalEventResponses";
 import {
   getConferenceDetailsFromResult,
@@ -526,7 +527,7 @@ export async function handleConfirmation(args: {
       length: eventType?.length,
     };
 
-    const payload: EventPayloadType = {
+    const payload: EventPayloadType = addBookingManagementUrlsToWebhookPayload({
       ...evt,
       ...eventTypeInfo,
       bookingId,
@@ -541,7 +542,7 @@ export async function handleConfirmation(args: {
             }
           : undefined,
       ...(platformClientParams ? platformClientParams : {}),
-    };
+    });
 
     const promises = subscribersBookingCreated.map((sub) =>
       sendPayload(

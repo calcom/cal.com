@@ -79,6 +79,8 @@ export type EventPayloadType = CalendarEvent &
   TranscriptionGeneratedPayload &
   EventTypeInfo & {
     metadata?: { [key: string]: string | number | boolean | null };
+    cancellationUrl?: string;
+    rescheduleUrl?: string;
     bookingId?: number;
     status?: string;
     smsReminderNumber?: string;
