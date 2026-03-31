@@ -1,9 +1,16 @@
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
-import type { WebhookTaskPayload } from "../types/webhookTask";
-import type { IWebhookTasker, WebhookDeliveryResult } from "./types";
 
-function buildTags(payload: WebhookTaskPayload): string[] {
-  const tags: string[] = [`trigger_event:${payload.triggerEvent}`];
+import type { CancelDelayedWebhookPayload, WebhookTaskPayload } from "../types/webhookTask";
+import type { IWebhookTasker, WebhookDeliveryOptions, WebhookDeliveryResult } from "./types";
+
+
+function buildTags(payload: WebhookTaskPayload | CancelDelayedWebhookPayload): string[] {
+  const tags: string[] = [];
+  
+  if ("triggerEvent" in payload && payload.triggerEvent != null) {
+    tags.push(`trigger_event:${payload.triggerEvent}`);
+  }
+
 
   if ("userId" in payload && payload.userId != null) {
     tags.push(`user:${payload.userId}`);
@@ -37,9 +44,22 @@ function buildTags(payload: WebhookTaskPayload): string[] {
 export class WebhookTriggerTasker implements IWebhookTasker {
   constructor(public readonly dependencies: ITaskerDependencies) {}
 
-  async deliverWebhook(payload: WebhookTaskPayload): Promise<WebhookDeliveryResult> {
+  async deliverWebhook(
+    payload: WebhookTaskPayload,
+    options?: WebhookDeliveryOptions
+  ): Promise<WebhookDeliveryResult> {
     const { deliverWebhook } = await import("./trigger/deliver-webhook");
-    const handle = await deliverWebhook.trigger(payload, { tags: buildTags(payload) });
+    const tags = buildTags(payload);
+    const handle = await deliverWebhook.trigger(payload, { ...options, tags });
+    return { taskId: handle.id };
+  }
+
+  async cancelDelayedWebhook(
+    payload: CancelDelayedWebhookPayload
+  ): Promise<WebhookDeliveryResult> {
+    const { cancelDelayedWebhook } = await import("./trigger/cancel-delayed-webhook");
+    const tags = buildTags(payload);
+    const handle = await cancelDelayedWebhook.trigger(payload, { tags });
     return { taskId: handle.id };
   }
 }

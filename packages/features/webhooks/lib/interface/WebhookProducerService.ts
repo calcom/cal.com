@@ -1,6 +1,6 @@
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RecordingTriggerEvents } from "../factory/versioned/PayloadBuilderFactory";
-import type { RoutingFormFallbackHitMetadata } from "../types/webhookTask";
+import type { CancelDelayedWebhookPayload, RoutingFormFallbackHitMetadata } from "../types/webhookTask";
 
 /**
  * Base parameters common to all webhook queue operations
@@ -242,4 +242,9 @@ export interface IWebhookProducerService {
    * Queue a webhook delivery task for WRONG_ASSIGNMENT_REPORT event
    */
   queueWrongAssignmentReportWebhook(params: QueueWrongAssignmentWebhookParams): Promise<void>;
+
+  /**
+   * Cancel previously scheduled delayed webhooks for a booking
+   */
+  cancelDelayedWebhooks(payload: CancelDelayedWebhookPayload): Promise<void>;
 }

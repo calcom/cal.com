@@ -14,8 +14,9 @@ import type {
   QueueRoutingFormFallbackHitWebhookParams,
   QueueWrongAssignmentWebhookParams,
 } from "../interface/WebhookProducerService";
+import type { WebhookDeliveryOptions } from "../tasker/types";
 import type { WebhookTasker } from "../tasker/WebhookTasker";
-import type { WebhookTaskPayload } from "../types/webhookTask";
+import type { CancelDelayedWebhookPayload, WebhookTaskPayload } from "../types/webhookTask";
 
 /**
  * Lightweight Producer Service for webhook delivery.
@@ -190,6 +191,24 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
     await this.queueTask(operationId, taskPayload);
   }
 
+  async cancelDelayedWebhooks(payload: CancelDelayedWebhookPayload): Promise<void> {
+    this.log.debug("Cancelling delayed webhooks", {
+      bookingId: payload.bookingId,
+      bookingUid: payload.bookingUid,
+    });
+
+    try {
+      await this.deps.webhookTasker.cancelDelayedWebhook(payload);
+      this.log.debug("Delayed webhook cancellation queued", { bookingId: payload.bookingId });
+    } catch (error) {
+      this.log.error("Failed to cancel delayed webhooks", {
+        bookingId: payload.bookingId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
+  }
+
   async queueBookingWebhook(
     triggerEvent: QueueBookingTriggerEvent,
     params: QueueBookingWebhookParams
@@ -256,14 +275,11 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
     await this.queueTask(operationId, taskPayload);
   }
 
-  /**
-   * Internal helper to queue task via WebhookTasker
-   *
-   * The WebhookTasker automatically selects the appropriate execution mode:
-   * - Production: Queues to Trigger.dev for background processing
-   * - E2E Tests: Executes immediately via WebhookSyncTasker
-   */
-  private async queueTask(operationId: string, taskPayload: WebhookTaskPayload): Promise<void> {
+  private async queueTask(
+    operationId: string,
+    taskPayload: WebhookTaskPayload,
+    options?: WebhookDeliveryOptions
+  ): Promise<void> {
     try {
       const teamId =
         "teamIds" in taskPayload && taskPayload.teamIds
@@ -288,7 +304,7 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
         });
         return;
       }
-      const result = await this.deps.webhookTasker.deliverWebhook(taskPayload);
+      const result = await this.deps.webhookTasker.deliverWebhook(taskPayload, options);
       this.log.debug("Webhook delivery task queued", { operationId, taskId: result.taskId });
     } catch (error) {
       this.log.error("Failed to queue webhook delivery task", {

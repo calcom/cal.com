@@ -89,7 +89,8 @@ describe("WebhookTaskerProducerService", () => {
           userId: 789,
           operationId: expect.any(String),
           timestamp: expect.any(String),
-        })
+        }),
+        undefined
       );
     });
 
@@ -151,7 +152,8 @@ describe("WebhookTaskerProducerService", () => {
         expect.objectContaining({
           triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
           bookingUid: "booking-456",
-        })
+        }),
+        undefined
       );
     });
   });
@@ -242,7 +244,8 @@ describe("WebhookTaskerProducerService", () => {
         bookingUid: "test-123",
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_CREATED })
+        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_CREATED }),
+        undefined
       );
     });
 
@@ -251,7 +254,8 @@ describe("WebhookTaskerProducerService", () => {
         bookingUid: "test-123",
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED })
+        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED }),
+        undefined
       );
     });
 
@@ -260,7 +264,8 @@ describe("WebhookTaskerProducerService", () => {
         bookingUid: "test-123",
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_RESCHEDULED })
+        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_RESCHEDULED }),
+        undefined
       );
     });
 
@@ -269,7 +274,8 @@ describe("WebhookTaskerProducerService", () => {
         bookingUid: "test-123",
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED })
+        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED }),
+        undefined
       );
     });
 
@@ -278,7 +284,8 @@ describe("WebhookTaskerProducerService", () => {
         bookingUid: "test-123",
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED })
+        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED }),
+        undefined
       );
     });
 
@@ -287,7 +294,8 @@ describe("WebhookTaskerProducerService", () => {
         bookingUid: "test-123",
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED })
+        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED }),
+        undefined
       );
     });
 
@@ -296,7 +304,8 @@ describe("WebhookTaskerProducerService", () => {
         bookingUid: "test-123",
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_PAID })
+        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_PAID }),
+        undefined
       );
     });
 
@@ -305,7 +314,8 @@ describe("WebhookTaskerProducerService", () => {
         bookingUid: "test-123",
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED })
+        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED }),
+        undefined
       );
     });
 
@@ -314,7 +324,8 @@ describe("WebhookTaskerProducerService", () => {
         formId: "form-123",
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED })
+        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED }),
+        undefined
       );
     });
 
@@ -324,7 +335,8 @@ describe("WebhookTaskerProducerService", () => {
         bookingUid: "booking-123",
       });
       expect(mockWebhookTasker.deliverWebhook).toHaveBeenCalledWith(
-        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.RECORDING_READY })
+        expect.objectContaining({ triggerEvent: WebhookTriggerEvents.RECORDING_READY }),
+        undefined
       );
     });
 
@@ -342,7 +354,8 @@ describe("WebhookTaskerProducerService", () => {
           userId: 456,
           teamIds: [10, 20],
           orgId: 1,
-        })
+        }),
+        undefined
       );
     });
 

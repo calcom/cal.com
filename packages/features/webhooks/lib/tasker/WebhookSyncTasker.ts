@@ -1,8 +1,8 @@
 import { nanoid } from "nanoid";
 
 import type { WebhookTaskConsumer } from "../service/WebhookTaskConsumer";
-import type { WebhookTaskPayload } from "../types/webhookTask";
-import type { IWebhookTasker, WebhookDeliveryResult } from "./types";
+import type { CancelDelayedWebhookPayload, WebhookTaskPayload } from "../types/webhookTask";
+import type { IWebhookTasker, WebhookDeliveryOptions, WebhookDeliveryResult } from "./types";
 
 /**
  * Dependencies for WebhookSyncTasker
@@ -23,9 +23,24 @@ export interface IWebhookSyncTaskerDeps {
 export class WebhookSyncTasker implements IWebhookTasker {
   constructor(private readonly deps: IWebhookSyncTaskerDeps) {}
 
-  async deliverWebhook(payload: WebhookTaskPayload): Promise<WebhookDeliveryResult> {
+  async deliverWebhook(
+    payload: WebhookTaskPayload,
+    _options?: WebhookDeliveryOptions
+  ): Promise<WebhookDeliveryResult> {
     const taskId = `sync_${nanoid(10)}`;
     await this.deps.webhookTaskConsumer.processWebhookTask(payload, taskId);
     return { taskId };
+  }
+
+  async cancelDelayedWebhook(
+    payload: CancelDelayedWebhookPayload
+  ): Promise<WebhookDeliveryResult> {
+    const { deleteWebhookScheduledTriggers } = await import("@calcom/features/webhooks/lib/scheduleTrigger");
+
+    await deleteWebhookScheduledTriggers({
+      booking: { id: payload.bookingId, uid: payload.bookingUid },
+    });
+
+    return { taskId: `sync_cancel_${nanoid(10)}` };
   }
 }

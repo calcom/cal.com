@@ -88,7 +88,8 @@ describe("WebhookTaskerProducerService", () => {
           bookingUid: "booking-123",
           eventTypeId: 456,
           userId: 789,
-        })
+        }),
+        undefined
       );
     });
 
@@ -117,7 +118,8 @@ describe("WebhookTaskerProducerService", () => {
           orgId: 222,
           oAuthClientId: "oauth-client-123",
           metadata: { customKey: "customValue" },
-        })
+        }),
+        undefined
       );
     });
 
@@ -134,7 +136,8 @@ describe("WebhookTaskerProducerService", () => {
           triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
           bookingUid: "booking-123",
           timestamp: expect.any(String),
-        })
+        }),
+        undefined
       );
     });
 
@@ -181,7 +184,8 @@ describe("WebhookTaskerProducerService", () => {
         expect.objectContaining({
           triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
           bookingUid: "booking-123",
-        })
+        }),
+        undefined
       );
     });
 
@@ -192,7 +196,8 @@ describe("WebhookTaskerProducerService", () => {
         expect.objectContaining({
           triggerEvent: WebhookTriggerEvents.BOOKING_RESCHEDULED,
           bookingUid: "booking-123",
-        })
+        }),
+        undefined
       );
     });
   });
@@ -205,7 +210,8 @@ describe("WebhookTaskerProducerService", () => {
         expect.objectContaining({
           triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
           bookingUid: "booking-123",
-        })
+        }),
+        undefined
       );
     });
 
@@ -216,7 +222,8 @@ describe("WebhookTaskerProducerService", () => {
         expect.objectContaining({
           triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
           bookingUid: "booking-123",
-        })
+        }),
+        undefined
       );
     });
 
@@ -227,7 +234,8 @@ describe("WebhookTaskerProducerService", () => {
         expect.objectContaining({
           triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
           bookingUid: "booking-123",
-        })
+        }),
+        undefined
       );
     });
   });
@@ -286,7 +294,8 @@ describe("WebhookTaskerProducerService", () => {
         expect.objectContaining({
           triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
           bookingUid: "booking-123",
-        })
+        }),
+        undefined
       );
     });
 
@@ -297,7 +306,8 @@ describe("WebhookTaskerProducerService", () => {
         expect.objectContaining({
           triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
           bookingUid: "booking-123",
-        })
+        }),
+        undefined
       );
     });
   });

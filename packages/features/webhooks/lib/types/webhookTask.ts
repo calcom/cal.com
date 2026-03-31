@@ -172,6 +172,35 @@ export const wrongAssignmentMetadataSchema = z.object({
 export type WrongAssignmentMetadata = z.infer<typeof wrongAssignmentMetadataSchema>;
 
 /**
+ * Meeting-related webhook task payload
+ * Used for: MEETING_STARTED, MEETING_ENDED
+ *
+ * Carries booking timing info so the tasker can calculate the delay
+ * (fire at startTime for MEETING_STARTED, endTime for MEETING_ENDED).
+ */
+export const meetingWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
+  triggerEvent: z.enum([WebhookTriggerEvents.MEETING_STARTED, WebhookTriggerEvents.MEETING_ENDED]),
+  bookingId: z.number(),
+  bookingUid: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
+  eventTypeId: z.number().optional(),
+  teamId: z.number().nullable().optional(),
+  userId: z.number().optional(),
+  orgId: z.number().optional(),
+  oAuthClientId: z.string().nullable().optional(),
+});
+
+/**
+ * Payload for cancelling previously scheduled meeting webhooks.
+ * Only needs booking identifiers to find and cancel pending runs.
+ */
+export const cancelDelayedWebhookPayloadSchema = z.object({
+  bookingId: z.number(),
+  bookingUid: z.string(),
+});
+
+/**
  * Discriminated union of all webhook task payload schemas
  */
 export const webhookTaskPayloadSchema = z.discriminatedUnion("triggerEvent", [
@@ -182,6 +211,7 @@ export const webhookTaskPayloadSchema = z.discriminatedUnion("triggerEvent", [
   oooWebhookTaskPayloadSchema,
   routingFormFallbackHitWebhookTaskPayloadSchema,
   wrongAssignmentWebhookTaskPayloadSchema,
+  meetingWebhookTaskPayloadSchema,
 ]);
 
 /**
@@ -338,6 +368,8 @@ export type RoutingFormFallbackHitWebhookTaskPayload = z.infer<
   typeof routingFormFallbackHitWebhookTaskPayloadSchema
 >;
 export type WrongAssignmentWebhookTaskPayload = z.infer<typeof wrongAssignmentWebhookTaskPayloadSchema>;
+export type MeetingWebhookTaskPayload = z.infer<typeof meetingWebhookTaskPayloadSchema>;
+export type CancelDelayedWebhookPayload = z.infer<typeof cancelDelayedWebhookPayloadSchema>;
 
 /**
  * Union type of all webhook task payloads
