@@ -1,5 +1,4 @@
-import type { Logger } from "tslog";
-
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
@@ -26,7 +25,7 @@ const _validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTim
   reqBodyTimeZone: string,
   eventType: T,
   eventTimeZone: string | null | undefined,
-  logger: Logger<unknown>
+  logger: ISimpleLogger
 ) => {
   let timeOutOfBounds = false;
   try {

@@ -2649,6 +2649,90 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  async countActiveBookingsForEventType({
+    eventTypeId,
+    bookerEmail,
+  }: {
+    eventTypeId: number;
+    bookerEmail: string;
+  }): Promise<number> {
+    return this.prismaClient.booking.count({
+      where: {
+        eventTypeId,
+        startTime: {
+          gte: new Date(),
+        },
+        status: {
+          in: [BookingStatus.ACCEPTED],
+        },
+        attendees: {
+          some: {
+            email: bookerEmail,
+          },
+        },
+      },
+    });
+  }
+
+  async findActiveBookingsForEventType({
+    eventTypeId,
+    bookerEmail,
+    limit,
+  }: {
+    eventTypeId: number;
+    bookerEmail: string;
+    limit: number;
+  }): Promise<
+    {
+      uid: string;
+      startTime: Date;
+      attendees: {
+        name: string;
+        email: string;
+        bookingSeat: { referenceUid: string } | null;
+      }[];
+    }[]
+  > {
+    return this.prismaClient.booking.findMany({
+      where: {
+        eventTypeId,
+        startTime: {
+          gte: new Date(),
+        },
+        status: {
+          in: [BookingStatus.ACCEPTED],
+        },
+        attendees: {
+          some: {
+            email: bookerEmail,
+          },
+        },
+      },
+      orderBy: {
+        startTime: "desc",
+      },
+      take: limit,
+      select: {
+        uid: true,
+        startTime: true,
+        attendees: {
+          select: {
+            name: true,
+            email: true,
+            bookingSeat: {
+              select: {
+                referenceUid: true,
+              },
+            },
+          },
+          where: {
+            email: bookerEmail,
+          },
+        },
+      },
+    });
+  }
+
   async findByUidIncludeUserAndEventTypeTeamAndAttendeesAndAssignmentReason({
     bookingUid,
   }: {

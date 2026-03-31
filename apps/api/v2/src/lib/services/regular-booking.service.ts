@@ -9,6 +9,7 @@ import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repos
 import { PrismaOrgMembershipRepository } from "@/lib/repositories/prisma-org-membership.repository";
 import { PrismaTeamFeatureRepository } from "@/lib/repositories/prisma-team-feature.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
+import { BookingDataPreparationService } from "@/lib/services/booking-data-preparation.service";
 import { BookingEventHandlerService } from "@/lib/services/booking-event-handler.service";
 import { CheckBookingAndDurationLimitsService } from "@/lib/services/check-booking-and-duration-limits.service";
 import { HashedLinkService } from "@/lib/services/hashed-link.service";
@@ -27,6 +28,7 @@ export class RegularBookingService extends BaseRegularBookingService {
     userRepository: PrismaUserRepository,
     bookingEmailAndSmsTasker: BookingEmailAndSmsTasker,
     bookingEventHandler: BookingEventHandlerService,
+    bookingDataPreparationService: BookingDataPreparationService,
     @Inject(WEBHOOK_PRODUCER) webhookProducer: IWebhookProducerService,
     teamFeatureRepository: PrismaTeamFeatureRepository,
     orgMembershipRepository: PrismaOrgMembershipRepository
@@ -41,6 +43,7 @@ export class RegularBookingService extends BaseRegularBookingService {
       bookingEmailAndSmsTasker,
       teamFeatureRepository: teamFeatureRepository,
       bookingEventHandler,
+      bookingDataPreparationService,
       webhookProducer,
       orgMembershipRepository,
     });

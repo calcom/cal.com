@@ -14,16 +14,14 @@ vi.mock("@calcom/lib/logger", () => ({
 
 const mockCount = vi.fn();
 const mockFindMany = vi.fn();
-vi.mock("@calcom/prisma", () => ({
-  default: {
-    booking: {
-      count: (...args: unknown[]) => mockCount(...args),
-      findMany: (...args: unknown[]) => mockFindMany(...args),
-    },
-  },
-}));
 
 import { checkActiveBookingsLimitForBooker } from "./checkActiveBookingsLimitForBooker";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+
+const mockBookingRepository = {
+  countActiveBookingsForEventType: mockCount,
+  findActiveBookingsForEventType: mockFindMany,
+} as unknown as BookingRepository;
 
 describe("checkActiveBookingsLimitForBooker", () => {
   beforeEach(() => {
@@ -39,6 +37,7 @@ describe("checkActiveBookingsLimitForBooker", () => {
         maxActiveBookingsPerBooker: null,
         bookerEmail: "test@example.com",
         offerToRescheduleLastBooking: false,
+        bookingRepository: mockBookingRepository,
       })
     ).resolves.toBeUndefined();
 
@@ -52,6 +51,7 @@ describe("checkActiveBookingsLimitForBooker", () => {
         maxActiveBookingsPerBooker: 0,
         bookerEmail: "test@example.com",
         offerToRescheduleLastBooking: false,
+        bookingRepository: mockBookingRepository,
       })
     ).resolves.toBeUndefined();
 
@@ -67,6 +67,7 @@ describe("checkActiveBookingsLimitForBooker", () => {
         maxActiveBookingsPerBooker: 5,
         bookerEmail: "test@example.com",
         offerToRescheduleLastBooking: false,
+        bookingRepository: mockBookingRepository,
       })
     ).resolves.toBeUndefined();
   });
@@ -80,6 +81,7 @@ describe("checkActiveBookingsLimitForBooker", () => {
         maxActiveBookingsPerBooker: 3,
         bookerEmail: "test@example.com",
         offerToRescheduleLastBooking: false,
+        bookingRepository: mockBookingRepository,
       })
     ).rejects.toThrow(ErrorCode.BookerLimitExceeded);
   });
@@ -93,6 +95,7 @@ describe("checkActiveBookingsLimitForBooker", () => {
         maxActiveBookingsPerBooker: 5,
         bookerEmail: "test@example.com",
         offerToRescheduleLastBooking: false,
+        bookingRepository: mockBookingRepository,
       })
     ).rejects.toThrow(ErrorCode.BookerLimitExceeded);
   });
@@ -118,6 +121,7 @@ describe("checkActiveBookingsLimitForBooker", () => {
         maxActiveBookingsPerBooker: 2,
         bookerEmail: "test@example.com",
         offerToRescheduleLastBooking: true,
+        bookingRepository: mockBookingRepository,
       })
     ).rejects.toThrow(ErrorCode.BookerLimitExceededReschedule);
 
@@ -140,6 +144,7 @@ describe("checkActiveBookingsLimitForBooker", () => {
         maxActiveBookingsPerBooker: 5,
         bookerEmail: "test@example.com",
         offerToRescheduleLastBooking: true,
+        bookingRepository: mockBookingRepository,
       })
     ).resolves.toBeUndefined();
   });
@@ -166,6 +171,7 @@ describe("checkActiveBookingsLimitForBooker", () => {
         maxActiveBookingsPerBooker: 1,
         bookerEmail: "test@example.com",
         offerToRescheduleLastBooking: true,
+        bookingRepository: mockBookingRepository,
       });
       expect.fail("Should have thrown");
     } catch (error: unknown) {
@@ -188,15 +194,12 @@ describe("checkActiveBookingsLimitForBooker", () => {
       maxActiveBookingsPerBooker: 5,
       bookerEmail: "alice@example.com",
       offerToRescheduleLastBooking: false,
+      bookingRepository: mockBookingRepository,
     });
 
     expect(mockCount).toHaveBeenCalledWith({
-      where: expect.objectContaining({
-        eventTypeId: 42,
-        startTime: { gte: expect.any(Date) },
-        status: { in: ["ACCEPTED"] },
-        attendees: { some: { email: "alice@example.com" } },
-      }),
+      eventTypeId: 42,
+      bookerEmail: "alice@example.com",
     });
   });
 });

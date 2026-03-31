@@ -1,21 +1,21 @@
-import process from "node:process";
 import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
-import prisma from "@calcom/prisma";
 
 export const checkIfBookerEmailIsBlocked = async ({
   bookerEmail,
   loggedInUserId,
   verificationCode,
   isReschedule,
+  userRepository,
 }: {
   bookerEmail: string;
   loggedInUserId?: number;
   verificationCode?: string;
   isReschedule: boolean;
+  userRepository: UserRepository;
 }) => {
   const baseEmail = extractBaseEmail(bookerEmail);
 
@@ -27,7 +27,6 @@ export const checkIfBookerEmailIsBlocked = async ({
     (guestEmail: string) => guestEmail.toLowerCase() === baseEmail.toLowerCase()
   );
 
-  const userRepository = new UserRepository(prisma);
   const user = await userRepository.findVerifiedUserByEmail({ email: baseEmail });
 
   const blockedByUserSetting = user?.requiresBookerEmailVerification ?? false;
@@ -42,7 +41,6 @@ export const checkIfBookerEmailIsBlocked = async ({
   }
 
   if (user.id !== loggedInUserId) {
-    // If a verification code is provided, validate it
     if (verificationCode) {
       let isValid = false;
 

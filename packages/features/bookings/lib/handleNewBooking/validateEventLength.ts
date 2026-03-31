@@ -1,5 +1,4 @@
-import type { Logger } from "tslog";
-
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import dayjs from "@calcom/dayjs";
 import { HttpError } from "@calcom/lib/http-error";
 import { withReporting } from "@calcom/lib/sentryWrapper";
@@ -9,7 +8,7 @@ type Props = {
   reqBodyEnd: string;
   eventTypeMultipleDuration?: number[];
   eventTypeLength: number;
-  logger: Logger<unknown>;
+  logger: ISimpleLogger;
 };
 
 // Define the function with underscore prefix

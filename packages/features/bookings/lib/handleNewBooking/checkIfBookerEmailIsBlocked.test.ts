@@ -2,13 +2,6 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockFindVerifiedUserByEmail = vi.fn();
-vi.mock("@calcom/features/users/repositories/UserRepository", () => {
-  return {
-    UserRepository: class MockUserRepository {
-      findVerifiedUserByEmail = mockFindVerifiedUserByEmail;
-    },
-  };
-});
 
 const mockVerifyCode = vi.fn();
 vi.mock("@calcom/features/auth/lib/verifyCodeUnAuthenticated", () => ({
@@ -19,11 +12,13 @@ vi.mock("@calcom/lib/extract-base-email", () => ({
   extractBaseEmail: (email: string) => email.split("+")[0].split("@")[0] + "@" + email.split("@")[1],
 }));
 
-vi.mock("@calcom/prisma", () => ({
-  default: {},
-}));
-
 import { checkIfBookerEmailIsBlocked } from "./checkIfBookerEmailIsBlocked";
+
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+
+const mockUserRepository = {
+  findVerifiedUserByEmail: mockFindVerifiedUserByEmail,
+} as unknown as UserRepository;
 
 describe("checkIfBookerEmailIsBlocked", () => {
   const originalEnv = process.env;
@@ -43,6 +38,7 @@ describe("checkIfBookerEmailIsBlocked", () => {
     const result = await checkIfBookerEmailIsBlocked({
       bookerEmail: "test@example.com",
       isReschedule: false,
+      userRepository: mockUserRepository,
     });
 
     expect(result).toBe(false);
@@ -55,6 +51,7 @@ describe("checkIfBookerEmailIsBlocked", () => {
       checkIfBookerEmailIsBlocked({
         bookerEmail: "blocked@example.com",
         isReschedule: false,
+        userRepository: mockUserRepository,
       })
     ).rejects.toThrow("Cannot use this email to create the booking.");
   });
@@ -66,6 +63,7 @@ describe("checkIfBookerEmailIsBlocked", () => {
       checkIfBookerEmailIsBlocked({
         bookerEmail: "blocked@example.com",
         isReschedule: false,
+        userRepository: mockUserRepository,
       })
     ).rejects.toThrow("Cannot use this email to create the booking.");
   });
@@ -81,6 +79,7 @@ describe("checkIfBookerEmailIsBlocked", () => {
       checkIfBookerEmailIsBlocked({
         bookerEmail: "verified@example.com",
         isReschedule: false,
+        userRepository: mockUserRepository,
       })
     ).rejects.toThrow(/Attendee email has been blocked/);
   });
@@ -95,6 +94,7 @@ describe("checkIfBookerEmailIsBlocked", () => {
     const result = await checkIfBookerEmailIsBlocked({
       bookerEmail: "verified@example.com",
       isReschedule: true,
+      userRepository: mockUserRepository,
     });
 
     expect(result).toBe(false);
@@ -111,6 +111,7 @@ describe("checkIfBookerEmailIsBlocked", () => {
       bookerEmail: "verified@example.com",
       loggedInUserId: 42,
       isReschedule: false,
+      userRepository: mockUserRepository,
     });
 
     expect(result).toBeUndefined();
@@ -128,6 +129,7 @@ describe("checkIfBookerEmailIsBlocked", () => {
       bookerEmail: "verified@example.com",
       verificationCode: "123456",
       isReschedule: false,
+      userRepository: mockUserRepository,
     });
 
     expect(result).toBe(false);
@@ -146,6 +148,7 @@ describe("checkIfBookerEmailIsBlocked", () => {
       bookerEmail: "user+tag@example.com",
       verificationCode: "123456",
       isReschedule: false,
+      userRepository: mockUserRepository,
     });
 
     expect(result).toBe(false);
@@ -165,6 +168,7 @@ describe("checkIfBookerEmailIsBlocked", () => {
         bookerEmail: "verified@example.com",
         verificationCode: "wrong-code",
         isReschedule: false,
+        userRepository: mockUserRepository,
       })
     ).rejects.toThrow("Invalid verification code");
   });
@@ -182,6 +186,7 @@ describe("checkIfBookerEmailIsBlocked", () => {
         bookerEmail: "verified@example.com",
         verificationCode: "123456",
         isReschedule: false,
+        userRepository: mockUserRepository,
       })
     ).rejects.toThrow("There was an error validating the verification code");
   });
@@ -196,6 +201,7 @@ describe("checkIfBookerEmailIsBlocked", () => {
     const result = await checkIfBookerEmailIsBlocked({
       bookerEmail: "verified@example.com",
       isReschedule: false,
+      userRepository: mockUserRepository,
     });
 
     expect(result).toBe(false);

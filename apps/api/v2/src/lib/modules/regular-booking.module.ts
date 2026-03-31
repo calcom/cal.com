@@ -11,6 +11,7 @@ import { PrismaOrgMembershipRepository } from "@/lib/repositories/prisma-org-mem
 import { PrismaTeamFeatureRepository } from "@/lib/repositories/prisma-team-feature.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { BookingAuditProducerService } from "@/lib/services/booking-audit-producer.service";
+import { BookingDataPreparationService } from "@/lib/services/booking-data-preparation.service";
 import { BookingEmailSmsService } from "@/lib/services/booking-emails-sms-service";
 import { BookingEventHandlerService } from "@/lib/services/booking-event-handler.service";
 import { CheckBookingAndDurationLimitsService } from "@/lib/services/check-booking-and-duration-limits.service";
@@ -46,6 +47,7 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
     PrismaTeamFeatureRepository,
     PrismaOrgMembershipRepository,
     BookingAuditProducerService,
+    BookingDataPreparationService,
     BookingEventHandlerService,
     CheckBookingAndDurationLimitsService,
     CheckBookingLimitsService,

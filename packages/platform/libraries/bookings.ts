@@ -38,5 +38,7 @@ export { OrganizationWatchlistOperationsService } from "@calcom/features/watchli
 export { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 
 export { addGuestsHandler } from "@calcom/trpc/server/routers/viewer/bookings/addGuests.handler";
+export { BookingDataPreparationService } from "@calcom/features/bookings/lib/utils/BookingDataPreparationService";
+export type { PreparedBookingData } from "@calcom/features/bookings/lib/utils/BookingDataPreparationService";
 export type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
 export { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";

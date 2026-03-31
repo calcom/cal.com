@@ -17,6 +17,8 @@ export const BOOKING_DI_TOKENS = {
   BOOKING_EVENT_HANDLER_SERVICE_MODULE: Symbol("BookingEventHandlerServiceModule"),
   ATTENDEE_REPOSITORY: Symbol("AttendeeRepository"),
   ATTENDEE_REPOSITORY_MODULE: Symbol("AttendeeRepositoryModule"),
+  BOOKING_DATA_PREPARATION_SERVICE: Symbol("BookingDataPreparationService"),
+  BOOKING_DATA_PREPARATION_SERVICE_MODULE: Symbol("BookingDataPreparationServiceModule"),
   WRONG_ASSIGNMENT_REPORT_REPOSITORY: Symbol("WrongAssignmentReportRepository"),
   WRONG_ASSIGNMENT_REPORT_REPOSITORY_MODULE: Symbol("WrongAssignmentReportRepositoryModule"),
 };

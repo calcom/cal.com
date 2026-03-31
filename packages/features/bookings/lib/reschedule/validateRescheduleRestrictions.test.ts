@@ -11,7 +11,7 @@
 
 import { HttpError } from "@calcom/lib/http-error";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { validateRescheduleRestrictions } from "../service/RegularBookingService";
+import { validateRescheduleRestrictions } from "../handleNewBooking/validateRescheduleRestrictions";
 
 // Use var so Vitest's vi.mock hoisting doesn't hit TDZ
 // eslint-disable-next-line no-var

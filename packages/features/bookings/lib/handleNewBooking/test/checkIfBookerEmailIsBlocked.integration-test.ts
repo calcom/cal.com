@@ -69,6 +69,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
       const result = await checkIfBookerEmailIsBlocked({
         bookerEmail: `nonexistent-${Date.now()}@test-integration.com`,
         isReschedule: false,
+        userRepository,
       });
 
       expect(result).toBe(false);
@@ -83,6 +84,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
         checkIfBookerEmailIsBlocked({
           bookerEmail: email,
           isReschedule: false,
+          userRepository,
         })
       ).rejects.toThrow(
         expect.objectContaining({
@@ -102,6 +104,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
       const result = await checkIfBookerEmailIsBlocked({
         bookerEmail: email,
         isReschedule: false,
+        userRepository,
       });
 
       expect(result).toBe(false);
@@ -117,6 +120,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
         checkIfBookerEmailIsBlocked({
           bookerEmail: email,
           isReschedule: false,
+          userRepository,
         })
       ).rejects.toThrow(
         expect.objectContaining({
@@ -134,6 +138,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
       const result = await checkIfBookerEmailIsBlocked({
         bookerEmail: email,
         isReschedule: true,
+        userRepository,
       });
 
       expect(result).toBe(false);
@@ -149,6 +154,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
         bookerEmail: email,
         loggedInUserId: user.id,
         isReschedule: false,
+        userRepository,
       });
 
       expect(result).toBeUndefined();
@@ -163,6 +169,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
       const result = await checkIfBookerEmailIsBlocked({
         bookerEmail: email,
         isReschedule: false,
+        userRepository,
       });
 
       expect(result).toBe(false);
@@ -186,6 +193,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
         checkIfBookerEmailIsBlocked({
           bookerEmail: secondaryEmail,
           isReschedule: false,
+          userRepository,
         })
       ).rejects.toThrow(
         expect.objectContaining({
@@ -209,6 +217,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
       const result = await checkIfBookerEmailIsBlocked({
         bookerEmail: secondaryEmail,
         isReschedule: false,
+        userRepository,
       });
 
       expect(result).toBe(false);
@@ -229,6 +238,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
       const result = await checkIfBookerEmailIsBlocked({
         bookerEmail: secondaryEmail,
         isReschedule: false,
+        userRepository,
       });
 
       expect(result).toBe(false);
@@ -248,6 +258,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
         checkIfBookerEmailIsBlocked({
           bookerEmail: plusEmail,
           isReschedule: false,
+          userRepository,
         })
       ).rejects.toThrow(
         expect.objectContaining({
@@ -269,6 +280,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
         checkIfBookerEmailIsBlocked({
           bookerEmail: email,
           isReschedule: false,
+          userRepository,
         })
       ).rejects.toThrow(
         expect.objectContaining({
@@ -288,6 +300,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
         bookerEmail: email,
         loggedInUserId: user.id,
         isReschedule: false,
+        userRepository,
       });
 
       expect(result).toBeUndefined();
@@ -309,6 +322,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
         bookerEmail: email,
         verificationCode: "valid-code",
         isReschedule: false,
+        userRepository,
       });
 
       expect(result).toBe(false);
@@ -330,6 +344,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
           bookerEmail: email,
           verificationCode: "bad-code",
           isReschedule: false,
+          userRepository,
         })
       ).rejects.toThrow(
         expect.objectContaining({
@@ -353,6 +368,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
           bookerEmail: email,
           verificationCode: "some-code",
           isReschedule: false,
+          userRepository,
         })
       ).rejects.toThrow(
         expect.objectContaining({
@@ -372,6 +388,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
       const result = await checkIfBookerEmailIsBlocked({
         bookerEmail: email,
         isReschedule: false,
+        userRepository,
       });
 
       expect(result).toBe(false);
@@ -393,6 +410,7 @@ describe("checkIfBookerEmailIsBlocked - integration", () => {
       const result = await checkIfBookerEmailIsBlocked({
         bookerEmail: secondaryEmail,
         isReschedule: false,
+        userRepository,
       });
 
       expect(result).toBe(false);

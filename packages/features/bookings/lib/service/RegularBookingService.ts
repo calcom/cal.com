@@ -19,7 +19,6 @@ import {
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import getICalUID from "@calcom/emails/lib/getICalUID";
-import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import type {
   BookingDataSchemaGetter,
@@ -36,8 +35,8 @@ import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEvent
 import type { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
 import type { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
+import type { BookingDataPreparationService } from "@calcom/features/bookings/lib/utils/BookingDataPreparationService";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
-import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
@@ -55,7 +54,6 @@ import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import type { IOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
-import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { getRoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -74,11 +72,9 @@ import {
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/i18n/server";
 import { groupHostsByGroupId } from "@calcom/lib/bookings/hostGroupUtils";
-import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { DEFAULT_GROUP_ID, ENABLE_ASYNC_TASKER } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
-import { ErrorWithCode } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -120,16 +116,12 @@ import {
   buildBookingCreatedAuditData,
   buildBookingRescheduledAuditData,
 } from "../handleNewBooking/buildBookingEventAuditData";
-import { checkActiveBookingsLimitForBooker } from "../handleNewBooking/checkActiveBookingsLimitForBooker";
-import { checkIfBookerEmailIsBlocked } from "../handleNewBooking/checkIfBookerEmailIsBlocked";
 import type { Booking } from "../handleNewBooking/createBooking";
 import { createBooking } from "../handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "../handleNewBooking/ensureAvailableUsers";
 import { getAuditActionSource } from "../handleNewBooking/getAuditActionSource";
 import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
-import { getBookingData } from "../handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "../handleNewBooking/getCustomInputsResponses";
-import { getEventType } from "../handleNewBooking/getEventType";
 import type { getEventTypeResponse } from "../handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "../handleNewBooking/getLocationValuesForDb";
 import { getRequiresConfirmationFlags } from "../handleNewBooking/getRequiresConfirmationFlags";
@@ -141,11 +133,8 @@ import type { BookingType } from "../handleNewBooking/originalRescheduledBooking
 import { getOriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
 import { scheduleNoShowTriggers } from "../handleNewBooking/scheduleNoShowTriggers";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "../handleNewBooking/types";
-import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validateBookingTimeIsNotOutOfBounds";
-import { validateEventLength } from "../handleNewBooking/validateEventLength";
 import handleSeats from "../handleSeats/handleSeats";
 import type { IBookingService } from "../interfaces/IBookingService";
-import { isWithinMinimumRescheduleNotice } from "../reschedule/isWithinMinimumRescheduleNotice";
 
 const translator = short();
 
@@ -492,98 +481,9 @@ export interface IBookingServiceDependencies {
   bookingEmailAndSmsTasker: BookingEmailAndSmsTasker;
   teamFeatureRepository: ITeamFeatureRepository;
   bookingEventHandler: BookingEventHandlerService;
+  bookingDataPreparationService: BookingDataPreparationService;
   webhookProducer: IWebhookProducerService;
   orgMembershipRepository: IOrgMembershipRepository;
-}
-
-export async function validateRescheduleRestrictions({
-  rescheduleUid,
-  userId,
-  eventType,
-}: {
-  rescheduleUid: string | null | undefined;
-  userId: number | null;
-  eventType: { seatsPerTimeSlot: number | null; minimumRescheduleNotice: number | null } | null;
-}): Promise<void> {
-  if (!rescheduleUid || !eventType) {
-    return; // Not a reschedule, skip validation
-  }
-
-  const bookingSeat = rescheduleUid ? await getSeatedBooking(rescheduleUid) : null;
-  const actualRescheduleUid = bookingSeat ? bookingSeat.booking.uid : rescheduleUid;
-
-  if (!actualRescheduleUid) {
-    return; // No valid reschedule UID
-  }
-
-  try {
-    const originalRescheduledBooking = await getOriginalRescheduledBooking(
-      actualRescheduleUid,
-      !!eventType.seatsPerTimeSlot
-    );
-
-    // Check if user is the organizer
-    const isUserOrganizer =
-      userId && originalRescheduledBooking.userId && userId === originalRescheduledBooking.userId;
-
-    // Check minimum reschedule notice (only for non-organizers)
-    const { minimumRescheduleNotice } = originalRescheduledBooking.eventType || {};
-    if (
-      !isUserOrganizer &&
-      isWithinMinimumRescheduleNotice(originalRescheduledBooking.startTime, minimumRescheduleNotice ?? null)
-    ) {
-      throw new HttpError({
-        statusCode: 403,
-        message: "Rescheduling is not allowed within the minimum notice period before the event",
-      });
-    }
-  } catch (error) {
-    // Re-throw HttpError (including our 403 validation error)
-    if (error instanceof HttpError) {
-      throw error;
-    }
-    // For other errors (like booking not found), let the service handle it later
-    // We don't want to fail early validation for these cases
-  }
-}
-
-/**
- * TODO: Ideally we should send organizationId directly to handleNewBooking.
- * webapp can derive from domain and API V2 knows it already through its endpoint URL
- */
-async function getEventOrganizationId({
-  eventType,
-}: {
-  eventType: {
-    userId: number | null;
-    team: {
-      parentId: number | null;
-    } | null;
-    parent: {
-      team: {
-        parentId: number | null;
-      } | null;
-    } | null;
-  };
-}) {
-  let eventOrganizationId: number | null = null;
-  const team = eventType.team ?? eventType.parent?.team ?? null;
-  eventOrganizationId = team?.parentId ?? null;
-
-  if (eventOrganizationId) {
-    return eventOrganizationId;
-  }
-
-  if (eventType.userId) {
-    // TODO: Moving it to instance based access through DI in a followup
-    const profile = await ProfileRepository.findFirstForUserId({
-      userId: eventType.userId,
-    });
-    eventOrganizationId = profile?.organizationId ?? null;
-    return eventOrganizationId;
-  }
-
-  return eventOrganizationId;
 }
 
 function getWebhookTriggerEvent({
@@ -641,43 +541,35 @@ async function handler(
 
   const isPlatformBooking = !!platformClientId;
 
-  const eventType = await getEventType({
-    eventTypeId: rawBookingData.eventTypeId,
-    eventTypeSlug: rawBookingData.eventTypeSlug,
-  });
+  const preparedData = await deps.bookingDataPreparationService.prepare(
+    {
+      rawBookingData,
+      rawBookingMeta: {
+        platformClientId,
+        platformCancelUrl,
+        platformBookingUrl,
+        platformRescheduleUrl,
+        platformBookingLocation,
+        areCalendarEventsEnabled,
+        skipAvailabilityCheck,
+        skipEventLimitsCheck,
+        skipBookingTimeOutOfBoundsCheck,
+        skipCalendarSyncTaskCreation,
+      },
+      eventType: {
+        id: rawBookingData.eventTypeId,
+        slug: rawBookingData.eventTypeSlug ?? undefined,
+      },
+      loggedInUserId: userId ?? null,
+    },
+    bookingDataSchemaGetter
+  );
 
-  if (eventType.teamId) {
-    const { getDunningGuard } = await import("@calcom/features/ee/billing/di/containers/Billing");
-    const dunningGuard = getDunningGuard();
-    const billingTeamId = eventType.team?.parentId ?? eventType.teamId;
-    const dunningCheck = await dunningGuard.canPerformAction(billingTeamId, "CREATE_BOOKING");
-    if (!dunningCheck.allowed) {
-      throw new ErrorWithCode(ErrorCode.Forbidden, "team_is_unpublished");
-    }
-  }
-
-  // Early validation: Check reschedule restrictions if rescheduling
-  await validateRescheduleRestrictions({
-    rescheduleUid: rawBookingData.rescheduleUid,
-    userId: userId ?? null,
-    eventType: eventType
-      ? {
-          seatsPerTimeSlot: eventType.seatsPerTimeSlot,
-          minimumRescheduleNotice: eventType.minimumRescheduleNotice ?? null,
-        }
-      : null,
-  });
-
-  const bookingDataSchema = bookingDataSchemaGetter({
-    view: rawBookingData.rescheduleUid ? "reschedule" : "booking",
-    bookingFields: eventType.bookingFields,
-  });
-
-  const bookingData = await getBookingData({
-    reqBody: rawBookingData,
-    eventType,
-    schema: bookingDataSchema,
-  });
+  const eventType = preparedData.eventType;
+  const bookingData = preparedData.bookingData;
+  const spamCheckService = preparedData.spamCheckService;
+  const eventOrganizationId = preparedData.eventOrganizationId;
+  const routingData = preparedData.routingData;
 
   const {
     recurringCount,
@@ -710,55 +602,6 @@ async function handler(
 
   const emailsAndSmsHandler = new BookingEmailSmsHandler({ logger: tracingLogger });
 
-  try {
-    await checkIfBookerEmailIsBlocked({
-      loggedInUserId: userId,
-      bookerEmail,
-      verificationCode: reqBody.verificationCode,
-      isReschedule: !!rawBookingData.rescheduleUid,
-    });
-  } catch (error) {
-    if (error instanceof ErrorWithCode) {
-      throw new HttpError({ statusCode: 403, message: error.message });
-    }
-    throw error;
-  }
-
-  const spamCheckService = getSpamCheckService();
-  const eventOrganizationId = await getEventOrganizationId({
-    eventType,
-  });
-
-  spamCheckService.startCheck({ email: bookerEmail, organizationId: eventOrganizationId });
-
-  if (!rawBookingData.rescheduleUid) {
-    await checkActiveBookingsLimitForBooker({
-      eventTypeId,
-      maxActiveBookingsPerBooker: eventType.maxActiveBookingsPerBooker,
-      bookerEmail,
-      offerToRescheduleLastBooking: eventType.maxActiveBookingPerBookerOfferReschedule,
-    });
-  }
-
-  if (eventType.requiresBookerEmailVerification && !rawBookingData.rescheduleUid) {
-    const verificationCode = reqBody.verificationCode;
-    if (!verificationCode) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "email_verification_required",
-      });
-    }
-
-    try {
-      await verifyCodeUnAuthenticated(bookerEmail, verificationCode);
-    } catch {
-      throw new HttpError({
-        statusCode: 400,
-        message: "invalid_verification_code",
-      });
-    }
-  }
-
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     tracingLogger.settings.minLevel = 0;
   }
@@ -768,18 +611,6 @@ async function handler(
   const tGuests = await getTranslation("en", "common");
 
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
-  if (!eventType)
-    throw new HttpError({
-      statusCode: 404,
-      message: "event_type_not_found",
-    });
-
-  if (eventType.seatsPerTimeSlot && eventType.recurringEvent) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "recurring_event_seats_error",
-    });
-  }
 
   const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
   const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
@@ -857,8 +688,7 @@ async function handler(
     }
   }
 
-  const isTeamEventType =
-    !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
+  const isTeamEventType = eventType.isTeamEventType;
 
   // Use "booking" mode to bypass cache for booking confirmation
   const calendarFetchMode = "booking" as const;
@@ -889,38 +719,7 @@ async function handler(
     })
   );
 
-  const user = eventType.users.find((user) => user.id === eventType.userId);
-  const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
-  const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
-
-  if (!skipBookingTimeOutOfBoundsCheck) {
-    await validateBookingTimeIsNotOutOfBounds<typeof eventType>(
-      reqBody.start,
-      reqBody.timeZone,
-      eventType,
-      eventTimeZone,
-      tracingLogger
-    );
-  }
-
-  validateEventLength({
-    reqBodyStart: reqBody.start,
-    reqBodyEnd: reqBody.end,
-    eventTypeMultipleDuration: eventType.metadata?.multipleDuration,
-    eventTypeLength: eventType.length,
-    logger: tracingLogger,
-  });
-
-  const contactOwnerFromReq = reqBody.teamMemberEmail ?? null;
-
-  const skipContactOwner = shouldIgnoreContactOwner({
-    skipContactOwner: reqBody.skipContactOwner ?? null,
-    rescheduleUid: reqBody.rescheduleUid ?? null,
-    routedTeamMemberIds: routedTeamMemberIds ?? null,
-  });
-
-  const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
-  const crmRecordId: string | undefined = reqBody.crmRecordId ?? undefined;
+  const contactOwnerEmail = routingData.contactOwnerEmail;
 
   let routingFormResponse = null;
 
@@ -2117,8 +1916,8 @@ async function handler(
         eventName,
         startTime: reqBody.start,
         endTime: reqBody.end,
-        contactOwnerFromReq,
-        contactOwnerEmail,
+        contactOwnerFromReq: bookingData.teamMemberEmail ?? null,
+        contactOwnerEmail: routingData.contactOwnerEmail ?? null,
         allHostUsers: users,
         isManagedEventType,
       });
