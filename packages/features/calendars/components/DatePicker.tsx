@@ -50,6 +50,8 @@ export type DatePickerProps = {
   periodData?: PeriodData;
   // Whether this is a compact sidebar view or main monthly view
   isCompact?: boolean;
+  /** Whether to show extra days from the next month at the bottom of the calendar grid. Defaults to true. */
+  showExtraDays?: boolean;
   // Whether to show the no availability dialog
   showNoAvailabilityDialog?: boolean;
 };
@@ -192,7 +194,8 @@ const Days = ({
   const getPadding = (day: number) => (browsingDate.set("date", day).day() - weekStart + 7) % 7;
   const totalDays = daysInMonth(browsingDate);
 
-  const showNextMonthDays = isSecondWeekOver && !isCompact;
+  const showExtraDays = props.showExtraDays ?? true;
+  const showNextMonthDays = isSecondWeekOver && !isCompact && showExtraDays;
 
   // Only apply end-of-month logic for main monthly view (not compact sidebar)
   if (showNextMonthDays) {
