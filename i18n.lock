@@ -9552,6 +9552,8 @@ checksums:
     upgrade_plan_enterprise_tagline: c7f9a61151bd581bc3c60af80702076d
     upgrade_cta_teams: 3389abb344444a2a984b6ffdbc7cf148
     upgrade_cta_orgs: 38040495f2281fb780a62dfe91d209c4
+    try_cta_teams: b372163508f2561c570771bd09dfd559
+    try_cta_orgs: 356d37e513ad9e48c5a1f4071a321e80
     upgrade_cta_enterprise: 35323605e31c113fd664486afc33f3eb
     plans_page_description: e9426bd63147f0843e7cedc22ad196f3
     plans_description: aa458f576a59f750d9a4651a87ff898c
