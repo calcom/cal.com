@@ -214,9 +214,10 @@ export const useEventTypeForm = ({
   // Watch all form values to trigger onFormStateChange on any change
   const watchedValues = form.watch();
 
-  const hasUnsavedChanges = useMemo(() => {
-    return !isEqual(baselineRef.current, watchedValues);
-  }, [watchedValues]);
+  const hasUnsavedChanges = !isEqual(
+    baselineRef.current,
+    watchedValues
+  );
 
   const isObject = <T>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
