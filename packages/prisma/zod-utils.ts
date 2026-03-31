@@ -138,6 +138,41 @@ const _eventTypeMetaDataSchemaWithoutApps = z.object({
     .optional()
     .nullable(),
   billingAddressRequired: z.boolean().optional(),
+  bookingPage: z
+    .object({
+      thankYouPage: z
+        .object({
+          fields: z
+            .record(
+              z
+                .object({
+                  visible: z.boolean().optional(),
+                  label: z.string().optional(),
+                })
+                .partial()
+            )
+            .optional(),
+        })
+        .optional(),
+      banner: z
+        .object({
+          position: z.enum(["top", "bottom"]).optional(),
+        })
+        .optional(),
+      cta: z
+        .object({
+          enabled: z.boolean().optional(),
+          position: z.enum(["top", "bottom"]).optional(),
+          text: z.string().optional(),
+          url: z
+            .string()
+            .url()
+            .regex(/^http(s)?:\/\/.*/)
+            .optional(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(

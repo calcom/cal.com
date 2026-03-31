@@ -803,6 +803,7 @@ export class EventTypeRepository {
         select: {
           id: true,
           timeZone: true,
+          metadata: true,
         },
       },
       parent: {
@@ -817,6 +818,7 @@ export class EventTypeRepository {
           id: true,
           name: true,
           slug: true,
+          metadata: true,
           parentId: true,
           rrTimestampBasis: true,
           parent: {
@@ -1103,6 +1105,7 @@ export class EventTypeRepository {
         select: {
           id: true,
           timeZone: true,
+          metadata: true,
         },
       },
       parent: {
@@ -1117,6 +1120,7 @@ export class EventTypeRepository {
           id: true,
           name: true,
           slug: true,
+          metadata: true,
           parentId: true,
           rrTimestampBasis: true,
           parent: {
@@ -1652,6 +1656,7 @@ export class EventTypeRepository {
         select: {
           id: true,
           timeZone: true,
+          metadata: true,
         },
       },
       parent: {
@@ -1666,6 +1671,7 @@ export class EventTypeRepository {
           id: true,
           name: true,
           slug: true,
+          metadata: true,
           parentId: true,
           rrTimestampBasis: true,
           parent: {
@@ -1702,6 +1708,7 @@ export class EventTypeRepository {
           id: true,
           name: true,
           slug: true,
+          metadata: true,
           members: {
             select: {
               role: true,

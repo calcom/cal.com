@@ -60,7 +60,7 @@ type LocationsProps = {
   team: { id: number } | null;
   destinationCalendar: TDestinationCalendar;
   showAppStoreLink: boolean;
-  isEnterpriseUser?: boolean;
+  isEnterprise?: boolean;
   isChildrenManagedEventType?: boolean;
   isManagedEventType?: boolean;
   disableLocationProp?: boolean;
@@ -179,7 +179,7 @@ const Locations: React.FC<LocationsProps> = ({
   formState,
   team,
   eventType,
-  isEnterpriseUser,
+  isEnterprise,
   prefillLocation,
   customClassNames,
   ...props
@@ -308,7 +308,7 @@ const Locations: React.FC<LocationsProps> = ({
           return (
             <li key={field.id}>
               <div className="flex w-full items-center">
-                {isEnterpriseUser && (
+                {isEnterprise && (
                   <button
                     type="button"
                     className="hover:text-emphasis text-subtle mr-1.5 h-9 min-h-9 px-2"

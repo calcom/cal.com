@@ -30,7 +30,7 @@ import { Editor } from "@calcom/ui/components/editor";
 import { Select, Label, SettingsToggle } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 
-import { isManagedEventType } from "../../utils/event-types-utils";
+import { isEnterpriseEventOwner,isManagedEventType } from "../../utils/event-types-utils";
 import { FieldPermissionIndicator, useFieldPermissions } from "./hooks/useFieldPermissions";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
@@ -496,9 +496,11 @@ export const EventSetup = (props: EventSetupTabProps) => {
 
   const currentUser = useMeQuery();
 
-  const isEnterpriseUser = !!currentUser?.data?.isEnterprise;
-
   const { eventType, team, customClassNames, teamMembers } = props;
+
+  const effectiveTeam = (eventType as any).calIdTeam;
+  const isEnterprise = isEnterpriseEventOwner(eventType, effectiveTeam);
+
   const member = useMemo(() => {
     const foundMember = teamMembers.find((mem) => mem.user?.id === session.data?.user.id);
     return foundMember;
@@ -636,7 +638,7 @@ export const EventSetup = (props: EventSetupTabProps) => {
           render={() => (
             <Locations
               showAppStoreLink={true}
-              isEnterpriseUser={isEnterpriseUser}
+              isEnterprise={isEnterprise}
               isManagedEventType={isManagedEventType}
               isChildrenManagedEventType={isManagedEventType}
               disableLocationProp={fieldPermissions.getFieldState("locations").isDisabled}
