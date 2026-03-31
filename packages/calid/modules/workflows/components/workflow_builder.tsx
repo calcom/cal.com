@@ -152,8 +152,8 @@ type OtpCooldownState = {
 const OTP_COOLDOWN_STORAGE_KEY = "calid_workflow_otp_cooldowns_v1";
 const OTP_INACTIVITY_RESET_MS = 30 * 60 * 1000;
 const OTP_COOLDOWN_CAP_MS = 10 * 60 * 1000;
-const OTP_FIRST_RESEND_COOLDOWN_MS = 5 * 1000;
-const OTP_INITIAL_RESEND_COOLDOWN_MS = 30 * 1000;
+const OTP_FIRST_RESEND_COOLDOWN_MS = 60 * 1000;
+const OTP_INITIAL_RESEND_COOLDOWN_MS = 120 * 1000;
 
 const evaluatePreview = (html: string, variableMapping: Record<string, any>): string => {
   let result = html;
