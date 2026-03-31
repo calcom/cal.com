@@ -160,7 +160,7 @@ async function cleanupAuditData(
   actorId: string
 ): Promise<void> {
   await prisma.bookingAudit.deleteMany({ where: { bookingUid } });
-  await prisma.auditActor.deleteMany({ where: { id: actorId } });
+  // AuditActor is not deleted — AuditEvent FK (onDelete: Restrict) prevents it.
 }
 
 async function enableUserFeature(

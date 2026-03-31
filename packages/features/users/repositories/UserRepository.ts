@@ -396,6 +396,7 @@ export class UserRepository {
         twoFactorSecret: true,
         backupCodes: true,
         locale: true,
+        organizationId: true,
         teams: {
           include: {
             team: {

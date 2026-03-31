@@ -1,4 +1,8 @@
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
+import { emitAuditEvent } from "@calcom/features/audit/di/AuditProducerService.container";
+import { AuditActions } from "@calcom/features/audit/types/auditAction";
+import { AuditSources } from "@calcom/features/audit/types/auditSource";
+import { AuditTargets } from "@calcom/features/audit/types/auditTarget";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
@@ -9,6 +13,7 @@ import type { TrpcSessionUser } from "../../../types";
 type CreateAccountPasswordOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    sourceIp?: string;
   };
 };
 
@@ -33,4 +38,14 @@ export const createAccountPasswordHandler = async ({ ctx }: CreateAccountPasswor
   }
 
   await passwordResetRequest(user);
+
+  void emitAuditEvent({
+    actor: { userUuid: user.uuid },
+    action: AuditActions.PASSWORD_RESET_REQUESTED,
+    source: AuditSources.WEBAPP,
+    targetType: AuditTargets.user,
+    targetId: user.uuid,
+    orgId: user.organizationId ?? null,
+    ip: ctx.sourceIp,
+  });
 };

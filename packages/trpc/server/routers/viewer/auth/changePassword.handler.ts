@@ -1,5 +1,9 @@
 import { validPassword } from "@calcom/features/auth/lib/validPassword";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
+import { emitAuditEvent } from "@calcom/features/audit/di/AuditProducerService.container";
+import { AuditActions } from "@calcom/features/audit/types/auditAction";
+import { AuditSources } from "@calcom/features/audit/types/auditSource";
+import { AuditTargets } from "@calcom/features/audit/types/auditTarget";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
@@ -11,7 +15,8 @@ import type { TChangePasswordInputSchema } from "./changePassword.schema";
 
 type ChangePasswordOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "uuid" | "organizationId" | "identityProvider">;
+    sourceIp?: string;
   };
   input: TChangePasswordInputSchema;
 };
@@ -70,5 +75,15 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
     update: {
       hash: hashedPassword,
     },
+  });
+
+  void emitAuditEvent({
+    actor: { userUuid: user.uuid },
+    action: AuditActions.PASSWORD_CHANGED,
+    source: AuditSources.WEBAPP,
+    targetType: AuditTargets.user,
+    targetId: user.uuid,
+    orgId: user.organizationId ?? null,
+    ip: ctx.sourceIp,
   });
 };

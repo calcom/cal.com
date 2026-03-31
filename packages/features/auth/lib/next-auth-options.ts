@@ -1,4 +1,8 @@
 import process from "node:process";
+import { emitAuditEvent } from "@calcom/features/audit/di/AuditProducerService.container";
+import { AuditActions } from "@calcom/features/audit/types/auditAction";
+import { AuditSources } from "@calcom/features/audit/types/auditSource";
+import { AuditTargets } from "@calcom/features/audit/types/auditTarget";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
@@ -56,7 +60,21 @@ export async function authorizeCredentials(
 ): Promise<User | null> {
   const { getAuthCredentialsService } = await import("../di/AuthCredentialsService.container");
   const credentialsService = getAuthCredentialsService();
-  return credentialsService.authorize(credentials);
+
+  const user = await credentialsService.authorize(credentials);
+
+  if (user?.uuid) {
+    void emitAuditEvent({
+      actor: { userUuid: user.uuid },
+      action: AuditActions.LOGIN,
+      source: AuditSources.WEBAPP,
+      targetType: AuditTargets.user,
+      targetId: user.uuid,
+      orgId: null,
+    });
+  }
+
+  return user;
 }
 
 export const CalComCredentialsProvider = CredentialsProvider({

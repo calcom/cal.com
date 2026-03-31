@@ -6,8 +6,13 @@ import type { NextRequest } from "next/server";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { emitAuditEvent } from "@calcom/features/audit/di/AuditProducerService.container";
+import { AuditActions } from "@calcom/features/audit/types/auditAction";
+import { AuditSources } from "@calcom/features/audit/types/auditSource";
+import { AuditTargets } from "@calcom/features/audit/types/auditTarget";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import getIP from "@calcom/lib/getIP";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
 
@@ -64,12 +69,21 @@ async function postHandler(req: NextRequest) {
   }
 
   await prisma.user.update({
-    where: {
-      id: session.user.id,
-    },
-    data: {
-      twoFactorEnabled: true,
-    },
+    where: { id: session.user.id },
+    data: { twoFactorEnabled: true },
+  });
+
+  void emitAuditEvent({
+    actor: { userUuid: user.uuid },
+    action: AuditActions.TWO_FACTOR_ENABLED,
+    source: AuditSources.WEBAPP,
+    targetType: AuditTargets.user,
+    targetId: user.uuid,
+    previousValue: "false",
+    newValue: "true",
+    orgId: user.organizationId ?? null,
+    ip: getIP(req),
+    userAgent: req.headers.get("user-agent"),
   });
 
   return NextResponse.json({ message: "Two-factor enabled" });

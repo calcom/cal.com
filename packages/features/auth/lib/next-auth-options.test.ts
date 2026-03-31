@@ -2,11 +2,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ErrorCode } from "./ErrorCode";
 
 const mockAuthorize = vi.fn();
+const mockAuditEmit = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("../di/AuthCredentialsService.container", () => ({
   getAuthCredentialsService: () => ({
     authorize: mockAuthorize,
   }),
+}));
+
+vi.mock("@calcom/features/audit/di/AuditProducerService.container", () => ({
+  emitAuditEvent: mockAuditEmit,
 }));
 
 // These mocks are needed for the module-level code in next-auth-options.ts
@@ -118,6 +123,75 @@ describe("authorizeCredentials", () => {
     });
 
     expect(result).toBeNull();
+  });
+
+  describe("Audit events", () => {
+    it("emits LOGIN audit event on successful login", async () => {
+      const mockUser = { id: 1, uuid: "user-uuid-123", name: "Test" };
+      mockAuthorize.mockResolvedValue(mockUser);
+
+      await authorizeCredentials({
+        email: "test@example.com",
+        password: "password123",
+        totpCode: "",
+        backupCode: "",
+      });
+
+      // fire-and-forget — wait for the promise to settle
+      await vi.waitFor(() => {
+        expect(mockAuditEmit).toHaveBeenCalledWith(
+          expect.objectContaining({
+            action: "LOGIN",
+            source: "WEBAPP",
+            targetType: "user",
+            targetId: "user-uuid-123",
+          })
+        );
+      });
+    });
+
+    it("does not emit audit event when user has no uuid", async () => {
+      mockAuthorize.mockResolvedValue({ id: 1, name: "Test" });
+
+      await authorizeCredentials({
+        email: "test@example.com",
+        password: "password123",
+        totpCode: "",
+        backupCode: "",
+      });
+
+      expect(mockAuditEmit).not.toHaveBeenCalled();
+    });
+
+    it("does not emit audit event on failed login", async () => {
+      mockAuthorize.mockRejectedValue(new Error(ErrorCode.IncorrectEmailPassword));
+
+      await expect(
+        authorizeCredentials({
+          email: "test@example.com",
+          password: "wrong",
+          totpCode: "",
+          backupCode: "",
+        })
+      ).rejects.toThrow();
+
+      expect(mockAuditEmit).not.toHaveBeenCalled();
+    });
+
+    it("still returns user even if audit emit fails", async () => {
+      const mockUser = { id: 1, uuid: "user-uuid-123", name: "Test" };
+      mockAuthorize.mockResolvedValue(mockUser);
+      mockAuditEmit.mockRejectedValue(new Error("Audit failed"));
+
+      const result = await authorizeCredentials({
+        email: "test@example.com",
+        password: "password123",
+        totpCode: "",
+        backupCode: "",
+      });
+
+      expect(result).toEqual(mockUser);
+    });
   });
 
   describe("Inactive admin reason", () => {
