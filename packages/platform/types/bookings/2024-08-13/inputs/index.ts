@@ -9,6 +9,7 @@ export * from "./get-bookings.input";
 export * from "./location.input";
 export * from "./mark-absent.input";
 export * from "./reassign-to-user.input";
+export * from "./request-reschedule.input";
 export * from "./reschedule-booking.input";
 export * from "./reschedule-booking-input.pipe";
 export * from "./update-location.input";
