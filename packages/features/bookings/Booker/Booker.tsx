@@ -335,7 +335,7 @@ const BookerComponent = ({
         )}>
         <div className="relative">
           {shouldRenderCustomBannerOnTop && (
-            <div key="logo-top" className={classNames("flex w-full justify-center [&_img]:h-[60px]")}>
+            <div key="logo-top" className={classNames("flex w-full justify-center [&_img]:h-[60px] pb-10")}>
               <Branding bannerUrl={orgBannerUrl} size="sm" />
             </div>
           )}

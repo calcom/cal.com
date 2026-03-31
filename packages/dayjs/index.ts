@@ -1,5 +1,6 @@
 /* eslint-disable @calcom/eslint/deprecated-imports */
 import dayjs from "dayjs";
+import advancedFormat from "dayjs/plugin/advancedFormat";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import duration from "dayjs/plugin/duration";
 import isBetween from "dayjs/plugin/isBetween";
@@ -13,6 +14,7 @@ import utc from "dayjs/plugin/utc";
 
 import BusinessDaysPlugin from "./plugins/business-days-plugin";
 
+dayjs.extend(advancedFormat);
 dayjs.extend(customParseFormat);
 dayjs.extend(BusinessDaysPlugin);
 dayjs.extend(isBetween);

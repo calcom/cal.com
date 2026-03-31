@@ -105,3 +105,15 @@ export const buildDuplicateEventParams = (
 
   return searchParams;
 };
+
+const hasEnterpriseFlag = (metadata: unknown): boolean => {
+  if (!metadata || typeof metadata !== "object") return false;
+  return Boolean((metadata as Record<string, unknown>).isEnterprise);
+};
+
+export const isEnterpriseEventOwner = (
+  event: { owner?: { metadata?: unknown } } | null | undefined,
+  team: { metadata?: unknown } | null | undefined
+): boolean => {
+  return (!team && hasEnterpriseFlag(event?.owner?.metadata)) || hasEnterpriseFlag(team?.metadata);
+};

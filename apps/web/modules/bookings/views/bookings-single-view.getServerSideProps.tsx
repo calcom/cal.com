@@ -153,9 +153,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const profile = {
     name: eventType.calIdTeam?.name || eventType.users[0]?.name || null,
     email: eventType.calIdTeam ? null : eventType.users[0].email || null,
-    theme: (!eventType.calIdTeam?.name && eventType.users[0]?.theme) || null,
-    brandColor: eventType.calIdTeam ? null : eventType.users[0].brandColor || null,
-    darkBrandColor: eventType.calIdTeam ? null : eventType.users[0].darkBrandColor || null,
+    theme: eventType.calIdTeam?.theme || eventType.users[0]?.theme || null,
+    brandColor: eventType.calIdTeam?.brandColor || eventType.users[0].brandColor || null,
+    darkBrandColor: eventType.calIdTeam?.darkBrandColor || eventType.users[0].darkBrandColor || null,
     slug: eventType.calIdTeam?.slug || eventType.users[0]?.username || null,
   };
 

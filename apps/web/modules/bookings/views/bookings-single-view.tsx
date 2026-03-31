@@ -6,6 +6,7 @@ import {
   useIsEmbed,
 } from "@calid/embed-runtime/embed-iframe";
 import { generateRecurringInstances } from "@calid/features/modules/teams/lib/recurrenceUtil";
+import { Branding } from "@calid/features/ui/Branding";
 import { Alert } from "@calid/features/ui/components/alert";
 import { Badge } from "@calid/features/ui/components/badge";
 import { Button } from "@calid/features/ui/components/button";
@@ -38,6 +39,7 @@ import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime, formatToLocalizedTimezone } from "@calcom/lib/dayjs";
 import type { nameObjectSchema } from "@calcom/lib/event";
 import { getEventName } from "@calcom/lib/event";
+import { generateBrandColorStyles } from "@calcom/lib/getBrandColours";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -116,6 +118,16 @@ const inferProviderNameFromMeetingUrl = (meetingUrl?: string) => {
   return undefined;
 };
 
+const isValidHttpUrl = (url?: string) => {
+  if (!url) return false;
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
 export default function Success(props: PageProps) {
   const { t } = useLocale();
   const router = useRouter();
@@ -126,6 +138,23 @@ export default function Success(props: PageProps) {
   const { eventType, bookingInfo, previousBooking, requiresLoginToUpdate, rescheduledToUid } = props;
 
   const { bannerUrl, faviconUrl } = eventType;
+  const bookingPageConfig = eventType?.metadata?.bookingPage;
+  const bookingPageFieldsConfig = bookingPageConfig?.thankYouPage?.fields || {};
+  const bannerPosition = bookingPageConfig?.banner?.position === "top" ? "top" : "bottom";
+  const showTopBanner = !!bannerUrl && bannerPosition === "top";
+  const showBottomBanner = !!bannerUrl && bannerPosition === "bottom";
+  const ctaConfig = bookingPageConfig?.cta;
+  const showCta = !!ctaConfig?.enabled && !!ctaConfig?.text && isValidHttpUrl(ctaConfig?.url);
+  const ctaPosition = ctaConfig?.position === "top" ? "top" : "bottom";
+  const ctaUrl = showCta ? (ctaConfig?.url as string) : "";
+  const ctaText = ctaConfig?.text || "";
+  const getFieldLabel = (fieldKey: string, fallback: string) =>
+    bookingPageFieldsConfig?.[fieldKey]?.label || fallback;
+  const isFieldVisible = (fieldKey: string) => bookingPageFieldsConfig?.[fieldKey]?.visible !== false;
+  const successHeadlineOverride = bookingPageFieldsConfig?.successHeadline?.label?.trim();
+  const successSubheadlineOverride = bookingPageFieldsConfig?.successSubheadline?.label?.trim();
+  const showSuccessHeadline = isFieldVisible("successHeadline");
+  const showSuccessSubheadline = isFieldVisible("successSubheadline");
 
   const {
     allRemainingBookings,
@@ -440,6 +469,8 @@ export default function Success(props: PageProps) {
 
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
+  const resolvedSuccessHeadline = successHeadlineOverride || successPageHeadline;
+  const resolvedSuccessSubheadline = successSubheadlineOverride || getTitle();
 
   try {
     window.dataLayer = window.dataLayer || [];
@@ -515,6 +546,13 @@ export default function Success(props: PageProps) {
       <BookingPageTagManager
         eventType={{ ...eventType, metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata) }}
       />
+
+      <style
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: generateBrandColorStyles(props.profile?.brandColor ?? undefined, props.profile?.darkBrandColor ?? undefined),
+        }}
+      />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-4xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
           <div
@@ -536,52 +574,66 @@ export default function Success(props: PageProps) {
                 )}
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby="modal-headline">
+                aria-labelledby={showSuccessHeadline ? "modal-headline" : undefined}>
                 {!isFeedbackMode && (
                   <>
-                    <div
-                      className={classNames(isRoundRobin && "relative mx-auto h-24 min-h-24 w-32 min-w-32")}>
-                      {isRoundRobin && bookingInfo.user && (
-                        <Avatar
-                          className="mx-auto flex items-center justify-center"
-                          alt={bookingInfo.user.name || bookingInfo.user.email}
-                          size="xl"
-                          imageSrc={`${bookingInfo.user.avatarUrl}`}
-                        />
-                      )}
-                      {giphyImage && !needsConfirmation && isReschedulable && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={giphyImage} className="w-full rounded-lg" alt="Gif from Giphy" />
-                      )}
+                    {showTopBanner ? (
+                      <div className="mb-4 flex w-full justify-center [&_img]:h-[60px]">
+                        <Branding bannerUrl={bannerUrl} size="sm" />
+                      </div>
+                    ) : (
                       <div
                         className={classNames(
-                          "mx-auto flex h-14 w-14 items-center justify-center rounded-full",
-                          isRoundRobin &&
-                            "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
-                          !giphyImage && isReschedulable && !needsConfirmation ? "bg-green-600" : "",
-                          !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
-                          isCancelled ? "bg-error" : ""
+                          isRoundRobin && "relative mx-auto h-24 min-h-24 w-32 min-w-32"
                         )}>
-                        {!giphyImage && !needsConfirmation && isReschedulable && (
-                          <Icon name="check" className="h-6 w-6 text-white" />
+                        {isRoundRobin && bookingInfo.user && (
+                          <Avatar
+                            className="mx-auto flex items-center justify-center"
+                            alt={bookingInfo.user.name || bookingInfo.user.email}
+                            size="xl"
+                            imageSrc={`${bookingInfo.user.avatarUrl}`}
+                          />
                         )}
-                        {needsConfirmation && isReschedulable && (
-                          <Icon name="calendar" className="text-emphasis h-5 w-5" />
+                        {giphyImage && !needsConfirmation && isReschedulable && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={giphyImage} className="w-full rounded-lg" alt="Gif from Giphy" />
                         )}
-                        {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
+                        <div
+                          className={classNames(
+                            "mx-auto flex h-14 w-14 items-center justify-center rounded-full",
+                            isRoundRobin &&
+                              "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
+                            !giphyImage && isReschedulable && !needsConfirmation ? "bg-green-600" : "",
+                            !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
+                            isCancelled ? "bg-error" : ""
+                          )}>
+                          {!giphyImage && !needsConfirmation && isReschedulable && (
+                            <Icon name="check" className="h-6 w-6 text-white" />
+                          )}
+                          {needsConfirmation && isReschedulable && (
+                            <Icon name="calendar" className="text-emphasis h-5 w-5" />
+                          )}
+                          {isCancelled && (
+                            <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
                     <div className="mb-8 mt-6 text-center last:mb-0">
-                      <h3
-                        className="text-emphasis text-2xl font-semibold leading-6"
-                        data-testid={isCancelled ? "cancelled-headline" : ""}
-                        id="modal-headline">
-                        {successPageHeadline}
-                      </h3>
+                      {showSuccessHeadline && (
+                        <h3
+                          className="text-emphasis text-2xl font-semibold leading-6"
+                          data-testid={isCancelled ? "cancelled-headline" : ""}
+                          id="modal-headline">
+                          {resolvedSuccessHeadline}
+                        </h3>
+                      )}
 
-                      <div className="mt-1">
-                        <p className="text-default">{getTitle()}</p>
-                      </div>
+                      {showSuccessSubheadline && (
+                        <div className={showSuccessHeadline ? "mt-1" : undefined}>
+                          <p className="text-default">{resolvedSuccessSubheadline}</p>
+                        </div>
+                      )}
                       {props.paymentStatus &&
                         (bookingInfo.status === BookingStatus.CANCELLED ||
                           bookingInfo.status === BookingStatus.REJECTED) && (
@@ -626,6 +678,14 @@ export default function Success(props: PageProps) {
                           </h4>
                         )}
 
+                      {showCta && ctaPosition === "top" && (
+                        <div className="mt-6 flex justify-center">
+                          <Button href={ctaUrl} color="primary">
+                            {ctaText}
+                          </Button>
+                        </div>
+                      )}
+
                       <div className="border-default text-default mt-8 grid grid-cols-3 gap-x-4 rounded-lg border px-4 py-8 text-left shadow-lg sm:gap-x-0 rtl:text-right">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
@@ -636,13 +696,13 @@ export default function Success(props: PageProps) {
                                 ? eventType.bookingFields.find((e) => e.name === "rescheduleReason")?.label
                                 : t("reschedule_reason")}
                             </div>
-                            <div className="ml-8 col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
+                            <div className="col-span-2 mb-6 ml-8 last:mb-0">{cancellationReason}</div>
                           </>
                         )}
                         {isCancelled && bookingInfo?.cancelledBy && (
                           <>
                             <div className="font-medium">{t("cancelled_by")}</div>
-                            <div className="ml-8 col-span-2 mb-6 last:mb-0">
+                            <div className="col-span-2 mb-6 ml-8 last:mb-0">
                               <p className="break-words">{bookingInfo?.cancelledBy}</p>
                             </div>
                           </>
@@ -650,7 +710,7 @@ export default function Success(props: PageProps) {
                         {previousBooking && (
                           <>
                             <div className="font-medium">{t("rescheduled_by")}</div>
-                            <div className="ml-8 col-span-2 mb-6 last:mb-0">
+                            <div className="col-span-2 mb-6 ml-8 last:mb-0">
                               <p className="break-words">{previousBooking?.rescheduledBy}</p>
                               <Link className="text-sm underline" href={`/booking/${previousBooking?.uid}`}>
                                 {t("original_booking")}
@@ -658,41 +718,49 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        <div className="font-medium">{t("what")}</div>
-                        <div className="ml-8 col-span-2 mb-6 last:mb-0" data-testid="booking-title">
-                          {isRoundRobin ? bookingInfo.title : eventName}
-                        </div>
-                        <div className="font-medium">{t("when")}</div>
-                        <div className="ml-8 col-span-2 mb-6 last:mb-0">
-                          {!isRecurringBooking && reschedule && !!formerTime && (
-                            <p className="line-through">
+                        {isFieldVisible("what") && (
+                          <>
+                            <div className="font-medium">{getFieldLabel("what", t("what"))}</div>
+                            <div className="col-span-2 mb-6 ml-8 last:mb-0" data-testid="booking-title">
+                              {isRoundRobin ? bookingInfo.title : eventName}
+                            </div>
+                          </>
+                        )}
+                        {isFieldVisible("when") && (
+                          <>
+                            <div className="font-medium">{getFieldLabel("when", t("when"))}</div>
+                            <div className="col-span-2 mb-6 ml-8 last:mb-0">
+                              {!isRecurringBooking && reschedule && !!formerTime && (
+                                <p className="line-through">
+                                  <RecurringBookings
+                                    eventType={eventType}
+                                    duration={calculatedDuration}
+                                    recurringEvent={recurringEvent}
+                                    allRemainingBookings={isRecurringBooking ? true : allRemainingBookings}
+                                    date={dayjs(formerTime)}
+                                    is24h={is24h}
+                                    isCancelled={isCancelled}
+                                    tz={tz}
+                                  />
+                                </p>
+                              )}
                               <RecurringBookings
                                 eventType={eventType}
                                 duration={calculatedDuration}
                                 recurringEvent={recurringEvent}
                                 allRemainingBookings={isRecurringBooking ? true : allRemainingBookings}
-                                date={dayjs(formerTime)}
+                                date={date}
                                 is24h={is24h}
                                 isCancelled={isCancelled}
                                 tz={tz}
                               />
-                            </p>
-                          )}
-                          <RecurringBookings
-                            eventType={eventType}
-                            duration={calculatedDuration}
-                            recurringEvent={recurringEvent}
-                            allRemainingBookings={isRecurringBooking ? true : allRemainingBookings}
-                            date={date}
-                            is24h={is24h}
-                            isCancelled={isCancelled}
-                            tz={tz}
-                          />
-                        </div>
-                        {(bookingInfo?.user || bookingInfo?.attendees) && (
+                            </div>
+                          </>
+                        )}
+                        {isFieldVisible("who") && (bookingInfo?.user || bookingInfo?.attendees) && (
                           <>
-                            <div className="font-medium">{t("who")}</div>
-                            <div className="ml-8 col-span-2 last:mb-0">
+                            <div className="font-medium">{getFieldLabel("who", t("who"))}</div>
+                            <div className="col-span-2 ml-8 last:mb-0">
                               {bookingInfo?.user && (
                                 <div className="mb-3">
                                   <div>
@@ -744,10 +812,10 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        {locationToDisplay && !isCancelled && (
+                        {isFieldVisible("where") && locationToDisplay && !isCancelled && (
                           <>
-                            <div className="mt-3 font-medium">{t("where")}</div>
-                            <div className="ml-8 col-span-2 mt-3" data-testid="where">
+                            <div className="mt-3 font-medium">{getFieldLabel("where", t("where"))}</div>
+                            <div className="col-span-2 ml-8 mt-3" data-testid="where">
                               {!rescheduleLocation || locationToDisplay === rescheduleLocationToDisplay ? (
                                 <DisplayLocation
                                   locationToDisplay={locationToDisplay}
@@ -779,7 +847,7 @@ export default function Success(props: PageProps) {
                                 ? t("complete_your_booking")
                                 : t("payment")}
                             </div>
-                            <div className="ml-8 col-span-2 mb-2 mt-3">
+                            <div className="col-span-2 mb-2 ml-8 mt-3">
                               <Price
                                 currency={props.paymentStatus.currency}
                                 price={props.paymentStatus.amount}
@@ -790,24 +858,29 @@ export default function Success(props: PageProps) {
 
                         {rescheduledToUid ? <RescheduledToLink rescheduledToUid={rescheduledToUid} /> : null}
 
-                        {bookingInfo?.description && (
-                          !(eventType.bookingFields.find((e: any) => e.name === "notes")?.hidden ?? false)
-                        ) && (
-                          <>
-                            <div className="mt-9 font-medium">
-                              {eventType.bookingFields.find((e: any) => e.name === "notes")?.label
-                                ? eventType.bookingFields.find((e: any) => e.name === "notes")?.label
-                                : t("additional_notes")}
-                            </div>
-                            <div className="ml-8 col-span-2 mb-2 mt-9">
-                              <p className="break-words">{bookingInfo.description}</p>
-                            </div>
-                          </>
-                        )}
+                        {isFieldVisible("notes") &&
+                          bookingInfo?.description &&
+                          !(
+                            eventType.bookingFields.find((e: any) => e.name === "notes")?.hidden ?? false
+                          ) && (
+                            <>
+                              <div className="mt-9 font-medium">
+                                {getFieldLabel(
+                                  "notes",
+                                  eventType.bookingFields.find((e: any) => e.name === "notes")?.label
+                                    ? eventType.bookingFields.find((e: any) => e.name === "notes")?.label
+                                    : t("additional_notes")
+                                )}
+                              </div>
+                              <div className="col-span-2 mb-2 ml-8 mt-9">
+                                <p className="break-words">{bookingInfo.description}</p>
+                              </div>
+                            </>
+                          )}
                         {!!utmParams && isHost && (
                           <>
                             <div className="mt-9 pr-2 font-medium sm:pr-0">{t("utm_params")}</div>
-                            <div className="ml-8 col-span-2 mb-2 mt-9 sm:ml-0">
+                            <div className="col-span-2 mb-2 ml-8 mt-9 sm:ml-0">
                               <button
                                 data-testid="utm-dropdown"
                                 onClick={() => {
@@ -867,7 +940,7 @@ export default function Success(props: PageProps) {
                                   __html: markdownToSafeHTML(label),
                                 }}
                               />
-                              <div className="ml-8 col-span-2 mb-6 mt-3 last:mb-0">
+                              <div className="col-span-2 mb-6 ml-8 mt-3 last:mb-0">
                                 <div
                                   className="text-default break-words"
                                   data-testid="field-response"
@@ -923,6 +996,20 @@ export default function Success(props: PageProps) {
                           );
                         })}
                       </div>
+
+                      {showCta && ctaPosition === "bottom" && (
+                        <div className="mt-6 flex justify-center">
+                          <Button href={ctaUrl} color="primary">
+                            {ctaText}
+                          </Button>
+                        </div>
+                      )}
+
+                      {showBottomBanner && (
+                        <div className="mt-6 flex w-full justify-center [&_img]:h-[60px]">
+                          <Branding bannerUrl={bannerUrl} size="sm" />
+                        </div>
+                      )}
                       {/* <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300 bg-red-900">
                         {eventType.bookingFields.map((field) => {
                           if (!field) return null;

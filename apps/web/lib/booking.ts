@@ -86,7 +86,11 @@ export const getEventTypesFromDB = async (id: number) => {
           slug: true,
           name: true,
           hideTeamBranding: true,
+          theme: true,
+          brandColor: true,
+          darkBrandColor: true,
           bannerUrl: true,
+          faviconUrl: true,
         },
       },
       calIdWorkflows: {
