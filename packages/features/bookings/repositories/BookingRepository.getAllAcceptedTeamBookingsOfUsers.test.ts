@@ -70,7 +70,8 @@ describe("BookingRepository.getAllAcceptedTeamBookingsOfUsers", () => {
   });
 
   it("returns empty array when team has no event types", async () => {
-    mockEventTypeFindMany.mockResolvedValue([]);
+    // includeManagedEvents: true -> first $queryRaw is event types, second is bookings
+    mockQueryRaw.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
     const result = await repository.getAllAcceptedTeamBookingsOfUsers({
       ...baseParams,
@@ -83,7 +84,10 @@ describe("BookingRepository.getAllAcceptedTeamBookingsOfUsers", () => {
 
   it("returns bookings where user is the organizer (userId match)", async () => {
     const booking = makeRawRow({ id: 1, userId: 10, eventTypeId: 100 });
-    mockQueryRaw.mockResolvedValue([booking]);
+    // First call: event types, second call: bookings
+    mockQueryRaw
+      .mockResolvedValueOnce([{ id: 100, parentId: null }, { id: 200, parentId: null }])
+      .mockResolvedValueOnce([booking]);
 
     const result = await repository.getAllAcceptedTeamBookingsOfUsers({
       ...baseParams,
@@ -98,7 +102,9 @@ describe("BookingRepository.getAllAcceptedTeamBookingsOfUsers", () => {
   it("returns bookings where user is an attendee (from UNION ALL branch 2)", async () => {
     // Branch 2 returns a booking where userId doesn't match but attendee email did
     const booking = makeRawRow({ id: 2, userId: 999, eventTypeId: 100 });
-    mockQueryRaw.mockResolvedValue([booking]);
+    mockQueryRaw
+      .mockResolvedValueOnce([{ id: 100, parentId: null }, { id: 200, parentId: null }])
+      .mockResolvedValueOnce([booking]);
 
     const result = await repository.getAllAcceptedTeamBookingsOfUsers({
       ...baseParams,
@@ -113,7 +119,9 @@ describe("BookingRepository.getAllAcceptedTeamBookingsOfUsers", () => {
   it("filters out bookings not belonging to team event types", async () => {
     const teamBooking = makeRawRow({ id: 1, userId: 10, eventTypeId: 100 });
     const nonTeamBooking = makeRawRow({ id: 2, userId: 10, eventTypeId: 999 });
-    mockQueryRaw.mockResolvedValue([teamBooking, nonTeamBooking]);
+    mockQueryRaw
+      .mockResolvedValueOnce([{ id: 100, parentId: null }, { id: 200, parentId: null }])
+      .mockResolvedValueOnce([teamBooking, nonTeamBooking]);
 
     const result = await repository.getAllAcceptedTeamBookingsOfUsers({
       ...baseParams,
@@ -168,7 +176,9 @@ describe("BookingRepository.getAllAcceptedTeamBookingsOfUsers", () => {
   it("returns count when shouldReturnCount is true", async () => {
     const b1 = makeRawRow({ id: 1, userId: 10, eventTypeId: 100 });
     const b2 = makeRawRow({ id: 2, userId: 20, eventTypeId: 200 });
-    mockQueryRaw.mockResolvedValue([b1, b2]);
+    mockQueryRaw
+      .mockResolvedValueOnce([{ id: 100, parentId: null }, { id: 200, parentId: null }])
+      .mockResolvedValueOnce([b1, b2]);
 
     const result = await repository.getAllAcceptedTeamBookingsOfUsers({
       ...baseParams,
@@ -191,8 +201,7 @@ describe("BookingRepository.getAllAcceptedTeamBookingsOfUsers", () => {
   });
 
   it("queries with managed event types when includeManagedEvents is true", async () => {
-    mockEventTypeFindMany.mockResolvedValue([{ id: 100 }]);
-    mockQueryRaw.mockResolvedValue([]);
+    mockQueryRaw.mockResolvedValueOnce([{ id: 100, parentId: null }]).mockResolvedValueOnce([]);
 
     await repository.getAllAcceptedTeamBookingsOfUsers({
       ...baseParams,
@@ -200,10 +209,9 @@ describe("BookingRepository.getAllAcceptedTeamBookingsOfUsers", () => {
       includeManagedEvents: true,
     });
 
-    expect(mockEventTypeFindMany).toHaveBeenCalledWith({
-      where: { OR: [{ teamId: 1 }, { parent: { teamId: 1 } }] },
-      select: { id: true, parentId: true },
-    });
+    // When includeManagedEvents is true, uses $queryRaw (UNION ALL) instead of findMany
+    expect(mockEventTypeFindMany).not.toHaveBeenCalled();
+    expect(mockQueryRaw).toHaveBeenCalledTimes(2);
   });
 
   it("queries without managed event types when includeManagedEvents is false", async () => {

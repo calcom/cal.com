@@ -1678,10 +1678,24 @@ export class BookingRepository implements IBookingRepository {
     //   Branch 1 uses Booking(userId, status, startTime) index.
     //   Branch 2 uses Attendee(email, bookingId) index.
     //   UNION ALL avoids expensive sort/hash deduplication — duplicates removed in post-filter.
-    const teamEventTypesQuery = this.prismaClient.eventType.findMany({
-      where: includeManagedEvents ? { OR: [{ teamId }, { parent: { teamId } }] } : { teamId },
-      select: { id: true, parentId: true },
-    });
+    const teamEventTypesQuery = includeManagedEvents
+      ? this.prismaClient.$queryRaw<{ id: number; parentId: number | null }[]>`
+          SELECT id, "parentId"
+          FROM "EventType"
+          WHERE "teamId" = ${teamId}
+
+          UNION ALL
+
+          SELECT et.id, et."parentId"
+          FROM "EventType" et
+          WHERE et."parentId" IN (
+            SELECT id FROM "EventType" WHERE "teamId" = ${teamId}
+          )
+        `
+      : this.prismaClient.eventType.findMany({
+          where: { teamId },
+          select: { id: true, parentId: true },
+        });
 
     const bookingsQuery = this.prismaClient.$queryRaw<
       { id: number; uid: string; startTime: Date; endTime: Date; eventTypeId: number | null; title: string; userId: number | null }[]
