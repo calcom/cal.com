@@ -1,4 +1,8 @@
 import { SelectedCalendarsSettings } from "@calcom/atoms/selected-calendars/SelectedCalendarsSettings";
+import {
+  SelectedCalendarSettingsScope,
+  type SelectedCalendarSettingsScopeType,
+} from "@calcom/features/eventtypes/components/tabs/advanced/EventAdvancedTab";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -12,11 +16,6 @@ import AdditionalCalendarSelector from "@calcom/web/modules/calendars/components
 import Link from "next/link";
 import React from "react";
 
-export enum SelectedCalendarSettingsScope {
-  User = "user",
-  EventType = "eventType",
-}
-
 type SelectedCalendarsSettingsWebWrapperProps = {
   onChanged?: () => unknown | Promise<unknown>;
   fromOnboarding?: boolean;
@@ -24,9 +23,9 @@ type SelectedCalendarsSettingsWebWrapperProps = {
   isPending?: boolean;
   classNames?: string;
   eventTypeId?: number;
-  disabledScope?: SelectedCalendarSettingsScope;
-  scope?: SelectedCalendarSettingsScope;
-  setScope?: (scope: SelectedCalendarSettingsScope) => void;
+  disabledScope?: SelectedCalendarSettingsScopeType;
+  scope?: SelectedCalendarSettingsScopeType;
+  setScope?: (scope: SelectedCalendarSettingsScopeType) => void;
   disableConnectionModification?: boolean;
   connectedCalendars?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
 };
@@ -42,7 +41,7 @@ const ConnectedCalendarList = ({
   isDisabled,
 }: {
   fromOnboarding?: boolean;
-  scope: SelectedCalendarSettingsScope;
+  scope: SelectedCalendarSettingsScopeType;
   items: RouterOutputs["viewer"]["calendars"]["connectedCalendars"]["connectedCalendars"];
   disableConnectionModification?: boolean;
   eventTypeId: number | null;
@@ -243,8 +242,8 @@ const SelectedCalendarsSettingsHeading = (props: {
   isConnectedCalendarsPresent: boolean;
   isPending?: boolean;
   showScopeSelector: boolean;
-  setScope: (scope: SelectedCalendarSettingsScope) => void;
-  scope: SelectedCalendarSettingsScope;
+  setScope: (scope: SelectedCalendarSettingsScopeType) => void;
+  scope: SelectedCalendarSettingsScopeType;
   shouldDisableConnectionModification?: boolean;
 }) => {
   const { t } = useLocale();

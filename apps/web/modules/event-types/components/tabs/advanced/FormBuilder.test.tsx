@@ -14,7 +14,8 @@ import type { ReactNode } from "react";
 import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { vi } from "vitest";
-import { FormBuilder } from "./FormBuilder";
+
+import { FormBuilder } from "@calcom/features/eventtypes/components/tabs/advanced/FormBuilder";
 
 // Re-type mockProps to ensure LockedIcon is typed as `false` instead of `boolean`
 const mockProps = { ...mockPropsBase, LockedIcon: false as const };

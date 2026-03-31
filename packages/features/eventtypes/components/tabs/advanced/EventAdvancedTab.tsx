@@ -1,8 +1,7 @@
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
-import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/components/DestinationCalendarSelector";
+import type { ConnectedDestinationCalendars } from "@calcom/features/calendars/lib/getConnectedDestinationCalendars";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -34,8 +33,7 @@ import {
   DisableCancelRescheduleScope,
   SchedulingType,
 } from "@calcom/prisma/enums";
-import type { EditableSchema, fieldSchema } from "@calcom/prisma/zod-utils";
-import type { RouterOutputs } from "@calcom/trpc/react";
+import type { BookerLayouts, EditableSchema, fieldSchema } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { Badge } from "@calcom/ui/components/badge";
@@ -50,20 +48,8 @@ import {
   Switch,
   TextField,
 } from "@calcom/ui/components/form";
-import { UpgradeTeamsBadgeWebWrapper as UpgradeTeamsBadge } from "@calcom/web/modules/billing/components/UpgradeTeamsBadgeWebWrapper";
-import { useHasActiveTeamPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
-import { WideUpgradeBannerForRedirectUrl } from "@calcom/web/modules/billing/upgrade-banners/WideUpgradeBannerForRedirectUrl";
-import {
-  SelectedCalendarSettingsScope,
-  SelectedCalendarsSettingsWebWrapper,
-  SelectedCalendarsSettingsWebWrapperSkeleton,
-} from "@calcom/web/modules/calendars/components/SelectedCalendarsSettingsWebWrapper";
-import { MultiplePrivateLinksController } from "@calcom/web/modules/event-types/components";
-import AddVerifiedEmail from "@calcom/web/modules/event-types/components/AddVerifiedEmail";
-import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
-import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import { InfoIcon, PencilIcon } from "@coss/ui/icons";
-import type { ComponentType, Dispatch, SetStateAction } from "react";
+import type { ComponentType, Dispatch, ReactNode, SetStateAction } from "react";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
@@ -118,22 +104,92 @@ export type EventAdvancedTabCustomClassNames = {
 
 type BookingField = z.infer<typeof fieldSchema>;
 
+export const SelectedCalendarSettingsScope = {
+  User: "user",
+  EventType: "eventType",
+} as const;
+
+export type SelectedCalendarSettingsScopeType =
+  (typeof SelectedCalendarSettingsScope)[keyof typeof SelectedCalendarSettingsScope];
+
+export type SelectedCalendarsSettingsSlotProps = {
+  eventTypeId: number;
+  disabledScope: SelectedCalendarSettingsScopeType;
+  disableConnectionModification: boolean;
+  scope: SelectedCalendarSettingsScopeType;
+  destinationCalendarId?: string;
+  setScope: (scope: SelectedCalendarSettingsScopeType) => void;
+};
+
+export type MultiplePrivateLinksControllerSlotProps = {
+  team: EventTypeSetupProps["team"];
+  bookerUrl: string;
+  setMultiplePrivateLinksVisible: Dispatch<SetStateAction<boolean>>;
+  userTimeZone: string;
+};
+
+export type AddVerifiedEmailSlotProps = {
+  username: string;
+  showToast: (message: string, variant: "success" | "warning" | "error") => void;
+  isPlatform?: boolean;
+};
+
+export type BookerLayoutSelectorSlotProps = {
+  fallbackToUserSettings: boolean;
+  isDark: boolean;
+  isOuterBorder: boolean;
+  user?: EventAdvancedBaseProps["user"];
+  isUserLoading?: boolean;
+};
+
+export type TimezoneSelectSlotProps = {
+  id: string;
+  value: string;
+  onChange: (event: { value: string } | null) => void;
+};
+
+export type UpgradeTeamsBadgeSlotProps = {
+  checkForActiveStatus?: boolean;
+  tracking: string;
+};
+
+export type EventAdvancedTabSlots = {
+  SelectedCalendarsSettings?: ComponentType<SelectedCalendarsSettingsSlotProps> | null;
+  SelectedCalendarsSettingsSkeleton?: ComponentType | null;
+  TimezoneSelect?: ComponentType<TimezoneSelectSlotProps> | null;
+  MultiplePrivateLinksController?: ComponentType<MultiplePrivateLinksControllerSlotProps> | null;
+  AddVerifiedEmail?: ComponentType<AddVerifiedEmailSlotProps> | null;
+  BookerLayoutSelector?: ComponentType<BookerLayoutSelectorSlotProps> | null;
+  UpgradeTeamsBadge?: ComponentType<UpgradeTeamsBadgeSlotProps> | null;
+  WideUpgradeBannerForRedirectUrl?: ComponentType | null;
+};
+
 export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
-  user?: Partial<
-    Pick<
-      RouterOutputs["viewer"]["me"]["get"],
-      "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts" | "timeZone"
-    >
-  >;
+  user?: {
+    email?: string | null;
+    secondaryEmails?: { id: number; email: string; emailVerified: Date | null }[];
+    theme?: string | null;
+    defaultBookerLayouts?: { enabledLayouts: BookerLayouts[]; defaultLayout: BookerLayouts } | null;
+    timeZone?: string;
+  };
   isUserLoading?: boolean;
   showToast: (message: string, variant: "success" | "warning" | "error") => void;
   orgId: number | null;
   customClassNames?: EventAdvancedTabCustomClassNames;
+  isPlatform?: boolean;
+  platformClientId?: string;
+  hasActiveTeamPlan?: boolean;
+  slots?: EventAdvancedTabSlots;
 };
 
 export type EventAdvancedTabProps = EventAdvancedBaseProps & {
   calendarsQuery: {
-    data?: RouterOutputs["viewer"]["calendars"]["connectedCalendars"];
+    data?: {
+      destinationCalendar: ConnectedDestinationCalendars["destinationCalendar"];
+      connectedCalendars: (ConnectedDestinationCalendars["connectedCalendars"][number] & {
+        cacheUpdatedAt: null | string;
+      })[];
+    };
     isPending: boolean;
     error: unknown;
   };
@@ -159,6 +215,8 @@ type CalendarSettingsProps = {
   userEmail: string;
   isTeamEventType: boolean;
   isChildrenManagedEventType: boolean;
+  isPlatform?: boolean;
+  slots?: EventAdvancedTabSlots;
 };
 
 const destinationCalendarComponents = {
@@ -329,11 +387,15 @@ const destinationCalendarComponents = {
 };
 
 const calendarComponents = {
-  CalendarSettingsSkeleton() {
+  CalendarSettingsSkeleton({
+    SelectedCalendarsSettingsSkeletonSlot,
+  }: {
+    SelectedCalendarsSettingsSkeletonSlot?: ComponentType | null;
+  }) {
     return (
       <div>
         <destinationCalendarComponents.DestinationCalendarSettingsSkeleton />
-        <SelectedCalendarsSettingsWebWrapperSkeleton />
+        {SelectedCalendarsSettingsSkeletonSlot && <SelectedCalendarsSettingsSkeletonSlot />}
       </div>
     );
   },
@@ -350,6 +412,8 @@ const calendarComponents = {
     eventNamePlaceholder,
     setShowEventNameTip,
     showToast,
+    isPlatform,
+    slots,
   }: CalendarSettingsProps) {
     const formMethods = useFormContext<FormValues>();
     /**
@@ -357,7 +421,6 @@ const calendarComponents = {
      * a team event. Since we don't have logic to handle each attendee calendar (for now).
      */
 
-    const isPlatform = useIsPlatform();
     const isConnectedCalendarSettingsApplicable = !isTeamEventType || isChildrenManagedEventType;
     const isConnectedCalendarSettingsLoading = calendarsQuery.isPending;
     const showConnectedCalendarSettings =
@@ -367,9 +430,16 @@ const calendarComponents = {
       ? SelectedCalendarSettingsScope.EventType
       : SelectedCalendarSettingsScope.User;
 
+    const SelectedCalendarsSettingsSlot = slots?.SelectedCalendarsSettings;
+    const SelectedCalendarsSettingsSkeletonSlot = slots?.SelectedCalendarsSettingsSkeleton;
+
     const destinationCalendar = calendarsQuery.data?.destinationCalendar;
     if (isConnectedCalendarSettingsLoading && isConnectedCalendarSettingsApplicable) {
-      return <calendarComponents.CalendarSettingsSkeleton />;
+      return (
+        <calendarComponents.CalendarSettingsSkeleton
+          SelectedCalendarsSettingsSkeletonSlot={SelectedCalendarsSettingsSkeletonSlot}
+        />
+      );
     }
 
     return (
@@ -390,9 +460,12 @@ const calendarComponents = {
           {isConnectedCalendarSettingsApplicable
             ? showConnectedCalendarSettings && (
                 <div className="mt-4">
-                  <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
-                    {!isPlatform && (
-                      <SelectedCalendarsSettingsWebWrapper
+                  <Suspense
+                    fallback={
+                      SelectedCalendarsSettingsSkeletonSlot ? <SelectedCalendarsSettingsSkeletonSlot /> : null
+                    }>
+                    {!isPlatform && SelectedCalendarsSettingsSlot && (
+                      <SelectedCalendarsSettingsSlot
                         eventTypeId={eventType.id}
                         disabledScope={SelectedCalendarSettingsScope.User}
                         disableConnectionModification={true}
@@ -428,11 +501,11 @@ export const EventAdvancedTab = ({
   verifiedEmails,
   orgId,
   localeOptions,
-  hasActiveTeamPlan,
-  TimezoneSelect: TimezoneSelectProp,
+  isPlatform = false,
+  platformClientId,
+  hasActiveTeamPlan = false,
+  slots,
 }: EventAdvancedTabProps) => {
-  const isPlatform = useIsPlatform();
-  const platformContext = useAtomsContext();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
@@ -451,8 +524,7 @@ export const EventAdvancedTab = ({
     setInterfaceLanguageVisible(watchedInterfaceLanguage !== null && watchedInterfaceLanguage !== undefined);
   }, [watchedInterfaceLanguage]);
   const isRedirectUrlGrandfathered = !!eventType.successRedirectUrl;
-  const isRedirectUrlDisabled =
-    !isRedirectUrlGrandfathered && !hasActiveTeamPlan;
+  const isRedirectUrlDisabled = !isRedirectUrlGrandfathered && !hasActiveTeamPlan;
 
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
   const [noRoutingFormRedirectUrlVisible, setNoRoutingFormRedirectUrlVisible] = useState(
@@ -588,12 +660,20 @@ export const EventAdvancedTab = ({
       label: user?.email || "",
       value: -1,
     },
-    ...(user?.secondaryEmails || [])
-      .filter((secondaryEmail) => !!secondaryEmail.emailVerified)
-      .map((secondaryEmail) => ({
-        label: secondaryEmail.email,
-        value: secondaryEmail.id,
-      })),
+    ...(user?.secondaryEmails ?? [])
+      .filter(
+        (
+          secondaryEmail: NonNullable<NonNullable<EventAdvancedBaseProps["user"]>["secondaryEmails"]>[number]
+        ) => !!secondaryEmail.emailVerified
+      )
+      .map(
+        (
+          secondaryEmail: NonNullable<NonNullable<EventAdvancedBaseProps["user"]>["secondaryEmails"]>[number]
+        ) => ({
+          label: secondaryEmail.email,
+          value: secondaryEmail.id,
+        })
+      ),
   ];
 
   const removePlatformClientIdFromEmail = (email: string, clientId: string) =>
@@ -601,12 +681,12 @@ export const EventAdvancedTab = ({
 
   let userEmail = user?.email || "";
 
-  if (isPlatform && platformContext.clientId) {
+  if (isPlatform && platformClientId) {
     verifiedSecondaryEmails = verifiedSecondaryEmails.map((email) => ({
       ...email,
-      label: removePlatformClientIdFromEmail(email.label, platformContext.clientId),
+      label: removePlatformClientIdFromEmail(email.label, platformClientId),
     }));
-    userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
+    userEmail = removePlatformClientIdFromEmail(userEmail, platformClientId);
   }
 
   const metadata = formMethods.watch("metadata");
@@ -624,7 +704,12 @@ export const EventAdvancedTab = ({
     [paymentAppData]
   );
 
-  const TimezoneSelect = TimezoneSelectProp ?? WebTimezoneSelect;
+  const TimezoneSelectSlot = slots?.TimezoneSelect;
+  const BookerLayoutSelectorSlot = slots?.BookerLayoutSelector;
+  const MultiplePrivateLinksControllerSlot = slots?.MultiplePrivateLinksController;
+  const AddVerifiedEmailSlot = slots?.AddVerifiedEmail;
+  const UpgradeTeamsBadgeSlot = slots?.UpgradeTeamsBadge;
+  const WideUpgradeBannerForRedirectUrlSlot = slots?.WideUpgradeBannerForRedirectUrl;
 
   return (
     <div className="flex flex-col stack-y-4">
@@ -640,9 +725,11 @@ export const EventAdvancedTab = ({
         setShowEventNameTip={setShowEventNameTip}
         showToast={showToast}
         eventType={eventType}
+        isPlatform={isPlatform}
+        slots={slots}
       />
-      {showBookerLayoutSelector && (
-        <BookerLayoutSelector
+      {showBookerLayoutSelector && BookerLayoutSelectorSlot && (
+        <BookerLayoutSelectorSlot
           fallbackToUserSettings
           isDark={selectedThemeIsDark}
           isOuterBorder={true}
@@ -667,6 +754,7 @@ export const EventAdvancedTab = ({
         <div className="p-5 rounded-lg border border-subtle bg-default">
           <FormBuilder
             showPhoneAndEmailToggle
+            isPlatform={isPlatform}
             title={t("confirmation")}
             description={t("what_booker_should_provide")}
             addFieldLabel={t("add_a_booking_question")}
@@ -716,19 +804,12 @@ export const EventAdvancedTab = ({
               <div className="px-4 py-6 rounded-lg border border-subtle sm:px-6">
                 <div className="flex justify-between items-center">
                   <div>
-                    <p className="text-sm font-semibold text-default">
-                      {t("require_cancellation_reason")}
-                    </p>
-                    <p className="text-sm text-default">
-                      {t("require_cancellation_reason_description")}
-                    </p>
+                    <p className="text-sm font-semibold text-default">{t("require_cancellation_reason")}</p>
+                    <p className="text-sm text-default">{t("require_cancellation_reason_description")}</p>
                   </div>
                   <Select
                     value={cancellationReasonOptions.find(
-                      (opt) =>
-                        opt.value ===
-                        (value ||
-                          CancellationReasonRequirement.MANDATORY_HOST_ONLY)
+                      (opt) => opt.value === (value || CancellationReasonRequirement.MANDATORY_HOST_ONLY)
                     )}
                     options={cancellationReasonOptions}
                     onChange={(selected) => onChange(selected?.value)}
@@ -787,25 +868,19 @@ export const EventAdvancedTab = ({
                   checked={value}
                   onCheckedChange={(val) => {
                     onChange(val);
-                  }}
-                >
+                  }}>
                   {value && (
                     <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
                       <Controller
                         name="disableCancellingScope"
-                        render={({
-                          field: { value: scopeValue, onChange: onScopeChange },
-                        }) => (
+                        render={({ field: { value: scopeValue, onChange: onScopeChange } }) => (
                           <Select
                             value={disableCancellingScopeOptions.find(
                               (opt) =>
-                                opt.value ===
-                                (scopeValue || DisableCancelRescheduleScope.HOST_AND_ATTENDEE)
+                                opt.value === (scopeValue || DisableCancelRescheduleScope.HOST_AND_ATTENDEE)
                             )}
                             options={disableCancellingScopeOptions}
-                            onChange={(selected) =>
-                              onScopeChange(selected?.value)
-                            }
+                            onChange={(selected) => onScopeChange(selected?.value)}
                             className="w-52"
                           />
                         )}
@@ -985,8 +1060,8 @@ export const EventAdvancedTab = ({
         name="successRedirectUrl"
         render={({ field: { value, onChange } }) => (
           <>
-            {isRedirectUrlDisabled && !isPlatform ? (
-              <WideUpgradeBannerForRedirectUrl />
+            {isRedirectUrlDisabled && WideUpgradeBannerForRedirectUrlSlot ? (
+              <WideUpgradeBannerForRedirectUrlSlot />
             ) : (
               <SettingsToggle
                 labelClassName={classNames("text-sm", customClassNames?.bookingRedirect?.label)}
@@ -999,14 +1074,14 @@ export const EventAdvancedTab = ({
                 childrenClassName={classNames("lg:ml-0", customClassNames?.bookingRedirect?.children)}
                 descriptionClassName={customClassNames?.bookingRedirect?.description}
                 Badge={
-                  !isPlatform && !isRedirectUrlGrandfathered ? (
-                    <UpgradeTeamsBadge checkForActiveStatus tracking="redirect-url" />
+                  !isPlatform && !isRedirectUrlGrandfathered && UpgradeTeamsBadgeSlot ? (
+                    <UpgradeTeamsBadgeSlot checkForActiveStatus tracking="redirect-url" />
                   ) : undefined
                 }
                 title={t("redirect_success_booking")}
                 data-testid="redirect-success-booking"
                 {...successRedirectUrlLocked}
-                disabled={successRedirectUrlLocked.disabled}
+                disabled={isRedirectUrlDisabled || successRedirectUrlLocked.disabled}
                 description={t("redirect_url_description")}
                 checked={redirectUrlVisible}
                 onCheckedChange={(e) => {
@@ -1156,12 +1231,14 @@ export const EventAdvancedTab = ({
                 }}>
                 {!isManagedEventType && (
                   <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
-                    <MultiplePrivateLinksController
-                      team={team}
-                      bookerUrl={eventType.bookerUrl}
-                      setMultiplePrivateLinksVisible={setMultiplePrivateLinksVisible}
-                      userTimeZone={userTimeZone}
-                    />
+                    {MultiplePrivateLinksControllerSlot && (
+                      <MultiplePrivateLinksControllerSlot
+                        team={team}
+                        bookerUrl={eventType.bookerUrl}
+                        setMultiplePrivateLinksVisible={setMultiplePrivateLinksVisible}
+                        userTimeZone={userTimeZone}
+                      />
+                    )}
                   </div>
                 )}
               </SettingsToggle>
@@ -1386,14 +1463,16 @@ export const EventAdvancedTab = ({
                           <Label className="block mb-2 text-sm font-medium text-default">
                             <>{t("timezone")}</>
                           </Label>
-                          <TimezoneSelect
-                            id="lockedTimeZone"
-                            value={value ?? "Europe/London"}
-                            onChange={(event) => {
-                              if (event)
-                                formMethods.setValue("lockedTimeZone", event.value, { shouldDirty: true });
-                            }}
-                          />
+                          {TimezoneSelectSlot && (
+                            <TimezoneSelectSlot
+                              id="lockedTimeZone"
+                              value={value ?? "Europe/London"}
+                              onChange={(event) => {
+                                if (event)
+                                  formMethods.setValue("lockedTimeZone", event.value, { shouldDirty: true });
+                              }}
+                            />
+                          )}
                         </>
                       )}
                     />
@@ -1472,8 +1551,12 @@ export const EventAdvancedTab = ({
                       : null
                   );
                 }}>
-                {isPlatform && (
-                  <AddVerifiedEmail username={eventType.users[0]?.name || "there"} showToast={showToast} isPlatform={isPlatform} />
+                {isPlatform && AddVerifiedEmailSlot && (
+                  <AddVerifiedEmailSlot
+                    username={eventType.users[0]?.name || "there"}
+                    showToast={showToast}
+                    isPlatform={isPlatform}
+                  />
                 )}
                 <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
                   <SelectField

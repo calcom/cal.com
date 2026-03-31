@@ -1,4 +1,10 @@
-import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useEffect, useRef, useState } from "react";
+import type { SubmitHandler, UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
+import type { z } from "zod";
+import { ZodError } from "zod";
+
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
@@ -29,12 +35,6 @@ import {
 } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { ArrowDownIcon, ArrowUpIcon, MailIcon, PhoneIcon } from "@coss/ui/icons";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useRef, useState } from "react";
-import type { SubmitHandler, UseFormReturn } from "react-hook-form";
-import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
-import type { z } from "zod";
-import { ZodError } from "zod";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -84,6 +84,7 @@ export const FormBuilder = function FormBuilder({
   showPriceField,
   paymentCurrency = "USD",
   showPhoneAndEmailToggle = false,
+  isPlatform = false,
 }: {
   formProp: string;
   title: string;
@@ -103,6 +104,7 @@ export const FormBuilder = function FormBuilder({
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
   showPriceField?: boolean;
   paymentCurrency?: string;
+  isPlatform?: boolean;
 }) {
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
@@ -421,6 +423,7 @@ export const FormBuilder = function FormBuilder({
           shouldConsiderRequired={shouldConsiderRequired}
           showPriceField={showPriceField}
           paymentCurrency={paymentCurrency}
+          isPlatform={isPlatform}
         />
       )}
     </div>
@@ -591,6 +594,7 @@ function FieldEditDialog({
   shouldConsiderRequired,
   showPriceField,
   paymentCurrency,
+  isPlatform = false,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
@@ -598,9 +602,9 @@ function FieldEditDialog({
   shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
   showPriceField?: boolean;
   paymentCurrency: string;
+  isPlatform?: boolean;
 }) {
   const { t } = useLocale();
-  const isPlatform = useIsPlatform();
   const fieldForm = useForm<RhfFormField>({
     defaultValues: dialog.data || {},
     //resolver: zodResolver(fieldSchema),
