@@ -25,27 +25,32 @@ vi.mock("@calcom/trpc/react", () => ({
   },
 }));
 
-vi.mock("@calcom/ui/components/toast", () => ({ showToast: vi.fn() }));
+vi.mock("@coss/ui/components/toast", () => ({ toastManager: { add: vi.fn() } }));
 
-vi.mock("@calcom/ui/components/empty-screen", () => ({
-  EmptyScreen: ({ headline }: { headline: string }) => <div data-testid="empty-screen">{headline}</div>,
+vi.mock("@coss/ui/components/empty", () => ({
+  Empty: ({ children, ...props }: { children: React.ReactNode } & Record<string, unknown>) => (
+    <div data-testid="empty-screen" {...props}>{children}</div>
+  ),
+  EmptyContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  EmptyDescription: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
+  EmptyHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  EmptyMedia: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  EmptyTitle: ({ children }: { children: React.ReactNode }) => <h3>{children}</h3>,
 }));
 
-vi.mock("@calcom/features/settings/appDir/SettingsHeader", () => ({
-  default: ({
-    children,
-    title,
-    CTA,
-  }: {
-    children: React.ReactNode;
-    title: string;
-    CTA?: React.ReactNode;
-  }) => (
-    <div data-testid="settings-header" data-title={title}>
-      {CTA}
-      {children}
-    </div>
+vi.mock("@coss/ui/icons", () => ({
+  KeyIcon: () => <svg data-testid="key-icon" />,
+}));
+
+vi.mock("@coss/ui/shared/app-header", () => ({
+  AppHeader: ({ children }: { children: React.ReactNode }) => (
+    <header data-testid="settings-header">{children}</header>
   ),
+  AppHeaderContent: ({ children, title }: { children: React.ReactNode; title: string }) => (
+    <div data-testid="app-header-content" data-title={title}>{children}</div>
+  ),
+  AppHeaderDescription: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
+  AppHeaderActions: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 vi.mock("../oauth/create/OAuthClientCreateModal", () => ({
@@ -112,6 +117,7 @@ describe("OAuthClientsView", async () => {
     render(<OAuthClientsView />);
     expect(screen.getByTestId("empty-screen")).toBeInTheDocument();
     expect(screen.getByText("no_oauth_clients")).toBeInTheDocument();
+    expect(screen.getByText("no_oauth_clients_description")).toBeInTheDocument();
   });
 
   it("should render client list when clients exist", async () => {
@@ -157,6 +163,7 @@ describe("OAuthClientsView", async () => {
     } as ReturnType<typeof trpcModule.trpc.viewer.oAuth.listUserClients.useQuery>);
 
     render(<OAuthClientsView />);
-    expect(screen.getByTestId("settings-header")).toHaveAttribute("data-title", "oauth_clients");
+    expect(screen.getByTestId("settings-header")).toBeInTheDocument();
+    expect(screen.getByTestId("app-header-content")).toHaveAttribute("data-title", "oauth_clients");
   });
 });

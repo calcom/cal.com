@@ -1,16 +1,24 @@
 "use client";
 
-import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
-
-import { Alert } from "@calcom/ui/components/alert";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
+import { Alert, AlertDescription } from "@coss/ui/components/alert";
+import { Badge } from "@coss/ui/components/badge";
+import { Button } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "@coss/ui/components/dialog";
+import { Field, FieldLabel } from "@coss/ui/components/field";
+import { Input } from "@coss/ui/components/input";
+import { CopyableField } from "@coss/ui/shared/copyable-field";
+import { TriangleAlertIcon } from "@coss/ui/icons";
 
 import type { OAuthClientDetails } from "../view/OAuthClientDetailsDialog";
 
@@ -21,110 +29,86 @@ export function OAuthClientPreviewDialog({
   description,
   client,
   onClose,
+  onCloseComplete,
 }: {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange?: (open: boolean) => void;
   title: string;
   description: string;
-  client: OAuthClientDetails;
+  client: OAuthClientDetails | null;
   onClose: () => void;
+  onCloseComplete?: () => void;
 }) {
   const { t } = useLocale();
-  const { copyToClipboard } = useCopy();
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       onClose();
-      return;
     }
-    onOpenChange(nextOpen);
+    onOpenChange?.(nextOpen);
   };
 
-  const showPendingBadge = client.status === "PENDING";
+  const handleOpenChangeComplete = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      onCloseComplete?.();
+    }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent enableOverflow type="creation" title={title} description={description}>
-        <>
-          <div className="space-y-4" data-testid="oauth-client-submitted-modal">
-            {showPendingBadge ? (
-              <div className="flex items-center justify-start">
-                <Badge variant="orange">{t("pending")}</Badge>
-              </div>
-            ) : null}
+    <Dialog open={open} onOpenChange={handleOpenChange} onOpenChangeComplete={handleOpenChangeComplete}>
+      <DialogPopup className="max-w-xl">
+        {client ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>{title}</DialogTitle>
+              <DialogDescription>{description}</DialogDescription>
+            </DialogHeader>
+            <DialogPanel className="grid gap-6" data-testid="oauth-client-submitted-modal">
+              {client.status === "PENDING" ? (
+                <Badge className="w-fit" variant="warning">
+                  {t("pending")}
+                </Badge>
+              ) : null}
 
-            <div>
-              <div className="text-subtle mb-1 text-sm">{t("client_name")}</div>
-              <div className="text-emphasis font-medium">{client.name}</div>
-            </div>
+              <Field>
+                <FieldLabel>{t("client_name")}</FieldLabel>
+                <Input disabled value={client.name} />
+              </Field>
 
-            <div>
-              <div className="text-subtle mb-1 text-sm">{t("client_id")}</div>
-              <div className="flex">
-                <code
-                  data-testid="oauth-client-submitted-client-id"
-                  className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
-                  {client.clientId}
-                </code>
-                <Tooltip side="top" content={t("copy_to_clipboard")}>
-                  <Button
-                    onClick={() => {
-                      copyToClipboard(client.clientId, {
-                        onSuccess: () => showToast(t("client_id_copied"), "success"),
-                        onFailure: () => showToast(t("error"), "error"),
-                      });
-                    }}
-                    type="button"
-                    size="sm"
-                    className="rounded-l-none"
-                    StartIcon="clipboard">
-                    {t("copy")}
-                  </Button>
-                </Tooltip>
-              </div>
-            </div>
+              <CopyableField
+                copyTooltip={t("copy_to_clipboard")}
+                copiedTooltip={t("client_id_copied")}
+                data-testid="oauth-client-submitted-client-id"
+                label={t("client_id")}
+                value={client.clientId}
+                monospace
+              />
 
-            {client.clientSecret ? (
-              <div>
-                <div className="text-subtle mb-1 text-sm">{t("client_secret")}</div>
-                <div className="flex">
-                  <code
+              {client.clientSecret ? (
+                <>
+                  <CopyableField
+                    copyTooltip={t("copy_to_clipboard")}
+                    copiedTooltip={t("client_secret_copied")}
                     data-testid="oauth-client-submitted-client-secret"
-                    className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
-                    {client.clientSecret}
-                  </code>
-                  <Tooltip side="top" content={t("copy_to_clipboard")}>
-                    <Button
-                      onClick={() => {
-                        copyToClipboard(client.clientSecret ?? "", {
-                          onSuccess: () => showToast(t("client_secret_copied"), "success"),
-                          onFailure: () => showToast(t("error"), "error"),
-                        });
-                      }}
-                      type="button"
-                      size="sm"
-                      className="rounded-l-none"
-                      StartIcon="clipboard">
-                      {t("copy")}
-                    </Button>
-                  </Tooltip>
-                </div>
-                <Alert
-                  severity="warning"
-                  message={t("oauth_client_client_secret_one_time_warning")}
-                  className="mt-3"
-                />
-              </div>
-            ) : null}
-          </div>
-
-          <DialogFooter className="mt-6">
-            <Button type="button" onClick={onClose} data-testid="oauth-client-submitted-done">
-              {t("done")}
-            </Button>
-          </DialogFooter>
-        </>
-      </DialogContent>
+                    label={t("client_secret")}
+                    value={client.clientSecret}
+                    monospace
+                  />
+                  <Alert variant="warning">
+                    <TriangleAlertIcon />
+                    <AlertDescription>
+                      {t("oauth_client_client_secret_one_time_warning")}
+                    </AlertDescription>
+                  </Alert>
+                </>
+              ) : null}
+            </DialogPanel>
+            <DialogFooter>
+              <DialogClose render={<Button data-testid="oauth-client-submitted-done" />}>{t("done")}</DialogClose>
+            </DialogFooter>
+          </>
+        ) : null}
+      </DialogPopup>
     </Dialog>
   );
 }

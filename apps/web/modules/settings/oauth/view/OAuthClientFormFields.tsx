@@ -1,20 +1,58 @@
 "use client";
 
+import { useMemo } from "react";
+import { Controller, type UseFormReturn } from "react-hook-form";
+
 import type { NewAccessScope } from "@calcom/features/oauth/constants";
 import { OAUTH_SCOPE_CATEGORIES } from "@calcom/features/oauth/constants";
 import { MAX_REDIRECT_URIS, validateRedirectUri } from "@calcom/features/oauth/utils/validateRedirectUris";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AccessScope } from "@calcom/prisma/enums";
-import { Alert } from "@calcom/ui/components/alert";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { CheckboxField, Label, Switch, TextArea, TextField } from "@calcom/ui/components/form";
 import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import { Tooltip } from "@calcom/ui/components/tooltip";
-import { ChevronRightIcon, InfoIcon, KeyIcon } from "@coss/ui/icons";
-import { useMemo, useState } from "react";
-import type { RegisterOptions, UseFormReturn } from "react-hook-form";
-import { Controller } from "react-hook-form";
+
+import {
+  Alert,
+  AlertDescription,
+} from "@coss/ui/components/alert";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@coss/ui/components/avatar";
+import { Button } from "@coss/ui/components/button";
+import { Checkbox } from "@coss/ui/components/checkbox";
+import { CheckboxGroup } from "@coss/ui/components/checkbox-group";
+import {
+  Collapsible,
+  CollapsiblePanel,
+  CollapsibleTrigger,
+} from "@coss/ui/components/collapsible";
+import {
+  Field,
+  FieldError,
+  FieldItem,
+  FieldLabel,
+} from "@coss/ui/components/field";
+import { Fieldset, FieldsetLegend } from "@coss/ui/components/fieldset";
+import { Input } from "@coss/ui/components/input";
+import { Label } from "@coss/ui/components/label";
+import { Switch } from "@coss/ui/components/switch";
+import {
+  Tooltip,
+  TooltipProvider,
+  TooltipPopup,
+  TooltipTrigger,
+} from "@coss/ui/components/tooltip";
+import { Textarea } from "@coss/ui/components/textarea";
+import {
+  ChevronRightIcon,
+  InfoIcon,
+  KeyIcon,
+  PlusIcon,
+  TrashIcon,
+  TriangleAlertIcon,
+} from "@coss/ui/icons";
+
 import { scopeTranslationKey } from "../../../auth/oauth2/scopes";
 import type { OAuthClientCreateFormValues } from "../create/OAuthClientCreateModal";
 
@@ -48,102 +86,188 @@ export const OAuthClientFormFields = ({
     [t]
   );
 
+  const logo = form.watch("logo");
+
   return (
     <>
-      <TextField
-        {...form.register("name", { required: true })}
-        label={t("client_name")}
-        type="text"
-        id="name"
-        placeholder={t("client_name_placeholder")}
-        required
-        disabled={isFormDisabled}
+      <Controller
+        name="name"
+        control={form.control}
+        rules={{ required: t("field_required") }}
+        render={({
+          field: { ref, name, value, onBlur, onChange },
+          fieldState: { invalid, error },
+        }) => {
+          return (
+            <Field name={name} invalid={invalid}>
+              <FieldLabel>{t("client_name")}</FieldLabel>
+              <Input
+                id={name}
+                ref={ref}
+                disabled={isFormDisabled}
+                placeholder={t("client_name_placeholder")}
+                type="text"
+                value={value}
+                onBlur={onBlur}
+                onChange={(e) => onChange(e.target.value)}
+              />
+              <FieldError data-testid={`field-error-${name}`} match={!!error}>
+                {error?.message ?? t("field_required")}
+              </FieldError>
+            </Field>
+          );
+        }}
       />
 
-      <div>
-        <Label htmlFor="purpose" className="text-emphasis mb-2 flex items-center gap-1 text-sm font-medium">
-          {t("purpose")}
-          <Tooltip content={t("purpose_tooltip")}>
-            <span>
-              <InfoIcon className="text-subtle h-4 w-4" />
-            </span>
-          </Tooltip>
-        </Label>
-        <TextArea
-          {...form.register("purpose", { required: true })}
-          id="purpose"
-          placeholder={t("purpose_placeholder")}
-          required
-          disabled={isFormDisabled}
-        />
-      </div>
+      <Controller
+        name="purpose"
+        control={form.control}
+        rules={{ required: t("field_required") }}
+        render={({
+          field: { ref, name, value, onBlur, onChange },
+          fieldState: { invalid, error },
+        }) => {
+          return (
+            <Field name={name} invalid={invalid}>
+              <FieldLabel>
+                {t("purpose")}
+                <TooltipProvider delay={0}>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <span className="cursor-help">
+                          <InfoIcon className="size-3.5 opacity-80" />
+                        </span>
+                      }
+                    />
+                    <TooltipPopup className="max-w-64 text-center">{t("purpose_tooltip")}</TooltipPopup>
+                  </Tooltip>
+                </TooltipProvider>
+              </FieldLabel>
+              <Textarea
+                id={name}
+                ref={ref}
+                disabled={isFormDisabled}
+                placeholder={t("purpose_placeholder")}
+                value={value}
+                onBlur={onBlur}
+                onChange={(e) => onChange(e.target.value)}
+              />
+              <FieldError data-testid={`field-error-${name}`} match={!!error}>
+                {error?.message ?? t("field_required")}
+              </FieldError>
+            </Field>
+          );
+        }}
+      />
 
       <RedirectUriFields form={form} disabled={isFormDisabled} />
 
-      <TextField
-        {...form.register("websiteUrl", websiteUrlValidation)}
-        label={
-          <span className="flex items-center gap-1">
-            {t("website_url")}
-            <Tooltip content={t("website_url_tooltip")}>
-              <span>
-                <InfoIcon className="text-subtle h-4 w-4" />
-              </span>
-            </Tooltip>
-          </span>
-        }
-        type="url"
-        id="websiteUrl"
-        placeholder={isFormDisabled ? undefined : t("website_url_placeholder")}
-        disabled={isFormDisabled}
+      <Controller
+        name="websiteUrl"
+        control={form.control}
+        rules={websiteUrlValidation}
+        render={({
+          field: { ref, name, value, onBlur, onChange },
+          fieldState: { invalid, error },
+        }) => {
+          return (
+            <Field name={name} invalid={invalid}>
+              <FieldLabel>
+                {t("website_url")}
+                <TooltipProvider delay={0}>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <span className="cursor-help">
+                          <InfoIcon className="size-3.5 opacity-80" />
+                        </span>
+                      }
+                    />
+                    <TooltipPopup className="max-w-64 text-center">{t("website_url_tooltip")}</TooltipPopup>
+                  </Tooltip>
+                </TooltipProvider>
+              </FieldLabel>
+              <Input
+                id={name}
+                ref={ref}
+                disabled={isFormDisabled}
+                placeholder={
+                  isFormDisabled ? undefined : t("website_url_placeholder")
+                }
+                type="text"
+                value={value}
+                onBlur={onBlur}
+                onChange={(e) => onChange(e.target.value)}
+              />
+              <FieldError data-testid={`field-error-${name}`} match={!!error}>
+                {error?.message ?? t("invalid_url")}
+              </FieldError>
+            </Field>
+          );
+        }}
       />
 
-      <div>
-        <Label className="text-emphasis mb-2 flex items-center gap-1 text-sm font-medium">
-          {t("authentication_mode")}
-          <Tooltip content={t("pkce_cannot_be_changed_after_creation")}>
-            <span>
-              <InfoIcon className="text-subtle h-4 w-4" />
-            </span>
-          </Tooltip>
-        </Label>
-        <div className="flex items-center space-x-3">
-          <Switch
-            data-testid="oauth-client-pkce-toggle"
-            checked={form.watch("enablePkce")}
-            onCheckedChange={(checked) => form.setValue("enablePkce", checked)}
-            disabled={isFormDisabled || isPkceLocked}
-          />
-          <span className="text-default text-sm">{t("use_pkce")}</span>
-        </div>
-      </div>
+      <Controller
+        name="enablePkce"
+        control={form.control}
+        render={({ field: { name, value, onBlur, onChange } }) => (
+          <Field name={name}>
+            <Label className="gap-1" render={<FieldsetLegend />}>
+              {t("authentication_mode")}
+              <TooltipProvider delay={0}>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <span className="cursor-help">
+                        <InfoIcon className="size-3.5 opacity-80" />
+                      </span>
+                    }
+                  />
+                  <TooltipPopup className="max-w-72 text-center">{t("pkce_cannot_be_changed_after_creation")}</TooltipPopup>
+                </Tooltip>
+              </TooltipProvider>
+            </Label>
+            <FieldLabel className="font-normal">
+              <Switch
+                checked={value}
+                data-testid="oauth-client-pkce-toggle"
+                disabled={isFormDisabled || isPkceLocked}
+                onBlur={onBlur}
+                onCheckedChange={onChange}
+              />
+              <span className="text-sm">{t("use_pkce")}</span>
+            </FieldLabel>
+          </Field>
+        )}
+      />
 
       <OAuthScopeCheckboxes form={form} disabled={isFormDisabled} isLegacy={isLegacyOAuthClient} />
 
       <div>
-        <Label className="text-emphasis mb-2 block text-sm font-medium">{t("logo")}</Label>
-        <div className="space-y-3">
-          <div className="flex items-center gap-4">
-            <Avatar
-              alt={t("logo")}
-              fallback={<KeyIcon className="text-subtle h-6 w-6" />}
-              imageSrc={form.watch("logo")}
-              size="lg"
-            />
-            {allowUploadingLogo ? (
-              <ImageUploader
-                target="avatar"
-                id="avatar-upload"
-                buttonMsg={t("upload_logo")}
-                testId="oauth-client-logo"
-                handleAvatarChange={(newLogo: string) => {
-                  form.setValue("logo", newLogo);
-                }}
-                imageSrc={form.watch("logo")}
-                disabled={isFormDisabled}
-              />
+        <Label className="mb-3">{t("logo")}</Label>
+        <div className="flex items-center gap-4">
+          <Avatar className="size-16">
+            {logo ? (
+              <AvatarImage alt={t("logo")} src={logo} />
             ) : null}
-          </div>
+            <AvatarFallback className="bg-black/10 dark:bg-white/12">
+              <KeyIcon className="text-muted-foreground size-5" />
+            </AvatarFallback>
+          </Avatar>
+          {allowUploadingLogo ? (
+            <ImageUploader
+              disabled={isFormDisabled}
+              handleAvatarChange={(newLogo: string) => {
+                form.setValue("logo", newLogo);
+              }}
+              id="avatar-upload"
+              imageSrc={logo}
+              buttonMsg={t("upload_logo")}
+              target="avatar"
+              testId="oauth-client-logo"
+            />
+          ) : null}
         </div>
       </div>
     </>
@@ -162,61 +286,86 @@ function RedirectUriFields({
   const canAddMore = redirectUris.length < MAX_REDIRECT_URIS;
 
   return (
-    <div>
-      <Label className="text-emphasis mb-2 block text-sm font-medium">{t("redirect_uris")}</Label>
-      <div className="space-y-2">
+    <Fieldset className="gap-2 max-w-none">
+      <FieldsetLegend className="font-medium text-sm">{t("redirect_uris")}</FieldsetLegend>
+      <div className="flex flex-col gap-2">
         {redirectUris.map((_uri, index) => (
-          <div key={index} className="flex items-center gap-2">
-            <div className="flex-1">
-              <TextField
-                {...form.register(`redirectUris.${index}`, {
-                  validate: (value: string) => {
-                    if (!value) return true;
-                    const uriError = validateRedirectUri(value);
-                    if (uriError !== true) return uriError;
-                    const isDuplicate = redirectUris.some((uri, i) => i !== index && uri === value);
-                    if (isDuplicate) return t("duplicate_redirect_uri");
-                    return true;
-                  },
-                })}
-                noLabel
-                type="text"
-                id={`redirectUri-${index}`}
-                placeholder={t("redirect_uri_placeholder")}
-                disabled={disabled}
-              />
-              {form.formState.errors.redirectUris?.[index]?.message ? (
-                <p className="text-error mt-1 text-xs">{form.formState.errors.redirectUris[index].message}</p>
-              ) : null}
-            </div>
-            {redirectUris.length > 1 && !disabled ? (
-              <Button
-                type="button"
-                color="destructive"
-                variant="icon"
-                StartIcon="trash"
-                data-testid={`remove-redirect-uri-${index}`}
-                onClick={() => {
-                  const updated = redirectUris.filter((_, i) => i !== index);
-                  form.setValue("redirectUris", updated);
-                }}
-                aria-label={t("remove_redirect_uri")}
-              />
-            ) : null}
-          </div>
+          <Controller
+            key={index}
+            name={`redirectUris.${index}`}
+            control={form.control}
+            rules={{
+              validate: (value: string) => {
+                if (!value) return true;
+                const uriError = validateRedirectUri(value);
+                if (uriError !== true) return uriError;
+                const currentUris = form.getValues("redirectUris");
+                const isDuplicate = currentUris.some((uri, i) => i !== index && uri === value);
+                if (isDuplicate) return t("duplicate_redirect_uri");
+                return true;
+              },
+            }}
+            render={({
+              field: { ref, name, value, onBlur, onChange },
+              fieldState: { invalid, error },
+            }) => (
+              <div className="flex items-start gap-2">
+                <Field name={name} invalid={invalid} className="w-full">
+                  <Input
+                    id={`redirectUri-${index}`}
+                    ref={ref}
+                    className="w-full"
+                    disabled={disabled}
+                    placeholder={t("redirect_uri_placeholder")}
+                    type="text"
+                    value={value}
+                    onBlur={onBlur}
+                    onChange={(e) => {
+                      onChange(e.target.value);
+                      const siblingsWithErrors = redirectUris
+                        .map((_, i) => i)
+                        .filter((i) => i !== index && form.formState.errors.redirectUris?.[i]);
+                      if (siblingsWithErrors.length > 0) {
+                        form.trigger(siblingsWithErrors.map((i) => `redirectUris.${i}` as const));
+                      }
+                    }}
+                  />
+                  <FieldError data-testid={`field-error-redirectUri-${index}`} match={!!error}>
+                    {error?.message}
+                  </FieldError>
+                </Field>
+                {redirectUris.length > 1 && !disabled ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    data-testid={`remove-redirect-uri-${index}`}
+                    onClick={() => {
+                      const updated = redirectUris.filter((_, i) => i !== index);
+                      form.setValue("redirectUris", updated, { shouldValidate: true });
+                    }}
+                    aria-label={t("remove_redirect_uri")}>
+                    <TrashIcon aria-hidden="true" />
+                  </Button>
+                ) : null}
+              </div>
+            )}
+          />
         ))}
         {!disabled ? (
           <Button
+            className="w-fit min-w-0"
             type="button"
-            color="minimal"
-            StartIcon="plus"
+            variant="ghost"
+            size="sm"
             disabled={!canAddMore}
             onClick={() => form.setValue("redirectUris", [...redirectUris, ""])}>
+            <PlusIcon aria-hidden="true" />
             {canAddMore ? t("add_redirect_uri") : t("max_redirect_uris_reached", { max: MAX_REDIRECT_URIS })}
           </Button>
         ) : null}
       </div>
-    </div>
+    </Fieldset>
   );
 }
 
@@ -238,53 +387,53 @@ function OAuthScopeCheckboxes({
       render={({ field }) => {
         const scopes = field.value || [];
 
-        const handleToggleScope = (scope: NewAccessScope, checked: boolean) => {
-          const newScopes = checked ? [...scopes, scope] : scopes.filter((s) => s !== scope);
-          field.onChange(newScopes);
-        };
-
         return (
-          <div>
-            <Label className="text-emphasis mb-2 flex items-center gap-1 text-sm font-medium">
+          <Field className="gap-4" name="scopes">
+            <Label className="gap-1" render={<FieldsetLegend />}>
               {t("oauth_scopes")}
-              <Tooltip content={t("oauth_scopes_description")}>
-                <span>
-                  <InfoIcon className="text-subtle h-4 w-4" />
-                </span>
-              </Tooltip>
+              <TooltipProvider delay={0}>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <span className="cursor-help">
+                        <InfoIcon className="size-3.5 opacity-80" />
+                      </span>
+                    }
+                  />
+                  <TooltipPopup>{t("oauth_scopes_description")}</TooltipPopup>
+                </Tooltip>
+              </TooltipProvider>
             </Label>
             {isLegacy && (
-              <Alert
-                severity="warning"
-                className="mb-3"
-                title={
-                  <>
-                    {t("legacy_oauth_client_scopes_warning")}{" "}
-                    <a
-                      href="https://cal.com/docs/api-reference/v2/oauth#legacy-client-migration"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline">
-                      https://cal.com/docs/api-reference/v2/oauth#legacy-client-migration
-                    </a>
-                  </>
-                }
-              />
+              <Alert variant="warning">
+                <TriangleAlertIcon />
+                <AlertDescription>
+                  {t("legacy_oauth_client_scopes_warning")}{" "}
+                  <a
+                    href="https://cal.com/docs/api-reference/v2/oauth#legacy-client-migration"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    className="underline">
+                    https://cal.com/docs/api-reference/v2/oauth#legacy-client-migration
+                  </a>
+                </AlertDescription>
+              </Alert>
             )}
-            <div className="space-y-2">
+            <div className="border rounded-lg w-full">
               {OAUTH_SCOPE_CATEGORIES.map((category, index) => (
                 <ScopeCategorySection
                   key={category.labelKey}
-                  labelKey={category.labelKey}
                   categoryScopes={category.scopes}
-                  selectedScopes={scopes}
-                  disabled={disabled}
-                  onToggleScope={handleToggleScope}
                   defaultExpanded={index === 0}
+                  disabled={disabled}
+                  labelKey={category.labelKey}
+                  selectedScopes={scopes}
+                  value={scopes}
+                  onValueChange={field.onChange}
                 />
               ))}
             </div>
-          </div>
+          </Field>
         );
       }}
     />
@@ -296,53 +445,83 @@ function ScopeCategorySection({
   categoryScopes,
   selectedScopes,
   disabled,
-  onToggleScope,
   defaultExpanded,
+  value,
+  onValueChange,
 }: {
   labelKey: string;
   categoryScopes: NewAccessScope[];
   selectedScopes: AccessScope[];
   disabled: boolean;
-  onToggleScope: (scope: NewAccessScope, checked: boolean) => void;
   defaultExpanded: boolean;
+  value: AccessScope[];
+  onValueChange: (value: AccessScope[]) => void;
 }) {
   const { t } = useLocale();
-  const [expanded, setExpanded] = useState(defaultExpanded);
 
   const selectedCount = categoryScopes.filter((s) => selectedScopes.includes(s)).length;
   const totalCount = categoryScopes.length;
 
   return (
-    <div className="border-subtle rounded-md border">
-      <button
-        type="button"
-        className="flex w-full items-center justify-between p-3"
-        onClick={() => setExpanded((prev) => !prev)}
-        data-testid={`oauth-scope-category-${labelKey}`}>
+    <Collapsible
+      className="not-last:border-b"
+      defaultOpen={defaultExpanded}
+    >
+      <CollapsibleTrigger
+        className="flex w-full items-center justify-between p-3 data-panel-open:[&_svg]:rotate-90"
+        data-testid={`oauth-scope-category-${labelKey}`}
+      >
         <div className="flex items-center gap-2">
-          <ChevronRightIcon
-            className={`text-subtle h-4 w-4 transition-transform ${expanded ? "rotate-90" : ""}`}
-          />
-          <span className="text-emphasis text-sm font-medium">{t(labelKey)}</span>
+          <ChevronRightIcon className="size-4 transition-transform" aria-hidden="true" />
+          <span className="text-sm font-medium">{t(labelKey)}</span>
         </div>
-        <span className="text-subtle text-xs">
+        <span className="text-xs text-muted-foreground">
           {selectedCount}/{totalCount}
         </span>
-      </button>
-      {expanded ? (
-        <div className="border-subtle space-y-1 border-t px-3 pb-3 pt-2">
+      </CollapsibleTrigger>
+      <CollapsiblePanel>
+        <CheckboxGroup
+          allValues={categoryScopes}
+          aria-labelledby={`oauth-scope-category-${labelKey}-caption`}
+          className="px-3.5 pt-1 pb-4"
+          disabled={disabled}
+          onValueChange={(categoryValue) => {
+            const otherScopes = value.filter(
+              (s) => !(categoryScopes as readonly AccessScope[]).includes(s)
+            );
+            onValueChange([...otherScopes, ...(categoryValue as AccessScope[])]);
+          }}
+          value={value.filter((s) =>
+            (categoryScopes as readonly AccessScope[]).includes(s)
+          )}
+        >
+          <FieldItem>
+            <FieldLabel id={`oauth-scope-category-${labelKey}-caption`}>
+              <Checkbox
+                data-testid={`oauth-scope-select-all-${labelKey}`}
+                disabled={disabled}
+                indeterminate={
+                  selectedCount > 0 && selectedCount < totalCount
+                }
+                parent
+              />
+              {t("select_all")}
+            </FieldLabel>
+          </FieldItem>
           {categoryScopes.map((scope) => (
-            <CheckboxField
-              key={scope}
-              data-testid={`oauth-scope-checkbox-${scope}`}
-              checked={selectedScopes.includes(scope)}
-              disabled={disabled}
-              description={t(scopeTranslationKey(scope))}
-              onChange={(e) => onToggleScope(scope, e.target.checked)}
-            />
+            <FieldItem key={scope} className="ms-4">
+              <FieldLabel>
+                <Checkbox
+                  data-testid={`oauth-scope-checkbox-${scope}`}
+                  disabled={disabled}
+                  value={scope}
+                />
+                {t(scopeTranslationKey(scope))}
+              </FieldLabel>
+            </FieldItem>
           ))}
-        </div>
-      ) : null}
-    </div>
+        </CheckboxGroup>
+      </CollapsiblePanel>
+    </Collapsible>
   );
 }

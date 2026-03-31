@@ -1,37 +1,44 @@
 "use client";
 
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
-
-const skeletonItems = Array(3).fill(undefined);
+import { Card, CardPanel } from "@coss/ui/components/card";
+import { Skeleton } from "@coss/ui/components/skeleton";
+import {
+  ListItem,
+  ListItemActions,
+  ListItemBadges,
+  ListItemContent,
+  ListItemHeader,
+} from "@coss/ui/shared/list-item";
 
 export const OAuthClientsSkeleton = () => {
   return (
-    <SkeletonContainer>
-      <div className="mb-8">
-        <SkeletonText className="h-7 w-64" />
-        <div className="mt-2 flex items-start justify-between gap-4">
-          <SkeletonText className="h-4 w-full max-w-xl" />
-          <div className="bg-emphasis h-9 w-20 rounded-md" />
-        </div>
-      </div>
-      <div className="border-subtle rounded-lg border">
-        {skeletonItems.map((i, index) => (
-          <div
-            key={`oauth-client-skeleton-${index}`}
-            className={`flex items-center justify-between p-4 ${
-              index !== skeletonItems.length - 1 ? "border-subtle border-b" : ""
-            }`}>
-            <div className="flex items-center gap-4">
-              <div className="bg-emphasis h-10 w-10 rounded-full" />
-              <SkeletonText className="h-4 w-40" />
-            </div>
-            <div className="flex items-center gap-4">
-              <SkeletonText className="h-5 w-20 rounded-full" />
-              <div className="bg-emphasis h-5 w-5 rounded" />
-            </div>
-          </div>
-        ))}
-      </div>
-    </SkeletonContainer>
+    <Card>
+      <CardPanel className="p-0">
+        <OAuthClientSkeletonRow />
+        <OAuthClientSkeletonRow />
+        <OAuthClientSkeletonRow />
+      </CardPanel>
+    </Card>
   );
 };
+
+function OAuthClientSkeletonRow() {
+  return (
+    <ListItem className="*:px-4">
+      <ListItemContent>
+        <ListItemHeader>
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-8 shrink-0 rounded-full" />
+            <Skeleton className="h-5 sm:h-4.5 w-40" />
+          </div>
+        </ListItemHeader>
+      </ListItemContent>
+      <ListItemBadges>
+        <Skeleton className="h-5.5 w-16 shrink-0 sm:h-4.5" />
+      </ListItemBadges>
+      <ListItemActions>
+        <Skeleton className="size-4 shrink-0" />
+      </ListItemActions>
+    </ListItem>
+  );
+}

@@ -1,16 +1,20 @@
 "use client";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { useState } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/components/toast";
-import { useState } from "react";
+
+import { OAuthClientsAdminSkeleton } from "./oauth-clients-admin-skeleton";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+
+import { toastManager } from "@coss/ui/components/toast";
+
 import type { OAuthClientCreateFormValues } from "../oauth/create/OAuthClientCreateModal";
 import { OAuthClientCreateDialog } from "../oauth/create/OAuthClientCreateModal";
 import { OAuthClientPreviewDialog } from "../oauth/create/OAuthClientPreviewDialog";
+import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/view/OAuthClientDetailsDialog";
 import { OAuthClientsList } from "../oauth/OAuthClientsList";
-import { type OAuthClientDetails, OAuthClientDetailsDialog } from "../oauth/view/OAuthClientDetailsDialog";
-import { OAuthClientsAdminSkeleton } from "./oauth-clients-admin-skeleton";
 
 export default function OAuthClientsAdminView() {
   const { t } = useLocale();
@@ -44,17 +48,20 @@ export default function OAuthClientsAdminView() {
         redirectUris: data.redirectUris,
         logo: data.logo || null,
       });
-      showToast(t("oauth_client_created"), "success");
+      toastManager.add({ title: t("oauth_client_created"), type: "success" });
       utils.viewer.oAuth.listClients.invalidate();
     },
     onError: (error) => {
-      showToast(`${t("oauth_client_create_error")}: ${error.message}`, "error");
+      toastManager.add({ title: `${t("oauth_client_create_error")}: ${error.message}`, type: "error" });
     },
   });
 
   const updateStatusMutation = trpc.viewer.oAuth.updateClient.useMutation({
     onSuccess: async (data) => {
-      showToast(t("oauth_client_status_updated", { name: data.name, status: data.status }), "success");
+      toastManager.add({
+        title: t("oauth_client_status_updated", { name: data.name, status: data.status }),
+        type: "success",
+      });
 
       setSelectedClient((prev) => {
         if (!prev) return prev;
@@ -69,7 +76,7 @@ export default function OAuthClientsAdminView() {
       utils.viewer.oAuth.listClients.invalidate();
     },
     onError: (error) => {
-      showToast(`${t("oauth_client_status_update_error")}: ${error.message}`, "error");
+      toastManager.add({ title: `${t("oauth_client_status_update_error")}: ${error.message}`, type: "error" });
     },
   });
 

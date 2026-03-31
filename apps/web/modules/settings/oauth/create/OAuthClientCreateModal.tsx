@@ -1,14 +1,25 @@
 "use client";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { useForm } from "react-hook-form";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AccessScope } from "@calcom/prisma/enums";
-import { Button } from "@calcom/ui/components/button";
-import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
-import { useForm } from "react-hook-form";
+
 import { OAuthClientFormFields } from "../view/OAuthClientFormFields";
+
+import { Button } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "@coss/ui/components/dialog";
+import { Form } from "@coss/ui/components/form";
+import { toastManager } from "@coss/ui/components/toast";
 
 export type OAuthClientCreateFormValues = {
   name: string;
@@ -22,7 +33,7 @@ export type OAuthClientCreateFormValues = {
 
 export type OAuthClientCreateDialogProps = {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChange?: (open: boolean) => void;
   isSubmitting: boolean;
   onSubmit: (values: OAuthClientCreateFormValues) => void;
   onClose: () => void;
@@ -49,36 +60,37 @@ export function OAuthClientCreateDialog({
     },
   });
 
-  const handleClose = () => {
-    onClose();
-    form.reset();
-  };
-
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
-      handleClose();
+      onClose();
       return;
     }
-    onOpenChange(nextOpen);
+    onOpenChange?.(nextOpen);
+  };
+
+  const handleOpenChangeComplete = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      form.reset();
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent
-        enableOverflow
-        type="creation"
-        title={t("create_oauth_client")}
-        description={t("create_oauth_client_description")}>
+    <Dialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      onOpenChangeComplete={handleOpenChangeComplete}>
+      <DialogPopup className="max-w-xl">
         <Form
-          form={form}
-          handleSubmit={(values) => {
+          className="contents"
+          data-testid="oauth-client-create-form"
+          onSubmit={form.handleSubmit((values) => {
             const redirectUris = values.redirectUris.map((uri) => uri.trim()).filter(Boolean);
             if (redirectUris.length === 0) {
-              showToast(t("at_least_one_redirect_uri_required"), "error");
+              toastManager.add({ title: t("at_least_one_redirect_uri_required"), type: "error" });
               return;
             }
             if (!values.scopes || values.scopes.length === 0) {
-              showToast(t("oauth_client_scope_required"), "error");
+              toastManager.add({ title: t("oauth_client_scope_required"), type: "error" });
               return;
             }
             onSubmit({
@@ -90,19 +102,25 @@ export function OAuthClientCreateDialog({
               enablePkce: values.enablePkce,
               scopes: values.scopes,
             });
-          }}
-          className="space-y-4"
-          data-testid="oauth-client-create-form">
-          <OAuthClientFormFields form={form} />
-
+          })}>
+          <DialogHeader>
+            <DialogTitle>{t("create_oauth_client")}</DialogTitle>
+            <DialogDescription>{t("create_oauth_client_description")}</DialogDescription>
+          </DialogHeader>
+          <DialogPanel className="grid gap-6">
+            <OAuthClientFormFields form={form} />
+          </DialogPanel>
           <DialogFooter>
-            <DialogClose>{t("close")}</DialogClose>
-            <Button type="submit" loading={isSubmitting} data-testid="oauth-client-create-submit">
+            <DialogClose render={<Button variant="ghost" />}>{t("close")}</DialogClose>
+            <Button
+              type="submit"
+              loading={isSubmitting}
+              data-testid="oauth-client-create-submit">
               {t("create")}
             </Button>
           </DialogFooter>
         </Form>
-      </DialogContent>
+      </DialogPopup>
     </Dialog>
   );
 }

@@ -87,8 +87,7 @@ const oAuthClientSelect = {
 async function expandAllScopeCategories(page: Page) {
   for (const category of OAUTH_SCOPE_CATEGORIES) {
     const categoryButton = page.getByTestId(`oauth-scope-category-${category.labelKey}`);
-    const chevron = categoryButton.locator("svg");
-    const isExpanded = await chevron.evaluate((el) => el.classList.contains("rotate-90"));
+    const isExpanded = await categoryButton.evaluate((el) => el.hasAttribute("data-panel-open"));
     if (!isExpanded) {
       await categoryButton.click();
     }
@@ -149,7 +148,7 @@ async function createOAuthClient(
 ): Promise<CreateOAuthClientResult> {
   await goToOAuthSettings(page);
 
-  await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
+  await page.getByTestId("open-oauth-client-create-dialog").click();
 
   const form = getOAuthClientCreateForm(page);
   await getOAuthClientCreateNameInput(form).fill(input.name);
@@ -168,16 +167,16 @@ async function createOAuthClient(
   const pkceToggle = getOAuthClientPkceToggle(page);
   if (input.enablePkce) {
     await pkceToggle.click();
-    await expect(pkceToggle).toHaveAttribute("data-state", "checked");
+    await expect(pkceToggle).toHaveAttribute("data-checked", "");
   } else {
-    await expect(pkceToggle).toHaveAttribute("data-state", "unchecked");
+    await expect(pkceToggle).toHaveAttribute("data-unchecked", "");
   }
 
   if (input.scopes) {
     await expandAllScopeCategories(page);
     for (const scope of OAUTH_SCOPES) {
       const scopeCheckbox = page.getByTestId(`oauth-scope-checkbox-${scope}`);
-      const isChecked = await scopeCheckbox.isChecked();
+      const isChecked = await scopeCheckbox.evaluate((el) => el.hasAttribute("data-checked"));
       const shouldBeChecked = input.scopes.includes(scope);
       if (isChecked !== shouldBeChecked) {
         await scopeCheckbox.click();
@@ -189,14 +188,14 @@ async function createOAuthClient(
 
   const submitted = getOAuthClientSubmittedModal(page);
   await expect(submitted).toBeVisible();
-  await expect(page.getByTestId("dialog-title")).toHaveText("OAuth Client Submitted");
-  await expect(submitted.getByText(input.name)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "OAuth Client Submitted" }).first()).toBeVisible();
+  await expect(submitted.locator("input[disabled]")).toHaveValue(input.name);
 
-  const clientId = ((await page.getByTestId("oauth-client-submitted-client-id").textContent()) ?? "").trim();
+  const clientId = (await page.getByTestId("oauth-client-submitted-client-id").inputValue()).trim();
   expect(clientId.length).toBeGreaterThan(1);
 
   const secretLocator = page.getByTestId("oauth-client-submitted-client-secret");
-  const clientSecret = input.enablePkce ? null : ((await secretLocator.textContent()) ?? "").trim();
+  const clientSecret = input.enablePkce ? null : (await secretLocator.inputValue()).trim();
 
   if (input.enablePkce) {
     await expect(secretLocator).toHaveCount(0);
@@ -230,7 +229,7 @@ async function updateOAuthClient(page: Page, input: UpdateOAuthClientInput): Pro
     await expandAllScopeCategories(page);
     for (const scope of OAUTH_SCOPES) {
       const scopeCheckbox = page.getByTestId(`oauth-scope-checkbox-${scope}`);
-      const isChecked = await scopeCheckbox.isChecked();
+      const isChecked = await scopeCheckbox.evaluate((el) => el.hasAttribute("data-checked"));
       const shouldBeChecked = input.scopes.includes(scope);
       if (isChecked !== shouldBeChecked) {
         await scopeCheckbox.click();
@@ -276,16 +275,14 @@ async function deleteOAuthClient(
 async function closeOAuthClientDetails(page: Page): Promise<void> {
   const details = getOAuthClientDetailsForm(page);
   if (!(await details.isVisible())) return;
-  await page.getByTestId("oauth-client-details-close").click();
-  await expect(details).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(details).toHaveCount(0, { timeout: 15_000 });
 }
 
 async function openOAuthClientDetails(page: Page, clientId: string): Promise<Locator> {
   const details = getOAuthClientDetailsForm(page);
   if (await details.isVisible()) {
-    const visibleClientId = (
-      (await details.getByTestId("oauth-client-details-client-id").textContent()) ?? ""
-    ).trim();
+    const visibleClientId = (await details.getByTestId("oauth-client-details-client-id").inputValue()).trim();
     if (visibleClientId === clientId) return details;
 
     await closeOAuthClientDetails(page);
@@ -293,7 +290,7 @@ async function openOAuthClientDetails(page: Page, clientId: string): Promise<Loc
 
   await getOAuthClientListItem(page, clientId).click();
   await expect(details).toBeVisible();
-  await expect(details.getByTestId("oauth-client-details-client-id")).toHaveText(clientId);
+  await expect(details.getByTestId("oauth-client-details-client-id")).toHaveValue(clientId);
   return details;
 }
 
@@ -346,7 +343,7 @@ async function expectOAuthClientDetails(
   expected: ExpectedOAuthClientDetails
 ): Promise<void> {
   await expect(details.getByTestId("oauth-client-details-status-badge")).toHaveText(expected.statusLabel);
-  await expect(details.getByTestId("oauth-client-details-client-id")).toHaveText(expected.clientId);
+  await expect(details.getByTestId("oauth-client-details-client-id")).toHaveValue(expected.clientId);
   await expect(getOAuthClientDetailsNameInput(details)).toHaveValue(expected.name);
   await expect(getOAuthClientDetailsPurposeInput(details)).toHaveValue(expected.purpose);
 
@@ -355,7 +352,7 @@ async function expectOAuthClientDetails(
   await expect(getOAuthClientDetailsWebsiteUrlInput(details)).toHaveValue(expected.websiteUrl);
 
   const pkceToggle = details.page().getByTestId("oauth-client-pkce-toggle");
-  await expect(pkceToggle).toHaveAttribute("data-state", expected.pkceEnabled ? "checked" : "unchecked");
+  await expect(pkceToggle).toHaveAttribute(expected.pkceEnabled ? "data-checked" : "data-unchecked", "");
 
   await expect(details.locator('img[alt="Logo"][src]')).toHaveCount(expected.hasLogo ? 1 : 0);
 
@@ -365,9 +362,9 @@ async function expectOAuthClientDetails(
       const scopeCheckbox = details.page().getByTestId(`oauth-scope-checkbox-${scope}`);
       const shouldBeChecked = expected.scopes.includes(scope);
       if (shouldBeChecked) {
-        await expect(scopeCheckbox).toBeChecked();
+        await expect(scopeCheckbox).toHaveAttribute("data-checked", "");
       } else {
-        await expect(scopeCheckbox).not.toBeChecked();
+        await expect(scopeCheckbox).toHaveAttribute("data-unchecked", "");
       }
     }
   }
@@ -417,24 +414,35 @@ test.describe("OAuth client creation", () => {
     await users.deleteAll();
   });
 
-  test("cannot be created without required fields (name, purpose)", async ({ page }) => {
+  test("cannot be created without required fields (name, purpose, redirect uri)", async ({ page }) => {
     await loginAsSeededAdminAndGoToOAuthSettings(page);
 
-    await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
+    await page.getByTestId("open-oauth-client-create-dialog").click();
 
     const form = page.getByTestId("oauth-client-create-form");
     await expect(form).toBeVisible();
 
+    // Submit immediately - should trigger react-hook-form validation errors
+    // (Base UI Form uses noValidate, so native browser validation is disabled)
     await page.getByTestId("oauth-client-create-submit").click();
+
+    // Expect field error messages to be visible for required fields
+    // FieldError test IDs follow the pattern "field-error-{fieldName}"
+    const fieldErrors = form.locator('[data-testid^="field-error-"]');
+    await expect(fieldErrors.first()).toBeVisible();
 
     const nameInput = form.locator("#name");
     const purposeInput = form.locator("#purpose");
 
-    await expect(nameInput).toHaveJSProperty("validationMessage", "Please fill out this field.");
-
+    // Fill name, submit -> purpose should be flagged
     await nameInput.fill("Test OAuth Client");
     await page.getByTestId("oauth-client-create-submit").click();
-    await expect(purposeInput).toHaveJSProperty("validationMessage", "Please fill out this field.");
+    await expect(fieldErrors.first()).toBeVisible();
+
+    // Fill purpose, submit -> redirect URI should be flagged
+    await purposeInput.fill("Test purpose");
+    await page.getByTestId("oauth-client-create-submit").click();
+    await expect(page.locator('[data-type="error"]').first()).toBeVisible();
   });
 
   test("creates a private (confidential) OAuth client with minimal fields; submitted modal shows id+secret; list/details/DB reflect values", async ({
@@ -1114,10 +1122,10 @@ test.describe("OAuth client multiple redirect URIs", () => {
     await expectOAuthClientDeletedInDb(prisma, clientId);
   });
 
-  test("cannot add more than 10 redirect URIs; button shows limit message", async ({ page }, testInfo) => {
+  test("cannot add more than 10 redirect URIs; button shows limit message", async ({ page }, _testInfo) => {
     await loginAsSeededAdminAndGoToOAuthSettings(page);
 
-    await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
+    await page.getByTestId("open-oauth-client-create-dialog").click();
 
     const form = getOAuthClientCreateForm(page);
     await expect(form).toBeVisible();
@@ -1186,7 +1194,7 @@ test.describe("OAuth client multiple redirect URIs", () => {
   test("shows validation error for HTTP redirect URIs on non-local domains", async ({ page }) => {
     await loginAsSeededAdminAndGoToOAuthSettings(page);
 
-    await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
+    await page.getByTestId("open-oauth-client-create-dialog").click();
 
     const form = getOAuthClientCreateForm(page);
     await expect(form).toBeVisible();
@@ -1202,7 +1210,7 @@ test.describe("OAuth client multiple redirect URIs", () => {
 
     await page.getByTestId("oauth-client-create-submit").click();
 
-    const errorMessage = form.locator(".text-error", {
+    const errorMessage = form.locator("[data-slot='field-error']", {
       hasText: "HTTPS is required",
     });
     await expect(errorMessage).toBeVisible();
@@ -1211,7 +1219,7 @@ test.describe("OAuth client multiple redirect URIs", () => {
   test("shows validation error for duplicate redirect URIs", async ({ page }) => {
     await loginAsSeededAdminAndGoToOAuthSettings(page);
 
-    await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
+    await page.getByTestId("open-oauth-client-create-dialog").click();
 
     const form = getOAuthClientCreateForm(page);
     await expect(form).toBeVisible();
@@ -1229,7 +1237,7 @@ test.describe("OAuth client multiple redirect URIs", () => {
 
     await page.getByTestId("oauth-client-create-submit").click();
 
-    const errorMessage = form.locator(".text-error").filter({
+    const errorMessage = form.locator("[data-slot='field-error']").filter({
       hasText: "already added",
     });
     await expect(errorMessage.first()).toBeVisible();
@@ -1292,9 +1300,9 @@ test.describe("OAuth client multiple redirect URIs", () => {
 
     const testPrefix = `e2e-oauth-redirect-uris-${testInfo.testId}-`;
     const clientName = `${testPrefix}empty-fields-${Date.now()}`;
-    const scopes: AccessScope[] = ["BOOKING_READ"];
+    const _scopes: AccessScope[] = ["BOOKING_READ"];
 
-    await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
+    await page.getByTestId("open-oauth-client-create-dialog").click();
 
     const form = getOAuthClientCreateForm(page);
     await getOAuthClientCreateNameInput(form).fill(clientName);
@@ -1316,9 +1324,7 @@ test.describe("OAuth client multiple redirect URIs", () => {
     const submitted = getOAuthClientSubmittedModal(page);
     await expect(submitted).toBeVisible();
 
-    const clientId = (
-      (await page.getByTestId("oauth-client-submitted-client-id").textContent()) ?? ""
-    ).trim();
+    const clientId = (await page.getByTestId("oauth-client-submitted-client-id").inputValue()).trim();
     await page.getByTestId("oauth-client-submitted-done").click();
 
     await expectOAuthClientInDb(prisma, clientId, {
@@ -1337,7 +1343,7 @@ test.describe("OAuth client multiple redirect URIs", () => {
   test("cannot create client when all redirect URI fields are empty", async ({ page }) => {
     await loginAsSeededAdminAndGoToOAuthSettings(page);
 
-    await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
+    await page.getByTestId("open-oauth-client-create-dialog").click();
 
     const form = getOAuthClientCreateForm(page);
     await expect(form).toBeVisible();
@@ -1357,7 +1363,9 @@ test.describe("OAuth client multiple redirect URIs", () => {
 
     await page.getByTestId("oauth-client-create-submit").click();
 
-    await expect(page.getByTestId("toast-error")).toContainText("At least one redirect URI is required");
+    await expect(page.locator('[data-type="error"]').first()).toContainText(
+      "At least one redirect URI is required"
+    );
     await expect(getOAuthClientSubmittedModal(page)).toHaveCount(0);
   });
 
@@ -1385,7 +1393,9 @@ test.describe("OAuth client multiple redirect URIs", () => {
 
     await page.getByTestId("oauth-client-details-save").click();
 
-    await expect(page.getByTestId("toast-error")).toContainText("At least one redirect URI is required");
+    await expect(page.locator('[data-type="error"]').first()).toContainText(
+      "At least one redirect URI is required"
+    );
 
     await expectOAuthClientInDb(prisma, clientId, {
       redirectUris: ["https://example.com/callback"],

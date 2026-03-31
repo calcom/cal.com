@@ -1,25 +1,26 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
+import { PlusIcon } from "@coss/ui/icons";
+import { Button } from "@coss/ui/components/button";
 
 export const NewOAuthClientButton = ({
   onClick,
   dataTestId,
+  isEmptyState,
 }: {
   onClick: () => void;
   dataTestId: string;
+  isEmptyState?: boolean;
 }) => {
   const { t } = useLocale();
 
   return (
     <Button
-      color="secondary"
-      StartIcon="plus"
-      size="sm"
-      variant="fab"
+      variant={isEmptyState ? "default" : "outline"}
       data-testid={dataTestId}
       onClick={onClick}>
+      <PlusIcon aria-hidden />
       {t("new")}
     </Button>
   );

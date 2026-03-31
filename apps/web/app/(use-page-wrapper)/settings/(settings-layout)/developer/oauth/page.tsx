@@ -1,4 +1,4 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
+import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -19,7 +19,6 @@ export const generateMetadata = async () =>
 
 const Page = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
-  const t = await getTranslate();
 
   if (!session) {
     redirect("/auth/login?callbackUrl=/settings/developer/oauth");

@@ -1,24 +1,42 @@
 "use client";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { isLegacyClient, ORG_SCOPES, TEAM_SCOPES } from "@calcom/features/oauth/constants";
-import { useCopy } from "@calcom/lib/hooks/useCopy";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { AccessScope } from "@calcom/prisma/enums";
-import { Alert } from "@calcom/ui/components/alert";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import {
-  ConfirmationDialogContent,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-} from "@calcom/ui/components/dialog";
-import { Label, TextArea } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+
+import { isLegacyClient, ORG_SCOPES, TEAM_SCOPES } from "@calcom/features/oauth/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AccessScope } from "@calcom/prisma/enums";
+
+import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogPopup,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@coss/ui/components/alert-dialog";
+import { Alert, AlertDescription } from "@coss/ui/components/alert";
+import { Badge } from "@coss/ui/components/badge";
+import { Button } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "@coss/ui/components/dialog";
+import { Form } from "@coss/ui/components/form";
+import { Label } from "@coss/ui/components/label";
+import { Textarea } from "@coss/ui/components/textarea";
+import { toastManager } from "@coss/ui/components/toast";
+import { CopyableField } from "@coss/ui/shared/copyable-field";
+import { CheckIcon, TrashIcon, TriangleAlertIcon, XIcon } from "@coss/ui/icons";
+
 import type { OAuthClientCreateFormValues } from "../create/OAuthClientCreateModal";
 import { ClientSecretsSection } from "./ClientSecretsSection";
 import { OAuthClientFormFields } from "./OAuthClientFormFields";
@@ -73,37 +91,53 @@ const OAuthClientDetailsDialog = ({
   isDeletePending?: boolean;
 }) => {
   const { t } = useLocale();
-  const { copyToClipboard } = useCopy();
 
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isRejectConfirmOpen, setIsRejectConfirmOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectionReasonError, setShowRejectionReasonError] = useState(false);
 
-  const formEnablePkce =
-    client?.isPkceEnabled ?? (client?.clientType ? client.clientType.toUpperCase() === "PUBLIC" : false);
   const isLegacy = isLegacyClient(client?.scopes ?? []);
   const formClientScopes = client?.scopes ?? [];
 
   const form = useForm<OAuthClientCreateFormValues>({
     defaultValues: {
-      name: client?.name ?? "",
-      purpose: client?.purpose ?? "",
-      redirectUris: client?.redirectUris?.length ? client.redirectUris : [""],
-      websiteUrl: client?.websiteUrl ?? "",
-      logo: client?.logo ?? "",
-      enablePkce: formEnablePkce,
-      scopes: formClientScopes,
+      name: "",
+      purpose: "",
+      redirectUris: [""],
+      websiteUrl: "",
+      logo: "",
+      enablePkce: false,
+      scopes: [],
     },
   });
 
+  const handleOpenChangeComplete = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setIsRejectConfirmOpen(false);
+      setRejectionReason("");
+      setShowRejectionReasonError(false);
+      form.reset();
+    }
+  };
+
   useEffect(() => {
-    if (open) return;
-    setIsDeleteConfirmOpen(false);
-    setIsRejectConfirmOpen(false);
-    setRejectionReason("");
-    setShowRejectionReasonError(false);
-  }, [open]);
+    if (!open) return;
+
+    if (!client) return;
+
+    const enablePkce =
+      client.isPkceEnabled ?? (client.clientType ? client.clientType.toUpperCase() === "PUBLIC" : false);
+
+    form.reset({
+      name: client.name ?? "",
+      purpose: client.purpose ?? "",
+      redirectUris: client.redirectUris?.length ? client.redirectUris : [""],
+      websiteUrl: client.websiteUrl ?? "",
+      logo: client.logo ?? "",
+      enablePkce,
+      scopes: client.scopes ?? [],
+    });
+  }, [client, open, form]);
 
   const status = client?.status;
 
@@ -130,254 +164,255 @@ const OAuthClientDetailsDialog = ({
   };
 
   const clientId = client?.clientId;
-
-  const footerActions = (() => {
-    const closeButton = (
-      <DialogClose color="minimal" data-testid="oauth-client-details-close">
-        {t("close")}
-      </DialogClose>
-    );
-
-    if (showAdminActions) {
-      const canReject = Boolean(onReject) && (status === "PENDING" || status === "APPROVED");
-      const canApprove = Boolean(onApprove) && (status === "PENDING" || status === "REJECTED");
-
-      return (
-        <div className="flex gap-2 justify-end items-center w-full">
-          {closeButton}
-          {canReject ? (
-            <Button
-              type="button"
-              color="primary"
-              StartIcon="x"
-              data-testid="oauth-client-details-reject-trigger"
-              loading={isStatusChangePending}
-              onClick={() => {
-                setIsRejectConfirmOpen(true);
-                setRejectionReason("");
-                setShowRejectionReasonError(false);
-              }}>
-              {t("reject")}
-            </Button>
-          ) : null}
-          {canApprove ? (
-            <Button
-              type="button"
-              color="primary"
-              StartIcon="check"
-              data-testid="oauth-client-details-approve-trigger"
-              loading={isStatusChangePending}
-              onClick={() => {
-                if (!clientId) return;
-                onApprove?.(clientId);
-              }}>
-              {t("approve")}
-            </Button>
-          ) : null}
-        </div>
-      );
-    }
-
-    if (canEdit) {
-      return (
-        <div className="flex gap-2 justify-end items-center w-full">
-          {closeButton}
-          <Button type="submit" loading={isUpdatePending} data-testid="oauth-client-details-save">
-            {t("save")}
-          </Button>
-        </div>
-      );
-    }
-
-    return <div className="flex justify-end items-center w-full">{closeButton}</div>;
-  })();
+  const canReject = Boolean(onReject) && (status === "PENDING" || status === "APPROVED");
+  const canApprove = Boolean(onApprove) && (status === "PENDING" || status === "REJECTED");
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent enableOverflow type="creation">
-        {client ? (
-          <form
-            data-testid="oauth-client-details-form"
-            className="space-y-4"
-            onSubmit={form.handleSubmit((values) => {
-              if (!canEdit) return;
-              const redirectUris = values.redirectUris.map((uri) => uri.trim()).filter(Boolean);
-              if (redirectUris.length === 0) {
-                showToast(t("at_least_one_redirect_uri_required"), "error");
-                return;
-              }
-              if (!isLegacy && !values.scopes?.length) {
-                showToast(t("oauth_client_scope_required"), "error");
-                return;
-              }
-              onUpdate?.({
-                clientId: client.clientId,
-                name: values.name.trim() || "",
-                purpose: values.purpose.trim() || "",
-                redirectUris,
-                websiteUrl: values.websiteUrl.trim() || "",
-                logo: values.logo,
-                // note(Lauris): for legacy clients with no scopes selected, omit scopes to leave the DB unchanged.
-                scopes: isLegacy && !values.scopes?.length ? undefined : values.scopes,
-              });
-            })}>
-            {status ? (
-              <div className="flex justify-start items-center">
-                <Badge
-                  data-testid="oauth-client-details-status-badge"
-                  variant={getStatusBadgeVariant(status).variant}>
-                  {t(getStatusBadgeVariant(status).labelKey)}
-                </Badge>
-              </div>
-            ) : null}
-
-            {status === "PENDING" && !showAdminActions ? (
-              <Alert severity="warning" title={t("oauth_client_pending_info_description")} />
-            ) : null}
-
-            {status === "APPROVED" && !showAdminActions ? (
-              <Alert severity="warning" title={t("oauth_client_approved_reapproval_info")} />
-            ) : null}
-
-            {status === "REJECTED" && client.rejectionReason ? (
-              <Alert
-                severity="error"
-                title={t("oauth_client_rejection_reason")}
-                message={
-                  <div data-testid="oauth-client-details-rejection-reason-display">
-                    <p className="mb-2">"{client.rejectionReason}".</p>
-                    <p>{t("oauth_client_rejected_resubmit_info")}</p>
-                  </div>
+    <>
+      <Dialog open={open && !!client} onOpenChange={onOpenChange} onOpenChangeComplete={handleOpenChangeComplete}>
+        <DialogPopup className="max-w-xl">
+          {client ? (
+            <Form
+              className="contents"
+              data-testid="oauth-client-details-form"
+              onSubmit={form.handleSubmit((values) => {
+                if (!canEdit) return;
+                const redirectUris = values.redirectUris.map((uri) => uri.trim()).filter(Boolean);
+                if (redirectUris.length === 0) {
+                  toastManager.add({ title: t("at_least_one_redirect_uri_required"), type: "error" });
+                  return;
                 }
-              />
-            ) : null}
+                if (!isLegacy && !values.scopes?.length) {
+                  toastManager.add({ title: t("oauth_client_scope_required"), type: "error" });
+                  return;
+                }
+                onUpdate?.({
+                  clientId: client.clientId,
+                  name: values.name.trim() || "",
+                  purpose: values.purpose.trim() || "",
+                  redirectUris,
+                  websiteUrl: values.websiteUrl.trim() || "",
+                  logo: values.logo,
+                  scopes: isLegacy && !values.scopes?.length ? undefined : values.scopes,
+                });
+              })}>
+              <DialogHeader>
+                <DialogTitle>{t("oauth_client")}</DialogTitle>
+                <DialogDescription>{t("oAuth_client_updation_form_description")}</DialogDescription>
+              </DialogHeader>
+              <DialogPanel className="grid gap-6">
+                {status ? (
+                  <Badge
+                    className="w-fit"
+                    data-testid="oauth-client-details-status-badge"
+                    variant={getStatusBadgeVariant(status).variant}>
+                    {t(getStatusBadgeVariant(status).labelKey)}
+                  </Badge>
+                ) : null}
 
-            {showAdminActions && hasTeamOrOrgScopes(formClientScopes) ? (
-              <Alert
-                severity="warning"
-                title={t("oauth_client_team_org_scopes_warning")}
-                data-testid="oauth-client-team-org-scopes-warning"
-              />
-            ) : null}
+                {status === "PENDING" && !showAdminActions ? (
+                  <Alert variant="warning">
+                    <TriangleAlertIcon />
+                    <AlertDescription>{t("oauth_client_pending_info_description")}</AlertDescription>
+                  </Alert>
+                ) : null}
 
-            <div>
-              <div className="mb-1 text-sm text-subtle">{t("client_id")}</div>
-              <div className="flex">
-                <code
+                {status === "APPROVED" && !showAdminActions ? (
+                  <Alert variant="warning">
+                    <TriangleAlertIcon />
+                    <AlertDescription>{t("oauth_client_approved_reapproval_info")}</AlertDescription>
+                  </Alert>
+                ) : null}
+
+                {status === "REJECTED" && client.rejectionReason ? (
+                  <Alert variant="error">
+                    <TriangleAlertIcon />
+                    <AlertDescription>
+                      <div data-testid="oauth-client-details-rejection-reason-display">
+                        <p className="mb-2">&quot;{client.rejectionReason}&quot;.</p>
+                        <p>{t("oauth_client_rejected_resubmit_info")}</p>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                ) : null}
+
+                {showAdminActions && hasTeamOrOrgScopes(formClientScopes) ? (
+                  <Alert
+                    variant="warning"
+                    data-testid="oauth-client-team-org-scopes-warning">
+                    <TriangleAlertIcon />
+                    <AlertDescription>{t("oauth_client_team_org_scopes_warning")}</AlertDescription>
+                  </Alert>
+                ) : null}
+
+                <CopyableField
+                  copyTooltip={t("copy_to_clipboard")}
+                  copiedTooltip={t("client_id_copied")}
                   data-testid="oauth-client-details-client-id"
-                  className="px-2 py-1 w-full font-mono text-sm truncate align-middle rounded-md rounded-r-none bg-subtle text-default">
-                  {client.clientId}
-                </code>
-                <Tooltip side="top" content={t("copy_to_clipboard")}>
-                  <Button
-                    onClick={() => {
-                      copyToClipboard(client.clientId, {
-                        onSuccess: () => showToast(t("client_id_copied"), "success"),
-                        onFailure: () => showToast(t("error"), "error"),
-                      });
-                    }}
-                    type="button"
-                    size="sm"
-                    className="rounded-l-none"
-                    StartIcon="clipboard">
-                    {t("copy")}
-                  </Button>
-                </Tooltip>
-              </div>
-            </div>
+                  label={t("client_id")}
+                  value={client.clientId}
+                  monospace
+                />
 
-            {showSecretsSection && clientId ? (
-              <ClientSecretsSection clientId={clientId} />
-            ) : null}
+                {showSecretsSection && clientId ? (
+                  <ClientSecretsSection clientId={clientId} />
+                ) : null}
 
-            {client.user?.email ? (
-              <div>
-                <div className="mb-1 text-sm text-subtle">{t("owner")}</div>
-                <div className="text-sm text-default" data-testid="oauth-client-details-user-email">
-                  {client.user.email}
+                {client.user?.email ? (
+                  <div>
+                    <div className="mb-1 text-sm text-muted-foreground">{t("owner")}</div>
+                    <div className="text-sm text-foreground" data-testid="oauth-client-details-user-email">
+                      {client.user.email}
+                    </div>
+                  </div>
+                ) : null}
+
+                <OAuthClientFormFields
+                  form={form}
+                  isClientReadOnly={isFormDisabled}
+                  isPkceLocked
+                  isLegacyOAuthClient={isLegacy}
+                />
+
+                {canDelete ? (
+                  <div className="pt-2">
+                    <AlertDialog>
+                      <AlertDialogTrigger
+                        render={
+                          <Button
+                            type="button"
+                            variant="destructive-outline"
+                            data-testid="oauth-client-details-delete-trigger"
+                            disabled={isDeletePending}
+                            className="w-auto"
+                          />
+                        }>
+                        <TrashIcon aria-hidden />
+                        {t("delete_oauth_client")}
+                      </AlertDialogTrigger>
+                      <AlertDialogPopup>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t("delete_oauth_client")}</AlertDialogTitle>
+                          <AlertDialogDescription className="mb-4">
+                            {t("confirm_delete_oauth_client")}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogClose render={<Button variant="ghost" />}>
+                            {t("cancel")}
+                          </AlertDialogClose>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            loading={isDeletePending}
+                            data-testid="oauth-client-details-delete-confirm"
+                            onClick={() => onDelete?.(client.clientId)}>
+                            {isDeletePending ? t("deleting") : t("delete")}
+                          </Button>
+                        </AlertDialogFooter>
+                      </AlertDialogPopup>
+                    </AlertDialog>
+                  </div>
+                ) : null}
+              </DialogPanel>
+              <DialogFooter>
+                <div className="flex gap-2 justify-end items-center w-full">
+                  <DialogClose
+                    render={<Button variant="ghost" />}
+                    data-testid="oauth-client-details-close">
+                    {t("close")}
+                  </DialogClose>
+                  {canReject ? (
+                    <AlertDialog
+                      open={isRejectConfirmOpen}
+                      onOpenChange={(nextOpen) => {
+                        setIsRejectConfirmOpen(nextOpen);
+                        if (nextOpen) {
+                          setRejectionReason("");
+                          setShowRejectionReasonError(false);
+                        }
+                      }}>
+                      <AlertDialogTrigger
+                        render={
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            data-testid="oauth-client-details-reject-trigger"
+                            loading={isStatusChangePending}
+                          />
+                        }>
+                        <XIcon aria-hidden />
+                        {t("reject")}
+                      </AlertDialogTrigger>
+                      <AlertDialogPopup>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t("reject_oauth_client")}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t("reason_for_rejection")}
+                          </AlertDialogDescription>
+                          <div className="mt-2 space-y-2">
+                            <Label htmlFor="oauth-rejection-reason" className="sr-only">{t("reason_for_rejection")}</Label>
+                            <Textarea
+                              id="oauth-rejection-reason"
+                              data-testid="oauth-client-details-rejection-reason"
+                              value={rejectionReason}
+                              onChange={(e) => {
+                                setRejectionReason(e.target.value);
+                                if (showRejectionReasonError && e.target.value.trim().length > 0) {
+                                  setShowRejectionReasonError(false);
+                                }
+                              }}
+                              className={showRejectionReasonError ? "border-destructive" : undefined}
+                            />
+                            {showRejectionReasonError ? (
+                              <span className="text-destructive text-sm block">{t("is_required")}</span>
+                            ) : null}
+                          </div>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogClose render={<Button variant="ghost" />}>{t("cancel")}</AlertDialogClose>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            data-testid="oauth-client-details-reject-confirm"
+                            loading={isStatusChangePending}
+                            onClick={handleConfirmReject}>
+                            <XIcon aria-hidden />
+                            {t("reject")}
+                          </Button>
+                        </AlertDialogFooter>
+                      </AlertDialogPopup>
+                    </AlertDialog>
+                  ) : null}
+                  {canApprove ? (
+                    <Button
+                      type="button"
+                      variant="default"
+                      data-testid="oauth-client-details-approve-trigger"
+                      loading={isStatusChangePending}
+                      onClick={() => {
+                        if (!clientId) return;
+                        onApprove?.(clientId);
+                      }}>
+                      <CheckIcon aria-hidden />
+                      {t("approve")}
+                    </Button>
+                  ) : null}
+                  {canEdit ? (
+                    <Button
+                      type="submit"
+                      loading={isUpdatePending}
+                      data-testid="oauth-client-details-save">
+                      {t("save")}
+                    </Button>
+                  ) : null}
                 </div>
-              </div>
-            ) : null}
-
-            <OAuthClientFormFields form={form} isClientReadOnly={isFormDisabled} isPkceLocked isLegacyOAuthClient={isLegacy} />
-
-            {canDelete ? (
-              <div className="pt-2">
-                <Button
-                  type="button"
-                  color="destructive"
-                  StartIcon="trash"
-                  data-testid="oauth-client-details-delete-trigger"
-                  loading={isDeletePending}
-                  className="w-auto"
-                  onClick={() => setIsDeleteConfirmOpen(true)}>
-                  {t("delete_oauth_client")}
-                </Button>
-                <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
-                  <ConfirmationDialogContent
-                    variety="danger"
-                    title={t("delete_oauth_client")}
-                    cancelBtnText={t("cancel")}
-                    isPending={isDeletePending}
-                    confirmBtn={
-                      <DialogClose
-                        data-testid="oauth-client-details-delete-confirm"
-                        color="primary"
-                        loading={isDeletePending}
-                        onClick={() => {
-                          if (!client) return;
-                          onDelete?.(client.clientId);
-                        }}>
-                        {isDeletePending ? t("deleting") : t("delete")}
-                      </DialogClose>
-                    }>
-                    <p className="mb-4">{t("confirm_delete_oauth_client")}</p>
-                  </ConfirmationDialogContent>
-                </Dialog>
-              </div>
-            ) : null}
-
-            <DialogFooter className="mt-6">{footerActions}</DialogFooter>
-
-            <Dialog open={isRejectConfirmOpen} onOpenChange={setIsRejectConfirmOpen}>
-              <ConfirmationDialogContent
-                variety="danger"
-                title={t("reject_oauth_client")}
-                cancelBtnText={t("cancel")}
-                confirmBtn={
-                  <Button
-                    type="button"
-                    color="primary"
-                    StartIcon="x"
-                    data-testid="oauth-client-details-reject-confirm"
-                    loading={isStatusChangePending}
-                    className="not-disabled:hover:!bg-error not-disabled:hover:!text-white not-disabled:hover:!border-semantic-error"
-                    onClick={handleConfirmReject}>
-                    {t("reject")}
-                  </Button>
-                }>
-                <div className="mt-4 space-y-2">
-                  <Label htmlFor="oauth-rejection-reason">{t("reason_for_rejection")}</Label>
-                  <TextArea
-                    id="oauth-rejection-reason"
-                    data-testid="oauth-client-details-rejection-reason"
-                    value={rejectionReason}
-                    onChange={(e) => {
-                      setRejectionReason(e.target.value);
-                      if (showRejectionReasonError && e.target.value.trim().length > 0) {
-                        setShowRejectionReasonError(false);
-                      }
-                    }}
-                    className={showRejectionReasonError ? "border-error" : undefined}
-                  />
-                  {showRejectionReasonError ? <p className="text-sm text-error">{t("is_required")}</p> : null}
-                </div>
-              </ConfirmationDialogContent>
-            </Dialog>
-          </form>
-        ) : null}
-      </DialogContent>
-    </Dialog>
+              </DialogFooter>
+            </Form>
+          ) : null}
+        </DialogPopup>
+      </Dialog>
+    </>
   );
 };
 
@@ -391,10 +426,10 @@ function getStatusBadgeVariant(status: string) {
     case "APPROVED":
       return { variant: "success" as const, labelKey: "approved" as const };
     case "REJECTED":
-      return { variant: "red" as const, labelKey: "rejected" as const };
+      return { variant: "error" as const, labelKey: "rejected" as const };
     case "PENDING":
     default:
-      return { variant: "orange" as const, labelKey: "pending" as const };
+      return { variant: "warning" as const, labelKey: "pending" as const };
   }
 }
 

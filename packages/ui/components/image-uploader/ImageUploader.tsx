@@ -5,13 +5,36 @@ import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button, buttonVariants } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+  DialogTrigger,
+} from "@coss/ui/components/dialog";
+import { Slider } from "@coss/ui/components/slider";
 
 import type { ButtonColor, ButtonProps } from "../button";
-import { Button } from "../button";
-import { Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../dialog";
-import { showToast } from "../toast";
-import { useFileReader, createImage, Slider } from "./Common";
+import { toastManager } from "@coss/ui/components/toast";
+import { useFileReader, createImage } from "./Common";
 import type { FileEvent, Area } from "./Common";
+import { cn } from "@coss/ui/lib/utils";
+
+function getTriggerVariant(color?: ButtonColor): "default" | "outline" | "ghost" {
+  switch (color) {
+    case "primary":
+      return "default";
+    case "minimal":
+      return "ghost";
+    case "secondary":
+    default:
+      return "outline";
+  }
+}
 
 const MAX_IMAGE_SIZE = 512;
 
@@ -58,12 +81,13 @@ function CropContainer({
         />
       </div>
       <Slider
-        value={zoom}
+        className="mt-2 *:data-[slot=slider-control]:min-w-0!"
+        value={[zoom]}
         min={1}
         max={3}
         step={0.1}
-        label={t("slide_zoom_drag_instructions")}
-        changeHandler={handleZoomSliderChange}
+        aria-label={t("slide_zoom_drag_instructions")}
+        onValueChange={(value) => handleZoomSliderChange(Array.isArray(value) ? value[0] ?? 1 : value)}
       />
     </div>
   );
@@ -97,7 +121,7 @@ export default function ImageUploader({
     const file = e.target.files[0];
 
     if (file.size > limit) {
-      showToast(t("image_size_limit_exceed"), "error");
+      toastManager.add({ title: t("image_size_limit_exceed"), type: "error" });
     } else {
       setFile(file);
     }
@@ -119,27 +143,34 @@ export default function ImageUploader({
     [result, handleAvatarChange]
   );
 
+  const triggerVariant = getTriggerVariant(triggerButtonColor ?? "secondary");
+  const triggerSize: "xs" | "sm" | "default" | "lg" =
+    buttonSize === "xs" ? "xs" : buttonSize === "sm" ? "sm" : buttonSize === "lg" ? "lg" : "default";
+
   return (
     <Dialog
       onOpenChange={(opened) => {
-        // unset file on close
         if (!opened) {
           setFile(null);
         }
       }}>
-      <DialogTrigger asChild>
-        <Button
-          color={triggerButtonColor ?? "secondary"}
-          type="button"
-          disabled={disabled}
-          size={buttonSize}
-          data-testid={testId ? `open-upload-${testId}-dialog` : "open-upload-avatar-dialog"}
-          className="cursor-pointer py-1 text-sm">
-          {buttonMsg}
-        </Button>
+      <DialogTrigger
+        render={
+          <Button
+            variant={triggerVariant}
+            size={triggerSize}
+            disabled={disabled}
+            data-testid={testId ? `open-upload-${testId}-dialog` : "open-upload-avatar-dialog"}
+            className="cursor-pointer py-1 text-sm"
+          />
+        }>
+        {buttonMsg}
       </DialogTrigger>
-      <DialogContent title={t("upload_target", { target })}>
-        <div className="mb-4">
+      <DialogPopup className="max-w-[95vw] sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t("upload_target", { target })}</DialogTitle>
+        </DialogHeader>
+        <DialogPanel scrollFade={false} className="mb-4">
           <div className="cropper mt-6 flex flex-col items-center justify-center p-8">
             {!result && (
               <div className="bg-cal-muted flex h-20 max-h-20 w-20 items-center justify-start rounded-full">
@@ -156,13 +187,13 @@ export default function ImageUploader({
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
             <label
               data-testid={testId ? `open-upload-${testId}-filechooser` : "open-upload-image-filechooser"}
-              className="bg-subtle hover:bg-cal-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 transition focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
+              className={cn("mt-8", buttonVariants({ variant: "outline", size: "xs" }))}>
               <input
                 onInput={onInputFile}
                 type="file"
                 name={id}
                 placeholder={t("upload_image")}
-                className="text-default pointer-events-none absolute mt-4 opacity-0 "
+                className="text-default pointer-events-none absolute mt-4 opacity-0"
                 accept="image/*"
               />
               {t("choose_a_file")}
@@ -171,17 +202,21 @@ export default function ImageUploader({
               <p className="text-muted mt-4 text-center text-sm">({uploadInstruction})</p>
             )}
           </div>
-        </div>
-        <DialogFooter className="relative">
-          <DialogClose color="minimal">{t("cancel")}</DialogClose>
+        </DialogPanel>
+        <DialogFooter>
+          <DialogClose render={<Button variant="ghost" />}>{t("cancel")}</DialogClose>
           <DialogClose
-            data-testid={testId ? `upload-${testId}` : "upload-avatar"}
-            color="primary"
-            onClick={() => showCroppedImage(croppedAreaPixels)}>
+            render={
+              <Button
+                variant="default"
+                data-testid={testId ? `upload-${testId}` : "upload-avatar"}
+                onClick={() => showCroppedImage(croppedAreaPixels)}
+              />
+            }>
             {t("save")}
           </DialogClose>
         </DialogFooter>
-      </DialogContent>
+      </DialogPopup>
     </Dialog>
   );
 }

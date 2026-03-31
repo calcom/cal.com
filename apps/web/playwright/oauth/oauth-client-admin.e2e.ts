@@ -127,13 +127,13 @@ test.describe("OAuth clients admin", () => {
     await page.getByTestId("oauth-client-details-reject-trigger").click();
     await page.getByTestId("oauth-client-details-rejection-reason").fill(rejectionReason);
     await page.getByTestId("oauth-client-details-reject-confirm").click();
+    await expect(page.locator('[data-type="success"]').first()).toBeVisible({ timeout: 10_000 });
     await closeOAuthClientDetails(page);
 
     await expectClientStatusInDb(prisma, toBeRejected.clientId, "REJECTED");
 
     await expectClientNotInAdminSection(page, "oauth-client-admin-pending-section", toBeRejected.clientId);
     await expectClientInAdminSection(page, "oauth-client-admin-rejected-section", toBeRejected.clientId);
-    await expect(page.getByTestId("toast-success").first()).toBeVisible();
     await page.reload();
 
     await page

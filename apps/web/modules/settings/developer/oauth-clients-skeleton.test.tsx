@@ -1,28 +1,22 @@
 import { render } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
+import { OAuthClientsSkeleton } from "./oauth-clients-skeleton";
 
-vi.mock("@calcom/ui/components/skeleton", () => ({
-  SkeletonText: ({ className }: { className?: string }) => (
-    <div data-testid="skeleton-text" className={className} />
-  ),
-  SkeletonContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}));
-
-describe("OAuthClientsSkeleton", async () => {
-  const { OAuthClientsSkeleton } = await import("./oauth-clients-skeleton");
+describe("OAuthClientsSkeleton", () => {
   it("should render without crashing", () => {
     const { container } = render(<OAuthClientsSkeleton />);
     expect(container.firstChild).toBeTruthy();
   });
 
-  it("should render skeleton text elements", () => {
-    const { getAllByTestId } = render(<OAuthClientsSkeleton />);
-    expect(getAllByTestId("skeleton-text").length).toBeGreaterThan(3);
+  it("should render skeleton elements", () => {
+    const { container } = render(<OAuthClientsSkeleton />);
+    const skeletons = container.querySelectorAll('[data-slot="skeleton"]');
+    expect(skeletons.length).toBeGreaterThan(3);
   });
 
   it("should render 3 skeleton client rows", () => {
     const { container } = render(<OAuthClientsSkeleton />);
-    const rows = container.querySelectorAll(".flex.items-center.justify-between.p-4");
+    const rows = container.querySelectorAll('[data-slot="list-item"]');
     expect(rows.length).toBe(3);
   });
 });

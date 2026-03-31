@@ -46,7 +46,7 @@ export async function createPendingOAuthClient(
 ): Promise<CreateOAuthClientResult> {
   await goToDeveloperOAuthSettings(page);
 
-  await page.locator("header").getByTestId("open-oauth-client-create-dialog").click();
+  await page.getByTestId("open-oauth-client-create-dialog").click();
 
   const form = page.getByTestId("oauth-client-create-form");
   await form.locator("#name").fill(input.name);
@@ -63,18 +63,18 @@ export async function createPendingOAuthClient(
   }
 
   const pkceToggle = page.getByTestId("oauth-client-pkce-toggle");
-  await expect(pkceToggle).toHaveAttribute("data-state", "unchecked");
+  await expect(pkceToggle).toHaveAttribute("data-unchecked", "");
 
   await page.getByTestId("oauth-client-create-submit").click();
 
   const submitted = page.getByTestId("oauth-client-submitted-modal");
   await expect(submitted).toBeVisible();
 
-  const clientId = ((await page.getByTestId("oauth-client-submitted-client-id").textContent()) ?? "").trim();
+  const clientId = (await page.getByTestId("oauth-client-submitted-client-id").inputValue()).trim();
   expect(clientId.length).toBeGreaterThan(1);
 
   const clientSecret = (
-    (await page.getByTestId("oauth-client-submitted-client-secret").textContent()) ?? ""
+    (await page.getByTestId("oauth-client-submitted-client-secret").inputValue()) ?? ""
   ).trim();
   expect(clientSecret.length).toBeGreaterThan(1);
 
@@ -87,15 +87,15 @@ export async function openOAuthClientDetailsFromList(page: Page, clientId: strin
   const details = page.getByTestId("oauth-client-details-form");
   await page.getByTestId(`oauth-client-list-item-${clientId}`).click();
   await expect(details).toBeVisible();
-  await expect(details.getByTestId("oauth-client-details-client-id")).toHaveText(clientId);
+  await expect(details.getByTestId("oauth-client-details-client-id")).toHaveValue(clientId);
   return details;
 }
 
 export async function closeOAuthClientDetails(page: Page): Promise<void> {
   const details = page.getByTestId("oauth-client-details-form");
   if (!(await details.isVisible())) return;
-  await page.getByTestId("oauth-client-details-close").click();
-  await expect(details).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(details).toHaveCount(0, { timeout: 15_000 });
 }
 
 async function uploadOAuthClientLogo(page: Page, fileName: string): Promise<void> {

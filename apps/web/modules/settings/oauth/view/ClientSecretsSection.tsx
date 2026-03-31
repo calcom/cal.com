@@ -2,17 +2,40 @@
 
 import { useState } from "react";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
-import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
-import { ConfirmationDialogContent, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
-import { showToast } from "@calcom/ui/components/toast";
-import { Tooltip } from "@calcom/ui/components/tooltip";
-import { Label } from "@calcom/ui/components/form";
+import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogPopup,
+  AlertDialogTitle,
+} from "@coss/ui/components/alert-dialog";
+import { Alert, AlertDescription } from "@coss/ui/components/alert";
+import { Button } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "@coss/ui/components/dialog";
+import { Label } from "@coss/ui/components/label";
+import { toastManager } from "@coss/ui/components/toast";
+import {
+  Tooltip,
+  TooltipPopup,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@coss/ui/components/tooltip";
+import { ClipboardIcon, PlusIcon, TrashIcon, TriangleAlertIcon } from "@coss/ui/icons";
 
 export function ClientSecretsSection({ clientId }: { clientId: string }) {
   const { t } = useLocale();
@@ -29,18 +52,18 @@ export function ClientSecretsSection({ clientId }: { clientId: string }) {
       utils.viewer.oAuth.getClientSecrets.invalidate({ clientId });
     },
     onError: (error) => {
-      showToast(error.message || t("error"), "error");
+      toastManager.add({ title: error.message || t("error"), type: "error" });
     },
   });
 
   const deleteSecretMutation = trpc.viewer.oAuth.deleteClientSecret.useMutation({
     onSuccess: () => {
-      showToast(t("oauth_client_secret_deleted"), "success");
+      toastManager.add({ title: t("oauth_client_secret_deleted"), type: "success" });
       setDeleteSecretId(null);
       utils.viewer.oAuth.getClientSecrets.invalidate({ clientId });
     },
     onError: (error) => {
-      showToast(error.message || t("error"), "error");
+      toastManager.add({ title: error.message || t("error"), type: "error" });
     },
   });
 
@@ -49,15 +72,15 @@ export function ClientSecretsSection({ clientId }: { clientId: string }) {
 
   return (
     <div data-testid="oauth-client-secrets-section">
-      <Label className="text-emphasis mb-2 block text-sm font-medium">{t("client_secrets")}</Label>
+      <Label className="mb-2">{t("client_secrets")}</Label>
 
       <div className="space-y-2">
         {isLoading ? (
-          <div className="text-subtle py-2 text-sm">{t("loading")}</div>
+          <div className="text-muted-foreground py-2 text-sm">{t("loading")}</div>
         ) : secrets && secrets.length > 0 ? (
           secrets.map((secret) => (
             <div key={secret.id} data-testid={`oauth-client-secret-row-${secret.id}`} className="flex items-center gap-2">
-              <div className="border-default bg-default flex h-9 flex-1 items-center rounded-md border px-3">
+              <div className="border bg-muted/50 flex h-9 flex-1 items-center rounded-md px-3">
                 <SecretHint hint={secret.secretHint} />
                 <CreationDate date={secret.createdAt} />
               </div>
@@ -71,7 +94,7 @@ export function ClientSecretsSection({ clientId }: { clientId: string }) {
             onClick={() => createSecretMutation.mutate({ clientId })}
           />
         ) : (
-          <p className="text-subtle text-xs" data-testid="oauth-client-max-secrets-reached">
+          <p className="text-muted-foreground text-xs" data-testid="oauth-client-max-secrets-reached">
             {t("oauth_client_max_secrets_reached")}
           </p>
         )}
@@ -93,7 +116,7 @@ export function ClientSecretsSection({ clientId }: { clientId: string }) {
 }
 
 function SecretHint({ hint }: { hint: string }) {
-  return <span className="text-default font-mono text-sm">...{hint}</span>;
+  return <span className="text-foreground font-mono text-sm">...{hint}</span>;
 }
 
 function CreationDate({ date }: { date: Date | string }) {
@@ -101,7 +124,7 @@ function CreationDate({ date }: { date: Date | string }) {
     i18n: { language },
   } = useLocale();
   return (
-    <span className="text-subtle ml-2 text-xs">
+    <span className="text-muted-foreground ml-2 text-xs">
       {new Intl.DateTimeFormat(language, {
         month: "short",
         day: "numeric",
@@ -115,12 +138,12 @@ function DeleteSecretButton({ secretId, onDelete }: { secretId: number; onDelete
   return (
     <Button
       type="button"
-      variant="icon"
-      color="destructive"
-      StartIcon="trash"
+      variant="ghost"
+      size="icon"
       data-testid={`oauth-client-secret-delete-${secretId}`}
-      onClick={() => onDelete(secretId)}
-    />
+      onClick={() => onDelete(secretId)}>
+      <TrashIcon className="size-4" />
+    </Button>
   );
 }
 
@@ -130,11 +153,12 @@ function GenerateSecretButton({ isPending, onClick }: { isPending: boolean; onCl
   return (
     <Button
       type="button"
-      color="minimal"
-      StartIcon="plus"
+      variant="ghost"
+      size="sm"
       loading={isPending}
       data-testid="oauth-client-generate-secret"
       onClick={onClick}>
+      <PlusIcon className="size-4" />
       {t("generate_new_secret")}
     </Button>
   );
@@ -146,41 +170,57 @@ function NewSecretDialog({ secret, onClose }: { secret: string | null; onClose: 
 
   return (
     <Dialog open={secret !== null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent type="creation" title={t("new_client_secret")}>
-        <div className="space-y-4">
+      <DialogPopup>
+        <DialogHeader>
+          <DialogTitle>{t("new_client_secret")}</DialogTitle>
+          <DialogDescription>{t("client_secret")}</DialogDescription>
+        </DialogHeader>
+        <DialogPanel className="space-y-4">
           <div>
-            <div className="text-subtle mb-1 text-sm">{t("client_secret")}</div>
+            <div className="text-muted-foreground mb-1 text-sm">{t("client_secret")}</div>
             <div className="flex">
               <code
                 data-testid="oauth-client-new-secret-value"
-                className="bg-subtle text-default w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
+                className="bg-muted text-foreground w-full truncate rounded-md rounded-r-none px-2 py-1 align-middle font-mono text-sm">
                 {secret}
               </code>
-              <Tooltip side="top" content={t("copy_to_clipboard")}>
-                <Button
-                  onClick={() => {
-                    copyToClipboard(secret ?? "", {
-                      onSuccess: () => showToast(t("client_secret_copied"), "success"),
-                      onFailure: () => showToast(t("error"), "error"),
-                    });
-                  }}
-                  type="button"
-                  size="sm"
-                  className="rounded-l-none"
-                  StartIcon="clipboard">
-                  {t("copy")}
-                </Button>
-              </Tooltip>
+              <TooltipProvider delay={0}>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        onClick={() => {
+                          copyToClipboard(secret ?? "", {
+                            onSuccess: () => toastManager.add({ title: t("client_secret_copied"), type: "success" }),
+                            onFailure: () => toastManager.add({ title: t("error"), type: "error" }),
+                          });
+                        }}
+                        type="button"
+                        size="sm"
+                        className="rounded-l-none"
+                      />
+                    }>
+                    <ClipboardIcon className="size-4" />
+                    {t("copy")}
+                  </TooltipTrigger>
+                  <TooltipPopup>{t("copy_to_clipboard")}</TooltipPopup>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
-          <Alert severity="warning" message={t("oauth_client_client_secret_one_time_warning")} />
-        </div>
-        <DialogFooter className="mt-6">
-          <Button type="button" onClick={onClose} data-testid="oauth-client-new-secret-done">
+          <Alert variant="warning">
+            <TriangleAlertIcon />
+            <AlertDescription>{t("oauth_client_client_secret_one_time_warning")}</AlertDescription>
+          </Alert>
+        </DialogPanel>
+        <DialogFooter>
+          <DialogClose
+            render={<Button type="button" />}
+            data-testid="oauth-client-new-secret-done">
             {t("done")}
-          </Button>
+          </DialogClose>
         </DialogFooter>
-      </DialogContent>
+      </DialogPopup>
     </Dialog>
   );
 }
@@ -199,24 +239,24 @@ function DeleteSecretConfirmDialog({
   const { t } = useLocale();
 
   return (
-    <Dialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
-      <ConfirmationDialogContent
-        variety="danger"
-        title={t("delete_client_secret")}
-        cancelBtnText={t("cancel")}
-        isPending={isPending}
-        confirmBtn={
+    <AlertDialog open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
+      <AlertDialogPopup>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t("delete_client_secret")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("confirm_delete_client_secret")}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogClose render={<Button variant="ghost" />}>{t("cancel")}</AlertDialogClose>
           <Button
             type="button"
-            color="destructive"
+            variant="destructive"
             data-testid="oauth-client-secret-delete-confirm"
             loading={isPending}
             onClick={onConfirm}>
             {t("delete")}
           </Button>
-        }>
-        <p>{t("confirm_delete_client_secret")}</p>
-      </ConfirmationDialogContent>
-    </Dialog>
+        </AlertDialogFooter>
+      </AlertDialogPopup>
+    </AlertDialog>
   );
 }
