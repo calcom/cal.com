@@ -203,9 +203,6 @@ describe("isTimeSlotAvailable", () => {
   });
 
   it("should return true (avoid false negative) when schedule data has no slots for the surrounding dates", () => {
-    // When the schedule data exists but doesn't cover the date range of the slot at all
-    // (e.g., schedule was fetched for a different date range), we should consider the slot
-    // available to avoid false negatives that would incorrectly disable the confirm button.
     const slotToCheckInIso = "2024-04-15T10:30:00.000Z";
     const quickAvailabilityChecks: QuickAvailabilityCheck[] = [];
 
@@ -225,8 +222,6 @@ describe("isTimeSlotAvailable", () => {
   });
 
   it("should return false when schedule covers the date range but slot is not present", () => {
-    // When the schedule data covers the surrounding dates but the specific slot
-    // time isn't found, it's genuinely unavailable.
     const slotToCheckInIso = "2024-02-08T10:30:00.000Z";
     const quickAvailabilityChecks: QuickAvailabilityCheck[] = [];
 

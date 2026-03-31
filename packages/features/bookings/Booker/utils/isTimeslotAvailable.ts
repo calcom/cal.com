@@ -50,10 +50,7 @@ function _isSlotPresentInSchedule({
   const slotsInIsoForDateBefore = scheduleData.slots[dateBefore] as Maybe<SlotsInIso>;
   const slotsInIsoForDateAfter = scheduleData.slots[dateAfter] as Maybe<SlotsInIso>;
 
-  // If none of the surrounding dates have any slot data in the schedule,
-  // the schedule doesn't cover this date range. To avoid a false negative
-  // (which would incorrectly disable the confirm button), consider the slot available.
-  // False positives are acceptable per the contract of isTimeSlotAvailable.
+  // Schedule doesn't cover this date range — avoid false negative
   if (!slotsInIsoForDate && !slotsInIsoForDateBefore && !slotsInIsoForDateAfter) {
     return true;
   }
