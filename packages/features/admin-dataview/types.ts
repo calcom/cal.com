@@ -40,6 +40,11 @@ export interface FieldDefinition {
   isPrimary?: boolean;
   /** Brief description shown as tooltip in the UI */
   description?: string;
+  /**
+   * The actual PostgreSQL column name when it differs from the Prisma field name
+   * (i.e. the field uses `@map`). Used by the SQL query service.
+   */
+  pgColumn?: string;
   /** Whether this column is searchable via the global search box */
   searchable?: boolean;
   /** Whether to show this column in the list/table view (defaults true) */

@@ -8,7 +8,7 @@ import { useTheme } from "next-themes";
 import { registry } from "@calcom/features/admin-dataview/registry";
 
 import classNames from "@calcom/ui/classNames";
-import { Grid3x3Icon, CreditCardIcon, ShieldIcon, LayersIcon, UsersIcon, MoonIcon, SunIcon } from "@coss/ui/icons";
+import { Grid3x3Icon, CreditCardIcon, ShieldIcon, LayersIcon, UsersIcon, MoonIcon, SunIcon, TerminalIcon } from "@coss/ui/icons";
 
 import { GlobalSearchTrigger, GlobalSearchDialog } from "./GlobalSearch";
 
@@ -53,7 +53,7 @@ export function StudioSidebar() {
   const openSearch = useCallback(() => setSearchOpen(true), []);
 
   return (
-    <nav className="bg-default flex flex-col overflow-hidden">
+    <nav className="bg-default flex h-full flex-col overflow-hidden">
       {/* Header */}
       <div className="flex h-10 items-center gap-2 px-3">
         <Grid3x3Icon className="text-subtle h-4 w-4 shrink-0" />
@@ -98,6 +98,19 @@ export function StudioSidebar() {
             </div>
           );
         })}
+      </div>
+
+      {/* SQL Query link */}
+      <div className="border-subtle border-t px-2 py-1.5">
+        <Link
+          href="/admin/data/sql"
+          className={classNames(
+            "text-default hover:bg-subtle flex h-8 items-center gap-2 rounded-md px-2 text-xs transition-colors",
+            pathname === "/admin/data/sql" && "bg-subtle text-emphasis font-medium"
+          )}>
+          <TerminalIcon className="h-3.5 w-3.5 shrink-0" />
+          <span>SQL Query</span>
+        </Link>
       </div>
 
       {/* Footer */}

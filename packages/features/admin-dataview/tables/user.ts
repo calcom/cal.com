@@ -23,7 +23,7 @@ export const userTable: TableDefinition = {
     { column: "avatarUrl", label: "Avatar URL", type: "url", access: "hidden" },
     { column: "timeZone", label: "Timezone", type: "string", access: "editable" },
     { column: "weekStart", label: "Week Start", type: "string", access: "editable", showInList: false },
-    { column: "createdDate", label: "Created", type: "datetime", access: "readonly", showInList: true },
+    { column: "createdDate", label: "Created", type: "datetime", access: "readonly", showInList: true, pgColumn: "created" },
     { column: "lastActiveAt", label: "Last Active", type: "datetime", access: "readonly", showInList: true },
     { column: "trialEndsAt", label: "Trial Ends", type: "datetime", access: "editable", showInList: false },
     {

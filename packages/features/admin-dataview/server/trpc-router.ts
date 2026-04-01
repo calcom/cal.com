@@ -1,8 +1,11 @@
 import { z } from "zod";
 
+import { getRedisService } from "@calcom/features/di/containers/Redis";
 import { readonlyPrisma } from "@calcom/prisma";
 
 import { getAdminDataViewService, getAdminTableRegistry } from "../di/container";
+import { SavedQueriesService } from "./saved-queries-service";
+import { SqlQueryService } from "./sql-query-service";
 import { AdminTriggerRunsService } from "./trigger-runs.service";
 
 const ZListInput = z.object({
@@ -183,6 +186,85 @@ export function createAdminDataViewRouter(
             : null,
           seatChanges,
         };
+      }),
+
+    sqlQuery: authedAdminProcedure
+      .input(z.object({ sql: z.string().min(1).max(10_000) }))
+      .mutation(async ({ input }) => {
+        const service = new SqlQueryService(readonlyPrisma, getAdminTableRegistry());
+        return service.execute(input.sql);
+      }),
+
+    sqlSchema: authedAdminProcedure.query(() => {
+      // Return table + column metadata from the registry for autocomplete.
+      // Uses actual PG names (respecting @@map / @map) so SQL queries work.
+      const MODEL_TO_PG_TABLE: Record<string, string> = { User: "users", Avatar: "avatars" };
+      const tables = getAdminTableRegistry().getAll();
+      return tables.map((t) => ({
+        modelName: t.modelName,
+        tableName: MODEL_TO_PG_TABLE[t.modelName] ?? t.modelName,
+        slug: t.slug,
+        columns: t.fields
+          .filter((f) => f.access !== "hidden" && !f.relation)
+          .map((f) => ({
+            column: f.pgColumn ?? f.column,
+            prismaName: f.column,
+            label: f.label,
+            type: f.type,
+            enumValues: f.enumValues,
+          })),
+      }));
+    }),
+
+    // ── Saved queries (Redis-backed) ──────────────────────────────────────
+
+    savedQueries: authedAdminProcedure.query(async ({ ctx }) => {
+      const svc = new SavedQueriesService(getRedisService());
+      return svc.list(ctx.user.id);
+    }),
+
+    savedQueryById: authedAdminProcedure
+      .input(z.object({ id: z.string() }))
+      .query(async ({ ctx, input }) => {
+        const svc = new SavedQueriesService(getRedisService());
+        return svc.getByIdForUser(input.id, ctx.user.id);
+      }),
+
+    saveQuery: authedAdminProcedure
+      .input(
+        z.object({
+          name: z.string().min(1).max(200),
+          sql: z.string().min(1).max(10_000),
+          description: z.string().max(500).optional(),
+          visibility: z.enum(["public", "private"]),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const svc = new SavedQueriesService(getRedisService());
+        return svc.save(input, { id: ctx.user.id, email: ctx.user.email });
+      }),
+
+    updateSavedQuery: authedAdminProcedure
+      .input(
+        z.object({
+          id: z.string(),
+          name: z.string().min(1).max(200).optional(),
+          sql: z.string().min(1).max(10_000).optional(),
+          description: z.string().max(500).optional(),
+          visibility: z.enum(["public", "private"]).optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...updates } = input;
+        const svc = new SavedQueriesService(getRedisService());
+        return svc.update(id, updates, { id: ctx.user.id, email: ctx.user.email });
+      }),
+
+    deleteSavedQuery: authedAdminProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const svc = new SavedQueriesService(getRedisService());
+        return svc.delete(input.id, ctx.user.id);
       }),
 
     triggerRunsByTag: authedAdminProcedure

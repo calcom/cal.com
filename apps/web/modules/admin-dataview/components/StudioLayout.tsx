@@ -7,12 +7,15 @@ import { registry } from "@calcom/features/admin-dataview/registry";
 import { useStudio } from "../contexts/StudioContext";
 import { RecordDetailModal } from "./RecordDetailModal";
 import { ResizeHandle } from "./ResizeHandle";
+import { SqlQueryPanel } from "./SqlQueryPanel";
 import { StudioSidebar } from "./StudioSidebar";
 import { StudioTable } from "./StudioTable";
 
 interface StudioLayoutProps {
   slug: string | null;
 }
+
+const SQL_MODE_SLUG = "__sql__";
 
 const SIDEBAR_MIN = 180;
 const SIDEBAR_MAX = 320;
@@ -23,8 +26,8 @@ const PANEL_MAX = 800;
 const PANEL_DEFAULT = 480;
 
 export function StudioLayout({ slug }: StudioLayoutProps) {
-  
-  const table = slug ? registry.getBySlug(slug) ?? null : null;
+  const isSqlMode = slug === SQL_MODE_SLUG;
+  const table = slug && !isSqlMode ? registry.getBySlug(slug) ?? null : null;
   const { detail, dialogOpen, pinned, openDetail, pin, unpin, close, setDialogOpen } = useStudio();
 
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT);
@@ -56,7 +59,7 @@ export function StudioLayout({ slug }: StudioLayoutProps) {
           gridTemplateRows: "minmax(0, 1fr)",
         }}>
         {/* Sidebar */}
-        <div className="overflow-hidden">
+        <div className="min-h-0 overflow-hidden">
           <StudioSidebar />
         </div>
 
@@ -65,7 +68,13 @@ export function StudioLayout({ slug }: StudioLayoutProps) {
 
         {/* Main table area */}
         <div className="grid overflow-hidden" style={{ gridTemplateRows: "minmax(0, 1fr)" }}>
-          {table ? <StudioTable table={table} onOpenDetail={handleOpenDetail} /> : <WelcomeScreen />}
+          {isSqlMode ? (
+            <SqlQueryPanel />
+          ) : table ? (
+            <StudioTable table={table} onOpenDetail={handleOpenDetail} />
+          ) : (
+            <WelcomeScreen />
+          )}
         </div>
 
         {/* Panel resize handle + pinned panel */}
