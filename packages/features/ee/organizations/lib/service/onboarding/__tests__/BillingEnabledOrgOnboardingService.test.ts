@@ -1240,5 +1240,85 @@ describe("BillingEnabledOrgOnboardingService", () => {
       expect(organization.brandColor).toBeNull();
       expect(organization.bannerUrl).toBeNull();
     });
+
+    it("should succeed when org-level invite throws user_already_invited_or_member", async () => {
+      vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(false);
+
+      const mockOrganizationOnboarding = await createTestOnboarding({
+        teams: [],
+      });
+
+      await createTestUser({
+        email: mockOrganizationOnboarding.orgOwnerEmail,
+        onboardingCompleted: true,
+        emailVerified: new Date(),
+      });
+
+      vi.mocked(inviteMembersWithNoInviterPermissionCheck).mockRejectedValueOnce(
+        new Error("user_already_invited_or_member")
+      );
+
+      const { organization } = await service.createOrganization(mockOrganizationOnboarding, {
+        subscriptionId: "sub_123",
+        subscriptionItemId: "si_123",
+      });
+
+      expect(organization).toBeDefined();
+      expect(organization.name).toBe(mockOrganizationOnboarding.name);
+    });
+
+    it("should succeed when team-level invite throws user_already_invited_or_member", async () => {
+      vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(false);
+
+      const mockOrganizationOnboarding = await createTestOnboarding();
+
+      await createTestUser({
+        email: mockOrganizationOnboarding.orgOwnerEmail,
+        onboardingCompleted: true,
+        emailVerified: new Date(),
+      });
+
+      vi.mocked(createTeamsHandler).mockResolvedValue({
+        teams: [{ id: 300, name: "New Team" }],
+      } as any);
+
+      // First call (org invite) succeeds, second call (team invite) throws
+      vi.mocked(inviteMembersWithNoInviterPermissionCheck)
+        .mockResolvedValueOnce(undefined as any)
+        .mockRejectedValueOnce(new Error("user_already_invited_or_member"));
+
+      const { organization } = await service.createOrganization(mockOrganizationOnboarding, {
+        subscriptionId: "sub_123",
+        subscriptionItemId: "si_123",
+      });
+
+      expect(organization).toBeDefined();
+      expect(organization.name).toBe(mockOrganizationOnboarding.name);
+    });
+
+    it("should still throw when invite fails with a different error", async () => {
+      vi.spyOn(constants, "IS_SELF_HOSTED", "get").mockReturnValue(false);
+
+      const mockOrganizationOnboarding = await createTestOnboarding({
+        teams: [],
+      });
+
+      await createTestUser({
+        email: mockOrganizationOnboarding.orgOwnerEmail,
+        onboardingCompleted: true,
+        emailVerified: new Date(),
+      });
+
+      vi.mocked(inviteMembersWithNoInviterPermissionCheck).mockRejectedValueOnce(
+        new Error("unexpected_error")
+      );
+
+      await expect(
+        service.createOrganization(mockOrganizationOnboarding, {
+          subscriptionId: "sub_123",
+          subscriptionItemId: "si_123",
+        })
+      ).rejects.toThrow("unexpected_error");
+    });
   });
 });

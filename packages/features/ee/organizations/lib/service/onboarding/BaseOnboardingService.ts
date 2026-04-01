@@ -657,35 +657,53 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
 
     if (invitesToOrg.length > 0) {
       log.info(`Inviting ${invitesToOrg.length} members to organization ${organization.id}`);
-      await inviteMembersWithNoInviterPermissionCheck({
-        inviterName: null,
-        teamId: organization.id,
-        language: "en",
-        creationSource: CreationSource.WEBAPP,
-        orgSlug: organization.slug || null,
-        invitations: invitesToOrg.map((member) => ({
-          usernameOrEmail: member.email,
-          role: (member.role as MembershipRole) || MembershipRole.MEMBER,
-        })),
-        isDirectUserAction: false,
-      });
+      try {
+        await inviteMembersWithNoInviterPermissionCheck({
+          inviterName: null,
+          teamId: organization.id,
+          language: "en",
+          creationSource: CreationSource.WEBAPP,
+          orgSlug: organization.slug || null,
+          invitations: invitesToOrg.map((member) => ({
+            usernameOrEmail: member.email,
+            role: (member.role as MembershipRole) || MembershipRole.MEMBER,
+          })),
+          isDirectUserAction: false,
+        });
+      } catch (error) {
+        if (error instanceof Error && error.message === "user_already_invited_or_member") {
+          // Expected during webhook retries — members were already invited on a previous attempt
+          log.warn(`Skipping org invite: members already invited to organization ${organization.id}`);
+        } else {
+          throw error;
+        }
+      }
     }
 
     for (const [teamId, members] of Array.from(invitesToTeams.entries())) {
       const teamName = createdTeams.find((t) => t.id === teamId)?.name || `team ${teamId}`;
       log.info(`Inviting ${members.length} members to team "${teamName}" (${teamId})`);
-      await inviteMembersWithNoInviterPermissionCheck({
-        inviterName: null,
-        teamId: teamId,
-        language: "en",
-        creationSource: CreationSource.WEBAPP,
-        orgSlug: organization.slug || null,
-        invitations: members.map((member: InvitedMember) => ({
-          usernameOrEmail: member.email,
-          role: (member.role as MembershipRole) || MembershipRole.MEMBER,
-        })),
-        isDirectUserAction: false,
-      });
+      try {
+        await inviteMembersWithNoInviterPermissionCheck({
+          inviterName: null,
+          teamId: teamId,
+          language: "en",
+          creationSource: CreationSource.WEBAPP,
+          orgSlug: organization.slug || null,
+          invitations: members.map((member: InvitedMember) => ({
+            usernameOrEmail: member.email,
+            role: (member.role as MembershipRole) || MembershipRole.MEMBER,
+          })),
+          isDirectUserAction: false,
+        });
+      } catch (error) {
+        if (error instanceof Error && error.message === "user_already_invited_or_member") {
+          // Expected during webhook retries — members were already invited on a previous attempt
+          log.warn(`Skipping team invite: members already invited to team "${teamName}" (${teamId})`);
+        } else {
+          throw error;
+        }
+      }
     }
 
     log.info("All member invites processed successfully");
