@@ -17,17 +17,19 @@ test.describe("Teams", () => {
     const org = await orgs.create({
       name: "TestOrg",
     });
-    const user = await users.create({
-      organizationId: org.id,
-      roleInOrganization: MembershipRole.ADMIN,
-    });
+    const user = await users.create(
+      {
+        organizationId: org.id,
+        roleInOrganization: MembershipRole.ADMIN,
+      },
+      { hasTeam: true }
+    );
     const inviteeEmail = `${user.username}+invitee@example.com`;
     await user.apiLogin();
     await page.goto("/teams");
 
     await test.step("Can create team", async () => {
-      // Click text=Create Team
-      await page.locator("text=Create a new Team").click();
+      await page.locator("[data-testid=new-team-btn]").first().click();
       await page.waitForLoadState("networkidle");
       // Fill team name input (new onboarding-v3 style flow)
       await page.locator('[data-testid="team-name-input"]').fill(`${user.username}'s Team`);
@@ -60,7 +62,7 @@ test.describe("Teams", () => {
       await page.getByTestId("disband-team-button").click();
       await page.getByTestId("dialog-confirmation").click();
       await page.waitForURL("/teams");
-      expect(await page.locator(`text=${user.username}'s Team`).count()).toEqual(0);
+      await expect(page.locator(`text=${user.username}'s Team`)).toBeHidden({ timeout: 10000 });
 
       // Cleanup the invited user since they were created without our fixtures
       const invitedUser = await prisma.user.findUnique({ where: { email: inviteeEmail } });

@@ -485,29 +485,28 @@ export class ManagedEventManualReassignmentService {
         })
       );
 
-      const builder = new CalendarEventBuilder()
-        .withBasicDetails({
-          bookerUrl,
-          title: newBooking.title,
-          startTime: dayjs(newBooking.startTime).utc().format(),
-          endTime: dayjs(newBooking.endTime).utc().format(),
-          additionalNotes: newBooking.description || undefined,
-        })
+      const builder = new CalendarEventBuilder({
+        bookerUrl,
+        title: newBooking.title,
+        startTime: dayjs(newBooking.startTime).utc().format(),
+        endTime: dayjs(newBooking.endTime).utc().format(),
+        type: targetEventTypeDetails.slug,
+        organizer: {
+          id: newUser.id,
+          name: newUser.name || "Nameless",
+          email: newUser.email,
+          timeZone: newUser.timeZone,
+          language: { translate: newUserT, locale: newUser.locale ?? "en" },
+        },
+        attendees,
+        additionalNotes: newBooking.description || undefined,
+      })
         .withEventType({
           id: targetEventTypeDetails.id,
-          slug: targetEventTypeDetails.slug,
           description: newBooking.description,
           hideOrganizerEmail: targetEventTypeDetails.hideOrganizerEmail,
           schedulingType: targetEventTypeDetails.schedulingType,
         })
-        .withOrganizer({
-          id: newUser.id,
-          name: newUser.name,
-          email: newUser.email,
-          timeZone: newUser.timeZone,
-          language: { translate: newUserT, locale: newUser.locale ?? "en" },
-        })
-        .withAttendees(attendees)
         .withLocation({
           location: bookingLocation || null,
           conferenceCredentialId: conferenceCredentialId ?? undefined,
@@ -698,30 +697,29 @@ export class ManagedEventManualReassignmentService {
         })
       );
 
-      const emailBuilder = new CalendarEventBuilder()
-        .withBasicDetails({
-          bookerUrl: bookerUrlForEmail,
-          title: newBooking.title,
-          startTime: dayjs(newBooking.startTime).utc().format(),
-          endTime: dayjs(newBooking.endTime).utc().format(),
-          additionalNotes: newBooking.description || undefined,
-        })
-        .withEventType({
-          id: targetEventTypeDetails.id,
-          slug: targetEventTypeDetails.slug,
-          description: newBooking.description,
-          schedulingType: parentEventType.schedulingType,
-          seatsPerTimeSlot: targetEventTypeDetails.seatsPerTimeSlot,
-        })
-        .withOrganizer({
+      const emailBuilder = new CalendarEventBuilder({
+        bookerUrl: bookerUrlForEmail,
+        title: newBooking.title,
+        startTime: dayjs(newBooking.startTime).utc().format(),
+        endTime: dayjs(newBooking.endTime).utc().format(),
+        type: targetEventTypeDetails.slug,
+        organizer: {
           id: newUser.id,
-          name: newUser.name,
+          name: newUser.name || "Nameless",
           email: newUser.email,
           timeZone: newUser.timeZone,
           timeFormat: getTimeFormatStringFromUserTimeFormat(newUser.timeFormat),
           language: { translate: newUserT, locale: newUser.locale ?? "en" },
+        },
+        attendees: attendeesForEmail,
+        additionalNotes: newBooking.description || undefined,
+      })
+        .withEventType({
+          id: targetEventTypeDetails.id,
+          description: newBooking.description,
+          schedulingType: parentEventType.schedulingType,
+          seatsPerTimeSlot: targetEventTypeDetails.seatsPerTimeSlot,
         })
-        .withAttendees(attendeesForEmail)
         .withLocation({
           location: bookingLocation || null,
         })
