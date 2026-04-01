@@ -1,21 +1,17 @@
 import prismock from "../../../../testing/src/lib/__mocks__/prisma";
-
 import {
   createBookingScenario,
-  getScenarioData,
   getGoogleCalendarCredential,
-  TestData,
   getOrganizer,
-  mockSuccessfulVideoMeetingCreation,
+  getScenarioData,
   mockCalendarToHaveNoBusySlots,
   mockNoTranslations,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
 } from "../../../../testing/src/lib/bookingScenario/bookingScenario";
-
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { sendNotification } from "@calcom/features/notifications/sendNotification";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getInstantBookingCreateService } from "../../di/InstantBookingCreateService.container";
 import type { CreateInstantBookingData } from "../dto/types";
 
@@ -43,6 +39,15 @@ vi.mock("@calcom/app-store/calendar.services.generated", () => ({
       },
     }
   ),
+}));
+
+// Mock OrganizationRepository container to prevent a deep transitive import chain
+// (InstantBookingCreateService → getBookingFields → workflows/types → routing-forms →
+// webhooks DI → eventTypes → OrganizationRepository.container) from triggering a Vitest
+// module-resolution RPC that is still in flight when the worker shuts down, causing
+// "Closing rpc while fetch was pending" errors.
+vi.mock("@calcom/features/ee/organizations/di/OrganizationRepository.container", () => ({
+  getOrganizationRepository: vi.fn().mockReturnValue({}),
 }));
 
 vi.mock("@calcom/features/notifications/sendNotification", () => ({
