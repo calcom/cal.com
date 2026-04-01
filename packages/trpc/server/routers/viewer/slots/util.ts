@@ -164,7 +164,7 @@ export async function getGuestBusyTimesForReschedule({
 
     const guestBookings = await bookingRepo.findAcceptedByUserIdsOrEmails({
       userIds: calUsers.map((u) => u.id),
-      emails: calUsers.map((u) => u.email),
+      emails: Array.from(new Set([...calUsers.map((u) => u.email), ...guestEmails])),
       startDate,
       endDate,
       excludeUid: rescheduleUid,
@@ -979,7 +979,7 @@ export class AvailableSlotsService {
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
     let guestBusyTimes: EventBusyDetails[] = [];
-    if (input.rescheduleUid && eventType.schedulingType !== SchedulingType.COLLECTIVE) {
+    if (input.rescheduleUid) {
       guestBusyTimes = await this._getGuestBusyTimesForReschedule({
         rescheduleUid: input.rescheduleUid,
         startDate: startTimeDate,

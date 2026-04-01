@@ -129,6 +129,46 @@ describe("getGuestBusyTimesForReschedule", () => {
     );
   });
 
+  it("includes original guest emails alongside resolved primary emails", async () => {
+    (deps.bookingRepo.findByUidIncludeEventType as ReturnType<typeof vi.fn>).mockResolvedValue({
+      attendees: [{ email: "secondary@guest.com" }],
+    });
+    (deps.userRepo.findByEmails as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { id: 10, email: "primary@guest.com" },
+    ]);
+    (deps.bookingRepo.findAcceptedByUserIdsOrEmails as ReturnType<typeof vi.fn>).mockResolvedValue(
+      []
+    );
+
+    await getGuestBusyTimesForReschedule({ ...baseArgs, ...deps });
+
+    expect(deps.bookingRepo.findAcceptedByUserIdsOrEmails).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userIds: [10],
+        emails: expect.arrayContaining(["primary@guest.com", "secondary@guest.com"]),
+      })
+    );
+  });
+
+  it("deduplicates emails when primary matches original guest email", async () => {
+    (deps.bookingRepo.findByUidIncludeEventType as ReturnType<typeof vi.fn>).mockResolvedValue({
+      attendees: [{ email: "same@guest.com" }],
+    });
+    (deps.userRepo.findByEmails as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { id: 10, email: "same@guest.com" },
+    ]);
+    (deps.bookingRepo.findAcceptedByUserIdsOrEmails as ReturnType<typeof vi.fn>).mockResolvedValue(
+      []
+    );
+
+    await getGuestBusyTimesForReschedule({ ...baseArgs, ...deps });
+
+    const call = (deps.bookingRepo.findAcceptedByUserIdsOrEmails as ReturnType<typeof vi.fn>).mock
+      .calls[0][0];
+    const uniqueEmails = new Set(call.emails);
+    expect(uniqueEmails.size).toBe(call.emails.length);
+  });
+
   it("returns empty array on error (graceful degradation)", async () => {
     (deps.bookingRepo.findByUidIncludeEventType as ReturnType<typeof vi.fn>).mockRejectedValue(
       new Error("DB connection failed")
