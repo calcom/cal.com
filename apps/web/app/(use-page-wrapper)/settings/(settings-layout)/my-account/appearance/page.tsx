@@ -1,7 +1,8 @@
 import { createRouterCaller } from "app/_trpc/context";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
@@ -23,6 +24,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
+  const t = await getTranslate();
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   const userId = session?.user?.id;
   const redirectUrl = "/auth/login?callbackUrl=/settings/my-account/appearance";
@@ -45,7 +47,16 @@ const Page = async () => {
     user && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
   const hasPaidPlan = IS_SELF_HOSTED ? true : hasTeamPlan?.hasTeamPlan || isCurrentUsernamePremium;
 
-  return <AppearancePage user={user} hasPaidPlan={hasPaidPlan} />;
+  return (
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("appearance")}>
+          <AppHeaderDescription>{t("appearance_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
+      <AppearancePage user={user} hasPaidPlan={hasPaidPlan} />
+    </>
+  );
 };
 
 export default Page;

@@ -139,7 +139,7 @@ const OrgProfileView = ({
 
   return (
     <LicenseRequired>
-      <>
+      <div className="flex flex-col gap-4">
         {permissions?.canEdit ? (
           <>
             <OrgProfileForm defaultValues={defaultValues} />
@@ -178,7 +178,7 @@ const OrgProfileView = ({
           </div>
         )}
         {/* LEAVE ORG should go above here ^ */}
-      </>
+      </div>
     </LicenseRequired>
   );
 };

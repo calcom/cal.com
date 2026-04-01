@@ -1,6 +1,6 @@
-import * as RadioGroup from "@radix-ui/react-radio-group";
+import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -8,17 +8,19 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts, defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import { bookerLayoutOptions, type BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { Label } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
-
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import { Checkbox } from "@coss/ui/components/checkbox";
+import { CheckboxGroup } from "@coss/ui/components/checkbox-group";
+import { Field, FieldItem } from "@coss/ui/components/field";
+import { Fieldset } from "@coss/ui/components/fieldset";
+import { Toggle, ToggleGroup, ToggleGroupSeparator } from "@coss/ui/components/toggle-group";
+import { cn } from "@coss/ui/lib/utils";
+import { SelectablePreviewOption } from "@coss/ui/shared/selectable-preview-option";
 
 type BookerLayoutSelectorProps = {
   title?: string;
   description?: string;
   name?: string;
+  hideHeader?: boolean;
   /**
    * If this boolean is set, it will show the user settings if the event does not have any settings (is null).
    * In that case it also will NOT register itself in the form, so that way when submitting the form, the
@@ -33,8 +35,6 @@ type BookerLayoutSelectorProps = {
    * to this boolean.
    */
   isDark?: boolean;
-  isLoading?: boolean;
-  isDisabled?: boolean;
   isOuterBorder?: boolean;
   user?: Partial<Pick<RouterOutputs["viewer"]["me"]["get"], "defaultBookerLayouts">>;
   isUserLoading?: boolean;
@@ -46,11 +46,10 @@ export const BookerLayoutSelector = ({
   title,
   description,
   name,
+  hideHeader = false,
   fallbackToUserSettings,
   isDark,
-  isDisabled = false,
   isOuterBorder = false,
-  isLoading = false,
   user,
   isUserLoading,
 }: BookerLayoutSelectorProps) => {
@@ -60,15 +59,17 @@ export const BookerLayoutSelector = ({
   const shouldShowUserSettings = (fallbackToUserSettings && !getValues(name || defaultFieldName)) || false;
 
   return (
-    <div className={classNames(isOuterBorder && "border-subtle rounded-lg border p-6")}>
-      <div className={classNames(isOuterBorder ? "pb-5" : "border-subtle rounded-t-xl border p-6")}>
-        <Label className={classNames("mb-1 font-semibold", isOuterBorder ? "text-sm" : "text-base")}>
-          {title ? title : t("layout")}
-        </Label>
-        <p className="text-subtle max-w-full wrap-break-word text-sm leading-tight">
-          {description ? description : t("bookerlayout_description")}
-        </p>
-      </div>
+    <div className={cn("flex flex-col gap-4", isOuterBorder && "rounded-lg border p-6")}>
+      {!hideHeader && (
+        <div className={cn(isOuterBorder ? "" : "rounded-t-xl border p-6")}>
+          <div className={cn("font-semibold", isOuterBorder ? "text-sm" : "text-base")}>
+            {title ? title : t("layout")}
+          </div>
+          <p className="text-muted-foreground max-w-full wrap-break-word text-sm">
+            {description ? description : t("bookerlayout_description")}
+          </p>
+        </div>
+      )}
       <Controller
         // If the event does not have any settings, we don't want to register this field in the form.
         // That way the settings won't get saved into the event on save, but remain null. Thus keep using
@@ -76,24 +77,14 @@ export const BookerLayoutSelector = ({
         control={shouldShowUserSettings ? undefined : control}
         name={name || defaultFieldName}
         render={({ field: { value, onChange } }) => (
-          <>
-            <BookerLayoutFields
-              showUserSettings={shouldShowUserSettings}
-              settings={value}
-              onChange={onChange}
-              isDark={isDark}
-              isOuterBorder={isOuterBorder}
-              user={user}
-              isUserLoading={isUserLoading}
-            />
-            {!isOuterBorder && (
-              <SectionBottomActions align="end">
-                <Button loading={isLoading} type="submit" disabled={isDisabled} color="primary">
-                  {t("update")}
-                </Button>
-              </SectionBottomActions>
-            )}
-          </>
+          <BookerLayoutFields
+            showUserSettings={shouldShowUserSettings}
+            settings={value}
+            onChange={onChange}
+            isDark={isDark}
+            user={user}
+            isUserLoading={isUserLoading}
+          />
         )}
       />
     </div>
@@ -105,7 +96,6 @@ type BookerLayoutFieldsProps = {
   onChange: (settings: BookerLayoutSettings) => void;
   showUserSettings: boolean;
   isDark?: boolean;
-  isOuterBorder?: boolean;
   user?: Partial<Pick<RouterOutputs["viewer"]["me"]["get"], "defaultBookerLayouts">>;
   isUserLoading?: boolean;
 };
@@ -117,7 +107,6 @@ const BookerLayoutFields = ({
   onChange,
   showUserSettings,
   isDark,
-  isOuterBorder,
   user,
   isUserLoading,
 }: BookerLayoutFieldsProps) => {
@@ -136,28 +125,6 @@ const BookerLayoutFields = ({
     return layouts;
   }, {} as BookerLayoutState);
 
-  const onLayoutToggleChange = useCallback(
-    (changedLayout: BookerLayouts, checked: boolean) => {
-      const newEnabledLayouts = Object.keys(toggleValues).filter((layout) => {
-        if (changedLayout === layout) return checked === true;
-        return toggleValues[layout as BookerLayouts] === true;
-      }) as BookerLayouts[];
-
-      const isDefaultLayoutToggledOff = newEnabledLayouts.indexOf(defaultLayout) === -1;
-      const firstEnabledLayout = newEnabledLayouts[0];
-
-      onChange({
-        enabledLayouts: newEnabledLayouts,
-        // If default layout is toggled off, we set the default layout to the first enabled layout
-        // if there's none enabled, we set it to month view.
-        defaultLayout: isDefaultLayoutToggledOff
-          ? firstEnabledLayout || BookerLayouts.MONTH_VIEW
-          : defaultLayout,
-      });
-    },
-    [defaultLayout, onChange, toggleValues]
-  );
-
   const onDefaultLayoutChange = useCallback(
     (newDefaultLayout: BookerLayouts) => {
       onChange({
@@ -175,57 +142,81 @@ const BookerLayoutFields = ({
     // Sent default layout settings to form, otherwise it would still have 'null' as it's value.
     if (user?.defaultBookerLayouts) onChange(user.defaultBookerLayouts);
   };
+
+  const enabledLayouts = Object.keys(toggleValues).filter(
+    (layout) => toggleValues[layout as BookerLayouts]
+  ) as BookerLayouts[];
+
   return (
-    <div className={classNames("stack-y-5", !isOuterBorder && "border-subtle border-x px-6 py-8")}>
-      <div
-        className={classNames(
-          "flex flex-col gap-5 transition-opacity sm:flex-row sm:gap-3",
-          disableFields && "pointer-events-none opacity-40",
-          disableFields && isUserLoading && "animate-pulse"
-        )}>
-        {bookerLayoutOptions.map((layout) => (
-          <div className="w-full" key={layout}>
-            <label>
-              <img
-                className="mb-3 w-full max-w-none cursor-pointer"
-                src={`/bookerlayout_${layout}${isDark ? "_dark" : ""}.svg`}
-                alt="Layout preview"
-              />
-              <CheckboxField
-                value={layout}
-                name={`bookerlayout_${layout}`}
-                description={t(`bookerlayout_${layout}`)}
-                checked={toggleValues[layout]}
-                onChange={(ev) => onLayoutToggleChange(layout, ev.target.checked)}
-              />
-            </label>
-          </div>
-        ))}
-      </div>
-      <div
-        hidden={Object.values(toggleValues).filter((value) => value === true).length <= 1}
-        className={classNames(
-          "transition-opacity",
-          disableFields && "pointer-events-none opacity-40",
-          disableFields && isUserLoading && "animate-pulse"
-        )}>
-        <Label>{t("bookerlayout_default_title")}</Label>
-        <RadioGroup.Root
-          key={defaultLayout}
-          className="border-subtle flex w-full gap-2 rounded-md border p-1"
-          defaultValue={defaultLayout}
-          onValueChange={(layout: BookerLayouts) => onDefaultLayoutChange(layout)}>
+    <div className="flex flex-col gap-6">
+      <Field className="max-w-none gap-4" name="layout" render={(props) => <Fieldset {...props} />}>
+        <CheckboxGroup
+          className="flex w-full sm:flex-row gap-4 md:gap-6"
+          value={enabledLayouts}
+          onValueChange={(newValues) => {
+            const typedValues = newValues as BookerLayouts[];
+            const defaultStillEnabled = typedValues.includes(defaultLayout);
+            onChange({
+              enabledLayouts: typedValues,
+              defaultLayout: defaultStillEnabled ? defaultLayout : typedValues[0] || BookerLayouts.MONTH_VIEW,
+            });
+          }}>
           {bookerLayoutOptions.map((layout) => (
-            <RadioGroup.Item
-              className="aria-checked:bg-emphasis hover:[&:not(:disabled)]:bg-subtle focus:[&:not(:disabled)]:bg-subtle w-full rounded-[4px] p-1 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-40"
-              disabled={toggleValues[layout] === false}
-              key={layout}
-              value={layout}>
-              {t(`bookerlayout_${layout}`)}
-              <RadioGroup.Indicator />
-            </RadioGroup.Item>
+            <FieldItem className="flex-1" key={layout}>
+              <SelectablePreviewOption
+                control={
+                  <Checkbox
+                    className="peer col-start-1 row-start-2 shrink-0 max-sm:hidden"
+                    value={layout}
+                    disabled={disableFields}
+                  />
+                }
+                preview={
+                  <Image
+                    alt={t(`bookerlayout_${layout}`)}
+                    className="h-full w-full object-cover object-center shadow-xs"
+                    fill
+                    sizes="(min-width: 0) 100vw"
+                    src={`/bookerlayout_${layout}${isDark ? "_dark" : ""}.svg`}
+                  />
+                }
+                label={
+                  <>
+                    {t(`bookerlayout_${layout}`)}
+                    {defaultLayout === layout ? (
+                      <span className="font-normal text-muted-foreground">({t("default")})</span>
+                    ) : null}
+                  </>
+                }
+                labelClassName="flex items-center gap-1"
+              />
+            </FieldItem>
           ))}
-        </RadioGroup.Root>
+        </CheckboxGroup>
+      </Field>
+      <div className="flex flex-col gap-2">
+        <span className="font-medium text-sm">{t("bookerlayout_default_title")}</span>
+        <ToggleGroup
+          onValueChange={(values) => {
+            if (values[0]) onDefaultLayoutChange(values[0] as BookerLayouts);
+          }}
+          value={[defaultLayout]}
+          variant="outline">
+          {bookerLayoutOptions.map((layout) => (
+            <Fragment key={layout}>
+              <Toggle
+                aria-label={t(`bookerlayout_${layout}`)}
+                disabled={disableFields || !enabledLayouts.includes(layout)}
+                value={layout}
+              >
+                {t(`bookerlayout_${layout}`)}
+              </Toggle>
+              {layout !== bookerLayoutOptions[bookerLayoutOptions.length - 1] ? (
+                <ToggleGroupSeparator key={`${layout}-separator`} />
+              ) : null}
+            </Fragment>
+          ))}
+        </ToggleGroup>
       </div>
       {disableFields && (
         <p className="text-sm">
@@ -240,13 +231,13 @@ const BookerLayoutFields = ({
                 className="underline">
                 Appearance
               </Link>,
-              <Button
+              <button
+                type="button"
                 key="override-button"
                 onClick={onOverrideSettings}
-                color="minimal"
-                className="h-fit p-0 font-normal underline hover:bg-transparent focus-visible:bg-transparent">
+                className="underline cursor-pointer">
                 Override
-              </Button>,
+              </button>,
             ]}
           />
         </p>

@@ -126,6 +126,7 @@ function Toasts({ position }: { position: ToastPosition }): React.ReactElement {
                     <Toast.Title
                       className="font-medium"
                       data-slot="toast-title"
+                      {...(toast.type ? { "data-testid": `toast-${toast.type}` } : {})}
                     />
                     <Toast.Description
                       className="text-muted-foreground"

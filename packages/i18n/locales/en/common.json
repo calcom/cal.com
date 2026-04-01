@@ -2068,6 +2068,7 @@
   "adding_events_to": "Adding events to",
   "follow_system_preferences": "Follow system preferences",
   "custom_brand_colors": "Custom brand colors",
+  "enable_custom_brand_colors": "Enable custom brand colors",
   "customize_your_brand_colors": "Customize your own brand colour into your booking page.",
   "pro": "Pro",
   "removes_cal_branding": "Removes any {{appName}} related brandings, i.e. 'Powered by {{appName}}.'",

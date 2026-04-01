@@ -1,37 +1,58 @@
 "use client";
 
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import {
+  Card,
+  CardFrame,
+  CardFrameDescription,
+  CardFrameFooter,
+  CardFrameHeader,
+  CardFrameTitle,
+  CardPanel,
+} from "@coss/ui/components/card";
+import { Skeleton } from "@coss/ui/components/skeleton";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
 
 export const SkeletonLoader = () => {
   const { t } = useLocale();
   return (
-    <SettingsHeader title={t("appearance")} description={t("appearance_description")}>
-      <SkeletonContainer>
-        <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
-          <SkeletonText className="h-8 w-1/3" />
-        </div>
-        <div className="border-subtle stack-y-6 border-x px-4 py-6 sm:px-6">
-          <div className="[&>*]:bg-emphasis flex w-full items-center justify-center gap-x-2 *:animate-pulse">
-            <div className="h-32 flex-1 rounded-md p-5" />
-            <div className="h-32 flex-1 rounded-md p-5" />
-            <div className="h-32 flex-1 rounded-md p-5" />
-          </div>
-          <div className="flex justify-between">
-            <SkeletonText className="h-8 w-1/3" />
-            <SkeletonText className="h-8 w-1/3" />
-          </div>
-
-          <SkeletonText className="h-8 w-full" />
-        </div>
-        <div className="rounded-b-lg">
-          <SectionBottomActions align="end">
-            <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
-          </SectionBottomActions>
-        </div>
-      </SkeletonContainer>
-    </SettingsHeader>
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("appearance")}>
+          <AppHeaderDescription>{t("appearance_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
+      <CardFrame>
+        <CardFrameHeader>
+          <CardFrameTitle>
+            <Skeleton className="h-4 my-0.5 w-40" data-testid="skeleton-text" />
+          </CardFrameTitle>
+          <CardFrameDescription>
+            <Skeleton className="h-4 my-0.5 w-64" data-testid="skeleton-text" />
+          </CardFrameDescription>
+        </CardFrameHeader>
+        <Card>
+          <CardPanel>
+            <div className="flex-col flex w-full sm:flex-row gap-4 md:gap-6">
+              <div className="flex-1 flex gap-4 sm:flex-col items-center">
+                <Skeleton className="w-full max-sm:w-20 aspect-208/120 rounded-sm sm:rounded-lg" data-testid="skeleton-text" />
+                <Skeleton className="h-4 w-full max-w-56" data-testid="skeleton-text" />
+              </div>
+              <div className="flex-1 flex gap-4 sm:flex-col items-center">
+                <Skeleton className="w-full max-sm:w-20 aspect-208/120 rounded-sm sm:rounded-lg" data-testid="skeleton-text" />
+                <Skeleton className="h-4 w-full max-w-56" data-testid="skeleton-text" />
+              </div>
+              <div className="flex-1 flex gap-4 sm:flex-col items-center">
+                <Skeleton className="w-full max-sm:w-20 aspect-208/120 rounded-sm sm:rounded-lg" data-testid="skeleton-text" />
+                <Skeleton className="h-4 w-full max-w-56" data-testid="skeleton-text" />
+              </div>
+            </div>
+          </CardPanel>
+        </Card>
+        <CardFrameFooter className="flex justify-end">
+          <Skeleton className="h-9 sm:h-8 w-20 rounded-lg" data-testid="skeleton-text" />
+        </CardFrameFooter>
+      </CardFrame>
+    </>
   );
 };

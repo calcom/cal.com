@@ -1,30 +1,52 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import BrandColorsForm from "~/ee/common/components/BrandColorsForm";
-import { AppearanceSkeletonLoader } from "~/ee/common/components/CommonSkeletonLoaders";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import ThemeLabel from "@calcom/features/settings/ThemeLabel";
-import { APP_NAME } from "@calcom/lib/constants";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import { APP_NAME, DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
+import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
+import { trpc } from "@calcom/trpc/react";
+import { ColorPicker, Form } from "@calcom/ui/components/form";
 import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
+import { Alert, AlertDescription } from "@coss/ui/components/alert";
+import { Button } from "@coss/ui/components/button";
+import {
+  Card,
+  CardFrame,
+  CardFrameAction,
+  CardFrameDescription,
+  CardFrameFooter,
+  CardFrameHeader,
+  CardFrameTitle,
+  CardPanel,
+} from "@coss/ui/components/card";
+import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@coss/ui/components/collapsible";
+import { Field, FieldItem } from "@coss/ui/components/field";
+import { Fieldset } from "@coss/ui/components/fieldset";
+import { Label } from "@coss/ui/components/label";
+import { Radio, RadioGroup } from "@coss/ui/components/radio-group";
+import { Switch } from "@coss/ui/components/switch";
+import { toastManager } from "@coss/ui/components/toast";
+import { TriangleAlertIcon } from "@coss/ui/icons";
+import { SelectablePreviewOption } from "@coss/ui/shared/selectable-preview-option";
+import { SettingsToggle } from "@coss/ui/shared/settings-toggle";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { AppearanceSkeletonLoader } from "~/ee/common/components/CommonSkeletonLoaders";
 
 type BrandColorsFormValues = {
   brandColor: string;
   darkBrandColor: string;
 };
+
+const themeItems = [
+  { imageSrc: "/theme-system.svg", labelKey: "theme_system", value: "system" },
+  { imageSrc: "/theme-light.svg", labelKey: "light", value: "light" },
+  { imageSrc: "/theme-dark.svg", labelKey: "dark", value: "dark" },
+] as const;
 
 type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
@@ -35,6 +57,12 @@ const ProfileView = ({ team }: ProfileViewProps) => {
   const [hideBrandingValue, setHideBrandingValue] = useState(team?.hideBranding ?? false);
   const [hideBookATeamMember, setHideBookATeamMember] = useState(team?.hideBookATeamMember ?? false);
   const [hideTeamProfileLink, setHideTeamProfileLink] = useState(team?.hideTeamProfileLink ?? false);
+  const [darkModeError, setDarkModeError] = useState(false);
+  const [lightModeError, setLightModeError] = useState(false);
+  const [isCustomBrandColorChecked, setIsCustomBrandColorChecked] = useState(
+    (team?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR) !== DEFAULT_LIGHT_BRAND_COLOR ||
+    (team?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR) !== DEFAULT_DARK_BRAND_COLOR
+  );
 
   const themeForm = useForm<{ theme: string | null | undefined }>({
     defaultValues: {
@@ -46,6 +74,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
     formState: { isSubmitting: isThemeSubmitting, isDirty: isThemeDirty },
     reset: resetTheme,
   } = themeForm;
+  const selectedTheme = themeForm.watch("theme");
 
   const brandColorsFormMethods = useForm<BrandColorsFormValues>({
     defaultValues: {
@@ -54,11 +83,14 @@ const ProfileView = ({ team }: ProfileViewProps) => {
     },
   });
 
-  const { reset: resetBrandColors } = brandColorsFormMethods;
+  const {
+    reset: resetBrandColors,
+    formState: { isSubmitting: isBrandColorsFormSubmitting, isDirty: isBrandColorsFormDirty },
+  } = brandColorsFormMethods;
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
-      showToast(err.message, "error");
+      toastManager.add({ title: err.message, type: "error" });
     },
     async onSuccess(res) {
       await utils.viewer.teams.get.invalidate();
@@ -70,7 +102,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
         });
       }
 
-      showToast(t("your_team_updated_successfully"), "success");
+      toastManager.add({ title: t("your_team_updated_successfully"), type: "success" });
       if (res?.slug) {
         // Appearance changes (theme, colours, branding toggles) are read on the team booking page through
         // `getCachedTeamData` in `queries.ts`.
@@ -86,12 +118,26 @@ const ProfileView = ({ team }: ProfileViewProps) => {
     mutation.mutate({ ...values, id: team.id });
   };
 
+  const handleCustomBrandColorsToggle = (checked: boolean) => {
+    if (isCustomBrandColorChecked === checked) return;
+    setIsCustomBrandColorChecked(checked);
+    setLightModeError(false);
+    setDarkModeError(false);
+    if (!checked) {
+      mutation.mutate({
+        id: team.id,
+        brandColor: DEFAULT_LIGHT_BRAND_COLOR,
+        darkBrandColor: DEFAULT_DARK_BRAND_COLOR,
+      });
+    }
+  };
+
   const isAdmin = team && checkAdminOrOwner(team.membership.role);
 
   return (
     <>
       {isAdmin ? (
-        <>
+        <div className="flex flex-col gap-4">
           <Form
             form={themeForm}
             handleSubmit={({ theme }) => {
@@ -100,44 +146,59 @@ const ProfileView = ({ team }: ProfileViewProps) => {
                 theme: theme === "light" || theme === "dark" ? theme : null,
               });
             }}>
-            <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
-              <div>
-                <p className="mt-0.5 text-base font-semibold leading-none">{t("theme")}</p>
-                <p className="text-default text-sm leading-normal">{t("theme_applies_note")}</p>
-              </div>
-            </div>
-            <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
-              <ThemeLabel
-                variant="system"
-                value="system"
-                label={t("theme_system")}
-                defaultChecked={team.theme === null}
-                register={themeForm.register}
-              />
-              <ThemeLabel
-                variant="light"
-                value="light"
-                label={t("light")}
-                defaultChecked={team.theme === "light"}
-                register={themeForm.register}
-              />
-              <ThemeLabel
-                variant="dark"
-                value="dark"
-                label={t("dark")}
-                defaultChecked={team.theme === "dark"}
-                register={themeForm.register}
-              />
-            </div>
-            <SectionBottomActions className="mb-6" align="end">
-              <Button
-                disabled={isThemeSubmitting || !isThemeDirty}
-                type="submit"
-                data-testid="update-org-theme-btn"
-                color="primary">
-                {t("update")}
-              </Button>
-            </SectionBottomActions>
+            <CardFrame>
+              <CardFrameHeader>
+                <CardFrameTitle>{t("theme")}</CardFrameTitle>
+                <CardFrameDescription>{t("theme_applies_note")}</CardFrameDescription>
+              </CardFrameHeader>
+              <Card>
+                <CardPanel>
+                  <Field
+                    className="max-w-none gap-4"
+                    name="theme"
+                    render={(props) => <Fieldset {...props} />}>
+                    <RadioGroup
+                      className="flex w-full sm:flex-row gap-4 md:gap-6"
+                      value={(selectedTheme ?? "system") as "system" | "light" | "dark"}
+                      onValueChange={(value) => {
+                        themeForm.setValue("theme", value === "system" ? null : value, { shouldDirty: true });
+                      }}>
+                      {themeItems.map((item) => (
+                        <FieldItem className="flex-1" key={item.value}>
+                          <SelectablePreviewOption
+                            control={
+                              <Radio
+                                className="peer col-start-1 row-start-2 shrink-0 max-sm:hidden"
+                                value={item.value}
+                              />
+                            }
+                            preview={
+                              <Image
+                                alt={t(item.labelKey)}
+                                src={item.imageSrc}
+                                fill
+                                sizes="(min-width: 0) 100vw"
+                                className="size-full object-cover object-center shadow-xs"
+                              />
+                            }
+                            label={t(item.labelKey)}
+                          />
+                        </FieldItem>
+                      ))}
+                    </RadioGroup>
+                  </Field>
+                </CardPanel>
+              </Card>
+              <CardFrameFooter className="flex justify-end">
+                <Button
+                  loading={mutation.isPending}
+                  disabled={isThemeSubmitting || !isThemeDirty}
+                  type="submit"
+                  data-testid="update-org-theme-btn">
+                  {t("update")}
+                </Button>
+              </CardFrameFooter>
+            </CardFrame>
           </Form>
 
           <Form
@@ -145,16 +206,116 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             handleSubmit={(values) => {
               onBrandColorsFormSubmit(values);
             }}>
-            <BrandColorsForm
-              onSubmit={onBrandColorsFormSubmit}
-              brandColor={team?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR}
-              darkBrandColor={team?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR}
-            />
+            <CardFrame
+              className="has-[[data-slot=collapsible-trigger][data-unchecked]]:before:bg-card before:transition-all"
+              render={<Collapsible open={isCustomBrandColorChecked} onOpenChange={handleCustomBrandColorsToggle} />}>
+              <CardFrameHeader className="has-[[data-slot=collapsible-trigger][data-unchecked]]:p-6 transition-all">
+                <CardFrameTitle>{t("custom_brand_colors")}</CardFrameTitle>
+                <CardFrameDescription>{t("customize_your_brand_colors")}</CardFrameDescription>
+                <CardFrameAction>
+                  <CollapsibleTrigger
+                    nativeButton={false}
+                    render={
+                      <Switch
+                        checked={isCustomBrandColorChecked}
+                        onCheckedChange={handleCustomBrandColorsToggle}
+                        aria-label={t("enable_custom_brand_colors")}
+                      />
+                    }
+                  />
+                </CardFrameAction>
+              </CardFrameHeader>
+              <Card
+                render={
+                  <CollapsiblePanel className="data-ending-style:opacity-0 data-starting-style:opacity-0 transition-[height,opacity]" />
+                }>
+                <CardPanel>
+                  <div className="flex flex-col gap-4">
+                    <Controller
+                      name="brandColor"
+                      control={brandColorsFormMethods.control}
+                      defaultValue={team?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR}
+                      render={() => (
+                        <div className="flex flex-col gap-4">
+                          <div className="flex flex-col gap-2">
+                            <Label render={<div />}>{t("light_brand_color")}</Label>
+                            <ColorPicker
+                              defaultValue={team?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR}
+                              resetDefaultValue={DEFAULT_LIGHT_BRAND_COLOR}
+                              onChange={(value) => {
+                                if (checkWCAGContrastColor("#ffffff", value)) {
+                                  setLightModeError(false);
+                                } else {
+                                  setLightModeError(true);
+                                }
+                                brandColorsFormMethods.setValue("brandColor", value, {
+                                  shouldDirty: true,
+                                });
+                              }}
+                            />
+                          </div>
+                          {lightModeError ? (
+                            <Alert variant="warning">
+                              <TriangleAlertIcon />
+                              <AlertDescription>{t("light_theme_contrast_error")}</AlertDescription>
+                            </Alert>
+                          ) : null}
+                        </div>
+                      )}
+                    />
+
+                    <Controller
+                      name="darkBrandColor"
+                      control={brandColorsFormMethods.control}
+                      defaultValue={team?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR}
+                      render={() => (
+                        <div className="flex flex-col gap-4">
+                          <div className="flex flex-col gap-2">
+                            <Label render={<div />}>{t("dark_brand_color")}</Label>
+                            <ColorPicker
+                              defaultValue={team?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR}
+                              resetDefaultValue={DEFAULT_DARK_BRAND_COLOR}
+                              onChange={(value) => {
+                                if (checkWCAGContrastColor("#101010", value)) {
+                                  setDarkModeError(false);
+                                } else {
+                                  setDarkModeError(true);
+                                }
+                                brandColorsFormMethods.setValue("darkBrandColor", value, {
+                                  shouldDirty: true,
+                                });
+                              }}
+                            />
+                          </div>
+                          {darkModeError ? (
+                            <Alert variant="warning">
+                              <TriangleAlertIcon />
+                              <AlertDescription>{t("dark_theme_contrast_error")}</AlertDescription>
+                            </Alert>
+                          ) : null}
+                        </div>
+                      )}
+                    />
+                  </div>
+                </CardPanel>
+              </Card>
+              <Collapsible open={isCustomBrandColorChecked}>
+                <CollapsiblePanel className="data-ending-style:opacity-0 data-starting-style:opacity-0 transition-[height,opacity]">
+                  <CardFrameFooter className="flex justify-end">
+                    <Button
+                      loading={mutation.isPending}
+                      disabled={isBrandColorsFormSubmitting || !isBrandColorsFormDirty}
+                      type="submit">
+                      {t("update")}
+                    </Button>
+                  </CardFrameFooter>
+                </CollapsiblePanel>
+              </Collapsible>
+            </CardFrame>
           </Form>
 
-          <div className="mt-6 flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
             <SettingsToggle
-              toggleSwitchAtTheEnd={true}
               title={t("disable_cal_branding", { appName: APP_NAME })}
               disabled={mutation?.isPending}
               description={t("removes_cal_branding", { appName: APP_NAME })}
@@ -166,7 +327,6 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             />
 
             <SettingsToggle
-              toggleSwitchAtTheEnd={true}
               title={t("hide_book_a_team_member")}
               disabled={mutation?.isPending}
               description={t("hide_book_a_team_member_description", { appName: APP_NAME })}
@@ -178,7 +338,6 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             />
 
             <SettingsToggle
-              toggleSwitchAtTheEnd={true}
               title={t("hide_team_profile_link")}
               disabled={mutation?.isPending}
               description={t("hide_team_profile_link_description")}
@@ -189,7 +348,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
               }}
             />
           </div>
-        </>
+        </div>
       ) : (
         <div className="border-subtle rounded-md border p-5">
           <span className="text-default text-sm">{t("only_owner_change")}</span>

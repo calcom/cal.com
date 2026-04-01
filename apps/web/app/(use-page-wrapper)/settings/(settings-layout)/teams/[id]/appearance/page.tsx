@@ -1,6 +1,5 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
-
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
 
 import LegacyPage from "~/ee/teams/views/team-appearance-view";
 
@@ -17,12 +16,14 @@ const Page = async () => {
   const t = await getTranslate();
 
   return (
-    <SettingsHeader
-      title={t("booking_appearance")}
-      description={t("appearance_team_description")}
-      borderInShellHeader={false}>
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("booking_appearance")}>
+          <AppHeaderDescription>{t("appearance_team_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
       <LegacyPage />
-    </SettingsHeader>
+    </>
   );
 };
 
