@@ -1,24 +1,48 @@
 "use client";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { Form, Label, Select, SettingsToggle } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTravelSchedules } from "@calcom/web/app/cache/travelSchedule";
-import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
-import { InfoIcon } from "@coss/ui/icons";
+import { Button } from "@coss/ui/components/button";
+import { Card, CardFrame, CardFrameFooter, CardPanel } from "@coss/ui/components/card";
+import {
+  Combobox,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxPopup,
+  ComboboxTrigger,
+  ComboboxValue,
+} from "@coss/ui/components/combobox";
+import { Field, FieldDescription, FieldLabel } from "@coss/ui/components/field";
+import { Fieldset, FieldsetLegend } from "@coss/ui/components/fieldset";
+import { Form } from "@coss/ui/components/form";
+import { Frame, FrameHeader, FramePanel, FrameTitle } from "@coss/ui/components/frame";
+import { Label } from "@coss/ui/components/label";
+import {
+  Select,
+  SelectButton,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@coss/ui/components/select";
+import { Separator } from "@coss/ui/components/separator";
+import { toastManager } from "@coss/ui/components/toast";
+import { CalendarIcon, PlusIcon, SearchIcon, TrashIcon } from "@coss/ui/icons";
+import { cn } from "@coss/ui/lib/utils";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
+import { FieldGrid, FieldGridRow } from "@coss/ui/shared/field-grid";
+import { SettingsToggle } from "@coss/ui/shared/settings-toggle";
 import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 export type FormValues = {
@@ -65,7 +89,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       revalidateSettingsGeneral();
       revalidateTravelSchedules();
       reset(getValues());
-      showToast(t("settings_updated_successfully"), "success");
+      toastManager.add({ title: t("settings_updated_successfully"), type: "success" });
       await update(res);
 
       if (res.locale) {
@@ -74,7 +98,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       }
     },
     onError: () => {
-      showToast(t("error_updating_settings"), "error");
+      toastManager.add({ title: t("error_updating_settings"), type: "error" });
     },
     onSettled: async () => {
       await utils.viewer.me.invalidate();
@@ -83,6 +107,11 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
       setIsUpdateBtnLoading(false);
     },
   });
+
+  const sortedLocaleOptions = useMemo(
+    () => [...localeOptions].sort((a, b) => a.label.localeCompare(b.label)),
+    []
+  );
 
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
@@ -98,6 +127,34 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
     { value: "Friday", label: nameOfDay(localeProp, 5) },
     { value: "Saturday", label: nameOfDay(localeProp, 6) },
   ];
+
+  const timezoneItems = useMemo(() => {
+    const tzNames = Intl.supportedValuesOf("timeZone");
+    return tzNames
+      .map((tz) => {
+        const formatter = new Intl.DateTimeFormat("en", {
+          timeZone: tz,
+          timeZoneName: "shortOffset",
+        });
+        const parts = formatter.formatToParts(new Date());
+        const offset = parts.find((p) => p.type === "timeZoneName")?.value || "";
+        const display = offset === "GMT" ? "GMT+0" : offset;
+
+        const m = offset.match(/GMT([+-]?)(\d+)(?::(\d+))?/);
+        const sign = m?.[1] === "-" ? -1 : 1;
+        const hrs = Number.parseInt(m?.[2] || "0", 10);
+        const mins = Number.parseInt(m?.[3] || "0", 10);
+        const total = sign * (hrs * 60 + mins);
+
+        return {
+          label: tz.replace(/_/g, " "),
+          value: tz,
+          offset: display,
+          numericOffset: total,
+        };
+      })
+      .sort((a, b) => a.numericOffset - b.numericOffset);
+  }, []);
 
   const formMethods = useForm<FormValues>({
     defaultValues: {
@@ -150,11 +207,17 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   const watchedTzSchedules = formMethods.watch("travelSchedules");
 
   return (
-    <SettingsHeader title={t("general")} description={t("general_description")} borderInShellHeader={true}>
-      <div>
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("general")}>
+          <AppHeaderDescription>{t("general_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
+
+      <div className="flex flex-col gap-4">
         <Form
-          form={formMethods}
-          handleSubmit={async (values) => {
+          className="contents"
+          onSubmit={formMethods.handleSubmit(async (values) => {
             setIsUpdateBtnLoading(true);
             mutation.mutate({
               ...values,
@@ -162,169 +225,259 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               timeFormat: values.timeFormat.value,
               weekStart: values.weekStart.value,
             });
-          }}>
-          <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
-            <Controller
-              name="locale"
-              render={({ field: { value, onChange } }) => (
-                <>
-                  <Label className="text-emphasis">
-                    <>{t("language")}</>
-                  </Label>
-                  <Select<{ label: string; value: string }>
-                    className="capitalize"
-                    options={localeOptions}
-                    value={value}
-                    onChange={onChange}
-                    data-testid="locale-select"
-                  />
-                </>
-              )}
-            />
-            <Controller
-              name="timeZone"
-              control={formMethods.control}
-              render={({ field: { value } }) => (
-                <>
-                  <Label className="text-emphasis mt-6">
-                    <>{t("timezone")}</>
-                  </Label>
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-                    <div className="w-full sm:w-1/2">
-                      <TimezoneSelect
-                        id="timezone"
-                        value={value}
-                        onChange={(event) => {
-                          if (event)
-                            formMethods.setValue("timeZone", event.value, {
-                              shouldDirty: true,
-                            });
-                        }}
-                      />
-                    </div>
-                    {!watchedTzSchedules.length && (
-                      <Button
-                        className="w-full sm:w-1/2"
-                        color="secondary"
-                        StartIcon="calendar"
-                        onClick={() => setIsTZScheduleOpen(true)}>
-                        {t("schedule_timezone_change")}
-                      </Button>
-                    )}
-                  </div>
-                </>
-              )}
-            />
-            {watchedTzSchedules.length > 0 && (
-              <div className="bg-cal-muted border-subtle mt-2 rounded-md border p-4">
-                <Label>{t("travel_schedule")}</Label>
-                <div className="border-subtle bg-default mt-4 rounded-md border text-sm">
-                  {watchedTzSchedules.map((schedule, index) => {
-                    return (
-                      <div
-                        className={classNames(
-                          "flex items-center p-4",
-                          index !== 0 ? "border-subtle border-t" : ""
-                        )}
-                        key={index}>
-                        <div>
-                          <div className="text-emphasis font-semibold">{`${formatLocalizedDateTime(
-                            schedule.startDate,
-                            { day: "numeric", month: "long" },
-                            language
-                          )} ${
-                            schedule.endDate
-                              ? `- ${formatLocalizedDateTime(
-                                  schedule.endDate,
-                                  { day: "numeric", month: "long" },
-                                  language
-                                )}`
-                              : ``
-                          }`}</div>
-                          <div className="text-subtle">{schedule.timeZone.replace(/_/g, " ")}</div>
-                        </div>
-                        <Button
-                          color="destructive"
-                          className="ml-auto"
-                          variant="icon"
-                          StartIcon="trash-2"
-                          onClick={() => {
-                            const updatedSchedules = watchedTzSchedules.filter(
-                              (s, filterIndex) => filterIndex !== index
-                            );
-                            formMethods.setValue("travelSchedules", updatedSchedules, { shouldDirty: true });
+          })}>
+          <CardFrame>
+            <Card>
+              <CardPanel>
+                <FieldGrid>
+                  <Controller
+                    name="locale"
+                    control={formMethods.control}
+                    render={({ field: { name, value, onChange } }) => (
+                      <Field name={name}>
+                        <FieldLabel>{t("language")}</FieldLabel>
+                        <Combobox
+                          autoHighlight
+                          value={value}
+                          onValueChange={(val) => {
+                            if (val) onChange(val);
                           }}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-                <Button
-                  StartIcon="plus"
-                  color="secondary"
-                  className="mt-4"
-                  onClick={() => setIsTZScheduleOpen(true)}>
-                  {t("add")}
-                </Button>
-              </div>
-            )}
-
-            <Controller
-              name="timeFormat"
-              control={formMethods.control}
-              render={({ field: { value } }) => (
-                <>
-                  <Label className="text-emphasis mt-6">
-                    <>{t("time_format")}</>
-                  </Label>
-                  <Select
-                    value={value}
-                    options={timeFormatOptions}
-                    onChange={(event) => {
-                      if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
-                    }}
+                          items={sortedLocaleOptions}>
+                          <ComboboxTrigger
+                            render={<SelectButton />}
+                            className="capitalize"
+                            data-testid="locale-select">
+                            <ComboboxValue />
+                          </ComboboxTrigger>
+                          <ComboboxPopup aria-label={t("language")}>
+                            <div className="border-b p-2">
+                              <ComboboxInput
+                                className="rounded-md before:rounded-[calc(var(--radius-md)-1px)]"
+                                placeholder={t("language")}
+                                showTrigger={false}
+                                startAddon={<SearchIcon aria-hidden="true" />}
+                              />
+                            </div>
+                            <ComboboxEmpty>{t("no_options_available")}</ComboboxEmpty>
+                            <ComboboxList>
+                              {(item) => (
+                                <ComboboxItem
+                                  key={item.value}
+                                  value={item}
+                                  className="capitalize"
+                                  data-testid={`select-option-${item.value}`}>
+                                  {item.label}
+                                </ComboboxItem>
+                              )}
+                            </ComboboxList>
+                          </ComboboxPopup>
+                        </Combobox>
+                      </Field>
+                    )}
                   />
-                </>
-              )}
-            />
-            <div className="text-gray text-subtle mt-2 flex items-center text-xs">
-              <InfoIcon className="mr-2" />
-              {t("timeformat_profile_hint")}
-            </div>
-            <Controller
-              name="weekStart"
-              control={formMethods.control}
-              render={({ field: { value } }) => (
-                <>
-                  <Label className="text-emphasis mt-6">
-                    <>{t("start_of_week")}</>
-                  </Label>
-                  <Select
-                    value={value}
-                    options={weekStartOptions}
-                    onChange={(event) => {
-                      if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
-                    }}
-                  />
-                </>
-              )}
-            />
-          </div>
 
-          <SectionBottomActions align="end">
-            <Button
-              loading={isUpdateBtnLoading}
-              disabled={isDisabled}
-              color="primary"
-              type="submit"
-              data-testid="general-submit-button">
-              <>{t("update")}</>
-            </Button>
-          </SectionBottomActions>
+                  <FieldGridRow>
+                    <Controller
+                      name="timeZone"
+                      control={formMethods.control}
+                      render={({ field: { value } }) => {
+                        const selectedItem = timezoneItems.find((tz) => tz.value === value) ?? null;
+                        return (
+                          <Fieldset className="max-w-none gap-2">
+                            <Label render={<FieldsetLegend />}>{t("timezone")}</Label>
+                            <FieldGrid className="gap-6">
+                              <Field className="contents">
+                                <Combobox
+                                  autoHighlight
+                                  value={selectedItem}
+                                  onValueChange={(val) => {
+                                    if (val)
+                                      formMethods.setValue("timeZone", val.value, {
+                                        shouldDirty: true,
+                                      });
+                                  }}
+                                  items={timezoneItems}>
+                                  <ComboboxTrigger render={<SelectButton />}>
+                                    <ComboboxValue />
+                                  </ComboboxTrigger>
+                                  <ComboboxPopup aria-label={t("timezone")}>
+                                    <div className="border-b p-2">
+                                      <ComboboxInput
+                                        className="rounded-md before:rounded-[calc(var(--radius-md)-1px)]"
+                                        placeholder={t("timezone")}
+                                        showTrigger={false}
+                                        startAddon={<SearchIcon aria-hidden="true" />}
+                                      />
+                                    </div>
+                                    <ComboboxEmpty>{t("no_options_available")}</ComboboxEmpty>
+                                    <ComboboxList>
+                                      {(item) => (
+                                        <ComboboxItem
+                                          key={item.value}
+                                          value={item}
+                                          className="*:[div]:flex *:[div]:justify-between *:[div]:items-center *:[div]:gap-1">
+                                          <span>{item.value.replace(/_/g, " ")}</span>
+                                          <span className="font-medium text-muted-foreground/72 text-sm sm:text-xs">
+                                            {item.offset}
+                                          </span>
+                                        </ComboboxItem>
+                                      )}
+                                    </ComboboxList>
+                                  </ComboboxPopup>
+                                </Combobox>
+                              </Field>
+                              {!watchedTzSchedules.length && (
+                                <Button
+                                  className="w-fit"
+                                  variant="outline"
+                                  onClick={() => setIsTZScheduleOpen(true)}>
+                                  <CalendarIcon aria-hidden="true" />
+                                  {t("schedule_timezone_change")}
+                                </Button>
+                              )}
+                            </FieldGrid>
+                          </Fieldset>
+                        );
+                      }}
+                    />
+                  </FieldGridRow>
+
+                  {watchedTzSchedules.length > 0 && (
+                    <FieldGridRow>
+                      <Frame className="-mx-1">
+                        <FrameHeader className="flex-row items-center justify-between">
+                          <FrameTitle>{t("travel_schedule")}</FrameTitle>
+                          <Button
+                            className="-my-1"
+                            variant="outline"
+                            onClick={() => setIsTZScheduleOpen(true)}>
+                            <PlusIcon aria-hidden="true" />
+                            {t("add")}
+                          </Button>
+                        </FrameHeader>
+                        <FramePanel className="bg-card p-0">
+                          {watchedTzSchedules.map((schedule, index) => (
+                            <Fragment key={index}>
+                              <div className="flex items-center justify-between gap-2 p-5">
+                                <div>
+                                  <div className="font-semibold text-sm">{`${formatLocalizedDateTime(
+                                    schedule.startDate,
+                                    { day: "numeric", month: "long" },
+                                    language
+                                  )}${
+                                    schedule.endDate
+                                      ? ` - ${formatLocalizedDateTime(
+                                          schedule.endDate,
+                                          { day: "numeric", month: "long" },
+                                          language
+                                        )}`
+                                      : ""
+                                  }`}</div>
+                                  <div className="text-muted-foreground text-sm">
+                                    {schedule.timeZone.replace(/_/g, " ")}
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="destructive-outline"
+                                  size="icon"
+                                  onClick={() => {
+                                    const updatedSchedules = watchedTzSchedules.filter(
+                                      (_s, filterIndex) => filterIndex !== index
+                                    );
+                                    formMethods.setValue("travelSchedules", updatedSchedules, {
+                                      shouldDirty: true,
+                                    });
+                                  }}
+                                  aria-label={t("delete")}>
+                                  <TrashIcon aria-hidden="true" />
+                                </Button>
+                              </div>
+                              {index < watchedTzSchedules.length - 1 && <Separator />}
+                            </Fragment>
+                          ))}
+                        </FramePanel>
+                      </Frame>
+                    </FieldGridRow>
+                  )}
+
+                  <Controller
+                    name="timeFormat"
+                    control={formMethods.control}
+                    render={({ field: { name, value, onBlur, onChange } }) => (
+                      <Field name={name}>
+                        <FieldLabel>{t("time_format")}</FieldLabel>
+                        <Select
+                          aria-label={t("time_format")}
+                          items={timeFormatOptions}
+                          value={value}
+                          onValueChange={(val) => {
+                            if (val) onChange(val);
+                          }}
+                          onOpenChange={(open) => {
+                            if (!open) onBlur();
+                          }}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectPopup>
+                            {timeFormatOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectPopup>
+                        </Select>
+                        <FieldDescription>{t("timeformat_profile_hint")}</FieldDescription>
+                      </Field>
+                    )}
+                  />
+
+                  <Controller
+                    name="weekStart"
+                    control={formMethods.control}
+                    render={({ field: { name, value, onBlur, onChange } }) => (
+                      <Field name={name}>
+                        <FieldLabel>{t("start_of_week")}</FieldLabel>
+                        <Select
+                          aria-label={t("start_of_week")}
+                          items={weekStartOptions}
+                          value={value}
+                          onValueChange={(val) => {
+                            if (val) onChange(val);
+                          }}
+                          onOpenChange={(open) => {
+                            if (!open) onBlur();
+                          }}>
+                          <SelectTrigger className="w-full capitalize">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectPopup>
+                            {weekStartOptions.map((opt) => (
+                              <SelectItem key={opt.value} value={opt} className="capitalize">
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </SelectPopup>
+                        </Select>
+                      </Field>
+                    )}
+                  />
+                </FieldGrid>
+              </CardPanel>
+            </Card>
+            <CardFrameFooter className="flex justify-end">
+              <Button
+                loading={isUpdateBtnLoading}
+                disabled={isDisabled}
+                type="submit"
+                data-testid="general-submit-button">
+                {t("update")}
+              </Button>
+            </CardFrameFooter>
+          </CardFrame>
         </Form>
 
         <SettingsToggle
-          toggleSwitchAtTheEnd={true}
           title={t("dynamic_booking")}
           description={t("allow_dynamic_booking")}
           disabled={mutation.isPending}
@@ -333,12 +486,9 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
             setIsAllowDynamicBookingChecked(checked);
             mutation.mutate({ allowDynamicBooking: checked });
           }}
-          switchContainerClassName="mt-6"
         />
 
         <SettingsToggle
-          data-testid="my-seo-indexing-switch"
-          toggleSwitchAtTheEnd={true}
           title={t("seo_indexing")}
           description={t("allow_seo_indexing")}
           disabled={mutation.isPending || user.organizationSettings?.allowSEOIndexing === false}
@@ -347,11 +497,9 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
             setIsAllowSEOIndexingChecked(checked);
             mutation.mutate({ allowSEOIndexing: checked });
           }}
-          switchContainerClassName="mt-6"
         />
 
         <SettingsToggle
-          toggleSwitchAtTheEnd={true}
           title={t("monthly_digest_email")}
           description={t("monthly_digest_email_for_teams")}
           disabled={mutation.isPending}
@@ -360,11 +508,9 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
             setIsReceiveMonthlyDigestEmailChecked(checked);
             mutation.mutate({ receiveMonthlyDigestEmail: checked });
           }}
-          switchContainerClassName="mt-6"
         />
 
         <SettingsToggle
-          toggleSwitchAtTheEnd={true}
           title={t("require_booker_email_verification")}
           description={t("require_booker_email_verification_description")}
           disabled={mutation.isPending}
@@ -373,8 +519,8 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
             setIsRequireBookerEmailVerificationChecked(checked);
             mutation.mutate({ requiresBookerEmailVerification: checked });
           }}
-          switchContainerClassName="mt-6"
         />
+
         <TravelScheduleModal
           open={isTZScheduleOpen}
           onOpenChange={setIsTZScheduleOpen}
@@ -382,7 +528,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           existingSchedules={formMethods.getValues("travelSchedules") ?? []}
         />
       </div>
-    </SettingsHeader>
+    </>
   );
 };
 
