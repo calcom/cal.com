@@ -1639,6 +1639,7 @@ document.addEventListener("click", (e) => {
 let currentColorScheme: string | null = null;
 
 (function watchAndActOnColorSchemeChange() {
+  if (typeof document === "undefined") return;
   // TODO: Maybe find a better way to identify change in color-scheme, a mutation observer seems overkill for this. Settle with setInterval for now.
   setInterval(() => {
     const colorScheme = getColorScheme(document.body);
