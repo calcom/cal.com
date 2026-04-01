@@ -151,7 +151,7 @@ const EventTypeWeb = ({
   const unsavedChangesPendingUrl = useRef<string | null>(null);
   const formIsDirtyRef = useRef(false);
   const skipPopStateRef = useRef(false);
-  const hadPriorHistoryRef = useRef(window.history.length > 1);
+  const hadPriorHistoryRef = useRef(false);
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
   const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
@@ -327,6 +327,8 @@ const EventTypeWeb = ({
 
   // Intercept in-app navigation when form has unsaved changes
   useEffect(() => {
+    hadPriorHistoryRef.current = window.history.length > 1;
+
     const handleClick = (e: MouseEvent) => {
       if (!formIsDirtyRef.current) return;
 
