@@ -53,31 +53,36 @@ function ActiveOverridesBanner({
   if (entries.length === 0) return null;
 
   return (
-    <div className="bg-subtle border-subtle mb-4 rounded-md border p-3">
-      <div className="mb-1 flex items-center justify-between">
-        <span className="text-emphasis text-sm font-medium">{t("active_previews")}</span>
-        <Button variant="ghost" size="sm" onClick={onClearAll}>
-          {t("clear_all")}
-        </Button>
-      </div>
-      <p className="text-subtle mb-2 flex items-center gap-1 text-xs">
-        <InfoIcon className="h-3 w-3 shrink-0" />
-        {t("active_previews_hint")}
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {entries.map(([slug, variant]) => (
-          <Badge key={slug} variant="info">
-            {slug}: {variant}
-            <button
-              className="ml-1 hover:opacity-70"
-              onClick={() => onClear(slug)}
-              aria-label={`Clear ${slug} preview`}>
-              &times;
-            </button>
-          </Badge>
-        ))}
-      </div>
-    </div>
+    <Card className="mb-4">
+      <CardPanel>
+        <div className="mb-2">
+          <div className="flex items-center justify-between">
+            <span className="text-emphasis text-sm font-semibold">{t("active_previews")}</span>
+            <Button variant="outline" size="sm" onClick={onClearAll}>
+              {t("clear_all")}
+            </Button>
+          </div>
+          <p className="text-subtle mt-1 flex items-center gap-1 text-xs">
+            <InfoIcon className="h-3 w-3 shrink-0" />
+            {t("active_previews_hint")}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {entries.map(([slug, variant]) => (
+            <Badge key={slug} variant="info">
+              {slug}={variant}
+              <button
+                className="ml-1 hover:opacity-70"
+                onClick={() => onClear(slug)}
+                aria-label={`Clear ${slug} preview`}>
+                &times;
+              </button>
+            </Badge>
+          ))}
+        </div>
+      </CardPanel>
+
+    </Card>
   );
 }
 
@@ -171,9 +176,11 @@ function VariantWeightRow({
 function ExperimentCard({
   experiment,
   onPreview,
+  isPreviewing,
 }: {
   experiment: Experiment;
   onPreview: (slug: string, variant: string) => void;
+  isPreviewing: boolean;
 }) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -210,7 +217,7 @@ function ExperimentCard({
   const controlWeight = Math.max(0, 100 - nonControlWeight);
 
   return (
-    <Collapsible defaultOpen>
+    <Collapsible defaultOpen={experiment.status !== "ROLLED_OUT"}>
       <CardFrame>
         <CardFrameHeader>
           <CardFrameTitle>
@@ -219,6 +226,7 @@ function ExperimentCard({
                 <ChevronDownIcon className="h-4 w-4 transition-transform in-data-[panel-open]:rotate-180" />
               </CollapsibleTrigger>
               <span>{experiment.label ?? experiment.slug}</span>
+              {isPreviewing && <Badge variant="info">{t("preview")}</Badge>}
               <Badge variant={STATUS_BADGE_VARIANT[experiment.status]}>{experiment.status}</Badge>
               <Badge variant="secondary">{t(TARGET_LABEL_KEYS[experiment.target] ?? experiment.target)}</Badge>
             </div>
@@ -386,7 +394,12 @@ export const ExperimentsAdminList = () => {
         onClearAll={handleClearAll}
       />
       {data.map((experiment) => (
-        <ExperimentCard key={experiment.slug} experiment={experiment} onPreview={handlePreview} />
+        <ExperimentCard
+          key={experiment.slug}
+          experiment={experiment}
+          onPreview={handlePreview}
+          isPreviewing={experiment.slug in overrides}
+        />
       ))}
     </div>
   );

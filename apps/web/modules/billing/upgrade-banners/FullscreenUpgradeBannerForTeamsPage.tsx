@@ -2,9 +2,14 @@
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { FullScreenUpgradeBanner } from "@calcom/web/modules/billing/components/FullScreenUpgradeBanner";
+import { useExperiment } from "@calcom/web/modules/experiments/hooks/useExperiment";
 
 export function FullscreenUpgradeBannerForTeamsPage() {
   const { t } = useLocale();
+  const { variant } = useExperiment("teams-banner-title", { trackExposure: true });
+
+  const title =
+    variant === "use_cal" ? t("upgrade_banner_teams_title_use_cal") : t("upgrade_banner_teams_title");
 
   const features = [
     t("upgrade_banner_teams_feature1"),
@@ -17,7 +22,7 @@ export function FullscreenUpgradeBannerForTeamsPage() {
     <FullScreenUpgradeBanner
       tracking="fullscreen-upgrade-banner-for-teams-page"
       name={t("upgrade_banner_teams_name")}
-      title={t("upgrade_banner_teams_title")}
+      title={title}
       subtitle={t("upgrade_banner_teams_subtitle")}
       features={features}
       target="team"

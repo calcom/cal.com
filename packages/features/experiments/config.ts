@@ -10,6 +10,10 @@ export const EXPERIMENTS = {
     variants: ["try_cta"],
     target: "logged-in",
   },
+  "teams-banner-title": {
+    variants: ["use_cal"],
+    target: "logged-in",
+  },
 } as const;
 
 export type ExperimentTarget = "logged-in" | "anonymous";

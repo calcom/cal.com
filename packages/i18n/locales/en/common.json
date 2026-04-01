@@ -4954,6 +4954,7 @@
   "upgrade_banner_roles_subtitle": "Give teammates the right level of access to events, settings, and scheduling.",
   "upgrade_banner_teams_name": "Teams",
   "upgrade_banner_teams_title": "Automatically route meetings to your team",
+  "upgrade_banner_teams_title_use_cal": "Use Cal with your team",
   "upgrade_banner_teams_subtitle": "Turn individual scheduling into a system that assigns, distributes, and manages meetings for our team.",
   "upgrade_banner_teams_feature1": "Route inbound requests to the right person",
   "upgrade_banner_teams_feature2": "Distribute meetings fairly with round-robin",

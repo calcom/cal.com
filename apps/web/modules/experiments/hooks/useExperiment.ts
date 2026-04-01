@@ -5,6 +5,7 @@ import {
   EXP_OVERRIDE_PREFIX,
   EXPERIMENTS,
   type ExperimentSlug,
+  type VariantSlug,
 } from "@calcom/features/experiments/config";
 import { assignVariant } from "@calcom/features/experiments/lib/bucketing";
 import { trackExperimentExposure, trackExperimentOutcome } from "@calcom/features/experiments/lib/tracking";
@@ -14,14 +15,14 @@ import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { ExperimentContext } from "../provider";
 
-interface UseExperimentResult {
-  variant: string | null;
+interface UseExperimentResult<V extends string = string> {
+  variant: V | null;
   isControl: boolean;
   trackExposure: () => void;
   trackOutcome: () => void;
 }
 
-const INACTIVE_RESULT: UseExperimentResult = {
+const INACTIVE_RESULT: UseExperimentResult<never> = {
   variant: null,
   isControl: true,
   trackExposure: () => {},
@@ -71,10 +72,10 @@ function resolveAnonymousVariant(slug: string, configs: ExperimentConfig[]): str
   );
 }
 
-export function useExperiment(
-  slug: ExperimentSlug,
+export function useExperiment<T extends ExperimentSlug>(
+  slug: T,
   options?: { trackExposure?: boolean }
-): UseExperimentResult {
+): UseExperimentResult<VariantSlug<T>> {
   const context = useContext(ExperimentContext);
   const config = EXPERIMENTS[slug];
   const target: string | undefined = config?.target;
@@ -125,6 +126,11 @@ export function useExperiment(
     trackExperimentOutcome(slug, variant);
   }, [slug, variant]);
 
-  if (!active) return INACTIVE_RESULT;
-  return { variant, isControl: variant === null, trackExposure, trackOutcome };
+  if (!active) return INACTIVE_RESULT as UseExperimentResult<VariantSlug<T>>;
+  return {
+    variant: variant as VariantSlug<T> | null,
+    isControl: variant === null,
+    trackExposure,
+    trackOutcome,
+  };
 }
