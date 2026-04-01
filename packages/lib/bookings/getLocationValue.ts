@@ -17,11 +17,14 @@ export const getLocationValue = (
     return responseLocation.value;
   }
 
-  logger.warn(
-    `getLocationValue - location ${location} and response location ${JSON.stringify(
-      responseLocation
-    )} were passed but the type is not supported.`
-  );
+  // Only warn when a value was actually provided but its type is unrecognized — an absent location is expected and not worth logging.
+  if (responseLocation !== undefined) {
+    logger.warn(
+      `getLocationValue - location ${location} and response location ${JSON.stringify(
+        responseLocation
+      )} were passed but the type is not supported.`
+    );
+  }
 
   return undefined;
 };
