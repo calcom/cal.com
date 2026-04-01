@@ -808,6 +808,24 @@ export class PrismaMembershipRepository {
     return !!membership;
   }
 
+  async isMemberOfPrivateTeam({ userId, teamId }: { userId: number; teamId: number }): Promise<boolean> {
+    const membership = await this.prismaClient.membership.findFirst({
+      where: {
+        userId,
+        teamId,
+        accepted: true,
+        role: MembershipRole.MEMBER,
+        team: {
+          isPrivate: true,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!membership;
+  }
+
   /**
    * Find team IDs where user has accepted membership in non-private, non-organization teams
    */

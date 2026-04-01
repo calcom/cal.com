@@ -71,7 +71,6 @@ type InfiniteEventType = GetEventTypesFromGroupsResponse["eventTypes"][number];
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 
 type EventTypeGroup = EventTypeGroups[number];
-type EventType = EventTypeGroup["eventTypes"][number];
 
 const LIMIT = 10;
 
@@ -177,8 +176,8 @@ const Item = ({
   group,
   readOnly,
 }: {
-  type: EventType | InfiniteEventType;
-  group: EventTypeGroup | InfiniteEventTypeGroup;
+  type: InfiniteEventType;
+  group: InfiniteEventTypeGroup;
   readOnly: boolean;
 }): JSX.Element => {
   const { t } = useLocale();
@@ -267,13 +266,7 @@ const Item = ({
                 </Tooltip>
               )}
             </div>
-            <EventTypeDescription
-              eventType={{
-                ...type,
-                descriptionAsSafeHTML: type.safeDescription,
-              }}
-              shortenDescription
-            />
+            <EventTypeDescription eventType={type} shortenDescription />
           </Link>
         )}
       </div>

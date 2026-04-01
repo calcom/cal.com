@@ -1,6 +1,7 @@
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import type { IEventTypesRepository } from "@calcom/features/eventtypes/eventtypes.repository.interface";
 import type { EventTypeFullDetail } from "@calcom/features/eventtypes/lib/types";
+import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { LookupTarget, ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import type { UserWithLegacySelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
@@ -63,6 +64,68 @@ const userSelect = {
   id: true,
   timeZone: true,
 } satisfies Prisma.UserSelect;
+
+const eventTypeListSelect = {
+  id: true,
+  title: true,
+  slug: true,
+  description: true,
+  hidden: true,
+  length: true,
+  schedulingType: true,
+  metadata: true,
+  recurringEvent: true,
+  requiresConfirmation: true,
+  seatsPerTimeSlot: true,
+  eventTypeColor: true,
+  position: true,
+  userId: true,
+  teamId: true,
+  parentId: true,
+  price: true,
+  currency: true,
+  lockTimeZoneToggleOnBookingPage: true,
+  lockedTimeZone: true,
+  requiresBookerEmailVerification: true,
+  canSendCalVideoTranscriptionEmails: true,
+  owner: {
+    select: {
+      timeZone: true,
+    },
+  },
+} satisfies Prisma.EventTypeSelect;
+
+const listingRelationsSelect = {
+  hashedLink: hashedLinkSelect,
+  users: { select: userSelect, take: 5 },
+  children: {
+    select: {
+      id: true,
+      users: { select: userSelect, take: 5 },
+    },
+  },
+  hosts: {
+    select: {
+      user: { select: userSelect },
+    },
+    take: 5,
+  },
+  team: {
+    select: {
+      id: true,
+      members: {
+        select: {
+          user: {
+            select: {
+              timeZone: true,
+            },
+          },
+        },
+        take: 1,
+      },
+    },
+  },
+} satisfies Prisma.EventTypeSelect;
 
 function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }, THost, TUser>(
   hosts: HostWithLegacySelectedCalendars<TSelectedCalendar, THost, TUser>[]
@@ -446,6 +509,102 @@ export class EventTypeRepository implements IEventTypesRepository {
     }
   }
 
+  async findAllByUpIdForListing(
+    { upId, userId }: { upId: string; userId: number },
+    {
+      orderBy,
+      where = {},
+      cursor: cursorId,
+      limit,
+    }: {
+      orderBy?: Prisma.EventTypeOrderByWithRelationInput[];
+      where?: Prisma.EventTypeWhereInput;
+      cursor?: number | null;
+      limit?: number | null;
+    } = {}
+  ) {
+    if (!upId) return [];
+    const lookupTarget = ProfileRepository.getLookupTarget(upId);
+    let profileId: number | null = null;
+    if (lookupTarget.type === LookupTarget.Profile) {
+      if ("uid" in lookupTarget && lookupTarget.uid) {
+        const profile = await ProfileRepository.findByUid(lookupTarget.uid);
+        profileId = profile?.id ?? null;
+      } else if ("id" in lookupTarget && lookupTarget.id !== undefined) {
+        profileId = lookupTarget.id;
+      }
+    }
+    const select = {
+      ...eventTypeListSelect,
+      ...listingRelationsSelect,
+    };
+
+    const cursor = cursorId ? { id: cursorId } : undefined;
+    const take = limit ? limit + 1 : undefined;
+
+    if (!profileId) {
+      return await this.prismaClient.eventType.findMany({
+        where: {
+          userId: lookupTarget.id,
+          ...where,
+        },
+        select,
+        cursor,
+        take,
+        orderBy,
+      });
+    }
+
+    const profile = await ProfileRepository.findById(profileId);
+    if (profile?.movedFromUser) {
+      return await this.prismaClient.eventType.findMany({
+        where: {
+          OR: [
+            {
+              userId: profile.movedFromUser.id,
+              profileId: null,
+            },
+            {
+              profileId,
+            },
+            {
+              userId,
+              parentId: {
+                not: null,
+              },
+            },
+          ],
+          ...where,
+        },
+        select,
+        cursor,
+        take,
+        orderBy,
+      });
+    } else {
+      return await this.prismaClient.eventType.findMany({
+        where: {
+          OR: [
+            {
+              profileId,
+            },
+            {
+              userId: userId,
+              parentId: {
+                not: null,
+              },
+            },
+          ],
+          ...where,
+        },
+        select,
+        cursor,
+        take,
+        orderBy,
+      });
+    }
+  }
+
   async findTeamEventTypes({
     teamId,
     parentId,
@@ -463,73 +622,27 @@ export class EventTypeRepository implements IEventTypesRepository {
     orderBy?: Prisma.EventTypeOrderByWithRelationInput[];
     where?: Prisma.EventTypeWhereInput;
   }) {
-    const userSelect = {
-      name: true,
-      avatarUrl: true,
-      username: true,
-      id: true,
-      timeZone: true,
-    } satisfies Prisma.UserSelect;
-
     const select = {
-      ...eventTypeSelect,
-      hashedLink: hashedLinkSelect,
-      users: { select: userSelect, take: 5 },
-      children: {
-        include: {
-          users: { select: userSelect, take: 5 },
-        },
-      },
-      hosts: {
-        include: {
-          user: { select: userSelect },
-        },
-        take: 5,
-      },
-      team: {
-        select: {
-          id: true,
-          members: {
-            select: {
-              user: {
-                select: {
-                  timeZone: true,
-                },
-              },
-            },
-            take: 1,
-          },
-        },
-      },
+      ...eventTypeListSelect,
+      ...listingRelationsSelect,
     };
 
-    const teamMembership = await this.prismaClient.membership.findFirst({
-      where: {
-        OR: [
-          {
-            teamId,
-            userId,
-            accepted: true,
-          },
-          {
-            team: {
-              parent: {
-                ...(parentId ? { id: parentId } : {}),
-                members: {
-                  some: {
-                    userId,
-                    accepted: true,
-                    role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-                  },
-                },
-              },
-            },
-          },
-        ],
-      },
-    });
+    const membershipRepository = getMembershipRepository();
+    const directMembership = await membershipRepository.findUniqueByUserIdAndTeamId({ userId, teamId });
 
-    if (!teamMembership) throw new ErrorWithCode(ErrorCode.Unauthorized, "User is not a member of this team");
+    if (!directMembership?.accepted) {
+      const permissionCheckService = new PermissionCheckService();
+      const hasAccess = await permissionCheckService.checkPermission({
+        userId,
+        teamId,
+        permission: "eventType.read",
+        fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+      });
+
+      if (!hasAccess) {
+        throw new ErrorWithCode(ErrorCode.Unauthorized, "User is not a member of this team");
+      }
+    }
 
     return await this.prismaClient.eventType.findMany({
       where: {
@@ -541,6 +654,25 @@ export class EventTypeRepository implements IEventTypesRepository {
       take: limit ? limit + 1 : undefined, // We take +1 as itll be used for the next cursor
       orderBy,
     });
+  }
+
+  async findHostedEventTypeIdsByUserId({
+    userId,
+    eventTypeIds,
+  }: {
+    userId: number;
+    eventTypeIds: number[];
+  }): Promise<Set<number>> {
+    const hosts = await this.prismaClient.host.findMany({
+      where: {
+        userId,
+        eventTypeId: { in: eventTypeIds },
+      },
+      select: {
+        eventTypeId: true,
+      },
+    });
+    return new Set(hosts.map((h) => h.eventTypeId));
   }
 
   async findAllByUserId({ userId }: { userId: number }) {

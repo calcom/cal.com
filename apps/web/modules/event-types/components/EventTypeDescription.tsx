@@ -7,19 +7,29 @@ import { PriceIcon } from "@calcom/web/modules/bookings/components/event-meta/Pr
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import type { baseEventTypeSelect } from "@calcom/prisma";
-import type { Prisma, EventType } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
+import type { Prisma } from "@calcom/prisma/client";
+import type { SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType as SchedulingTypeEnum } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 
 export type EventTypeDescriptionProps = {
-  eventType: Pick<
-    EventType,
-    | Exclude<keyof typeof baseEventTypeSelect, "recurringEvent" | "description">
-    | "metadata"
-    | "seatsPerTimeSlot"
-  > & {
+  eventType: {
+    id: number;
+    title: string;
+    length: number;
+    slug: string;
+    hidden: boolean;
+    schedulingType: SchedulingType | null;
+    price: number;
+    currency: string;
+    lockTimeZoneToggleOnBookingPage: boolean;
+    lockedTimeZone: string | null;
+    requiresConfirmation: boolean;
+    requiresBookerEmailVerification: boolean;
+    canSendCalVideoTranscriptionEmails: boolean;
+    seatsPerTimeSlot: number | null;
+    metadata: Prisma.JsonValue;
     descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
   };
@@ -80,11 +90,11 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           )}
-          {eventType.schedulingType && eventType.schedulingType !== SchedulingType.MANAGED && (
+          {eventType.schedulingType && eventType.schedulingType !== SchedulingTypeEnum.MANAGED && (
             <li>
               <Badge variant="gray" startIcon="users">
-                {eventType.schedulingType === SchedulingType.ROUND_ROBIN && t("round_robin")}
-                {eventType.schedulingType === SchedulingType.COLLECTIVE && t("collective")}
+                {eventType.schedulingType === SchedulingTypeEnum.ROUND_ROBIN && t("round_robin")}
+                {eventType.schedulingType === SchedulingTypeEnum.COLLECTIVE && t("collective")}
               </Badge>
             </li>
           )}

@@ -1,22 +1,23 @@
-import { z } from "zod";
-
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import prisma from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { PeriodType } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
-
+import { z } from "zod";
 import authedProcedure from "../../../procedures/authedProcedure";
 import type { TUpdateInputSchema } from "./types";
 
 type EventType = Awaited<ReturnType<EventTypeRepository["findAllByUpId"]>>[number];
+type ListingEventType = Awaited<ReturnType<EventTypeRepository["findAllByUpIdForListing"]>>[number];
+type ListingEventTypeUser = ListingEventType["users"][number];
 
 export const eventOwnerProcedure = authedProcedure
   .input(
@@ -59,7 +60,7 @@ export const eventOwnerProcedure = authedProcedure
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    const isAuthorized = (function () {
+    const isAuthorized = (() => {
       if (event.team) {
         const teamMember = event.team.members.find((member) => member.userId === ctx.user.id);
         const isOwnerOrAdmin = teamMember?.role === "ADMIN" || teamMember?.role === "OWNER";
@@ -73,7 +74,7 @@ export const eventOwnerProcedure = authedProcedure
       throw new TRPCError({ code: "FORBIDDEN" });
     }
 
-    const isAllowed = (function () {
+    const isAllowed = (() => {
       if (event.team) {
         const allTeamMembers = event.team.members.map((member) => member.userId);
         return input.users.every((userId: number) => allTeamMembers.includes(userId));
@@ -173,7 +174,7 @@ export const createEventPbacProcedure = (
 
       // Validate that assigned users are allowed
       if (input.users && input.users.length > 0) {
-        const isAllowed = (function () {
+        const isAllowed = (() => {
           if (event.team) {
             const allTeamMembers = event.team.members.map((member) => member.userId);
             return input.users?.every((userId: number) => allTeamMembers.includes(userId)) ?? true;
@@ -303,6 +304,30 @@ export function ensureEmailOrPhoneNumberIsPresent(fields: TUpdateInputSchema["bo
   }
 }
 
+function getEventTypeUsers(eventType: ListingEventType) {
+  if (eventType.hosts?.length) {
+    return eventType.hosts.map((host) => host.user);
+  }
+  return eventType.users;
+}
+
+function collectUniqueUsers(eventTypes: ListingEventType[]) {
+  const seen = new Map<number, ListingEventTypeUser>();
+
+  for (const eventType of eventTypes) {
+    for (const user of getEventTypeUsers(eventType)) {
+      if (!seen.has(user.id)) seen.set(user.id, user);
+    }
+    for (const child of eventType.children ?? []) {
+      for (const user of child.users) {
+        if (!seen.has(user.id)) seen.set(user.id, user);
+      }
+    }
+  }
+
+  return Array.from(seen.values());
+}
+
 export const mapEventType = async (eventType: EventType) => ({
   ...eventType,
   safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
@@ -328,3 +353,49 @@ export const mapEventType = async (eventType: EventType) => ({
     }))
   ),
 });
+
+/**
+ * Batched version of mapEventType — enriches all users in a single DB call
+ * instead of N+1 individual calls per user.
+ */
+export const mapEventTypes = async (eventTypes: ListingEventType[]) => {
+  const uniqueUsers = collectUniqueUsers(eventTypes);
+  const userRepository = new UserRepository(prisma);
+  const enrichedUsers = await userRepository.enrichUsersWithTheirProfiles(uniqueUsers);
+  const profilesByUserId = new Map(enrichedUsers.map((user) => [user.id, user]));
+
+  const log = logger.getSubLogger({ prefix: ["mapEventTypes"] });
+
+  const addProfile = (user: ListingEventTypeUser): (typeof enrichedUsers)[number] => {
+    const enriched = profilesByUserId.get(user.id);
+    if (!enriched) {
+      log.warn(
+        `enrichUsersWithTheirProfiles did not return user ${user.id}, using personal profile fallback`
+      );
+      return {
+        ...user,
+        nonProfileUsername: user.username,
+        profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+      };
+    }
+    return enriched;
+  };
+
+  return eventTypes.map((eventType) => {
+    const descriptionAsSafeHTML = eventType?.description
+      ? markdownToSafeHTML(eventType.description)
+      : undefined;
+
+    return {
+      ...eventType,
+      safeDescription: descriptionAsSafeHTML,
+      descriptionAsSafeHTML,
+      users: getEventTypeUsers(eventType).map(addProfile),
+      metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
+      children: (eventType.children ?? []).map((child) => ({
+        ...child,
+        users: child.users.map(addProfile),
+      })),
+    };
+  });
+};
