@@ -146,6 +146,7 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
       traceContext: updatedTraceContext,
       actionSource: "WEBHOOK",
       actor,
+      impersonatedByUserUuid: null,
     });
   } else if (areEmailsEnabled) {
     await sendOrganizerRequestEmail({ ...evt }, eventType.metadata);

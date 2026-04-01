@@ -90,7 +90,7 @@ function ToggleGroupSeparator({
   return (
     <Separator
       className={cn(
-        "pointer-events-none relative before:absolute before:inset-0 dark:before:bg-input/32",
+        "pointer-events-none relative bg-input before:absolute before:inset-0 dark:before:bg-input/32",
         className,
       )}
       orientation={orientation}

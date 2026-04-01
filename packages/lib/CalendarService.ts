@@ -1,5 +1,22 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
+
+import process from "node:process";
+import dayjs from "@calcom/dayjs";
+import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
+import type {
+  Person as AttendeeInCalendarEvent,
+  Calendar,
+  CalendarEvent,
+  CalendarEventType,
+  CalendarServiceEvent,
+  EventBusyDate,
+  GetAvailabilityParams,
+  IntegrationCalendar,
+  NewCalendarEventType,
+  TeamMember,
+} from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject } from "ics";
 import { createEvent } from "ics";
@@ -14,23 +31,6 @@ import {
   updateCalendarObject,
 } from "tsdav";
 import { v4 as uuidv4 } from "uuid";
-
-import dayjs from "@calcom/dayjs";
-import sanitizeCalendarObject from "@calcom/lib/sanitizeCalendarObject";
-import type { Person as AttendeeInCalendarEvent } from "@calcom/types/Calendar";
-import type {
-  Calendar,
-  CalendarServiceEvent,
-  CalendarEvent,
-  CalendarEventType,
-  EventBusyDate,
-  GetAvailabilityParams,
-  IntegrationCalendar,
-  NewCalendarEventType,
-  TeamMember,
-} from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
-
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
 import logger from "./logger";
@@ -172,6 +172,216 @@ const injectScheduleAgent = (iCalString: string): string => {
   return result;
 };
 
+/**
+ * Finds the DST transition moment for a given year by binary-searching
+ * when the UTC offset changes between two months.
+ */
+const findDSTTransition = (
+  timezone: string,
+  year: number,
+  fromMonth: number,
+  toMonth: number
+): ReturnType<typeof dayjs> | null => {
+  let low = dayjs.utc(new Date(year, fromMonth, 1)).valueOf();
+  let high = dayjs.utc(new Date(year, toMonth, 1)).valueOf();
+  const lowOffset = dayjs(low).tz(timezone).utcOffset();
+  const highOffset = dayjs(high).tz(timezone).utcOffset();
+
+  if (lowOffset === highOffset) return null;
+
+  while (high - low > 60 * 1000) {
+    const mid = Math.floor((low + high) / 2);
+    const midOffset = dayjs(mid).tz(timezone).utcOffset();
+    if (midOffset === lowOffset) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+
+  // RFC 5545 requires DTSTART to be the local time interpreted with the
+  // pre-transition offset (TZOFFSETFROM). Apply the pre-transition offset
+  // to the UTC transition moment to get this local time.
+  const preTransitionOffsetMs = lowOffset * 60 * 1000;
+  return dayjs.utc(high + preTransitionOffsetMs);
+};
+
+/** Formats a transition moment as iCal DTSTART (e.g., 20260308T020000). */
+const formatTransitionDtstart = (transition: ReturnType<typeof dayjs>): string => {
+  const year = String(transition.year());
+  const month = String(transition.month() + 1).padStart(2, "0");
+  const day = String(transition.date()).padStart(2, "0");
+  const hour = String(transition.hour()).padStart(2, "0");
+  const minute = String(transition.minute()).padStart(2, "0");
+  return `${year}${month}${day}T${hour}${minute}00`;
+};
+
+/** Generates BYDAY RRULE value (e.g., "2SU") for nth weekday occurrence in month. */
+const getBydayRule = (d: ReturnType<typeof dayjs>): string => {
+  const dayNames = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
+  const dayOfWeek = dayNames[d.day()];
+  const dayOfMonth = d.date();
+  const weekNum = Math.ceil(dayOfMonth / 7);
+  const daysInMonth = d.daysInMonth();
+  if (dayOfMonth > daysInMonth - 7) {
+    return `-1${dayOfWeek}`;
+  }
+  return `${weekNum}${dayOfWeek}`;
+};
+
+/**
+ * Builds a VTIMEZONE component for the given IANA timezone.
+ * Uses the event's year to compute actual DST transitions (not 1970),
+ * ensuring correct BYDAY/BYMONTH for zones that changed rules post-1970.
+ * RFC 5545 §3.6.5 requires VTIMEZONE when DTSTART uses TZID.
+ */
+const buildVTimezone = (timezone: string, eventStart: string): string => {
+  const eventYear = dayjs(eventStart).tz(timezone).year();
+  // Construct dates from scratch in the target timezone to get correct offsets.
+  // Using .month() on an existing dayjs object may not recalculate the tz offset.
+  const winterMoment = dayjs.tz(`${eventYear}-01-15T12:00:00`, timezone);
+  const summerMoment = dayjs.tz(`${eventYear}-07-15T12:00:00`, timezone);
+
+  const formatOffset = (d: ReturnType<typeof dayjs>): string => {
+    const offsetMinutes = d.utcOffset();
+    const sign = offsetMinutes >= 0 ? "+" : "-";
+    const abs = Math.abs(offsetMinutes);
+    const hours = String(Math.floor(abs / 60)).padStart(2, "0");
+    const mins = String(abs % 60).padStart(2, "0");
+    return `${sign}${hours}${mins}`;
+  };
+
+  const standardOffset = formatOffset(winterMoment);
+  const daylightOffset = formatOffset(summerMoment);
+  const hasDST = standardOffset !== daylightOffset;
+
+  const lines: string[] = ["BEGIN:VTIMEZONE", `TZID:${timezone}`];
+
+  if (hasDST) {
+    const springTransition = findDSTTransition(timezone, eventYear, 0, 6);
+    const fallTransition = findDSTTransition(timezone, eventYear, 6, 11);
+
+    const winterUtcOffset = winterMoment.utcOffset();
+    const summerUtcOffset = summerMoment.utcOffset();
+    const trueStandardOffset = winterUtcOffset < summerUtcOffset ? standardOffset : daylightOffset;
+    const trueDaylightOffset = winterUtcOffset < summerUtcOffset ? daylightOffset : standardOffset;
+    const springIsDaylight = summerUtcOffset > winterUtcOffset;
+
+    if (springTransition) {
+      const dtstart = formatTransitionDtstart(springTransition);
+      const byday = getBydayRule(springTransition);
+      const bymonth = springTransition.month() + 1;
+
+      if (springIsDaylight) {
+        lines.push(
+          "BEGIN:DAYLIGHT",
+          `TZOFFSETFROM:${trueStandardOffset}`,
+          `TZOFFSETTO:${trueDaylightOffset}`,
+          "TZNAME:DST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:DAYLIGHT"
+        );
+      } else {
+        lines.push(
+          "BEGIN:STANDARD",
+          `TZOFFSETFROM:${trueDaylightOffset}`,
+          `TZOFFSETTO:${trueStandardOffset}`,
+          "TZNAME:ST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:STANDARD"
+        );
+      }
+    } else {
+      lines.push(
+        "BEGIN:DAYLIGHT",
+        `TZOFFSETFROM:${trueStandardOffset}`,
+        `TZOFFSETTO:${trueDaylightOffset}`,
+        "TZNAME:DST",
+        "DTSTART:19700101T000000",
+        "END:DAYLIGHT"
+      );
+    }
+
+    if (fallTransition) {
+      const dtstart = formatTransitionDtstart(fallTransition);
+      const byday = getBydayRule(fallTransition);
+      const bymonth = fallTransition.month() + 1;
+
+      if (springIsDaylight) {
+        lines.push(
+          "BEGIN:STANDARD",
+          `TZOFFSETFROM:${trueDaylightOffset}`,
+          `TZOFFSETTO:${trueStandardOffset}`,
+          "TZNAME:ST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:STANDARD"
+        );
+      } else {
+        lines.push(
+          "BEGIN:DAYLIGHT",
+          `TZOFFSETFROM:${trueStandardOffset}`,
+          `TZOFFSETTO:${trueDaylightOffset}`,
+          "TZNAME:DST",
+          `DTSTART:${dtstart}`,
+          `RRULE:FREQ=YEARLY;BYMONTH=${bymonth};BYDAY=${byday}`,
+          "END:DAYLIGHT"
+        );
+      }
+    } else {
+      lines.push(
+        "BEGIN:STANDARD",
+        `TZOFFSETFROM:${trueDaylightOffset}`,
+        `TZOFFSETTO:${trueStandardOffset}`,
+        "TZNAME:ST",
+        "DTSTART:19700101T000000",
+        "END:STANDARD"
+      );
+    }
+  } else {
+    lines.push(
+      "BEGIN:STANDARD",
+      `TZOFFSETFROM:${standardOffset}`,
+      `TZOFFSETTO:${standardOffset}`,
+      `TZNAME:${timezone}`,
+      "DTSTART:19700101T000000",
+      "END:STANDARD"
+    );
+  }
+
+  lines.push("END:VTIMEZONE");
+  return lines.join("\r\n");
+};
+
+/**
+ * Injects a VTIMEZONE block and rewrites DTSTART/DTEND from UTC to timezone-local.
+ */
+const injectVTimezone = (
+  iCalString: string,
+  timezone: string,
+  startTime: string,
+  endTime: string
+): string => {
+  const formatLocalDateTime = (isoString: string, tz: string): string => {
+    const local = dayjs(isoString).tz(tz);
+    return local.format("YYYYMMDDTHHmmss");
+  };
+
+  const localStart = formatLocalDateTime(startTime, timezone);
+  const localEnd = formatLocalDateTime(endTime, timezone);
+
+  let result = iCalString
+    .replace(/^DTSTART:[^\r\n]+/m, `DTSTART;TZID=${timezone}:${localStart}`)
+    .replace(/^DTEND:[^\r\n]+/m, `DTEND;TZID=${timezone}:${localEnd}`);
+
+  const vtimezone = buildVTimezone(timezone, startTime);
+  result = result.replace(/^BEGIN:VEVENT/m, `${vtimezone}\r\nBEGIN:VEVENT`);
+
+  return result;
+};
+
 const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
   attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
 
@@ -217,7 +427,7 @@ export default abstract class BaseCalendarService implements Calendar {
   async createEvent(event: CalendarServiceEvent, credentialId: number): Promise<NewCalendarEventType> {
     try {
       const calendars = await this.listCalendars(event);
-      const uid = uuidv4();
+      const uid = event.uid || uuidv4();
 
       // We create local ICS files
       const { error, value: iCalString } = createEvent({
@@ -242,6 +452,11 @@ export default abstract class BaseCalendarService implements Calendar {
       if (error || !iCalString)
         throw new Error(`Error creating iCalString:=> ${error?.message} : ${error?.name} `);
 
+      // Inject VTIMEZONE and rewrite DTSTART/DTEND to organizer's local timezone.
+      // Without this, CalDAV servers send scheduling emails with UTC times.
+      const timezone = event.organizer.timeZone;
+      const iCalStringWithTimezone = injectVTimezone(iCalString, timezone, event.startTime, event.endTime);
+
       const mainHostDestinationCalendar = event.destinationCalendar
         ? (event.destinationCalendar.find((cal) => cal.credentialId === credentialId) ??
           event.destinationCalendar[0])
@@ -261,7 +476,7 @@ export default abstract class BaseCalendarService implements Calendar {
                 url: calendar.externalId,
               },
               filename: `${uid}.ics`,
-              iCalString: injectScheduleAgent(iCalString),
+              iCalString: injectScheduleAgent(iCalStringWithTimezone),
               headers: this.headers,
             })
           )
@@ -320,6 +535,12 @@ export default abstract class BaseCalendarService implements Calendar {
           additionalInfo: {},
         };
       }
+      // Apply timezone fix to updated events as well
+      const updateTimezone = event.organizer.timeZone;
+      const iCalStringWithTimezone = iCalString
+        ? injectVTimezone(iCalString, updateTimezone, event.startTime, event.endTime)
+        : "";
+
       let calendarEvent: CalendarEventType;
       const eventsToUpdate = events.filter((e) => e.uid === uid);
       return Promise.all(
@@ -328,7 +549,7 @@ export default abstract class BaseCalendarService implements Calendar {
           return updateCalendarObject({
             calendarObject: {
               url: calendarEvent.url,
-              data: injectScheduleAgent(iCalString ?? ""),
+              data: injectScheduleAgent(iCalStringWithTimezone ?? ""),
               etag: calendarEvent?.etag,
             },
             headers: this.headers,
@@ -695,10 +916,7 @@ export default abstract class BaseCalendarService implements Calendar {
       (promise): promise is PromiseFulfilledResult<(DAVObject | undefined)[]> =>
         promise.status === "fulfilled"
     );
-    const flatResult = fulfilledPromises
-      .map((promise) => promise.value)
-      .flat()
-      .filter((obj) => obj !== null);
+    const flatResult = fulfilledPromises.flatMap((promise) => promise.value).filter((obj) => obj !== null);
     return flatResult as DAVObject[];
   }
 

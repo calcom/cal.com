@@ -32,7 +32,7 @@ import {
   NotFoundException,
   Query,
 } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { handleCreatePhoneCall } from "@calcom/platform-libraries";
@@ -54,6 +54,7 @@ export type EventTypeHandlerResponse = {
   version: API_VERSIONS_VALUES,
 })
 @DocsTags("Teams / Event Types")
+@ApiParam({ name: "teamId", type: Number, required: true })
 export class TeamsEventTypesController {
   constructor(
     private readonly teamsEventTypesService: TeamsEventTypesService,

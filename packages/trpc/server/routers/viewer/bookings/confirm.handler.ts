@@ -19,15 +19,19 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import {
+  type EventTypeBrandingData,
+  getEventTypeService,
+} from "@calcom/features/eventtypes/di/EventTypeService.container";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+import { getTranslation } from "@calcom/i18n/server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { prisma } from "@calcom/prisma";
@@ -48,7 +52,7 @@ type ConfirmOptions = {
     >;
     traceContext: TraceContext;
   };
-  input: TConfirmInputSchema & { actionSource: ValidActionSource; actor: Actor };
+  input: TConfirmInputSchema & { actionSource: ValidActionSource; actor: Actor; impersonatedByUserUuid: string | null };
 };
 
 async function fireRejectionEvent({
@@ -59,6 +63,7 @@ async function fireRejectionEvent({
   rejectionReason,
   isBookingAuditEnabled,
   tracingLogger,
+  impersonatedByUserUuid,
 }: {
   actor: Actor;
   organizationId: number | null;
@@ -70,11 +75,13 @@ async function fireRejectionEvent({
   }[];
   isBookingAuditEnabled: boolean;
   tracingLogger: ISimpleLogger;
+  impersonatedByUserUuid: string | null;
 }): Promise<void> {
   try {
     const bookingEventHandlerService = getBookingEventHandlerService();
     if (rejectedBookings.length > 1) {
       const operationId = uuidv4();
+      const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
       await bookingEventHandlerService.onBulkBookingsRejected({
         bookings: rejectedBookings.map((booking) => ({
           bookingUid: booking.uid,
@@ -87,10 +94,12 @@ async function fireRejectionEvent({
         organizationId,
         operationId,
         source: actionSource,
+        context,
         isBookingAuditEnabled,
       });
     } else if (rejectedBookings.length === 1) {
       const booking = rejectedBookings[0];
+      const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
       await bookingEventHandlerService.onBookingRejected({
         bookingUid: booking.uid,
         actor,
@@ -100,6 +109,7 @@ async function fireRejectionEvent({
           status: { old: booking.oldStatus, new: BookingStatus.REJECTED },
         },
         source: actionSource,
+        context,
         isBookingAuditEnabled,
       });
     }
@@ -121,6 +131,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     platformClientParams,
     actionSource,
     actor,
+    impersonatedByUserUuid,
   } = input;
 
   const booking = await prisma.booking.findUniqueOrThrow({
@@ -168,6 +179,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
               id: true,
               name: true,
               parentId: true,
+              hideBranding: true,
+              parent: { select: { hideBranding: true } },
             },
           },
           workflows: {
@@ -198,6 +211,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           name: true,
           destinationCalendar: true,
           locale: true,
+          hideBranding: true,
+          profiles: {
+            select: {
+              organization: { select: { hideBranding: true } },
+            },
+          },
         },
       },
       id: true,
@@ -352,6 +371,18 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           details: booking.assignmentReason[0].reasonString ?? null,
         }
       : null,
+    hideBranding: booking.eventType?.id
+      ? await getEventTypeService().shouldHideBrandingForEventType(booking.eventType.id, {
+          team: booking.eventType.team
+            ? { hideBranding: booking.eventType.team.hideBranding, parent: booking.eventType.team.parent }
+            : null,
+          owner: {
+            id: user.id,
+            hideBranding: user.hideBranding,
+            profiles: user.profiles ?? [],
+          },
+        } satisfies EventTypeBrandingData)
+      : false,
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
@@ -426,6 +457,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       traceContext,
       actionSource,
       actor,
+      impersonatedByUserUuid,
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -518,6 +550,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       rejectedBookings,
       isBookingAuditEnabled,
       tracingLogger: log,
+      impersonatedByUserUuid,
     });
 
     // send BOOKING_REJECTED webhooks
@@ -564,7 +597,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
             slug: booking.eventType?.slug as string,
           },
         },
-        hideBranding: !!booking.eventType?.owner?.hideBranding,
+        hideBranding: evt.hideBranding,
         triggers: [WorkflowTriggerEvents.BOOKING_REJECTED],
         creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
       });

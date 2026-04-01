@@ -2,19 +2,61 @@ import {
   createBookingScenario,
   getOrganizer,
   getScenarioData,
-  TestData,
   mockSuccessfulVideoMeetingCreation,
+  TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-
-import { describe, it, beforeEach, vi, expect } from "vitest";
-
+import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
+import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import * as handleConfirmationModule from "@calcom/features/bookings/lib/handleConfirmation";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { confirmHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn().mockImplementation(({ hosts }) => hosts),
+  enrichUsersWithDelegationCredentials: vi.fn().mockImplementation(({ users }) => users),
+  enrichUserWithDelegationCredentialsIncludeServiceAccountKey: vi.fn().mockImplementation(({ user }) => user),
+  enrichUserWithDelegationCredentials: vi.fn().mockImplementation(({ user }) => user),
+  enrichUserWithDelegationConferencingCredentialsWithoutOrgId: vi.fn().mockImplementation(({ user }) => user),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn().mockResolvedValue([]),
+  getUsersCredentials: vi.fn().mockResolvedValue([]),
+  getCredentialForSelectedCalendar: vi.fn(),
+  getAllDelegationCredentialsForUserIncludeServiceAccountKey: vi.fn().mockResolvedValue([]),
+  getAllDelegationCredentialsForUser: vi.fn().mockResolvedValue([]),
+  getAllDelegatedCalendarCredentialsForUser: vi.fn().mockResolvedValue([]),
+  getAllDelegationCredentialsForUserByAppType: vi.fn().mockResolvedValue([]),
+  getAllDelegationCredentialsForUserByAppSlug: vi.fn().mockResolvedValue([]),
+  buildAllCredentials: vi.fn().mockImplementation(({ existingCredentials }) => existingCredentials || []),
+  getDelegationCredentialOrFindRegularCredential: vi.fn(),
+  getDelegationCredentialOrRegularCredential: vi.fn(),
+  getFirstDelegationConferencingCredential: vi.fn(),
+  getFirstDelegationConferencingCredentialAppLocation: vi.fn(),
+  findUniqueDelegationCalendarCredential: vi.fn(),
+  assertSuccessfullyConfiguredInWorkspace: vi.fn(),
+}));
+
+vi.mock("@calcom/features/calendars/lib/CalendarManager", () => ({
+  createEvent: vi.fn(),
+  updateEvent: vi.fn(),
+  deleteEvent: vi.fn(),
+  getBusyCalendarTimes: vi.fn(),
+}));
+
+vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
+  checkIfEmailIsBlockedInWatchlist: vi.fn(),
+  isEmailVerified: vi.fn(),
+}));
+
+vi.mock("@calcom/lib/domainManager/organization", () => ({
+  getOrgDomainConfigFromHostname: vi.fn(),
+  subdomainSuffix: vi.fn(),
+}));
+
+vi.mock("@calcom/emails/organization-email-service", () => ({
+  OrganizationEmailService: vi.fn(),
+}));
 
 vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () => {
   const onBookingAccepted = vi.fn().mockResolvedValue(undefined);
@@ -131,6 +173,7 @@ describe("confirmHandler", () => {
           emailsEnabled: true,
           actor: makeUserActor(ctx.user.uuid),
           actionSource: "WEBAPP",
+          impersonatedByUserUuid: null,
         },
       });
 
@@ -230,6 +273,7 @@ describe("confirmHandler", () => {
           emailsEnabled: true,
           actor,
           actionSource: "WEBAPP",
+          impersonatedByUserUuid: null,
         },
       });
 
@@ -357,6 +401,7 @@ describe("confirmHandler", () => {
           emailsEnabled: true,
           actor,
           actionSource: "WEBAPP",
+          impersonatedByUserUuid: null,
         },
       });
 
@@ -467,6 +512,7 @@ describe("confirmHandler", () => {
           emailsEnabled: false,
           actor,
           actionSource: "WEBAPP",
+          impersonatedByUserUuid: null,
         },
       });
 
@@ -592,6 +638,7 @@ describe("confirmHandler", () => {
           emailsEnabled: false,
           actor,
           actionSource: "WEBAPP",
+          impersonatedByUserUuid: null,
         },
       });
 

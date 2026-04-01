@@ -28,6 +28,7 @@ export class WebhookOutputDto {
   @IsArray()
   @IsEnum(WebhookTriggerEvents, { each: true })
   @Expose()
+  @ApiProperty({ isArray: true, enum: WebhookTriggerEvents })
   readonly triggers!: WebhookTriggerEvents[];
 
   @IsString()

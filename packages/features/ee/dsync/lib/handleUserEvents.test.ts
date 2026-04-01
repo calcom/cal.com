@@ -17,7 +17,7 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
 
@@ -54,7 +54,6 @@ vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
     };
   }),
 }));
-
 async function createMockOrganization({ id, name, slug }: { id: number; name: string; slug: string }) {
   return prismock.team.create({
     data: {
