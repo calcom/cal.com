@@ -135,13 +135,21 @@ export class MonthlyProrationService {
 
     const billing = teamWithBilling.billing;
 
+    if (billing.pricePerSeat === 0) {
+      this.logger.info(`[${teamId}] price per seat is 0, skipping proration (enterprise/custom billing)`);
+      return null;
+    }
+
     if (!billing.billingPeriod || !billing.pricePerSeat) {
       this.logger.info(`[${teamId}] no billing record, checking metadata for subscription info`);
     }
 
     await this.ensureBillingDataPopulated(teamId, teamWithBilling.isOrganization, billing);
 
-    if (!billing.pricePerSeat) throw new Error(`No price per seat found for team ${teamId}`);
+    if (!billing.pricePerSeat) {
+      this.logger.info(`[${teamId}] no price per seat found, skipping proration (enterprise/custom billing)`);
+      return null;
+    }
     if (!billing.subscriptionStart || !billing.subscriptionEnd) {
       throw new Error(`Incomplete subscription info for team ${teamId}`);
     }
@@ -473,7 +481,7 @@ export class MonthlyProrationService {
     if (
       !needsCreation &&
       billing.billingPeriod &&
-      billing.pricePerSeat &&
+      billing.pricePerSeat != null &&
       billing.subscriptionStart &&
       billing.subscriptionEnd
     ) {

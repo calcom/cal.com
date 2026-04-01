@@ -60,6 +60,9 @@ const mockTeamRepository = {
   getAnnualTeamsWithSeatChanges: vi.fn(),
   updatePaidSeats: vi.fn(),
   getTeamMemberCount: vi.fn(),
+  updateBillingInfo: vi.fn().mockResolvedValue(undefined),
+  createOrganizationBilling: vi.fn().mockResolvedValue({ id: "billing-new" }),
+  createTeamBilling: vi.fn().mockResolvedValue({ id: "billing-new" }),
 };
 
 const mockProrationRepository = {
@@ -111,6 +114,9 @@ vi.mock("../../../repository/proration/MonthlyProrationTeamRepository", () => ({
     getAnnualTeamsWithSeatChanges = mockTeamRepository.getAnnualTeamsWithSeatChanges;
     updatePaidSeats = mockTeamRepository.updatePaidSeats;
     getTeamMemberCount = mockTeamRepository.getTeamMemberCount;
+    updateBillingInfo = mockTeamRepository.updateBillingInfo;
+    createOrganizationBilling = mockTeamRepository.createOrganizationBilling;
+    createTeamBilling = mockTeamRepository.createTeamBilling;
   },
 }));
 
@@ -441,6 +447,38 @@ describe("MonthlyProrationService", () => {
       await expect(service.createProrationForTeam({ teamId: 1, monthKey: "2026-01" })).rejects.toThrow(
         "No billing record or metadata found for team 1"
       );
+    });
+
+    it("should skip proration when no price per seat (enterprise/custom billing)", async () => {
+      const { SeatChangeTrackingService } = await import("../../seatTracking/SeatChangeTrackingService");
+
+      vi.spyOn(SeatChangeTrackingService.prototype, "getMonthlyChanges").mockResolvedValueOnce({
+        additions: 3,
+        removals: 0,
+        netChange: 3,
+      });
+
+      mockTeamRepository.getTeamWithBilling.mockResolvedValueOnce({
+        id: 14555,
+        isOrganization: true,
+        memberCount: 50,
+        billing: {
+          id: "billing-enterprise",
+          subscriptionId: "sub_enterprise",
+          subscriptionItemId: "si_enterprise",
+          customerId: "cus_enterprise",
+          billingPeriod: "ANNUALLY",
+          pricePerSeat: 0,
+          subscriptionStart: new Date("2026-01-01"),
+          subscriptionEnd: new Date("2027-01-01"),
+          paidSeats: 50,
+        },
+      });
+
+      const result = await service.createProrationForTeam({ teamId: 14555, monthKey: "2026-03" });
+
+      expect(result).toBeNull();
+      expect(mockProrationRepository.createProration).not.toHaveBeenCalled();
     });
   });
 
