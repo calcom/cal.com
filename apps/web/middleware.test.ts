@@ -1,5 +1,6 @@
 // Import mocked functions
 import { get as edgeConfigGet } from "@vercel/edge-config";
+import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import type { Mock } from "vitest";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -13,6 +14,10 @@ import middleware from "./middleware";
 // Mock dependencies at module level
 vi.mock("@vercel/edge-config", () => ({
   get: vi.fn(),
+}));
+
+vi.mock("next-auth/jwt", () => ({
+  getToken: vi.fn(),
 }));
 
 vi.mock("next-collect/server", () => ({
@@ -192,6 +197,7 @@ describe("Middleware Integration Tests", () => {
     vi.clearAllMocks();
     // Set test environment
     vi.stubEnv("NEXT_PUBLIC_WEBAPP_URL", WEBAPP_URL);
+    (getToken as Mock).mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -210,6 +216,81 @@ describe("Middleware Integration Tests", () => {
         expectStatus(res, 200);
         expect(getHeader(res, "x-middleware-next")).toBe("1");
       }
+    });
+  });
+
+  describe("Onboarding Access Control", () => {
+    it.each(["/enterprise", "/refer", "/upgrade"])(
+      "should redirect direct access from %s to /home",
+      async (blockedPath) => {
+        const req = createTestRequest({
+          url: `${WEBAPP_URL}${blockedPath}?from=direct`,
+        });
+
+        const res = await callMiddleware(req);
+        expectStatus(res, 307);
+        expect(getHeader(res, "location")).toBe(`${WEBAPP_URL}/home?from=direct`);
+      }
+    );
+
+    it("should redirect incomplete users from guarded dashboard routes to onboarding", async () => {
+      (getToken as Mock).mockResolvedValue({
+        sub: "1",
+        completedOnboarding: false,
+      });
+
+      const req = createTestRequest({
+        url: `${WEBAPP_URL}/home?tab=upcoming`,
+      });
+
+      const res = await callMiddleware(req);
+      expectStatus(res, 307);
+      expect(getHeader(res, "location")).toBe(`${WEBAPP_URL}/getting-started?tab=upcoming`);
+    });
+
+    it("should redirect completed users away from onboarding routes to dashboard home", async () => {
+      (getToken as Mock).mockResolvedValue({
+        sub: "1",
+        completedOnboarding: true,
+      });
+
+      const req = createTestRequest({
+        url: `${WEBAPP_URL}/getting-started/connected-calendar?from=signup`,
+      });
+
+      const res = await callMiddleware(req);
+      expectStatus(res, 307);
+      expect(getHeader(res, "location")).toBe(`${WEBAPP_URL}/home?from=signup`);
+    });
+
+    it("should allow incomplete users to access onboarding routes", async () => {
+      (getToken as Mock).mockResolvedValue({
+        sub: "1",
+        completedOnboarding: false,
+      });
+
+      const req = createTestRequest({
+        url: `${WEBAPP_URL}/getting-started/profile`,
+      });
+
+      const res = await callMiddleware(req);
+      expectStatus(res, 200);
+      expect(getHeader(res, "location")).toBeNull();
+    });
+
+    it("should allow completed users to access guarded dashboard routes", async () => {
+      (getToken as Mock).mockResolvedValue({
+        sub: "1",
+        completedOnboarding: true,
+      });
+
+      const req = createTestRequest({
+        url: `${WEBAPP_URL}/settings/my-account/profile`,
+      });
+
+      const res = await callMiddleware(req);
+      expectStatus(res, 200);
+      expect(getHeader(res, "location")).toBeNull();
     });
   });
 

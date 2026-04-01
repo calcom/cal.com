@@ -9,7 +9,6 @@ import React, { cloneElement } from "react";
 import { Toaster } from "sonner";
 
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
-import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
 import { KBarContent, KBarRoot } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
@@ -113,7 +112,6 @@ const PublicShell = (props: LayoutProps) => {
 export default function Shell(props: LayoutProps) {
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
-  useRedirectToOnboardingIfNeeded();
   useAppTheme();
 
   return !props.isPublic ? (

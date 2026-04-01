@@ -1,4 +1,5 @@
 import { get } from "@vercel/edge-config";
+import { getToken } from "next-auth/jwt";
 import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -49,6 +50,96 @@ const shouldEnforceCsp = (url: URL) => {
   return url.pathname.startsWith("/auth/login") || url.pathname.startsWith("/login");
 };
 
+const ONBOARDING_BASE_PATH = "/getting-started";
+const POST_ONBOARDING_PATH = "/home";
+const DIRECT_ACCESS_BLOCKED_PREFIXES = ["/enterprise", "/refer", "/upgrade"];
+const ONBOARDING_GUARDED_PREFIXES = [
+  "/home",
+  "/event-types",
+  "/bookings",
+  "/contacts",
+  "/calendar",
+  "/claim",
+  "/apps",
+  "/availability",
+  "/insights",
+  "/more",
+  "/settings",
+  "/teams",
+  "/workflows",
+  "/routing",
+];
+
+function isOnboardingPath(pathname: string) {
+  return pathname === ONBOARDING_BASE_PATH || pathname.startsWith(`${ONBOARDING_BASE_PATH}/`);
+}
+
+function isOnboardingGuardedPath(pathname: string) {
+  return ONBOARDING_GUARDED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
+function isDirectAccessBlockedPath(pathname: string) {
+  return DIRECT_ACCESS_BLOCKED_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
+const getOnboardingAccessRedirect = async ({
+  req,
+  requestHeaders,
+}: {
+  req: NextRequest;
+  requestHeaders: Headers;
+}) => {
+  const { pathname, search } = req.nextUrl;
+  const isOnboardingRoute = isOnboardingPath(pathname);
+  const isGuardedRoute = isOnboardingGuardedPath(pathname);
+
+  if (!isOnboardingRoute && !isGuardedRoute) {
+    return null;
+  }
+
+  const token = await getToken({ req });
+  if (!token?.sub) {
+    return null;
+  }
+
+  const hasCompletedOnboarding = !!token.completedOnboarding;
+
+  if (!hasCompletedOnboarding && isGuardedRoute) {
+    return NextResponse.redirect(new URL(`${ONBOARDING_BASE_PATH}${search}`, req.url), {
+      headers: requestHeaders,
+    });
+  }
+
+  if (hasCompletedOnboarding && isOnboardingRoute) {
+    return NextResponse.redirect(new URL(`${POST_ONBOARDING_PATH}${search}`, req.url), {
+      headers: requestHeaders,
+    });
+  }
+
+  return null;
+};
+
+const getDirectAccessBlockedRedirect = ({
+  req,
+  requestHeaders,
+}: {
+  req: NextRequest;
+  requestHeaders: Headers;
+}) => {
+  const { pathname, search } = req.nextUrl;
+  if (!isDirectAccessBlockedPath(pathname)) {
+    return null;
+  }
+
+  return NextResponse.redirect(new URL(`${POST_ONBOARDING_PATH}${search}`, req.url), {
+    headers: requestHeaders,
+  });
+};
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const postCheckResult = checkPostMethod(req);
   if (postCheckResult) return postCheckResult;
@@ -59,6 +150,18 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const reqWithEnrichedHeaders = enrichRequestWithHeaders({ req });
   const requestHeaders = new Headers(reqWithEnrichedHeaders.headers);
+
+  const directAccessBlockedRedirect = getDirectAccessBlockedRedirect({
+    req: reqWithEnrichedHeaders,
+    requestHeaders,
+  });
+  if (directAccessBlockedRedirect) return directAccessBlockedRedirect;
+
+  const onboardingAccessRedirect = await getOnboardingAccessRedirect({
+    req: reqWithEnrichedHeaders,
+    requestHeaders,
+  });
+  if (onboardingAccessRedirect) return onboardingAccessRedirect;
 
   if (!url.pathname.startsWith("/api")) {
     //
@@ -197,6 +300,26 @@ export const config = {
     // Routes to set cookies
     "/apps/installed",
     "/auth/logout",
+    // Onboarding access control routes
+    "/getting-started/:path*",
+    "/home/:path*",
+    "/event-types/:path*",
+    "/bookings/:path*",
+    "/contacts/:path*",
+    "/availability/:path*",
+    "/calendar/:path*",
+    "/claim/:path*",
+    "/teams/:path*",
+    "/apps/:path*",
+    "/routing/:path*",
+    "/insights/:path*",
+    "/workflows/:path*",
+    "/settings/:path*",
+    "/more/:path*",
+    //Blocked direct access routes
+    "/enterprise/:path*",
+    "/refer/:path*",
+    "/upgrade/:path*",
     // Embed Routes,
     "/:path*/embed",
     // API routes
