@@ -681,7 +681,10 @@ export default abstract class BaseCalendarService implements Calendar {
       vevents.forEach((vevent) => {
         // if event status is free or transparent, return
         if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
-
+        if(vevent?.getFirstPropertyValue("x-microsoft-cdo-intendedstatus") === "FREE")return;
+        //this is for the free event the earlier code was only for read trans not for free event
+        if(vevent?.getFirstPropertyValue("status")==="CANCELLED") return;
+        //this is added for canclled event should not block the time
         const event = new ICAL.Event(vevent);
         const dtstartProperty = vevent.getFirstProperty("dtstart");
         const tzidFromDtstart = dtstartProperty ? (dtstartProperty as any).jCal[1].tzid : undefined;
@@ -871,6 +874,7 @@ export default abstract class BaseCalendarService implements Calendar {
   }: FetchObjectsWithOptionalExpandOptionsType): Promise<DAVObject[]> {
     const filteredCalendars = selectedCalendars.filter((sc) => sc.externalId);
     const fetchPromises = filteredCalendars.map(async (sc) => {
+      try{
       const response = await fetchCalendarObjects({
         urlFilter: (url) => this.isValidFormat(url),
         calendar: {
@@ -910,12 +914,31 @@ export default abstract class BaseCalendarService implements Calendar {
         })
       );
       return processedResponse;
+    }
+    catch(err){
+      logger.error("Enter calender object",{
+        externalId: sc.externalId,  // tell you which calendar failed
+        error: err,
+      });
+      return [];
+    }
+    // in this code you have done only resolve option by which it only fetch one calender code as another calender appear it crashes
+    //now if yourne calender fails another calender will work
     });
     const resolvedPromises = await Promise.allSettled(fetchPromises);
     const fulfilledPromises = resolvedPromises.filter(
-      (promise): promise is PromiseFulfilledResult<(DAVObject | undefined)[]> =>
-        promise.status === "fulfilled"
-    );
+      (promise): promise is PromiseFulfilledResult<(DAVObject | undefined)[]> =>{
+
+        if(promise.status== "rejected"){
+          logger.error("Failed",{
+            reason:promise.reason,
+          })
+        }
+        //why we have done this because the earlier code was only reading or storing the success full case not the failed one 
+        //By this u can store the failed case and debug it
+        return promise.status === "fulfilled"
+      
+    });
     const flatResult = fulfilledPromises.flatMap((promise) => promise.value).filter((obj) => obj !== null);
     return flatResult as DAVObject[];
   }
