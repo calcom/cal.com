@@ -500,6 +500,35 @@ export class WorkflowRepository {
     });
   }
 
+  static async deleteAllWorkflowRemindersForUser(userId: number) {
+    const reminders = await prisma.workflowReminder.findMany({
+      where: {
+        AND: [
+          {
+            OR: [{ booking: { userId } }, { workflowStep: { workflow: { userId } } }],
+          },
+          {
+            OR: [{ cancelled: false }, { cancelled: null }],
+          },
+        ],
+        scheduledDate: {
+          gte: new Date(),
+        },
+      },
+      select: {
+        id: true,
+        referenceId: true,
+        method: true,
+      },
+    });
+
+    if (reminders.length > 0) {
+      await WorkflowRepository.deleteAllWorkflowReminders(reminders);
+    }
+
+    return reminders.length;
+  }
+
   static async findUniqueForUpdate(id: number) {
     return await prisma.workflow.findUnique({
       where: { id },

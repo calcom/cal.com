@@ -16,6 +16,7 @@ import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 function createMockWatchlistRepo() {
   return {
     findEntryWithAuditAndReports: vi.fn(),
+    findBlockedEmail: vi.fn().mockResolvedValue(null),
     deleteEntry: vi.fn().mockResolvedValue(undefined),
     findEntriesByIds: vi.fn().mockResolvedValue([]),
     bulkDeleteEntries: vi.fn().mockResolvedValue({ deleted: 0 }),
@@ -72,6 +73,7 @@ describe("AdminWatchlistOperationsService", () => {
 
     service = new AdminWatchlistOperationsService({
       watchlistRepo: mockWatchlistRepo as never,
+      globalWatchlistRepo: mockWatchlistRepo as never,
       bookingReportRepo: mockBookingReportRepo as never,
       userRepo: mockUserRepo as never,
     });

@@ -14,6 +14,7 @@ import type {
   IGlobalWatchlistRepository,
   IOrganizationWatchlistRepository,
 } from "@calcom/features/watchlist/lib/interface/IWatchlistRepositories";
+import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
 import { AdminWatchlistOperationsService } from "@calcom/features/watchlist/lib/service/AdminWatchlistOperationsService";
 import { AdminWatchlistQueryService } from "@calcom/features/watchlist/lib/service/AdminWatchlistQueryService";
@@ -77,11 +78,13 @@ export async function getWatchlistFeature(): Promise<WatchlistFeature> {
 
 export function getAdminWatchlistOperationsService(): AdminWatchlistOperationsService {
   const watchlistRepo = new WatchlistRepository(prisma);
+  const globalWatchlistRepo = new GlobalWatchlistRepository(prisma);
   const bookingReportRepo = new PrismaBookingReportRepository(prisma);
   const userRepo = new UserRepository(prisma);
 
   return new AdminWatchlistOperationsService({
     watchlistRepo,
+    globalWatchlistRepo,
     bookingReportRepo,
     userRepo,
   });
