@@ -3,7 +3,7 @@ import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { randomString } from "@calcom/lib/random";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
-import { expect } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import { JSDOM } from "jsdom";
 import { test, todo } from "./lib/fixtures";
 import {
@@ -14,12 +14,15 @@ import {
   confirmBooking,
   confirmReschedule,
   expectSlotNotAllowedToBook,
+  saveEventType,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
 } from "./lib/testUtils";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
+const normalizePhone = (value: string): string => value.replace(/[^+\d]/g, "");
+
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
   await users.deleteAll();
@@ -427,6 +430,31 @@ test.describe("prefill", () => {
     });
   });
 
+  test("logged out hard-loaded slot URL preserves attendeePhoneNumber prefill", async ({ page, users }) => {
+    const user = await users.create({ name: "Phone Prefill User" });
+    await user.apiLogin();
+
+    const eventType = await user.getFirstEventAsOwner();
+    await enableRequiredAttendeePhoneNumberField(page, eventType.id);
+
+    await page.goto(`/${user.username}/${eventType.slug}`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    const prefilledPhoneNumber = "+911234567890";
+    const bookingFormUrl = new URL(page.url());
+    bookingFormUrl.searchParams.delete("name");
+    bookingFormUrl.searchParams.delete("email");
+    bookingFormUrl.searchParams.delete("overlayCalendar");
+    bookingFormUrl.searchParams.set("attendeePhoneNumber", prefilledPhoneNumber);
+
+    await user.logout();
+    await page.goto(bookingFormUrl.toString());
+
+    await expect
+      .poll(async () => normalizePhone(await page.locator('[name="attendeePhoneNumber"]').inputValue()))
+      .toBe(prefilledPhoneNumber);
+  });
+
   test("skip confirm step if all fields are prefilled from query params", async ({ page }) => {
     await page.goto("/pro/30min");
     const url = new URL(page.url());
@@ -499,6 +527,18 @@ test.describe("Booking on different layouts", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 });
+
+async function enableRequiredAttendeePhoneNumberField(page: Page, eventId: number): Promise<void> {
+  await page.goto(`/event-types/${eventId}?tabName=advanced`);
+  await expect(page.getByTestId("vertical-tab-basics")).toContainText("Basics");
+
+  await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="toggle-field"]').click();
+  await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="edit-field-action"]').click();
+  await page.locator('[data-testid="field-required"]').first().click();
+  await page.getByTestId("field-add-save").click();
+
+  await saveEventType(page);
+}
 
 test.describe("Booking round robin event", () => {
   test.beforeEach(async ({ page, users }) => {

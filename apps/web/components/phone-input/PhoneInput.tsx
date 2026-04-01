@@ -112,12 +112,21 @@ function BasePhoneInputWeb({
   ...rest
 }: Omit<PhoneInputProps, "defaultCountry">) {
   const defaultCountry = useDefaultCountry();
+  const [countryForInput, setCountryForInput] = useState(defaultCountry);
+
+  useEffect(() => {
+    // Keep the country prop stable once a value exists. `react-phone-input-2`
+    // can drop hard-load prefills when both country and value change together.
+    if (value) return;
+
+    setCountryForInput(defaultCountry);
+  }, [defaultCountry, value]);
 
   return (
     <PhoneInput
       {...rest}
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
-      country={value ? undefined : defaultCountry}
+      country={countryForInput}
       enableSearch
       disableSearchIcon
       masks={CUSTOM_PHONE_MASKS}
