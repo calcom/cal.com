@@ -71,7 +71,7 @@ export const EventDuration = ({
   // from the original booking, but this effect fires before initialize (child
   // effects run before parent effects), which would cause a flash of the wrong value.
   useEffect(() => {
-    const isRescheduling = new URLSearchParams(window.location.search).has("rescheduleUid");
+    const isRescheduling = !!new URLSearchParams(window.location.search).get("rescheduleUid");
     if (!selectedDuration && !isRescheduling && (event.metadata?.multipleDuration || isDynamicEvent))
       setSelectedDuration(event.length);
   }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
