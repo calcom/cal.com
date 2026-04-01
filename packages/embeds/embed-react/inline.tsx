@@ -10,6 +10,9 @@ import ReactDom from "react-dom";
 // There are tests in test/built which verify that the types from built package are correctly generated and exported correctly.
 import Cal, { getCalApi, type EmbedEvent } from "./src/index";
 
+const url = new URL(document.URL);
+const calOrigin = url.searchParams.get("calOrigin") || "http://localhost:3000";
+
 const api = getCalApi({
   namespace: "inline",
 });
@@ -99,8 +102,8 @@ function App() {
         There is <code>Cal</code> component below me
       </h1>
       <Cal
-        calOrigin="http://localhost:3000"
-        embedJsUrl="//localhost:3000/embed/embed.js"
+        calOrigin={calOrigin}
+        embedJsUrl={`//${new URL(calOrigin).host}/embed/embed.js`}
         namespace="inline"
         style={{ width: "100%", height: "100%", overflow: "scroll" }}
         calLink="pro"

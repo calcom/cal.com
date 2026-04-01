@@ -7,16 +7,19 @@ import ReactDom from "react-dom";
 
 import { getCalApi } from "./src/index";
 
+const url = new URL(document.URL);
+const calOrigin = url.searchParams.get("calOrigin") || "http://localhost:3000";
+
 function App() {
   useEffect(() => {
     (async function () {
       const cal = await getCalApi({
         namespace: "floating",
-        embedJsUrl: "http://localhost:3000/embed/embed.js",
+        embedJsUrl: `${calOrigin}/embed/embed.js`,
       });
       cal("floatingButton", {
         calLink: "pro",
-        calOrigin: "http://localhost:3000",
+        calOrigin,
         config: {
           theme: "dark",
         },

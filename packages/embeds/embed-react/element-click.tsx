@@ -7,12 +7,15 @@ import ReactDom from "react-dom";
 
 import { getCalApi } from "./src/index";
 
+const url = new URL(document.URL);
+const calOrigin = url.searchParams.get("calOrigin") || "http://localhost:3000";
+
 const calNamespace = "element-click";
 function App() {
   useEffect(() => {
     (async function () {
       const cal = await getCalApi({
-        embedJsUrl: "http://localhost:3000/embed/embed.js",
+        embedJsUrl: `${calOrigin}/embed/embed.js`,
         namespace: calNamespace,
       });
       cal("ui", {
