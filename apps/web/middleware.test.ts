@@ -248,6 +248,36 @@ describe("Middleware Integration Tests", () => {
       expect(getHeader(res, "location")).toBe(`${WEBAPP_URL}/getting-started?tab=upcoming`);
     });
 
+    it("should allow validated onboarding Calendly OAuth callback return on settings import route", async () => {
+      (getToken as Mock).mockResolvedValue({
+        sub: "1",
+        completedOnboarding: false,
+      });
+
+      const req = createTestRequest({
+        url: `${WEBAPP_URL}/settings/import/calendly?code=test-code&state=onboarding_finish_1`,
+      });
+
+      const res = await callMiddleware(req);
+      expectStatus(res, 200);
+      expect(getHeader(res, "location")).toBeNull();
+    });
+
+    it("should still block incomplete users from settings import route without onboarding callback state", async () => {
+      (getToken as Mock).mockResolvedValue({
+        sub: "1",
+        completedOnboarding: false,
+      });
+
+      const req = createTestRequest({
+        url: `${WEBAPP_URL}/settings/import/calendly?code=test-code`,
+      });
+
+      const res = await callMiddleware(req);
+      expectStatus(res, 307);
+      expect(getHeader(res, "location")).toBe(`${WEBAPP_URL}/getting-started?code=test-code`);
+    });
+
     it("should redirect completed users away from onboarding routes to dashboard home", async () => {
       (getToken as Mock).mockResolvedValue({
         sub: "1",

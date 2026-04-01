@@ -80,6 +80,16 @@ function isOnboardingGuardedPath(pathname: string) {
   );
 }
 
+function isValidOnboardingCalendlyOAuthReturn(url: URL) {
+  if (url.pathname !== "/settings/import/calendly") {
+    return false;
+  }
+
+  const code = url.searchParams.get("code");
+  const state = url.searchParams.get("state");
+  return !!code && !!state && state.startsWith("onboarding_finish_");
+}
+
 function isDirectAccessBlockedPath(pathname: string) {
   return DIRECT_ACCESS_BLOCKED_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
@@ -109,6 +119,10 @@ const getOnboardingAccessRedirect = async ({
   const hasCompletedOnboarding = !!token.completedOnboarding;
 
   if (!hasCompletedOnboarding && isGuardedRoute) {
+    // Allow only validated Calendly OAuth return during onboarding.
+    if (isValidOnboardingCalendlyOAuthReturn(req.nextUrl)) {
+      return null;
+    }
     return NextResponse.redirect(new URL(`${ONBOARDING_BASE_PATH}${search}`, req.url), {
       headers: requestHeaders,
     });

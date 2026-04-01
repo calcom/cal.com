@@ -124,6 +124,7 @@ const CalendlyImportComponent = ({ userId, redirected }: { userId: number; redir
       client_id: process.env.NEXT_PUBLIC_CALENDLY_CLIENT_ID ?? "",
       redirect_uri: process.env.NEXT_PUBLIC_CALENDLY_REDIRECT_URI ?? "",
       response_type: "code",
+      state: `settings_import_${userId}`,
     };
 
     const location = `${process.env.NEXT_PUBLIC_CALENDLY_OAUTH_URL}/authorize?${new URLSearchParams(

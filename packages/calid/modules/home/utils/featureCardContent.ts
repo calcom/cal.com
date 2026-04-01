@@ -28,7 +28,7 @@ export const newFeatureCardContent: Feature[] = [
     icon: "contact",
     title: "Contacts",
     description: "Easily manage and organize all your interactions with people in one place",
-    isComingSoon: true,
+    isNew: true,
   },
 ];
 

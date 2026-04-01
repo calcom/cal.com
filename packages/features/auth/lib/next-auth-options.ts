@@ -1041,6 +1041,8 @@ export const getOptions = ({
           name: session?.name ?? token.name,
           username: session?.username ?? token.username,
           email: session?.email ?? token.email,
+          completedOnboarding:
+            session?.completedOnboarding ?? session?.user?.completedOnboarding ?? token.completedOnboarding,
         } as JWT;
       }
 

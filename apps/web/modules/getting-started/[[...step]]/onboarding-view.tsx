@@ -7,7 +7,7 @@ import { Steps } from "@calid/features/ui/components/card";
 import { Icon } from "@calid/features/ui/components/icon";
 import { triggerToast } from "@calid/features/ui/components/toast";
 import type { TFunction } from "i18next";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Suspense, useTransition } from "react";
@@ -81,6 +81,7 @@ const OnboardingPage = (props: PageProps) => {
     }
   }, [props.google_signup_to_be_tracked, props.email]);
   const router = useRouter();
+  const { update } = useSession();
   const [user] = trpc.viewer.me.calid_get.useSuspenseQuery();
   const { t } = useLocale();
   const [isNextStepLoading, startTransition] = useTransition();
@@ -132,8 +133,8 @@ const OnboardingPage = (props: PageProps) => {
     onSuccess: async () => {
       await utils.viewer.me.invalidate();
       await utils.viewer.me.calid_get.invalidate();
-
       await utils.viewer.me.get.refetch();
+      await update({ completedOnboarding: true });
 
       router.push("/home");
     },
@@ -188,9 +189,6 @@ const OnboardingPage = (props: PageProps) => {
     }
     // After creating the default schedule, complete the onboarding with a generic bio
     completionMutation.mutate({
-      metadata: {
-        currentOnboardingStep: "completed",
-      },
       completedOnboarding: true,
       bio: t("default_user_bio"),
     });

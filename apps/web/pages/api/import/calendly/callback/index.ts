@@ -1,8 +1,15 @@
 import { CalendlyOAuthProvider } from "@onehash/calendly";
+import { serialize } from "cookie";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 import { IntegrationProvider } from "@calcom/prisma/client";
+
+import {
+  finalizeOnboardingFromCalendly,
+  refreshSessionTokenAfterOnboarding,
+  shouldNotifyBookers,
+} from "@lib/getting-started/calendly/onboardingFinalization";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Only allow GET requests
@@ -12,6 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { code, userId: userIdQuery, state } = req.query;
+    const webappUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "";
 
     // Get userId from query or from state (e.g. onboarding_finish_123)
     let userId = typeof userIdQuery === "string" ? userIdQuery : undefined;
@@ -82,13 +90,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Redirect to onboarding finish when user came from "Import from Calendly and finish" flow
-    if (typeof state === "string" && state.startsWith("onboarding_finish_")) {
-      const webappUrl = process.env.NEXT_PUBLIC_WEBAPP_URL || "";
-      return res.redirect(302, `${webappUrl}/getting-started/connected-video?redirected=1`);
+    const onboardingOrigin = typeof state === "string" && state.startsWith("onboarding_finish_");
+
+    // Redirect by flow origin.
+    if (onboardingOrigin) {
+      const parsedUserId = parseInt(userId);
+      await finalizeOnboardingFromCalendly({
+        userId: parsedUserId,
+        accessToken: access_token,
+        refreshToken: refresh_token,
+        ownerUniqIdentifier: owner,
+        createdAt: created_at,
+        expiresIn: expires_in,
+        sendCampaignEmails: shouldNotifyBookers(req),
+      });
+      await refreshSessionTokenAfterOnboarding({ req, res, userId: parsedUserId });
+      const cookieValue = serialize("calendly_sync_toast", "1", {
+        httpOnly: false,
+        sameSite: "lax",
+        secure: (process.env.NEXT_PUBLIC_WEBAPP_URL || "").startsWith("https://"),
+        path: "/",
+        maxAge: 60,
+      });
+      const existing = res.getHeader("Set-Cookie");
+      res.setHeader(
+        "Set-Cookie",
+        existing
+          ? Array.isArray(existing)
+            ? [...existing, cookieValue]
+            : [existing, cookieValue]
+          : [cookieValue]
+      );
+      return res.redirect(302, `${webappUrl}/home`);
     }
 
-    return res.status(200).json({ success: true });
+    return res.redirect(302, `${webappUrl}/settings/others/import?redirected=true`);
   } catch (error) {
     console.error("OAuth callback error:", String(error));
     return res.status(500).json({ error: "Internal Server Error" });
