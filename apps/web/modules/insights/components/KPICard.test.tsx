@@ -60,4 +60,25 @@ describe("KPICard", () => {
     );
     expect(screen.getByText("from_last_period")).toBeInTheDocument();
   });
+
+  it("should render info icon when tooltip is provided", () => {
+    const { container } = render(
+      <TooltipProvider>
+        <KPICard {...defaultProps} tooltip="Test tooltip content" />
+      </TooltipProvider>
+    );
+    const infoIcon = container.querySelector("svg");
+    expect(infoIcon).toBeInTheDocument();
+  });
+
+  it("should not render info icon when tooltip is not provided", () => {
+    const { container } = render(
+      <TooltipProvider>
+        <KPICard {...defaultProps} />
+      </TooltipProvider>
+    );
+    const titleDiv = screen.getByText("Events Created").closest("div");
+    const svgs = titleDiv?.querySelectorAll("svg") ?? [];
+    expect(svgs.length).toBe(0);
+  });
 });

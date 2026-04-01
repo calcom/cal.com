@@ -49,6 +49,7 @@ export const BookingKPICards = () => {
   const performanceCategories: {
     title: string;
     index: "rating" | "no_show" | "no_show_guest" | "csat";
+    tooltip?: string;
   }[] = [
     {
       title: t("event_ratings"),
@@ -57,10 +58,12 @@ export const BookingKPICards = () => {
     {
       title: t("event_no_show"),
       index: "no_show",
+      tooltip: t("event_no_show_host_tooltip"),
     },
     {
       title: t("event_no_show_guest"),
       index: "no_show_guest",
+      tooltip: t("event_no_show_guest_tooltip"),
     },
     {
       title: t("csat_score"),
@@ -103,6 +106,7 @@ export const BookingKPICards = () => {
             <StatItem key={item.title} index={index}>
               <KPICard
                 title={item.title}
+                tooltip={item.tooltip}
                 previousMetricData={data[item.index]}
                 previousDateRange={data.previousRange}
               />

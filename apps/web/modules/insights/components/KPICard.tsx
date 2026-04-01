@@ -9,10 +9,12 @@ import { calculateDeltaType, valueFormatter } from "@calcom/features/insights/li
 
 export const KPICard = ({
   title,
+  tooltip,
   previousMetricData,
   previousDateRange,
 }: {
   title: string;
+  tooltip?: string;
   previousMetricData: {
     count: number;
     deltaPrevious: number;
@@ -58,7 +60,14 @@ export const KPICard = ({
 
   return (
     <div>
-      <div className="text-default text-sm">{title}</div>
+      <div className="text-default flex items-center gap-1 text-sm">
+        {title}
+        {tooltip && (
+          <Tooltip content={tooltip}>
+            <Icon name="info" className="text-subtle h-4 w-4" />
+          </Tooltip>
+        )}
+      </div>
       <div className="flex items-baseline justify-start space-x-3 truncate">
         <div className="text-emphasis text-2xl font-semibold">{valueFormatter(previousMetricData.count)}</div>
       </div>

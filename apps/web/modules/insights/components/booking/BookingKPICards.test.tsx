@@ -88,4 +88,29 @@ describe("BookingKPICards", () => {
     expect(screen.getByText("events_rescheduled")).toBeInTheDocument();
     expect(screen.getByText("events_cancelled")).toBeInTheDocument();
   });
+
+  it("should pass tooltip props for no-show performance cards", () => {
+    const mockData = {
+      created: { count: 100, deltaPrevious: 10 },
+      completed: { count: 80, deltaPrevious: 5 },
+      rescheduled: { count: 10, deltaPrevious: -2 },
+      cancelled: { count: 5, deltaPrevious: 0 },
+      rating: { count: 4.5, deltaPrevious: 0.2 },
+      no_show: { count: 3, deltaPrevious: 1 },
+      no_show_guest: { count: 2, deltaPrevious: -1 },
+      csat: { count: 85, deltaPrevious: 3 },
+      previousRange: { startDate: "2025-01-01", endDate: "2025-01-31" },
+    };
+
+    mockTrpc.viewer.insights.bookingKPIStats.useQuery.mockReturnValue({
+      data: mockData,
+      isSuccess: true,
+      isPending: false,
+      isError: false,
+    });
+
+    render(<BookingKPICards />);
+    expect(screen.getByText("event_no_show")).toBeInTheDocument();
+    expect(screen.getByText("event_no_show_guest")).toBeInTheDocument();
+  });
 });
