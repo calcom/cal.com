@@ -157,6 +157,7 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
         {
           name: "manage_billing",
           href: "/settings/billing",
+          matchFullPath: true,
           trackingMetadata: { section: "billing", page: "manage_billing" },
         },
         {
@@ -983,6 +984,7 @@ const SettingsSidebarContainer = ({
                           name={t(child.name)}
                           isExternalLink={child.isExternalLink}
                           href={child.href || "/"}
+                          matchFullPath={child.matchFullPath}
                           trackingMetadata={child.trackingMetadata}
                           textClassNames="text-emphasis font-medium text-sm"
                           className={`px-2! py-1! min-h-7 h-auto w-full ${tab.children &&

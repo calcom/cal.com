@@ -32,6 +32,7 @@ export type VerticalTabItemProps = {
   "data-testid"?: string;
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
   trackingMetadata?: Record<string, any>;
+  matchFullPath?: boolean;
 };
 
 const VerticalTabItem = ({
@@ -42,9 +43,10 @@ const VerticalTabItem = ({
   disableChevron,
   linkShallow,
   linkScroll,
+  matchFullPath,
   ...props
 }: VerticalTabItemProps) => {
-  const isCurrent = useUrlMatchesCurrentUrl(href) || props?.isActive;
+  const isCurrent = useUrlMatchesCurrentUrl(href, matchFullPath) || props?.isActive;
   const { t } = useLocale();
 
   return (
