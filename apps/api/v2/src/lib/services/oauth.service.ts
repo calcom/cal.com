@@ -1,5 +1,5 @@
-import type { OAuth2Tokens } from "@calcom/platform-libraries";
-import { OAuthService as BaseOAuthService } from "@calcom/platform-libraries";
+import type { OAuth2Tokens } from "@calcom/platform-libraries/oauth";
+import { OAuthService as BaseOAuthService } from "@calcom/platform-libraries/oauth";
 import { Injectable } from "@nestjs/common";
 import { PrismaAccessCodeRepository } from "@/lib/repositories/prisma-access-code.repository";
 import { PrismaOAuthClientRepository } from "@/lib/repositories/prisma-oauth-client.repository";

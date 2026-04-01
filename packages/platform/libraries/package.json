@@ -115,6 +115,21 @@
       "import": "./dist/tasker.js",
       "require": "./dist/tasker.cjs",
       "types": "./dist/tasker.d.ts"
+    },
+    "./auth": {
+      "import": "./dist/auth.js",
+      "require": "./dist/auth.cjs",
+      "types": "./dist/auth.d.ts"
+    },
+    "./oauth": {
+      "import": "./dist/oauth.js",
+      "require": "./dist/oauth.cjs",
+      "types": "./dist/oauth.d.ts"
+    },
+    "./routing-forms": {
+      "import": "./dist/routing-forms.js",
+      "require": "./dist/routing-forms.cjs",
+      "types": "./dist/routing-forms.d.ts"
     }
   },
   "typesVersions": {
@@ -163,6 +178,15 @@
       ],
       "tasker": [
         "dist/tasker.d.ts"
+      ],
+      "auth": [
+        "dist/auth.d.ts"
+      ],
+      "oauth": [
+        "dist/oauth.d.ts"
+      ],
+      "routing-forms": [
+        "dist/routing-forms.d.ts"
       ]
     }
   }

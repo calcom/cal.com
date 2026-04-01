@@ -1,5 +1,5 @@
-import type { CredentialForCalendarService } from "@calcom/platform-libraries";
-import { CredentialRepository } from "@calcom/platform-libraries";
+import type { CredentialForCalendarService } from "@calcom/platform-libraries/calendars";
+import { CredentialRepository } from "@calcom/platform-libraries/calendars";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()

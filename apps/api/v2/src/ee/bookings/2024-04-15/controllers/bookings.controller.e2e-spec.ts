@@ -1,6 +1,5 @@
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { BookingResponse } from "@calcom/platform-libraries";
-import { type RegularBookingCreateResult } from "@calcom/platform-libraries/bookings";
+import { BookingResponse, type RegularBookingCreateResult } from "@calcom/platform-libraries/bookings";
 import type { ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
 import type { User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";

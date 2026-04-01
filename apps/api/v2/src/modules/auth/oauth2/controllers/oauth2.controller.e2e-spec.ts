@@ -1,4 +1,4 @@
-import { generateSecret } from "@calcom/platform-libraries";
+import { generateSecret } from "@calcom/platform-libraries/oauth";
 import type { Membership, Team, User } from "@calcom/prisma/client";
 import { AccessScope, OAuthClientStatus, OAuthClientType } from "@calcom/prisma/enums";
 import type { INestApplication } from "@nestjs/common";

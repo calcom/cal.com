@@ -1,5 +1,5 @@
 import { GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
-import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
+import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries/calendars";
 import { Injectable } from "@nestjs/common";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 

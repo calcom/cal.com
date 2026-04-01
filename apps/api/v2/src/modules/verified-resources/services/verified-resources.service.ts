@@ -1,12 +1,11 @@
+import {
+  sendVerificationCode as sendPhoneVerificationCode,
+  verifyPhoneNumber,
+} from "@calcom/platform-libraries/auth";
+import { sendEmailVerificationByCode, verifyEmailCodeHandler } from "@calcom/platform-libraries/emails";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { TeamsVerifiedResourcesRepository } from "@/modules/verified-resources/teams-verified-resources.repository";
 import { UsersVerifiedResourcesRepository } from "@/modules/verified-resources/users-verified-resources.repository";
-import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
-
-import {
-  verifyPhoneNumber,
-  sendVerificationCode as sendPhoneVerificationCode,
-} from "@calcom/platform-libraries";
-import { sendEmailVerificationByCode, verifyEmailCodeHandler } from "@calcom/platform-libraries/emails";
 
 @Injectable()
 export class VerifiedResourcesService {

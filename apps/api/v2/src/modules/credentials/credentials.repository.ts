@@ -1,5 +1,5 @@
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
-import { credentialForCalendarServiceSelect } from "@calcom/platform-libraries";
+import { credentialForCalendarServiceSelect } from "@calcom/platform-libraries/calendars";
 import type { Prisma } from "@calcom/prisma/client";
 import { Injectable } from "@nestjs/common";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";

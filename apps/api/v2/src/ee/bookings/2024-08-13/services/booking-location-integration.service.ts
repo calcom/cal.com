@@ -1,6 +1,7 @@
-import type { BookingWithUserAndEventDetails, CalendarEvent } from "@calcom/platform-libraries";
-import { BookingReferenceRepository, updateEvent } from "@calcom/platform-libraries";
-import { makeUserActor } from "@calcom/platform-libraries/bookings";
+import type { CalendarEvent } from "@calcom/platform-libraries";
+import type { BookingWithUserAndEventDetails } from "@calcom/platform-libraries/bookings";
+import { BookingReferenceRepository, makeUserActor } from "@calcom/platform-libraries/bookings";
+import { updateEvent } from "@calcom/platform-libraries/calendars";
 import { createMeeting, FAKE_DAILY_CREDENTIAL } from "@calcom/platform-libraries/conferencing";
 import type { Integration_2024_08_13 } from "@calcom/platform-types";
 import type {

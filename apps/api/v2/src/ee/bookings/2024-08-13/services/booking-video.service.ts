@@ -1,5 +1,5 @@
-import type { CredentialForCalendarService } from "@calcom/platform-libraries";
-import { CredentialRepository } from "@calcom/platform-libraries";
+import type { CredentialForCalendarService } from "@calcom/platform-libraries/calendars";
+import { CredentialRepository } from "@calcom/platform-libraries/calendars";
 import { deleteMeeting, FAKE_DAILY_CREDENTIAL } from "@calcom/platform-libraries/conferencing";
 import { Injectable, Logger } from "@nestjs/common";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";

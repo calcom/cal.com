@@ -1,15 +1,15 @@
+import { distributedTracing, getTranslation } from "@calcom/platform-libraries";
 import {
   confirmBookingHandler,
-  distributedTracing,
   getAllUserBookings,
   getCalendarLinks,
-  getTranslation,
   handleCancelBooking,
   handleMarkNoShow,
+  makeUserActor,
+  PrismaOrgMembershipRepository,
   roundRobinManualReassignment,
   roundRobinReassignment,
-} from "@calcom/platform-libraries";
-import { makeUserActor, PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
+} from "@calcom/platform-libraries/bookings";
 import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
 import {
   BookingOutput_2024_08_13,
