@@ -37,21 +37,21 @@ Use these endpoints to manage organization and team memberships:
 
 | Method | Endpoint |
 |--------|----------|
-| `POST` | [`/v2/organizations/{orgId}/memberships`](https://cal.com/docs/api-reference/v2/orgs-memberships/create-a-membership) |
-| `GET` | [`/v2/organizations/{orgId}/memberships`](https://cal.com/docs/api-reference/v2/orgs-memberships/get-all-memberships) |
-| `GET` | [`/v2/organizations/{orgId}/memberships/{membershipId}`](https://cal.com/docs/api-reference/v2/orgs-memberships/get-a-membership) |
-| `PATCH` | [`/v2/organizations/{orgId}/memberships/{membershipId}`](https://cal.com/docs/api-reference/v2/orgs-memberships/update-a-membership) |
-| `DELETE` | [`/v2/organizations/{orgId}/memberships/{membershipId}`](https://cal.com/docs/api-reference/v2/orgs-memberships/delete-a-membership) |
+| `POST` | [/v2/organizations/{orgId}/memberships](https://cal.com/docs/api-reference/v2/orgs-memberships/create-a-membership) |
+| `GET` | [/v2/organizations/{orgId}/memberships](https://cal.com/docs/api-reference/v2/orgs-memberships/get-all-memberships) |
+| `GET` | [/v2/organizations/{orgId}/memberships/{membershipId}](https://cal.com/docs/api-reference/v2/orgs-memberships/get-a-membership) |
+| `PATCH` | [/v2/organizations/{orgId}/memberships/{membershipId}](https://cal.com/docs/api-reference/v2/orgs-memberships/update-a-membership) |
+| `DELETE` | [/v2/organizations/{orgId}/memberships/{membershipId}](https://cal.com/docs/api-reference/v2/orgs-memberships/delete-a-membership) |
 
 **Team memberships**
 
 | Method | Endpoint |
 |--------|----------|
-| `POST` | [`/v2/organizations/{orgId}/teams/{teamId}/memberships`](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership) |
-| `GET` | [`/v2/organizations/{orgId}/teams/{teamId}/memberships`](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/get-all-memberships) |
-| `GET` | [`/v2/organizations/{orgId}/teams/{teamId}/memberships/{membershipId}`](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/get-a-membership) |
-| `PATCH` | [`/v2/organizations/{orgId}/teams/{teamId}/memberships/{membershipId}`](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/update-a-membership) |
-| `DELETE` | [`/v2/organizations/{orgId}/teams/{teamId}/memberships/{membershipId}`](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/delete-a-membership) |
+| `POST` | [/v2/organizations/{orgId}/teams/{teamId}/memberships](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/create-a-membership) |
+| `GET` | [/v2/organizations/{orgId}/teams/{teamId}/memberships](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/get-all-memberships) |
+| `GET` | [/v2/organizations/{orgId}/teams/{teamId}/memberships/{membershipId}](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/get-a-membership) |
+| `PATCH` | [/v2/organizations/{orgId}/teams/{teamId}/memberships/{membershipId}](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/update-a-membership) |
+| `DELETE` | [/v2/organizations/{orgId}/teams/{teamId}/memberships/{membershipId}](https://cal.com/docs/api-reference/v2/orgs-teams-memberships/delete-a-membership) |
 
 ## PBAC (Permission-Based Access Control)
 
@@ -79,21 +79,21 @@ Use the following endpoints to create roles, assign permissions, and manage acce
 
 | Method | Endpoint |
 |--------|----------|
-| `POST` | [`/v2/organizations/{orgId}/roles`](https://cal.com/docs/api-reference/v2/orgs-roles/create-a-new-organization-role) |
-| `GET` | [`/v2/organizations/{orgId}/roles`](https://cal.com/docs/api-reference/v2/orgs-roles/get-all-organization-roles) |
-| `GET` | [`/v2/organizations/{orgId}/roles/{roleId}`](https://cal.com/docs/api-reference/v2/orgs-roles/get-a-specific-organization-role) |
-| `PATCH` | [`/v2/organizations/{orgId}/roles/{roleId}`](https://cal.com/docs/api-reference/v2/orgs-roles/update-an-organization-role) |
-| `DELETE` | [`/v2/organizations/{orgId}/roles/{roleId}`](https://cal.com/docs/api-reference/v2/orgs-roles/delete-an-organization-role) |
+| `POST` | [/v2/organizations/{orgId}/roles](https://cal.com/docs/api-reference/v2/orgs-roles/create-a-new-organization-role) |
+| `GET` | [/v2/organizations/{orgId}/roles](https://cal.com/docs/api-reference/v2/orgs-roles/get-all-organization-roles) |
+| `GET` | [/v2/organizations/{orgId}/roles/{roleId}](https://cal.com/docs/api-reference/v2/orgs-roles/get-a-specific-organization-role) |
+| `PATCH` | [/v2/organizations/{orgId}/roles/{roleId}](https://cal.com/docs/api-reference/v2/orgs-roles/update-an-organization-role) |
+| `DELETE` | [/v2/organizations/{orgId}/roles/{roleId}](https://cal.com/docs/api-reference/v2/orgs-roles/delete-an-organization-role) |
 
 #### Role permissions
 
 | Method | Endpoint |
 |--------|----------|
-| `POST` | [`/v2/organizations/{orgId}/roles/{roleId}/permissions`](https://cal.com/docs/api-reference/v2/orgs-roles-permissions/add-permissions-to-an-organization-role-single-or-batch) |
-| `GET` | [`/v2/organizations/{orgId}/roles/{roleId}/permissions`](https://cal.com/docs/api-reference/v2/orgs-roles-permissions/list-permissions-for-an-organization-role) |
-| `PUT` | [`/v2/organizations/{orgId}/roles/{roleId}/permissions`](https://cal.com/docs/api-reference/v2/orgs-roles-permissions/replace-all-permissions-for-an-organization-role) |
-| `DELETE` | [`/v2/organizations/{orgId}/roles/{roleId}/permissions/{permission}`](https://cal.com/docs/api-reference/v2/orgs-roles-permissions/remove-a-permission-from-an-organization-role) |
-| `DELETE` | [`/v2/organizations/{orgId}/roles/{roleId}/permissions`](https://cal.com/docs/api-reference/v2/orgs-roles-permissions/remove-multiple-permissions-from-an-organization-role) |
+| `POST` | [/v2/organizations/{orgId}/roles/{roleId}/permissions](https://cal.com/docs/api-reference/v2/orgs-roles-permissions/add-permissions-to-an-organization-role-single-or-batch) |
+| `GET` | [/v2/organizations/{orgId}/roles/{roleId}/permissions](https://cal.com/docs/api-reference/v2/orgs-roles-permissions/list-permissions-for-an-organization-role) |
+| `PUT` | [/v2/organizations/{orgId}/roles/{roleId}/permissions](https://cal.com/docs/api-reference/v2/orgs-roles-permissions/replace-all-permissions-for-an-organization-role) |
+| `DELETE` | [/v2/organizations/{orgId}/roles/{roleId}/permissions/{permission}](https://cal.com/docs/api-reference/v2/orgs-roles-permissions/remove-a-permission-from-an-organization-role) |
+| `DELETE` | [/v2/organizations/{orgId}/roles/{roleId}/permissions](https://cal.com/docs/api-reference/v2/orgs-roles-permissions/remove-multiple-permissions-from-an-organization-role) |
 
 ### Endpoint descriptions
 
