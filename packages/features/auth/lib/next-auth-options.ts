@@ -588,6 +588,9 @@ export const getOptions = ({
           if (metadata?.sessionTimeout) {
             maxAge = metadata.sessionTimeout * 60;
           }
+          if (metadata?.defaultHomeView && token) {
+            token.defaultHomeView = metadata.defaultHomeView;
+          }
         }
       }
       return encode({ secret, token, maxAge });
