@@ -2068,6 +2068,7 @@
   "adding_events_to": "新增活動至",
   "follow_system_preferences": "遵循系統偏好設定",
   "custom_brand_colors": "自訂品牌顏色",
+  "enable_custom_brand_colors": "啟用自訂品牌顏色",
   "customize_your_brand_colors": "在您的預約頁面自訂品牌顏色。",
   "pro": "Pro",
   "removes_cal_branding": "移除任何 {{appName}} 相關品牌，即「{{appName}} 技術提供」。",

@@ -2068,6 +2068,7 @@
   "adding_events_to": "Pridávanie udalostí do",
   "follow_system_preferences": "Dodržiavať systémové preferencie",
   "custom_brand_colors": "Vlastné farby značky",
+  "enable_custom_brand_colors": "Povoliť vlastné firemné farby",
   "customize_your_brand_colors": "Prispôsobte si farby svojej značky na stránke rezervácie.",
   "pro": "Pro",
   "removes_cal_branding": "Odstráni akékoľvek značky súvisiace s {{appName}}, napr. 'Powered by {{appName}}.'",

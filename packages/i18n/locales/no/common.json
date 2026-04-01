@@ -2068,6 +2068,7 @@
   "adding_events_to": "Legger til hendelser til",
   "follow_system_preferences": "Følg systempreferansene",
   "custom_brand_colors": "Egendefinerte merkevare-farger",
+  "enable_custom_brand_colors": "Aktiver egendefinerte merkefarger",
   "customize_your_brand_colors": "Tilpass din egen merkevare-farge på bookingsiden din.",
   "pro": "Pro",
   "removes_cal_branding": "Fjerner alt av {{appName}} relatert merkeprofilering, f.eks. \"Powered by {{appName}}.\"",

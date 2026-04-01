@@ -2068,6 +2068,7 @@
   "adding_events_to": "Tədbirləri əlavə edir",
   "follow_system_preferences": "Sistem seçimlərinə əməl edin",
   "custom_brand_colors": "Xüsusi marka rəngləri",
+  "enable_custom_brand_colors": "Xüsusi brend rənglərini aktivləşdirin",
   "customize_your_brand_colors": "Öz marka rənglərinizi rezervasiya səhifənizə uyğunlaşdırın.",
   "pro": "Pro",
   "removes_cal_branding": "{{appName}} ilə əlaqəli bütün markalamaları, yəni 'Powered by {{appName}}' silir.",

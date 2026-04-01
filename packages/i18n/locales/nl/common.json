@@ -2068,6 +2068,7 @@
   "adding_events_to": "Toevoegen van gebeurtenissen aan",
   "follow_system_preferences": "Volg systeemvoorkeuren",
   "custom_brand_colors": "Aangepaste merkkleuren",
+  "enable_custom_brand_colors": "Aangepaste merkkleuren inschakelen",
   "customize_your_brand_colors": "Pas uw eigen merkkleur aan op uw boekingspagina.",
   "pro": "Pro",
   "removes_cal_branding": "Verwijdert alle {{appName}}-gerelateerde merken, zoals \"Mogelijk gemaakt door {{appName}}\".",

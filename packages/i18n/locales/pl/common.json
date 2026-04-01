@@ -2068,6 +2068,7 @@
   "adding_events_to": "Dodawanie wydarzeń do",
   "follow_system_preferences": "Śledź preferencje systemowe",
   "custom_brand_colors": "Niestandardowe kolory marki",
+  "enable_custom_brand_colors": "Włącz niestandardowe kolory marki",
   "customize_your_brand_colors": "Dostosuj kolor marki na stronie rezerwacji.",
   "pro": "Pro",
   "removes_cal_branding": "Usuwa wszelkie znaki towarowe związane z {{appName}}, np. „Powered by {{appName}}”.",

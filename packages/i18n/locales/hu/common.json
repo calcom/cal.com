@@ -2068,6 +2068,7 @@
   "adding_events_to": "Események hozzáadása a",
   "follow_system_preferences": "Kövesse a rendszerbeállításokat",
   "custom_brand_colors": "Egyedi márka színek",
+  "enable_custom_brand_colors": "Egyéni márkahasználat színek engedélyezése",
   "customize_your_brand_colors": "Szabja testre saját márkaszínét a foglalási oldalon.",
   "pro": "Pro",
   "removes_cal_branding": "Eltávolít minden, a(z) {{appName}}-hoz kapcsolódó márkajelzést, azaz a „Powered by {{appName}}”.",

@@ -2068,6 +2068,7 @@
   "adding_events_to": "הוספת אירועים ל",
   "follow_system_preferences": "פעל לפי העדפות המערכת",
   "custom_brand_colors": "צבעי מותג בהתאמה אישית",
+  "enable_custom_brand_colors": "הפעל צבעי מותג מותאמים אישית",
   "customize_your_brand_colors": "בצע התאמה אישית של דף ההזמנות שלך עם צבעי מותג משלך.",
   "pro": "Pro",
   "removes_cal_branding": "הסרת מיתוגים הקשורים ל-{{appName}}, כגון 'מופעל על ידי {{appName}}'",

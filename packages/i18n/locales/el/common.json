@@ -2068,6 +2068,7 @@
   "adding_events_to": "Προσθήκη συμβάντων σε",
   "follow_system_preferences": "Ακολούθηση προτιμήσεων συστήματος",
   "custom_brand_colors": "Προσαρμοσμένα χρώματα επωνυμίας",
+  "enable_custom_brand_colors": "Ενεργοποίηση προσαρμοσμένων χρωμάτων επωνυμίας",
   "customize_your_brand_colors": "Προσαρμόστε το δικό σας χρώμα επωνυμίας στη σελίδα κρατήσεων.",
   "pro": "Pro",
   "removes_cal_branding": "Αφαιρεί οποιαδήποτε σήμανση σχετική με το {{appName}}, π.χ. 'Powered by {{appName}}.'",

@@ -2068,6 +2068,7 @@
   "adding_events_to": "添加活动至",
   "follow_system_preferences": "遵循系统偏好设置",
   "custom_brand_colors": "自定义品牌颜色",
+  "enable_custom_brand_colors": "启用自定义品牌颜色",
   "customize_your_brand_colors": "使用您自己的品牌颜色自定义您的预约页面。",
   "pro": "Pro",
   "removes_cal_branding": "删除任何与 {{appName}} 相关的品牌，即“由 {{appName}} 提供支持。”",

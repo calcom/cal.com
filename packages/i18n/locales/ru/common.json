@@ -2068,6 +2068,7 @@
   "adding_events_to": "Добавление событий в",
   "follow_system_preferences": "Следовать системным настройкам",
   "custom_brand_colors": "Пользовательские фирменные цвета",
+  "enable_custom_brand_colors": "Включить пользовательские цвета бренда",
   "customize_your_brand_colors": "Настройте фирменный цвет для страницы бронирования.",
   "pro": "Pro",
   "removes_cal_branding": "Тарифный план без логотипов и надписей {{appName}}, например, без «Powered by {{appName}}».",

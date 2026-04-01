@@ -2068,6 +2068,7 @@
   "adding_events_to": "Přidání událostí do:",
   "follow_system_preferences": "Řídit se předvolbami systému",
   "custom_brand_colors": "Vlastní barvy značky",
+  "enable_custom_brand_colors": "Povolit vlastní firemní barvy",
   "customize_your_brand_colors": "Vytvořte si rezervační stránku na míru v barvách své značky.",
   "pro": "Pro",
   "removes_cal_branding": "Odstraní všechny značky související s {{appName}}, tj. „Běží na platformě {{appName}}.“",

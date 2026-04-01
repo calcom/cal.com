@@ -2068,6 +2068,7 @@
   "adding_events_to": "Lägger till händelser till",
   "follow_system_preferences": "Följ systeminställningar",
   "custom_brand_colors": "Anpassade märkesfärger",
+  "enable_custom_brand_colors": "Aktivera anpassade varumärkesfärger",
   "customize_your_brand_colors": "Anpassa din egen varumärkesfärg till din bokningssida.",
   "pro": "Pro",
   "removes_cal_branding": "Tar bort alla {{appName}}-relaterade varumärken, dvs \"Powered by {{appName}}\".",

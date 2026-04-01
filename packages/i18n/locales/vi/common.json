@@ -2068,6 +2068,7 @@
   "adding_events_to": "Thêm các sự kiện vào",
   "follow_system_preferences": "Làm theo các tuỳ chọn của hệ thống",
   "custom_brand_colors": "Màu thương hiệu tuỳ chỉnh",
+  "enable_custom_brand_colors": "Bật màu thương hiệu tùy chỉnh",
   "customize_your_brand_colors": "Tuỳ chỉnh màu thương hiệu của riêng bạn và áp vào trang lịch hẹn của bạn.",
   "pro": "Chuyên nghiệp",
   "removes_cal_branding": "Xoá bỏ mọi thông tin liên quan việc định vị thương hiệu {{appName}}, chẳng hạn 'Được hỗ trợ bởi {{appName}}.'",

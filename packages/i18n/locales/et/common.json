@@ -2068,6 +2068,7 @@
   "adding_events_to": "Sündmuste lisamine",
   "follow_system_preferences": "Järgige süsteemi eelistusi",
   "custom_brand_colors": "Kohandatud brändi värvid",
+  "enable_custom_brand_colors": "Luba kohandatud brändivärvid",
   "customize_your_brand_colors": "Kohandage oma broneerimislehel oma brändi värvi.",
   "pro": "Pro",
   "removes_cal_branding": "Eemaldab kõik rakendusega {{appName}} seotud kaubamärgid, st 'Toidab {{appName}}'.",

@@ -2068,6 +2068,7 @@
   "adding_events_to": "Termine hinzufügen zu",
   "follow_system_preferences": "Systemeinstellungen folgen",
   "custom_brand_colors": "Eigene Marken-Farben",
+  "enable_custom_brand_colors": "Benutzerdefinierte Markenfarben aktivieren",
   "customize_your_brand_colors": "Passen Sie Ihre eigene Markenfarbe auf Ihrer Buchungsseite an.",
   "pro": "Pro",
   "removes_cal_branding": "Entfernt alle {{appName}}-bezogenen Markenzeichen, z. B. „Powered by {{appName}}.“",

@@ -2068,6 +2068,7 @@
   "adding_events_to": "イベントの追加先",
   "follow_system_preferences": "システム環境設定に従う",
   "custom_brand_colors": "カスタムブランドカラー",
+  "enable_custom_brand_colors": "カスタムブランドカラーを有効にする",
   "customize_your_brand_colors": "予約ページをあなた独自のブランドカラーでカスタマイズします。",
   "pro": "Pro",
   "removes_cal_branding": "{{appName}} 関連のブランディング、すなわち「Powered by {{appName}}」を削除します。",

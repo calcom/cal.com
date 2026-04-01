@@ -2068,6 +2068,7 @@
   "adding_events_to": "Lisätään tapahtumia kohteeseen",
   "follow_system_preferences": "Käytä järjestelmän asetuksia",
   "custom_brand_colors": "Mukautetut brändivärit",
+  "enable_custom_brand_colors": "Ota käyttöön mukautetut brändivärit",
   "customize_your_brand_colors": "Mukauta varaussivusi brändivärejä.",
   "pro": "Pro",
   "removes_cal_branding": "Poistaa kaikki {{appName}}-brändäykset, kuten 'Powered by {{appName}}'.",

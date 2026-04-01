@@ -2068,6 +2068,7 @@
   "adding_events_to": "កំពុងបន្ថែមព្រឹត្តិការណ៍ទៅ",
   "follow_system_preferences": "អនុវត្តតាមចំណង់ចំណូលចិត្តប្រព័ន្ធ",
   "custom_brand_colors": "ពណ៌ម៉ាកផ្ទាល់ខ្លួន",
+  "enable_custom_brand_colors": "បើកប្រើពណ៌ម៉ាកផ្ទាល់ខ្លួន",
   "customize_your_brand_colors": "ប្ដូរពណ៌ម៉ាកផ្ទាល់ខ្លួនរបស់អ្នកទៅក្នុងទំព័រការកក់របស់អ្នក។",
   "pro": "Pro",
   "removes_cal_branding": "យកចេញនូវម៉ាកដែលទាក់ទងនឹង {{appName}} ដូចជា 'ដំណើរការដោយ {{appName}}.'",

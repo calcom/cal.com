@@ -2068,6 +2068,7 @@
   "adding_events_to": "Dodavanje događaja u",
   "follow_system_preferences": "Prati sistemska podešavanja",
   "custom_brand_colors": "Prilagođene boje brenda",
+  "enable_custom_brand_colors": "Omogući prilagođene boje brenda",
   "customize_your_brand_colors": "Prilagodite boje svoga brenda na vašoj stranici za zakazivanje.",
   "pro": "Pro",
   "removes_cal_branding": "Uklonite sva {{appName}} brendiranja, npr. „Obezbeđuje {{appName}}“.",

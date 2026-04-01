@@ -2068,6 +2068,7 @@
   "adding_events_to": "ইভেন্ট যুক্ত করা",
   "follow_system_preferences": "সিস্টেম পছন্দগুলি অনুসরণ করুন",
   "custom_brand_colors": "কাস্টম ব্র্যান্ড রঙ",
+  "enable_custom_brand_colors": "কাস্টম ব্র্যান্ড রং সক্ষম করুন",
   "customize_your_brand_colors": "আপনার বুকিং পৃষ্ঠায় আপনার নিজের ব্র্যান্ডের রঙ কাস্টমাইজ করুন।",
   "pro": "প্রো",
   "removes_cal_branding": "যে কোনও অপসারণ {{appName}} সম্পর্কিত ব্র্যান্ডিং, অর্থাত্ 'দ্বারা চালিত {{appName}}। '",

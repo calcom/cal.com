@@ -2068,6 +2068,7 @@
   "adding_events_to": "Gertaerak hona gehitzen:",
   "follow_system_preferences": "Jarraitu sistemaren hobespenak",
   "custom_brand_colors": "Marka kolore pertsonalizatuak",
+  "enable_custom_brand_colors": "Gaitu marka-kolore pertsonalizatuak",
   "customize_your_brand_colors": "Pertsonalizatu zure markaren kolorea zure erreserba orrian.",
   "pro": "Pro",
   "removes_cal_branding": "{{appName}}-rekin lotutako marka guztiak kentzen ditu, adib. '{{appName}}-k bultzatuta.'",

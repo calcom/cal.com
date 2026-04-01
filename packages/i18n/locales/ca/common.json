@@ -2068,6 +2068,7 @@
   "adding_events_to": "Afegint esdeveniments a",
   "follow_system_preferences": "Seguir les preferències del sistema",
   "custom_brand_colors": "Colors personalitzats de marca",
+  "enable_custom_brand_colors": "Activa els colors personalitzats de marca",
   "customize_your_brand_colors": "Personalitza el color de la teva marca a la pàgina de reserves.",
   "pro": "Pro",
   "removes_cal_branding": "Elimina qualsevol marca relacionada amb {{appName}}, és a dir, 'Impulsat per {{appName}}.'",

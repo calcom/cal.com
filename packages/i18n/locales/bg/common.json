@@ -2068,6 +2068,7 @@
   "adding_events_to": "Добавяне на събития към",
   "follow_system_preferences": "Следвай системните настройки",
   "custom_brand_colors": "Персонализирани цветове на бранда",
+  "enable_custom_brand_colors": "Активиране на персонализирани фирмени цветове",
   "customize_your_brand_colors": "Персонализирайте цветовете на вашата марка в страницата за резервации.",
   "pro": "Pro",
   "removes_cal_branding": "Премахва всички брандирания, свързани с {{appName}}, напр. 'Осъществено чрез {{appName}}.'",

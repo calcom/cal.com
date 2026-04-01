@@ -2068,6 +2068,7 @@
   "adding_events_to": "Agregando eventos a",
   "follow_system_preferences": "Seguir las preferencias del sistema",
   "custom_brand_colors": "Colores personalizados de la marca",
+  "enable_custom_brand_colors": "Habilitar colores de marca personalizados",
   "customize_your_brand_colors": "Personaliza los colores de tu marca en tu página de reservas.",
   "pro": "Pro",
   "removes_cal_branding": "Elimina cualquier marca relacionada con {{appName}}, es decir, 'Desarrollado por {{appName}}.'",

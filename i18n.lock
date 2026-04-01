@@ -6724,6 +6724,7 @@ checksums:
     adding_events_to: 8c41ca72fb6fd3f021255e23b0dde540
     follow_system_preferences: 931ceddd99fbf2cc3807d5cf721b08df
     custom_brand_colors: e1fe163c753c111e90761411ddeb934c
+    enable_custom_brand_colors: c6e28faead85d9edac3a2211e1e289bd
     customize_your_brand_colors: 0d3c40f05de858f1a9fda50761de3cd0
     pro: 682b3c9feab30112b4454cb5bb7974b1
     removes_cal_branding: 2f3ab978b8d13b1a02078ebdfe40b59c

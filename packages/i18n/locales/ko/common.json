@@ -2068,6 +2068,7 @@
   "adding_events_to": "이벤트 추가:",
   "follow_system_preferences": "시스템 추적 기본 설정",
   "custom_brand_colors": "사용자 정의 브랜드 색상",
+  "enable_custom_brand_colors": "커스텀 브랜드 색상 활성화",
   "customize_your_brand_colors": "예약 페이지에 나만의 브랜드 색상을 사용자 정의합니다.",
   "pro": "Pro",
   "removes_cal_branding": "모든 {{appName}} 관련 브랜드(예: 'Powered by {{appName}}')를 제거합니다.",

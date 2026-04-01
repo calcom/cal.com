@@ -2068,6 +2068,7 @@
   "adding_events_to": "Tilføjer begivenheder til",
   "follow_system_preferences": "Følg systempræferencer",
   "custom_brand_colors": "Brugerdefinerede brand farver",
+  "enable_custom_brand_colors": "Aktivér tilpassede brandfarver",
   "customize_your_brand_colors": "Tilpas din egen brand farve på din bookingside.",
   "pro": "Pro",
   "removes_cal_branding": "Fjerner alle {{appName}} relaterede brandings, dvs. 'Drevet af {{appName}}.'",

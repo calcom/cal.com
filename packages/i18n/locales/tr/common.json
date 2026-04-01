@@ -2068,6 +2068,7 @@
   "adding_events_to": "Etkinlik ekleme",
   "follow_system_preferences": "Sistem tercihlerini takip edin",
   "custom_brand_colors": "Özel marka renkleri",
+  "enable_custom_brand_colors": "Özel marka renklerini etkinleştir",
   "customize_your_brand_colors": "Rezervasyon sayfanızı kendi marka renginizle özelleştirin.",
   "pro": "Pro",
   "removes_cal_branding": "{{appName}} ile ilgili tüm marka bilgilerini kaldırır, örneğin; '{{appName}} tarafından desteklenmektedir'",

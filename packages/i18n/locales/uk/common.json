@@ -2068,6 +2068,7 @@
   "adding_events_to": "Додавання подій у",
   "follow_system_preferences": "Відповідно до системних параметрів",
   "custom_brand_colors": "Користувацькі брендові кольори",
+  "enable_custom_brand_colors": "Увімкнути власні кольори бренду",
   "customize_your_brand_colors": "Налаштуйте власний брендовий колір на сторінці бронювання.",
   "pro": "Pro",
   "removes_cal_branding": "Вилучення будь-яких пов’язаних із {{appName}} брендингових надписів, як-от «На платформі {{appName}}».",

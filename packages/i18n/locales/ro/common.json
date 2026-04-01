@@ -2068,6 +2068,7 @@
   "adding_events_to": "Adăugarea de evenimente la",
   "follow_system_preferences": "Urmăriți preferințele sistemului",
   "custom_brand_colors": "Culori personalizate ale mărcii",
+  "enable_custom_brand_colors": "Activează culorile personalizate ale brandului",
   "customize_your_brand_colors": "Personalizați-vă pagina de rezervare folosind culoarea mărcii dvs.",
   "pro": "Pro",
   "removes_cal_branding": "Eliminați orice mărci de tip {{appName}}, și anume „Powered by {{appName}}”.",
