@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import { shallow } from "zustand/shallow";
+
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles, useSlotsViewOnSmallScreen } from "@calcom/embed-core/embed-iframe";
@@ -12,8 +15,7 @@ import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { useEffect } from "react";
-import { shallow } from "zustand/shallow";
+
 import NoAvailabilityDialog from "./NoAvailabilityDialog";
 
 export type DatePickerProps = {
@@ -27,7 +29,10 @@ export type DatePickerProps = {
   selected?: Dayjs | Dayjs[] | null;
   /** defaults to current date. */
   minDate?: Date;
-  /** Furthest date selectable in the future, default = UNLIMITED */
+  /**
+   * Latest date that can be reached via month navigation (used to disable the next-month button),
+   * default = UNLIMITED. Does not by itself constrain which individual days are selectable.
+   */
   maxDate?: Date;
   /** locale, any IETF language tag, e.g. "hu-HU" - defaults to Browser settings */
   locale: string;
@@ -171,14 +176,23 @@ const Days = ({
   isCompact?: boolean;
 }) => {
   const slotsViewOnSmallScreen = useSlotsViewOnSmallScreen();
-  const layout = useBookerStoreContext((state) => state.layout);
-  const isMobile = layout === "mobile";
 
   const includedDates = getAvailableDatesInMonth({
     browsingDate: browsingDate.toDate(),
     minDate,
     includedDates: props.includedDates,
   });
+  const shouldShowBeforeWindowDialog =
+    periodData.periodType === "RANGE" &&
+    !!periodData.periodStartDate &&
+    dayjs().isBefore(dayjs(periodData.periodStartDate), "month") &&
+    dayjs().isSame(browsingDate, "month");
+  const isPreWindowRange =
+    periodData.periodType === "RANGE" &&
+    !!periodData.periodStartDate &&
+    dayjs().isBefore(dayjs(periodData.periodStartDate), "month");
+  const shouldShowRegularNoAvailabilityDialog =
+    !isPreWindowRange && !!includedDates && includedDates.length === 0;
 
   const today = dayjs();
   const firstDayOfMonth = browsingDate.startOf("month");
@@ -346,14 +360,18 @@ const Days = ({
       ))}
       {!props.isLoading &&
         !isBookingInPast &&
-        includedDates &&
-        includedDates?.length === 0 &&
+        (shouldShowBeforeWindowDialog || shouldShowRegularNoAvailabilityDialog) &&
         showNoAvailabilityDialog && (
           <NoAvailabilityDialog
             month={month}
             nextMonthButton={nextMonthButton}
             browsingDate={browsingDate}
             periodData={periodData}
+            onJumpToStart={() => {
+              if (periodData.periodStartDate && props.onMonthChange) {
+                props.onMonthChange(dayjs(periodData.periodStartDate).startOf("month"));
+              }
+            }}
           />
         )}
     </>
@@ -393,8 +411,15 @@ const DatePicker = ({
   const minDate = passThroughProps.minDate;
   const maxDate = passThroughProps.maxDate;
   const rawBrowsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
+  const shouldKeepCurrentMonthForBeforeWindowDialog =
+    showNoAvailabilityDialog &&
+    periodData.periodType === "RANGE" &&
+    !!periodData.periodStartDate &&
+    dayjs().isBefore(dayjs(periodData.periodStartDate), "month");
   const browsingDate =
-    minDate && rawBrowsingDate.valueOf() < minDate.valueOf() ? dayjs(minDate) : rawBrowsingDate;
+    !shouldKeepCurrentMonthForBeforeWindowDialog && minDate && rawBrowsingDate.valueOf() < minDate.valueOf()
+      ? dayjs(minDate)
+      : rawBrowsingDate;
 
   // ✅ FIX: disable prev/next navigation outside the booking window
   const isPrevDisabled =
@@ -485,6 +510,7 @@ const DatePicker = ({
           }}
           weekStart={weekStart}
           selected={selected}
+          onMonthChange={onMonthChange}
           {...passThroughProps}
           browsingDate={browsingDate}
           month={month}
