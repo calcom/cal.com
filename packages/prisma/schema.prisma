@@ -754,6 +754,7 @@ model CreditPurchaseLog {
 enum CreditUsageType {
   SMS
   CAL_AI_PHONE_CALL
+  AI_AGENT
 }
 
 model CreditExpenseLog {

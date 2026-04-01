@@ -2,6 +2,7 @@ import { PlatformEndpointsModule } from "@/ee/platform-endpoints-module";
 import { AtomsModule } from "@/modules/atoms/atoms.module";
 import { OAuth2Module } from "@/modules/auth/oauth2/oauth2.module";
 import { BillingModule } from "@/modules/billing/billing.module";
+import { CreditsModule } from "@/modules/credits/credits.module";
 import { CalUnifiedCalendarsModule } from "@/modules/cal-unified-calendars/cal-unified-calendars.module";
 import { ConferencingModule } from "@/modules/conferencing/conferencing.module";
 import { DestinationCalendarsModule } from "@/modules/destination-calendars/destination-calendars.module";
@@ -27,6 +28,7 @@ import { WebhooksModule } from "./webhooks/webhooks.module";
     OAuth2Module,
     OAuthClientModule,
     BillingModule,
+    CreditsModule,
     PlatformEndpointsModule,
     TimezoneModule,
     UsersModule,
