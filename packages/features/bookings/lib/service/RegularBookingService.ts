@@ -2211,9 +2211,10 @@ async function handler(
             });
           }
         }
-        const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
-          ? results[0]?.updatedEvent[0]
-          : (results[0]?.updatedEvent ?? results[0]?.createdEvent);
+        const calendarResult = results.find((result) => result.type.includes("_calendar"));
+        const createdOrUpdatedEvent = Array.isArray(calendarResult?.updatedEvent)
+          ? calendarResult.updatedEvent[0]
+          : (calendarResult?.updatedEvent ?? calendarResult?.createdEvent);
         metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
         metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
         metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
@@ -2225,8 +2226,6 @@ async function handler(
           getVideoCallUrlFromCalEvent(evt) ||
           videoCallUrl;
       }
-
-      const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
       evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
         ? calendarResult?.updatedEvent[0]?.iCalUID
@@ -2335,9 +2334,13 @@ async function handler(
           }
         }
         // TODO: Handle created event metadata more elegantly
-        additionalInformation.hangoutLink = results[0].createdEvent?.hangoutLink;
-        additionalInformation.conferenceData = results[0].createdEvent?.conferenceData;
-        additionalInformation.entryPoints = results[0].createdEvent?.entryPoints;
+        const calendarResult = results.find((result) => result.type.includes("_calendar"));
+        const createdEvent = Array.isArray(calendarResult?.createdEvent)
+          ? calendarResult.createdEvent[0]
+          : (calendarResult?.createdEvent ?? calendarResult?.updatedEvent);
+        additionalInformation.hangoutLink = createdEvent?.hangoutLink;
+        additionalInformation.conferenceData = createdEvent?.conferenceData;
+        additionalInformation.entryPoints = createdEvent?.entryPoints;
         evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
           additionalInformation.hangoutLink ||
@@ -2453,7 +2456,7 @@ async function handler(
     isBookingAuditEnabled,
   });
 
-  const webhookLocation= metadata?.videoCallUrl || evt.location;
+  const webhookLocation = metadata?.videoCallUrl || evt.location;
 
   const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const webhookData: EventPayloadType = {
