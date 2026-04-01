@@ -434,20 +434,18 @@ function BookingDetailsSheetInner({
               </>
             ) : (
               !booking.rescheduled && (
-                <Tooltip
-                  content={
-                    <div className="flex items-center gap-1.5">
-                      <span>{t("join_shortcut")}</span>
-                    </div>
-                  }>
-                  <div ref={joinButtonWrapperRef}>
+                <div ref={joinButtonWrapperRef}>
                     <JoinMeetingButton
                       location={booking.location}
                       metadata={booking.metadata}
                       bookingStatus={booking.status}
+                      tooltip={
+                        <div className="flex items-center gap-1.5">
+                          <span>{t("join_shortcut")}</span>
+                        </div>
+                      }
                     />
                   </div>
-                </Tooltip>
               )
             )}
 
