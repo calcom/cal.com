@@ -2,14 +2,22 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
+import { validateUrlForSSRF } from "@calcom/lib/ssrfProtection";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { BuildCalendarService } from "../lib";
+import { caldavAddBodySchema } from "./add.schema";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    const { username, password, url } = req.body;
+    const { username, password, url } = caldavAddBodySchema.parse(req.body);
+
+    const validation = await validateUrlForSSRF(url);
+    if (!validation.isValid) {
+      return res.status(400).json({ message: `URL is not allowed: ${validation.error}` });
+    }
+
     // Get user
     const user = await prisma.user.findFirstOrThrow({
       where: {

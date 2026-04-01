@@ -6,6 +6,7 @@ import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import logger from "@calcom/lib/logger";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
+import { validateUrlForSSRF } from "@calcom/lib/ssrfProtection";
 import prisma from "@calcom/prisma";
 
 import checkSession from "../../_utils/auth";
@@ -26,6 +27,12 @@ const formSchema = z
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
   const body = formSchema.parse(req.body);
+
+  const validation = await validateUrlForSSRF(body.url);
+  if (!validation.isValid) {
+    return res.status(400).json({ message: `URL is not allowed: ${validation.error}` });
+  }
+
   const encrypted = symmetricEncrypt(JSON.stringify(body), process.env.CALENDSO_ENCRYPTION_KEY || "");
   const data = {
     type: "exchange_calendar",
