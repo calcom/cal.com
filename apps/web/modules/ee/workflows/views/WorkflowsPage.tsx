@@ -12,6 +12,7 @@ import { TeamsFilter } from "~/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -51,6 +52,25 @@ function WorkflowsPage({ filteredList }: PageProps) {
   );
   const filteredWorkflows = filteredList ?? data;
   const isPending = filteredList ? false : _isPending;
+  const createWorkflowButtonProps = {
+    subtitle: t("new_workflow_subtitle").toUpperCase(),
+    createFunction: openDialog,
+    includeOrg: true,
+    withPermission: {
+      permission: "workflow.create" as const,
+      fallbackRoles: [MembershipRole.ADMIN, MembershipRole.OWNER],
+    },
+  };
+  const createWorkflowButton = (
+    <>
+      {session.data?.hasValidLicense ? (
+        <CreateButtonWithTeamsList {...createWorkflowButtonProps} onlyShowWithNoTeams={true} />
+      ) : null}
+      {filteredWorkflows?.totalCount ? (
+        <CreateButtonWithTeamsList {...createWorkflowButtonProps} onlyShowWithTeams={true} />
+      ) : null}
+    </>
+  );
 
   return (
     <Shell withoutMain>
@@ -61,36 +81,11 @@ function WorkflowsPage({ filteredList }: PageProps) {
           subtitle={t("workflows_to_automate_notifications")}
           title={t("workflows")}
           description={t("workflows_to_automate_notifications")}
-          CTA={
-            session.data?.hasValidLicense ? (
-              <CreateButtonWithTeamsList
-                subtitle={t("new_workflow_subtitle").toUpperCase()}
-                createFunction={openDialog}
-                onlyShowWithNoTeams={true}
-                includeOrg={true}
-                withPermission={{
-                  permission: "workflow.create",
-                  fallbackRoles: ["ADMIN", "OWNER"],
-                }}
-              />
-            ) : null
-          }>
+          CTA={createWorkflowButton}>
           <>
             {filteredWorkflows?.totalCount ? (
               <div className="mb-2 flex">
                 <TeamsFilter />
-                <div className="mb-4 ml-auto">
-                  <CreateButtonWithTeamsList
-                    subtitle={t("new_workflow_subtitle").toUpperCase()}
-                    createFunction={openDialog}
-                    onlyShowWithTeams={true}
-                    includeOrg={true}
-                    withPermission={{
-                      permission: "workflow.create",
-                      fallbackRoles: ["ADMIN", "OWNER"],
-                    }}
-                  />
-                </div>
               </div>
             ) : null}
             <FilterResults

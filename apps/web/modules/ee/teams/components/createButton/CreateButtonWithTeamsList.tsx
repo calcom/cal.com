@@ -19,14 +19,24 @@ export function CreateButtonWithTeamsList(
     };
   }
 ) {
+  const {
+    onlyShowWithTeams,
+    onlyShowWithNoTeams,
+    isAdmin,
+    includeOrg,
+    withPermission: withPermissionProps,
+    ...buttonProps
+  } = props;
+  const withPermission = withPermissionProps
+    ? {
+        permission: withPermissionProps.permission,
+        fallbackRoles: withPermissionProps.fallbackRoles,
+      }
+    : undefined;
+
   const query = trpc.viewer.loggedInViewerRouter.teamsAndUserProfilesQuery.useQuery({
-    includeOrg: props.includeOrg,
-    withPermission: props.withPermission
-      ? {
-          permission: props.withPermission.permission,
-          fallbackRoles: props.withPermission.fallbackRoles,
-        }
-      : undefined,
+    includeOrg,
+    withPermission,
   });
   if (!query.data) return null;
 
@@ -41,7 +51,7 @@ export function CreateButtonWithTeamsList(
       };
     });
 
-  if (props.isAdmin) {
+  if (isAdmin) {
     teamsAndUserProfiles.push({
       platform: true,
       label: "Platform",
@@ -51,9 +61,9 @@ export function CreateButtonWithTeamsList(
     });
   }
 
-  if (props.onlyShowWithTeams && teamsAndUserProfiles.length < 2) return null;
+  if (onlyShowWithTeams && teamsAndUserProfiles.length < 2) return null;
 
-  if (props.onlyShowWithNoTeams && teamsAndUserProfiles.length > 1) return null;
+  if (onlyShowWithNoTeams && teamsAndUserProfiles.length > 1) return null;
 
-  return <CreateButton {...props} options={teamsAndUserProfiles} />;
+  return <CreateButton {...buttonProps} options={teamsAndUserProfiles} />;
 }
