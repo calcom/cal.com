@@ -1419,6 +1419,20 @@ export class AvailableSlotsService {
       availableTimeSlots = timeSlots;
     }
 
+    // === BEGIN: Guest availability filtering for reschedule ===
+    // When rescheduling, filter slots to respect guest's availability
+    if (input.rescheduleUid) {
+      availableTimeSlots = await this._filterSlotsByGuestAvailability({
+        rescheduleUid: input.rescheduleUid,
+        availableTimeSlots,
+        eventLength: input.duration || eventType.length,
+        startTime,
+        endTime,
+        loggerWithEventDetails,
+      });
+    }
+    // === END: Guest availability filtering ===
+
     const reservedSlots = await this._getReservedSlotsAndCleanupExpired({
       bookerClientUid,
       eventTypeId: eventType.id,
@@ -1687,5 +1701,137 @@ export class AvailableSlotsService {
       slots: filteredSlotsMappedToDate,
       ...troubleshooterData,
     };
+  }
+
+  /**
+   * Filter available slots based on guest's availability during reschedule.
+   * If the guest is a Cal.com user, only show slots where both host and guest are available.
+   */
+  async _filterSlotsByGuestAvailability({
+    rescheduleUid,
+    availableTimeSlots,
+    eventLength,
+    startTime,
+    endTime,
+    loggerWithEventDetails,
+  }: {
+    rescheduleUid: string;
+    availableTimeSlots: { time: Dayjs }[];
+    eventLength: number;
+    startTime: Dayjs;
+    endTime: Dayjs;
+    loggerWithEventDetails: Logger;
+  }): Promise<{ time: Dayjs }[]> {
+    try {
+      // 1. Get the original booking with attendees
+      const booking = await this.dependencies.bookingRepo.findByUidIncludeEventTypeAttendeesAndUser({
+        bookingUid: rescheduleUid,
+      });
+
+      if (!booking) {
+        loggerWithEventDetails.info("Booking not found for guest availability check");
+        return availableTimeSlots;
+      }
+
+      // 2. Get host emails from the booking
+      const hostEmails = new Set<string>();
+      booking.user?.email && hostEmails.add(booking.user.email);
+      booking.eventType?.hosts?.forEach((h) => hostEmails.add(h.user.email));
+
+      // 3. Get guest attendees (non-host attendees)
+      const guests = booking.attendees?.filter((attendee) => !hostEmails.has(attendee.email)) ?? [];
+
+      if (guests.length === 0) {
+        loggerWithEventDetails.info("No guests found in booking, skipping guest availability check");
+        return availableTimeSlots;
+      }
+
+      loggerWithEventDetails.info(`Found ${guests.length} guest(s) in booking, checking availability`);
+
+      // 4. For each guest, check if they are a Cal.com user and get their availability
+      const guestAvailabilityRanges: { start: Dayjs; end: Dayjs }[][] = [];
+
+      for (const guest of guests) {
+        const user = await this.dependencies.userRepo.findByEmail({ email: guest.email });
+
+        if (!user) {
+          loggerWithEventDetails.info(`Guest ${guest.email} is not a Cal.com user, skipping`);
+          continue;
+        }
+
+        loggerWithEventDetails.info(`Guest ${guest.email} is a Cal.com user (id: ${user.id}), fetching availability`);
+
+        // Get the guest's availability
+        const guestAvailability = await this.dependencies.userAvailabilityService.getUsersAvailability({
+          users: [
+            {
+              ...user,
+              credentials: [],
+              selectedCalendars: [],
+              allSelectedCalendars: [],
+            },
+          ],
+          query: {
+            dateFrom: startTime.format(),
+            dateTo: endTime.format(),
+            eventTypeId: 0, // Use default schedule
+            afterEventBuffer: 0,
+            beforeEventBuffer: 0,
+            duration: 0,
+            returnDateOverrides: false,
+            bypassBusyCalendarTimes: false,
+            silentlyHandleCalendarFailures: true,
+            mode: "slots" as const,
+          },
+          initialData: {
+            eventType: null,
+            currentSeats: null,
+            rescheduleUid: null,
+            busyTimesFromLimitsBookings: new Map(),
+            busyTimesFromLimits: new Map(),
+            eventTypeForLimits: null,
+            teamBookingLimits: new Map(),
+            teamForBookingLimits: null,
+          },
+        });
+
+        if (guestAvailability.length > 0) {
+          guestAvailabilityRanges.push(guestAvailability[0].dateRanges);
+          loggerWithEventDetails.info(
+            `Guest ${guest.email} has ${guestAvailability[0].dateRanges.length} available date ranges`
+          );
+        }
+      }
+
+      // 5. If no Cal.com guests, return slots as-is
+      if (guestAvailabilityRanges.length === 0) {
+        loggerWithEventDetails.info("No Cal.com guests found, returning all slots");
+        return availableTimeSlots;
+      }
+
+      // 6. Filter slots: only keep slots where ALL Cal.com guests are available
+      const filteredSlots = availableTimeSlots.filter((slot) => {
+        const slotStart = slot.time;
+        const slotEnd = slot.time.add(eventLength, "minute");
+
+        return guestAvailabilityRanges.every((ranges) =>
+          ranges.some(
+            (range) =>
+              (slotStart.isAfter(range.start) || slotStart.isSame(range.start)) &&
+              (slotEnd.isBefore(range.end) || slotEnd.isSame(range.end))
+          )
+        );
+      });
+
+      loggerWithEventDetails.info(
+        `Filtered ${availableTimeSlots.length} slots to ${filteredSlots.length} based on guest availability`
+      );
+
+      return filteredSlots;
+    } catch (error) {
+      loggerWithEventDetails.error("Error filtering slots by guest availability", { error });
+      // On error, return original slots (fail open)
+      return availableTimeSlots;
+    }
   }
 }
