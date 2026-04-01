@@ -2614,6 +2614,7 @@ __metadata:
     framer-motion: "npm:10.12.8"
     p-limit: "npm:6.2.0"
     react-awesome-query-builder: "npm:5.1.2"
+    react-digit-input: "npm:2.1.0"
     react-select: "npm:5.8.0"
     react-sticky-box: "npm:2.0.4"
     recharts: "npm:3.0.2"

@@ -42,7 +42,7 @@ import { AvailableTimeSlots } from "./AvailableTimeSlots";
 import { BookEventForm } from "./BookEventForm";
 import { BookFormAsModal } from "./BookEventForm/BookFormAsModal";
 import { DatePicker } from "./DatePicker";
-import { DryRunMessage } from "./DryRunMessage";
+import { DryRunMessage } from "@calcom/features/bookings/Booker/components/DryRunMessage";
 import { EventMeta } from "./EventMeta";
 import { HavingTroubleFindingTime } from "./HavingTroubleFindingTime";
 import { InstantBooking } from "./InstantBooking";
@@ -50,8 +50,8 @@ import { LargeCalendar } from "./LargeCalendar";
 import { OverlayCalendar } from "./OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./RedirectToInstantMeetingModal";
 import { SlotSelectionModalHeader } from "./SlotSelectionModalHeader";
-import { NotFound } from "./Unavailable";
-import { VerifyCodeDialog } from "./VerifyCodeDialog";
+import { NotFound } from "@calcom/features/bookings/Booker/components/Unavailable";
+import { VerifyCodeDialog } from "@calcom/features/bookings/Booker/components/VerifyCodeDialog";
 
 const BookerComponent = ({
   username,
