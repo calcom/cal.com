@@ -1,11 +1,33 @@
 ---
 name: ticket-prep
-description: Prepare a Linear ticket into a full implementation spec. Use when someone says "prep ticket <ID>", "ticket prep <ID>", or "prepare spec for <ID>". Takes a Linear ticket ID (e.g. ENG-123) as input and produces a structured implementation spec by reading the ticket, gathering codebase context, and updating the ticket description.
+description: >
+  Prepare a Linear ticket into a full implementation spec. This skill only
+  plans — it does NOT create branches, write code, or open PRs.
+
+  Trigger phrases (any of these should activate this skill):
+    - "prep <ID>"
+    - "prep ticket <ID>"
+    - "ticket prep <ID>"
+    - "prepare <ID>"
+    - "prepare spec for <ID>"
+    - "plan <ID>"
+    - "plan ticket <ID>"
+    - "spec <ID>"
+    - "spec out <ID>"
+    - "write spec for <ID>"
+
+  Takes a Linear ticket ID (e.g. ENG-123) as input and produces a structured
+  implementation spec by reading the ticket, gathering codebase context, and
+  updating the ticket description.
 ---
 
 # Ticket Prep
 
 Prepare a Linear ticket into a full implementation spec.
+
+> **Important:** This skill is for *planning only*. Do **not** create branches,
+> write code, or open pull requests. The output is an updated ticket description
+> on Linear.
 
 ## Input
 
@@ -16,8 +38,12 @@ $ARGUMENTS — a Linear ticket ID (e.g. `ENG-123`).
 ### 1. Read the ticket, comments, and sub-tickets
 
 - Fetch the ticket title, description, and attachments from Linear.
+- If the description or comments contain images (screenshots, diagrams, etc.),
+  use the `extract_images` Linear tool to view them — they often contain
+  critical context about the desired behavior.
 - Read existing comments on the ticket (these may contain answers to previously asked questions).
 - Check for sub-tickets and read each one to gather additional context.
+  Summarize any relevant details from sub-tickets when writing the spec.
 - Do **not** create or modify sub-tickets.
 
 ### 2. Evaluate completeness
@@ -69,6 +95,9 @@ Use this format for the spec:
 
 ## Desired Behavior
 <How it should work after implementation>
+
+## Affected Files
+<List the key files/modules that will need changes, with brief notes on what changes in each>
 
 ## Implementation Plan
 <Step-by-step approach, referencing specific files/modules in the codebase>
