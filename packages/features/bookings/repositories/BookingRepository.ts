@@ -239,6 +239,27 @@ const destinationCalendarSelect: Prisma.DestinationCalendarSelect = {
   credentialId: true,
 };
 
+/**
+ * Scoped select for findByUid / findLatestBookingInRescheduleChain.
+ * Only the 14 fields consumed by CalendarSyncService (BookingFromSync).
+ */
+const bookingSyncSelect = {
+  uid: true,
+  status: true,
+  userId: true,
+  userPrimaryEmail: true,
+  recurringEventId: true,
+  rescheduled: true,
+  startTime: true,
+  endTime: true,
+  eventTypeId: true,
+  title: true,
+  description: true,
+  location: true,
+  responses: true,
+  smsReminderNumber: true,
+} as const;
+
 const selectStatementToGetBookingForCalEventBuilder = {
   id: true,
   uid: true,
@@ -1298,6 +1319,7 @@ export class BookingRepository implements IBookingRepository {
       where: {
         uid: bookingUid,
       },
+      select: bookingSyncSelect,
     });
   }
 
@@ -1329,7 +1351,7 @@ export class BookingRepository implements IBookingRepository {
 
     return await this.prismaClient.booking.findUnique({
       where: { uid: latestUid },
-      include: { eventType: true },
+      select: bookingSyncSelect,
     });
   }
 
@@ -2196,53 +2218,6 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
-  async findByIdIncludeDestinationCalendar(bookingId: number) {
-    return await this.prismaClient.booking.findUnique({
-      where: {
-        id: bookingId,
-      },
-      include: {
-        attendees: true,
-        eventType: {
-          select: {
-            teamId: true,
-            bookingFields: true,
-            title: true,
-            hideOrganizerEmail: true,
-            recurringEvent: true,
-            seatsPerTimeSlot: true,
-            seatsShowAttendees: true,
-            customReplyToEmail: true,
-            metadata: true,
-            schedulingType: true,
-            team: {
-              select: {
-                id: true,
-                name: true,
-                hideBranding: true,
-                parent: { select: { hideBranding: true } },
-              },
-            },
-          },
-        },
-        destinationCalendar: true,
-        references: true,
-        user: {
-          select: {
-            id: true,
-            email: true,
-            destinationCalendar: true,
-            profiles: {
-              select: {
-                organizationId: true,
-                organization: { select: { hideBranding: true } },
-              },
-            },
-          },
-        },
-      },
-    });
-  }
 
   async findByIdForReassignment(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
@@ -2698,6 +2673,7 @@ export class BookingRepository implements IBookingRepository {
     await this.prismaClient.booking.update({
       where: { uid: bookingUid },
       data: { isRecorded },
+      select: { id: true },
     });
   }
 

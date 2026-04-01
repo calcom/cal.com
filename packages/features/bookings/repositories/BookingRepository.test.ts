@@ -79,38 +79,9 @@ describe("BookingRepository", () => {
     });
   });
 
-  describe("findByIdIncludeDestinationCalendar", () => {
-    it("should not select credentials on the user relation", async () => {
-      mockPrismaClient.booking.findUnique.mockResolvedValue(null);
-
-      await repository.findByIdIncludeDestinationCalendar(123);
-
-      const call = mockPrismaClient.booking.findUnique.mock.calls[0][0];
-      const userSelect = call.include.user.select;
-
-      expect(userSelect).toBeDefined();
-      expect(userSelect.id).toBe(true);
-      expect(userSelect.email).toBe(true);
-      expect(userSelect.destinationCalendar).toBe(true);
-      expect(userSelect.profiles).toBeDefined();
-      expect(userSelect).not.toHaveProperty("credentials");
-    });
-
-    it("should query by booking id", async () => {
-      mockPrismaClient.booking.findUnique.mockResolvedValue(null);
-
-      await repository.findByIdIncludeDestinationCalendar(456);
-
-      expect(mockPrismaClient.booking.findUnique).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: 456 },
-        })
-      );
-    });
-  });
 
   describe("findByUid", () => {
-    it("should not include unused eventType relation", async () => {
+    it("should use scoped bookingSyncSelect with only consumed fields", async () => {
       mockPrismaClient.booking.findUnique.mockResolvedValue(null);
 
       await repository.findByUid({ bookingUid: "test-uid" });
@@ -119,11 +90,43 @@ describe("BookingRepository", () => {
 
       expect(call.where).toEqual({ uid: "test-uid" });
       expect(call).not.toHaveProperty("include");
+      expect(call.select).toEqual({
+        uid: true,
+        status: true,
+        userId: true,
+        userPrimaryEmail: true,
+        recurringEventId: true,
+        rescheduled: true,
+        startTime: true,
+        endTime: true,
+        eventTypeId: true,
+        title: true,
+        description: true,
+        location: true,
+        responses: true,
+        smsReminderNumber: true,
+      });
     });
   });
 
   describe("findLatestBookingInRescheduleChain", () => {
-    const mockBooking = { uid: "booking-3", eventType: { id: 1 } };
+    const expectedSyncSelect = {
+      uid: true,
+      status: true,
+      userId: true,
+      userPrimaryEmail: true,
+      recurringEventId: true,
+      rescheduled: true,
+      startTime: true,
+      endTime: true,
+      eventTypeId: true,
+      title: true,
+      description: true,
+      location: true,
+      responses: true,
+      smsReminderNumber: true,
+    };
+    const mockBooking = { uid: "booking-3", status: "ACCEPTED" };
 
     it("should return null when CTE returns the same uid as input", async () => {
       mockPrismaClient.$queryRaw.mockResolvedValue([{ uid: "booking-1" }]);
@@ -144,7 +147,7 @@ describe("BookingRepository", () => {
       expect(mockPrismaClient.booking.findUnique).not.toHaveBeenCalled();
     });
 
-    it("should fetch the latest booking when CTE resolves a different uid", async () => {
+    it("should use bookingSyncSelect instead of include eventType when fetching latest booking", async () => {
       mockPrismaClient.$queryRaw.mockResolvedValue([{ uid: "booking-3" }]);
       mockPrismaClient.booking.findUnique.mockResolvedValue(mockBooking);
 
@@ -154,7 +157,7 @@ describe("BookingRepository", () => {
       expect(mockPrismaClient.$queryRaw).toHaveBeenCalledTimes(1);
       expect(mockPrismaClient.booking.findUnique).toHaveBeenCalledWith({
         where: { uid: "booking-3" },
-        include: { eventType: true },
+        select: expectedSyncSelect,
       });
     });
 
@@ -390,6 +393,22 @@ describe("BookingRepository", () => {
       expect(dcSelect).not.toHaveProperty("createdAt");
       expect(dcSelect).not.toHaveProperty("updatedAt");
       expect(dcSelect).not.toHaveProperty("customCalendarReminder");
+    });
+  });
+
+  describe("updateRecordedStatus", () => {
+    it("should include select with only id to avoid fetching full booking", async () => {
+      mockPrismaClient.booking.update.mockResolvedValue({ id: 1 });
+
+      await repository.updateRecordedStatus({
+        bookingUid: "test-uid",
+        isRecorded: true,
+      });
+
+      const call = mockPrismaClient.booking.update.mock.calls[0][0];
+      expect(call.where).toEqual({ uid: "test-uid" });
+      expect(call.data).toEqual({ isRecorded: true });
+      expect(call.select).toEqual({ id: true });
     });
   });
 

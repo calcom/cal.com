@@ -1126,7 +1126,7 @@ describe("BookingRepository (Integration Tests)", () => {
       expect(result).toBeNull();
     });
 
-    it("should include eventType in the result", async () => {
+    it("should return only bookingSyncSelect fields (no eventType relation)", async () => {
       await createRescheduleChain(2);
 
       const result = await bookingRepo.findLatestBookingInRescheduleChain({
@@ -1134,8 +1134,15 @@ describe("BookingRepository (Integration Tests)", () => {
       });
 
       expect(result).not.toBeNull();
-      expect(result!.eventType).toBeDefined();
-      expect(result!.eventType!.id).toBe(testEventTypeId);
+      // Verify scoped select fields are present
+      expect(result!.uid).toBe(`${chainUidPrefix}-1`);
+      expect(result!.eventTypeId).toBe(testEventTypeId);
+      expect(result!.status).toBeDefined();
+      expect(result!.startTime).toBeDefined();
+      expect(result!.endTime).toBeDefined();
+      expect(result!.title).toBeDefined();
+      // eventType relation should NOT be included (only eventTypeId scalar)
+      expect(result).not.toHaveProperty("eventType");
     });
 
     it("should return null for non-existent booking uid", async () => {
