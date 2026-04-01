@@ -2041,7 +2041,7 @@
   "which_team_apply": "Für welches Team soll dies gelten?",
   "no_workflows_description": "Workflows ermöglichen die einfache Automatisierung des Versands von Benachrichtigungen und Erinnerungen, so dass Sie Prozesse rund um Ihre Termine erstellen können.",
   "no_workflows_description_v2": "Ereigniserinnerungen und Benachrichtigungen automatisieren",
-  "timeformat_profile_hint": "Dies ist eine interne Einstellung, die keinen Einfluss darauf hat, wie die Zeiten auf den öffentlichen Buchungsseiten für Sie oder jemanden, der Sie buchen möchte, angezeigt werden.",
+  "timeformat_profile_hint": "Dies ist eine interne Einstellung und hat keinen Einfluss darauf, wie Zeiten auf Ihren öffentlichen Buchungsseiten angezeigt werden.",
   "create_workflow": "Einen Workflow erstellen",
   "do_this": "Mache dies",
   "turn_off": "Abschalten",

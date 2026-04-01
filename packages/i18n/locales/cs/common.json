@@ -2041,7 +2041,7 @@
   "which_team_apply": "Na který tým se to bude vztahovat?",
   "no_workflows_description": "Pracovní postupy umožňují jednoduchou automatizaci zasílání oznámení a připomínek, což vám umožní vytvářet procesy v souvislosti s vašimi událostmi.",
   "no_workflows_description_v2": "Automatizujte upomínky a oznámení o událostech",
-  "timeformat_profile_hint": "Jedná se o interní nastavení, které nemá vliv na to, jak se vám nebo komukoli, kdo vás rezervuje, na veřejných rezervačních stránkách zobrazují časy.",
+  "timeformat_profile_hint": "Toto je interní nastavení a nebude ovlivňovat způsob zobrazení časů na vašich veřejných rezervačních stránkách.",
   "create_workflow": "Vytvoření pracovního postupu",
   "do_this": "Provést",
   "turn_off": "Vypnout",

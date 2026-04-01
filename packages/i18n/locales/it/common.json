@@ -2041,7 +2041,7 @@
   "which_team_apply": "A quale team si applica?",
   "no_workflows_description": "I flussi di lavoro attivano una semplice automazione per inviare notifiche e promemoria che ti consentono di creare processi per i tuoi eventi.",
   "no_workflows_description_v2": "Automatizza promemoria e notifiche degli eventi",
-  "timeformat_profile_hint": "Questa è un'impostazione interna e non influenzerà il modo in cui gli orari sono visualizzati nelle pagine di prenotazione pubbliche a te e a chiunque faccia una prenotazione.",
+  "timeformat_profile_hint": "Questa è un'impostazione interna e non influirà su come vengono visualizzati gli orari nelle tue pagine di prenotazione pubbliche.",
   "create_workflow": "Crea un flusso di lavoro",
   "do_this": "Esegui questa operazione",
   "turn_off": "Disattiva",

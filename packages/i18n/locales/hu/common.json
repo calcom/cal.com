@@ -2041,7 +2041,7 @@
   "which_team_apply": "Melyik csapatra vonatkozik ez?",
   "no_workflows_description": "A munkafolyamatok lehetővé teszik az értesítések és emlékeztetők küldésének egyszerű automatizálását, így folyamatokat építhet az események köré.",
   "no_workflows_description_v2": "Automatizálja az eseményemlékeztetőket és értesítéseket",
-  "timeformat_profile_hint": "Ez egy belső beállítás, és nincs hatással arra, hogy az időpontok hogyan jelenjenek meg a nyilvános foglalási oldalakon az Ön vagy bárki számára, aki foglal.",
+  "timeformat_profile_hint": "Ez egy belső beállítás, és nem befolyásolja az időpontok megjelenítését a nyilvános foglalási oldalakon.",
   "create_workflow": "Munkafolyamat létrehozása",
   "do_this": "Csináld ezt",
   "turn_off": "Kikapcsolás",

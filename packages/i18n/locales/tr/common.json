@@ -2041,7 +2041,7 @@
   "which_team_apply": "Bu hangi takıma uygulanacak?",
   "no_workflows_description": "İş akışları, etkinliklerinizle ilgili süreçler oluşturmanıza olanak tanıyan bildirimler ve hatırlatıcılar göndermek için basit otomasyona imkanı tanır.",
   "no_workflows_description_v2": "Etkinlik hatırlatmalarını ve bildirimlerini otomatikleştirin",
-  "timeformat_profile_hint": "Bu dahili bir ayardır ve sizin yaptığınız veya sizin için rezervasyon yapan herhangi birinin genel rezervasyon sayfalarında saatlerin nasıl görüntülendiğini etkilemez.",
+  "timeformat_profile_hint": "Bu dahili bir ayardır ve zamanların herkese açık rezervasyon sayfalarınızda nasıl görüntüleneceğini etkilemez.",
   "create_workflow": "Bir iş akışı oluşturun",
   "do_this": "Bunu yap",
   "turn_off": "Kapat",

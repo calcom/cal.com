@@ -2041,7 +2041,7 @@
   "which_team_apply": "A qual equipe isso se aplicará?",
   "no_workflows_description": "Fluxo de trabalho permitem uma simples automação para enviar notificações e lembretes que permitem que você crie processos em torno de seus eventos.",
   "no_workflows_description_v2": "Automatize lembretes e notificações de eventos",
-  "timeformat_profile_hint": "Esta é uma configuração interna e não afetará a quantidade de exibições em páginas públicas de reservas para você ou outra pessoa que estiver fazendo reserva.",
+  "timeformat_profile_hint": "Esta é uma configuração interna e não afetará como os horários são exibidos nas suas páginas públicas de agendamento.",
   "create_workflow": "Criar fluxo de trabalho",
   "do_this": "Faça isso",
   "turn_off": "Desligar",

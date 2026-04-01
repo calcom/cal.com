@@ -2041,7 +2041,7 @@
   "which_team_apply": "Hvilket team skal dette gjelde for?",
   "no_workflows_description": "Arbeidsflyter muliggjør enkel automatisering for å sende varsler og påminnelser slik at du kan bygge prosesser rundt hendelsene dine.",
   "no_workflows_description_v2": "Automatiser påminnelser og varsler for hendelser",
-  "timeformat_profile_hint": "Dette er en intern innstilling og vil ikke påvirke hvordan tidspunkt vises på offentlige bookingsider for deg eller noen som booker deg.",
+  "timeformat_profile_hint": "Dette er en intern innstilling og vil ikke påvirke hvordan tidspunkter vises på dine offentlige bestillingssider.",
   "create_workflow": "Lag en arbeidsflyt",
   "do_this": "Gjør dette",
   "turn_off": "Slå av",

@@ -2041,7 +2041,7 @@
   "which_team_apply": "Na koji tim će se ovo primeniti?",
   "no_workflows_description": "Radni tokovi omogućavaju jednostavnu automatizaciju slanja obaveštenja i podsetnika što vam omogućava da izgradite procese oko vaših događaja.",
   "no_workflows_description_v2": "Automatizujte podsetnike i notifikacije za događaje",
-  "timeformat_profile_hint": "Ovo je interno podešavanje i neće uticati na to kako se vremena prikazuju na javnim stranicama za rezervacije, za vas ili bilo koga ko rezerviše događaj sa vama.",
+  "timeformat_profile_hint": "Ово је интерно подешавање и неће утицати на то како се времена приказују на вашим јавним страницама за заказивање.",
   "create_workflow": "Kreirajte radni tok",
   "do_this": "Uradi ovo",
   "turn_off": "Isključi",

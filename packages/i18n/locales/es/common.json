@@ -2041,7 +2041,7 @@
   "which_team_apply": "¿A qué equipo se aplicará esto?",
   "no_workflows_description": "Los flujos de trabajo permiten una automatización simple para enviar notificaciones y recordatorios que le permiten crear procesos para sus eventos.",
   "no_workflows_description_v2": "Automatizar recordatorios y notificaciones de eventos",
-  "timeformat_profile_hint": "Esta es una configuración interna y no afectará la manera en que se muestran los horarios en las páginas de reservas públicas para usted o para cualquier persona que lo solicite.",
+  "timeformat_profile_hint": "Esta es una configuración interna y no afectará cómo se muestran las horas en tus páginas públicas de reservas.",
   "create_workflow": "Crear un flujo de trabajo",
   "do_this": "Hacer esto",
   "turn_off": "Apagar",

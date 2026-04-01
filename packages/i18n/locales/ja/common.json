@@ -2041,7 +2041,7 @@
   "which_team_apply": "どのチームに適用しますか？",
   "no_workflows_description": "ワークフローを使用すると通知やリマインダーの送信を簡単に自動化することができ、イベントに関するプロセスを構築することができます。",
   "no_workflows_description_v2": "イベントのリマインダーと通知を自動化",
-  "timeformat_profile_hint": "これは内部の設定であり、あなたやあなたを予約したユーザーの公開予約ページ上の時間表示には影響を与えません。",
+  "timeformat_profile_hint": "これは内部設定であり、公開予約ページでの時刻の表示には影響しません。",
   "create_workflow": "ワークフローを作成",
   "do_this": "これを実行する",
   "turn_off": "オフにする",

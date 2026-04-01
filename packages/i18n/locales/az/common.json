@@ -2041,7 +2041,7 @@
   "which_team_apply": "Bu hansı komandaya tətbiq ediləcək?",
   "no_workflows_description": "İş axınları bildirişlər və xatırlatmalar göndərmək üçün sadə avtomatlaşdırmanı təmin edir və tədbirləriniz ətrafında proseslər qurmağa imkan verir.",
   "no_workflows_description_v2": "Tədbir xatırlatmaları və bildirişləri avtomatlaşdırın",
-  "timeformat_profile_hint": "Bu daxili bir ayardır və sizin və ya sizi rezervasiya edənlər üçün ictimai rezervasiya səhifələrində vaxtların necə göstəriləcəyinə təsir etməyəcək.",
+  "timeformat_profile_hint": "Bu daxili ayardır və vaxtların açıq rezervasiya səhifələrinizdə necə göstəriləcəyinə təsir etməyəcək.",
   "create_workflow": "İş axını yaradın",
   "do_this": "Bunu edin",
   "turn_off": "Söndürün",

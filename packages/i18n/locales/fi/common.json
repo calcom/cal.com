@@ -2041,7 +2041,7 @@
   "which_team_apply": "Mihin tiimiin tämä koskee?",
   "no_workflows_description": "Työnkulut mahdollistavat yksinkertaisen automaation ilmoitusten ja muistutusten lähettämiseen, mikä auttaa sinua rakentamaan prosesseja tapahtumiesi ympärille.",
   "no_workflows_description_v2": "Automatisoi tapahtumamuistutukset ja ilmoitukset",
-  "timeformat_profile_hint": "Tämä on sisäinen asetus eikä vaikuta siihen, miten ajat näytetään julkisilla varaussivuilla sinulle tai varaajille.",
+  "timeformat_profile_hint": "Tämä on sisäinen asetus, eikä se vaikuta siihen, miten ajat näytetään julkisilla varaussivuillasi.",
   "create_workflow": "Luo työnkulku",
   "do_this": "Tee tämä",
   "turn_off": "Kytke pois",

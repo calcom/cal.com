@@ -2041,7 +2041,7 @@
   "which_team_apply": "Đội nào sẽ áp dụng điều này?",
   "no_workflows_description": "Tiến độ công việc giúp đơn giản hoá việc tạo tự động chức năng gửi thông báo & lời nhắc, nhằm giúp bạn có thể lập nên các quy trình xử lí xung quanh các sự kiện.",
   "no_workflows_description_v2": "Tự động hoá lời nhắc sự kiện và thông báo",
-  "timeformat_profile_hint": "Đây là cài đặt nội bộ và sẽ không ảnh hưởng đến cách hiển thị thời gian trên trang lịch hẹn công cộng cho bạn hoặc cho bất kỳ ai đặt lịch hẹn với bạn.",
+  "timeformat_profile_hint": "Đây là cài đặt nội bộ và sẽ không ảnh hưởng đến cách hiển thị thời gian trên các trang đặt lịch công khai của bạn.",
   "create_workflow": "Tạo một tiến độ công việc",
   "do_this": "Làm cái này",
   "turn_off": "Tắt",

@@ -2041,7 +2041,7 @@
   "which_team_apply": "Hvilket team vil dette gælde for?",
   "no_workflows_description": "Workflows muliggør enkel automatisering til at sende notifikationer og påmindelser, så du kan bygge processer omkring dine begivenheder.",
   "no_workflows_description_v2": "Automatisér påmindelser og notifikationer for begivenheder",
-  "timeformat_profile_hint": "Dette er en intern indstilling og vil ikke påvirke hvordan tiderne vises på offentlige bookingsider for dig eller nogen der booker dig.",
+  "timeformat_profile_hint": "Dette er en intern indstilling og vil ikke påvirke, hvordan tidspunkter vises på dine offentlige bookingsider.",
   "create_workflow": "Opret et workflow",
   "do_this": "Gør dette",
   "turn_off": "Slå fra",

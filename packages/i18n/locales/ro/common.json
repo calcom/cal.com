@@ -2041,7 +2041,7 @@
   "which_team_apply": "La ce echipă se va aplica aceasta?",
   "no_workflows_description": "Fluxurile de lucru permit automatizarea simplă pentru a trimite notificări și mementouri, care vă permit să construiți procese în jurul evenimentelor dvs.",
   "no_workflows_description_v2": "Automatizați mementourile și notificările pentru evenimente",
-  "timeformat_profile_hint": "Aceasta este o setare internă și nu va afecta modul în care sunt afișate orele pe paginile publice de rezervare pentru tine sau pentru persoana care face rezervarea.",
+  "timeformat_profile_hint": "Aceasta este o setare internă și nu va afecta modul în care orele sunt afișate pe paginile tale publice de programare.",
   "create_workflow": "Creați un flux de lucru",
   "do_this": "Faceți acest lucru",
   "turn_off": "Dezactivați",

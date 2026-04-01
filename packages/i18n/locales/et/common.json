@@ -2041,7 +2041,7 @@
   "which_team_apply": "Millisele meeskonnale see kehtib?",
   "no_workflows_description": "Töövood võimaldavad märguannete ja meeldetuletuste saatmise lihtsat automatiseerimist, mis võimaldab teil sündmuste ümber protsesse üles ehitada.",
   "no_workflows_description_v2": "Automatiseeri sündmuse meeldetuletused ja teavitused",
-  "timeformat_profile_hint": "See on sisemine seade ja see ei mõjuta seda, kuidas kellaajad kuvatakse avalikel broneerimislehtedel teile ega teistele, kes teid broneerivad.",
+  "timeformat_profile_hint": "See on sisemine seade ega mõjuta kellaaegade kuvamist teie avalikul broneerimislehel.",
   "create_workflow": "Loo töövoog",
   "do_this": "Tee seda",
   "turn_off": "Lülita välja",

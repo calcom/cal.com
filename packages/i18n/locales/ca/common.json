@@ -2041,7 +2041,7 @@
   "which_team_apply": "A quin equip s'aplicarà això?",
   "no_workflows_description": "Els fluxos de treball permeten automatitzacions simples per enviar notificacions i recordatoris, permetent-te construir processos al voltant dels teus esdeveniments.",
   "no_workflows_description_v2": "Automatitza recordatoris i notificacions d'esdeveniments",
-  "timeformat_profile_hint": "Aquesta és una configuració interna i no afectarà com es mostren les hores a les pàgines de reserva públiques per a tu o per a qualsevol que et reservi.",
+  "timeformat_profile_hint": "Aquesta és una configuració interna i no afectarà com es mostren les hores a les vostres pàgines públiques de reserves.",
   "create_workflow": "Crea un flux de treball",
   "do_this": "Fes això",
   "turn_off": "Desactiva",

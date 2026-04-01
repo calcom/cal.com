@@ -2041,7 +2041,7 @@
   "which_team_apply": "Zein talderi aplikatuko zaio hau?",
   "no_workflows_description": "Lan-fluxuek jakinarazpenak eta oroigarriak bidaltzeko automatizazio sinpleak ahalbidetzen dituzte, zure gertaeren inguruko prozesuak eraikitzeko aukera emanez.",
   "no_workflows_description_v2": "Automatizatu gertaeren oroigarriak eta jakinarazpenak",
-  "timeformat_profile_hint": "Hau barne-ezarpen bat da eta ez du eraginik izango ordu-bistaratzeetan erreserba-orri publikoetan, ez zuretzat ez zu erreserbatzen zaituen edonorentzat.",
+  "timeformat_profile_hint": "Hau ezarpen interno bat da eta ez du eraginik izango zure erreserbaren orrialde publikoetan orduak nola bistaratzen diren.",
   "create_workflow": "Sortu lan-fluxu bat",
   "do_this": "Egin honakoa",
   "turn_off": "Itzali",

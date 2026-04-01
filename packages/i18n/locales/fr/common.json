@@ -2041,7 +2041,7 @@
   "which_team_apply": "À quelle équipe cela s'appliquera-t-il ?",
   "no_workflows_description": "Les workflows permettent une automatisation simple pour envoyer des notifications et des rappels vous permettant de créer des processus autour de vos événements.",
   "no_workflows_description_v2": "Automatisez les rappels et notifications d'événements",
-  "timeformat_profile_hint": "Il s'agit d'un paramètre interne qui n'affectera pas la façon dont les horaires sont affichés sur les pages de réservation publiques, que ce soit pour vous ou toute personne prenant rendez-vous avec vous.",
+  "timeformat_profile_hint": "Il s'agit d'un paramètre interne qui n'affectera pas la façon dont les heures sont affichées sur vos pages de réservation publiques.",
   "create_workflow": "Créer un workflow",
   "do_this": "Effectuer ceci",
   "turn_off": "Désactiver",
