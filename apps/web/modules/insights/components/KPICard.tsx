@@ -1,16 +1,16 @@
 "use client";
 
+import { calculateDeltaType, valueFormatter } from "@calcom/features/insights/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
-import { calculateDeltaType, valueFormatter } from "@calcom/features/insights/lib";
-
 export const KPICard = ({
   title,
   previousMetricData,
   previousDateRange,
+  tooltip,
 }: {
   title: string;
   previousMetricData: {
@@ -18,6 +18,7 @@ export const KPICard = ({
     deltaPrevious: number;
   };
   previousDateRange: { startDate: string; endDate: string };
+  tooltip?: string;
 }) => {
   const { t } = useLocale();
 
@@ -58,7 +59,14 @@ export const KPICard = ({
 
   return (
     <div>
-      <div className="text-default text-sm">{title}</div>
+      <div className="text-default flex items-center gap-1 text-sm">
+        {title}
+        {tooltip && (
+          <Tooltip content={tooltip}>
+            <Icon name="info" className="text-subtle h-3.5 w-3.5 cursor-pointer" />
+          </Tooltip>
+        )}
+      </div>
       <div className="flex items-baseline justify-start space-x-3 truncate">
         <div className="text-emphasis text-2xl font-semibold">{valueFormatter(previousMetricData.count)}</div>
       </div>
