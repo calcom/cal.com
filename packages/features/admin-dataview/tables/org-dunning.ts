@@ -33,4 +33,15 @@ export const orgDunningTable: TableDefinition = {
     { column: "notificationsSent", label: "Notifications Sent", type: "number", access: "readonly" },
     ...timestamps(),
   ],
+  actions: [
+    {
+      id: "upsert-dunning-org",
+      label: "Edit Dunning",
+      icon: "pencil",
+      variant: "default",
+      mutation: "admin.upsertDunning",
+      buildInput: (row) => ({ billingId: row.organizationBillingId, entityType: "organization" }),
+      formId: "upsert-dunning",
+    },
+  ],
 };

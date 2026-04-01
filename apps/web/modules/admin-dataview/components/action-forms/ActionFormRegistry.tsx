@@ -6,6 +6,7 @@ import { ReleaseUsernameForm } from "./ReleaseUsernameForm";
 import { TransferBillingActionForm } from "./TransferBillingActionForm";
 import { TransferOwnershipActionForm } from "./TransferOwnershipActionForm";
 import { UpdateBillingModeForm } from "./UpdateBillingModeForm";
+import { UpsertDunningActionForm } from "./UpsertDunningActionForm";
 
 export interface ActionFormProps {
   table: AdminTable;
@@ -19,4 +20,5 @@ export const ACTION_FORM_COMPONENTS: Record<string, React.ComponentType<ActionFo
   "transfer-billing": TransferBillingActionForm,
   "transfer-ownership": TransferOwnershipActionForm,
   "update-billing-mode": UpdateBillingModeForm,
+  "upsert-dunning": UpsertDunningActionForm,
 };

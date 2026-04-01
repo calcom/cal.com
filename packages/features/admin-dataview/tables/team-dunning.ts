@@ -33,4 +33,15 @@ export const teamDunningTable: TableDefinition = {
     { column: "notificationsSent", label: "Notifications Sent", type: "number", access: "readonly" },
     ...timestamps(),
   ],
+  actions: [
+    {
+      id: "upsert-dunning-team",
+      label: "Edit Dunning",
+      icon: "pencil",
+      variant: "default",
+      mutation: "admin.upsertDunning",
+      buildInput: (row) => ({ billingId: row.teamBillingId, entityType: "team" }),
+      formId: "upsert-dunning",
+    },
+  ],
 };

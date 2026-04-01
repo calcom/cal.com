@@ -154,6 +154,15 @@ export const teamBillingTable: TableDefinition = {
       },
     },
     {
+      id: "upsert-dunning-team",
+      label: "Edit Dunning",
+      icon: "pencil",
+      variant: "default",
+      mutation: "admin.upsertDunning",
+      buildInput: (row) => ({ billingId: row.id, entityType: "team" }),
+      formId: "upsert-dunning",
+    },
+    {
       id: "transfer-billing-team",
       label: "Transfer Billing",
       icon: "arrow-right",

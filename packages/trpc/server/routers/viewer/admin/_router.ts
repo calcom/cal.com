@@ -25,6 +25,7 @@ import { ZSearchUsersByEmailSchema } from "./searchUsersByEmail.schema";
 import { ZTransferBillingSchema } from "./transferBilling.schema";
 import { ZRecreateOwnershipSchema } from "./recreateOwnership.schema";
 import { ZTransferOwnershipSchema } from "./transferOwnership.schema";
+import { ZUpsertDunningSchema } from "./upsertDunning.schema";
 import { ZAdminUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.schema";
 import { ZUpdateBillingModeSchema } from "./updateBillingMode.schema";
 import { ZUpdateDeploymentBillingSchema } from "./updateDeploymentBilling.schema";
@@ -182,6 +183,10 @@ export const adminRouter = router({
   }),
   updateBillingMode: authedAdminProcedure.input(ZUpdateBillingModeSchema).mutation(async (opts) => {
     const { default: handler } = await import("./updateBillingMode.handler");
+    return handler(opts);
+  }),
+  upsertDunning: authedAdminProcedure.input(ZUpsertDunningSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./upsertDunning.handler");
     return handler(opts);
   }),
   abuseRules: abuseRulesRouter,
