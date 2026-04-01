@@ -127,6 +127,9 @@ describe("JoinMeetingButton", () => {
     await userEvent.click(copyButton);
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith("https://meet.google.com/abc-def-ghi");
-    expect(showToast).toHaveBeenCalledWith("link_copied", "success");
+    // Toast is shown after the clipboard promise resolves
+    await vi.waitFor(() => {
+      expect(showToast).toHaveBeenCalledWith("link_copied", "success");
+    });
   });
 });

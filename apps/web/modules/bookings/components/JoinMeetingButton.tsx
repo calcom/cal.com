@@ -54,8 +54,9 @@ export function JoinMeetingButton({
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(locationToDisplay);
-    showToast(t("link_copied"), "success");
+    void navigator.clipboard.writeText(locationToDisplay).then(() => {
+      showToast(t("link_copied"), "success");
+    });
   };
 
   const joinButton = (
