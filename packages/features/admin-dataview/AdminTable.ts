@@ -7,18 +7,42 @@ import type { FieldDefinition, TableDefinition } from "./types";
 export class AdminTable {
   constructor(public readonly def: TableDefinition) {}
 
-  get slug() { return this.def.slug; }
-  get modelName() { return this.def.modelName; }
-  get displayName() { return this.def.displayName; }
-  get displayNamePlural() { return this.def.displayNamePlural; }
-  get description() { return this.def.description; }
-  get category() { return this.def.category; }
-  get fields() { return this.def.fields; }
-  get actions() { return this.def.actions; }
-  get panels() { return this.def.panels; }
-  get pageSize() { return this.def.pageSize ?? 50; }
-  get defaultSort() { return this.def.defaultSort ?? this.primaryKeyColumn; }
-  get defaultSortDirection() { return this.def.defaultSortDirection ?? "desc" as const; }
+  get slug() {
+    return this.def.slug;
+  }
+  get modelName() {
+    return this.def.modelName;
+  }
+  get displayName() {
+    return this.def.displayName;
+  }
+  get displayNamePlural() {
+    return this.def.displayNamePlural;
+  }
+  get description() {
+    return this.def.description;
+  }
+  get category() {
+    return this.def.category;
+  }
+  get fields() {
+    return this.def.fields;
+  }
+  get actions() {
+    return this.def.actions;
+  }
+  get panels() {
+    return this.def.panels;
+  }
+  get pageSize() {
+    return this.def.pageSize ?? 50;
+  }
+  get defaultSort() {
+    return this.def.defaultSort ?? this.primaryKeyColumn;
+  }
+  get defaultSortDirection() {
+    return this.def.defaultSortDirection ?? ("desc" as const);
+  }
 
   get primaryKeyColumn(): string {
     return this.fields.find((f) => f.isPrimary)?.column ?? "id";
@@ -131,6 +155,11 @@ export class AdminTable {
 
     if (filters) {
       const allowedColumns = new Set(this.visibleFields.map((f) => f.column));
+      for (const field of this.visibleFields) {
+        if (field.relation && !field.relation.many) {
+          allowedColumns.add(field.relation.fkColumn ?? `${field.column}Id`);
+        }
+      }
       const structuralKeys = new Set(["OR", "AND", "NOT"]);
 
       for (const [key, value] of Object.entries(filters)) {

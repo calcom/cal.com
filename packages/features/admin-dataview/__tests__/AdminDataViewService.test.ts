@@ -1,12 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import type { PrismaClient } from "@prisma/client";
-
-import type { TableDefinition } from "../types";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AdminTableRegistry } from "../AdminTableRegistry";
 import { AdminDataViewService } from "../server/service";
-
-
+import type { TableDefinition } from "../types";
 
 const userDef: TableDefinition = {
   modelName: "User",
@@ -21,7 +17,14 @@ const userDef: TableDefinition = {
   fields: [
     { column: "id", label: "ID", type: "number", access: "readonly", isPrimary: true, showInList: true },
     { column: "name", label: "Name", type: "string", access: "readonly", searchable: true, showInList: true },
-    { column: "email", label: "Email", type: "email", access: "readonly", searchable: true, showInList: true },
+    {
+      column: "email",
+      label: "Email",
+      type: "email",
+      access: "readonly",
+      searchable: true,
+      showInList: true,
+    },
     { column: "locked", label: "Locked", type: "boolean", access: "readonly", showInList: true },
     { column: "password", label: "Password", type: "string", access: "hidden" },
     {
@@ -106,9 +109,7 @@ describe("AdminDataViewService", () => {
 
       await service.list({ slug: "users", page: 1, pageSize: 5 });
 
-      expect(delegate.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ take: 5 })
-      );
+      expect(delegate.findMany).toHaveBeenCalledWith(expect.objectContaining({ take: 5 }));
     });
 
     it("respects custom sort", async () => {
@@ -117,9 +118,7 @@ describe("AdminDataViewService", () => {
 
       await service.list({ slug: "users", page: 1, sortField: "email", sortDirection: "asc" });
 
-      expect(delegate.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ orderBy: { email: "asc" } })
-      );
+      expect(delegate.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { email: "asc" } }));
     });
 
     it("falls back to PK sort for relation columns", async () => {
@@ -128,9 +127,7 @@ describe("AdminDataViewService", () => {
 
       await service.list({ slug: "users", page: 1, sortField: "team" });
 
-      expect(delegate.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ orderBy: { id: "desc" } })
-      );
+      expect(delegate.findMany).toHaveBeenCalledWith(expect.objectContaining({ orderBy: { id: "desc" } }));
     });
 
     it("builds search where clause", async () => {
@@ -162,6 +159,16 @@ describe("AdminDataViewService", () => {
 
       const call = delegate.findMany.mock.calls[0][0];
       expect(call.where).toEqual({});
+    });
+
+    it("allows FK column filters derived from relations (reverse relation scenario)", async () => {
+      delegate.findMany.mockResolvedValue([]);
+      delegate.count.mockResolvedValue(0);
+
+      await service.list({ slug: "users", page: 1, filters: { teamId: 42 } });
+
+      const call = delegate.findMany.mock.calls[0][0];
+      expect(call.where).toEqual({ teamId: 42 });
     });
 
     it("returns paginated result with totalPages", async () => {
@@ -201,9 +208,7 @@ describe("AdminDataViewService", () => {
 
       await service.list({ slug: "users", page: -5 });
 
-      expect(delegate.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ skip: 0 })
-      );
+      expect(delegate.findMany).toHaveBeenCalledWith(expect.objectContaining({ skip: 0 }));
     });
 
     it("throws for unknown slug", async () => {
@@ -233,9 +238,7 @@ describe("AdminDataViewService", () => {
 
       await service.getById({ slug: "users", id: "42" });
 
-      expect(delegate.findUnique).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { id: 42 } })
-      );
+      expect(delegate.findUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 42 } }));
     });
 
     it("returns null when record not found", async () => {
@@ -267,9 +270,7 @@ describe("AdminDataViewService", () => {
     });
 
     it("throws for unknown slug", async () => {
-      await expect(service.getById({ slug: "fake", id: 1 })).rejects.toThrow(
-        "Unknown table slug: fake"
-      );
+      await expect(service.getById({ slug: "fake", id: 1 })).rejects.toThrow("Unknown table slug: fake");
     });
   });
 

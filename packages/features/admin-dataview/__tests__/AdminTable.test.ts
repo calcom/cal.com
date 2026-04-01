@@ -1,7 +1,6 @@
-import { describe, it, expect } from "vitest";
-
-import type { TableDefinition } from "../types";
+import { describe, expect, it } from "vitest";
 import { AdminTable } from "../AdminTable";
+import type { TableDefinition } from "../types";
 
 const mockTable: TableDefinition = {
   modelName: "User",
@@ -16,8 +15,22 @@ const mockTable: TableDefinition = {
   fields: [
     { column: "id", label: "ID", type: "number", access: "readonly", isPrimary: true, showInList: true },
     { column: "name", label: "Name", type: "string", access: "readonly", searchable: true, showInList: true },
-    { column: "email", label: "Email", type: "email", access: "readonly", searchable: true, showInList: true },
-    { column: "role", label: "Role", type: "enum", access: "editable", enumValues: ["USER", "ADMIN"], showInList: true },
+    {
+      column: "email",
+      label: "Email",
+      type: "email",
+      access: "readonly",
+      searchable: true,
+      showInList: true,
+    },
+    {
+      column: "role",
+      label: "Role",
+      type: "enum",
+      access: "editable",
+      enumValues: ["USER", "ADMIN"],
+      showInList: true,
+    },
     { column: "locked", label: "Locked", type: "boolean", access: "editable", showInList: true },
     { column: "bio", label: "Bio", type: "string", access: "readonly", showInList: false },
     { column: "password", label: "Password", type: "string", access: "hidden" },
@@ -235,7 +248,14 @@ describe("AdminTable", () => {
       const t = new AdminTable({
         ...mockTable,
         fields: [
-          { column: "id", label: "ID", type: "number", access: "readonly", isPrimary: true, searchable: true },
+          {
+            column: "id",
+            label: "ID",
+            type: "number",
+            access: "readonly",
+            isPrimary: true,
+            searchable: true,
+          },
         ],
       });
       const where = t.buildWhere("42");
@@ -265,6 +285,40 @@ describe("AdminTable", () => {
 
     it("ignores null/undefined/empty filter values", () => {
       const where = table.buildWhere(undefined, { name: null, email: undefined, role: "" });
+      expect(where).toEqual({});
+    });
+
+    it("allows FK column derived from to-one relation", () => {
+      const where = table.buildWhere(undefined, { organizationId: 42 });
+      expect(where).toEqual({ organizationId: 42 });
+    });
+
+    it("allows explicit fkColumn from relation definition", () => {
+      const t = new AdminTable({
+        ...mockTable,
+        fields: [
+          { column: "id", label: "ID", type: "number", access: "readonly", isPrimary: true },
+          {
+            column: "owner",
+            label: "Owner",
+            type: "string",
+            access: "readonly",
+            relation: {
+              modelName: "User",
+              select: { id: true, name: true },
+              displayField: "name",
+              linkTo: { slug: "users", paramField: "id" },
+              fkColumn: "userId",
+            },
+          },
+        ],
+      });
+      const where = t.buildWhere(undefined, { userId: 7 });
+      expect(where).toEqual({ userId: 7 });
+    });
+
+    it("does not allow FK columns from to-many relations", () => {
+      const where = table.buildWhere(undefined, { teamsId: 99 });
       expect(where).toEqual({});
     });
   });
