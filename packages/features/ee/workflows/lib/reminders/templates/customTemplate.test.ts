@@ -148,4 +148,18 @@ describe("customTemplate - variable replacement", () => {
 
     expect(result.text).toBe("Options: Option A, Option B, Option C");
   });
+
+  it("uses provided scheduling_by translation in email branding", () => {
+    const result = customTemplate(
+      "Reminder body",
+      { ...baseVariables },
+      "de",
+      undefined,
+      false,
+      "Terminplanung durch"
+    );
+
+    expect(result.html).toContain("Terminplanung durch");
+    expect(result.html).not.toContain("Scheduling by");
+  });
 });

@@ -4,13 +4,13 @@ import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
 import tasker from "@calcom/features/tasker";
+import { getTranslation } from "@calcom/i18n/server";
 import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
-import { WorkflowMethods, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-
-import type { BookingInfo, ScheduleEmailReminderAction, FormSubmissionData } from "../types";
+import { WorkflowMethods, type WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import type { BookingInfo, FormSubmissionData, ScheduleEmailReminderAction } from "../types";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import type { WorkflowContextData } from "./reminderScheduler";
 import type { VariablesType } from "./templates/customTemplate";
@@ -196,6 +196,7 @@ const scheduleEmailReminderForForm = async (
 
   if (emailBody) {
     const timeFormat = getTimeFormatStringFromUserTimeFormat(formData.user.timeFormat);
+    const translation = await getTranslation(formData.user.locale || "en", "common");
 
     const variables: VariablesType = {
       responses: transformRoutingFormResponsesToVariableFormat(formData.responses),
@@ -208,7 +209,8 @@ const scheduleEmailReminderForForm = async (
       variables,
       formData.user.locale,
       timeFormat,
-      hideBranding
+      hideBranding,
+      translation("scheduling_by")
     ).html;
   }
 

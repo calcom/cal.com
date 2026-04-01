@@ -127,7 +127,8 @@ const customTemplate = (
   variables: VariablesType,
   locale: string,
   timeFormat?: TimeFormat,
-  isBrandingDisabled?: boolean
+  isBrandingDisabled?: boolean,
+  schedulingByLabel = "Scheduling by"
 ) => {
   const eventDate = variables.eventDate;
   const translatedDate = eventDate
@@ -229,7 +230,9 @@ const customTemplate = (
         const availableVariable = formatIdentifierToVariable(customInput);
         // Legacy format for backward compatibility with templates created before underscore support
         const availableVariableLegacyFormat = formatIdentifierToVariableLegacy(customInput);
-        const isFoundTemplateVariableValid = foundVariableInTemplate === availableVariable || foundVariableInTemplate === availableVariableLegacyFormat;
+        const isFoundTemplateVariableValid =
+          foundVariableInTemplate === availableVariable ||
+          foundVariableInTemplate === availableVariableLegacyFormat;
 
         if (isFoundTemplateVariableValid && variables.responses) {
           const response = variables.responses[customInput];
@@ -246,7 +249,7 @@ const customTemplate = (
     }
   });
 
-  const branding = !isBrandingDisabled ? `<br><br>_<br><br>Scheduling by ${APP_NAME}` : "";
+  const branding = !isBrandingDisabled ? `<br><br>_<br><br>${schedulingByLabel} ${APP_NAME}` : "";
 
   const textHtml = `<body style="white-space: pre-wrap;">${dynamicText}${branding}</body>`;
   return { text: dynamicText, html: textHtml };

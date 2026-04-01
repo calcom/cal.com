@@ -1,10 +1,9 @@
-import type { TFunction } from "i18next";
-
 import { guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
+import type { TFunction } from "i18next";
 
 const emailReminderTemplate = ({
   isEditingMode,
@@ -41,7 +40,7 @@ const emailReminderTemplate = ({
   const dateTimeFormat = `ddd, MMM D, YYYY ${currentTimeFormat}`;
 
   let eventDate = "";
-  let locationString = `${guessEventLocationType(location)?.label || location} ${meetingUrl}`;
+  let locationString = "";
 
   if (isEditingMode) {
     endTime = "{EVENT_END_TIME}";
@@ -52,9 +51,28 @@ const emailReminderTemplate = ({
     name = action === WorkflowActions.EMAIL_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
     eventDate = `{EVENT_DATE_${dateTimeFormat}}`;
   } else {
-    eventDate = dayjs(startTime).tz(timeZone).locale(locale).format(dateTimeFormat);
+    const eventStartDate = dayjs(startTime).tz(timeZone).locale(locale);
+    const eventEndDate = dayjs(endTime).tz(timeZone).locale(locale);
 
-    endTime = dayjs(endTime).tz(timeZone).locale(locale).format(currentTimeFormat);
+    const timeZoneFormatOptions = timeZone ? { timeZone } : undefined;
+    const localizedDate = new Intl.DateTimeFormat(locale, {
+      weekday: "short",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      ...timeZoneFormatOptions,
+    }).format(eventStartDate.toDate());
+
+    eventDate = `${localizedDate} ${eventStartDate.format(currentTimeFormat)}`;
+    endTime = eventEndDate.format(currentTimeFormat);
+
+    const guessedLocationLabel = guessEventLocationType(location)?.label;
+    const resolvedLocation = guessedLocationLabel ? t(guessedLocationLabel) : location;
+
+    locationString = [resolvedLocation, meetingUrl]
+      .map((value) => (typeof value === "string" ? value.trim() : ""))
+      .filter(Boolean)
+      .join(" ");
   }
 
   const emailSubject = `${t("reminder")}: ${eventName} - ${eventDate}`;
@@ -75,9 +93,9 @@ const emailReminderTemplate = ({
     "attendees"
   )}: </strong></div>${t("you_and_conjunction")} ${otherPerson}<br><br>`;
 
-  const locationHtml = `<div><strong class="editor-text-bold">${t(
-    "location"
-  )}: </strong></div>${locationString}<br><br>`;
+  const locationHtml = locationString
+    ? `<div><strong class="editor-text-bold">${t("location")}: </strong></div>${locationString}<br><br>`
+    : "";
 
   const branding =
     !isBrandingDisabled && !isEditingMode ? `<br><br>_<br><br>${t("scheduling_by")} ${APP_NAME}` : "";

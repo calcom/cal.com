@@ -8,9 +8,9 @@ import generateIcsString from "@calcom/emails/lib/generateIcsString";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
+import { getTranslation } from "@calcom/i18n/server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { SchedulingType, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
@@ -244,6 +244,7 @@ async function handler(req: NextRequest) {
           };
           const emailLocale = locale || "en";
           const brandingDisabled = shouldHideBranding(reminder.booking);
+          const translation = await getTranslation(emailLocale, "common");
 
           const emailSubject = customTemplate(
             reminder.workflowStep.emailSubject || "",
@@ -258,7 +259,8 @@ async function handler(req: NextRequest) {
             variables,
             emailLocale,
             getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            brandingDisabled
+            brandingDisabled,
+            translation("scheduling_by")
           ).html;
 
           emailBodyEmpty =
@@ -353,11 +355,10 @@ async function handler(req: NextRequest) {
           };
 
           const customReplyTo = reminder.booking?.eventType?.customReplyToEmail;
-              const fallbackReplyTo =
-                reminder.booking?.userPrimaryEmail ?? reminder.booking?.user?.email;
-              const replyTo = reminder.booking?.eventType?.hideOrganizerEmail
-                ? customReplyTo
-                : customReplyTo ?? fallbackReplyTo;
+          const fallbackReplyTo = reminder.booking?.userPrimaryEmail ?? reminder.booking?.user?.email;
+          const replyTo = reminder.booking?.eventType?.hideOrganizerEmail
+            ? customReplyTo
+            : (customReplyTo ?? fallbackReplyTo);
 
           const mailData = {
             subject: emailContent.emailSubject,
@@ -374,8 +375,8 @@ async function handler(req: NextRequest) {
                 ]
               : undefined,
             sender: reminder.workflowStep.sender,
-          ...(replyTo ? { replyTo } : {}),
-        };
+            ...(replyTo ? { replyTo } : {}),
+          };
 
           if (isSendgridEnabled) {
             sendEmailPromises.push(
@@ -451,8 +452,7 @@ async function handler(req: NextRequest) {
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = isSendgridEnabled ? await getBatchId() : undefined;
           const customReplyTo = reminder.booking?.eventType?.customReplyToEmail;
-          const fallbackReplyTo =
-            reminder.booking?.userPrimaryEmail || reminder.booking?.user?.email;
+          const fallbackReplyTo = reminder.booking?.userPrimaryEmail || reminder.booking?.user?.email;
           const replyTo = reminder.booking?.eventType?.hideOrganizerEmail
             ? customReplyTo
             : customReplyTo || fallbackReplyTo;
