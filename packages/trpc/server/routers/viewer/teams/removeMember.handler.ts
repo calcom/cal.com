@@ -1,3 +1,7 @@
+import { emitAuditEvent } from "@calcom/features/audit/di/AuditProducerService.container";
+import { AuditActions } from "@calcom/features/audit/types/auditAction";
+import { AuditSources } from "@calcom/features/audit/types/auditSource";
+import { AuditTargets } from "@calcom/features/audit/types/auditTarget";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 
 import { TRPCError } from "@trpc/server";
@@ -9,22 +13,23 @@ type RemoveMemberOptions = {
   ctx: {
     user: {
       id: number;
+      uuid: string;
       organizationId: number | null;
       organization?: {
         id: number | null;
         isOrgAdmin: boolean;
       };
     };
+    sourceIp?: string;
   };
   input: TRemoveMemberInputSchema;
 };
 
 export const removeMemberHandler = async ({
-  ctx: {
-    user: { id: userId, organizationId, organization },
-  },
+  ctx,
   input,
 }: RemoveMemberOptions): Promise<void> => {
+  const { id: userId, organizationId, organization } = ctx.user;
   await checkRateLimitAndThrowError({
     identifier: `removeMember.${userId}`,
   });
@@ -72,6 +77,23 @@ export const removeMemberHandler = async ({
 
   // Perform the removal
   await service.removeMembers(memberIds, teamIds, isOrg);
+
+  const operationId = crypto.randomUUID();
+  for (const teamId of teamIds) {
+    for (const memberId of memberIds) {
+      void emitAuditEvent({
+        actor: { userUuid: ctx.user.uuid },
+        action: AuditActions.MEMBER_REMOVED,
+        source: AuditSources.WEBAPP,
+        targetType: AuditTargets.team,
+        targetId: String(teamId),
+        newValue: String(memberId),
+        orgId: organizationId ?? null,
+        ip: ctx.sourceIp,
+        operationId,
+      });
+    }
+  }
 };
 
 export default removeMemberHandler;

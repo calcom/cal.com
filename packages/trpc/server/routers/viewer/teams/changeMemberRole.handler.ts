@@ -1,3 +1,7 @@
+import { emitAuditEvent } from "@calcom/features/audit/di/AuditProducerService.container";
+import { AuditActions } from "@calcom/features/audit/types/auditAction";
+import { AuditSources } from "@calcom/features/audit/types/auditSource";
+import { AuditTargets } from "@calcom/features/audit/types/auditTarget";
 import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { prisma } from "@calcom/prisma";
@@ -7,7 +11,8 @@ import type { TChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
 
 type ChangeMemberRoleOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: Pick<NonNullable<TrpcSessionUser>, "id" | "uuid" | "organizationId">;
+    sourceIp?: string;
   };
   input: TChangeMemberRoleInputSchema;
 };
@@ -53,6 +58,8 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
     throw new TRPCError({ code: "NOT_FOUND", message: "Target membership not found" });
   }
 
+  const previousRole = targetMembership.role;
+
   // Use role manager to assign the role
   try {
     await roleManager.assignRole(input.memberId, input.teamId, input.role, targetMembership.id);
@@ -62,6 +69,18 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
       message: error instanceof Error ? error.message : "Failed to assign role",
     });
   }
+
+  void emitAuditEvent({
+    actor: { userUuid: ctx.user.uuid },
+    action: AuditActions.ROLE_CHANGED,
+    source: AuditSources.WEBAPP,
+    targetType: AuditTargets.membership,
+    targetId: String(targetMembership.id),
+    previousValue: String(previousRole),
+    newValue: String(input.role),
+    orgId: ctx.user.organizationId ?? null,
+    ip: ctx.sourceIp,
+  });
 
   // Return updated membership
   const updatedMembership = await prisma.membership.findUnique({

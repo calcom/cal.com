@@ -1,4 +1,8 @@
 import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/Billing";
+import { emitAuditEvent } from "@calcom/features/audit/di/AuditProducerService.container";
+import { AuditActions } from "@calcom/features/audit/types/auditAction";
+import { AuditSources } from "@calcom/features/audit/types/auditSource";
+import { AuditTargets } from "@calcom/features/audit/types/auditTarget";
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { isOrganisationOwner } from "@calcom/features/pbac/utils/isOrganisationAdmin";
@@ -33,6 +37,7 @@ const log = logger.getSubLogger({ prefix: ["inviteMember.handler"] });
 type InviteMemberOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
+    sourceIp?: string;
   };
   input: TInviteMemberInputSchema;
 };
@@ -334,6 +339,18 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
     orgSlug,
     invitations,
   });
+
+  void emitAuditEvent({
+    actor: { userUuid: inviter.uuid },
+    action: AuditActions.MEMBER_ADDED,
+    source: AuditSources.WEBAPP,
+    targetType: AuditTargets.team,
+    targetId: String(team.id),
+    newValue: invitations.map((i) => `${i.usernameOrEmail}:${i.role}`).join(","),
+    orgId: inviter.organizationId ?? null,
+    ip: ctx.sourceIp,
+  });
+
   return result;
 
   async function throwIfInviterCantAddOwnerToOrg() {
