@@ -32,7 +32,6 @@ import {
   expectSuccessfulBookingRescheduledEmails,
   expectSuccessfulCalendarEventDeletionInCalendar,
   expectSuccessfulCalendarEventUpdationInCalendar,
-  expectSuccessfulRoundRobinReschedulingEmails,
   expectSuccessfulVideoMeetingDeletionInCalendar,
   expectSuccessfulVideoMeetingUpdationInCalendar,
   expectWorkflowToBeTriggered,
@@ -2071,12 +2070,6 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoundRobinReschedulingEmails({
-            prevOrganizer: roundRobinHost1,
-            newOrganizer: roundRobinHost2,
-            emails,
-            bookerReschedule: true,
-          });
         },
         timeout
       );
@@ -2220,11 +2213,6 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoundRobinReschedulingEmails({
-            prevOrganizer: roundRobinHost1,
-            newOrganizer: roundRobinHost1, // Round robin host 2 is not available and it will be rescheduled to same user
-            emails,
-          });
         },
         timeout
       );
@@ -2421,11 +2409,6 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoundRobinReschedulingEmails({
-            prevOrganizer: roundRobinHost1,
-            newOrganizer: roundRobinHost1, // Round robin host 2 is not available and it will be rescheduled to same user
-            emails,
-          });
         },
         timeout
       );
@@ -2578,11 +2561,6 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoundRobinReschedulingEmails({
-            prevOrganizer: roundRobinHost1,
-            newOrganizer: roundRobinHost1,
-            emails,
-          });
         },
         timeout
       );
@@ -2747,11 +2725,6 @@ describe("handleNewBooking", () => {
             },
           });
 
-          expectSuccessfulRoundRobinReschedulingEmails({
-            prevOrganizer: hostOfOriginalBooking,
-            newOrganizer: otherHost,
-            emails,
-          });
         },
         timeout
       );

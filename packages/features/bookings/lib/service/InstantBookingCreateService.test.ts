@@ -28,6 +28,23 @@ type InstantBookingTestData = CreateInstantBookingData & {
   };
 };
 
+// Mock calendar services map to prevent real calendar service modules (feishu, lark, etc.) from being
+// imported. Their top-level imports trigger async fetch calls (getAppAccessToken) that cause
+// "Closing rpc while fetch was pending" errors when the test worker shuts down.
+// This vi.mock must be in the test file itself (not just in bookingScenario.ts) to guarantee
+// Vitest hoists it before any transitive imports resolve the real module.
+vi.mock("@calcom/app-store/calendar.services.generated", () => ({
+  CalendarServiceMap: new Proxy(
+    {},
+    {
+      get(_target: Record<string, unknown>, prop: string) {
+        if (typeof prop === "symbol") return undefined;
+        return Promise.resolve({ default: vi.fn() });
+      },
+    }
+  ),
+}));
+
 vi.mock("@calcom/features/notifications/sendNotification", () => ({
   sendNotification: vi.fn(),
 }));
