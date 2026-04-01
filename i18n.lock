@@ -8113,7 +8113,9 @@ checksums:
     hide_support: d402f44bf3100219699792f997772ba2
     event_ratings: badc52125f6bc1c54790b6f1e5cd421d
     event_no_show: dd800602507e80b6108c256dd9e59ad6
+    event_no_show_host_tooltip: b3e10385d406499c2455f49e448911d6
     event_no_show_guest: 740b2ac698c6f351ff581f6067678f73
+    event_no_show_guest_tooltip: 3cd934dea5e7a9f230e6e7601f20c159
     recent_ratings: 15fdb1f17b10fd49fa30b0ef1716dc16
     no_ratings: 88d5a31c7619343c37ce6987277c5ef3
     no_ratings_description: 52eecc24f3f5bc8e26d49a844c568865
