@@ -126,6 +126,12 @@ export function DataTableSegmentProvider({
     segment: CombinedFilterSegment;
   } | null>(null);
 
+  // Tracks whether the initialization effect has run at least once for this
+  // component instance. Distinguishes "first load" (should apply preferred
+  // segment) from "user deselected" (should not re-apply). Resets on
+  // remount but persists when Next.js reuses the component across navigations.
+  const isInitializedRef = useRef(false);
+
   const isValidatorReady = validateActiveFilters !== "loading";
 
   const applySegmentFilters = useCallback(
@@ -223,13 +229,31 @@ export function DataTableSegmentProvider({
     applySegmentFilters(segment);
   }, [isValidatorReady, applySegmentFilters]);
 
+  // Segment initialization / re-initialization effect.
+  //
+  // Three scenarios handled:
+  // 1. First load (no URL params)       → apply the user's preferred segment
+  // 2. First load (URL has segment=X)   → resolve segment from URL
+  // 3. Navigation back                  → URL was cleared by soft navigation,
+  //    but React state (selectedSegment) was preserved because Next.js reused
+  //    the component instance. Re-apply the preferred segment.
+  //
+  // "User deselected" is safe: setSegmentId(null) clears both segmentIdRaw
+  // and selectedSegment in the same batched update, so selectedSegment is
+  // undefined and isInitializedRef is true — neither branch fires.
   useEffect(() => {
-    if (!isSegmentFetchedSuccessfully) {
-      return;
-    }
+    if (!isSegmentFetchedSuccessfully) return;
+
     if (fetchedPreferredSegmentId && !segmentIdRaw) {
-      setSegmentId(fetchedPreferredSegmentId);
-    } else if (segmentIdRaw) {
+      if (selectedSegment !== undefined) {
+        // Case 3 – navigation back: URL cleared but component state preserved
+        setSegmentId(fetchedPreferredSegmentId);
+      } else if (!isInitializedRef.current) {
+        // Case 1 – first load with preferred segment
+        setSegmentId(fetchedPreferredSegmentId);
+      }
+    } else if (segmentIdRaw && !isInitializedRef.current) {
+      // Case 2 – first load with segment already in URL
       const segment = findSelectedSegment(segmentIdRaw);
       setSelectedSegment(segment);
       if (segment) {
@@ -243,7 +267,25 @@ export function DataTableSegmentProvider({
         }
       }
     }
-  }, [isSegmentFetchedSuccessfully]);
+
+    // Mark as initialized once segment data is available, regardless of
+    // whether a segment was applied. Without this, pages that have no
+    // preferred segment and no segment in the URL (e.g. org members list)
+    // would leave isInitializedRef false, causing the effect to
+    // incorrectly treat later user-initiated segment selections as
+    // "first load with URL params" and re-run initialization logic.
+    isInitializedRef.current = true;
+  }, [
+    isSegmentFetchedSuccessfully,
+    fetchedPreferredSegmentId,
+    segmentIdRaw,
+    selectedSegment,
+    setSegmentId,
+    findSelectedSegment,
+    validateActiveFilters,
+    segmentIdObject,
+    applySegmentFilters,
+  ]);
 
   const clearSystemSegmentSelectionIfExists = useCallback(() => {
     if (selectedSegment?.type === "system") {
