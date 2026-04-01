@@ -12,7 +12,6 @@ for (const [key, value] of Object.entries(env)) {
 }
 
 const vitestMode = process.env.VITEST_MODE;
-const useBlobReporter = process.env.VITEST_BLOB_REPORTER === "true";
 // Support both new VITEST_MODE env var and legacy CLI flags for backwards compatibility
 // The CLI flags are passed through but Vitest 4.0 doesn't reject them when using yarn test
 const isPackagedEmbedMode =
@@ -111,11 +110,6 @@ export default defineConfig({
     include: getTestInclude(),
     exclude: getTestExclude(),
     pool: "forks",
-    // When VITEST_BLOB_REPORTER is set (CI shard runs), add the blob reporter
-    // so that --merge-reports can later combine shard results + coverage.
-    // We configure this here instead of via CLI because Vitest 4.x's CAC parser
-    // does not support multiple --reporter flags (the second overwrites the first).
-    ...(useBlobReporter ? { reporters: ["blob", "default"] } : {}),
     server: {
       deps: {
         inline: [/@calcom\/.*/],
@@ -123,9 +117,7 @@ export default defineConfig({
     },
     coverage: {
       provider: "v8",
-      // Shard runs collect V8 coverage data into blobs but skip reporting —
-      // the merge job produces the final combined report.
-      reporter: useBlobReporter ? [] : ["text", "json-summary"],
+      reporter: ["text", "json-summary"],
       reportOnFailure: true,
       include: isIntegrationMode
         ? ["packages/**/*.ts", "packages/**/*.tsx", "apps/**/*.ts", "apps/**/*.tsx"]

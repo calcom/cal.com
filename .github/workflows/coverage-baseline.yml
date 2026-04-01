@@ -40,9 +40,7 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - run: yarn prisma generate
       - name: Run Tests
-        env:
-          VITEST_BLOB_REPORTER: "true"
-        run: TZ=UTC yarn vitest run --shard=${{ matrix.shard }}/${{ strategy.job-total }} --coverage
+        run: TZ=UTC yarn vitest run --shard=${{ matrix.shard }}/${{ strategy.job-total }} --reporter=blob --reporter=default --coverage --coverage.reporter=none
       - name: Upload Vitest blob report
         if: always()
         uses: actions/upload-artifact@v4
