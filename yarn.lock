@@ -2619,7 +2619,7 @@ __metadata:
     recharts: "npm:3.0.2"
     stripe: "npm:9.16.0"
     stripe-event-types: "npm:3.1.0"
-    trigger.dev: "npm:4.3.2"
+    trigger.dev: "npm:4.4.3"
     web-push: "npm:3.6.7"
     zustand: "npm:4.5.2"
   peerDependencies:
@@ -13136,17 +13136,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@s2-dev/streamstore@npm:0.17.3":
-  version: 0.17.3
-  resolution: "@s2-dev/streamstore@npm:0.17.3"
-  dependencies:
-    "@protobuf-ts/runtime": "npm:^2.11.1"
-  peerDependencies:
-    typescript: ^5.9.3
-  checksum: 10/a5aee64c98d89b4ea401d36629b4c0d0cf914d17295031ac7e46a57bf8ecd540044abade7b9a2f4d6e25571fda67400452ada14b39cbf70e07fc01f1f1d4091e
-  languageName: node
-  linkType: hard
-
 "@s2-dev/streamstore@npm:0.22.5":
   version: 0.22.5
   resolution: "@s2-dev/streamstore@npm:0.22.5"
@@ -13157,12 +13146,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@s2-dev/streamstore@npm:^0.17.6":
-  version: 0.17.6
-  resolution: "@s2-dev/streamstore@npm:0.17.6"
+"@s2-dev/streamstore@npm:^0.22.5":
+  version: 0.22.8
+  resolution: "@s2-dev/streamstore@npm:0.22.8"
   dependencies:
     "@protobuf-ts/runtime": "npm:^2.11.1"
-  checksum: 10/5001ad04bc0dc4d33ad8c23bf1e288ef2bd7ac996893a3ab3725947513ac04b70187268a2bc44d96cebddae8f96ad2423883595ed4f4c08f836cf3b3fc0353d8
+    debug: "npm:^4.4.3"
+  checksum: 10/e191296587828a2dc6b458b2cbb63a03c8d26a36a76f674e33e93cca0d0c6c0f67036c9040ca49e3bc677839197747c7939ff04593e30c2c1f6e78299f3cee21
   languageName: node
   linkType: hard
 
@@ -15036,59 +15026,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trigger.dev/build@npm:4.3.2":
-  version: 4.3.2
-  resolution: "@trigger.dev/build@npm:4.3.2"
+"@trigger.dev/build@npm:4.4.3":
+  version: 4.4.3
+  resolution: "@trigger.dev/build@npm:4.4.3"
   dependencies:
     "@prisma/config": "npm:^6.10.0"
-    "@trigger.dev/core": "npm:4.3.2"
+    "@trigger.dev/core": "npm:4.4.3"
     mlly: "npm:^1.7.1"
     pkg-types: "npm:^1.1.3"
     resolve: "npm:^1.22.8"
     tinyglobby: "npm:^0.2.2"
     tsconfck: "npm:3.1.3"
-  checksum: 10/ada053c56b71e90328e5e53b7a33e2766fc140ffa41e1330d1c216a16f3d8f381f643ec2384c0e143914cf95e7490dc341c01f1a269425b6224a3064ac9b3dea
-  languageName: node
-  linkType: hard
-
-"@trigger.dev/core@npm:4.3.2":
-  version: 4.3.2
-  resolution: "@trigger.dev/core@npm:4.3.2"
-  dependencies:
-    "@bugsnag/cuid": "npm:^3.1.1"
-    "@electric-sql/client": "npm:1.0.14"
-    "@google-cloud/precise-date": "npm:^4.0.0"
-    "@jsonhero/path": "npm:^1.0.21"
-    "@opentelemetry/api": "npm:1.9.0"
-    "@opentelemetry/api-logs": "npm:0.203.0"
-    "@opentelemetry/core": "npm:2.0.1"
-    "@opentelemetry/exporter-logs-otlp-http": "npm:0.203.0"
-    "@opentelemetry/exporter-trace-otlp-http": "npm:0.203.0"
-    "@opentelemetry/instrumentation": "npm:0.203.0"
-    "@opentelemetry/resources": "npm:2.0.1"
-    "@opentelemetry/sdk-logs": "npm:0.203.0"
-    "@opentelemetry/sdk-trace-base": "npm:2.0.1"
-    "@opentelemetry/sdk-trace-node": "npm:2.0.1"
-    "@opentelemetry/semantic-conventions": "npm:1.36.0"
-    "@s2-dev/streamstore": "npm:0.17.3"
-    dequal: "npm:^2.0.3"
-    eventsource: "npm:^3.0.5"
-    eventsource-parser: "npm:^3.0.0"
-    execa: "npm:^8.0.1"
-    humanize-duration: "npm:^3.27.3"
-    jose: "npm:^5.4.0"
-    nanoid: "npm:3.3.8"
-    prom-client: "npm:^15.1.0"
-    socket.io: "npm:4.7.4"
-    socket.io-client: "npm:4.7.5"
-    std-env: "npm:^3.8.1"
-    superjson: "npm:^2.2.1"
-    tinyexec: "npm:^0.3.2"
-    uncrypto: "npm:^0.1.3"
-    zod: "npm:3.25.76"
-    zod-error: "npm:1.5.0"
-    zod-validation-error: "npm:^1.5.0"
-  checksum: 10/541c3076d37500a5c8c973a9751bf0b4e454ee105caadc6d53424fe97f7fb45ce0e3b6a51b847831b3428a824ad6b1e7517742ca17fbfa013ceb41ca71efe953
+  checksum: 10/2e411d96e46a9216d37a8faa3dca28cfdbb9805df0b4280559dba25b1ff5d730d0b5d6bbbe3cd2972a2dee2571640bace1fb7301391742baef1dca64d766f377
   languageName: node
   linkType: hard
 
@@ -15135,12 +15084,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@trigger.dev/schema-to-json@npm:4.3.2":
-  version: 4.3.2
-  resolution: "@trigger.dev/schema-to-json@npm:4.3.2"
+"@trigger.dev/schema-to-json@npm:4.4.3":
+  version: 4.4.3
+  resolution: "@trigger.dev/schema-to-json@npm:4.4.3"
   dependencies:
     "@sodaru/yup-to-json-schema": "npm:^2"
-    "@trigger.dev/core": "npm:4.3.2"
+    "@trigger.dev/core": "npm:4.4.3"
     effect: "npm:^3"
     zod: "npm:3.25.76"
     zod-to-json-schema: "npm:^3.24.0"
@@ -15161,7 +15110,7 @@ __metadata:
       optional: true
     valibot:
       optional: true
-  checksum: 10/672f80b04e7e4752cbbcf91e26f586ac8a4b8b8a98b464da656066c6d14a570a794e6661174a9a1c25b3fc0b81a62286a69b2840548bf062ea390e876aaf7d81
+  checksum: 10/5c967470ff70be68af291fc80d6fb87829a531f73686cacdc06b15b098a4d69686ca18b4eef2cc4b1a57798bf293c4ce38cbe020ffcb7bb775c7d43881a84835
   languageName: node
   linkType: hard
 
@@ -19983,15 +19932,6 @@ __metadata:
   dependencies:
     is-what: "npm:^4.1.6"
   checksum: 10/4920cfaaa48eeaef4b903c8e704434ec43962de393d3ed1b695040ae77a79cb9a9528f803cb484a45636edbffe1932437fa126d18cae4599e944b66718988465
-  languageName: node
-  linkType: hard
-
-"copy-anything@npm:^4":
-  version: 4.0.5
-  resolution: "copy-anything@npm:4.0.5"
-  dependencies:
-    is-what: "npm:^5.2.0"
-  checksum: 10/1ee7e6f55c1016a47871ecd09aa765ca825c1ec89c46e6f58686016c80c6fe3d36452a6010d8498c766ea5d60bc5d892d9511b41310a7355b48ac10b39c90c9a
   languageName: node
   linkType: hard
 
@@ -26043,13 +25983,6 @@ __metadata:
   version: 4.1.7
   resolution: "is-what@npm:4.1.7"
   checksum: 10/ebda5b1c817bd0c21ecfc7ad3ea18351f6afeb5ea8dbb0b61a1cdb7c27b6dbe27c9073cd2dba8ce0739666f33a0438aabdc2c7cb12d1bfc3169beaf060c97e83
-  languageName: node
-  linkType: hard
-
-"is-what@npm:^5.2.0":
-  version: 5.5.0
-  resolution: "is-what@npm:5.5.0"
-  checksum: 10/d53a6ea1aebf953f3bcf711a28e8463bfe79fc0e4e87575d77c692a30fd3d98f87b88d4c006c06753bf85f771c9d2c1d05b2c6b03c246883261fe190526195d9
   languageName: node
   linkType: hard
 
@@ -36713,15 +36646,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"superjson@npm:^2.2.1":
-  version: 2.2.5
-  resolution: "superjson@npm:2.2.5"
-  dependencies:
-    copy-anything: "npm:^4"
-  checksum: 10/0016a841ab51c02abada4a321561dbfdbd9cf2d739fff44e036e2247b909f438d3c0b4897fedab5581251dae293af2ac96e276376e8508d603505d5d9248d3a4
-  languageName: node
-  linkType: hard
-
 "supertest@npm:6.3.4":
   version: 6.3.4
   resolution: "supertest@npm:6.3.4"
@@ -37591,13 +37515,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"trigger.dev@npm:4.3.2":
-  version: 4.3.2
-  resolution: "trigger.dev@npm:4.3.2"
+"trigger.dev@npm:4.4.3":
+  version: 4.4.3
+  resolution: "trigger.dev@npm:4.4.3"
   dependencies:
     "@clack/prompts": "npm:0.11.0"
     "@depot/cli": "npm:0.0.1-cli.2.80.0"
-    "@modelcontextprotocol/sdk": "npm:^1.24.0"
+    "@modelcontextprotocol/sdk": "npm:^1.25.2"
     "@opentelemetry/api": "npm:1.9.0"
     "@opentelemetry/api-logs": "npm:0.203.0"
     "@opentelemetry/exporter-trace-otlp-http": "npm:0.203.0"
@@ -37606,10 +37530,10 @@ __metadata:
     "@opentelemetry/resources": "npm:2.0.1"
     "@opentelemetry/sdk-trace-node": "npm:2.0.1"
     "@opentelemetry/semantic-conventions": "npm:1.36.0"
-    "@s2-dev/streamstore": "npm:^0.17.6"
-    "@trigger.dev/build": "npm:4.3.2"
-    "@trigger.dev/core": "npm:4.3.2"
-    "@trigger.dev/schema-to-json": "npm:4.3.2"
+    "@s2-dev/streamstore": "npm:^0.22.5"
+    "@trigger.dev/build": "npm:4.4.3"
+    "@trigger.dev/core": "npm:4.4.3"
+    "@trigger.dev/schema-to-json": "npm:4.4.3"
     ansi-escapes: "npm:^7.0.0"
     braces: "npm:^3.0.3"
     c12: "npm:^1.11.1"
@@ -37652,7 +37576,7 @@ __metadata:
     std-env: "npm:^3.7.0"
     strip-ansi: "npm:^7.1.0"
     supports-color: "npm:^10.0.0"
-    tar: "npm:^7.4.3"
+    tar: "npm:^7.5.4"
     tiny-invariant: "npm:^1.2.0"
     tinyexec: "npm:^0.3.1"
     tinyglobby: "npm:^0.2.10"
@@ -37662,7 +37586,7 @@ __metadata:
     zod-validation-error: "npm:^1.5.0"
   bin:
     trigger: dist/esm/index.js
-  checksum: 10/09ed4922628b2ac38917e3aef2074c89174a849ec678bdacf0f23e804f7ce02f34549daf74983f6d0c248a649d9b168fb8b03d9d4743ae22ea81fd5c432426aa
+  checksum: 10/1e702888e175fe7750da7ded7c5cb621f7e5e7561fa2b848300d22d8af9959c79b9b544af72c5f80c9f3a2f7ceb26e0ed629d9ab22b5ca708fb29a7d16a4b353
   languageName: node
   linkType: hard
 
