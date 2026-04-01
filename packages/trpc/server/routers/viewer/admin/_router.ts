@@ -14,6 +14,7 @@ import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZLookupBillingCustomerSchema } from "./lookupBillingCustomer.schema";
 import { ZRefreshDunningSchema } from "./refreshDunning.schema";
+import { ZReleaseUsernameSchema } from "./releaseUsername.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZResendPurchaseCompleteEmailSchema } from "./resendPurchaseCompleteEmail.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
@@ -173,6 +174,10 @@ export const adminRouter = router({
   }),
   recreateOwnership: authedAdminProcedure.input(ZRecreateOwnershipSchema).mutation(async (opts) => {
     const { default: handler } = await import("./recreateOwnership.handler");
+    return handler(opts);
+  }),
+  releaseUsername: authedAdminProcedure.input(ZReleaseUsernameSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./releaseUsername.handler");
     return handler(opts);
   }),
   updateBillingMode: authedAdminProcedure.input(ZUpdateBillingModeSchema).mutation(async (opts) => {

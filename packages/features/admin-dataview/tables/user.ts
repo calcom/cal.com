@@ -155,6 +155,20 @@ export const userTable: TableDefinition = {
       condition: (row) => row.smsLockState === "LOCKED",
     },
     {
+      id: "release-username",
+      label: "Release Username",
+      icon: "trash",
+      variant: "destructive",
+      mutation: "admin.releaseUsername",
+      buildInput: (row) => ({
+        username: row.username,
+        organizationId: row.organizationId,
+        mode: "preview",
+      }),
+      condition: (row) => !!row.username,
+      formId: "release-username",
+    },
+    {
       id: "delete-user",
       label: "Delete User",
       icon: "trash",

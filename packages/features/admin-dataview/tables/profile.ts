@@ -47,4 +47,19 @@ export const profileTable: TableDefinition = {
       },
     },
   ],
+  actions: [
+    {
+      id: "release-username",
+      label: "Release Username",
+      icon: "trash",
+      variant: "destructive",
+      mutation: "admin.releaseUsername",
+      buildInput: (row) => ({
+        username: row.username,
+        organizationId: row.organizationId,
+        mode: "preview",
+      }),
+      formId: "release-username",
+    },
+  ],
 };
