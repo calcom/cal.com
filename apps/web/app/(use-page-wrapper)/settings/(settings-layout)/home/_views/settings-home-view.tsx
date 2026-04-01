@@ -70,7 +70,7 @@ export default function SettingsHomeView() {
   return (
     <div className="py-2">
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="font-cal text-2xl font-semibold text-emphasis">{t("settings")}</h1>
+        <h1 className="font-heading text-2xl font-semibold text-emphasis">{t("settings")}</h1>
         <TextField
           className="w-64"
           addOnLeading={<SearchIcon className="h-4 w-4 text-subtle" />}

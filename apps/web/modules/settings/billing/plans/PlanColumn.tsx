@@ -127,7 +127,7 @@ export function PlanColumn({
   return (
     <div className="flex flex-1 flex-col">
       <h3 className="font-medium text-sm text-emphasis">{name}</h3>
-      <p className="font-cal mt-2 leading-none font-semibold text-2xl text-emphasis">
+      <p className="font-heading mt-2 leading-none font-semibold text-2xl text-emphasis">
         {price}
       </p>
       <p className="mt-2 h-4 leading-none text-sm text-subtle">

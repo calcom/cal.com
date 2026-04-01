@@ -21,7 +21,7 @@ export function AppHeaderContent({
 }: React.ComponentProps<"div"> & { title: string }): React.ReactElement {
   return (
     <div className={cn("flex flex-col gap-1", className)} {...props}>
-      <h1 className="font-heading font-semibold text-lg leading-none">
+      <h1 className="font-heading font-semibold text-xl leading-none">
         {title}
       </h1>
       {children}

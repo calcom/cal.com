@@ -54,7 +54,7 @@ export function CurrentPlanSection({
                 )}
               </div>
               <p className="mt-1">
-                <span className="font-cal font-semibold text-emphasis text-2xl leading-none">
+                <span className="font-heading font-semibold text-emphasis text-2xl leading-none">
                   {planPrice}
                 </span>
                 {context !== "personal" && (

@@ -152,7 +152,7 @@ export function FullScreenUpgradeBanner({
                 {name}
               </Badge>
             </div>
-            <h2 className="mt-3 font-cal font-semibold text-emphasis text-xl leading-none">{title}</h2>
+            <h2 className="mt-3 font-heading font-semibold text-emphasis text-xl leading-none">{title}</h2>
             <p className="mt-2 text-subtle text-sm">{subtitle}</p>
 
             {/* Features List */}

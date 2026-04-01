@@ -152,7 +152,7 @@ export default function Login({
             <Card>
               <CardPanel className="p-10">
                 {/* Logo */}
-                <h1 className="font-cal mb-1 text-center text-xl font-bold text-emphasis">Cal.com</h1>
+                <h1 className="font-heading mb-1 text-center text-xl font-bold text-emphasis">Cal.com</h1>
 
                 {/* Heading */}
                 <p className="mb-6 text-center text-sm text-subtle" data-testid="login-subtitle">

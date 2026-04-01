@@ -173,14 +173,14 @@ export function UpgradePlanDialog({
             {target === "team" && (
               <div>
                 <p className="font-medium text-sm text-emphasis">{t("individual")}</p>
-                <p className="font-cal mt-1 font-semibold text-emphasis text-2xl leading-none">{t("free")}</p>
+                <p className="font-heading mt-1 font-semibold text-emphasis text-2xl leading-none">{t("free")}</p>
               </div>
             )}
             {target === "organization" && (
               <div>
                 <p className="font-medium text-sm text-emphasis">{t("team")}</p>
                 <p className="mt-1">
-                  <span className="font-cal font-semibold text-emphasis text-2xl leading-none">
+                  <span className="font-heading font-semibold text-emphasis text-2xl leading-none">
                     {currentTeamPrice}
                   </span>
                   <span className="ml-1 leading-none font-medium text-sm text-subtle">

@@ -399,7 +399,7 @@ export default function Signup({
                 <div className="bg-subtle flex h-12 w-12 items-center justify-center rounded-full">
                   <ShieldCheckIcon className="text-default h-6 w-6" />
                 </div>
-                <h1 className="font-cal text-[28px] leading-none">{t("account_under_review_title")}</h1>
+                <h1 className="font-heading text-[28px] leading-none">{t("account_under_review_title")}</h1>
                 <p className="text-subtle text-base font-medium leading-5">
                   {t("account_under_review_description")}
                 </p>
@@ -425,7 +425,7 @@ export default function Signup({
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
-                  <h1 className="font-cal text-[28px] leading-none ">
+                  <h1 className="font-heading text-[28px] leading-none ">
                     {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
                   </h1>
                   {IS_CALCOM ? (
@@ -456,9 +456,9 @@ export default function Signup({
                           value:
                             // Use WEBAPP_URL for SSR-safe region detection
                             WEBAPP_URL.includes("cal.eu") ||
-                            (typeof window !== "undefined" &&
-                              window.location.hostname === "localhost" &&
-                              new URL(window.location.href).searchParams.get("region") === "eu")
+                              (typeof window !== "undefined" &&
+                                window.location.hostname === "localhost" &&
+                                new URL(window.location.href).searchParams.get("region") === "eu")
                               ? "eu"
                               : "us",
                         }}
@@ -522,13 +522,13 @@ export default function Signup({
                           addOnLeading={
                             orgSlug
                               ? truncateDomain(
-                                  `${getOrgFullOrigin(orgSlug, {
-                                    protocol: true,
-                                  }).replace(URL_PROTOCOL_REGEX, "")}/`
-                                )
+                                `${getOrgFullOrigin(orgSlug, {
+                                  protocol: true,
+                                }).replace(URL_PROTOCOL_REGEX, "")}/`
+                              )
                               : truncateDomain(
-                                  `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
-                                )
+                                `${process.env.NEXT_PUBLIC_WEBSITE_URL.replace(URL_PROTOCOL_REGEX, "")}/`
+                              )
                           }
                         />
                       ) : null}

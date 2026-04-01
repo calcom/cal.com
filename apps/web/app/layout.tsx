@@ -3,7 +3,6 @@ import { loadTranslations } from "@calcom/i18n/server";
 import { IconSprites } from "@calcom/ui/components/icon";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { dir } from "i18next";
-import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { cookies, headers } from "next/headers";
 import Script from "next/script";
@@ -14,10 +13,16 @@ import { I18nProvider } from "./I18nProvider";
 import { Providers } from "./providers";
 import { SpeculationRules } from "./SpeculationRules";
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-sans", preload: true, display: "swap" });
-const calFont = localFont({
+const fontSans = localFont({
+  src: "../fonts/CalSansUI[wght,GEOM].woff2",
+  variable: "--font-sans",
+  weight: "400 700",
+  display: "swap",
+});
+
+const fontHeading = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
-  variable: "--font-cal",
+  variable: "--font-heading",
   preload: true,
   display: "block",
   weight: "600",
@@ -114,12 +119,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
       data-nextjs-router="app">
       <head nonce={nonce}>
-        <style>{`
-          :root {
-            --font-sans: ${interFont.style.fontFamily.replace(/\'/g, "")};
-            --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
-          }
-        `}</style>
         {process.env.NODE_ENV === "development" && (
           <Script
             src="//unpkg.com/react-grab/dist/index.global.js"
@@ -130,23 +129,23 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
       </head>
       <body
-        className="dark:bg-default bg-subtle antialiased"
+        className={`${fontSans.variable} ${fontHeading.variable} font-sans dark:bg-default bg-subtle antialiased`}
         style={
           isEmbed
             ? {
-                background: "transparent",
-                // Keep the embed hidden till parent initializes and
-                // - gives it the appropriate styles if UI instruction is there.
-                // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
-                // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
-                visibility: "hidden",
-                // This in addition to visibility: hidden is to ensure that elements with specific opacity set are not visible
-                opacity: 0,
-              }
+              background: "transparent",
+              // Keep the embed hidden till parent initializes and
+              // - gives it the appropriate styles if UI instruction is there.
+              // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
+              // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
+              visibility: "hidden",
+              // This in addition to visibility: hidden is to ensure that elements with specific opacity set are not visible
+              opacity: 0,
+            }
             : {
-                visibility: "visible",
-                opacity: 1,
-              }
+              visibility: "visible",
+              opacity: 1,
+            }
         }>
         <IconSprites />
         <SpeculationRules

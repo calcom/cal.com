@@ -49,7 +49,7 @@ export function ExternalRedirectInterstitial({
             </div>
           </div>
           <div className="w-full">
-            <h2 className="mt-1 font-cal text-2xl text-emphasis">{t("external_redirect_title")}</h2>
+            <h2 className="mt-1 font-heading text-2xl text-emphasis">{t("external_redirect_title")}</h2>
             <p className="mt-2 text-sm text-subtle">{t("external_redirect_warning")}</p>
             <p className="mt-4 font-medium text-sm text-subtle">
               {t("host_redirecting_to", { hostname: getHostname(stableUrlRef.current) })}

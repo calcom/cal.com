@@ -111,13 +111,13 @@ export function WideUpgradeBanner({
       <div className={`flex flex-1 flex-col py-5 px-6${isSmall ? " pr-0" : ""}`}>
         {isSmall ? (
           <div className="flex items-center gap-1.5">
-            <h2 className="font-cal text-sm font-semibold leading-none text-default">{title}</h2>
+            <h2 className="font-heading text-sm font-semibold leading-none text-default">{title}</h2>
             {showBadge && (target === "team" ? <TeamBadge size="sm" /> : <OrgBadge size="sm" />)}
           </div>
         ) : (
           <div>
             {showBadge && (target === "team" ? <TeamBadge /> : <OrgBadge />)}
-            <h2 className="mt-1 font-cal text-lg font-semibold leading-none text-default">{title}</h2>
+            <h2 className="mt-1 font-heading text-lg font-semibold leading-none text-default">{title}</h2>
           </div>
         )}
         {subtitle && <p className={`mt-1 text-sm font-normal text-subtle`}>{subtitle}</p>}

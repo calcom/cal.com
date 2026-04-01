@@ -136,7 +136,7 @@ export function WelcomeToOrganizationsModal() {
             </div>
 
             <div className="mb-2 flex flex-col gap-2 text-center">
-              <h2 className="font-cal text-emphasis text-2xl leading-none">
+              <h2 className="font-heading text-emphasis text-2xl leading-none">
                 {t("welcome_to_organizations")}
               </h2>
               <p className="text-default text-sm leading-normal">{t("organizations_welcome_description")}</p>

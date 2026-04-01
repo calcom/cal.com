@@ -98,7 +98,7 @@ function NewFormDialog({
     <Dialog open={newFormDialogState !== null} onOpenChange={(open) => !open && setNewFormDialogState(null)}>
       <DialogContent className="overflow-y-auto">
         <div className="mb-1">
-          <h3 className="text-emphasis !font-cal text-semibold text-xl font-medium" id="modal-title">
+          <h3 className="text-emphasis font-heading! text-xl" id="modal-title">
             {teamId ? t("add_new_team_form") : t("add_new_form")}
           </h3>
           <div>
@@ -277,11 +277,11 @@ const actionsCtx = createContext({
   setNewFormDialogState: null as SetNewFormDialogState | null,
   newFormDialogState: null as NewFormDialogState,
   _delete: {
-    onAction: (_arg: { routingForm: RoutingForm | null }) => {},
+    onAction: (_arg: { routingForm: RoutingForm | null }) => { },
     isPending: false,
   },
   toggle: {
-    onAction: (_arg: { routingForm: RoutingForm | null; checked: boolean }) => {},
+    onAction: (_arg: { routingForm: RoutingForm | null; checked: boolean }) => { },
     isPending: false,
   },
 });
@@ -486,15 +486,14 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       onClick: () => setNewFormDialogState?.({ action: "new", target: "" }),
     },
     viewResponses: {
-      href: `/insights/routing${
-        routingForm?.id
+      href: `/insights/routing${routingForm?.id
           ? dataTableQueryParamsSerializer({
-              activeFilters: [
-                { f: "formId", v: { type: ColumnFilterType.SINGLE_SELECT, data: routingForm.id } },
-              ],
-            })
+            activeFilters: [
+              { f: "formId", v: { type: ColumnFilterType.SINGLE_SELECT, data: routingForm.id } },
+            ],
+          })
           : ""
-      }`,
+        }`,
     },
     copyRedirectUrl: {
       onClick: () => {

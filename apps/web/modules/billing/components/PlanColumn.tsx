@@ -46,7 +46,7 @@ export function PlanColumn({
             </Badge>
           )}
         </div>
-        <p className="font-cal mt-2 leading-none font-semibold text-2xl text-emphasis">{price}</p>
+        <p className="font-heading mt-2 leading-none font-semibold text-2xl text-emphasis">{price}</p>
         <p className="mt-2 leading-none font-medium text-sm text-subtle h-4">{priceSubtext}</p>
 
         <Button

@@ -82,7 +82,7 @@ export function UserPage(props: PageProps) {
               />
               <h1
                 className={classNames(
-                  "font-cal text-emphasis mb-1 text-xl",
+                  "font-heading text-emphasis mb-1 text-xl",
                   isOrg && user.profile.organization?.bannerUrl ? "" : "mt-4"
                 )}
                 data-testid="name-title">

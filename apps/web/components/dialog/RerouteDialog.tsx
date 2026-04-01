@@ -68,23 +68,23 @@ type RerouteDialogProps = {
 
 type ReroutingState =
   | {
-      type: "reschedule_to_same_event_new_tab" | "reschedule_to_different_event_new_tab";
-      /**
-       * UID of the rescheduled booking
-       */
-      newBooking: string | null;
-      /**
-       * window for the new tab that is opened for rerouting
-       */
-      reschedulerWindow: Window;
-      error?: Error;
-    }
+    type: "reschedule_to_same_event_new_tab" | "reschedule_to_different_event_new_tab";
+    /**
+     * UID of the rescheduled booking
+     */
+    newBooking: string | null;
+    /**
+     * window for the new tab that is opened for rerouting
+     */
+    reschedulerWindow: Window;
+    error?: Error;
+  }
   | {
-      type: "same_timeslot";
-      newBooking: string | null;
-      reschedulerWindow: null;
-      error?: Error;
-    };
+    type: "same_timeslot";
+    newBooking: string | null;
+    reschedulerWindow: null;
+    error?: Error;
+  };
 
 type TeamMemberMatchingAttributeLogic = {
   id: number;
@@ -765,10 +765,10 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
 
   const [teamMembersMatchingAttributeLogic, setTeamMembersMatchingAttributeLogic] = useState<
     | {
-        id: number;
-        name: string | null;
-        email: string;
-      }[]
+      id: number;
+      name: string | null;
+      email: string;
+    }[]
     | null
   >([]);
 
@@ -804,7 +804,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
     <div>
       <div>
         <Link
-          className="text-emphasis text-semibold font-cal mb-4 flex underline"
+          className="text-emphasis font-heading mb-4 flex underline"
           href={`/apps/routing-forms/form-edit/${form.id}`}
           target="_blank">
           {form.name}

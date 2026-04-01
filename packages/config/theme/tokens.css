@@ -15,8 +15,8 @@
 
 @theme inline {
   /* biome-ignore lint/correctness/noUnknownPseudoClass: Tailwind v4 @theme directive */
-  --font-sans: var(--font-sans);
-  --font-cal: var(--font-cal);
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-heading);
 
   /* Resets the preference from coss-ui which was to "use single --radius variable for all radius values" */
   --radius: var(--radius);
