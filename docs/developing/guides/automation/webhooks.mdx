@@ -19,6 +19,14 @@ To create a new webhook subscription, visit `/settings/developer/webhooks` and p
 <Steps>
   <Step title="Subscriber URL">
     This is the listener URL where the payload will be sent when an event trigger is activated.
+
+    The subscriber URL must meet the following requirements:
+
+    - **Cal.com SaaS**: Only HTTPS URLs are accepted. HTTP, private/internal IP addresses (e.g., `10.x.x.x`, `192.168.x.x`, `127.0.0.1`), and `localhost` are blocked.
+    - **Self-hosted**: Both HTTP and HTTPS URLs are accepted, and private IP addresses are allowed for internal webhooks.
+    - **All environments**: Cloud metadata endpoints (e.g., `169.254.169.254`) and non-HTTP protocols (e.g., `ftp://`, `file://`) are always blocked.
+
+    If your subscriber URL does not meet these requirements, the webhook creation request will be rejected with an error.
   </Step>
   <Step title="Event triggers">
     You can choose which specific triggers to listen to. Currently available triggers include:
