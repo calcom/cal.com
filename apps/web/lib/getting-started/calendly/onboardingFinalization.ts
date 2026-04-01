@@ -121,6 +121,7 @@ export const finalizeOnboardingFromCalendly = async ({
     queue: QueueName.DATA_SYNC,
     name: JobName.CALENDLY_IMPORT,
     data: payload,
+    forceInngest: true,
   });
 
   const locale = user.locale ?? "en";
