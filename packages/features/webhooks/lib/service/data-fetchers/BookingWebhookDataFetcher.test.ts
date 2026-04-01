@@ -19,6 +19,16 @@ vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn(),
 }));
 
+const mockKVGet = vi.fn().mockResolvedValue(null);
+const mockKVDelete = vi.fn().mockResolvedValue(undefined);
+vi.mock("@calcom/features/di/containers/KV", () => ({
+  getKV: () => ({
+    get: mockKVGet,
+    put: vi.fn(),
+    delete: mockKVDelete,
+  }),
+}));
+
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getTranslation } from "@calcom/i18n/server";
 
@@ -458,6 +468,116 @@ describe("BookingWebhookDataFetcher", () => {
       const context = fetcher.getSubscriberContext(payload);
 
       expect(context.triggerEvent).toBe(WebhookTriggerEvents.BOOKING_CANCELLED);
+    });
+  });
+
+  describe("BOOKING_CANCELLED seat cancellation — KV-based attendee reconstruction", () => {
+    function setupBookingAndBuilder(attendees = [{ email: "remaining@example.com", name: "Remaining" }]) {
+      const mockCalendarEvent = {
+        title: "Seated Event",
+        attendees,
+      };
+      const mockBooking = { eventType: { id: 10 }, metadata: {} };
+      mockBookingRepository.getBookingForCalEventBuilderFromUid.mockResolvedValue(mockBooking);
+      vi.mocked(CalendarEventBuilder.fromBooking).mockResolvedValue({
+        build: vi.fn().mockReturnValue(mockCalendarEvent),
+      } as never);
+      return { mockCalendarEvent, mockBooking };
+    }
+
+    it("should override attendees from KV when entry exists", async () => {
+      setupBookingAndBuilder();
+      mockKVGet.mockResolvedValueOnce(
+        JSON.stringify({
+          email: "cancelled@example.com",
+          name: "Cancelled User",
+          timeZone: "America/New_York",
+          locale: "en",
+          phoneNumber: "+15551234567",
+        })
+      );
+
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
+        attendeeSeatId: "seat-ref-abc",
+      } as Partial<BookingWebhookTaskPayload>);
+
+      const result = await fetcher.fetchEventData(payload);
+
+      expect(mockKVGet).toHaveBeenCalledWith("webhook:cancelled-seat:seat-ref-abc");
+      const calEvent = ((result as Record<string, unknown>).data as Record<string, unknown>).calendarEvent as { attendees: unknown[] };
+      expect(calEvent.attendees).toHaveLength(1);
+      expect(calEvent.attendees[0]).toEqual(
+        expect.objectContaining({
+          email: "cancelled@example.com",
+          name: "Cancelled User",
+          timeZone: "America/New_York",
+          phoneNumber: "+15551234567",
+        })
+      );
+      expect(mockKVDelete).not.toHaveBeenCalled();
+    });
+
+    it("should set placeholder attendee and warn when KV entry is missing (TTL expired)", async () => {
+      setupBookingAndBuilder();
+      mockKVGet.mockResolvedValueOnce(null);
+
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
+        attendeeSeatId: "seat-ref-expired",
+      } as Partial<BookingWebhookTaskPayload>);
+
+      const result = await fetcher.fetchEventData(payload);
+
+      const calEvent = ((result as Record<string, unknown>).data as Record<string, unknown>).calendarEvent as { attendees: unknown[] };
+      expect(calEvent.attendees).toHaveLength(1);
+      expect(calEvent.attendees[0]).toEqual(
+        expect.objectContaining({
+          email: "",
+          name: "[attendee data unavailable]",
+        })
+      );
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        "Cancelled seat attendee KV entry missing (TTL expired or KV unavailable)",
+        { bookingUid: "booking-uid-1", seatId: "seat-ref-expired" }
+      );
+    });
+
+    it("should set placeholder attendee and warn when KV data fails validation", async () => {
+      setupBookingAndBuilder();
+      mockKVGet.mockResolvedValueOnce(JSON.stringify({ bad: "data" }));
+
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
+        attendeeSeatId: "seat-ref-bad",
+      } as Partial<BookingWebhookTaskPayload>);
+
+      const result = await fetcher.fetchEventData(payload);
+
+      const calEvent = ((result as Record<string, unknown>).data as Record<string, unknown>).calendarEvent as { attendees: unknown[] };
+      expect(calEvent.attendees).toHaveLength(1);
+      expect(calEvent.attendees[0]).toEqual(
+        expect.objectContaining({
+          email: "",
+          name: "[attendee data unavailable]",
+        })
+      );
+      expect(mockLogger.warn).toHaveBeenCalledWith("Cancelled seat attendee KV data failed validation", {
+        bookingUid: "booking-uid-1",
+        seatId: "seat-ref-bad",
+      });
+    });
+
+    it("should not touch KV when BOOKING_CANCELLED has no attendeeSeatId (non-seat cancellation)", async () => {
+      setupBookingAndBuilder();
+
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
+      });
+
+      await fetcher.fetchEventData(payload);
+
+      expect(mockKVGet).not.toHaveBeenCalled();
     });
   });
 

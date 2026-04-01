@@ -14,20 +14,30 @@ import {
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { BookingStatus } from "@calcom/prisma/enums";
 import {
-  expectBookingCancelledWebhookToHaveBeenFired,
   expectWorkflowToBeNotTriggered,
   expectWorkflowToBeTriggered,
 } from "@calcom/testing/lib/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
-import { describe, expect, vi } from "vitest";
+import { beforeEach, describe, expect, vi } from "vitest";
 
 vi.mock("@calcom/features/bookings/lib/payment/processPaymentRefund", () => ({
   processPaymentRefund: vi.fn(),
 }));
 
+const mockQueueBookingCancelledWebhook = vi.fn().mockResolvedValue(undefined);
+vi.mock("@calcom/features/di/webhooks/containers/webhook", () => ({
+  getWebhookProducer: () => ({
+    queueBookingCancelledWebhook: mockQueueBookingCancelledWebhook,
+  }),
+}));
+
 describe("Cancel Booking", () => {
   setupAndTeardown();
+
+  beforeEach(() => {
+    mockQueueBookingCancelledWebhook.mockClear();
+  });
 
   test("Should trigger BOOKING_CANCELLED webhook and workflow", async ({ emails }) => {
     const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
@@ -137,25 +147,11 @@ describe("Cancel Booking", () => {
       actionSource: "WEBAPP",
     });
 
-    expectBookingCancelledWebhookToHaveBeenFired({
-      booker,
-      organizer,
-      location: BookingLocations.CalVideo,
-      subscriberUrl: "http://my-webhook.example.com",
-      metadata: {
-        videoCallUrl: "https://existing-daily-video-call-url.example.com",
-      },
-      payload: {
-        cancelledBy: organizer.email,
-        organizer: {
-          id: organizer.id,
-          username: organizer.username,
-          email: organizer.email,
-          name: organizer.name,
-          timeZone: organizer.timeZone,
-        },
-      },
-    });
+    expect(mockQueueBookingCancelledWebhook).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bookingUid: uidOfBookingToBeCancelled,
+      })
+    );
 
     expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
   });
@@ -271,25 +267,11 @@ describe("Cancel Booking", () => {
       actionSource: "WEBAPP",
     });
 
-    expectBookingCancelledWebhookToHaveBeenFired({
-      booker,
-      organizer,
-      location: BookingLocations.CalVideo,
-      subscriberUrl: "http://my-webhook.example.com",
-      metadata: {
-        videoCallUrl: "https://existing-daily-video-call-url.example.com",
-      },
-      payload: {
-        cancelledBy: organizer.email,
-        organizer: {
-          id: organizer.id,
-          username: organizer.username,
-          email: organizer.email,
-          name: organizer.name,
-          timeZone: organizer.timeZone,
-        },
-      },
-    });
+    expect(mockQueueBookingCancelledWebhook).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bookingUid: uidOfBookingToBeCancelled,
+      })
+    );
 
     expect(processPaymentRefund).toHaveBeenCalled();
   });
@@ -430,25 +412,11 @@ describe("Cancel Booking", () => {
     expect(result.bookingUid).toBe(uidOfBookingToBeCancelled);
     expect(result.onlyRemovedAttendee).toBe(false);
 
-    expectBookingCancelledWebhookToHaveBeenFired({
-      booker: hostAttendee,
-      organizer,
-      location: BookingLocations.CalVideo,
-      subscriberUrl: "http://my-webhook.example.com",
-      metadata: {
-        myCustomKey: "myCustomValue",
-      },
-      payload: {
-        cancelledBy: organizer.email,
-        organizer: {
-          id: organizer.id,
-          username: organizer.username,
-          email: organizer.email,
-          name: organizer.name,
-          timeZone: organizer.timeZone,
-        },
-      },
-    });
+    expect(mockQueueBookingCancelledWebhook).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bookingUid: uidOfBookingToBeCancelled,
+      })
+    );
   });
 
   test("Should send EMAIL_HOST cancel workflow notification to both primary and secondary hosts in round robin events", async ({
@@ -1194,28 +1162,11 @@ describe("Cancel Booking", () => {
       actionSource: "WEBAPP",
     });
 
-    expectBookingCancelledWebhookToHaveBeenFired({
-      booker,
-      organizer: {
-        ...organizer,
-        usernameInOrg: "username-in-org",
-      },
-      location: BookingLocations.CalVideo,
-      subscriberUrl: "http://my-webhook.example.com",
-      metadata: {
-        videoCallUrl: "https://existing-daily-video-call-url.example.com",
-      },
-      payload: {
-        cancelledBy: organizer.email,
-        organizer: {
-          id: organizer.id,
-          username: organizer.username,
-          email: organizer.email,
-          name: organizer.name,
-          timeZone: organizer.timeZone,
-        },
-      },
-    });
+    expect(mockQueueBookingCancelledWebhook).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bookingUid: uidOfBookingToBeCancelled,
+      })
+    );
   });
 
   test("Should cancel seated event and preserve attendees in the DB when seatsPerTimeSlot is enabled", async () => {

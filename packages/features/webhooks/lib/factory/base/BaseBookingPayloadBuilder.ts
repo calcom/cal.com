@@ -14,6 +14,7 @@ export type BookingExtraDataMap = {
     cancelledBy?: string;
     cancellationReason?: string;
     requestReschedule?: boolean;
+    metadata?: { [key: string]: string | number | boolean | null };
   };
   [WebhookTriggerEvents.BOOKING_REQUESTED]: {
     rescheduleId?: number;

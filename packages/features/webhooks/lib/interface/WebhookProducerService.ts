@@ -36,6 +36,8 @@ export interface QueueBookingWebhookParams extends BaseQueueWebhookParams {
   attendeeSeatId?: string;
   /** The specific hashed-link UUID used when booking via a private link */
   hashedLink?: string | null;
+  /** When true, all remaining recurring instances were cancelled (controls recurringEvent in payload) */
+  allRemainingBookings?: boolean;
 }
 
 /**

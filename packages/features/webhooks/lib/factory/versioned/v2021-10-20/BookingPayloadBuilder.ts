@@ -88,6 +88,7 @@ export class BookingPayloadBuilder extends BaseBookingPayloadBuilder {
             cancelledBy: dto.cancelledBy,
             cancellationReason: dto.cancellationReason,
             requestReschedule: dto.requestReschedule ?? false,
+            metadata: (dto.metadata ?? {}) as { [key: string]: string | number | boolean | null },
           },
         });
 

@@ -38,6 +38,8 @@ export const bookingWebhookTaskPayloadSchema = baseWebhookTaskSchema.extend({
   attendeeSeatId: z.string().optional(),
   /** The specific hashed-link UUID used when booking via a private link */
   hashedLink: z.string().nullable().optional(),
+  /** When true, all remaining recurring instances were cancelled (controls recurringEvent in payload) */
+  allRemainingBookings: z.boolean().optional(),
 });
 
 /**
@@ -239,6 +241,22 @@ export const recordingEventDataSchema = z.object({
   downloadLink: z.string().optional(),
   downloadLinks: transcriptionDownloadLinksSchema.optional(),
 });
+
+/**
+ * Schema for cancelled seat attendee data stored in short-lived KV (Redis).
+ * The producer stashes attendee PII at key `webhook:cancelled-seat:{seatRefUid}`
+ * with a TTL before deleting the attendee row. The consumer reads and deletes
+ * the KV entry to reconstruct the attendee — no PII in the queue or booking metadata.
+ */
+export const cancelledSeatAttendeeSchema = z.object({
+  email: z.string(),
+  name: z.string().nullable(),
+  timeZone: z.string(),
+  locale: z.string().nullable(),
+  phoneNumber: z.string().nullable().optional(),
+});
+
+export type CancelledSeatAttendee = z.infer<typeof cancelledSeatAttendeeSchema>;
 
 /**
  * Metadata schema for BOOKING_NO_SHOW_UPDATED webhooks.

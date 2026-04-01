@@ -27,6 +27,7 @@ export const DI_TOKENS = {
   READ_ONLY_PRISMA_CLIENT: Symbol("ReadOnlyPrismaClient"),
   PRISMA_MODULE: Symbol("PrismaModule"),
   REDIS_CLIENT: Symbol("RedisClient"),
+  KV_WEBHOOK_ADAPTER: Symbol("KVWebhookAdapter"),
   OOO_REPOSITORY: Symbol("OOORepository"),
   OOO_REPOSITORY_MODULE: Symbol("OOORepositoryModule"),
   SCHEDULE_REPOSITORY: Symbol("ScheduleRepository"),

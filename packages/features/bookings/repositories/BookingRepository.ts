@@ -259,6 +259,7 @@ const selectStatementToGetBookingForCalEventBuilder = {
   userPrimaryEmail: true,
   smsReminderNumber: true,
   cancellationReason: true,
+  cancelledBy: true,
   rejectionReason: true,
   rescheduledBy: true,
   fromReschedule: true,

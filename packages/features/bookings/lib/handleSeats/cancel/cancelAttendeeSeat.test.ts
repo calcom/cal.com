@@ -4,13 +4,22 @@ vi.mock("@calcom/prisma", () => {
   const mockPrisma = {
     bookingSeat: { delete: vi.fn().mockResolvedValue({}) },
     attendee: { delete: vi.fn().mockResolvedValue({}) },
-    booking: { update: vi.fn().mockResolvedValue({}) },
   };
   return { default: mockPrisma };
 });
 
-vi.mock("@calcom/features/webhooks/lib/sendPayload", () => ({
-  sendGenericWebhookPayload: vi.fn().mockResolvedValue({ ok: true }),
+const mockQueueBookingCancelledWebhook = vi.fn().mockResolvedValue(undefined);
+vi.mock("@calcom/features/di/webhooks/containers/webhook", () => ({
+  getWebhookProducer: () => ({
+    queueBookingCancelledWebhook: mockQueueBookingCancelledWebhook,
+  }),
+}));
+
+const mockKVPut = vi.fn().mockResolvedValue(undefined);
+vi.mock("@calcom/features/di/containers/KV", () => ({
+  getKV: () => ({
+    put: mockKVPut,
+  }),
 }));
 
 vi.mock("@calcom/features/ee/workflows/lib/reminders/reminderScheduler", () => ({
@@ -38,10 +47,6 @@ vi.mock("@calcom/features/ee/workflows/repositories/WorkflowRepository", () => (
   WorkflowRepository: { deleteAllWorkflowReminders: vi.fn().mockResolvedValue(undefined) },
 }));
 
-vi.mock("@calcom/features/webhooks/lib/sendOrSchedulePayload", () => ({
-  default: vi.fn().mockResolvedValue(undefined),
-}));
-
 vi.mock("@calcom/lib/CalEventParser", () => ({
   getRichDescription: vi.fn().mockReturnValue(""),
 }));
@@ -58,67 +63,61 @@ describe("cancelAttendeeSeat", () => {
     vi.clearAllMocks();
   });
 
+  const makeEvt = () =>
+    ({
+      type: "Meeting",
+      title: "Meeting",
+      startTime: "2024-01-15T10:00:00Z",
+      endTime: "2024-01-15T10:30:00Z",
+      organizer: {
+        email: "host@example.com",
+        name: "Host",
+        timeZone: "UTC",
+        language: { translate: ((k: string) => k) as never, locale: "en" },
+      },
+      attendees: [
+        { email: "attendee@example.com", name: "Attendee", timeZone: "UTC", language: { locale: "en" } },
+      ],
+    }) as never;
+
+  const makeBookingToDelete = (overrides = {}) => ({
+    id: 1,
+    uid: "booking-uid",
+    eventTypeId: 1,
+    startTime: new Date("2024-01-15T10:00:00Z"),
+    endTime: new Date("2024-01-15T10:30:00Z"),
+    attendees: [
+      { id: 1, email: "attendee@example.com", name: "Attendee", timeZone: "UTC", locale: "en" },
+      { id: 2, email: "attendee2@example.com", name: "Attendee 2", timeZone: "UTC", locale: "en" },
+    ],
+    eventType: {
+      seatsPerTimeSlot: 5,
+      seatsShowAttendees: false,
+      workflows: [],
+      hosts: [],
+      title: "Meeting",
+      requiresConfirmation: false,
+      schedulingType: null,
+    },
+    references: [],
+    user: { id: 100, email: "host@example.com", name: "Host", timeZone: "UTC", credentials: [] },
+    seatsReferences: [{ referenceUid: "seat-ref-123", attendeeId: 1 }],
+    workflowReminders: [],
+    userId: 100,
+    status: "ACCEPTED",
+    iCalUID: "ical-123",
+    iCalSequence: 0,
+    smsReminderNumber: null,
+    ...overrides,
+  });
+
   it("deletes the booking seat reference", async () => {
     const data = {
       seatReferenceUid: "seat-ref-123",
-      bookingToDelete: {
-        id: 1,
-        uid: "booking-uid",
-        startTime: new Date("2024-01-15T10:00:00Z"),
-        endTime: new Date("2024-01-15T10:30:00Z"),
-        attendees: [
-          { id: 1, email: "attendee@example.com", name: "Attendee", timeZone: "UTC", locale: "en" },
-          { id: 2, email: "attendee2@example.com", name: "Attendee 2", timeZone: "UTC", locale: "en" },
-        ],
-        eventType: {
-          seatsPerTimeSlot: 5,
-          seatsShowAttendees: false,
-          workflows: [],
-          hosts: [],
-          title: "Meeting",
-          requiresConfirmation: false,
-          schedulingType: null,
-        },
-        references: [],
-        user: { id: 100, email: "host@example.com", name: "Host", timeZone: "UTC", credentials: [] },
-        seatsReferences: [{ referenceUid: "seat-ref-123", attendeeId: 1 }],
-        workflowReminders: [],
-        userId: 100,
-        status: "ACCEPTED",
-        iCalUID: "ical-123",
-        iCalSequence: 0,
-        smsReminderNumber: null,
-      },
+      bookingToDelete: makeBookingToDelete(),
     };
 
-    const dataForWebhooks = {
-      webhooks: [],
-      evt: {
-        type: "Meeting",
-        title: "Meeting",
-        startTime: "2024-01-15T10:00:00Z",
-        endTime: "2024-01-15T10:30:00Z",
-        organizer: {
-          email: "host@example.com",
-          name: "Host",
-          timeZone: "UTC",
-          language: { translate: ((k: string) => k) as never, locale: "en" },
-        },
-        attendees: [
-          { email: "attendee@example.com", name: "Attendee", timeZone: "UTC", language: { locale: "en" } },
-        ],
-      } as never,
-      eventTypeInfo: {
-        eventTitle: "Meeting",
-        eventDescription: null,
-        requiresConfirmation: false,
-        price: 0,
-        currency: "usd",
-        length: 30,
-      },
-    };
-
-    await cancelAttendeeSeat(data as never, dataForWebhooks as never, null);
+    await cancelAttendeeSeat(data as never, makeEvt(), null);
 
     expect(prisma.bookingSeat.delete).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -130,65 +129,94 @@ describe("cancelAttendeeSeat", () => {
   it("deletes the attendee record", async () => {
     const data = {
       seatReferenceUid: "seat-ref-123",
-      bookingToDelete: {
-        id: 1,
-        uid: "booking-uid",
-        startTime: new Date("2024-01-15T10:00:00Z"),
-        endTime: new Date("2024-01-15T10:30:00Z"),
+      bookingToDelete: makeBookingToDelete({
         attendees: [
           { id: 10, email: "attendee@example.com", name: "Attendee", timeZone: "UTC", locale: "en" },
           { id: 11, email: "attendee2@example.com", name: "Attendee 2", timeZone: "UTC", locale: "en" },
         ],
-        eventType: {
-          seatsPerTimeSlot: 5,
-          seatsShowAttendees: false,
-          workflows: [],
-          hosts: [],
-          title: "Meeting",
-          requiresConfirmation: false,
-          schedulingType: null,
-        },
-        references: [],
-        user: { id: 100, email: "host@example.com", name: "Host", timeZone: "UTC", credentials: [] },
         seatsReferences: [{ referenceUid: "seat-ref-123", attendeeId: 10 }],
-        workflowReminders: [],
-        userId: 100,
-        status: "ACCEPTED",
-        iCalUID: "ical-123",
-        iCalSequence: 0,
-        smsReminderNumber: null,
-      },
+      }),
     };
 
-    const dataForWebhooks = {
-      webhooks: [],
-      evt: {
-        type: "Meeting",
-        title: "Meeting",
-        startTime: "2024-01-15T10:00:00Z",
-        endTime: "2024-01-15T10:30:00Z",
-        organizer: {
-          email: "host@example.com",
-          name: "Host",
-          timeZone: "UTC",
-          language: { translate: ((k: string) => k) as never, locale: "en" },
-        },
-        attendees: [
-          { email: "attendee@example.com", name: "Attendee", timeZone: "UTC", language: { locale: "en" } },
-        ],
-      } as never,
-      eventTypeInfo: {
-        eventTitle: "Meeting",
-        eventDescription: null,
-        requiresConfirmation: false,
-        price: 0,
-        currency: "usd",
-        length: 30,
-      },
-    };
-
-    await cancelAttendeeSeat(data as never, dataForWebhooks as never, null);
+    await cancelAttendeeSeat(data as never, makeEvt(), null);
 
     expect(prisma.attendee.delete).toHaveBeenCalled();
+  });
+
+  it("stashes cancelled attendee PII in KV and queues PII-free webhook", async () => {
+    const data = {
+      seatReferenceUid: "seat-ref-123",
+      bookingToDelete: makeBookingToDelete(),
+    };
+
+    await cancelAttendeeSeat(data as never, makeEvt(), null, {
+      teamId: 42,
+      userId: 100,
+      orgId: 7,
+    });
+
+    // PII should be stashed in short-lived KV, not the queue or booking metadata
+    expect(mockKVPut).toHaveBeenCalledWith(
+      "webhook:cancelled-seat:seat-ref-123",
+      JSON.stringify({
+        email: "attendee@example.com",
+        name: "Attendee",
+        timeZone: "UTC",
+        locale: "en",
+        phoneNumber: null,
+      }),
+      30 * 60
+    );
+
+    // Queue call should have NO PII — only attendeeSeatId to look up from KV
+    expect(mockQueueBookingCancelledWebhook).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bookingUid: "booking-uid",
+        eventTypeId: 1,
+        teamId: 42,
+        userId: 100,
+        orgId: 7,
+        attendeeSeatId: "seat-ref-123",
+        metadata: {},
+      })
+    );
+  });
+
+  it("includes cancellationReason in queue metadata (not PII) when evt has one", async () => {
+    const data = {
+      seatReferenceUid: "seat-ref-123",
+      bookingToDelete: makeBookingToDelete(),
+    };
+
+    const evtWithReason = { ...makeEvt(), cancellationReason: "Schedule conflict" } as never;
+
+    await cancelAttendeeSeat(data as never, evtWithReason, null, {
+      teamId: 42,
+      userId: 100,
+      orgId: 7,
+    });
+
+    expect(mockQueueBookingCancelledWebhook).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bookingUid: "booking-uid",
+        attendeeSeatId: "seat-ref-123",
+        metadata: {
+          cancellationReason: "Schedule conflict",
+        },
+      })
+    );
+  });
+
+  it("does not queue webhook when skipNotifications is true", async () => {
+    const data = {
+      seatReferenceUid: "seat-ref-123",
+      bookingToDelete: makeBookingToDelete(),
+    };
+
+    await cancelAttendeeSeat(data as never, makeEvt(), null, {
+      skipNotifications: true,
+    });
+
+    expect(mockQueueBookingCancelledWebhook).not.toHaveBeenCalled();
   });
 });

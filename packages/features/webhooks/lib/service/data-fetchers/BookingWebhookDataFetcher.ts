@@ -10,7 +10,8 @@ import type {
 } from "../../interface/IWebhookDataFetcher";
 import type { ILogger } from "../../interface/infrastructure";
 import type { BookingWebhookTaskPayload } from "../../types/webhookTask";
-import { noShowMetadataSchema } from "../../types/webhookTask";
+import { cancelledSeatAttendeeSchema, noShowMetadataSchema } from "../../types/webhookTask";
+import { getKV } from "@calcom/features/di/containers/KV";
 
 export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
   private readonly BOOKING_TRIGGERS = new Set([
@@ -69,6 +70,79 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
       if (!calendarEvent) {
         this.logger.error("Failed to build CalendarEvent from booking", { bookingUid });
         return { data: null };
+      }
+
+      // Legacy parity: recurringEvent was only included when all remaining instances
+      // were cancelled. The builder always populates it from eventType, so strip it
+      // for single-booking cancellations to preserve payload parity.
+      if (payload.triggerEvent === WebhookTriggerEvents.BOOKING_CANCELLED && !payload.allRemainingBookings) {
+        calendarEvent.recurringEvent = undefined;
+      }
+
+      // Seat cancellation: the attendee is deleted from DB before the consumer runs.
+      // The producer stashes PII in short-lived KV keyed by seatReferenceUid so we
+      // can reconstruct the single cancelled attendee without PII in the queue.
+      if (payload.triggerEvent === WebhookTriggerEvents.BOOKING_CANCELLED && payload.attendeeSeatId) {
+        const kvKey = `webhook:cancelled-seat:${payload.attendeeSeatId}`;
+        let raw: string | null = null;
+        try {
+          raw = await getKV().get(kvKey);
+        } catch (kvErr) {
+          this.logger.warn("KV get failed for cancelled seat attendee, falling back to placeholder", {
+            bookingUid,
+            seatId: payload.attendeeSeatId,
+            error: kvErr instanceof Error ? kvErr.message : String(kvErr),
+          });
+        }
+        const t = await getTranslation("en", "common");
+        if (raw) {
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(raw);
+          } catch {
+            parsed = null;
+          }
+          const seatAttendee = cancelledSeatAttendeeSchema.safeParse(parsed);
+          if (seatAttendee.success) {
+            const locale = seatAttendee.data.locale ?? "en";
+            const tLocale = locale !== "en" ? await getTranslation(locale, "common") : t;
+            calendarEvent.attendees = [
+              {
+                email: seatAttendee.data.email,
+                name: seatAttendee.data.name ?? "",
+                timeZone: seatAttendee.data.timeZone,
+                language: { translate: tLocale, locale },
+                phoneNumber: seatAttendee.data.phoneNumber ?? undefined,
+              },
+            ];
+          } else {
+            this.logger.warn("Cancelled seat attendee KV data failed validation", {
+              bookingUid,
+              seatId: payload.attendeeSeatId,
+            });
+            calendarEvent.attendees = [
+              {
+                email: "",
+                name: "[attendee data unavailable]",
+                timeZone: "UTC",
+                language: { translate: t, locale: "en" },
+              },
+            ];
+          }
+        } else {
+          this.logger.warn(
+            "Cancelled seat attendee KV entry missing (TTL expired or KV unavailable)",
+            { bookingUid, seatId: payload.attendeeSeatId }
+          );
+          calendarEvent.attendees = [
+            {
+              email: "",
+              name: "[attendee data unavailable]",
+              timeZone: "UTC",
+              language: { translate: t, locale: "en" },
+            },
+          ];
+        }
       }
 
       // For BOOKING_RESCHEDULED or BOOKING_REQUESTED (reschedule requiring confirmation),

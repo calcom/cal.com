@@ -3,6 +3,7 @@ import { Prisma } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type {
+  BookingCancelledDTO,
   BookingCreatedDTO,
   BookingNoShowDTO,
   BookingRejectedDTO,
@@ -387,6 +388,24 @@ export class WebhookTaskConsumer {
           },
         } satisfies BookingRequestedDTO;
       }
+      case WebhookTriggerEvents.BOOKING_CANCELLED:
+        return {
+          ...baseDTO,
+          triggerEvent,
+          cancelledBy:
+            (bookingPayload.metadata?.cancelledBy as string) ?? booking.cancelledBy ?? undefined,
+          cancellationReason:
+            (bookingPayload.metadata?.cancellationReason as string) ??
+            booking.cancellationReason ??
+            undefined,
+          requestReschedule: false,
+          metadata:
+            typeof booking.metadata === "object" &&
+            booking.metadata !== null &&
+            !Array.isArray(booking.metadata)
+              ? (booking.metadata as Record<string, unknown>)
+              : undefined,
+        } satisfies BookingCancelledDTO;
       case WebhookTriggerEvents.BOOKING_REJECTED:
         return {
           ...baseDTO,

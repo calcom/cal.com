@@ -54,6 +54,7 @@ export interface BookingCancelledDTO extends BaseEventDTO {
   cancelledBy?: string;
   cancellationReason?: string;
   requestReschedule?: boolean;
+  metadata?: Record<string, unknown>;
 }
 
 export interface BookingRejectedDTO extends BaseEventDTO {

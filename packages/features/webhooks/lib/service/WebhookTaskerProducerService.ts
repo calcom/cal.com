@@ -238,6 +238,7 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
       platformBookingUrl: params.platformBookingUrl,
       attendeeSeatId: params.attendeeSeatId,
       hashedLink: params.hashedLink,
+      allRemainingBookings: params.allRemainingBookings,
       timestamp: new Date().toISOString(),
     };
 
