@@ -4951,6 +4951,7 @@
   "upgrade_banner_roles_subtitle": "チームメンバーにイベント、設定、スケジュール管理への適切なアクセスレベルを付与できます。",
   "upgrade_banner_teams_name": "チーム",
   "upgrade_banner_teams_title": "ミーティングをチームに自動振り分け",
+  "upgrade_banner_teams_title_use_cal": "チームでCalを使用する",
   "upgrade_banner_teams_subtitle": "個人のスケジュール管理を、チームのミーティングを割り当て、配分、管理するシステムに変えましょう。",
   "upgrade_banner_teams_feature1": "受信リクエストを適切な担当者に振り分け",
   "upgrade_banner_teams_feature2": "ラウンドロビンでミーティングを公平に配分",

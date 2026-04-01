@@ -9599,6 +9599,7 @@ checksums:
     upgrade_banner_roles_subtitle: 894c3a7fb46b7117e5104f455aab8fb8
     upgrade_banner_teams_name: b63448c05270497973ac4407047dae02
     upgrade_banner_teams_title: 7b738d0392b8ba8885ede235ec0889e4
+    upgrade_banner_teams_title_use_cal: 7180935f63ffb3b8c0111443d125d060
     upgrade_banner_teams_subtitle: a0616d3a9ecba95e07f5f7f8812d3720
     upgrade_banner_teams_feature1: 1249809c800f18c1c0554798b899b735
     upgrade_banner_teams_feature2: 66046ae7a2950d994106f89eefdd95cb

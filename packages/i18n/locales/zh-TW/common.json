@@ -4951,6 +4951,7 @@
   "upgrade_banner_roles_subtitle": "為團隊成員分配正確的活動、設定與排程存取權限。",
   "upgrade_banner_teams_name": "團隊",
   "upgrade_banner_teams_title": "自動將會議指派給您的團隊",
+  "upgrade_banner_teams_title_use_cal": "與您的團隊一起使用 Cal",
   "upgrade_banner_teams_subtitle": "將個人排程轉化為能分派、分配並管理團隊會議的系統。",
   "upgrade_banner_teams_feature1": "將來自外部的請求指派給最合適的成員",
   "upgrade_banner_teams_feature2": "利用 round-robin 公平分配會議",

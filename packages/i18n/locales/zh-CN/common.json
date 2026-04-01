@@ -4951,6 +4951,7 @@
   "upgrade_banner_roles_subtitle": "为团队成员分配合适的日程、设置和排班访问权限。",
   "upgrade_banner_teams_name": "团队",
   "upgrade_banner_teams_title": "自动将会议分配给你的团队",
+  "upgrade_banner_teams_title_use_cal": "与您的团队一起使用 Cal",
   "upgrade_banner_teams_subtitle": "将个人日程安排升级为自动分配、分发和管理团队会议的系统。",
   "upgrade_banner_teams_feature1": "将收到的请求分配给合适的人",
   "upgrade_banner_teams_feature2": "使用round-robin公平分配会议",

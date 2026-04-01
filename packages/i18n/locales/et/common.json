@@ -4951,6 +4951,7 @@
   "upgrade_banner_roles_subtitle": "Anna meeskonnaliikmetele sobiv juurdepääsutase sündmustele, seadetele ja ajastamisele.",
   "upgrade_banner_teams_name": "Meeskonnad",
   "upgrade_banner_teams_title": "Suuna kohtumised automaatselt oma meeskonnale",
+  "upgrade_banner_teams_title_use_cal": "Kasutage Cal'i koos oma meeskonnaga",
   "upgrade_banner_teams_subtitle": "Muuda individuaalne ajastamine süsteemiks, mis määrab, jaotab ja haldab meeskonna kohtumisi.",
   "upgrade_banner_teams_feature1": "Suuna sissetulevad päringud õigele inimesele",
   "upgrade_banner_teams_feature2": "Jaota kohtumised õiglaselt round-robin meetodil",

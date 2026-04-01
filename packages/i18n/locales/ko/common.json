@@ -4951,6 +4951,7 @@
   "upgrade_banner_roles_subtitle": "팀원들에게 이벤트, 설정, 일정 관리에 필요한 권한만 부여하세요.",
   "upgrade_banner_teams_name": "팀",
   "upgrade_banner_teams_title": "회의를 자동으로 팀에 배분하세요",
+  "upgrade_banner_teams_title_use_cal": "팀과 함께 Cal 사용하기",
   "upgrade_banner_teams_subtitle": "개별 예약을 팀 전체 회의 관리 시스템으로 전환하여 할당, 분배, 관리가 가능합니다.",
   "upgrade_banner_teams_feature1": "들어오는 요청을 올바른 팀원에게 분배",
   "upgrade_banner_teams_feature2": "round-robin 방식으로 공평하게 회의 분배",
