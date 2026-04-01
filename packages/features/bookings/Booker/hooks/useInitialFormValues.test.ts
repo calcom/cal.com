@@ -253,6 +253,54 @@ describe("useInitialFormValues - Autofill Disable Feature", () => {
     });
   });
 
+  describe("case-insensitive prefill key filtering", () => {
+    it("should not include stale lowercase key in form responses even if parsedQuery contains it", async () => {
+      const bookingFields = [
+        { name: "name", type: "text" as const, required: true },
+        { name: "email", type: "email" as const, required: true },
+        { name: "attendeePhoneNumber", type: "phone" as const, required: false },
+      ] as unknown as BookerEvent["bookingFields"];
+
+      const eventType: Pick<BookerEvent, "bookingFields" | "team" | "owner"> = {
+        bookingFields,
+        team: null,
+        owner: null,
+      };
+
+      // Simulate what happens when getBookingResponsesPartialSchema leaks the stale key:
+      // parsedQuery would contain both "attendeePhoneNumber" and "attendeephonenumber"
+      const { getBookingResponsesPartialSchema } = await import(
+        "@calcom/features/bookings/lib/getBookingResponsesSchema"
+      );
+      vi.mocked(getBookingResponsesPartialSchema).mockReturnValue({
+        parseAsync: vi.fn(() =>
+          Promise.resolve({
+            attendeePhoneNumber: "+919999999999",
+            attendeephonenumber: "+919999999999", // stale lowercase key leaked from schema
+          })
+        ),
+      } as any);
+
+      const { result } = renderHook(() =>
+        useInitialFormValues({
+          ...baseProps,
+          eventType,
+          extraOptions: { attendeephonenumber: "+919999999999" },
+          prefillFormParams: { guests: [], name: null },
+        })
+      );
+
+      await waitFor(() => {
+        expect(result.current.values.responses).toBeDefined();
+      });
+
+      // The reduce iterates over bookingFields and picks only field.name keys,
+      // so "attendeephonenumber" (not a field name) should be filtered out
+      expect(result.current.values.responses).toHaveProperty("attendeePhoneNumber", "+919999999999");
+      expect(result.current.values.responses).not.toHaveProperty("attendeephonenumber");
+    });
+  });
+
   describe("session data handling with autofill disabled", () => {
     it("should not use session email/name when autofill is disabled", async () => {
       const eventType: Pick<BookerEvent, "bookingFields" | "team" | "owner"> = {

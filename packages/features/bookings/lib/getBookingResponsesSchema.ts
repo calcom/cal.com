@@ -17,6 +17,60 @@ export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
 
 const catchAllSchema = bookingResponsesDbSchema;
 
+type CaseInsensitiveKeyEntry = { key: string; hasConflict: boolean };
+
+/**
+ * Builds a case-insensitive lookup map from response keys.
+ * Maps each lowercased key to its original-cased key. If multiple keys share the same
+ * lowercase form (e.g. "myField" and "MYFIELD"), the entry is marked as conflicting
+ * so that case-insensitive matching is skipped for those keys.
+ */
+export function buildCaseInsensitiveKeyMap(responseKeys: string[]): Map<string, CaseInsensitiveKeyEntry> {
+  const map = new Map<string, CaseInsensitiveKeyEntry>();
+  for (const key of responseKeys) {
+    const lowerKey = key.toLowerCase();
+    const existing = map.get(lowerKey);
+    if (existing) {
+      existing.hasConflict = true;
+    } else {
+      map.set(lowerKey, { key, hasConflict: false });
+    }
+  }
+  return map;
+}
+
+/**
+ * Resolves a field's value from the parsed responses, falling back to a case-insensitive
+ * match when an exact match is not found.
+ *
+ * This handles the scenario where routing form identifiers are lowercased
+ * (e.g. "attendeephonenumber") but booking field names use camelCase
+ * (e.g. "attendeePhoneNumber"). Skips fallback when there are conflicting keys.
+ */
+export function resolveFieldValueCaseInsensitive({
+  fieldName,
+  parsedResponses,
+  caseInsensitiveKeyMap,
+}: {
+  fieldName: string;
+  parsedResponses: Record<string, unknown>;
+  caseInsensitiveKeyMap: Map<string, CaseInsensitiveKeyEntry>;
+}): unknown {
+  const exactValue = parsedResponses[fieldName];
+  if (exactValue !== undefined) {
+    return exactValue;
+  }
+
+  const lowerFieldName = fieldName.toLowerCase();
+  const mapped = caseInsensitiveKeyMap.get(lowerFieldName);
+  if (mapped && !mapped.hasConflict) {
+    const value = parsedResponses[mapped.key];
+    return value;
+  }
+
+  return undefined;
+}
+
 const ensureValidPhoneNumber = (value: string) => {
   if (!value) return "";
   // + in URL could be replaced with space, so we need to replace it back
@@ -398,8 +452,16 @@ function preprocess<T extends z.ZodType>({
       const newResponses = {} as typeof parsedResponses;
       // if eventType has been deleted, we won't have bookingFields and thus we can't preprocess or validate them.
       if (!bookingFields) return parsedResponses;
+
+      const caseInsensitiveKeyMap = buildCaseInsensitiveKeyMap(Object.keys(parsedResponses));
+
       bookingFields.forEach((field) => {
-        const value = parsedResponses[field.name];
+        const value = resolveFieldValueCaseInsensitive({
+          fieldName: field.name,
+          parsedResponses,
+          caseInsensitiveKeyMap,
+        });
+
         if (value === undefined) {
           // If there is no response for the field, then we don't need to do any processing
           return;
