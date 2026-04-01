@@ -97,54 +97,71 @@ Write with the future in mind. If there are trade-offs, edge cases, or temporary
 
 ## File Naming Conventions
 
-To ensure consistency and make files easy to fuzzy-find, we follow the naming conventions below for **services**, **repositories**, and other class-based files.
+To ensure consistency and avoid cross-platform issues, **all new files must use `kebab-case` naming**. This is enforced by Biome via the `useFilenamingConvention` rule at `warn` level.
+
+### Why kebab-case
+
+1. **Case-insensitive filesystems**: macOS (HFS+) and Windows (NTFS) treat `MyFile.ts` and `myfile.ts` as the same file. PascalCase and camelCase cause silent conflicts. kebab-case eliminates this class of bugs.
+2. **Consistent imports**: No ambiguity between `"./MyService"` vs `"./myService"` vs `"./my-service"`.
+3. **Industry alignment**: Next.js routes, Biome defaults, and most modern tooling assume kebab-case.
+
+### General Examples
+
+```
+booking-repository.ts       # not BookingRepository.ts
+create-booking-service.ts   # not CreateBookingService.ts
+user-dto.ts                 # not UserDTO.ts
+booking.types.ts            # dot-suffixes like .types, .test, .spec are allowed
+```
 
 ### Repository Files
 
-- Repository class files must include the `Repository` suffix.
-- If the repository is backed by a specific technology (e.g. Prisma), prefix the filename and class name with it.
-- File name must match the exported class exactly (PascalCase).
+- Repository class files must include the `Repository` suffix in the class name.
+- If the repository is backed by a specific technology (e.g. Prisma), prefix the class name with it.
+- File names use kebab-case.
 
 **Pattern:**
 
-`Prisma<Entity>Repository.ts`
+`prisma-<entity>-repository.ts`
 
 **Examples:**
 
 ```ts
-// File: PrismaAppRepository.ts
+// File: prisma-app-repository.ts
 export class PrismaAppRepository { ... }
 
-// File: PrismaMembershipRepository.ts
+// File: prisma-membership-repository.ts
 export class PrismaMembershipRepository { ... }
 ```
 
-This avoids ambiguous filenames like app.ts and improves discoverability in editors.
-
 ### Service Files
 
-- Service class files must include the Service suffix.
-- File name should be in PascalCase, matching the exported class.
-- Keep naming specific — avoid generic names like AppService.ts.
+- Service class files must include the `Service` suffix in the class name.
+- File names use kebab-case.
+- Keep naming specific — avoid generic names like `app-service.ts`.
 
 **Pattern:**
 
-`<Entity>Service.ts`
+`<entity>-service.ts`
 
 **Examples:**
 
 ```ts
-// File: MembershipService.ts
+// File: membership-service.ts
 export class MembershipService { ... }
 
-// File: HashedLinkService.ts
+// File: hashed-link-service.ts
 export class HashedLinkService { ... }
 ```
 
+### Current Exceptions
+
+Some legacy files still use PascalCase or camelCase. These are grandfathered but should be migrated to kebab-case when touched. The Biome rule is set to `warn` (not `error`) to allow gradual migration.
+
 **Note:**
 
-- New files must avoid dot-suffixes like .service.ts or .repository.ts; these will be migrated from the existing codebase progressively.
-- We still reserve suffixes such as .test.ts, .spec.ts, and .types.ts for their respective use cases.
+- New files must avoid dot-suffixes like `.service.ts` or `.repository.ts`; these will be migrated from the existing codebase progressively.
+- We still reserve suffixes such as `.test.ts`, `.spec.ts`, and `.types.ts` for their respective use cases.
 
 ## Developing
 

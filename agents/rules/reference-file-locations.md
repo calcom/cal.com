@@ -42,9 +42,11 @@ tags: reference, navigation, file-locations
 
 ## File Naming Conventions
 
-- **Repository files**: `PrismaBookingRepository.ts` (PascalCase with Repository suffix)
-- **Service files**: `MembershipService.ts` (PascalCase with Service suffix)
-- **Components**: `BookingForm.tsx` (PascalCase)
+All new files must use **kebab-case**. See [quality-kebab-case-filenames](quality-kebab-case-filenames.md) for details.
+
+- **Repository files**: `prisma-booking-repository.ts` (kebab-case, class keeps `PrismaBookingRepository` PascalCase)
+- **Service files**: `membership-service.ts` (kebab-case, class keeps `MembershipService` PascalCase)
+- **Components**: `booking-form.tsx` (kebab-case)
 - **Utilities**: `date-utils.ts` (kebab-case)
-- **Types**: `Booking.types.ts` (PascalCase with .types.ts suffix)
+- **Types**: `booking.types.ts` (kebab-case with `.types.ts` suffix)
 - **Tests**: Same as source file + `.test.ts` or `.spec.ts`
