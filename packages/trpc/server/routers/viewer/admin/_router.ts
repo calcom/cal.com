@@ -2,6 +2,8 @@ import { createAdminDataViewRouter } from "@calcom/features/admin-dataview/serve
 
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { z } from "zod";
+
 import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 import { ZBillingPortalLinkSchema } from "./billingPortalLink.schema";
 import { ZCreateCouponSchema } from "./createCoupon.schema";
@@ -181,4 +183,13 @@ export const adminRouter = router({
   abuseScoring: abuseScoringRouter,
   watchlist: watchlistRouter,
   dataview: createAdminDataViewRouter(router, authedAdminProcedure),
+  globalSearch: authedAdminProcedure
+    .input(z.object({ query: z.string().min(1).max(200) }))
+    .query(async ({ input }) => {
+      const { getAdminDataViewService } = await import(
+        "@calcom/features/admin-dataview/di/container"
+      );
+      const service = getAdminDataViewService();
+      return service.globalSearch(input.query);
+    }),
 });

@@ -140,4 +140,110 @@ export class AdminDataViewService {
     };
     return TABLE_NAME_OVERRIDES[modelName] ?? modelName;
   }
+
+  async globalSearch(query: string): Promise<GlobalSearchResult> {
+    const trimmed = query.trim();
+    if (!trimmed) return { results: [] };
+
+    const tables = this.registry.getAll();
+    const isNumeric = /^\d+$/.test(trimmed);
+    const numericValue = isNumeric ? parseInt(trimmed, 10) : null;
+
+    const MAX_PER_TABLE = 5;
+
+    const searches = tables.map(async (table) => {
+      const hasSearchableFields = table.searchableFields.length > 0;
+      const hasPkLookup = isNumeric && table.primaryKeyField?.type === "number";
+      const hasStringPkLookup = table.primaryKeyField?.type === "string";
+
+      if (!hasSearchableFields && !hasPkLookup && !hasStringPkLookup) return null;
+
+      try {
+        const delegate = this.getDelegate(table);
+        const select = table.buildPrismaSelect();
+
+        // Build OR conditions: searchable fields + PK lookup
+        const orConditions: Record<string, unknown>[] = [];
+
+        // Text search across searchable fields
+        if (hasSearchableFields) {
+          for (const fieldName of table.searchableFields) {
+            const fieldDef = table.fields.find((f) => f.column === fieldName);
+            if (!fieldDef || fieldDef.access === "hidden") continue;
+
+            if (fieldDef.type === "string" || fieldDef.type === "email" || fieldDef.type === "url") {
+              orConditions.push({ [fieldName]: { contains: trimmed, mode: "insensitive" } });
+            }
+            if (fieldDef.type === "number" && numericValue !== null) {
+              orConditions.push({ [fieldName]: numericValue });
+            }
+          }
+        }
+
+        // Direct PK lookup for numeric queries
+        if (hasPkLookup && numericValue !== null) {
+          orConditions.push({ [table.primaryKeyColumn]: numericValue });
+        }
+
+        // String PK lookup (e.g. app slug, feature slug)
+        if (table.primaryKeyField?.type === "string") {
+          orConditions.push({
+            [table.primaryKeyColumn]: { contains: trimmed, mode: "insensitive" },
+          });
+        }
+
+        if (orConditions.length === 0) return null;
+
+        const where = orConditions.length === 1 ? orConditions[0] : { OR: orConditions };
+
+        const [rows, total] = await Promise.all([
+          delegate.findMany({
+            select,
+            where,
+            take: MAX_PER_TABLE,
+            orderBy: { [table.primaryKeyColumn]: "desc" },
+          }),
+          delegate.count({ where }),
+        ]);
+
+        if (total === 0) return null;
+
+        return {
+          slug: table.slug,
+          displayName: table.displayName,
+          displayNamePlural: table.displayNamePlural,
+          category: table.category,
+          rows: (rows as Record<string, unknown>[]).map((r) => table.postProcessRow(r)),
+          total,
+        };
+      } catch {
+        // Skip tables that fail (e.g. missing DB table)
+        return null;
+      }
+    });
+
+    const settled = await Promise.allSettled(searches);
+    const results = settled
+      .filter(
+        (r): r is PromiseFulfilledResult<GlobalSearchTableResult | null> =>
+          r.status === "fulfilled" && r.value !== null
+      )
+      .map((r) => r.value!)
+      .sort((a, b) => b.total - a.total);
+
+    return { results };
+  }
+}
+
+export interface GlobalSearchTableResult {
+  slug: string;
+  displayName: string;
+  displayNamePlural: string;
+  category: "core" | "billing" | "platform" | "abuse" | "system";
+  rows: Record<string, unknown>[];
+  total: number;
+}
+
+export interface GlobalSearchResult {
+  results: GlobalSearchTableResult[];
 }

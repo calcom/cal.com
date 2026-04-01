@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 
 import { registry } from "@calcom/features/admin-dataview/registry";
 
 import classNames from "@calcom/ui/classNames";
 import { Grid3x3Icon, CreditCardIcon, ShieldIcon, LayersIcon, UsersIcon, MoonIcon, SunIcon } from "@coss/ui/icons";
+
+import { GlobalSearchTrigger, GlobalSearchDialog } from "./GlobalSearch";
 
 const CATEGORY_META: Record<
   string,
@@ -33,17 +36,35 @@ function groupByCategory() {
 export function StudioSidebar() {
   const pathname = usePathname();
   const groups = groupByCategory();
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // ⌘K / Ctrl+K global shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen((prev) => !prev);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const openSearch = useCallback(() => setSearchOpen(true), []);
 
   return (
     <nav className="bg-default flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex h-10 items-center gap-2 px-3">
         <Grid3x3Icon className="text-subtle h-4 w-4 shrink-0" />
-        <span className="text-emphasis truncate text-sm font-semibold">Cal.com Admin</span>
+        <span className="text-emphasis truncate text-sm font-semibold">Data Studio</span>
       </div>
 
+      {/* Search trigger button */}
+      <GlobalSearchTrigger onClick={openSearch} />
+
       {/* Table list */}
-      <div className="flex-1 overflow-y-auto px-2 py-1">
+      <div className="mt-2 flex-1 overflow-y-auto px-2 py-1">
         {Object.entries(groups).map(([category, tables]) => {
           const meta = CATEGORY_META[category] ?? { label: category, icon: Grid3x3Icon };
           const Icon = meta.icon;
@@ -84,6 +105,9 @@ export function StudioSidebar() {
         <span>{registry.count} tables</span>
         <ThemeToggle />
       </div>
+
+      {/* ⌘K Command palette dialog */}
+      <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
     </nav>
   );
 }
