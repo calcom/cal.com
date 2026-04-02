@@ -10,6 +10,7 @@ import { useRedirectToLoginIfUnauthenticated } from "@calcom/web/modules/auth/ho
 import { useRedirectToOnboardingIfNeeded } from "@calcom/web/modules/auth/hooks/useRedirectToOnboardingIfNeeded";
 import { useFormbricks } from "@calcom/web/modules/formbricks/hooks/useFormbricks";
 import TimezoneChangeDialog from "@calcom/web/modules/settings/components/TimezoneChangeDialog";
+import { TeamsUpgradeBannerFloating } from "@calcom/web/modules/teams-upgrade-banner/components/teams-upgrade-banner-floating";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import type React from "react";
@@ -37,6 +38,7 @@ const Layout = (props: LayoutProps) => {
 
       <TimezoneChangeDialog />
       <DynamicModals />
+      {!props.isPlatformUser && <TeamsUpgradeBannerFloating />}
 
       <div className="flex min-h-screen flex-col">
         {banners && !props.isPlatformUser && <BannerContainer banners={banners} />}
@@ -101,7 +103,7 @@ export function ShellMain(props: LayoutProps) {
       {(props.heading || !!props.backPath) && (
         <div
           className={classNames(
-            "bg-default mb-0 flex items-center md:mb-6 md:mt-0",
+            "mb-0 flex items-center bg-default md:mt-0 md:mb-6",
             props.smallHeading ? "lg:mb-7" : "lg:mb-8",
             !props.disableSticky && "sticky top-0 z-10"
           )}>
@@ -124,18 +126,18 @@ export function ShellMain(props: LayoutProps) {
               className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
               {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div
-                className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
+                className={classNames("w-full truncate md:block ltr:mr-4 rtl:ml-4", props.headerClassName)}>
                 {props.heading && (
                   <h3
                     className={classNames(
-                      "font-heading text-emphasis max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
+                      "hidden max-w-28 truncate font-heading font-semibold text-emphasis text-lg tracking-wide sm:max-w-72 sm:text-xl md:block md:max-w-80 xl:max-w-full",
                       props.smallHeading ? "text-base" : "text-xl"
                     )}>
                     {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                   </h3>
                 )}
                 {props.subtitle && (
-                  <p className="text-default hidden text-sm md:block" data-testid="subtitle">
+                  <p className="hidden text-default text-sm md:block" data-testid="subtitle">
                     {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                   </p>
                 )}
@@ -146,8 +148,8 @@ export function ShellMain(props: LayoutProps) {
                   className={classNames(
                     props.backPath
                       ? "relative"
-                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
-                    "shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
+                      : "fixed bottom-20 pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] z-40 md:z-auto ltr:right-4 md:ltr:right-0 rtl:left-4 md:rtl:left-0",
+                    "shrink-0 [-webkit-app-region:no-drag] md:relative md:right-auto md:bottom-auto"
                   )}>
                   {isLocaleReady && props.CTA}
                 </div>
@@ -174,7 +176,7 @@ function MainContainer({
   ...props
 }: LayoutProps) {
   return (
-    <main className="bg-default relative z-0 flex-1 focus:outline-none">
+    <main className="relative z-0 flex-1 bg-default focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       <div className="max-w-full p-2 sm:p-4 lg:p-6">

@@ -5174,5 +5174,8 @@
   "please_wait_while_we_stop_transcription": "Please wait while we stop transcription",
   "please_wait_while_we_start_recording": "Please wait while we start recording",
   "please_wait_while_we_stop_recording": "Please wait while we stop recording",
+  "teams_upgrade_banner_title": "Try our Teams plan",
+  "teams_upgrade_banner_description": "Remove Cal branding and get round robin scheduling + insights.",
+  "teams_upgrade_banner_cta": "Get started free",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
