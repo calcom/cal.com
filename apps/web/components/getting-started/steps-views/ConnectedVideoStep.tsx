@@ -53,7 +53,7 @@ const ConnectedVideoStep = ({ ...props }: ConnectedAppStepProps) => {
 
   const handleImportFromCalendlyAndFinish = () => {
     if (isCalendlyAuthorized) {
-      importFromCalendly().then(() => nextStep());
+      importFromCalendly(sendCampaignEmails).then(() => nextStep());
     } else {
       const redirectUri = process.env.NEXT_PUBLIC_CALENDLY_REDIRECT_URI ?? "";
       const location = `${process.env.NEXT_PUBLIC_CALENDLY_OAUTH_URL}/authorize?${new URLSearchParams({

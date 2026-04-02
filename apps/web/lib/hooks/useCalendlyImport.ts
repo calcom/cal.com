@@ -8,17 +8,24 @@ const useCalendlyImport = (userId: number) => {
 
   const [sendCampaignEmails, setSendCampaignEmails] = useState<boolean>(true);
 
-  useEffect(() => {
+  const getNotifyBookersFromCookie = (): boolean | null => {
     const cookieValue = document.cookie
       .split("; ")
       .find((row) => row.startsWith("notifyBookers="))
       ?.split("=")[1];
 
-    if (cookieValue === undefined) {
+    if (cookieValue === undefined) return null;
+    return cookieValue === "true";
+  };
+
+  useEffect(() => {
+    const cookieState = getNotifyBookersFromCookie();
+
+    if (cookieState === null) {
       document.cookie = `notifyBookers=true; expires=${new Date(Date.now() + 864e5).toUTCString()}; path=/`;
       setSendCampaignEmails(true);
     } else {
-      setSendCampaignEmails(cookieValue === "true");
+      setSendCampaignEmails(cookieState);
     }
   }, []);
 
@@ -35,12 +42,14 @@ const useCalendlyImport = (userId: number) => {
     document.cookie = `notifyBookers=${state}; expires=${new Date(Date.now() + 864e5).toUTCString()}; path=/`;
   };
 
-  const importFromCalendly = async () => {
+  const importFromCalendly = async (sendCampaignEmailsOverride?: boolean) => {
     if (importing) return;
 
     setImporting(true);
 
-    const uri = `/api/import/calendly?userId=${userId}&sendCampaignEmails=${sendCampaignEmails}`;
+    const resolvedSendCampaignEmails =
+      sendCampaignEmailsOverride ?? getNotifyBookersFromCookie() ?? sendCampaignEmails;
+    const uri = `/api/import/calendly?userId=${userId}&sendCampaignEmails=${resolvedSendCampaignEmails}`;
 
     try {
       const response = await fetch(uri, {
