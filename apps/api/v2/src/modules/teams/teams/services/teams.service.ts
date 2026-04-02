@@ -1,19 +1,21 @@
+import { slugify } from "@calcom/platform-libraries";
+import { BadRequestException, Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
 import { CreateTeamInput } from "@/modules/teams/teams/inputs/create-team.input";
 import { UpdateTeamDto } from "@/modules/teams/teams/inputs/update-team.input";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
-import { BadRequestException, Injectable, InternalServerErrorException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-
-import { slugify } from "@calcom/platform-libraries";
+import { TeamsBillingRepository } from "@/modules/teams/teams/teams-billing.repository";
 
 @Injectable()
 export class TeamsService {
+  private readonly logger = new Logger("TeamsService");
   private isTeamBillingEnabled = this.configService.get("stripe.isTeamBillingEnabled");
 
   constructor(
     private readonly teamsRepository: TeamsRepository,
+    private readonly teamsBillingRepository: TeamsBillingRepository,
     private readonly teamsMembershipsRepository: TeamsMembershipsRepository,
     private readonly stripeService: StripeService,
     private readonly configService: ConfigService
@@ -72,5 +74,18 @@ export class TeamsService {
   async updateTeam(teamId: number, data: UpdateTeamDto) {
     const team = await this.teamsRepository.update(teamId, data);
     return team;
+  }
+
+  async deleteTeam(teamId: number) {
+    const subscriptionId = await this.teamsBillingRepository.getSubscriptionIdByTeamId(teamId);
+    if (subscriptionId) {
+      try {
+        await this.stripeService.getStripe().subscriptions.cancel(subscriptionId);
+      } catch (error) {
+        this.logger.error(`Failed to cancel Stripe subscription ${subscriptionId} for team ${teamId}`, error);
+      }
+    }
+
+    return this.teamsRepository.delete(teamId);
   }
 }

@@ -8,8 +8,8 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
+import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { UpdateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/update-organization-team.input";
@@ -108,7 +108,10 @@ export class TeamsController {
   @ApiOperation({ summary: "Delete a team" })
   @Roles("TEAM_OWNER")
   @OAuthPermissions(["TEAM_PROFILE_WRITE"])
-  async deleteTeam(@Param("teamId", ParseIntPipe) teamId: number, @GetUser() user: UserWithProfile): Promise<OrgTeamOutputResponseDto> {
+  async deleteTeam(
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @GetUser() user: UserWithProfile
+  ): Promise<OrgTeamOutputResponseDto> {
     const team = await TeamService.delete({ id: teamId, deletedByUserId: user.id });
     return {
       status: SUCCESS_STATUS,

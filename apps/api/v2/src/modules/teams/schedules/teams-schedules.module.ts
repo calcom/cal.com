@@ -17,6 +17,7 @@ import { TeamsSchedulesController } from "@/modules/teams/schedules/controllers/
 import { TeamsSchedulesService } from "@/modules/teams/schedules/services/teams-schedules.service";
 import { TeamsController } from "@/modules/teams/teams/controllers/teams.controller";
 import { TeamsService } from "@/modules/teams/teams/services/teams.service";
+import { TeamsBillingRepository } from "@/modules/teams/teams/teams-billing.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
@@ -25,6 +26,7 @@ import { Module } from "@nestjs/common";
   imports: [PrismaModule, MembershipsModule, RedisModule, TeamsEventTypesModule],
   providers: [
     TeamsRepository,
+    TeamsBillingRepository,
     TeamsService,
     TeamsMembershipsRepository,
     OutputSchedulesService_2024_06_11,

@@ -1,10 +1,7 @@
-import type { NextApiRequest } from "next";
-
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-
+import type { NextApiRequest } from "next";
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
-
 import { checkPermissions } from "./_auth-middleware";
 
 /**

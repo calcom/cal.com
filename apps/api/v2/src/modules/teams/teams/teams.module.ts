@@ -1,3 +1,4 @@
+import { Module } from "@nestjs/common";
 import { OrganizationMembershipService } from "@/lib/services/organization-membership.service";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
@@ -9,13 +10,14 @@ import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-me
 import { TeamsController } from "@/modules/teams/teams/controllers/teams.controller";
 import { TeamsService } from "@/modules/teams/teams/services/teams.service";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
+import { TeamsBillingRepository } from "@/modules/teams/teams/teams-billing.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, MembershipsModule, RedisModule, StripeModule],
   providers: [
     TeamsRepository,
+    TeamsBillingRepository,
     TeamsService,
     TeamsMembershipsRepository,
     OAuthClientRepository,
