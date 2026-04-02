@@ -117,7 +117,7 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     if (app.dependencies) {
       dependencyData = app.dependencies.map((dependency) => {
         const dependencyInstalled = dbApps.some(
-          (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
+          (dbAppIterator: (typeof dbApps)[0]) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
         );
         // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
         const dependencyName = getAppFromSlug(dependency)?.name;

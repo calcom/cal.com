@@ -22,7 +22,7 @@ export const updateInboundAgentEventTypeHandler = async ({
   try {
     const { agentId, eventTypeId, teamId } = input;
     const userId = ctx.user.id;
-    const userTimeZone = ctx.user.timeZone || "UTC";
+    const userTimeZone = (ctx.user as unknown as { timeZone: string }).timeZone || "UTC";
 
     const aiService = createDefaultAIPhoneServiceProvider();
 

@@ -52,7 +52,7 @@ export const bulkUpdateEventsToDefaultLocation = async ({
     },
   });
 
-  const validEventTypeIds = filterEventTypesWhereLocationUpdateIsAllowed(eventTypesToUpdate).map(
+  const validEventTypeIds = filterEventTypesWhereLocationUpdateIsAllowed<typeof eventTypesToUpdate[0]>(eventTypesToUpdate).map(
     (eventType) => eventType.id
   );
 
@@ -74,3 +74,14 @@ export const bulkUpdateEventsToDefaultLocation = async ({
     },
   });
 };
+
+
+
+
+
+
+
+
+
+
+

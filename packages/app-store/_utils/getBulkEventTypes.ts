@@ -48,7 +48,7 @@ export const getBulkUserEventTypes = async (userId: number) => {
     },
   });
 
-  const filteredEventTypes = filterEventTypesWhereLocationUpdateIsAllowed(eventTypes);
+  const filteredEventTypes = filterEventTypesWhereLocationUpdateIsAllowed<typeof eventTypes[number]>(eventTypes);
 
   return processEventTypes(
     filteredEventTypes.map((eventType) => {

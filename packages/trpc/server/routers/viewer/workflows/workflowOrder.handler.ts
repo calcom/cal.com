@@ -77,7 +77,7 @@ export const workflowOrderHandler = async ({ ctx, input }: RoutingFormOrderOptio
     ],
   });
 
-  const allWorkflowIds = new Set(allWorkflows.map((workflow) => workflow.id));
+  const allWorkflowIds = new Set(allWorkflows.map((workflow: any) => workflow.id));
   if (input.ids.some((id) => !allWorkflowIds.has(id))) {
     throw new TRPCError({
       code: "UNAUTHORIZED",

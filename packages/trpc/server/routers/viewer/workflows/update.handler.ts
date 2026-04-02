@@ -42,8 +42,8 @@ type UpdateOptions = {
   ctx: {
     user: Pick<
       NonNullable<TrpcSessionUser>,
-      "id" | "metadata" | "locale" | "timeFormat" | "timeZone" | "organizationId"
-    >;
+      "id" | "metadata" | "locale" | "organizationId"
+    > & { timeFormat?: number | null; timeZone?: string | null };
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
@@ -547,7 +547,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           const { emailBody, emailSubject } = await getEmailTemplateText(newStep.template, {
             locale: ctx.user.locale,
             action: newStep.action,
-            timeFormat: ctx.user.timeFormat,
+            timeFormat: ctx.user.timeFormat as number | null,
           });
 
           newStep = { ...newStep, reminderBody: emailBody, emailSubject };

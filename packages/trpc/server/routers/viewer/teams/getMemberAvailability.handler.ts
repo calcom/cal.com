@@ -47,7 +47,7 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
       returnDateOverrides: true,
       bypassBusyCalendarTimes: false,
     },
-    { user, busyTimesFromLimitsBookings: [] }
+    { user: user as any, busyTimesFromLimitsBookings: [] }
   );
 };
 

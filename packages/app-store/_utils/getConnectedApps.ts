@@ -116,12 +116,12 @@ export async function getConnectedApps({
     const parentTeams: TeamQuery[] = [];
     // Only loop and grab parent teams if a teamId was given. If not then all teams will be queried
     if (teamId) {
-      teamsQuery.forEach((team) => {
+      teamsQuery.forEach((team: any) => {
         if (team?.parent) {
           const { parent, ...filteredTeam } = team;
           filteredTeams.push(filteredTeam);
           // Only add parent team if it's not already in teamsQuery
-          if (!teamsQuery.some((t) => t.id === parent.id)) {
+          if (!teamsQuery.some((t: any) => t.id === parent.id)) {
             parentTeams.push(parent);
           }
         }

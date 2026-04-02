@@ -206,8 +206,8 @@ async function getAllUserAndTeamEventTypes(teamIds: number[], notMemberOfTeamId:
       },
     },
   });
-  const userEventTypes = teamMembersWithEventTypes?.flatMap((membership) =>
-    membership.user.eventTypes.map((et) => et.id)
+  const userEventTypes = teamMembersWithEventTypes?.flatMap((membership: any) =>
+    membership.user.eventTypes.map((et: any) => et.id)
   );
 
   return teamEventTypes.map((et) => et.id).concat(userEventTypes);

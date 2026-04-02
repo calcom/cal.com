@@ -58,12 +58,12 @@ export const eventOwnerProcedure = authedProcedure
 
     const isAuthorized = (() => {
       if (event.team) {
-        const teamMember = event.team.members.find((member) => member.userId === ctx.user.id);
+        const teamMember = event.team.members.find((member: any) => member.userId === ctx.user.id);
         const isOwnerOrAdmin = teamMember?.role === "ADMIN" || teamMember?.role === "OWNER";
 
         return isOwnerOrAdmin;
       }
-      return event.userId === ctx.user.id || event.users.find((user) => user.id === ctx.user.id);
+      return event.userId === ctx.user.id || event.users.find((user: any) => user.id === ctx.user.id);
     })();
 
     if (!isAuthorized) {
@@ -72,7 +72,7 @@ export const eventOwnerProcedure = authedProcedure
 
     const isAllowed = (() => {
       if (event.team) {
-        const allTeamMembers = event.team.members.map((member) => member.userId);
+        const allTeamMembers = event.team.members.map((member: any) => member.userId);
         return input.users.every((userId: number) => allTeamMembers.includes(userId));
       }
       return input.users.every((userId: number) => userId === ctx.user.id);
@@ -144,7 +144,7 @@ export const createEventPbacProcedure = (
       // Check if user has permission to access/modify this event
       if (!event.teamId) {
         // Personal event - must be owner or assigned user
-        if (event.userId !== ctx.user.id && !event.users.find((user) => user.id === ctx.user.id)) {
+        if (event.userId !== ctx.user.id && !event.users.find((user: any) => user.id === ctx.user.id)) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: `Permission required: ${permission}`,
@@ -172,7 +172,7 @@ export const createEventPbacProcedure = (
       if (input.users && input.users.length > 0) {
         const isAllowed = (() => {
           if (event.team) {
-            const allTeamMembers = event.team.members.map((member) => member.userId);
+            const allTeamMembers = event.team.members.map((member: any) => member.userId);
             return input.users?.every((userId: number) => allTeamMembers.includes(userId)) ?? true;
           }
           return input.users?.every((userId: number) => userId === ctx.user.id) ?? true;

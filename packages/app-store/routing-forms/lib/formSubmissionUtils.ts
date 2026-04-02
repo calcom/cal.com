@@ -94,7 +94,7 @@ export function getFieldResponse({
 }
 
 export const sendResponseEmail = async (
-  form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">,
+  form: Pick<App_RoutingForms_Form, "id" | "name"> & { fields: App_RoutingForms_Form["fields"] | SerializableField[] | undefined | null },
   orderedResponses: OrderedResponses,
   toAddresses: string[]
 ) => {
