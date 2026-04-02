@@ -154,6 +154,7 @@ export class EventTypesController_2024_06_14 {
   }
 
   @Get("/")
+  @OAuthPermissions(["EVENT_TYPE_READ"])
   @ApiOperation({
     summary: "Get all event types",
     description: `Hidden event types are returned only if authentication is provided and it belongs to the event type owner.
