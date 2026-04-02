@@ -190,7 +190,7 @@ export async function createUserAndEventType({
 
 type OAuthClientInput = {
   clientId: string;
-  clientSecret: string;
+  hashedSecret: string;
   name: string;
   purpose: string;
   redirectUri: string;
@@ -200,12 +200,15 @@ type OAuthClientInput = {
 };
 
 export async function createOAuthClientForUser(userId: number, oAuthClient: OAuthClientInput) {
-  const {enablePkce, ...restOfOAuthClient} = oAuthClient;
+  const { enablePkce, hashedSecret, ...restOfOAuthClient } = oAuthClient;
   await prisma.oAuthClient.create({
     data: {
       userId,
       ...restOfOAuthClient,
       clientType: enablePkce ? "PUBLIC" : "CONFIDENTIAL",
+      ...(hashedSecret && {
+        clientSecrets: { create: { hashedSecret, secretHint: "****" } },
+      }),
     },
   });
   console.log(`\t👤 Created OAuth2 client '${oAuthClient.name}' for user with id '${userId}'`);

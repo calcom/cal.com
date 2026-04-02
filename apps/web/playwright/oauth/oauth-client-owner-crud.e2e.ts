@@ -572,7 +572,6 @@ test.describe("OAuth client creation", () => {
         websiteUrl: null,
         logo: null,
         clientType: "PUBLIC",
-        clientSecret: null,
         status: "APPROVED",
         userId: user.id,
       },

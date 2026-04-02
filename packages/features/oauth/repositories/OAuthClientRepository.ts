@@ -39,7 +39,6 @@ export class OAuthClientRepository {
       select: {
         clientId: true,
         redirectUris: true,
-        clientSecret: true,
         clientType: true,
         status: true,
         userId: true,

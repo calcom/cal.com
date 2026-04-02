@@ -43,7 +43,6 @@ test.describe("OAuth authorize - client approval status", () => {
         name,
         redirectUri: "",
         redirectUris,
-        clientSecret: null,
         clientType: "CONFIDENTIAL",
         status,
         ...(userId && { user: { connect: { id: userId } } }),

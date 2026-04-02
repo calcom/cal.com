@@ -131,7 +131,6 @@ export async function createOAuthClientInDb({
       name,
       redirectUri: "",
       redirectUris: ["https://example.com"],
-      clientSecret: null,
       clientType: "CONFIDENTIAL",
       status,
       ...(userId && { user: { connect: { id: userId } } }),

@@ -15,7 +15,6 @@ let client: {
   redirectUri: string;
   orginalSecret: string;
   name: string;
-  clientSecret: string | null;
   logo: string | null;
 };
 
@@ -23,7 +22,6 @@ let publicClient: {
   clientId: string;
   redirectUri: string;
   name: string;
-  clientSecret: string | null;
   logo: string | null;
 };
 
@@ -691,10 +689,10 @@ const createTestClient = async () => {
     data: {
       name: "Test Client",
       clientId,
-      clientSecret: hashedSecret,
       redirectUri: "https://example.com",
       redirectUris: ["https://example.com"],
       clientType: "CONFIDENTIAL",
+      clientSecrets: { create: { hashedSecret, secretHint: "****" } },
     },
   });
 
@@ -708,7 +706,6 @@ const createTestPublicClient = async () => {
     data: {
       name: "Test Public Client",
       clientId,
-      clientSecret: null,
       redirectUri: "https://example.com",
       redirectUris: ["https://example.com"],
       clientType: "PUBLIC",

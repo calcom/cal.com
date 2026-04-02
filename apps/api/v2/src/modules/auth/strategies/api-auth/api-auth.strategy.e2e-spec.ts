@@ -192,7 +192,7 @@ describe("ApiAuthStrategy", () => {
       clientId: thirdPartyClientId,
       name: "Third Party E2E Test Client",
       redirectUris: [thirdPartyRedirectUri],
-      clientSecret: hashedSecret,
+      hashedSecret,
       clientType: OAuthClientType.CONFIDENTIAL,
       userId: validOAuthUser.id,
     });
