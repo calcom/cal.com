@@ -8,6 +8,7 @@ import { eventTypeTable } from "./tables/event-type";
 import { featureTable } from "./tables/feature";
 import { impersonationsTable } from "./tables/impersonations";
 import { membershipTable } from "./tables/membership";
+import { oauthClientTable } from "./tables/oauth-client";
 import { orgBillingTable } from "./tables/org-billing";
 import { orgDunningTable } from "./tables/org-dunning";
 import { orgSettingsTable } from "./tables/org-settings";
@@ -52,6 +53,7 @@ const ALL_TABLES: TableRegistry = [
   impersonationsTable,
   userFeaturesTable,
   teamFeaturesTable,
+  oauthClientTable,
 ] as const;
 
 export const registry = new AdminTableRegistry(ALL_TABLES);
