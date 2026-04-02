@@ -64,7 +64,7 @@ export const BookerEmbed = (
           apiUrl: apiUrl ?? import.meta.env.VITE_BOOKER_EMBED_API_URL,
         }}>
         <BookerPlatformWrapper
-          {...(Boolean(routingTeamId)
+          {...(routingTeamId
             ? {
                 eventSlug: eventTypeSlug,
                 isTeamEvent: true,

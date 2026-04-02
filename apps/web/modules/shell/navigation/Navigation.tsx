@@ -1,27 +1,23 @@
-import { useSession } from "next-auth/react";
-import { useMemo } from "react";
-
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import {
-  useOrgBranding,
   type OrganizationBranding,
+  useOrgBranding,
 } from "@calcom/features/ee/organizations/context/provider";
-import { useMobileMoreItems } from "./useMobileMoreItems";
 import { useIsStandalone } from "@calcom/lib/hooks/useIsStandalone";
 import classNames from "@calcom/ui/classNames";
 import { useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
-
+import { useSession } from "next-auth/react";
+import { useMemo } from "react";
 import UnconfirmedBookingBadge from "../../bookings/components/UnconfirmedBookingBadge";
 import { KBarTrigger } from "../Kbar";
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
-import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "./NavigationItem";
+import { MobileNavigationItem, MobileNavigationMoreItem, NavigationItem } from "./NavigationItem";
+import { useMobileMoreItems } from "./useMobileMoreItems";
 
 export const MORE_SEPARATOR_NAME = "more";
 
-const getNavigationItems = (
-  orgBranding: OrganizationBranding
-): NavigationItemType[] => [
+const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] => [
   {
     name: "event_types_page_title",
     href: "/event-types",
@@ -111,34 +107,34 @@ const getNavigationItems = (
     icon: "chart-bar",
     isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
     moreOnMobile: true,
-    child:  [
-          {
-            name: "bookings",
-            href: "/insights",
-            isCurrent: ({ pathname: path }) => path === "/insights",
-          },
-          {
-            name: "routing",
-            href: "/insights/routing",
-            isCurrent: ({ pathname: path }) => path?.startsWith("/insights/routing") ?? false,
-          },
-          {
-            name: "router_position",
-            href: "/insights/router-position",
-            isCurrent: ({ pathname: path }) => path?.startsWith("/insights/router-position") ?? false,
-          },
-          {
-            name: "call_history",
-            href: "/insights/call-history",
-            // icon: "phone",
-            isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
-          },
-          {
-            name: "wrong_routing",
-            href: "/insights/wrong-routing",
-            isCurrent: ({ pathname: path }) => path?.startsWith("/insights/wrong-routing") ?? false,
-          },
-        ]
+    child: [
+      {
+        name: "bookings",
+        href: "/insights",
+        isCurrent: ({ pathname: path }) => path === "/insights",
+      },
+      {
+        name: "routing",
+        href: "/insights/routing",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/routing") ?? false,
+      },
+      {
+        name: "router_position",
+        href: "/insights/router-position",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/router-position") ?? false,
+      },
+      {
+        name: "call_history",
+        href: "/insights/call-history",
+        // icon: "phone",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/call-history") ?? false,
+      },
+      {
+        name: "wrong_routing",
+        href: "/insights/wrong-routing",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/wrong-routing") ?? false,
+      },
+    ],
   },
 ];
 
@@ -196,9 +192,7 @@ const useNavigationItems = (isPlatformNavigation = false) => {
   const orgBranding = useOrgBranding();
   const { hasPaidPlan, isPending } = useHasPaidPlan();
   return useMemo(() => {
-    const items = !isPlatformNavigation
-      ? getNavigationItems(orgBranding)
-      : platformNavigationItems;
+    const items = !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems;
 
     const desktopNavigationItems = items.filter((item) => item.name !== MORE_SEPARATOR_NAME);
     const mobileNavigationBottomItems = items.filter(

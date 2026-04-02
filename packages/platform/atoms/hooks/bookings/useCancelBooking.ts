@@ -1,10 +1,8 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
+import type { bookingCancelSchema } from "@calcom/prisma/zod-utils";
 import { useMutation } from "@tanstack/react-query";
 import type { z } from "zod";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
-import type { bookingCancelSchema } from "@calcom/prisma/zod-utils";
-
 import http from "../../lib/http";
 
 interface IUseCancelBooking {

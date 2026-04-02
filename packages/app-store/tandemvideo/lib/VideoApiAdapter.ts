@@ -6,7 +6,6 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
-
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
 interface TandemToken {

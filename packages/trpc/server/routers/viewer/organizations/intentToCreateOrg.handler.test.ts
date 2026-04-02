@@ -1,10 +1,11 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-import { intentToCreateOrgHandler } from "./intentToCreateOrg.handler";
+import process from "node:process";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
-import { BillingPeriod, UserPermissionRole, CreationSource } from "@calcom/prisma/enums";
+import { BillingPeriod, CreationSource, UserPermissionRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { intentToCreateOrgHandler } from "./intentToCreateOrg.handler";
 
 vi.mock("@calcom/ee/common/server/LicenseKeyService", () => ({
   LicenseKeySingleton: {
@@ -45,14 +46,12 @@ vi.mock("@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.hand
 }));
 
 vi.mock("@calcom/i18n/server", () => ({
-  getTranslation: vi
-    .fn()
-    .mockImplementation(async (locale: string, namespace: string) => {
-      const t = (key: string) => key;
-      t.locale = locale;
-      t.namespace = namespace;
-      return t;
-    }),
+  getTranslation: vi.fn().mockImplementation(async (locale: string, namespace: string) => {
+    const t = (key: string) => key;
+    t.locale = locale;
+    t.namespace = namespace;
+    return t;
+  }),
 }));
 
 vi.mock("@calcom/lib/domainManager/organization", () => ({

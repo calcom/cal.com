@@ -1,5 +1,4 @@
 import { prisma } from "@calcom/prisma";
-
 import type { TGetBookingAttendeesInputSchema } from "./getBookingAttendees.schema";
 
 type GetBookingAttendeesOptions = {

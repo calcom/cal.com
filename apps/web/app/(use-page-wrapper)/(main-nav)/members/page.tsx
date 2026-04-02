@@ -1,12 +1,9 @@
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-
 import { getOrgMembersPageData } from "~/members/getOrgMembersPageData";
 import { MembersView } from "~/members/members-view";
 

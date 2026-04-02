@@ -1,8 +1,7 @@
+import classNames from "@calcom/ui/classNames";
 import { useId } from "@radix-ui/react-id";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import type { ReactNode } from "react";
-
-import classNames from "@calcom/ui/classNames";
 
 type RadioAreaProps = RadioGroupPrimitive.RadioGroupItemProps & {
   children: ReactNode;

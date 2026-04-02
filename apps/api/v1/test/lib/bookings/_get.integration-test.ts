@@ -1,11 +1,9 @@
+import { prisma } from "@calcom/prisma";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, it, beforeAll, afterAll } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ZodError } from "zod";
-
-import { prisma } from "@calcom/prisma";
-
 import { handler } from "../../../pages/api/bookings/_get";
 
 type CustomNextApiRequest = NextApiRequest & Request;
@@ -27,15 +25,12 @@ describe("GET /api/bookings", () => {
     proUserBooking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
 
     memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member2-acme@example.com" } });
-    
+
     // Find an event type for memberUser or use a simple booking
     const memberEventType = await prisma.eventType.findFirst({
       where: {
-        OR: [
-          { userId: memberUser.id },
-          { team: { members: { some: { userId: memberUser.id } } } }
-        ]
-      }
+        OR: [{ userId: memberUser.id }, { team: { members: { some: { userId: memberUser.id } } } }],
+      },
     });
 
     memberUserBooking = await prisma.booking.create({
@@ -43,7 +38,7 @@ describe("GET /api/bookings", () => {
         uid: `test-member-booking-${Date.now()}`,
         title: "Member Test Booking",
         startTime: new Date(Date.now() + 86400000), // Tomorrow
-        endTime: new Date(Date.now() + 90000000),   // Tomorrow + 1 hour
+        endTime: new Date(Date.now() + 90000000), // Tomorrow + 1 hour
         userId: memberUser.id,
         eventTypeId: memberEventType?.id,
         status: "ACCEPTED",
@@ -406,10 +401,13 @@ describe("GET /api/bookings", () => {
       expect(uniqueBookingIds.size).toBe(bookingIds.length);
 
       if (uniqueBookingIds.size !== bookingIds.length) {
-        const counts = bookingIds.reduce((acc, id) => {
-          acc[id] = (acc[id] || 0) + 1;
-          return acc;
-        }, {} as Record<number, number>);
+        const counts = bookingIds.reduce(
+          (acc, id) => {
+            acc[id] = (acc[id] || 0) + 1;
+            return acc;
+          },
+          {} as Record<number, number>
+        );
 
         const duplicates = Object.entries(counts)
           .filter(([_, count]) => count > 1)

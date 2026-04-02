@@ -6,9 +6,7 @@
   "logo": "icon-dark.svg",
   "url": "https://www.chatbase.co/guide/cal",
   "variant": "other",
-  "categories": [
-    "other"
-  ],
+  "categories": ["other"],
   "publisher": "Chatbase",
   "email": "sandra@chatbase.co",
   "description": "Add [Cal.com](https://cal.com/) to your Chatbase AI Chatbot and accept bookings right inside chat.",

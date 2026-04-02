@@ -3,7 +3,6 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { prisma } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
 
 type AppCredentialsByTypeOptions = {

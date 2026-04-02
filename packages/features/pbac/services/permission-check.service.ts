@@ -3,15 +3,14 @@ import { MembershipRepository } from "@calcom/features/membership/repositories/M
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { MembershipRole } from "@calcom/prisma/enums";
-
 import { PermissionMapper } from "../domain/mappers/PermissionMapper";
 import type { PermissionCheck, TeamPermissions } from "../domain/models/Permission";
 import type { IPermissionRepository } from "../domain/repositories/IPermissionRepository";
 import type {
-  PermissionString,
-  Resource,
   CrudAction,
   CustomAction,
+  PermissionString,
+  Resource,
 } from "../domain/types/permission-registry";
 import { PermissionRepository } from "../infrastructure/repositories/PermissionRepository";
 import { PermissionService } from "./permission.service";

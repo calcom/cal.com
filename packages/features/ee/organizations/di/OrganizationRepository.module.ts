@@ -1,7 +1,6 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
-import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
-
+import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { ORGANIZATION_DI_TOKENS } from "./tokens";
 
 export const organizationRepositoryModule = createModule();

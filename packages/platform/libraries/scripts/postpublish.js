@@ -1,8 +1,8 @@
 import { spawn } from "node:child_process";
-import fs from "node:fs"
-import path from "node:path"
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
-
 import { getCurrentVersion } from "./prepublish.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -38,9 +38,8 @@ async function main() {
     );
     const apiV2PackageJson = JSON.parse(fs.readFileSync(apiV2PackageJsonPath, "utf8"));
 
-    apiV2PackageJson.dependencies[
-      "@calcom/platform-libraries"
-    ] = `npm:@calcom/platform-libraries@${publishedVersion}`;
+    apiV2PackageJson.dependencies["@calcom/platform-libraries"] =
+      `npm:@calcom/platform-libraries@${publishedVersion}`;
     fs.writeFileSync(apiV2PackageJsonPath, `${JSON.stringify(apiV2PackageJson, null, 2)}\n`);
 
     // Run yarn install

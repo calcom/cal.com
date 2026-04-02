@@ -1,6 +1,6 @@
-import { ApiProperty as DocsProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiPropertyOptional, ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsString, IsOptional, IsInt, IsEmail, ValidateNested } from "class-validator";
+import { IsEmail, IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
 
 export class MeOrgOutput {
   @DocsProperty()

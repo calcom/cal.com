@@ -1,17 +1,15 @@
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import { expect } from "@playwright/test";
 import { v4 as uuidv4 } from "uuid";
-
-import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
-
 import {
   addFilter,
-  openFilter,
-  clearFilters,
+  applyNumberFilter,
   applySelectFilter,
   applyTextFilter,
-  applyNumberFilter,
-  selectOptionValue,
+  clearFilters,
   getByTableColumnText,
+  openFilter,
+  selectOptionValue,
 } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 

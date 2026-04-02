@@ -1,14 +1,11 @@
 "use client";
 
-import Link from "next/link";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { ArrowLeftIcon, ArrowRightIcon } from "@coss/ui/icons";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-
+import { ArrowLeftIcon, ArrowRightIcon } from "@coss/ui/icons";
 import type { getServerSideProps } from "@lib/apps/categories/getServerSideProps";
-
+import Link from "next/link";
 import Shell from "~/shell/Shell";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;

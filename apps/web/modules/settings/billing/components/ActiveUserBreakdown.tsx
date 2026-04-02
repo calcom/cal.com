@@ -1,33 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge } from "@coss/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { PanelCard } from "@calcom/ui/components/card";
+import { Badge } from "@coss/ui/components/badge";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetPanel,
   SheetTitle,
-  SheetClose,
 } from "@coss/ui/components/sheet";
 import { Skeleton } from "@coss/ui/components/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@coss/ui/components/table";
-
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@coss/ui/components/table";
+import { useEffect, useState } from "react";
 import { ActiveUserBreakdownSkeleton } from "./ActiveUserBreakdownSkeleton";
 
 const PAGE_SIZE = 10;
@@ -112,10 +103,7 @@ function ActiveUserBreakdownContent({ data, teamId }: { data: BreakdownData; tea
                 </TableHeader>
                 <TableBody>
                   {paginatedUsers.map((user) => (
-                    <TableRow
-                      key={user.id}
-                      className="cursor-pointer"
-                      onClick={() => setSelectedUser(user)}>
+                    <TableRow key={user.id} className="cursor-pointer" onClick={() => setSelectedUser(user)}>
                       <TableCell>{user.name || "-"}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
@@ -172,11 +160,7 @@ function ActiveUserBreakdownContent({ data, teamId }: { data: BreakdownData; tea
 
           <SheetPanel>
             {selectedUser && (
-              <UserBookingsSheet
-                teamId={teamId}
-                userId={selectedUser.id}
-                activeAs={selectedUser.activeAs}
-              />
+              <UserBookingsSheet teamId={teamId} userId={selectedUser.id} activeAs={selectedUser.activeAs} />
             )}
           </SheetPanel>
 

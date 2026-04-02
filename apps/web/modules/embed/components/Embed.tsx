@@ -1,31 +1,28 @@
-import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
-import classNames from "classnames";
-import { useSession } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
-import type { RefObject, Dispatch, SetStateAction } from "react";
-import { createRef, useRef, useState } from "react";
-import type { ControlProps } from "react-select";
-import { components } from "react-select";
-import { shallow } from "zustand/shallow";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { AvailableTimes } from "@calcom/web/modules/bookings/components/AvailableTimes";
-import { AvailableTimesHeader } from "@calcom/web/modules/bookings/components/AvailableTimesHeader";
 import {
   BookerStoreProvider,
-  useInitializeBookerStoreContext,
   useBookerStoreContext,
+  useInitializeBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
 import { useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
-import { useEvent, useScheduleForEvent } from "@calcom/web/modules/schedules/hooks/useEvent";
 import DatePicker from "@calcom/features/calendars/components/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
-import type { Slot } from "~/schedules/lib/types";
-import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
-import { useSlotsForDate } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
-import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
+import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
+import { EmbedTheme } from "@calcom/features/embed/lib/constants";
+import { EmbedTabName } from "@calcom/features/embed/lib/EmbedTabs";
+import { getDimension } from "@calcom/features/embed/lib/getDimension";
+import { useEmbedDialogCtx } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
+import { useEmbedParams } from "@calcom/features/embed/lib/hooks/useEmbedParams";
+import type {
+  EmbedConfig,
+  EmbedTabs,
+  EmbedType,
+  EmbedTypes,
+  PreviewState,
+} from "@calcom/features/embed/types";
+import { APP_NAME, DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -33,29 +30,27 @@ import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { Select, ColorPicker } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
-import { ArrowLeftIcon, SunIcon } from "@coss/ui/icons";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { ColorPicker, Label, Select, Switch, TextField } from "@calcom/ui/components/form";
 import { HorizontalTabs } from "@calcom/ui/components/navigation";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
-import { EmbedTabName } from "@calcom/features/embed/lib/EmbedTabs";
-import { buildCssVarsPerTheme } from "@calcom/features/embed/lib/buildCssVarsPerTheme";
-import { EmbedTheme } from "@calcom/features/embed/lib/constants";
-import { getDimension } from "@calcom/features/embed/lib/getDimension";
-import { useEmbedDialogCtx } from "@calcom/features/embed/lib/hooks/useEmbedDialogCtx";
-import { useEmbedParams } from "@calcom/features/embed/lib/hooks/useEmbedParams";
-import type {
-  EmbedTabs,
-  EmbedType,
-  EmbedTypes,
-  PreviewState,
-  EmbedConfig,
-} from "@calcom/features/embed/types";
+import { AvailableTimes } from "@calcom/web/modules/bookings/components/AvailableTimes";
+import { AvailableTimesHeader } from "@calcom/web/modules/bookings/components/AvailableTimesHeader";
+import { useEvent, useScheduleForEvent } from "@calcom/web/modules/schedules/hooks/useEvent";
+import { useNonEmptyScheduleDays } from "@calcom/web/modules/schedules/hooks/useNonEmptyScheduleDays";
+import { useSlotsForDate } from "@calcom/web/modules/schedules/hooks/useSlotsForDate";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
+import { ArrowLeftIcon, SunIcon } from "@coss/ui/icons";
+import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
+import classNames from "classnames";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import type { Dispatch, RefObject, SetStateAction } from "react";
+import { createRef, useRef, useState } from "react";
+import type { ControlProps } from "react-select";
+import { components } from "react-select";
+import { shallow } from "zustand/shallow";
+import type { Slot } from "~/schedules/lib/types";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
 type EmbedDialogProps = {

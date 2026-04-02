@@ -1,6 +1,10 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { getLocationValueForDB, OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-import { CalVideoLocationType, type LocationObject } from "@calcom/app-store/locations";
+import {
+  CalVideoLocationType,
+  getLocationValueForDB,
+  type LocationObject,
+  OrganizerDefaultConferencingAppType,
+} from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { HostLocationRepository } from "@calcom/features/host/repositories/HostLocationRepository";
 import type { PrismaClient } from "@calcom/prisma";

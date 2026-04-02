@@ -21,7 +21,6 @@ import { BuildingIcon, ChevronDownIcon, UserIcon, UsersIcon } from "lucide-react
 import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useState } from "react";
-
 import { FeatureOptInSuccessDialog } from "./FeatureOptInSuccessDialog";
 
 type UserRoleContext = {

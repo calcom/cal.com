@@ -1,6 +1,5 @@
-import { createEditor, TextNode, type LexicalEditor } from "lexical";
-import { describe, it, expect, beforeEach } from "vitest";
-
+import { createEditor, type LexicalEditor, TextNode } from "lexical";
+import { beforeEach, describe, expect, it } from "vitest";
 import { $createVariableNode, $isVariableNode, VariableNode } from "./VariableNode";
 
 let editor: LexicalEditor;

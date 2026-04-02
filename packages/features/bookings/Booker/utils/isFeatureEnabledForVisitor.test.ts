@@ -1,7 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { getCookie } from "@calcom/lib/cookie";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { isVisitorWithinPercentage } from "./isFeatureEnabledForVisitor";
 
 const generateRandomUuid = () => {

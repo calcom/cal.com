@@ -1,24 +1,22 @@
 "use client";
 
-import { AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
-import posthog from "posthog-js";
-import { useEffect, useRef, useTransition } from "react";
-
 import { isCompanyEmail } from "@calcom/features/ee/organizations/lib/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { type IconName } from "@calcom/ui/components/icon";
+import type { IconName } from "@calcom/ui/components/icon";
 import { RadioAreaGroup } from "@calcom/ui/components/radio";
 import { useHasTeamMembership } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
-
+import { AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
+import { useEffect, useRef, useTransition } from "react";
 import { OnboardingCard } from "../components/OnboardingCard";
 import { OnboardingLayout } from "../components/OnboardingLayout";
 import { OnboardingContinuationPrompt } from "../components/onboarding-continuation-prompt";
 import { PlanIcon } from "../components/plan-icon";
-import { useOnboardingStore, type PlanType } from "../store/onboarding-store";
+import { type PlanType, useOnboardingStore } from "../store/onboarding-store";
 
 type OnboardingViewProps = {
   userEmail: string;

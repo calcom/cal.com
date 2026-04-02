@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { SWHMap } from "./__handler";
 import handler from "./_customer.subscription.updated";
 

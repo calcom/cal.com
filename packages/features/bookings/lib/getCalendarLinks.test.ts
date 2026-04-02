@@ -1,12 +1,10 @@
+import dayjs from "@calcom/dayjs";
+import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import type { TFunction } from "i18next";
 import { createEvent } from "ics";
 import { RRule } from "rrule";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
-import dayjs from "@calcom/dayjs";
-import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-
-import { getCalendarLinks, CalendarLinkType } from "./getCalendarLinks";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { CalendarLinkType, getCalendarLinks } from "./getCalendarLinks";
 
 // Mock dependencies
 vi.mock("ics", () => ({

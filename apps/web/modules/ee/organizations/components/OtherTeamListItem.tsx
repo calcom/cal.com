@@ -1,11 +1,13 @@
+import process from "node:process";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, DialogTrigger } from "@calcom/ui/components/dialog";
 import {
   Dropdown,
   DropdownItem,
@@ -15,8 +17,6 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 
 interface Props {
   team: RouterOutputs["viewer"]["organizations"]["listOtherTeams"][number];

@@ -1,7 +1,6 @@
 import { BookingEmailAndSmsTriggerDevTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTriggerTasker";
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
-
 import { BOOKING_EMAIL_SMS_TASKER_DI_TOKENS } from "./tokens";
 
 const thisModule = createModule();

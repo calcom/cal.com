@@ -1,7 +1,6 @@
-import { render, fireEvent } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import React from "react";
 import { vi } from "vitest";
-
 import { CheckboxField } from "./Checkbox";
 
 const basicProps = { label: "Test Label", description: "Test Description" };

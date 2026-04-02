@@ -1,19 +1,30 @@
-import { ApiExtraModels, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
-import { ApiProperty as DocsProperty } from "@nestjs/swagger";
+import {
+  ApiExtraModels,
+  ApiPropertyOptional,
+  ApiProperty as DocsProperty,
+  getSchemaPath,
+} from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsOptional } from "class-validator";
-import { IsString, MinLength, IsUrl, IsPhoneNumber, IsDefined } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
-import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
-
+import {
+  IsDefined,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+  IsUrl,
+  MinLength,
+  registerDecorator,
+  ValidatorConstraint,
+  validate,
+} from "class-validator";
 import {
   BookingInputAddressLocation_2024_08_13,
   BookingInputAttendeeAddressLocation_2024_08_13,
   BookingInputAttendeeDefinedLocation_2024_08_13,
   BookingInputAttendeePhoneLocation_2024_08_13,
+  BookingInputIntegrationLocation_2024_08_13,
   BookingInputLinkLocation_2024_08_13,
   BookingInputPhoneLocation_2024_08_13,
-  BookingInputIntegrationLocation_2024_08_13,
 } from "./location.input";
 
 export class UpdateInputAddressLocation_2024_08_13 extends BookingInputAddressLocation_2024_08_13 {
@@ -103,7 +114,7 @@ class UpdateBookingInputLocationValidator_2024_08_13 implements ValidatorConstra
 
 export function ValidateUpdateBookingLocation_2024_08_13(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateUpdateLocation",
       target: object.constructor,

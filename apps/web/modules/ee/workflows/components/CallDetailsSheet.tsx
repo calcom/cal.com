@@ -1,18 +1,17 @@
-import type { Dispatch } from "react";
-
 import type { CallDetailsAction, CallDetailsState } from "@calcom/features/ee/workflows/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
   Sheet,
-  SheetContent,
   SheetBody,
-  SheetHeader,
-  SheetFooter,
   SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
 } from "@calcom/ui/components/sheet";
 import { UserIcon } from "@coss/ui/icons";
+import type { Dispatch } from "react";
 
 interface CallDetailsSheetProps {
   state: CallDetailsState;

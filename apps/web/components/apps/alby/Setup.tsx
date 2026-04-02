@@ -1,9 +1,4 @@
-import { auth, Client, webln } from "@getalby/sdk";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useCallback, useEffect } from "react";
-import { Toaster } from "sonner";
-
+import process from "node:process";
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { albyCredentialKeysSchema } from "@calcom/app-store/alby/lib/albyCredentialKeysSchema";
 import type { IAlbySetupProps } from "@calcom/app-store/alby/pages/setup/_getServerSideProps";
@@ -14,6 +9,11 @@ import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 import { InfoIcon } from "@coss/ui/icons";
+import { auth, Client, webln } from "@getalby/sdk";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { Toaster } from "sonner";
 
 export default function AlbySetup(props: IAlbySetupProps) {
   const params = useCompatSearchParams();
@@ -165,9 +165,9 @@ function AlbySetupPage(props: IAlbySetupProps) {
 
             {/* TODO: remove when invoices are generated using user identifier */}
             <div className="mt-4 rounded bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-              <InfoIcon className="mb-0.5 inline-flex h-4 w-4" /> Your Alby lightning address will be
-              used to generate invoices. If you update your lightning address, please disconnect and setup the
-              Alby app again.
+              <InfoIcon className="mb-0.5 inline-flex h-4 w-4" /> Your Alby lightning address will be used to
+              generate invoices. If you update your lightning address, please disconnect and setup the Alby
+              app again.
             </div>
             <Link href="/apps/alby">
               <Button color="secondary">Go to App Store Listing</Button>

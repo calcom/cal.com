@@ -1,8 +1,6 @@
-import { describe, it, expect } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
-
+import { describe, expect, it } from "vitest";
 import { mergeOverlappingDateRanges } from "./mergeOverlappingDateRanges";
 
 const november2 = "2023-11-02";

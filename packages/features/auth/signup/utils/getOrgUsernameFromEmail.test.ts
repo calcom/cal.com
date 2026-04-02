@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-
-import { getOrgUsernameFromEmail, deriveNameFromOrgUsername } from "./getOrgUsernameFromEmail";
+import { deriveNameFromOrgUsername, getOrgUsernameFromEmail } from "./getOrgUsernameFromEmail";
 
 describe("getOrgUsernameFromEmail", () => {
   it("should generate username with only email user part when domain matches autoAcceptEmailDomain", () => {

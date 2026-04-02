@@ -1,6 +1,5 @@
 import { nanoid } from "nanoid";
 import type { Logger } from "tslog";
-
 import { MonthlyProrationService } from "../MonthlyProrationService";
 import { ProrationEmailService } from "../ProrationEmailService";
 import type { IMonthlyProrationTasker } from "./types";

@@ -1,3 +1,4 @@
+import process from "node:process";
 import prisma from ".";
 
 // TODO: Put some restrictions here to run it on local DB only.

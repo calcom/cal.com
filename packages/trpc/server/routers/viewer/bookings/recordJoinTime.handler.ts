@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@calcom/prisma";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import type { TrpcSessionUser } from "../../../types";
 import type { TRecordJoinTimeSchema } from "./recordJoinTime.schema";
 
 interface RecordJoinTimeOptions {

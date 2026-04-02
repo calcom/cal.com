@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from "vitest";
-
 import { ReassignmentAuditActionService } from "../ReassignmentAuditActionService";
 import { createMockEnrichmentDataStore, verifyDataRequirementsContract } from "./contractVerification";
 
@@ -396,7 +395,10 @@ describe("ReassignmentAuditActionService", () => {
       expect(result).toEqual([
         {
           labelKey: "booking_audit_action.assignment_type",
-          fieldValue: { type: "translationKey", valueKey: "booking_audit_action.assignment_type_round_robin" },
+          fieldValue: {
+            type: "translationKey",
+            valueKey: "booking_audit_action.assignment_type_round_robin",
+          },
         },
         {
           labelKey: "booking_audit_action.previous_assignee",

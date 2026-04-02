@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Badge } from "@calcom/ui/components/badge";
+import Link from "next/link";
 
 export default function UnconfirmedBookingBadge() {
   const { t } = useLocale();

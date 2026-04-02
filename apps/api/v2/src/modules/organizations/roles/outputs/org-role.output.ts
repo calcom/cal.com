@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsString, IsOptional, IsArray, IsEnum, IsDateString, IsNumber } from "class-validator";
-
+import { IsArray, IsDateString, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 import { orgPermissionEnum } from "../inputs/base-org-role.input";
 
 enum RoleTypeEnum {

@@ -1,8 +1,6 @@
+import PageWrapper from "@components/PageWrapperAppDir";
 import { _generateMetadata } from "app/_utils";
 import { headers } from "next/headers";
-
-import PageWrapper from "@components/PageWrapperAppDir";
-
 import { NotFound } from "./notFoundClient";
 
 export const generateMetadata = async () => {

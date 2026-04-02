@@ -1,11 +1,9 @@
+import process from "node:process";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import B2 from "backblaze-b2";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 import { COMPLIANCE_DOCUMENTS } from "~/settings/security/compliance/compliance-documents";
 
 const b2 = new B2({

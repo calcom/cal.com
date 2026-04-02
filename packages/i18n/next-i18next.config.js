@@ -1,3 +1,4 @@
+import process from "node:process";
 const path = require("node:path");
 const i18n = require("../../i18n.json");
 

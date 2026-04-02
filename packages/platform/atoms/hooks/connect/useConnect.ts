@@ -1,9 +1,7 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
-
 import type { CALENDARS } from "@calcom/platform-constants";
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import type { ApiResponse, ApiErrorResponse, CreateCalendarCredentialsInput } from "@calcom/platform-types";
-
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { ApiErrorResponse, ApiResponse, CreateCalendarCredentialsInput } from "@calcom/platform-types";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import http from "../../lib/http";
 
 export const getQueryKey = (calendar: (typeof CALENDARS)[number]) => [`get-${calendar}-redirect-uri`];

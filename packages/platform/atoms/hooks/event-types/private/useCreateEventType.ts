@@ -1,15 +1,16 @@
-import { useMutation } from "@tanstack/react-query";
-
 import {
-  V2_ENDPOINTS,
-  SUCCESS_STATUS,
   CAL_API_VERSION_HEADER,
+  SUCCESS_STATUS,
+  V2_ENDPOINTS,
   VERSION_2024_06_14,
 } from "@calcom/platform-constants";
-import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
-import type { CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import type {
+  ApiResponse,
+  ApiSuccessResponse,
+  CreateEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
 import type { EventType } from "@calcom/prisma/client";
-
+import { useMutation } from "@tanstack/react-query";
 import http from "../../../lib/http";
 
 export const QUERY_KEY = "use-create-event";

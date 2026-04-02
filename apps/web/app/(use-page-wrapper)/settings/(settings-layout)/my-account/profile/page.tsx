@@ -1,9 +1,7 @@
+import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
 import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
 import { redirect } from "next/navigation";
-
-import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
-
 import ProfileView from "~/settings/my-account/profile-view";
 
 export const generateMetadata = async () =>

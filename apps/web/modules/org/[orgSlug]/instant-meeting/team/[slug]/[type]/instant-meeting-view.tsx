@@ -1,14 +1,11 @@
 "use client";
 
-import type { EmbedProps } from "app/WithEmbedSSR";
-
-import { BookerWebWrapper as Booker } from "@calcom/web/modules/bookings/components/BookerWebWrapper";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
-
+import { BookerWebWrapper as Booker } from "@calcom/web/modules/bookings/components/BookerWebWrapper";
+import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary";
 import type { getServerSideProps } from "@lib/org/[orgSlug]/instant-meeting/team/[slug]/[type]/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
-import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary";
+import type { EmbedProps } from "app/WithEmbedSSR";
 
 export type Props = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 

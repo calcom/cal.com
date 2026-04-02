@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { applyAutoOptIn } from "./applyAutoOptIn";
 
 describe("applyAutoOptIn", () => {

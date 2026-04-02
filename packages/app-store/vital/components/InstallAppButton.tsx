@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import type { InstallAppButtonProps } from "../../types";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {

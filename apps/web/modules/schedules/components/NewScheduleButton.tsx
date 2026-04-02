@@ -1,16 +1,14 @@
-import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { InputField } from "@calcom/ui/components/form";
+import { DialogClose, DialogContent, DialogFooter, DialogTrigger } from "@calcom/ui/components/dialog";
+import { Form, InputField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 
 export function NewScheduleButton({
   name = "new-schedule",
@@ -79,14 +77,11 @@ export function NewScheduleButton({
             placeholder={t("default_schedule_name")}
             {...register("name", {
               setValueAs: (v) => (!v || v.trim() === "" ? null : v),
-              required:t('required'),
-              pattern:{
-                value: new RegExp(
-                  "^[\\p{L}\\p{M}\\p{N}\\s&\\-_'\\u2018\\u2019@.:,/]+$",
-                  "u"
-                ),
-                message:t("invalid_characters_in_name"),
-              }
+              required: t("required"),
+              pattern: {
+                value: /^[\p{L}\p{M}\p{N}\s&\-_'\u2018\u2019@.:,/]+$/u,
+                message: t("invalid_characters_in_name"),
+              },
             })}
           />
           <DialogFooter>

@@ -1,8 +1,7 @@
 /* eslint-disable playwright/missing-playwright-await */
-import { render } from "@testing-library/react";
 
 import type { UserProfile } from "@calcom/types/UserProfile";
-
+import { render } from "@testing-library/react";
 import { UserAvatar } from "./UserAvatar";
 
 const mockUser = {

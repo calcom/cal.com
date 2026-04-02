@@ -1,10 +1,7 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { duplicateHandler } from "./duplicate.handler";
 
 vi.mock("@calcom/prisma", () => ({

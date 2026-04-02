@@ -1,11 +1,11 @@
 import type {
-  EnrichmentDataStore,
   DataRequirements,
-  StoredUser,
+  EnrichmentDataStore,
   StoredAttendee,
   StoredCredential,
+  StoredUser,
 } from "../../service/EnrichmentDataStore";
-import type { IAuditActionService, BaseStoredAuditData } from "../IAuditActionService";
+import type { BaseStoredAuditData, IAuditActionService } from "../IAuditActionService";
 
 type AccessedData = {
   userUuids: Set<string>;

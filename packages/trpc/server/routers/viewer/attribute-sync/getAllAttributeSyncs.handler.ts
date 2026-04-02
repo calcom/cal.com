@@ -1,7 +1,5 @@
 import { getIntegrationAttributeSyncService } from "@calcom/features/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { ZGetAllAttributeSyncsSchema } from "./getAllAttributeSyncs.schema";
 

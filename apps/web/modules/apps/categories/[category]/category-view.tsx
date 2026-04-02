@@ -1,13 +1,10 @@
 "use client";
 
-import Link from "next/link";
-
-import { AppCard } from "@calcom/web/modules/apps/components/AppCard";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-
+import { AppCard } from "@calcom/web/modules/apps/components/AppCard";
 import type { CategoryDataProps } from "@lib/apps/categories/[category]/getStaticProps";
-
+import Link from "next/link";
 import Shell from "~/shell/Shell";
 
 export default function Apps({ apps, category }: CategoryDataProps) {

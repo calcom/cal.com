@@ -1,7 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma as defaultPrisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TeamRepository } from "../../../teams/repositories/TeamRepository";
 
 export interface CanInviteResult {

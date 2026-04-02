@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import type { CalendarEvent } from "../types/events";
 import { buildOverlapGroups, calculateEventLayouts, createLayoutMap, sortEvents } from "./overlap";
 

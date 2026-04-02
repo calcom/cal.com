@@ -1,8 +1,8 @@
-import Stripe from "stripe";
-
+import process from "node:process";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import Stripe from "stripe";
 
 export async function getStripeCustomerIdFromUserId(userId: number) {
   // Get user

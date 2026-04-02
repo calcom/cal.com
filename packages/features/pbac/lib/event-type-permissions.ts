@@ -1,9 +1,8 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
-import { Resource } from "../domain/types/permission-registry";
 import type { PermissionString } from "../domain/types/permission-registry";
+import { Resource } from "../domain/types/permission-registry";
 import { PermissionCheckService } from "../services/permission-check.service";
 
 export interface ResourcePermissions {

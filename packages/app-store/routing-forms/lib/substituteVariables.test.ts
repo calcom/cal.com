@@ -1,6 +1,5 @@
-import { describe, it, expect } from "vitest";
-
-import type { FormResponse, Field } from "../types/types";
+import { describe, expect, it } from "vitest";
+import type { Field, FormResponse } from "../types/types";
 import { substituteVariables } from "./substituteVariables";
 
 describe("substituteVariables", () => {

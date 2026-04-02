@@ -1,10 +1,9 @@
 import { Tasker } from "@calcom/lib/tasker/Tasker";
 import type { ILogger } from "@calcom/lib/tasker/types";
-
 import type { WebhookTaskPayload } from "../types/webhookTask";
+import type { IWebhookTasker, WebhookDeliveryResult } from "./types";
 import type { WebhookSyncTasker } from "./WebhookSyncTasker";
 import type { WebhookTriggerTasker } from "./WebhookTriggerTasker";
-import type { IWebhookTasker, WebhookDeliveryResult } from "./types";
 
 /**
  * Dependencies for WebhookTasker

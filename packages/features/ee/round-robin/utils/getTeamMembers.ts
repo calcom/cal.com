@@ -1,7 +1,6 @@
 import type { getEventTypeResponse } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import { getTranslation } from "@calcom/i18n/server";
-
 import type { BookingSelectResult } from "./bookingSelect";
 
 type Attendee = {

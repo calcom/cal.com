@@ -1,7 +1,5 @@
-import type Stripe from "stripe";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
-
+import type Stripe from "stripe";
 import { getStripeCustomerIdFromUserId, stripe } from "./stripe";
 
 interface RedirectArgs {
@@ -40,7 +38,7 @@ export const withPaidAppRedirect = async ({
           subscription_data: {
             trial_period_days: trialDays,
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore - trial_settings isn't available cc @erik
+            // @ts-expect-error - trial_settings isn't available cc @erik
             trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
           },
         }

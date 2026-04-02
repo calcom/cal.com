@@ -1,10 +1,5 @@
-import { useState } from "react";
-import { useFormContext } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit } from "@calcom/prisma/enums";
-import { TextField } from "@calcom/ui/components/form";
-import { ChevronDownIcon, ChevronUpIcon } from "@coss/ui/icons";
 import {
   Dropdown,
   DropdownItem,
@@ -12,6 +7,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
+import { TextField } from "@calcom/ui/components/form";
+import { ChevronDownIcon, ChevronUpIcon } from "@coss/ui/icons";
+import { useState } from "react";
+import { useFormContext } from "react-hook-form";
 
 const TIME_UNITS = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as const;
 
@@ -37,9 +36,7 @@ const TimeUnitAddonSuffix = ({
       <DropdownMenuTrigger asChild>
         <button className="flex items-center">
           <div className="mr-1 w-3/5">{timeUnit ? timeUnitOptions[timeUnit] : "undefined"}</div>
-          <div className="w-1/4 pt-1">
-            {isDropdownOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
-          </div>
+          <div className="w-1/4 pt-1">{isDropdownOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}</div>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>{DropdownItems}</DropdownMenuContent>

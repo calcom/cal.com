@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { CrmRoutingTraceService } from "./CrmRoutingTraceService";
 import type { RoutingTraceService } from "./RoutingTraceService";
 

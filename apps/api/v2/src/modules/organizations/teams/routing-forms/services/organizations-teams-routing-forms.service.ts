@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-
 import { OrganizationsTeamsRoutingFormsRepository } from "../repositories/organizations-teams-routing-forms.repository";
 
 @Injectable()

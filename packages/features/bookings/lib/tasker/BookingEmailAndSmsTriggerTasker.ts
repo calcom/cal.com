@@ -1,6 +1,5 @@
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
-
-import { IBookingEmailAndSmsTasker } from "./types";
+import type { IBookingEmailAndSmsTasker } from "./types";
 
 export class BookingEmailAndSmsTriggerDevTasker implements IBookingEmailAndSmsTasker {
   constructor(public readonly dependencies: ITaskerDependencies) {}

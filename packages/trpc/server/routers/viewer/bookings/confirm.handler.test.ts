@@ -4,7 +4,7 @@
 // NOTE: All imports except vitest are deferred to inside the skipped describe blocks
 // to prevent module loading side effects during test collection (which can cause
 // "Closing rpc while fetch was pending" errors from Salesforce GraphQL module imports)
-import { describe, beforeEach, vi, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 //eslint-disable-next-line playwright/no-skipped-test
 describe.skip("confirmHandler", () => {

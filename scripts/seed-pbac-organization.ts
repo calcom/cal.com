@@ -1,11 +1,11 @@
-import { uuid } from "short-uuid";
-
+import process from "node:process";
 import type { FeatureId } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import prisma from "@calcom/prisma";
 import { MembershipRole, RoleType } from "@calcom/prisma/enums";
+import { uuid } from "short-uuid";
 
 /**
  * Creates an organization with custom roles and PBAC (Permission-Based Access Control) enabled

@@ -1,7 +1,5 @@
-import type { NextApiRequest } from "next";
-
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-
+import type { NextApiRequest } from "next";
 import checkSession from "../../_utils/auth";
 import { checkInstalled } from "../../_utils/installation";
 

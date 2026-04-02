@@ -1,7 +1,7 @@
+import process from "node:process";
+import PageWrapper from "@components/PageWrapperAppDir";
 import { headers } from "next/headers";
 import Script from "next/script";
-
-import PageWrapper from "@components/PageWrapperAppDir";
 
 export default async function PageWrapperLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();

@@ -1,18 +1,17 @@
 "use client";
 
+import { getOptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
+import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
 import type { FeatureState } from "@calcom/features/flags/config";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Alert } from "@calcom/ui/components/alert";
 import { SettingsToggle, ToggleGroup } from "@calcom/ui/components/form";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-import { CircleAlertIcon, CircleCheckIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { CircleAlertIcon, CircleCheckIcon } from "@coss/ui/icons";
 import type { ReactElement } from "react";
 import { useMemo } from "react";
-
-import { getOptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
-import type { NormalizedFeature, UseFeatureOptInResult } from "@calcom/features/feature-opt-in/types";
 
 interface FeaturesSettingsProps {
   /** The hook result - can be from useUserFeatureOptIn, useTeamFeatureOptIn, or useOrganizationFeatureOptIn */

@@ -1,12 +1,10 @@
-import React from "react";
-import { renderHook, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { BookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
+import type React from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useBookings } from "./useBookings";
 
 const mockBookingMetadataSchema = vi.mocked(bookingMetadataSchema);

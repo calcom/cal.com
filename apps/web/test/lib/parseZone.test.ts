@@ -1,6 +1,5 @@
-import { expect, it } from "vitest";
-
 import { parseZone } from "@calcom/lib/parse-zone";
+import { expect, it } from "vitest";
 
 const EXPECTED_DATE_STRING = "2021-06-20T11:59:59+02:00";
 

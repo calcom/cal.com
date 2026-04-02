@@ -1,8 +1,7 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
-
-import { SkipTakePagination, SortOrder, SortOrderType } from "../../../pagination/pagination.input";
+import { SkipTakePagination, SortOrder, type SortOrderType } from "../../../pagination/pagination.input";
 
 export class GetEventTypesQuery_2024_06_14 {
   @IsOptional()

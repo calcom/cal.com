@@ -1,6 +1,7 @@
+import { Module } from "@nestjs/common";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
-import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { EventTypesController_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/controllers/event-types.controller";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
@@ -22,7 +23,6 @@ import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, MembershipsModule, TokensModule, SelectedCalendarsModule, RedisModule],

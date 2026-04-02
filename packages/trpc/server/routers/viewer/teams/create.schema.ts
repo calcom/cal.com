@@ -1,7 +1,6 @@
-import { z } from "zod";
-
 import slugify from "@calcom/lib/slugify";
 import type { BillingPeriod } from "@calcom/prisma/enums";
+import { z } from "zod";
 
 export type TCreateInputSchema = {
   name: string;

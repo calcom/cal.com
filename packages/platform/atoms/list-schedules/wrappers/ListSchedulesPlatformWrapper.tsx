@@ -1,11 +1,8 @@
-import { AtomsWrapper } from "@/components/atoms-wrapper";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-
 import { ScheduleListItem } from "@calcom/features/schedules/components/ScheduleListItem";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getScheduleListItemData } from "@calcom/lib/schedules/transformers/getScheduleListItemData";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useAtomDuplicateSchedule } from "../../hooks/schedules/useAtomDuplicateSchedule";
 import { useAtomGetAllSchedules } from "../../hooks/schedules/useAtomGetAllSchedules";
 import { useAtomUpdateSchedule } from "../../hooks/schedules/useAtomUpdateSchedule";
@@ -13,6 +10,7 @@ import useDeleteSchedule from "../../hooks/schedules/useDeleteSchedule";
 import { useEnsureDefaultSchedule } from "../../hooks/schedules/useEnsureDefaultSchedule";
 import { useMe } from "../../hooks/useMe";
 import { useToast } from "../../src/components/ui/use-toast";
+import { AtomsWrapper } from "@/components/atoms-wrapper";
 
 interface ListSchedulesPlatformWrapperProps {
   getScheduleUrl?: (scheduleId: number) => string;

@@ -1,20 +1,11 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { UseQueryResult } from "@tanstack/react-query";
-import { useState, memo, useEffect } from "react";
-import { Controller, useFormContext } from "react-hook-form";
-import type { OptionProps, SingleValueProps } from "react-select";
-import { components } from "react-select";
-
-import type { GetAllSchedulesByUserIdQueryType } from "./EventAvailabilityTabWebWrapper";
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import dayjs from "@calcom/dayjs";
 import { SelectSkeletonLoader } from "@calcom/features/availability/components/SkeletonLoader";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { TeamMembers } from "@calcom/web/modules/event-types/components/EventType";
 import type {
   AvailabilityOption,
-  FormValues,
   EventTypeSetup,
+  FormValues,
   HiddenSettings,
   Host,
   SelectClassNames,
@@ -29,13 +20,19 @@ import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { Spinner } from "@calcom/ui/components/icon";
-import { GlobeIcon, UserIcon } from "@coss/ui/icons";
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
+import { Label, Select, SettingsToggle } from "@calcom/ui/components/form";
+import { Spinner } from "@calcom/ui/components/icon";
+import { SkeletonText } from "@calcom/ui/components/skeleton";
+import type { TeamMembers } from "@calcom/web/modules/event-types/components/EventType";
+import { GlobeIcon, UserIcon } from "@coss/ui/icons";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { UseQueryResult } from "@tanstack/react-query";
+import { memo, useEffect, useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
+import type { OptionProps, SingleValueProps } from "react-select";
+import { components } from "react-select";
+import type { GetAllSchedulesByUserIdQueryType } from "./EventAvailabilityTabWebWrapper";
 
 export type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
 
@@ -88,17 +85,17 @@ type EventTypeScheduleDetailsProps = {
 type HostSchedulesQueryType =
   | GetAllSchedulesByUserIdQueryType
   | (({ userId }: { userId: number }) => UseQueryResult<
-    {
-      schedules: {
-        id: number;
-        name: string;
-        isDefault: boolean;
-        userId: number;
-        readOnly: boolean;
-      }[];
-    },
-    Error
-  >);
+      {
+        schedules: {
+          id: number;
+          name: string;
+          isDefault: boolean;
+          userId: number;
+          readOnly: boolean;
+        }[];
+      },
+      Error
+    >);
 
 type EventTypeTeamScheduleProps = {
   hostSchedulesQuery: HostSchedulesQueryType;
@@ -825,7 +822,9 @@ const useRestrictionScheduleState = (initialRestrictionScheduleId: number | null
   };
 };
 
-customClassNames,
+const UseTeamEventScheduleSettingsToggle = ({
+  eventType,
+  customClassNames,
   isRestrictionScheduleEnabled,
   hiddenSettings,
   ...rest
@@ -895,11 +894,7 @@ export const EventAvailabilityTab = ({
   ...rest
 }: EventAvailabilityTabProps) => {
   return isTeamEvent && eventType.schedulingType !== SchedulingType.MANAGED ? (
-    <UseTeamEventScheduleSettingsToggle
-      eventType={eventType}
-      hiddenSettings={hiddenSettings}
-      {...rest}
-    />
+    <UseTeamEventScheduleSettingsToggle eventType={eventType} hiddenSettings={hiddenSettings} {...rest} />
   ) : (
     <>
       {!hiddenSettings?.location?.includes("location") && (

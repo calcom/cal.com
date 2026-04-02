@@ -1,7 +1,5 @@
-import type { NextApiRequest } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
-
+import type { NextApiRequest } from "next";
 import { getSession } from "./getSession";
 
 type CtxOrReq = { req: NextApiRequest; ctx?: never } | { ctx: { req: NextApiRequest }; req?: never };

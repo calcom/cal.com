@@ -1,20 +1,18 @@
-import {
-  BaseWorkflowStepOutputDto,
-  WorkflowTriggerOffsetOutputDto,
-  BaseWorkflowOutput,
-} from "@/modules/workflows/outputs/base-workflow.output";
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import { IsArray, IsEnum, IsIn, IsString, ValidateNested } from "class-validator";
-
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-
 import { EMAIL_HOST, STEP_ACTIONS, StepAction } from "../inputs/workflow-step.input";
 import {
   BEFORE_EVENT,
   EVENT_TYPE_WORKFLOW_TRIGGER_TYPES,
   WorkflowEventTypeTriggerType,
 } from "../inputs/workflow-trigger.input";
+import {
+  BaseWorkflowOutput,
+  BaseWorkflowStepOutputDto,
+  WorkflowTriggerOffsetOutputDto,
+} from "@/modules/workflows/outputs/base-workflow.output";
 
 export const WORKFLOW_TYPE_FORM = "routing-form";
 export const WORKFLOW_TYPE_EVENT_TYPE = "event-type";

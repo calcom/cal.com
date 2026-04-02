@@ -1,5 +1,4 @@
-import type { NextMiddleware } from "next-api-middleware";
-
+import process from "node:process";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { PrismaApiKeyRepository } from "@calcom/features/ee/api-keys/repositories/PrismaApiKeyRepository";
@@ -7,7 +6,7 @@ import { ApiKeyService } from "@calcom/features/ee/api-keys/services/ApiKeyServi
 import { DeploymentRepository } from "@calcom/features/ee/deployment/repositories/DeploymentRepository";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
-
+import type { NextMiddleware } from "next-api-middleware";
 import { isAdminGuard } from "../utils/isAdmin";
 import { isLockedOrBlocked } from "../utils/isLockedOrBlocked";
 import { ScopeOfAdmin } from "../utils/scopeOfAdmin";

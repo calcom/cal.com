@@ -1,11 +1,9 @@
 import { createHash } from "node:crypto";
-
+import process from "node:process";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { prisma } from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TSetPasswordSchema } from "./setPassword.schema";
 

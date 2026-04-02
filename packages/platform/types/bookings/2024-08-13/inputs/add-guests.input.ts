@@ -1,19 +1,18 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsEmail,
-  ArrayMinSize,
-  ArrayMaxSize,
-  IsString,
-  IsOptional,
-  IsTimeZone,
   IsEnum,
+  IsOptional,
+  IsString,
+  IsTimeZone,
   Validate,
   ValidateNested,
 } from "class-validator";
 import { isValidPhoneNumber } from "libphonenumber-js";
-
 import type { BookingLanguageType } from "./language";
 import { BookingLanguage } from "./language";
 

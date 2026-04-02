@@ -1,3 +1,4 @@
+import process from "node:process";
 import logger from "@calcom/lib/logger";
 
 const log = logger.getSubLogger({ prefix: ["sink-url-shortener"] });

@@ -4,7 +4,6 @@ import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAp
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import type { App } from "@calcom/types/App";
-
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";
 

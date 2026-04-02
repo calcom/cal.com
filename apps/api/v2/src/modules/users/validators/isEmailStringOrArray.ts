@@ -1,5 +1,5 @@
-import { ValidatorConstraint } from "class-validator";
 import type { ValidatorConstraintInterface } from "class-validator";
+import { ValidatorConstraint } from "class-validator";
 
 @ValidatorConstraint({ name: "IsEmailStringOrArray", async: false })
 export class IsEmailStringOrArray implements ValidatorConstraintInterface {

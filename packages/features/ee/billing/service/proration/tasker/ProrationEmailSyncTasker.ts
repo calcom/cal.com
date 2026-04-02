@@ -1,6 +1,5 @@
 import { nanoid } from "nanoid";
 import type { Logger } from "tslog";
-
 import type { IProrationEmailTasker } from "./types";
 
 export class ProrationEmailSyncTasker implements IProrationEmailTasker {

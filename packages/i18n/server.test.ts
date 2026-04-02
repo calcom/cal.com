@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { getTranslation, loadTranslations, mergeWithEnglishFallback } from "./server";
 
 describe("mergeWithEnglishFallback", () => {

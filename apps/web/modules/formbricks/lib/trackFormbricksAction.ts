@@ -1,3 +1,4 @@
+import process from "node:process";
 import formbricks from "@formbricks/js";
 
 export const trackFormbricksAction = (

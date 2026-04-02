@@ -3,7 +3,6 @@
 import type { Row, VisibilityState } from "@tanstack/react-table";
 import { noop } from "lodash";
 import { useEffect, useRef } from "react";
-
 import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { useFetchMoreOnBottomReached } from "~/data-table/hooks/useFetchMoreOnBottomReached";

@@ -1,8 +1,7 @@
+import type * as getTranslation from "@calcom/i18n/server";
 import type { TFunction } from "i18next";
 import { beforeEach, vi } from "vitest";
-import { mockReset, mockDeep } from "vitest-mock-extended";
-
-import type * as getTranslation from "@calcom/i18n/server";
+import { mockDeep, mockReset } from "vitest-mock-extended";
 
 vi.mock("@calcom/i18n/server", () => getTranslationMock);
 

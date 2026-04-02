@@ -1,9 +1,8 @@
 /* eslint-disable playwright/no-conditional-in-test */
 
 /* eslint-disable playwright/missing-playwright-await */
-import { render, fireEvent } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { vi } from "vitest";
-
 import { Steps } from "./Steps";
 
 const MAX_STEPS = 10;

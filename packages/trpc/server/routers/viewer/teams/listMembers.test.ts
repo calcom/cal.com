@@ -1,5 +1,4 @@
-import { describe, it, beforeEach, vi, expect } from "vitest";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TrpcSessionUser } from "../../../types";
 import listMembers from "./listMembers.handler";
 

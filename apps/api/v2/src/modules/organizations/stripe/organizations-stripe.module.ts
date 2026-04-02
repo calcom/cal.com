@@ -1,3 +1,4 @@
+import { Module } from "@nestjs/common";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
@@ -9,7 +10,6 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisService } from "@/modules/redis/redis.service";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [StripeModule, PrismaModule],

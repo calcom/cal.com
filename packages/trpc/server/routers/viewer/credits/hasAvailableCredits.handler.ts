@@ -1,5 +1,4 @@
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { THasAvailableCreditsSchema } from "./hasAvailableCredits.schema";
 
 type HasAvailableCreditsOptions = {

@@ -1,8 +1,6 @@
-import { describe, expect, it, vi, beforeAll } from "vitest";
-import type { z } from "zod";
-
 import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
-
+import { beforeAll, describe, expect, it, vi } from "vitest";
+import type { z } from "zod";
 import { shouldChargeNoShowCancellationFee } from "./shouldChargeNoShowCancellationFee";
 
 type EventTypeMetadata = z.infer<typeof eventTypeMetaDataSchemaWithTypedApps>;

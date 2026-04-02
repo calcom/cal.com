@@ -8,43 +8,39 @@
  * They don't intend to test what the apps logic should do, but rather test if the apps are called with the correct data. For testing that, once should write tests within each app.
  */
 import {
-  createBookingScenario,
-  TestData,
-  getDate,
-  getOrganizer,
-  getBooker,
-  getScenarioData,
-  mockSuccessfulVideoMeetingCreation,
-  mockCalendarToHaveNoBusySlots,
   BookingLocations,
+  buildDelegationCredential,
+  createBookingScenario,
   createDelegationCredential,
   createOrganization,
-  buildDelegationCredential,
+  getBooker,
+  getDate,
+  getOrganizer,
+  getScenarioData,
+  mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import process from "node:process";
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import {
-  expectWorkflowToBeTriggered,
-  expectSuccessfulBookingCreationEmails,
-  expectBookingToBeInDatabase,
   expectBookingCreatedWebhookToHaveBeenFired,
-  expectSuccessfulCalendarEventCreationInCalendar,
-  expectICalUIDAsString,
+  expectBookingToBeInDatabase,
   expectBookingToNotHaveReference,
+  expectICalUIDAsString,
   expectNoAttemptToCreateCalendarEvent,
+  expectSuccessfulBookingCreationEmails,
+  expectSuccessfulCalendarEventCreationInCalendar,
+  expectWorkflowToBeTriggered,
 } from "@calcom/testing/lib/bookingScenario/expects";
 import {
   getMockRequestDataForBooking,
   getMockRequestDataForDynamicGroupBooking,
 } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { vi } from "vitest";
-import { describe, expect } from "vitest";
-
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { BookingStatus } from "@calcom/prisma/enums";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
-
+import { describe, expect, vi } from "vitest";
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
 vi.mock("@calcom/app-store/calendar.services.generated", () => {

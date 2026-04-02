@@ -1,12 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import posthog from "posthog-js";
-
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-
+import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { MailIcon } from "./MailIcon";
 
 type CompanyEmailOrganizationBannerProps = {

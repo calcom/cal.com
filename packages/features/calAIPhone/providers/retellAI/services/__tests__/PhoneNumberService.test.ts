@@ -1,14 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import { HttpError } from "@calcom/lib/http-error";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PhoneNumberService } from "../PhoneNumberService";
 import {
-  setupBasicMocks,
-  createMockPhoneNumber,
   createMockDatabaseAgent,
+  createMockPhoneNumber,
   createMockPhoneNumberRecord,
+  setupBasicMocks,
   TestError,
 } from "./test-utils";
 

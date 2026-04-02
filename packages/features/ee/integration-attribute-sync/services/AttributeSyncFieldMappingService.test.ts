@@ -3,7 +3,6 @@ import type { PrismaAttributeRepository } from "@calcom/features/attributes/repo
 import type { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { IFieldMapping } from "../repositories/IIntegrationAttributeSyncRepository";
 import { AttributeSyncFieldMappingService } from "./AttributeSyncFieldMappingService";
 

@@ -1,11 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-
 import classNames from "@calcom/ui/classNames";
 import { Label, TextField } from "@calcom/ui/components/form";
 import { LoaderIcon } from "@coss/ui/icons";
-
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { checkSlugAvailability } from "./action/check-slug-availability";
 
 type ValidationState = "idle" | "checking" | "available" | "taken";
@@ -83,9 +81,7 @@ export function ValidatedOrganizationSlug({
         placeholder="acme"
         addOnSuffix={
           <div className="flex items-center gap-2">
-            {validationState === "checking" && (
-              <LoaderIcon className="text-subtle h-3 w-3 animate-spin" />
-            )}
+            {validationState === "checking" && <LoaderIcon className="text-subtle h-3 w-3 animate-spin" />}
             <span className="text-subtle text-sm">.cal.com</span>
           </div>
         }

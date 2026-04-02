@@ -1,10 +1,8 @@
+import { ConnectedApps, getConnectedApps } from "@calcom/platform-libraries/app-store";
+import type { PrismaClient } from "@calcom/prisma";
+import { Injectable, Logger } from "@nestjs/common";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Logger } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
-
-import { getConnectedApps, ConnectedApps } from "@calcom/platform-libraries/app-store";
-import type { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class ConferencingAtomsService {

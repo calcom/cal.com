@@ -1,9 +1,7 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import LocationSelect from "@calcom/features/form/components/LocationSelect";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import * as React from "react";
 import { vi } from "vitest";
-
-import LocationSelect from "@calcom/features/form/components/LocationSelect";
-
 import { QueryCell } from "../../../lib/QueryCell";
 import { EditLocationDialog } from "../EditLocationDialog";
 
@@ -63,7 +61,7 @@ describe("EditLocationDialog", () => {
     vi.clearAllMocks();
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     QueryCell.mockImplementation(({ success }) => {
       return success({
         data: [
@@ -154,7 +152,7 @@ describe("EditLocationDialog", () => {
     });
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     LocationSelect.mockImplementation(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ({ options, defaultValue, onChange }: { options: any; defaultValue: any; onChange: any }) => {

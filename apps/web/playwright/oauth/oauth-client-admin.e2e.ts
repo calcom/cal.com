@@ -4,8 +4,8 @@ import { test } from "../lib/fixtures";
 import {
   closeOAuthClientDetails,
   createPendingOAuthClient,
-  openOAuthClientDetailsFromList,
   goToAdminOAuthSettings,
+  openOAuthClientDetailsFromList,
 } from "./oauth-client-helpers";
 
 async function expectClientStatusInDb(

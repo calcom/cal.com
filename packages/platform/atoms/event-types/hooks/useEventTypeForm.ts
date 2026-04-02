@@ -2,8 +2,8 @@ import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/check
 import { locationsResolver } from "@calcom/app-store/locations";
 import { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE } from "@calcom/features/calAIPhone/promptTemplates";
 import type { TemplateType } from "@calcom/features/calAIPhone/zod-utils";
-import { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import { stripChildrenForPayload } from "@calcom/features/eventtypes/lib/childrenEventType";
+import { validateCustomEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {
   EventTypeSetupProps,
   EventTypeUpdateInput,

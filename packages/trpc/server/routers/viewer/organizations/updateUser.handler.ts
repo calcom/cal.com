@@ -9,9 +9,7 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import assignUserToAttributeHandler from "../attributes/assignUserToAttribute.handler";
 import type { TUpdateUserInputSchema } from "./updateUser.schema";
 

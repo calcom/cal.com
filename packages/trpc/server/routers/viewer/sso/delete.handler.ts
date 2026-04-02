@@ -5,9 +5,7 @@ import {
   samlTenantID,
   tenantPrefix,
 } from "@calcom/features/ee/sso/lib/saml";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TDeleteInputSchema } from "./delete.schema";
 

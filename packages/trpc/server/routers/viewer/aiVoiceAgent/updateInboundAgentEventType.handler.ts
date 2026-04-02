@@ -3,7 +3,6 @@ import { replaceEventTypePlaceholders } from "@calcom/features/calAIPhone/provid
 import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInboundAgentEventTypeInputSchema } from "./updateInboundAgentEventType.schema";
 

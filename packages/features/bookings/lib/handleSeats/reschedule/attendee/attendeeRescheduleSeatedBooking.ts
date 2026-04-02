@@ -1,15 +1,13 @@
-import { cloneDeep } from "lodash";
-
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails/email-manager";
-import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
-import type { Person, CalendarEvent } from "@calcom/types/Calendar";
-
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import { cloneDeep } from "lodash";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import lastAttendeeDeleteBooking from "../../lib/lastAttendeeDeleteBooking";
-import type { RescheduleSeatedBookingObject, SeatAttendee, NewTimeSlotBooking } from "../../types";
+import type { NewTimeSlotBooking, RescheduleSeatedBookingObject, SeatAttendee } from "../../types";
 
 const attendeeRescheduleSeatedBooking = async (
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,
@@ -103,7 +101,9 @@ const attendeeRescheduleSeatedBooking = async (
   await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
   const copyEventWithVideoCallData = newTimeSlotBooking.references
-    ? CalendarEventBuilder.fromEvent(copyEvent).withVideoCallDataFromReferences(newTimeSlotBooking.references).build()
+    ? CalendarEventBuilder.fromEvent(copyEvent)
+        .withVideoCallDataFromReferences(newTimeSlotBooking.references)
+        .build()
     : copyEvent;
 
   await sendRescheduledSeatEmailAndSMS(

@@ -1,8 +1,24 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { User } from "@calcom/prisma/client";
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
+import { CreateDelegationCredentialInput } from "./inputs/create-delegation-credential.input";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
+  OPTIONAL_API_KEY_HEADER,
   OPTIONAL_X_CAL_CLIENT_ID_HEADER,
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
-  OPTIONAL_API_KEY_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -17,24 +33,6 @@ import { CreateDelegationCredentialOutput } from "@/modules/organizations/delega
 import { DelegationCredentialOutput } from "@/modules/organizations/delegation-credentials/outputs/delegation-credential.output";
 import { UpdateDelegationCredentialOutput } from "@/modules/organizations/delegation-credentials/outputs/update-delegation-credential.output";
 import { OrganizationsDelegationCredentialService } from "@/modules/organizations/delegation-credentials/services/organizations-delegation-credential.service";
-import {
-  Controller,
-  UseGuards,
-  Param,
-  ParseIntPipe,
-  Post,
-  Body,
-  HttpCode,
-  HttpStatus,
-  Patch,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { User } from "@calcom/prisma/client";
-
-import { CreateDelegationCredentialInput } from "./inputs/create-delegation-credential.input";
 
 @Controller({
   path: "/v2/organizations/:orgId/delegation-credentials",

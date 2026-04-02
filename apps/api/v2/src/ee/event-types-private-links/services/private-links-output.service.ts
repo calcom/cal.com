@@ -1,11 +1,10 @@
-import { Injectable } from "@nestjs/common";
-import { plainToClass } from "class-transformer";
-
 import {
   PrivateLinkOutput,
   TimeBasedPrivateLinkOutput,
   UsageBasedPrivateLinkOutput,
 } from "@calcom/platform-types";
+import { Injectable } from "@nestjs/common";
+import { plainToClass } from "class-transformer";
 
 export type PrivateLinkData = {
   id: string;

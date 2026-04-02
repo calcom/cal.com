@@ -1,12 +1,12 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { parseUrlFormData } from "app/api/parseRequestData";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
+import process from "node:process";
 import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.container";
 import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { parseUrlFormData } from "app/api/parseRequestData";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 async function handler(req: NextRequest) {
   const { code, client_id, client_secret, grant_type, redirect_uri, code_verifier } =

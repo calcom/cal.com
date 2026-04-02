@@ -1,11 +1,10 @@
-import { z } from "zod";
-
 import {
   ZActiveFilters,
-  ZSortingState,
   ZColumnSizing,
   ZColumnVisibility,
+  ZSortingState,
 } from "@calcom/features/data-table/lib/types";
+import { z } from "zod";
 
 export const ZListFilterSegmentsInputSchema = z.object({
   tableIdentifier: z.string(),

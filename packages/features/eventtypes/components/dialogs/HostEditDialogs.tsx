@@ -1,27 +1,23 @@
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-import { useFormContext } from "react-hook-form";
-import type { Options } from "react-select";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
+import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
+import WeightDescription from "@calcom/features/eventtypes/components/WeightDescription";
 import type {
   FormValues,
   Host,
   InputClassNames,
   SelectClassNames,
 } from "@calcom/features/eventtypes/lib/types";
-import { groupHostsByGroupId, getHostsFromOtherGroups, sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
+import { getHostsFromOtherGroups, groupHostsByGroupId, sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import { DEFAULT_GROUP_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-
-import type { CheckedSelectOption } from "@calcom/features/eventtypes/components/CheckedTeamSelect";
-import WeightDescription from "@calcom/features/eventtypes/components/WeightDescription";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { Label, Select, TextField } from "@calcom/ui/components/form";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
+import { useFormContext } from "react-hook-form";
+import type { Options } from "react-select";
 
 interface IDialog {
   isOpenDialog: boolean;
@@ -54,7 +50,7 @@ export const PriorityDialog = (
 
   const [newPriority, setNewPriority] = useState<{ label: string; value: number }>();
   const setPriority = () => {
-    if (!!newPriority) {
+    if (newPriority) {
       const hosts: Host[] = getValues("hosts");
       const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
       const hostGroups = getValues("hostGroups");
@@ -141,7 +137,7 @@ export const WeightDialog = (props: IDialog & { customClassNames?: WeightDialogC
   const [newWeight, setNewWeight] = useState<number | undefined>();
 
   const setWeight = () => {
-    if (!!newWeight) {
+    if (newWeight) {
       const hosts: Host[] = getValues("hosts");
       const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
       const hostGroups = getValues("hostGroups");

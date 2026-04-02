@@ -1,13 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { v4 as uuid } from "uuid";
-import { describe, expect, it, vi, beforeAll, afterAll } from "vitest";
-
 import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { prisma } from "@calcom/prisma";
-import type { Team, User, Membership } from "@calcom/prisma/client";
+import type { Membership, Team, User } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
-
+import { v4 as uuid } from "uuid";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   InsightsRoutingBaseService as InsightsRoutingService,
   type InsightsRoutingServicePublicOptions,

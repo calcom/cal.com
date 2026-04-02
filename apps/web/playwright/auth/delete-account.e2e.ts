@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-
 import { test } from "../lib/fixtures";
 
 test.afterEach(({ users }) => users.deleteAll());

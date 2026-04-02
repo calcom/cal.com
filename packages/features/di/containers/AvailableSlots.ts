@@ -1,9 +1,9 @@
+import { prismaModule } from "@calcom/features/di/modules/Prisma";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { redisModule } from "@calcom/features/redis/di/redisModule";
-import { prismaModule } from "@calcom/features/di/modules/Prisma";
-import type { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { membershipRepositoryModule } from "@calcom/features/users/di/MembershipRepository.module";
-import { createContainer, type Container } from "../di";
+import type { AvailableSlotsService } from "@calcom/trpc/server/routers/viewer/slots/util";
+import { type Container, createContainer } from "../di";
 import { availableSlotsModule } from "../modules/AvailableSlots";
 import { bookingRepositoryModule } from "../modules/Booking";
 import { busyTimesModule } from "../modules/BusyTimes";

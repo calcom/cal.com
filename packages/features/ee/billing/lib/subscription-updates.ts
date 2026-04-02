@@ -1,5 +1,4 @@
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
-
 import type { IBillingProviderService } from "../service/billingProvider/IBillingProviderService";
 
 type ProrationBehavior = "none" | "create_prorations" | "always_invoice";

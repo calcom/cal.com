@@ -1,6 +1,5 @@
 import type { INoSlotsNotificationService } from "@calcom/features/slots/handleNotificationWhenNoSlots";
 import { NoSlotsNotificationService } from "@calcom/features/slots/handleNotificationWhenNoSlots";
-
 import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";
 

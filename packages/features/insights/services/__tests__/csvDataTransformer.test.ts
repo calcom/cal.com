@@ -1,17 +1,16 @@
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import {
+  type BookingTimeStatusData,
+  type BookingWithAttendees,
   extractFieldValue,
-  isSystemField,
-  getPhoneFieldsForSeatedEvent,
+  formatCsvRow,
   getAllFieldsForNonSeatedEvent,
+  getPhoneFieldsForSeatedEvent,
+  getUtmDataForBooking,
+  isSystemField,
   processBookingAttendees,
   processBookingsForCsv,
-  formatCsvRow,
   transformBookingsForCsv,
-  getUtmDataForBooking,
-  type BookingWithAttendees,
-  type BookingTimeStatusData,
 } from "../csvDataTransformer";
 
 describe("csvDataTransformer", () => {

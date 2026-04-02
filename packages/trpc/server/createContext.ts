@@ -1,16 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
-import type { Session } from "next-auth";
-import type { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import getIP from "@calcom/lib/getIP";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma, readonlyPrisma } from "@calcom/prisma";
-import type { SelectedCalendar, User as PrismaUser } from "@calcom/prisma/client";
-
+import type { User as PrismaUser, SelectedCalendar } from "@calcom/prisma/client";
 import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
+import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
+import type { Session } from "next-auth";
+import type { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 type CreateContextOptions =
   | (Omit<CreateNextContextOptions, "info"> & {

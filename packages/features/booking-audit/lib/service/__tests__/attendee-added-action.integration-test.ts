@@ -1,19 +1,18 @@
-import { describe, expect, it, beforeEach, afterEach } from "vitest";
-
 import type { BookingStatus } from "@calcom/prisma/enums";
-import type { BookingAuditTaskConsumer } from "../BookingAuditTaskConsumer";
-import type { BookingAuditViewerService } from "../BookingAuditViewerService";
-import { makeUserActor } from "../../makeActor";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { getBookingAuditTaskConsumer } from "../../../di/BookingAuditTaskConsumer.container";
 import { getBookingAuditViewerService } from "../../../di/BookingAuditViewerService.container";
+import { makeUserActor } from "../../makeActor";
+import type { BookingAuditTaskConsumer } from "../BookingAuditTaskConsumer";
+import type { BookingAuditViewerService } from "../BookingAuditViewerService";
 import {
-  createTestUser,
-  createTestOrganization,
-  createTestMembership,
-  createTestEventType,
-  createTestBooking,
-  enableFeatureForOrganization,
   cleanupTestData,
+  createTestBooking,
+  createTestEventType,
+  createTestMembership,
+  createTestOrganization,
+  createTestUser,
+  enableFeatureForOrganization,
 } from "./integration-utils";
 
 describe("Attendee Added Action Integration", () => {

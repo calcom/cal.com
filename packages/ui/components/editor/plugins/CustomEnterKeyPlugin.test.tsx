@@ -7,10 +7,8 @@ import LexicalErrorBoundary from "@lexical/react/LexicalErrorBoundary";
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
-import { render } from "@testing-library/react";
-import { fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
-
+import { fireEvent, render, waitFor } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import ExampleTheme from "../ExampleTheme";
 import { VariableNode } from "../nodes/VariableNode";
 import CustomEnterKeyPlugin from "./customEnterKeyPlugin";

@@ -1,5 +1,5 @@
-import { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
@@ -7,9 +7,7 @@ import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TReportBookingInputSchema } from "./reportBooking.schema";
 
 type ReportBookingOptions = {
@@ -23,7 +21,12 @@ type ReportBookingOptions = {
 
 const log = logger.getSubLogger({ prefix: ["reportBookingHandler"] });
 
-export const reportBookingHandler = async ({ ctx, input, impersonatedByUserUuid, actionSource }: ReportBookingOptions) => {
+export const reportBookingHandler = async ({
+  ctx,
+  input,
+  impersonatedByUserUuid,
+  actionSource,
+}: ReportBookingOptions) => {
   const { user } = ctx;
   const { bookingUid, reason, description } = input;
 

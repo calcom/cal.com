@@ -1,4 +1,5 @@
-import { vi, describe, it, expect, afterEach } from "vitest";
+import process from "node:process";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 // We want to test that the UID cookie set by reserveSlotHandler is configured with the correct
 // SameSite and Secure attributes depending on the environment (http vs https).

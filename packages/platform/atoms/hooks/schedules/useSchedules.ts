@@ -1,13 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
-
 import {
-  V2_ENDPOINTS,
-  SUCCESS_STATUS,
-  VERSION_2024_06_11,
   CAL_API_VERSION_HEADER,
+  SUCCESS_STATUS,
+  V2_ENDPOINTS,
+  VERSION_2024_06_11,
 } from "@calcom/platform-constants";
 import type { GetSchedulesOutput_2024_06_11 } from "@calcom/platform-types";
-
+import { useQuery } from "@tanstack/react-query";
 import http from "../../lib/http";
 import { useAtomsContext } from "../useAtomsContext";
 

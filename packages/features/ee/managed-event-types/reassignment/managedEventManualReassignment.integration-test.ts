@@ -1,7 +1,6 @@
-import { describe, it, vi, expect, beforeAll, afterAll, afterEach } from "vitest";
-
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 const mockEventManagerCreate = vi.fn().mockResolvedValue({ referencesToCreate: [] });
 const mockEventManagerDelete = vi.fn().mockResolvedValue({});

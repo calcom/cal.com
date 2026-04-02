@@ -1,5 +1,3 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
@@ -8,12 +6,10 @@ import { createContext } from "@calcom/trpc/server/createContext";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 import { createCallerFactory } from "@calcom/trpc/server/trpc";
 import type { UserProfile } from "@calcom/types/UserProfile";
-
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
-
 import authMiddleware, { checkPermissions } from "./_auth-middleware";
 
 const patchHandler = async (req: NextApiRequest, res: NextApiResponse) => {

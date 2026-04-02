@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import classNames from "@calcom/ui/classNames";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   LexicalTypeaheadMenuPlugin,
@@ -10,11 +12,7 @@ import type { LexicalEditor } from "lexical";
 import { TextNode } from "lexical";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import classNames from "@calcom/ui/classNames";
-
-import { VariableNode, $createVariableNode } from "../nodes/VariableNode";
+import { $createVariableNode, VariableNode } from "../nodes/VariableNode";
 
 function $findAndTransformVariable(node: TextNode): null | TextNode {
   const text = node.getTextContent();

@@ -1,7 +1,6 @@
 "use client";
 
-import { SkeletonText, SkeletonContainer, SkeletonButton } from "@calcom/ui/components/skeleton";
-
+import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import Shell from "~/shell/Shell";
 
 export function AvailabilityScheduleSkeleton() {

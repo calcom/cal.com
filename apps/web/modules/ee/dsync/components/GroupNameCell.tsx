@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
@@ -7,6 +5,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { PlusIcon, XIcon } from "@coss/ui/icons";
+import { useState } from "react";
 
 interface GroupNameCellProps {
   groupNames: string[];

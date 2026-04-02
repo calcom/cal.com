@@ -1,5 +1,4 @@
 import type { IFeatureOptInService } from "@calcom/features/feature-opt-in/services/IFeatureOptInService";
-
 import { createContainer } from "../di";
 import { moduleLoader as featureOptInServiceModuleLoader } from "../modules/FeatureOptInService";
 

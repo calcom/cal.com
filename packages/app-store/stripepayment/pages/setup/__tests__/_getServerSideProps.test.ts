@@ -1,5 +1,5 @@
 import type { GetServerSidePropsContext } from "next";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock dependencies before imports
 vi.mock("@calcom/features/auth/lib/getServerSession", () => ({
@@ -22,9 +22,9 @@ vi.mock("@calcom/lib/constants", () => ({
   WEBAPP_URL: "https://app.cal.com",
 }));
 
+import process from "node:process";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
-
 import { getStripeAppKeys } from "../../../lib/getStripeAppKeys";
 import { getServerSideProps } from "../_getServerSideProps";
 

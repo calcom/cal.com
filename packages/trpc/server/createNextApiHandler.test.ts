@@ -1,12 +1,10 @@
 import { captureException } from "@sentry/nextjs";
+import type { AnyRouter } from "@trpc/server";
+import { TRPCError } from "@trpc/server";
 import type { NextApiRequest } from "next";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ZodIssue } from "zod";
 import { ZodError } from "zod";
-
-import { TRPCError } from "@trpc/server";
-import type { AnyRouter } from "@trpc/server";
-
 import { createNextApiHandler } from "./createNextApiHandler";
 import { errorFormatter } from "./errorFormatter";
 import { onErrorHandler } from "./onErrorHandler";

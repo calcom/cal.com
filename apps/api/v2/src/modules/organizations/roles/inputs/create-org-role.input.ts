@@ -1,6 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsString, MinLength } from "class-validator";
-
 import { BaseOrgRoleInput } from "./base-org-role.input";
 
 export class CreateOrgRoleInput extends BaseOrgRoleInput {

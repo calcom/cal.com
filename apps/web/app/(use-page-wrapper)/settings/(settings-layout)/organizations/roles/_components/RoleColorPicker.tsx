@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRef, useState } from "react";
 
 export interface RoleColorPickerProps {
   value: string;

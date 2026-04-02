@@ -1,7 +1,4 @@
 import { stringify } from "node:querystring";
-import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
-
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -10,12 +7,13 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
-
+import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 import { invalidateCredential } from "../../_utils/invalidateCredential";
-import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
 import config from "../config.json";
 import { appKeysSchema } from "../zod";
@@ -69,7 +67,7 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
           body: new URLSearchParams({}),
         });
       },
-      isTokenObjectUnusable: async function (response) {
+      isTokenObjectUnusable: async (response) => {
         const myLog = logger.getSubLogger({ prefix: ["nextcloudtalkvideo:isTokenObjectUnusable"] });
         myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
         if (!response.ok || (response.status < 200 && response.status >= 300)) {
@@ -82,7 +80,7 @@ const NextcloudTalkVideoApiAdapter = (credential: CredentialPayload): VideoApiAd
         }
         return null;
       },
-      isAccessTokenUnusable: async function (response) {
+      isAccessTokenUnusable: async (response) => {
         const myLog = logger.getSubLogger({ prefix: ["nextcloudtalkvideo:isAccessTokenUnusable"] });
         myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
         if (!response.ok || (response.status < 200 && response.status >= 300)) {

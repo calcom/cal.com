@@ -1,10 +1,8 @@
+import { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
 import type { PageProps as _PageProps } from "app/_types";
 import { generateAppMetadata } from "app/_utils";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-
-import { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
-
 import AppView from "~/apps/[slug]/slug-view";
 
 const paramsSchema = z.object({

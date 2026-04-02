@@ -3,9 +3,7 @@ import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permi
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { ZEditAttributeSchema } from "./edit.schema";
 import { getOptionsWithValidContains } from "./utils";

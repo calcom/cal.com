@@ -1,19 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { showToast } from "@calcom/ui/components/toast";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-
+import { useState } from "react";
+import { NewOAuthClientButton } from "../oauth/create/NewOAuthClientButton";
 import type { OAuthClientCreateFormValues } from "../oauth/create/OAuthClientCreateModal";
 import { OAuthClientCreateDialog } from "../oauth/create/OAuthClientCreateModal";
 import { OAuthClientPreviewDialog } from "../oauth/create/OAuthClientPreviewDialog";
-import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/view/OAuthClientDetailsDialog";
 import { OAuthClientsList } from "../oauth/OAuthClientsList";
-import { NewOAuthClientButton } from "../oauth/create/NewOAuthClientButton";
-
+import { type OAuthClientDetails, OAuthClientDetailsDialog } from "../oauth/view/OAuthClientDetailsDialog";
 import { OAuthClientsSkeleton } from "./oauth-clients-skeleton";
 
 const OAuthClientsView = () => {

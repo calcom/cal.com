@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { isMonthChange } from "./isMonthChange";
 
 describe("isMonthChange", () => {

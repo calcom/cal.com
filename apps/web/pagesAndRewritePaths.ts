@@ -1,5 +1,4 @@
 import { sync as globSync } from "glob";
-
 import { nextJsOrgRewriteConfig } from "./getNextjsOrgRewriteConfig";
 
 // Top-level route names that are explicitly allowed for org rewrite (whitelist)

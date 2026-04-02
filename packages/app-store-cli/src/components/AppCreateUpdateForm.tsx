@@ -47,7 +47,7 @@ export const AppForm = ({
         template: config.__template,
         externalLinkUrl: config.externalLink?.url || "",
       };
-    } catch (_e) { }
+    } catch (_e) {}
 
   const fields = [
     {
@@ -71,13 +71,13 @@ export const AppForm = ({
     cliTemplate || isEditAction
       ? null
       : {
-        label: "Choose a base Template",
-        name: "template",
-        type: "select",
-        options: Templates,
-        optional: false,
-        defaultValue: "",
-      },
+          label: "Choose a base Template",
+          name: "template",
+          type: "select",
+          options: Templates,
+          optional: false,
+          defaultValue: "",
+        },
     {
       optional: false,
       label: "Category of App",
@@ -122,7 +122,8 @@ export const AppForm = ({
         label: "External Link URL",
         name: "externalLinkUrl",
         type: "text",
-        explainer: "The URL users will be redirected to when they install this app (e.g., https://example.com/signup)",
+        explainer:
+          "The URL users will be redirected to when they install this app (e.g., https://example.com/signup)",
         defaultValue: "https://example.com",
       });
     }
@@ -215,8 +216,9 @@ export const AppForm = ({
             message={{
               text: isEditAction
                 ? `Editing app with slug ${slug}`
-                : `Creating ${action === "create-template" ? "template" : "app"
-                } with name '${name}' categorized in '${category}' using template '${template}'`,
+                : `Creating ${
+                    action === "create-template" ? "template" : "app"
+                  } with name '${name}' categorized in '${category}' using template '${template}'`,
               type: "info",
               showInProgressIndicator: true,
             }}
@@ -281,8 +283,9 @@ export const AppForm = ({
   }
   if (slug && slug !== givenSlug && fs.existsSync(getAppDirPath(slug, isTemplate))) {
     validationResult = {
-      text: `${action === "create" ? "App" : "Template"
-        } with slug ${slug} already exists. If you want to edit it, use edit command`,
+      text: `${
+        action === "create" ? "App" : "Template"
+      } with slug ${slug} already exists. If you want to edit it, use edit command`,
       type: "error",
     };
 
@@ -304,8 +307,9 @@ export const AppForm = ({
         ) : (
           <Message
             message={{
-              text: `\nLet's create your ${isTemplate ? "Template" : "App"
-                }! Start by providing the information that's asked\n`,
+              text: `\nLet's create your ${
+                isTemplate ? "Template" : "App"
+              }! Start by providing the information that's asked\n`,
             }}
           />
         )}

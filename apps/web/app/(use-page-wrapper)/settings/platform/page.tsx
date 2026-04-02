@@ -1,5 +1,4 @@
 import { _generateMetadata } from "app/_utils";
-
 import PlatformView from "~/settings/platform/platform-view";
 
 export const generateMetadata = async () => {

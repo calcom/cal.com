@@ -1,8 +1,8 @@
 "use client";
 
-import { ChartCard } from "@calcom/web/modules/insights/components/ChartCard";
-import { BookingsByHourChartContent } from "@calcom/web/modules/insights/components/booking/BookingsByHourChart";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { BookingsByHourChartContent } from "@calcom/web/modules/insights/components/booking/BookingsByHourChart";
+import { ChartCard } from "@calcom/web/modules/insights/components/ChartCard";
 
 // Sample data for playground testing
 const sampleBookingsByHourStats = [

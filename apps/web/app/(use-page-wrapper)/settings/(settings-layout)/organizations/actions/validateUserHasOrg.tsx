@@ -1,10 +1,8 @@
-import type { Session } from "next-auth";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import type { Session } from "next-auth";
 
 export type ValidatedOrgSession = NonNullable<Session> & {
   user: NonNullable<Session["user"]> & {

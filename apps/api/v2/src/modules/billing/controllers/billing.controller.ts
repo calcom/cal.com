@@ -1,3 +1,24 @@
+import { ApiResponse } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Logger,
+  Param,
+  ParseIntPipe,
+  Post,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { ApiExcludeController } from "@nestjs/swagger";
+import { Request } from "express";
+import Stripe from "stripe";
 import { AppConfig } from "@/config/type";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
@@ -10,28 +31,6 @@ import { SubscribeTeamToBillingResponseDto } from "@/modules/billing/controllers
 import { IsUserInBillingOrg } from "@/modules/billing/guards/is-user-in-billing-org";
 import { IBillingService } from "@/modules/billing/interfaces/billing-service.interface";
 import { StripeService } from "@/modules/stripe/stripe.service";
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-  Headers,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Logger,
-  Delete,
-  ParseIntPipe,
-} from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { ApiExcludeController } from "@nestjs/swagger";
-import { Request } from "express";
-import Stripe from "stripe";
-
-import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/billing",

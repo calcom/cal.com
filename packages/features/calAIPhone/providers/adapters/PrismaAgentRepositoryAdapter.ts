@@ -1,9 +1,8 @@
 import { PrismaAgentRepository } from "@calcom/features/calAIPhone/repositories/PrismaAgentRepository";
 import prisma from "@calcom/prisma";
-
 import type {
-  AgentRepositoryInterface,
   AgentData,
+  AgentRepositoryInterface,
   AgentWithDetailsData,
   AgentWithPhoneNumbersData,
 } from "../interfaces/AgentRepositoryInterface";

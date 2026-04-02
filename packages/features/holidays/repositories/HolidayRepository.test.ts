@@ -1,7 +1,5 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { HolidayRepository } from "./HolidayRepository";
 
 describe("HolidayRepository", () => {

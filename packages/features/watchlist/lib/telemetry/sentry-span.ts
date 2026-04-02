@@ -1,5 +1,4 @@
 import { startSpan } from "@sentry/nextjs";
-
 import type { SpanFn } from "./types";
 
 /**

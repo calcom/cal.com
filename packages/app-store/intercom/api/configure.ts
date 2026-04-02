@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-
 import { handleButtonAndInvitationStep } from "../lib/configure/button";
 import { handleLinkStep } from "../lib/configure/link";
 

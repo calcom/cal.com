@@ -1,14 +1,12 @@
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { createMocks } from "node-mocks-http";
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-
 import prisma from "@calcom/prisma";
 import type { Booking, Credential, EventType, User } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
-
-import { patchHandler } from "../../pages/api/booking-references/[id]/_patch";
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { handler } from "../../pages/api/booking-references/_get";
+import { patchHandler } from "../../pages/api/booking-references/[id]/_patch";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;

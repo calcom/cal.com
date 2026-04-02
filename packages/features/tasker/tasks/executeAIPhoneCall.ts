@@ -14,6 +14,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { CreditUsageType } from "@calcom/prisma/enums";
+
 interface ExecuteAIPhoneCallPayload {
   workflowReminderId: number;
   agentId: string;
@@ -39,9 +40,7 @@ type BookingWithRelations = NonNullable<
  * for backward compatibility.
  * Accepts both FORM_SUBMITTED_WEBHOOK_RESPONSES and CalEventResponses types.
  */
-export function convertResponsesToVariableFormats(
-  responses: Record<string, { value?: unknown }>
-) {
+export function convertResponsesToVariableFormats(responses: Record<string, { value?: unknown }>) {
   return Object.fromEntries(
     Object.entries(responses).flatMap(([key, value]) => {
       const formats = getVariableFormats(key);

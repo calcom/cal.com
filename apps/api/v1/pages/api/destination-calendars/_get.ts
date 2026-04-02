@@ -1,9 +1,7 @@
-import type { NextApiRequest } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest } from "next";
 import { extractUserIdsFromQuery } from "~/lib/utils/extractUserIdsFromQuery";
 import { schemaDestinationCalendarReadPublic } from "~/lib/validations/destination-calendar";
 

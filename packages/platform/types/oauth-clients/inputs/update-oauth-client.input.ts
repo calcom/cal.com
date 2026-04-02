@@ -1,6 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsArray, IsBoolean, IsOptional, IsString } from "class-validator";
-
 import {
   ARE_CALENDAR_EVENTS_ENABLED_DOCS,
   ARE_DEFAULT_EVENT_TYPES_ENABLED_DOCS,

@@ -1,9 +1,8 @@
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse, Redirect } from "next";
-import { redirect, notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, it, vi } from "vitest";
-
 import withEmbedSsrAppDir from "./WithEmbedSSR";
 
 export type CustomNextApiRequest = NextApiRequest & Request;

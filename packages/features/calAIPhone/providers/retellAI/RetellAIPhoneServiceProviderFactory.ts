@@ -1,9 +1,8 @@
 import logger from "@calcom/lib/logger";
-
 import type {
   AIPhoneServiceProvider,
-  AIPhoneServiceProviderFactory,
   AIPhoneServiceProviderConfig,
+  AIPhoneServiceProviderFactory,
   AIPhoneServiceProviderType,
 } from "../../interfaces/AIPhoneService.interface";
 import { PrismaAgentRepositoryAdapter } from "../adapters/PrismaAgentRepositoryAdapter";

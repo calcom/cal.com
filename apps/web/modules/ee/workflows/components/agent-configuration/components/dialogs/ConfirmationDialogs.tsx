@@ -2,8 +2,7 @@
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import { Dialog as UIDialog } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, Dialog as UIDialog } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 
 interface ConfirmationDialogsProps {

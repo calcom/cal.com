@@ -1,9 +1,7 @@
-import { z } from "zod";
-
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
-import { LARK_HOST, getAppKeys, isExpired } from "../common";
+import { z } from "zod";
+import { getAppKeys, isExpired, LARK_HOST } from "../common";
 
 const log = logger.getSubLogger({ prefix: [`[[LarkAppCredential]`] });
 

@@ -1,13 +1,12 @@
 import type logger from "@calcom/lib/logger";
 import { WatchlistType } from "@calcom/prisma/enums";
-
 import type {
   IGlobalWatchlistRepository,
   IOrganizationWatchlistRepository,
 } from "../interface/IWatchlistRepositories";
 import type { IWatchlistService } from "../interface/IWatchlistService";
-import type { WatchlistEntry, CreateWatchlistEntryData, UpdateWatchlistEntryData } from "../types";
-import { normalizeEmail, normalizeDomain } from "../utils/normalization";
+import type { CreateWatchlistEntryData, UpdateWatchlistEntryData, WatchlistEntry } from "../types";
+import { normalizeDomain, normalizeEmail } from "../utils/normalization";
 
 type Deps = {
   globalRepo: IGlobalWatchlistRepository;

@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useState } from "react";
-import type { GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
-import ReactSelect, { components } from "react-select";
-
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import classNames from "@calcom/ui/classNames";
+import React, { useCallback, useEffect, useState } from "react";
+import type { GroupBase, InputProps, MultiValue, Props, SingleValue } from "react-select";
+import ReactSelect, { components } from "react-select";
 
 export type SelectProps<
   Option,

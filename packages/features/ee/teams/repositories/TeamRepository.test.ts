@@ -1,10 +1,7 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import type { Team } from "@calcom/prisma/client";
-
-import { getTeam, getOrg, TeamRepository } from "./TeamRepository";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getOrg, getTeam, TeamRepository } from "./TeamRepository";
 
 const sampleTeamProps = {
   logo: null,

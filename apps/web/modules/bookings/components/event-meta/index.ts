@@ -1,6 +1,6 @@
+export { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
 export { EventDetails, EventMetaBlock } from "./Details";
-export { EventTitle } from "./Title";
-export { EventMetaSkeleton } from "./Skeleton";
 export { EventMembers } from "./Members";
 export { PriceIcon } from "./PriceIcon";
-export { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
+export { EventMetaSkeleton } from "./Skeleton";
+export { EventTitle } from "./Title";

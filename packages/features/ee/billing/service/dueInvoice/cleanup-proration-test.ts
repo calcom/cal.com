@@ -1,4 +1,5 @@
 #!/usr/bin/env npx tsx
+
 /**
  * Cleanup script for proration test data
  *
@@ -9,15 +10,15 @@
  *   --skip-stripe    Skip Stripe API cleanup
  */
 
-import { config } from "dotenv";
 import { resolve } from "node:path";
+import process from "node:process";
+import { config } from "dotenv";
 
 // Load environment variables from .env file
 config({ path: resolve(process.cwd(), ".env") });
 
-import Stripe from "stripe";
-
 import { prisma } from "@calcom/prisma";
+import Stripe from "stripe";
 
 const SKIP_STRIPE = process.argv.includes("--skip-stripe");
 

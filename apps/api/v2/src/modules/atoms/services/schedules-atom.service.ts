@@ -1,15 +1,15 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { UsersRepository } from "@/modules/users/users.repository";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { Logger } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
-
-import { ScheduleRepository, UpdateScheduleResponse } from "@calcom/platform-libraries/schedules";
-import { getScheduleByEventSlugHandler } from "@calcom/platform-libraries/schedules";
-import { updateSchedule } from "@calcom/platform-libraries/schedules";
+import {
+  getScheduleByEventSlugHandler,
+  ScheduleRepository,
+  UpdateScheduleResponse,
+  updateSchedule,
+} from "@calcom/platform-libraries/schedules";
 import { UpdateAtomScheduleDto } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
+import { Injectable, Logger } from "@nestjs/common";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 
 @Injectable()
 export class SchedulesAtomsService {

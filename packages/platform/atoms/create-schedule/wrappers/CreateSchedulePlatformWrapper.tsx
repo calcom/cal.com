@@ -1,13 +1,10 @@
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ApiErrorResponse } from "@calcom/platform-types";
 import { Button } from "@calcom/ui/components/button";
-
+import { useState } from "react";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
-import { CreateScheduleForm } from "../CreateScheduleForm";
-import { ActionButtonsClassNames } from "../CreateScheduleForm";
+import { type ActionButtonsClassNames, CreateScheduleForm } from "../CreateScheduleForm";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 export const CreateSchedulePlatformWrapper = ({
   name,

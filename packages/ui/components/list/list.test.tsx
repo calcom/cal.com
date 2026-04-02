@@ -1,7 +1,6 @@
 /* eslint-disable playwright/missing-playwright-await */
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
-
 import { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./List";
 
 describe("Tests for List component", () => {

@@ -1,10 +1,7 @@
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { describe, expect, it, beforeEach, vi } from "vitest";
-import type { z } from "zod";
-
 import type { CredentialPayload } from "@calcom/types/Credential";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { z } from "zod";
 import type { appDataSchema } from "../zod";
 import type { SalesforceCRM } from "./CrmService";
 import { createSalesforceCrmServiceWithSalesforceType } from "./CrmService";
@@ -125,7 +122,7 @@ describe("SalesforceCRMService", () => {
 
     service = createSalesforceCrmServiceWithSalesforceType(mockCredential, {}, true);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore - accessing private property for testing
+    // @ts-expect-error - accessing private property for testing
     service.conn = Promise.resolve(mockConnection);
   });
 

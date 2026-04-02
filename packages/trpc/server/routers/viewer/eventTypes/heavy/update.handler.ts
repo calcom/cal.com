@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
@@ -29,6 +28,7 @@ import {
 } from "@calcom/prisma/enums";
 import { eventTypeLocations } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
+import crypto from "crypto";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
 import type { TrpcSessionUser } from "../../../../types";
 import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
@@ -242,10 +242,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   // DB slug to avoid @@unique([teamId, slug]) collisions with other team events
   // (e.g. Round Robin events sharing the same user-facing URL).
   let dbSlug = slug;
-  let finalMetadata = metadata;
+  let finalMetadata: any = metadata;
   if (isManagedEventType && teamId && slug) {
     const suffix = crypto.randomBytes(4).toString("hex");
-    const currentMetadata = (metadata as Prisma.InputJsonObject) ?? (eventType.metadata as Prisma.InputJsonObject) ?? {};
+    const currentMetadata =
+      (metadata as Prisma.InputJsonObject) ?? (eventType.metadata as Prisma.InputJsonObject) ?? {};
     finalMetadata = {
       ...currentMetadata,
       managedEventProfileSlug: slug,
@@ -761,7 +762,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const isCalVideoLocationActive = locations
     ? locations.some((location) => location.type === DailyLocationType)
     : parsedEventTypeLocations.success &&
-    parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
+      parsedEventTypeLocations.data?.some((location) => location.type === DailyLocationType);
 
   if (eventType.calVideoSettings && !isCalVideoLocationActive) {
     await CalVideoSettingsRepository.deleteCalVideoSettings(id);

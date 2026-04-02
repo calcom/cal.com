@@ -1,10 +1,10 @@
 // Figure out why routing-forms/env.d.ts doesn't work
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-//@ts-ignore
+//@ts-expect-error
 import type { Operators, Types } from "./BasicConfig";
 import BasicConfig from "./BasicConfig";
-import { ConfigFor } from "./types";
 import type { WidgetsWithoutFactory } from "./types";
+import { ConfigFor } from "./types";
 
 function getWidgetsWithoutFactory(_configFor: ConfigFor) {
   const widgetsWithoutFactory: WidgetsWithoutFactory = {

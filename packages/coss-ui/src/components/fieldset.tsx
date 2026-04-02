@@ -1,7 +1,6 @@
 "use client";
 
 import { Fieldset as FieldsetPrimitive } from "@base-ui/react/fieldset";
-
 import { cn } from "@coss/ui/lib/utils";
 
 function Fieldset({ className, ...props }: FieldsetPrimitive.Root.Props) {
@@ -13,10 +12,7 @@ function Fieldset({ className, ...props }: FieldsetPrimitive.Root.Props) {
     />
   );
 }
-function FieldsetLegend({
-  className,
-  ...props
-}: FieldsetPrimitive.Legend.Props) {
+function FieldsetLegend({ className, ...props }: FieldsetPrimitive.Legend.Props) {
   return (
     <FieldsetPrimitive.Legend
       className={cn("font-semibold text-foreground", className)}

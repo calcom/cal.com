@@ -1,8 +1,6 @@
+import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { withValidation } from "next-validations";
 import { z } from "zod";
-
-import { stringOrNumber } from "@calcom/prisma/zod-utils";
-
 import { baseApiParams } from "./baseApiParams";
 
 // Extracted out as utility function so can be reused

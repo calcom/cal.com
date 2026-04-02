@@ -1,12 +1,12 @@
 "use client";
 
 import type { OptInFeatureConfig } from "@calcom/features/feature-opt-in/config";
-import { FeedbackDialog } from "./FeedbackDialog";
 import type { ReactElement } from "react";
 import { createPortal } from "react-dom";
 import { FeatureOptInBanner } from "./FeatureOptInBanner";
 import type { FeatureOptInMutations } from "./FeatureOptInConfirmDialog";
 import { FeatureOptInConfirmDialog } from "./FeatureOptInConfirmDialog";
+import { FeedbackDialog } from "./FeedbackDialog";
 
 type UserRoleContext = {
   isOrgAdmin: boolean;

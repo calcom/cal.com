@@ -1,10 +1,9 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
 import { HostLocationRepository } from "@calcom/features/host/repositories/HostLocationRepository";
+import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TMassApplyHostLocationInputSchema } from "./massApplyHostLocation.schema";
 

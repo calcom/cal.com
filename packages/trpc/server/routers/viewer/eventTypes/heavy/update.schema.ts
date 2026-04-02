@@ -1,2 +1,2 @@
-export { ZUpdateInputSchema } from "../types";
 export type { TUpdateInputSchema } from "../types";
+export { ZUpdateInputSchema } from "../types";

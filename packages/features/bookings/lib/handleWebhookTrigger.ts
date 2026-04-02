@@ -1,5 +1,5 @@
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { isEventPayload, type WebhookPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { safeStringify } from "@calcom/lib/safeStringify";

@@ -1,5 +1,4 @@
-import type { NextApiRequest } from "next";
-
+import process from "node:process";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { OAuth2UniversalSchema } from "@calcom/app-store/_utils/oauth/universalSchema";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
@@ -9,7 +8,7 @@ import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-
+import type { NextApiRequest } from "next";
 import { schemaCredentialPostBody, schemaCredentialPostParams } from "~/lib/validations/credential-sync";
 
 /**

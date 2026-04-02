@@ -1,14 +1,12 @@
-import withEmbedSsrAppDir from "app/WithEmbedSSR";
-import type { PageProps as ServerPageProps } from "app/_types";
-import { cookies, headers } from "next/headers";
-
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/getServerSideProps";
-
+import type { PageProps as ServerPageProps } from "app/_types";
+import withEmbedSsrAppDir from "app/WithEmbedSSR";
+import { cookies, headers } from "next/headers";
 import type { PageProps as TeamPageProps } from "~/team/team-view";
 import TeamPage from "~/team/team-view";
-import UserPage from "~/users/views/users-public-view";
 import type { PageProps as UserPageProps } from "~/users/views/users-public-view";
+import UserPage from "~/users/views/users-public-view";
 
 const getData = withEmbedSsrAppDir<ClientPageProps>(getServerSideProps);
 

@@ -1,16 +1,42 @@
+import {
+  EVENT_TYPE_READ,
+  EVENT_TYPE_WRITE,
+  SUCCESS_STATUS,
+  X_CAL_CLIENT_ID,
+} from "@calcom/platform-constants";
+import { getEventTypesByViewer, getPublicEvent } from "@calcom/platform-libraries/event-types";
+import type { PrismaClient } from "@calcom/prisma";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  InternalServerErrorException,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
 import { EventTypeIdParams_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-id.input";
 import { GetPublicEventTypeQueryParams_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/get-public-event-type-query-params.input";
 import { UpdateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
 import { CreateEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/create-event-type.output";
 import { DeleteEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/delete-event-type.output";
-import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
 import { GetEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type.output";
-import { GetEventTypesPublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types-public.output";
+import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
 import {
   GetEventTypesData,
   GetEventTypesOutput,
 } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types.output";
+import { GetEventTypesPublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types-public.output";
 import { UpdateEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/update-event-type.output";
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
 import { VERSION_2024_04_15, VERSION_2024_06_11 } from "@/lib/api-versions";
@@ -21,33 +47,6 @@ import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Param,
-  Post,
-  Body,
-  NotFoundException,
-  Patch,
-  HttpCode,
-  HttpStatus,
-  Delete,
-  Query,
-  Headers,
-  InternalServerErrorException,
-  ParseIntPipe,
-} from "@nestjs/common";
-import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-
-import {
-  EVENT_TYPE_READ,
-  EVENT_TYPE_WRITE,
-  SUCCESS_STATUS,
-  X_CAL_CLIENT_ID,
-} from "@calcom/platform-constants";
-import { getPublicEvent, getEventTypesByViewer } from "@calcom/platform-libraries/event-types";
-import type { PrismaClient } from "@calcom/prisma";
 
 @Controller({
   path: "/v2/event-types",

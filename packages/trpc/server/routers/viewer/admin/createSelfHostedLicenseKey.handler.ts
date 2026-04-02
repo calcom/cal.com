@@ -1,8 +1,7 @@
 import * as crypto from "node:crypto";
-import { z } from "zod";
-
+import process from "node:process";
 import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
-
+import { z } from "zod";
 import type { TrpcSessionUser } from "../../../types";
 import type { TCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 

@@ -1,20 +1,17 @@
 import {
-  getDate,
   createBookingScenario,
-  Timezones,
-  TestData,
-  mockCalendar,
   createDelegationCredential,
   createOrganization,
+  getDate,
   getOrganizer,
+  mockCalendar,
+  TestData,
+  Timezones,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-import { expectNoAttemptToGetAvailability } from "@calcom/testing/lib/bookingScenario/expects";
-
-import { describe, test } from "vitest";
-
 import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { expectNoAttemptToGetAvailability } from "@calcom/testing/lib/bookingScenario/expects";
+import { describe, test } from "vitest";
 import { expect, expectedSlotsForSchedule } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 

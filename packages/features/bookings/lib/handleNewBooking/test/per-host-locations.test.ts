@@ -1,26 +1,23 @@
 import {
-  getBooker,
-  TestData,
-  getOrganizer,
-  createBookingScenario,
-  Timezones,
-  getScenarioData,
-  mockSuccessfulVideoMeetingCreation,
   BookingLocations,
+  createBookingScenario,
+  getBooker,
   getDate,
   getGoogleCalendarCredential,
+  getOrganizer,
+  getScenarioData,
   getZoomAppCredential,
   mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
+  Timezones,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import prisma from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { expectBookingToBeInDatabase } from "@calcom/testing/lib/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { describe, test, expect } from "vitest";
-
-import prisma from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
-
+import { describe, expect, test } from "vitest";
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
 describe("Per-Host Locations - handleNewBooking", () => {

@@ -1,6 +1,5 @@
-import { render, screen, cleanup } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
-
 import BookingPageTagManager, { handleEvent } from "./BookingPageTagManager";
 
 // NOTE:  We don't intentionally mock appStoreMetadata as that also tests config.json and generated files for us for no cost. If it becomes a pain in future, we could just start mocking it.
@@ -23,7 +22,7 @@ function setOnWindow(prop: any, value: any) {
 afterEach(() => {
   windowProps.forEach((prop) => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     delete window[prop];
   });
   windowProps.splice(0);

@@ -1,7 +1,6 @@
-import classNames from "classnames";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
+import classNames from "classnames";
 
 type PillColor = "blue" | "green" | "red" | "orange";
 

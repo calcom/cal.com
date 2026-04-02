@@ -1,9 +1,3 @@
-import { extractUserContext } from "@/lib/extract-user-context";
-import { filterReqHeaders } from "@/lib/filterReqHeaders";
-import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
-import { Catch, HttpStatus, Logger } from "@nestjs/common";
-import { Request } from "express";
-
 import {
   BAD_REQUEST,
   CONFLICT,
@@ -13,6 +7,11 @@ import {
 } from "@calcom/platform-constants";
 import type { Response } from "@calcom/platform-types";
 import { Prisma } from "@calcom/prisma/client";
+import type { ArgumentsHost, ExceptionFilter } from "@nestjs/common";
+import { Catch, HttpStatus, Logger } from "@nestjs/common";
+import { Request } from "express";
+import { extractUserContext } from "@/lib/extract-user-context";
+import { filterReqHeaders } from "@/lib/filterReqHeaders";
 
 type PrismaError =
   | Prisma.PrismaClientInitializationError

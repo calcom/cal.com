@@ -7,7 +7,6 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { ButtonProps } from "@calcom/ui/components/button";
 import { Button } from "@calcom/ui/components/button";
-
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
 
 const CreateNewOutOfOfficeEntryButton = ({

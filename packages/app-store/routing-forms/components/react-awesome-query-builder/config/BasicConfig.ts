@@ -1,10 +1,10 @@
 // This is taken from "react-awesome-query-builder/lib/config/basic";
 import type {
   Conjunction as RAQBConjunction,
-  Widget as RAQBWidget,
-  Type as RAQBType,
-  Settings as RAQBSettings,
   Operator as RAQBOperator,
+  Settings as RAQBSettings,
+  Type as RAQBType,
+  Widget as RAQBWidget,
 } from "react-awesome-query-builder";
 
 export type Conjunction = RAQBConjunction;

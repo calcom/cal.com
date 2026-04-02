@@ -1,9 +1,8 @@
+import { ERROR_STATUS, REDIRECT_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { CreateOAuthClientOutput } from "@calcom/platform-types";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsIn, ValidateNested, IsNotEmptyObject } from "class-validator";
-
-import { SUCCESS_STATUS, ERROR_STATUS, REDIRECT_STATUS } from "@calcom/platform-constants";
-import { CreateOAuthClientOutput } from "@calcom/platform-types";
+import { IsIn, IsNotEmptyObject, ValidateNested } from "class-validator";
 
 export class CreateOAuthClientResponseDto {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })

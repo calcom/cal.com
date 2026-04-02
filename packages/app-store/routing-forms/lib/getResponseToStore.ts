@@ -1,9 +1,7 @@
-import type { z } from "zod";
-
 import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
 import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
-
+import type { z } from "zod";
 import type { zodFields } from "../zod";
 
 export const getResponseToStore = ({

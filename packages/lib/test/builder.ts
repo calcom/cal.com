@@ -1,11 +1,10 @@
+import getICalUID from "@calcom/emails/lib/getICalUID";
+import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
+import type { Booking, BookingReference, EventType, Prisma, Webhook } from "@calcom/prisma/client";
+import { BookingStatus, CreationSource } from "@calcom/prisma/enums";
+import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 import { faker } from "@faker-js/faker";
 import type { TFunction } from "i18next";
-
-import getICalUID from "@calcom/emails/lib/getICalUID";
-import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@calcom/prisma/client";
-import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
-import { CreationSource, BookingStatus } from "@calcom/prisma/enums";
-import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 
 export const buildVideoCallData = (callData?: Partial<VideoCallData>): VideoCallData => {
   return {

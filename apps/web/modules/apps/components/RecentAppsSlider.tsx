@@ -1,6 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
-
 import { AppCard } from "./AppCard";
 import { Slider } from "./Slider";
 

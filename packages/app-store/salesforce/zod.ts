@@ -1,7 +1,6 @@
 import { z } from "zod";
-
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
-import { SalesforceRecordEnum, WhenToWriteToRecord, SalesforceFieldType } from "./lib/enums";
+import { SalesforceFieldType, SalesforceRecordEnum, WhenToWriteToRecord } from "./lib/enums";
 
 export const writeToBookingEntry = z.object({
   value: z.union([z.string(), z.boolean()]),

@@ -4,7 +4,6 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TOrgPasswordResetSchema } from "./sendPasswordReset.schema";
 

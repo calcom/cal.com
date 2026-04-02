@@ -1,6 +1,5 @@
 import type { ValidationError } from "class-validator";
 import { IsOptional, Validate, validateSync } from "class-validator";
-
 import { SSRFSafeUrlValidator } from "./ssrfSafeUrlValidator";
 
 const mockValidateUrlForSSRFSync: jest.Mock = jest.fn();

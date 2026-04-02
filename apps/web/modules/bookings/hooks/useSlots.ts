@@ -1,8 +1,6 @@
-import { useEffect, useRef } from "react";
-import { shallow } from "zustand/shallow";
-
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import type { QuickAvailabilityCheck } from "@calcom/features/bookings/Booker/types";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import {
@@ -12,7 +10,8 @@ import {
 } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
-import type { QuickAvailabilityCheck } from "@calcom/features/bookings/Booker/types";
+import { useEffect, useRef } from "react";
+import { shallow } from "zustand/shallow";
 import { useIsQuickAvailabilityCheckFeatureEnabled } from "./useIsQuickAvailabilityCheckFeatureEnabled";
 
 const useQuickAvailabilityChecks = ({

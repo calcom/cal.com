@@ -1,13 +1,11 @@
-import type { User as UserAuth } from "next-auth";
-import posthog from "posthog-js";
-
 import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
 import { useHasActiveTeamPlanAsOwner } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
-
-import { type NavigationItemType } from "./navigation/NavigationItem";
+import type { User as UserAuth } from "next-auth";
+import posthog from "posthog-js";
+import type { NavigationItemType } from "./navigation/NavigationItem";
 
 type BottomNavItemsProps = {
   publicPageUrl: string;

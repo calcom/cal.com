@@ -1,15 +1,6 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnDef } from "@tanstack/react-table";
-import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/react-table";
-import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
 import dayjs from "@calcom/dayjs";
-import { DataTableProvider } from "~/data-table/DataTableProvider";
-import { DataTable, DataTableToolbar } from "~/data-table/components";
-import { useDataTable } from "~/data-table/hooks/useDataTable";
 import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,9 +11,15 @@ import type { UserProfile } from "@calcom/types/UserProfile";
 import { UserAvatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-
+import { keepPreviousData } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { DataTable, DataTableToolbar } from "~/data-table/components";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { UpgradeTip } from "~/shell/UpgradeTip";
-
 import { createTimezoneBuddyStore, TBContext } from "../store";
 import { AvailabilityEditSheet } from "./AvailabilityEditSheet";
 import { CellHighlightContainer } from "./CellHighlightContainer";

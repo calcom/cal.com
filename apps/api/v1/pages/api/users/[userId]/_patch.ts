@@ -1,5 +1,3 @@
-import type { NextApiRequest } from "next";
-
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
@@ -8,7 +6,7 @@ import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-
+import type { NextApiRequest } from "next";
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
 import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validations/user";
 
@@ -150,9 +148,9 @@ export async function patchHandler(req: NextApiRequest) {
 
   if (hasEmailBeenChanged && newEmail) {
     const secondaryEmail = await userRepository.findSecondaryEmailByUserIdAndEmail({
-        userId: query.userId,
-        email: newEmail,
-      });
+      userId: query.userId,
+      email: newEmail,
+    });
 
     if (emailVerification) {
       if (secondaryEmail && secondaryEmail.emailVerified) {

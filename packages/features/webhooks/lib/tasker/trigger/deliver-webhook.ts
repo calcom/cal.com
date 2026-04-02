@@ -1,6 +1,5 @@
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { logger, schemaTask, type TaskWithSchema } from "@trigger.dev/sdk";
-
 import type { WebhookTaskPayload } from "../../types/webhookTask";
 import { webhookDeliveryTaskConfig } from "./config";
 import { webhookDeliveryTaskSchema } from "./schema";

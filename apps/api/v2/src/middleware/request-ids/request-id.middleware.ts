@@ -1,7 +1,7 @@
-import { filterReqHeaders } from "@/lib/filterReqHeaders";
-import { Injectable, NestMiddleware, Logger } from "@nestjs/common";
-import { Request, Response, NextFunction } from "express";
+import { Injectable, Logger, NestMiddleware } from "@nestjs/common";
+import { NextFunction, Request, Response } from "express";
 import { v4 as uuid } from "uuid";
+import { filterReqHeaders } from "@/lib/filterReqHeaders";
 
 @Injectable()
 export class RequestIdMiddleware implements NestMiddleware {

@@ -4,7 +4,6 @@ import { MonthlyProrationTeamRepository } from "@calcom/features/ee/billing/repo
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import logger from "@calcom/lib/logger";
 import type { Logger } from "tslog";
-
 import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
 
 const log = logger.getSubLogger({ prefix: ["HighWaterMarkService"] });

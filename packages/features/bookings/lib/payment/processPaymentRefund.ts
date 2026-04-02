@@ -76,7 +76,7 @@ export const processPaymentRefund = async ({
         ? dayjs(startTime).subtract(refundDaysCount, "days")
         : // businessDaysSubtract exists on extended dayjs instance, but ts is messing up
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
+          //@ts-expect-error
           dayjs(startTime).businessDaysSubtract(refundDaysCount);
     if (dayjs().isAfter(refundDeadline)) return;
   }

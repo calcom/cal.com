@@ -1,5 +1,4 @@
 import type { FeatureState } from "@calcom/features/flags/config";
-
 import type { OptInFeaturePolicy } from "../types";
 
 export type EffectiveStateReason =

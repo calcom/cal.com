@@ -12,7 +12,6 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { redactError } from "@calcom/lib/redactError";
-
 import { ErrorPage } from "@components/error/error-page";
 
 // Adds HttpException to the list of possible error types.

@@ -1,10 +1,9 @@
+import { createMock } from "@golevelup/ts-jest";
+import { ExecutionContext, ForbiddenException } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { RedisService } from "@/modules/redis/redis.service";
-import { createMock } from "@golevelup/ts-jest";
-import { ForbiddenException } from "@nestjs/common";
-import { ExecutionContext } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
 
 describe("PlatformPlanGuard", () => {
   let guard: PlatformPlanGuard;
@@ -38,7 +37,7 @@ describe("PlatformPlanGuard", () => {
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       platformBilling: {
         subscriptionId: "sub_123",
         plan: "SCALE",
@@ -60,7 +59,7 @@ describe("PlatformPlanGuard", () => {
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: false,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       platformBilling: undefined,
     });
 
@@ -72,7 +71,7 @@ describe("PlatformPlanGuard", () => {
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       platformBilling: {
         subscriptionId: null,
         plan: "STARTER",
@@ -87,7 +86,7 @@ describe("PlatformPlanGuard", () => {
     jest.spyOn(organizationsRepository, "findByIdIncludeBilling").mockResolvedValue({
       isPlatform: true,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error
       platformBilling: {
         subscriptionId: "sub_123",
         plan: "STARTER",

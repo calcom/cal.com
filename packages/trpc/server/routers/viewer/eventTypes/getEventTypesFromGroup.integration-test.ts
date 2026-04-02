@@ -1,9 +1,7 @@
-import { describe, it, expect } from "vitest";
-
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import { describe, expect, it } from "vitest";
 import { getEventTypesFromGroup } from "./getEventTypesFromGroup.handler";
 
 describe("getEventTypesFromGroup", async () => {

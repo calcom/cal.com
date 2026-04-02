@@ -9,16 +9,14 @@ import {
   createBookingScenario,
   getBooker,
   getOrganizer,
-  TestData,
   getScenarioData,
+  TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import process from "node:process";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { vi, describe, expect, beforeEach } from "vitest";
-
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
-
+import { beforeEach, describe, expect, vi } from "vitest";
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
 vi.mock("@calcom/features/auth/lib/verifyCodeUnAuthenticated", () => ({

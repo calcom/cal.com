@@ -1,7 +1,5 @@
-import { describe, it, expect } from "vitest";
-
-import { ColumnFilterType, type ColumnFilter } from "@calcom/features/data-table/lib/types";
-
+import { type ColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { describe, expect, it } from "vitest";
 import { extractDateRangeFromColumnFilters, replaceDateRangeColumnFilter } from "../bookingUtils";
 
 describe("extractDateRangeFromColumnFilters", () => {

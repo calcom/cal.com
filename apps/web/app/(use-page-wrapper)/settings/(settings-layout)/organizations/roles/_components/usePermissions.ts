@@ -1,5 +1,8 @@
-import { CrudAction, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
-import { getPermissionsForScope } from "@calcom/features/pbac/domain/types/permission-registry";
+import {
+  CrudAction,
+  getPermissionsForScope,
+  Scope,
+} from "@calcom/features/pbac/domain/types/permission-registry";
 import {
   getTransitiveDependencies,
   getTransitiveDependents,

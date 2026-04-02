@@ -1,10 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ApiSuccessResponse } from "@calcom/platform-types";
-import type { ApiResponse } from "@calcom/platform-types";
+import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 import type { Membership, User } from "@calcom/prisma/client";
-
+import { useQuery } from "@tanstack/react-query";
 import http from "../../lib/http";
 import { useAtomsContext } from "../useAtomsContext";
 

@@ -1,6 +1,5 @@
 import type { Mock } from "vitest";
-import { describe, expect, test, vi, afterEach } from "vitest";
-
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { checkIfFreeEmailDomain } from "./checkIfFreeEmailDomain";
 
 vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => {

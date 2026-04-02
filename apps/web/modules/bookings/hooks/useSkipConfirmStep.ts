@@ -1,11 +1,9 @@
-import { useEffect, useState } from "react";
-
+import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerState } from "@calcom/features/bookings/Booker/types";
 import { getBookingResponsesSchemaWithOptionalChecks } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-
-import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/hooks/useBookingForm";
+import { useEffect, useState } from "react";
 
 export const useSkipConfirmStep = (
   bookingForm: UseBookingFormReturnType["bookingForm"],

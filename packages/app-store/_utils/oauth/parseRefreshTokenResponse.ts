@@ -1,6 +1,6 @@
-import { z } from "zod";
-
+import process from "node:process";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
+import { z } from "zod";
 
 export const minimumTokenResponseSchema = z
   .object({

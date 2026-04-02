@@ -1,9 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
+import process from "node:process";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { BuildCalendarService } from "../lib";
 
@@ -54,7 +53,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           const adminUrl = `${parsedUrl.protocol}//${parsedUrl.hostname}${
             parsedUrl.port ? `:${parsedUrl.port}` : ""
           }/admin/?/settings/standard/`;
-          message = `Couldn\'t connect to caldav account, please verify WebDAV authentication type is set to "Basic"`;
+          message = `Couldn't connect to caldav account, please verify WebDAV authentication type is set to "Basic"`;
           return res.status(500).json({ message, actionUrl: adminUrl });
         }
       }

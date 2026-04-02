@@ -1,8 +1,6 @@
-import { describe, it, expect } from "vitest";
-
 import { BookingDateInPastError, isTimeOutOfBounds } from "@calcom/lib/isOutOfBounds";
-
 import { TRPCError } from "@trpc/server";
+import { describe, expect, it } from "vitest";
 
 describe("BookingDateInPastError handling", () => {
   it("should convert BookingDateInPastError to TRPCError with BAD_REQUEST code", () => {

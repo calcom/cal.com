@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-
 import { convertOffsetToIanaTimezone, normalizeTimezone } from "./timezone-conversion";
 
 vi.mock("@calcom/lib/logger", () => ({

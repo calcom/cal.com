@@ -1,9 +1,7 @@
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
-
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
 import Logout from "~/auth/logout-view";
 
 export const generateMetadata = async () => {

@@ -1,6 +1,5 @@
-import mailhog from "mailhog";
-
 import { IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
+import mailhog from "mailhog";
 
 const unimplemented = () => {
   // throw new Error("Mailhog is not enabled");

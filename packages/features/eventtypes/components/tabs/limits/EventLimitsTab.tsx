@@ -1,4 +1,5 @@
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefinedBufferTimes";
 import type {
   EventTypeSetupProps,
@@ -18,6 +19,7 @@ import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/interval
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
   DateRangePicker,
@@ -29,17 +31,14 @@ import {
 } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { Badge } from "@calcom/ui/components/badge";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
+import Link from "next/link";
 import type { Key } from "react";
 import React, { useEffect, useState } from "react";
 import type { UseFormRegisterReturn, UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
-import Link from "next/link";
-
 import MaxActiveBookingsPerBookerController from "./MaxActiveBookingsPerBookerController";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
@@ -315,19 +314,19 @@ const MinimumBookingNoticeInput = React.forwardRef<
     value: DurationType;
     label: string;
   }[] = [
-      {
-        label: t("minutes"),
-        value: "minutes",
-      },
-      {
-        label: t("hours"),
-        value: "hours",
-      },
-      {
-        label: t("days"),
-        value: "days",
-      },
-    ];
+    {
+      label: t("minutes"),
+      value: "minutes",
+    },
+    {
+      label: t("hours"),
+      value: "hours",
+    },
+    {
+      label: t("days"),
+      value: "days",
+    },
+  ];
 
   const [minimumBookingNoticeDisplayValues, setMinimumBookingNoticeDisplayValues] = useState<{
     type: DurationType;
@@ -410,9 +409,9 @@ export const EventLimitsTab = ({ eventType, customClassNames, hiddenSettings }: 
       | undefined;
     const parentTeam = (
       eventType.parent as
-      | { team?: { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean } }
-      | null
-      | undefined
+        | { team?: { bookingLimits?: IntervalLimit | null; includeManagedEventsInLimits?: boolean } }
+        | null
+        | undefined
     )?.team;
 
     const teamHasLimits = !!team?.bookingLimits && Object.keys(team.bookingLimits).length > 0;
@@ -482,453 +481,457 @@ export const EventLimitsTab = ({ eventType, customClassNames, hiddenSettings }: 
   const offsetAdjustedTime = new Date(offsetOriginalTime.getTime() + watchOffsetStartValue * 60 * 1000);
 
   return (
-        </div >
-      )}
-        <div className="flex flex-col stack-y-4 lg:stack-y-0 lg:flex-row lg:space-x-4">
-          {!hiddenSettings?.limits?.includes("beforeEventBuffer") && (
-            <div
-              className={classNames(
-                "w-full",
-                customClassNames?.bufferAndNoticeSection?.beforeBufferSelect?.container
-              )}>
-              <Label
-                htmlFor="beforeBufferTime"
-                className={customClassNames?.bufferAndNoticeSection?.beforeBufferSelect?.label}>
-                {t("before_event")}
-                {shouldLockIndicator("beforeBufferTime")}
-              </Label>
-              <Controller
-                name="beforeEventBuffer"
-                render={({ field: { onChange, value } }) => {
-                  const beforeBufferOptions = [
-                    {
-                      label: t("event_buffer_default"),
-                      value: 0,
-                    },
-                    ...getDefinedBufferTimes().map((minutes) => ({
-                      label: `${minutes} ${t("minutes")}`,
-                      value: minutes,
-                    })),
-                  ];
-                  return (
-                    <Select
-                      isSearchable={false}
-                      onChange={(val) => {
-                        if (val) onChange(val.value);
-                      }}
-                      isDisabled={shouldLockDisableProps("beforeBufferTime").disabled}
-                      defaultValue={
-                        beforeBufferOptions.find((option) => option.value === value) || beforeBufferOptions[0]
-                      }
-                      options={beforeBufferOptions}
-                      className={classNames(
-                        customClassNames?.bufferAndNoticeSection?.beforeBufferSelect?.select
-                      )}
-                      innerClassNames={
-                        customClassNames?.bufferAndNoticeSection?.beforeBufferSelect?.innerClassNames
-                      }
-                    />
-                  );
-                }}
-              />
-            </div>
-          )}
-          {!hiddenSettings?.limits?.includes("afterEventBuffer") && (
-            <div
-              className={classNames(
-                "w-full",
-                customClassNames?.bufferAndNoticeSection?.afterBufferSelect?.container
-              )}>
-              <Label
-                htmlFor="afterBufferTime"
-                className={customClassNames?.bufferAndNoticeSection?.afterBufferSelect?.label}>
-                {t("after_event")}
-                {shouldLockIndicator("afterBufferTime")}
-              </Label>
-              <Controller
-                name="afterEventBuffer"
-                render={({ field: { onChange, value } }) => {
-                  const afterBufferOptions = [
-                    {
-                      label: t("event_buffer_default"),
-                      value: 0,
-                    },
-                    ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
-                      label: `${minutes} ${t("minutes")}`,
-                      value: minutes,
-                    })),
-                  ];
-                  return (
-                    <Select
-                      isSearchable={false}
-                      onChange={(val) => {
-                        if (val) onChange(val.value);
-                      }}
-                      isDisabled={shouldLockDisableProps("afterBufferTime").disabled}
-                      defaultValue={
-                        afterBufferOptions.find((option) => option.value === value) || afterBufferOptions[0]
-                      }
-                      options={afterBufferOptions}
-                      className={classNames(
-                        customClassNames?.bufferAndNoticeSection?.afterBufferSelect?.select
-                      )}
-                      innerClassNames={
-                        customClassNames?.bufferAndNoticeSection?.afterBufferSelect?.innerClassNames
-                      }
-                    />
-                  );
-                }}
-              />
-            </div>
-          )}
+    <div className="flex flex-col stack-y-4">
+      {!(
+        hiddenSettings?.limits?.includes("beforeEventBuffer") &&
+        hiddenSettings?.limits?.includes("afterEventBuffer") &&
+        hiddenSettings?.limits?.includes("minimumBookingNotice") &&
+        hiddenSettings?.limits?.includes("slotInterval")
+      ) && (
+        <div className="border-subtle rounded-lg border p-6">
+          <div className="flex flex-col stack-y-4 lg:stack-y-0 lg:flex-row lg:space-x-4">
+            {!hiddenSettings?.limits?.includes("beforeEventBuffer") && (
+              <div
+                className={classNames(
+                  "w-full",
+                  customClassNames?.bufferAndNoticeSection?.beforeBufferSelect?.container
+                )}>
+                <Label
+                  htmlFor="beforeBufferTime"
+                  className={customClassNames?.bufferAndNoticeSection?.beforeBufferSelect?.label}>
+                  {t("before_event")}
+                  {shouldLockIndicator("beforeBufferTime")}
+                </Label>
+                <Controller
+                  name="beforeEventBuffer"
+                  render={({ field: { onChange, value } }) => {
+                    const beforeBufferOptions = [
+                      {
+                        label: t("event_buffer_default"),
+                        value: 0,
+                      },
+                      ...getDefinedBufferTimes().map((minutes) => ({
+                        label: `${minutes} ${t("minutes")}`,
+                        value: minutes,
+                      })),
+                    ];
+                    return (
+                      <Select
+                        isSearchable={false}
+                        onChange={(val) => {
+                          if (val) onChange(val.value);
+                        }}
+                        isDisabled={shouldLockDisableProps("beforeBufferTime").disabled}
+                        defaultValue={
+                          beforeBufferOptions.find((option) => option.value === value) ||
+                          beforeBufferOptions[0]
+                        }
+                        options={beforeBufferOptions}
+                        className={classNames(
+                          customClassNames?.bufferAndNoticeSection?.beforeBufferSelect?.select
+                        )}
+                        innerClassNames={
+                          customClassNames?.bufferAndNoticeSection?.beforeBufferSelect?.innerClassNames
+                        }
+                      />
+                    );
+                  }}
+                />
+              </div>
+            )}
+            {!hiddenSettings?.limits?.includes("afterEventBuffer") && (
+              <div
+                className={classNames(
+                  "w-full",
+                  customClassNames?.bufferAndNoticeSection?.afterBufferSelect?.container
+                )}>
+                <Label
+                  htmlFor="afterBufferTime"
+                  className={customClassNames?.bufferAndNoticeSection?.afterBufferSelect?.label}>
+                  {t("after_event")}
+                  {shouldLockIndicator("afterBufferTime")}
+                </Label>
+                <Controller
+                  name="afterEventBuffer"
+                  render={({ field: { onChange, value } }) => {
+                    const afterBufferOptions = [
+                      {
+                        label: t("event_buffer_default"),
+                        value: 0,
+                      },
+                      ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
+                        label: `${minutes} ${t("minutes")}`,
+                        value: minutes,
+                      })),
+                    ];
+                    return (
+                      <Select
+                        isSearchable={false}
+                        onChange={(val) => {
+                          if (val) onChange(val.value);
+                        }}
+                        isDisabled={shouldLockDisableProps("afterBufferTime").disabled}
+                        defaultValue={
+                          afterBufferOptions.find((option) => option.value === value) || afterBufferOptions[0]
+                        }
+                        options={afterBufferOptions}
+                        className={classNames(
+                          customClassNames?.bufferAndNoticeSection?.afterBufferSelect?.select
+                        )}
+                        innerClassNames={
+                          customClassNames?.bufferAndNoticeSection?.afterBufferSelect?.innerClassNames
+                        }
+                      />
+                    );
+                  }}
+                />
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col stack-y-4 lg:stack-y-0 lg:flex-row lg:space-x-4">
+            {!hiddenSettings?.limits?.includes("minimumBookingNotice") && (
+              <div
+                className={classNames(
+                  "w-full",
+                  customClassNames?.bufferAndNoticeSection?.minimumNoticeInput?.container
+                )}>
+                <Label
+                  htmlFor="minimumBookingNotice"
+                  className={customClassNames?.bufferAndNoticeSection?.minimumNoticeInput?.label}>
+                  {t("minimum_booking_notice")}
+                  {shouldLockIndicator("minimumBookingNotice")}
+                </Label>
+                <MinimumBookingNoticeInput
+                  customClassNames={customClassNames?.bufferAndNoticeSection?.minimumNoticeInput}
+                  disabled={shouldLockDisableProps("minimumBookingNotice").disabled}
+                  {...formMethods.register("minimumBookingNotice")}
+                />
+              </div>
+            )}
+            {!hiddenSettings?.limits?.includes("slotInterval") && (
+              <div
+                className={classNames(
+                  "w-full",
+                  customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.container
+                )}>
+                <Label
+                  htmlFor="slotInterval"
+                  className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.label}>
+                  {t("slot_interval")}
+                  {shouldLockIndicator("slotInterval")}
+                </Label>
+                <Controller
+                  name="slotInterval"
+                  render={() => {
+                    const slotIntervalOptions = [
+                      {
+                        label: t("slot_interval_default"),
+                        value: -1,
+                      },
+                      ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
+                        label: `${minutes} ${t("minutes")}`,
+                        value: minutes,
+                      })),
+                    ];
+                    return (
+                      <Select
+                        isSearchable={false}
+                        isDisabled={shouldLockDisableProps("slotInterval").disabled}
+                        onChange={(val) => {
+                          formMethods.setValue(
+                            "slotInterval",
+                            val && (val.value || 0) > 0 ? val.value : null,
+                            {
+                              shouldDirty: true,
+                            }
+                          );
+                        }}
+                        defaultValue={
+                          slotIntervalOptions.find(
+                            (option) => option.value === formMethods.getValues("slotInterval")
+                          ) || slotIntervalOptions[0]
+                        }
+                        options={slotIntervalOptions}
+                        className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select}
+                        innerClassNames={
+                          customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.innerClassNames
+                        }
+                      />
+                    );
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col stack-y-4 lg:stack-y-0 lg:flex-row lg:space-x-4">
-          {!hiddenSettings?.limits?.includes("minimumBookingNotice") && (
-            <div
-              className={classNames(
-                "w-full",
-                customClassNames?.bufferAndNoticeSection?.minimumNoticeInput?.container
-              )}>
-              <Label
-                htmlFor="minimumBookingNotice"
-                className={customClassNames?.bufferAndNoticeSection?.minimumNoticeInput?.label}>
-                {t("minimum_booking_notice")}
-                {shouldLockIndicator("minimumBookingNotice")}
-              </Label>
-              <MinimumBookingNoticeInput
-                customClassNames={customClassNames?.bufferAndNoticeSection?.minimumNoticeInput}
-                disabled={shouldLockDisableProps("minimumBookingNotice").disabled}
-                {...formMethods.register("minimumBookingNotice")}
-              />
-            </div>
-          )}
-          {!hiddenSettings?.limits?.includes("slotInterval") && (
-            <div
-              className={classNames(
-                "w-full",
-                customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.container
-              )}>
-              <Label
-                htmlFor="slotInterval"
-                className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.label}>
-                {t("slot_interval")}
-                {shouldLockIndicator("slotInterval")}
-              </Label>
-              <Controller
-                name="slotInterval"
-                render={() => {
-                  const slotIntervalOptions = [
-                    {
-                      label: t("slot_interval_default"),
-                      value: -1,
-                    },
-                    ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
-                      label: `${minutes} ${t("minutes")}`,
-                      value: minutes,
-                    })),
-                  ];
-                  return (
-                    <Select
-                      isSearchable={false}
-                      isDisabled={shouldLockDisableProps("slotInterval").disabled}
-                      onChange={(val) => {
-                        formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null, {
-                          shouldDirty: true,
-                        });
-                      }}
-                      defaultValue={
-                        slotIntervalOptions.find(
-                          (option) => option.value === formMethods.getValues("slotInterval")
-                        ) || slotIntervalOptions[0]
-                      }
-                      options={slotIntervalOptions}
-                      className={customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.select}
-                      innerClassNames={
-                        customClassNames?.bufferAndNoticeSection?.timeSlotIntervalSelect?.innerClassNames
-                      }
-                    />
-                  );
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </div >
-  {!hiddenSettings?.limits?.includes("bookingLimits") && (
-    <Controller
-      name="bookingLimits"
-      render={({ field: { value } }) => {
-        const isChecked = Object.keys(value ?? {}).length > 0;
-        return (
-          <SettingsToggle
-            toggleSwitchAtTheEnd={true}
-            labelClassName={classNames("text-sm", customClassNames?.bookingFrequencyLimit?.label)}
-            title={t("limit_booking_frequency")}
-            Badge={
-              hasTeamLimits()
-                ? TeamLimitsBadge({ isManagedChild: !!eventType.parent, teamId: eventType.team?.id })
-                : null
-            }
-            {...bookingLimitsLocked}
-            description={
-              <LearnMoreLink
-                t={t}
-                i18nKey="limit_booking_frequency_description"
-                href="https://cal.com/help/event-types/booking-frequency"
-              />
-            }
-            checked={isChecked}
-            onCheckedChange={(active) => {
-              if (active) {
-                formMethods.setValue(
-                  "bookingLimits",
-                  {
-                    PER_DAY: 1,
-                  },
-                  { shouldDirty: true }
-                );
-              } else {
-                formMethods.setValue("bookingLimits", {}, { shouldDirty: true });
-              }
-            }}
-            switchContainerClassName={classNames(
-              "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-              isChecked && "rounded-b-none",
-              customClassNames?.bookingFrequencyLimit?.container
-            )}
-            childrenClassName={classNames("lg:ml-0", customClassNames?.bookingFrequencyLimit?.children)}
-            descriptionClassName={customClassNames?.bookingFrequencyLimit?.description}>
-            <div
-              className={classNames(
-                "border-subtle rounded-b-lg border border-t-0 p-6",
-                customClassNames?.bookingFrequencyLimit?.intervalLimitContainer
-              )}>
-              <IntervalLimitsManager
-                disabled={bookingLimitsLocked.disabled}
-                propertyName="bookingLimits"
-                defaultLimit={1}
-                step={1}
-                customClassNames={customClassNames?.bookingFrequencyLimit?.intervalLimitItem}
-              />
-            </div>
-          </SettingsToggle>
-        );
-      }}
-    />
-  )}
-{
-  !hiddenSettings?.limits?.includes("onlyShowFirstAvailableSlot") && (
-    <Controller
-      name="onlyShowFirstAvailableSlot"
-      render={({ field: { onChange, value } }) => {
-        const isChecked = value;
-        return (
-          <SettingsToggle
-            toggleSwitchAtTheEnd={true}
-            labelClassName={classNames("text-sm", customClassNames?.firstAvailableSlotOnly?.label)}
-            title={t("only_show_first_available_slot")}
-            description={t("only_show_first_available_slot_description")}
-            checked={isChecked}
-            {...onlyFirstAvailableSlotLocked}
-            onCheckedChange={(active) => {
-              onChange(active ?? false);
-            }}
-            switchContainerClassName={classNames(
-              "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-              isChecked && "rounded-b-none",
-              customClassNames?.firstAvailableSlotOnly?.container
-            )}
-            childrenClassName={customClassNames?.firstAvailableSlotOnly?.children}
-            descriptionClassName={customClassNames?.firstAvailableSlotOnly?.description}
-          />
-        );
-      }}
-    />
-  )
-}
-{
-  !hiddenSettings?.limits?.includes("durationLimits") && (
-    <Controller
-      name="durationLimits"
-      render={({ field: { onChange, value } }) => {
-        const isChecked = Object.keys(value ?? {}).length > 0;
-        return (
-          <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.totalDurationLimit?.label)}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-              isChecked && "rounded-b-none",
-              customClassNames?.totalDurationLimit?.container
-            )}
-            childrenClassName={classNames("lg:ml-0", customClassNames?.totalDurationLimit?.children)}
-            descriptionClassName={customClassNames?.totalDurationLimit?.description}
-            title={t("limit_total_booking_duration")}
-            description={t("limit_total_booking_duration_description")}
-            {...durationLimitsLocked}
-            checked={isChecked}
-            onCheckedChange={(active) => {
-              if (active) {
-                onChange({
-                  PER_DAY: 60,
-                });
-              } else {
-                onChange({});
-              }
-            }}>
-            <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
-              <IntervalLimitsManager
-                propertyName="durationLimits"
-                defaultLimit={60}
-                disabled={durationLimitsLocked.disabled}
-                step={15}
-                textFieldSuffix={t("minutes")}
-                customClassNames={customClassNames?.totalDurationLimit?.intervalLimitItem}
-              />
-            </div>
-          </SettingsToggle>
-        );
-      }}
-    />
-  )
-}
-{
-  !hiddenSettings?.limits?.includes("maxActiveBookingsPerBooker") && (
-    <MaxActiveBookingsPerBookerController
-      maxActiveBookingsPerBookerLocked={maxActiveBookingsPerBookerLocked}
-    />
-  )
-}
-{
-  !hiddenSettings?.limits?.includes("periodType") && (
-    <Controller
-      name="periodType"
-      render={({ field: { onChange, value } }) => {
-        const isChecked = value && value !== "UNLIMITED";
-
-        const { value: watchPeriodTypeUiValue, rollingExcludeUnavailableDays } = getUiValueFromPeriodType(
-          formMethods.watch("periodType")
-        );
-
-        return (
-          <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.futureBookingLimit?.label)}
-            toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-              isChecked && "rounded-b-none",
-              customClassNames?.futureBookingLimit?.container
-            )}
-            childrenClassName={classNames("lg:ml-0", customClassNames?.futureBookingLimit?.children)}
-            descriptionClassName={customClassNames?.futureBookingLimit?.description}
-            title={t("limit_future_bookings")}
-            description={
-              <LearnMoreLink
-                t={t}
-                i18nKey="limit_future_bookings_description"
-                href="https://cal.com/help/event-types/limit-future-bookings"
-              />
-            }
-            {...periodTypeLocked}
-            checked={isChecked}
-            onCheckedChange={(isEnabled) => {
-              if (isEnabled && !formMethods.getValues("periodDays")) {
-                formMethods.setValue("periodDays", 30, { shouldDirty: true });
-              }
-              return onChange(isEnabled ? PeriodType.ROLLING : PeriodType.UNLIMITED);
-            }}>
-            <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
-              <RadioGroup.Root
-                value={watchPeriodTypeUiValue}
-                onValueChange={(val) => {
-                  formMethods.setValue(
-                    "periodType",
-                    getPeriodTypeFromUiValue({
-                      value: val as IPeriodType,
-                      rollingExcludeUnavailableDays: formMethods.getValues("rollingExcludeUnavailableDays"),
-                    }),
-                    {
-                      shouldDirty: true,
-                    }
-                  );
-                }}>
-                {(periodTypeLocked.disabled ? watchPeriodTypeUiValue === PeriodType.ROLLING : true) && (
-                  <RollingLimitRadioItem
-                    rollingExcludeUnavailableDays={!!rollingExcludeUnavailableDays}
-                    radioValue={PeriodType.ROLLING}
-                    isDisabled={periodTypeLocked.disabled}
-                    formMethods={formMethods}
-                    customClassNames={customClassNames?.futureBookingLimit?.rollingLimit}
-                    onChange={(opt) => {
-                      formMethods.setValue("periodCountCalendarDays", opt?.value === 1, {
-                        shouldDirty: true,
-                      });
-                    }}
-                  />
-                )}
-                {(periodTypeLocked.disabled ? watchPeriodTypeUiValue === PeriodType.RANGE : true) && (
-                  <RangeLimitRadioItem
-                    radioValue={PeriodType.RANGE}
-                    customClassNames={customClassNames?.futureBookingLimit?.rangeLimit}
-                    isDisabled={periodTypeLocked.disabled}
-                    formMethods={formMethods}
-                  />
-                )}
-              </RadioGroup.Root>
-            </div>
-          </SettingsToggle>
-        );
-      }}
-    />
-  )
-}
-
-{
-  formMethods.getValues("offsetStart") > 0 && (
-    <SettingsToggle
-      labelClassName={classNames("text-sm", customClassNames?.offsetStartTimes?.label)}
-      toggleSwitchAtTheEnd={true}
-      switchContainerClassName={classNames(
-        "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-        offsetToggle && "rounded-b-none",
-        customClassNames?.offsetStartTimes?.container
       )}
-      childrenClassName={classNames("lg:ml-0", customClassNames?.offsetStartTimes?.children)}
-      title={t("offset_toggle")}
-      descriptionClassName={customClassNames?.offsetStartTimes?.description}
-      description={t("offset_toggle_description")}
-      {...offsetStartLockedProps}
-      checked={offsetToggle}
-      onCheckedChange={(active) => {
-        setOffsetToggle(active);
-        if (!active) {
-          formMethods.setValue("offsetStart", 0, { shouldDirty: true });
-        }
-      }}>
-      <div className={classNames("p-6 rounded-b-lg border border-t-0 border-subtle")}>
-        <TextField
-          required
-          type="number"
-          containerClassName={classNames(
-            "max-w-80",
-            customClassNames?.offsetStartTimes?.offsetInput?.container
-          )}
-          labelClassName={customClassNames?.offsetStartTimes?.offsetInput?.label}
-          addOnClassname={customClassNames?.offsetStartTimes?.offsetInput?.addOn}
-          className={customClassNames?.offsetStartTimes?.offsetInput?.input}
-          label={t("offset_start")}
-          {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
-          addOnSuffix={<>{t("minutes")}</>}
-          hint={t("offset_start_description", {
-            originalTime: offsetOriginalTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
-            adjustedTime: offsetAdjustedTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
-          })}
+      {!hiddenSettings?.limits?.includes("bookingLimits") && (
+        <Controller
+          name="bookingLimits"
+          render={({ field: { value } }) => {
+            const isChecked = Object.keys(value ?? {}).length > 0;
+            return (
+              <SettingsToggle
+                toggleSwitchAtTheEnd={true}
+                labelClassName={classNames("text-sm", customClassNames?.bookingFrequencyLimit?.label)}
+                title={t("limit_booking_frequency")}
+                Badge={
+                  hasTeamLimits()
+                    ? TeamLimitsBadge({ isManagedChild: !!eventType.parent, teamId: eventType.team?.id })
+                    : null
+                }
+                {...bookingLimitsLocked}
+                description={
+                  <LearnMoreLink
+                    t={t}
+                    i18nKey="limit_booking_frequency_description"
+                    href="https://cal.com/help/event-types/booking-frequency"
+                  />
+                }
+                checked={isChecked}
+                onCheckedChange={(active) => {
+                  if (active) {
+                    formMethods.setValue(
+                      "bookingLimits",
+                      {
+                        PER_DAY: 1,
+                      },
+                      { shouldDirty: true }
+                    );
+                  } else {
+                    formMethods.setValue("bookingLimits", {}, { shouldDirty: true });
+                  }
+                }}
+                switchContainerClassName={classNames(
+                  "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+                  isChecked && "rounded-b-none",
+                  customClassNames?.bookingFrequencyLimit?.container
+                )}
+                childrenClassName={classNames("lg:ml-0", customClassNames?.bookingFrequencyLimit?.children)}
+                descriptionClassName={customClassNames?.bookingFrequencyLimit?.description}>
+                <div
+                  className={classNames(
+                    "border-subtle rounded-b-lg border border-t-0 p-6",
+                    customClassNames?.bookingFrequencyLimit?.intervalLimitContainer
+                  )}>
+                  <IntervalLimitsManager
+                    disabled={bookingLimitsLocked.disabled}
+                    propertyName="bookingLimits"
+                    defaultLimit={1}
+                    step={1}
+                    customClassNames={customClassNames?.bookingFrequencyLimit?.intervalLimitItem}
+                  />
+                </div>
+              </SettingsToggle>
+            );
+          }}
         />
-      </div>
-    </SettingsToggle>
-  )
-}
-    </div >
+      )}
+      {!hiddenSettings?.limits?.includes("onlyShowFirstAvailableSlot") && (
+        <Controller
+          name="onlyShowFirstAvailableSlot"
+          render={({ field: { onChange, value } }) => {
+            const isChecked = value;
+            return (
+              <SettingsToggle
+                toggleSwitchAtTheEnd={true}
+                labelClassName={classNames("text-sm", customClassNames?.firstAvailableSlotOnly?.label)}
+                title={t("only_show_first_available_slot")}
+                description={t("only_show_first_available_slot_description")}
+                checked={isChecked}
+                {...onlyFirstAvailableSlotLocked}
+                onCheckedChange={(active) => {
+                  onChange(active ?? false);
+                }}
+                switchContainerClassName={classNames(
+                  "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+                  isChecked && "rounded-b-none",
+                  customClassNames?.firstAvailableSlotOnly?.container
+                )}
+                childrenClassName={customClassNames?.firstAvailableSlotOnly?.children}
+                descriptionClassName={customClassNames?.firstAvailableSlotOnly?.description}
+              />
+            );
+          }}
+        />
+      )}
+      {!hiddenSettings?.limits?.includes("durationLimits") && (
+        <Controller
+          name="durationLimits"
+          render={({ field: { onChange, value } }) => {
+            const isChecked = Object.keys(value ?? {}).length > 0;
+            return (
+              <SettingsToggle
+                labelClassName={classNames("text-sm", customClassNames?.totalDurationLimit?.label)}
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+                  isChecked && "rounded-b-none",
+                  customClassNames?.totalDurationLimit?.container
+                )}
+                childrenClassName={classNames("lg:ml-0", customClassNames?.totalDurationLimit?.children)}
+                descriptionClassName={customClassNames?.totalDurationLimit?.description}
+                title={t("limit_total_booking_duration")}
+                description={t("limit_total_booking_duration_description")}
+                {...durationLimitsLocked}
+                checked={isChecked}
+                onCheckedChange={(active) => {
+                  if (active) {
+                    onChange({
+                      PER_DAY: 60,
+                    });
+                  } else {
+                    onChange({});
+                  }
+                }}>
+                <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
+                  <IntervalLimitsManager
+                    propertyName="durationLimits"
+                    defaultLimit={60}
+                    disabled={durationLimitsLocked.disabled}
+                    step={15}
+                    textFieldSuffix={t("minutes")}
+                    customClassNames={customClassNames?.totalDurationLimit?.intervalLimitItem}
+                  />
+                </div>
+              </SettingsToggle>
+            );
+          }}
+        />
+      )}
+      {!hiddenSettings?.limits?.includes("maxActiveBookingsPerBooker") && (
+        <MaxActiveBookingsPerBookerController
+          maxActiveBookingsPerBookerLocked={maxActiveBookingsPerBookerLocked}
+        />
+      )}
+      {!hiddenSettings?.limits?.includes("periodType") && (
+        <Controller
+          name="periodType"
+          render={({ field: { onChange, value } }) => {
+            const isChecked = value && value !== "UNLIMITED";
+
+            const { value: watchPeriodTypeUiValue, rollingExcludeUnavailableDays } = getUiValueFromPeriodType(
+              formMethods.watch("periodType")
+            );
+
+            return (
+              <SettingsToggle
+                labelClassName={classNames("text-sm", customClassNames?.futureBookingLimit?.label)}
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName={classNames(
+                  "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+                  isChecked && "rounded-b-none",
+                  customClassNames?.futureBookingLimit?.container
+                )}
+                childrenClassName={classNames("lg:ml-0", customClassNames?.futureBookingLimit?.children)}
+                descriptionClassName={customClassNames?.futureBookingLimit?.description}
+                title={t("limit_future_bookings")}
+                description={
+                  <LearnMoreLink
+                    t={t}
+                    i18nKey="limit_future_bookings_description"
+                    href="https://cal.com/help/event-types/limit-future-bookings"
+                  />
+                }
+                {...periodTypeLocked}
+                checked={isChecked}
+                onCheckedChange={(isEnabled) => {
+                  if (isEnabled && !formMethods.getValues("periodDays")) {
+                    formMethods.setValue("periodDays", 30, { shouldDirty: true });
+                  }
+                  return onChange(isEnabled ? PeriodType.ROLLING : PeriodType.UNLIMITED);
+                }}>
+                <div className="p-6 rounded-b-lg border border-t-0 border-subtle">
+                  <RadioGroup.Root
+                    value={watchPeriodTypeUiValue}
+                    onValueChange={(val) => {
+                      formMethods.setValue(
+                        "periodType",
+                        getPeriodTypeFromUiValue({
+                          value: val as IPeriodType,
+                          rollingExcludeUnavailableDays: formMethods.getValues(
+                            "rollingExcludeUnavailableDays"
+                          ),
+                        }),
+                        {
+                          shouldDirty: true,
+                        }
+                      );
+                    }}>
+                    {(periodTypeLocked.disabled ? watchPeriodTypeUiValue === PeriodType.ROLLING : true) && (
+                      <RollingLimitRadioItem
+                        rollingExcludeUnavailableDays={!!rollingExcludeUnavailableDays}
+                        radioValue={PeriodType.ROLLING}
+                        isDisabled={periodTypeLocked.disabled}
+                        formMethods={formMethods}
+                        customClassNames={customClassNames?.futureBookingLimit?.rollingLimit}
+                        onChange={(opt) => {
+                          formMethods.setValue("periodCountCalendarDays", opt?.value === 1, {
+                            shouldDirty: true,
+                          });
+                        }}
+                      />
+                    )}
+                    {(periodTypeLocked.disabled ? watchPeriodTypeUiValue === PeriodType.RANGE : true) && (
+                      <RangeLimitRadioItem
+                        radioValue={PeriodType.RANGE}
+                        customClassNames={customClassNames?.futureBookingLimit?.rangeLimit}
+                        isDisabled={periodTypeLocked.disabled}
+                        formMethods={formMethods}
+                      />
+                    )}
+                  </RadioGroup.Root>
+                </div>
+              </SettingsToggle>
+            );
+          }}
+        />
+      )}
+
+      {formMethods.getValues("offsetStart") > 0 && (
+        <SettingsToggle
+          labelClassName={classNames("text-sm", customClassNames?.offsetStartTimes?.label)}
+          toggleSwitchAtTheEnd={true}
+          switchContainerClassName={classNames(
+            "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+            offsetToggle && "rounded-b-none",
+            customClassNames?.offsetStartTimes?.container
+          )}
+          childrenClassName={classNames("lg:ml-0", customClassNames?.offsetStartTimes?.children)}
+          title={t("offset_toggle")}
+          descriptionClassName={customClassNames?.offsetStartTimes?.description}
+          description={t("offset_toggle_description")}
+          {...offsetStartLockedProps}
+          checked={offsetToggle}
+          onCheckedChange={(active) => {
+            setOffsetToggle(active);
+            if (!active) {
+              formMethods.setValue("offsetStart", 0, { shouldDirty: true });
+            }
+          }}>
+          <div className={classNames("p-6 rounded-b-lg border border-t-0 border-subtle")}>
+            <TextField
+              required
+              type="number"
+              containerClassName={classNames(
+                "max-w-80",
+                customClassNames?.offsetStartTimes?.offsetInput?.container
+              )}
+              labelClassName={customClassNames?.offsetStartTimes?.offsetInput?.label}
+              addOnClassname={customClassNames?.offsetStartTimes?.offsetInput?.addOn}
+              className={customClassNames?.offsetStartTimes?.offsetInput?.input}
+              label={t("offset_start")}
+              {...formMethods.register("offsetStart", { setValueAs: (value) => Number(value) })}
+              addOnSuffix={<>{t("minutes")}</>}
+              hint={t("offset_start_description", {
+                originalTime: offsetOriginalTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
+                adjustedTime: offsetAdjustedTime.toLocaleTimeString(i18n.language, { timeStyle: "short" }),
+              })}
+            />
+          </div>
+        </SettingsToggle>
+      )}
+    </div>
   );
 };
 

@@ -1,13 +1,11 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-
+import { userBodySchema } from "@calcom/features/ee/users/schemas/userBodySchema";
 import { getParserWithGeneric } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { usePathname, useRouter } from "next/navigation";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
-import { userBodySchema } from "@calcom/features/ee/users/schemas/userBodySchema";
 import { UserForm } from "../components/UserForm";
 
 const UsersAddView = () => {

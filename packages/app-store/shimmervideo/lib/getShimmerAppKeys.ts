@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import config from "../config.json";
 

@@ -361,9 +361,9 @@ export class BookingAuditViewerService {
    * Collect all data requirements from audit logs and action services
    */
   private collectDataRequirements(auditLogs: BookingAuditWithActor[]): DataRequirements {
-    let actorRequirements: DataRequirements[] = [];
-    let serviceRequirements: DataRequirements[] = [];
-    let contextRequirements: DataRequirements[] = [];
+    const actorRequirements: DataRequirements[] = [];
+    const serviceRequirements: DataRequirements[] = [];
+    const contextRequirements: DataRequirements[] = [];
     for (const log of auditLogs) {
       actorRequirements.push(getActorDataRequirements(log.actor));
 

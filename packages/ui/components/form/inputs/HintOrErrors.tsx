@@ -1,6 +1,5 @@
 import type { FieldValues } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
-
 import { Icon } from "../../icon";
 import { InputError } from "./InputError";
 
@@ -20,7 +19,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
   if (!methods) return null;
   const { formState } = methods;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   const fieldErrors: FieldErrors<T> | undefined = formState.errors[fieldName];
 
   if (!hintErrors && fieldErrors && !fieldErrors.message) {
@@ -101,8 +100,8 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
           // if field was changed, as no error exist, show checked status and color
           const dirty = formState.dirtyFields[fieldName];
           return (
-            <li key={key} className={!!dirty ? "text-green-600" : ""}>
-              {!!dirty ? (
+            <li key={key} className={dirty ? "text-green-600" : ""}>
+              {dirty ? (
                 <Icon
                   name="check"
                   size="12"

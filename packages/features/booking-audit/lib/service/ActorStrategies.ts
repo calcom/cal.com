@@ -1,6 +1,6 @@
+import { getAppNameFromSlug } from "../getAppNameFromSlug";
 import type { AuditActorType } from "../repository/IAuditActorRepository";
 import type { BookingAuditWithActor } from "../repository/IBookingAuditRepository";
-import { getAppNameFromSlug } from "../getAppNameFromSlug";
 import type { DataRequirements, EnrichmentDataStore } from "./EnrichmentDataStore";
 
 type ActorEnrichmentResult = {

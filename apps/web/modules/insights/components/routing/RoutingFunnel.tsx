@@ -1,12 +1,11 @@
 "use client";
 
-import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-
+import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 import { useToggleableLegend } from "@calcom/web/modules/insights/hooks/useToggleableLegend";
 import { ChartCard } from "../ChartCard";
-import { RoutingFunnelContent, legend } from "./RoutingFunnelContent";
+import { legend, RoutingFunnelContent } from "./RoutingFunnelContent";
 import { RoutingFunnelSkeleton } from "./RoutingFunnelSkeleton";
 
 export function RoutingFunnel() {

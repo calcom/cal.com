@@ -1,7 +1,6 @@
-import { ApiProperty as DocsProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiPropertyOptional, ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { Expose, Transform } from "class-transformer";
 import { IsBoolean, IsInt, IsObject, IsOptional, IsString, IsUrl, Length } from "class-validator";
-
 import type { Metadata } from "../../bookings/2024-08-13/inputs/validators/validate-metadata";
 
 export class TeamOutputDto {

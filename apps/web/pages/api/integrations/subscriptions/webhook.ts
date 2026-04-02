@@ -1,12 +1,12 @@
-import { buffer } from "micro";
-import type { NextApiRequest, NextApiResponse } from "next";
-import type Stripe from "stripe";
-
+import process from "node:process";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import { prisma } from "@calcom/prisma";
+import { buffer } from "micro";
+import type { NextApiRequest, NextApiResponse } from "next";
+import type Stripe from "stripe";
 
 export const config = {
   api: {

@@ -1,6 +1,5 @@
 import prisma from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
-
 import { getTokenObjectFromCredential } from "./getTokenObjectFromCredential";
 
 export const markTokenAsExpired = async (credential: CredentialPayload) => {

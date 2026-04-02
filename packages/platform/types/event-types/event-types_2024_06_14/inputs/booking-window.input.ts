@@ -1,20 +1,18 @@
+import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-enums";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
+import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import {
-  IsEnum,
-  IsNumber,
-  IsArray,
   ArrayNotEmpty,
+  IsArray,
+  IsBoolean,
   IsDateString,
   IsDefined,
+  IsEnum,
+  IsNumber,
   IsOptional,
-  ValidatorConstraint,
   registerDecorator,
-  IsBoolean,
+  ValidatorConstraint,
 } from "class-validator";
-
-import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-enums";
-
 import type { Disabled_2024_06_14 } from "./disabled.input";
 
 export type BookingWindowPeriodInputType_2024_06_14 = "businessDays" | "calendarDays" | "range";
@@ -150,7 +148,7 @@ class BookingWindowValidator implements ValidatorConstraintInterface {
 }
 
 export function ValidateBookingWindow(validationOptions?: ValidationOptions) {
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateBookingWindow",
       target: object.constructor,

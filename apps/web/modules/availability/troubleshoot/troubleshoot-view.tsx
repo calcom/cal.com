@@ -1,9 +1,8 @@
 "use client";
 
+import { Loader } from "@calcom/ui/components/skeleton";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
-
-import { Loader } from "@calcom/ui/components/skeleton";
 
 const TroubleshooterClientOnly = dynamic(
   () =>

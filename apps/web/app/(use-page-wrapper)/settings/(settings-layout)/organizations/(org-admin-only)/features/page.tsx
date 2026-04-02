@@ -1,14 +1,10 @@
-import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-
-import { _generateMetadata } from "app/_utils";
-
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { _generateMetadata } from "app/_utils";
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import OrganizationFeaturesView from "~/ee/organizations/features-view";
-
 import { validateUserHasOrg } from "../../actions/validateUserHasOrg";
 
 export const generateMetadata = async (): Promise<Metadata> =>

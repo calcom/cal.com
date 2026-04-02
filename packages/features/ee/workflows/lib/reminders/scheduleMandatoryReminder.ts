@@ -5,8 +5,7 @@ import type { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEve
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { TraceContext } from "@calcom/lib/tracing";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
-import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
-
+import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { ExtendedCalendarEvent } from "./reminderScheduler";
 
 export type NewBookingEventType = Awaited<ReturnType<typeof getDefaultEvent>> | getEventTypeResponse;

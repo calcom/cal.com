@@ -1,3 +1,17 @@
+import process from "node:process";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
+// Probably don't need
+// import { CALENDAR_INTEGRATIONS_TYPES } from "@calcom/lib/integrations/calendar/constants/generals";
+import logger from "@calcom/lib/logger";
+import type {
+  Calendar,
+  CalendarEvent,
+  EventBusyDate,
+  GetAvailabilityParams,
+  IntegrationCalendar,
+  NewCalendarEventType,
+} from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 import {
   Appointment,
   Attendee,
@@ -19,20 +33,6 @@ import {
   WebCredentials,
   WellKnownFolderName,
 } from "ews-javascript-api";
-
-import { symmetricDecrypt } from "@calcom/lib/crypto";
-// Probably don't need
-// import { CALENDAR_INTEGRATIONS_TYPES } from "@calcom/lib/integrations/calendar/constants/generals";
-import logger from "@calcom/lib/logger";
-import type {
-  Calendar,
-  CalendarEvent,
-  EventBusyDate,
-  GetAvailabilityParams,
-  IntegrationCalendar,
-  NewCalendarEventType,
-} from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
 
 class ExchangeCalendarService implements Calendar {
   private url = "";
@@ -166,7 +166,7 @@ class ExchangeCalendarService implements Calendar {
             calendarFolderId,
             new CalendarView(DateTime.Parse(dateFrom), DateTime.Parse(dateTo))
           )
-          .then(function (params) {
+          .then((params) => {
             const ret: EventBusyDate[] = [];
 
             for (let k = 0; k < params.Items.length; k++) {

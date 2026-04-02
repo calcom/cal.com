@@ -1,8 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { z } from "zod";
-
 import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 import { getBookingData } from "./getBookingData";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 

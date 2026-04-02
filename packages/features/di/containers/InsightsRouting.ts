@@ -1,12 +1,11 @@
+import { prismaModule } from "@calcom/features/di/modules/Prisma";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import type {
-  InsightsRoutingServicePublicOptions,
-  InsightsRoutingServiceFilterOptions,
   InsightsRoutingBaseService,
+  InsightsRoutingServiceFilterOptions,
+  InsightsRoutingServicePublicOptions,
 } from "@calcom/features/insights/services/InsightsRoutingBaseService";
 import type { InsightsRoutingService } from "@calcom/features/insights/services/InsightsRoutingDIService";
-import { prismaModule } from "@calcom/features/di/modules/Prisma";
-
 import { createContainer } from "../di";
 import { insightsRoutingModule } from "../modules/InsightsRouting";
 

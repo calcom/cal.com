@@ -1,9 +1,5 @@
 "use client";
 
-import posthog from "posthog-js";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { NewTeamFormValues } from "@calcom/features/ee/teams/lib/types";
@@ -14,10 +10,12 @@ import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogFooter } from "@calcom/ui/components/dialog";
-import { Form } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
+import { Form, TextField } from "@calcom/ui/components/form";
 import { revalidateEventTypesList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/event-types/actions";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import posthog from "posthog-js";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 interface CreateANewTeamFormProps {
   onCancel: () => void;

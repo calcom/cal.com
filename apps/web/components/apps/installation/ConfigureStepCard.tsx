@@ -1,12 +1,3 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { Dispatch, SetStateAction } from "react";
-import type { FC } from "react";
-import React, { forwardRef, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { useFieldArray, useFormContext } from "react-hook-form";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
 import type { LocationObject } from "@calcom/app-store/locations";
 import { locationsResolver } from "@calcom/app-store/locations";
 import NoSSR from "@calcom/lib/components/NoSSR";
@@ -17,11 +8,16 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
-
 import EventTypeAppSettingsWrapper from "@components/apps/installation/EventTypeAppSettingsWrapper";
 import EventTypeConferencingAppSettings from "@components/apps/installation/EventTypeConferencingAppSettings";
-
-import type { TEventType, TEventTypesForm, TEventTypeGroup } from "~/apps/installation/[[...step]]/step-view";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type React from "react";
+import type { Dispatch, FC, SetStateAction } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useFieldArray, useForm, useFormContext } from "react-hook-form";
+import { z } from "zod";
+import type { TEventType, TEventTypeGroup, TEventTypesForm } from "~/apps/installation/[[...step]]/step-view";
 
 export type TFormType = {
   id: number;

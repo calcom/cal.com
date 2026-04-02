@@ -1,14 +1,12 @@
-import { expect } from "@playwright/test";
-import type { Page, Browser, Route, Response } from "@playwright/test";
-import type { z } from "zod";
-
 import { prisma } from "@calcom/prisma";
-import type { Team, EventType, User } from "@calcom/prisma/client";
+import type { EventType, Team, User } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
-import { test } from "./lib/fixtures";
+import type { Browser, Page, Response, Route } from "@playwright/test";
+import { expect } from "@playwright/test";
+import type { z } from "zod";
 import type { Fixtures } from "./lib/fixtures";
+import { test } from "./lib/fixtures";
 import { bookTimeSlot, doOnOrgDomain, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 /**

@@ -1,13 +1,13 @@
 "use client";
 
-import ConnectionInfo from "./ConnectionInfo";
-import OIDCConnection from "./OIDCConnection";
-import SAMLConnection from "./SAMLConnection";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
+import ConnectionInfo from "./ConnectionInfo";
+import OIDCConnection from "./OIDCConnection";
+import SAMLConnection from "./SAMLConnection";
 
 const SkeletonLoader = () => {
   return (

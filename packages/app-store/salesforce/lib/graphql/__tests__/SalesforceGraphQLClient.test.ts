@@ -1,17 +1,16 @@
-import { describe, it, vi, expect, beforeEach } from "vitest";
-
-import { RRSkipFieldRuleActionEnum } from "../../../zod";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RRSkipFieldRule } from "../../../zod";
+import { RRSkipFieldRuleActionEnum } from "../../../zod";
 import { SalesforceRecordEnum } from "../../enums";
 import { SalesforceGraphQLClient } from "../SalesforceGraphQLClient";
 import {
-  mockValueOfAccountOwnershipQueryMatchingContact,
   mockValueOfAccountOwnershipQueryMatchingAccountWebsite,
+  mockValueOfAccountOwnershipQueryMatchingContact,
   mockValueOfAccountOwnershipQueryMatchingRelatedContacts,
-  mockValueOfContactWithFieldRuleFields,
-  mockValueOfMultipleContactsWithFieldRuleFields,
   mockValueOfAccountWithFieldRuleFields,
+  mockValueOfContactWithFieldRuleFields,
   mockValueOfMultipleAccountsWithFieldRuleFields,
+  mockValueOfMultipleContactsWithFieldRuleFields,
   mockValueOfRelatedContactsWithFieldRuleFields,
 } from "./urqlMock";
 

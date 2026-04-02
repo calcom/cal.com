@@ -1,9 +1,9 @@
+import process from "node:process";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter } from "@calcom/types/VideoApiAdapter";
-
 import { getHuddle01Credential } from "../utils/storage";
 
 const API_END_POINT = "https://platform-api.huddle01.workers.dev/api/v2/calendar";

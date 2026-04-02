@@ -1,12 +1,7 @@
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import { getTabForBooking } from "./useSwitchToCorrectStatusTab";
 
-function makeBooking(overrides: {
-  status: string;
-  endTime: Date;
-  recurringEventId?: string | null;
-}){
+function makeBooking(overrides: { status: string; endTime: Date; recurringEventId?: string | null }) {
   return {
     status: overrides.status,
     endTime: overrides.endTime,

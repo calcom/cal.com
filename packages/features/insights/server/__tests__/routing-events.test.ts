@@ -1,7 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { readonlyPrisma } from "@calcom/prisma";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RoutingEventsInsights } from "../routing-events";
 
 vi.mock("@calcom/prisma", () => ({
@@ -24,7 +22,7 @@ describe("RoutingEventsInsights", () => {
       organizationId?: number | null;
       routingFormId?: string | null;
     }) {
-      return super.getWhereForTeamOrAllTeams(params);
+      return RoutingEventsInsights.getWhereForTeamOrAllTeams(params);
     }
   }
 

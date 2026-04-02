@@ -1,12 +1,9 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
+import { buildBooking, buildEventType } from "@calcom/lib/test/builder";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, test, vi, afterEach, beforeEach } from "vitest";
-
-import { buildBooking, buildEventType } from "@calcom/lib/test/builder";
-
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import handler from "../../../../pages/api/bookings/[id]/_patch";
 
 type CustomNextApiRequest = NextApiRequest & Request;

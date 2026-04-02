@@ -10,7 +10,6 @@ import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button, buttonClasses } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
-import { ChevronDownIcon, InfoIcon, SearchIcon, UploadIcon } from "@coss/ui/icons";
 import {
   Sheet,
   SheetBody,
@@ -22,6 +21,7 @@ import {
 } from "@calcom/ui/components/sheet";
 import { showToast } from "@calcom/ui/components/toast";
 import { useTeamMembersWithSegment } from "@calcom/web/modules/event-types/hooks/useTeamMembersWithSegment";
+import { ChevronDownIcon, InfoIcon, SearchIcon, UploadIcon } from "@coss/ui/icons";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -284,9 +284,7 @@ export const EditWeightsForAllTeamMembers = ({
                 placeholder={t("search")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value.toLowerCase())}
-                addOnLeading={
-                  <SearchIcon className="text-subtle h-4 w-4" />
-                }
+                addOnLeading={<SearchIcon className="text-subtle h-4 w-4" />}
               />
 
               <div className="flex max-h-[80dvh] flex-col overflow-y-auto rounded-md border">

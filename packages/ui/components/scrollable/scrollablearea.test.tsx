@@ -1,5 +1,4 @@
 import { render } from "@testing-library/react";
-
 import { ScrollableArea } from "./ScrollableArea";
 
 describe("Tests for ScrollableArea Component", () => {

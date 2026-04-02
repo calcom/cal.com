@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { Calendar } from "@calcom/features/calendars/weeklyview/components/Calendar";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import type { CalendarComponentProps, Hours } from "@calcom/features/calendars/weeklyview/types/state";
+import { useState } from "react";
 
 const makeDate = (dayOffset: number, hour: number, minute: number = 0) => {
   return dayjs("2025-01-06").add(dayOffset, "day").hour(hour).minute(minute).second(0).toDate();

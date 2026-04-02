@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { BookingReportReason } from "@calcom/prisma/enums";
+import { z } from "zod";
 
 export type TReportBookingInputSchema = {
   bookingUid: string;

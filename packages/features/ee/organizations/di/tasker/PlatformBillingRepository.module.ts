@@ -1,7 +1,6 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 import { PlatformBillingRepository } from "@calcom/features/ee/organizations/repositories/PlatformBillingRepository";
-
 import { PLATFORM_BILLING_TASKER_DI_TOKENS } from "./tokens";
 
 const thisModule = createModule();

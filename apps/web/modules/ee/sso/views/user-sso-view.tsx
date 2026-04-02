@@ -1,11 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import SSOConfiguration from "../components/SSOConfiguration";
 
 const SAMLSSO = () => {

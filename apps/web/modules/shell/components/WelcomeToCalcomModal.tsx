@@ -6,7 +6,6 @@ import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Logo } from "@calcom/ui/components/logo";
 import { CheckIcon, UserIcon } from "@coss/ui/icons";
-
 import { useWelcomeToCalcomModal } from "../hooks/useWelcomeToCalcomModal";
 
 const features = [

@@ -1,5 +1,5 @@
-import { zodNonRouterField, routingFormResponseInDbSchema } from "./zod";
 import type { RoutingFormResponseData } from "./types";
+import { routingFormResponseInDbSchema, zodNonRouterField } from "./zod";
 
 export function parseRoutingFormResponse(rawResponse: unknown, formFields: unknown): RoutingFormResponseData {
   const response = routingFormResponseInDbSchema.parse(rawResponse);

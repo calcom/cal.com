@@ -1,8 +1,7 @@
-import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
+import type { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import type { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
-import { MembershipRole, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
-
+import { MembershipRole, type WatchlistSource, type WatchlistType } from "@calcom/prisma/enums";
 import { WatchlistErrors } from "../errors/WatchlistErrors";
 
 export interface ListWatchlistEntriesInput {

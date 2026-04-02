@@ -1,12 +1,10 @@
+import { prisma } from "@calcom/prisma";
+import type { Prisma, Team, User } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, it, expect, test, beforeAll, afterAll } from "vitest";
-
-import { prisma } from "@calcom/prisma";
-import type { User, Team, Prisma } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
-
+import { afterAll, beforeAll, describe, expect, it, test } from "vitest";
 import authMiddleware from "../../../pages/api/bookings/[id]/_auth-middleware";
 
 type CustomNextApiRequest = NextApiRequest & Request;

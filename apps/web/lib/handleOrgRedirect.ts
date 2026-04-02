@@ -1,6 +1,5 @@
 import type { ParsedUrlQuery } from "node:querystring";
 import { stringify } from "node:querystring";
-
 import { SINGLE_ORG_SLUG } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";

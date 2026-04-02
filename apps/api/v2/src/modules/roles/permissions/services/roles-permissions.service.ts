@@ -1,9 +1,8 @@
+import type { PermissionString, UpdateRolePermissionsData } from "@calcom/platform-libraries/pbac";
+import { isValidPermissionString, RoleService } from "@calcom/platform-libraries/pbac";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { RolesPermissionsCacheService } from "@/modules/roles/permissions/services/roles-permissions-cache.service";
 import { RolesPermissionsOutputService } from "@/modules/roles/permissions/services/roles-permissions-output.service";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-
-import type { PermissionString, UpdateRolePermissionsData } from "@calcom/platform-libraries/pbac";
-import { RoleService, isValidPermissionString } from "@calcom/platform-libraries/pbac";
 
 @Injectable()
 export class RolesPermissionsService {

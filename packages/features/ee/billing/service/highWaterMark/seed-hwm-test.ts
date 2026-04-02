@@ -25,13 +25,13 @@
 // Using side-effect import ensures dotenv runs before other imports are evaluated
 import "dotenv/config";
 
-// Now import other modules
-import bcrypt from "bcryptjs";
-import Stripe from "stripe";
-
+import process from "node:process";
 import { ORGANIZATION_SELF_SERVE_PRICE } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { BillingPeriod, MembershipRole } from "@calcom/prisma/enums";
+// Now import other modules
+import bcrypt from "bcryptjs";
+import Stripe from "stripe";
 
 // Stripe product/price IDs from environment
 const STRIPE_TEAM_MONTHLY_PRICE_ID = process.env.STRIPE_TEAM_MONTHLY_PRICE_ID;

@@ -1,8 +1,6 @@
+import { MembershipRole } from "@calcom/prisma/enums";
 import { expect } from "@playwright/test";
 import { loginUser } from "playwright/fixtures/regularBookings";
-
-import { MembershipRole } from "@calcom/prisma/enums";
-
 import { test } from "../lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });

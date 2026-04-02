@@ -1,9 +1,7 @@
-import { describe, it, expect, beforeAll, afterEach } from "vitest";
-
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { addSeatToBooking } from "./createNewSeat";
 
 // Track resources to clean up

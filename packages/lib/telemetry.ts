@@ -1,7 +1,7 @@
+import process from "node:process";
 import type { NextApiRequest, NextApiResponse } from "next";
 // Importing types so we're not directly importing next/server
 import type { NextRequest, NextResponse } from "next/server";
-
 import { CONSOLE_URL } from "./constants";
 
 export const telemetryEventTypes = {

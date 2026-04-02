@@ -1,9 +1,8 @@
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { validateWebhookUrl } from "@/modules/webhooks/utils/validate-webhook-url";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
-import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
-
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 @Injectable()
 export class EventTypeWebhooksService {

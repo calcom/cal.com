@@ -1,8 +1,6 @@
-import type z from "zod";
-
 import type { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { fieldSchema } from "@calcom/prisma/zod-utils";
-
+import type z from "zod";
 import { fieldTypesConfigMap } from "../fieldTypes";
 
 type ConfigVariants = NonNullable<ReturnType<typeof getConfig>>["variants"];

@@ -8,19 +8,19 @@ import { useEffect } from "react";
  * users are warned before accidentally navigating away and losing their edits.
  */
 export function useBeforeUnload(isDirty: boolean) {
-    useEffect(() => {
-        if (!isDirty) return;
+  useEffect(() => {
+    if (!isDirty) return;
 
-        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-            event.preventDefault();
-            // Required for some older browsers to display the dialog.
-            // Modern browsers ignore the return value and show a generic message.
-            event.returnValue = "";
-        };
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      // Required for some older browsers to display the dialog.
+      // Modern browsers ignore the return value and show a generic message.
+      event.returnValue = "";
+    };
 
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        return () => {
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-        };
-    }, [isDirty]);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isDirty]);
 }

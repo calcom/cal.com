@@ -1,7 +1,6 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { CredentialPayload } from "@calcom/types/Credential";
-
 import { OAuth2TokenResponseInDbSchema } from "./universalSchema";
 
 export function getTokenObjectFromCredential(credential: Pick<CredentialPayload, "key" | "id">) {

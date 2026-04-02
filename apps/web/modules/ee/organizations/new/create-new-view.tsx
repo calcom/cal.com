@@ -1,10 +1,9 @@
 "use client";
 
-import { CreateANewOrganizationForm } from "~/ee/organizations/components/CreateANewOrganizationForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
-
+import { CreateANewOrganizationForm } from "~/ee/organizations/components/CreateANewOrganizationForm";
 import { OrganizationWizardLayout } from "./_components/OrganizationWizardLayout";
 
 export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {

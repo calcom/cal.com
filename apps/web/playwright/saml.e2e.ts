@@ -1,8 +1,6 @@
-import { expect } from "@playwright/test";
-
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
-
+import { expect } from "@playwright/test";
 import { login } from "./fixtures/users";
 import { test } from "./lib/fixtures";
 

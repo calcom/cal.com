@@ -1,6 +1,5 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { ActiveUserBillingService } from "@calcom/features/ee/billing/active-user/services/ActiveUserBillingService";
-
 import { moduleLoader as activeUserBillingRepositoryModuleLoader } from "./ActiveUserBillingRepository.module";
 import { ACTIVE_USER_BILLING_DI_TOKENS } from "./tokens";
 

@@ -1,17 +1,15 @@
-import { z } from "zod";
-
 import { logP } from "@calcom/lib/perf";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { z } from "zod";
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZDeleteInputSchema } from "./delete.schema";
+import { ZExportHostsForWeightsInputSchema } from "./exportHostsForWeights.schema";
 import { ZGetActiveOnOptionsSchema } from "./getActiveOnOptions.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
+import { ZGetChildrenForAssignmentInputSchema } from "./getChildrenForAssignment.schema";
 import { ZGetHashedLinkInputSchema } from "./getHashedLink.schema";
 import { ZGetHashedLinksInputSchema } from "./getHashedLinks.schema";
-import { ZGetChildrenForAssignmentInputSchema } from "./getChildrenForAssignment.schema";
-import { ZExportHostsForWeightsInputSchema } from "./exportHostsForWeights.schema";
 import { ZGetHostsForAssignmentInputSchema } from "./getHostsForAssignment.schema";
 import { ZGetHostsForAvailabilityInputSchema } from "./getHostsForAvailability.schema";
 import { ZGetHostsWithLocationOptionsInputSchema } from "./getHostsWithLocationOptions.schema";
@@ -237,14 +235,12 @@ export const eventTypesRouter = router({
       });
     }),
 
-  searchTeamMembers: authedProcedure
-    .input(ZSearchTeamMembersInputSchema)
-    .query(async ({ ctx, input }) => {
-      const { searchTeamMembersHandler } = await import("./searchTeamMembers.handler");
+  searchTeamMembers: authedProcedure.input(ZSearchTeamMembersInputSchema).query(async ({ ctx, input }) => {
+    const { searchTeamMembersHandler } = await import("./searchTeamMembers.handler");
 
-      return searchTeamMembersHandler({
-        ctx,
-        input,
-      });
-    }),
+    return searchTeamMembersHandler({
+      ctx,
+      input,
+    });
+  }),
 });

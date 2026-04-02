@@ -1,11 +1,10 @@
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { RoleManagementError, RoleManagementErrorCode } from "../domain/errors/role-management.error";
 import { DEFAULT_ROLE_IDS } from "../lib/constants";
-import { PermissionCheckService } from "./permission-check.service";
+import type { PermissionCheckService } from "./permission-check.service";
+import type { RoleService } from "./role.service";
 import type { IRoleManager } from "./role-manager.interface";
-import { RoleService } from "./role.service";
 
 export class PBACRoleManager implements IRoleManager {
   public isPBACEnabled = true;

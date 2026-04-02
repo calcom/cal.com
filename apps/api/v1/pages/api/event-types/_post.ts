@@ -1,15 +1,12 @@
-import type { NextApiRequest } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import type { NextApiRequest } from "next";
 import { eventTypeSelect } from "~/lib/selects/event-type";
 import { schemaEventTypeCreateBodyParams } from "~/lib/validations/event-type";
 import { canUserAccessTeamWithRole } from "~/pages/api/teams/[teamId]/_auth-middleware";
-
 import checkParentEventOwnership from "./_utils/checkParentEventOwnership";
 import checkTeamEventEditPermission from "./_utils/checkTeamEventEditPermission";
 import checkUserMembership from "./_utils/checkUserMembership";
@@ -282,8 +279,8 @@ async function postHandler(req: NextApiRequest) {
 
   let data: Prisma.EventTypeCreateArgs["data"] = {
     ...parsedBody,
-    userId: !!parsedBody.teamId ? null : userId,
-    users: !!parsedBody.teamId ? undefined : { connect: { id: userId } },
+    userId: parsedBody.teamId ? null : userId,
+    users: parsedBody.teamId ? undefined : { connect: { id: userId } },
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
     locations: locations === null ? Prisma.DbNull : locations,

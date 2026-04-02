@@ -1,9 +1,7 @@
-import { describe, expect, it } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import type { CurrentSeats } from "@calcom/features/availability/lib/getUserAvailability";
 import type { EventBusyDate } from "@calcom/types/Calendar";
-
+import { describe, expect, it } from "vitest";
 import { checkForConflicts } from "./checkForConflicts";
 
 describe("checkForConflicts", () => {

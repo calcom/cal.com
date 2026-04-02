@@ -1,11 +1,7 @@
 import { organizationScenarios } from "@calcom/features/ee/organizations/__mocks__/organizationMock";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
-import { MembershipRole } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { moveUserToMatchingOrg } from "./verify-email";
 
 // TODO: This test passes but coverage is very low.

@@ -1,14 +1,11 @@
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
+import { getTravelSchedule } from "@calcom/web/app/cache/travelSchedule";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { createRouterCaller } from "app/_trpc/context";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
-import { getTravelSchedule } from "@calcom/web/app/cache/travelSchedule";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
 import GeneralView from "~/settings/my-account/general-view";
 
 export const generateMetadata = async () =>

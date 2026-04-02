@@ -1,25 +1,23 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
-import React from "react";
-import { useForm, useFieldArray } from "react-hook-form";
-import { z } from "zod";
-
-import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
-
+import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter, useSearchParams } from "next/navigation";
+import React from "react";
+import { useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
 import { EmailInviteForm } from "../../../components/EmailInviteForm";
 import { InviteOptions } from "../../../components/InviteOptions";
 import { OnboardingCard } from "../../../components/OnboardingCard";
 import { OnboardingLayout } from "../../../components/OnboardingLayout";
-import { RoleSelector } from "../../../components/RoleSelector";
 import { OnboardingInviteBrowserView } from "../../../components/onboarding-invite-browser-view";
+import { RoleSelector } from "../../../components/RoleSelector";
 import { useOnboardingQueryParams } from "../../../hooks/useOnboardingQueryParams";
 import { useSubmitOnboarding } from "../../../hooks/useSubmitOnboarding";
-import { useOnboardingStore, type InviteRole } from "../../../store/onboarding-store";
+import { type InviteRole, useOnboardingStore } from "../../../store/onboarding-store";
 import { OrganizationCSVUploadModal } from "../csv-upload-modal";
 
 type OrganizationInviteEmailViewProps = {

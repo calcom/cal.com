@@ -1,9 +1,4 @@
-import type { Browser, Page, WorkerInfo } from "@playwright/test";
-import { expect } from "@playwright/test";
-import { hashSync as hash } from "bcryptjs";
-import { uuid } from "short-uuid";
-import { v4 } from "uuid";
-
+import process from "node:process";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import type { AppFlags, FeatureId } from "@calcom/features/flags/config";
@@ -12,12 +7,15 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
-import type { Team } from "@calcom/prisma/client";
-import type { Prisma, User, EventType } from "@calcom/prisma/client";
+import type { EventType, Prisma, Team, User } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType, TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { Schedule } from "@calcom/types/schedule";
-
+import type { Browser, Page, WorkerInfo } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { hashSync as hash } from "bcryptjs";
+import { uuid } from "short-uuid";
+import { v4 } from "uuid";
 import { createRoutingForm } from "../lib/test-helpers/routingFormHelpers";
 import { selectFirstAvailableTimeSlotNextMonth, teamEventSlug, teamEventTitle } from "../lib/testUtils";
 import type { createEmailsFixture } from "./emails";
@@ -1056,7 +1054,7 @@ const createUser = (
 };
 
 async function confirmPendingPayment(page: Page) {
-  await page.waitForURL(new RegExp("/booking/*"));
+  await page.waitForURL(/\/booking\/*/);
 
   const url = page.url();
 

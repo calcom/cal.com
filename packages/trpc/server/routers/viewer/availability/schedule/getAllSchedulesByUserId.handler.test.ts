@@ -17,6 +17,7 @@ vi.mock("@calcom/features/schedules/repositories/ScheduleRepository", () => ({
     };
   }),
 }));
+
 import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
 
 const mockHasReadPermissions = vi.mocked(hasReadPermissionsForUserId);

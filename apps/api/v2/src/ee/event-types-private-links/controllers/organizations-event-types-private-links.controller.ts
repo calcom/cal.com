@@ -1,3 +1,15 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  CreatePrivateLinkInput,
+  CreatePrivateLinkOutput,
+  DeletePrivateLinkOutput,
+  GetPrivateLinksOutput,
+  UpdatePrivateLinkInput,
+  UpdatePrivateLinkOutput,
+} from "@calcom/platform-types";
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
+import { PrivateLinksService } from "../services/private-links.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
@@ -13,20 +25,6 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
-  CreatePrivateLinkInput,
-  CreatePrivateLinkOutput,
-  DeletePrivateLinkOutput,
-  GetPrivateLinksOutput,
-  UpdatePrivateLinkInput,
-  UpdatePrivateLinkOutput,
-} from "@calcom/platform-types";
-
-import { PrivateLinksService } from "../services/private-links.service";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/event-types/:eventTypeId/private-links",

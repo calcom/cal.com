@@ -1,12 +1,9 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
+import { withAppDirSsr } from "app/WithAppDirSsr";
 import { cookies, headers } from "next/headers";
-
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
-import { getServerSideProps } from "@server/lib/auth/login/getServerSideProps";
-
 import type { PageProps as ClientPageProps } from "~/auth/login-view";
 import Login from "~/auth/login-view";
 

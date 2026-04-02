@@ -1,10 +1,9 @@
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { DataTableSelectionBar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { ConfirmationDialogContent, DialogTrigger } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { DataTableSelectionBar } from "~/data-table/components";
 import type { UserTableUser } from "../types";
 
 interface Props {

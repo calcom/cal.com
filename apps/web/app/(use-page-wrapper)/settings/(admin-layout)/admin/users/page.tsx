@@ -1,8 +1,7 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-
-import UsersListingView from "~/ee/users/views/users-listing-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { Button } from "@calcom/ui/components/button";
+import { _generateMetadata, getTranslate } from "app/_utils";
+import UsersListingView from "~/ee/users/views/users-listing-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

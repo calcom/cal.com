@@ -1,10 +1,8 @@
-import { useMutation } from "@tanstack/react-query";
-
 import type { BookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ApiResponse, ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
-
+import type { ApiErrorResponse, ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import { useMutation } from "@tanstack/react-query";
 import http from "../../lib/http";
 
 interface IUseCreateInstantBooking {

@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
-import { createWithEqualityFn } from "zustand/traditional";
-
 import dayjs from "@calcom/dayjs";
 import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-
+import { useEffect } from "react";
+import { createWithEqualityFn } from "zustand/traditional";
 import type { GetBookingType } from "../lib/get-booking";
-import type { BookerState, BookerLayout } from "./types";
-import { updateQueryParam, getQueryParam, removeQueryParam } from "./utils/query-param";
+import type { BookerLayout, BookerState } from "./types";
+import { getQueryParam, removeQueryParam, updateQueryParam } from "./utils/query-param";
 
 const _iso_3166_1_alpha_2_codes = [
   "ad",

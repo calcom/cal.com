@@ -1,14 +1,11 @@
 "use client";
 
-import type { Table as ReactTable } from "@tanstack/react-table";
-
-import { DataTableWrapper } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-
 import SkeletonLoader from "@components/booking/SkeletonLoader";
-
-import type { RowData, BookingListingStatus } from "../types";
+import type { Table as ReactTable } from "@tanstack/react-table";
+import { DataTableWrapper } from "~/data-table/components";
+import type { BookingListingStatus, RowData } from "../types";
 
 const descriptionByStatus: Record<BookingListingStatus, string> = {
   upcoming: "upcoming_bookings",

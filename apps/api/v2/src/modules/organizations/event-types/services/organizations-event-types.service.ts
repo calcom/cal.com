@@ -1,6 +1,8 @@
-import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+import { createEventType } from "@calcom/platform-libraries/event-types";
 import type { SortOrderType } from "@calcom/platform-types";
+import { Injectable, Logger } from "@nestjs/common";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/event-types/organizations-event-types.repository";
 import {
   TransformedCreateTeamEventTypeInput,
@@ -11,10 +13,6 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, Logger } from "@nestjs/common";
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-import { createEventType } from "@calcom/platform-libraries/event-types";
 
 @Injectable()
 export class OrganizationsEventTypesService {
@@ -45,7 +43,7 @@ export class OrganizationsEventTypesService {
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });

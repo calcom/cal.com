@@ -1,9 +1,8 @@
-import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import { IsArray, IsEnum, ValidateNested } from "class-validator";
-
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { TeamMembershipOutput } from "@/modules/teams/memberships/outputs/team-membership.output";
 
 export class OrgTeamMembershipsOutputResponseDto {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })

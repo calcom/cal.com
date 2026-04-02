@@ -1,6 +1,6 @@
 import type { InstantMeetingDTO } from "../../../dto/types";
-import type { WebhookPayload } from "../../types";
 import { BaseInstantMeetingBuilder } from "../../base/BaseInstantMeetingBuilder";
+import type { WebhookPayload } from "../../types";
 
 /**
  * Instant meeting payload builder for webhook version v2021-10-20.

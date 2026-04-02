@@ -1,5 +1,4 @@
 import { useContext } from "react";
-
 import { WebPushContext } from "../components/WebPushContext";
 
 export function useWebPush() {

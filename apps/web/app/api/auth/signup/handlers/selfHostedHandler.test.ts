@@ -1,15 +1,14 @@
-import type { Mock } from "vitest";
-import { vi } from "vitest";
-
 import {
   prismaMock,
   resetPrismaMock,
 } from "@calcom/features/auth/signup/handlers/__tests__/mocks/prisma.mocks";
-import {
-  createMockTeam,
-  createMockFoundToken,
-} from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
 import type { SignupBody } from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
+import {
+  createMockFoundToken,
+  createMockTeam,
+} from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
+import type { Mock } from "vitest";
+import { vi } from "vitest";
 
 const mockFindTokenByToken: Mock = vi.fn();
 const mockValidateAndGetCorrectedUsernameForTeam: Mock = vi.fn();
@@ -57,9 +56,9 @@ vi.mock("@calcom/features/auth/signup/utils/token", () => ({
     mockValidateAndGetCorrectedUsernameForTeam(...args),
 }));
 
+import { runP2002TestSuite } from "@calcom/features/auth/signup/handlers/__tests__/p2002.test-suite";
 // Import after mocks
 import handler from "./selfHostedHandler";
-import { runP2002TestSuite } from "@calcom/features/auth/signup/handlers/__tests__/p2002.test-suite";
 
 function callHandler(body: SignupBody): ReturnType<typeof handler> {
   return handler(body as unknown as Record<string, string>);

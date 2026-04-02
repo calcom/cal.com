@@ -1,10 +1,8 @@
-import { afterAll, beforeAll, describe, test, vi } from "vitest";
-
 import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import { prisma } from "@calcom/prisma";
 import type { EventType, Schedule, Team, User } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
-
+import { afterAll, beforeAll, describe, test, vi } from "vitest";
 import { expect } from "./expects";
 
 describe("getSchedule duration limits (integration)", () => {

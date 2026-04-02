@@ -1,5 +1,4 @@
 import { LimitedBadges } from "@calcom/web/components/ui/LimitedBadges";
-
 import { CellWithOverflowX } from "./CellWithOverflowX";
 
 export function ResponseValueCell({

@@ -3,12 +3,11 @@ import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import type { AttributeOption } from "@calcom/prisma/client";
 import { AttributeType, MembershipRole } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it } from "vitest";
-
 import {
-  getAttributesForTeam,
-  getAttributesAssignmentData,
-  getUsersAttributes,
   extractAttributeIdsFromQueryValue,
+  getAttributesAssignmentData,
+  getAttributesForTeam,
+  getUsersAttributes,
 } from "./getAttributes";
 
 // Helper functions to create test data

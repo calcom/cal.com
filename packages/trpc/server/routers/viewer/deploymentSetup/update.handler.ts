@@ -1,6 +1,6 @@
+import process from "node:process";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { prisma } from "@calcom/prisma";
-
 import type { TUpdateInputSchema } from "./update.schema";
 
 type UpdateOptions = {

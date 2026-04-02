@@ -1,5 +1,5 @@
-import { parseRoutingFormResponse } from "./parseRoutingFormResponse";
 import { findFieldValueByIdentifier } from "./findFieldValueByIdentifier";
+import { parseRoutingFormResponse } from "./parseRoutingFormResponse";
 
 export const getFieldResponseByIdentifier = ({
   responsePayload,

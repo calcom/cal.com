@@ -1,11 +1,8 @@
-import { useForm } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ApiErrorResponse } from "@calcom/platform-types";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { InputField } from "@calcom/ui/components/form";
-
+import { Form, InputField } from "@calcom/ui/components/form";
+import { useForm } from "react-hook-form";
 import { useAtomCreateSchedule } from "../hooks/schedules/useAtomCreateSchedule";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 import { useToast } from "../src/components/ui/use-toast";

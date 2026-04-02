@@ -354,8 +354,8 @@ export class GoogleCalendarService {
     if (status === 403) {
       // Google returns 403 for both permission errors and quota/rate-limit errors.
       // Check the error reason to distinguish retriable throttling from permanent permission denial.
-      const reason = (error as { response?: { data?: { error?: { errors?: Array<{ reason?: string }> } } } })?.response
-        ?.data?.error?.errors?.[0]?.reason;
+      const reason = (error as { response?: { data?: { error?: { errors?: Array<{ reason?: string }> } } } })
+        ?.response?.data?.error?.errors?.[0]?.reason;
       if (reason === "rateLimitExceeded" || reason === "userRateLimitExceeded") {
         return new HttpException(fallbackMessage, 429);
       }

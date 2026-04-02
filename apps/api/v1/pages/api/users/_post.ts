@@ -1,10 +1,8 @@
-import type { NextApiRequest } from "next";
-
 import { UserCreationService } from "@calcom/features/users/services/userCreationService";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
-
+import type { NextApiRequest } from "next";
 import { schemaUserCreateBodyParams } from "~/lib/validations/user";
 
 /**

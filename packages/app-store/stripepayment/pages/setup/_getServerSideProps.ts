@@ -1,13 +1,12 @@
+import process from "node:process";
+import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 import type { GetServerSidePropsContext } from "next";
 import stringify from "qs-stringify";
 import type Stripe from "stripe";
 import { z } from "zod";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
-
-import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { getStripeAppKeys } from "../../lib/getStripeAppKeys";
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {

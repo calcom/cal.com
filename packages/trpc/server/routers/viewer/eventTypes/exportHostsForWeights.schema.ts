@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
+import { z } from "zod";
 
 export const ZExportHostsForWeightsInputSchema = z.object({
   eventTypeId: z.number(),

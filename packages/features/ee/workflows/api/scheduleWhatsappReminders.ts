@@ -1,7 +1,6 @@
 /* Schedule any workflow reminder that falls within the next 2 hours for WHATSAPP */
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
+import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
@@ -9,7 +8,8 @@ import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
-
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { getWhatsappTemplateFunction, isAttendeeAction } from "../lib/actionHelperFunctions";
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
 import { select } from "../lib/getWorkflowReminders";

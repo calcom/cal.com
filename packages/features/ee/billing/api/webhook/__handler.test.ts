@@ -1,11 +1,9 @@
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import { buffer } from "micro";
 import type { NextApiRequest } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-import stripe from "@calcom/features/ee/payments/server/stripe";
-
-import { stripeWebhookHandler, HttpCode } from "./__handler";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { HttpCode, stripeWebhookHandler } from "./__handler";
 
 vi.mock("micro", () => ({
   buffer: vi.fn(),

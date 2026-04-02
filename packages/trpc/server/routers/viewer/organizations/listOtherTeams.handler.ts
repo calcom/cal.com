@@ -1,5 +1,4 @@
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
-
 import type { TrpcSessionUser } from "../../../types";
 
 type ListOptions = {

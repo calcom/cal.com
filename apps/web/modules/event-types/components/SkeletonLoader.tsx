@@ -1,5 +1,5 @@
-import { ClockIcon, SearchIcon, UserIcon } from "@coss/ui/icons";
 import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { ClockIcon, SearchIcon, UserIcon } from "@coss/ui/icons";
 
 function SkeletonLoader() {
   return (

@@ -1,18 +1,16 @@
-import { useEffect, useMemo } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useBookerTime } from "@calcom/features/bookings/Booker/hooks/useBookerTime";
+import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { Calendar } from "@calcom/features/calendars/weeklyview/components/Calendar";
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 import { localStorage } from "@calcom/lib/webstorage";
 import type { BookingStatus } from "@calcom/prisma/enums";
-
+import { useEffect, useMemo } from "react";
 import { useBookings } from "../../hooks/bookings/useBookings";
 import { useCalendarsBusyTimes } from "../../hooks/useCalendarsBusyTimes";
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
-import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 
 export const LargeCalendar = ({
   extraDays,

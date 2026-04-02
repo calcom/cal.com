@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-
-import { DEFAULT_SCHEDULE_DATA, detectEventTypeScheduleForUser } from "./detectEventTypeScheduleForUser";
 import type { DetectEventTypeScheduleForUserInput } from "./detectEventTypeScheduleForUser";
+import { DEFAULT_SCHEDULE_DATA, detectEventTypeScheduleForUser } from "./detectEventTypeScheduleForUser";
 
 describe("detectEventTypeScheduleForUser", () => {
   const mockUser = {

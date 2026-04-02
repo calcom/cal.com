@@ -1,16 +1,12 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
-
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { WorkflowActions } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteHandler } from "./delete.handler";
-import { removeSmsReminderFieldForEventTypes, removeAIAgentCallPhoneNumberFieldForEventTypes } from "./util";
+import { removeAIAgentCallPhoneNumberFieldForEventTypes, removeSmsReminderFieldForEventTypes } from "./util";
 
 vi.mock("@calcom/prisma", () => ({
   prisma,

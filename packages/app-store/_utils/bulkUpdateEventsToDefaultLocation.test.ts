@@ -1,7 +1,5 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
-
 import type { PrismaClient } from "@calcom/prisma";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { bulkUpdateEventsToDefaultLocation } from "./bulkUpdateEventsToDefaultLocation";
 
 vi.mock("../utils", () => ({
@@ -159,8 +157,7 @@ describe("bulkUpdateEventsToDefaultLocation", () => {
         parentId: 100,
         metadata: {
           managedEventConfig: {
-            unlockedFields: {
-            },
+            unlockedFields: {},
           },
         },
       },
@@ -225,8 +222,7 @@ describe("bulkUpdateEventsToDefaultLocation", () => {
         parentId: 100,
         metadata: {
           managedEventConfig: {
-            unlockedFields: {
-            },
+            unlockedFields: {},
           },
         },
       },

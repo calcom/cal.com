@@ -1,13 +1,10 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps as ServerPageProps } from "app/_types";
-import { getTranslate } from "app/_utils";
-import { cookies, headers } from "next/headers";
-
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
-
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
-
+import type { PageProps as ServerPageProps } from "app/_types";
+import { getTranslate } from "app/_utils";
+import { withAppDirSsr } from "app/WithAppDirSsr";
+import { cookies, headers } from "next/headers";
 import type { PageProps as ClientPageProps } from "~/videos/views/videos-single-view";
 import VideosSingleView from "~/videos/views/videos-single-view";
 

@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
-
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
+import { useState } from "react";
 import { PbacOptInModal } from "./PbacOptInModal";
 import { RolesList } from "./RolesList";
 

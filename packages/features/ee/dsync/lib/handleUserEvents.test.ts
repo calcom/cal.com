@@ -1,10 +1,7 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
 import type { DirectorySyncEvent } from "@boxyhq/saml-jackson";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import handleUserEvents from "./handleUserEvents";
 
 vi.mock("@calcom/lib/logger", () => ({

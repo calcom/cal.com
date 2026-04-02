@@ -1,8 +1,6 @@
+import MemberChangeRoleModal from "@calcom/web/modules/ee/teams/components/MemberChangeRoleModal";
 import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
-
-import MemberChangeRoleModal from "@calcom/web/modules/ee/teams/components/MemberChangeRoleModal";
-
 import type { UserTableAction, UserTableState } from "./types";
 
 export function ChangeUserRoleModal(props: { state: UserTableState; dispatch: Dispatch<UserTableAction> }) {

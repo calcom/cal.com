@@ -1,8 +1,6 @@
-import type { NextApiRequest } from "next";
-
 import prisma from "@calcom/prisma";
-import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
-
+import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+import type { NextApiRequest } from "next";
 import { ScopeOfAdmin } from "./scopeOfAdmin";
 
 export const isAdminGuard = async (req: NextApiRequest) => {

@@ -1,11 +1,8 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
-
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TeamService } from "./teamService";
 
 vi.mock("@calcom/prisma", () => ({

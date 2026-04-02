@@ -1,6 +1,5 @@
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 import type { EventResult } from "@calcom/types/EventManager";
-
 import type { Booking } from "./createBooking";
 import type { ReqAppsStatus } from "./getBookingData";
 

@@ -1,11 +1,9 @@
+import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { EditMemberSheet } from "@calcom/web/modules/ee/teams/components/EditMemberSheet";
 import { render } from "@testing-library/react";
 import React, { type ReactNode } from "react";
 import { vi } from "vitest";
-
-import { MembershipRole } from "@calcom/prisma/enums";
-import { EditMemberSheet } from "@calcom/web/modules/ee/teams/components/EditMemberSheet";
-import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
-
 import type { State, User } from "./MemberList";
 
 // Mock dependencies

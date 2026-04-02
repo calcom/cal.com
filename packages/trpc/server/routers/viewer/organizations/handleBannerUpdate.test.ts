@@ -1,5 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getBannerUrl } from "./update.handler";
 
 vi.mock("@calcom/lib/server/avatar", () => ({

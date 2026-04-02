@@ -4,7 +4,6 @@ import { JSDOM } from "jsdom";
 // eslint-disable-next-line no-restricted-imports
 import type { Messages } from "mailhog";
 import type { createEmailsFixture } from "playwright/fixtures/emails";
-
 import { getEmailsReceivedByUser } from "../lib/testUtils";
 
 export async function expectInvitationEmailToBeReceived(

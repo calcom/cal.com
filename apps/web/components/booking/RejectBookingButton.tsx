@@ -1,6 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-
 import { RejectionReasonDialog } from "../dialog/RejectionReasonDialog";
 import { useBookingConfirmation } from "./hooks/useBookingConfirmation";
 

@@ -1,0 +1,1268 @@
+{
+  "only_web": [
+    "ANALYZE",
+    "CAL_AI_CALL_RATE_PER_MINUTE",
+    "DAILY_WEBHOOK_SECRET",
+    "EXCHANGE_DEFAULT_EWS_URL",
+    "INTERCOM_SECRET",
+    "MOCK_PAYMENT_APP_ENABLED",
+    "NEXT_PUBLIC_DISABLE_SIGNUP",
+    "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
+    "NEXT_PUBLIC_GTM_ID",
+    "PLAYWRIGHT_TEST_BASE_URL",
+    "SENTRY_SAMPLE_RATE",
+    "SENTRY_DEBUG",
+    "NEXT_PUBLIC_HEAD_SCRIPTS",
+    "NEXT_PUBLIC_BODY_SCRIPTS",
+    "NEXT_PUBLIC_SINGLE_ORG_MODE_ENABLED",
+    "NEXT_PUBLIC_API_V2_URL",
+    "BUILD_STANDALONE",
+    "INTERCOM_API_TOKEN",
+    "B2_APPLICATION_KEY_ID",
+    "B2_APPLICATION_KEY",
+    "B2_BUCKET_ID",
+    "B2_BUCKET_NAME"
+  ],
+  "only_api": [
+    "AXIOM_TOKEN",
+    "AXIOM_DATASET",
+    "NEXT_PUBLIC_API_V2_ROOT_URL",
+    "SEED_PLATFORM_OAUTH_CLIENT_ID",
+    "SEED_PLATFORM_OAUTH_CLIENT_SECRET",
+    "GET_LICENSE_KEY_URL",
+    "LOG_LEVEL",
+    "RATE_LIMIT_DEFAULT_TTL_MS",
+    "RATE_LIMIT_DEFAULT_LIMIT_ACCESS_TOKEN",
+    "RATE_LIMIT_DEFAULT_LIMIT",
+    "RATE_LIMIT_DEFAULT_LIMIT_API_KEY",
+    "RATE_LIMIT_DEFAULT_LIMIT_OAUTH_CLIENT",
+    "SLOTS_WORKER_POOL_SIZE",
+    "WEB_APP_URL",
+    "ENABLE_SLOTS_WORKERS"
+  ],
+  "single_pkg": [
+    {
+      "var": "ANALYZE",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "ATOMS_E2E_API_URL",
+      "pkg": "packages/platform"
+    },
+    {
+      "var": "ATOMS_E2E_OAUTH_CLIENT_ID",
+      "pkg": "packages/platform"
+    },
+    {
+      "var": "ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED",
+      "pkg": "packages/platform"
+    },
+    {
+      "var": "ATOMS_E2E_OAUTH_CLIENT_SECRET",
+      "pkg": "packages/platform"
+    },
+    {
+      "var": "ATOMS_E2E_ORG_ID",
+      "pkg": "packages/platform"
+    },
+    {
+      "var": "AXIOM_TOKEN",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "AXIOM_DATASET",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "AUTH_BEARER_TOKEN_VERCEL",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "CAL_AI_CALL_RATE_PER_MINUTE",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "CALCOM_QA_EMAIL",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "CALCOM_QA_PASSWORD",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "CLOSECOM_CLIENT_ID",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "CLOSECOM_CLIENT_SECRET",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "CLOUDFLARE_TURNSTILE_SECRET",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "DAILY_WEBHOOK_SECRET",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "DAILY_VIDEO_REGION",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "DUB_API_KEY",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "E2E_TEST_CALCOM_QA_EMAIL",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "E2E_TEST_CALCOM_QA_PASSWORD",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "E2E_TEST_CALCOM_GCAL_KEYS",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "EXCHANGE_DEFAULT_EWS_URL",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "FORMBRICKS_FEEDBACK_SURVEY_ID",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "GOOGLE_WEBHOOK_URL",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "HEROKU_APP_NAME",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "HUBSPOT_CLIENT_ID",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "INTEGRATION_TESTS",
+      "pkg": "packages/testing"
+    },
+    {
+      "var": "INTERCOM_SECRET",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "INSIGHTS_DATABASE_URL",
+      "pkg": "packages/prisma"
+    },
+    {
+      "var": "IP_BANLIST",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "MOCK_PAYMENT_APP_ENABLED",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "NEXT_PUBLIC_DISABLE_SIGNUP",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "NEXT_PUBLIC_MINUTES_TO_BOOK",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_SENDER_ID",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_SENDGRID_SENDER_NAME",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_SENTRY_DSN_CLIENT",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "ORG_MONTHLY_CREDITS",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "NEXT_PUBLIC_VERCEL_URL",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_CAL_AI_PHONE_NUMBER_MONTHLY_PRICE",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_CLOUDFLARE_SITEKEY",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_GTM_ID",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "ORGANIZATIONS_AUTOLINK",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "PLAYWRIGHT_HEADLESS",
+      "pkg": "packages/platform"
+    },
+    {
+      "var": "PLAYWRIGHT_TEST_BASE_URL",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "PROJECT_ID_VERCEL",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "RAILWAY_STATIC_URL",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "RENDER_EXTERNAL_URL",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "RETELL_AI_TEST_CAL_API_KEY",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "SALESFORCE_GRAPHQL_DELAY_MS",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "SALESFORCE_GRAPHQL_MAX_DELAY_MS",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "SALESFORCE_GRAPHQL_MAX_RETRIES",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "SAML_CLIENT_SECRET_VERIFIER",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "SAML_DATABASE_URL",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "SEND_FEEDBACK_EMAIL",
+      "pkg": "packages/emails"
+    },
+    {
+      "var": "SENDGRID_SYNC_API_KEY",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "SENTRY_SAMPLE_RATE",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "SENTRY_DEBUG",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "SKIP_DB_MIGRATIONS",
+      "pkg": "packages/prisma"
+    },
+    {
+      "var": "STRIPE_WEBHOOK_SECRET_BILLING",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "STRIPE_TEAM_ANNUAL_PRICE_ID",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "STRIPE_ORG_TRIAL_DAYS",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "TANDEM_BASE_URL",
+      "pkg": "packages/types"
+    },
+    {
+      "var": "TANDEM_CLIENT_ID",
+      "pkg": "packages/types"
+    },
+    {
+      "var": "TANDEM_CLIENT_SECRET",
+      "pkg": "packages/types"
+    },
+    {
+      "var": "TASKER_ENABLE_WEBHOOKS",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TEAM_ID_VERCEL",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "TELEMETRY_DEBUG",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "TWILIO_MESSAGING_SID",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TWILIO_OPT_OUT_ENABLED",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TWILIO_PHONE_NUMBER",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TWILIO_WHATSAPP_PHONE_NUMBER",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TWILIO_SID",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TWILIO_TOKEN",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TWILIO_VERIFY_SID",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TWILIO_WHATSAPP_REMINDER_CONTENT_SID",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TWILIO_WHATSAPP_CANCELLED_CONTENT_SID",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TWILIO_WHATSAPP_RESCHEDULED_CONTENT_SID",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TWILIO_WHATSAPP_COMPLETED_CONTENT_SID",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "USERNAME_BLACKLIST_URL",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "ZOOM_CLIENT_ID",
+      "pkg": "packages/types"
+    },
+    {
+      "var": "ZOOM_CLIENT_SECRET",
+      "pkg": "packages/types"
+    },
+    {
+      "var": "RESEND_API_KEY",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "LOCAL_TESTING_DOMAIN_VERCEL",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "AUTH_BEARER_TOKEN_CLOUDFLARE",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "CLOUDFLARE_ZONE_ID",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "CLOUDFLARE_VERCEL_CNAME",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "CLOUDFLARE_DNS",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "EMBED_PUBLIC_EMBED_FINGER_PRINT",
+      "pkg": "packages/embeds"
+    },
+    {
+      "var": "EMBED_PUBLIC_EMBED_VERSION",
+      "pkg": "packages/embeds"
+    },
+    {
+      "var": "EMBED_PUBLIC_WEBAPP_URL",
+      "pkg": "packages/embeds"
+    },
+    {
+      "var": "EMBED_PUBLIC_VERCEL_URL",
+      "pkg": "packages/embeds"
+    },
+    {
+      "var": "EMBED_PUBLIC_EMBED_LIB_URL",
+      "pkg": "packages/embeds"
+    },
+    {
+      "var": "NEXT_PUBLIC_ENABLE_PROFILE_SWITCHER",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_QUICK_AVAILABILITY_ROLLOUT",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_HEAD_SCRIPTS",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "NEXT_PUBLIC_BODY_SCRIPTS",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "NEXT_PUBLIC_API_V2_ROOT_URL",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "CAL_VIDEO_BUCKET_NAME",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "CAL_VIDEO_BUCKET_REGION",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "CAL_VIDEO_ASSUME_ROLE_ARN",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "HUDDLE01_API_TOKEN",
+      "pkg": "packages/app-store"
+    },
+    {
+      "var": "LINGO_DOT_DEV_API_KEY",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_SINGLE_ORG_MODE_ENABLED",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "CAL_VIDEO_RECORDING_TOKEN_SECRET",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "NEXT_PUBLIC_API_V2_URL",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "BUILD_STANDALONE",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "INTERCOM_API_TOKEN",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "MICROSOFT_WEBHOOK_TOKEN",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "MICROSOFT_WEBHOOK_URL",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "_CAL_INTERNAL_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "ENTERPRISE_SLUGS",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "PLATFORM_ENTERPRISE_SLUGS",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TRIGGER_DEV_VERCEL_ACCESS_TOKEN",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TRIGGER_DEV_VERCEL_PROJECT_ID",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "TRIGGER_DEV_VERCEL_TEAM_ID",
+      "pkg": "packages/features"
+    },
+    {
+      "var": "GOOGLE_ADS_ENABLED",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "LINKEDIN_ADS_ENABLED",
+      "pkg": "packages/lib"
+    },
+    {
+      "var": "SEED_PLATFORM_OAUTH_CLIENT_ID",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "SEED_PLATFORM_OAUTH_CLIENT_SECRET",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "GET_LICENSE_KEY_URL",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "LOG_LEVEL",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "RATE_LIMIT_DEFAULT_TTL_MS",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "RATE_LIMIT_DEFAULT_LIMIT_ACCESS_TOKEN",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "RATE_LIMIT_DEFAULT_LIMIT",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "RATE_LIMIT_DEFAULT_LIMIT_API_KEY",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "RATE_LIMIT_DEFAULT_LIMIT_OAUTH_CLIENT",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "SLOTS_WORKER_POOL_SIZE",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "WEB_APP_URL",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "ENABLE_SLOTS_WORKERS",
+      "pkg": "apps/api"
+    },
+    {
+      "var": "B2_APPLICATION_KEY_ID",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "B2_APPLICATION_KEY",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "B2_BUCKET_ID",
+      "pkg": "apps/web"
+    },
+    {
+      "var": "B2_BUCKET_NAME",
+      "pkg": "apps/web"
+    }
+  ],
+  "not_found": [
+    "BASECAMP3_CLIENT_ID",
+    "BASECAMP3_CLIENT_SECRET",
+    "BASECAMP3_USER_AGENT",
+    "BUILD_ID",
+    "DAILY_SCALE_PLAN",
+    "DAILY_MEETING_ENDED_WEBHOOK_SECRET",
+    "E2E_TEST_APPLE_CALENDAR_EMAIL",
+    "E2E_TEST_APPLE_CALENDAR_PASSWORD",
+    "E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS",
+    "E2E_TEST_OIDC_CLIENT_ID",
+    "E2E_TEST_OIDC_CLIENT_SECRET",
+    "E2E_TEST_OIDC_PROVIDER_DOMAIN",
+    "E2E_TEST_OIDC_USER_EMAIL",
+    "E2E_TEST_OIDC_USER_PASSWORD",
+    "E2E_TEST_SAML_ADMIN_EMAIL",
+    "E2E_TEST_SAML_ADMIN_PASSWORD",
+    "GIPHY_API_KEY",
+    "HUBSPOT_CLIENT_SECRET",
+    "LARK_OPEN_APP_ID",
+    "LARK_OPEN_APP_SECRET",
+    "LARK_OPEN_VERIFICATION_TOKEN",
+    "SALESFORCE_CONSUMER_KEY",
+    "SALESFORCE_CONSUMER_SECRET",
+    "SLACK_CLIENT_ID",
+    "SLACK_CLIENT_SECRET",
+    "SLACK_SIGNING_SECRET",
+    "VITAL_API_KEY",
+    "VITAL_DEVELOPMENT_MODE",
+    "VITAL_REGION",
+    "VITAL_WEBHOOK_SECRET",
+    "ZAPIER_INVITE_LINK",
+    "ZOHOCRM_CLIENT_ID",
+    "ZOHOCRM_CLIENT_SECRET",
+    "GOOGLE_REFRESH_TOKEN",
+    "ZOOM_REFRESH_TOKEN",
+    "CALCOM_ADMIN_API_KEY",
+    "API_ENV",
+    "NEXTAUTH_SECRET_BACKUP",
+    "STRIPE_PRICE_ID_SCALE",
+    "REPLEXICA_API_KEY",
+    "STRIPE_PRICE_ID_SCALE_OVERAGE"
+  ],
+  "multi_pkg": [
+    {
+      "var": "ALLOWED_HOSTNAMES",
+      "pkgs": ["packages/features", "packages/lib"]
+    },
+    {
+      "var": "AWAITING_PAYMENT_EMAIL_DELAY_MINUTES",
+      "pkgs": ["packages/app-store", "packages/types"]
+    },
+    {
+      "var": "API_KEY_PREFIX",
+      "pkgs": ["apps/api", "packages/features", "packages/trpc"]
+    },
+    {
+      "var": "BLACKLISTED_GUEST_EMAILS",
+      "pkgs": ["packages/features", "packages/trpc"]
+    },
+    {
+      "var": "CAL_SIGNATURE_TOKEN",
+      "pkgs": ["packages/features", "packages/trpc"]
+    },
+    {
+      "var": "CALCOM_PRIVATE_API_ROUTE",
+      "pkgs": ["packages/features", "packages/lib", "packages/trpc"]
+    },
+    {
+      "var": "CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY",
+      "pkgs": ["apps/api", "apps/web", "packages/lib"]
+    },
+    {
+      "var": "CALCOM_CREDENTIAL_SYNC_ENDPOINT",
+      "pkgs": ["packages/app-store", "packages/lib"]
+    },
+    {
+      "var": "CALCOM_CREDENTIAL_SYNC_SECRET",
+      "pkgs": ["apps/api", "packages/lib"]
+    },
+    {
+      "var": "CALCOM_ENV",
+      "pkgs": ["apps/api", "apps/web", "packages/lib", "packages/trpc"]
+    },
+    {
+      "var": "CALCOM_LICENSE_KEY",
+      "pkgs": ["apps/api", "apps/web", "packages/features", "packages/i18n", "packages/lib"]
+    },
+    {
+      "var": "CALCOM_TELEMETRY_DISABLED",
+      "pkgs": ["packages/lib", "packages/types"]
+    },
+    {
+      "var": "CALCOM_CREDENTIAL_SYNC_HEADER_NAME",
+      "pkgs": ["apps/api", "packages/lib"]
+    },
+    {
+      "var": "CALENDSO_ENCRYPTION_KEY",
+      "pkgs": [
+        "apps/api",
+        "apps/web",
+        "packages/app-store",
+        "packages/emails",
+        "packages/features",
+        "packages/lib",
+        "packages/testing",
+        "packages/trpc",
+        "packages/types"
+      ]
+    },
+    {
+      "var": "CI",
+      "pkgs": [
+        "apps/api",
+        "apps/web",
+        "packages/app-store",
+        "packages/emails",
+        "packages/embeds",
+        "packages/features",
+        "packages/i18n",
+        "packages/lib",
+        "packages/platform",
+        "packages/prisma",
+        "packages/trpc"
+      ]
+    },
+    {
+      "var": "CRON_API_KEY",
+      "pkgs": ["apps/web", "packages/app-store", "packages/features", "packages/types"]
+    },
+    {
+      "var": "CRON_SECRET",
+      "pkgs": ["apps/web", "packages/app-store", "packages/features"]
+    },
+    {
+      "var": "CRON_ENABLE_APP_SYNC",
+      "pkgs": ["apps/web", "packages/types"]
+    },
+    {
+      "var": "DAILY_API_KEY",
+      "pkgs": ["apps/api", "apps/web", "packages/app-store", "packages/features", "packages/testing"]
+    },
+    {
+      "var": "DATABASE_CHUNK_SIZE",
+      "pkgs": ["packages/features", "packages/lib"]
+    },
+    {
+      "var": "DATABASE_DIRECT_URL",
+      "pkgs": ["apps/api", "packages/prisma"]
+    },
+    {
+      "var": "DATABASE_URL",
+      "pkgs": [
+        "apps/api",
+        "apps/web",
+        "packages/features",
+        "packages/kysely",
+        "packages/platform",
+        "packages/prisma",
+        "packages/testing",
+        "packages/types"
+      ]
+    },
+    {
+      "var": "DEBUG",
+      "pkgs": ["apps/api", "apps/web", "packages/app-store-cli", "packages/features", "packages/lib"]
+    },
+    {
+      "var": "NEXT_PUBLIC_DUB_PROGRAM_ID",
+      "pkgs": ["apps/web", "packages/lib"]
+    },
+    {
+      "var": "NEXT_PUBLIC_VERCEL_USE_BOTID_IN_BOOKER",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "E2E_TEST_MAILHOG_ENABLED",
+      "pkgs": ["packages/lib", "packages/types"]
+    },
+    {
+      "var": "EMAIL_FROM",
+      "pkgs": ["apps/web", "packages/emails", "packages/features", "packages/lib", "packages/types"]
+    },
+    {
+      "var": "EMAIL_FROM_NAME",
+      "pkgs": ["packages/emails", "packages/lib", "packages/types"]
+    },
+    {
+      "var": "EMAIL_SERVER_HOST",
+      "pkgs": ["apps/api", "packages/lib", "packages/types"]
+    },
+    {
+      "var": "EMAIL_SERVER_PASSWORD",
+      "pkgs": ["packages/lib", "packages/types"]
+    },
+    {
+      "var": "EMAIL_SERVER_PORT",
+      "pkgs": ["apps/api", "packages/lib", "packages/types"]
+    },
+    {
+      "var": "EMAIL_SERVER_USER",
+      "pkgs": ["packages/lib", "packages/types"]
+    },
+    {
+      "var": "EMAIL_SERVER",
+      "pkgs": ["apps/api", "packages/lib", "packages/types"]
+    },
+    {
+      "var": "AVATARAPI_USERNAME",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "AVATARAPI_PASSWORD",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "GOOGLE_API_CREDENTIALS",
+      "pkgs": ["apps/web", "packages/app-store", "packages/features", "packages/types"]
+    },
+    {
+      "var": "GOOGLE_CALENDAR_API_KEY",
+      "pkgs": ["packages/lib", "packages/types"]
+    },
+    {
+      "var": "GOOGLE_LOGIN_ENABLED",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "GOOGLE_WEBHOOK_TOKEN",
+      "pkgs": ["packages/app-store", "packages/features"]
+    },
+    {
+      "var": "IFFY_API_KEY",
+      "pkgs": ["packages/features", "packages/lib"]
+    },
+    {
+      "var": "INTEGRATION_TEST_MODE",
+      "pkgs": [
+        "apps/api",
+        "apps/web",
+        "packages/emails",
+        "packages/embeds",
+        "packages/features",
+        "packages/trpc"
+      ]
+    },
+    {
+      "var": "MS_GRAPH_CLIENT_ID",
+      "pkgs": ["packages/features", "packages/types"]
+    },
+    {
+      "var": "MS_GRAPH_CLIENT_SECRET",
+      "pkgs": ["packages/features", "packages/types"]
+    },
+    {
+      "var": "NEXT_PUBLIC_APP_NAME",
+      "pkgs": ["packages/lib", "packages/types"]
+    },
+    {
+      "var": "NEXT_PUBLIC_CALCOM_VERSION",
+      "pkgs": ["apps/web", "packages/lib", "packages/platform", "packages/ui"]
+    },
+    {
+      "var": "NEXT_PUBLIC_COMPANY_NAME",
+      "pkgs": ["packages/lib", "packages/types"]
+    },
+    {
+      "var": "NEXT_PUBLIC_LOGGER_LEVEL",
+      "pkgs": ["apps/web", "packages/lib", "packages/prisma", "packages/trpc"]
+    },
+    {
+      "var": "NEXT_PUBLIC_EMBED_LIB_URL",
+      "pkgs": ["apps/web", "packages/embeds", "packages/lib"]
+    },
+    {
+      "var": "NEXT_PUBLIC_FORMBRICKS_HOST_URL",
+      "pkgs": ["apps/web", "packages/lib", "packages/trpc"]
+    },
+    {
+      "var": "NEXT_PUBLIC_FORMBRICKS_ENVIRONMENT_ID",
+      "pkgs": ["apps/web", "packages/lib", "packages/trpc"]
+    },
+    {
+      "var": "NEXT_PUBLIC_HOSTED_CAL_FEATURES",
+      "pkgs": ["packages/features", "packages/lib"]
+    },
+    {
+      "var": "NEXT_PUBLIC_IS_E2E",
+      "pkgs": [
+        "apps/api",
+        "apps/web",
+        "packages/app-store",
+        "packages/app-store-cli",
+        "packages/emails",
+        "packages/embeds",
+        "packages/features",
+        "packages/lib",
+        "packages/platform",
+        "packages/trpc",
+        "packages/types"
+      ]
+    },
+    {
+      "var": "IS_E2E",
+      "pkgs": [
+        "apps/api",
+        "apps/web",
+        "packages/app-store",
+        "packages/app-store-cli",
+        "packages/emails",
+        "packages/embeds",
+        "packages/features",
+        "packages/lib",
+        "packages/platform",
+        "packages/trpc",
+        "packages/types"
+      ]
+    },
+    {
+      "var": "NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED",
+      "pkgs": ["apps/web", "packages/lib"]
+    },
+    {
+      "var": "NEXT_PUBLIC_SENTRY_DSN",
+      "pkgs": ["apps/api", "apps/web", "packages/features", "packages/lib"]
+    },
+    {
+      "var": "NEXT_PUBLIC_STRIPE_PUBLIC_KEY",
+      "pkgs": ["apps/web", "packages/app-store", "packages/features", "packages/lib", "packages/types"]
+    },
+    {
+      "var": "NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE_MONTHLY",
+      "pkgs": ["packages/app-store", "packages/lib"]
+    },
+    {
+      "var": "NEXT_PUBLIC_STRIPE_CREDITS_PRICE_ID",
+      "pkgs": ["packages/features", "packages/lib", "packages/trpc"]
+    },
+    {
+      "var": "NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD",
+      "pkgs": ["apps/web", "packages/lib"]
+    },
+    {
+      "var": "NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS",
+      "pkgs": ["packages/lib", "packages/types"]
+    },
+    {
+      "var": "NEXT_PUBLIC_TEAM_IMPERSONATION",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER",
+      "pkgs": ["apps/web", "packages/lib"]
+    },
+    {
+      "var": "NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW",
+      "pkgs": ["packages/features", "packages/lib", "packages/trpc"]
+    },
+    {
+      "var": "NEXT_PUBLIC_WEBSITE_PRIVACY_POLICY_URL",
+      "pkgs": ["packages/lib", "packages/types"]
+    },
+    {
+      "var": "NEXT_PUBLIC_WEBSITE_TERMS_URL",
+      "pkgs": ["packages/lib", "packages/types"]
+    },
+    {
+      "var": "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL",
+      "pkgs": ["packages/features", "packages/types"]
+    },
+    {
+      "var": "NEXT_RUNTIME",
+      "pkgs": ["apps/api", "apps/web"]
+    },
+    {
+      "var": "NEXTAUTH_COOKIE_DOMAIN",
+      "pkgs": ["packages/features", "packages/lib"]
+    },
+    {
+      "var": "NEXTAUTH_SECRET",
+      "pkgs": ["apps/api", "apps/web", "packages/app-store", "packages/platform", "packages/types"]
+    },
+    {
+      "var": "NEXTAUTH_URL",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "NODE_ENV",
+      "pkgs": [
+        "apps/api",
+        "apps/web",
+        "packages/features",
+        "packages/i18n",
+        "packages/lib",
+        "packages/platform",
+        "packages/prisma",
+        "packages/trpc"
+      ]
+    },
+    {
+      "var": "ORGANIZATIONS_ENABLED",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "PAYMENT_FEE_FIXED",
+      "pkgs": ["apps/web", "packages/types"]
+    },
+    {
+      "var": "PAYMENT_FEE_PERCENTAGE",
+      "pkgs": ["apps/web", "packages/types"]
+    },
+    {
+      "var": "QUICK",
+      "pkgs": ["apps/web", "packages/embeds", "packages/lib"]
+    },
+    {
+      "var": "RESERVED_SUBDOMAINS",
+      "pkgs": ["apps/web", "packages/features", "packages/lib", "packages/trpc"]
+    },
+    {
+      "var": "RETELL_AI_KEY",
+      "pkgs": ["apps/web", "packages/features", "packages/lib"]
+    },
+    {
+      "var": "RETELL_AI_TEST_MODE",
+      "pkgs": ["packages/features", "packages/lib"]
+    },
+    {
+      "var": "RETELL_AI_TEST_EVENT_TYPE_MAP",
+      "pkgs": ["packages/features", "packages/lib"]
+    },
+    {
+      "var": "SAML_ADMINS",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "SENDGRID_API_KEY",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "SENDGRID_EMAIL",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "SENTRY_TRACES_SAMPLE_RATE",
+      "pkgs": ["apps/api", "apps/web", "packages/lib"]
+    },
+    {
+      "var": "STRIPE_CLIENT_ID",
+      "pkgs": ["apps/web", "packages/app-store", "packages/features", "packages/lib", "packages/types"]
+    },
+    {
+      "var": "STRIPE_PRIVATE_KEY",
+      "pkgs": [
+        "apps/web",
+        "packages/app-store",
+        "packages/features",
+        "packages/lib",
+        "packages/trpc",
+        "packages/types"
+      ]
+    },
+    {
+      "var": "STRIPE_WEBHOOK_SECRET",
+      "pkgs": [
+        "apps/api",
+        "apps/web",
+        "packages/app-store",
+        "packages/features",
+        "packages/platform",
+        "packages/testing",
+        "packages/types"
+      ]
+    },
+    {
+      "var": "STRIPE_WEBHOOK_SECRET_APPS",
+      "pkgs": ["apps/web", "packages/types"]
+    },
+    {
+      "var": "STRIPE_TEAM_MONTHLY_PRICE_ID",
+      "pkgs": ["apps/api", "packages/app-store", "packages/features"]
+    },
+    {
+      "var": "STRIPE_TEAM_PRODUCT_ID",
+      "pkgs": ["packages/features", "packages/types"]
+    },
+    {
+      "var": "STRIPE_ORG_MONTHLY_PRICE_ID",
+      "pkgs": ["packages/features", "packages/trpc"]
+    },
+    {
+      "var": "STRIPE_ORG_ANNUAL_PRICE_ID",
+      "pkgs": ["packages/features", "packages/trpc"]
+    },
+    {
+      "var": "STRIPE_ORG_PRODUCT_ID",
+      "pkgs": ["packages/features", "packages/trpc"]
+    },
+    {
+      "var": "UPSTASH_REDIS_REST_TOKEN",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "UPSTASH_REDIS_REST_URL",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "UNKEY_ROOT_KEY",
+      "pkgs": ["packages/lib", "packages/testing"]
+    },
+    {
+      "var": "VERCEL_ENV",
+      "pkgs": ["apps/web", "packages/types"]
+    },
+    {
+      "var": "VERCEL_URL",
+      "pkgs": ["apps/web", "packages/embeds", "packages/lib", "packages/trpc", "packages/types"]
+    },
+    {
+      "var": "NEXT_PUBLIC_VAPID_PUBLIC_KEY",
+      "pkgs": ["apps/api", "apps/web", "packages/features"]
+    },
+    {
+      "var": "VAPID_PRIVATE_KEY",
+      "pkgs": ["apps/api", "packages/features"]
+    },
+    {
+      "var": "CAL_VIDEO_MEETING_LINK_FOR_TESTING",
+      "pkgs": ["apps/web", "packages/lib"]
+    },
+    {
+      "var": "NEXT_PUBLIC_POSTHOG_KEY",
+      "pkgs": ["apps/web", "packages/types"]
+    },
+    {
+      "var": "NEXT_PUBLIC_POSTHOG_HOST",
+      "pkgs": ["apps/web", "packages/types"]
+    },
+    {
+      "var": "DIRECTORY_IDS_TO_LOG",
+      "pkgs": ["apps/web", "packages/features", "packages/lib"]
+    },
+    {
+      "var": "NEXT_PUBLIC_SINGLE_ORG_SLUG",
+      "pkgs": ["apps/web", "packages/features", "packages/lib"]
+    },
+    {
+      "var": "GOOGLE_CLIENT_ID",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "GOOGLE_CLIENT_SECRET",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "CALCOM_SERVICE_ACCOUNT_ENCRYPTION_KEY",
+      "pkgs": ["apps/api", "packages/lib"]
+    },
+    {
+      "var": "OUTLOOK_LOGIN_ENABLED",
+      "pkgs": ["apps/web", "packages/features"]
+    },
+    {
+      "var": "ORGANIZER_EMAIL_EXEMPT_DOMAINS",
+      "pkgs": ["packages/app-store", "packages/emails", "packages/features", "packages/lib"]
+    },
+    {
+      "var": "SLOTS_CACHE_TTL",
+      "pkgs": ["apps/api", "packages/trpc"]
+    },
+    {
+      "var": "CSP_POLICY",
+      "pkgs": ["apps/web", "packages/types"]
+    },
+    {
+      "var": "NEXT_PUBLIC_WEBAPP_URL",
+      "pkgs": [
+        "apps/api",
+        "apps/web",
+        "packages/emails",
+        "packages/embeds",
+        "packages/features",
+        "packages/lib",
+        "packages/platform",
+        "packages/prisma",
+        "packages/trpc",
+        "packages/types",
+        "packages/ui"
+      ]
+    },
+    {
+      "var": "NEXT_PUBLIC_WEBSITE_URL",
+      "pkgs": ["apps/web", "packages/emails", "packages/lib", "packages/types"]
+    },
+    {
+      "var": "ATOMS_E2E_APPLE_ID",
+      "pkgs": ["apps/api", "packages/platform"]
+    },
+    {
+      "var": "ATOMS_E2E_APPLE_CONNECT_APP_SPECIFIC_PASSCODE",
+      "pkgs": ["apps/api", "packages/platform"]
+    },
+    {
+      "var": "NEXT_PUBLIC_INTERCOM_APP_ID",
+      "pkgs": ["apps/web", "packages/types"]
+    },
+    {
+      "var": "USE_POOL",
+      "pkgs": ["apps/api", "packages/platform", "packages/prisma"]
+    },
+    {
+      "var": "TRIGGER_SECRET_KEY",
+      "pkgs": ["apps/api", "packages/features", "packages/lib"]
+    },
+    {
+      "var": "TRIGGER_API_URL",
+      "pkgs": ["apps/api", "packages/features", "packages/lib"]
+    },
+    {
+      "var": "TRIGGER_DEV_PROJECT_REF",
+      "pkgs": ["apps/api", "packages/features"]
+    },
+    {
+      "var": "ENABLE_ASYNC_TASKER",
+      "pkgs": ["apps/api", "packages/features", "packages/lib", "packages/platform"]
+    },
+    {
+      "var": "API_PORT",
+      "pkgs": ["apps/api", "packages/platform"]
+    },
+    {
+      "var": "API_URL",
+      "pkgs": ["apps/api", "packages/app-store", "packages/features", "packages/lib", "packages/platform"]
+    },
+    {
+      "var": "DATABASE_WRITE_URL",
+      "pkgs": ["apps/api", "packages/platform"]
+    },
+    {
+      "var": "JWT_SECRET",
+      "pkgs": ["apps/api", "packages/platform"]
+    },
+    {
+      "var": "DOCS_URL",
+      "pkgs": ["apps/api", "apps/web", "packages/lib"]
+    },
+    {
+      "var": "DATABASE_READ_URL",
+      "pkgs": ["apps/api", "packages/platform"]
+    },
+    {
+      "var": "STRIPE_API_KEY",
+      "pkgs": ["apps/api", "packages/platform"]
+    },
+    {
+      "var": "STRIPE_PRICE_ID_ESSENTIALS_OVERAGE",
+      "pkgs": ["apps/api", "packages/platform"]
+    },
+    {
+      "var": "STRIPE_PRICE_ID_STARTER",
+      "pkgs": ["apps/api", "packages/platform"]
+    },
+    {
+      "var": "STRIPE_PRICE_ID_STARTER_OVERAGE",
+      "pkgs": ["apps/api", "packages/platform"]
+    },
+    {
+      "var": "STRIPE_PRICE_ID_ESSENTIALS",
+      "pkgs": ["apps/api", "packages/platform"]
+    },
+    {
+      "var": "REDIS_URL",
+      "pkgs": ["apps/api", "packages/platform"]
+    }
+  ]
+}

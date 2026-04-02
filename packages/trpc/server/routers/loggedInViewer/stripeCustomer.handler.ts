@@ -2,7 +2,6 @@ import { getBillingProviderService } from "@calcom/ee/billing/di/containers/Bill
 import { prisma } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
 
 type StripeCustomerOptions = {

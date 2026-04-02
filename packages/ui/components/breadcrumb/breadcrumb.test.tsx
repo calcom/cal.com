@@ -1,5 +1,4 @@
 import { render, screen } from "@testing-library/react";
-
 import { Breadcrumb, BreadcrumbItem } from "./Breadcrumb";
 
 describe("Tests for Breadcrumb component", () => {

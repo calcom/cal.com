@@ -9,9 +9,7 @@ import { withSelectedCalendars } from "@calcom/features/users/repositories/UserR
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
-
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TGetManagedEventUsersToReassignInputSchema } from "./getManagedEventUsersToReassign.schema";
 
 type GetManagedEventUsersToReassignOptions = {

@@ -1,6 +1,5 @@
+import { WatchlistSource, WatchlistType } from "@calcom/prisma/enums";
 import { z } from "zod";
-
-import { WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
 
 export const ZListWatchlistEntriesInputSchema = z.object({
   limit: z.number().int().min(1).max(100).default(25),

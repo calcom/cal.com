@@ -1,15 +1,15 @@
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Expose, Type } from "class-transformer";
+import { IsBoolean, IsOptional, ValidateNested } from "class-validator";
 import {
   HOST,
   RECIPIENT_TYPES,
-  RecipientType,
   REMINDER,
+  RecipientType,
   TEMPLATES,
   TemplateType,
 } from "@/modules/workflows/inputs/workflow-step.input";
 import { HOUR, TIME_UNITS, TimeUnitType } from "@/modules/workflows/inputs/workflow-trigger.input";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Expose, Type } from "class-transformer";
-import { IsBoolean, IsOptional, ValidateNested } from "class-validator";
 
 export class WorkflowMessageOutputDto {
   @ApiProperty({

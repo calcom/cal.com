@@ -1,5 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { WebhookTaskConsumer } from "../service/WebhookTaskConsumer";
 import type { WebhookTaskPayload } from "../types/webhookTask";
 import { WebhookSyncTasker } from "./WebhookSyncTasker";

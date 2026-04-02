@@ -1,5 +1,4 @@
 import { create } from "zustand";
-
 import type { PermissionString } from "../../domain/types/permission-registry";
 
 export interface TeamPermissions {

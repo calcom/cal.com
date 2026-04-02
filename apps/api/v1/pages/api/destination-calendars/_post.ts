@@ -1,5 +1,3 @@
-import type { NextApiRequest } from "next";
-
 import {
   getCalendarCredentialsWithoutDelegation,
   getConnectedCalendars,
@@ -8,10 +6,10 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-
+import type { NextApiRequest } from "next";
 import {
-  schemaDestinationCalendarReadPublic,
   schemaDestinationCalendarCreateBodyParams,
+  schemaDestinationCalendarReadPublic,
 } from "~/lib/validations/destination-calendar";
 
 /**

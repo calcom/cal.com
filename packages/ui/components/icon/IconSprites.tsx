@@ -1,3 +1,4 @@
+import process from "node:process";
 import SVG from "react-inlinesvg";
 
 // eslint-disable-next-line turbo/no-undeclared-env-vars

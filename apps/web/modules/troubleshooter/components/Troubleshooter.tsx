@@ -1,12 +1,11 @@
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { useInitalizeTroubleshooterStore } from "@calcom/features/troubleshooter/store";
+import type { TroubleshooterProps } from "@calcom/features/troubleshooter/types";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import classNames from "@calcom/ui/classNames";
-
 import { LargeCalendar } from "./LargeCalendar";
 import { TroubleshooterHeader } from "./TroubleshooterHeader";
 import { TroubleshooterSidebar } from "./TroubleshooterSidebar";
-import { useInitalizeTroubleshooterStore } from "@calcom/features/troubleshooter/store";
-import type { TroubleshooterProps } from "@calcom/features/troubleshooter/types";
 
 const extraDaysConfig = {
   desktop: 7,

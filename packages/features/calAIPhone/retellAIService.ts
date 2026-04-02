@@ -1,20 +1,19 @@
 import logger from "@calcom/lib/logger";
 import { fetcher } from "@calcom/lib/retellAIFetcher";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
 import type {
-  TCreateRetellLLMSchema,
-  TGetRetellLLMSchema,
   TCreatePhoneCallSchema,
+  TCreatePhoneSchema,
+  TCreateRetellLLMSchema,
   TemplateType,
   TGetPhoneNumberSchema,
-  TCreatePhoneSchema,
+  TGetRetellLLMSchema,
 } from "./zod-utils";
 import {
-  ZGetRetellLLMSchema,
   ZCreatePhoneSchema,
   ZCreateRetellLLMSchema,
   ZGetPhoneNumberSchema,
+  ZGetRetellLLMSchema,
 } from "./zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["retellAIService: "] });

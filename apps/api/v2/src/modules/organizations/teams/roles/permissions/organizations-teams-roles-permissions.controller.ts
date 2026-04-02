@@ -1,3 +1,20 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { PermissionString } from "@calcom/platform-libraries/pbac";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
@@ -18,24 +35,6 @@ import { CreateTeamRolePermissionsInput } from "@/modules/organizations/teams/ro
 import { DeleteTeamRolePermissionsQuery } from "@/modules/organizations/teams/roles/permissions/inputs/delete-team-role-permissions.query";
 import { GetTeamRolePermissionsOutput } from "@/modules/organizations/teams/roles/permissions/outputs/get-team-role-permissions.output";
 import { RolesPermissionsService } from "@/modules/roles/permissions/services/roles-permissions.service";
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  ParseIntPipe,
-  Put,
-  Query,
-  Post,
-  UseGuards,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { PermissionString } from "@calcom/platform-libraries/pbac";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId/roles/:roleId/permissions",

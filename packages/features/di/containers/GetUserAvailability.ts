@@ -1,8 +1,7 @@
 import type { UserAvailabilityService } from "@calcom/features/availability/lib/getUserAvailability";
+import { prismaModule } from "@calcom/features/di/modules/Prisma";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { redisModule } from "@calcom/features/redis/di/redisModule";
-import { prismaModule } from "@calcom/features/di/modules/Prisma";
-
 import { createContainer } from "../di";
 import { bookingRepositoryModule } from "../modules/Booking";
 import { busyTimesModule } from "../modules/BusyTimes";

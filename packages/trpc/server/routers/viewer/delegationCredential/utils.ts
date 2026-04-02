@@ -1,11 +1,9 @@
-import { z } from "zod";
-
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { Prisma } from "@calcom/prisma/client";
-
 import { TRPCError } from "@trpc/server";
+import { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["delegationCredential/utils"] });
 export class InvalidServiceAccountKeyError extends Error {

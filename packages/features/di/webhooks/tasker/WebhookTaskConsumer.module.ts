@@ -1,10 +1,8 @@
-import type { Container } from "@evyweb/ioctopus";
-
 import type { ModuleLoader } from "@calcom/features/di/di";
 import type { WebhookTaskConsumer } from "@calcom/features/webhooks/lib/service/WebhookTaskConsumer";
-
-import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
+import type { Container } from "@evyweb/ioctopus";
 import { moduleLoader as prismaModuleLoader } from "../../modules/Prisma";
+import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
 import { taskerServiceModule } from "../../shared/services/tasker.service";
 import { SHARED_TOKENS } from "../../shared/shared.tokens";
 import { bookingWebhookDataFetcherModule } from "../modules/BookingWebhookDataFetcher.module";

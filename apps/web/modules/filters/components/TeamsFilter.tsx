@@ -1,21 +1,18 @@
-import { useSession } from "next-auth/react";
-import type { InputHTMLAttributes, ReactNode } from "react";
-import { forwardRef, useState } from "react";
-
+import { filterQuerySchema } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
-import { VerticalDivider } from "@calcom/ui/components/divider";
-import { Divider } from "@calcom/ui/components/divider";
+import { Divider, VerticalDivider } from "@calcom/ui/components/divider";
 import { FilterSearchField } from "@calcom/ui/components/form";
 import { AnimatedPopover } from "@calcom/ui/components/popover";
-import { LayersIcon, UserIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
-import { filterQuerySchema } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
+import { LayersIcon, UserIcon } from "@coss/ui/icons";
+import { useSession } from "next-auth/react";
+import type { InputHTMLAttributes, ReactNode } from "react";
+import { forwardRef, useState } from "react";
 
 function useFilterQuery() {
   // passthrough allows additional params to not be removed

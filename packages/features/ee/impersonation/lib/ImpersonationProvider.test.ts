@@ -1,15 +1,13 @@
+import process from "node:process";
+import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import type { Session } from "next-auth";
 import { describe, expect, it, vi } from "vitest";
-
-import { UserPermissionRole } from "@calcom/prisma/enums";
-import { MembershipRole } from "@calcom/prisma/enums";
-
 import {
-  parseTeamId,
-  checkSelfImpersonation,
-  checkUserIdentifier,
   checkGlobalPermission,
   checkPBACImpersonationPermission,
+  checkSelfImpersonation,
+  checkUserIdentifier,
+  parseTeamId,
 } from "./ImpersonationProvider";
 
 const session: Session = {

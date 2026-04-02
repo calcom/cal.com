@@ -1,10 +1,9 @@
 import { prisma } from "@calcom/prisma";
-
 import type {
-  RoutingFormSelect,
-  SelectedFields,
   FindByIdOptions,
+  RoutingFormSelect,
   RoutingFormWithUserTeamAndOrg,
+  SelectedFields,
 } from "./PrismaRoutingFormRepositoryInterface";
 
 const defaultSelect = {

@@ -1,12 +1,10 @@
-import type { NextApiRequest } from "next";
-
 import { symmetricEncrypt } from "@calcom/lib/crypto";
-
+import type { NextApiRequest } from "next";
 import {
-  CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY,
-  CALCOM_CREDENTIAL_SYNC_SECRET,
-  CALCOM_CREDENTIAL_SYNC_HEADER_NAME,
   CALCOM_ADMIN_API_KEY,
+  CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY,
+  CALCOM_CREDENTIAL_SYNC_HEADER_NAME,
+  CALCOM_CREDENTIAL_SYNC_SECRET,
 } from "../../constants";
 import { generateGoogleCalendarAccessToken, generateZoomAccessToken } from "../../lib/integrations";
 

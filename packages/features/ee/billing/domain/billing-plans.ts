@@ -1,6 +1,6 @@
 import {
-  type BillingPlan,
   BILLING_PLANS,
+  type BillingPlan,
   ENTERPRISE_SLUGS,
   PLATFORM_ENTERPRISE_SLUGS,
   PLATFORM_PLANS_MAP,

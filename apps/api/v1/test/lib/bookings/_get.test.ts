@@ -1,18 +1,14 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
+import { buildBooking } from "@calcom/lib/test/builder";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, test, vi, afterEach, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { ZodError } from "zod";
-
-import { buildBooking } from "@calcom/lib/test/builder";
-
 import {
   getAccessibleUsers,
   retrieveOrgScopedAccessibleUsers,
 } from "~/lib/utils/retrieveScopedAccessibleUsers";
-
 import { handler } from "../../../pages/api/bookings/_get";
 
 vi.mock("~/lib/utils/retrieveScopedAccessibleUsers", () => ({

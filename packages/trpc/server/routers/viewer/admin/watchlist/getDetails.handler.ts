@@ -1,8 +1,6 @@
 import { getAdminWatchlistQueryService } from "@calcom/features/di/watchlist/containers/watchlist";
 import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../../types";
 import type { TGetWatchlistEntryDetailsInputSchema } from "./getDetails.schema";
 

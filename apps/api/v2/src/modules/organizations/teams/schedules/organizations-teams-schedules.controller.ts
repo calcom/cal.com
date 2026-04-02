@@ -1,3 +1,7 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { GetSchedulesOutput_2024_06_11 } from "@calcom/platform-types";
+import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
@@ -19,11 +23,6 @@ import {
   GetUserSchedulesQuery,
 } from "@/modules/organizations/teams/schedules/inputs/teams-schedules.input";
 import { TeamsSchedulesService } from "@/modules/teams/schedules/services/teams-schedules.service";
-import { Controller, UseGuards, Get, Param, ParseIntPipe, Query } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { GetSchedulesOutput_2024_06_11 } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId",

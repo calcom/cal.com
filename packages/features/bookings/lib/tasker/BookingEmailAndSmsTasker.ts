@@ -1,11 +1,13 @@
-import { BookingActionMap, BookingActionType } from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
+import {
+  BookingActionMap,
+  type BookingActionType,
+} from "@calcom/features/bookings/lib/BookingEmailSmsHandler";
 import { Tasker } from "@calcom/lib/tasker/Tasker";
 import type { ILogger } from "@calcom/lib/tasker/types";
-import { SchedulingType } from "@calcom/prisma/client";
-
-import { BookingEmailAndSmsSyncTasker } from "./BookingEmailAndSmsSyncTasker";
-import { BookingEmailAndSmsTriggerDevTasker } from "./BookingEmailAndSmsTriggerTasker";
-import { BookingEmailAndSmsTaskPayload, IBookingEmailAndSmsTasker } from "./types";
+import type { SchedulingType } from "@calcom/prisma/client";
+import type { BookingEmailAndSmsSyncTasker } from "./BookingEmailAndSmsSyncTasker";
+import type { BookingEmailAndSmsTriggerDevTasker } from "./BookingEmailAndSmsTriggerTasker";
+import type { BookingEmailAndSmsTaskPayload, IBookingEmailAndSmsTasker } from "./types";
 
 export interface IBookingEmailAndSmsTaskerDependencies {
   asyncTasker: BookingEmailAndSmsTriggerDevTasker;

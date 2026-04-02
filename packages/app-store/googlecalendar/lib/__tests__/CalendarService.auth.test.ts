@@ -2,29 +2,27 @@ import prismock from "@calcom/testing/lib/__mocks__/prisma";
 import "../__mocks__/features.repository";
 import "../__mocks__/getGoogleAppKeys";
 import {
-  setCredentialsMock,
+  adminMock,
   calendarListMock,
+  calendarMock,
   getLastCreatedJWT,
   getLastCreatedOAuth2Client,
-  setLastCreatedJWT,
-  setLastCreatedOAuth2Client,
-  calendarMock,
-  adminMock,
   MOCK_JWT_TOKEN,
   MOCK_OAUTH2_TOKEN,
+  setCredentialsMock,
+  setLastCreatedJWT,
+  setLastCreatedOAuth2Client,
 } from "../__mocks__/googleapis";
-
-import { expect, test, beforeEach, vi, describe } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
-
 import BuildCalendarService from "../CalendarService";
 import {
-  createMockJWTInstance,
-  createInMemoryDelegationCredentialForCalendarService as createInMemoryDelegationCredentialForBuildCalendarService,
-  defaultDelegatedCredential,
   createCredentialForCalendarService,
+  createInMemoryDelegationCredentialForCalendarService as createInMemoryDelegationCredentialForBuildCalendarService,
+  createMockJWTInstance,
+  defaultDelegatedCredential,
 } from "./utils";
 
 function expectJWTInstanceToBeCreated() {

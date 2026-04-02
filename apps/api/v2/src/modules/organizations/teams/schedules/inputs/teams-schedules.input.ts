@@ -1,8 +1,7 @@
+import { SkipTakePagination } from "@calcom/platform-types";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsNumber, IsOptional } from "class-validator";
-
-import { SkipTakePagination } from "@calcom/platform-types";
 
 export class GetTeamSchedulesQuery extends SkipTakePagination {
   @ApiPropertyOptional({

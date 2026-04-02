@@ -1,6 +1,5 @@
 import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
-
 import * as event from "./eventNaming";
 import { updateHostInEventName } from "./eventNaming";
 

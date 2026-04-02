@@ -1,13 +1,12 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-
 import { test } from "./lib/fixtures";
 import { localize } from "./lib/localize";
 import {
   bookTimeSlot,
-  submitAndWaitForResponse,
   selectFirstAvailableTimeSlotNextMonth,
   setupManagedEvent,
+  submitAndWaitForResponse,
 } from "./lib/testUtils";
 
 test.afterEach(async ({ users }) => {

@@ -1,21 +1,18 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import DatePicker from "@calcom/features/calendars/components/DatePicker";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { yyyymmdd } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkingHours } from "@calcom/types/schedule";
 import cs from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogHeader, DialogTrigger, DialogClose } from "@calcom/ui/components/dialog";
-import { Switch } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
+import { DialogClose, DialogContent, DialogHeader, DialogTrigger } from "@calcom/ui/components/dialog";
+import { Form, Switch } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
-
-import DatePicker from "@calcom/features/calendars/components/DatePicker";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import type { TimeRange } from "./ScheduleComponent";
 import { DayRanges } from "./ScheduleComponent";
 

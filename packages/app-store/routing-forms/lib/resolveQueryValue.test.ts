@@ -1,10 +1,8 @@
-import { expect, describe, it } from "vitest";
-
 import { RoutingFormFieldType } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import type { AttributesQueryValue, RaqbChild } from "@calcom/lib/raqb/types";
 import { AttributeType } from "@calcom/prisma/enums";
-
+import { describe, expect, it } from "vitest";
 import { resolveQueryValue } from "./resolveQueryValue";
 
 // Test Data Builders for AttributesQueryValue

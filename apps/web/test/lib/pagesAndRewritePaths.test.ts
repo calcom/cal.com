@@ -1,8 +1,7 @@
-import { it, expect, describe } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import {
-  topLevelRoutesExcludedFromOrgRewrite,
   topLevelRouteNamesWhitelistedForRewrite,
+  topLevelRoutesExcludedFromOrgRewrite,
 } from "../../pagesAndRewritePaths.js";
 
 describe("pagesAndRewritePaths", () => {

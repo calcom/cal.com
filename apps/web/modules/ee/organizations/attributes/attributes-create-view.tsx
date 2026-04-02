@@ -1,16 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useFormContext } from "react-hook-form";
-import { z } from "zod";
-
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
-
+import { useRouter } from "next/navigation";
+import { useFormContext } from "react-hook-form";
+import { z } from "zod";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { AttributeForm } from "./AttributesForm";
 
 const CreateAttributeSchema = z.object({

@@ -1,8 +1,7 @@
-import { expect } from "@playwright/test";
-
 import { getEmbedIframe } from "@calcom/embed-core/playwright/lib/testUtils";
- 
+
 import { test } from "@calcom/web/playwright/lib/fixtures";
+import { expect } from "@playwright/test";
 
 test.describe("React Embed", () => {
   test.describe("Inline", () => {
@@ -45,23 +44,24 @@ test.describe("React Embed", () => {
   });
 
   // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
-  test.describe.skip("Element Click Popup", () => {
-    test("should verify that the iframe got created with correct URL - namespaced", async ({
-      page,
-      embeds,
-    }) => {
-      const calNamespace = "element-click";
-      await embeds.gotoPlayground({ url: "/element-click.html", calNamespace });
-      await page.waitForLoadState();
-      await page.click("text=Click me");
+  test.describe
+    .skip("Element Click Popup", () => {
+      test("should verify that the iframe got created with correct URL - namespaced", async ({
+        page,
+        embeds,
+      }) => {
+        const calNamespace = "element-click";
+        await embeds.gotoPlayground({ url: "/element-click.html", calNamespace });
+        await page.waitForLoadState();
+        await page.click("text=Click me");
 
-      const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
-      await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
-        pathname: "/pro",
-        searchParams: {
-          theme: "dark",
-        },
+        const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: "/pro" });
+        await expect(embedIframe).toBeEmbedCalLink(calNamespace, embeds.getActionFiredDetails, {
+          pathname: "/pro",
+          searchParams: {
+            theme: "dark",
+          },
+        });
       });
     });
-  });
 });

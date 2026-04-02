@@ -1,5 +1,4 @@
 import { expect, type Page } from "@playwright/test";
-
 import { createHttpServer } from "../lib/testUtils";
 
 export function createWebhookPageFixture(page: Page) {

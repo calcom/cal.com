@@ -1,10 +1,8 @@
 "use client";
 
-import type { FC } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { OFFICE_365_CALENDAR } from "@calcom/platform-constants";
-
+import type { FC } from "react";
 import type { OAuthConnectProps } from "../OAuthConnect";
 import { OAuthConnect } from "../OAuthConnect";
 

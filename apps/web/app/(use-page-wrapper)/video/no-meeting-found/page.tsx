@@ -1,5 +1,4 @@
 import { _generateMetadata } from "app/_utils";
-
 import NoMeetingFound from "~/videos/views/videos-no-meeting-found-single-view";
 
 export const generateMetadata = async () =>

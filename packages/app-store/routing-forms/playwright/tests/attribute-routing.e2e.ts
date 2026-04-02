@@ -1,11 +1,10 @@
-import type { Page } from "@playwright/test";
-import { expect } from "@playwright/test";
-import { uuid } from "short-uuid";
-
 import { prisma } from "@calcom/prisma";
 import { AttributeType, SchedulingType } from "@calcom/prisma/enums";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { uuid } from "short-uuid";
 
 async function setupTest({
   users,
@@ -143,8 +142,7 @@ async function openPreview(page: Page, formId: string) {
 
 function getMutationResponsePromise(page: Page) {
   return page.waitForResponse(
-    (resp) =>
-      resp.url().includes("findTeamMembersMatchingAttributeLogicOfRoute") && resp.status() === 200
+    (resp) => resp.url().includes("findTeamMembersMatchingAttributeLogicOfRoute") && resp.status() === 200
   );
 }
 

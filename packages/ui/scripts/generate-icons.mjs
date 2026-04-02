@@ -1,7 +1,7 @@
+import path from "node:path";
+import process from "node:process";
 import glob from "fast-glob";
 import fs from "fs-extra";
-import path from "node:path";
-
 import { lucideIconList } from "../components/icon/icon-list.mjs";
 
 const cwd = process.cwd();

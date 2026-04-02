@@ -1,6 +1,5 @@
 import logger from "@calcom/lib/logger";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { getSubscriptionFromId } from "../../subscriptions";
 import { BillingPortalService } from "../base/BillingPortalService";
 

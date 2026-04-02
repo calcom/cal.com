@@ -1,8 +1,8 @@
-import { ConnectedCalendar, Calendar } from "@/ee/calendars/outputs/connected-calendars.output";
-import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { DestinationCalendarsRepository } from "@/modules/destination-calendars/destination-calendars.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { Calendar, ConnectedCalendar } from "@/ee/calendars/outputs/connected-calendars.output";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
+import { DestinationCalendarsRepository } from "@/modules/destination-calendars/destination-calendars.repository";
 
 @Injectable()
 export class DestinationCalendarsService {
@@ -19,9 +19,9 @@ export class DestinationCalendarsService {
     delegationCredentialId?: string
   ) {
     const userCalendars = await this.calendarsService.getCalendars(userId);
-    const allCalendars: Calendar[] = userCalendars.connectedCalendars
-      .map((cal: ConnectedCalendar) => cal.calendars ?? [])
-      .flat();
+    const allCalendars: Calendar[] = userCalendars.connectedCalendars.flatMap(
+      (cal: ConnectedCalendar) => cal.calendars ?? []
+    );
     const credentialId = allCalendars.find(
       (cal: Calendar) =>
         cal.externalId === externalId && cal.integration === integration && cal.readOnly === false

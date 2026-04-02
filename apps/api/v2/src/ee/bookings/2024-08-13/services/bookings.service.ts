@@ -1,3 +1,5 @@
+// biome-ignore lint/style/noRestrictedImports: Needed for webhook deliveries
+import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import {
   confirmBookingHandler,
   distributedTracing,
@@ -11,9 +13,6 @@ import {
 } from "@calcom/platform-libraries";
 import { makeUserActor, PrismaOrgMembershipRepository } from "@calcom/platform-libraries/bookings";
 import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
-// biome-ignore lint/style/noRestrictedImports: Needed for webhook deliveries
-import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import {
   BookingOutput_2024_08_13,
   CancelBookingInput,
@@ -31,6 +30,7 @@ import {
 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, Team, User } from "@calcom/prisma/client";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import {
   BadRequestException,
   ConflictException,
@@ -120,7 +120,7 @@ export class BookingsService_2024_08_13 {
     private readonly recurringBookingService: RecurringBookingService,
     private readonly instantBookingCreateService: InstantBookingCreateService,
     private readonly eventTypeAccessService: EventTypeAccessService
-  ) { }
+  ) {}
 
   async createBooking(request: Request, body: CreateBookingInput, authUser: AuthOptionalUser) {
     let bookingTeamEventType = false;
@@ -326,7 +326,8 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `Invalid option '${submittedValue}' for booking field '${eventTypeBookingField.name
+                  `Invalid option '${submittedValue}' for booking field '${
+                    eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -340,7 +341,8 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `One or more invalid options for booking field '${eventTypeBookingField.name
+                  `One or more invalid options for booking field '${
+                    eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -354,7 +356,8 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.areValidMultipleOptionValues(submittedValues, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `One or more invalid options for booking field '${eventTypeBookingField.name
+                  `One or more invalid options for booking field '${
+                    eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -369,7 +372,8 @@ export class BookingsService_2024_08_13 {
               const allowedOptionValues = eventTypeBookingField.options.map((opt) => opt.value);
               if (!this.isValidSingleOptionValue(submittedValue, allowedOptionValues)) {
                 throw new BadRequestException(
-                  `Invalid option '${submittedValue}' for booking field '${eventTypeBookingField.name
+                  `Invalid option '${submittedValue}' for booking field '${
+                    eventTypeBookingField.name
                   }'. Allowed options are: ${allowedOptionValues.join(", ")}.`
                 );
               }
@@ -546,7 +550,9 @@ export class BookingsService_2024_08_13 {
       throw new Error("Booking missing uid");
     }
 
-    const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEventFromWrite(booking.uid);
+    const databaseBooking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEventFromWrite(
+      booking.uid
+    );
     if (!databaseBooking) {
       throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
     }
@@ -556,9 +562,9 @@ export class BookingsService_2024_08_13 {
       outputBooking,
       booking.userId
         ? {
-          userId: booking.userId,
-          isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
-        }
+            userId: booking.userId,
+            isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
+          }
         : {}
     );
   }
@@ -591,7 +597,9 @@ export class BookingsService_2024_08_13 {
       }
 
       const databaseBooking =
-        await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEventFromWrite(booking.uid);
+        await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEventFromWrite(
+          booking.uid
+        );
       if (!databaseBooking) {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
       }
@@ -605,9 +613,9 @@ export class BookingsService_2024_08_13 {
         outputBooking,
         booking.userId
           ? {
-            userId: booking.userId,
-            isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
-          }
+              userId: booking.userId,
+              isPlatformManagedUserBooking: booking.user?.isPlatformManaged ?? false,
+            }
           : {}
       );
     } catch (error) {
@@ -676,9 +684,9 @@ export class BookingsService_2024_08_13 {
     const userIsEventTypeAdminOrOwner =
       authUser && booking.eventType
         ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
-          authUser,
-          booking.eventType as EventType
-        )
+            authUser,
+            booking.eventType as EventType
+          )
         : false;
 
     const isRecurring = !!booking.recurringEventId;

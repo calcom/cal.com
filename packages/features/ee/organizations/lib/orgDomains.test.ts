@@ -1,11 +1,10 @@
-import { describe, expect, it } from "vitest";
-
 import {
-  getOrgSlug,
   getOrgDomainConfigFromHostname,
   getOrgFullOrigin,
+  getOrgSlug,
 } from "@calcom/features/ee/organizations/lib/orgDomains";
 import * as constants from "@calcom/lib/constants";
+import { describe, expect, it } from "vitest";
 
 function setupEnvs({ WEBAPP_URL = "https://app.cal.com", WEBSITE_URL = "https://cal.com" } = {}) {
   Object.defineProperty(constants, "WEBAPP_URL", { value: WEBAPP_URL });

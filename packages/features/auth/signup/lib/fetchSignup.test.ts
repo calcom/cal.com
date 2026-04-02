@@ -1,7 +1,11 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SIGNUP_ERROR_CODES } from "../constants";
-import { fetchSignup, isUserAlreadyExistsError, hasCheckoutSession, isAccountUnderReview } from "./fetchSignup";
+import {
+  fetchSignup,
+  hasCheckoutSession,
+  isAccountUnderReview,
+  isUserAlreadyExistsError,
+} from "./fetchSignup";
 
 function createJsonResponse(json: unknown, status = 200) {
   return new Response(JSON.stringify(json), {

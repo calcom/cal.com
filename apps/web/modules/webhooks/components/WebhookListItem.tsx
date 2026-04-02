@@ -19,13 +19,9 @@ import {
 } from "@coss/ui/components/menu";
 import { Switch } from "@coss/ui/components/switch";
 import { toastManager } from "@coss/ui/components/toast";
-import {
-  Tooltip,
-  TooltipPopup,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@coss/ui/components/tooltip";
+import { Tooltip, TooltipPopup, TooltipProvider, TooltipTrigger } from "@coss/ui/components/tooltip";
 import { useIsMobile } from "@coss/ui/hooks/use-mobile";
+import { EllipsisIcon, ExternalLinkIcon, PencilIcon, TrashIcon, WebhookIcon } from "@coss/ui/icons";
 import {
   ListItem,
   ListItemActions,
@@ -35,7 +31,6 @@ import {
   ListItemTitle,
   ListItemTitleLink,
 } from "@coss/ui/shared/list-item";
-import { EllipsisIcon, ExternalLinkIcon, PencilIcon, TrashIcon, WebhookIcon } from "@coss/ui/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { DeleteWebhookDialog } from "./dialogs/DeleteWebhookDialog";
@@ -177,101 +172,98 @@ export default function WebhookListItem(props: {
       <ListItemActions>
         {!isMobile && (
           <TooltipProvider delay={0}>
-          <div className="flex items-center gap-4">
-            {props.permissions.canEditWebhook ? (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Switch
-                      checked={active}
-                      data-testid="webhook-switch"
-                      disabled={toggleWebhook.isPending}
-                      onCheckedChange={(checked) => {
-                        setActive(checked);
-                        toggleWebhook.mutate({
-                          id: webhook.id,
-                          active: checked,
-                          payloadTemplate: webhook.payloadTemplate,
-                          eventTypeId: webhook.eventTypeId || undefined,
-                        });
-                      }}
-                    />
-                  }
-                />
-                <TooltipPopup sideOffset={11}>
-                  {active ? t("disable_webhook") : t("enable_webhook")}
-                </TooltipPopup>
-              </Tooltip>
-            ) : (
-              <Switch checked={active} disabled />
-            )}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               {props.permissions.canEditWebhook ? (
-                props.editHref ? (
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <Button
-                          aria-label={t("edit")}
-                          data-testid="webhook-edit-button"
-                          render={<Link href={props.editHref} />}
-                          size="icon"
-                          variant="outline"
-                        >
-                          <PencilIcon aria-hidden="true" />
-                        </Button>
-                      }
-                    />
-                    <TooltipPopup>{t("edit")}</TooltipPopup>
-                  </Tooltip>
-                ) : (
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <Button
-                          aria-label={t("edit")}
-                          data-testid="webhook-edit-button"
-                          size="icon"
-                          variant="outline"
-                          onClick={props.onEditWebhookAction}
-                        >
-                          <PencilIcon aria-hidden="true" />
-                        </Button>
-                      }
-                    />
-                    <TooltipPopup>{t("edit")}</TooltipPopup>
-                  </Tooltip>
-                )
-              ) : (
-                <Button aria-label={t("edit")} disabled size="icon" variant="outline">
-                  <PencilIcon aria-hidden="true" />
-                </Button>
-              )}
-              {props.permissions.canDeleteWebhook ? (
                 <Tooltip>
                   <TooltipTrigger
                     render={
-                      <Button
-                        aria-label={t("delete")}
-                        data-testid="delete-webhook"
-                        size="icon"
-                        variant="destructive-outline"
-                        onClick={() => setDeleteDialogOpen(true)}
-                        disabled={deleteWebhook.isPending}
-                      >
-                        <TrashIcon aria-hidden="true" />
-                      </Button>
+                      <Switch
+                        checked={active}
+                        data-testid="webhook-switch"
+                        disabled={toggleWebhook.isPending}
+                        onCheckedChange={(checked) => {
+                          setActive(checked);
+                          toggleWebhook.mutate({
+                            id: webhook.id,
+                            active: checked,
+                            payloadTemplate: webhook.payloadTemplate,
+                            eventTypeId: webhook.eventTypeId || undefined,
+                          });
+                        }}
+                      />
                     }
                   />
-                  <TooltipPopup>{t("delete")}</TooltipPopup>
+                  <TooltipPopup sideOffset={11}>
+                    {active ? t("disable_webhook") : t("enable_webhook")}
+                  </TooltipPopup>
                 </Tooltip>
               ) : (
-                <Button aria-label={t("delete")} disabled size="icon" variant="destructive-outline">
-                  <TrashIcon aria-hidden="true" />
-                </Button>
+                <Switch checked={active} disabled />
               )}
+              <div className="flex items-center gap-2">
+                {props.permissions.canEditWebhook ? (
+                  props.editHref ? (
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <Button
+                            aria-label={t("edit")}
+                            data-testid="webhook-edit-button"
+                            render={<Link href={props.editHref} />}
+                            size="icon"
+                            variant="outline">
+                            <PencilIcon aria-hidden="true" />
+                          </Button>
+                        }
+                      />
+                      <TooltipPopup>{t("edit")}</TooltipPopup>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <Button
+                            aria-label={t("edit")}
+                            data-testid="webhook-edit-button"
+                            size="icon"
+                            variant="outline"
+                            onClick={props.onEditWebhookAction}>
+                            <PencilIcon aria-hidden="true" />
+                          </Button>
+                        }
+                      />
+                      <TooltipPopup>{t("edit")}</TooltipPopup>
+                    </Tooltip>
+                  )
+                ) : (
+                  <Button aria-label={t("edit")} disabled size="icon" variant="outline">
+                    <PencilIcon aria-hidden="true" />
+                  </Button>
+                )}
+                {props.permissions.canDeleteWebhook ? (
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          aria-label={t("delete")}
+                          data-testid="delete-webhook"
+                          size="icon"
+                          variant="destructive-outline"
+                          onClick={() => setDeleteDialogOpen(true)}
+                          disabled={deleteWebhook.isPending}>
+                          <TrashIcon aria-hidden="true" />
+                        </Button>
+                      }
+                    />
+                    <TooltipPopup>{t("delete")}</TooltipPopup>
+                  </Tooltip>
+                ) : (
+                  <Button aria-label={t("delete")} disabled size="icon" variant="destructive-outline">
+                    <TrashIcon aria-hidden="true" />
+                  </Button>
+                )}
+              </div>
             </div>
-          </div>
           </TooltipProvider>
         )}
 
@@ -294,8 +286,7 @@ export default function WebhookListItem(props: {
                       eventTypeId: webhook.eventTypeId || undefined,
                     });
                   }}
-                  variant="switch"
-                >
+                  variant="switch">
                   {t("enable_webhook")}
                 </MenuCheckboxItem>
               ) : (
@@ -327,8 +318,7 @@ export default function WebhookListItem(props: {
                   <MenuItem
                     variant="destructive"
                     onClick={() => setDeleteDialogOpen(true)}
-                    disabled={deleteWebhook.isPending}
-                  >
+                    disabled={deleteWebhook.isPending}>
                     <TrashIcon />
                     {t("delete")}
                   </MenuItem>

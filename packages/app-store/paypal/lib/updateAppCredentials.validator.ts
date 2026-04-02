@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import Paypal from "./Paypal";
 
 const schema = z.object({

@@ -2,9 +2,7 @@ import { getOrganizationWatchlistOperationsService } from "@calcom/features/di/w
 import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 import { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
 import { prisma } from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TDeleteWatchlistEntryInputSchema } from "./deleteWatchlistEntry.schema";
 

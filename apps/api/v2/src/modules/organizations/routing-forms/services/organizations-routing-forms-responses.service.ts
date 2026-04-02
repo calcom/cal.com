@@ -1,11 +1,10 @@
+import { Injectable } from "@nestjs/common";
+import { Request } from "express";
+import type { CreateRoutingFormResponseInput } from "../inputs/create-routing-form-response.input";
+import type { CreateRoutingFormResponseOutputData } from "../outputs/create-routing-form-response.output";
 import { OrganizationsRoutingFormsRepository } from "@/modules/organizations/routing-forms/organizations-routing-forms.repository";
 import { SharedRoutingFormResponseService } from "@/modules/organizations/routing-forms/services/shared-routing-form-response.service";
 import { OrganizationsTeamsRoutingFormsResponsesOutputService } from "@/modules/organizations/teams/routing-forms/services/organizations-teams-routing-forms-responses-output.service";
-import { Injectable } from "@nestjs/common";
-import { Request } from "express";
-
-import type { CreateRoutingFormResponseInput } from "../inputs/create-routing-form-response.input";
-import type { CreateRoutingFormResponseOutputData } from "../outputs/create-routing-form-response.output";
 
 @Injectable()
 export class OrganizationsRoutingFormsResponsesService {

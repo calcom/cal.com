@@ -1,7 +1,5 @@
-import { useEffect } from "react";
-
 import dayjs from "@calcom/dayjs";
-
+import { useEffect } from "react";
 import { useMe } from "./useMe";
 
 export const useTimezone = (

@@ -1,12 +1,12 @@
-import { WorkflowsRepository, WorkflowType } from "@/modules/workflows/workflows.repository";
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  Injectable,
   NotFoundException,
 } from "@nestjs/common";
 import { Request } from "express";
+import { WorkflowsRepository, WorkflowType } from "@/modules/workflows/workflows.repository";
 
 @Injectable()
 export class IsEventTypeWorkflowInTeam implements CanActivate {

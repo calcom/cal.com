@@ -1,9 +1,7 @@
-import { redirect } from "next/navigation";
-
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { MembershipRole } from "@calcom/prisma/enums";
-
+import { redirect } from "next/navigation";
 import { validateUserHasOrg } from "./validateUserHasOrg";
 
 export const validateUserHasOrgPerms = async ({

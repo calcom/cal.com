@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 import { getHumanReadableFieldResponseValue } from "@calcom/app-store/routing-forms/lib/responseData/getHumanReadableFieldResponseValue";
 import { getFieldWithOptions } from "@calcom/app-store/routing-forms/lib/selectOptions";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
@@ -8,9 +6,8 @@ import { canAccessEntity } from "@calcom/features/pbac/lib/entityPermissionUtils
 import { PrismaRoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormResponseRepository";
 import { getTranslation } from "@calcom/i18n/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
+import type { z } from "zod";
 import type { ZFormByResponseIdInputSchema } from "./getResponseWithFormFields.schema";
 
 type GetFormResponseDisplayOptions = {

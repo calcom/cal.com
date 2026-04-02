@@ -2,11 +2,8 @@
 // @ts-nocheck
 // TODO: Bring this test back with the correct setup (no illegal imports)
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, it, beforeEach, vi, expect } from "vitest";
-
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TrpcSessionUser } from "../../../types";
 import { bulkDeleteUsersHandler } from "./bulkDeleteUsers.handler";
 

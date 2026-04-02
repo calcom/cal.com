@@ -10,8 +10,8 @@ import type { Prisma } from "@calcom/prisma/client";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userSelect } from "@calcom/prisma/selects/user";
 import {
-  EventTypeMetaDataSchema,
   customInputSchema,
+  EventTypeMetaDataSchema,
   rrSegmentQueryValueSchema,
 } from "@calcom/prisma/zod-utils";
 

@@ -1,5 +1,4 @@
 import { fetcher } from "@calcom/app-store/dailyvideo/lib/dailyApiFetcher";
-
 import { triggerNoShowPayloadSchema } from "./schema";
 
 export const getMeetingSessionsFromRoomName = async (roomName: string) => {

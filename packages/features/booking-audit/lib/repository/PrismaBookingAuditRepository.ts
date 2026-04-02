@@ -1,12 +1,11 @@
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-
+import { BookingAuditContextSchema } from "../dto/types";
 import type {
-  IBookingAuditRepository,
   BookingAuditCreateInput,
   BookingAuditWithActor,
+  IBookingAuditRepository,
 } from "./IBookingAuditRepository";
-import { BookingAuditContextSchema } from "../dto/types";
 
 type Dependencies = {
   prismaClient: PrismaClient;

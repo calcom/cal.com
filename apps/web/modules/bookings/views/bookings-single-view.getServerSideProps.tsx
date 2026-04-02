@@ -1,7 +1,3 @@
-import { createRouterCaller } from "app/_trpc/context";
-import type { GetServerSidePropsContext } from "next";
-import { z } from "zod";
-
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -17,8 +13,10 @@ import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUi
 import prisma from "@calcom/prisma";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
-
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import { createRouterCaller } from "app/_trpc/context";
+import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 const stringToBoolean = z
   .string()

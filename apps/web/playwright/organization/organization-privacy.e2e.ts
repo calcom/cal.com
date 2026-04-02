@@ -1,7 +1,5 @@
-import { expect } from "@playwright/test";
-
 import prisma from "@calcom/prisma";
-
+import { expect } from "@playwright/test";
 import { test } from "../lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });

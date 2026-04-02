@@ -1,7 +1,6 @@
-import { describe, it, vi, expect, afterEach, beforeEach, beforeAll, afterAll } from "vitest";
-
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
 import prisma from "@calcom/prisma";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const luckyUserService = getLuckyUserService();
 let commonEventTypeId: number;

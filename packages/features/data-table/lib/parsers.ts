@@ -1,8 +1,7 @@
-import type { SortingState, VisibilityState, ColumnSizingState } from "@tanstack/react-table";
-import { parseAsArrayOf, parseAsJson, parseAsInteger, parseAsString, createParser } from "nuqs";
-
-import { ZActiveFilter, ZSorting, ZColumnVisibility, ZColumnSizing } from "./types";
+import type { ColumnSizingState, SortingState, VisibilityState } from "@tanstack/react-table";
+import { createParser, parseAsArrayOf, parseAsInteger, parseAsJson, parseAsString } from "nuqs";
 import type { ActiveFilters } from "./types";
+import { ZActiveFilter, ZColumnSizing, ZColumnVisibility, ZSorting } from "./types";
 
 const DEFAULT_ACTIVE_FILTERS: ActiveFilters = [] as ActiveFilters;
 const DEFAULT_SORTING: SortingState = [] as SortingState;

@@ -1,6 +1,5 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { vi, describe, it, expect } from "vitest";
-
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
 vi.mock("@calcom/lib/hooks/useLocale", () => ({

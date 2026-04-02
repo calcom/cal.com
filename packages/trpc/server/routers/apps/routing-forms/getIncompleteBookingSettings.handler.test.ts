@@ -1,6 +1,6 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
-import { describe, expect, it, vi, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import getIncompleteBookingSettingsHandler from "./getIncompleteBookingSettings.handler";
 
 vi.mock("@calcom/prisma", () => ({

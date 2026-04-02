@@ -1,5 +1,4 @@
 import { prisma } from "@calcom/prisma";
-
 import type { TSubmitRatingInputSchema } from "./submitRating.schema";
 
 type SubmitRatingOptions = {

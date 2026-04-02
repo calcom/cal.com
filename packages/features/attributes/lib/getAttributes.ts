@@ -1,6 +1,9 @@
 // TODO: Queries in this file are not optimized. Need to optimize them.
-import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
-import type { AttributeId, AttributeOptionValueWithType } from "@calcom/app-store/routing-forms/types/types";
+import type {
+  Attribute,
+  AttributeId,
+  AttributeOptionValueWithType,
+} from "@calcom/app-store/routing-forms/types/types";
 import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import logger from "@calcom/lib/logger";

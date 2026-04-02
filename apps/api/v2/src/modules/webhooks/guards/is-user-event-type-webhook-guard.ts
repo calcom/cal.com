@@ -1,7 +1,4 @@
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
-import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
+import type { EventType, Webhook } from "@calcom/prisma/client";
 import {
   BadRequestException,
   CanActivate,
@@ -11,8 +8,10 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { Request } from "express";
-
-import type { EventType, Webhook } from "@calcom/prisma/client";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
+import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 
 @Injectable()
 export class IsUserEventTypeWebhookGuard implements CanActivate {
@@ -20,7 +19,7 @@ export class IsUserEventTypeWebhookGuard implements CanActivate {
     private readonly webhooksService: WebhooksService,
     private readonly eventtypesRepository: EventTypesRepository_2024_06_14,
     private readonly eventTypeAccessService: EventTypeAccessService
-  ) { }
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context
@@ -71,4 +70,3 @@ export class IsUserEventTypeWebhookGuard implements CanActivate {
     return true;
   }
 }
-

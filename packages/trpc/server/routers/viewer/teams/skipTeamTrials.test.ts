@@ -1,9 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { prisma } from "@calcom/prisma";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { skipTeamTrialsHandler } from "./skipTeamTrials.handler";
 
 // Instead of completely mocking the handler, we'll use the real implementation

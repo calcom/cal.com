@@ -1,12 +1,10 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-
+import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { getIntegrationAttributeSyncService } from "@calcom/features/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
 import { prisma } from "@calcom/prisma";
 import IntegrationAttributeSyncView from "@calcom/web/modules/integration-attribute-sync/components/IntegrationAttributeSyncView";
-
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { validateUserHasOrgPerms } from "../../../actions/validateUserHasOrgPerms";
 
 export const generateMetadata = async () =>

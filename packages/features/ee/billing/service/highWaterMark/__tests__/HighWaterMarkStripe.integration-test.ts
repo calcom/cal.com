@@ -8,14 +8,14 @@
  * we manually call the HWM service methods to simulate what the webhook would do.
  * In production (without test clocks), webhooks work normally.
  */
-import Stripe from "stripe";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import process from "node:process";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { BillingPeriod, MembershipRole } from "@calcom/prisma/enums";
-
+import Stripe from "stripe";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { StripeBillingService } from "../../billingProvider/StripeBillingService";
 import { HighWaterMarkService } from "../HighWaterMarkService";
 
@@ -31,7 +31,7 @@ describeIfStripe("HighWaterMark Stripe E2E Test", () => {
   let customer: Stripe.Customer;
   let subscription: Stripe.Subscription;
   let testTeam: Team;
-  let testUsers: User[] = [];
+  const testUsers: User[] = [];
 
   const TEST_PREFIX = `hwm-e2e-${Date.now()}`;
 

@@ -1,5 +1,4 @@
 import type { PrismaClient } from "@calcom/prisma";
-
 import type { TFindInputSchema } from "./find.schema";
 
 type GetOptions = {

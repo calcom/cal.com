@@ -4,24 +4,23 @@ import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import { Timezone as PlatformTimzoneSelect } from "@calcom/atoms/timezone";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import DestinationCalendarSelector from "@calcom/features/calendars/components/DestinationCalendarSelector";
-import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
 import type { EventNameObjectType } from "@calcom/features/eventtypes/lib/eventNaming";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
 import type {
   CheckboxClassNames,
   EventTypeSetupProps,
   FormValues,
+  HiddenSettings,
   InputClassNames,
   SelectClassNames,
   SettingsToggleClassNames,
-  HiddenSettings,
 } from "@calcom/features/eventtypes/lib/types";
-import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
 import {
   DEFAULT_DARK_BRAND_COLOR,
   DEFAULT_LIGHT_BRAND_COLOR,
@@ -49,7 +48,6 @@ import {
   Switch,
   TextField,
 } from "@calcom/ui/components/form";
-import { InfoIcon, PencilIcon } from "@coss/ui/icons";
 import {
   SelectedCalendarSettingsScope,
   SelectedCalendarsSettingsWebWrapper,
@@ -57,12 +55,13 @@ import {
 } from "@calcom/web/modules/calendars/components/SelectedCalendarsSettingsWebWrapper";
 import { MultiplePrivateLinksController } from "@calcom/web/modules/event-types/components";
 import AddVerifiedEmail from "@calcom/web/modules/event-types/components/AddVerifiedEmail";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import { BookerLayoutSelector } from "@calcom/web/modules/settings/components/BookerLayoutSelector";
+import { TimezoneSelect as WebTimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
+import { InfoIcon, PencilIcon } from "@coss/ui/icons";
 import type { Dispatch, SetStateAction } from "react";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
-
 import type { CustomEventTypeModalClassNames } from "./CustomEventTypeModal";
 import CustomEventTypeModal from "./CustomEventTypeModal";
 import type { EmailNotificationToggleCustomClassNames } from "./DisableAllEmailsSetting";
@@ -382,26 +381,26 @@ const calendarComponents = {
         <div>
           {isConnectedCalendarSettingsApplicable
             ? showConnectedCalendarSettings && (
-              <div className="mt-4">
-                <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
-                  {!isPlatform && (
-                    <SelectedCalendarsSettingsWebWrapper
-                      eventTypeId={eventType.id}
-                      disabledScope={SelectedCalendarSettingsScope.User}
-                      disableConnectionModification={true}
-                      scope={selectedCalendarSettingsScope}
-                      destinationCalendarId={destinationCalendar?.externalId}
-                      setScope={(scope) => {
-                        const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
-                        formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
-                          shouldDirty: true,
-                        });
-                      }}
-                    />
-                  )}
-                </Suspense>
-              </div>
-            )
+                <div className="mt-4">
+                  <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
+                    {!isPlatform && (
+                      <SelectedCalendarsSettingsWebWrapper
+                        eventTypeId={eventType.id}
+                        disabledScope={SelectedCalendarSettingsScope.User}
+                        disableConnectionModification={true}
+                        scope={selectedCalendarSettingsScope}
+                        destinationCalendarId={destinationCalendar?.externalId}
+                        setScope={(scope) => {
+                          const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
+                          formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
+                            shouldDirty: true,
+                          });
+                        }}
+                      />
+                    )}
+                  </Suspense>
+                </div>
+              )
             : null}
         </div>
       </div>
@@ -432,7 +431,7 @@ export const EventAdvancedTab = ({
   const [lightModeError, setLightModeError] = useState(false);
   const [multiplePrivateLinksVisible, setMultiplePrivateLinksVisible] = useState(
     !!formMethods.getValues("multiplePrivateLinks") &&
-    formMethods.getValues("multiplePrivateLinks")?.length !== 0
+      formMethods.getValues("multiplePrivateLinks")?.length !== 0
   );
   const watchedInterfaceLanguage = formMethods.watch("interfaceLanguage");
   const [interfaceLanguageVisible, setInterfaceLanguageVisible] = useState(
@@ -959,7 +958,10 @@ export const EventAdvancedTab = ({
                     customClassNames?.bookingRedirect?.redirectUrlInput?.container
                   )}>
                   <TextField
-                    className={classNames("w-full", customClassNames?.bookingRedirect?.redirectUrlInput?.input)}
+                    className={classNames(
+                      "w-full",
+                      customClassNames?.bookingRedirect?.redirectUrlInput?.input
+                    )}
                     label={t("redirect_success_booking")}
                     labelClassName={customClassNames?.bookingRedirect?.redirectUrlInput?.label}
                     labelSrOnly
@@ -1037,7 +1039,10 @@ export const EventAdvancedTab = ({
                     customClassNames?.bookingRedirect?.redirectUrlInput?.container
                   )}>
                   <TextField
-                    className={classNames("w-full", customClassNames?.bookingRedirect?.redirectUrlInput?.input)}
+                    className={classNames(
+                      "w-full",
+                      customClassNames?.bookingRedirect?.redirectUrlInput?.input
+                    )}
                     label={t("redirect_on_no_routing_form")}
                     labelClassName={customClassNames?.bookingRedirect?.redirectUrlInput?.label}
                     labelSrOnly
@@ -1574,51 +1579,53 @@ export const EventAdvancedTab = ({
           )}
         />
       )}
-      {allowDisablingAttendeeConfirmationEmails(workflows) && !hiddenSettings?.advanced?.includes("metadata.disableStandardEmails.confirmation.attendee") && (
-        <Controller
-          name="metadata.disableStandardEmails.confirmation.attendee"
-          render={({ field: { value, onChange } }) => (
-            <>
-              <SettingsToggle
-                labelClassName={classNames("text-sm", customClassNames?.emailNotifications?.label)}
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName={classNames(
-                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                  customClassNames?.emailNotifications?.container
-                )}
-                title={t("disable_attendees_confirmation_emails")}
-                description={t("disable_attendees_confirmation_emails_description")}
-                descriptionClassName={customClassNames?.emailNotifications?.description}
-                checked={value}
-                onCheckedChange={(e) => onChange(e)}
-              />
-            </>
-          )}
-        />
-      )}
-      {allowDisablingHostConfirmationEmails(workflows) && !hiddenSettings?.advanced?.includes("metadata.disableStandardEmails.confirmation.host") && (
-        <Controller
-          name="metadata.disableStandardEmails.confirmation.host"
-          defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
-          render={({ field: { value, onChange } }) => (
-            <>
-              <SettingsToggle
-                labelClassName={classNames("text-sm", customClassNames?.emailNotifications?.label)}
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName={classNames(
-                  "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                  customClassNames?.emailNotifications?.container
-                )}
-                descriptionClassName={customClassNames?.emailNotifications?.description}
-                title={t("disable_host_confirmation_emails")}
-                description={t("disable_host_confirmation_emails_description")}
-                checked={value}
-                onCheckedChange={(e) => onChange(e)}
-              />
-            </>
-          )}
-        />
-      )}
+      {allowDisablingAttendeeConfirmationEmails(workflows) &&
+        !hiddenSettings?.advanced?.includes("metadata.disableStandardEmails.confirmation.attendee") && (
+          <Controller
+            name="metadata.disableStandardEmails.confirmation.attendee"
+            render={({ field: { value, onChange } }) => (
+              <>
+                <SettingsToggle
+                  labelClassName={classNames("text-sm", customClassNames?.emailNotifications?.label)}
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName={classNames(
+                    "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                    customClassNames?.emailNotifications?.container
+                  )}
+                  title={t("disable_attendees_confirmation_emails")}
+                  description={t("disable_attendees_confirmation_emails_description")}
+                  descriptionClassName={customClassNames?.emailNotifications?.description}
+                  checked={value}
+                  onCheckedChange={(e) => onChange(e)}
+                />
+              </>
+            )}
+          />
+        )}
+      {allowDisablingHostConfirmationEmails(workflows) &&
+        !hiddenSettings?.advanced?.includes("metadata.disableStandardEmails.confirmation.host") && (
+          <Controller
+            name="metadata.disableStandardEmails.confirmation.host"
+            defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
+            render={({ field: { value, onChange } }) => (
+              <>
+                <SettingsToggle
+                  labelClassName={classNames("text-sm", customClassNames?.emailNotifications?.label)}
+                  toggleSwitchAtTheEnd={true}
+                  switchContainerClassName={classNames(
+                    "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                    customClassNames?.emailNotifications?.container
+                  )}
+                  descriptionClassName={customClassNames?.emailNotifications?.description}
+                  title={t("disable_host_confirmation_emails")}
+                  description={t("disable_host_confirmation_emails_description")}
+                  checked={value}
+                  onCheckedChange={(e) => onChange(e)}
+                />
+              </>
+            )}
+          />
+        )}
 
       {team?.parentId && (
         <>

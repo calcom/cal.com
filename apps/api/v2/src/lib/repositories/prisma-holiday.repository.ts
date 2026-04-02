@@ -1,8 +1,7 @@
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { Injectable } from "@nestjs/common";
-
 import { PrismaHolidayRepository as PrismaHolidayRepositoryLib } from "@calcom/platform-libraries/repositories";
 import type { PrismaClient } from "@calcom/prisma";
+import { Injectable } from "@nestjs/common";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 
 @Injectable()
 export class PrismaHolidayRepository extends PrismaHolidayRepositoryLib {
@@ -10,4 +9,3 @@ export class PrismaHolidayRepository extends PrismaHolidayRepositoryLib {
     super(dbWrite.prisma as unknown as PrismaClient);
   }
 }
-

@@ -1,9 +1,7 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import type { Prisma } from "@calcom/prisma/client";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@calcom/features/ee/teams/lib/getParsedTeam", () => ({
   getParsedTeam: <T>(org: T) => org,
@@ -68,7 +66,7 @@ async function createTeam({
 beforeEach(async () => {
   vi.resetAllMocks();
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   await prismock.reset();
 });
 

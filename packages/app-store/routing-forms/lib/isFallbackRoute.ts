@@ -1,5 +1,4 @@
 import type { z } from "zod";
-
 import type { zodRoute } from "../zod";
 import isRouter from "./isRouter";
 

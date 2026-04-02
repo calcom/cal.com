@@ -1,7 +1,7 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { formQueryHandler } from "./formQuery.handler";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { deleteFormHandler } from "./deleteForm.handler";
+import { formQueryHandler } from "./formQuery.handler";
 import { formsHandler } from "./forms.handler";
 
 vi.mock("@calcom/prisma", () => ({

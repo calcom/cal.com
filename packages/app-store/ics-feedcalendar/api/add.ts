@@ -1,9 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
+import process from "node:process";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import appConfig from "../config.json";
 import { BuildCalendarService } from "../lib";

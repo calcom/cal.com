@@ -1,14 +1,12 @@
-import axios from "axios";
-import qs from "qs";
-
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { CRM, Contact, ContactCreateInput } from "@calcom/types/CrmService";
-
+import type { Contact, ContactCreateInput, CRM } from "@calcom/types/CrmService";
+import axios from "axios";
+import qs from "qs";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 
@@ -35,9 +33,7 @@ export type ZohoContact = {
 const toISO8601String = (date: Date) => {
   const tzo = -date.getTimezoneOffset(),
     dif = tzo >= 0 ? "+" : "-",
-    pad = function (num: number) {
-      return (num < 10 ? "0" : "") + num;
-    };
+    pad = (num: number) => (num < 10 ? "0" : "") + num;
 
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
     date.getHours()

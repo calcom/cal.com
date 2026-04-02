@@ -1,15 +1,13 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
-import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
-import type { FilterType } from "@calcom/types/data-table";
+import { ColumnFilterType, type TypedColumnFilter } from "@calcom/features/data-table/lib/types";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import type { FilterType } from "@calcom/types/data-table";
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TListMembersSchema } from "./listMembers.schema";
 

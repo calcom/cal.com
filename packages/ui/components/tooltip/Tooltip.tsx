@@ -1,9 +1,8 @@
 "use client";
 
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import React from "react";
-
 import classNames from "@calcom/ui/classNames";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import type React from "react";
 
 export function Tooltip({
   children,

@@ -1,8 +1,6 @@
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useFormContext } from "react-hook-form";
 import type { z } from "zod";
-
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-
 import type { fieldsSchema } from "./schema";
 
 type RhfForm = {

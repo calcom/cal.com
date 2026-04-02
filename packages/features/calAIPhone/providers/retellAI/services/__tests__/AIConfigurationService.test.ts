@@ -1,7 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AIConfigurationService } from "../AIConfigurationService";
-import { setupBasicMocks, createMockLLM, createMockAgent, TestError } from "./test-utils";
+import { createMockAgent, createMockLLM, setupBasicMocks, TestError } from "./test-utils";
 
 describe("AIConfigurationService", () => {
   let service: AIConfigurationService;

@@ -1,3 +1,6 @@
+import { HttpModule } from "@nestjs/axios";
+import { Module } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { ConferencingController } from "@/modules/conferencing/controllers/conferencing.controller";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
@@ -9,9 +12,6 @@ import { CredentialsRepository } from "@/modules/credentials/credentials.reposit
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { HttpModule } from "@nestjs/axios";
-import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
 
 @Module({
   imports: [PrismaModule, ConfigModule, HttpModule],

@@ -1,5 +1,4 @@
 import { createContainer } from "@calcom/features/di/di";
-
 import { type OAuthService, moduleLoader as oAuthServiceModuleLoader } from "./OAuthService.module";
 
 const oAuthServiceContainer = createContainer();

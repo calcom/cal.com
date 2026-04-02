@@ -1,9 +1,7 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsNotEmptyObject, ValidateNested } from "class-validator";
-
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-
 import { ScheduleOutput_2024_06_11 } from "./schedule.output";
 
 export class GetScheduleOutput_2024_06_11 {

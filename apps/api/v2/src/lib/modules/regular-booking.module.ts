@@ -1,3 +1,6 @@
+import { getWebhookProducer } from "@calcom/platform-libraries/bookings";
+import { Module, Scope } from "@nestjs/common";
+import { WEBHOOK_PRODUCER } from "./regular-booking.tokens";
 import { Logger } from "@/lib/logger.bridge";
 import { PrismaAttributeRepository } from "@/lib/repositories/prisma-attribute.repository";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
@@ -19,11 +22,6 @@ import { BookingEmailAndSmsTasker } from "@/lib/services/tasker/booking-emails-s
 import { BookingEmailAndSmsTriggerTaskerService } from "@/lib/services/tasker/booking-emails-sms-trigger-tasker.service";
 import { TaskerService } from "@/lib/services/tasker.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { Module, Scope } from "@nestjs/common";
-
-import { getWebhookProducer } from "@calcom/platform-libraries/bookings";
-
-import { WEBHOOK_PRODUCER } from "./regular-booking.tokens";
 
 @Module({
   imports: [PrismaModule],

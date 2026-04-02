@@ -1,5 +1,4 @@
 import dayjs from "@calcom/dayjs";
-
 import type { CalendarEvent } from "../types/events";
 
 export interface OverlapLayoutConfig {
@@ -65,7 +64,7 @@ function calculateVariableWidths(
   const widths: number[] = [];
   for (let i = 0; i < groupSize; i++) {
     const t = groupSize > 1 ? i / (groupSize - 1) : 0;
-    const easedT = Math.pow(1 - t, curveExponent);
+    const easedT = (1 - t) ** curveExponent;
     const width = wLast + (wFirst - wLast) * easedT;
     widths.push(Math.max(minWidthPercent, width));
   }

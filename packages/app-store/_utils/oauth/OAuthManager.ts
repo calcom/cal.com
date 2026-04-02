@@ -10,18 +10,17 @@
  *
  * For a recommended usage example, see Zoom VideoApiAdapter.ts
  */
-import type { z } from "zod";
 
 import { CREDENTIAL_SYNC_ENDPOINT } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
+import type { z } from "zod";
 import type { AxiosLikeResponseToFetchResponse } from "./AxiosLikeResponseToFetchResponse";
 import type { OAuth2TokenResponseInDbWhenExistsSchema, OAuth2UniversalSchema } from "./universalSchema";
 import { OAuth2UniversalSchemaWithCalcomBackwardCompatibility } from "./universalSchema";
 
 const log = logger.getSubLogger({ prefix: ["app-store/_utils/oauth/OAuthManager"] });
-export const enum TokenStatus {
+export enum TokenStatus {
   UNUSABLE_TOKEN_OBJECT,
   UNUSABLE_ACCESS_TOKEN,
   INCONCLUSIVE,

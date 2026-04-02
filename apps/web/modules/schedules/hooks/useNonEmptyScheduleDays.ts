@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-
 import type { Slots } from "../lib/types";
 
 const getNonEmptyScheduleDays = (slots?: Slots) => {

@@ -1,10 +1,10 @@
 // Re-export all services for backward compatibility
+
+export type { BillingPortalResult, TeamEntity } from "./services";
 export {
   BillingPortalService,
-  TeamBillingPortalService,
-  OrganizationBillingPortalService,
-  UserBillingPortalService,
   BillingPortalServiceFactory,
+  OrganizationBillingPortalService,
+  TeamBillingPortalService,
+  UserBillingPortalService,
 } from "./services";
-
-export type { TeamEntity, BillingPortalResult } from "./services";

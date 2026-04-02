@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsNumber, IsOptional, Max, Min, Validate } from "class-validator";
-
 import { IsEmailStringOrArray } from "../validators/isEmailStringOrArray";
 
 export class GetUsersInput {

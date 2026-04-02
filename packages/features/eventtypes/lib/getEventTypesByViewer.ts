@@ -1,5 +1,3 @@
-import { orderBy } from "lodash";
-
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
@@ -17,8 +15,8 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { eventTypeMetaDataSchemaWithUntypedApps } from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithUntypedApps, teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { orderBy } from "lodash";
 
 const log = logger.getSubLogger({ prefix: ["viewer.eventTypes.getByViewer"] });
 
@@ -80,24 +78,24 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     ),
     shouldListUserEvents
       ? eventTypeRepo.findAllByUpId(
-        {
-          upId: userProfile.upId,
-          userId: user.id,
-        },
-        {
-          where: {
-            teamId: null,
+          {
+            upId: userProfile.upId,
+            userId: user.id,
           },
-          orderBy: [
-            {
-              position: "desc",
+          {
+            where: {
+              teamId: null,
             },
-            {
-              id: "asc",
-            },
-          ],
-        }
-      )
+            orderBy: [
+              {
+                position: "desc",
+              },
+              {
+                id: "asc",
+              },
+            ],
+          }
+        )
       : [],
   ]);
 
@@ -139,7 +137,9 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
       users: c.users.map((user) => enrichedUsersMap.get(user.id)).filter((user) => !!user),
     }));
 
-    const metadata = eventType.metadata ? eventTypeMetaDataSchemaWithUntypedApps.parse(eventType.metadata) : null;
+    const metadata = eventType.metadata
+      ? eventTypeMetaDataSchemaWithUntypedApps.parse(eventType.metadata)
+      : null;
     return {
       ...eventType,
       slug: (metadata as any)?.managedEventProfileSlug || eventType.slug,

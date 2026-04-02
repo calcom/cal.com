@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,6 +8,7 @@ import { Badge } from "@calcom/ui/components/badge";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
+import { useState } from "react";
 
 const { Body, Cell, ColumnTitle, Header, Row } = Table;
 

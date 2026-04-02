@@ -1,12 +1,11 @@
-import { useState, useCallback } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { InfoIcon } from "@coss/ui/icons";
+import { useCallback, useState } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
 
 type OAuthClientFormProps = {
   defaultValues?: Partial<FormValues>;

@@ -1,9 +1,8 @@
-import { captureException } from "@sentry/nextjs";
-
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { shouldEnableApp } from "@calcom/app-store/_utils/validateAppKeys";
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { captureException } from "@sentry/nextjs";
 
 export class PrismaAppRepository {
   static async seedApp(dirName: string, keys?: Prisma.InputJsonValue) {

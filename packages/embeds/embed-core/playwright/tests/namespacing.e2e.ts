@@ -1,8 +1,5 @@
-import { expect } from "@playwright/test";
-
- 
 import { test } from "@calcom/web/playwright/lib/fixtures";
-
+import { expect } from "@playwright/test";
 import { getEmbedIframe } from "../lib/testUtils";
 
 test.describe("Namespacing", () => {

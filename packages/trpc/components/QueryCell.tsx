@@ -1,15 +1,14 @@
-import type {
-  QueryObserverPendingResult,
-  QueryObserverRefetchErrorResult,
-  QueryObserverSuccessResult,
-  QueryObserverLoadingErrorResult,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type { ReactNode } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { Loader } from "@calcom/ui/components/skeleton";
+import type {
+  QueryObserverLoadingErrorResult,
+  QueryObserverPendingResult,
+  QueryObserverRefetchErrorResult,
+  QueryObserverSuccessResult,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import type { ReactNode } from "react";
 
 type ErrorLike = {
   message: string;

@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
-
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { Select } from "@calcom/ui/components/form";
+import { useEffect, useState } from "react";
 
 type Basecamp3Project = { label: string; value: string };
 

@@ -1,16 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import React, { useRef, useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent } from "@calcom/ui/components/dialog";
 import { Logo } from "@calcom/ui/components/logo";
-import { DownloadIcon, FileTextIcon, UploadIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { useOnboardingStore, type Invite } from "../../store/onboarding-store";
+import { DownloadIcon, FileTextIcon, UploadIcon } from "@coss/ui/icons";
+import { useRouter } from "next/navigation";
+import type React from "react";
+import { useRef, useState } from "react";
+import { type Invite, useOnboardingStore } from "../../store/onboarding-store";
 
 type OrganizationCSVUploadModalProps = {
   isOpen: boolean;

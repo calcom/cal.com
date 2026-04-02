@@ -1,9 +1,9 @@
 import {
-  ApiProperty as DocsProperty,
-  ApiPropertyOptional,
   ApiExtraModels,
-  getSchemaPath,
   ApiHideProperty,
+  ApiPropertyOptional,
+  ApiProperty as DocsProperty,
+  getSchemaPath,
 } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
@@ -18,19 +18,18 @@ import {
   Min,
   ValidateNested,
 } from "class-validator";
-
-import type { BookingWindow_2024_06_14, BookingLimitsDuration_2024_06_14 } from "../inputs";
+import type { BookingLimitsDuration_2024_06_14, BookingWindow_2024_06_14 } from "../inputs";
 import {
-  EventTypeColor_2024_06_14,
-  Seats_2024_06_14,
-  Host as TeamEventTypeHostInput,
   BaseBookingLimitsDuration_2024_06_14,
   BusinessDaysWindow_2024_06_14,
   CalendarDaysWindow_2024_06_14,
-  RangeWindow_2024_06_14,
   CalVideoSettings,
+  EventTypeColor_2024_06_14,
+  RangeWindow_2024_06_14,
+  Recurrence_2024_06_14,
+  Seats_2024_06_14,
+  Host as TeamEventTypeHostInput,
 } from "../inputs";
-import { Recurrence_2024_06_14 } from "../inputs";
 import { BookerLayouts_2024_06_14 } from "../inputs/booker-layouts.input";
 import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
 import type { ConfirmationPolicy_2024_06_14 } from "../inputs/confirmation-policy.input";
@@ -38,37 +37,37 @@ import { DestinationCalendar_2024_06_14 } from "../inputs/destination-calendar.i
 import type { Disabled_2024_06_14 } from "../inputs/disabled.input";
 import { EmailSettings_2024_06_14 } from "../inputs/email-settings.input";
 import {
-  EmailDefaultFieldOutput_2024_06_14,
-  NameDefaultFieldOutput_2024_06_14,
-  LocationDefaultFieldOutput_2024_06_14,
-  RescheduleReasonDefaultFieldOutput_2024_06_14,
-  TitleDefaultFieldOutput_2024_06_14,
-  NotesDefaultFieldOutput_2024_06_14,
-  GuestsDefaultFieldOutput_2024_06_14,
   AddressFieldOutput_2024_06_14,
   BooleanFieldOutput_2024_06_14,
   CheckboxGroupFieldOutput_2024_06_14,
+  EmailDefaultFieldOutput_2024_06_14,
+  GuestsDefaultFieldOutput_2024_06_14,
+  LocationDefaultFieldOutput_2024_06_14,
   MultiEmailFieldOutput_2024_06_14,
   MultiSelectFieldOutput_2024_06_14,
+  NameDefaultFieldOutput_2024_06_14,
+  NotesDefaultFieldOutput_2024_06_14,
   NumberFieldOutput_2024_06_14,
   PhoneFieldOutput_2024_06_14,
   RadioGroupFieldOutput_2024_06_14,
+  RescheduleReasonDefaultFieldOutput_2024_06_14,
   SelectFieldOutput_2024_06_14,
   TextAreaFieldOutput_2024_06_14,
   TextFieldOutput_2024_06_14,
+  TitleDefaultFieldOutput_2024_06_14,
   UrlFieldOutput_2024_06_14,
 } from "../outputs/booking-fields.output";
 import { BookerActiveBookingsLimitOutput_2024_06_14 } from "./booker-active-bookings-limit.output";
-import { DisableCancellingOutput_2024_06_14 } from "./disable-cancelling.output";
-import { DisableReschedulingOutput_2024_06_14 } from "./disable-rescheduling.output";
 import type { OutputBookingField_2024_06_14 } from "./booking-fields.output";
 import { ValidateOutputBookingFields_2024_06_14 } from "./booking-fields.output";
+import { DisableCancellingOutput_2024_06_14 } from "./disable-cancelling.output";
+import { DisableReschedulingOutput_2024_06_14 } from "./disable-rescheduling.output";
 import type { OutputLocation_2024_06_14 } from "./locations.output";
 import {
   OutputAddressLocation_2024_06_14,
-  OutputOrganizersDefaultAppLocation_2024_06_14,
   OutputIntegrationLocation_2024_06_14,
   OutputLinkLocation_2024_06_14,
+  OutputOrganizersDefaultAppLocation_2024_06_14,
   OutputPhoneLocation_2024_06_14,
   OutputUnknownLocation_2024_06_14,
   ValidateOutputLocations_2024_06_14,

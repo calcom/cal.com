@@ -1,5 +1,4 @@
 import type { Webhook } from "@calcom/features/webhooks/lib/dto/types";
-
 import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";

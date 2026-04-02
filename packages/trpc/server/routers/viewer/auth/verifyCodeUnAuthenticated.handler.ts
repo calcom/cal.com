@@ -1,6 +1,5 @@
 import { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeUnAuthenticated";
 import type { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
 
 type VerifyTokenOptions = {

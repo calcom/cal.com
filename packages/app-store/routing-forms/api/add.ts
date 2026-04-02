@@ -1,6 +1,5 @@
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler } from "@calcom/types/AppHandler";
-
 import appConfig from "../config.json";
 
 const handler: AppDeclarativeHandler = {

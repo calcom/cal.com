@@ -1,13 +1,10 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
+import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
+import { verifyCodeChallenge } from "@calcom/lib/pkce";
 import jwt from "jsonwebtoken";
 // Import mocked dependencies after mocks are set up
 import { NextRequest } from "next/server";
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-
-import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
-import { verifyCodeChallenge } from "@calcom/lib/pkce";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "../route";
 
 // Create mock NextResponse.json function using hoisted

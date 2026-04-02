@@ -1,12 +1,11 @@
 import { describe, expect, test } from "vitest";
-
 import {
-  normalizeEmail,
-  normalizeDomain,
-  extractDomainFromEmail,
-  normalizeUsername,
-  getWildcardPatternsForDomain,
   domainMatchesWatchlistEntry,
+  extractDomainFromEmail,
+  getWildcardPatternsForDomain,
+  normalizeDomain,
+  normalizeEmail,
+  normalizeUsername,
 } from "./normalization";
 
 describe("normalization", () => {

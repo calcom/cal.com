@@ -1,5 +1,5 @@
-import { getEnv } from "@/env";
 import type { AppConfig } from "./type";
+import { getEnv } from "@/env";
 
 const loadConfig = (): AppConfig => {
   const env = getEnv("NODE_ENV", "development");

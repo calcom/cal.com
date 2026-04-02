@@ -1,8 +1,6 @@
-import { describe, expect, test } from "vitest";
-
 import { WorkflowTemplates } from "@calcom/prisma/enums";
-
-import { detectMatchedTemplate, type DefaultTemplates } from "../detectMatchedTemplate";
+import { describe, expect, test } from "vitest";
+import { type DefaultTemplates, detectMatchedTemplate } from "../detectMatchedTemplate";
 
 const createDefaultTemplates = (overrides?: Partial<DefaultTemplates>): DefaultTemplates => ({
   reminder: {

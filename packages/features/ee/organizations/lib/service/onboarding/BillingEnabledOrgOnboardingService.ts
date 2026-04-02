@@ -1,19 +1,19 @@
+import process from "node:process";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { findUserToBeOrgOwner } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
 import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/i18n/server";
 import type { Team, User } from "@calcom/prisma/client";
 import { orgOnboardingInvitedMembersSchema, orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
-
 import { BaseOnboardingService } from "../onboarding/BaseOnboardingService";
 import type {
   CreateOnboardingIntentInput,
   OnboardingIntentResult,
-  OrganizationOnboardingData,
   OrganizationData,
+  OrganizationOnboardingData,
 } from "../onboarding/types";
 
 const log = logger.getSubLogger({ prefix: ["BillingEnabledOrgOnboardingService"] });

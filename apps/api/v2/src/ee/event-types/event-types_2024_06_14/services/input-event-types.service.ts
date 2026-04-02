@@ -1,48 +1,47 @@
-import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/transformed";
-import {
-  transformBookingFieldsApiToInternal,
-  transformLocationsApiToInternal,
-  transformIntervalLimitsApiToInternal,
-  transformFutureBookingLimitsApiToInternal,
-  transformRecurrenceApiToInternal,
-  systemBeforeFieldName,
-  systemBeforeFieldEmail,
-  systemBeforeFieldLocation,
-  systemAfterFieldTitle,
-  systemAfterFieldNotes,
-  systemAfterFieldGuests,
-  systemAfterFieldRescheduleReason,
-  transformBookerLayoutsApiToInternal,
-  transformConfirmationPolicyApiToInternal,
-  transformEventColorsApiToInternal,
-  transformSeatsApiToInternal,
-  SystemField,
-  CustomField,
-  InternalLocation,
-  InternalLocationSchema,
-} from "@/ee/event-types/event-types_2024_06_14/transformers";
-import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, BadRequestException } from "@nestjs/common";
-
 import { slugifyLenient } from "@calcom/platform-libraries";
 import { getApps, getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
 import {
-  validateCustomEventName,
   EventTypeMetaDataSchema,
   EventTypeMetadata,
+  validateCustomEventName,
 } from "@calcom/platform-libraries/event-types";
 import {
   CreateEventTypeInput_2024_06_14,
   DestinationCalendar_2024_06_14,
   InputBookingField_2024_06_14,
   OutputUnknownLocation_2024_06_14,
-  UpdateEventTypeInput_2024_06_14,
   supportedIntegrations,
+  UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { ConnectedCalendarsData } from "@/ee/calendars/outputs/connected-calendars.output";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/transformed";
+import {
+  CustomField,
+  InternalLocation,
+  InternalLocationSchema,
+  SystemField,
+  systemAfterFieldGuests,
+  systemAfterFieldNotes,
+  systemAfterFieldRescheduleReason,
+  systemAfterFieldTitle,
+  systemBeforeFieldEmail,
+  systemBeforeFieldLocation,
+  systemBeforeFieldName,
+  transformBookerLayoutsApiToInternal,
+  transformBookingFieldsApiToInternal,
+  transformConfirmationPolicyApiToInternal,
+  transformEventColorsApiToInternal,
+  transformFutureBookingLimitsApiToInternal,
+  transformIntervalLimitsApiToInternal,
+  transformLocationsApiToInternal,
+  transformRecurrenceApiToInternal,
+  transformSeatsApiToInternal,
+} from "@/ee/event-types/event-types_2024_06_14/transformers";
+import { UserWithProfile } from "@/modules/users/users.repository";
 
 interface ValidationContext {
   eventTypeId?: number;
@@ -530,7 +529,7 @@ export class InputEventTypesService_2024_06_14 {
   ) {
     const calendars: ConnectedCalendarsData = await this.calendarsService.getCalendars(userId);
 
-    const allCals = calendars.connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+    const allCals = calendars.connectedCalendars.flatMap((cal) => cal.calendars ?? []);
 
     const matchedCalendar = allCals.find(
       (cal) =>
@@ -552,7 +551,7 @@ export class InputEventTypesService_2024_06_14 {
   async validateInputUseDestinationCalendarEmail(userId: number) {
     const calendars: ConnectedCalendarsData = await this.calendarsService.getCalendars(userId);
 
-    const allCals = calendars.connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+    const allCals = calendars.connectedCalendars.flatMap((cal) => cal.calendars ?? []);
 
     const primaryCalendar = allCals.find((cal) => cal.primary);
 
@@ -607,7 +606,7 @@ export class InputEventTypesService_2024_06_14 {
       "mirotalk-video": "mirotalk",
       "jelly-video": "jelly",
       "jelly-conferencing": "jelly",
-      "huddle": "huddle01",
+      huddle: "huddle01",
       "element-call-video": "element-call",
       "eightxeight-video": "eightxeight",
       "discord-video": "discord",
@@ -629,7 +628,9 @@ export class InputEventTypesService_2024_06_14 {
     return foundApp.credential;
   }
 
-  transformInputDisableRescheduling(disableRescheduling: CreateEventTypeInput_2024_06_14["disableRescheduling"]) {
+  transformInputDisableRescheduling(
+    disableRescheduling: CreateEventTypeInput_2024_06_14["disableRescheduling"]
+  ) {
     if (!disableRescheduling) {
       return {};
     }

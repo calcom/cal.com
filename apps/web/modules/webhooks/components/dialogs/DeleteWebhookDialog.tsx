@@ -37,12 +37,9 @@ export function DeleteWebhookDialog({ open, onOpenChange, onConfirm, isPending }
             data-testid="dialog-confirmation"
             variant="destructive"
             disabled={isPending}
-            onClick={onConfirm}
-          >
+            onClick={onConfirm}>
             {isPending && <Spinner className="absolute" />}
-            <span className={isPending ? "invisible" : undefined}>
-              {t("confirm_delete_webhook")}
-            </span>
+            <span className={isPending ? "invisible" : undefined}>{t("confirm_delete_webhook")}</span>
           </Button>
         </AlertDialogFooter>
       </AlertDialogPopup>

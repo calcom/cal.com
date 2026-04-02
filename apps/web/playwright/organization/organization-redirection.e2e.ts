@@ -1,8 +1,6 @@
+import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { expect } from "@playwright/test";
 import type { createUsersFixture } from "playwright/fixtures/users";
-
-import { generateHashedLink } from "@calcom/lib/generateHashedLink";
-
 import { test } from "../lib/fixtures";
 import { bookEventOnThisPage, doOnOrgDomain } from "../lib/testUtils";
 

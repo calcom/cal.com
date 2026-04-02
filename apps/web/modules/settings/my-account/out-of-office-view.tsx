@@ -1,15 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
-
-import type { BookingRedirectForm } from "~/settings/outOfOffice/types";
-
+import { useEffect, useState } from "react";
 import { CreateOrEditOutOfOfficeEntryModal } from "~/settings/outOfOffice/CreateOrEditOutOfOfficeModal";
 import OutOfOfficeEntriesList from "~/settings/outOfOffice/OutOfOfficeEntriesList";
 import { OutOfOfficeTab } from "~/settings/outOfOffice/OutOfOfficeToggleGroup";
-
+import type { BookingRedirectForm } from "~/settings/outOfOffice/types";
 import { HolidaysView } from "./holidays-view";
 
 export default function OutOfOfficeView() {

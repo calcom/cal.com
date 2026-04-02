@@ -1,14 +1,13 @@
 import type {
+  AttributeSyncFieldMapping as PrismaAttributeSyncFieldMapping,
   AttributeSyncRule as PrismaAttributeSyncRule,
   IntegrationAttributeSync as PrismaIntegrationAttributeSync,
-  AttributeSyncFieldMapping as PrismaAttributeSyncFieldMapping,
 } from "@calcom/prisma/client";
-
 import type {
+  AttributeSyncIntegrations,
   AttributeSyncRule,
   IntegrationAttributeSync,
 } from "../repositories/IIntegrationAttributeSyncRepository";
-import { AttributeSyncIntegrations } from "../repositories/IIntegrationAttributeSyncRepository";
 import { attributeSyncRuleSchema } from "../schemas/zod";
 
 type PrismaIntegrationAttributeSyncWithRelations = Pick<

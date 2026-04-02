@@ -4,13 +4,11 @@ import handleDeleteCredential from "@calcom/features/credentials/handleDeleteCre
 import addDelegationCredential from "@calcom/trpc/server/routers/viewer/delegationCredential/add.handler";
 
 export type { TDependencyData } from "@calcom/app-store/_appRegistry";
-
-export type { CredentialOwner } from "@calcom/app-store/types";
-export { BuildCalendarService as BuildIcsFeedCalendarService } from "@calcom/app-store/ics-feedcalendar/lib";
-export { getAppFromSlug } from "@calcom/app-store/utils";
-export type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
-
 export { BuildCalendarService } from "@calcom/app-store/applecalendar/lib";
+export { BuildCalendarService as BuildIcsFeedCalendarService } from "@calcom/app-store/ics-feedcalendar/lib";
+export type { CredentialOwner } from "@calcom/app-store/types";
+export type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
+export { getAppFromSlug } from "@calcom/app-store/utils";
 
 export { getApps };
 
@@ -20,30 +18,26 @@ export type { App } from "@calcom/types/App";
 
 export { getEnabledAppsFromCredentials };
 
-export { getConnectedApps } from "@calcom/app-store/_utils/getConnectedApps";
-
-export type { TServiceAccountKeySchema } from "@calcom/prisma/zod-utils";
-
 export type { ConnectedApps } from "@calcom/app-store/_utils/getConnectedApps";
-
+export { getConnectedApps } from "@calcom/app-store/_utils/getConnectedApps";
+export type { TServiceAccountKeySchema } from "@calcom/prisma/zod-utils";
 export type { AppsStatus } from "@calcom/types/Calendar";
-
 export type { CredentialPayload } from "@calcom/types/Credential";
 
 export { addDelegationCredential };
 
-export { enrichUserWithDelegationConferencingCredentialsWithoutOrgId } from "@calcom/app-store/delegationCredential";
-export { toggleDelegationCredentialEnabled } from "@calcom/trpc/server/routers/viewer/delegationCredential/toggleEnabled.handler";
-export {
-  CalendarAppError,
-  CalendarAppDelegationCredentialInvalidGrantError,
-  CalendarAppDelegationCredentialError,
-  CalendarAppDelegationCredentialConfigurationError,
-  CalendarAppDelegationCredentialClientIdNotAuthorizedError,
-  CalendarAppDelegationCredentialNotSetupError,
-} from "@calcom/lib/CalendarAppError";
-
-export { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
-
 export { OAuth2UniversalSchema } from "@calcom/app-store/_utils/oauth/universalSchema";
-export { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+export {
+  enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
+  getUsersCredentialsIncludeServiceAccountKey,
+} from "@calcom/app-store/delegationCredential";
+export { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
+export {
+  CalendarAppDelegationCredentialClientIdNotAuthorizedError,
+  CalendarAppDelegationCredentialConfigurationError,
+  CalendarAppDelegationCredentialError,
+  CalendarAppDelegationCredentialInvalidGrantError,
+  CalendarAppDelegationCredentialNotSetupError,
+  CalendarAppError,
+} from "@calcom/lib/CalendarAppError";
+export { toggleDelegationCredentialEnabled } from "@calcom/trpc/server/routers/viewer/delegationCredential/toggleEnabled.handler";

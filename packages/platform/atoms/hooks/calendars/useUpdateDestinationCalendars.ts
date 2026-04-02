@@ -1,8 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
-
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import http from "../../lib/http";
 import { QUERY_KEY } from "../useConnectedCalendars";
 

@@ -1,14 +1,13 @@
 import { createSerializer } from "nuqs";
-
 import {
   activeFiltersParser,
-  sortingParser,
-  columnVisibilityParser,
   columnSizingParser,
-  segmentIdParser,
+  columnVisibilityParser,
   pageIndexParser,
   pageSizeParser,
   searchTermParser,
+  segmentIdParser,
+  sortingParser,
 } from "./parsers";
 
 /**

@@ -1,9 +1,6 @@
-import { z } from "zod";
-
 import prisma from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
-
+import { z } from "zod";
 import type { TrpcSessionUser } from "../../../types";
 import type { ZGetAttributeSchema } from "./get.schema";
 

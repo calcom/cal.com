@@ -1,6 +1,5 @@
 import { getDestinationCalendarRepository } from "@calcom/features/di/containers/DestinationCalendar";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TSetDestinationReminderInputSchema } from "./setDestinationReminder.schema";
 
 type SetDestinationReminderOptions = {

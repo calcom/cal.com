@@ -1,5 +1,3 @@
-import type { NextApiRequest } from "next";
-
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -8,9 +6,8 @@ import { getTrackingFromCookies } from "@calcom/lib/tracking";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
-
+import type { NextApiRequest } from "next";
 import type { TrpcSessionUser } from "../../../types";
 
 type PublishOptions = {

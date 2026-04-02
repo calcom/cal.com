@@ -1,8 +1,6 @@
 import { getTeamWithoutMembers } from "@calcom/features/ee/teams/lib/queries";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetInputSchema } from "./get.schema";
 

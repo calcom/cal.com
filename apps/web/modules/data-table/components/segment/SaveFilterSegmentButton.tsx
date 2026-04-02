@@ -1,11 +1,6 @@
-import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import posthog from "posthog-js";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { type FilterSegmentScope } from "@calcom/prisma/enums";
+import type { FilterSegmentScope } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import {
@@ -16,9 +11,12 @@ import {
   DialogTrigger,
 } from "@calcom/ui/components/dialog";
 import { Form, Input, Label, Select, Switch } from "@calcom/ui/components/form";
-import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
+import { RadioField, RadioGroup } from "@calcom/ui/components/radio";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { useSession } from "next-auth/react";
+import posthog from "posthog-js";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { useDataTable } from "~/data-table/hooks";
 
 interface FormValues {

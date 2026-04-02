@@ -3,7 +3,6 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import InsightsCallHistoryPage from "~/insights/views/insights-call-history-view";
 import Shell from "~/shell/Shell";
-
 import { checkInsightsPagePermission } from "../checkInsightsPagePermission";
 
 export const generateMetadata = async () =>

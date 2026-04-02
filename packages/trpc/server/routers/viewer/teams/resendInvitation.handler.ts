@@ -1,9 +1,9 @@
+import { VerificationTokenRepository } from "@calcom/app-store/stripepayment/lib/repositories/VerificationTokenRepository";
 import { sendTeamInviteEmail } from "@calcom/emails/organization-email-service";
 import { OnboardingPathService } from "@calcom/features/onboarding/lib/onboarding-path.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/i18n/server";
-import { VerificationTokenRepository } from "@calcom/app-store/stripepayment/lib/repositories/VerificationTokenRepository";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { ensureAtleastAdminPermissions, getTeamOrThrow } from "./inviteMember/utils";

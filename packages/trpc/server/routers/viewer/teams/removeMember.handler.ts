@@ -1,9 +1,7 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-
 import { TRPCError } from "@trpc/server";
-
-import type { TRemoveMemberInputSchema } from "./removeMember.schema";
 import { RemoveMemberServiceFactory } from "./removeMember/RemoveMemberServiceFactory";
+import type { TRemoveMemberInputSchema } from "./removeMember.schema";
 
 type RemoveMemberOptions = {
   ctx: {

@@ -1,5 +1,6 @@
 /* Schedule any workflow reminder that falls within the next 2 hours for SMS */
 
+import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
@@ -8,8 +9,8 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
 import { UrlShortenerFactory } from "@calcom/features/url-shortener/UrlShortenerFactory";
-import { DUB_SMS_DOMAIN, DUB_SMS_FOLDER_ID } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/i18n/server";
+import { DUB_SMS_DOMAIN, DUB_SMS_FOLDER_ID } from "@calcom/lib/constants";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";

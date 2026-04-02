@@ -1,9 +1,8 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-import Shell from "~/shell/Shell";
 import { MobileNavigationMoreItems } from "~/shell/navigation/Navigation";
+import Shell from "~/shell/Shell";
 
 export default function MorePage() {
   const { t } = useLocale();

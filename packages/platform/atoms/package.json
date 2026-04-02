@@ -36,12 +36,12 @@
     "postcss-import": "16.1.0",
     "postcss-prefixer": "3.0.0",
     "postcss-prefixwrap": "1.57.0",
+    "tailwindcss": "4.1.17",
     "ts-jest": "29.1.4",
     "typescript": "5.9.3",
     "vite": "6.4.1",
     "vite-plugin-dts": "4.5.4",
-    "vite-plugin-inspect": "0.8.4",
-    "tailwindcss": "4.1.17"
+    "vite-plugin-inspect": "0.8.4"
   },
   "files": [
     "dist",

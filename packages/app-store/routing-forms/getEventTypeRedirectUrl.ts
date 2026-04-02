@@ -1,3 +1,4 @@
+import process from "node:process";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { Ensure } from "@calcom/types/utils";
 
@@ -105,8 +106,8 @@ export function getAbsoluteEventTypeRedirectUrl({
   const origin = process.env.NEXT_PUBLIC_IS_E2E
     ? WEBAPP_URL
     : teamSlugInRedirectUrl
-    ? form.teamOrigin
-    : form.userOrigin;
+      ? form.teamOrigin
+      : form.userOrigin;
 
   const joiner = eventTypeRedirectUrl.includes("?") ? "&" : "?";
   return `${origin}/${eventTypeRedirectUrl}${joiner}${allURLSearchParams}`;

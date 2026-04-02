@@ -1,9 +1,6 @@
-import mapKeys from "lodash/mapKeys";
-import startCase from "lodash/startCase";
-
 import {
-  RoutingFormFieldType,
   isValidRoutingFormFieldType,
+  RoutingFormFieldType,
 } from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
@@ -11,6 +8,8 @@ import type { InsightsRoutingBaseService } from "@calcom/features/insights/servi
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import mapKeys from "lodash/mapKeys";
+import startCase from "lodash/startCase";
 
 type RoutingFormInsightsTeamFilter = {
   userId?: number | null;
@@ -96,7 +95,7 @@ class RoutingEventsInsights {
     organizationId?: number | undefined;
     routingFormId?: string | undefined;
   }) {
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+    const formsWhereCondition = await RoutingEventsInsights.getWhereForTeamOrAllTeams({
       userId,
       teamId,
       isAll,
@@ -221,7 +220,7 @@ class RoutingEventsInsights {
     routingFormId,
     organizationId,
   }: RoutingFormInsightsTeamFilter) {
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+    const formsWhereCondition = await RoutingEventsInsights.getWhereForTeamOrAllTeams({
       userId,
       teamId,
       isAll,
@@ -237,7 +236,7 @@ class RoutingEventsInsights {
       },
     });
 
-    const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
+    const fields = routingFormFieldsSchema.parse(routingForms.flatMap((f) => f.fields));
 
     return fields;
   }
@@ -249,7 +248,7 @@ class RoutingEventsInsights {
     organizationId,
     routingFormId,
   }: RoutingFormInsightsTeamFilter) {
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+    const formsWhereCondition = await RoutingEventsInsights.getWhereForTeamOrAllTeams({
       userId,
       teamId,
       isAll,
@@ -266,7 +265,7 @@ class RoutingEventsInsights {
       },
     });
 
-    const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
+    const fields = routingFormFieldsSchema.parse(routingForms.flatMap((f) => f.fields));
     const ids = new Set<string>();
     const headers = (fields || [])
       .filter((f) => !f.deleted)

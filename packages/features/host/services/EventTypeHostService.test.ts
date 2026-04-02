@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the repositories and external dependencies
 vi.mock("@calcom/features/host/repositories/HostRepository");
@@ -8,11 +8,11 @@ vi.mock("@calcom/features/membership/repositories/MembershipRepository");
 vi.mock("@calcom/features/eventtypes/repositories/eventTypeRepository");
 vi.mock("@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic");
 
-import { EventTypeHostService } from "./EventTypeHostService";
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
+import { EventTypeHostService } from "./EventTypeHostService";
 
 const mockPrisma = {} as never;
 
@@ -464,7 +464,10 @@ describe("EventTypeHostService", () => {
         { userId: 3, weight: 50, user: { name: "Charlie", email: "charlie@test.com", avatarUrl: null } },
       ]);
       vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
-        teamMembersMatchingAttributeLogic: [{ odataUserId: 1, odataEmail: "alice@test.com", userId: 1 }, { odataUserId: 3, odataEmail: "charlie@test.com", userId: 3 }],
+        teamMembersMatchingAttributeLogic: [
+          { odataUserId: 1, odataEmail: "alice@test.com", userId: 1 },
+          { odataUserId: 3, odataEmail: "charlie@test.com", userId: 3 },
+        ],
         mainAttributeLogicBuildingWarnings: [],
         troubleshooter: null,
       } as never);

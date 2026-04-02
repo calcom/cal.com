@@ -1,5 +1,4 @@
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import { findFieldValueByIdentifier } from "./findFieldValueByIdentifier";
 import type { RoutingFormResponseData } from "./responseData/types";
 

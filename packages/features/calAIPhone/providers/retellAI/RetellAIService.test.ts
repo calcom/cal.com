@@ -1,13 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../interfaces/TransactionInterface";
-import { RetellAIService } from "./RetellAIService";
 import { RetellAIError } from "./errors";
+import { RetellAIService } from "./RetellAIService";
 import { createMockDatabaseAgent } from "./services/__tests__/test-utils";
 import type { RetellAIRepository } from "./types";
 

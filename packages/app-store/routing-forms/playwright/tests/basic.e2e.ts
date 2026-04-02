@@ -1,6 +1,3 @@
-import type { Locator, Page } from "@playwright/test";
-import { expect } from "@playwright/test";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { AttributeType, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -15,12 +12,13 @@ import {
   testEmail,
   testName,
 } from "@calcom/web/playwright/lib/testUtils";
-
+import type { Locator, Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 import {
   addForm,
+  addOneFieldAndDescriptionAndSaveForm,
   saveCurrentForm,
   verifySelectOptions,
-  addOneFieldAndDescriptionAndSaveForm,
 } from "./testUtils";
 
 function todo(title: string) {
@@ -191,64 +189,65 @@ test.describe("Routing Forms", () => {
     });
 
     // This feature is disable till it is fully supported and tested with Routing Form with Attributes.
-    test.describe.skip("F1<-F2 Relationship", () => {
-      test("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
-        const form1Id = await addForm(page, { name: "F1" });
-        await page.goto(`/routing-forms/forms`);
-        const form2Id = await addForm(page, { name: "F2" });
+    test.describe
+      .skip("F1<-F2 Relationship", () => {
+        test("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
+          const form1Id = await addForm(page, { name: "F1" });
+          await page.goto(`/routing-forms/forms`);
+          const form2Id = await addForm(page, { name: "F2" });
 
-        await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
-          name: "F1",
-          description: "Form 1 Description",
-          field: {
-            label: "F1 Field1",
-            typeIndex: 1,
-          },
+          await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
+            name: "F1",
+            description: "Form 1 Description",
+            field: {
+              label: "F1 Field1",
+              typeIndex: 1,
+            },
+          });
+
+          const { types } = await addOneFieldAndDescriptionAndSaveForm(form2Id, page, {
+            name: "F2",
+            description: "Form 2 Description",
+            field: {
+              label: "F2 Field1",
+              //TODO: Maybe choose some other type and choose type by it's name and not index
+              typeIndex: 1,
+            },
+          });
+
+          // Add F1 as Router to F2
+          await page.goto(`/routing-forms/route-builder/${form2Id}`);
+          // await addNewRoute(page, {
+          //   // It should be F1. TODO: Verify that it's F1
+          //   routeSelectNumber: 2,
+          // });
+          await addNewRoute(page);
+          await saveCurrentForm(page);
+
+          // Expect F1 fields to be available in F2
+          await page.goto(`/routing-forms/form-edit/${form2Id}`);
+          //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+          await expect(page.locator('[data-testid="field"]')).toHaveCount(2);
+          await expectCurrentFormToHaveFields(page, { 1: { label: "F1 Field1", typeIndex: 1 } }, types);
+          // Add 1 more field in F1
+          await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
+            name: "F1",
+            field: {
+              label: "F1 Field2",
+              typeIndex: 1,
+            },
+          });
+
+          await page.goto(`/routing-forms/form-edit/${form2Id}`);
+          //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          await expect(page.locator('[data-testid="field"]')).toHaveCount(3);
+          await expectCurrentFormToHaveFields(page, { 2: { label: "F1 Field2", typeIndex: 1 } }, types);
         });
-
-        const { types } = await addOneFieldAndDescriptionAndSaveForm(form2Id, page, {
-          name: "F2",
-          description: "Form 2 Description",
-          field: {
-            label: "F2 Field1",
-            //TODO: Maybe choose some other type and choose type by it's name and not index
-            typeIndex: 1,
-          },
-        });
-
-        // Add F1 as Router to F2
-        await page.goto(`/routing-forms/route-builder/${form2Id}`);
-        // await addNewRoute(page, {
-        //   // It should be F1. TODO: Verify that it's F1
-        //   routeSelectNumber: 2,
-        // });
-        await addNewRoute(page);
-        await saveCurrentForm(page);
-
-        // Expect F1 fields to be available in F2
-        await page.goto(`/routing-forms/form-edit/${form2Id}`);
-        //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        await expect(page.locator('[data-testid="field"]')).toHaveCount(2);
-        await expectCurrentFormToHaveFields(page, { 1: { label: "F1 Field1", typeIndex: 1 } }, types);
-        // Add 1 more field in F1
-        await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
-          name: "F1",
-          field: {
-            label: "F1 Field2",
-            typeIndex: 1,
-          },
-        });
-
-        await page.goto(`/routing-forms/form-edit/${form2Id}`);
-        //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        await expect(page.locator('[data-testid="field"]')).toHaveCount(3);
-        await expectCurrentFormToHaveFields(page, { 2: { label: "F1 Field2", typeIndex: 1 } }, types);
+        todo("Create relationship by using duplicate with live connect");
       });
-      todo("Create relationship by using duplicate with live connect");
-    });
 
     test("should be able to submit a prefilled form with all types of fields", async ({ page }) => {
       const formId = await addForm(page);
@@ -389,7 +388,7 @@ test.describe("Routing Forms", () => {
       // This also delete forms on cascade
       await users.deleteAll();
     });
-    const createUserAndLogin = async function ({ users, page }: { users: Fixtures["users"]; page: Page }) {
+    const createUserAndLogin = async ({ users, page }: { users: Fixtures["users"]; page: Page }) => {
       const user = await users.create(
         { username: "routing-forms" },
         { seedRoutingForms: true, hasTeam: true }
@@ -1061,7 +1060,15 @@ async function addAllTypesOfFieldsAndSaveForm(
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
-    ["Email", "Long text", "Multiple choice selection", "Number", "Phone", "Single-choice selection", "Short text"],
+    [
+      "Email",
+      "Long text",
+      "Multiple choice selection",
+      "Number",
+      "Phone",
+      "Single-choice selection",
+      "Short text",
+    ],
     page
   );
 

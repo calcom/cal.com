@@ -1,7 +1,5 @@
 import { WorkspacePlatformRepository } from "@calcom/features/workspace-platform/repositories/WorkspacePlatformRepository";
-
 import { TRPCError } from "@trpc/server";
-
 import { ensureNoServiceAccountKey } from "./utils";
 
 export default async function listHandler() {

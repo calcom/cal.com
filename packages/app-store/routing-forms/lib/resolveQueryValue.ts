@@ -1,7 +1,10 @@
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import logger from "@calcom/lib/logger";
-import type { dynamicFieldValueOperands, dynamicFieldValueOperandsResponse } from "@calcom/lib/raqb/types";
-import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
+import type {
+  AttributesQueryValue,
+  dynamicFieldValueOperands,
+  dynamicFieldValueOperandsResponse,
+} from "@calcom/lib/raqb/types";
 import { caseInsensitive } from "@calcom/lib/raqb/utils";
 
 // Type for JSON values that can be in the query
@@ -31,7 +34,7 @@ const replaceAttributeOptionIdsWithOptionLabel = ({
 }) => {
   const queryValueString = JSON.stringify(queryValue);
   let queryValueWithLabels = queryValueString;
-  const allAttributesOptions = attributes.map((attribute) => attribute.options).flat();
+  const allAttributesOptions = attributes.flatMap((attribute) => attribute.options);
   // Because all attribute option Ids are unique, we can reliably identify them along any number of attribute options of different attributes
   allAttributesOptions.forEach((attributeOption) => {
     const attributeOptionId = attributeOption.id;

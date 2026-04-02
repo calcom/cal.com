@@ -1,12 +1,10 @@
+import { Button } from "@calcom/ui/components/button";
+import * as Tooltip from "@radix-ui/react-tooltip";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import * as Tooltip from "@radix-ui/react-tooltip";
-import React from "react";
+import type React from "react";
 import type { Mock } from "vitest";
 import { vi } from "vitest";
-
-import { Button } from "@calcom/ui/components/button";
-
 import { AttributeForm } from "../AttributesForm";
 
 vi.mock("@calcom/lib/hooks/useLocale", () => ({

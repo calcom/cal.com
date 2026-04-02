@@ -2,8 +2,7 @@
  * @vitest-environment jsdom
  */
 import { renderHook } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import { useStableTimezone } from "./useStableTimezone";
 
 describe("useStableTimezone", () => {

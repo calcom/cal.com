@@ -1,9 +1,8 @@
+import type { Team } from "@calcom/prisma/client";
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
+import { Request } from "express";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
-import { Request } from "express";
-
-import type { Team } from "@calcom/prisma/client";
 
 @Injectable()
 export class IsUserRoutingForm implements CanActivate {

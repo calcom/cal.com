@@ -1,22 +1,17 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useRouter } from "next/navigation";
-
 import { DEFAULT_WEBHOOK_VERSION } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { showToast } from "@calcom/ui/components/toast";
-
-import {
-  useOAuthClientWebhooks,
-  useCreateOAuthClientWebhook,
-  useUpdateOAuthClientWebhook,
-} from "@lib/hooks/settings/platform/oauth-clients/useOAuthClientWebhooks";
-
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
-
+import {
+  useCreateOAuthClientWebhook,
+  useOAuthClientWebhooks,
+  useUpdateOAuthClientWebhook,
+} from "@lib/hooks/settings/platform/oauth-clients/useOAuthClientWebhooks";
+import { useParams, useRouter } from "next/navigation";
 import Shell from "~/shell/Shell";
 import { WebhookForm } from "~/webhooks/components";
 

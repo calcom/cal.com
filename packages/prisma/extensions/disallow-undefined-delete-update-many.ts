@@ -16,7 +16,7 @@ export const checkUndefinedInValue = (where: any) => {
         continue;
       }
 
-      if (whereInput.hasOwnProperty("in") && typeof whereInput.in === "undefined") {
+      if (Object.hasOwn(whereInput, "in") && typeof whereInput.in === "undefined") {
         message = `The "in" value for the field "${key}" cannot be undefined.`;
         throw new Error(message);
       }
@@ -29,13 +29,13 @@ export function disallowUndefinedDeleteUpdateManyExtension() {
     query: {
       $allModels: {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         async deleteMany({ args, query }) {
           checkUndefinedInValue(args.where);
           return query(args);
         },
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
+        //@ts-expect-error
         async updateMany({ args, query }) {
           checkUndefinedInValue(args.where);
           return query(args);

@@ -1,4 +1,4 @@
-import { type schemaTask, queue } from "@trigger.dev/sdk";
+import { queue, type schemaTask } from "@trigger.dev/sdk";
 
 type CalendarsTask = Pick<Parameters<typeof schemaTask>[0], "machine" | "retry" | "queue">;
 

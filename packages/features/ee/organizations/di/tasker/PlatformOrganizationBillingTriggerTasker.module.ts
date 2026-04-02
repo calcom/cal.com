@@ -1,7 +1,6 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
 import { PlatformOrganizationBillingTriggerTasker } from "@calcom/features/ee/organizations/lib/billing/tasker/PlatformOrganizationBillingTriggerTasker";
-
 import { PLATFORM_BILLING_TASKER_DI_TOKENS } from "./tokens";
 
 const thisModule = createModule();

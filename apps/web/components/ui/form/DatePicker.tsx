@@ -1,10 +1,9 @@
 import React from "react";
 import "react-calendar/dist/Calendar.css";
 import "react-date-picker/dist/DatePicker.css";
-import PrimitiveDatePicker from "react-date-picker/dist/entry.nostyle";
-
 import classNames from "@calcom/ui/classNames";
 import { CalendarIcon } from "@coss/ui/icons";
+import PrimitiveDatePicker from "react-date-picker/dist/entry.nostyle";
 
 type Props = {
   date: Date;

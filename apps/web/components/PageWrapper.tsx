@@ -9,24 +9,22 @@
 
 "use client";
 
-import { DefaultSeo } from "next-seo";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import Head from "next/head";
 import Script from "next/script";
+import { DefaultSeo } from "next-seo";
 
 import "@calcom/embed-core/src/embed-iframe";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { getCalcomUrl } from "@calcom/lib/getCalcomUrl";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
 import { IconSprites } from "@calcom/ui/components/icon";
-
+import { GoogleTagManagerComponent } from "@components/GTM";
 import type { AppProps } from "@lib/app-providers";
 import AppProviders from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
-
-import { GoogleTagManagerComponent } from "@components/GTM";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 
 export interface CalPageWrapper {
   (props?: AppProps): JSX.Element;

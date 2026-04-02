@@ -1,10 +1,5 @@
 "use client";
 
-/* eslint-disable react-hooks/exhaustive-deps */
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,8 +8,12 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Select } from "@calcom/ui/components/form";
-import { InfoIcon, PlusIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { InfoIcon, PlusIcon } from "@coss/ui/icons";
+import { useRouter } from "next/navigation";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 export function Authorize() {
   const { t } = useLocale();

@@ -1,13 +1,12 @@
+import classNames from "@calcom/ui/classNames";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import type { LinkProps } from "next/link";
 import Link from "next/link";
-import React, { forwardRef } from "react";
-
-import classNames from "@calcom/ui/classNames";
-
-import { Icon } from "../icon/Icon";
+import type React from "react";
+import { forwardRef } from "react";
 import type { IconName } from "../icon/Icon";
+import { Icon } from "../icon/Icon";
 import { Tooltip } from "../tooltip/Tooltip";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;

@@ -1,6 +1,3 @@
-import { useEffect, useRef } from "react";
-import { shallow } from "zustand/shallow";
-
 import {
   useEmbedType,
   useEmbedUiConfig,
@@ -16,6 +13,8 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
+import { useEffect, useRef } from "react";
+import { shallow } from "zustand/shallow";
 
 export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
 

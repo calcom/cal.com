@@ -1,7 +1,6 @@
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { HttpError } from "@calcom/lib/http-error";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-
 import { getBookingFieldsWithSystemFields } from "../getBookingFields";
 import { getEventTypesFromDB } from "./getEventTypesFromDB";
 

@@ -1,11 +1,9 @@
 import { URLSearchParams } from "node:url";
-
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { ENV_PAST_BOOKING_RESCHEDULE_CHANGE_TEAM_IDS } from "@calcom/lib/constants";
 import { getSafe } from "@calcom/lib/getSafe";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { JsonValue } from "@calcom/types/Json";
-
 import { isWithinMinimumRescheduleNotice } from "./isWithinMinimumRescheduleNotice";
 
 export type ReschedulePreventionRedirectInput = {

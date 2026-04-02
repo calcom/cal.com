@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useId } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -10,12 +7,13 @@ import { Badge } from "@calcom/ui/components/badge";
 import {
   HoverCard,
   HoverCardContent,
-  HoverCardTrigger,
   HoverCardPortal,
+  HoverCardTrigger,
 } from "@calcom/ui/components/hover-card";
-import { CopyIcon } from "@coss/ui/icons";
-
 import type { RoutingFormTableRow } from "@calcom/web/modules/insights/lib/types";
+import { CopyIcon } from "@coss/ui/icons";
+import Link from "next/link";
+import { useId } from "react";
 import { BookingStatusBadge } from "./BookingStatusBadge";
 
 export function BookingAtCell({ row, rowId }: { row: RoutingFormTableRow; rowId: number }) {

@@ -1,7 +1,5 @@
-import { z } from "zod";
-
 import { eventTypeMetaDataSchemaWithoutApps } from "@calcom/prisma/zod-utils";
-
+import { z } from "zod";
 import { appDataSchemas } from "./apps.schemas.generated";
 
 export const EventTypeAppMetadataSchema = z.object(appDataSchemas).partial();

@@ -1,5 +1,3 @@
-import type { Dispatch, SetStateAction } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -7,6 +5,7 @@ import { trpc } from "@calcom/trpc/react";
 import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateAttributesList } from "@calcom/web/app/(use-page-wrapper)/settings/organizations/(org-user-only)/members/actions";
+import type { Dispatch, SetStateAction } from "react";
 
 type AttributeItemProps = RouterOutputs["viewer"]["attributes"]["list"][number];
 

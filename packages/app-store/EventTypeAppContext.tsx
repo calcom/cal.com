@@ -1,5 +1,5 @@
 import React from "react";
-import type { z, ZodType } from "zod";
+import type { ZodType, z } from "zod";
 
 export type GetAppData = (key: string) => unknown;
 export type SetAppData = (key: string, value: unknown) => void;
@@ -21,7 +21,7 @@ const EventTypeAppContext = React.createContext<AppContext>({
 
 type SetAppDataGeneric<TAppData extends ZodType> = <
   TKey extends keyof z.infer<TAppData>,
-  TValue extends z.infer<TAppData>[TKey]
+  TValue extends z.infer<TAppData>[TKey],
 >(
   key: TKey,
   value: TValue

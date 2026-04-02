@@ -1,13 +1,16 @@
+import { Injectable } from "@nestjs/common";
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { MembershipUserSelect } from "@/modules/teams/memberships/teams-memberships.repository";
-import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationsTeamsMembershipsRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async findOrgTeamMembershipsPaginated(organizationId: number, teamId: number, skip: number, take: number) {
     return await this.dbRead.prisma.membership.findMany({

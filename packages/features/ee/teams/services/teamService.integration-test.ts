@@ -1,9 +1,7 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TeamService } from "./teamService";
 
 // Mock the DI container

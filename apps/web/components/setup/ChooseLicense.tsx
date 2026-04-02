@@ -1,9 +1,8 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
 import Link from "next/link";
 import { useState } from "react";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 const ChooseLicense = (
   props: {

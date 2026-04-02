@@ -1,10 +1,8 @@
-import React from "react";
-import { createStore, useStore } from "zustand";
-import type { StoreApi } from "zustand";
-
 import dayjs from "@calcom/dayjs";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
-
+import React from "react";
+import type { StoreApi } from "zustand";
+import { createStore, useStore } from "zustand";
 import type {
   CalendarComponentProps,
   CalendarPublicActions,

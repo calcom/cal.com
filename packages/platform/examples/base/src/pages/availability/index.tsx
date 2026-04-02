@@ -1,7 +1,6 @@
-import { Navbar } from "@/components/Navbar";
+import { CreateSchedule, ListSchedules } from "@calcom/atoms";
 import { Inter } from "next/font/google";
-
-import { ListSchedules, CreateSchedule } from "@calcom/atoms";
+import { Navbar } from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 

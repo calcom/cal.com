@@ -1,9 +1,8 @@
+import { prismaModule } from "@calcom/features/di/modules/Prisma";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import { redisModule } from "@calcom/features/redis/di/redisModule";
-import { membershipRepositoryModule } from "@calcom/features/users/di/MembershipRepository.module";
-import { prismaModule } from "@calcom/features/di/modules/Prisma";
 import type { NoSlotsNotificationService } from "@calcom/features/slots/handleNotificationWhenNoSlots";
-
+import { membershipRepositoryModule } from "@calcom/features/users/di/MembershipRepository.module";
 import { createContainer } from "../di";
 import { noSlotsNotificationModule } from "../modules/NoSlotsNotification";
 import { teamRepositoryModule } from "../modules/Team";

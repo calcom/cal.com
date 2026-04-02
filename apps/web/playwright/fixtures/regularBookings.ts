@@ -1,7 +1,5 @@
-import { expect, type Page } from "@playwright/test";
-
 import type { MembershipRole } from "@calcom/prisma/enums";
-
+import { expect, type Page } from "@playwright/test";
 import { localize } from "../lib/localize";
 import { submitAndWaitForResponse } from "../lib/testUtils";
 import type { createUsersFixture } from "./users";

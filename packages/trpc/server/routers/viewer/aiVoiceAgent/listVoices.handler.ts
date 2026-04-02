@@ -1,5 +1,4 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
-
 import type { TrpcSessionUser } from "../../../types";
 
 type ListVoicesHandlerOptions = {

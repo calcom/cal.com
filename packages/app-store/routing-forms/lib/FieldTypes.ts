@@ -1,4 +1,4 @@
-export const enum RoutingFormFieldType {
+export enum RoutingFormFieldType {
   TEXT = "text",
   NUMBER = "number",
   TEXTAREA = "textarea",

@@ -1103,13 +1103,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
     });
 
     function responseDataIsCreateSeatedBooking(data: any): data is CreateSeatedBookingOutput_2024_08_13 {
-      return Object.prototype.hasOwnProperty.call(data, "seatUid");
+      return Object.hasOwn(data, "seatUid");
     }
 
     function responseDataIsGetSeatedBooking(data: any): data is GetSeatedBookingOutput_2024_08_13 {
-      return data?.attendees?.every((attendee: any) =>
-        Object.prototype.hasOwnProperty.call(attendee, "seatUid")
-      );
+      return data?.attendees?.every((attendee: any) => Object.hasOwn(attendee, "seatUid"));
     }
 
     afterAll(async () => {

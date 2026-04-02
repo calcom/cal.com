@@ -1,17 +1,16 @@
+import { SlotFormat } from "@calcom/platform-enums";
 import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import {
-  IsDateString,
-  IsTimeZone,
-  IsOptional,
-  IsNumber,
-  IsString,
-  IsArray,
   ArrayMinSize,
+  IsArray,
+  IsDateString,
   IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsTimeZone,
 } from "class-validator";
-
-import { SlotFormat } from "@calcom/platform-enums";
 
 export class GetAvailableSlotsInput_2024_09_04 {
   @IsDateString({ strict: true })

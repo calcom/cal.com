@@ -1,8 +1,6 @@
-import { _generateMetadata } from "app/_utils";
-
 import { MembershipRole } from "@calcom/prisma/enums";
 import OrgAttributesEditPage from "@calcom/web/modules/ee/organizations/attributes/attributes-edit-view";
-
+import { _generateMetadata } from "app/_utils";
 import { validateUserHasOrgPerms } from "../../../../actions/validateUserHasOrgPerms";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>

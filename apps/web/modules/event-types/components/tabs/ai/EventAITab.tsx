@@ -1,5 +1,4 @@
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
-
 import AIEventController from "./AIEventController";
 
 export const EventAITab = ({

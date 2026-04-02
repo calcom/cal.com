@@ -1,11 +1,9 @@
-import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 export async function checkInsightsPagePermission() {
   const featuresRepository = new FeaturesRepository(prisma);

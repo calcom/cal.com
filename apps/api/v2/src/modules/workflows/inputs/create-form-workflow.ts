@@ -1,26 +1,25 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsBoolean, ArrayMinSize, IsOptional, IsString, ValidateNested, ValidateIf } from "class-validator";
-
+import { ArrayMinSize, IsBoolean, IsOptional, IsString, ValidateIf, ValidateNested } from "class-validator";
 import {
   BaseFormWorkflowStepDto,
   EMAIL_ADDRESS,
   EMAIL_ATTENDEE,
   FORM_ALLOWED_STEP_ACTIONS,
+  SMS_ATTENDEE,
   SMS_NUMBER,
   WorkflowEmailAddressStepDto,
   WorkflowEmailAttendeeStepDto,
-  WorkflowPhoneNumberStepDto,
   WorkflowPhoneAttendeeStepDto,
-  SMS_ATTENDEE,
+  WorkflowPhoneNumberStepDto,
 } from "./workflow-step.input";
 import {
-  RoutingFormWorkflowTriggerDto,
   FORM_SUBMITTED,
   FORM_SUBMITTED_NO_EVENT,
   FORM_WORKFLOW_TRIGGER_TYPES,
   OnFormSubmittedNoEventTriggerDto,
   OnFormSubmittedTriggerDto,
+  RoutingFormWorkflowTriggerDto,
 } from "./workflow-trigger.input";
 
 export class WorkflowFormActivationDto {

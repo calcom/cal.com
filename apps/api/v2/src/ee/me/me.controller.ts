@@ -1,3 +1,7 @@
+import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { userSchemaResponse } from "@calcom/platform-types";
+import { Body, Controller, Get, Patch, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { GetMeOutput } from "@/ee/me/outputs/get-me.output";
 import { UpdateMeOutput } from "@/ee/me/outputs/update-me.output";
 import { MeService } from "@/ee/me/services/me.service";
@@ -10,11 +14,6 @@ import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Controller, UseGuards, Get, Patch, Body } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { userSchemaResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/me",

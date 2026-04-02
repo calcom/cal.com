@@ -1,14 +1,12 @@
 "use client";
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-
+import { valueFormatter } from "@calcom/features/insights/lib/valueFormatter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-
+import { trpc } from "@calcom/trpc/react";
 import { useInsightsBookingParameters } from "@calcom/web/modules/insights/hooks/useInsightsBookingParameters";
 import { useToggleableLegend } from "@calcom/web/modules/insights/hooks/useToggleableLegend";
-import { valueFormatter } from "@calcom/features/insights/lib/valueFormatter";
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartCard } from "../ChartCard";
 
 const COLOR = {

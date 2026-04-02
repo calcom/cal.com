@@ -1,5 +1,3 @@
-import type z from "zod";
-
 import type { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { SystemField } from "@calcom/lib/bookings/SystemField";
 import { contructEmailFromPhoneNumber } from "@calcom/lib/contructEmailFromPhoneNumber";
@@ -9,6 +7,7 @@ import logger from "@calcom/lib/logger";
 import type { EventType, Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type z from "zod";
 
 const log = logger.getSubLogger({ prefix: ["[getCalEventResponses]"] });
 

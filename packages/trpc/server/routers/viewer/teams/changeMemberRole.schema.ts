@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { MembershipRole } from "@calcom/prisma/enums";
+import { z } from "zod";
 
 export type TChangeMemberRoleInputSchema = {
   teamId: number;

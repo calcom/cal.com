@@ -1,9 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import type { BookerState } from "@calcom/features/bookings/Booker/types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useTimesForSchedule } from "./useTimesForSchedule";
 
 // Mock the booker store context

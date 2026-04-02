@@ -1,6 +1,5 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
 
 const cleanup = async () => {
   await prismock.eventType.deleteMany();

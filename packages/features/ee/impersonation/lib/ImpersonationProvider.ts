@@ -1,20 +1,17 @@
-import type { Session } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { z } from "zod";
-
+import process from "node:process";
 import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/ee/organizations/lib/orgDomains";
 import { getSession } from "@calcom/features/auth/lib/getSession";
 import { getSpecificPermissions } from "@calcom/features/pbac/lib/resource-permissions";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import prisma from "@calcom/prisma";
-import type { User } from "@calcom/prisma/client";
-import type { Prisma } from "@calcom/prisma/client";
-import type { Membership } from "@calcom/prisma/client";
+import type { Membership, Prisma, User } from "@calcom/prisma/client";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import type { OrgProfile, PersonalProfile, UserAsPersonalProfile } from "@calcom/types/UserProfile";
-
-import { Resource, CustomAction } from "../../../pbac/domain/types/permission-registry";
+import type { Session } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { z } from "zod";
+import { CustomAction, Resource } from "../../../pbac/domain/types/permission-registry";
 
 const teamIdschema = z.object({
   teamId: z.preprocess((a) => parseInt(z.string().parse(a), 10), z.number().positive()),
@@ -338,7 +335,7 @@ const ImpersonationProvider = CredentialsProvider({
   },
   async authorize(creds, req) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore need to figure out how to correctly type this
+    // @ts-expect-error need to figure out how to correctly type this
     const session = await getSession({ req });
     const teamId = parseTeamId(creds);
     checkSelfImpersonation(session, creds);

@@ -1,5 +1,4 @@
 import { getDate } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-
 import { vi } from "vitest";
 
 export function timeTravelToTheBeginningOfToday({ utcOffsetInHours = 0 }: { utcOffsetInHours: number }) {

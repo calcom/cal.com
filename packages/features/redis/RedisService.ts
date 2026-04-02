@@ -1,5 +1,5 @@
+import process from "node:process";
 import { Redis } from "@upstash/redis";
-
 import type { IRedisService } from "./IRedisService";
 
 export class RedisService implements IRedisService {

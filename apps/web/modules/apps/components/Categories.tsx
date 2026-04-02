@@ -1,10 +1,8 @@
-import Image from "next/image";
-import Link from "next/link";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { ArrowRightIcon } from "@coss/ui/icons";
-
+import Image from "next/image";
+import Link from "next/link";
 import { Slider } from "./Slider";
 
 export function AppStoreCategories({

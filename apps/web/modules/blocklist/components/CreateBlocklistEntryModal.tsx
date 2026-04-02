@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
-
+import type { BlocklistScope, CreateBlocklistEntryFormData } from "@calcom/features/blocklist/types";
 import { domainRegex, emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WatchlistType } from "@calcom/prisma/enums";
@@ -11,8 +9,8 @@ import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Input, Label, TextArea, ToggleGroup } from "@calcom/ui/components/form";
 import { GlobeIcon, MailIcon } from "@coss/ui/icons";
-
-import type { BlocklistScope, CreateBlocklistEntryFormData } from "@calcom/features/blocklist/types";
+import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 export interface CreateBlocklistEntryModalProps {
   isOpen: boolean;

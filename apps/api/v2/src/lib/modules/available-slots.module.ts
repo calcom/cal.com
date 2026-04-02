@@ -1,3 +1,4 @@
+import { Module } from "@nestjs/common";
 import { PrismaBookingRepository } from "@/lib/repositories/prisma-booking.repository";
 import { PrismaEventTypeRepository } from "@/lib/repositories/prisma-event-type.repository";
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
@@ -19,7 +20,6 @@ import { QualifiedHostsService } from "@/lib/services/qualified-hosts.service";
 import { UserAvailabilityService } from "@/lib/services/user-availability.service";
 import { PrismaWorkerModule } from "@/modules/prisma/prisma-worker.module";
 import { RedisService } from "@/modules/redis/redis.service";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaWorkerModule],

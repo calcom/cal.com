@@ -1,9 +1,8 @@
 "use client";
 
-import type { PropsWithChildren } from "react";
-import React, { useRef, useEffect, useState } from "react";
-
 import classNames from "@calcom/ui/classNames";
+import type { PropsWithChildren } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const ScrollableArea = ({ children, className }: PropsWithChildren<{ className?: string }>) => {
   const scrollableRef = useRef<HTMLDivElement>(null);

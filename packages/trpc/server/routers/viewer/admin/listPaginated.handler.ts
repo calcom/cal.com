@@ -1,6 +1,5 @@
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TListMembersSchema } from "./listPaginated.schema";
 
@@ -76,7 +75,7 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
     },
   });
 
-  let nextCursor: typeof cursor | undefined = undefined;
+  let nextCursor: typeof cursor | undefined;
   if (users && users.length > limit) {
     const nextItem = users.pop();
     nextCursor = nextItem?.id;

@@ -1,5 +1,4 @@
 import { schemaTask } from "@trigger.dev/sdk";
-
 import { prorationEmailTaskConfig } from "./emailConfig";
 import { sendInvoiceEmailSchema } from "./emailSchemas";
 

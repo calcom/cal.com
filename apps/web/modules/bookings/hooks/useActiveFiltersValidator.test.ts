@@ -1,9 +1,7 @@
-import { describe, expect, it } from "vitest";
-
-import { ColumnFilterType } from "@calcom/features/data-table";
 import type { ActiveFilters } from "@calcom/features/data-table";
-
-import { createActiveFiltersValidator, type AccessibleResources } from "./useActiveFiltersValidator";
+import { ColumnFilterType } from "@calcom/features/data-table";
+import { describe, expect, it } from "vitest";
+import { type AccessibleResources, createActiveFiltersValidator } from "./useActiveFiltersValidator";
 
 describe("createActiveFiltersValidator", () => {
   const defaultAccessibleResources: AccessibleResources = {

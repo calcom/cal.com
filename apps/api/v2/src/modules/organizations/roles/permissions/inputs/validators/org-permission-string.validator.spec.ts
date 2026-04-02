@@ -1,5 +1,4 @@
 import { BadRequestException } from "@nestjs/common";
-
 import { OrgPermissionStringValidator } from "./org-permission-string.validator";
 
 describe("PermissionStringValidator", () => {

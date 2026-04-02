@@ -1,7 +1,5 @@
-import { describe, test, expect, vi, beforeEach } from "vitest";
-
-import { WatchlistType, WatchlistAction, WatchlistSource } from "@calcom/prisma/enums";
-
+import { WatchlistAction, WatchlistSource, WatchlistType } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import type { SpanFn } from "../lib/telemetry";
 import { listAllSystemEntriesController } from "./list-all-system-entries.controller";
 

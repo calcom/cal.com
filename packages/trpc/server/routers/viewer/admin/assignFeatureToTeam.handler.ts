@@ -1,7 +1,6 @@
 import type { FeatureId } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { PrismaClient } from "@calcom/prisma";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 

@@ -1,5 +1,4 @@
-import { useMemo, useCallback } from "react";
-
+import { useCallback, useMemo } from "react";
 import type { BookingOutput } from "../types";
 
 export function useBookingCursor({

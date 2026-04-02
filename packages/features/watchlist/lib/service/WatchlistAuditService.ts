@@ -1,6 +1,6 @@
 import type {
-  IAuditRepository,
   CreateWatchlistAuditInput,
+  IAuditRepository,
   UpdateWatchlistAuditInput,
 } from "../interface/IAuditRepository";
 import type { IWatchlistAuditService } from "../interface/IAuditService";

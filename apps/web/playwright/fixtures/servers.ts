@@ -1,5 +1,4 @@
 import type { Server } from "node:http";
-
 import { nextServer } from "../lib/next-server";
 
 type ServerFixture = ReturnType<typeof createServerFixture>;

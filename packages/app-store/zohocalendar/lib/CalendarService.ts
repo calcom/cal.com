@@ -1,22 +1,20 @@
 import { stringify } from "node:querystring";
-
 import dayjs from "@calcom/dayjs";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
   Calendar,
-  CalendarServiceEvent,
   CalendarEvent,
+  CalendarServiceEvent,
   EventBusyDate,
   GetAvailabilityParams,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import type { ZohoAuthCredentials, FreeBusy, ZohoCalendarListResp } from "../types/ZohoCalendar";
+import type { FreeBusy, ZohoAuthCredentials, ZohoCalendarListResp } from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
 class ZohoCalendarService implements Calendar {
@@ -470,9 +468,9 @@ class ZohoCalendarService implements Calendar {
       reminders: [
         {
           minutes: "-15",
-            action: "popup",
-          },
-        ],
+          action: "popup",
+        },
+      ],
       location: event.location
         ? getLocation({
             videoCallData: event.videoCallData,

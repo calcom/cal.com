@@ -1,9 +1,7 @@
-import { expect } from "@playwright/test";
-import { uuid } from "short-uuid";
-
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import prisma from "@calcom/prisma";
-
+import { expect } from "@playwright/test";
+import { uuid } from "short-uuid";
 import { test } from "../lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });

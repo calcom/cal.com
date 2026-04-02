@@ -1,7 +1,6 @@
 import { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
 import { createContainer } from "@calcom/features/di/di";
 import prisma from "@calcom/prisma";
-
 import type { IPendingRoutingTraceRepository } from "../repositories/PendingRoutingTraceRepository.interface";
 import type { IRoutingTraceRepository } from "../repositories/RoutingTraceRepository.interface";
 import { RoutingTraceService } from "../services/RoutingTraceService";

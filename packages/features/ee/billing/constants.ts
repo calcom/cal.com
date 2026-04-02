@@ -2,6 +2,7 @@
  * Stripe checkout session metadata types
  * Used to identify the type of subscription/purchase in webhook handlers
  */
+import process from "node:process";
 export const CHECKOUT_SESSION_TYPES = {
   PHONE_NUMBER_SUBSCRIPTION: "phone_number_subscription",
   TEAM_CREATION: "team_creation",

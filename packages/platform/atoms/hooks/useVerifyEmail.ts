@@ -1,12 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { ApiResponse, ApiErrorResponse, ApiSuccessResponseWithoutData } from "@calcom/platform-types";
-
+import type { ApiErrorResponse, ApiResponse, ApiSuccessResponseWithoutData } from "@calcom/platform-types";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { useMe } from "../hooks/useMe";
 import http from "../lib/http";
 

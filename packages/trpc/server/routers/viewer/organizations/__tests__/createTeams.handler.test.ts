@@ -5,6 +5,7 @@ import { CreationSource, MembershipRole, RedirectType, UserPermissionRole } from
 import { TRPCError } from "@trpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createTeamsHandler } from "../createTeams.handler";
+
 // Helper functions for creating test data
 async function createTestUser(data: {
   email: string;

@@ -1,15 +1,13 @@
-import { describe, expect, it } from "vitest";
-
 import { Prisma } from "@calcom/prisma/client";
-
+import { describe, expect, it } from "vitest";
 import { makeSqlCondition } from "../server";
-import { ColumnFilterType } from "../types";
 import type {
   MultiSelectFilterValue,
+  NumberFilterValue,
   SingleSelectFilterValue,
   TextFilterValue,
-  NumberFilterValue,
 } from "../types";
+import { ColumnFilterType } from "../types";
 
 describe("makeSqlCondition", () => {
   describe("Multi-select filter values", () => {

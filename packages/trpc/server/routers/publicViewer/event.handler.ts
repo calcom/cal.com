@@ -1,6 +1,5 @@
 import type { PublicEventType } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { EventRepository } from "@calcom/features/eventtypes/repositories/EventRepository";
-
 import type { TEventInputSchema } from "./event.schema";
 
 interface EventHandlerOptions {

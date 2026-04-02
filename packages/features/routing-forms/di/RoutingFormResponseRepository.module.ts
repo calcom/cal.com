@@ -1,7 +1,7 @@
-import { PrismaRoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormResponseRepository";
-import { ROUTING_FORM_DI_TOKENS } from "@calcom/features/routing-forms/di/tokens";
 import { bindModuleToClassOnToken } from "@calcom/features/di/di";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
+import { ROUTING_FORM_DI_TOKENS } from "@calcom/features/routing-forms/di/tokens";
+import { PrismaRoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormResponseRepository";
 import { createModule } from "../../di/di";
 
 export const routingFormResponseRepositoryModule = createModule();

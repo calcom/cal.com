@@ -1,17 +1,13 @@
-import type { Metadata } from "next";
-import { cookies, headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
-
-import { _generateMetadata } from "app/_utils";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
-import { MembershipRole } from "@calcom/prisma/enums";
 import prisma from "@calcom/prisma";
-
+import { MembershipRole } from "@calcom/prisma/enums";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
+import { _generateMetadata } from "app/_utils";
+import type { Metadata } from "next";
+import { cookies, headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 import TeamFeaturesView from "~/settings/teams/[id]/features-view";
 
 type PageParams = { params: Promise<{ id: string }> };

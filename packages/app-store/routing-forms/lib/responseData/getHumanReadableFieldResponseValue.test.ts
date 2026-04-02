@@ -1,5 +1,4 @@
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import type { Field, FormResponse } from "../../types/types";
 import { getHumanReadableFieldResponseValue } from "./getHumanReadableFieldResponseValue";
 

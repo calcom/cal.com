@@ -1,16 +1,12 @@
-import { useRouter } from "next/navigation";
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import { useState } from "react";
-
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { useSubscribeTeamToStripe } from "@lib/hooks/settings/platform/billing/useSubscribeTeamToStripe";
-import { useUpgradeTeamSubscriptionInStripe } from "@lib/hooks/settings/platform/billing/useUpgradeTeamSubscriptionInStripe";
-
 import { platformPlans } from "@components/settings/platform/platformUtils";
 import { PlatformBillingCard } from "@components/settings/platform/pricing/billing-card";
+import { useSubscribeTeamToStripe } from "@lib/hooks/settings/platform/billing/useSubscribeTeamToStripe";
+import { useUpgradeTeamSubscriptionInStripe } from "@lib/hooks/settings/platform/billing/useUpgradeTeamSubscriptionInStripe";
+import { usePathname, useRouter } from "next/navigation";
+import type { ReactNode } from "react";
+import { useState } from "react";
 
 type PlatformPricingProps = { teamId?: number | null; teamPlan?: string; heading?: ReactNode };
 

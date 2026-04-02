@@ -1,11 +1,9 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps as ServerPageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
-import { cookies, headers } from "next/headers";
-
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/video/meeting-ended/[uid]/getServerSideProps";
-
+import type { PageProps as ServerPageProps } from "app/_types";
+import { _generateMetadata } from "app/_utils";
+import { withAppDirSsr } from "app/WithAppDirSsr";
+import { cookies, headers } from "next/headers";
 import type { PageProps as ClientPageProps } from "~/videos/views/videos-meeting-ended-single-view";
 import MeetingEnded from "~/videos/views/videos-meeting-ended-single-view";
 

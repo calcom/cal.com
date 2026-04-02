@@ -1,5 +1,4 @@
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
-
 import type { IMonthlyProrationTasker } from "./types";
 
 export class MonthlyProrationTriggerDevTasker implements IMonthlyProrationTasker {

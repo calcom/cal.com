@@ -1,15 +1,14 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, type FC } from "react";
-import { IntercomProvider } from "react-use-intercom";
-
+import process from "node:process";
 import { useFlagMap } from "@calcom/features/flags/context/provider";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
 import { useBootIntercom } from "@calcom/web/modules/ee/support/lib/intercom/useIntercom";
-
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { type FC, useEffect } from "react";
+import { IntercomProvider } from "react-use-intercom";
 import { IntercomContactForm } from "~/ee/support/components/IntercomContactForm";
 
 declare global {

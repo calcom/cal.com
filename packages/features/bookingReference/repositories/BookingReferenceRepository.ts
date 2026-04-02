@@ -1,7 +1,6 @@
 import { prisma } from "@calcom/prisma";
 import type { Prisma, PrismaClient } from "@calcom/prisma/client";
 import type { PartialReference } from "@calcom/types/EventManager";
-
 import type { IBookingReferenceRepository } from "./IBookingReferenceRepository";
 
 const bookingReferenceSelect = {

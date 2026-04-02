@@ -1,14 +1,12 @@
-import { shallow } from "zustand/shallow";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { TimeFormatToggle } from "@calcom/features/bookings/components/TimeFormatToggle";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import classNames from "@calcom/ui/classNames";
-
-import { TimeFormatToggle } from "@calcom/features/bookings/components/TimeFormatToggle";
+import { shallow } from "zustand/shallow";
 
 type AvailableTimesHeaderProps = {
   date: Dayjs;

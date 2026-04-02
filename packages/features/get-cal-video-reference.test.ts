@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { getCalVideoReference } from "./get-cal-video-reference";
 
 describe("Cal Video", () => {

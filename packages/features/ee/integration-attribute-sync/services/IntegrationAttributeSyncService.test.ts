@@ -1,8 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import type { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { enabledAppSlugs } from "../constants";
 import type { IIntegrationAttributeSyncRepository } from "../repositories/IIntegrationAttributeSyncRepository";
 import {

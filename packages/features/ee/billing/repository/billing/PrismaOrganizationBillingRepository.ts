@@ -1,10 +1,9 @@
 import type { PrismaClient } from "@calcom/prisma";
-
 import type {
+  BillingRecord,
   IBillingRepository,
   IBillingRepositoryCreateArgs,
   IBillingRepositoryUpdateArgs,
-  BillingRecord,
   Plan,
   SubscriptionStatus,
 } from "./IBillingRepository";

@@ -3,8 +3,8 @@
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useBeforeUnload } from "@calcom/lib/hooks/useBeforeUnload";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -283,14 +283,15 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                             schedule.startDate,
                             { day: "numeric", month: "long" },
                             language
-                          )} ${schedule.endDate
-                            ? `- ${formatLocalizedDateTime(
-                              schedule.endDate,
-                              { day: "numeric", month: "long" },
-                              language
-                            )}`
-                            : ``
-                            }`}</div>
+                          )} ${
+                            schedule.endDate
+                              ? `- ${formatLocalizedDateTime(
+                                  schedule.endDate,
+                                  { day: "numeric", month: "long" },
+                                  language
+                                )}`
+                              : ``
+                          }`}</div>
                           <div className="text-subtle">{schedule.timeZone.replace(/_/g, " ")}</div>
                         </div>
                         <Button
@@ -371,8 +372,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     value={value}
                     options={defaultViewOptions}
                     onChange={(event) => {
-                      if (event)
-                        formMethods.setValue("defaultView", { ...event }, { shouldDirty: true });
+                      if (event) formMethods.setValue("defaultView", { ...event }, { shouldDirty: true });
                     }}
                   />
                 </>

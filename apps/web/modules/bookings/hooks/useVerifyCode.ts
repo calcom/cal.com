@@ -1,7 +1,6 @@
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { useState } from "react";
 
 export type UseVerifyCodeReturnType = ReturnType<typeof useVerifyCode>;
 

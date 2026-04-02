@@ -1,8 +1,7 @@
-import { describe, it, expect } from "vitest";
-
 import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 import { stripChildrenForPayload } from "@calcom/features/eventtypes/lib/childrenEventType";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { describe, expect, it } from "vitest";
 
 describe("useEventTypeForm - children payload stripping", () => {
   it("should strip avatar, profile, username, and membership from children payload", () => {

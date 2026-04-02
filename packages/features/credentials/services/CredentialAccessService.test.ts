@@ -1,10 +1,8 @@
-import { describe, expect, test, vi, beforeEach } from "vitest";
-
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import { prisma } from "@calcom/prisma";
-
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { CredentialAccessService } from "./CredentialAccessService";
 
 vi.mock("@calcom/prisma", () => {

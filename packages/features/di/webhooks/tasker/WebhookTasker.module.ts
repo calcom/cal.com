@@ -1,10 +1,9 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
 import { WebhookTasker } from "@calcom/features/webhooks/lib/tasker/WebhookTasker";
-
+import { WEBHOOK_TASKER_DI_TOKENS } from "./tokens";
 import { moduleLoader as webhookSyncTaskerModule } from "./WebhookSyncTasker.module";
 import { moduleLoader as webhookTriggerTaskerModule } from "./WebhookTriggerTasker.module";
-import { WEBHOOK_TASKER_DI_TOKENS } from "./tokens";
 
 const thisModule = createModule();
 const token = WEBHOOK_TASKER_DI_TOKENS.WEBHOOK_TASKER;

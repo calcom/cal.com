@@ -1,6 +1,5 @@
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-
 import type { RetellAIRepository, RetellVoice } from "../types";
 
 type Dependencies = {

@@ -1,11 +1,8 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps } from "app/_types";
-import { cookies, headers } from "next/headers";
-
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
 import { getServerSideProps } from "@server/lib/auth/sso/[provider]/getServerSideProps";
-
+import type { PageProps } from "app/_types";
+import { withAppDirSsr } from "app/WithAppDirSsr";
+import { cookies, headers } from "next/headers";
 import type { SSOProviderPageProps } from "~/auth/sso/provider-view";
 import SSOProviderView from "~/auth/sso/provider-view";
 

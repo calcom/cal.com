@@ -1,9 +1,7 @@
 import { isTeamMember } from "@calcom/features/ee/teams/lib/queries";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TGetInternalNotesPresetsInputSchema } from "./getInternalNotesPresets.schema";
 
 type UpdateMembershipOptions = {

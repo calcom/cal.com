@@ -1,3 +1,18 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { ApiResponse } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Query,
+  UseGuards,
+  VERSION_NEUTRAL,
+  Version,
+} from "@nestjs/common";
+import { ApiExcludeController as DocsExcludeController, ApiTags as DocsTags } from "@nestjs/swagger";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { AddVerifiedEmailInput } from "@/modules/atoms/inputs/add-verified-email.input";
@@ -12,22 +27,6 @@ import { VerificationAtomsService } from "@/modules/atoms/services/verification-
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  Post,
-  Body,
-  UseGuards,
-  Version,
-  VERSION_NEUTRAL,
-  HttpCode,
-  HttpStatus,
-  Get,
-  Query,
-} from "@nestjs/common";
-import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/atoms",

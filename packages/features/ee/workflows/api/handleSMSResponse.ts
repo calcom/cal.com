@@ -1,6 +1,5 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-
 import { determineOptOutType } from "../lib/reminders/providers/twilioProvider";
 import { WorkflowOptOutContactRepository } from "../lib/repository/workflowOptOutContact";
 import { WorkflowOptOutService } from "../lib/service/workflowOptOutService";

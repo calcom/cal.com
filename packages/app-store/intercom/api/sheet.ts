@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-
-import type { NewCanvas, TextComponent, SpacerComponent } from "../lib";
+import type { NewCanvas, SpacerComponent, TextComponent } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { sheet_values } = req.body;

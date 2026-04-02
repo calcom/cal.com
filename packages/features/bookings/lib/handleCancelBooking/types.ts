@@ -1,5 +1,4 @@
 import type { NextApiRequest } from "next";
-
 import type { BookingToDelete } from "../getBookingToDelete";
 
 export type AppRouterRequest = { appDirRequestBody: unknown };

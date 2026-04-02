@@ -7,7 +7,6 @@ import { addPermissionsToWorkflows } from "@calcom/features/workflows/repositori
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TListInputSchema } from "./list.schema";
 
 type ListOptions = {

@@ -1,8 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { usePathname } from "next/navigation";
-
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -16,6 +13,8 @@ import {
   RotateCwIcon,
   UsersIcon,
 } from "@coss/ui/icons";
+import { AnimatePresence, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 type OnboardingTeamsBrowserViewProps = {
   teams: Array<{ name: string; slug?: string | null; isMigrated?: boolean }>;

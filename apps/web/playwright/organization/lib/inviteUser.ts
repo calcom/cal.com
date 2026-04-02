@@ -1,6 +1,5 @@
 import type { Page } from "@playwright/test";
 import type { createUsersFixture } from "playwright/fixtures/users";
-
 import { submitAndWaitForResponse } from "../../lib/testUtils";
 
 export const inviteUserToOrganization = async ({

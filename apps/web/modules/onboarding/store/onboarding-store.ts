@@ -1,7 +1,6 @@
-import type { PersistOptions } from "zustand/middleware";
 import { create } from "zustand";
+import type { PersistOptions } from "zustand/middleware";
 import { persist } from "zustand/middleware";
-
 import { onboardingIndexedDBStorage } from "./onboarding-storage";
 
 // Thresholds for detecting oversized images (in characters of base64 string)

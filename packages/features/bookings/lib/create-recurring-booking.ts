@@ -1,6 +1,5 @@
 import { post } from "@calcom/lib/fetch-wrapper";
-
-import type { RecurringBookingCreateBody, BookingResponse } from "../types";
+import type { BookingResponse, RecurringBookingCreateBody } from "../types";
 
 export const createRecurringBooking = async (data: RecurringBookingCreateBody[]) => {
   const response = await post<

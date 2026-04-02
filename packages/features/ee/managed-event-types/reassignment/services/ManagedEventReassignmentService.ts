@@ -4,12 +4,11 @@ import type { LuckyUserService } from "@calcom/features/bookings/lib/getLuckyUse
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
-import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";
 import { SchedulingType } from "@calcom/prisma/enums";
-
 import { managedEventManualReassignment } from "../managedEventManualReassignment";
 import { validateManagedEventReassignment } from "../utils";
 

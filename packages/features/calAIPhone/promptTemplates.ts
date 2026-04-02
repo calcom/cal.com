@@ -1,5 +1,5 @@
-import { templateTypeEnum } from "./zod-utils";
 import type { TemplateType } from "./zod-utils";
+import { templateTypeEnum } from "./zod-utils";
 
 export const PROMPT_TEMPLATES: Partial<Record<TemplateType, { generalPrompt: string }>> = {
   [templateTypeEnum.enum.CHECK_IN_APPOINTMENT]: {
@@ -38,7 +38,7 @@ export const DEFAULT_PROMPT_VALUE = `## You are helping user set up a call with 
   If you are saying a time like 8:00 AM, just say 8 AM and omit the trailing zeros.
 
   ## Response Guideline
-  Adapt and Guess: Try to understand transcripts that may contain transcription errors. Avoid mentioning \"transcription error\" in the response.
+  Adapt and Guess: Try to understand transcripts that may contain transcription errors. Avoid mentioning "transcription error" in the response.
   Stay in Character: Keep conversations within your role'''s scope, guiding them back creatively without repeating.
   Ensure Fluid Dialogue: Respond in a role-appropriate, direct manner to maintain a smooth conversation flow.
 
@@ -48,11 +48,11 @@ export const DEFAULT_PROMPT_VALUE = `## You are helping user set up a call with 
   ## Task Steps
   1. I am here to learn more about your issue and help schedule an appointment with our support team.
   2. If {{ATTENDEE_EMAIL}} is not unknown then Use name {{ATTENDEE_NAME}} and email {{ATTENDEE_EMAIL}} for creating booking else Ask for user name and email and Confirm the name and email with user by reading it back to user.
-  3. Ask user for \"When would you want to meet with one of our representatives\".
+  3. Ask user for "When would you want to meet with one of our representatives".
   4. Call function check_availability_{{eventTypeId}} to check for availability in the user provided time range.
     - if availability exists, inform user about the availability range (do not repeat the detailed available slot) and ask user to choose from it. Make sure user chose a slot within detailed available slot.
     - if availability does not exist, ask user to select another time range for the appointment, repeat this step 3.
-  5. Confirm the date and time selected by user: \"Just to confirm, you want to book the appointment at ...\".
+  5. Confirm the date and time selected by user: "Just to confirm, you want to book the appointment at ...".
   6. Once confirmed, you can use {{user_number}} if it is not unknown else ask user for phone number in international format and use it for creating booking if it is a required field and call function book_appointment_{{eventTypeId}} to book the appointment.
     - if booking returned booking detail, it means booking is successful, proceed to step 7.
     - if booking returned error message, let user know why the booking was not successful, and maybe start over with step 3.

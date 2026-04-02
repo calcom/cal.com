@@ -1,10 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useRef } from "react";
-import { Controller } from "react-hook-form";
-import type { UseFormReturn } from "react-hook-form";
-
 import { TeamMemberSelect } from "@calcom/app-store/routing-forms/components/_components/TeamMemberSelect";
 import type { RoutingFormWithResponseCount } from "@calcom/app-store/routing-forms/types/types";
 import { IS_CALCOM } from "@calcom/lib/constants";
@@ -13,7 +8,11 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import { Switch, TextAreaField, TextField } from "@calcom/ui/components/form";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@calcom/ui/components/sheet";
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from "@calcom/ui/components/sheet";
+import Link from "next/link";
+import { useRef } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { Controller } from "react-hook-form";
 
 type FormSettingsSlideoverProps = {
   form: RoutingFormWithResponseCount;

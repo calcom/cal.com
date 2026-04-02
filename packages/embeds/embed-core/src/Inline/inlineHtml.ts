@@ -1,6 +1,7 @@
 import type { AllPossibleLayouts, EmbedPageType } from "../types";
 import { generateSkeleton } from "../ui/skeleton";
 import { type ExternalThemeClass, getInternalThemeClass } from "../ui/themeClass";
+
 const html = ({
   layout = "month_view",
   pageType,

@@ -1,30 +1,29 @@
 import type { TrackingData } from "@calcom/lib/tracking";
-
 import type {
-  AIPhoneServiceProvider,
-  AIPhoneServiceProviderType,
+  AIPhoneServiceAgent,
+  AIPhoneServiceAgentListItem,
+  AIPhoneServiceAgentWithDetails,
+  AIPhoneServiceCall,
+  AIPhoneServiceCallData,
   AIPhoneServiceConfiguration,
+  AIPhoneServiceCreatePhoneNumberParams,
   AIPhoneServiceDeletion,
   AIPhoneServiceDeletionResult,
-  AIPhoneServiceCallData,
-  AIPhoneServiceModel,
-  AIPhoneServiceCall,
-  AIPhoneServicePhoneNumber,
-  AIPhoneServiceAgent,
-  AIPhoneServiceUpdateModelParams,
-  AIPhoneServiceUpdateAgentParams,
-  AIPhoneServiceCreatePhoneNumberParams,
-  AIPhoneServiceUpdatePhoneNumberParams,
-  AIPhoneServiceAgentListItem,
   AIPhoneServiceImportPhoneNumberParamsExtended,
-  AIPhoneServiceAgentWithDetails,
+  AIPhoneServiceModel,
+  AIPhoneServicePhoneNumber,
+  AIPhoneServiceProvider,
+  AIPhoneServiceProviderType,
   AIPhoneServiceTools,
+  AIPhoneServiceUpdateAgentParams,
+  AIPhoneServiceUpdateModelParams,
+  AIPhoneServiceUpdatePhoneNumberParams,
 } from "../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";
 import type { TransactionInterface } from "../interfaces/TransactionInterface";
 import { RetellAIService } from "./RetellAIService";
-import type { RetellAIRepository, Language } from "./types";
+import type { Language, RetellAIRepository } from "./types";
 
 export class RetellAIPhoneServiceProvider
   implements AIPhoneServiceProvider<AIPhoneServiceProviderType.RETELL_AI>

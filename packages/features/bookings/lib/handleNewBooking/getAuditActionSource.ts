@@ -1,6 +1,6 @@
-import { CreationSource } from "@calcom/prisma/enums";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { criticalLogger } from "@calcom/lib/logger.server";
+import { CreationSource } from "@calcom/prisma/enums";
 
 export const getAuditActionSource = ({
   creationSource,

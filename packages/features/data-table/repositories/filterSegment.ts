@@ -1,13 +1,12 @@
 import type { FilterSegmentOutput, SegmentIdentifier } from "@calcom/features/data-table/lib/types";
 import {
   ZActiveFilters,
-  ZSortingState,
   ZColumnSizing,
   ZColumnVisibility,
+  ZSortingState,
 } from "@calcom/features/data-table/lib/types";
 import { prisma } from "@calcom/prisma";
 import type { UserFilterSegmentPreference } from "@calcom/prisma/client";
-
 import type { TCreateFilterSegmentInputSchema, TUpdateFilterSegmentInputSchema } from "./filterSegment.type";
 
 export interface IFilterSegmentRepository {

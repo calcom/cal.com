@@ -1,10 +1,8 @@
 "use client";
 
+import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { useSession } from "next-auth/react";
 import { createContext, useEffect, useRef, useState } from "react";
-
-import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-
 import type { OrgTeamsType } from "../filters/OrgTeamsFilter";
 
 export type InsightsOrgTeamsContextType = {

@@ -1,3 +1,19 @@
+import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
+import { CreateScheduleInput_2024_04_15 } from "../inputs/create-schedule.input";
 import { CreateScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/create-schedule.output";
 import { DeleteScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/delete-schedule.output";
 import { GetDefaultScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/get-default-schedule.output";
@@ -11,24 +27,6 @@ import { Permissions } from "@/modules/auth/decorators/permissions/permissions.d
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  Patch,
-  UseGuards,
-} from "@nestjs/common";
-import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
-
-import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
-
-import { CreateScheduleInput_2024_04_15 } from "../inputs/create-schedule.input";
 
 @Controller({
   path: "/v2/schedules",

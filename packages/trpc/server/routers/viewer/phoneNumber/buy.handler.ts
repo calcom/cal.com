@@ -1,10 +1,7 @@
-import type { NextApiRequest } from "next";
-
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { getTrackingFromCookies } from "@calcom/lib/tracking";
-
 import { TRPCError } from "@trpc/server";
-
+import type { NextApiRequest } from "next";
 import type { TrpcSessionUser } from "../../../types";
 import type { TBuyInputSchema } from "./buy.schema";
 

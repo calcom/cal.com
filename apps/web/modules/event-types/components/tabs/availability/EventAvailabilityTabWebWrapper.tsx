@@ -1,11 +1,9 @@
-import { useFormContext } from "react-hook-form";
-
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-
+import { useFormContext } from "react-hook-form";
 import type { TeamMembers } from "../../EventType";
 import { EventAvailabilityTab } from "./EventAvailabilityTab";
 

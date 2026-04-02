@@ -1,9 +1,9 @@
 import type { RolePermission } from "../domain/models/Role";
 import {
-  parsePermissionString,
   isValidPermissionString,
-  type PermissionString,
   type ParsedPermission,
+  type PermissionString,
+  parsePermissionString,
 } from "../domain/types/permission-registry";
 
 export class PermissionDiffService {

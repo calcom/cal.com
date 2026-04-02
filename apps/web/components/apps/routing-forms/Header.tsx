@@ -1,17 +1,15 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
-import { useFormContext } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RoutingFormWithResponseCount } from "@calcom/routing-forms/types/types";
 import { Button } from "@calcom/ui/components/button";
 import { DropdownMenuSeparator } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
-import { MenuIcon, PencilIcon, WaypointsIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
+import { MenuIcon, PencilIcon, WaypointsIcon } from "@coss/ui/icons";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { useFormContext } from "react-hook-form";
 import { FormAction, FormActionsDropdown } from "./FormActions";
 import { FormSettingsSlideover } from "./FormSettingsSlideover";
 
@@ -297,9 +295,7 @@ export function Header({
                 variant="icon"
                 color="minimal"
                 onClick={() => setIsEditing(true)}
-                CustomStartIcon={
-                  <PencilIcon className="text-subtle group-hover:text-default h-3 w-3" />
-                }>
+                CustomStartIcon={<PencilIcon className="text-subtle group-hover:text-default h-3 w-3" />}>
                 <span className="sr-only">Edit</span>
               </Button>
             </div>

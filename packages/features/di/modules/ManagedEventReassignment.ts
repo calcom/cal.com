@@ -1,11 +1,10 @@
-import { ManagedEventReassignmentService } from "@calcom/features/ee/managed-event-types/reassignment/services/ManagedEventReassignmentService";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
-
+import { ManagedEventReassignmentService } from "@calcom/features/ee/managed-event-types/reassignment/services/ManagedEventReassignmentService";
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "../di";
 import { moduleLoader as bookingRepositoryModuleLoader } from "./Booking";
 import { moduleLoader as eventTypeRepositoryModuleLoader } from "./EventType";
-import { moduleLoader as userRepositoryModuleLoader } from "./User";
 import { moduleLoader as luckyUserServiceModuleLoader } from "./LuckyUser";
+import { moduleLoader as userRepositoryModuleLoader } from "./User";
 
 const thisModule = createModule();
 const token = DI_TOKENS.MANAGED_EVENT_REASSIGNMENT_SERVICE;

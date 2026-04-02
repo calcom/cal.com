@@ -1,16 +1,12 @@
+import dayjs from "@calcom/dayjs";
+import { PrismaSelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/PrismaSelectedSlotRepository";
+import { MINUTES_TO_BOOK, WEBAPP_URL } from "@calcom/lib/constants";
+import type { PrismaClient } from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
+import { TRPCError } from "@trpc/server";
 import { serialize } from "cookie";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuid } from "uuid";
-
-import dayjs from "@calcom/dayjs";
-import { PrismaSelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/PrismaSelectedSlotRepository";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
-import type { PrismaClient } from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
-
-import { TRPCError } from "@trpc/server";
-
 import type { TReserveSlotInputSchema } from "./reserveSlot.schema";
 
 interface ReserveSlotOptions {

@@ -1,6 +1,5 @@
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-
 import { stripeWebhookHandler } from "./__handler";
 
 // We handle each Stripe webhook event type with it's own lazy loaded handler

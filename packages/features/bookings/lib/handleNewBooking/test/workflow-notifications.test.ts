@@ -1,31 +1,29 @@
 import {
-  createBookingScenario,
-  getGoogleCalendarCredential,
-  TestData,
-  getOrganizer,
-  getBooker,
-  getScenarioData,
-  mockSuccessfulVideoMeetingCreation,
-  mockCalendarToHaveNoBusySlots,
   BookingLocations,
-  getDate,
-  Timezones,
+  createBookingScenario,
   createOrganization,
+  getBooker,
+  getDate,
+  getGoogleCalendarCredential,
+  getOrganizer,
+  getScenarioData,
+  mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
+  Timezones,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import process from "node:process";
+import { resetTestSMS } from "@calcom/lib/testSMS";
+import { SchedulingType, SMSLockState } from "@calcom/prisma/enums";
 import {
-  expectWorkflowToBeTriggered,
-  expectSMSWorkflowToBeTriggered,
   expectSMSWorkflowToBeNotTriggered,
+  expectSMSWorkflowToBeTriggered,
+  expectWorkflowToBeTriggered,
 } from "@calcom/testing/lib/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { describe, beforeEach, vi } from "vitest";
-
-import { resetTestSMS } from "@calcom/lib/testSMS";
-import { SMSLockState, SchedulingType } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
-
+import { beforeEach, describe, vi } from "vitest";
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
 vi.mock("@calcom/lib/constants", async () => {

@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-
 import { test } from "./lib/fixtures";
 
 // IMPORTANT: we do NOT load different translations based on URL locale

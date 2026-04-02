@@ -1,5 +1,5 @@
-import { ApiProperty, ApiHideProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsString, IsNumber, IsBoolean, IsOptional, IsUrl } from "class-validator";
+import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsBoolean, IsNumber, IsOptional, IsString, IsUrl } from "class-validator";
 
 // note(Lauris): We will gradually expose more properties if any customer needs them.
 // Just uncomment any below when requested.

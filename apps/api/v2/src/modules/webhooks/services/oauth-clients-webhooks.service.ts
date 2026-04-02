@@ -1,7 +1,7 @@
+import { ConflictException, Injectable } from "@nestjs/common";
 import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { validateWebhookUrl } from "@/modules/webhooks/utils/validate-webhook-url";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
-import { ConflictException, Injectable } from "@nestjs/common";
 
 @Injectable()
 export class OAuthClientWebhooksService {

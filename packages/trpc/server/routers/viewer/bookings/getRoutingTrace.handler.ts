@@ -4,9 +4,7 @@ import { PrismaRoutingTraceRepository } from "@calcom/features/routing-trace/rep
 import type { RoutingTrace } from "@calcom/features/routing-trace/repositories/RoutingTraceRepository.interface";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TGetRoutingTraceInputSchema } from "./getRoutingTrace.schema";
 
 type Options = {

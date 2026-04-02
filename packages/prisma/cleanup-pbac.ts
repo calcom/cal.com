@@ -1,5 +1,6 @@
 #!/usr/bin/env tsx
 
+import process from "node:process";
 /**
  * Cleanup script to remove PBAC demo organization and related data
  * Run with: npx tsx packages/prisma/cleanup-pbac.ts

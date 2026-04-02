@@ -1,11 +1,10 @@
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent } from "@calcom/ui/components/dialog";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const handleBeforeUnload = (event: BeforeUnloadEvent) => {
   const message = "/o";
@@ -72,7 +71,7 @@ export const RedirectToInstantMeetingModal = ({
   }, [expiryTime, hasInstantMeetingTokenExpired, instantVideoMeetingUrl]);
 
   useEffect(() => {
-    if (!!instantVideoMeetingUrl) {
+    if (instantVideoMeetingUrl) {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       router.push(instantVideoMeetingUrl);
     }

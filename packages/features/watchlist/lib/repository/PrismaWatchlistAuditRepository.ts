@@ -1,9 +1,8 @@
 import type { PrismaClient } from "@calcom/prisma/client";
-import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
-
+import type { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
 import type {
-  IAuditRepository,
   CreateWatchlistAuditInput,
+  IAuditRepository,
   UpdateWatchlistAuditInput,
 } from "../interface/IAuditRepository";
 import type { WatchlistAudit } from "../types";

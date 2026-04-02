@@ -1,6 +1,9 @@
-import { describe, it, expect } from "vitest";
-
-import convertToNewDurationType, { MINUTES_IN_HOUR, MINUTES_IN_DAY, HOURS_IN_DAY } from "./convertToNewDurationType";
+import { describe, expect, it } from "vitest";
+import convertToNewDurationType, {
+  HOURS_IN_DAY,
+  MINUTES_IN_DAY,
+  MINUTES_IN_HOUR,
+} from "./convertToNewDurationType";
 
 describe("convertToNewDurationType", () => {
   describe("identity conversions", () => {

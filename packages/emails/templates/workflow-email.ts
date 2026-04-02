@@ -1,7 +1,5 @@
-import { JSDOM } from "jsdom";
-
 import { SENDER_NAME } from "@calcom/lib/constants";
-
+import { JSDOM } from "jsdom";
 import BaseEmail from "./_base-email";
 
 export type Attachment = {

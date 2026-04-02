@@ -1,5 +1,3 @@
-import z from "zod";
-
 import { LockReason, lockUser } from "@calcom/features/ee/api-keys/lib/autoLock";
 import {
   extractUrlsFromHtml,
@@ -10,6 +8,7 @@ import {
 import tasker from "@calcom/features/tasker";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import z from "zod";
 
 export const scanWorkflowUrlsSchema = z.object({
   userId: z.number(),

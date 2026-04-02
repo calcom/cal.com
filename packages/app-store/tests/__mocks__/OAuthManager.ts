@@ -1,6 +1,5 @@
 import { beforeEach, vi } from "vitest";
 import { mockClear, mockDeep } from "vitest-mock-extended";
-
 import type * as OAuthManager from "../../_utils/oauth/OAuthManager";
 
 vi.mock("../../_utils/oauth/OAuthManager", () => oAuthManagerMock);
@@ -28,28 +27,24 @@ export default oAuthManagerMock;
 const setFullMockOAuthManagerRequest = () => {
   useFullMockOAuthManagerRequest = true;
 };
-const defaultMockOAuthManager = vi.fn().mockImplementation(function() {
-  return {
-    getTokenObjectOrFetch: vi.fn().mockImplementation(function() {
-      return {
-        token: {
-          access_token: "FAKE_ACCESS_TOKEN",
-        },
-      };
-    }),
-    request: vi.fn().mockImplementation(function(fn) {
-      if (useFullMockOAuthManagerRequest) {
-        console.log("OAuthManager.request full mock being used");
-        return oAuthManagerRequestFullMock(fn);
-      }
-      console.log("OAuthManager.request default mock being used");
-      return {
-        json: {
-          calendars: [],
-        },
-      };
-    }),
-  };
-});
+const defaultMockOAuthManager = vi.fn().mockImplementation(() => ({
+  getTokenObjectOrFetch: vi.fn().mockImplementation(() => ({
+    token: {
+      access_token: "FAKE_ACCESS_TOKEN",
+    },
+  })),
+  request: vi.fn().mockImplementation((fn) => {
+    if (useFullMockOAuthManagerRequest) {
+      console.log("OAuthManager.request full mock being used");
+      return oAuthManagerRequestFullMock(fn);
+    }
+    console.log("OAuthManager.request default mock being used");
+    return {
+      json: {
+        calendars: [],
+      },
+    };
+  }),
+}));
 
 export { oAuthManagerMock, defaultMockOAuthManager, setFullMockOAuthManagerRequest };

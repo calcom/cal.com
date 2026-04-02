@@ -1,29 +1,34 @@
 import { Logger } from "@nestjs/common";
 import { ApiProperty, ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsBoolean, IsOptional, IsString } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
-import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
-
 import {
-  PhoneFieldInput_2024_06_14,
+  IsBoolean,
+  IsOptional,
+  IsString,
+  registerDecorator,
+  ValidatorConstraint,
+  validate,
+} from "class-validator";
+import {
   AddressFieldInput_2024_06_14,
-  TextFieldInput_2024_06_14,
-  NumberFieldInput_2024_06_14,
-  TextAreaFieldInput_2024_06_14,
-  SelectFieldInput_2024_06_14,
-  MultiSelectFieldInput_2024_06_14,
-  MultiEmailFieldInput_2024_06_14,
-  CheckboxGroupFieldInput_2024_06_14,
-  RadioGroupFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
-  NameDefaultFieldInput_2024_06_14,
+  CheckboxGroupFieldInput_2024_06_14,
   EmailDefaultFieldInput_2024_06_14,
   GuestsDefaultFieldInput_2024_06_14,
+  MultiEmailFieldInput_2024_06_14,
+  MultiSelectFieldInput_2024_06_14,
+  NameDefaultFieldInput_2024_06_14,
   NotesDefaultFieldInput_2024_06_14,
+  NumberFieldInput_2024_06_14,
+  PhoneFieldInput_2024_06_14,
+  RadioGroupFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
-  TitleDefaultFieldInput_2024_06_14,
+  SelectFieldInput_2024_06_14,
   SplitNameDefaultFieldInput_2024_06_14,
+  TextAreaFieldInput_2024_06_14,
+  TextFieldInput_2024_06_14,
+  TitleDefaultFieldInput_2024_06_14,
   UrlFieldInput_2024_06_14,
 } from "../inputs";
 
@@ -767,7 +772,7 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
 
 export function ValidateOutputBookingFields_2024_06_14(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateOutputBookingFields",
       target: object.constructor,

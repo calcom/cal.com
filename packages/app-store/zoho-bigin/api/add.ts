@@ -1,8 +1,6 @@
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import axios from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
-
-import { WEBAPP_URL } from "@calcom/lib/constants";
-
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 import appConfig from "../config.json";

@@ -11,9 +11,7 @@ import { OrganizationPaymentService } from "@calcom/features/ee/organizations/li
 import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TCreateWithPaymentIntentInputSchema } from "./createWithPaymentIntent.schema";
 

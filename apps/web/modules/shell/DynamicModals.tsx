@@ -1,9 +1,8 @@
 "use client";
 
 import { WelcomeToOrganizationsModal } from "@calcom/web/modules/ee/organizations/components/WelcomeToOrganizationsModal";
-
-import { WelcomeToCalcomModal } from "./components/WelcomeToCalcomModal";
 import { GatedFeaturesModal } from "./components/GatedFeaturesModal";
+import { WelcomeToCalcomModal } from "./components/WelcomeToCalcomModal";
 
 /**
  * Container for all query-param driven modals that should appear globally across the app.

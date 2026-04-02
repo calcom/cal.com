@@ -1,8 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import { getHolidayService } from "@calcom/lib/holidays";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserAvailabilityService } from "./getUserAvailability";
 
 vi.mock("@calcom/lib/holidays", () => ({

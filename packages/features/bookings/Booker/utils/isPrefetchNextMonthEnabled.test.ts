@@ -1,8 +1,6 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { isPrefetchNextMonthEnabled } from "./isPrefetchNextMonthEnabled";
 
 describe("isPrefetchNextMonthEnabled", () => {

@@ -1,10 +1,8 @@
-import type { NextApiRequest } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
-import type { Prisma, Booking } from "@calcom/prisma/client";
-
+import type { Booking, Prisma } from "@calcom/prisma/client";
+import type { NextApiRequest } from "next";
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import { buildWhereClause } from "~/lib/utils/bookings/get/buildWhereClause";
 import {
@@ -170,8 +168,8 @@ export async function handler(req: NextApiRequest) {
   const expand = Array.isArray(queryFilterForExpand)
     ? queryFilterForExpand
     : queryFilterForExpand
-    ? [queryFilterForExpand]
-    : [];
+      ? [queryFilterForExpand]
+      : [];
 
   args.include = {
     attendees: true,
@@ -184,8 +182,8 @@ export async function handler(req: NextApiRequest) {
   const attendeeEmails = Array.isArray(queryFilterForAttendeeEmails.attendeeEmail)
     ? queryFilterForAttendeeEmails.attendeeEmail
     : typeof queryFilterForAttendeeEmails.attendeeEmail === "string"
-    ? [queryFilterForAttendeeEmails.attendeeEmail]
-    : [];
+      ? [queryFilterForAttendeeEmails.attendeeEmail]
+      : [];
   const filterByAttendeeEmails = attendeeEmails.length > 0;
   let userEmailsToFilterBy: string[] = [];
 

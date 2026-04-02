@@ -1,9 +1,8 @@
 "use client";
 
 import "@calcom/embed-core/src/embed-iframe";
-import LicenseRequired from "~/ee/common/components/LicenseRequired";
-
 import AppProviders from "@lib/app-providers-app-dir";
+import LicenseRequired from "~/ee/common/components/LicenseRequired";
 
 export type PageWrapperProps = Readonly<{
   children: React.ReactNode;

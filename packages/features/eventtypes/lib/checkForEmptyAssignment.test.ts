@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { checkForEmptyAssignment } from "./checkForEmptyAssignment";
 
 describe("Tests to Check if Event Types have empty Assignment", () => {

@@ -1,16 +1,14 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
-
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-
+import type { Dispatch, SetStateAction } from "react";
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfigForFormFields } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
 import { getUIOptionsForSelect } from "../lib/selectOptions";
 import { getFieldResponseForJsonLogic } from "../lib/transformResponse";
-import type { SerializableForm, FormResponse } from "../types/types";
+import type { FormResponse, SerializableForm } from "../types/types";
 import { ConfigFor, withRaqbSettingsAndWidgets } from "./react-awesome-query-builder/config/uiConfig";
 
 export type FormInputFieldsProps = {
@@ -64,7 +62,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
               placeholder={field.placeholder ?? ""}
               // required property isn't accepted by query-builder types
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              /* @ts-ignore */
+              /* @ts-expect-error */
               required={!!field.required}
               listValues={options}
               disabled={disabledFields?.includes(fieldIdentifier)}

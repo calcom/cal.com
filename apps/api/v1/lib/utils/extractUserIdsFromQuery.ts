@@ -1,7 +1,5 @@
-import type { NextApiRequest } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
-
+import type { NextApiRequest } from "next";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
 export function extractUserIdsFromQuery({ isSystemWideAdmin, query }: NextApiRequest) {

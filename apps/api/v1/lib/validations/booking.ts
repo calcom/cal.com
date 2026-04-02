@@ -1,14 +1,12 @@
-import { z } from "zod";
-
 import { extendedBookingCreateBody } from "@calcom/features/bookings/lib/bookingCreateBodySchema";
-import { iso8601 } from "@calcom/prisma/zod-utils";
 import { AttendeeSchema } from "@calcom/prisma/zod/modelSchema/AttendeeSchema";
 import { BookingSchema as Booking } from "@calcom/prisma/zod/modelSchema/BookingSchema";
 import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 import { PaymentSchema } from "@calcom/prisma/zod/modelSchema/PaymentSchema";
 import { TeamSchema } from "@calcom/prisma/zod/modelSchema/TeamSchema";
 import { UserSchema } from "@calcom/prisma/zod/modelSchema/UserSchema";
-
+import { iso8601 } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 import { schemaQueryUserId } from "./shared/queryUserId";
 
 const schemaBookingBaseBodyParams = Booking.pick({
@@ -143,6 +141,6 @@ export const schemaBookingReadPublic = Booking.extend({
 });
 
 export {
-  bookingCreateSchemaLegacyPropsForApi,
   bookingCreateBodySchemaForApi,
+  bookingCreateSchemaLegacyPropsForApi,
 } from "@calcom/features/bookings/lib/bookingCreateBodySchema";

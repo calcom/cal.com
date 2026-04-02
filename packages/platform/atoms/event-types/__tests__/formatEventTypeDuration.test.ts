@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { formatEventTypeDuration } from "../lib/formatEventTypeDuration";
 
 describe("formatEventTypeDuration", () => {

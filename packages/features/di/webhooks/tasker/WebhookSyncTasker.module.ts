@@ -1,8 +1,7 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { WebhookSyncTasker } from "@calcom/features/webhooks/lib/tasker/WebhookSyncTasker";
-
-import { moduleLoader as webhookTaskConsumerModuleLoader } from "./WebhookTaskConsumer.module";
 import { WEBHOOK_TASKER_DI_TOKENS } from "./tokens";
+import { moduleLoader as webhookTaskConsumerModuleLoader } from "./WebhookTaskConsumer.module";
 
 const thisModule = createModule();
 const token = WEBHOOK_TASKER_DI_TOKENS.WEBHOOK_SYNC_TASKER;

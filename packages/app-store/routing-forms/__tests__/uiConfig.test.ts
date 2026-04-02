@@ -1,6 +1,5 @@
 import type { Settings } from "react-awesome-query-builder";
-import { describe, it, vi, expect } from "vitest";
-
+import { describe, expect, it, vi } from "vitest";
 import {
   ConfigFor,
   withRaqbSettingsAndWidgets,

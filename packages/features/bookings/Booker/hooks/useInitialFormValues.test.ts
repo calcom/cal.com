@@ -1,11 +1,10 @@
 /**
  * @vitest-environment jsdom
  */
-import { cleanup, renderHook, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import type { BookerEvent } from "@calcom/features/bookings/types";
-
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useInitialFormValues } from "./useInitialFormValues";
 
 vi.mock("@calcom/features/bookings/Booker/store", () => ({

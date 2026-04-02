@@ -1,15 +1,15 @@
-import { isTeamCondition, isAttributeCondition } from "../lib/ruleHelpers";
+import { getAttributeService } from "@calcom/features/attributes/di/AttributeService.container";
+import type { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
+import type { UserAttribute } from "@calcom/features/attributes/services/AttributeService";
+import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
+import { isAttributeCondition, isTeamCondition } from "../lib/ruleHelpers";
 import {
   ConditionOperatorEnum,
+  type IAttributeCondition,
   type IAttributeSyncRule,
   type ITeamCondition,
-  type IAttributeCondition,
   RuleOperatorEnum,
 } from "../repositories/IIntegrationAttributeSyncRepository";
-import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import type { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
-import { getAttributeService } from "@calcom/features/attributes/di/AttributeService.container";
-import type { UserAttribute } from "@calcom/features/attributes/services/AttributeService";
 
 interface IAttributeSyncRuleServiceDeps {
   membershipRepository: MembershipRepository;

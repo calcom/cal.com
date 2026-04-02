@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-
 import SettingsHeader from "./SettingsHeader";
 
 type SettingsHeaderWithBackButtonProps = {

@@ -1,14 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
-
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type {
-  GetAvailableSlotsInput_2024_04_15,
   ApiResponse,
   ApiSuccessResponse,
+  GetAvailableSlotsInput_2024_04_15,
 } from "@calcom/platform-types";
-
-import http from "../lib/http";
+import { useQuery } from "@tanstack/react-query";
 import type { GetAvailableSlotsResponse } from "../booker/types";
+import http from "../lib/http";
 
 export const QUERY_KEY = "get-available-slots";
 

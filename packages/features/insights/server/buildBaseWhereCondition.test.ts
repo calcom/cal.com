@@ -1,7 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import type { readonlyPrisma } from "@calcom/prisma";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildBaseWhereCondition } from "./buildBaseWhereCondition";
 
 const mockTeamFindMany = vi.fn();

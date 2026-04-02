@@ -1,7 +1,5 @@
-import { describe, expect, it } from "vitest";
-
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
-
+import { describe, expect, it } from "vitest";
 import { getAssignmentReasonCategory } from "./getAssignmentReasonCategory";
 
 describe("getAssignmentReasonCategory", () => {

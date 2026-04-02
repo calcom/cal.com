@@ -1,10 +1,8 @@
-import { createColumnHelper, useReactTable, getCoreRowModel, getSortedRowModel } from "@tanstack/react-table";
-import { useMemo } from "react";
-
 import { ColumnFilterType } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingStatus } from "@calcom/prisma/enums";
-
+import { createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
+import { useMemo } from "react";
 import { useInsightsBookingFacetedUniqueValues } from "./useInsightsBookingFacetedUniqueValues";
 import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 

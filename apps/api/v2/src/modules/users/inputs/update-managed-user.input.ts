@@ -1,11 +1,10 @@
-import { Locales } from "@/lib/enums/locales";
-import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
-import { TimeFormat, WeekDay } from "@/modules/users/inputs/create-managed-user.input";
+import { ValidateMetadata } from "@calcom/platform-types";
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import { IsEnum, IsIn, IsNumber, IsObject, IsOptional, IsString, IsTimeZone, IsUrl } from "class-validator";
-
-import { ValidateMetadata } from "@calcom/platform-types";
+import { Locales } from "@/lib/enums/locales";
+import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
+import { TimeFormat, WeekDay } from "@/modules/users/inputs/create-managed-user.input";
 
 export class UpdateManagedUserInput {
   @IsString()

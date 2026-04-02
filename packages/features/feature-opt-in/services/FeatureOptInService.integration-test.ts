@@ -4,7 +4,6 @@ import type { FeatureId } from "@calcom/features/flags/config";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 import { afterEach, describe, expect, it, vi } from "vitest";
-
 import type { IFeatureOptInService } from "./IFeatureOptInService";
 
 // Mock isFeatureAllowedForScope to always return true for integration tests.

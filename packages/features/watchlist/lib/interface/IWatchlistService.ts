@@ -1,4 +1,4 @@
-import type { WatchlistEntry, CreateWatchlistEntryData, UpdateWatchlistEntryData } from "../types";
+import type { CreateWatchlistEntryData, UpdateWatchlistEntryData, WatchlistEntry } from "../types";
 
 export interface IWatchlistService {
   createEntry(data: CreateWatchlistEntryData): Promise<WatchlistEntry>;

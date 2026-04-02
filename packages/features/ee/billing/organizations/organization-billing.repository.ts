@@ -1,5 +1,4 @@
 import { prisma } from "@calcom/prisma";
-
 import type { OrganizationBillingRepository as IOrganizationBillingRepository } from "./organization-billing.repository.interface";
 
 export class OrganizationBillingRepository implements IOrganizationBillingRepository {

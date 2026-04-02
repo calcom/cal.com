@@ -6,9 +6,7 @@
   "logo": "icon.png",
   "url": "https://docs.fonio.ai/Tools/Terminbuchung",
   "variant": "automation",
-  "categories": [
-    "automation"
-  ],
+  "categories": ["automation"],
   "publisher": "fonio GmbH",
   "email": "info@fonio.ai",
   "description": "Der KI-Telefonassistent auf Deutsch\r",

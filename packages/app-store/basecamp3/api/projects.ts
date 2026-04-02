@@ -1,13 +1,12 @@
-import type { NextApiRequest } from "next";
-
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { refreshAccessToken } from "@calcom/app-store/basecamp3/lib/helpers";
 import type { BasecampToken } from "@calcom/app-store/basecamp3/lib/types";
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { HttpError } from "@calcom/lib/http-error";
+import type { NextApiRequest } from "next";
 
 async function handler(req: NextApiRequest) {
   const userId = req.session?.user?.id;

@@ -1,7 +1,6 @@
 import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
 import prisma from "@calcom/prisma";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
-
 import { RoutingReasons, SalesforceRecordEnum } from "./enums";
 
 export async function assignmentReasonHandler({
@@ -39,13 +38,14 @@ export async function assignmentReasonHandler({
           recordId ? ` (Account ID: ${recordId})` : ""
         }`,
       };
-    case RoutingReasons.ACCOUNT_LOOKUP_FIELD:
+    case RoutingReasons.ACCOUNT_LOOKUP_FIELD: {
       const assignmentReason = await handleAccountLookupFieldReason(
         routingFormResponseId,
         teamMemberEmail,
         recordId
       );
       return { ...returnObject, assignmentReason };
+    }
   }
 }
 

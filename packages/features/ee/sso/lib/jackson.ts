@@ -1,16 +1,15 @@
+import process from "node:process";
 import type {
   IConnectionAPIController,
+  IDirectorySyncController,
   IOAuthController,
   ISPSSOConfig,
   JacksonOption,
-  IDirectorySyncController,
-  OAuthTokenReq,
   OAuthReq,
+  OAuthTokenReq,
   SAMLResponsePayload,
 } from "@boxyhq/saml-jackson";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
-
 import { clientSecretVerifier, oidcPath, samlAudience, samlDatabaseUrl, samlPath } from "./saml";
 
 export type { OAuthTokenReq, OAuthReq, SAMLResponsePayload };

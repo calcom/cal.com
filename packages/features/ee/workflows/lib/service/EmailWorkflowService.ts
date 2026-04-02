@@ -8,6 +8,7 @@ import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builde
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import {
@@ -17,7 +18,6 @@ import {
   buildStandardRescheduleLink,
 } from "@calcom/lib/LinkBuilder";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/i18n/server";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import {
@@ -616,9 +616,7 @@ export class EmailWorkflowService {
     const customReplyToEmail =
       evt?.eventType?.customReplyToEmail || (evt as CalendarEvent).customReplyToEmail;
 
-    const replyTo = evt.hideOrganizerEmail
-      ? customReplyToEmail
-      : customReplyToEmail || evt.organizer.email;
+    const replyTo = evt.hideOrganizerEmail ? customReplyToEmail : customReplyToEmail || evt.organizer.email;
 
     return {
       subject: emailContent.emailSubject,

@@ -1,6 +1,5 @@
 import type { DirectorySyncEvent } from "@boxyhq/saml-jackson";
 import { describe, expect, it } from "vitest";
-
 import getAttributesFromScimPayload from "../getAttributesFromScimPayload";
 
 const directoryId = "xxx-xxx-xxx-xxx";

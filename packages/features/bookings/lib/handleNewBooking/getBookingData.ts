@@ -25,7 +25,7 @@ const _getBookingData = async <T extends z.ZodType>({
   const parsedBody = await schema.parseAsync(reqBody);
   const parsedBodyWithEnd = (body: TgetBookingDataSchema): body is ReqBodyWithEnd => {
     // Use the event length to auto-set the event end time.
-    if (!Object.prototype.hasOwnProperty.call(body, "end")) {
+    if (!Object.hasOwn(body, "end")) {
       body.end = dayjs.utc(body.start).add(eventType.length, "minutes").format();
     }
     return true;

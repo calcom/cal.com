@@ -1,7 +1,6 @@
-import React from "react";
-
-import { Icon } from "../icon";
+import type React from "react";
 import type { IconName } from "../icon";
+import { Icon } from "../icon";
 
 interface LinkIconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   Icon: IconName;

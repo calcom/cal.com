@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-
 import { test } from "./lib/fixtures";
 
 // Set a consistent viewport size and device scale factor across all environments

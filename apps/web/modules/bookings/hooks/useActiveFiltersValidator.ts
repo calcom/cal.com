@@ -1,10 +1,9 @@
 import type { ActiveFilter, ActiveFilters } from "@calcom/features/data-table";
 import { ColumnFilterType } from "@calcom/features/data-table";
-import type { ActiveFiltersValidator } from "~/data-table/DataTableProvider";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { useCallback, useMemo } from "react";
-
+import type { ActiveFiltersValidator } from "~/data-table/DataTableProvider";
 import { useEventTypes } from "./useEventTypes";
 
 interface UseActiveFiltersValidatorOptions {

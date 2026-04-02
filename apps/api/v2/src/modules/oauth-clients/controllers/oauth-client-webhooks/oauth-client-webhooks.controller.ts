@@ -5,6 +5,7 @@ import type { Webhook } from "@calcom/prisma/client";
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
+import { OAuthClientGuard } from "../../guards/oauth-client-guard";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -22,8 +23,6 @@ import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pi
 import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
 import { OAuthClientWebhooksService } from "@/modules/webhooks/services/oauth-clients-webhooks.service";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
-
-import { OAuthClientGuard } from "../../guards/oauth-client-guard";
 
 @Controller({
   path: "/v2/oauth-clients/:clientId/webhooks",

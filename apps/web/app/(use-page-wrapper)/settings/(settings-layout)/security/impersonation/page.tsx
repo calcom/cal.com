@@ -1,8 +1,5 @@
-import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
-
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-
+import { _generateMetadata, getTranslate } from "app/_utils";
 import ProfileImpersonationViewWrapper from "~/settings/security/impersonation-view";
 
 export const generateMetadata = async () =>

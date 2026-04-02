@@ -1,11 +1,8 @@
-import withEmbedSsrAppDir from "app/WithEmbedSSR";
-import type { PageProps as ServerPageProps } from "app/_types";
-import { cookies, headers } from "next/headers";
-
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
 import { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
-
+import type { PageProps as ServerPageProps } from "app/_types";
+import withEmbedSsrAppDir from "app/WithEmbedSSR";
+import { cookies, headers } from "next/headers";
 import User, { type PageProps as ClientPageProps } from "~/users/views/users-public-view";
 
 export const generateMetadata = async () => {

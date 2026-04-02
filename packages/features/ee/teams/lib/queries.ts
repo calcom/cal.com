@@ -1,26 +1,24 @@
-import { z } from "zod";
-
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
-import { getTeam, getOrg } from "@calcom/features/ee/teams/repositories/TeamRepository";
+import { getOrg, getTeam } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
-import type { Team } from "@calcom/prisma/client";
+import type { Prisma, Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
+import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
 import {
-  EventTypeMetaDataSchema,
   allManagedEventTypeProps,
   allManagedEventTypePropsForZod,
-  unlockedManagedEventTypePropsForZod,
+  EventTypeMetaDataSchema,
   eventTypeLocations,
+  unlockedManagedEventTypePropsForZod,
 } from "@calcom/prisma/zod-utils";
-import { EventTypeSchema } from "@calcom/prisma/zod/modelSchema/EventTypeSchema";
+import { z } from "zod";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
@@ -535,18 +533,16 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
   await Promise.allSettled([
     prisma.eventType
       .createMany({
-        data: managedEventTypes
-          .map((eventType) =>
-            userIds.map((userId) =>
-              generateNewChildEventTypeDataForDB({
-                eventType,
-                userId,
-                includeWorkflow: false,
-                includeUserConnect: false,
-              })
-            )
+        data: managedEventTypes.flatMap((eventType) =>
+          userIds.map((userId) =>
+            generateNewChildEventTypeDataForDB({
+              eventType,
+              userId,
+              includeWorkflow: false,
+              includeUserConnect: false,
+            })
           )
-          .flat(),
+        ),
         skipDuplicates: true,
       })
       .catch((error) => {
@@ -560,17 +556,15 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
       }),
     prisma.host
       .createMany({
-        data: teamEventTypes
-          .map((eventType) => {
-            return userIds.map((userId) => {
-              return {
-                userId,
-                eventTypeId: eventType.id,
-                isFixed: eventType.schedulingType === "COLLECTIVE",
-              };
-            });
-          })
-          .flat(),
+        data: teamEventTypes.flatMap((eventType) => {
+          return userIds.map((userId) => {
+            return {
+              userId,
+              eventTypeId: eventType.id,
+              isFixed: eventType.schedulingType === "COLLECTIVE",
+            };
+          });
+        }),
         skipDuplicates: true,
       })
       .catch((error) => {
@@ -611,14 +605,12 @@ export async function addNewMembersToEventTypes({ userIds, teamId }: { userIds: 
     await Promise.allSettled([
       prisma.workflowsOnEventTypes
         .createMany({
-          data: createdChildrenEventTypes
-            .map((eventType) =>
-              eventType.workflows.map((workflow) => ({
-                eventTypeId: eventType.id,
-                workflowId: workflow.id,
-              }))
-            )
-            .flat(),
+          data: createdChildrenEventTypes.flatMap((eventType) =>
+            eventType.workflows.map((workflow) => ({
+              eventTypeId: eventType.id,
+              workflowId: workflow.id,
+            }))
+          ),
           skipDuplicates: true,
         })
         .catch((error) => {

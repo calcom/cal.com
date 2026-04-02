@@ -1,6 +1,5 @@
-import type { GetServerSidePropsContext } from "next";
-
 import prisma from "@calcom/prisma";
+import type { GetServerSidePropsContext } from "next";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const id = context.params?.id as string;

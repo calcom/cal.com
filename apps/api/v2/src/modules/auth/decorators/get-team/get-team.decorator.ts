@@ -1,7 +1,5 @@
-import { ExecutionContext } from "@nestjs/common";
-import { createParamDecorator } from "@nestjs/common";
-
 import type { Team } from "@calcom/prisma/client";
+import { createParamDecorator, ExecutionContext } from "@nestjs/common";
 
 export type GetTeamReturnType = Team;
 

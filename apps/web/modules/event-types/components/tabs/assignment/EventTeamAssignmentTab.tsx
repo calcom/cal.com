@@ -1,3 +1,8 @@
+import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
+import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
+import WeightDescription from "@calcom/features/eventtypes/components/WeightDescription";
 import type {
   EventTypeSetupProps,
   FormValues,
@@ -14,19 +19,14 @@ import { RRTimestampBasis, SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label, Select, SettingsToggle } from "@calcom/ui/components/form";
-import { XIcon } from "@coss/ui/icons";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import type { AddMembersWithSwitchCustomClassNames } from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
 import AddMembersWithSwitch, {
   mapUserToValue,
 } from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
-import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
-import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EditWeightsForAllTeamMembers } from "@calcom/web/modules/event-types/components/EditWeightsForAllTeamMembers";
-import { LearnMoreLink } from "@calcom/features/eventtypes/components/LearnMoreLink";
-import WeightDescription from "@calcom/features/eventtypes/components/WeightDescription";
+import { XIcon } from "@coss/ui/icons";
 import type { TFunction } from "i18next";
 import Link from "next/link";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
@@ -667,10 +667,10 @@ const Hosts = ({
 
       return existingHost
         ? {
-          ...newValue,
-          scheduleId: existingHost.scheduleId,
-          groupId: existingHost.groupId,
-        }
+            ...newValue,
+            scheduleId: existingHost.scheduleId,
+            groupId: existingHost.groupId,
+          }
         : newValue;
     });
   };
@@ -750,17 +750,17 @@ export const EventTeamAssignmentTab = ({
     label: string;
     // description: string;
   }[] = [
-      {
-        value: "COLLECTIVE",
-        label: t("collective"),
-        // description: t("collective_description"),
-      },
-      {
-        value: "ROUND_ROBIN",
-        label: t("round_robin"),
-        // description: t("round_robin_description"),
-      },
-    ];
+    {
+      value: "COLLECTIVE",
+      label: t("collective"),
+      // description: t("collective_description"),
+    },
+    {
+      value: "ROUND_ROBIN",
+      label: t("round_robin"),
+      // description: t("round_robin_description"),
+    },
+  ];
   const pendingMembers = (member: (typeof teamMembers)[number]) =>
     !!eventType.team?.parentId || !!member.username;
   const teamMembersOptions = teamMembers
@@ -830,7 +830,10 @@ export const EventTeamAssignmentTab = ({
               )}>
               <div className="border-subtle rounded-t-md border p-6 pb-5">
                 <Label
-                  className={classNames("mb-1 text-sm font-semibold", customClassNames?.assignmentType?.label)}>
+                  className={classNames(
+                    "mb-1 text-sm font-semibold",
+                    customClassNames?.assignmentType?.label
+                  )}>
                   {t("assignment")}
                 </Label>
                 <p
@@ -859,7 +862,9 @@ export const EventTeamAssignmentTab = ({
                         "w-full",
                         customClassNames?.assignmentType?.schedulingTypeSelect?.select
                       )}
-                      innerClassNames={customClassNames?.assignmentType?.schedulingTypeSelect?.innerClassNames}
+                      innerClassNames={
+                        customClassNames?.assignmentType?.schedulingTypeSelect?.innerClassNames
+                      }
                       onChange={(val) => handleSchedulingTypeChange(val?.value, onChange)}
                     />
                   )}
@@ -895,11 +900,11 @@ export const EventTeamAssignmentTab = ({
                         </RadioArea.Item>
                         {(eventType.team?.rrTimestampBasis &&
                           eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT) ||
-                          hostGroups?.length > 1 ? (
+                        hostGroups?.length > 1 ? (
                           <Tooltip
                             content={
                               eventType.team?.rrTimestampBasis &&
-                                eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
+                              eventType.team?.rrTimestampBasis !== RRTimestampBasis.CREATED_AT
                                 ? t("rr_load_balancing_disabled")
                                 : t("rr_load_balancing_disabled_with_groups")
                             }>

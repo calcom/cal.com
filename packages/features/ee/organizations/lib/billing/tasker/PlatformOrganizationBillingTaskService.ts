@@ -2,7 +2,6 @@ import type { IBillingProviderService } from "@calcom/features/ee/billing/servic
 import type { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import type { PlatformBillingRepository } from "@calcom/features/ee/organizations/repositories/PlatformBillingRepository";
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
-
 import type { PlatformOrganizationBillingTasks } from "./types";
 
 export interface IPlatformOrganizationBillingTaskServiceDependencies {

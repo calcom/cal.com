@@ -1,9 +1,7 @@
-import { useState } from "react";
-
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-
+import { useState } from "react";
 import useAddAppMutation from "../../_utils/useAddAppMutation";
 import type { InstallAppButtonProps } from "../../types";
 import AccountDialog from "./AccountDialog";

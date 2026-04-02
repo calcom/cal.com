@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { truncate, truncateOnWord } from "./text";
 
 describe("Text util tests", () => {

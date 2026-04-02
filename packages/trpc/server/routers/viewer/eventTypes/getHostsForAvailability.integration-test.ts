@@ -2,9 +2,8 @@ import prisma from "@calcom/prisma";
 import type { EventType, Team, User } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-
-import { getHostsForAvailabilityHandler } from "./getHostsForAvailability.handler";
 import { getHostsForAssignmentHandler } from "./getHostsForAssignment.handler";
+import { getHostsForAvailabilityHandler } from "./getHostsForAvailability.handler";
 
 let user1: User;
 let user2: User;

@@ -1,7 +1,6 @@
+import { sessionStorage } from "@calcom/lib/webstorage";
 import { parseAsBoolean, useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
-
-import { sessionStorage } from "@calcom/lib/webstorage";
 
 const STORAGE_KEY = "showWelcomeToCalcomModal";
 const ORG_MODAL_STORAGE_KEY = "showNewOrgModal";

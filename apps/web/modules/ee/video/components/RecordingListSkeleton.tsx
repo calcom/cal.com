@@ -1,5 +1,4 @@
 import { SkeletonContainer } from "@calcom/ui/components/skeleton";
-
 import RecordingListItemSkeleton from "./RecordingListItemSkeleton";
 
 export default function RecordingListSkeleton() {

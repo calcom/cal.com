@@ -1,9 +1,8 @@
-import { BookingHistoryViewerService } from "@calcom/features/booking-audit/lib/service/BookingHistoryViewerService";
-import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
 import { moduleLoader as bookingAuditViewerServiceModuleLoader } from "@calcom/features/booking-audit/di/BookingAuditViewerService.module";
+import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
+import { BookingHistoryViewerService } from "@calcom/features/booking-audit/lib/service/BookingHistoryViewerService";
 import { moduleLoader as routingFormResponseRepositoryModuleLoader } from "@calcom/features/routing-forms/di/RoutingFormResponseRepository.module";
-
-import { createModule, bindModuleToClassOnToken } from "../../di/di";
+import { bindModuleToClassOnToken, createModule } from "../../di/di";
 
 export const bookingHistoryViewerServiceModule = createModule();
 const token = BOOKING_AUDIT_DI_TOKENS.BOOKING_HISTORY_VIEWER_SERVICE;

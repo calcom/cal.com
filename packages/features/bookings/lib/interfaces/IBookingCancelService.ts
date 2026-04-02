@@ -1,9 +1,9 @@
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import type {
-  CancelRegularBookingData,
   CancelBookingMeta,
+  CancelRegularBookingData,
   HandleCancelBookingResponse,
 } from "../dto/BookingCancel";
-import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 
 export interface IBookingCancelService {
   cancelBooking(input: {

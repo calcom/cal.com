@@ -1,6 +1,5 @@
 import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
 import type logger from "@calcom/lib/logger";
-
 import { extractDomainFromEmail } from "../utils/normalization";
 
 interface CheckFreeEmailDomainParams {

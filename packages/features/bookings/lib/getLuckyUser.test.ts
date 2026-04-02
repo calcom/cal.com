@@ -1,15 +1,12 @@
 import CalendarManagerMock from "@calcom/features/calendars/lib/__mocks__/CalendarManager";
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { v4 as uuid } from "uuid";
-import { expect, it, describe, vi, beforeAll } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import { getLuckyUserService } from "@calcom/features/di/containers/LuckyUser";
-import { buildUser, buildBooking } from "@calcom/lib/test/builder";
+import { buildBooking, buildUser } from "@calcom/lib/test/builder";
 import { AttributeType, RRResetInterval, RRTimestampBasis } from "@calcom/prisma/enums";
-
-import { getIntervalStartDate, getIntervalEndDate } from "./getLuckyUser";
+import { v4 as uuid } from "uuid";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+import { getIntervalEndDate, getIntervalStartDate } from "./getLuckyUser";
 
 const luckyUserService = getLuckyUserService();
 

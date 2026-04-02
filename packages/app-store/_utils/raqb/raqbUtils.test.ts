@@ -1,11 +1,9 @@
-import { expect, describe, it, vi } from "vitest";
-
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
 import type { AttributesQueryValue, RaqbChild } from "@calcom/lib/raqb/types";
 import { AttributeType } from "@calcom/prisma/enums";
 import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
-
-import { getValueOfAttributeOption, acrossQueryValueCompatiblity } from "./raqbUtils";
+import { describe, expect, it, vi } from "vitest";
+import { acrossQueryValueCompatiblity, getValueOfAttributeOption } from "./raqbUtils";
 
 const { resolveQueryValue } = acrossQueryValueCompatiblity;
 

@@ -1,13 +1,11 @@
+import { ApiResponseWithoutData } from "@calcom/platform-types";
+import type { Prisma } from "@calcom/prisma/client";
+import { Injectable, Logger, UnauthorizedException } from "@nestjs/common";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { OAuthCallbackState, StripeService } from "@/modules/stripe/stripe.service";
 import { stripeInstance } from "@/modules/stripe/utils/newStripeInstance";
 import { StripeData } from "@/modules/stripe/utils/stripeDataSchemas";
-import { Logger, UnauthorizedException } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
-
-import { ApiResponseWithoutData } from "@calcom/platform-types";
-import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class OrganizationsStripeService {

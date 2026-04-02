@@ -1,5 +1,5 @@
-import { expect, type Locator, type Page } from "@playwright/test";
 import path from "node:path";
+import { expect, type Locator, type Page } from "@playwright/test";
 
 export async function loginAsSeededAdmin(page: Page) {
   await page.goto("/auth/login");

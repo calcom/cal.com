@@ -1,6 +1,5 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as membershipRepositoryModuleLoader } from "@calcom/features/users/di/MembershipRepository.module";
-
 import { AttributeSyncRuleService } from "../services/AttributeSyncRuleService";
 import { moduleLoader as attributeToUserRepositoryModuleLoader } from "./AttributeToUserRepository.module";
 import { INTEGRATION_ATTRIBUTE_SYNC_DI_TOKENS } from "./tokens";

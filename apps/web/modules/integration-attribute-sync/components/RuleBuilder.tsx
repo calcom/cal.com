@@ -1,11 +1,4 @@
-import type { MultiValue, SingleValue } from "react-select";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
-import { Button } from "@calcom/ui/components/button";
-import { Input, Select } from "@calcom/ui/components/form";
-import { FilterIcon } from "@coss/ui/icons";
-
 import {
   formatConditionValue,
   generateConditionId,
@@ -28,6 +21,11 @@ import {
   type RuleOperatorEnum,
   type TAttributeSyncRuleCondition,
 } from "@calcom/features/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/components/button";
+import { Input, Select } from "@calcom/ui/components/form";
+import { FilterIcon } from "@coss/ui/icons";
+import type { MultiValue, SingleValue } from "react-select";
 
 const ensureConditionHasId = (condition: TAttributeSyncRuleCondition): TAttributeSyncRuleConditionWithId => {
   if ("_id" in condition && condition._id) {

@@ -1,9 +1,5 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { UIEvent } from "react";
-import { useEffect, useRef, useState } from "react";
-
 import type { UserAdminTeams } from "@calcom/features/users/repositories/UserRepository";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
@@ -12,7 +8,9 @@ import type { CredentialFrontendPayload as Credential } from "@calcom/types/Cred
 import classNames from "@calcom/ui/classNames";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { ChevronLeftIcon, ChevronRightIcon } from "@coss/ui/icons";
-
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { UIEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppCard } from "./AppCard";
 
 export function useShouldShowArrows() {
@@ -159,7 +157,7 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
         : true
     )
     .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true))
-    .sort(function (a, b) {
+    .sort((a, b) => {
       if (a.name < b.name) return -1;
       else if (a.name > b.name) return 1;
       return 0;

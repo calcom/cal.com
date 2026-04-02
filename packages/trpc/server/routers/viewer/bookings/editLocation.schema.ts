@@ -1,7 +1,5 @@
-import { z } from "zod";
-
 import { DailyLocationType } from "@calcom/app-store/constants";
-
+import { z } from "zod";
 import { commonBookingSchema } from "./types";
 
 export const ZEditLocationInputSchema = commonBookingSchema.extend({

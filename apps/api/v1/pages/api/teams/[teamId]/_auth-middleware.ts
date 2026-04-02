@@ -1,10 +1,8 @@
-import type { NextApiRequest } from "next";
-
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import type { NextApiRequest } from "next";
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 
 async function authMiddleware(req: NextApiRequest) {

@@ -1,5 +1,4 @@
 import type { Watchlist } from "@calcom/prisma/client";
-
 import type { WatchlistAction, WatchlistSource, WatchlistType } from "../types";
 
 /**

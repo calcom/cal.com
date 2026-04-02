@@ -1,7 +1,6 @@
-import { describe, expect, it, beforeEach } from "vitest";
-
-import { verifyDataRequirementsContract } from "./contractVerification";
+import { beforeEach, describe, expect, it } from "vitest";
 import { SeatBookedAuditActionService } from "../SeatBookedAuditActionService";
+import { verifyDataRequirementsContract } from "./contractVerification";
 
 describe("SeatBookedAuditActionService - getDataRequirements contract", () => {
   let service: SeatBookedAuditActionService;

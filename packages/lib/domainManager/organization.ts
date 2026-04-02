@@ -1,10 +1,10 @@
+import process from "node:process";
 import { subdomainSuffix } from "@calcom/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
-
-import { deleteDnsRecord, addDnsRecord } from "./deploymentServices/cloudflare";
+import { addDnsRecord, deleteDnsRecord } from "./deploymentServices/cloudflare";
 import {
-  deleteDomain as deleteVercelDomain,
   createDomain as createVercelDomain,
+  deleteDomain as deleteVercelDomain,
 } from "./deploymentServices/vercel";
 
 const log = logger.getSubLogger({ prefix: ["domainManager/organization"] });

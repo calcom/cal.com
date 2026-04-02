@@ -1,15 +1,15 @@
 /**
  * @fileoverview This file is an example file and tells how to use floating popup button in a React application. This is also used by playwright e2e
  */
-import { useEffect } from "react";
-import * as React from "react";
-import ReactDom from "react-dom";
 
+import * as React from "react";
+import { useEffect } from "react";
+import ReactDom from "react-dom";
 import { getCalApi } from "./src/index";
 
 function App() {
   useEffect(() => {
-    (async function () {
+    (async () => {
       const cal = await getCalApi({
         namespace: "floating",
         embedJsUrl: "http://localhost:3000/embed/embed.js",

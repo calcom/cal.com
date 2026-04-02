@@ -1,8 +1,6 @@
+import { emailSchema } from "@calcom/lib/emailSchema";
 import { withValidation } from "next-validations";
 import { z } from "zod";
-
-import { emailSchema } from "@calcom/lib/emailSchema";
-
 import { baseApiParams } from "./baseApiParams";
 
 // Extracted out as utility function so can be reused

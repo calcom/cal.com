@@ -1,12 +1,9 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
+import dayjs from "@calcom/dayjs";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, test } from "vitest";
-
-import dayjs from "@calcom/dayjs";
-
 import handler from "./_get";
 
 type CustomNextApiRequest = NextApiRequest & Request;

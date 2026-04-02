@@ -1,9 +1,18 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsUrl, IsIn, IsPhoneNumber, IsBoolean, MinLength } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
-import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
+import {
+  IsBoolean,
+  IsIn,
+  IsPhoneNumber,
+  IsString,
+  IsUrl,
+  MinLength,
+  registerDecorator,
+  ValidatorConstraint,
+  validate,
+} from "class-validator";
 
 export const eventTypeInputLocations = [
   "address",
@@ -256,7 +265,7 @@ class InputTeamLocationValidator_2024_06_14 implements ValidatorConstraintInterf
 
 export function ValidateLocations_2024_06_14(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateLocation",
       target: object.constructor,
@@ -269,7 +278,7 @@ export function ValidateLocations_2024_06_14(validationOptions?: ValidationOptio
 
 export function ValidateTeamLocations_2024_06_14(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateTeamLocation",
       target: object.constructor,

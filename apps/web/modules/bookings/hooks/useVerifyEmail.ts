@@ -1,11 +1,10 @@
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/components/toast";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
 
 export interface IUseVerifyEmailProps {
   email: string;

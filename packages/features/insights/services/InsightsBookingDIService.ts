@@ -1,9 +1,8 @@
 import type { readonlyPrisma } from "@calcom/prisma";
-
 import {
   InsightsBookingBaseService,
-  type InsightsBookingServicePublicOptions,
   type InsightsBookingServiceFilterOptions,
+  type InsightsBookingServicePublicOptions,
 } from "./InsightsBookingBaseService";
 
 export interface IInsightsBookingService {

@@ -1,7 +1,5 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
-
 import type { Prisma } from "@calcom/prisma/client";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { filterEventTypesWhereLocationUpdateIsAllowed, getBulkUserEventTypes } from "./getBulkEventTypes";
 
 vi.mock("@calcom/prisma", () => ({
@@ -73,8 +71,7 @@ describe("filterEventTypesWhereLocationUpdateIsAllowed", () => {
         parentId: 100,
         metadata: {
           managedEventConfig: {
-            unlockedFields: {
-            },
+            unlockedFields: {},
           },
         },
       },
@@ -108,8 +105,7 @@ describe("filterEventTypesWhereLocationUpdateIsAllowed", () => {
       {
         id: 1,
         parentId: 100,
-        metadata: {
-        },
+        metadata: {},
       },
     ];
 
@@ -155,8 +151,7 @@ describe("filterEventTypesWhereLocationUpdateIsAllowed", () => {
         parentId: 100,
         metadata: {
           managedEventConfig: {
-            unlockedFields: {
-            },
+            unlockedFields: {},
           },
         },
       },
@@ -235,8 +230,7 @@ describe("getBulkUserEventTypes", () => {
         locations: [{ type: "integrations:daily" }] as Prisma.JsonValue,
         metadata: {
           managedEventConfig: {
-            unlockedFields: {
-            },
+            unlockedFields: {},
           },
         } as Prisma.JsonValue,
         parentId: 100,

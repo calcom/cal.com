@@ -1,8 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { WatchlistErrors } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
-import { WatchlistType, WatchlistAction } from "@calcom/prisma/enums";
-
+import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getWatchlistEntryDetailsHandler } from "./getWatchlistEntryDetails.handler";
 
 vi.mock("@calcom/features/di/watchlist/containers/watchlist");

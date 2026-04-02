@@ -1,6 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
-
 import type { RoutingFormResponseRepositoryInterface } from "./RoutingFormResponseRepository.interface";
 
 export class PrismaRoutingFormResponseRepository implements RoutingFormResponseRepositoryInterface {

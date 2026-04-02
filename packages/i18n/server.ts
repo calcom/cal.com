@@ -1,5 +1,5 @@
-import { createInstance } from "i18next";
 import type { i18n as I18nInstance } from "i18next";
+import { createInstance } from "i18next";
 
 const { i18n } = require("@calcom/i18n/next-i18next.config");
 

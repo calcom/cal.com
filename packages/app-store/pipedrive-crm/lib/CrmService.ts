@@ -1,10 +1,10 @@
+import { getLocation } from "@calcom/lib/CalEventParser";
 import {
   APP_CREDENTIAL_SHARING_ENABLED,
   CREDENTIAL_SYNC_ENDPOINT,
   CREDENTIAL_SYNC_SECRET,
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
 } from "@calcom/lib/constants";
-import { getLocation } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type {
@@ -14,12 +14,11 @@ import type {
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
-import type { ContactCreateInput, CRM, Contact } from "@calcom/types/CrmService";
-
+import type { Contact, ContactCreateInput, CRM } from "@calcom/types/CrmService";
 import { invalidateCredential } from "../../_utils/invalidateCredential";
-import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
 import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { updateTokenObjectInDb } from "../../_utils/oauth/updateTokenObject";
 import appConfig from "../config.json";
 import { getPipedriveAppKeys } from "./getPipedriveAppKeys";
@@ -89,7 +88,7 @@ class PipedriveCrmService implements CRM {
           }),
         });
       },
-      isTokenObjectUnusable: async function (response) {
+      isTokenObjectUnusable: async (response) => {
         const myLog = logger.getSubLogger({ prefix: ["pipedrive-crm:isTokenObjectUnusable"] });
         myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
         if (!response.ok) {
@@ -107,7 +106,7 @@ class PipedriveCrmService implements CRM {
         }
         return null;
       },
-      isAccessTokenUnusable: async function (response) {
+      isAccessTokenUnusable: async (response) => {
         const myLog = logger.getSubLogger({ prefix: ["pipedrive-crm:isAccessTokenUnusable"] });
         myLog.debug(safeStringify({ status: response.status, ok: response.ok }));
         if (!response.ok && response.status === 401) {
@@ -257,7 +256,7 @@ class PipedriveCrmService implements CRM {
         location: event.location,
         uid: event.uid,
       }),
-     person_id: parseInt(contacts[0].id),
+      person_id: parseInt(contacts[0].id),
     };
 
     return this.requestPipedrive<{ success: boolean; data: PipedriveActivity }>("activities", {

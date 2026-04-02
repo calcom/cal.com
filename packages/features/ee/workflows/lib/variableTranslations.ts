@@ -1,5 +1,4 @@
 import type { TFunction } from "i18next";
-
 import { DYNAMIC_TEXT_VARIABLES, FORMATTED_DYNAMIC_TEXT_VARIABLES } from "./constants";
 
 // variables are saved in the db always in english, so here we translate them to the user's language

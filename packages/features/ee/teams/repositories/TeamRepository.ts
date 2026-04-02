@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import logger from "@calcom/lib/logger";
@@ -8,6 +6,7 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { z } from "zod";
 
 type TeamGetPayloadWithParsedMetadata<TeamSelect extends Prisma.TeamSelect> =
   | (Omit<Prisma.TeamGetPayload<{ select: TeamSelect }>, "metadata" | "isOrganization"> & {
@@ -45,7 +44,7 @@ const log = logger.getSubLogger({ prefix: ["repository", "team"] });
  */
 async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
   lookupBy,
-  forOrgWithSlug: forOrgWithSlug,
+  forOrgWithSlug,
   isOrg,
   teamSelect,
 }: GetTeamOrOrgArg<TeamSelect>): Promise<TeamGetPayloadWithParsedMetadata<TeamSelect>> {
@@ -91,12 +90,12 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
   const teamsWithParsedMetadata = teams
     .map((team) => {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore ts types are way too complciated for this now
+      // @ts-expect-error ts types are way too complciated for this now
       const parsedMetadata = teamMetadataSchema.parse(team.metadata ?? {});
       return {
         ...team,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore It does exist
+        // @ts-expect-error It does exist
         isOrganization: team.isOrganization as boolean,
         metadata: parsedMetadata,
       };
@@ -130,7 +129,7 @@ async function getTeamOrOrg<TeamSelect extends Prisma.TeamSelect>({
 
 export async function getTeam<TeamSelect extends Prisma.TeamSelect>({
   lookupBy,
-  forOrgWithSlug: forOrgWithSlug,
+  forOrgWithSlug,
   teamSelect,
 }: Omit<GetTeamOrOrgArg<TeamSelect>, "isOrg">): Promise<TeamGetPayloadWithParsedMetadata<TeamSelect>> {
   return getTeamOrOrg({
@@ -143,7 +142,7 @@ export async function getTeam<TeamSelect extends Prisma.TeamSelect>({
 
 export async function getOrg<TeamSelect extends Prisma.TeamSelect>({
   lookupBy,
-  forOrgWithSlug: forOrgWithSlug,
+  forOrgWithSlug,
   teamSelect,
 }: Omit<GetTeamOrOrgArg<TeamSelect>, "isOrg">): Promise<TeamGetPayloadWithParsedMetadata<TeamSelect>> {
   return getTeamOrOrg({

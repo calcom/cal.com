@@ -1,10 +1,8 @@
+import prisma from "@calcom/prisma";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-
-import prisma from "@calcom/prisma";
-
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import handler from "../../../../pages/api/bookings/[id]/_patch";
 
 type CustomNextApiRequest = NextApiRequest & Request;
@@ -91,7 +89,7 @@ describe("PATCH /api/bookings", () => {
   it("Allows PATCH when user is system-wide admin", async () => {
     // Check if admin user already exists before upserting
     const existingAdmin = await prisma.user.findUnique({ where: { email: "test-admin@example.com" } });
-    
+
     // Create a system-wide admin user for this test
     const adminUser = await prisma.user.upsert({
       where: { email: "test-admin@example.com" },
@@ -103,7 +101,7 @@ describe("PATCH /api/bookings", () => {
         role: "ADMIN",
       },
     });
-    
+
     // Only track for cleanup if we created it (not if it already existed)
     if (!existingAdmin) {
       testAdminUserId = adminUser.id;

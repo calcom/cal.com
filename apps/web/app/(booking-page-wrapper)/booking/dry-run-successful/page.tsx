@@ -1,5 +1,4 @@
 import { _generateMetadata } from "app/_utils";
-
 import BookingDryRunSuccessView from "~/bookings/views/booking-dry-run-success-view";
 
 export const generateMetadata = async () => {

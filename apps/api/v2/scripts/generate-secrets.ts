@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-
 import { generateSecret } from "@calcom/platform-libraries";
 
 const [hashed, plain] = generateSecret();

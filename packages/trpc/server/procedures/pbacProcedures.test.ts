@@ -1,13 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import type { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import authedProcedure from "./authedProcedure";
 // Import after mocks are set up
-import { createTeamPbacProcedure, createOrgPbacProcedure } from "./pbacProcedures";
+import { createOrgPbacProcedure, createTeamPbacProcedure } from "./pbacProcedures";
 
 // Mock dependencies - use factory functions to avoid hoisting issues
 const mockCheckPermission = vi.fn();

@@ -1,5 +1,4 @@
 import type { PrismaClient } from "@calcom/prisma";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
 
@@ -63,7 +62,7 @@ export const getTeamsForFeatureHandler = async ({ ctx, input }: GetTeamsOptions)
 
   const assignedTeamIds = new Set(assignedTeams.map((tf) => tf.teamId));
 
-  let nextCursor: typeof cursor | undefined = undefined;
+  let nextCursor: typeof cursor | undefined;
   if (teams.length > limit) {
     const nextItem = teams.pop();
     nextCursor = nextItem?.id;

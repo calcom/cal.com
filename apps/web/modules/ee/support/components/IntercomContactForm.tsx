@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextArea } from "@calcom/ui/components/form";
-import { LoaderIcon, MessageCircleIcon, SendIcon } from "@coss/ui/icons";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
+import { LoaderIcon, MessageCircleIcon, SendIcon } from "@coss/ui/icons";
+import type React from "react";
+import { useCallback, useEffect, useState } from "react";
 
 declare global {
   interface Window {

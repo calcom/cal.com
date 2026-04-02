@@ -1,11 +1,9 @@
-import { expect } from "@playwright/test";
-
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { randomString } from "@calcom/lib/random";
 import { prisma } from "@calcom/prisma";
-
-import { clearFilters, applySelectFilter } from "./filter-helpers";
+import { expect } from "@playwright/test";
+import { applySelectFilter, clearFilters } from "./filter-helpers";
 import { test } from "./lib/fixtures";
 import { createAllPermissionsArray, enablePBACForTeam } from "./lib/test-helpers/pbac";
 

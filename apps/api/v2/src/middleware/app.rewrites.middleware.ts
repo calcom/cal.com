@@ -1,6 +1,6 @@
-import { getEnv } from "@/env";
 import { Injectable, NestMiddleware } from "@nestjs/common";
 import { Request, Response } from "express";
+import { getEnv } from "@/env";
 
 @Injectable()
 export class RewriterMiddleware implements NestMiddleware {

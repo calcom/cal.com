@@ -1,9 +1,6 @@
-import { cubicBezier, useAnimate } from "framer-motion";
-import { useReducedMotion } from "framer-motion";
-import { useEffect } from "react";
-
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-
+import { cubicBezier, useAnimate, useReducedMotion } from "framer-motion";
+import { useEffect } from "react";
 import type { BookerLayout, BookerState } from "./types";
 
 // Framer motion fade in animation configs.

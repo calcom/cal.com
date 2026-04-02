@@ -1,11 +1,10 @@
-import { useRouter } from "next/navigation";
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
+import { useRouter } from "next/navigation";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 interface InfoLostWarningDialog {
   isOpenInfoLostDialog: boolean;

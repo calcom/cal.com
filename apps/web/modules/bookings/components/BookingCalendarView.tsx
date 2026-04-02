@@ -2,9 +2,9 @@
 
 import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
+import { Calendar } from "@calcom/features/calendars/weeklyview/components/Calendar";
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
-import { Calendar } from "@calcom/features/calendars/weeklyview/components/Calendar";
 import { useBanners } from "@calcom/web/modules/shell/banners/useBanners";
 import { useEffect, useMemo } from "react";
 import { useBookingDetailsSheetStore } from "../store/bookingDetailsSheetStore";

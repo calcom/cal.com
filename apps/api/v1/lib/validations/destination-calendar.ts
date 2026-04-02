@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { DestinationCalendarSchema } from "@calcom/prisma/zod/modelSchema/DestinationCalendarSchema";
+import { z } from "zod";
 
 // Note: bookingId is not a field on DestinationCalendar model in Prisma schema
 export const schemaDestinationCalendarBaseBodyParams = DestinationCalendarSchema.pick({

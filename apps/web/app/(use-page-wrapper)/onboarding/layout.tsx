@@ -1,7 +1,6 @@
-import { redirect } from "next/navigation";
-
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
+import { redirect } from "next/navigation";
 
 export default async function OnboardingLayout({ children }: { children: React.ReactNode }) {
   const featuresRepository = new FeaturesRepository(prisma);

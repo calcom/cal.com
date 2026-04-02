@@ -1,6 +1,5 @@
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-
 import { TRPCError } from "@trpc/server";
 
 export async function checkPermissions(args: {

@@ -1,8 +1,6 @@
-import type { ReactNode } from "react";
-
 import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
 import type { TimeRange } from "@calcom/types/schedule";
-
+import type { ReactNode } from "react";
 import type { BorderColor } from "./common";
 import type { CalendarEvent } from "./events";
 

@@ -1,5 +1,4 @@
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
-
 import { MembershipRole } from "@calcom/prisma/enums";
 import authedProcedure from "../../../procedures/authedProcedure";
 import { createTeamPbacProcedure } from "../../../procedures/pbacProcedures";
@@ -17,7 +16,7 @@ import { ZInstantBookingInputSchema } from "./getInstantBookingLocation.schema";
 import { ZGetRoutingTraceInputSchema } from "./getRoutingTrace.schema";
 import { ZGetWrongAssignmentReportsInputSchema } from "./getWrongAssignmentReports.schema";
 import { ZHasWrongAssignmentReportInputSchema } from "./hasWrongAssignmentReport.schema";
-import { ZRecordJoinTimeSchema } from "./recordJoinTime.schema";
+import { zRecordJoinTimeSchema } from "./recordJoinTime.schema";
 import { ZReportBookingInputSchema } from "./reportBooking.schema";
 import { ZReportWrongAssignmentInputSchema } from "./reportWrongAssignment.schema";
 import { ZRequestRescheduleInputSchema } from "./requestReschedule.schema";
@@ -44,7 +43,7 @@ export const bookingsRouter = router({
     });
   }),
 
-  editLocation:bookingsProcedure.input(ZEditLocationInputSchema).mutation(async ({ input, ctx }) => {
+  editLocation: bookingsProcedure.input(ZEditLocationInputSchema).mutation(async ({ input, ctx }) => {
     const { editLocationHandler } = await import("./editLocation.handler");
 
     return editLocationHandler({
@@ -55,7 +54,7 @@ export const bookingsRouter = router({
     });
   }),
 
-  addGuests:authedProcedure.input(ZAddGuestsInputSchema).mutation(async ({ input, ctx }) => {
+  addGuests: authedProcedure.input(ZAddGuestsInputSchema).mutation(async ({ input, ctx }) => {
     const { addGuestsHandler } = await import("./addGuests.handler");
 
     return addGuestsHandler({
@@ -66,7 +65,7 @@ export const bookingsRouter = router({
     });
   }),
 
-  confirm:authedProcedure.input(ZConfirmInputSchema).mutation(async ({ input, ctx }) => {
+  confirm: authedProcedure.input(ZConfirmInputSchema).mutation(async ({ input, ctx }) => {
     const { confirmHandler } = await import("./confirm.handler");
 
     return confirmHandler({
@@ -191,7 +190,7 @@ export const bookingsRouter = router({
         input,
       });
     }),
-  recordJoinTime: bookingsProcedure.input(ZRecordJoinTimeSchema).mutation(async ({ input, ctx }) => {
+  recordJoinTime: bookingsProcedure.input(zRecordJoinTimeSchema).mutation(async ({ input, ctx }) => {
     const { recordJoinTimeHandler } = await import("./recordJoinTime.handler");
 
     return recordJoinTimeHandler({

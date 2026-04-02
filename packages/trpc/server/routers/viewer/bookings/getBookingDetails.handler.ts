@@ -1,6 +1,5 @@
 import { BookingDetailsService } from "@calcom/features/bookings/services/BookingDetailsService";
 import { prisma } from "@calcom/prisma";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetBookingDetailsInputSchema } from "./getBookingDetails.schema";
 

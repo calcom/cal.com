@@ -1,7 +1,6 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
 import { MonthlyProrationSyncTasker } from "@calcom/features/ee/billing/service/proration/tasker/MonthlyProrationSyncTasker";
-
 import { MONTHLY_PRORATION_TASKER_DI_TOKENS } from "./tokens";
 
 const thisModule = createModule();

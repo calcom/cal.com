@@ -1,8 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse } from "@calcom/platform-types";
-
+import { useQuery } from "@tanstack/react-query";
 import http from "../lib/http";
 
 type Timezones = { city: string; timezone: string }[];

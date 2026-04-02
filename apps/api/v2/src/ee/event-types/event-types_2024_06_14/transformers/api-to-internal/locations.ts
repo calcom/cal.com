@@ -1,14 +1,13 @@
 import type { InputLocation_2024_06_14, InputTeamLocation_2024_06_14 } from "@calcom/platform-types";
-
 import type {
   AttendeeAddressLocation,
   AttendeeDefinedLocation,
   AttendeePhoneLocation,
   OrganizerAddressLocation,
+  OrganizerConferencingSchema,
   OrganizerIntegrationLocation,
   OrganizerLinkLocation,
   OrganizerPhoneLocation,
-  OrganizerConferencingSchema,
 } from "../internal/locations";
 
 export const apiToInternalintegrationsMapping = {
@@ -60,9 +59,10 @@ function transformLocation<T extends InputLocation_2024_06_14>(location: T) {
         link: location.link,
         displayLocationPublicly: location.public,
       } satisfies OrganizerLinkLocation;
-    case "integration":
+    case "integration": {
       const integrationLabel = apiToInternalintegrationsMapping[location.integration];
       return { type: integrationLabel } satisfies OrganizerIntegrationLocation;
+    }
     case "phone":
       return {
         type: "userPhone",

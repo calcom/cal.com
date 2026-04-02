@@ -1,3 +1,4 @@
+import process from "node:process";
 const { execSync } = require("node:child_process");
 
 const CLIENT_FILES_PATH = ".next/static/chunks";

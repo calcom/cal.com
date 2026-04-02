@@ -1,12 +1,10 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import type { ComponentProps } from "react";
-import React from "react";
-
 import type { UserPermissionRole } from "@calcom/prisma/enums";
 import { ErrorBoundary } from "@calcom/ui/components/errorBoundary";
-
+import { usePathname } from "next/navigation";
+import type React from "react";
+import type { ComponentProps } from "react";
 import type Shell from "~/shell/Shell";
 
 export type AdminLayoutProps = {

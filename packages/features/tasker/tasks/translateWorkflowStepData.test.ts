@@ -1,6 +1,6 @@
 import type { ITranslationService } from "@calcom/features/translation/services/ITranslationService";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import logger from "@calcom/lib/logger";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockPrisma = vi.hoisted(() => ({
   workflowStep: {
@@ -220,9 +220,7 @@ describe("translateWorkflowStepData", () => {
 
       await translateWorkflowStepData(payload);
 
-      expect(mockLogger.warn).toHaveBeenCalledWith(
-        "Workflow step 999 not found for translation task"
-      );
+      expect(mockLogger.warn).toHaveBeenCalledWith("Workflow step 999 not found for translation task");
       expect(mockTranslationService.translateText).not.toHaveBeenCalled();
     });
 
@@ -242,9 +240,7 @@ describe("translateWorkflowStepData", () => {
 
       await translateWorkflowStepData(payload);
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        "Skipping stale translation task for workflow step 1"
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith("Skipping stale translation task for workflow step 1");
       expect(mockTranslationService.translateText).not.toHaveBeenCalled();
     });
 
@@ -264,9 +260,7 @@ describe("translateWorkflowStepData", () => {
 
       await translateWorkflowStepData(payload);
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        "Skipping stale translation task for workflow step 1"
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith("Skipping stale translation task for workflow step 1");
       expect(mockTranslationService.translateText).not.toHaveBeenCalled();
     });
 
@@ -286,9 +280,7 @@ describe("translateWorkflowStepData", () => {
 
       await translateWorkflowStepData(payload);
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        "Skipping stale translation task for workflow step 1"
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith("Skipping stale translation task for workflow step 1");
       expect(mockTranslationService.translateText).not.toHaveBeenCalled();
     });
 

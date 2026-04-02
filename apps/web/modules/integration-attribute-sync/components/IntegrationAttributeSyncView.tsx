@@ -1,15 +1,13 @@
 "use client";
 
-import { useState } from "react";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
+import type { IntegrationAttributeSync } from "@calcom/features/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
-
+import { useState } from "react";
 import EditIntegrationAttributeSyncCard from "./EditIntegrationAttributeSyncCard";
 import NewIntegrationAttributeSyncCard from "./NewIntegrationAttributeSyncCard";
-import type { IntegrationAttributeSync } from "@calcom/features/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
 
 interface IIntegrationAttributeSyncViewProps {
   credentialsData: {

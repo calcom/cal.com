@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 
 function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, string]> | null) {
@@ -12,9 +11,9 @@ function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, string]
 
   // Consider setting atleast ES2015 as target
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   for (const [key, value] of entries) {
-    if (result.hasOwnProperty(key)) {
+    if (Object.hasOwn(result, key)) {
       let currentValue = result[key];
       if (!Array.isArray(currentValue)) {
         currentValue = [currentValue];

@@ -1,3 +1,4 @@
+import process from "node:process";
 import { IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 import type { User } from "next-auth";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -1407,5 +1408,4 @@ describe("Azure AD JWT callback", () => {
       );
     });
   });
-
 });

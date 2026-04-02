@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { generateDataAttributes, isSameBookingLink } from "../lib/utils";
 
 describe("generateDataAttributes", () => {

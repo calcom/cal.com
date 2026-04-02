@@ -1,6 +1,5 @@
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { prisma } from "@calcom/prisma";
-
 import { getPublicEventSelect } from "./getPublicEvent";
 
 export async function getTeamEventType(teamSlug: string, meetingSlug: string, orgSlug: string | null) {

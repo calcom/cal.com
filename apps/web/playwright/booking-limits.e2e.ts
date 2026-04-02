@@ -2,7 +2,6 @@
  * These e2e tests only aim to cover standard cases
  * Edge cases are currently handled in integration tests only
  */
-import { expect } from "@playwright/test";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -10,7 +9,7 @@ import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { entries } from "@calcom/prisma/zod-utils";
-
+import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,

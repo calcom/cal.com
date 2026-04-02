@@ -13,13 +13,9 @@ function createMockBillingPeriodService(info: BillingPeriodInfo) {
   return { getBillingPeriodInfo: vi.fn().mockResolvedValue(info) };
 }
 
-function createMockFeaturesRepository(
-  enabledFlags: Record<string, boolean>
-): IFeaturesRepository {
+function createMockFeaturesRepository(enabledFlags: Record<string, boolean>): IFeaturesRepository {
   return {
-    checkIfFeatureIsEnabledGlobally: vi.fn(
-      async (slug: string) => enabledFlags[slug] ?? false
-    ),
+    checkIfFeatureIsEnabledGlobally: vi.fn(async (slug: string) => enabledFlags[slug] ?? false),
   } as unknown as IFeaturesRepository;
 }
 
@@ -32,9 +28,7 @@ function createMockBillingProviderService(): IBillingProviderService {
 function createMockHighWaterMarkRepository() {
   return {
     getByTeamId: vi.fn(),
-    updateIfHigher: vi
-      .fn()
-      .mockResolvedValue({ updated: false, previousHighWaterMark: null }),
+    updateIfHigher: vi.fn().mockResolvedValue({ updated: false, previousHighWaterMark: null }),
   };
 }
 
@@ -90,9 +84,7 @@ function createFactory(
     highWaterMarkRepository: createMockHighWaterMarkRepository(),
     highWaterMarkService: createMockHighWaterMarkService(),
     monthlyProrationService: createMockMonthlyProrationService(),
-    teamBillingDataRepository:
-      overrides?.teamBillingDataRepository ??
-      createMockTeamBillingDataRepository(),
+    teamBillingDataRepository: overrides?.teamBillingDataRepository ?? createMockTeamBillingDataRepository(),
     activeUserBillingService: createMockActiveUserBillingService(),
   } as never);
 }
@@ -201,9 +193,7 @@ describe("SeatBillingStrategyFactory", () => {
     );
     const strategy = await factory.createBySubscriptionId("sub_abc");
 
-    expect(teamBillingDataRepo.findBySubscriptionId).toHaveBeenCalledWith(
-      "sub_abc"
-    );
+    expect(teamBillingDataRepo.findBySubscriptionId).toHaveBeenCalledWith("sub_abc");
     expect(strategy).toBeInstanceOf(HighWaterMarkStrategy);
   });
 
@@ -211,11 +201,7 @@ describe("SeatBillingStrategyFactory", () => {
     const teamBillingDataRepo = createMockTeamBillingDataRepository();
     vi.mocked(teamBillingDataRepo.findBySubscriptionId).mockResolvedValue(null);
 
-    const factory = createFactory(
-      baseBillingInfo,
-      {},
-      { teamBillingDataRepository: teamBillingDataRepo }
-    );
+    const factory = createFactory(baseBillingInfo, {}, { teamBillingDataRepository: teamBillingDataRepo });
     const strategy = await factory.createBySubscriptionId("sub_unknown");
 
     expect(strategy).toBeInstanceOf(ImmediateUpdateStrategy);

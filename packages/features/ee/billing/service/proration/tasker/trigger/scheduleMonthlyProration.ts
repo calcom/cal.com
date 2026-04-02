@@ -1,5 +1,4 @@
 import { schedules } from "@trigger.dev/sdk";
-
 import { monthlyProrationTaskConfig } from "./config";
 import { processMonthlyProrationBatch } from "./processMonthlyProrationBatch";
 

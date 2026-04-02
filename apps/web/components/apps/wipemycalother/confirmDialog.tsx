@@ -1,7 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
-import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
-
+import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,8 +6,11 @@ import logger from "@calcom/lib/logger";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
-import { ClockIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
+import { ClockIcon } from "@coss/ui/icons";
+import { useMutation } from "@tanstack/react-query";
+import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 interface IConfirmDialogWipe {
   isOpenDialog: boolean;

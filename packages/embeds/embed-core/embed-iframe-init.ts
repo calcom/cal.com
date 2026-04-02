@@ -19,10 +19,10 @@ export default function EmbedInitIframe() {
     typeof embedNameSpaceFromQueryParam === "string"
       ? embedNameSpaceFromQueryParam
       : window.name.includes("cal-embed=")
-      ? window.name.replace(/cal-embed=(.*)/, "$1").trim()
-      : hasEmbedPath
-      ? defaultNamespace // If query param is not there but /embed is used then assume default namespace.
-      : null;
+        ? window.name.replace(/cal-embed=(.*)/, "$1").trim()
+        : hasEmbedPath
+          ? defaultNamespace // If query param is not there but /embed is used then assume default namespace.
+          : null;
 
   window.isEmbed = () => {
     // By default namespace is "". That would also work if we just check the type of variable

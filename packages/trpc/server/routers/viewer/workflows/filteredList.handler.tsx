@@ -3,7 +3,6 @@ import { addPermissionsToWorkflows } from "@calcom/features/workflows/repositori
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TFilteredListInputSchema } from "./filteredList.schema";
 
 type FilteredListOptions = {

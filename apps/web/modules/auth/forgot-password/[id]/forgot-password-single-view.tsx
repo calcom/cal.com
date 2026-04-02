@@ -1,19 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useReducer, type CSSProperties } from "react";
-import type { UseFormReturn } from "react-hook-form";
-import { useForm } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { PasswordField } from "@calcom/ui/components/form";
-
+import { Form, PasswordField } from "@calcom/ui/components/form";
 import AuthContainer from "@components/ui/AuthContainer";
-
 import type { getServerSideProps } from "@server/lib/auth/forgot-password/[id]/getServerSideProps";
+import Link from "next/link";
+import { type CSSProperties, useEffect, useReducer } from "react";
+import type { UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 

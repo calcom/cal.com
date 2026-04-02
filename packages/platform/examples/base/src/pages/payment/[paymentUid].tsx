@@ -1,9 +1,7 @@
-import { Navbar } from "@/components/Navbar";
-import { Inter } from "next/font/google";
-import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
-
 import { PaymentForm } from "@calcom/atoms";
+import { Inter } from "next/font/google";
+import { usePathname, useRouter } from "next/navigation";
+import { Navbar } from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 

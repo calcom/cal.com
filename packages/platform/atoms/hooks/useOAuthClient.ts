@@ -1,10 +1,8 @@
-import type { AxiosError } from "axios";
-import { useState, useEffect } from "react";
-import { usePrevious } from "react-use";
-
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse } from "@calcom/platform-types";
-
+import type { AxiosError } from "axios";
+import { useEffect, useState } from "react";
+import { usePrevious } from "react-use";
 import http from "../lib/http";
 
 interface OAuthClientData {

@@ -1,5 +1,4 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import { useFreshChat } from "./FreshChatProvider";
 import { isFreshChatEnabled } from "./FreshChatScript";
 

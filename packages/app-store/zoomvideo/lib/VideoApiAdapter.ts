@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import {
   APP_CREDENTIAL_SHARING_ENABLED,
@@ -17,11 +15,11 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
-
+import { z } from "zod";
 import { invalidateCredential } from "../../_utils/invalidateCredential";
-import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
 import { markTokenAsExpired } from "../../_utils/oauth/markTokenAsExpired";
+import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { metadata } from "../_metadata";
 import { getZoomAppKeys } from "./getZoomAppKeys";
 
@@ -78,10 +76,7 @@ const meetingPasswordRequirementSchema = z
 
 export type MeetingPasswordRequirement = z.infer<typeof meetingPasswordRequirementSchema>;
 
-export function hasInvalidConsecutiveChars(
-  password: string,
-  consecutiveLength: number | undefined
-): boolean {
+export function hasInvalidConsecutiveChars(password: string, consecutiveLength: number | undefined): boolean {
   if (!consecutiveLength || consecutiveLength < 4) return false;
 
   const maxRun = consecutiveLength - 1;
@@ -167,10 +162,7 @@ function validatePasswordAgainstRequirements(
     return false;
   }
 
-  if (
-    requirements.have_special_character &&
-    !/[!@#$%^&*()_\-+=[\]{}|;:,.<>?]/.test(password)
-  ) {
+  if (requirements.have_special_character && !/[!@#$%^&*()_\-+=[\]{}|;:,.<>?]/.test(password)) {
     return false;
   }
 
@@ -187,7 +179,7 @@ function getCompliantPassword(
   defaultPassword: string | null | undefined,
   requirements: MeetingPasswordRequirement
 ): string | undefined {
-  if (!requirements ) {
+  if (!requirements) {
     return defaultPassword ?? undefined;
   }
 
@@ -407,7 +399,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           }),
         });
       },
-      isTokenObjectUnusable: async function (response) {
+      isTokenObjectUnusable: async (response) => {
         const myLog = logger.getSubLogger({ prefix: ["zoomvideo:isTokenObjectUnusable"] });
         myLog.info(safeStringify({ status: response.status, ok: response.ok }));
         if (!response.ok) {
@@ -438,7 +430,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         }
         return null;
       },
-      isAccessTokenUnusable: async function (response) {
+      isAccessTokenUnusable: async (response) => {
         const myLog = logger.getSubLogger({ prefix: ["zoomvideo:isAccessTokenUnusable"] });
         myLog.info(safeStringify({ status: response.status, ok: response.ok }));
         if (!response.ok) {

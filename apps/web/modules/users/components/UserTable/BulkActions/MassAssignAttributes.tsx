@@ -1,9 +1,4 @@
-import type { Table } from "@tanstack/react-table";
-import { createContext, useContext, useState, useMemo, type PropsWithChildren } from "react";
-import type { Dispatch, SetStateAction } from "react";
-
-import { type ColumnFilter } from "@calcom/features/data-table";
-import { DataTableSelectionBar } from "~/data-table/components";
+import type { ColumnFilter } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute as _Attribute, AttributeOption } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
@@ -22,7 +17,10 @@ import { Input } from "@calcom/ui/components/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
 import { showToast } from "@calcom/ui/components/toast";
 import { CheckIcon, ChevronRightIcon } from "@coss/ui/icons";
-
+import type { Table } from "@tanstack/react-table";
+import type { Dispatch, SetStateAction } from "react";
+import { createContext, type PropsWithChildren, useContext, useMemo, useState } from "react";
+import { DataTableSelectionBar } from "~/data-table/components";
 import type { UserTableUser } from "../types";
 
 interface Props {

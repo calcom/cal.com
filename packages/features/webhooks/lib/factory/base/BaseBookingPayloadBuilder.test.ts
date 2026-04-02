@@ -1,7 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
+import { describe, expect, it, vi } from "vitest";
 import type { BookingWebhookEventDTO, EventTypeInfo } from "../../dto/types";
 import { BookingPayloadBuilder } from "../versioned/v2021-10-20/BookingPayloadBuilder";
 

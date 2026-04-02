@@ -1,3 +1,4 @@
+import process from "node:process";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";

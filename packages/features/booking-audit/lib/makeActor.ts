@@ -1,12 +1,12 @@
+import { v4 as uuidv4 } from "uuid";
 import type {
-  UserActor,
-  GuestActor,
-  AttendeeActor,
   ActorById,
   AppActorByCredentialId,
   AppActorBySlug,
+  AttendeeActor,
+  GuestActor,
+  UserActor,
 } from "./dto/types";
-import { v4 as uuidv4 } from "uuid";
 
 const SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
 

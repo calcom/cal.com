@@ -1,9 +1,6 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import getUpgradeableHandler from "./getUpgradeable.handler";
 
 vi.mock("@calcom/lib/constants", () => ({

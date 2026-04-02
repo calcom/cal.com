@@ -1,8 +1,8 @@
 import type {
   AttributeId,
   AttributeName,
-  BulkAttributeAssigner,
   AttributeOptionAssignment,
+  BulkAttributeAssigner,
 } from "@calcom/app-store/routing-forms/types/types";
 import { findAssignmentsForMember } from "@calcom/features/attributes/lib/utils";
 import { PrismaAttributeOptionRepository } from "@calcom/features/attributes/repositories/PrismaAttributeOptionRepository";
@@ -11,14 +11,13 @@ import { MembershipRepository } from "@calcom/features/membership/repositories/M
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-
 import {
+  buildSlugFromValue,
+  canSetValueBeyondOptions,
   doesSupportMultipleValues,
   isAssignmentForLockedAttribute,
   isAssignmentForTheSamePool,
   isAssignmentSame,
-  buildSlugFromValue,
-  canSetValueBeyondOptions,
 } from "./assignValueToUserUtils";
 
 const log = logger.getSubLogger({ prefix: ["entity/attribute"] });

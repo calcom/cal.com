@@ -1,5 +1,4 @@
 import logger from "@calcom/lib/logger";
-
 import { LARK_HOST } from "../common";
 import { getAppAccessToken } from "./AppAccessToken";
 

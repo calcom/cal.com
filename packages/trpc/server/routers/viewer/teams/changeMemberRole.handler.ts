@@ -2,9 +2,7 @@ import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepos
 import { RoleManagementFactory } from "@calcom/features/pbac/services/role-management.factory";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
 
 type ChangeMemberRoleOptions = {

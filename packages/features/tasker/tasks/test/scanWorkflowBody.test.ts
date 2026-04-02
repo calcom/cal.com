@@ -1,12 +1,8 @@
-import process from "node:process";
-
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
-
-import { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents, TimeUnit } from "@calcom/prisma/enums";
-
-import { scanWorkflowBody, iffyScanBody } from "../scanWorkflowBody";
+import process from "node:process";
+import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { iffyScanBody, scanWorkflowBody } from "../scanWorkflowBody";
 
 // Mock the submitWorkflowStepForUrlScanning function
 vi.mock("../scanWorkflowUrls", () => ({
@@ -53,11 +49,12 @@ vi.mock("@calcom/lib/constants", async () => {
     URL_SCANNING_ENABLED: true,
   };
 });
-// Import mocked modules for assertions
-import { submitWorkflowStepForUrlScanning } from "../scanWorkflowUrls";
+
+import compareReminderBodyToTemplate from "@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate";
 import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
 import { Task } from "@calcom/features/tasker/repository";
-import compareReminderBodyToTemplate from "@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate";
+// Import mocked modules for assertions
+import { submitWorkflowStepForUrlScanning } from "../scanWorkflowUrls";
 
 describe("scanWorkflowBody", () => {
   beforeEach(() => {

@@ -1,6 +1,7 @@
-import fs from "node:fs"
+import fs from "node:fs";
 import https from "node:https";
-import path from "node:path"
+import path from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);

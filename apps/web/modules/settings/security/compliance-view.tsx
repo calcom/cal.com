@@ -1,10 +1,8 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
-
+import { useSession } from "next-auth/react";
 import { ComplianceDocumentCard } from "./compliance/ComplianceDocumentCard";
 import { COMPLIANCE_DOCUMENTS, DOCUMENT_CATEGORIES } from "./compliance/compliance-documents";
 

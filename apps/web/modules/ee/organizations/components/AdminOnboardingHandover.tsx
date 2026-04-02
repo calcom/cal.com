@@ -1,14 +1,13 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-
-import { useOnboarding } from "@calcom/web/modules/ee/organizations/lib/onboardingStore";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
+import { useOnboarding } from "@calcom/web/modules/ee/organizations/lib/onboardingStore";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 export const AdminOnboardingHandover = () => {
   const { t } = useLocale();

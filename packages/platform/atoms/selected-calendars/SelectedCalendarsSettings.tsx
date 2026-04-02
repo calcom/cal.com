@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-
 import { cn } from "../src/lib/utils";
 
 export const SelectedCalendarsSettings = (props: { children: ReactNode; classNames?: string }) => {

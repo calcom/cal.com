@@ -1,7 +1,5 @@
-import { describe, it, expect } from "vitest";
-
 import dayjs from "@calcom/dayjs";
-
+import { describe, expect, it } from "vitest";
 import { preserveLocalTime } from "../preserveLocalTime";
 
 describe("preserveLocalTime", () => {

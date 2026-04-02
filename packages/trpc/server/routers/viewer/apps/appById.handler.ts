@@ -1,9 +1,7 @@
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import getApps, { sanitizeAppForViewer } from "@calcom/app-store/utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TAppByIdInputSchema } from "./appById.schema";
 
 type AppByIdOptions = {

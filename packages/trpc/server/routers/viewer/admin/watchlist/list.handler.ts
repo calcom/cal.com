@@ -1,5 +1,4 @@
 import { getAdminWatchlistQueryService } from "@calcom/features/di/watchlist/containers/watchlist";
-
 import type { TrpcSessionUser } from "../../../../types";
 import type { TListWatchlistEntriesInputSchema } from "./list.schema";
 

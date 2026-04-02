@@ -5,7 +5,7 @@ import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import type { CreationSource, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
+import type { CreationSource, IdentityProvider, UserPermissionRole } from "@calcom/prisma/enums";
 
 interface CreateUserInput {
   email: string;

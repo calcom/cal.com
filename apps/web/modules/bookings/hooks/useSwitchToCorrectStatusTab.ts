@@ -78,7 +78,7 @@ export function usePreSelectedBooking(): {
   preSelectedBooking: BookingForTabResolution | null;
   preSelectedBookingFull: BookingOutput | null;
   isPending: boolean;
-}{
+} {
   const searchParams = useSearchParams();
   const preSelectedBookingUid = searchParams?.get("uid") ?? undefined;
 

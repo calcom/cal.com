@@ -1,4 +1,4 @@
-import type { BulkBlockingResult, BlockingResult, IBlockingService } from "../interface/IBlockingService";
+import type { BlockingResult, BulkBlockingResult, IBlockingService } from "../interface/IBlockingService";
 import type { IOrganizationWatchlistRepository } from "../interface/IWatchlistRepositories";
 import { WatchlistType } from "../types";
 import {

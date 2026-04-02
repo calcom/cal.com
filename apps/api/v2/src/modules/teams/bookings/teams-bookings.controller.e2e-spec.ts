@@ -18,7 +18,6 @@ import { MembershipRepositoryFixture } from "test/fixtures/repository/membership
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
-
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
 import type { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";

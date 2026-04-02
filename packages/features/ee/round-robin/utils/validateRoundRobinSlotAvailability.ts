@@ -1,8 +1,7 @@
-import { DateTime } from "luxon";
-
 import { HttpError } from "@calcom/lib/http-error";
 import { prisma } from "@calcom/prisma";
 import type { Host } from "@calcom/prisma/client";
+import { DateTime } from "luxon";
 
 export async function validateRoundRobinSlotAvailability(
   eventTypeId: number,

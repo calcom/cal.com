@@ -1,5 +1,4 @@
-import { describe, expect, it, beforeEach, vi, beforeAll, afterEach } from "vitest";
-
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { getScrollableAncestor } from "./domUtils";
 
 function createMockElement(options: {

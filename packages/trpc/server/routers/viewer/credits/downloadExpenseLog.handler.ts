@@ -2,9 +2,7 @@ import { CreditsRepository } from "@calcom/features/credits/repositories/Credits
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TDownloadExpenseLogSchema } from "./downloadExpenseLog.schema";
 
 type DownloadExpenseLogOptions = {

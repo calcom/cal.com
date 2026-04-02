@@ -2,9 +2,7 @@ import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import { BaseRemoveMemberService } from "./BaseRemoveMemberService";
 import type { RemoveMemberContext, RemoveMemberPermissionResult } from "./IRemoveMemberService";
 

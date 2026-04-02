@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
-
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DAY_CELL_WIDTH } from "../constants";
 
 function rounded(x: number, dayCellWidth: number) {

@@ -1,6 +1,5 @@
 import type { IInsightsBookingService } from "@calcom/features/insights/services/InsightsBookingDIService";
 import { InsightsBookingService } from "@calcom/features/insights/services/InsightsBookingDIService";
-
 import { createModule } from "../di";
 import { DI_TOKENS } from "../tokens";
 

@@ -1,8 +1,7 @@
 import { createContainer } from "@calcom/features/di/di";
-
 import {
-  moduleLoader as eventTypeTranslationRepositoryModuleLoader,
   type EventTypeTranslationRepository,
+  moduleLoader as eventTypeTranslationRepositoryModuleLoader,
 } from "./EventTypeTranslationRepository.module";
 
 const eventTypeTranslationRepositoryContainer = createContainer();

@@ -1,19 +1,16 @@
 "use client";
 
-import { useState } from "react";
-
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-
-import { OAuthClientsAdminSkeleton } from "./oauth-clients-admin-skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-
+import { useState } from "react";
 import type { OAuthClientCreateFormValues } from "../oauth/create/OAuthClientCreateModal";
 import { OAuthClientCreateDialog } from "../oauth/create/OAuthClientCreateModal";
 import { OAuthClientPreviewDialog } from "../oauth/create/OAuthClientPreviewDialog";
-import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/view/OAuthClientDetailsDialog";
 import { OAuthClientsList } from "../oauth/OAuthClientsList";
+import { type OAuthClientDetails, OAuthClientDetailsDialog } from "../oauth/view/OAuthClientDetailsDialog";
+import { OAuthClientsAdminSkeleton } from "./oauth-clients-admin-skeleton";
 
 export default function OAuthClientsAdminView() {
   const { t } = useLocale();

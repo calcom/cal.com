@@ -1,10 +1,3 @@
-import { TooltipProvider } from "@radix-ui/react-tooltip";
-import type { ReactNode } from "react";
-import { useState } from "react";
-import { useCallback } from "react";
-
-import type { API_VERSIONS_ENUM } from "@calcom/platform-constants";
-import { IconSprites } from "@calcom/ui/components/icon";
 import deTranslations from "@calcom/i18n/locales/de/common.json";
 import enTranslations from "@calcom/i18n/locales/en/common.json";
 import esTranslations from "@calcom/i18n/locales/es/common.json";
@@ -12,7 +5,11 @@ import frTranslations from "@calcom/i18n/locales/fr/common.json";
 import itTranslations from "@calcom/i18n/locales/it/common.json";
 import nlTranslations from "@calcom/i18n/locales/nl/common.json";
 import ptBrTranslations from "@calcom/i18n/locales/pt-BR/common.json";
-
+import type { API_VERSIONS_ENUM } from "@calcom/platform-constants";
+import { IconSprites } from "@calcom/ui/components/icon";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import type { ReactNode } from "react";
+import { useCallback, useState } from "react";
 import { AtomsContext } from "../hooks/useAtomsContext";
 import { useMe } from "../hooks/useMe";
 import { useOAuthClient } from "../hooks/useOAuthClient";
@@ -22,16 +19,16 @@ import { useUpdateUserTimezone } from "../hooks/useUpdateUserTimezone";
 import http from "../lib/http";
 import { Toaster } from "../src/components/ui/toaster";
 import type {
-  translationKeys,
   CalProviderLanguagesType,
-  enTranslationKeys,
-  frTranslationKeys,
-  ptBrTranslationKeys,
   deTranslationKeys,
+  enTranslationKeys,
   esTranslationKeys,
+  frTranslationKeys,
+  i18nProps,
   itTranslationKeys,
   nlTranslationKeys,
-  i18nProps,
+  ptBrTranslationKeys,
+  translationKeys,
 } from "./languages";
 import { EN } from "./languages";
 
@@ -65,7 +62,7 @@ export function BaseCalProvider({
   onTokenRefreshSuccess,
   onTokenRefreshError,
   isEmbed,
-  isOAuth2
+  isOAuth2,
 }: BaseCalProviderProps) {
   const [error, setError] = useState<string>("");
   const [stateOrgId, setOrganizationId] = useState<number>(0);
@@ -169,7 +166,6 @@ export function BaseCalProvider({
       exists: (key: translationKeys | string) => Boolean(enTranslations[key as translationKeys]),
     },
   };
-
 
   return isInit ? (
     <AtomsContext.Provider

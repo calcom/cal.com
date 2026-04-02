@@ -1,11 +1,8 @@
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { InputField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
+import { InputField, Select } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
-
+import { useState } from "react";
 import type { RRSkipFieldRule } from "../../zod";
 import { RRSkipFieldRuleActionEnum } from "../../zod";
 

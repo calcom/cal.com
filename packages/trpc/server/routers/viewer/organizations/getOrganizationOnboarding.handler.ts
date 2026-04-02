@@ -1,5 +1,4 @@
 import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
-
 import type { TrpcSessionUser } from "../../../types";
 
 type OrganizationOnboarding = {

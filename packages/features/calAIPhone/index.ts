@@ -1,19 +1,4 @@
 // Generic AI Phone Service Interfaces
-export type {
-  AIPhoneServiceProvider,
-  AIPhoneServiceProviderFactory,
-  AIPhoneServiceProviderConfig,
-  AIPhoneServiceConfiguration,
-  AIPhoneServiceDeletion,
-  AIPhoneServiceDeletionResult,
-  AIPhoneServiceCallData,
-  AIPhoneServiceModel,
-  AIPhoneServiceAgent,
-  AIPhoneServiceCall,
-  AIPhoneServicePhoneNumber,
-} from "./interfaces/AIPhoneService.interface";
-
-export { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interface";
 
 // Registry System
 export {
@@ -21,42 +6,50 @@ export {
   createAIPhoneServiceProvider,
   createDefaultAIPhoneServiceProvider,
 } from "./AIPhoneServiceRegistry";
-
+export { getTemplateFieldsSchema } from "./getTemplateFieldsSchema";
 // Registry Initialization
 export {
-  initializeAIPhoneServiceRegistry,
   ensureAIPhoneServiceRegistryInitialized,
+  initializeAIPhoneServiceRegistry,
 } from "./initializeRegistry";
-
+export type {
+  AIPhoneServiceAgent,
+  AIPhoneServiceCall,
+  AIPhoneServiceCallData,
+  AIPhoneServiceConfiguration,
+  AIPhoneServiceDeletion,
+  AIPhoneServiceDeletionResult,
+  AIPhoneServiceModel,
+  AIPhoneServicePhoneNumber,
+  AIPhoneServiceProvider,
+  AIPhoneServiceProviderConfig,
+  AIPhoneServiceProviderFactory,
+} from "./interfaces/AIPhoneService.interface";
+export { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interface";
+// Other exports
+export { DEFAULT_BEGIN_MESSAGE, DEFAULT_PROMPT_VALUE, PROMPT_TEMPLATES } from "./promptTemplates";
+export type {
+  AIConfigurationDeletion,
+  AIConfigurationSetup,
+  CreateAgentRequest,
+  CreateLLMRequest,
+  DeletionResult,
+  RetellAIRepository,
+  RetellCallListParams,
+  RetellCallListResponse,
+  UpdateLLMRequest,
+} from "./providers/retellAI";
 // Provider Implementations
 export {
+  RetellAIError,
   RetellAIPhoneServiceProvider,
   RetellAIPhoneServiceProviderFactory,
   RetellAIService,
   RetellSDKClient,
-  RetellAIError,
 } from "./providers/retellAI";
-
-export type {
-  RetellAIRepository,
-  CreateLLMRequest,
-  CreateAgentRequest,
-  UpdateLLMRequest,
-  AIConfigurationSetup,
-  AIConfigurationDeletion,
-  DeletionResult,
-  RetellCallListParams,
-  RetellCallListResponse,
-} from "./providers/retellAI";
-
 // Legacy exports for backward compatibility
 export { RetellAIService as LegacyRetellAIService } from "./retellAIService";
-
-// Other exports
-export { DEFAULT_PROMPT_VALUE, DEFAULT_BEGIN_MESSAGE, PROMPT_TEMPLATES } from "./promptTemplates";
-export { getTemplateFieldsSchema } from "./getTemplateFieldsSchema";
 export { templateFieldsMap } from "./template-fields-map";
-
 // Re-export zod schemas
 export * from "./zod-utils";
 

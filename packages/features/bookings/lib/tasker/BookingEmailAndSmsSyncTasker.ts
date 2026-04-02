@@ -1,9 +1,7 @@
-import { nanoid } from "nanoid";
-
-import { BookingEmailAndSmsTaskService } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTaskService";
+import type { BookingEmailAndSmsTaskService } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTaskService";
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
-
-import { IBookingEmailAndSmsTasker } from "./types";
+import { nanoid } from "nanoid";
+import type { IBookingEmailAndSmsTasker } from "./types";
 
 export interface IBookingSyncTaskerDependencies {
   bookingTaskService: BookingEmailAndSmsTaskService;

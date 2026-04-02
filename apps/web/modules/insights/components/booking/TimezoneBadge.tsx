@@ -1,13 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
-
-import { useDataTable } from "~/data-table/hooks/useDataTable";
 import NoSSR from "@calcom/lib/components/NoSSR";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { InfoIcon } from "@coss/ui/icons";
+import { useMemo } from "react";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
 
 const TimezoneBadgeContent = () => {
   const { t } = useLocale();

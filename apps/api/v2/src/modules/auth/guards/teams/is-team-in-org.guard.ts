@@ -1,14 +1,13 @@
-import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
+import type { Team } from "@calcom/prisma/client";
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  Injectable,
   NotFoundException,
 } from "@nestjs/common";
 import { Request } from "express";
-
-import type { Team } from "@calcom/prisma/client";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 
 @Injectable()
 export class IsTeamInOrg implements CanActivate {

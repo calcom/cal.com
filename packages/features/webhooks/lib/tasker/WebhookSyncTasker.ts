@@ -1,5 +1,4 @@
 import { nanoid } from "nanoid";
-
 import type { WebhookTaskConsumer } from "../service/WebhookTaskConsumer";
 import type { WebhookTaskPayload } from "../types/webhookTask";
 import type { IWebhookTasker, WebhookDeliveryResult } from "./types";

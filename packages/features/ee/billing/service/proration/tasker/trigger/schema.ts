@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { MONTHLY_PRORATION_BATCH_SIZE } from "../constants";
 
 const monthKeyRegex = /^\d{4}-(0[1-9]|1[0-2])$/;

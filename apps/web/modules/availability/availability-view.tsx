@@ -1,15 +1,7 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
-import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
-import { useCallback, useState } from "react";
-import posthog from "posthog-js";
-
-import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
-import { NewScheduleButton } from "@calcom/web/modules/schedules/components/NewScheduleButton";
+import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { ScheduleListItem } from "@calcom/features/schedules/components/ScheduleListItem";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,6 +12,13 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import { NewScheduleButton } from "@calcom/web/modules/schedules/components/NewScheduleButton";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { revalidateAvailabilityList } from "app/(use-page-wrapper)/(main-nav)/availability/actions";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import posthog from "posthog-js";
+import { useCallback, useState } from "react";
 
 type AvailabilityListProps = {
   availabilities: RouterOutputs["viewer"]["availability"]["list"];

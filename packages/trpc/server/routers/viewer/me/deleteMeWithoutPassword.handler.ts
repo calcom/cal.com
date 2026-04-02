@@ -1,5 +1,5 @@
-import { deleteUser } from "@calcom/features/users/lib/deleteUser";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
+import { deleteUser } from "@calcom/features/users/lib/deleteUser";
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";

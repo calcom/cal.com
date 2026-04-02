@@ -1,6 +1,5 @@
 import prisma from "@calcom/prisma";
 import type { WorkflowType } from "@calcom/prisma/client";
-
 import type { Workflow } from "./types";
 
 export const workflowSelect = {

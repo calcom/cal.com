@@ -1,9 +1,7 @@
 import { getOrganizationWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
 import { WatchlistError, WatchlistErrorCode } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
 import logger from "@calcom/lib/logger";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TCreateWatchlistEntryInputSchema } from "./createWatchlistEntry.schema";
 

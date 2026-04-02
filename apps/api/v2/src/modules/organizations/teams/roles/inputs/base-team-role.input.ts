@@ -1,9 +1,7 @@
-import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsArray, IsOptional, IsString, Validate } from "class-validator";
-
 import type { PermissionString } from "@calcom/platform-libraries/pbac";
 import { getAllPermissionStringsForScope, Scope } from "@calcom/platform-libraries/pbac";
-
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { IsArray, IsOptional, IsString, Validate } from "class-validator";
 import { TeamPermissionStringValidator } from "../permissions/inputs/validators/team-permission-string.validator";
 
 export const teamPermissionEnum = [...getAllPermissionStringsForScope(Scope.Team)] as const;

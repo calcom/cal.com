@@ -1,16 +1,14 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/components/button";
+import { EmailField } from "@calcom/ui/components/form";
+import AuthContainer from "@components/ui/AuthContainer";
 // eslint-disable-next-line no-restricted-imports
 import { debounce } from "lodash";
 import Link from "next/link";
 import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { EmailField } from "@calcom/ui/components/form";
-
-import AuthContainer from "@components/ui/AuthContainer";
 
 export type PageProps = {
   csrfToken?: string;

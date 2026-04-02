@@ -1,5 +1,6 @@
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 import type {
   EventTypeSetupProps,
   FormValues,
@@ -27,14 +28,12 @@ import {
 } from "@calcom/ui/components/form";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
 import HostLocations from "@calcom/web/modules/event-types/components/locations/HostLocations";
 import Locations from "@calcom/web/modules/event-types/components/locations/Locations";
 import { useState } from "react";
 import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { MultiValue } from "react-select";
-import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/locations/types";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -151,8 +150,7 @@ export const EventSetupTab = (
                 <>
                   <Label htmlFor="editor">
                     {t("description")}
-                    {(isManagedEventType || isChildrenManagedEventType) &&
-                      shouldLockIndicator("description")}
+                    {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("description")}
                   </Label>
                   <Editor
                     getText={() => md.render(formMethods.getValues("description") || "")}
@@ -388,8 +386,8 @@ export const EventSetupTab = (
                 "rounded-lg border border-subtle p-6",
                 customClassNames?.locationSection?.container,
                 eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-                enablePerHostLocations &&
-                "cursor-not-allowed opacity-60"
+                  enablePerHostLocations &&
+                  "cursor-not-allowed opacity-60"
               )}>
               <div>
                 <Skeleton
@@ -413,15 +411,10 @@ export const EventSetupTab = (
                       isManagedEventType={isManagedEventType}
                       disableLocationProp={
                         shouldLockDisableProps("locations").disabled ||
-                        (eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-                          enablePerHostLocations)
+                        (eventType.schedulingType === SchedulingType.ROUND_ROBIN && enablePerHostLocations)
                       }
-                      getValues={
-                        formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>
-                      }
-                      setValue={
-                        formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>
-                      }
+                      getValues={formMethods.getValues as unknown as UseFormGetValues<LocationFormValues>}
+                      setValue={formMethods.setValue as unknown as UseFormSetValue<LocationFormValues>}
                       control={formMethods.control as unknown as Control<LocationFormValues>}
                       formState={formMethods.formState as unknown as FormState<LocationFormValues>}
                       {...props}

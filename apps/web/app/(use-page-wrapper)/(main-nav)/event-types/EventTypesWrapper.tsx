@@ -5,7 +5,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import type { ReactElement } from "react";
 import { useState } from "react";
-
 import EventTypes, { EventTypesCTA, SearchContext } from "~/event-types/views/event-types-listing-view";
 
 type GetUserEventGroupsResponse = Parameters<typeof EventTypesCTA>[0]["userEventGroupsData"];

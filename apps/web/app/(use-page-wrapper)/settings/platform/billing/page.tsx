@@ -1,5 +1,4 @@
 import { _generateMetadata } from "app/_utils";
-
 import PlatformBillingUpgrade from "~/settings/platform/billing/billing-view";
 
 export const generateMetadata = async () => {

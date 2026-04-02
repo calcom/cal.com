@@ -1,22 +1,18 @@
-import { useState, useMemo } from "react";
-
 import { WhenToWrite } from "@calcom/app-store/_lib/crm-enums";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
-import { Switch } from "@calcom/ui/components/form";
-import { InputField } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
+import { InputField, Select, Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
 import { showToast } from "@calcom/ui/components/toast";
-
-import type { WriteToRecordEntrySchema, WriteToObjectSettingsProps } from "./WriteToObjectSettings.types";
+import { useMemo, useState } from "react";
+import type { WriteToObjectSettingsProps, WriteToRecordEntrySchema } from "./WriteToObjectSettings.types";
 import {
-  DATE_FIELD_TYPE,
-  CHECKBOX_FIELD_TYPE,
-  buildFieldTypeOptions,
-  buildDateFieldValueOptions,
-  buildWhenToWriteOptions,
   buildCheckboxFieldValueOptions,
+  buildDateFieldValueOptions,
+  buildFieldTypeOptions,
+  buildWhenToWriteOptions,
+  CHECKBOX_FIELD_TYPE,
+  DATE_FIELD_TYPE,
 } from "./WriteToObjectSettings.utils";
 
 const WriteToObjectSettings = ({
@@ -498,9 +494,9 @@ const WriteToObjectSettings = ({
 export {
   BookingActionEnum,
   type SelectOption,
+  type WriteToObjectSettingsProps,
   type WriteToRecordEntry,
   type WriteToRecordEntrySchema,
-  type WriteToObjectSettingsProps,
 } from "./WriteToObjectSettings.types";
 
 export default WriteToObjectSettings;

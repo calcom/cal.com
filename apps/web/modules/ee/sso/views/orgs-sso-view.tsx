@@ -1,10 +1,8 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-
-import { SkeletonLoader } from "@calcom/web/modules/apps/components/SkeletonLoader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
+import { SkeletonLoader } from "@calcom/web/modules/apps/components/SkeletonLoader";
+import { useSession } from "next-auth/react";
 import SSOConfiguration from "../components/SSOConfiguration";
 
 interface OrgSSOViewProps {

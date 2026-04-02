@@ -1,15 +1,13 @@
-import type { NextApiRequest } from "next";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest } from "next";
 import type {
-  NewCanvas,
+  InputComponent,
   ListComponent,
   ListItem,
+  NewCanvas,
   SpacerComponent,
   TextComponent,
-  InputComponent,
 } from "../../lib";
 import { isValidCalURL } from "../../lib/isValidCalURL";
 

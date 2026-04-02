@@ -1,20 +1,17 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/components/button";
+import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
 import { useRouter, useSearchParams } from "next/navigation";
 import posthog from "posthog-js";
 import React, { useEffect } from "react";
-
-import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-
 import { InviteOptions } from "~/onboarding/components/InviteOptions";
 import { OnboardingCard } from "~/onboarding/components/OnboardingCard";
 import { OnboardingLayout } from "~/onboarding/components/OnboardingLayout";
 import { OnboardingInviteBrowserView } from "~/onboarding/components/onboarding-invite-browser-view";
 import { useCreateTeam } from "~/onboarding/hooks/useCreateTeam";
 import { useOnboardingStore } from "~/onboarding/store/onboarding-store";
-
 import { CSVUploadModal } from "./csv-upload-modal";
 
 type TeamInviteViewProps = {

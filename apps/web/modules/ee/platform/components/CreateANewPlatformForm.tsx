@@ -1,26 +1,23 @@
 "use client";
 
-import type { SessionContextValue } from "next-auth/react";
-import { useSession, signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { uuid } from "short-uuid";
-
-import {
-  deriveOrgNameFromEmail,
-  deriveSlugFromEmail,
-} from "~/ee/organizations/components/CreateANewOrganizationForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import { UserPermissionRole } from "@calcom/prisma/enums";
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { TextField } from "@calcom/ui/components/form";
-import { Form } from "@calcom/ui/components/form";
+import { Form, TextField } from "@calcom/ui/components/form";
+import { useRouter } from "next/navigation";
+import type { SessionContextValue } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { uuid } from "short-uuid";
+import {
+  deriveOrgNameFromEmail,
+  deriveSlugFromEmail,
+} from "~/ee/organizations/components/CreateANewOrganizationForm";
 
 export const CreateANewPlatformForm = () => {
   const session = useSession();

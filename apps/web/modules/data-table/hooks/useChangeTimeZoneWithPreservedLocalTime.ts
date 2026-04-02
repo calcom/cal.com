@@ -1,8 +1,6 @@
-import { useMemo } from "react";
-
-import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
-
 import { preserveLocalTime } from "@calcom/features/data-table/lib/preserveLocalTime";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
+import { useMemo } from "react";
 import { useDataTable } from "./useDataTable";
 
 /**

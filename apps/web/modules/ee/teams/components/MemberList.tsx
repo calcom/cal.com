@@ -3,10 +3,6 @@
 import process from "node:process";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { convertFacetedValuesToMap } from "@calcom/features/data-table";
-import { DataTableProvider } from "~/data-table/DataTableProvider";
-import { useDataTable } from "~/data-table/hooks/useDataTable";
-import { useFetchMoreOnBottomReached } from "~/data-table/hooks/useFetchMoreOnBottomReached";
-import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { MemberPermissions } from "@calcom/features/pbac/lib/team-member-permissions";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -60,6 +56,10 @@ import {
   DataTableToolbar,
   DataTableWrapper,
 } from "~/data-table/components";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useFetchMoreOnBottomReached } from "~/data-table/hooks/useFetchMoreOnBottomReached";
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
 import { EditMemberSheet } from "./EditMemberSheet";
 import { EventTypesList } from "./EventTypesList";

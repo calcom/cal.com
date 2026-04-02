@@ -1,13 +1,13 @@
-import type { NextRequest } from "next/server";
-import TwilioClient from "twilio";
-import { v4 as uuidv4 } from "uuid";
-
+import process from "node:process";
 import { IS_API_V2_E2E, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
+import type { NextRequest } from "next/server";
+import TwilioClient from "twilio";
+import { v4 as uuidv4 } from "uuid";
 
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 

@@ -1,12 +1,11 @@
 "use client";
 
-import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
+import { valueFormatter } from "@calcom/features/insights/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-
-import { valueFormatter } from "@calcom/features/insights/lib";
+import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 import { ChartCard } from "../ChartCard";
 
 export const RoutingKPICards = () => {

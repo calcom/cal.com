@@ -1,10 +1,9 @@
 /* eslint-disable playwright/missing-playwright-await */
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
-import { vi, describe, expect } from "vitest";
 
 import type { AppFrontendPayload } from "@calcom/types/App";
-
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, vi } from "vitest";
 import { AppCard } from "./AppCard";
 
 vi.mock("next/navigation", () => ({

@@ -1,6 +1,5 @@
-import type { z } from "zod";
-
 import type { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
+import type { z } from "zod";
 
 /**
  * Server-safe subset of BookerEvent type.

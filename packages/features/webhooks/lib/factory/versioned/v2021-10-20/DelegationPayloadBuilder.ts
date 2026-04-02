@@ -1,6 +1,6 @@
 import type { DelegationCredentialErrorDTO, DelegationCredentialErrorPayloadType } from "../../../dto/types";
-import type { WebhookPayload } from "../../types";
 import { BaseDelegationPayloadBuilder } from "../../base/BaseDelegationPayloadBuilder";
+import type { WebhookPayload } from "../../types";
 
 /**
  * Delegation payload builder for webhook version 2021-10-20.

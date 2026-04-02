@@ -1,6 +1,5 @@
+import type React from "react";
 import type { FC } from "react";
-import React from "react";
-
 import type { ButtonBaseProps } from "../button";
 import { Button } from "../button";
 import {

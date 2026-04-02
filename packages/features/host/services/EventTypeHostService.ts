@@ -1,11 +1,10 @@
-import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
-import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { HostRepository } from "@calcom/features/host/repositories/HostRepository";
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import type { PrismaClient } from "@calcom/prisma/client";
+import { findTeamMembersMatchingAttributeLogic } from "@calcom/features/routing-forms/lib/findTeamMembersMatchingAttributeLogic";
 import { ErrorWithCode } from "@calcom/lib/errors";
-
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
+import type { PrismaClient } from "@calcom/prisma/client";
 import type {
   AssignmentChild,
   AssignmentHost,
@@ -111,13 +110,12 @@ export class EventTypeHostService implements IEventTypeHostService {
     limit: number;
     search?: string;
   }): Promise<PaginatedAssignmentChildrenResponse> {
-    const { items, nextCursor, hasMore } =
-      await this.hostRepository.findChildrenForAssignmentPaginated({
-        eventTypeId,
-        cursor,
-        limit,
-        search,
-      });
+    const { items, nextCursor, hasMore } = await this.hostRepository.findChildrenForAssignmentPaginated({
+      eventTypeId,
+      cursor,
+      limit,
+      search,
+    });
 
     const children: AssignmentChild[] = items
       .filter((item) => item.owner !== null)

@@ -1,5 +1,4 @@
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import { buildWhereClause } from "~/lib/utils/bookings/get/buildWhereClause";
 
 describe("buildWhereClause", () => {

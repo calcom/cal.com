@@ -1,11 +1,11 @@
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import logger from "@calcom/lib/logger";
 import {
-  serviceAccountKeySchema,
-  type ServiceAccountKey,
+  decryptServiceAccountKey,
   type EncryptedServiceAccountKey,
   encryptServiceAccountKey,
-  decryptServiceAccountKey,
+  type ServiceAccountKey,
+  serviceAccountKeySchema,
 } from "@calcom/lib/server/serviceAccountKey";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -64,7 +64,7 @@ export class DelegationCredentialRepository {
     const { serviceAccountKey, ...rest } = delegationCredential;
 
     // Decrypt the service account key if it exists
-    const decryptedKey = this.decryptServiceAccountKey(serviceAccountKey);
+    const decryptedKey = DelegationCredentialRepository.decryptServiceAccountKey(serviceAccountKey);
     const parsedServiceAccountKey = serviceAccountKeySchema.safeParse(decryptedKey);
 
     return {
@@ -80,7 +80,7 @@ export class DelegationCredentialRepository {
     workspacePlatformId: number;
     serviceAccountKey: ServiceAccountKey;
   }) {
-    const encryptedKey = this.encryptServiceAccountKey(data.serviceAccountKey);
+    const encryptedKey = DelegationCredentialRepository.encryptServiceAccountKey(data.serviceAccountKey);
     return await prisma.delegationCredential.create({
       data: {
         workspacePlatform: {

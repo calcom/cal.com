@@ -1,5 +1,5 @@
-import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable, Logger } from "@nestjs/common";
+import { RedisService } from "@/modules/redis/redis.service";
 
 export const REDIS_TEAM_PERMISSIONS_CACHE_PATTERN = (teamId: number) =>
   `apiv2:user:*:team:${teamId}:requiredPermissions:*:guard:pbac`;
@@ -14,7 +14,7 @@ export class RolesPermissionsCacheService {
     try {
       const pattern = REDIS_TEAM_PERMISSIONS_CACHE_PATTERN(teamId);
       const keys = await this.redisService.getKeys(pattern);
-      
+
       if (keys.length > 0) {
         await this.redisService.delMany(keys);
         this.logger.log(`Deleted ${keys.length} permission cache keys for team ${teamId}`);

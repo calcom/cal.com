@@ -1,5 +1,4 @@
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
 import { tasker } from "../../../tasker";
 
 interface HandleAnalyticsEventsProps {

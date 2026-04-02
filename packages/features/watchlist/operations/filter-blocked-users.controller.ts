@@ -1,5 +1,4 @@
 import type { SpanFn } from "@calcom/features/watchlist/lib/telemetry";
-
 import type { BlockableUser } from "./check-user-blocking";
 import { getBlockedUsersMap, isUserBlocked } from "./check-user-blocking";
 

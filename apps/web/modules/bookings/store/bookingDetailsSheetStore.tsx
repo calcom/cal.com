@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { createStore, useStore } from "zustand";
-
 import { useActiveSegmentFromUrl } from "../hooks/useActiveSegmentFromUrl";
 import { useSelectedBookingUid } from "../hooks/useSelectedBookingUid";
 import type { BookingOutput } from "../types";

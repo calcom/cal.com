@@ -1,8 +1,6 @@
-import { useMemo } from "react";
-
 import dayjs from "@calcom/dayjs";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-
+import { useMemo } from "react";
 import type { BookingListingStatus, BookingOutput, BookingsGetOutput, RowData } from "../types";
 
 interface UseBookingCalendarDataParams {

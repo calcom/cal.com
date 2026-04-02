@@ -117,14 +117,16 @@ export class NoShowUpdatedAuditActionService implements IAuditActionService {
     const displayFields: DisplayField[] = [];
 
     if (this.isAttendeesNoShowSet(parsedFields)) {
-        const attendeesValuesWithParams: TranslationWithParams[] = parsedFields.attendeesNoShow.map((attendee) => ({
+      const attendeesValuesWithParams: TranslationWithParams[] = parsedFields.attendeesNoShow.map(
+        (attendee) => ({
           key: attendee.noShow.new
             ? "booking_audit_action.attendee_no_show_status_yes"
             : "booking_audit_action.attendee_no_show_status_no",
           params: {
             email: attendee.attendeeEmail,
           },
-        }));
+        })
+      );
       displayFields.push({
         labelKey: "booking_audit_action.attendees",
         fieldValue: {

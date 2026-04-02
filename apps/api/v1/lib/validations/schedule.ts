@@ -1,9 +1,7 @@
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { AvailabilitySchema } from "@calcom/prisma/zod/modelSchema/AvailabilitySchema";
 import { ScheduleSchema } from "@calcom/prisma/zod/modelSchema/ScheduleSchema";
-
+import { z } from "zod";
 import { timeZone } from "./shared/timeZone";
 
 const schemaScheduleBaseBodyParams = ScheduleSchema.omit({ id: true, timeZone: true }).partial();

@@ -1,6 +1,5 @@
-import { render, fireEvent } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { vi } from "vitest";
-
 import { ShellSubHeading } from "./ShellSubHeading";
 
 const titleText = "Main Title";

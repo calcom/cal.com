@@ -1,11 +1,9 @@
 "use client";
 
-import { BookerWebWrapper as Booker } from "@calcom/web/modules/bookings/components/BookerWebWrapper";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
-
-import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
-
+import { BookerWebWrapper as Booker } from "@calcom/web/modules/bookings/components/BookerWebWrapper";
 import BookingPageErrorBoundary from "@components/error/BookingPageErrorBoundary";
+import type { PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
 
 export default function Type({
   slug,

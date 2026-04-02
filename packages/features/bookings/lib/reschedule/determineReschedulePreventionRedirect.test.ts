@@ -1,9 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import * as constants from "@calcom/lib/constants";
 import { BookingStatus } from "@calcom/prisma/client";
 import type { JsonValue } from "@calcom/types/Json";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   determineReschedulePreventionRedirect,
   type ReschedulePreventionRedirectInput,

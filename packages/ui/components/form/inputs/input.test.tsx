@@ -1,8 +1,7 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { render, fireEvent } from "@testing-library/react";
+import { fireEvent, render } from "@testing-library/react";
 import { vi } from "vitest";
-
-import { EmailField, TextAreaField, PasswordField, NumberInput, FilterSearchField } from "./Input";
+import { EmailField, FilterSearchField, NumberInput, PasswordField, TextAreaField } from "./Input";
 import { InputField } from "./TextField";
 
 const onChangeMock = vi.fn();

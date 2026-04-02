@@ -1,3 +1,5 @@
+import { slugify } from "@calcom/platform-libraries";
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { getPagination } from "@/lib/pagination/pagination";
 import { ApiKeysService } from "@/modules/api-keys/services/api-keys.service";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
@@ -10,9 +12,6 @@ import { UpdateOrganizationInput } from "@/modules/organizations/organizations/i
 import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
 import { ManagedOrganizationsOutputService } from "@/modules/organizations/organizations/services/managed-organizations-output.service";
 import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-
-import { slugify } from "@calcom/platform-libraries";
 
 @Injectable()
 export class ManagedOrganizationsService {

@@ -1,11 +1,17 @@
+import { ConfirmationPolicyEnum, NoticeThresholdUnitEnum } from "@calcom/platform-enums";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, IsOptional, IsInt, ValidateNested, IsBoolean, ValidateIf } from "class-validator";
-import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
-import { ValidatorConstraint, registerDecorator } from "class-validator";
-
-import { ConfirmationPolicyEnum, NoticeThresholdUnitEnum } from "@calcom/platform-enums";
-
+import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  registerDecorator,
+  ValidateIf,
+  ValidateNested,
+  ValidatorConstraint,
+} from "class-validator";
 import type { Disabled_2024_06_14 } from "./disabled.input";
 
 // Class representing the notice threshold
@@ -90,7 +96,7 @@ export class ConfirmationPolicyValidator implements ValidatorConstraintInterface
 
 // Custom decorator for confirmation validation
 export function ValidateConfirmationPolicy(validationOptions?: ValidationOptions) {
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateConfirmationPolicy",
       target: object.constructor,

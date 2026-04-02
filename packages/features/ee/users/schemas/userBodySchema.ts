@@ -1,5 +1,5 @@
-import { optionToValueSchema } from "@calcom/prisma/zod-utils";
 import { UserSchema } from "@calcom/prisma/zod/modelSchema/UserSchema";
+import { optionToValueSchema } from "@calcom/prisma/zod-utils";
 
 export const userBodySchema = UserSchema.pick({
   username: true,

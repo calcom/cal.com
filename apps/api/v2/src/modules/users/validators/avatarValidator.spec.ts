@@ -1,5 +1,4 @@
 import { IsOptional, Validate, validateSync } from "class-validator";
-
 import { AvatarValidator } from "./avatarValidator";
 
 // Mock DTO for testing the validator

@@ -1,11 +1,10 @@
-import type { z } from "zod";
-
 import type { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
+import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 import { getAppNameFromSlug } from "@calcom/features/booking-audit/lib/getAppNameFromSlug";
 import { makeAppActor, makeAppActorUsingSlug } from "@calcom/features/booking-audit/lib/makeActor";
-import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["[getAppActor]"] });
 

@@ -1,5 +1,5 @@
-import type { SAMLSSORecord, OIDCSSORecord } from "@boxyhq/saml-jackson";
-
+import process from "node:process";
+import type { OIDCSSORecord, SAMLSSORecord } from "@boxyhq/saml-jackson";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { MembershipRole } from "@calcom/prisma/enums";

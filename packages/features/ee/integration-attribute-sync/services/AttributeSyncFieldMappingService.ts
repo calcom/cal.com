@@ -1,16 +1,16 @@
-import { PrismaAttributeOptionRepository } from "@calcom/features/attributes/repositories/PrismaAttributeOptionRepository";
+import type { PrismaAttributeOptionRepository } from "@calcom/features/attributes/repositories/PrismaAttributeOptionRepository";
+import type { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
+import type { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import {
   buildSlugFromValue,
   canSetValueBeyondOptions,
   doesSupportMultipleValues,
   hasOptions,
 } from "@calcom/features/ee/dsync/lib/assignValueToUserUtils";
-import logger from "@calcom/lib/logger";
-import { PrismaAttributeRepository } from "@calcom/features/attributes/repositories/PrismaAttributeRepository";
-import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import type { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
-import type { IFieldMapping } from "../repositories/IIntegrationAttributeSyncRepository";
+import logger from "@calcom/lib/logger";
 import type { AttributeType } from "@calcom/prisma/enums";
+import type { IFieldMapping } from "../repositories/IIntegrationAttributeSyncRepository";
 
 const log = logger.getSubLogger({
   prefix: ["[AttributeSyncFieldMappingService]"],

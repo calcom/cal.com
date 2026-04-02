@@ -1,10 +1,3 @@
-import classNames from "classnames";
-// eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
-import { useSession } from "next-auth/react";
-import type { RefCallback } from "react";
-import { useEffect, useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -12,12 +5,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
 import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { DialogClose, DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
-import { CheckIcon } from "@coss/ui/icons";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
+import { CheckIcon } from "@coss/ui/icons";
 import type { TRPCClientErrorLike } from "@trpc/client";
+import classNames from "classnames";
+// eslint-disable-next-line no-restricted-imports
+import { noop } from "lodash";
+import { useSession } from "next-auth/react";
+import type { RefCallback } from "react";
+import { useEffect, useState } from "react";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -142,11 +140,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-6 flex h-7 flex-row">
               <span className={classNames("bg-default mx-0 p-3")}>
-                {usernameIsAvailable ? (
-                  <CheckIcon className="relative bottom-[6px] h-4 w-4" />
-                ) : (
-                  <></>
-                )}
+                {usernameIsAvailable ? <CheckIcon className="relative bottom-[6px] h-4 w-4" /> : <></>}
               </span>
             </div>
           )}

@@ -1,5 +1,4 @@
 import type { AttributeType } from "@calcom/prisma/enums";
-
 import {
   ConditionIdentifierEnum,
   ConditionOperatorEnum,

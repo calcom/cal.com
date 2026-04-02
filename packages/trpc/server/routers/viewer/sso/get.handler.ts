@@ -1,3 +1,4 @@
+import process from "node:process";
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import type { SSOConnection } from "@calcom/features/ee/sso/lib/saml";
 import {
@@ -7,9 +8,7 @@ import {
   samlTenantID,
   tenantPrefix,
 } from "@calcom/features/ee/sso/lib/saml";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetInputSchema } from "./get.schema";
 

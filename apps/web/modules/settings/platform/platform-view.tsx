@@ -1,23 +1,19 @@
 "use client";
 
-import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import { usePathname } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { useExternalRedirectHandler } from "@lib/hooks/settings/platform/billing/useExternalRedirectHandler";
-import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useDeleteOAuthClient";
-import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
-
 import { HelpCards } from "@components/settings/platform/dashboard/HelpCards";
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { OAuthClientsList } from "@components/settings/platform/dashboard/oauth-clients-list";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@components/settings/platform/pricing/platform-pricing";
-
+import { useExternalRedirectHandler } from "@lib/hooks/settings/platform/billing/useExternalRedirectHandler";
+import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useDeleteOAuthClient";
+import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import Shell from "~/shell/Shell";
 
 const queryClient = new QueryClient();

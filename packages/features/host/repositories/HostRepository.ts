@@ -203,13 +203,14 @@ export class HostRepository {
     search?: string;
     memberUserIds?: number[];
   }) {
-    const userIdFilter = memberUserIds !== undefined
-      ? cursor
-        ? { in: memberUserIds, gt: cursor }
-        : { in: memberUserIds }
-      : cursor
-        ? { gt: cursor }
-        : undefined;
+    const userIdFilter =
+      memberUserIds !== undefined
+        ? cursor
+          ? { in: memberUserIds, gt: cursor }
+          : { in: memberUserIds }
+        : cursor
+          ? { gt: cursor }
+          : undefined;
 
     const hosts = await this.prismaClient.host.findMany({
       where: {

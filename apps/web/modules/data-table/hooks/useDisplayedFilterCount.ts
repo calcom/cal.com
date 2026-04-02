@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-
 import { useDataTable } from "./useDataTable";
 
 type UseDisplayedFilterCountProps = {

@@ -1,5 +1,4 @@
 import { runs, schemaTask } from "@trigger.dev/sdk";
-
 import { prorationEmailTaskConfig } from "./emailConfig";
 import { cancelReminderSchema } from "./emailSchemas";
 import { sendProrationReminderEmail } from "./sendProrationReminderEmail";

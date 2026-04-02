@@ -1,7 +1,5 @@
-import { z } from "zod";
-
 import { RefundPolicy } from "@calcom/lib/payment/types";
-
+import { z } from "zod";
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 import { paymentOptions } from "./lib/constants";
 

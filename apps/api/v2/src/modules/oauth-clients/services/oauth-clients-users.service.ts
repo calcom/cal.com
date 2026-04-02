@@ -1,3 +1,6 @@
+import { CreationSource, createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
+import type { PlatformOAuthClient, User } from "@calcom/prisma/client";
+import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
@@ -8,10 +11,6 @@ import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
-
-import { createNewUsersConnectToOrgIfExists, slugify, CreationSource } from "@calcom/platform-libraries";
-import type { User, PlatformOAuthClient } from "@calcom/prisma/client";
 
 @Injectable()
 export class OAuthClientUsersService {

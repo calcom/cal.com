@@ -2,7 +2,6 @@ import { sendCreditBalanceLimitReachedEmails } from "@calcom/emails/billing-emai
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import type { CreditUsageType } from "@calcom/prisma/enums";
-
 import { getUserAndTeamWithBillingPermission } from "./getUserAndTeamWithBillingPermission";
 
 const log = logger.getSubLogger({ prefix: ["handleInsufficientCredits"] });

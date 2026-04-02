@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { emailSchema } from "@calcom/lib/emailSchema";
+import { z } from "zod";
 
 const DiscountType = z.enum(["percent", "fixed"]);
 const CouponDuration = z.enum(["once", "repeating", "forever"]);

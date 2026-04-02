@@ -1,7 +1,6 @@
 import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import { getTranslation } from "@calcom/i18n/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TLocationOptionsInputSchema } from "./locationOptions.schema";
 
 type LocationOptionsOptions = {

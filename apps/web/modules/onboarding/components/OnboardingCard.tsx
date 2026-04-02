@@ -1,10 +1,9 @@
 "use client";
 
+import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-
-import { SkeletonText } from "@calcom/ui/components/skeleton";
 
 type OnboardingCardProps = {
   title: string;

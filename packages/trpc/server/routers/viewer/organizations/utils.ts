@@ -5,9 +5,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TAddMembersToTeams } from "./addMembersToTeams.schema";
 

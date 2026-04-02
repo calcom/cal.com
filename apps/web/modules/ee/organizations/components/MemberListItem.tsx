@@ -1,5 +1,3 @@
-import classNames from "classnames";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { UserAvatar } from "@calcom/ui/components/avatar";
@@ -14,6 +12,7 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import TeamPill, { TeamRole } from "@calcom/web/modules/ee/teams/components/TeamPill";
+import classNames from "classnames";
 
 interface Props {
   member: RouterOutputs["viewer"]["organizations"]["listOtherTeamMembers"]["rows"][number];

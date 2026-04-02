@@ -1,8 +1,15 @@
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsIn, IsPhoneNumber, MinLength } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
-import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
+import {
+  IsIn,
+  IsPhoneNumber,
+  IsString,
+  MinLength,
+  registerDecorator,
+  ValidatorConstraint,
+  validate,
+} from "class-validator";
 
 export const inputLocations = [
   "address",
@@ -198,7 +205,7 @@ class BookingInputLocationValidator_2024_08_13 implements ValidatorConstraintInt
 
 export function ValidateBookingLocation_2024_08_13(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateLocation",
       target: object.constructor,

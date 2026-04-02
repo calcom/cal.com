@@ -1,5 +1,4 @@
 import type { Role as PrismaRole, RolePermission as PrismaRolePermission } from "@calcom/prisma/client";
-
 import type { Role, RolePermission } from "../../domain/models/Role";
 
 export class RoleOutputMapper {

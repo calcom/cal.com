@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { APP_CATEGORIES, VALID_CATEGORY_VALUES } from "./constants";
 import { validateCreateAppFlags } from "./validateCreateAppFlags";
 

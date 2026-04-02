@@ -1,6 +1,5 @@
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
 
 type InviteMemberByTokenOptions = {

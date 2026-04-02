@@ -1,20 +1,16 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
 import {
   createBookingScenario,
-  getScenarioData,
   getGoogleCalendarCredential,
-  TestData,
   getOrganizer,
-  mockSuccessfulVideoMeetingCreation,
+  getScenarioData,
   mockCalendarToHaveNoBusySlots,
   mockNoTranslations,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { BookingStatus } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getInstantBookingCreateService } from "../../di/InstantBookingCreateService.container";
 import type { CreateInstantBookingData } from "../dto/types";
 

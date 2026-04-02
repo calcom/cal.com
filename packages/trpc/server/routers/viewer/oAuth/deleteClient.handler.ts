@@ -1,8 +1,6 @@
-import { TRPCError } from "@trpc/server";
-
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import type { PrismaClient } from "@calcom/prisma";
-
+import { TRPCError } from "@trpc/server";
 import type { TDeleteClientInputSchema } from "./deleteClient.schema";
 
 type DeleteClientOptions = {

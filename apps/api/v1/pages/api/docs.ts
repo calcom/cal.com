@@ -1,5 +1,4 @@
 import { withSwagger } from "next-swagger-doc";
-
 import pjson from "~/package.json";
 
 const swaggerHandler = withSwagger({

@@ -1,7 +1,6 @@
 "use client";
 
 import type { App } from "@calcom/types/App";
-
 import { InstallAppButtonWithoutPlanCheck } from "./InstallAppButtonWithoutPlanCheck";
 import type { InstallAppButtonProps } from "./types";
 

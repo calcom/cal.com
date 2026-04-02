@@ -76,7 +76,7 @@ export class WorkspacePlatformRepository {
     if (!workspacePlatform) {
       return null;
     }
-    return this.withParsedServiceAccountKey(workspacePlatform);
+    return WorkspacePlatformRepository.withParsedServiceAccountKey(workspacePlatform);
   }
 
   static async updateById({

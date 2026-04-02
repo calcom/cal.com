@@ -1,14 +1,14 @@
 // pages/_app.tsx
 import type { Data } from "@/pages/api/get-managed-users";
 import "@/styles/globals.css";
+import { BookerEmbed, CalOAuthProvider, CalProvider, Router as CalRouter } from "@calcom/atoms";
 import type { AppProps } from "next/app";
 import { Poppins } from "next/font/google";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import Select from "react-select";
-
-import { CalProvider, CalOAuthProvider, BookerEmbed, Router as CalRouter } from "@calcom/atoms";
 import "@calcom/atoms/globals.min.css";
+import process from "node:process";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
 type TUser = Data["users"][0];
@@ -44,7 +44,6 @@ export default function App({ Component, pageProps }: AppProps) {
     const code = router.query.code;
     return typeof code === "string" ? code : null;
   }, [router.query.code]);
-
 
   useEffect(() => {
     fetch("/api/get-users", { method: "get" }).then(async (res) => {
@@ -135,8 +134,7 @@ export default function App({ Component, pageProps }: AppProps) {
           options={{
             apiUrl: process.env.NEXT_PUBLIC_CALCOM_API_URL ?? "",
             refreshUrl: "/api/refresh",
-          }}
-        >
+          }}>
           {email ? (
             <Component {...pageProps} calUsername={username} calEmail={email} />
           ) : (
@@ -152,8 +150,7 @@ export default function App({ Component, pageProps }: AppProps) {
           options={{
             apiUrl: process.env.NEXT_PUBLIC_CALCOM_API_URL ?? "",
             refreshUrl: "/api/refresh",
-          }}
-        >
+          }}>
           {email ? (
             <Component {...pageProps} calUsername={username} calEmail={email} />
           ) : (

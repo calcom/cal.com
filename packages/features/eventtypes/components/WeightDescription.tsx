@@ -1,7 +1,6 @@
+import ServerTrans from "@calcom/lib/components/ServerTrans";
 import type { TFunction } from "i18next";
 import Link from "next/link";
-
-import ServerTrans from "@calcom/lib/components/ServerTrans";
 
 export default function WeightDescription({ t }: { t: TFunction }) {
   return (

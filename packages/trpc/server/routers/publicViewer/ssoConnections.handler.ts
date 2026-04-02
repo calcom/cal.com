@@ -1,7 +1,6 @@
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-
 import { TRPCError } from "@trpc/server";
 
 export const handler = async () => {

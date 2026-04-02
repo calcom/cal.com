@@ -1,5 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getDeploymentKey, getDeploymentSignatureToken } from "./getDeploymentKey";
 
 // Mock the crypto module

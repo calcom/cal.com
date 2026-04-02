@@ -1,14 +1,10 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { v4 as uuidv4 } from "uuid";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
+import process from "node:process";
 import { ORGANIZATION_SELF_SERVE_PRICE } from "@calcom/lib/constants";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { UserPermissionRole } from "@calcom/prisma/enums";
-
+import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-
+import { v4 as uuidv4 } from "uuid";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createHandler } from "./createWithPaymentIntent.handler";
 
 vi.stubEnv("STRIPE_PRIVATE_KEY", "test-stripe-private-key");

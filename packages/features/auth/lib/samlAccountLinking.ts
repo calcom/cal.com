@@ -2,9 +2,8 @@ import { MembershipRepository } from "@calcom/features/membership/repositories/M
 import { OrganizationSettingsRepository } from "@calcom/features/organizations/repositories/OrganizationSettingsRepository";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
 import type { PrismaClient } from "@calcom/prisma";
-
+import { prisma } from "@calcom/prisma";
 import { tenantPrefix } from "../../ee/sso/lib/saml";
 
 const log: ReturnType<typeof logger.getSubLogger> = logger.getSubLogger({ prefix: ["samlAccountLinking"] });

@@ -1,16 +1,14 @@
-import { expect } from "@playwright/test";
-
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
-  confirmReschedule,
+  cancelBookingFromBookingsList,
   confirmBooking,
+  confirmReschedule,
   doOnOrgDomain,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
-  cancelBookingFromBookingsList,
 } from "./lib/testUtils";
 
 test.afterEach(({ users }) => users.deleteAll());

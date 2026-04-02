@@ -1,10 +1,11 @@
-import { useMutation } from "@tanstack/react-query";
-
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
-import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
-import type { CreateTeamEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import type {
+  ApiResponse,
+  ApiSuccessResponse,
+  CreateTeamEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
 import type { EventType } from "@calcom/prisma/client";
-
+import { useMutation } from "@tanstack/react-query";
 import http from "../../../lib/http";
 import { useAtomsContext } from "../../useAtomsContext";
 

@@ -1,7 +1,6 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
 import { WebhookTaskerProducerService } from "@calcom/features/webhooks/lib/service/WebhookTaskerProducerService";
-
 import { moduleLoader as webhookTaskerModule } from "../tasker/WebhookTasker.module";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 

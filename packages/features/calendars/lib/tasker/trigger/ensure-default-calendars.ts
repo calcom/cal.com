@@ -1,6 +1,5 @@
 import { schemaTask, type TaskWithSchema } from "@trigger.dev/sdk";
 import type { z } from "zod";
-
 import { calendarsTaskConfig } from "./config";
 import { calendarsTaskSchema } from "./schema";
 

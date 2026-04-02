@@ -1,16 +1,14 @@
-import { useMemo } from "react";
-
 import dayjs from "@calcom/dayjs";
+import {
+  DEFAULT_PRESET,
+  getDefaultEndDate,
+  getDefaultStartDate,
+} from "@calcom/features/data-table/lib/dateRange";
+import { type ColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
+import { useMemo } from "react";
 import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
-import {
-  getDefaultStartDate,
-  getDefaultEndDate,
-  DEFAULT_PRESET,
-} from "@calcom/features/data-table/lib/dateRange";
-import { ColumnFilterType, type ColumnFilter } from "@calcom/features/data-table/lib/types";
-import { CURRENT_TIMEZONE } from "@calcom/lib/timezoneConstants";
-
 import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 
 export function useInsightsBookingParameters() {

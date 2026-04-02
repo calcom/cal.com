@@ -1,8 +1,6 @@
-import { NextRequest } from "next/server";
-import { describe, expect, test, vi, beforeEach } from "vitest";
-
 import { getOGImageVersion } from "@calcom/lib/OgImages";
-
+import { NextRequest } from "next/server";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { GET } from "../route";
 
 vi.mock("next/og", () => ({

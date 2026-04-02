@@ -1,5 +1,4 @@
 import { startSpan } from "@sentry/nextjs";
-
 import { checkIfUserHasFeatureUseCase } from "./check-if-user-has-feature.use-case";
 
 /**

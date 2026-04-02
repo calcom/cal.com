@@ -1,17 +1,15 @@
 "use client";
 
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-import type { TFunction } from "i18next";
-import { useMemo, useState, useEffect } from "react";
-import type { UseFormReturn } from "react-hook-form";
-
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
-
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
+import type { TFunction } from "i18next";
+import { useEffect, useMemo, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import type { PlatformTabs } from "../../event-types/wrappers/types";
 
 type Props = {
@@ -87,13 +85,13 @@ export const usePlatformTabsNavigations = ({ formMethods, eventType, team, tabs 
             ? formMethods.getValues("schedule") === null
               ? t("members_default_schedule")
               : isChildrenManagedEventType
-              ? `${
-                  formMethods.getValues("scheduleName")
-                    ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
-                    : t("default_schedule_name")
-                }`
-              : formMethods.getValues("scheduleName") ?? t("default_schedule_name")
-            : formMethods.getValues("scheduleName") ?? t("default_schedule_name"),
+                ? `${
+                    formMethods.getValues("scheduleName")
+                      ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
+                      : t("default_schedule_name")
+                  }`
+                : (formMethods.getValues("scheduleName") ?? t("default_schedule_name"))
+            : (formMethods.getValues("scheduleName") ?? t("default_schedule_name")),
         "data-testid": "availability",
       });
 

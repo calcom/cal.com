@@ -3,7 +3,6 @@ import {
   eventTypeLocations as eventTypeLocationsSchema,
   eventTypeMetaDataSchemaWithoutApps,
 } from "@calcom/prisma/zod-utils";
-
 import { getAppFromLocationValue } from "../utils";
 
 /**
@@ -79,7 +78,7 @@ export const getBulkTeamEventTypes = async (teamId: number) => {
 };
 
 export const filterEventTypesWhereLocationUpdateIsAllowed = <
-  T extends { parentId: number | null; metadata: unknown }
+  T extends { parentId: number | null; metadata: unknown },
 >(
   eventTypes: T[]
 ): T[] => {

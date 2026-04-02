@@ -5,7 +5,6 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import InsightsPage from "~/insights/views/insights-view";
 import Shell from "~/shell/Shell";
-
 import { checkInsightsPagePermission } from "./checkInsightsPagePermission";
 import { getInsightsUpgradeBanner } from "./getInsightsUpgradeBanner";
 

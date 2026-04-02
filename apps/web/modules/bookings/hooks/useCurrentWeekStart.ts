@@ -1,9 +1,7 @@
-import { createParser, useQueryState } from "nuqs";
-
 import dayjs from "@calcom/dayjs";
 import { weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-
+import { createParser, useQueryState } from "nuqs";
 import { getWeekStart } from "../lib/weekUtils";
 
 /**

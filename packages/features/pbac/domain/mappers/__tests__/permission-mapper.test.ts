@@ -1,5 +1,4 @@
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import type { Permission } from "../../models/Permission";
 import type { PermissionString } from "../../types/permission-registry";
 import { CrudAction, Resource } from "../../types/permission-registry";

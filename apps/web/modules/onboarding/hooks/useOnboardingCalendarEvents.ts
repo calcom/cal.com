@@ -1,12 +1,10 @@
-import { useSession } from "next-auth/react";
-import { useMemo, useEffect } from "react";
-
 import dayjs from "@calcom/dayjs";
-
 import type { CalendarEvent } from "@calcom/features/calendars/weeklyview/types/events";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import { useSession } from "next-auth/react";
+import { useEffect, useMemo } from "react";
 
 type UseOnboardingCalendarEventsProps = {
   startDate: Date;

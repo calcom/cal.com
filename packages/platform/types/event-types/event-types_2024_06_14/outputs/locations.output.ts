@@ -1,17 +1,24 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiPropertyOptional, ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsUrl, IsIn, IsOptional, IsNumber, IsString } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
-import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
-
 import {
+  IsIn,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUrl,
+  registerDecorator,
+  ValidatorConstraint,
+  validate,
+} from "class-validator";
+import {
+  eventTypeInputLocations,
   InputAddressLocation_2024_06_14,
   InputAttendeeAddressLocation_2024_06_14,
   InputAttendeeDefinedLocation_2024_06_14,
   InputAttendeePhoneLocation_2024_06_14,
   InputLinkLocation_2024_06_14,
-  eventTypeInputLocations,
   InputPhoneLocation_2024_06_14,
 } from "../inputs";
 
@@ -167,7 +174,7 @@ class OutputLocationValidator_2024_06_14 implements ValidatorConstraintInterface
 
 export function ValidateOutputLocations_2024_06_14(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "ValidateLocation",
       target: object.constructor,

@@ -1,19 +1,17 @@
-import { describe, it, expect } from "vitest";
-
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-
+import { describe, expect, it } from "vitest";
 import {
-  getPendingActions,
-  getCancelEventAction,
-  getVideoOptionsActions,
-  getEditEventActions,
-  getAfterEventActions,
-  shouldShowPendingActions,
-  shouldShowEditActions,
-  shouldShowRecurringCancelAction,
-  isActionDisabled,
-  getActionLabel,
   type BookingActionContext,
+  getActionLabel,
+  getAfterEventActions,
+  getCancelEventAction,
+  getEditEventActions,
+  getPendingActions,
+  getVideoOptionsActions,
+  isActionDisabled,
+  shouldShowEditActions,
+  shouldShowPendingActions,
+  shouldShowRecurringCancelAction,
 } from "./bookingActions";
 
 const mockT = (key: string) => key;

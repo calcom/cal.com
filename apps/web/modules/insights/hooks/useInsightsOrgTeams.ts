@@ -1,6 +1,5 @@
 import { useSession } from "next-auth/react";
 import { useContext } from "react";
-
 import { InsightsOrgTeamsContext } from "../components/context/InsightsOrgTeamsProvider";
 
 export function useInsightsOrgTeams() {

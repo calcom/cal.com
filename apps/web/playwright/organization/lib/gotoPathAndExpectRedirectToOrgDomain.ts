@@ -1,7 +1,6 @@
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 
 export async function gotoPathAndExpectRedirectToOrgDomain({
   page,

@@ -1,3 +1,17 @@
+import { GOOGLE_CALENDAR_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { Prisma } from "@calcom/prisma/client";
+import { calendar_v3 } from "@googleapis/calendar";
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Request } from "express";
+import { OAuth2Client } from "googleapis-common";
+import { z } from "zod";
 import { OAuthCalendarApp } from "@/ee/calendars/calendars.interface";
 import type { CalendarState } from "@/ee/calendars/controllers/calendars.controller";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
@@ -5,17 +19,6 @@ import { AppsRepository } from "@/modules/apps/apps.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { TokensService } from "@/modules/tokens/tokens.service";
-import { calendar_v3 } from "@googleapis/calendar";
-import { Logger, NotFoundException } from "@nestjs/common";
-import { BadRequestException, UnauthorizedException } from "@nestjs/common";
-import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { Request } from "express";
-import { OAuth2Client } from "googleapis-common";
-import { z } from "zod";
-
-import { SUCCESS_STATUS, GOOGLE_CALENDAR_TYPE } from "@calcom/platform-constants";
-import { Prisma } from "@calcom/prisma/client";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",

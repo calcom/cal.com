@@ -1,10 +1,10 @@
+import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import { useInitalizeTroubleshooterStore } from "@calcom/features/troubleshooter/store";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import classNames from "@calcom/ui/classNames";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
-import { TroubleshooterSidebar } from "../sidebar/TroubleshooterSidebar";
 import { LargeCalendar } from "../large-calendar/LargeCalendar";
-import { BookerStoreProvider } from "@calcom/features/bookings/Booker/BookerStoreProvider";
+import { TroubleshooterSidebar } from "../sidebar/TroubleshooterSidebar";
 
 interface TroubleshooterComponentProps {
   month?: string | null;
@@ -34,8 +34,7 @@ export const TroubleshooterComponent = ({
             isMobile
               ? "[--troubleshooter-meta-width:0px]"
               : "[--troubleshooter-meta-width:250px] lg:[--troubleshooter-meta-width:430px]"
-          )}
-        >
+          )}>
           <div
             style={{
               display: "grid",
@@ -47,8 +46,7 @@ export const TroubleshooterComponent = ({
             }}
             className={classNames(
               "bg-default dark:bg-cal-muted text-default min-h-full w-full sm:transition-[width] sm:duration-300"
-            )}
-          >
+            )}>
             <div className="sticky top-0 z-10 self-start ps-6 [grid-area:meta]">
               <TroubleshooterSidebar
                 onManageCalendarsClick={onManageCalendarsClick}

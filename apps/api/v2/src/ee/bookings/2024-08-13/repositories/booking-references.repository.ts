@@ -1,8 +1,7 @@
+import type { Prisma } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
 import { BookingReferencesFilterInput_2024_08_13 } from "@/ee/bookings/2024-08-13/inputs/booking-references-filter.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { Injectable } from "@nestjs/common";
-
-import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class BookingReferencesRepository_2024_08_13 {

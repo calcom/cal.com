@@ -18,7 +18,7 @@ export type TranslationWithParams = {
   components?: TranslationComponent[];
 };
 
-import type { EnrichmentDataStore, DataRequirements } from "../service/EnrichmentDataStore";
+import type { DataRequirements, EnrichmentDataStore } from "../service/EnrichmentDataStore";
 
 /**
  * This is agnostic of the action and is common for all actions

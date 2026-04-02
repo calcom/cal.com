@@ -1,14 +1,14 @@
-import { useState } from "react";
-
-import { trackFormbricksAction } from "@calcom/web/modules/formbricks/lib/trackFormbricksAction";
 import {
-  ORG_SELF_SERVE_ENABLED,
   ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE,
+  ORG_SELF_SERVE_ENABLED,
 } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Card } from "@calcom/ui/components/card";
+import { showToast } from "@calcom/ui/components/toast";
+import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
+import { trackFormbricksAction } from "@calcom/web/modules/formbricks/lib/trackFormbricksAction";
 import {
   BuildingIcon,
   ChartLineIcon,
@@ -17,9 +17,7 @@ import {
   UserPlusIcon,
   UsersIcon,
 } from "@coss/ui/icons";
-import { showToast } from "@calcom/ui/components/toast";
-import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-
+import { useState } from "react";
 import TeamListItem from "./TeamListItem";
 
 interface Props {

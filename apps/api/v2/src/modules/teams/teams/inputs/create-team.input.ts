@@ -1,8 +1,6 @@
+import { METADATA_DOCS, Metadata, ValidateMetadata } from "@calcom/platform-types";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsBoolean, IsObject, IsOptional, IsString, Length, Validate } from "class-validator";
-
-import { Metadata, METADATA_DOCS, ValidateMetadata } from "@calcom/platform-types";
-
 import { SSRFSafeUrlValidator } from "../validators/ssrfSafeUrlValidator";
 
 export class CreateTeamInput {

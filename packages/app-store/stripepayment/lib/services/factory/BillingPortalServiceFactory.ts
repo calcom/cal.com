@@ -1,6 +1,5 @@
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import prisma from "@calcom/prisma";
-
 import type { BillingPortalService } from "../base/BillingPortalService";
 import { OrganizationBillingPortalService } from "../organization/OrganizationBillingPortalService";
 import { TeamBillingPortalService } from "../team/TeamBillingPortalService";

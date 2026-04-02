@@ -1,7 +1,6 @@
 import { prisma } from "@calcom/prisma";
 import type { Booking, Credential } from "@calcom/prisma/client";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
-
 import { BookingReferenceRepository } from "./BookingReferenceRepository";
 
 const testRunId = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;

@@ -1,15 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
+import { Label, Select } from "@calcom/ui/components/form";
 import { Skeleton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { PlatformManagedUsersTable } from "@calcom/web/modules/users/components/UserTable/PlatformManagedUsersTable";
-
 import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
-
+import { useMemo, useState } from "react";
 import Shell from "~/shell/Shell";
 
 type OAuthClientOption = { label: string; value: string };

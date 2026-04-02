@@ -1,4 +1,4 @@
-import z from "zod";
+import type z from "zod";
 import type { routingStepSchema } from "../schema/zod";
 
 export type RoutingStep = z.infer<typeof routingStepSchema>;

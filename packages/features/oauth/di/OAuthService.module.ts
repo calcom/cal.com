@@ -1,6 +1,5 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { OAuthService } from "@calcom/features/oauth/services/OAuthService";
-
 import { moduleLoader as accessCodeRepositoryModuleLoader } from "./AccessCodeRepository.module";
 import { moduleLoader as oAuthClientRepositoryModuleLoader } from "./OAuthClientRepository.module";
 import { moduleLoader as teamRepositoryModuleLoader } from "./TeamRepository.module";

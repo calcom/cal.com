@@ -1,7 +1,6 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 import { AccessCodeRepository } from "@calcom/features/oauth/repositories/AccessCodeRepository";
-
 import { OAUTH_DI_TOKENS } from "./tokens";
 
 const thisModule = createModule();

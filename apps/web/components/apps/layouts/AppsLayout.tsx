@@ -1,10 +1,8 @@
-import { useRouter } from "next/navigation";
-import type { ComponentProps } from "react";
-import React from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-
+import { useRouter } from "next/navigation";
+import type React from "react";
+import type { ComponentProps } from "react";
 import Shell from "~/shell/Shell";
 
 type AppsLayoutProps = {

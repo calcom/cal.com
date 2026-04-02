@@ -9,26 +9,24 @@
  */
 import {
   createBookingScenario,
+  getBooker,
   getDate,
   getGoogleCalendarCredential,
-  TestData,
   getOrganizer,
-  getBooker,
   getScenarioData,
   mockCalendar,
+  TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import process from "node:process";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { expectBookingToBeInDatabase } from "@calcom/testing/lib/bookingScenario/expects";
 import { getMockRequestDataForDynamicGroupBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
+import { test } from "@calcom/testing/lib/fixtures/fixtures";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
-
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/testing/lib/fixtures/fixtures";
-
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
 export type CustomNextApiRequest = NextApiRequest & Request;

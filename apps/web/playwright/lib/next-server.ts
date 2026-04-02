@@ -1,8 +1,8 @@
-import detect from "detect-port";
 import type { Server } from "node:http";
 import { createServer } from "node:http";
-import next from "next";
 import { parse } from "node:url";
+import detect from "detect-port";
+import next from "next";
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 declare let process: {

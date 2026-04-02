@@ -1,18 +1,17 @@
-import type { calendar_v3 } from "@googleapis/calendar";
-import { v4 as uuid } from "uuid";
-
+import process from "node:process";
 import { CalendarAuth } from "@calcom/app-store/googlecalendar/lib/CalendarAuth";
 import dayjs from "@calcom/dayjs";
 import { CalendarCacheEventService } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventService";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
-
+import type { calendar_v3 } from "@googleapis/calendar";
+import { v4 as uuid } from "uuid";
 import type {
-  ICalendarSubscriptionPort,
-  CalendarSubscriptionResult,
+  CalendarCredential,
   CalendarSubscriptionEvent,
   CalendarSubscriptionEventItem,
-  CalendarCredential,
+  CalendarSubscriptionResult,
+  ICalendarSubscriptionPort,
 } from "../lib/CalendarSubscriptionPort.interface";
 
 const log = logger.getSubLogger({ prefix: ["GoogleCalendarSubscriptionAdapter"] });

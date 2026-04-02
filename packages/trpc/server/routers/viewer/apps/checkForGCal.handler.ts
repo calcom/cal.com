@@ -1,5 +1,4 @@
 import { prisma } from "@calcom/prisma";
-
 import type { TrpcSessionUser } from "../../../types";
 
 type CheckForGCalOptions = {

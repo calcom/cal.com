@@ -1,7 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import type { AppCardApp } from "types";
 import { vi } from "vitest";
-
 import { DynamicComponent } from "./DynamicComponent";
 import { EventTypeAppCard } from "./EventTypeAppCardInterface";
 

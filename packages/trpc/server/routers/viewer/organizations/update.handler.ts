@@ -9,9 +9,7 @@ import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TUpdateInputSchema } from "./update.schema";
 
@@ -66,81 +64,81 @@ const updateOrganizationSettings = async ({
   const data: Prisma.OrganizationSettingsUpdateInput = {};
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("lockEventTypeCreation")) {
+  if (Object.hasOwn(input, "lockEventTypeCreation")) {
     data.lockEventTypeCreationForUsers = input.lockEventTypeCreation;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("adminGetsNoSlotsNotification")) {
+  if (Object.hasOwn(input, "adminGetsNoSlotsNotification")) {
     data.adminGetsNoSlotsNotification = input.adminGetsNoSlotsNotification;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("allowSEOIndexing")) {
+  if (Object.hasOwn(input, "allowSEOIndexing")) {
     data.allowSEOIndexing = input.allowSEOIndexing;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("orgProfileRedirectsToVerifiedDomain")) {
+  if (Object.hasOwn(input, "orgProfileRedirectsToVerifiedDomain")) {
     data.orgProfileRedirectsToVerifiedDomain = input.orgProfileRedirectsToVerifiedDomain;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disablePhoneOnlySMSNotifications")) {
+  if (Object.hasOwn(input, "disablePhoneOnlySMSNotifications")) {
     data.disablePhoneOnlySMSNotifications = input.disablePhoneOnlySMSNotifications;
   }
 
-  if (input.hasOwnProperty("disableAutofillOnBookingPage")) {
+  if (Object.hasOwn(input, "disableAutofillOnBookingPage")) {
     data.disableAutofillOnBookingPage = input.disableAutofillOnBookingPage;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("orgAutoJoinOnSignup")) {
+  if (Object.hasOwn(input, "orgAutoJoinOnSignup")) {
     data.orgAutoJoinOnSignup = input.orgAutoJoinOnSignup;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disableAttendeeConfirmationEmail")) {
+  if (Object.hasOwn(input, "disableAttendeeConfirmationEmail")) {
     data.disableAttendeeConfirmationEmail = input.disableAttendeeConfirmationEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disableAttendeeCancellationEmail")) {
+  if (Object.hasOwn(input, "disableAttendeeCancellationEmail")) {
     data.disableAttendeeCancellationEmail = input.disableAttendeeCancellationEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disableAttendeeRescheduledEmail")) {
+  if (Object.hasOwn(input, "disableAttendeeRescheduledEmail")) {
     data.disableAttendeeRescheduledEmail = input.disableAttendeeRescheduledEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disableAttendeeRequestEmail")) {
+  if (Object.hasOwn(input, "disableAttendeeRequestEmail")) {
     data.disableAttendeeRequestEmail = input.disableAttendeeRequestEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disableAttendeeReassignedEmail")) {
+  if (Object.hasOwn(input, "disableAttendeeReassignedEmail")) {
     data.disableAttendeeReassignedEmail = input.disableAttendeeReassignedEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disableAttendeeAwaitingPaymentEmail")) {
+  if (Object.hasOwn(input, "disableAttendeeAwaitingPaymentEmail")) {
     data.disableAttendeeAwaitingPaymentEmail = input.disableAttendeeAwaitingPaymentEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disableAttendeeRescheduleRequestEmail")) {
+  if (Object.hasOwn(input, "disableAttendeeRescheduleRequestEmail")) {
     data.disableAttendeeRescheduleRequestEmail = input.disableAttendeeRescheduleRequestEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disableAttendeeLocationChangeEmail")) {
+  if (Object.hasOwn(input, "disableAttendeeLocationChangeEmail")) {
     data.disableAttendeeLocationChangeEmail = input.disableAttendeeLocationChangeEmail;
   }
 
   // eslint-disable-next-line no-prototype-builtins
-  if (input.hasOwnProperty("disableAttendeeNewEventEmail")) {
+  if (Object.hasOwn(input, "disableAttendeeNewEventEmail")) {
     data.disableAttendeeNewEventEmail = input.disableAttendeeNewEventEmail;
   }
 

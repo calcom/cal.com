@@ -1,16 +1,14 @@
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import {
-  updateTriggerForExistingBookings,
-  deleteWebhookScheduledTriggers,
   cancelNoShowTasksForBooking,
+  deleteWebhookScheduledTriggers,
+  updateTriggerForExistingBookings,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TEditInputSchema } from "./edit.schema";
 
 type EditOptions = {

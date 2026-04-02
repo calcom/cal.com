@@ -69,9 +69,9 @@ if (!calLink) {
 
 // TODO: Reuse the embed code snippet from the embed-snippet package - Not able to use it because of circular dependency
 // Install Cal Embed Code Snippet
-(function (C, A, L) {
+((C, A, L) => {
   // @ts-expect-error
-  const p = function (a, ar) {
+  const p = (a, ar) => {
     a.q.push(ar);
   };
   const d = C.document;

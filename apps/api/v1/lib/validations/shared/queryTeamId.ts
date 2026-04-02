@@ -1,6 +1,5 @@
 import { withValidation } from "next-validations";
 import { z } from "zod";
-
 import { baseApiParams } from "./baseApiParams";
 
 // Extracted out as utility function so can be reused

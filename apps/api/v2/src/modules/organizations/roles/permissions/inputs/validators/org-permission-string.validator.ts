@@ -1,9 +1,7 @@
+import { isValidPermissionStringForScope, Scope } from "@calcom/platform-libraries/pbac";
 import { BadRequestException } from "@nestjs/common";
 import type { ValidatorConstraintInterface } from "class-validator";
 import { ValidatorConstraint } from "class-validator";
-
-import { isValidPermissionStringForScope } from "@calcom/platform-libraries/pbac";
-import { Scope } from "@calcom/platform-libraries/pbac";
 
 @ValidatorConstraint({ name: "orgPermissionStringValidator", async: false })
 export class OrgPermissionStringValidator implements ValidatorConstraintInterface {

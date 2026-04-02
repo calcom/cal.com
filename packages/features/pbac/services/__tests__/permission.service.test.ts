@@ -1,5 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, it } from "vitest";
 import type { PermissionString } from "../../domain/types/permission-registry";
 import { CrudAction, PERMISSION_REGISTRY, Resource } from "../../domain/types/permission-registry";
 import { PermissionService } from "../permission.service";

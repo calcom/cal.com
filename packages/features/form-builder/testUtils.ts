@@ -1,7 +1,6 @@
-import { fireEvent, waitFor, screen, within } from "@testing-library/react";
-import { vi } from "vitest";
-
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { vi } from "vitest";
 
 export interface FieldProps {
   fieldType: string;

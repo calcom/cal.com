@@ -1,19 +1,17 @@
 "use client";
 
-import { useState } from "react";
-
 import type { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import {
-  Scope,
   CrudAction,
   getPermissionsForScope,
+  Scope,
 } from "@calcom/features/pbac/domain/types/permission-registry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Checkbox, Label } from "@calcom/ui/components/form";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { ChevronRightIcon, InfoIcon } from "@coss/ui/icons";
-
+import { useState } from "react";
 import { usePermissions } from "./usePermissions";
 
 interface AdvancedPermissionGroupProps {

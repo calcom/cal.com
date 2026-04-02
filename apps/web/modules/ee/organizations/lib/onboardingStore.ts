@@ -1,13 +1,13 @@
+import process from "node:process";
+import { IS_TEAM_BILLING_ENABLED_CLIENT, WEBAPP_URL } from "@calcom/lib/constants";
+import { localStorage } from "@calcom/lib/webstorage";
+import { type BillingPeriod, UserPermissionRole } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { create } from "zustand";
 import { persist, StorageValue } from "zustand/middleware";
-
-import { WEBAPP_URL, IS_TEAM_BILLING_ENABLED_CLIENT } from "@calcom/lib/constants";
-import { localStorage } from "@calcom/lib/webstorage";
-import { BillingPeriod, UserPermissionRole } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 
 interface OnboardingAdminStoreState {
   billingPeriod?: BillingPeriod;

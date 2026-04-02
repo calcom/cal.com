@@ -1,8 +1,6 @@
+import type { PermissionString } from "@calcom/platform-libraries/pbac";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsString, Validate } from "class-validator";
-
-import type { PermissionString } from "@calcom/platform-libraries/pbac";
-
 import { teamPermissionEnum } from "../../inputs/base-team-role.input";
 import { TeamPermissionStringValidator } from "./validators/team-permission-string.validator";
 

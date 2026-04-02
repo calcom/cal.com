@@ -1,5 +1,4 @@
 import type { GetServerSidePropsContext } from "next";
-
 import getAppKeysFromSlug from "../../../_utils/getAppKeysFromSlug";
 
 export interface IMakeSetupProps {

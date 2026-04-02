@@ -1,9 +1,7 @@
-import { useSession } from "next-auth/react";
-
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { localeOptions } from "@calcom/lib/i18n";
-
+import { useSession } from "next-auth/react";
 import type { EventSetupTabProps } from "./EventSetupTab";
 import { EventSetupTab } from "./EventSetupTab";
 

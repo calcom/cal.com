@@ -1,7 +1,7 @@
 import type { JsonValue } from "@calcom/types/Json";
-import type { AuditActorType } from "./IAuditActorRepository";
-import type { ActionSource } from "../types/actionSource";
 import type { BookingAuditContext } from "../dto/types";
+import type { ActionSource } from "../types/actionSource";
+import type { AuditActorType } from "./IAuditActorRepository";
 
 export type BookingAuditType = "RECORD_CREATED" | "RECORD_UPDATED" | "RECORD_DELETED";
 

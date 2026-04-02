@@ -1,6 +1,7 @@
+import { Module } from "@nestjs/common";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
-import { AtomsSecondaryEmailsRepository } from "@/modules/atoms/atoms-secondary-emails.repository";
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
+import { AtomsSecondaryEmailsRepository } from "@/modules/atoms/atoms-secondary-emails.repository";
 import { AtomsConferencingAppsController } from "@/modules/atoms/controllers/atoms.conferencing-apps.controller";
 import { AtomsController } from "@/modules/atoms/controllers/atoms.controller";
 import { AtomsEventTypesController } from "@/modules/atoms/controllers/atoms.event-types.controller";
@@ -21,7 +22,6 @@ import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-t
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, EventTypesModule_2024_06_14, OrganizationsModule, TeamsEventTypesModule],

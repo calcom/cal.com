@@ -3,7 +3,6 @@ import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
 import type { Messages } from "mailhog";
 import type { createEmailsFixture } from "playwright/fixtures/emails";
-
 import { getEmailsReceivedByUser } from "../lib/testUtils";
 
 export async function expectInvitationEmailToBeReceived(

@@ -1,20 +1,19 @@
 import { lookup } from "node:dns";
-import { type TFunction } from "i18next";
-
 import { sendAdminOrganizationNotification } from "@calcom/emails/organization-email-service";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import {
-  RESERVED_SUBDOMAINS,
-  ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE,
-  WEBAPP_URL,
   IS_CALCOM,
+  ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE,
+  RESERVED_SUBDOMAINS,
+  WEBAPP_URL,
 } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
+import type { TFunction } from "i18next";
 
 const log = logger.getSubLogger({ prefix: ["orgCreationUtils"] });
 

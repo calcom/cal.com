@@ -1,7 +1,5 @@
-import type { NextApiRequest } from "next";
-
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest } from "next";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 async function authMiddleware(req: NextApiRequest) {

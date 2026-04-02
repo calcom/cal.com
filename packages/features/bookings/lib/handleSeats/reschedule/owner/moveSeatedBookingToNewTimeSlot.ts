@@ -1,16 +1,14 @@
-import { cloneDeep } from "lodash";
-
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
-
-import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { cloneDeep } from "lodash";
 import type { Booking } from "../../../handleNewBooking/createBooking";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
-import type { SeatedBooking, RescheduleSeatedBookingObject } from "../../types";
+import type { RescheduleSeatedBookingObject, SeatedBooking } from "../../types";
 
 async function updateBooking({
   bookingId,
@@ -67,9 +65,7 @@ const moveSeatedBookingToNewTimeSlot = async (
     cancellationReason: rescheduleReason,
   });
 
-  evt = CalendarEventBuilder.fromEvent(evt)
-    .withVideoCallDataFromReferences(newBooking.references)
-    .build();
+  evt = CalendarEventBuilder.fromEvent(evt).withVideoCallDataFromReferences(newBooking.references).build();
 
   const copyEvent = cloneDeep(evt);
 

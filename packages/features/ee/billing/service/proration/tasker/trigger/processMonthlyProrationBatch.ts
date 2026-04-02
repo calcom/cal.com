@@ -1,5 +1,4 @@
 import { schemaTask } from "@trigger.dev/sdk";
-
 import { monthlyProrationTaskConfig } from "./config";
 import { monthlyProrationBatchSchema } from "./schema";
 import { sendProrationInvoiceEmail } from "./sendProrationInvoiceEmail";

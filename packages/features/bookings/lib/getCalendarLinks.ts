@@ -1,18 +1,17 @@
+import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
+import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import type { Prisma } from "@calcom/prisma/client";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { RecurringEvent } from "@calcom/types/Calendar";
 import type { TFunction } from "i18next";
 import { createEvent } from "ics";
 import { RRule } from "rrule";
 import type { z } from "zod";
 
-import type { Dayjs } from "@calcom/dayjs";
-import dayjs from "@calcom/dayjs";
-import type { Prisma } from "@calcom/prisma/client";
-import type { nameObjectSchema } from "@calcom/features/eventtypes/lib/eventNaming";
-import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { RecurringEvent } from "@calcom/types/Calendar";
-
 type RecurringEventOrPrismaJsonObject = RecurringEvent | Prisma.JsonObject | null | undefined;
-export const enum CalendarLinkType {
+export enum CalendarLinkType {
   GOOGLE_CALENDAR = "googleCalendar",
   MICROSOFT_OFFICE = "microsoftOffice",
   MICROSOFT_OUTLOOK = "microsoftOutlook",

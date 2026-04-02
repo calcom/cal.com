@@ -1,12 +1,9 @@
 "use client";
 
-import Head from "next/head";
-
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-
 import PageWrapper from "@components/PageWrapper";
-
+import Head from "next/head";
 import { getServerSideProps } from "../../server/lib/router/getServerSideProps";
 
 export default function Router({ form, message, errorMessage }: inferSSRProps<typeof getServerSideProps>) {

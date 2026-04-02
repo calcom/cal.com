@@ -1,7 +1,6 @@
-import React from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
+import type React from "react";
 
 type SkeletonBaseProps = {
   className?: string;
@@ -31,8 +30,8 @@ type SkeletonProps<T> = {
 } & (T extends React.FC<infer P>
   ? P
   : T extends keyof JSX.IntrinsicElements
-  ? JSX.IntrinsicElements[T]
-  : never);
+    ? JSX.IntrinsicElements[T]
+    : never);
 
 const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
   as,

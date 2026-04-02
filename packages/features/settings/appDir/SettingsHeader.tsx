@@ -1,11 +1,11 @@
 "use client";
 
-import React, { Suspense } from "react";
-
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { LoaderIcon } from "@coss/ui/icons";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type React from "react";
+import { Suspense } from "react";
 
 type HeaderPropsBase = {
   children: React.ReactNode;

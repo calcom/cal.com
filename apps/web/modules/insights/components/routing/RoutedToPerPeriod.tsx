@@ -1,32 +1,30 @@
 "use client";
 
-import type { TFunction } from "i18next";
-import { useQueryState } from "nuqs";
-import { type ReactNode, useMemo, useRef, useState } from "react";
-import posthog from "posthog-js";
-
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { ToggleGroup, Input } from "@calcom/ui/components/form";
+import { Input, ToggleGroup } from "@calcom/ui/components/form";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@calcom/ui/components/hover-card";
 import {
-  TableNew,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
+  TableNew,
   TableRow,
 } from "@calcom/ui/components/table";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
 import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
+import type { TFunction } from "i18next";
+import { useQueryState } from "nuqs";
+import posthog from "posthog-js";
+import { type ReactNode, useMemo, useRef, useState } from "react";
 import { ChartCard } from "../ChartCard";
 
 interface DownloadButtonProps {

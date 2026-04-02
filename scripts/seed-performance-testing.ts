@@ -3,14 +3,13 @@
  *  TODO: Make it more structured and configurable from CLI
  *  Run it as `npx ts-node --transpile-only ./seed-performance-testing.ts`
  */
-import { uuid } from "short-uuid";
 
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
 import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
 import { BookingStatus } from "@calcom/prisma/enums";
-
+import { uuid } from "short-uuid";
 import { createUserAndEventType } from "./seed-utils";
 
 async function _createManyDifferentUsersWithDifferentEventTypesAndBookings({

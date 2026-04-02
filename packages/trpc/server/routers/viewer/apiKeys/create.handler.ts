@@ -1,9 +1,8 @@
-import { v4 } from "uuid";
-
+import process from "node:process";
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { v4 } from "uuid";
 import type { TrpcSessionUser } from "../../../types";
 import { checkPermissions } from "./_auth-middleware";
 import type { TCreateInputSchema } from "./create.schema";

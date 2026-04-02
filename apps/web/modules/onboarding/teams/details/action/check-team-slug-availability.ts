@@ -1,12 +1,10 @@
 "use server";
 
-import { cookies, headers } from "next/headers";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { cookies, headers } from "next/headers";
 
 export async function checkTeamSlugAvailability(slug: string): Promise<{
   available: boolean;

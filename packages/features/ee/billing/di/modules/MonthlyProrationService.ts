@@ -2,7 +2,6 @@ import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calc
 import { moduleLoader as featuresRepositoryModuleLoader } from "@calcom/features/di/modules/FeaturesRepository";
 import { moduleLoader as triggerDevLoggerServiceModule } from "@calcom/features/di/shared/services/triggerDevLogger.service";
 import { MonthlyProrationService } from "@calcom/features/ee/billing/service/proration/MonthlyProrationService";
-
 import { DI_TOKENS } from "../tokens";
 
 const thisModule = createModule();

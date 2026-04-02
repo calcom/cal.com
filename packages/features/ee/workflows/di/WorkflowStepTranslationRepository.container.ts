@@ -1,8 +1,7 @@
 import { createContainer } from "@calcom/features/di/di";
-
 import {
-  moduleLoader as workflowStepTranslationRepositoryModuleLoader,
   type WorkflowStepTranslationRepository,
+  moduleLoader as workflowStepTranslationRepositoryModuleLoader,
 } from "./WorkflowStepTranslationRepository.module";
 
 const workflowStepTranslationRepositoryContainer = createContainer();

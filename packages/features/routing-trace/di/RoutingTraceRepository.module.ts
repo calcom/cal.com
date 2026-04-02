@@ -1,6 +1,5 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
-
 import { PrismaRoutingTraceRepository } from "../repositories/PrismaRoutingTraceRepository";
 import { ROUTING_TRACE_DI_TOKENS } from "./tokens";
 

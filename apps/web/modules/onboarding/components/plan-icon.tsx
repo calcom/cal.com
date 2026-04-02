@@ -1,6 +1,5 @@
-import { AnimatePresence, motion } from "framer-motion";
-
 import { Icon, type IconName } from "@calcom/ui/components/icon";
+import { AnimatePresence, motion } from "framer-motion";
 
 // Ring sizes - just the diameters, all centered on the icon
 const RING_SIZES = [166, 233, 345, 465];

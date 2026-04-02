@@ -1,8 +1,6 @@
+import prisma from "@calcom/prisma";
 import type { NextApiRequest } from "next";
 import type { z } from "zod";
-
-import prisma from "@calcom/prisma";
-
 import type { schemaEventTypeCreateBodyParams } from "~/lib/validations/event-type";
 
 export default async function ensureOnlyMembersAsHosts(

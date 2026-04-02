@@ -1,5 +1,4 @@
 import { BadRequestException } from "@nestjs/common";
-
 import { TeamPermissionStringValidator } from "./team-permission-string.validator";
 
 describe("PermissionStringValidator", () => {

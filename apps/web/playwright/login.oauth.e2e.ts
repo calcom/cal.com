@@ -1,7 +1,5 @@
-import { expect, test } from "@playwright/test";
-
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
-
+import { expect, test } from "@playwright/test";
 import { IS_GOOGLE_LOGIN_ENABLED } from "../server/lib/constants";
 
 test("Should display Google Login button", async ({ page }) => {

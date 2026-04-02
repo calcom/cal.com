@@ -1,8 +1,7 @@
 "use client";
 
-import { useParams } from "next/navigation";
-
 import dayjs from "@calcom/dayjs";
+import { useParams } from "next/navigation";
 import { DecoyBookingSuccessCard } from "~/bookings/components/DecoyBookingSuccessCard";
 import { useDecoyBooking } from "~/bookings/hooks/useDecoyBooking";
 

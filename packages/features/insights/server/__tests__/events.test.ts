@@ -1,10 +1,8 @@
 import "@calcom/testing/lib/__mocks__/prisma";
 
-import { describe, expect, it } from "vitest";
-
 import dayjs from "@calcom/dayjs";
-
-import { getTimeView, getDateRanges, formatPeriod } from "../insightsDateUtils";
+import { describe, expect, it } from "vitest";
+import { formatPeriod, getDateRanges, getTimeView } from "../insightsDateUtils";
 
 describe("EventsInsights", () => {
   describe("getDateRanges", () => {

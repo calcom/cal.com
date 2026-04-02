@@ -1,19 +1,17 @@
-import type { Page } from "@playwright/test";
-import { expect } from "@playwright/test";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/playwright/lib/fixtures";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
+import { test } from "@calcom/web/playwright/lib/fixtures";
 import { doOnOrgDomain } from "@calcom/web/playwright/lib/testUtils";
-
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { expectHostsToBe } from "../lib/pages/bookingSuccessPage";
 import {
-  getEmbedIframe,
   bookEvent,
+  expectActualFormResponseConnectedToQueuedFormResponse,
   expectEmbedIFrameToBeVisible,
   getAllFormResponses,
-  expectActualFormResponseConnectedToQueuedFormResponse,
+  getEmbedIframe,
   getLatestQueuedFormResponse,
 } from "../lib/testUtils";
 

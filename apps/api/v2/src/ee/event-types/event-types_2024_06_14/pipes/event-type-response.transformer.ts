@@ -1,8 +1,6 @@
+import { EventTypeOutput_2024_06_14 } from "@calcom/platform-types";
 import { Injectable, PipeTransform } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
-
-import { EventTypeOutput_2024_06_14 } from "@calcom/platform-types";
-
 import {
   DatabaseEventType,
   OutputEventTypesService_2024_06_14,

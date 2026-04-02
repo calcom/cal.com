@@ -1,6 +1,6 @@
 import type { WebhookEventDTO } from "../dto/types";
 import type { ILogger } from "../interface/infrastructure";
-import type { IWebhookNotifier, IWebhookNotificationHandler } from "../interface/webhook";
+import type { IWebhookNotificationHandler, IWebhookNotifier } from "../interface/webhook";
 
 export class WebhookNotifier implements IWebhookNotifier {
   private readonly log: ILogger;

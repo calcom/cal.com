@@ -1,8 +1,6 @@
 import { VideoApiAdapterMap } from "@calcom/app-store/video.adapters.generated";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TGetMeetingInformationInputSchema } from "./getMeetingInformation.schema";
 
 type GetMeetingInformationOptions = {

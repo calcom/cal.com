@@ -1,11 +1,8 @@
-import { describe, it, vi, expect, beforeEach, afterEach } from "vitest";
-
 import { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
 import { getConnectedCalendars } from "@calcom/features/calendars/lib/CalendarManager";
 import { DestinationCalendarRepository } from "@calcom/features/calendars/repositories/DestinationCalendarRepository";
-
 import { TRPCError } from "@trpc/server";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setDestinationCalendarHandler } from "./setDestinationCalendar.handler";
 
 type MockUser = {

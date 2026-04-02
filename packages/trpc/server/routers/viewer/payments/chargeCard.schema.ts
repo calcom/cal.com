@@ -1,5 +1,4 @@
 import type { z } from "zod";
-
 import { ChargerCardSchema } from "./type";
 
 export const ZChargerCardInputSchema = ChargerCardSchema;

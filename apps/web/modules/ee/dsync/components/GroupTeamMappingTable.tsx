@@ -1,13 +1,11 @@
-import type { ColumnDef } from "@tanstack/react-table";
-import { useReactTable, getCoreRowModel } from "@tanstack/react-table";
-import { usePathname } from "next/navigation";
-import { useRef, useState } from "react";
-
-import { DataTableProvider } from "~/data-table/DataTableProvider";
-import { DataTable, DataTableToolbar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-
+import type { ColumnDef } from "@tanstack/react-table";
+import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
+import { useRef, useState } from "react";
+import { DataTable, DataTableToolbar } from "~/data-table/components";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
 import CreateTeamDialog from "./CreateTeamDialog";
 import GroupNameCell from "./GroupNameCell";
 

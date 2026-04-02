@@ -1,17 +1,15 @@
 "use client";
 
+import classNames from "@calcom/ui/classNames";
 import Link from "next/link";
 import { useState } from "react";
-
-import classNames from "@calcom/ui/classNames";
-
 import type { BadgeProps } from "../badge";
 import { Badge } from "../badge";
 import { Button } from "../button";
-import { Dropdown, DropdownMenuTrigger, DropdownMenuContent, DropdownItem } from "../dropdown";
+import { Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "../dropdown";
 import { Input } from "../form/inputs/TextField";
-import { Icon } from "../icon";
 import type { IconName } from "../icon";
+import { Icon } from "../icon";
 
 type Action = { check: () => boolean; fn: () => void; color?: "destructive" | "minimal"; disabled?: boolean };
 

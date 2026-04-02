@@ -1,9 +1,9 @@
-import { expect } from "@playwright/test";
 import { randomBytes } from "node:crypto";
-import jwt from "jsonwebtoken";
-
-import { test } from "../lib/fixtures";
+import process from "node:process";
 import type { PrismaClient } from "@calcom/prisma";
+import { expect } from "@playwright/test";
+import jwt from "jsonwebtoken";
+import { test } from "../lib/fixtures";
 
 test.describe("OAuth - refresh tokens", () => {
   test.afterEach(async ({ prisma, users }, testInfo) => {

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import getDominantAccountId from "../getDominantAccountId";
 
 describe("getDominantAccountId", () => {

@@ -1,6 +1,5 @@
 import type { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { AttributeService } from "./AttributeService";
 
 describe("AttributeService", () => {

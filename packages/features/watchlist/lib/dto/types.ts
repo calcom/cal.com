@@ -1,4 +1,4 @@
-import type { WatchlistAction, WatchlistType, WatchlistSource } from "@calcom/prisma/enums";
+import type { WatchlistAction, WatchlistSource, WatchlistType } from "@calcom/prisma/enums";
 
 // Base DTOs for API responses
 export interface WatchlistEntryDTO {

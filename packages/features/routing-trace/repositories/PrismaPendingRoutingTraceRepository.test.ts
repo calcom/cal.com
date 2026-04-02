@@ -1,6 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { PrismaPendingRoutingTraceRepository } from "./PrismaPendingRoutingTraceRepository";
 
 describe("PrismaPendingRoutingTraceRepository", () => {

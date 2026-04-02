@@ -1,5 +1,4 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import TemplateCard from "./TemplateCard";
 import type { Template } from "./types";
 

@@ -1,10 +1,9 @@
-import type { PageProps } from "app/_types";
-import { z } from "zod";
-
 // import { cookies, headers } from "next/headers";
 // import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 // import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import LegacyPage from "@calcom/web/modules/ee/workflows/views/WorkflowPage";
+import type { PageProps } from "app/_types";
+import { z } from "zod";
 
 const querySchema = z.object({
   workflow: z

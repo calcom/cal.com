@@ -1,10 +1,9 @@
-import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { SeatChangeTrackingService } from "@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingService";
+import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import prisma from "@calcom/prisma";
 import type { IdentityProvider } from "@calcom/prisma/enums";
 import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
-
 import {
   deriveNameFromOrgUsername,
   getOrgUsernameFromEmail,

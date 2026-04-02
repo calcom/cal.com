@@ -35,13 +35,13 @@ export class CalAiPhoneNumberRepository {
     isOrgOwner: boolean;
     adminTeamIds: number[];
   }): Promise<string[]> {
-    const userPhoneNumbers = await this.getUserPhoneNumbers(userId);
+    const userPhoneNumbers = await CalAiPhoneNumberRepository.getUserPhoneNumbers(userId);
 
     let teamPhoneNumbers: Array<{ phoneNumber: string }> = [];
     if (isOrgOwner && organizationId) {
-      teamPhoneNumbers = await this.getOrganizationTeamPhoneNumbers(organizationId);
+      teamPhoneNumbers = await CalAiPhoneNumberRepository.getOrganizationTeamPhoneNumbers(organizationId);
     } else if (adminTeamIds.length > 0) {
-      teamPhoneNumbers = await this.getTeamPhoneNumbers(adminTeamIds);
+      teamPhoneNumbers = await CalAiPhoneNumberRepository.getTeamPhoneNumbers(adminTeamIds);
     }
 
     const allPhoneNumbers = [

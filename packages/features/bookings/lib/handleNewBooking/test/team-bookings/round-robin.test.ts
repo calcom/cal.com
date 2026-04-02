@@ -1,29 +1,24 @@
 import {
-  getBooker,
-  TestData,
-  getOrganizer,
-  createBookingScenario,
-  Timezones,
-  getScenarioData,
-  mockSuccessfulVideoMeetingCreation,
   BookingLocations,
+  createBookingScenario,
+  getBooker,
   getDate,
-  getMockBookingAttendee,
   getGoogleCalendarCredential,
+  getMockBookingAttendee,
+  getOrganizer,
+  getScenarioData,
   mockCalendarToHaveNoBusySlots,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
+  Timezones,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import prisma from "@calcom/prisma";
+import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { expectBookingCreatedWebhookToHaveBeenFired } from "@calcom/testing/lib/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { describe, test, vi, expect } from "vitest";
-
-import prisma from "@calcom/prisma";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
+import { describe, expect, test, vi } from "vitest";
 import { getNewBookingHandler } from "../getNewBookingHandler";
 
 describe("Round Robin handleNewBooking", () => {

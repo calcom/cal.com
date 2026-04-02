@@ -1,5 +1,4 @@
 import { HttpError } from "@calcom/lib/http-error";
-
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
 const checkGiphyApiKey = async () => {

@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import getParsedAppKeysFromSlug from "../../_utils/getParsedAppKeysFromSlug";
 
 const googleAppKeysSchema = z.object({

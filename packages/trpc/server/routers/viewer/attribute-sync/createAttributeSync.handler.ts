@@ -1,12 +1,10 @@
 import { getIntegrationAttributeSyncService } from "@calcom/ee/integration-attribute-sync/di/IntegrationAttributeSyncService.container";
 import {
   CredentialNotFoundError,
-  DuplicateAttributeWithinSyncError,
   DuplicateAttributeAcrossSyncsError,
+  DuplicateAttributeWithinSyncError,
 } from "@calcom/ee/integration-attribute-sync/services/IntegrationAttributeSyncService";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { ZCreateAttributeSyncSchema } from "./createAttributeSync.schema";
 

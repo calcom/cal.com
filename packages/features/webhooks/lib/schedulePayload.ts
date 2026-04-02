@@ -1,5 +1,4 @@
 import tasker from "@calcom/features/tasker";
-
 import type sendPayload from "./sendPayload";
 
 type SchedulePayload = typeof sendPayload;

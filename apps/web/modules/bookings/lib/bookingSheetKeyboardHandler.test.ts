@@ -1,10 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  isEditableTarget,
+  type BookingSheetKeyboardConfig,
   checkSheetActive,
   createBookingSheetKeydownHandler,
-  type BookingSheetKeyboardConfig,
+  isEditableTarget,
 } from "./bookingSheetKeyboardHandler";
 
 function createMockKeyboardEvent(key: string, target?: EventTarget | null): KeyboardEvent {

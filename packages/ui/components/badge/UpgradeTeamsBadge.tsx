@@ -1,7 +1,5 @@
-import Link from "next/link";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
+import Link from "next/link";
 import { Tooltip } from "../tooltip";
 import { Badge } from "./Badge";
 
@@ -29,8 +27,8 @@ export const UpgradeTeamsBadge = function UpgradeTeamsBadge({
   const tooltipString = isTrial
     ? t("limited_access_trial_mode")
     : hasPaidPlan
-    ? t("inactive_team_plan_description")
-    : t("upgrade_to_enable_feature");
+      ? t("inactive_team_plan_description")
+      : t("upgrade_to_enable_feature");
 
   return (
     <Tooltip content={tooltipString}>

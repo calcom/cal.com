@@ -1,9 +1,7 @@
 import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 
 type CreateAccountPasswordOptions = {

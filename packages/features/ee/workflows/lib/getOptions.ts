@@ -1,21 +1,19 @@
-import type { TFunction } from "i18next";
-
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-
+import type { TFunction } from "i18next";
 import {
+  isCalAIAction,
+  isEmailToAttendeeAction,
+  isFormTrigger,
   isSMSOrWhatsappAction,
   isWhatsappAction,
-  isEmailToAttendeeAction,
-  isCalAIAction,
-  isFormTrigger,
 } from "./actionHelperFunctions";
 import {
+  ATTENDEE_WORKFLOW_TEMPLATES,
+  BASIC_WORKFLOW_TEMPLATES,
   WHATSAPP_WORKFLOW_TEMPLATES,
   WORKFLOW_ACTIONS,
-  BASIC_WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
-  ATTENDEE_WORKFLOW_TEMPLATES,
 } from "./constants";
 
 export function getWorkflowActionOptions(t: TFunction, isOrgsPlan?: boolean) {

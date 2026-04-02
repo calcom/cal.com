@@ -4,29 +4,26 @@
  * These tests focus specifically on testing what happens after a successful booking or rescheduling.
  */
 import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
-
 import {
+  BookingLocations,
   createBookingScenario,
+  getBooker,
   getDate,
   getGoogleCalendarCredential,
-  TestData,
   getOrganizer,
-  getBooker,
   getScenarioData,
   mockCalendarToHaveNoBusySlots,
-  BookingLocations,
+  TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import process from "node:process";
+import { resetTestEmails } from "@calcom/lib/testEmails";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { expectBookingToBeInDatabase } from "@calcom/testing/lib/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { describe, expect, beforeEach, vi, test } from "vitest";
-
-import { resetTestEmails } from "@calcom/lib/testEmails";
-import { BookingStatus } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
 export type CustomNextApiRequest = NextApiRequest & Request;

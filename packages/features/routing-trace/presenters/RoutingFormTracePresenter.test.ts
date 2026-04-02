@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import type { RoutingStep } from "../repositories/RoutingTraceRepository.interface";
 import { RoutingFormTracePresenter } from "./RoutingFormTracePresenter";
 

@@ -2,7 +2,6 @@ import { CredentialRepository } from "@calcom/features/credentials/repositories/
 import { isInMemoryDelegationCredential } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
-
 import { getTokenObjectFromCredential } from "./getTokenObjectFromCredential";
 
 const log = logger.getSubLogger({

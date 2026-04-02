@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { TeamSchema } from "@calcom/prisma/zod/modelSchema/TeamSchema";
+import { z } from "zod";
 
 export const schemaTeamBaseBodyParams = TeamSchema.omit({ id: true, createdAt: true }).partial({
   hideBranding: true,

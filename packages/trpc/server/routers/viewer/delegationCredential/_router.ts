@@ -1,17 +1,15 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
-
 import authedProcedure, { authedOrgAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import {
   DelegationCredentialCreateSchema,
-  DelegationCredentialUpdateSchema,
   DelegationCredentialDeleteSchema,
-  DelegationCredentialToggleEnabledSchema,
   DelegationCredentialGetAffectedMembersForDisableSchema,
+  DelegationCredentialToggleEnabledSchema,
+  DelegationCredentialUpdateSchema,
 } from "./schema";
 
 const checkDelegationCredentialFeature = async ({

@@ -1,5 +1,4 @@
 import { handleErrorsJson } from "@calcom/lib/errors";
-
 import { getDailyAppKeys } from "./getDailyAppKeys";
 
 export const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {

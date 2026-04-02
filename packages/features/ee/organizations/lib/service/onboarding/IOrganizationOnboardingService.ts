@@ -1,5 +1,4 @@
 import type { Team, User } from "@calcom/prisma/client";
-
 import type {
   CreateOnboardingIntentInput,
   OnboardingIntentResult,

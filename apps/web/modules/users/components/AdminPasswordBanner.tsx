@@ -1,8 +1,7 @@
-import type { SessionContextValue } from "next-auth/react";
-import Link from "next/link";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TopBanner } from "@calcom/ui/components/top-banner";
+import Link from "next/link";
+import type { SessionContextValue } from "next-auth/react";
 
 export type AdminPasswordBannerProps = { data: SessionContextValue["data"] };
 
@@ -18,7 +17,10 @@ function getBannerMessageKey(reason: "both" | "password" | "2fa" | undefined): s
   }
 }
 
-function getBannerAction(reason: "both" | "password" | "2fa" | undefined): { href: string; labelKey: string } {
+function getBannerAction(reason: "both" | "password" | "2fa" | undefined): {
+  href: string;
+  labelKey: string;
+} {
   switch (reason) {
     case "2fa":
       return { href: "/settings/security/two-factor-auth", labelKey: "enable_2fa" };

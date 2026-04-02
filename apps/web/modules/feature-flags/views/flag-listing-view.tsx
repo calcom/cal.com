@@ -1,10 +1,8 @@
 "use client";
 
-import { Suspense } from "react";
-
 import NoSSR from "@calcom/lib/components/NoSSR";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
-
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
+import { Suspense } from "react";
 import { FlagAdminList } from "../components/FlagAdminList";
 
 const SkeletonLoader = () => {

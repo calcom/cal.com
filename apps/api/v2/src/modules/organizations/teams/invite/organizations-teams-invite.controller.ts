@@ -1,3 +1,8 @@
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { TeamService } from "@calcom/platform-libraries";
+import { Controller, HttpCode, HttpStatus, Param, ParseIntPipe, Post, UseGuards } from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { CreateInviteOutputDto } from "./outputs/invite.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import {
   OPTIONAL_API_KEY_HEADER,
@@ -11,13 +16,6 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { Controller, UseGuards, Post, Param, ParseIntPipe, HttpCode, HttpStatus } from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { TeamService } from "@calcom/platform-libraries";
-
-import { CreateInviteOutputDto } from "./outputs/invite.output";
 
 @Controller({
   path: "/v2/organizations/:orgId/teams/:teamId",

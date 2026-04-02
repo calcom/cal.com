@@ -1,3 +1,13 @@
+import { SchedulingType, slugifyLenient } from "@calcom/platform-libraries";
+import { EventTypeMetadata } from "@calcom/platform-libraries/event-types";
+import {
+  CreateTeamEventTypeInput_2024_06_14,
+  EmailSettings_2024_06_14,
+  HostPriority,
+  UpdateTeamEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
+import type { EventType } from "@calcom/prisma/client";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { transformTeamLocationsApiToInternal } from "@/ee/event-types/event-types_2024_06_14/transformers/api-to-internal/locations";
 import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
@@ -5,18 +15,6 @@ import { OrganizationsConferencingService } from "@/modules/organizations/confer
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-
-import { SchedulingType } from "@calcom/platform-libraries";
-import { slugifyLenient } from "@calcom/platform-libraries";
-import { EventTypeMetadata } from "@calcom/platform-libraries/event-types";
-import {
-  CreateTeamEventTypeInput_2024_06_14,
-  UpdateTeamEventTypeInput_2024_06_14,
-  HostPriority,
-  EmailSettings_2024_06_14,
-} from "@calcom/platform-types";
-import type { EventType } from "@calcom/prisma/client";
 
 export const HOSTS_REQUIRED_WHEN_SWITCHING_SCHEDULING_TYPE_ERROR =
   "Hosts required when switching schedulingType. Please provide 'hosts' or set 'assignAllTeamMembers: true' to specify how hosts should be configured for the new scheduling type.";

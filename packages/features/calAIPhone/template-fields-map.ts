@@ -1,4 +1,4 @@
-import type { TemplateType, Fields } from "./zod-utils";
+import type { Fields, TemplateType } from "./zod-utils";
 import { fieldNameEnum } from "./zod-utils";
 
 export const templateFieldsMap: Record<TemplateType, Fields> = {

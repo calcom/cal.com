@@ -1,5 +1,4 @@
 import type { PrismaClient } from "@calcom/prisma";
-
 import type { ITeamBillingDataRepository } from "./ITeamBillingDataRepository";
 import { teamBillingSelect } from "./ITeamBillingDataRepository";
 

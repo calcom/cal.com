@@ -1,10 +1,9 @@
-import { z } from "zod";
-
 import type { IUpdateAttributeSyncInput } from "@calcom/features/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
 import {
   attributeSyncRuleSchema,
   fieldMappingWithOptionalIdSchema,
 } from "@calcom/features/ee/integration-attribute-sync/schemas/zod";
+import { z } from "zod";
 
 export const updateAttributeSyncSchema: z.ZodType<IUpdateAttributeSyncInput> = z.object({
   id: z.string(),

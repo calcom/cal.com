@@ -9,7 +9,7 @@ attendeeRepositoryModule.bind(token).toClass(AttendeeRepository, [DI_TOKENS.PRIS
 
 export const moduleLoader = {
   token,
-  loadModule: function (container: Container) {
+  loadModule: (container: Container) => {
     container.load(moduleToken, attendeeRepositoryModule);
   },
 };

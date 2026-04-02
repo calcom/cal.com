@@ -1,7 +1,6 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { TrpcSessionUser } from "../../../types";
 
 const { mockFindTeamsNotBelongingToOrgByIds, mockCheckPermission, mockUpdateNewTeamMemberEventTypes } =

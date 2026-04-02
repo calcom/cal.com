@@ -1,5 +1,4 @@
 import type { ITaskerDependencies } from "@calcom/lib/tasker/types";
-
 import type { IProrationEmailTasker } from "./types";
 
 export class ProrationEmailTriggerDevTasker implements IProrationEmailTasker {

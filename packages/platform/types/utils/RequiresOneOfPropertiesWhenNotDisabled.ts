@@ -1,5 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
-import { ValidationOptions, registerDecorator } from "class-validator";
+import { registerDecorator, type ValidationOptions } from "class-validator";
 
 /**
  * note(Lauris): See example in event-types_2024_06_14/inputs/create-event-type.input.ts file bookerActiveBookingsLimit property.
@@ -12,7 +12,7 @@ export const REQUIRES_AT_LEAST_ONE_PROPERTY_ERROR =
 
 export function RequiresAtLeastOnePropertyWhenNotDisabled(validationOptions?: ValidationOptions) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function (object: any, propertyName: string) {
+  return (object: any, propertyName: string) => {
     registerDecorator({
       name: "requiresAtLeastOnePropertyWhenNotDisabled",
       target: object.constructor,

@@ -1,6 +1,5 @@
 /* eslint-disable playwright/missing-playwright-await */
 import { render } from "@testing-library/react";
-
 import { OrgBanner } from "./OrgBanner";
 
 describe("tests for OrgBanner component", () => {

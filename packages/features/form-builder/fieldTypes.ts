@@ -1,7 +1,5 @@
-import type z from "zod";
-
 import type { FieldType } from "@calcom/prisma/zod-utils";
-
+import type z from "zod";
 import { propsTypes } from "./propsTypes";
 import type { fieldTypeConfigSchema } from "./schema";
 

@@ -1,7 +1,6 @@
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import parser from "accept-language-parser";
 import type { GetServerSidePropsContext, NextApiRequest } from "next";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 type Maybe<T> = T | null | undefined;
 

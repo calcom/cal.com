@@ -1,9 +1,7 @@
-import type { NextApiRequest } from "next";
-
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-
+import type { NextApiRequest } from "next";
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import { schemaQuerySingleOrMultipleUserEmails } from "~/lib/validations/shared/queryUserEmail";
 import { schemaUsersReadPublic } from "~/lib/validations/user";

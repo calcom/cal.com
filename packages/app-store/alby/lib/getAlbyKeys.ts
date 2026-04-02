@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
 export const getAlbyKeys = async () => {

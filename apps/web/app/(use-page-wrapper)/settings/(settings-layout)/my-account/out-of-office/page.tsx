@@ -1,5 +1,4 @@
 import { _generateMetadata } from "app/_utils";
-
 import OutOfOfficeView from "~/settings/my-account/out-of-office-view";
 
 export const generateMetadata = async () =>

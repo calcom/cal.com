@@ -1,9 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-
 import type { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
 import logger from "@calcom/lib/logger";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
-
 import { ROUTING_TRACE_DOMAINS, ROUTING_TRACE_STEPS } from "../constants";
 import type { IPendingRoutingTraceRepository } from "../repositories/PendingRoutingTraceRepository.interface";
 import type {
@@ -33,7 +31,7 @@ export class RoutingTraceService {
    * Returns undefined if not within a trace context.
    */
   static getCurrent(): RoutingTraceService | undefined {
-    return this.als.getStore();
+    return RoutingTraceService.als.getStore();
   }
 
   /**

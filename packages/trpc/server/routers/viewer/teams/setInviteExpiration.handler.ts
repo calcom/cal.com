@@ -2,9 +2,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 
 type SetInviteExpirationOptions = {

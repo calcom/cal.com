@@ -1,6 +1,5 @@
-import { z } from "zod";
-
 import { WrongAssignmentReportStatus } from "@calcom/prisma/enums";
+import { z } from "zod";
 
 export const ZUpdateWrongAssignmentReportStatusInputSchema = z.object({
   reportId: z.string().uuid(),

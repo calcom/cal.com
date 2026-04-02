@@ -1,15 +1,14 @@
 import { ApiExtraModels, ApiProperty, ApiPropertyOptional, getSchemaPath } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
-  IsBoolean,
   ArrayMinSize,
+  IsBoolean,
   IsNumber,
   IsOptional,
   IsString,
-  ValidateNested,
   ValidateIf,
+  ValidateNested,
 } from "class-validator";
-
 import {
   BaseWorkflowStepDto,
   EMAIL_ADDRESS,
@@ -32,7 +31,6 @@ import {
   AFTER_EVENT,
   AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
   AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-  EventTypeWorkflowTriggerDto,
   BEFORE_EVENT,
   BOOKING_NO_SHOW_UPDATED,
   BOOKING_PAID,
@@ -41,6 +39,7 @@ import {
   BOOKING_REQUESTED,
   EVENT_CANCELLED,
   EVENT_TYPE_WORKFLOW_TRIGGER_TYPES,
+  EventTypeWorkflowTriggerDto,
   NEW_EVENT,
   OnAfterCalVideoGuestsNoShowTriggerDto,
   OnAfterCalVideoHostsNoShowTriggerDto,

@@ -1,17 +1,5 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import { useState } from "react";
-
-import {
-  BlockedEntriesTable,
-  CreateBlocklistEntryModal,
-  PendingReportsBadge,
-  PendingReportsTable,
-  type SortByOption,
-} from "@calcom/web/modules/blocklist";
-import { useDataTable } from "~/data-table/hooks/useDataTable";
-import { DataTableToolbar } from "~/data-table/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
@@ -24,6 +12,17 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { ToggleGroup } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
+import {
+  BlockedEntriesTable,
+  CreateBlocklistEntryModal,
+  PendingReportsBadge,
+  PendingReportsTable,
+  type SortByOption,
+} from "@calcom/web/modules/blocklist";
+import { keepPreviousData } from "@tanstack/react-query";
+import { useState } from "react";
+import { DataTableToolbar } from "~/data-table/components";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
 
 type ViewType = "blocked" | "pending";
 

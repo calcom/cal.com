@@ -1,6 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
+import { describe, expect, it } from "vitest";
 import type { RecordingReadyDTO, TranscriptionGeneratedDTO } from "../../dto/types";
 import { RecordingPayloadBuilder } from "../versioned/v2021-10-20/RecordingPayloadBuilder";
 

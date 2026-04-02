@@ -1,8 +1,6 @@
-import { createModule } from "@evyweb/ioctopus";
-
 import { bindModuleToClassOnToken, type ModuleLoader } from "@calcom/features/di/di";
 import { TriggerDevLogger } from "@calcom/lib/triggerDevLogger";
-
+import { createModule } from "@evyweb/ioctopus";
 import { SHARED_TOKENS } from "../shared.tokens";
 
 const thisModule = createModule();

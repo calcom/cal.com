@@ -1,7 +1,7 @@
 import matchers from "@testing-library/jest-dom/matchers";
 import React from "react";
 import ResizeObserver from "resize-observer-polyfill";
-import { vi, afterEach, expect } from "vitest";
+import { afterEach, expect, vi } from "vitest";
 
 global.React = React;
 global.ResizeObserver = ResizeObserver;

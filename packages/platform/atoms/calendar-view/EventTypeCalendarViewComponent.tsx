@@ -1,20 +1,17 @@
-import { useMemo } from "react";
-import { shallow } from "zustand/shallow";
-
 import {
   useBookerStoreContext,
   useInitializeBookerStoreContext,
 } from "@calcom/features/bookings/Booker/BookerStoreProvider";
-import { Header } from "@calcom/features/bookings/components/Header";
-import { BookerSection } from "@calcom/features/bookings/components/Section";
 import { useAvailableTimeSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/hooks/useBookerLayout";
 import { useStableTimezone } from "@calcom/features/bookings/Booker/hooks/useStableTimezone";
+import { Header } from "@calcom/features/bookings/components/Header";
+import { BookerSection } from "@calcom/features/bookings/components/Section";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
-import { LargeCalendar } from "./components/LargeCalendar";
 import { getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
 import { useTimesForSchedule } from "@calcom/features/schedules/hooks/useTimesForSchedule";
-
+import { useMemo } from "react";
+import { shallow } from "zustand/shallow";
 import { formatUsername } from "../booker/BookerPlatformWrapper";
 import type {
   CalendarViewPlatformWrapperAtomPropsForIndividual,
@@ -25,6 +22,7 @@ import { useEventType } from "../hooks/event-types/public/useEventType";
 import { useTeamEventType } from "../hooks/event-types/public/useTeamEventType";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
+import { LargeCalendar } from "./components/LargeCalendar";
 
 export const EventTypeCalendarViewComponent = (
   props:
@@ -119,7 +117,7 @@ export const EventTypeCalendarViewComponent = (
   const selectedEventDuration = useBookerStoreContext((state) => state.selectedDuration);
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
-  const availableTimeSlots= useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
+  const availableTimeSlots = useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
 
   return (
     <AtomsWrapper>

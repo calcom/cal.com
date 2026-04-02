@@ -1,10 +1,9 @@
 import { z } from "zod";
-
 import type { DataRequirements } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
-  GetDisplayTitleParams,
   GetDisplayJsonParams,
+  GetDisplayTitleParams,
   IAuditActionService,
   TranslationWithParams,
 } from "./IAuditActionService";

@@ -1,5 +1,4 @@
 import { schemaTask } from "@trigger.dev/sdk";
-
 import { bookingNotificationsTaskConfig } from "./config";
 import { bookingNotificationTaskSchema } from "./schema";
 

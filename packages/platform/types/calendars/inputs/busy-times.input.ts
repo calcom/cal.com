@@ -12,7 +12,6 @@ import {
   type ValidationArguments,
   type ValidationOptions,
 } from "class-validator";
-
 import { normalizeTimezone } from "../../utils/normalizeTimezone";
 
 function ValidateTimezoneRequired(

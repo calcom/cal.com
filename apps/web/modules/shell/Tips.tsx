@@ -1,13 +1,10 @@
-import shuffle from "lodash/shuffle";
-import posthog from "posthog-js";
-import { useState, memo } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Card } from "@calcom/ui/components/card";
-
-import { GatedFeatures } from "./stores/gatedFeaturesStore";
-import { useGatedFeaturesStore } from "./stores/gatedFeaturesStore";
+import shuffle from "lodash/shuffle";
+import posthog from "posthog-js";
+import { memo, useState } from "react";
+import { GatedFeatures, useGatedFeaturesStore } from "./stores/gatedFeaturesStore";
 
 type Tip = {
   id: number;

@@ -7,10 +7,10 @@ import {
 import { getTranslationService } from "@calcom/features/di/containers/TranslationService";
 import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
 import { getSubmitterEmail } from "@calcom/features/tasker/tasks/triggerFormSubmittedNoEvent/formSubmissionValidation";
+import { getTranslation } from "@calcom/i18n/server";
 import { SENDER_ID } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -195,7 +195,14 @@ const scheduleSMSReminderForEvt = async (
     }
 
     if (smsMessage) {
-      smsMessage = await getSMSMessageWithVariables(smsMessage, evt, attendeeToBeUsedInSMS, action, userId, teamId);
+      smsMessage = await getSMSMessageWithVariables(
+        smsMessage,
+        evt,
+        attendeeToBeUsedInSMS,
+        action,
+        userId,
+        teamId
+      );
     } else if (template === WorkflowTemplates.REMINDER) {
       smsMessage =
         smsReminderTemplate(

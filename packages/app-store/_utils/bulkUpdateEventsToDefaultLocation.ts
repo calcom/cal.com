@@ -1,7 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-
 import type { LocationObject } from "../locations";
 import { getAppFromSlug } from "../utils";
 import { filterEventTypesWhereLocationUpdateIsAllowed } from "./getBulkEventTypes";

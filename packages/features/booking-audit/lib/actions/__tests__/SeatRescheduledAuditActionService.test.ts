@@ -1,7 +1,10 @@
-import { describe, expect, it, beforeEach } from "vitest";
-
-import { verifyDataRequirementsContract, createTrackingDbStore, createEmptyAccessedData } from "./contractVerification";
+import { beforeEach, describe, expect, it } from "vitest";
 import { SeatRescheduledAuditActionService } from "../SeatRescheduledAuditActionService";
+import {
+  createEmptyAccessedData,
+  createTrackingDbStore,
+  verifyDataRequirementsContract,
+} from "./contractVerification";
 
 describe("SeatRescheduledAuditActionService - getDataRequirements contract", () => {
   let service: SeatRescheduledAuditActionService;
@@ -57,9 +60,7 @@ describe("SeatRescheduledAuditActionService - getDisplayTitle", () => {
 
     expect(result.components).toBeDefined();
     expect(result.components).toHaveLength(1);
-        expect(result.components![0].href).toBe(
-          `/bookings?uid=${rescheduledToBookingUid}&activeSegment=history`
-        );
+    expect(result.components![0].href).toBe(`/bookings?uid=${rescheduledToBookingUid}&activeSegment=history`);
   });
 
   it("should not include components when rescheduledToBookingUid is null", async () => {

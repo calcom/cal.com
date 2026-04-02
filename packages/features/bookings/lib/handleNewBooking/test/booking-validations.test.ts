@@ -3,26 +3,22 @@
  * These specifications verify the business rules and validation behavior for booking creation
  */
 import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
-
 import {
   createBookingScenario,
-  TestData,
-  getOrganizer,
   getBooker,
-  getScenarioData,
   getGoogleCalendarCredential,
-  mockCalendarToHaveNoBusySlots,
   getMockBookingAttendee,
+  getOrganizer,
+  getScenarioData,
+  mockCalendarToHaveNoBusySlots,
+  TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import process from "node:process";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { afterEach, beforeEach, vi } from "vitest";
-import { describe, expect } from "vitest";
-
-import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
-
+import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
 vi.mock("@calcom/features/auth/lib/verifyCodeUnAuthenticated", () => ({

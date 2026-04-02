@@ -1,9 +1,8 @@
-import { Navbar } from "@/components/Navbar";
+import { Booker, useEventTypes, useTeamEventTypes, useTeams } from "@calcom/atoms";
 import { Inter } from "next/font/google";
 import { useRouter } from "next/router";
 import { useState } from "react";
-
-import { Booker, useEventTypes, useTeamEventTypes, useTeams } from "@calcom/atoms";
+import { Navbar } from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 

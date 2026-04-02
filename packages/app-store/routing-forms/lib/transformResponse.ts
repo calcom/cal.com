@@ -1,5 +1,4 @@
 import type { z } from "zod";
-
 import type { Field, FormResponse } from "../types/types";
 import { areSelectOptionsInLegacyFormat } from "./selectOptions";
 

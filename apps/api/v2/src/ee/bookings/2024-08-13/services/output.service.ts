@@ -1,3 +1,21 @@
+import { bookingMetadataSchema } from "@calcom/platform-libraries";
+import type {
+  CreateRecurringSeatedBookingOutput_2024_08_13,
+  CreateSeatedBookingOutput_2024_08_13,
+  ReassignBookingOutput_2024_08_13,
+} from "@calcom/platform-types";
+import {
+  BookingOutput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+  SeatedAttendee,
+} from "@calcom/platform-types";
+import type { Booking, BookingSeat } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
+import { plainToClass } from "class-transformer";
+import { DateTime } from "luxon";
+import { z } from "zod";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
 import {
   defaultBookingMetadata,
@@ -6,25 +24,6 @@ import {
   defaultSeatedBookingMetadata,
 } from "@/lib/safe-parse/default-responses-booking";
 import { safeParse } from "@/lib/safe-parse/safe-parse";
-import { Injectable } from "@nestjs/common";
-import { plainToClass } from "class-transformer";
-import { DateTime } from "luxon";
-import { z } from "zod";
-
-import { bookingMetadataSchema } from "@calcom/platform-libraries";
-import {
-  GetRecurringSeatedBookingOutput_2024_08_13,
-  RecurringBookingOutput_2024_08_13,
-  SeatedAttendee,
-  BookingOutput_2024_08_13,
-  GetSeatedBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
-import type {
-  CreateRecurringSeatedBookingOutput_2024_08_13,
-  CreateSeatedBookingOutput_2024_08_13,
-  ReassignBookingOutput_2024_08_13,
-} from "@calcom/platform-types";
-import type { Booking, BookingSeat } from "@calcom/prisma/client";
 
 export const bookingResponsesSchema = z
   .object({
@@ -91,7 +90,7 @@ type DatabaseMetadata = z.infer<typeof bookingMetadataSchema>;
 
 @Injectable()
 export class OutputBookingsService_2024_08_13 {
-  constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) { }
+  constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
 
   private getDisplayEmail(email: string): string {
     return email.replace(/\+[a-zA-Z0-9]{25}/, "");
@@ -168,9 +167,8 @@ export class OutputBookingsService_2024_08_13 {
       bookingTransformed.bookingFieldsResponses?.guests &&
       Array.isArray(bookingTransformed.bookingFieldsResponses.guests)
     ) {
-      bookingTransformed.bookingFieldsResponses.displayGuests = bookingTransformed.bookingFieldsResponses.guests.map(
-        (guest: string) => this.getDisplayEmail(guest)
-      );
+      bookingTransformed.bookingFieldsResponses.displayGuests =
+        bookingTransformed.bookingFieldsResponses.guests.map((guest: string) => this.getDisplayEmail(guest));
     }
 
     return bookingTransformed;
@@ -233,9 +231,9 @@ export class OutputBookingsService_2024_08_13 {
       ? await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEventFromWrite(bookingsIds)
       : await this.bookingsRepository.getByIdsWithAttendeesAndUserAndEvent(bookingsIds);
 
-    const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
+    const bookingsMap = new Map(databaseBookings.map((booking) => [booking.id, booking]));
 
-    const transformed = bookingsIds.map(bookingId => {
+    const transformed = bookingsIds.map((bookingId) => {
       const databaseBooking = bookingsMap.get(bookingId);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
@@ -315,9 +313,8 @@ export class OutputBookingsService_2024_08_13 {
       bookingTransformed.bookingFieldsResponses?.guests &&
       Array.isArray(bookingTransformed.bookingFieldsResponses.guests)
     ) {
-      bookingTransformed.bookingFieldsResponses.displayGuests = bookingTransformed.bookingFieldsResponses.guests.map(
-        (guest: string) => this.getDisplayEmail(guest)
-      );
+      bookingTransformed.bookingFieldsResponses.displayGuests =
+        bookingTransformed.bookingFieldsResponses.guests.map((guest: string) => this.getDisplayEmail(guest));
     }
 
     return bookingTransformed;
@@ -375,36 +372,36 @@ export class OutputBookingsService_2024_08_13 {
     // note(Lauris): I don't know why plainToClass erases booking.attendees[n].responses so attaching manually
     parsed.attendees = showAttendees
       ? databaseBooking.attendees.map((attendee) => {
-        const { responses } = safeParse(
-          seatedBookingDataSchema,
-          attendee.bookingSeat?.data,
-          defaultSeatedBookingData,
-          false
-        );
+          const { responses } = safeParse(
+            seatedBookingDataSchema,
+            attendee.bookingSeat?.data,
+            defaultSeatedBookingData,
+            false
+          );
 
-        const attendeeData = {
-          name: attendee.name,
-          email: attendee.email,
-          displayEmail: this.getDisplayEmail(attendee.email),
-          timeZone: attendee.timeZone,
-          language: attendee.locale,
-          absent: !!attendee.noShow,
-          seatUid: attendee.bookingSeat?.referenceUid,
-          bookingFieldsResponses: {},
-        };
-        const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
-        attendeeParsed.bookingFieldsResponses = responses || {};
-        attendeeParsed.metadata = safeParse(
-          seatedBookingMetadataSchema,
-          attendee.bookingSeat?.metadata,
-          defaultSeatedBookingMetadata,
-          false
-        );
-        // note(Lauris): as of now email is not returned for privacy
-        delete attendeeParsed.bookingFieldsResponses.email;
+          const attendeeData = {
+            name: attendee.name,
+            email: attendee.email,
+            displayEmail: this.getDisplayEmail(attendee.email),
+            timeZone: attendee.timeZone,
+            language: attendee.locale,
+            absent: !!attendee.noShow,
+            seatUid: attendee.bookingSeat?.referenceUid,
+            bookingFieldsResponses: {},
+          };
+          const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
+          attendeeParsed.bookingFieldsResponses = responses || {};
+          attendeeParsed.metadata = safeParse(
+            seatedBookingMetadataSchema,
+            attendee.bookingSeat?.metadata,
+            defaultSeatedBookingMetadata,
+            false
+          );
+          // note(Lauris): as of now email is not returned for privacy
+          delete attendeeParsed.bookingFieldsResponses.email;
 
-        return attendeeParsed;
-      })
+          return attendeeParsed;
+        })
       : [];
 
     return parsed;
@@ -412,12 +409,14 @@ export class OutputBookingsService_2024_08_13 {
 
   async getOutputRecurringSeatedBookings(bookingsIds: number[], showAttendees: boolean, useWriteDb = false) {
     const databaseBookings = useWriteDb
-      ? await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEventFromWrite(bookingsIds)
+      ? await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEventFromWrite(
+          bookingsIds
+        )
       : await this.bookingsRepository.getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(bookingsIds);
 
-    const bookingsMap = new Map(databaseBookings.map(booking => [booking.id, booking]));
+    const bookingsMap = new Map(databaseBookings.map((booking) => [booking.id, booking]));
 
-    const transformed = bookingsIds.map(bookingId => {
+    const transformed = bookingsIds.map((bookingId) => {
       const databaseBooking = bookingsMap.get(bookingId);
       if (!databaseBooking) {
         throw new Error(`Booking with id=${bookingId} was not found in the database`);
@@ -437,7 +436,9 @@ export class OutputBookingsService_2024_08_13 {
 
     for (const booking of bookings) {
       const databaseBooking = useWriteDb
-        ? await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEventFromWrite(booking.uid)
+        ? await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEventFromWrite(
+            booking.uid
+          )
         : await this.bookingsRepository.getByUidWithAttendeesWithBookingSeatAndUserAndEvent(booking.uid);
       if (!databaseBooking) {
         throw new Error(`Booking with uid=${booking.uid} was not found in the database`);
@@ -508,35 +509,35 @@ export class OutputBookingsService_2024_08_13 {
     // note(Lauris): I don't know why plainToClass erases booking.attendees[n].responses so attaching manually
     parsed.attendees = showAttendees
       ? databaseBooking.attendees.map((attendee) => {
-        const { responses } = safeParse(
-          seatedBookingDataSchema,
-          attendee.bookingSeat?.data,
-          defaultSeatedBookingData,
-          false
-        );
+          const { responses } = safeParse(
+            seatedBookingDataSchema,
+            attendee.bookingSeat?.data,
+            defaultSeatedBookingData,
+            false
+          );
 
-        const attendeeData = {
-          name: attendee.name,
-          email: attendee.email,
-          displayEmail: this.getDisplayEmail(attendee.email),
-          timeZone: attendee.timeZone,
-          language: attendee.locale,
-          absent: !!attendee.noShow,
-          seatUid: attendee.bookingSeat?.referenceUid,
-          bookingFieldsResponses: {},
-        };
-        const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
-        attendeeParsed.bookingFieldsResponses = responses || {};
-        attendeeParsed.metadata = safeParse(
-          seatedBookingMetadataSchema,
-          attendee.bookingSeat?.metadata,
-          defaultSeatedBookingMetadata,
-          false
-        );
-        // note(Lauris): as of now email is not returned for privacy
-        delete attendeeParsed.bookingFieldsResponses.email;
-        return attendeeParsed;
-      })
+          const attendeeData = {
+            name: attendee.name,
+            email: attendee.email,
+            displayEmail: this.getDisplayEmail(attendee.email),
+            timeZone: attendee.timeZone,
+            language: attendee.locale,
+            absent: !!attendee.noShow,
+            seatUid: attendee.bookingSeat?.referenceUid,
+            bookingFieldsResponses: {},
+          };
+          const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
+          attendeeParsed.bookingFieldsResponses = responses || {};
+          attendeeParsed.metadata = safeParse(
+            seatedBookingMetadataSchema,
+            attendee.bookingSeat?.metadata,
+            defaultSeatedBookingMetadata,
+            false
+          );
+          // note(Lauris): as of now email is not returned for privacy
+          delete attendeeParsed.bookingFieldsResponses.email;
+          return attendeeParsed;
+        })
       : [];
 
     return parsed;

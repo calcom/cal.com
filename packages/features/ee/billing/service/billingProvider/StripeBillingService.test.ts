@@ -1,6 +1,5 @@
 import type Stripe from "stripe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { StripeBillingService } from "./StripeBillingService";
 
 describe("StripeBillingService", () => {

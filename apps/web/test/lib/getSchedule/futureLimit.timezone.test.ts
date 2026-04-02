@@ -1,16 +1,13 @@
+import type { ScenarioData } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import {
   createBookingScenario,
   replaceDates,
   TestData,
   Timezones,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-import type { ScenarioData } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-
-import { describe, expect, vi, test } from "vitest";
-
 import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import { PeriodType } from "@calcom/prisma/enums";
-
+import { describe, expect, test, vi } from "vitest";
 import { expectedSlotsForSchedule } from "./expects";
 import { setupAndTeardown } from "./setupAndTeardown";
 

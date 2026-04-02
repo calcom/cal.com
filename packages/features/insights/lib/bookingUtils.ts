@@ -1,5 +1,4 @@
-import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
-import { type ColumnFilter } from "@calcom/features/data-table/lib/types";
+import { type ColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { isDateRangeFilterValue } from "@calcom/features/data-table/lib/utils";
 import type { FilterType } from "@calcom/types/data-table";
 

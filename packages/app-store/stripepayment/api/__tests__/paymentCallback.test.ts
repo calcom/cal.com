@@ -1,12 +1,10 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import sendVerificationRequest from "@calcom/features/auth/lib/sendVerificationRequest";
 import { HttpError } from "@calcom/lib/http-error";
-import { VerificationTokenService } from "../../lib/VerificationTokenService";
 import { prisma } from "@calcom/prisma";
-
+import type { NextApiRequest, NextApiResponse } from "next";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getCustomerAndCheckoutSession } from "../../lib/getCustomerAndCheckoutSession";
+import { VerificationTokenService } from "../../lib/VerificationTokenService";
 
 // Mock dependencies
 vi.mock("@calcom/prisma", () => ({

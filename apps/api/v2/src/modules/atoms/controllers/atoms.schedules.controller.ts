@@ -1,9 +1,17 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetAtomSchedulesQueryParams } from "@/modules/atoms/inputs/get-atom-schedules-query-params.input";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import type {
+  CreateScheduleHandlerReturn,
+  CreateScheduleSchema,
+  DuplicateScheduleHandlerReturn,
+  GetAvailabilityListHandlerReturn,
+} from "@calcom/platform-libraries/schedules";
+import {
+  createScheduleHandler,
+  duplicateScheduleHandler,
+  FindDetailedScheduleByIdReturnType,
+  getAvailabilityListHandler,
+} from "@calcom/platform-libraries/schedules";
+import { ApiResponse, UpdateAtomScheduleDto } from "@calcom/platform-types";
 import {
   Body,
   Controller,
@@ -14,28 +22,22 @@ import {
   Post,
   Query,
   UseGuards,
-  Version,
   VERSION_NEUTRAL,
+  Version,
 } from "@nestjs/common";
 import {
-  ApiTags as DocsTags,
-  ApiExcludeController as DocsExcludeController,
   ApiOperation,
+  ApiExcludeController as DocsExcludeController,
+  ApiTags as DocsTags,
 } from "@nestjs/swagger";
 import { z } from "zod";
-
-import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type {
-  GetAvailabilityListHandlerReturn,
-  DuplicateScheduleHandlerReturn,
-} from "@calcom/platform-libraries/schedules";
-import { getAvailabilityListHandler, duplicateScheduleHandler } from "@calcom/platform-libraries/schedules";
-import type { CreateScheduleHandlerReturn, CreateScheduleSchema } from "@calcom/platform-libraries/schedules";
-import { createScheduleHandler } from "@calcom/platform-libraries/schedules";
-import { FindDetailedScheduleByIdReturnType } from "@calcom/platform-libraries/schedules";
-import { ApiResponse, UpdateAtomScheduleDto } from "@calcom/platform-types";
-
 import { SchedulesAtomsService } from "../services/schedules-atom.service";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { GetAtomSchedulesQueryParams } from "@/modules/atoms/inputs/get-atom-schedules-query-params.input";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { UserWithProfile } from "@/modules/users/users.repository";
 
 /*
 Endpoints used only by platform atoms, reusing code from other modules, data is already formatted and ready to be used by frontend atoms

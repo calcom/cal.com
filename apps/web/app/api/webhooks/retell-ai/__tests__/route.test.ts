@@ -1,10 +1,8 @@
+import type { Agent, CalAiPhoneNumber, Team, User } from "@calcom/prisma/client";
+import { CreditUsageType } from "@calcom/prisma/enums";
 import type { NextRequest } from "next/server";
 import { Retell } from "retell-sdk";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-import type { CalAiPhoneNumber, User, Team, Agent } from "@calcom/prisma/client";
-import { CreditUsageType } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "../route";
 
 type MockPhoneNumberWithUser = Omit<CalAiPhoneNumber, "user" | "team"> & {

@@ -1,12 +1,10 @@
+import { prisma } from "@calcom/prisma";
+import type { EventType, Schedule, Team, User } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, test, beforeAll, afterAll } from "vitest";
-
-import { prisma } from "@calcom/prisma";
-import type { User, Team, EventType, Schedule } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
-
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import handler from "../../../../pages/api/event-types/[id]/_get";
 
 type CustomNextApiRequest = NextApiRequest & Request;

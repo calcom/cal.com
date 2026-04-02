@@ -1,7 +1,6 @@
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { CachedFeatureRepository } from "../CachedFeatureRepository";
 import { PrismaFeatureRepository } from "../PrismaFeatureRepository";
 

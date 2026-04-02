@@ -1,8 +1,6 @@
-import { beforeEach, vi, expect } from "vitest";
-import { mockReset, mockDeep } from "vitest-mock-extended";
-
 import type { MembershipRole } from "@calcom/prisma/enums";
-
+import { beforeEach, expect, vi } from "vitest";
+import { mockDeep, mockReset } from "vitest-mock-extended";
 import type * as inviteMemberUtils from "../utils";
 
 vi.mock("../utils", async () => {
@@ -44,14 +42,14 @@ export const inviteMemberutilsScenarios = {
      * `getOrgState` completely generates the return value from input without using any outside variable like DB, etc.
      * So, it makes sense to let it use the actual implementation instead of mocking the output based on input
      */
-    useActual: async function () {
+    useActual: async () => {
       const actualImport = await vi.importActual<typeof inviteMemberUtils>("../utils");
 
       return inviteMemberUtilsMock.getOrgState.mockImplementation(actualImport.getOrgState);
     },
   },
   getUniqueInvitationsOrThrowIfEmpty: {
-    useActual: async function () {
+    useActual: async () => {
       const actualImport = await vi.importActual<typeof inviteMemberUtils>("../utils");
 
       return inviteMemberUtilsMock.getUniqueInvitationsOrThrowIfEmpty.mockImplementation(
@@ -60,7 +58,7 @@ export const inviteMemberutilsScenarios = {
     },
   },
   findUsersWithInviteStatus: {
-    useAdvancedMock: function (
+    useAdvancedMock: (
       returnVal: Awaited<ReturnType<typeof inviteMemberUtilsMock.findUsersWithInviteStatus>>,
       forInput: {
         team: any;
@@ -69,7 +67,7 @@ export const inviteMemberutilsScenarios = {
           newRole?: MembershipRole;
         }[];
       }
-    ) {
+    ) => {
       inviteMemberUtilsMock.findUsersWithInviteStatus.mockImplementation(({ invitations, team }) => {
         const allInvitationsExist = invitations.every((invitation) =>
           forInput.invitations.find((i) => i.usernameOrEmail === invitation.usernameOrEmail)
@@ -81,7 +79,7 @@ export const inviteMemberutilsScenarios = {
     },
   },
   getOrgConnectionInfo: {
-    useActual: async function () {
+    useActual: async () => {
       const actualImport = await vi.importActual<typeof inviteMemberUtils>("../utils");
 
       return inviteMemberUtilsMock.getOrgConnectionInfo.mockImplementation(actualImport.getOrgConnectionInfo);

@@ -1,6 +1,5 @@
-import * as React from "react";
-
 import classNames from "@calcom/ui/classNames";
+import * as React from "react";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (

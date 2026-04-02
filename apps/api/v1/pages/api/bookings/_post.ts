@@ -1,12 +1,10 @@
-import type { NextApiRequest } from "next";
-
 import { getRegularBookingService } from "@calcom/features/bookings/di/RegularBookingService.container";
 import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import { CreationSource } from "@calcom/prisma/enums";
-
+import type { NextApiRequest } from "next";
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 
 /**

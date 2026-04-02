@@ -1,8 +1,6 @@
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TEventTypeOrderInputSchema } from "./eventTypeOrder.schema";
 
 type EventTypeOrderOptions = {

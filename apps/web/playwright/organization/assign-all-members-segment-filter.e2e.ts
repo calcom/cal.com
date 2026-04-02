@@ -1,11 +1,9 @@
-import { expect } from "@playwright/test";
-
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
-
+import { expect } from "@playwright/test";
 import { test } from "../lib/fixtures";
-import { doOnOrgDomain, selectFirstAvailableTimeSlotNextMonth, bookTimeSlot } from "../lib/testUtils";
 import { createAttributes } from "../lib/test-helpers/organizationHelpers";
+import { bookTimeSlot, doOnOrgDomain, selectFirstAvailableTimeSlotNextMonth } from "../lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 

@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-
 import type { AppFlags } from "../config";
 
 export type TeamFeatures = Record<number, Record<keyof AppFlags, boolean>>;

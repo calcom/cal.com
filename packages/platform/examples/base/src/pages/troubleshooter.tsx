@@ -1,15 +1,12 @@
 import { TroubleShooter } from "@calcom/atoms";
 import { Inter } from "next/font/google";
-import { Navbar } from "@/components/Navbar";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
+import { Navbar } from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function Troubleshooter(props: {
-  calUsername: string;
-  calEmail: string;
-}) {
+export default function Troubleshooter(props: { calUsername: string; calEmail: string }) {
   const router = useRouter();
 
   return (

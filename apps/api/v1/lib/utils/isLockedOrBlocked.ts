@@ -1,7 +1,6 @@
-import type { NextApiRequest } from "next";
-
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
+import type { NextApiRequest } from "next";
 
 export async function isLockedOrBlocked(req: NextApiRequest) {
   const user = req.user;

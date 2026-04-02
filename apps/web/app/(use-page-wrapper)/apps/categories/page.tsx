@@ -1,10 +1,8 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps } from "app/_types";
-import { cookies, headers } from "next/headers";
-
 import { getServerSideProps } from "@lib/apps/categories/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
+import type { PageProps } from "app/_types";
+import { withAppDirSsr } from "app/WithAppDirSsr";
+import { cookies, headers } from "next/headers";
 import Page from "~/apps/categories/categories-view";
 
 const getData = withAppDirSsr(getServerSideProps);

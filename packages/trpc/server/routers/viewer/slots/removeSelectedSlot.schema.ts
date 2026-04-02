@@ -1,5 +1,4 @@
 import type { z } from "zod";
-
 import { removeSelectedSlotSchema } from "./types";
 
 export const ZRemoveSelectedSlotInputSchema = removeSelectedSlotSchema;

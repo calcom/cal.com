@@ -1,7 +1,7 @@
 import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
-import { SENDER_NAME } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/i18n/server";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
@@ -14,9 +14,7 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TCreateInputSchema } from "./create.schema";
 
 type CreateOptions = {

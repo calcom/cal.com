@@ -1,7 +1,7 @@
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import { validateWebhookUrlIfChanged } from "@/modules/webhooks/utils/validate-webhook-url";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class WebhooksService {

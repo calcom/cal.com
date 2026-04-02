@@ -1,10 +1,9 @@
+import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import type { RenderResult } from "@testing-library/react";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import * as React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
-
-import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import type { AddMembersWithSwitchProps } from "../AddMembersWithSwitch";
 import { AddMembersWithSwitch } from "../AddMembersWithSwitch";
 

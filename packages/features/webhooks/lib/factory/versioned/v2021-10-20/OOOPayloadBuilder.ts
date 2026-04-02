@@ -1,6 +1,6 @@
 import type { OOOCreatedDTO } from "../../../dto/types";
-import type { WebhookPayload } from "../../types";
 import { BaseOOOPayloadBuilder } from "../../base/BaseOOOPayloadBuilder";
+import type { WebhookPayload } from "../../types";
 
 /**
  * OOO (Out of Office) payload builder for webhook version 2021-10-20.

@@ -1,8 +1,7 @@
-import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
-import { moduleLoader as loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
-import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 import { CalendarsTaskService } from "@calcom/features/calendars/lib/tasker/CalendarsTaskService";
-
+import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
+import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
+import { moduleLoader as loggerServiceModule } from "@calcom/features/di/shared/services/logger.service";
 import { CALENDARS_TASKER_DI_TOKENS } from "./tokens";
 
 const thisModule = createModule();

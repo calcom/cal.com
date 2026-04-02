@@ -5,7 +5,6 @@
 import { SchedulingType } from "@calcom/prisma/enums";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import useLockedFieldsManager from "./useLockedFieldsManager";
 
 describe("useLockedFieldsManager", () => {

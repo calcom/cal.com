@@ -1,7 +1,3 @@
-import type { InferGetServerSidePropsType } from "next";
-import { useState } from "react";
-import { Toaster } from "sonner";
-
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import type { getServerSideProps } from "@calcom/app-store/make/pages/setup/_getServerSideProps";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
@@ -11,6 +7,9 @@ import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { ClipboardIcon } from "@coss/ui/icons";
+import type { InferGetServerSidePropsType } from "next";
+import { useState } from "react";
+import { Toaster } from "sonner";
 
 const MAKE = "make";
 

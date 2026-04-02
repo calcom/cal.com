@@ -1,7 +1,7 @@
 import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
+import type { BookingAuditContext } from "@calcom/features/booking-audit/lib/dto/types";
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
-import type { BookingAuditContext } from "@calcom/features/booking-audit/lib/dto/types";
 import type { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { PrismaBookingAttendeeRepository } from "@calcom/features/bookings/repositories/PrismaBookingAttendeeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";

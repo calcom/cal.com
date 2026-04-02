@@ -1,11 +1,9 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@components/settings/platform/pricing/platform-pricing";
-
 import Shell from "~/shell/Shell";
 
 export default function PlatformPlans() {

@@ -1,7 +1,7 @@
+import process from "node:process";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
 import { BillingEnabledOrgOnboardingService } from "./BillingEnabledOrgOnboardingService";
 import type { IOrganizationOnboardingService } from "./IOrganizationOnboardingService";
 import { SelfHostedOrganizationOnboardingService } from "./SelfHostedOnboardingService";
@@ -17,7 +17,7 @@ const log = logger.getSubLogger({ prefix: ["OrganizationOnboardingFactory"] });
  */
 export class OrganizationOnboardingFactory {
   static create(user: OnboardingUser): IOrganizationOnboardingService {
-    const isBillingEnabled = this.isBillingEnabled();
+    const isBillingEnabled = OrganizationOnboardingFactory.isBillingEnabled();
 
     log.debug(
       "Creating onboarding service",

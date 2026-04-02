@@ -1,5 +1,4 @@
 import { CAL_URL } from "@calcom/lib/constants";
-
 import type { TextComponent } from "../lib";
 
 /**
@@ -8,10 +7,7 @@ import type { TextComponent } from "../lib";
  * @returns IsValid
  */
 export async function isValidCalURL(url: string) {
-  const regex = new RegExp(
-    `^https://(?:[a-zA-Z0-9-]+\\.)?${CAL_URL.replace("https://", "")}/`,
-    "i"
-  );
+  const regex = new RegExp(`^https://(?:[a-zA-Z0-9-]+\\.)?${CAL_URL.replace("https://", "")}/`, "i");
 
   const error: TextComponent = {
     type: "text",

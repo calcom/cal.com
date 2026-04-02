@@ -1,3 +1,14 @@
+import {
+  GOOGLE_CALENDAR,
+  GOOGLE_CALENDAR_ID,
+  GOOGLE_CALENDAR_TYPE,
+  OFFICE_365_CALENDAR,
+  OFFICE_365_CALENDAR_ID,
+  OFFICE_365_CALENDAR_TYPE,
+  SUCCESS_STATUS,
+} from "@calcom/platform-constants";
+import { ICS_CALENDAR, ICS_CALENDAR_TYPE } from "@calcom/platform-constants/apps";
+import type { Credential, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -10,18 +21,6 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 import { IcsCalendarServiceMock } from "test/mocks/ics-calendar-service-mock";
 import { randomString } from "test/utils/randomString";
-
-import {
-  GOOGLE_CALENDAR,
-  GOOGLE_CALENDAR_ID,
-  GOOGLE_CALENDAR_TYPE,
-  OFFICE_365_CALENDAR,
-  OFFICE_365_CALENDAR_ID,
-  OFFICE_365_CALENDAR_TYPE,
-  SUCCESS_STATUS,
-} from "@calcom/platform-constants";
-import { ICS_CALENDAR, ICS_CALENDAR_TYPE } from "@calcom/platform-constants/apps";
-import type { Credential, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 
 // Mock the BuildIcsFeedCalendarService factory function
 const mockBuildIcsFeedCalendarService = jest.fn();

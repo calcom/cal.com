@@ -1,3 +1,4 @@
+import { Logger, Module } from "@nestjs/common";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -8,7 +9,6 @@ import { TeamsMembershipsService } from "@/modules/teams/memberships/services/te
 import { TeamsMembershipsRepository } from "@/modules/teams/memberships/teams-memberships.repository";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { Logger, Module } from "@nestjs/common";
 
 @Module({
   imports: [

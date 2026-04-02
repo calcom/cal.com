@@ -3,7 +3,6 @@ import type { WatchlistEntry } from "@calcom/features/watchlist/lib/repository/I
 import type { WatchlistRepository } from "@calcom/features/watchlist/lib/repository/WatchlistRepository";
 import { domainRegex, emailRegex } from "@calcom/lib/emailSchema";
 import { WatchlistAction, WatchlistType } from "@calcom/prisma/enums";
-
 import { WatchlistErrors } from "../errors/WatchlistErrors";
 
 export interface AddReportsToWatchlistResult {

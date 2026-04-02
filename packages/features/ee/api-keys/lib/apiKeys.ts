@@ -1,4 +1,4 @@
-import { randomBytes, createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 
 // Hash the API key to check against when veriying it. so we don't have to store the key in plain text.
 export const hashAPIKey = (apiKey: string): string => createHash("sha256").update(apiKey).digest("hex");

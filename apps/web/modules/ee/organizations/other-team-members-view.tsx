@@ -1,22 +1,20 @@
 "use client";
 
-// import { debounce } from "lodash";
-import { keepPreviousData } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import MemberListItem from "~/ee/organizations/components/MemberListItem";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { CreationSource } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamsList } from "@calcom/web/app/(use-page-wrapper)/(main-nav)/teams/actions";
-
+// import { debounce } from "lodash";
+import { keepPreviousData } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import MemberListItem from "~/ee/organizations/components/MemberListItem";
 import MakeTeamPrivateSwitch from "~/ee/teams/components/MakeTeamPrivateSwitch";
 import MemberInvitationModal from "~/ee/teams/components/MemberInvitationModal";
 

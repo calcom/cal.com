@@ -1,8 +1,5 @@
-import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
-import { z } from "zod";
-
-import { createDefaultInstallation } from "@calcom/app-store/_utils/installation";
 import { filterEventTypesWhereLocationUpdateIsAllowed } from "@calcom/app-store/_utils/getBulkEventTypes";
+import { createDefaultInstallation } from "@calcom/app-store/_utils/installation";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
@@ -14,12 +11,13 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
-
+import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
+import { z } from "zod";
 import { STEPS } from "../../../../modules/apps/installation/[[...step]]/constants";
 import type {
   OnboardingPageProps,
-  TEventTypeGroup,
   TEventType,
+  TEventTypeGroup,
 } from "../../../../modules/apps/installation/[[...step]]/step-view";
 
 const eventTypeSelect: Prisma.EventTypeSelect = {

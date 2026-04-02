@@ -1,6 +1,5 @@
 import { bindModuleToClassOnToken, createModule } from "@calcom/features/di/di";
 import { OrganizationMembershipService } from "@calcom/features/ee/organizations/lib/service/OrganizationMembershipService";
-
 import { moduleLoader as organizationRepositoryModuleLoader } from "./OrganizationRepository.module";
 import { ORGANIZATION_DI_TOKENS } from "./tokens";
 

@@ -1,9 +1,6 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
-
 import { getGoogleMeetCredential, TestData } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-
 import { describe, expect, it } from "vitest";
-
 import { DailyLocationType, MeetLocationType } from "../locations";
 import { getDefaultLocations } from "./getDefaultLocations";
 
@@ -26,7 +23,7 @@ type User = {
         refresh_token?: string;
         scope: string;
       };
-    }
+    },
   ];
 };
 describe("getDefaultLocation ", async () => {

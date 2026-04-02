@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import { CrmFieldType, WhenToWrite } from "./crm-enums";
 
 export const writeToBookingEntry = z.object({

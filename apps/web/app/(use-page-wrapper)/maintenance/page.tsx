@@ -1,7 +1,5 @@
-import { _generateMetadata } from "app/_utils";
-
 import { APP_NAME } from "@calcom/lib/constants";
-
+import { _generateMetadata } from "app/_utils";
 import LegacyPage from "~/maintenance/maintenance-view";
 
 export const generateMetadata = async () => {

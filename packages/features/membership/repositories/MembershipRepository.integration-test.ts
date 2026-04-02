@@ -1,8 +1,6 @@
-import { describe, it, expect, beforeAll, afterAll, afterEach } from "vitest";
-
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { MembershipRepository } from "./MembershipRepository";
 
 const createdMembershipIds: number[] = [];

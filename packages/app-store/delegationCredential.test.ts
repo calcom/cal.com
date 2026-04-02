@@ -1,24 +1,20 @@
 import { organizationRepositoryMock } from "@calcom/features/ee/organizations/__mocks__/organizationMock";
-
-import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecalendar/_metadata";
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { ServiceAccountKey } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
-import { SMSLockState, RRTimestampBasis } from "@calcom/prisma/enums";
+import { RRTimestampBasis, SMSLockState } from "@calcom/prisma/enums";
+import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildAllCredentials,
-  getDelegationCredentialOrRegularCredential,
-  enrichUsersWithDelegationCredentials,
   enrichHostsWithDelegationCredentials,
-  enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
+  enrichUsersWithDelegationCredentials,
   enrichUserWithDelegationConferencingCredentialsWithoutOrgId,
+  enrichUserWithDelegationCredentialsIncludeServiceAccountKey,
   getAllDelegationCredentialsForUserIncludeServiceAccountKey,
+  getDelegationCredentialOrRegularCredential,
 } from "./delegationCredential";
 
 vi.mock("@calcom/prisma", () => ({

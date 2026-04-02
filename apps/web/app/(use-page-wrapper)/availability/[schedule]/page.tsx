@@ -1,12 +1,10 @@
+import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
+import { travelSchedulesRouter } from "@calcom/trpc/server/routers/viewer/travelSchedules/_router";
 import { createRouterCaller } from "app/_trpc/context";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-
-import { availabilityRouter } from "@calcom/trpc/server/routers/viewer/availability/_router";
-import { travelSchedulesRouter } from "@calcom/trpc/server/routers/viewer/travelSchedules/_router";
-
 import { AvailabilitySettingsWebWrapper } from "~/availability/[schedule]/schedule-view";
 
 const querySchema = z.object({

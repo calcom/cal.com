@@ -18,7 +18,6 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
-
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
@@ -384,7 +383,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(rescheduledBooking.duration).toEqual(bookingWithNonDefaultDuration.duration);
 
             // verify the end time is correct (start + 30 minutes)
-            const expectedEndTime = new Date(Date.UTC(2030, 0, 9, 12, nonDefaultLengthInMinutes, 0)).toISOString();
+            const expectedEndTime = new Date(
+              Date.UTC(2030, 0, 9, 12, nonDefaultLengthInMinutes, 0)
+            ).toISOString();
             expect(rescheduledBooking.start).toEqual(newStartTime);
             expect(rescheduledBooking.end).toEqual(expectedEndTime);
 

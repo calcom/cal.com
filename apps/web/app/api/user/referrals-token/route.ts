@@ -1,12 +1,11 @@
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import { headers, cookies } from "next/headers";
-import { NextResponse } from "next/server";
-
+import process from "node:process";
 import { dub } from "@calcom/feature-auth/lib/dub";
 import { getServerSession } from "@calcom/feature-auth/lib/getServerSession";
 import { IS_DUB_REFERRALS_ENABLED } from "@calcom/lib/constants";
-
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 

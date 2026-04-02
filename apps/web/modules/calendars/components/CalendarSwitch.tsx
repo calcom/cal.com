@@ -1,15 +1,14 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
-import { Switch } from "@calcom/ui/components/form";
-import { ArrowLeftIcon, RotateCwIcon } from "@coss/ui/icons";
-import { showToast } from "@calcom/ui/components/toast";
 import type { ICalendarSwitchProps } from "@calcom/ui/components/calendar-switch";
+import { Switch } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/components/toast";
+import { ArrowLeftIcon, RotateCwIcon } from "@coss/ui/icons";
+import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 
 type UserCalendarSwitchProps = Omit<ICalendarSwitchProps, "eventTypeId">;
 
@@ -104,9 +103,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           {t("adding_events_to")}
         </span>
       )}
-      {mutation.isPending && (
-        <RotateCwIcon className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />
-      )}
+      {mutation.isPending && <RotateCwIcon className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />}
     </div>
   );
 };

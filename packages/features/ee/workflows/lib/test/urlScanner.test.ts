@@ -1,5 +1,4 @@
 import { describe, expect, test, vi } from "vitest";
-
 import { extractUrlsFromHtml, isUrlScanningEnabled } from "../urlScanner";
 
 // Mock the constants module

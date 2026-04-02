@@ -1,11 +1,8 @@
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { setUser as SentrySetUser } from "@sentry/nextjs";
 import { cookies, headers } from "next/headers";
-import React from "react";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-
-import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
+import type React from "react";
 import Shell from "~/shell/Shell";
 
 const Layout = async ({ children }: { children: React.ReactNode }) => {

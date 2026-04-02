@@ -6,13 +6,12 @@ import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Person } from "@calcom/types/Calendar";
-
 import type { createLoggerWithEventDetails } from "../../handleNewBooking/logger";
 import type {
   HandleSeatsResultBooking,
-  SeatedBooking,
   RescheduleSeatedBookingObject,
   SeatAttendee,
+  SeatedBooking,
 } from "../types";
 import attendeeRescheduleSeatedBooking from "./attendee/attendeeRescheduleSeatedBooking";
 import ownerRescheduleSeatedBooking from "./owner/ownerRescheduleSeatedBooking";

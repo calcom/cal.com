@@ -1,3 +1,30 @@
+import {
+  EVENT_TYPE_READ,
+  EVENT_TYPE_WRITE,
+  SUCCESS_STATUS,
+  VERSION_2024_06_14,
+} from "@calcom/platform-constants";
+import {
+  CreateEventTypeInput_2024_06_14,
+  GetEventTypesQuery_2024_06_14,
+  UpdateEventTypeInput_2024_06_14,
+} from "@calcom/platform-types";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/create-event-type.output";
 import { DeleteEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/delete-event-type.output";
 import { GetEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-type.output";
@@ -6,8 +33,8 @@ import { UpdateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2
 import { EventTypeResponseTransformPipe } from "@/ee/event-types/event-types_2024_06_14/pipes/event-type-response.transformer";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
-import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import type { DatabaseEventType } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
+import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { VERSION_2024_06_14_VALUE } from "@/lib/api-versions";
 import {
   API_KEY_OR_ACCESS_TOKEN_HEADER,
@@ -28,34 +55,6 @@ import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.st
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/event-types/pipes/team-event-types-response.transformer";
 import type { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  UseGuards,
-  Get,
-  Param,
-  Post,
-  Body,
-  NotFoundException,
-  Patch,
-  HttpCode,
-  HttpStatus,
-  Delete,
-  Query,
-  ParseIntPipe,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-
-import {
-  EVENT_TYPE_READ,
-  EVENT_TYPE_WRITE,
-  SUCCESS_STATUS,
-  VERSION_2024_06_14,
-} from "@calcom/platform-constants";
-import {
-  UpdateEventTypeInput_2024_06_14,
-  GetEventTypesQuery_2024_06_14,
-  CreateEventTypeInput_2024_06_14,
-} from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/event-types",

@@ -1,7 +1,6 @@
 "use client";
 
 import { useQueryState } from "nuqs";
-
 import { roleParsers } from "../_components/searchParams";
 
 export function useRoleSheetState(initialOpen?: boolean) {

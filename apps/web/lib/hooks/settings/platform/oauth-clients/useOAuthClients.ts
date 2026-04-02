@@ -1,6 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-
 import type { ApiSuccessResponse, PlatformOAuthClientDto } from "@calcom/platform-types";
+import { useQuery } from "@tanstack/react-query";
 
 export const useOAuthClients = () => {
   const query = useQuery<ApiSuccessResponse<PlatformOAuthClientDto[]>>({

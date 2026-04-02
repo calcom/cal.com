@@ -1,10 +1,7 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
-
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
-import { type TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table/lib/types";
+import { ColumnFilterType, type TypedColumnFilter } from "@calcom/features/data-table/lib/types";
 import type { FilterType } from "@calcom/types/data-table";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { listMembersHandler } from "./listMembers.handler";
 
 vi.mock("@calcom/prisma", () => ({

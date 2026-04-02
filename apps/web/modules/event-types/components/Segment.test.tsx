@@ -1,12 +1,11 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import React from "react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { Mock } from "vitest";
-
-import { Segment } from "./Segment";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { AttributeType } from "@calcom/prisma/enums";
-import { trpc, type RouterOutputs } from "@calcom/trpc/react";
+import { type RouterOutputs, trpc } from "@calcom/trpc/react";
+import { render, screen, waitFor } from "@testing-library/react";
+import React from "react";
+import type { Mock } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { Segment } from "./Segment";
 
 type Attributes = RouterOutputs["viewer"]["appRoutingForms"]["getAttributesForTeam"];
 type MatchingTeamMembersData = RouterOutputs["viewer"]["attributes"]["findTeamMembersMatchingAttributeLogic"];

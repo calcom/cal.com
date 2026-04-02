@@ -1,10 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import { CHECKOUT_SESSION_TYPES } from "@calcom/features/ee/billing/constants";
 import { PhoneNumberSubscriptionStatus } from "@calcom/prisma/enums";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BillingService } from "../BillingService";
-import { setupBasicMocks, createMockPhoneNumberRecord, TestError } from "./test-utils";
+import { createMockPhoneNumberRecord, setupBasicMocks, TestError } from "./test-utils";
 
 vi.mock("@calcom/lib/constants", () => ({
   WEBAPP_URL: "https://app.cal.com",

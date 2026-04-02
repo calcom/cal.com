@@ -1,9 +1,8 @@
+import type { API_ERROR_CODES, REDIRECT_STATUS } from "@calcom/platform-constants";
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsEnum } from "class-validator";
 import type { Response as BaseResponse } from "express";
-
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { API_ERROR_CODES, REDIRECT_STATUS } from "@calcom/platform-constants";
 
 export type ApiSuccessResponse<T> = { status: typeof SUCCESS_STATUS; data: T };
 export type ApiSuccessResponseWithoutData = { status: typeof SUCCESS_STATUS };

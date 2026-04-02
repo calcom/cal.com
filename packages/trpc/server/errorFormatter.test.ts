@@ -1,8 +1,6 @@
+import { TRPCError } from "@trpc/server";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-
-import { TRPCError } from "@trpc/server";
-
 import { errorFormatter } from "./errorFormatter";
 
 describe("errorFormatter", () => {

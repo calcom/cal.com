@@ -1,7 +1,6 @@
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { XIcon } from "@coss/ui/icons";
+import { useState } from "react";
 
 export default function AddToHomescreen() {
   const { t } = useLocale();

@@ -1,8 +1,8 @@
 "use client";
 
-import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
+import { useFlags } from "@calcom/web/modules/feature-flags/hooks/useFlags";
 import { LinkIcon, MailIcon, UploadIcon } from "@coss/ui/icons";
 
 const GoogleIcon = () => (

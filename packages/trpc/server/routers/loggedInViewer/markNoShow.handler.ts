@@ -1,8 +1,6 @@
-import type { Session } from "next-auth";
-
 import { handleMarkAttendeesAndHostNoShow } from "@calcom/features/handleMarkNoShow";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
+import type { Session } from "next-auth";
 import type { TNoShowInputSchema } from "./markNoShow.schema";
 
 type NoShowOptions = {

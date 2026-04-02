@@ -1,5 +1,4 @@
 import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
-
 import type { SpanFn } from "../lib/telemetry";
 import type { WatchlistEntry } from "../lib/types";
 

@@ -1,5 +1,4 @@
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-
 import { isMonthChange } from "./isMonthChange";
 import { isMonthViewPrefetchEnabled } from "./isMonthViewPrefetchEnabled";
 

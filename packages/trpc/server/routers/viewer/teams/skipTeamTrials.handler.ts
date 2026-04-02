@@ -5,7 +5,6 @@ import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TSkipTeamTrialsInputSchema } from "./skipTeamTrials.schema";
 
 const log = logger.getSubLogger({ prefix: ["skipTeamTrials"] });

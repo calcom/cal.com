@@ -1,11 +1,9 @@
-import { wrapGetServerSidePropsWithSentry } from "@sentry/nextjs";
-import { isbot } from "isbot";
-import type { GetServerSidePropsContext } from "next";
-
 import { getRoutedUrl, hasEmbedPath } from "@calcom/features/routing-forms/lib/getRoutedUrl";
 import logger from "@calcom/lib/logger";
-
+import { wrapGetServerSidePropsWithSentry } from "@sentry/nextjs";
 import { TRPCError } from "@trpc/server";
+import { isbot } from "isbot";
+import type { GetServerSidePropsContext } from "next";
 
 const log = logger.getSubLogger({ prefix: ["router/getServerSideProps"] });
 

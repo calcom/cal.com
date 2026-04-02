@@ -165,34 +165,34 @@ export function UpgradePlanDialog({ tracking, target, info, children }: UpgradeP
             <DialogTitle>{t("upgrade_dialog_title")}</DialogTitle>
             <div className="flex items-center gap-1 max-sm:order-last">
               <ToggleGroup
-              value={[billingPeriod]}
-              onValueChange={(value): void => {
-                if (value.length > 0) {
-                  const newPeriod = value[0] as BillingPeriodToggle;
-                  setBillingPeriod(newPeriod);
-                  posthog.capture("upgrade_plan_dialog_billing_period_changed", {
-                    source: tracking,
-                    target,
-                    billingPeriod: newPeriod,
-                  });
-                }
-              }}
-              className="rounded-lg bg-muted p-1"
-              size="sm">
-              <Toggle
-                value="annual"
-                className="gap-1 rounded-md data-pressed:bg-default data-pressed:shadow-sm">
-                {t("upgrade_billing_annual")}
-                <Badge variant="info" size="sm">
-                  {t("discount_25")}
-                </Badge>
-              </Toggle>
-              <Toggle
-                value="monthly"
-                className="ml-1 rounded-md data-pressed:bg-default data-pressed:shadow-sm">
-                {t("monthly")}
-              </Toggle>
-            </ToggleGroup>
+                value={[billingPeriod]}
+                onValueChange={(value): void => {
+                  if (value.length > 0) {
+                    const newPeriod = value[0] as BillingPeriodToggle;
+                    setBillingPeriod(newPeriod);
+                    posthog.capture("upgrade_plan_dialog_billing_period_changed", {
+                      source: tracking,
+                      target,
+                      billingPeriod: newPeriod,
+                    });
+                  }
+                }}
+                className="rounded-lg bg-muted p-1"
+                size="sm">
+                <Toggle
+                  value="annual"
+                  className="gap-1 rounded-md data-pressed:bg-default data-pressed:shadow-sm">
+                  {t("upgrade_billing_annual")}
+                  <Badge variant="info" size="sm">
+                    {t("discount_25")}
+                  </Badge>
+                </Toggle>
+                <Toggle
+                  value="monthly"
+                  className="ml-1 rounded-md data-pressed:bg-default data-pressed:shadow-sm">
+                  {t("monthly")}
+                </Toggle>
+              </ToggleGroup>
               <DialogClose render={<Button size="icon" variant="ghost" />}>
                 <Icon name="x" />
               </DialogClose>

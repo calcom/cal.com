@@ -1,12 +1,10 @@
+import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
 import { uuid } from "short-uuid";
-
-import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
-
 import { test } from "../lib/fixtures";
 import {
   bookTeamEvent,

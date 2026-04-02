@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
-import { IsBoolean, IsOptional, IsString, IsNumber } from "class-validator";
+import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class GetAtomPublicEventTypeQueryParams {
   @Transform(({ value }: { value: string }) => value === "true")

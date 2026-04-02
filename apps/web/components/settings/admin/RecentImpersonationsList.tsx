@@ -1,21 +1,20 @@
 "use client";
 
-import { signIn } from "next-auth/react";
-import { useState } from "react";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getRecentImpersonations, type RecentImpersonation } from "@calcom/lib/recentImpersonations";
 import { Button } from "@calcom/ui/components/button";
 import { PanelCard } from "@calcom/ui/components/card";
 import {
-  TableNew,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
+  TableNew,
   TableRow,
 } from "@calcom/ui/components/table";
+import { signIn } from "next-auth/react";
+import { useState } from "react";
 
 interface RecentImpersonationsListProps {
   onImpersonate?: (username: string) => void;

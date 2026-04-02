@@ -1,18 +1,15 @@
-import type { ReactNode } from "react";
-import { forwardRef, useRef } from "react";
-
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/ScheduleComponent";
 import type { UpdateScheduleResponse } from "@calcom/features/schedules/services/ScheduleService";
 import type { ApiErrorResponse, ApiResponse, UpdateScheduleInput_2024_06_11 } from "@calcom/platform-types";
-
+import type { ReactNode } from "react";
+import { forwardRef, useRef } from "react";
 import { useAtomSchedule } from "../../hooks/schedules/useAtomSchedule";
 import { useAtomUpdateSchedule } from "../../hooks/schedules/useAtomUpdateSchedule";
 import useDeleteSchedule from "../../hooks/schedules/useDeleteSchedule";
 import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
-import type { Availability } from "../AvailabilitySettings";
-import type { CustomClassNames } from "../AvailabilitySettings";
+import type { Availability, CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
 import type { AvailabilityFormValues, AvailabilitySettingsFormRef } from "../types";
 

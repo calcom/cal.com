@@ -1,11 +1,8 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { getPaymentAppData } from "@calcom/app-store/_utils/payments/getPaymentAppData";
 import dayjs from "@calcom/dayjs";
 import { RefundPolicy } from "@calcom/lib/payment/types";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handlePaymentRefund } from "./handlePaymentRefund";
 import { processPaymentRefund } from "./processPaymentRefund";
 
@@ -137,7 +134,7 @@ describe("processPaymentRefund", () => {
     await prismock.credential.create({ data: mockCredential });
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
+    //@ts-expect-error
     const mockNow = dayjs(mockStartTime).businessDaysSubtract(3).toDate();
 
     vi.useFakeTimers();

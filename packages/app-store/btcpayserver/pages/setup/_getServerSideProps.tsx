@@ -1,9 +1,7 @@
-import type { GetServerSidePropsContext } from "next";
-import { z } from "zod";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
-
+import type { GetServerSidePropsContext } from "next";
+import type { z } from "zod";
 import { btcpayCredentialKeysSchema } from "../../lib/btcpayCredentialKeysSchema";
 
 export type IBTCPaySetupProps = z.infer<typeof btcpayCredentialKeysSchema>;

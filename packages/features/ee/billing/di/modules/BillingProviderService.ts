@@ -1,5 +1,4 @@
-import { type Container, createModule, ModuleLoader } from "@calcom/features/di/di";
-
+import { type Container, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { StripeBillingService } from "../../service/billingProvider/StripeBillingService";
 import { DI_TOKENS } from "../tokens";
 import { stripeClientModuleLoader } from "./StripeClient";

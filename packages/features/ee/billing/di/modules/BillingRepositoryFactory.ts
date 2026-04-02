@@ -1,9 +1,13 @@
-import { type Container, createModule, ModuleLoader, type ResolveFunction } from "@calcom/features/di/di";
+import {
+  type Container,
+  createModule,
+  type ModuleLoader,
+  type ResolveFunction,
+} from "@calcom/features/di/di";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
 import { DI_TOKENS as GLOBAL_DI_TOKENS } from "@calcom/features/di/tokens";
 import type { PrismaClient } from "@calcom/prisma";
-
-import { IBillingRepository } from "../../repository/billing/IBillingRepository";
+import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
 import { PrismaOrganizationBillingRepository } from "../../repository/billing/PrismaOrganizationBillingRepository";
 import { PrismaTeamBillingRepository } from "../../repository/billing/PrismaTeamBillingRepository";
 import { StubBillingRepository } from "../../repository/billing/StubBillingRepository";

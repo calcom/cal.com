@@ -1,16 +1,15 @@
-import { Retell } from "retell-sdk";
-import { describe, it, expect, beforeEach, vi, beforeAll } from "vitest";
-
+import process from "node:process";
 import logger from "@calcom/lib/logger";
-
+import { Retell } from "retell-sdk";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type {
-  CreateLLMRequest,
-  UpdateLLMRequest,
   CreateAgentRequest,
-  UpdateAgentRequest,
+  CreateLLMRequest,
   CreatePhoneNumberParams,
   ImportPhoneNumberParams,
   RetellDynamicVariables,
+  UpdateAgentRequest,
+  UpdateLLMRequest,
 } from "./types";
 
 let RetellSDKClient: typeof import("./RetellSDKClient").RetellSDKClient;

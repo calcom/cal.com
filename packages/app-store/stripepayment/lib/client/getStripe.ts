@@ -1,3 +1,4 @@
+import process from "node:process";
 import type { Stripe } from "@stripe/stripe-js";
 import { loadStripe } from "@stripe/stripe-js/pure";
 

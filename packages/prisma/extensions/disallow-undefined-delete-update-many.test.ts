@@ -1,5 +1,4 @@
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import { checkUndefinedInValue } from "./disallow-undefined-delete-update-many";
 
 describe("Disallow undefined delete/update many", () => {

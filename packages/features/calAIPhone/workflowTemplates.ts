@@ -9,7 +9,7 @@ const styleGuardrails = `## Style Guardrails
   If you are saying a time like 8:00 AM, just say 8 AM and omit the trailing zeros.`;
 
 const responseGuideline = `## Response Guideline
-  Adapt and Guess: Try to understand transcripts that may contain transcription errors. Avoid mentioning \"transcription error\" in the response.
+  Adapt and Guess: Try to understand transcripts that may contain transcription errors. Avoid mentioning "transcription error" in the response.
   Stay in Character: Keep conversations within your role'''s scope, guiding them back creatively without repeating.
   Ensure Fluid Dialogue: Respond in a role-appropriate, direct manner to maintain a smooth conversation flow.`;
 

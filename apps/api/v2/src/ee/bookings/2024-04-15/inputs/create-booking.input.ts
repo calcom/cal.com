@@ -1,26 +1,26 @@
-import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
+import { RESCHEDULED_BY_DOCS } from "@calcom/platform-types";
+import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import {
-  IsBoolean,
-  IsTimeZone,
-  IsNumber,
-  IsString,
-  IsOptional,
   IsArray,
-  IsObject,
-  ValidateNested,
-  isEmail,
-  Validate,
+  IsBoolean,
   IsInt,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsTimeZone,
+  isEmail,
+  registerDecorator,
+  Validate,
+  ValidateNested,
+  ValidationOptions,
 } from "class-validator";
-import { ValidationOptions, registerDecorator } from "class-validator";
-
-import { RESCHEDULED_BY_DOCS } from "@calcom/platform-types";
 
 type BookingName = { firstName: string; lastName: string };
 
 function ValidateBookingName(validationOptions?: ValidationOptions) {
-  return function (target: object, propertyName: string) {
+  return (target: object, propertyName: string) => {
     registerDecorator({
       name: "validateBookingName",
       target: target.constructor,

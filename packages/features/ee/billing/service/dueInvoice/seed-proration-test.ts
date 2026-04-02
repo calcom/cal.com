@@ -1,4 +1,5 @@
 #!/usr/bin/env npx tsx
+
 /**
  * Seed script for testing due invoice banner and invitation blocking
  *
@@ -21,17 +22,17 @@
  *   --cleanup        Clean up test data before seeding
  */
 
-import { config } from "dotenv";
 import { resolve } from "node:path";
+import process from "node:process";
+import { config } from "dotenv";
 
 // Load environment variables from .env file
 config({ path: resolve(process.cwd(), ".env") });
 
-import bcrypt from "bcryptjs";
-import Stripe from "stripe";
-
 import { prisma } from "@calcom/prisma";
 import { BillingPeriod, MembershipRole } from "@calcom/prisma/enums";
+import bcrypt from "bcryptjs";
+import Stripe from "stripe";
 
 async function hashPassword(password: string): Promise<string> {
   const salt = await bcrypt.genSalt(10);

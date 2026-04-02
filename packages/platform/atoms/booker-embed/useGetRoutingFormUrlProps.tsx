@@ -1,7 +1,5 @@
-import { useMemo } from "react";
-
 import type { RoutingFormSearchParamsForEmbed } from "@calcom/platform-types";
-
+import { useMemo } from "react";
 import type { BookerPlatformWrapperAtomPropsForTeam } from "../booker/BookerPlatformWrapper";
 
 export type useGetRoutingFormUrlPropsReturnType = RoutingFormSearchParamsForEmbed;

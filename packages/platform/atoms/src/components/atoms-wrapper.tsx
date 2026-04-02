@@ -1,7 +1,5 @@
-import type { ReactNode } from "react";
-
 import classNames from "@calcom/ui/classNames";
-
+import type { ReactNode } from "react";
 import { useAtomsContext } from "../../hooks/useAtomsContext";
 import { CALCOM_ATOMS_WRAPPER_CLASS } from "../constants/styles";
 

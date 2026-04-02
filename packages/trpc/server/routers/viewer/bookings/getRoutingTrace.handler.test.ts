@@ -5,7 +5,6 @@ import type { RoutingTrace } from "@calcom/features/routing-trace/repositories/R
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { getRoutingTraceHandler } from "./getRoutingTrace.handler";
 
 vi.mock("@calcom/features/routing-trace/repositories/PrismaRoutingTraceRepository");

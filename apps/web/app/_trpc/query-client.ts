@@ -1,7 +1,6 @@
 "use client";
 
 import { QueryClient } from "@tanstack/react-query";
-
 import { TRPCClientError } from "@trpc/client";
 
 const MAX_QUERY_RETRIES = 3;

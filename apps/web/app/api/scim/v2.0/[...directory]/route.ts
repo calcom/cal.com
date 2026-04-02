@@ -1,10 +1,4 @@
 import type { DirectorySyncEvent, DirectorySyncRequest } from "@boxyhq/saml-jackson";
-import type { Params } from "app/_types";
-import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import { z } from "zod";
-
 import handleGroupEvents from "@calcom/features/ee/dsync/lib/handleGroupEvents";
 import handleUserEvents from "@calcom/features/ee/dsync/lib/handleUserEvents";
 import jackson from "@calcom/features/ee/sso/lib/jackson";
@@ -12,6 +6,11 @@ import { DIRECTORY_IDS_TO_LOG } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { Params } from "app/_types";
+import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["[scim]"] });
 
@@ -109,7 +108,7 @@ async function handleScimRequest(request: NextRequest, method: string, params: P
     );
   }
 
-  let body: object | undefined = undefined;
+  let body: object | undefined;
   try {
     body = await request.json().catch(() => undefined);
   } catch (e) {

@@ -1,13 +1,12 @@
-import React from "react";
-import type { Control, FieldValues } from "react-hook-form";
-
 import {
-  ScheduleComponent,
   type FieldPathByValue,
+  ScheduleComponent,
   type ScheduleLabelsType,
 } from "@calcom/features/schedules/components/ScheduleComponent";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { TimeRange } from "@calcom/types/schedule";
+import React from "react";
+import type { Control, FieldValues } from "react-hook-form";
 
 const Schedule = <
   TFieldValues extends FieldValues,

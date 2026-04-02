@@ -1,11 +1,11 @@
-import { DEFAULT_WEBHOOK_VERSION } from "../interface/IWebhookRepository";
 import type { WebhookEventDTO } from "../dto/types";
 import type { WebhookPayload } from "../factory/types";
 import type { PayloadBuilderFactory } from "../factory/versioned/PayloadBuilderFactory";
+import type { WebhookVersion } from "../interface/IWebhookRepository";
+import { DEFAULT_WEBHOOK_VERSION } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
 import type { IWebhookService } from "../interface/services";
 import type { IWebhookNotificationHandler } from "../interface/webhook";
-import type { WebhookVersion } from "../interface/IWebhookRepository";
 
 export class WebhookNotificationHandler implements IWebhookNotificationHandler {
   private readonly log: ILogger;

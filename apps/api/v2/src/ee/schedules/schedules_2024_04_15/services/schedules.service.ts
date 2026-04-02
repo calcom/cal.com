@@ -1,15 +1,14 @@
+import { updateSchedule } from "@calcom/platform-libraries/schedules";
+import type { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
+import type { PrismaClient } from "@calcom/prisma";
+import type { Schedule } from "@calcom/prisma/client";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { CreateAvailabilityInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-availability.input";
 import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { SchedulesRepository_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.repository";
 import { PrismaScheduleRepository } from "@/lib/repositories/prisma-schedule.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-
-import { updateSchedule } from "@calcom/platform-libraries/schedules";
-import type { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
-import type { PrismaClient } from "@calcom/prisma";
-import type { Schedule } from "@calcom/prisma/client";
+import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 
 @Injectable()
 export class SchedulesService_2024_04_15 {

@@ -1,15 +1,13 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { usePathname } from "next/navigation";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import classNames from "@calcom/ui/classNames";
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
-import classNames from "@calcom/ui/classNames";
-
-import { useOnboardingStore, type Invite } from "../store/onboarding-store";
+import { AnimatePresence, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { type Invite, useOnboardingStore } from "../store/onboarding-store";
 
 type OnboardingInviteBrowserViewProps = {
   teamName?: string;

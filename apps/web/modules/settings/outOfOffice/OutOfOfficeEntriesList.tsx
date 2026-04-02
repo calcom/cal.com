@@ -1,27 +1,7 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import {
-  createColumnHelper,
-  getCoreRowModel,
-  getFilteredRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { ColumnFilterType, ZDateRangeFilterValue } from "@calcom/features/data-table";
-import { DataTableProvider } from "~/data-table/DataTableProvider";
-import { useDataTable } from "~/data-table/hooks/useDataTable";
-import { useFilterValue } from "~/data-table/hooks/useFilterValue";
-import {
-  DataTableWrapper,
-  DataTableToolbar,
-  DataTableFilters,
-  DataTableSegment,
-} from "~/data-table/components";
-import { useSegments } from "~/data-table/hooks/useSegments";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
@@ -32,13 +12,31 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-import { ClockIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-
+import { ClockIcon } from "@coss/ui/icons";
+import { keepPreviousData } from "@tanstack/react-query";
+import {
+  createColumnHelper,
+  getCoreRowModel,
+  getFilteredRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  DataTableFilters,
+  DataTableSegment,
+  DataTableToolbar,
+  DataTableWrapper,
+} from "~/data-table/components";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useFilterValue } from "~/data-table/hooks/useFilterValue";
+import { useSegments } from "~/data-table/hooks/useSegments";
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
-import type { BookingRedirectForm } from "./types";
 import { OutOfOfficeTab, OutOfOfficeToggleGroup } from "./OutOfOfficeToggleGroup";
+import type { BookingRedirectForm } from "./types";
 
 interface OutOfOfficeEntry {
   id: number;
@@ -171,47 +169,47 @@ function OutOfOfficeEntriesListContent({
       }),
       ...(selectedTab === OutOfOfficeTab.TEAM
         ? [
-          columnHelper.display({
-            id: "member",
-            header: `Member`,
-            size: 220,
-            cell: ({ row }) => {
-              if (!row.original || !row.original.user || isPending || isFetching) {
-                return <SkeletonText className="h-8 w-full" />;
-              }
-              const { avatarUrl, username, email, name } = row.original.user;
-              const memberName =
-                name ||
-                (() => {
-                  const emailName = email.split("@")[0];
-                  return emailName.charAt(0).toUpperCase() + emailName.slice(1);
-                })();
-              return (
-                <div className="flex items-center gap-2">
-                  <Avatar
-                    size="sm"
-                    alt={username || email}
-                    imageSrc={getUserAvatarUrl({
-                      avatarUrl,
-                    })}
-                  />
-                  <div className="">
-                    <div
-                      data-testid={`ooo-member-${username}-username`}
-                      className="text-emphasis text-sm font-medium leading-none">
-                      {memberName}
-                    </div>
-                    <div
-                      data-testid={`ooo-member-${username}-email`}
-                      className="text-subtle mt-1 text-sm leading-none">
-                      {email}
+            columnHelper.display({
+              id: "member",
+              header: `Member`,
+              size: 220,
+              cell: ({ row }) => {
+                if (!row.original || !row.original.user || isPending || isFetching) {
+                  return <SkeletonText className="h-8 w-full" />;
+                }
+                const { avatarUrl, username, email, name } = row.original.user;
+                const memberName =
+                  name ||
+                  (() => {
+                    const emailName = email.split("@")[0];
+                    return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+                  })();
+                return (
+                  <div className="flex items-center gap-2">
+                    <Avatar
+                      size="sm"
+                      alt={username || email}
+                      imageSrc={getUserAvatarUrl({
+                        avatarUrl,
+                      })}
+                    />
+                    <div className="">
+                      <div
+                        data-testid={`ooo-member-${username}-username`}
+                        className="text-emphasis text-sm font-medium leading-none">
+                        {memberName}
+                      </div>
+                      <div
+                        data-testid={`ooo-member-${username}-email`}
+                        className="text-subtle mt-1 text-sm leading-none">
+                        {email}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            },
-          }),
-        ]
+                );
+              },
+            }),
+          ]
         : []),
       columnHelper.display({
         id: "outOfOffice",

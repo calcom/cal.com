@@ -1,14 +1,13 @@
-import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
+import type { Membership } from "@calcom/prisma/client";
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
+  Injectable,
   NotFoundException,
 } from "@nestjs/common";
 import { Request } from "express";
-
-import type { Membership } from "@calcom/prisma/client";
+import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
 
 @Injectable()
 export class IsMembershipInOrg implements CanActivate {

@@ -1,9 +1,8 @@
-import { TeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/team-role.output";
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, IsArray, ValidateNested } from "class-validator";
-
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+import { IsArray, IsEnum, ValidateNested } from "class-validator";
+import { TeamRoleOutput } from "@/modules/organizations/teams/roles/outputs/team-role.output";
 
 export class GetAllTeamRolesOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })

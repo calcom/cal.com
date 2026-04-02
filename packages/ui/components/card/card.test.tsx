@@ -1,6 +1,5 @@
 /* eslint-disable playwright/missing-playwright-await */
-import { render, screen, fireEvent } from "@testing-library/react";
-
+import { fireEvent, render, screen } from "@testing-library/react";
 import { Card } from "./Card";
 
 const title = "Card Title";

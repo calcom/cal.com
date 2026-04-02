@@ -1,7 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type { createUsersFixture } from "playwright/fixtures/users";
-
 import { test } from "./lib/fixtures";
 import { gotoBookingPage, saveEventType, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 

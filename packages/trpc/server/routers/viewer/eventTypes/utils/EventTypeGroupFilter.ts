@@ -1,5 +1,4 @@
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
-
 import type { TeamPermissions } from "./permissionUtils";
 import type { EventTypeGroup } from "./transformUtils";
 

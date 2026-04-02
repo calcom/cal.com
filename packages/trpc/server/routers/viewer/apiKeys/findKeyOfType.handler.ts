@@ -1,6 +1,5 @@
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import type { TrpcSessionUser } from "../../../types";
 import { checkPermissions } from "./_auth-middleware";
 import type { TFindKeyOfTypeInputSchema } from "./findKeyOfType.schema";

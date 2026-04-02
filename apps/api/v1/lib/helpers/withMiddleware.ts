@@ -1,5 +1,4 @@
 import { label } from "next-api-middleware";
-
 import { addRequestId } from "./addRequestid";
 import { captureErrors } from "./captureErrors";
 import { captureUserId } from "./captureUserId";

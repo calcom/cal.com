@@ -1,14 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
-
 import {
   CAL_API_VERSION_HEADER,
   SUCCESS_STATUS,
   V2_ENDPOINTS,
   VERSION_2024_08_13,
 } from "@calcom/platform-constants";
-import type { GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
-import type { GetBookingsInput_2024_08_13 } from "@calcom/platform-types";
-
+import type { GetBookingsInput_2024_08_13, GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
+import { useQuery } from "@tanstack/react-query";
 import http from "../../lib/http";
 
 const QUERY_KEY = "use-bookings";

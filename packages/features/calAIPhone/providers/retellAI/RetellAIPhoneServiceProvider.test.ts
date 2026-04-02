@@ -1,16 +1,14 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type {
-  AIPhoneServiceConfiguration,
-  AIPhoneServiceDeletion,
   AIPhoneServiceCallData,
+  AIPhoneServiceConfiguration,
   AIPhoneServiceCreatePhoneNumberParams,
+  AIPhoneServiceDeletion,
   AIPhoneServiceImportPhoneNumberParams,
-  AIPhoneServiceUpdatePhoneNumberParams,
   AIPhoneServiceUpdateAgentParams,
   AIPhoneServiceUpdateModelParams,
+  AIPhoneServiceUpdatePhoneNumberParams,
 } from "../../interfaces/AIPhoneService.interface";
 import type { AgentRepositoryInterface } from "../interfaces/AgentRepositoryInterface";
 import type { PhoneNumberRepositoryInterface } from "../interfaces/PhoneNumberRepositoryInterface";

@@ -1,8 +1,5 @@
-import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
-
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-
+import { _generateMetadata, getTranslate } from "app/_utils";
 import TwoFactorAuthView from "~/settings/security/two-factor-auth-view";
 
 export const generateMetadata = async () =>

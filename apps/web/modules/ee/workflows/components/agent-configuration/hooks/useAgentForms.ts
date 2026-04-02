@@ -1,10 +1,8 @@
+import { cleanPromptForDisplay } from "@calcom/features/calAIPhone/providers/retellAI/utils/promptUtils";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-
-import { cleanPromptForDisplay } from "@calcom/features/calAIPhone/providers/retellAI/utils/promptUtils";
-import type { RouterOutputs } from "@calcom/trpc/react";
-
 import type { AgentFormValues } from "../types/schemas";
 import { agentSchema } from "../types/schemas";
 

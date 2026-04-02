@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext } from "react";
-
 import type { CalProviderLanguagesType, translationKeys } from "../cal-provider/languages";
 import type http from "../lib/http";
 

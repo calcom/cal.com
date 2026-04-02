@@ -1,8 +1,8 @@
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
-import { useBottomNavItems } from "../useBottomNavItems";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-import type { NavigationItemType } from "./NavigationItem";
 import { useSession } from "next-auth/react";
+import { useBottomNavItems } from "../useBottomNavItems";
+import type { NavigationItemType } from "./NavigationItem";
 
 export function useMobileMoreItems(): NavigationItemType[] {
   const { data: session } = useSession();

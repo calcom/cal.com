@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsInt, IsEnum, IsBoolean } from "class-validator";
+import { IsBoolean, IsEnum, IsInt, IsString } from "class-validator";
 
 export const AttributeType = {
   TEXT: "TEXT",

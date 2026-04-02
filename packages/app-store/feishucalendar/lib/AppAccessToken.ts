@@ -1,9 +1,7 @@
-import { z } from "zod";
-
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
-import { getAppKeys, isExpired, FEISHU_HOST } from "../common";
+import { z } from "zod";
+import { FEISHU_HOST, getAppKeys, isExpired } from "../common";
 
 const log = logger.getSubLogger({ prefix: [`[[FeishuAppCredential]`] });
 

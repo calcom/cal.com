@@ -1,18 +1,10 @@
 "use client";
 
-import type { SessionContextValue } from "next-auth/react";
-import { CheckIcon, CopyIcon } from "lucide-react";
-import { useSession } from "next-auth/react";
-import { useCallback, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { UserPermissionRole } from "@calcom/prisma/enums";
-
 import { Alert, AlertDescription } from "@coss/ui/components/alert";
 import { Button } from "@coss/ui/components/button";
 import {
@@ -39,7 +31,12 @@ import { Field, FieldLabel } from "@coss/ui/components/field";
 import { Form } from "@coss/ui/components/form";
 import { Input } from "@coss/ui/components/input";
 import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "@coss/ui/components/select";
-import { ToggleGroup, Toggle } from "@coss/ui/components/toggle-group";
+import { Toggle, ToggleGroup } from "@coss/ui/components/toggle-group";
+import { CheckIcon, CopyIcon } from "lucide-react";
+import type { SessionContextValue } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { useCallback, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 function CopyButton({ value }: { value: string }) {
   const [copied, setCopied] = useState(false);

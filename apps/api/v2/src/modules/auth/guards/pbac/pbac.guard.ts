@@ -1,20 +1,19 @@
+import type { PermissionString } from "@calcom/platform-libraries/pbac";
+import { FeaturesRepository, PermissionCheckService } from "@calcom/platform-libraries/pbac";
+import {
+  BadRequestException,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { Request } from "express";
 import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { RedisService } from "@/modules/redis/redis.service";
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  UnauthorizedException,
-  BadRequestException,
-} from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
-import { Request } from "express";
-
-import type { PermissionString } from "@calcom/platform-libraries/pbac";
-import { PermissionCheckService, FeaturesRepository } from "@calcom/platform-libraries/pbac";
 
 export const REDIS_PBAC_CACHE_KEY = (teamId: number) => `apiv2:team:${teamId}:has:pbac:guard:pbac`;
 export const REDIS_REQUIRED_PERMISSIONS_CACHE_KEY = (

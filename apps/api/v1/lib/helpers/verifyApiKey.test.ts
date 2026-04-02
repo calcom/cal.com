@@ -4,10 +4,6 @@
  * These tests verify the middleware logic without touching the database.
  * All dependencies (repositories, utilities) are mocked.
  */
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { createMocks } from "node-mocks-http";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ILicenseKeyService } from "@calcom/ee/common/server/LicenseKeyService";
 import LicenseKeyService, { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
@@ -15,7 +11,10 @@ import { PrismaApiKeyRepository } from "@calcom/features/ee/api-keys/repositorie
 import { ApiKeyService } from "@calcom/features/ee/api-keys/services/ApiKeyService";
 import type { IDeploymentRepository } from "@calcom/features/ee/deployment/repositories/IDeploymentRepository";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { createMocks } from "node-mocks-http";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { isAdminGuard } from "../utils/isAdmin";
 import { isLockedOrBlocked } from "../utils/isLockedOrBlocked";
 import { ScopeOfAdmin } from "../utils/scopeOfAdmin";
@@ -73,8 +72,12 @@ describe("Verify API key - Unit Tests", () => {
       verifyKeyByHashedKey: vi.fn(),
     } as unknown as ApiKeyService;
 
-    vi.mocked(ApiKeyService).mockImplementation(function() { return mockApiKeyService; });
-    vi.mocked(PrismaApiKeyRepository).mockImplementation(function() { return {} as unknown as PrismaApiKeyRepository; });
+    vi.mocked(ApiKeyService).mockImplementation(function () {
+      return mockApiKeyService;
+    });
+    vi.mocked(PrismaApiKeyRepository).mockImplementation(function () {
+      return {} as unknown as PrismaApiKeyRepository;
+    });
 
     vi.mocked(isAdminGuard).mockReset();
     vi.mocked(isLockedOrBlocked).mockReset();

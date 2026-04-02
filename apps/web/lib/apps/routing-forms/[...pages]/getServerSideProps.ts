@@ -1,10 +1,8 @@
-import type { GetServerSidePropsResult, GetServerSidePropsContext } from "next";
-import { z } from "zod";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 import type { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
-
+import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
+import { z } from "zod";
 import { routingServerSidePropsConfig } from "./app-routing.server-config";
 
 const paramsSchema = z.object({

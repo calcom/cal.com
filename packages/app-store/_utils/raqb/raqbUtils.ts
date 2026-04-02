@@ -12,13 +12,12 @@
  *   import { buildStateFromQueryValue, buildEmptyQueryValue } from "@calcom/app-store/_utils/raqb/raqbUtils.client";
  */
 
-// Re-export server-safe utilities
-export {
-  raqbQueryValueUtils,
-  getValueOfAttributeOption,
-  getAttributesQueryBuilderConfigHavingListofLabels,
-  acrossQueryValueCompatiblity,
-} from "./raqbUtils.server";
-
 // Re-export client-only utilities (requires react-awesome-query-builder runtime)
 export { buildEmptyQueryValue, buildStateFromQueryValue } from "./raqbUtils.client";
+// Re-export server-safe utilities
+export {
+  acrossQueryValueCompatiblity,
+  getAttributesQueryBuilderConfigHavingListofLabels,
+  getValueOfAttributeOption,
+  raqbQueryValueUtils,
+} from "./raqbUtils.server";

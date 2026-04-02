@@ -1,7 +1,7 @@
-import type { SortingState, ColumnSort } from "@tanstack/react-table";
+import type { FilterType, TextFilterOperator } from "@calcom/types/data-table";
+import type { ColumnSort, SortingState } from "@tanstack/react-table";
 import { z } from "zod";
 
-import type { TextFilterOperator, FilterType } from "@calcom/types/data-table";
 export type { ColumnFilterMeta, FilterableColumn } from "@calcom/types/data-table";
 
 const ColumnFilterType = {
@@ -18,7 +18,7 @@ export type { SortingState } from "@tanstack/react-table";
 
 export const SYSTEM_SEGMENT_PREFIX = "system_";
 
-export { ColumnFilterType, TextFilterOperator };
+export { ColumnFilterType, type TextFilterOperator };
 
 export const textFilterOperators = [
   "equals",

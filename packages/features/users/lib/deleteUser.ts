@@ -4,7 +4,9 @@ import syncServices from "@calcom/lib/sync/services";
 import prisma from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 
-export async function deleteUser(user: Pick<User, "id" | "email" | "metadata" | "username" | "name" | "createdDate">) {
+export async function deleteUser(
+  user: Pick<User, "id" | "email" | "metadata" | "username" | "name" | "createdDate">
+) {
   // If 2FA is disabled or totpCode is valid then delete the user from stripe and database
   await deleteStripeCustomer(user).catch(console.warn);
 
@@ -27,9 +29,7 @@ export async function deleteUser(user: Pick<User, "id" | "email" | "metadata" | 
   }
 
   // Notify Intercom
-  await intercom
-    .deleteContact(user.email)
-    .catch((e) => console.error("Error deleting Intercom contact:", e));
+  await intercom.deleteContact(user.email).catch((e) => console.error("Error deleting Intercom contact:", e));
 
   // Remove my account
   // TODO: Move this to Repository pattern.

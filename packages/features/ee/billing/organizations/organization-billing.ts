@@ -1,5 +1,4 @@
 import type { Team } from "@calcom/prisma/client";
-
 import type { OrganizationBillingRepository } from "./organization-billing.repository";
 
 export abstract class OrganizationBilling {

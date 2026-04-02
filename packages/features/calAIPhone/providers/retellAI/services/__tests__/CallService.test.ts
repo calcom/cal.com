@@ -1,9 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CallService } from "../CallService";
-import { setupBasicMocks, createMockCall, createMockDatabaseAgent, TestError } from "./test-utils";
+import { createMockCall, createMockDatabaseAgent, setupBasicMocks, TestError } from "./test-utils";
 
 vi.mock("@calcom/features/ee/billing/credit-service", () => ({
   CreditService: vi.fn(),

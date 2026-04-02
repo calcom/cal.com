@@ -5,9 +5,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui/components/button";
-import { CalendarIcon } from "@coss/ui/icons";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-
+import { CalendarIcon } from "@coss/ui/icons";
 import type { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServerSideProps";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;

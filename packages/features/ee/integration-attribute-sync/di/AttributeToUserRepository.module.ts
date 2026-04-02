@@ -1,7 +1,6 @@
+import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
-import { PrismaAttributeToUserRepository } from "@calcom/features/attributes/repositories/PrismaAttributeToUserRepository";
-
 import { INTEGRATION_ATTRIBUTE_SYNC_DI_TOKENS } from "./tokens";
 
 export const attributeToUserRepositoryModule = createModule();

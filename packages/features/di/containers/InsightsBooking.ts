@@ -1,12 +1,11 @@
+import { prismaModule } from "@calcom/features/di/modules/Prisma";
 import { DI_TOKENS } from "@calcom/features/di/tokens";
 import type {
-  InsightsBookingServicePublicOptions,
-  InsightsBookingServiceFilterOptions,
   InsightsBookingBaseService,
+  InsightsBookingServiceFilterOptions,
+  InsightsBookingServicePublicOptions,
 } from "@calcom/features/insights/services/InsightsBookingBaseService";
 import type { InsightsBookingService } from "@calcom/features/insights/services/InsightsBookingDIService";
-import { prismaModule } from "@calcom/features/di/modules/Prisma";
-
 import { createContainer } from "../di";
 import { insightsBookingModule } from "../modules/InsightsBooking";
 

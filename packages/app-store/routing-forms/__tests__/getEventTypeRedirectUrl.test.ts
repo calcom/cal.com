@@ -1,7 +1,5 @@
-import { describe, it, expect } from "vitest";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
-
+import { describe, expect, it } from "vitest";
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 
 describe("getAbsoluteEventTypeRedirectUrl", () => {

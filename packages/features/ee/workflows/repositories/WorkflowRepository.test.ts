@@ -1,7 +1,5 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { describe, it, expect } from "vitest";
-
+import { describe, expect, it } from "vitest";
 import { WorkflowRepository } from "./WorkflowRepository";
 
 describe("WorkflowRepository", () => {

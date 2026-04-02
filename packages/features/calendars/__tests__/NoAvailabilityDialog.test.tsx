@@ -1,9 +1,7 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { vi } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import { PeriodType } from "@calcom/prisma/enums";
-
+import { fireEvent, render, screen } from "@testing-library/react";
+import { vi } from "vitest";
 import NoAvailabilityDialog from "../components/NoAvailabilityDialog";
 
 vi.mock("@calcom/lib/hooks/useLocale", () => ({

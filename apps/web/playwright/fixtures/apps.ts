@@ -1,5 +1,4 @@
 import { expect, type Page } from "@playwright/test";
-
 import type { TApp } from "../apps/conferencing/types";
 import {
   bookTimeSlot,
@@ -40,7 +39,9 @@ export function createAppsFixture(page: Page) {
         await page.waitForURL(`apps/installation/event-types?slug=${app}`);
       }
 
-      await page.locator(`[data-testid="select-event-type-${eventTypeIds[0]}"]`).waitFor({ state: "visible" });
+      await page
+        .locator(`[data-testid="select-event-type-${eventTypeIds[0]}"]`)
+        .waitFor({ state: "visible" });
       for (const id of eventTypeIds) {
         await page.click(`[data-testid="select-event-type-${id}"]`);
       }
@@ -87,7 +88,9 @@ export function createAppsFixture(page: Page) {
       await page.getByTestId("install-app-button").click();
       await page.waitForURL(`apps/installation/event-types?slug=${app.slug}`);
 
-      await page.locator(`[data-testid="select-event-type-${eventTypeIds[0]}"]`).waitFor({ state: "visible" });
+      await page
+        .locator(`[data-testid="select-event-type-${eventTypeIds[0]}"]`)
+        .waitFor({ state: "visible" });
       for (const id of eventTypeIds) {
         await page.click(`[data-testid="select-event-type-${id}"]`);
       }
@@ -129,9 +132,7 @@ export function createAppsFixture(page: Page) {
     },
     verifyAppsInfo: async (installedApps: number, activeApps: number) => {
       const appsLabel = installedApps === 1 ? "app" : "apps";
-      await expect(
-        page.locator(`text=${installedApps} ${appsLabel}, ${activeApps} active`)
-      ).toBeVisible();
+      await expect(page.locator(`text=${installedApps} ${appsLabel}, ${activeApps} active`)).toBeVisible();
     },
     verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
       await page.goto(`event-types/${eventTypeId}?tabName=apps`);

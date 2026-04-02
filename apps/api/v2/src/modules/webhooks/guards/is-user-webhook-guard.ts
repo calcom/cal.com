@@ -1,9 +1,8 @@
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
-import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
+import type { Webhook } from "@calcom/prisma/client";
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { Request } from "express";
-
-import type { Webhook } from "@calcom/prisma/client";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 
 @Injectable()
 export class IsUserWebhookGuard implements CanActivate {

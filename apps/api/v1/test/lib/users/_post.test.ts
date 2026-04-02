@@ -7,8 +7,7 @@
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, test, expect, vi, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import handler from "../../../pages/api/users/_post";
 
 type CustomNextApiRequest = NextApiRequest & Request;
@@ -35,9 +34,11 @@ vi.mock("@calcom/features/watchlist/operations/check-if-email-in-watchlist.contr
 
 const mockCreate = vi.fn();
 vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
-  UserRepository: vi.fn().mockImplementation(function() { return {
-    create: mockCreate,
-  }; }),
+  UserRepository: vi.fn().mockImplementation(function () {
+    return {
+      create: mockCreate,
+    };
+  }),
 }));
 
 vi.mock("@calcom/lib/auth/hashPassword", () => ({

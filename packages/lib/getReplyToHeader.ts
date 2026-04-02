@@ -1,5 +1,4 @@
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
 import { getReplyToEmail } from "./getReplyToEmail";
 
 export function getReplyToHeader(

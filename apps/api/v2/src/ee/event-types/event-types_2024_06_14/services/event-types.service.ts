@@ -1,8 +1,18 @@
+import { dynamicEvent } from "@calcom/platform-libraries";
+import {
+  createEventType,
+  EventTypesPublic,
+  getEventTypesPublic,
+  updateEventType,
+} from "@calcom/platform-libraries/event-types";
+import type { GetEventTypesQuery_2024_06_14, SortOrderType } from "@calcom/platform-types";
+import type { EventType } from "@calcom/prisma/client";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_06_14/constants/constants";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { DatabaseEventType } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { InputEventTransformed_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/transformed";
-import { SystemField, CustomField } from "@/ee/event-types/event-types_2024_06_14/transformers";
+import { CustomField, SystemField } from "@/ee/event-types/event-types_2024_06_14/transformers";
 import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { AuthOptionalUser } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
@@ -12,18 +22,7 @@ import { DatabaseTeamEventType } from "@/modules/organizations/event-types/servi
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-
-import { dynamicEvent } from "@calcom/platform-libraries";
-import {
-  createEventType,
-  updateEventType,
-  getEventTypesPublic,
-  EventTypesPublic,
-} from "@calcom/platform-libraries/event-types";
-import type { GetEventTypesQuery_2024_06_14, SortOrderType } from "@calcom/platform-types";
-import type { EventType } from "@calcom/prisma/client";
+import { UsersRepository, UserWithProfile } from "@/modules/users/users.repository";
 
 @Injectable()
 export class EventTypesService_2024_06_14 {
@@ -48,13 +47,13 @@ export class EventTypesService_2024_06_14 {
     const { destinationCalendar: _destinationCalendar, ...rest } = body;
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     const { eventType: eventTypeCreated } = await createEventType({
       input: rest,
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });
@@ -67,7 +66,7 @@ export class EventTypesService_2024_06_14 {
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });
@@ -317,7 +316,7 @@ export class EventTypesService_2024_06_14 {
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });

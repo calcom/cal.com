@@ -5,7 +5,6 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-
 import { OnboardingView } from "~/onboarding/getting-started/onboarding-view";
 
 export const generateMetadata = async () => {

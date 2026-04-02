@@ -1,11 +1,9 @@
-import type { NextApiRequest } from "next";
-
 import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/features/conferencing/lib/videoClient";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { PartialReference } from "@calcom/types/EventManager";
-
+import type { NextApiRequest } from "next";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**

@@ -1,7 +1,6 @@
 /* eslint-disable playwright/missing-playwright-await */
 import { render, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
-
 import { WizardForm } from "./WizardForm";
 
 vi.mock("@calcom/lib/hooks/useCompatSearchParams", () => ({

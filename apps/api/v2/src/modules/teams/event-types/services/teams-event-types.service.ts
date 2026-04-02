@@ -1,3 +1,6 @@
+import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
+import type { SortOrderType } from "@calcom/platform-types";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import {
@@ -9,11 +12,6 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, NotFoundException, Logger } from "@nestjs/common";
-
-import type { SortOrderType } from "@calcom/platform-types";
-
-import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
 
 @Injectable()
 export class TeamsEventTypesService {
@@ -45,7 +43,7 @@ export class TeamsEventTypesService {
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });
@@ -129,7 +127,7 @@ export class TeamsEventTypesService {
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         prisma: this.dbWrite.prisma,
       },
     });

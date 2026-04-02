@@ -1,12 +1,12 @@
 // import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-import { afterEach, expect, test, vi, describe } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import {
   generateJsonResponse,
-  successResponse,
-  internalServerErrorResponse,
   generateTextResponse,
+  internalServerErrorResponse,
+  successResponse,
 } from "../testUtils";
 import { OAuthManager, TokenStatus } from "./OAuthManager";
 

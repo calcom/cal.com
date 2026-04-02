@@ -1,10 +1,11 @@
+import process from "node:process";
 import { ensureAIPhoneServiceRegistryInitialized } from "./initializeRegistry";
-import { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interface";
 import type {
   AIPhoneServiceProvider,
-  AIPhoneServiceProviderFactory,
   AIPhoneServiceProviderConfig,
+  AIPhoneServiceProviderFactory,
 } from "./interfaces/AIPhoneService.interface";
+import { AIPhoneServiceProviderType } from "./interfaces/AIPhoneService.interface";
 
 /**
  * Configuration for the registry
@@ -34,39 +35,39 @@ export class AIPhoneServiceRegistry {
     // Register providers if provided
     if (config?.providers) {
       config.providers.forEach(({ type, factory }) => {
-        this.registerProvider(type, factory);
+        AIPhoneServiceRegistry.registerProvider(type, factory);
       });
     }
 
     // Set default provider if provided, otherwise use the first registered provider
     if (config?.defaultProvider) {
-      this.setDefaultProvider(config.defaultProvider);
-    } else if (this.factories.size > 0) {
-      this.defaultProvider = Array.from(this.factories.keys())[0];
+      AIPhoneServiceRegistry.setDefaultProvider(config.defaultProvider);
+    } else if (AIPhoneServiceRegistry.factories.size > 0) {
+      AIPhoneServiceRegistry.defaultProvider = Array.from(AIPhoneServiceRegistry.factories.keys())[0];
     }
 
-    this.initialized = true;
+    AIPhoneServiceRegistry.initialized = true;
   }
 
   static registerProvider(type: string, factory: AIPhoneServiceProviderFactory): void {
-    this.factories.set(type, factory);
+    AIPhoneServiceRegistry.factories.set(type, factory);
 
     // If no default provider is set and this is the first provider, make it default
-    if (!this.defaultProvider) {
-      this.defaultProvider = type;
+    if (!AIPhoneServiceRegistry.defaultProvider) {
+      AIPhoneServiceRegistry.defaultProvider = type;
     }
   }
 
   static getProviderFactory(type: string): AIPhoneServiceProviderFactory | undefined {
-    return this.factories.get(type);
+    return AIPhoneServiceRegistry.factories.get(type);
   }
 
   static createProvider(type: string, config: AIPhoneServiceProviderConfig): AIPhoneServiceProvider {
-    const factory = this.getProviderFactory(type);
+    const factory = AIPhoneServiceRegistry.getProviderFactory(type);
     if (!factory) {
       throw new Error(
         `AI phone service provider '${type}' not found. Available providers: ${Array.from(
-          this.factories.keys()
+          AIPhoneServiceRegistry.factories.keys()
         ).join(", ")}`
       );
     }
@@ -77,19 +78,19 @@ export class AIPhoneServiceRegistry {
    * Create a provider instance using the default provider
    */
   static createDefaultProvider(config: AIPhoneServiceProviderConfig): AIPhoneServiceProvider {
-    if (!this.defaultProvider) {
+    if (!AIPhoneServiceRegistry.defaultProvider) {
       throw new Error(
         "No default provider set. Please initialize the registry with a default provider or register at least one provider."
       );
     }
-    return this.createProvider(AIPhoneServiceRegistry.defaultProvider, config);
+    return AIPhoneServiceRegistry.createProvider(AIPhoneServiceRegistry.defaultProvider, config);
   }
 
   static setDefaultProvider(type: string): void {
-    if (!this.factories.has(type)) {
+    if (!AIPhoneServiceRegistry.factories.has(type)) {
       throw new Error(`Cannot set default provider to '${type}' - provider not registered`);
     }
-    this.defaultProvider = type;
+    AIPhoneServiceRegistry.defaultProvider = type;
   }
 
   static getDefaultProvider(): string | null {
@@ -97,20 +98,20 @@ export class AIPhoneServiceRegistry {
   }
 
   static getAvailableProviders(): string[] {
-    return Array.from(this.factories.keys());
+    return Array.from(AIPhoneServiceRegistry.factories.keys());
   }
 
   static isProviderRegistered(type: string): boolean {
-    return this.factories.has(type);
+    return AIPhoneServiceRegistry.factories.has(type);
   }
 
   /**
    * Clear all registered providers (mainly for testing purposes)
    */
   static clearProviders(): void {
-    this.factories.clear();
-    this.defaultProvider = AIPhoneServiceProviderType.RETELL_AI;
-    this.initialized = false;
+    AIPhoneServiceRegistry.factories.clear();
+    AIPhoneServiceRegistry.defaultProvider = AIPhoneServiceProviderType.RETELL_AI;
+    AIPhoneServiceRegistry.initialized = false;
   }
 
   static isInitialized(): boolean {

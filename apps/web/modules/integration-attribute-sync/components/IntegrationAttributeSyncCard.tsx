@@ -1,20 +1,18 @@
-import { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-
-import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Attribute } from "@calcom/app-store/routing-forms/types/types";
-import { Button } from "@calcom/ui/components/button";
-import { FormCard, FormCardBody } from "@calcom/ui/components/card";
-import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import { SelectField, Switch } from "@calcom/ui/components/form";
-import { KeyIcon } from "@coss/ui/icons";
-
+import { Dialog } from "@calcom/features/components/controlled-dialog";
 import {
   type IntegrationAttributeSync,
   type ISyncFormData,
   RuleOperatorEnum,
 } from "@calcom/features/ee/integration-attribute-sync/repositories/IIntegrationAttributeSyncRepository";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui/components/button";
+import { FormCard, FormCardBody } from "@calcom/ui/components/card";
+import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
+import { SelectField, Switch } from "@calcom/ui/components/form";
+import { KeyIcon } from "@coss/ui/icons";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { FieldMappingBuilder } from "./FieldMappingBuilder";
 import { RuleBuilder } from "./RuleBuilder";
 

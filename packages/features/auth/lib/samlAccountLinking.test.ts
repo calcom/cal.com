@@ -1,12 +1,10 @@
-import type { PrismaClient } from "@prisma/client";
-import { describe, it, expect, vi, beforeEach, type MockInstance } from "vitest";
-
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import { OrganizationSettingsRepository } from "@calcom/features/organizations/repositories/OrganizationSettingsRepository";
-
+import type { PrismaClient } from "@prisma/client";
+import { beforeEach, describe, expect, it, type MockInstance, vi } from "vitest";
 import {
-  SamlAccountLinkingService,
   getTeamIdFromSamlTenant,
+  SamlAccountLinkingService,
   validateSamlAccountConversion,
 } from "./samlAccountLinking";
 

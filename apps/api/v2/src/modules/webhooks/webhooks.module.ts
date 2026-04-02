@@ -1,10 +1,4 @@
 import { Module } from "@nestjs/common";
-import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
-import { EventTypeWebhooksController } from "@/modules/event-types/controllers/event-types-webhooks.controller";
-import { OAuthClientWebhooksController } from "@/modules/oauth-clients/controllers/oauth-client-webhooks/oauth-client-webhooks.controller";
-import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
-import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
-
 import { MembershipsModule } from "../memberships/memberships.module";
 import { OrganizationsModule } from "../organizations/organizations.module";
 import { PrismaModule } from "../prisma/prisma.module";
@@ -16,8 +10,13 @@ import { TeamEventTypeWebhooksService } from "./services/team-event-type-webhook
 import { UserWebhooksService } from "./services/user-webhooks.service";
 import { WebhooksService } from "./services/webhooks.service";
 import { WebhooksRepository } from "./webhooks.repository";
-import { TeamsEventTypesWebhooksController } from "@/modules/teams/event-types/controllers/teams-event-types-webhooks.controller";
+import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
+import { EventTypeWebhooksController } from "@/modules/event-types/controllers/event-types-webhooks.controller";
+import { OAuthClientWebhooksController } from "@/modules/oauth-clients/controllers/oauth-client-webhooks/oauth-client-webhooks.controller";
+import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { RedisModule } from "@/modules/redis/redis.module";
+import { TeamsEventTypesWebhooksController } from "@/modules/teams/event-types/controllers/teams-event-types-webhooks.controller";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 
 @Module({
   imports: [

@@ -1,14 +1,12 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { usePathname } from "next/navigation";
-
 import { DataTableProvider } from "~/data-table/DataTableProvider";
 import { useSegments } from "~/data-table/hooks/useSegments";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import OrgAutoJoinSetting from "~/ee/organizations/components/OrgAutoJoinSetting";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
-
 import { BlocklistTable } from "~/ee/organizations/privacy/blocklist-table";
 import MakeTeamPrivateSwitch from "~/ee/teams/components/MakeTeamPrivateSwitch";
 

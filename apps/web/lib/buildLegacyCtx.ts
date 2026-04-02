@@ -1,6 +1,4 @@
-import type { SearchParams } from "app/_types";
-import { type Params } from "app/_types";
-import type { ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
+import type { Params, ReadonlyHeaders, ReadonlyRequestCookies, SearchParams } from "app/_types";
 import type { GetServerSidePropsContext, NextApiRequest } from "next";
 
 const createProxifiedObject = (object: Record<string, string>) =>

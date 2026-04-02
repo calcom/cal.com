@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { buildMonthlyProrationMetadata } from "../../lib/proration-utils";
 import type { SWHMap } from "./__handler";
 import handler from "./_invoice.payment_failed";

@@ -1,8 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { GetBookingsInput_2024_08_13, GetBookingsOutput_2024_08_13 } from "@calcom/platform-types";
-
+import { useQuery } from "@tanstack/react-query";
 import http from "../../../lib/http";
 import { extractBookingsQueryKeys } from "../../bookings/useBookings";
 import { useAtomsContext } from "../../useAtomsContext";

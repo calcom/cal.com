@@ -1,7 +1,6 @@
-import { Injectable, NestMiddleware, Logger } from "@nestjs/common";
-import { Request, NextFunction } from "express";
-
 import { Response } from "@calcom/platform-types";
+import { Injectable, Logger, NestMiddleware } from "@nestjs/common";
+import { NextFunction, Request } from "express";
 
 @Injectable()
 export class AppLoggerMiddleware implements NestMiddleware {

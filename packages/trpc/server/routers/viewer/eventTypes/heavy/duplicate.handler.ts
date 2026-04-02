@@ -1,12 +1,11 @@
-import crypto from "crypto";
+import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
-import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-
+import { SchedulingType } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-
+import crypto from "crypto";
 import type { TrpcSessionUser } from "../../../../types";
 import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
 import type { TDuplicateInputSchema } from "./duplicate.schema";
@@ -135,17 +134,17 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
       hosts: hosts
         ? {
-          createMany: {
-            data: hosts.map(({ eventTypeId: _, ...rest }) => rest),
-          },
-        }
+            createMany: {
+              data: hosts.map(({ eventTypeId: _, ...rest }) => rest),
+            },
+          }
         : undefined,
       restrictionSchedule: _restrictionScheduleId
         ? {
-          connect: {
-            id: _restrictionScheduleId,
-          },
-        }
+            connect: {
+              id: _restrictionScheduleId,
+            },
+          }
         : undefined,
       recurringEvent: recurringEvent || undefined,
       bookingLimits: bookingLimits ?? undefined,

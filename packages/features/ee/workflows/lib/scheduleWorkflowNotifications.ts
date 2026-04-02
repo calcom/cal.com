@@ -1,8 +1,7 @@
 import { prisma } from "@calcom/prisma";
 import type { WorkflowStep } from "@calcom/prisma/client";
-import { BookingStatus, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { TimeUnit } from "@calcom/prisma/enums";
-
+import { BookingStatus, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { scheduleBookingReminders } from "./scheduleBookingReminders";
 
 export const bookingSelect = {

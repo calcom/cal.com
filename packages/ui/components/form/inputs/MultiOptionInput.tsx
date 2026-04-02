@@ -1,18 +1,17 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import {
-  useFieldArray,
-  useFormContext,
-  type FieldValues,
-  type Path,
-  type PathValue,
-  type ArrayPath,
-} from "react-hook-form";
-import { v4 as uuidv4 } from "uuid";
-
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { TextField } from "@calcom/ui/components/form";
 import { ArrowDownIcon, ArrowUpIcon, XIcon } from "@coss/ui/icons";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import {
+  type ArrayPath,
+  type FieldValues,
+  type Path,
+  type PathValue,
+  useFieldArray,
+  useFormContext,
+} from "react-hook-form";
+import { v4 as uuidv4 } from "uuid";
 
 export interface Option {
   label: string;

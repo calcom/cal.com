@@ -1,11 +1,9 @@
-import { expect } from "@playwright/test";
 import { createHash, randomBytes } from "node:crypto";
-
 import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
 import { generateSecret } from "@calcom/features/oauth/utils/generateSecret";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
-
+import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
 
 test.afterEach(async ({ users }) => {

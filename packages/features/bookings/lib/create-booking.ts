@@ -1,5 +1,4 @@
 import { post } from "@calcom/lib/fetch-wrapper";
-
 import type { BookingCreateBody, BookingResponse } from "../types";
 
 export const createBooking = async (data: BookingCreateBody) => {

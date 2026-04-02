@@ -1,8 +1,6 @@
-import type { NextApiRequest } from "next";
-
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest } from "next";
 import { schemaCredentialGetParams } from "~/lib/validations/credential-sync";
 
 /**

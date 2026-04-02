@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
-
 import widgets from "./widgets";
 
 const { SelectWidget, MultiSelectWidget } = widgets;

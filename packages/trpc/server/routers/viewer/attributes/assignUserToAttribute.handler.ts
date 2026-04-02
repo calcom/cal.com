@@ -1,9 +1,7 @@
 import { getWhereClauseForAttributeOptionsManagedByCalcom } from "@calcom/features/attributes/lib/utils";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { ZAssignUserToAttribute } from "./assignUserToAttribute.schema";
 

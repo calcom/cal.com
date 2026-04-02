@@ -1,5 +1,3 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
@@ -8,7 +6,7 @@ import { MembershipRepository } from "@calcom/features/membership/repositories/M
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, CreationSource, MembershipRole } from "@calcom/prisma/enums";
-
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { BookingDetailsService } from "./BookingDetailsService";
 
 /**

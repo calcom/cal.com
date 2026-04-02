@@ -1,7 +1,5 @@
-import Link from "next/link";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
+import Link from "next/link";
 import { Tooltip } from "../tooltip";
 import { Badge } from "./Badge";
 

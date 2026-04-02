@@ -1,12 +1,10 @@
+import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { vi } from "vitest";
-
-import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-
 import { RerouteDialog } from "../RerouteDialog";
 
 const mockRouter = {

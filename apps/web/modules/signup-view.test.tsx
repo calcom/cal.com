@@ -1,11 +1,10 @@
+import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useForm, FormProvider } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-
-import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 
 const signupSchema = apiSignupSchema.extend({
   apiError: z.string().optional(),

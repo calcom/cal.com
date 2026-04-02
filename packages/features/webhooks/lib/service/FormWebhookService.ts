@@ -1,10 +1,9 @@
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
 import dayjs from "@calcom/dayjs";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
 import type { FormSubmittedDTO, FormSubmittedNoEventDTO } from "../dto/types";
 import type { FormSubmittedPayload } from "../factory/types";
-import type { IWebhookService, IFormWebhookService } from "../interface/services";
+import type { IFormWebhookService, IWebhookService } from "../interface/services";
 import type { IWebhookNotifier } from "../interface/webhook";
 
 export class FormWebhookService implements IFormWebhookService {

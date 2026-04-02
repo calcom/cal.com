@@ -1,17 +1,15 @@
 import { randomUUID } from "node:crypto";
-
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-
 import { ActiveUserBillingRepository } from "../repositories/ActiveUserBillingRepository";
 import { ActiveUserBillingService } from "./ActiveUserBillingService";
 
 const TEST_PREFIX = `aub-int-${Date.now()}`;
 
 let org: Team;
-let users: User[] = [];
+const users: User[] = [];
 let service: ActiveUserBillingService;
 
 const periodStart = new Date("2026-01-01T00:00:00Z");
@@ -132,11 +130,7 @@ describe("ActiveUserBillingService Integration", () => {
   });
 
   it("counts hosts and attendees as active, excludes inactive members", async () => {
-    const count = await service.getActiveUserCountForOrg(
-      org.id,
-      periodStart,
-      periodEnd
-    );
+    const count = await service.getActiveUserCountForOrg(org.id, periodStart, periodEnd);
 
     // alice: host, bob: host, charlie: attendee of bob's booking
     // inactive: booking is outside the period
@@ -147,11 +141,7 @@ describe("ActiveUserBillingService Integration", () => {
     const emptyStart = new Date("2027-01-01T00:00:00Z");
     const emptyEnd = new Date("2027-02-01T00:00:00Z");
 
-    const count = await service.getActiveUserCountForOrg(
-      org.id,
-      emptyStart,
-      emptyEnd
-    );
+    const count = await service.getActiveUserCountForOrg(org.id, emptyStart, emptyEnd);
 
     expect(count).toBe(0);
   });
@@ -166,11 +156,7 @@ describe("ActiveUserBillingService Integration", () => {
     );
     bookingIds.push(id);
 
-    const count = await service.getActiveUserCountForOrg(
-      org.id,
-      periodStart,
-      periodEnd
-    );
+    const count = await service.getActiveUserCountForOrg(org.id, periodStart, periodEnd);
 
     // Still 3: alice (host), bob (host + attendee but counted once), charlie (attendee)
     expect(count).toBe(3);
@@ -185,11 +171,7 @@ describe("ActiveUserBillingService Integration", () => {
     );
     bookingIds.push(id);
 
-    const count = await service.getActiveUserCountForOrg(
-      org.id,
-      periodStart,
-      periodEnd
-    );
+    const count = await service.getActiveUserCountForOrg(org.id, periodStart, periodEnd);
 
     // Now all 4 are active
     expect(count).toBe(4);

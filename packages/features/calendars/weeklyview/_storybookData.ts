@@ -1,6 +1,5 @@
 import dayjs from "@calcom/dayjs";
 import type { TimeRange } from "@calcom/types/schedule";
-
 import type { CalendarEvent } from "./types/events";
 
 const startDate = dayjs().set("hour", 11).set("minute", 0);

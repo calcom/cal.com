@@ -1,22 +1,18 @@
-import { useMemo } from "react";
-import { useFormContext } from "react-hook-form";
-import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "react-hook-form";
-
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import type { SingleValueLocationOption } from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Label } from "@calcom/ui/components/form";
-import { Skeleton, SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
-
-import { QueryCell } from "@lib/QueryCell";
-
+import { Skeleton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import type { TFormType } from "@components/apps/installation/ConfigureStepCard";
-
+import { QueryCell } from "@lib/QueryCell";
+import { useMemo } from "react";
+import type { Control, FormState, UseFormGetValues, UseFormSetValue } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import type { TEventType } from "~/apps/installation/[[...step]]/step-view";
+import type { TEventTypeLocation, TLocationOptions } from "~/event-types/components/locations/Locations";
 import Locations from "~/event-types/components/locations/Locations";
-import type { TLocationOptions, TEventTypeLocation } from "~/event-types/components/locations/Locations";
 
 const LocationsWrapper = ({
   eventType,
@@ -31,7 +27,7 @@ const LocationsWrapper = ({
   const formMethods = useFormContext<TFormType>();
 
   const prefillLocation = useMemo(() => {
-    let res: SingleValueLocationOption | undefined = undefined;
+    let res: SingleValueLocationOption | undefined;
     for (const item of eventType?.locationOptions || []) {
       for (const option of item.options) {
         if (option.slug === slug) {

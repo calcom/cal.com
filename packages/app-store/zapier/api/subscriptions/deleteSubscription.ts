@@ -1,10 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import z from "zod";
-
 import { deleteSubscription } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { defaultHandler } from "@calcom/lib/server/defaultHandler";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
-
+import type { NextApiRequest, NextApiResponse } from "next";
+import z from "zod";
 import { validateAccountOrApiKey } from "../../lib/validateAccountOrApiKey";
 
 const querySchema = z.object({

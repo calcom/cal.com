@@ -1,5 +1,4 @@
 import { _generateMetadata } from "app/_utils";
-
 import AddNewTeamMembers, { LayoutWrapper } from "~/settings/teams/[id]/onboard-members-view";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>

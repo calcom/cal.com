@@ -1,9 +1,6 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { removeMemberHandler } from "../../removeMember.handler";
 import type { IRemoveMemberService } from "../IRemoveMemberService";
 import { RemoveMemberServiceFactory } from "../RemoveMemberServiceFactory";

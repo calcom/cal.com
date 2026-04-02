@@ -1,7 +1,5 @@
-import type z from "zod";
-
 import type { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
-
+import type z from "zod";
 import type { appDataSchemas } from "../../apps.schemas.generated";
 
 /**

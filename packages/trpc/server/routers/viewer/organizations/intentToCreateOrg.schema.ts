@@ -1,9 +1,8 @@
-import { z } from "zod";
-
 import { emailSchema } from "@calcom/lib/emailSchema";
 import slugify from "@calcom/lib/slugify";
 import { BillingPeriod, CreationSource } from "@calcom/prisma/enums";
 import { orgOnboardingInvitedMembersSchema, orgOnboardingTeamsSchema } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 
 export const ZIntentToCreateOrgInputSchema = z.object({
   name: z.string(),

@@ -1,11 +1,9 @@
-import type { NextApiRequest } from "next";
-import { z } from "zod";
-
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server/defaultResponder";
 import prisma from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-
+import type { NextApiRequest } from "next";
+import { z } from "zod";
 import { schemaSchedulePublic } from "~/lib/validations/schedule";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 

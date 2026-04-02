@@ -1,5 +1,4 @@
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-
 import type { BookerState } from "../types";
 import { areDifferentValidMonths } from "./areDifferentValidMonths";
 

@@ -1,5 +1,4 @@
 import { Utils as QbUtils } from "react-awesome-query-builder";
-
 import type { GlobalRoute, LocalRoute, SerializableRoute } from "../types/types";
 import { RouteActionType } from "../zod";
 

@@ -1,8 +1,7 @@
-import { GetUsersInput } from "@/modules/users/inputs/get-users.input";
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
-import { Expose } from "class-transformer";
-import { IsOptional, IsArray, ArrayMinSize, IsString, IsIn, IsNumber } from "class-validator";
+import { Expose, Transform } from "class-transformer";
+import { ArrayMinSize, IsArray, IsIn, IsNumber, IsOptional, IsString } from "class-validator";
+import { GetUsersInput } from "@/modules/users/inputs/get-users.input";
 
 export class GetOrganizationsUsersInput extends GetUsersInput {
   @Expose()

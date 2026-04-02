@@ -5,7 +5,6 @@ import { render } from "@testing-library/react";
 import React, { type ReactElement, type ReactNode } from "react";
 import { vi } from "vitest";
 import type { StoreApi } from "zustand";
-
 import { BookerStoreContext } from "../BookerStoreProvider";
 import type { BookerStore } from "../store";
 

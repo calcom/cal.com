@@ -1,8 +1,7 @@
+import process from "node:process";
+import logger from "@calcom/lib/logger";
 import { FormbricksAPI } from "@formbricks/api";
 import { z } from "zod";
-
-import logger from "@calcom/lib/logger";
-
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 

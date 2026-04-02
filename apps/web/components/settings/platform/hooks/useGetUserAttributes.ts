@@ -1,5 +1,4 @@
 import { useCheckTeamBilling } from "@calcom/web/lib/hooks/settings/platform/billing/useCheckTeamBilling";
-
 import { usePlatformMe } from "./usePlatformMe";
 
 export const useGetUserAttributes = () => {

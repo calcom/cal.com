@@ -1,12 +1,11 @@
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-
-import type { RoutingTrace } from "./RoutingTraceRepository.interface";
 import type {
   IPendingRoutingTraceRepository,
   IPendingRoutingTraceRepositoryCreateArgs,
   PendingRoutingTraceRecord,
 } from "./PendingRoutingTraceRepository.interface";
+import type { RoutingTrace } from "./RoutingTraceRepository.interface";
 
 export class PrismaPendingRoutingTraceRepository implements IPendingRoutingTraceRepository {
   constructor(private readonly prisma: PrismaClient) {}

@@ -1,10 +1,8 @@
 "use client";
 
+import classNames from "@calcom/ui/classNames";
 import * as SheetPrimitives from "@radix-ui/react-dialog";
 import * as React from "react";
-
-import classNames from "@calcom/ui/classNames";
-
 import { Button } from "../button";
 
 const Sheet = (props: React.ComponentPropsWithoutRef<typeof SheetPrimitives.Root>) => {

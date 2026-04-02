@@ -1,14 +1,14 @@
 import { z } from "zod";
-
-import { StringChangeSchema, NumberChangeSchema } from "../common/changeSchemas";
+import { NumberChangeSchema, StringChangeSchema } from "../common/changeSchemas";
 import type { DataRequirements } from "../service/EnrichmentDataStore";
 import { AuditActionServiceHelper } from "./AuditActionServiceHelper";
 import type {
-  IAuditActionService,
-  GetDisplayTitleParams,
   GetDisplayJsonParams,
+  GetDisplayTitleParams,
+  IAuditActionService,
   TranslationWithParams,
 } from "./IAuditActionService";
+
 /**
  * Seat Rescheduled Audit Action Service
  * Handles SEAT_RESCHEDULED action with per-action versioning
@@ -89,9 +89,9 @@ export class SeatRescheduledAuditActionService implements IAuditActionService {
         oldDate,
         newDate,
       },
-            components: rescheduledToBookingUid
-              ? [{ type: "link", href: `/bookings?uid=${rescheduledToBookingUid}&activeSegment=history` }]
-              : undefined,
+      components: rescheduledToBookingUid
+        ? [{ type: "link", href: `/bookings?uid=${rescheduledToBookingUid}&activeSegment=history` }]
+        : undefined,
     };
   }
 

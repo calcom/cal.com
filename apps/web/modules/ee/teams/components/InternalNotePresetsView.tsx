@@ -1,19 +1,18 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useMemo } from "react";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
 import { Form, Input, SettingsToggle } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { CornerDownRightIcon, TrashIcon } from "@coss/ui/icons";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useMemo } from "react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 interface ProfileViewProps {
   team: RouterOutputs["viewer"]["teams"]["get"];

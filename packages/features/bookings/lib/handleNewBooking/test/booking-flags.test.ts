@@ -1,24 +1,20 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prisma";
-
 import {
   createBookingScenario,
+  getBooker,
   getDate,
   getGoogleCalendarCredential,
-  TestData,
   getOrganizer,
-  getBooker,
   getScenarioData,
-  mockCalendarToHaveNoBusySlots,
   mockCalendar,
+  mockCalendarToHaveNoBusySlots,
+  TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { expectBookingToBeInDatabase } from "@calcom/testing/lib/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
 import { describe, expect, test } from "vitest";
-
-import { BookingStatus } from "@calcom/prisma/enums";
-
 import { getNewBookingHandler } from "./getNewBookingHandler";
 
 setupAndTeardown();

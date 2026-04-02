@@ -1,8 +1,6 @@
+import classNames from "@calcom/ui/classNames";
 import * as Popover from "@radix-ui/react-popover";
 import { format } from "date-fns";
-
-import classNames from "@calcom/ui/classNames";
-
 import { Button } from "../../button/Button";
 import { Calendar } from "../date-range-picker/Calendar";
 
@@ -48,13 +46,12 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className, label }
           </Button>
         </Popover.Trigger>
         <Popover.Portal>
-        <Popover.Content
-          className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
-          align="start"
-          sideOffset={4}
-          >
-          {calender}
-        </Popover.Content>
+          <Popover.Content
+            className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
+            align="start"
+            sideOffset={4}>
+            {calender}
+          </Popover.Content>
         </Popover.Portal>
       </Popover.Root>
     </div>

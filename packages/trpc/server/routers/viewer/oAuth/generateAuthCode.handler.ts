@@ -1,13 +1,11 @@
 import { getOAuthService } from "@calcom/features/oauth/di/OAuthService.container";
-import { OAuthErrorReason, OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
+import { OAUTH_ERROR_REASONS, type OAuthErrorReason } from "@calcom/features/oauth/services/OAuthService";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { getHttpStatusCode } from "@calcom/lib/server/getServerErrorFromUnknown";
 import type { AccessScope } from "@calcom/prisma/enums";
 import { httpStatusToTrpcCode } from "@calcom/trpc/server/lib/toTRPCError";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TGenerateAuthCodeInputSchema } from "./generateAuthCode.schema";
 
 type AddClientOptions = {

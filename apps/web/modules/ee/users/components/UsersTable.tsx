@@ -1,10 +1,5 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -14,16 +9,19 @@ import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import {
+  ConfirmationDialogContent,
+  DialogClose,
   DialogContent,
   DialogFooter,
-  DialogClose,
-  ConfirmationDialogContent,
 } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
-import { BuildingIcon, LockIcon } from "@coss/ui/icons";
 import { DropdownActions, Table } from "@calcom/ui/components/table";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { BuildingIcon, LockIcon } from "@coss/ui/icons";
+import { keepPreviousData } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { withLicenseRequired } from "~/ee/common/components/LicenseRequired";
 
 const { Cell, ColumnTitle, Header, Row } = Table;

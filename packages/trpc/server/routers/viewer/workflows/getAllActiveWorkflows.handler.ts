@@ -4,9 +4,7 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { addPermissionsToWorkflows } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TGetAllActiveWorkflowsInputSchema } from "./getAllActiveWorkflows.schema";
 import { getEventTypeWorkflows } from "./util";
 

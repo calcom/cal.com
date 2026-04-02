@@ -1,9 +1,8 @@
+import { Dialog } from "@calcom/features/components/controlled-dialog";
+import { DialogContent } from "@calcom/ui/components/dialog";
 import classNames from "classnames";
 import type { PropsWithChildren } from "react";
 import React from "react";
-
-import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { DialogContent } from "@calcom/ui/components/dialog";
 
 export default function ModalContainer(
   props: PropsWithChildren<{

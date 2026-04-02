@@ -1,10 +1,9 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as membershipRepositoryModuleLoader } from "@calcom/features/users/di/MembershipRepository.module";
-
 import { AttributeSyncFieldMappingService } from "../services/AttributeSyncFieldMappingService";
-import { moduleLoader as attributeToUserRepositoryModuleLoader } from "./AttributeToUserRepository.module";
-import { moduleLoader as attributeRepositoryModuleLoader } from "./AttributeRepository.module";
 import { moduleLoader as attributeOptionRepositoryModuleLoader } from "./AttributeOptionRepository.module";
+import { moduleLoader as attributeRepositoryModuleLoader } from "./AttributeRepository.module";
+import { moduleLoader as attributeToUserRepositoryModuleLoader } from "./AttributeToUserRepository.module";
 import { INTEGRATION_ATTRIBUTE_SYNC_DI_TOKENS } from "./tokens";
 
 export const attributeSyncFieldMappingServiceModule = createModule();

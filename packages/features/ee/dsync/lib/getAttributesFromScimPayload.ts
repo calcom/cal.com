@@ -1,5 +1,4 @@
 import type { DirectorySyncEvent } from "@boxyhq/saml-jackson";
-
 import { DIRECTORY_IDS_TO_LOG } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";

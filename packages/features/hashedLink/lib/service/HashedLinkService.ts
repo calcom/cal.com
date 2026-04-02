@@ -3,9 +3,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { validateHashedLinkData } from "@calcom/lib/hashedLinksUtils";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
-import { HashedLinkRepository } from "../repository/HashedLinkRepository";
-import { type HashedLinkInputType } from "../repository/HashedLinkRepository";
+import { type HashedLinkInputType, HashedLinkRepository } from "../repository/HashedLinkRepository";
 
 type NormalizedLink = {
   link: string;

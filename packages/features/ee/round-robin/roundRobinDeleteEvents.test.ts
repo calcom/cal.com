@@ -4,26 +4,24 @@
  * credential handling during organizer changes.
  */
 import {
-  getDate,
   createBookingScenario,
-  getScenarioData,
-  getMockBookingAttendee,
-  TestData,
-  getOrganizer,
+  getDate,
   getGoogleCalendarCredential,
+  getMockBookingAttendee,
+  getOrganizer,
+  getScenarioData,
   mockCalendarToHaveNoBusySlots,
+  TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import {
   expectBookingToBeInDatabase,
   expectSuccessfulRoundRobinReschedulingEmails,
 } from "@calcom/testing/lib/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { describe, expect } from "vitest";
-
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { SchedulingType, BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
+import { describe, expect } from "vitest";
 
 describe("roundRobinReassignment test", () => {
   setupAndTeardown();

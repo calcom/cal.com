@@ -1,6 +1,5 @@
 import type { DailyCall } from "@daily-co/daily-js";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BUTTONS } from "../button-states";
 import { createCalVideoCallbacks } from "../cal-video-premium-features";
 

@@ -1,32 +1,30 @@
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
+import { emailSchema } from "@calcom/lib/emailSchema";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { type RouterOutputs, trpc } from "@calcom/trpc/react";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { Divider } from "@calcom/ui/components/divider";
+import {
+  Form,
+  InputField,
+  Label,
+  SelectField,
+  TextAreaField,
+  TextField,
+  ToggleGroup,
+} from "@calcom/ui/components/form";
+import { ImageUploader } from "@calcom/ui/components/image-uploader";
+import { SheetBody, SheetFooter, SheetHeader, SheetTitle } from "@calcom/ui/components/sheet";
+import { showToast } from "@calcom/ui/components/toast";
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
 import { useMemo, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
-
-import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
-import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
-import { emailSchema } from "@calcom/lib/emailSchema";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MembershipRole } from "@calcom/prisma/enums";
-import { trpc, type RouterOutputs } from "@calcom/trpc/react";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { Divider } from "@calcom/ui/components/divider";
-import {
-  InputField,
-  TextAreaField,
-  SelectField,
-  Form,
-  Label,
-  TextField,
-  ToggleGroup,
-} from "@calcom/ui/components/form";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import { SheetHeader, SheetBody, SheetFooter, SheetTitle } from "@calcom/ui/components/sheet";
-import { showToast } from "@calcom/ui/components/toast";
-
 import type { UserTableAction } from "../types";
 import { useEditMode } from "./store";
 

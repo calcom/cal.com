@@ -1,13 +1,12 @@
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-import type { PrismaClient } from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
-
+import type { PrismaClient } from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import jackson from "./jackson";
-import { tenantPrefix, samlProductID } from "./saml";
+import { samlProductID, tenantPrefix } from "./saml";
 
 const getAllAcceptedMemberships = async ({ prisma, email }: { prisma: PrismaClient; email: string }) => {
   return await prisma.membership.findMany({

@@ -1,5 +1,4 @@
-import { describe, test, expect, vi, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { filterBlockedHosts, type HostWithEmail } from "./filter-blocked-hosts.controller";
 
 vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => ({

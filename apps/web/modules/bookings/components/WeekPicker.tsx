@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { DatePicker } from "@calcom/ui/components/form";
-
+import { useEffect, useState } from "react";
 import { getWeekStart } from "../lib/weekUtils";
 
 interface WeekPickerProps {

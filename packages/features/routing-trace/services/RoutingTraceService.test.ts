@@ -1,7 +1,6 @@
 import type { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import type {
   IPendingRoutingTraceRepository,
   PendingRoutingTraceRecord,

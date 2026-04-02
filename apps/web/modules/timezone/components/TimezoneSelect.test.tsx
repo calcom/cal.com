@@ -1,10 +1,9 @@
 /* eslint-disable playwright/missing-playwright-await */
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import type { Props as SelectProps } from "react-timezone-select";
-import { vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import type { Props as SelectProps } from "react-timezone-select";
+import { vi } from "vitest";
 import { TimezoneSelect } from "./TimezoneSelect";
 
 const cityTimezonesMock = [

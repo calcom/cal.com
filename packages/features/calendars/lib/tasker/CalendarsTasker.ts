@@ -3,7 +3,7 @@ import type { ILogger } from "@calcom/lib/tasker/types";
 import type { TriggerOptions } from "@trigger.dev/sdk";
 import type { CalendarsSyncTasker } from "./CalendarsSyncTasker";
 import type { CalendarsTriggerTasker } from "./CalendarsTriggerTasker";
-import type { ICalendarsTasker, CalendarsTaskPayload } from "./types";
+import type { CalendarsTaskPayload, ICalendarsTasker } from "./types";
 
 export interface ICalendarsTaskerDependencies {
   asyncTasker: CalendarsTriggerTasker;

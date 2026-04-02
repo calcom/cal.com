@@ -1,12 +1,11 @@
 "use client";
 
-import { useReactTable, getCoreRowModel, createColumnHelper } from "@tanstack/react-table";
-import { useMemo } from "react";
-
 import { ColumnFilterType } from "@calcom/features/data-table";
-import { DataTableProvider } from "~/data-table/DataTableProvider";
 import type { DateRangeFilterOptions } from "@calcom/features/data-table/lib/types";
+import { createColumnHelper, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { useMemo } from "react";
 import { DateRangeFilter } from "~/data-table/components/filters/DateRangeFilter";
+import { DataTableProvider } from "~/data-table/DataTableProvider";
 
 type DemoRow = {
   id: number;

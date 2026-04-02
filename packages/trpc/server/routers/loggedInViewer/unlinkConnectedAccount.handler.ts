@@ -1,7 +1,6 @@
-import type { GetServerSidePropsContext, NextApiResponse } from "next";
-
 import { prisma } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
+import type { GetServerSidePropsContext, NextApiResponse } from "next";
 
 type UpdateProfileOptions = {
   ctx: {

@@ -1,8 +1,6 @@
-import { expect } from "@playwright/test";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-
+import { expect } from "@playwright/test";
 import { test } from "../../lib/fixtures";
 
 test.afterEach(({ users }) => {

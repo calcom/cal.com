@@ -1,6 +1,3 @@
-import type { SyntheticEvent } from "react";
-import { useMemo, useState } from "react";
-
 import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -9,6 +6,8 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter } from "@calcom/ui/components/dialog";
 import { Select } from "@calcom/ui/components/form";
 import type { User } from "@calcom/web/modules/ee/teams/components/MemberList";
+import type { SyntheticEvent } from "react";
+import { useMemo, useState } from "react";
 
 type MembershipRoleOption = {
   label: string;

@@ -1,9 +1,9 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { ZCheckConflictsSchema } from "./checkConflicts.schema";
 import { ZGetUserSettingsSchema } from "./getUserSettings.schema";
 import { ZToggleHolidaySchema } from "./toggleHoliday.schema";
 import { ZUpdateSettingsSchema } from "./updateSettings.schema";
-import { ZCheckConflictsSchema } from "./checkConflicts.schema";
 
 export const holidaysRouter = router({
   getSupportedCountries: authedProcedure.query(async () => {

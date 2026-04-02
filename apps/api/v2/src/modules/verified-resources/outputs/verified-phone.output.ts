@@ -1,3 +1,4 @@
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import {
@@ -5,12 +6,10 @@ import {
   IsEnum,
   IsNotEmptyObject,
   IsNumber,
+  IsOptional,
   IsString,
   ValidateNested,
-  IsOptional,
 } from "class-validator";
-
-import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 
 export class UserVerifiedPhoneOutputData {
   @Expose()

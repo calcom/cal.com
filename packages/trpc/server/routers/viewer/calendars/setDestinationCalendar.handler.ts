@@ -6,9 +6,7 @@ import {
 import { DestinationCalendarRepository } from "@calcom/features/calendars/repositories/DestinationCalendarRepository";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
@@ -64,7 +62,7 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
     user.userLevelSelectedCalendars
   );
 
-  const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
+  const allCals = connectedCalendars.flatMap((cal) => cal.calendars ?? []);
 
   const firstConnectedCalendar = getFirstConnectedCalendar({
     connectedCalendars,

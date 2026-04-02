@@ -1,9 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { vi } from "vitest";
-
+import { describe, expect, it, vi } from "vitest";
 import type { RoutingForm } from "../../types/types";
-import { FormFieldsInitialConfig } from "../InitialConfig";
 import { getQueryBuilderConfigForFormFields } from "../getQueryBuilderConfig";
+import { FormFieldsInitialConfig } from "../InitialConfig";
 
 type MockedForm = Pick<RoutingForm, "fields">;
 vi.mock("../InitialConfig", () => ({

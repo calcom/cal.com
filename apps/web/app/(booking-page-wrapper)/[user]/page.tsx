@@ -1,14 +1,10 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
+import { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
-import { headers, cookies } from "next/headers";
-
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-
-import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
-
-import { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
-
+import { withAppDirSsr } from "app/WithAppDirSsr";
+import { cookies, headers } from "next/headers";
 import type { PageProps as LegacyPageProps } from "~/users/views/users-public-view";
 import LegacyPage from "~/users/views/users-public-view";
 

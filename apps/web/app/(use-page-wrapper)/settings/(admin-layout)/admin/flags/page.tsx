@@ -1,7 +1,6 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-
-import { FlagListingView } from "@calcom/web/modules/feature-flags/views/flag-listing-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { FlagListingView } from "@calcom/web/modules/feature-flags/views/flag-listing-view";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

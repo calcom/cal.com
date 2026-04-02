@@ -1,14 +1,12 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { RefreshCcwIcon, UserPlusIcon, UsersIcon } from "@coss/ui/icons";
-
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { UpgradeTip } from "~/shell/UpgradeTip";
 
 export default function UpgradeTipWrapper({ children }: { children: React.ReactNode }) {

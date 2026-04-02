@@ -1,5 +1,4 @@
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
-
 import type { TEventTypeInputSchema } from "../getByViewer.schema";
 
 type FiltersType = NonNullable<TEventTypeInputSchema>["filters"];

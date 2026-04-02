@@ -3,9 +3,7 @@ import { CalAiPhoneNumberRepository } from "@calcom/features/calAIPhone/reposito
 import { MembershipRepository } from "@calcom/features/membership/repositories/MembershipRepository";
 import logger from "@calcom/lib/logger";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TListCallsInputSchema } from "./listCalls.schema";
 

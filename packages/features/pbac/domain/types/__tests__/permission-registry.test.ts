@@ -1,7 +1,11 @@
-import { describe, it, expect } from "vitest";
-
-import { CrudAction, CustomAction, Resource } from "../permission-registry";
-import { isValidPermissionString, parsePermissionString } from "../permission-registry";
+import { describe, expect, it } from "vitest";
+import {
+  CrudAction,
+  CustomAction,
+  isValidPermissionString,
+  parsePermissionString,
+  Resource,
+} from "../permission-registry";
 
 describe("Permission Registry Utilities", () => {
   describe("parsePermissionString", () => {

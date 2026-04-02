@@ -5,9 +5,7 @@ import prisma from "@calcom/prisma";
 import type { Attribute } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { ZCreateAttributeSchema } from "./create.schema";
 import { getOptionsWithValidContains } from "./utils";

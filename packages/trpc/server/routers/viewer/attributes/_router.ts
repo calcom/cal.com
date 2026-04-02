@@ -1,5 +1,4 @@
 import type { z } from "zod";
-
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { assignUserToAttributeSchema } from "./assignUserToAttribute.schema";

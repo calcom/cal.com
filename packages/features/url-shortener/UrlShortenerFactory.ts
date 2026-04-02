@@ -1,6 +1,5 @@
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import prisma from "@calcom/prisma";
-
 import type { IUrlShortenerProvider } from "./IUrlShortenerProvider";
 import { DubShortener } from "./providers/DubShortener";
 import { NoopShortener } from "./providers/NoopShortener";
@@ -11,7 +10,10 @@ export class UrlShortenerFactory {
   static async create({
     userId,
     teamId,
-  }: { userId?: number | null; teamId?: number | null } = {}): Promise<IUrlShortenerProvider> {
+  }: {
+    userId?: number | null;
+    teamId?: number | null;
+  } = {}): Promise<IUrlShortenerProvider> {
     if (SinkShortener.isConfigured()) {
       const featuresRepository = new FeaturesRepository(prisma);
 

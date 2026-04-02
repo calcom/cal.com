@@ -1,9 +1,8 @@
-import { OutOfOfficeReason } from "@/modules/ooo/inputs/ooo.input";
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsInt, IsEnum, ValidateNested, IsString, IsDateString, IsOptional } from "class-validator";
-
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+import { IsDateString, IsEnum, IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
+import { OutOfOfficeReason } from "@/modules/ooo/inputs/ooo.input";
 
 export class UserOooOutputDto {
   @IsInt()

@@ -2,9 +2,8 @@ import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calc
 import { moduleLoader as credentialRepositoryModuleLoader } from "@calcom/features/di/modules/Credential";
 import { IntegrationAttributeSyncService } from "@calcom/features/ee/integration-attribute-sync/services/IntegrationAttributeSyncService";
 import { moduleLoader as teamRepositoryModuleLoader } from "@calcom/features/oauth/di/TeamRepository.module";
-
-import { INTEGRATION_ATTRIBUTE_SYNC_DI_TOKENS } from "./tokens";
 import { moduleLoader as integrationAttributeSyncRepositoryModuleLoader } from "./IntegrationAttributeSyncRepository.module";
+import { INTEGRATION_ATTRIBUTE_SYNC_DI_TOKENS } from "./tokens";
 
 export const integrationAttributeSyncServiceModule = createModule();
 const token = INTEGRATION_ATTRIBUTE_SYNC_DI_TOKENS.INTEGRATION_ATTRIBUTE_SYNC_SERVICE;

@@ -1,4 +1,4 @@
-import { type Tasker, type TaskTypes } from "./tasker";
+import type { Tasker, TaskTypes } from "./tasker";
 
 /**
  * RedisTasker is a tasker that uses Redis as a backend.

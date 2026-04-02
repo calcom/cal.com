@@ -322,7 +322,7 @@ export async function _onFormSubmission(
 }
 export const onFormSubmission = withReporting(_onFormSubmission, "onFormSubmission");
 
-export type TargetRoutingFormForResponse= SerializableForm<
+export type TargetRoutingFormForResponse = SerializableForm<
   App_RoutingForms_Form & {
     user: {
       id: number;

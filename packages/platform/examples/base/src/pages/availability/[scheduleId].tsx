@@ -1,10 +1,9 @@
-import { Navbar } from "@/components/Navbar";
-import { Inter } from "next/font/google";
-import { useRouter } from "next/router";
-import { useRef, useCallback } from "react";
-
 import type { AvailabilitySettingsFormRef } from "@calcom/atoms";
 import { AvailabilitySettings } from "@calcom/atoms";
+import { Inter } from "next/font/google";
+import { useRouter } from "next/router";
+import { useCallback, useRef } from "react";
+import { Navbar } from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 

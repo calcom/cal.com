@@ -1,8 +1,7 @@
-import { z } from "zod";
-
 import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
 import { teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import { z } from "zod";
 
 /**
  * Optional nullable URL schema with SSRF protections

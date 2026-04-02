@@ -1,5 +1,4 @@
 import classNames from "@calcom/ui/classNames";
-
 import { Avatar } from "./Avatar";
 
 export type AvatarGroupProps = {

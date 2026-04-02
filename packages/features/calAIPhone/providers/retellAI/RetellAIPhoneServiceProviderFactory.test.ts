@@ -1,7 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import logger from "@calcom/lib/logger";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AIPhoneServiceProviderConfig } from "../../interfaces/AIPhoneService.interface";
 import { RetellAIPhoneServiceProvider } from "./RetellAIPhoneServiceProvider";
 import { RetellAIPhoneServiceProviderFactory } from "./RetellAIPhoneServiceProviderFactory";

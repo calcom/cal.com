@@ -1,12 +1,10 @@
 "use client";
 
-import { Utils as QbUtils, type JsonTree } from "react-awesome-query-builder";
-
 import { safeStringify } from "@calcom/lib/safeStringify";
-
+import { type JsonTree, Utils as QbUtils } from "react-awesome-query-builder";
 import jsonLogic from "./jsonLogic";
 
-export const enum RaqbLogicResult {
+export enum RaqbLogicResult {
   MATCH = "MATCH",
   NO_MATCH = "NO_MATCH",
   LOGIC_NOT_FOUND_SO_MATCHED = "LOGIC_NOT_FOUND_SO_MATCHED",
@@ -55,5 +53,5 @@ export const evaluateRaqbLogic = (
     console.log("Checking logic with data", safeStringify({ logic, data }));
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return !!jsonLogic.apply(logic as any, data) ? RaqbLogicResult.MATCH : RaqbLogicResult.NO_MATCH;
+  return jsonLogic.apply(logic as any, data) ? RaqbLogicResult.MATCH : RaqbLogicResult.NO_MATCH;
 };

@@ -1,9 +1,8 @@
-import type { RatelimitResponse } from "@unkey/ratelimit";
-
+import process from "node:process";
 import { RedisService } from "@calcom/features/redis/RedisService";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
+import type { RatelimitResponse } from "@unkey/ratelimit";
 import { hashAPIKey } from "./apiKeys";
 
 // This is the number of times a user can exceed the rate limit before being locked

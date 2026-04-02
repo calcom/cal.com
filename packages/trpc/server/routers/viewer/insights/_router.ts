@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import { getInsightsBookingService } from "@calcom/features/di/containers/InsightsBooking";
 import { getInsightsRoutingService } from "@calcom/features/di/containers/InsightsRouting";
@@ -10,17 +8,17 @@ import {
 } from "@calcom/features/insights/lib/bookingUtils";
 import { objectToCsv } from "@calcom/features/insights/lib/objectToCsv";
 import {
-  getTimeView,
-  getDateRanges,
   type GetDateRangesParams,
+  getDateRanges,
+  getTimeView,
 } from "@calcom/features/insights/server/insightsDateUtils";
 import {
   bookingRepositoryBaseInputSchema,
   insightsRoutingServiceInputSchema,
   insightsRoutingServicePaginatedInputSchema,
-  routingRepositoryBaseInputSchema,
-  routedToPerPeriodInputSchema,
   routedToPerPeriodCsvInputSchema,
+  routedToPerPeriodInputSchema,
+  routingRepositoryBaseInputSchema,
 } from "@calcom/features/insights/server/raw-data.schema";
 import { RoutingEventsInsights } from "@calcom/features/insights/server/routing-events";
 import { VirtualQueuesInsights } from "@calcom/features/insights/server/virtual-queues";
@@ -29,9 +27,8 @@ import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
-
 import { TRPCError } from "@trpc/server";
-
+import { z } from "zod";
 import { userBelongsToTeamProcedure } from "./procedures/userBelongsToTeam";
 
 const userSelect = {

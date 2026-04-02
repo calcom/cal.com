@@ -1,7 +1,6 @@
+import process from "node:process";
+import { type Container, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import Stripe from "stripe";
-
-import { type Container, createModule, ModuleLoader } from "@calcom/features/di/di";
-
 import { DI_TOKENS } from "../tokens";
 
 export const stripeClientModule = createModule();
@@ -15,7 +14,7 @@ const token = DI_TOKENS.STRIPE_CLIENT;
 function createLazyThrowingStripeStub(error: Error): Stripe {
   // Using unknown instead of any to satisfy lint while still allowing broad proxying.
   function makeDeepProxy(): unknown {
-    return new Proxy(function () {}, {
+    return new Proxy(() => {}, {
       get() {
         // Return another proxy for any nested property (resources/methods)
         return makeDeepProxy();
@@ -42,7 +41,7 @@ stripeClientModule.bind(token).toFactory(() => {
 
 export const stripeClientModuleLoader: ModuleLoader = {
   token,
-  loadModule: function (container: Container) {
+  loadModule: (container: Container) => {
     container.load(token, stripeClientModule);
   },
 };

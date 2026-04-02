@@ -1,7 +1,6 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
-
-import { SuccessToast, ErrorToast, WarningToast } from "./showToast";
+import { ErrorToast, SuccessToast, WarningToast } from "./showToast";
 
 describe("Tests for Toast Components", () => {
   const testToastComponent = (Component: typeof SuccessToast, toastTestId: string) => {

@@ -9,7 +9,6 @@ import type { WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { SchedulingType, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalEventResponses } from "@calcom/types/Calendar";
-
 import type { getBookings } from "./scheduleWorkflowNotifications";
 import { verifyEmailSender } from "./verifyEmailSender";
 

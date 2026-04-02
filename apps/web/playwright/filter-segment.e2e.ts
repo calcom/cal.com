@@ -1,6 +1,5 @@
 import { MembershipRole } from "@calcom/prisma/enums";
 import { expect } from "@playwright/test";
-
 import {
   applySelectFilter,
   clearFilters,

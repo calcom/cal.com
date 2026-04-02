@@ -1,8 +1,6 @@
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { prisma } from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TVerifyPasswordInputSchema } from "./verifyPassword.schema";
 

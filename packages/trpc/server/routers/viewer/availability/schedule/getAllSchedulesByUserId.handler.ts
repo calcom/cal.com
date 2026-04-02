@@ -2,9 +2,7 @@ import { ScheduleRepository } from "@calcom/features/schedules/repositories/Sche
 import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../../types";
 import type { TGetAllByUserIdInputSchema } from "./getAllSchedulesByUserId.schema";
 

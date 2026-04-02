@@ -1,13 +1,10 @@
 "use client";
 
-import type { ReactNode } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import { Avatar } from "@calcom/ui/components/avatar";
 import { Badge } from "@calcom/ui/components/badge";
 import { ChevronRightIcon, KeyIcon } from "@coss/ui/icons";
-
+import type { ReactNode } from "react";
 import type { OAuthClientDetails } from "./view/OAuthClientDetailsDialog";
 
 const getStatusBadge = (status: string, t: (key: string) => string): ReactNode => {

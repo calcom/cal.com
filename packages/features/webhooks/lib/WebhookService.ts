@@ -1,9 +1,8 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
 import type { WebhookSubscriber } from "./dto/types";
-import getWebhooks from "./getWebhooks";
 import type { GetSubscriberOptions } from "./getWebhooks";
+import getWebhooks from "./getWebhooks";
 import sendOrSchedulePayload from "./sendOrSchedulePayload";
 
 const log = logger.getSubLogger({ prefix: ["[WebhookService] "] });

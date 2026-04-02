@@ -2,10 +2,8 @@ import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
-
-import { type TOutOfOfficeEntriesListSchema } from "./outOfOfficeEntriesList.schema";
+import type { TOutOfOfficeEntriesListSchema } from "./outOfOfficeEntriesList.schema";
 
 type GetOptions = {
   ctx: {
@@ -158,7 +156,7 @@ export const outOfOfficeEntriesList = async ({ ctx, input }: GetOptions) => {
     take: limit + 1,
   });
 
-  let nextCursor: number | undefined = undefined;
+  let nextCursor: number | undefined;
   if (outOfOfficeEntries && outOfOfficeEntries.length > limit) {
     const nextItem = outOfOfficeEntries.pop();
     nextCursor = nextItem?.id;

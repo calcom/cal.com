@@ -1,16 +1,14 @@
-import { describe, it, expect, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, it } from "vitest";
 import { SIGNUP_ERROR_CODES } from "../../constants";
 import type { MockResponse } from "./mocks/next.mocks";
 import {
-  prismaMock,
+  createGenericPrismaError,
   createP2002Error,
   createP2002ErrorWithoutTarget,
-  createGenericPrismaError,
+  prismaMock,
 } from "./mocks/prisma.mocks";
-import { createSignupBody, createMockUser } from "./mocks/signup.factories";
-
 import type { SignupBody } from "./mocks/signup.factories";
+import { createMockUser, createSignupBody } from "./mocks/signup.factories";
 
 type CallHandler = (body: SignupBody) => Promise<MockResponse>;
 

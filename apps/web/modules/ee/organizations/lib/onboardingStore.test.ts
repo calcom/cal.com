@@ -2,16 +2,15 @@
  * @vitest-environment jsdom
  */
 // @ts-nocheck - Test file with mock type compatibility issues that don't affect test functionality
-import { renderHook, act, waitFor } from "@testing-library/react";
-import { useSession } from "next-auth/react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-
-import { useOnboardingStore, useOnboarding } from "./onboardingStore";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useOnboarding, useOnboardingStore } from "./onboardingStore";
 
 // Mock all dependencies
 vi.mock("next-auth/react");

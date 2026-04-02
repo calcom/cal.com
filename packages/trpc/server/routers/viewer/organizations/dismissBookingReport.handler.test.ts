@@ -1,7 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { WatchlistErrors } from "@calcom/features/watchlist/lib/errors/WatchlistErrors";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { dismissBookingReportHandler } from "./dismissBookingReport.handler";
 
 vi.mock("@calcom/features/di/watchlist/containers/watchlist");

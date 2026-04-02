@@ -1,9 +1,7 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
+import process from "node:process";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handler } from "./scheduleWhatsappReminders";
 
 const mockScheduleSmsOrFallbackEmail = vi.fn();
@@ -41,7 +39,10 @@ vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
 
-function createMockNextRequest(): { headers: { get: (key: string) => string | null }; nextUrl: { searchParams: { get: (key: string) => string | null } } } {
+function createMockNextRequest(): {
+  headers: { get: (key: string) => string | null };
+  nextUrl: { searchParams: { get: (key: string) => string | null } };
+} {
   return {
     headers: {
       get: (key: string) => (key === "authorization" ? "test-api-key" : null),

@@ -1,5 +1,6 @@
 import i18nMock from "@calcom/testing/lib/__mocks__/libServerI18n";
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
+import process from "node:process";
 import dayjs from "@calcom/dayjs";
 import * as CalcomEmails from "@calcom/emails/organization-email-service";
 import { getNoSlotsNotificationService } from "@calcom/features/di/containers/NoSlotsNotification";

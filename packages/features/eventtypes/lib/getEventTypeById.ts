@@ -9,13 +9,13 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import { OrganizationRepository } from "@calcom/features/ee/organizations/repositories/OrganizationRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { getTranslation } from "@calcom/i18n/server";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
 import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
-import { getTranslation } from "@calcom/i18n/server";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -92,8 +92,8 @@ export const getEventTypeById = async ({
       ...child,
       owner: child.owner
         ? await userRepo.enrichUserWithItsProfile({
-          user: child.owner,
-        })
+            user: child.owner,
+          })
         : null,
     });
   }
@@ -144,19 +144,19 @@ export const getEventTypeById = async ({
     children: childrenWithUserProfile.flatMap((ch) =>
       ch.owner !== null
         ? {
-          ...ch,
-          owner: {
-            ...ch.owner,
-            avatar: getUserAvatarUrl(ch.owner),
-            email: ch.owner.email,
-            name: ch.owner.name ?? "",
-            username: ch.owner.username ?? "",
-            membership:
-              restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
-              MembershipRole.MEMBER,
-          },
-          created: true,
-        }
+            ...ch,
+            owner: {
+              ...ch.owner,
+              avatar: getUserAvatarUrl(ch.owner),
+              email: ch.owner.email,
+              name: ch.owner.name ?? "",
+              username: ch.owner.username ?? "",
+              membership:
+                restEventType.team?.members.find((tm) => tm.user.id === ch.owner?.id)?.role ||
+                MembershipRole.MEMBER,
+            },
+            created: true,
+          }
         : []
     ),
   };
@@ -227,19 +227,19 @@ export const getEventTypeById = async ({
   const isOrgEventType = !!eventTypeObject.team?.parentId;
   const teamMembers = eventTypeObject.team
     ? eventTeamMembershipsWithUserProfile
-      .filter((member) => member.accepted || isOrgEventType)
-      .map((member) => {
-        const user: typeof member.user & { avatar: string } = {
-          ...member.user,
-          avatar: getUserAvatarUrl(member.user),
-        };
-        return {
-          ...user,
-          profileId: user.profile.id,
-          eventTypes: user.eventTypes.map((evTy) => evTy.slug),
-          membership: member.role,
-        };
-      })
+        .filter((member) => member.accepted || isOrgEventType)
+        .map((member) => {
+          const user: typeof member.user & { avatar: string } = {
+            ...member.user,
+            avatar: getUserAvatarUrl(member.user),
+          };
+          return {
+            ...user,
+            profileId: user.profile.id,
+            eventTypes: user.eventTypes.map((evTy) => evTy.slug),
+            membership: member.role,
+          };
+        })
     : [];
 
   // Find the current users membership so we can check role to enable/disable deletion.

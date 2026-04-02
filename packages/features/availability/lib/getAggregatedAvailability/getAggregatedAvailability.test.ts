@@ -1,8 +1,6 @@
-import { describe, it, expect } from "vitest";
-
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-
+import { describe, expect, it } from "vitest";
 import { getAggregatedAvailability } from "./getAggregatedAvailability";
 
 // Helper to check if a time range overlaps with availability

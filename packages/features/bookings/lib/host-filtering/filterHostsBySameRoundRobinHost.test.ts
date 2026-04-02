@@ -1,8 +1,6 @@
-import type { Mock } from "vitest";
-import { describe, expect, it, vi, afterEach } from "vitest";
-
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
-
+import type { Mock } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { FilterHostsService } from "./filterHostsBySameRoundRobinHost";
 
 const mockBookingRepo = {

@@ -1,7 +1,5 @@
-import { vi, type Mock, describe, it, expect, beforeEach } from "vitest";
-
 import { RoleType } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import type { Role } from "../../domain/models/Role";
 import type { IRoleRepository } from "../../domain/repositories/IRoleRepository";
 import type { PermissionString } from "../../domain/types/permission-registry";

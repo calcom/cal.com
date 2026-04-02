@@ -1,5 +1,4 @@
 import { WorkflowTemplates } from "@calcom/prisma/enums";
-
 import compareReminderBodyToTemplate from "./compareReminderBodyToTemplate";
 
 export type DefaultTemplates = {

@@ -1,5 +1,4 @@
 import type { GetStaticPropsContext } from "next";
-
 import getAppKeysFromSlug from "../../../_utils/getAppKeysFromSlug";
 
 export const getStaticProps = async (ctx: GetStaticPropsContext) => {

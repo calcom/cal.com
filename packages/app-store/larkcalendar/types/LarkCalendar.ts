@@ -56,7 +56,7 @@ export type LarkEvent = {
   reminders: [
     {
       minutes: number;
-    }
+    },
   ];
 };
 
@@ -132,7 +132,7 @@ export type ListCalendarsResp = {
         is_deleted: boolean;
         is_third_party: boolean;
         role: "unknown" | "free_busy_reader" | "reader" | "writer" | "owner";
-      }
+      },
     ];
   };
 };
@@ -154,7 +154,7 @@ export type GetPrimaryCalendarsResp = {
           type: "unknown" | "shared" | "primary" | "google" | "resource" | "exchange";
         };
         user_id: string;
-      }
+      },
     ];
   };
 };

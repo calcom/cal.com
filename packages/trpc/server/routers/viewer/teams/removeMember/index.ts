@@ -1,9 +1,9 @@
-export { RemoveMemberServiceFactory } from "./RemoveMemberServiceFactory";
+export { BaseRemoveMemberService } from "./BaseRemoveMemberService";
 export type {
   IRemoveMemberService,
   RemoveMemberContext,
   RemoveMemberPermissionResult,
 } from "./IRemoveMemberService";
-export { BaseRemoveMemberService } from "./BaseRemoveMemberService";
-export { PBACRemoveMemberService } from "./PBACRemoveMemberService";
 export { LegacyRemoveMemberService } from "./LegacyRemoveMemberService";
+export { PBACRemoveMemberService } from "./PBACRemoveMemberService";
+export { RemoveMemberServiceFactory } from "./RemoveMemberServiceFactory";

@@ -1,8 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import type { RoutingFormTraceService } from "@calcom/features/routing-trace/domains/RoutingFormTraceService";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { FormResponse, SerializableForm } from "../types/types";
 import { findMatchingRoute } from "./processRoute";
 
@@ -154,10 +152,7 @@ describe("findMatchingRoute", () => {
     it("should use route id as name when route has no name", () => {
       vi.mocked(evaluateRaqbLogic).mockReturnValue(RaqbLogicResult.MATCH);
 
-      const form = createMockForm([
-        { id: "route-123" },
-        { id: "fallback", isFallback: true },
-      ]);
+      const form = createMockForm([{ id: "route-123" }, { id: "fallback", isFallback: true }]);
 
       const result = findMatchingRoute({
         form,

@@ -1,8 +1,7 @@
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import type { Prisma } from "@calcom/prisma/client";
 import { Injectable } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
-
-import type { Prisma } from "@calcom/prisma/client";
+import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 
 @Injectable()
 export class ProfilesRepository {

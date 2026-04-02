@@ -4,8 +4,7 @@
  * Client-only RAQB utilities that require the react-awesome-query-builder runtime.
  * These functions should only be imported in client-side React components.
  */
-import type { JsonTree } from "react-awesome-query-builder";
-import type { Config } from "react-awesome-query-builder";
+import type { Config, JsonTree } from "react-awesome-query-builder";
 import { Utils as QbUtils } from "react-awesome-query-builder";
 
 export function buildEmptyQueryValue() {

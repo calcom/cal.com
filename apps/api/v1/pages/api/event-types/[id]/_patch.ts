@@ -1,17 +1,14 @@
-import type { NextApiRequest } from "next";
-import type { z } from "zod";
-
 import { HttpError } from "@calcom/lib/http-error";
 import { prisma } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
-
+import type { NextApiRequest } from "next";
+import type { z } from "zod";
 import { eventTypeSelect } from "~/lib/selects/event-type";
 import type { schemaEventTypeBaseBodyParams } from "~/lib/validations/event-type";
 import { schemaEventTypeEditBodyParams } from "~/lib/validations/event-type";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 import ensureOnlyMembersAsHosts from "~/pages/api/event-types/_utils/ensureOnlyMembersAsHosts";
-
 import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission";
 
 /**

@@ -1,7 +1,6 @@
 import userCanCreateTeamGroupMapping from "@calcom/features/ee/dsync/lib/server/userCanCreateTeamGroupMapping";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { ZDeleteInputSchema } from "./delete.schema";
 
 type Options = {
@@ -13,7 +12,11 @@ type Options = {
 
 // Delete directory sync connection for a team
 export const deleteHandler = async ({ ctx, input }: Options) => {
-  await userCanCreateTeamGroupMapping({ id: ctx.user.id, email: ctx.user.email }, ctx.user.organizationId, input.teamId);
+  await userCanCreateTeamGroupMapping(
+    { id: ctx.user.id, email: ctx.user.email },
+    ctx.user.organizationId,
+    input.teamId
+  );
 
   await prisma.dSyncTeamGroupMapping.delete({
     where: {

@@ -1,8 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import logger from "@calcom/lib/logger";
-
 import { TRPCError } from "@trpc/server";
-
 import type { TrpcSessionUser } from "../../../types";
 import type { TCreateWebCallInputSchema } from "./createWebCall.schema";
 

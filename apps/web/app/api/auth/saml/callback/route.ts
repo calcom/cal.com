@@ -1,12 +1,11 @@
+import type { SAMLResponsePayload } from "@calcom/features/ee/sso/lib/jackson";
+import jackson from "@calcom/features/ee/sso/lib/jackson";
+import logger from "@calcom/lib/logger";
 import { defaultResponderForAppDir } from "app/api/defaultResponderForAppDir";
 import { parseRequestData } from "app/api/parseRequestData";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { uuid } from "short-uuid";
-
-import jackson from "@calcom/features/ee/sso/lib/jackson";
-import type { SAMLResponsePayload } from "@calcom/features/ee/sso/lib/jackson";
-import logger from "@calcom/lib/logger";
 
 async function handler(req: NextRequest) {
   const uid = uuid();

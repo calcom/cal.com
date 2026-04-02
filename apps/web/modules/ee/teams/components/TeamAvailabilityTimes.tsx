@@ -1,18 +1,16 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 
-/* eslint-enable @typescript-eslint/ban-ts-comment */
-// TODO: Currently this file is not type checked as it's deprecated
-//       it must be refactored if we want to restore TeamAvailability
-import classNames from "classnames";
-import React from "react";
-import type { ITimezone } from "react-timezone-select";
-
 import type { Dayjs } from "@calcom/dayjs";
 import getSlots from "@calcom/features/schedules/lib/slots";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-
+/* eslint-enable @typescript-eslint/ban-ts-comment */
+// TODO: Currently this file is not type checked as it's deprecated
+//       it must be refactored if we want to restore TeamAvailability
+import classNames from "classnames";
+import type React from "react";
+import type { ITimezone } from "react-timezone-select";
 import SkeletonLoader from "./SkeletonLoaderAvailabilityTimes";
 
 interface Props {

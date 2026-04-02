@@ -1,21 +1,21 @@
 import type { CreateBookingMeta, CreateRecurringBookingData } from "@calcom/features/bookings/lib/dto/types";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { CreationSource, SchedulingType } from "@calcom/prisma/enums";
+import { criticalLogger } from "@calcom/lib/logger.server";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import type { BookingStatus } from "@calcom/prisma/enums";
+import { type CreationSource, SchedulingType } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 import { v4 as uuidv4 } from "uuid";
-import type { BookingStatus } from "@calcom/prisma/enums";
-import type { IBookingService } from "../interfaces/IBookingService";
-import type { RegularBookingService } from "./RegularBookingService";
-import type { BookingEventHandlerService } from "../onBookingEvents/BookingEventHandlerService";
-import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
-import { criticalLogger } from "@calcom/lib/logger.server";
-import { getAuditActionSource } from "../handleNewBooking/getAuditActionSource";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import {
   buildBookingCreatedAuditData,
   buildBookingRescheduledAuditData,
 } from "../handleNewBooking/buildBookingEventAuditData";
+import { getAuditActionSource } from "../handleNewBooking/getAuditActionSource";
+import { getBookingAuditActorForNewBooking } from "../handleNewBooking/getBookingAuditActorForNewBooking";
+import type { IBookingService } from "../interfaces/IBookingService";
+import type { BookingEventHandlerService } from "../onBookingEvents/BookingEventHandlerService";
+import type { RegularBookingService } from "./RegularBookingService";
 export type BookingHandlerInput = {
   bookingData: CreateRecurringBookingData;
 } & CreateBookingMeta;
@@ -48,7 +48,7 @@ export const handleNewRecurringBooking = async function (
   const firstBooking = data[0];
   const isRoundRobin = firstBooking.schedulingType === SchedulingType.ROUND_ROBIN;
 
-  let luckyUsers = undefined;
+  let luckyUsers;
 
   const handleBookingMeta = {
     userId: input.userId,
@@ -126,7 +126,7 @@ export const handleNewRecurringBooking = async function (
       },
     });
 
-    const eachRecurringBooking= await promiseEachRecurringBooking;
+    const eachRecurringBooking = await promiseEachRecurringBooking;
 
     createdBookings.push(eachRecurringBooking);
 
@@ -167,7 +167,7 @@ export interface IRecurringBookingServiceDependencies {
  * Recurring Booking Service takes care of creating/rescheduling recurring bookings.
  */
 export class RecurringBookingService implements IBookingService {
-  constructor(private readonly deps: IRecurringBookingServiceDependencies) { }
+  constructor(private readonly deps: IRecurringBookingServiceDependencies) {}
 
   async fireBookingEvents({
     createdBookings,
@@ -224,10 +224,10 @@ export class RecurringBookingService implements IBookingService {
         bookerName,
         rescheduledBy: rescheduledBy
           ? {
-            attendeeId: rescheduledByAttendeeId ?? null,
-            userUuid: rescheduledByUserUuid ?? null,
-            email: rescheduledBy,
-          }
+              attendeeId: rescheduledByAttendeeId ?? null,
+              userUuid: rescheduledByUserUuid ?? null,
+              email: rescheduledBy,
+            }
           : null,
         logger: criticalLogger,
       });

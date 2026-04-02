@@ -1,13 +1,10 @@
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { getCsrfToken } from "next-auth/react";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-
+import { getCsrfToken } from "next-auth/react";
 import ForgotPassword from "~/auth/forgot-password/forgot-password-view";
 
 export const generateMetadata = async () => {

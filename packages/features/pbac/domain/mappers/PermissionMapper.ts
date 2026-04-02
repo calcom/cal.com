@@ -1,6 +1,6 @@
-import type { TeamPermissions, Permission } from "../models/Permission";
-import { CrudAction, CustomAction, Resource, PERMISSION_REGISTRY } from "../types/permission-registry";
-import type { PermissionString, PermissionRegistry } from "../types/permission-registry";
+import type { Permission, TeamPermissions } from "../models/Permission";
+import type { PermissionRegistry, PermissionString } from "../types/permission-registry";
+import { CrudAction, CustomAction, PERMISSION_REGISTRY, Resource } from "../types/permission-registry";
 
 export type ResourceActions<R extends Resource> = keyof PermissionRegistry[R];
 
@@ -69,12 +69,12 @@ export class PermissionMapper {
 
     // Initialize all actions as false
     Object.values(CrudAction).forEach((action) => {
-      if (action !== CrudAction.All && this.isActionAvailableForResource(resource, action)) {
+      if (action !== CrudAction.All && PermissionMapper.isActionAvailableForResource(resource, action)) {
         actionMap[action as ResourceActions<R>] = false;
       }
     });
     Object.values(CustomAction).forEach((action) => {
-      if (this.isActionAvailableForResource(resource, action)) {
+      if (PermissionMapper.isActionAvailableForResource(resource, action)) {
         actionMap[action as ResourceActions<R>] = false;
       }
     });
@@ -90,7 +90,7 @@ export class PermissionMapper {
           return;
         }
 
-        const { action, resource: permResource } = this.fromPermissionString(permString);
+        const { action, resource: permResource } = PermissionMapper.fromPermissionString(permString);
 
         // Only process permissions for the requested resource
         if (permResource === resource || permResource === Resource.All) {
@@ -99,7 +99,7 @@ export class PermissionMapper {
             Object.keys(actionMap).forEach((key) => {
               actionMap[key as ResourceActions<R>] = true;
             });
-          } else if (this.isActionAvailableForResource(resource, action)) {
+          } else if (PermissionMapper.isActionAvailableForResource(resource, action)) {
             actionMap[action as ResourceActions<R>] = true;
           }
         }

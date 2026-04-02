@@ -1,11 +1,10 @@
+import { OrganizationRepository } from "@calcom/platform-libraries/organizations";
+import { Prisma } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
 import { PlatformPlan } from "@/modules/billing/types";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { StripeService } from "@/modules/stripe/stripe.service";
-import { Injectable } from "@nestjs/common";
-
-import { OrganizationRepository } from "@calcom/platform-libraries/organizations";
-import { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class OrganizationsRepository extends OrganizationRepository {

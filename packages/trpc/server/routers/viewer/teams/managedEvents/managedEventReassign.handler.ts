@@ -3,7 +3,6 @@ import { BookingAccessService } from "@calcom/features/bookings/services/Booking
 import { managedEventReassignment } from "@calcom/features/ee/managed-event-types/reassignment";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import { TRPCError } from "@trpc/server";
 import type { TManagedEventReassignInputSchema } from "./managedEventReassign.schema";
 

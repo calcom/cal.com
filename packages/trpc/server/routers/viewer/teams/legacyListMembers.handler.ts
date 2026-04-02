@@ -3,7 +3,6 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
-
 import type { TLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 
 type ListMembersOptions = {
@@ -107,7 +106,7 @@ export const legacyListMembers = async ({ ctx, input }: ListMembersOptions) => {
     ],
   });
 
-  let nextCursor: typeof cursor | undefined = undefined;
+  let nextCursor: typeof cursor | undefined;
   if (memberships.length > limit) {
     const nextItem = memberships.pop();
     nextCursor = nextItem?.id;

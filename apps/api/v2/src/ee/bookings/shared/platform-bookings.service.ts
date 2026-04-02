@@ -1,10 +1,9 @@
+import type { PlatformOAuthClient } from "@calcom/prisma/client";
+import { Injectable } from "@nestjs/common";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Injectable } from "@nestjs/common";
-
-import type { PlatformOAuthClient } from "@calcom/prisma/client";
 
 @Injectable()
 export class PlatformBookingsService {

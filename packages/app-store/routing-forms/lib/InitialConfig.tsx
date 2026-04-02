@@ -1,6 +1,6 @@
 import {
-  FormFieldsBaseConfig,
   AttributesBaseConfig,
+  FormFieldsBaseConfig,
 } from "../components/react-awesome-query-builder/config/config";
 
 export const FormFieldsInitialConfig = FormFieldsBaseConfig;

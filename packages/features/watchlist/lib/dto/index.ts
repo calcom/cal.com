@@ -1,22 +1,22 @@
 // Export all DTO types
-export type {
-  WatchlistEntryDTO,
-  CreateWatchlistEntryDTO,
-  UpdateWatchlistEntryDTO,
-  WatchlistListResponseDTO,
-  WatchlistSearchDTO,
-  BlockingCheckResultDTO,
-  UsersBlockedCheckResponseDTO,
-  WatchlistErrorDTO,
-  BulkWatchlistOperationDTO,
-  BulkWatchlistResultDTO,
-} from "./types";
 
 // Export all mappers
 export {
-  mapWatchlistToDTO,
-  mapWatchlistListToDTO,
   mapBlockingResultToDTO,
+  mapWatchlistListToDTO,
+  mapWatchlistToDTO,
   sanitizeWatchlistEntryDTO,
   sanitizeWatchlistValue,
 } from "./mappers";
+export type {
+  BlockingCheckResultDTO,
+  BulkWatchlistOperationDTO,
+  BulkWatchlistResultDTO,
+  CreateWatchlistEntryDTO,
+  UpdateWatchlistEntryDTO,
+  UsersBlockedCheckResponseDTO,
+  WatchlistEntryDTO,
+  WatchlistErrorDTO,
+  WatchlistListResponseDTO,
+  WatchlistSearchDTO,
+} from "./types";

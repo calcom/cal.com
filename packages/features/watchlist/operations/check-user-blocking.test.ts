@@ -1,11 +1,10 @@
-import { describe, test, expect, vi, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import {
-  getBlockedUsersMap,
-  isUserBlocked,
-  checkWatchlistBlocking,
   type BlockableUser,
   type BlockingInfo,
+  checkWatchlistBlocking,
+  getBlockedUsersMap,
+  isUserBlocked,
 } from "./check-user-blocking";
 
 vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => ({

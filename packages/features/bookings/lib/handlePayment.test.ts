@@ -1,5 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handlePayment } from "./handlePayment";
 
 vi.mock("@calcom/app-store/zod-utils", () => ({

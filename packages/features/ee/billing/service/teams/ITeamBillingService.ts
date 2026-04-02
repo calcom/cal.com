@@ -1,5 +1,4 @@
 import type { Team } from "@calcom/prisma/client";
-
 import type {
   IBillingRepositoryCreateArgs,
   SubscriptionStatus,

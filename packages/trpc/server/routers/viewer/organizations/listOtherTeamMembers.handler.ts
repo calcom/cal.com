@@ -1,13 +1,10 @@
-import z from "zod";
-
 import { getBookerBaseUrlSync } from "@calcom/features/ee/organizations/lib/getBookerBaseUrlSync";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole, type Prisma } from "@calcom/prisma/client";
-
 import { TRPCError } from "@trpc/server";
-
+import z from "zod";
 import type { TrpcSessionUser } from "../../../types";
 
 export const ZListOtherTeamMembersSchema = z.object({
@@ -121,7 +118,7 @@ export const listOtherTeamMembers = async ({ ctx, input }: ListOptions) => {
     cursor: cursor ? { id: cursor } : undefined,
     take: limit + 1, // We take +1 as itll be used for the next cursor
   });
-  let nextCursor: typeof cursor | undefined = undefined;
+  let nextCursor: typeof cursor | undefined;
   if (members && members.length > limit) {
     const nextItem = members.pop();
     nextCursor = nextItem?.id || null;

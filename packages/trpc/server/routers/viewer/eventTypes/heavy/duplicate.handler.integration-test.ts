@@ -4,7 +4,6 @@ import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-
 import { duplicateHandler } from "./duplicate.handler";
 
 const timestamp = Date.now();

@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import type { QuickAvailabilityCheck } from "../types";
 import { isTimeSlotAvailable } from "./isTimeslotAvailable";
 
