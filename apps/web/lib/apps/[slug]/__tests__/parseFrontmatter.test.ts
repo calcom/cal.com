@@ -1,4 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
+vi.mock("@calcom/app-store/_appRegistry", () => ({
+  getAppWithMetadata: vi.fn(),
+}));
+
 import { parseFrontmatter } from "../getStaticProps";
 
 describe("parseFrontmatter", () => {

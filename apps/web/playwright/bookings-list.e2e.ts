@@ -798,8 +798,9 @@ test.describe("Bookings", () => {
 
       const bookingItem = page.locator(`[data-booking-uid="${bookingFixture.uid}"]`);
       await expect(bookingItem).toBeVisible();
-
-      await bookingItem.locator('[role="button"]').first().click();
+      const bookingButton = bookingItem.locator('[role="button"]').first();
+      await bookingButton.waitFor({ state: "visible" });
+      await bookingButton.click();
 
       await expect(page).toHaveURL(new RegExp(`[?&]uid=${bookingFixture.uid}(&|$)`));
     } finally {
