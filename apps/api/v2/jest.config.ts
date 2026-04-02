@@ -27,6 +27,7 @@ const config: Config = {
     "^@calcom/platform-libraries/errors$": "<rootDir>/test/mocks/calcom-platform-libraries-errors.ts",
     "^@calcom/platform-libraries/tasker$": "<rootDir>/test/mocks/calcom-platform-libraries-tasker.ts",
     "^@calcom/platform-libraries/app-store$": "<rootDir>/test/mocks/calcom-platform-libraries-app-store.ts",
+    "^@calcom/platform-libraries/oauth$": "<rootDir>/test/mocks/calcom-platform-libraries-oauth.ts",
   },
   testEnvironment: "node",
   testRegex: ".*\\.spec\\.ts$",

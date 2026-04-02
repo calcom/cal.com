@@ -47,6 +47,7 @@ export default defineConfig({
         errors: resolve(__dirname, "./errors.ts"),
         calendars: resolve(__dirname, "./calendars.ts"),
         tasker: resolve(__dirname, "./tasker.ts"),
+        oauth: resolve(__dirname, "./oauth.ts"),
       },
       name: "calcom-lib",
       fileName: "calcom-lib",

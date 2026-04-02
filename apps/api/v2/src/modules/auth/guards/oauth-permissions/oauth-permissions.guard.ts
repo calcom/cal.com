@@ -1,7 +1,7 @@
 import {
   type NewAccessScope,
   SCOPE_TO_PERMISSION,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries/oauth";
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";

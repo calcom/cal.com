@@ -33,7 +33,7 @@ import { MockedRedisService } from "test/mocks/mock-redis-service";
 import { randomString } from "test/utils/randomString";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
-import { generateSecret } from "@calcom/platform-libraries";
+import { generateSecret } from "@calcom/platform-libraries/oauth";
 import type { PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
 import { AccessScope, OAuthClientType } from "@calcom/prisma/enums";
 
