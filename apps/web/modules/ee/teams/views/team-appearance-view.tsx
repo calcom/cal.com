@@ -5,6 +5,7 @@ import { APP_NAME, DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
+import { bookingThemePreviewOptions } from "@calcom/lib/theme/themeItems";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { ColorPicker, Form } from "@calcom/ui/components/form";
@@ -42,12 +43,6 @@ type BrandColorsFormValues = {
   darkBrandColor: string;
 };
 
-const themeItems = [
-  { imageSrc: "/theme-system.svg", labelKey: "theme_system", value: "system" },
-  { imageSrc: "/theme-light.svg", labelKey: "light", value: "light" },
-  { imageSrc: "/theme-dark.svg", labelKey: "dark", value: "dark" },
-] as const;
-
 type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
 const ProfileView = ({ team }: ProfileViewProps) => {
@@ -61,7 +56,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
   const [lightModeError, setLightModeError] = useState(false);
   const [isCustomBrandColorChecked, setIsCustomBrandColorChecked] = useState(
     (team?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR) !== DEFAULT_LIGHT_BRAND_COLOR ||
-    (team?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR) !== DEFAULT_DARK_BRAND_COLOR
+      (team?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR) !== DEFAULT_DARK_BRAND_COLOR
   );
 
   const themeForm = useForm<{ theme: string | null | undefined }>({
@@ -163,7 +158,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
                       onValueChange={(value) => {
                         themeForm.setValue("theme", value === "system" ? null : value, { shouldDirty: true });
                       }}>
-                      {themeItems.map((item) => (
+                      {bookingThemePreviewOptions.map((item) => (
                         <FieldItem className="flex-1" key={item.value}>
                           <SelectablePreviewOption
                             control={
@@ -208,7 +203,9 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             }}>
             <CardFrame
               className="has-[[data-slot=collapsible-trigger][data-unchecked]]:before:bg-card before:transition-all"
-              render={<Collapsible open={isCustomBrandColorChecked} onOpenChange={handleCustomBrandColorsToggle} />}>
+              render={
+                <Collapsible open={isCustomBrandColorChecked} onOpenChange={handleCustomBrandColorsToggle} />
+              }>
               <CardFrameHeader className="has-[[data-slot=collapsible-trigger][data-unchecked]]:p-6 transition-all">
                 <CardFrameTitle>{t("custom_brand_colors")}</CardFrameTitle>
                 <CardFrameDescription>{t("customize_your_brand_colors")}</CardFrameDescription>

@@ -4,6 +4,7 @@ import { APP_NAME, DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@
 import useGetBrandingColours, { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { bookingThemePreviewOptions, dashboardThemePreviewOptions } from "@calcom/lib/theme/themeItems";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -41,12 +42,6 @@ import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 import { WideUpgradeBannerForBranding } from "~/billing/upgrade-banners/WideUpgradeBannerForBranding";
 import { BookerLayoutSelector } from "~/settings/components/BookerLayoutSelector";
-
-const themeItems = [
-  { imageSrc: "/theme-system.svg", labelKey: "theme_system", value: "system" },
-  { imageSrc: "/theme-light.svg", labelKey: "light", value: "light" },
-  { imageSrc: "/theme-dark.svg", labelKey: "dark", value: "dark" },
-] as const;
 
 const useBrandColors = (
   currentTheme: string | null,
@@ -218,7 +213,7 @@ const AppearanceView = ({
                       shouldDirty: true,
                     });
                   }}>
-                  {themeItems.map((item) => (
+                  {dashboardThemePreviewOptions.map((item) => (
                     <FieldItem className="flex-1" key={item.value} data-testid={`appTheme-${item.value}`}>
                       <SelectablePreviewOption
                         control={
@@ -290,7 +285,7 @@ const AppearanceView = ({
                           shouldDirty: true,
                         });
                       }}>
-                      {themeItems.map((item) => (
+                      {bookingThemePreviewOptions.map((item) => (
                         <FieldItem className="flex-1" key={item.value} data-testid={`theme-${item.value}`}>
                           <SelectablePreviewOption
                             control={
@@ -370,7 +365,11 @@ const AppearanceView = ({
             handleSubmit={(values) => {
               mutation.mutate(values);
             }}>
-            <CardFrame className="has-[[data-slot=collapsible-trigger][data-unchecked]]:before:bg-card before:transition-all" render={<Collapsible open={isCustomBrandColorChecked} onOpenChange={handleCustomBrandColorsToggle} />}>
+            <CardFrame
+              className="has-[[data-slot=collapsible-trigger][data-unchecked]]:before:bg-card before:transition-all"
+              render={
+                <Collapsible open={isCustomBrandColorChecked} onOpenChange={handleCustomBrandColorsToggle} />
+              }>
               <CardFrameHeader className="has-[[data-slot=collapsible-trigger][data-unchecked]]:p-6 transition-all">
                 <CardFrameTitle>{t("custom_brand_colors")}</CardFrameTitle>
                 <CardFrameDescription>{t("customize_your_brand_colors")}</CardFrameDescription>
@@ -387,7 +386,10 @@ const AppearanceView = ({
                   />
                 </CardFrameAction>
               </CardFrameHeader>
-              <Card render={<CollapsiblePanel className="data-ending-style:opacity-0 data-starting-style:opacity-0 transition-[height,opacity]" />}>
+              <Card
+                render={
+                  <CollapsiblePanel className="data-ending-style:opacity-0 data-starting-style:opacity-0 transition-[height,opacity]" />
+                }>
                 <CardPanel>
                   <div className="flex flex-col gap-4">
                     <Controller
