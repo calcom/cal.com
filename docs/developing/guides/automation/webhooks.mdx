@@ -2,7 +2,7 @@
 title: "Webhooks"
 ---
 
-Webhooks offer a great way to automate the flow with other apps when invitees schedule, cancel or reschedule events, or when the meeting ends.
+Webhooks offer a great way to automate the flow with other apps when invitees schedule, cancel or reschedule events, or when a meeting starts or ends.
 
 <iframe style={{ width:"100%",maxWidth:"560px" }} height="315" src="https://www.youtube.com/embed/Yy9me5E09LA?si=_2Mz-CKL2ajsFivd" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen />
 
@@ -58,7 +58,7 @@ To create a new webhook subscription, visit `/settings/developer/webhooks` and p
 
 ### Webhook payload reference
 
-All webhook payloads are wrapped in the following structure:
+Most webhook payloads are wrapped in the following structure:
 
 ```json
 {
@@ -67,6 +67,10 @@ All webhook payloads are wrapped in the following structure:
   "payload": { ... }
 }
 ```
+
+<Note>
+  `MEETING_STARTED` and `MEETING_ENDED` are exceptions — they use a flat payload where booking fields are at the top level alongside `triggerEvent`, with no `payload` wrapper. See [meeting started and meeting ended webhooks](#meeting-started-and-meeting-ended-webhooks) for details.
+</Note>
 
 <Note>
 Webhook payloads are versioned. The version of the payload sent is included in the x-cal-webhook-version HTTP header.
@@ -838,6 +842,8 @@ Select a version and trigger event to view the example payload:
         ```
       </Accordion>
       <Accordion title="MEETING_STARTED">
+        Unlike other events, `MEETING_STARTED` uses a flat payload structure — booking fields are at the top level, not nested inside a `payload` object. This webhook fires automatically at the booking's scheduled start time. See [meeting started and meeting ended webhooks](#meeting-started-and-meeting-ended-webhooks) for details.
+
         ```json
         {
           "triggerEvent": "MEETING_STARTED",
@@ -966,6 +972,8 @@ Select a version and trigger event to view the example payload:
         ```
       </Accordion>
       <Accordion title="MEETING_ENDED">
+        Unlike other events, `MEETING_ENDED` uses a flat payload structure — booking fields are at the top level, not nested inside a `payload` object. This webhook fires automatically at the booking's scheduled end time. See [meeting started and meeting ended webhooks](#meeting-started-and-meeting-ended-webhooks) for details.
+
         ```json
         {
           "triggerEvent": "MEETING_ENDED",
@@ -1666,6 +1674,21 @@ These webhooks are triggered **automatically** when hosts or guests don't join a
   }
 }
 ```
+
+### Meeting started and meeting ended webhooks
+
+The `MEETING_STARTED` and `MEETING_ENDED` webhooks are **time-delayed** — they fire automatically at the booking's scheduled start time and end time, respectively. You do not need to take any action to trigger them beyond subscribing to these events.
+
+**Key behaviors:**
+
+- **Automatic scheduling**: When a booking is confirmed, Cal.com schedules the `MEETING_STARTED` webhook to fire at the booking's `startTime` and the `MEETING_ENDED` webhook to fire at the booking's `endTime`.
+- **Cancellation handling**: If a booking is cancelled or rescheduled, any pending `MEETING_STARTED` and `MEETING_ENDED` webhooks for that booking are automatically cancelled. When a booking is rescheduled, new webhooks are scheduled for the updated times.
+- **Flat payload format**: Unlike other webhook events, these two events use a flat payload structure. The booking data is spread at the top level alongside `triggerEvent`, rather than nested inside a `payload` object. See the [example payloads](#webhook-payload-reference) for the exact structure.
+- **No custom payload template support**: Custom payload templates are not applied to `MEETING_STARTED` and `MEETING_ENDED` webhooks. The payload is always sent as raw JSON.
+
+<Note>
+  If you are migrating from a system that consumes other webhook events, note that the payload shape for `MEETING_STARTED` and `MEETING_ENDED` differs from events like `BOOKING_CREATED`. Ensure your webhook handler accounts for the flat structure.
+</Note>
 
 ### Verifying the authenticity of the received payload
 
