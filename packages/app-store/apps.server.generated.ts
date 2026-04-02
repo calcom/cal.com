@@ -22,6 +22,7 @@ export const apiHandlers = {
   exchange2016calendar: import("./exchange2016calendar/api"),
   exchangecalendar: import("./exchangecalendar/api"),
   facetime: import("./facetime/api"),
+  famulor: import("./famulor/api"),
   fathom: import("./fathom/api"),
   feishucalendar: import("./feishucalendar/api"),
   ga4: import("./ga4/api"),
