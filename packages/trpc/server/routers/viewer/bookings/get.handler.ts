@@ -280,7 +280,51 @@ export async function getBookings({
   let bookingsFromUnion: Pick<Booking, "id" | "startTime" | "endTime" | "createdAt" | "updatedAt">[];
   let totalCount: number;
 
-  if (hasUserIdsFilter) {
+  if (hasUserIdsFilter && hasTeamAccess) {
+    const base = applyCommonFilters(
+      kysely
+        .with("team_event_type_ids", (db) =>
+          db
+            .selectFrom("EventType")
+            .select("EventType.id")
+            .where("EventType.teamId", "in", teamIdsWithBookingPermission!)
+        )
+        .selectFrom("Booking")
+        .where(({ or, and, eb, exists, selectFrom }) => {
+          // Event type scope: allow team, personal, and null — exclude other teams
+          // Keep in sync with the same filter in the hasTeamAccess branch below
+          const eventTypeScope = or([
+            eb("Booking.eventTypeId", "is", null),
+            eb("Booking.eventTypeId", "in", (sub) =>
+              sub.selectFrom("team_event_type_ids").select("team_event_type_ids.id")
+            ),
+            exists(
+              selectFrom("EventType")
+                .select("EventType.id")
+                .whereRef("EventType.id", "=", "Booking.eventTypeId")
+                .where("EventType.teamId", "is", null)
+            ),
+          ]);
+
+          const conditions = [and([eb("Booking.userId", "in", filters.userIds!), eventTypeScope])];
+          if (attendeeEmailsFromUserIdsFilter?.length) {
+            conditions.push(
+              and([
+                exists(
+                  selectFrom("Attendee")
+                    .select("Attendee.id")
+                    .whereRef("Attendee.bookingId", "=", "Booking.id")
+                    .where("Attendee.email", "in", attendeeEmailsFromUserIdsFilter)
+                ),
+                eventTypeScope,
+              ])
+            );
+          }
+          return or(conditions);
+        })
+    );
+    ({ bookingsFromQuery: bookingsFromUnion, totalCount } = await executePaginatedAndCount(base));
+  } else if (hasUserIdsFilter) {
     const base = applyCommonFilters(
       kysely.selectFrom("Booking").where(({ or, eb, exists, selectFrom }) => {
         const conditions = [eb("Booking.userId", "in", filters.userIds!)];
@@ -320,28 +364,58 @@ export async function getBookings({
             .where("EventType.teamId", "in", teamIdsWithBookingPermission!)
         )
         .selectFrom("Booking")
-        .where(({ or, eb, exists, selectFrom }) =>
+        .where(({ or, and, eb, exists, selectFrom }) =>
           or([
             eb("Booking.userId", "=", user.id),
-            eb("Booking.userId", "in", (sub) =>
-              sub.selectFrom("team_user_ids").select("team_user_ids.userId")
-            ),
+            and([
+              eb("Booking.userId", "in", (sub) =>
+                sub.selectFrom("team_user_ids").select("team_user_ids.userId")
+              ),
+              // Allow team event types, personal event types, and bookings without event type — exclude other teams' event types
+              or([
+                eb("Booking.eventTypeId", "is", null),
+                eb("Booking.eventTypeId", "in", (sub) =>
+                  sub.selectFrom("team_event_type_ids").select("team_event_type_ids.id")
+                ),
+                exists(
+                  selectFrom("EventType")
+                    .select("EventType.id")
+                    .whereRef("EventType.id", "=", "Booking.eventTypeId")
+                    .where("EventType.teamId", "is", null)
+                ),
+              ]),
+            ]),
             eb("Booking.eventTypeId", "in", (sub) =>
               sub.selectFrom("team_event_type_ids").select("team_event_type_ids.id")
             ),
-            exists(
-              selectFrom("Attendee")
-                .select("Attendee.id")
-                .whereRef("Attendee.bookingId", "=", "Booking.id")
-                .where(({ or: innerOr, eb: innerEb }) =>
-                  innerOr([
-                    innerEb("Attendee.email", "=", user.email),
-                    innerEb("Attendee.email", "in", (sub) =>
-                      sub.selectFrom("team_emails").select("team_emails.email")
-                    ),
-                  ])
-                )
-            ),
+            and([
+              exists(
+                selectFrom("Attendee")
+                  .select("Attendee.id")
+                  .whereRef("Attendee.bookingId", "=", "Booking.id")
+                  .where(({ or: innerOr, eb: innerEb }) =>
+                    innerOr([
+                      innerEb("Attendee.email", "=", user.email),
+                      innerEb("Attendee.email", "in", (sub) =>
+                        sub.selectFrom("team_emails").select("team_emails.email")
+                      ),
+                    ])
+                  )
+              ),
+              // Allow team event types, personal event types, and bookings without event type — exclude other teams' event types
+              or([
+                eb("Booking.eventTypeId", "is", null),
+                eb("Booking.eventTypeId", "in", (sub) =>
+                  sub.selectFrom("team_event_type_ids").select("team_event_type_ids.id")
+                ),
+                exists(
+                  selectFrom("EventType")
+                    .select("EventType.id")
+                    .whereRef("EventType.id", "=", "Booking.eventTypeId")
+                    .where("EventType.teamId", "is", null)
+                ),
+              ]),
+            ]),
           ])
         )
     );

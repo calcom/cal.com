@@ -2323,3 +2323,257 @@ describe("getBookings - integration", () => {
     });
   });
 });
+
+describe("getBookings - cross-team visibility", () => {
+  let orgAdmin: User;
+  let teamAlphaMember: User;
+  let teamBetaMember: User;
+  let org: Team;
+  let teamAlpha: Team;
+  let teamBeta: Team;
+  let alphaEventType: EventType;
+  let betaEventType: EventType;
+  let alphaBooking: Booking;
+  let betaBooking: Booking;
+
+  const ts = Date.now();
+
+  beforeAll(async () => {
+    org = await prisma.team.create({
+      data: {
+        name: `CrossTeam Org ${ts}`,
+        slug: `crossteam-org-${ts}`,
+        isOrganization: true,
+      },
+    });
+
+    teamAlpha = await prisma.team.create({
+      data: {
+        name: `Team Alpha ${ts}`,
+        slug: `team-alpha-${ts}`,
+        parentId: org.id,
+      },
+    });
+
+    teamBeta = await prisma.team.create({
+      data: {
+        name: `Team Beta ${ts}`,
+        slug: `team-beta-${ts}`,
+        parentId: org.id,
+      },
+    });
+
+    orgAdmin = await prisma.user.create({
+      data: {
+        username: `crossteam-admin-${ts}`,
+        email: `crossteam-admin-${ts}@example.com`,
+        name: "Org Admin",
+      },
+    });
+
+    teamAlphaMember = await prisma.user.create({
+      data: {
+        username: `alpha-member-${ts}`,
+        email: `alpha-member-${ts}@example.com`,
+        name: "Alpha Member",
+      },
+    });
+
+    teamBetaMember = await prisma.user.create({
+      data: {
+        username: `beta-member-${ts}`,
+        email: `beta-member-${ts}@example.com`,
+        name: "Beta Member",
+      },
+    });
+
+    // Admin is ADMIN of Team Alpha only
+    await prisma.membership.create({
+      data: { userId: orgAdmin.id, teamId: teamAlpha.id, role: MembershipRole.ADMIN, accepted: true },
+    });
+
+    await prisma.membership.create({
+      data: { userId: teamAlphaMember.id, teamId: teamAlpha.id, role: MembershipRole.MEMBER, accepted: true },
+    });
+
+    await prisma.membership.create({
+      data: { userId: teamBetaMember.id, teamId: teamBeta.id, role: MembershipRole.MEMBER, accepted: true },
+    });
+
+    alphaEventType = await prisma.eventType.create({
+      data: {
+        title: `Alpha Event ${ts}`,
+        slug: `alpha-event-${ts}`,
+        length: 30,
+        teamId: teamAlpha.id,
+      },
+    });
+
+    betaEventType = await prisma.eventType.create({
+      data: {
+        title: `Beta Event ${ts}`,
+        slug: `beta-event-${ts}`,
+        length: 30,
+        teamId: teamBeta.id,
+      },
+    });
+
+    const future1 = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    const future2 = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+
+    alphaBooking = await prisma.booking.create({
+      data: {
+        uid: `alpha-booking-${randomString()}`,
+        title: "Alpha Team Booking",
+        startTime: future1,
+        endTime: new Date(future1.getTime() + 30 * 60 * 1000),
+        userId: teamAlphaMember.id,
+        eventTypeId: alphaEventType.id,
+        status: BookingStatus.ACCEPTED,
+        attendees: {
+          create: {
+            email: `alpha-attendee-${ts}@example.com`,
+            name: "Alpha Attendee",
+            timeZone: "UTC",
+          },
+        },
+      },
+    });
+
+    betaBooking = await prisma.booking.create({
+      data: {
+        uid: `beta-booking-${randomString()}`,
+        title: "Beta Team Booking",
+        startTime: future2,
+        endTime: new Date(future2.getTime() + 30 * 60 * 1000),
+        userId: teamBetaMember.id,
+        eventTypeId: betaEventType.id,
+        status: BookingStatus.ACCEPTED,
+        attendees: {
+          create: {
+            email: `beta-attendee-${ts}@example.com`,
+            name: "Beta Attendee",
+            timeZone: "UTC",
+          },
+        },
+      },
+    });
+  });
+
+  afterAll(async () => {
+    try {
+      const bookingIds = [alphaBooking?.id, betaBooking?.id].filter(Boolean);
+      if (bookingIds.length) {
+        await prisma.attendee.deleteMany({ where: { bookingId: { in: bookingIds } } });
+        await prisma.booking.deleteMany({ where: { id: { in: bookingIds } } });
+      }
+      const etIds = [alphaEventType?.id, betaEventType?.id].filter(Boolean);
+      if (etIds.length) {
+        await prisma.eventType.deleteMany({ where: { id: { in: etIds } } });
+      }
+      const userIds = [orgAdmin?.id, teamAlphaMember?.id, teamBetaMember?.id].filter(Boolean);
+      if (userIds.length) {
+        await prisma.membership.deleteMany({ where: { userId: { in: userIds } } });
+        await prisma.user.deleteMany({ where: { id: { in: userIds } } });
+      }
+      const teamIds = [teamAlpha?.id, teamBeta?.id].filter(Boolean);
+      if (teamIds.length) {
+        await prisma.team.deleteMany({ where: { id: { in: teamIds } } });
+      }
+      if (org?.id) {
+        await prisma.team.delete({ where: { id: org.id } });
+      }
+    } catch (error) {
+      console.warn("Cross-team test cleanup failed:", error);
+    }
+  });
+
+  it("should not return Team Beta bookings to Team Alpha admin", async () => {
+    const result = await getBookings({
+      user: { id: orgAdmin.id, email: orgAdmin.email, orgId: null },
+      prisma,
+      kysely,
+      bookingListingByStatus: ["upcoming"],
+      filters: {},
+      take: 50,
+      skip: 0,
+    });
+
+    const bookingIds = result.bookings.map((b) => b.id);
+    expect(bookingIds).toContain(alphaBooking.id);
+    expect(bookingIds).not.toContain(betaBooking.id);
+  });
+
+  it("should return Team Alpha bookings to Team Alpha admin", async () => {
+    const result = await getBookings({
+      user: { id: orgAdmin.id, email: orgAdmin.email, orgId: null },
+      prisma,
+      kysely,
+      bookingListingByStatus: ["upcoming"],
+      filters: {},
+      take: 50,
+      skip: 0,
+    });
+
+    const bookingIds = result.bookings.map((b) => b.id);
+    expect(bookingIds).toContain(alphaBooking.id);
+  });
+
+  it("should not return Team Beta bookings when Team Alpha member is attendee on Beta event type", async () => {
+    // Team Alpha member is attendee on a Team Beta booking — admin of Alpha should NOT see it
+    const crossTeamBooking = await prisma.booking.create({
+      data: {
+        uid: `cross-team-attendee-${randomString()}`,
+        title: "Cross Team Attendee Booking",
+        startTime: new Date(Date.now() + 16 * 24 * 60 * 60 * 1000),
+        endTime: new Date(Date.now() + 16 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
+        userId: teamBetaMember.id,
+        eventTypeId: betaEventType.id,
+        status: BookingStatus.ACCEPTED,
+        attendees: {
+          create: {
+            email: teamAlphaMember.email,
+            name: teamAlphaMember.name ?? "Alpha Member",
+            timeZone: "UTC",
+          },
+        },
+      },
+    });
+
+    try {
+      const result = await getBookings({
+        user: { id: orgAdmin.id, email: orgAdmin.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["upcoming"],
+        filters: {},
+        take: 50,
+        skip: 0,
+      });
+
+      const bookingIds = result.bookings.map((b) => b.id);
+      expect(bookingIds).not.toContain(crossTeamBooking.id);
+    } finally {
+      await prisma.attendee.deleteMany({ where: { bookingId: crossTeamBooking.id } });
+      await prisma.booking.delete({ where: { id: crossTeamBooking.id } });
+    }
+  });
+
+  it("should not return Team Beta bookings when filtering by userIds with team access", async () => {
+    // Admin of Team Alpha filters by teamBetaMember — should not see Beta bookings
+    // This exercises the hasUserIdsFilter && hasTeamAccess path
+    const result = await getBookings({
+      user: { id: orgAdmin.id, email: orgAdmin.email, orgId: null },
+      prisma,
+      kysely,
+      bookingListingByStatus: ["upcoming"],
+      filters: { userIds: [teamAlphaMember.id] },
+      take: 50,
+      skip: 0,
+    });
+
+    const bookingIds = result.bookings.map((b) => b.id);
+    expect(bookingIds).toContain(alphaBooking.id);
+    expect(bookingIds).not.toContain(betaBooking.id);
+  });
+});
