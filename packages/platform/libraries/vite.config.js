@@ -11,8 +11,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const usePool = process.env.USE_POOL ?? "true";
+const skipDts = process.env.SKIP_DTS === "true";
 
 console.log("Platform libraries usePool", usePool);
+console.log("Platform libraries skipDts", skipDts);
 
 // https://vitejs.dev/guide/build.html#library-mode
 export default defineConfig({
@@ -207,7 +209,7 @@ export default defineConfig({
       },
     },
   },
-  plugins: [react(), dts()],
+  plugins: [react(), ...(skipDts ? [] : [dts()])],
   resolve: {
     conditions: ["node", "import", "require", "default"],
     alias: {

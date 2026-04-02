@@ -48,6 +48,8 @@ jobs:
       - uses: ./.github/actions/yarn-install
 
       - name: Build platform packages
+        env:
+          SKIP_DTS: "true"
         run: |
           yarn turbo run build \
             --filter=@calcom/platform-constants \
