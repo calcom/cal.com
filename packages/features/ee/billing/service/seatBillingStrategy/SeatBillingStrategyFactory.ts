@@ -40,6 +40,7 @@ export class SeatBillingStrategyFactory {
     this.hwmStrategy = new HighWaterMarkStrategy({
       highWaterMarkRepository: deps.highWaterMarkRepository,
       highWaterMarkService: deps.highWaterMarkService,
+      billingProviderService: deps.billingProviderService,
     });
     this.activeUserStrategy = new ActiveUserBillingStrategy({
       activeUserBillingService: deps.activeUserBillingService,

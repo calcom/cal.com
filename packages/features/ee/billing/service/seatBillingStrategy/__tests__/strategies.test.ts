@@ -97,15 +97,17 @@ describe("HighWaterMarkStrategy", () => {
   function createStrategy() {
     const hwmRepo = createMockHighWaterMarkRepository();
     const hwmService = createMockHighWaterMarkService();
+    const billingProviderService = createMockBillingProviderService();
     const strategy = new HighWaterMarkStrategy({
       highWaterMarkRepository: hwmRepo,
       highWaterMarkService: hwmService,
+      billingProviderService,
     });
-    return { strategy, hwmRepo, hwmService };
+    return { strategy, hwmRepo, hwmService, billingProviderService };
   }
 
   it("updates high water mark on seat addition", async () => {
-    const { strategy, hwmRepo } = createStrategy();
+    const { strategy, hwmRepo, billingProviderService } = createStrategy();
     vi.mocked(hwmRepo.getByTeamId).mockResolvedValue({
       subscriptionStart: new Date("2025-01-01"),
       highWaterMarkPeriodStart: new Date("2025-06-01"),
@@ -125,10 +127,39 @@ describe("HighWaterMarkStrategy", () => {
       newSeatCount: 10,
       periodStart: new Date("2025-06-01"),
     });
+    expect(billingProviderService.handleSubscriptionUpdate).toHaveBeenCalledWith({
+      subscriptionId: "sub_123",
+      subscriptionItemId: "si_456",
+      membershipCount: 10,
+      prorationBehavior: "none",
+    });
+  });
+
+  it("calls handleSubscriptionUpdate with prorationBehavior 'none' on addition", async () => {
+    const { strategy, hwmRepo, billingProviderService } = createStrategy();
+    vi.mocked(hwmRepo.getByTeamId).mockResolvedValue({
+      subscriptionStart: new Date("2025-01-01"),
+      highWaterMarkPeriodStart: new Date("2025-06-01"),
+      isOrganization: false,
+    });
+    vi.mocked(hwmRepo.updateIfHigher).mockResolvedValue({
+      updated: false,
+      previousHighWaterMark: 12,
+    });
+
+    await strategy.onSeatChange(mockContext);
+
+    expect(billingProviderService.handleSubscriptionUpdate).toHaveBeenCalledTimes(1);
+    expect(billingProviderService.handleSubscriptionUpdate).toHaveBeenCalledWith({
+      subscriptionId: "sub_123",
+      subscriptionItemId: "si_456",
+      membershipCount: 10,
+      prorationBehavior: "none",
+    });
   });
 
   it("uses subscriptionStart when highWaterMarkPeriodStart is null", async () => {
-    const { strategy, hwmRepo } = createStrategy();
+    const { strategy, hwmRepo, billingProviderService } = createStrategy();
     vi.mocked(hwmRepo.getByTeamId).mockResolvedValue({
       subscriptionStart: new Date("2025-01-01"),
       highWaterMarkPeriodStart: null,
@@ -140,33 +171,49 @@ describe("HighWaterMarkStrategy", () => {
     expect(hwmRepo.updateIfHigher).toHaveBeenCalledWith(
       expect.objectContaining({ periodStart: new Date("2025-01-01") })
     );
+    expect(billingProviderService.handleSubscriptionUpdate).toHaveBeenCalledWith({
+      subscriptionId: "sub_123",
+      subscriptionItemId: "si_456",
+      membershipCount: 10,
+      prorationBehavior: "none",
+    });
   });
 
   it("skips HWM update on seat removal", async () => {
-    const { strategy, hwmRepo } = createStrategy();
+    const { strategy, hwmRepo, billingProviderService } = createStrategy();
     await strategy.onSeatChange({ ...mockContext, changeType: "removal" });
 
     expect(hwmRepo.getByTeamId).not.toHaveBeenCalled();
+    expect(billingProviderService.handleSubscriptionUpdate).not.toHaveBeenCalled();
+  });
+
+  it("does not call handleSubscriptionUpdate on removal", async () => {
+    const { strategy, billingProviderService } = createStrategy();
+    await strategy.onSeatChange({ ...mockContext, changeType: "removal" });
+
+    expect(billingProviderService.handleSubscriptionUpdate).not.toHaveBeenCalled();
   });
 
   it("skips HWM update on sync", async () => {
-    const { strategy, hwmRepo } = createStrategy();
+    const { strategy, hwmRepo, billingProviderService } = createStrategy();
     await strategy.onSeatChange({ ...mockContext, changeType: "sync" });
 
     expect(hwmRepo.getByTeamId).not.toHaveBeenCalled();
+    expect(billingProviderService.handleSubscriptionUpdate).not.toHaveBeenCalled();
   });
 
   it("skips HWM update when no billing record exists", async () => {
-    const { strategy, hwmRepo } = createStrategy();
+    const { strategy, hwmRepo, billingProviderService } = createStrategy();
     vi.mocked(hwmRepo.getByTeamId).mockResolvedValue(null);
 
     await strategy.onSeatChange(mockContext);
 
     expect(hwmRepo.updateIfHigher).not.toHaveBeenCalled();
+    expect(billingProviderService.handleSubscriptionUpdate).not.toHaveBeenCalled();
   });
 
   it("skips HWM update when no period start available", async () => {
-    const { strategy, hwmRepo } = createStrategy();
+    const { strategy, hwmRepo, billingProviderService } = createStrategy();
     vi.mocked(hwmRepo.getByTeamId).mockResolvedValue({
       subscriptionStart: null,
       highWaterMarkPeriodStart: null,
@@ -176,6 +223,7 @@ describe("HighWaterMarkStrategy", () => {
     await strategy.onSeatChange(mockContext);
 
     expect(hwmRepo.updateIfHigher).not.toHaveBeenCalled();
+    expect(billingProviderService.handleSubscriptionUpdate).not.toHaveBeenCalled();
   });
 
   it("delegates onInvoiceUpcoming to HighWaterMarkService", async () => {

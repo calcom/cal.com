@@ -2,10 +2,12 @@ import { getTeamBillingServiceFactory } from "@calcom/ee/billing/di/containers/B
 import { SubscriptionStatus } from "@calcom/ee/billing/repository/billing/IBillingRepository";
 import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import { BillingPeriodService } from "@calcom/features/ee/billing/service/billingPeriod/BillingPeriodService";
+import { HighWaterMarkRepository } from "@calcom/features/ee/billing/repository/highWaterMark/HighWaterMarkRepository";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
@@ -22,7 +24,16 @@ type GetSubscriptionStatusOptions = {
 
 export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscriptionStatusOptions) => {
   if (!IS_TEAM_BILLING_ENABLED) {
-    return { status: null, isTrialing: false, billingMode: null };
+    return {
+      status: null,
+      isTrialing: false,
+      billingMode: null,
+      billingPeriod: null,
+      currentMembers: null,
+      highWaterMark: null,
+      highWaterMarkPeriodStart: null,
+      paidSeats: null,
+    };
   }
 
   const { teamId } = input;
@@ -67,11 +78,31 @@ export const getSubscriptionStatusHandler = async ({ ctx, input }: GetSubscripti
 
     log.debug(`Subscription status for team ${teamId}: ${subscriptionStatus}`);
 
+    let currentMembers: number | null = null;
+    let highWaterMark: number | null = null;
+    let highWaterMarkPeriodStart: string | null = null;
+    let paidSeats: number | null = null;
+
+    if (billingInfo.billingPeriod === "MONTHLY" && !billingInfo.isInTrial) {
+      const hwmRepo = new HighWaterMarkRepository();
+      const hwmRecord = await hwmRepo.getByTeamId(teamId);
+      if (hwmRecord) {
+        highWaterMark = hwmRecord.highWaterMark;
+        highWaterMarkPeriodStart = hwmRecord.highWaterMarkPeriodStart?.toISOString() ?? null;
+        paidSeats = hwmRecord.paidSeats;
+        currentMembers = await prisma.membership.count({ where: { teamId } });
+      }
+    }
+
     return {
       status: subscriptionStatus,
       isTrialing: subscriptionStatus === SubscriptionStatus.TRIALING,
       billingMode: billingInfo.billingMode,
       billingPeriod: billingInfo.billingPeriod,
+      currentMembers,
+      highWaterMark,
+      highWaterMarkPeriodStart,
+      paidSeats,
     };
   } catch (error) {
     if (error instanceof TRPCError) {

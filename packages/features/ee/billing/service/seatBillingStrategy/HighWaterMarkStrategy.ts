@@ -1,5 +1,6 @@
 import logger from "@calcom/lib/logger";
 import type { HighWaterMarkRepository } from "../../repository/highWaterMark/HighWaterMarkRepository";
+import type { IBillingProviderService } from "../billingProvider/IBillingProviderService";
 import type { HighWaterMarkService } from "../highWaterMark/HighWaterMarkService";
 import type { SeatChangeContext } from "./ISeatBillingStrategy";
 import { BaseSeatBillingStrategy } from "./ISeatBillingStrategy";
@@ -9,6 +10,7 @@ const log = logger.getSubLogger({ prefix: ["HighWaterMarkStrategy"] });
 export interface IHighWaterMarkStrategyDeps {
   highWaterMarkRepository: HighWaterMarkRepository;
   highWaterMarkService: HighWaterMarkService;
+  billingProviderService: IBillingProviderService;
 }
 
 export class HighWaterMarkStrategy extends BaseSeatBillingStrategy {
@@ -40,6 +42,13 @@ export class HighWaterMarkStrategy extends BaseSeatBillingStrategy {
         newHighWaterMark: context.membershipCount,
       });
     }
+
+    await this.deps.billingProviderService.handleSubscriptionUpdate({
+      subscriptionId: context.subscriptionId,
+      subscriptionItemId: context.subscriptionItemId,
+      membershipCount: context.membershipCount,
+      prorationBehavior: "none",
+    });
   }
 
   override async onInvoiceUpcoming(subscriptionId: string): Promise<{ applied: boolean }> {

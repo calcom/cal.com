@@ -31,6 +31,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
 import { ActiveUserBreakdown } from "~/settings/billing/components/ActiveUserBreakdown";
+import { HighWaterMarkBilling } from "~/settings/billing/components/HighWaterMarkBilling";
 import BillingCredits from "~/settings/billing/components/BillingCredits";
 import { InvoicesTable } from "~/settings/billing/components/InvoicesTable";
 
@@ -190,6 +191,16 @@ const BillingView = () => {
       {teamIdNumber && subscriptionStatus?.billingMode === "ACTIVE_USERS" && (
         <ActiveUserBreakdown teamId={teamIdNumber} />
       )}
+      {teamIdNumber &&
+        subscriptionStatus?.billingPeriod === "MONTHLY" &&
+        subscriptionStatus?.highWaterMark !== null && (
+          <HighWaterMarkBilling
+            currentMembers={subscriptionStatus.currentMembers ?? 0}
+            highWaterMark={subscriptionStatus.highWaterMark}
+            paidSeats={subscriptionStatus.paidSeats ?? null}
+            highWaterMarkPeriodStart={subscriptionStatus.highWaterMarkPeriodStart ?? null}
+          />
+        )}
       <InvoicesTable />
     </div>
   );
