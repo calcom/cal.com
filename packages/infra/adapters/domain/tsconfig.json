@@ -1,0 +1,13 @@
+{
+  "extends": "@calcom/tsconfig/base.json",
+  "compilerOptions": {
+    "target": "es2020",
+    "resolveJsonModule": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@calcom/domains/*": ["./*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["dist", "build", "**/node_modules/**"]
+}

@@ -2346,6 +2346,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/domains@workspace:packages/infra/adapters/domain":
+  version: 0.0.0-use.local
+  resolution: "@calcom/domains@workspace:packages/infra/adapters/domain"
+  dependencies:
+    "@biomejs/biome": "npm:2.3.10"
+    "@calcom/tsconfig": "workspace:*"
+    tsc-absolute: "npm:1.0.0"
+    typescript: "npm:5.9.3"
+    zod: "npm:3.25.76"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/dub@workspace:packages/app-store/dub":
   version: 0.0.0-use.local
   resolution: "@calcom/dub@workspace:packages/app-store/dub"
