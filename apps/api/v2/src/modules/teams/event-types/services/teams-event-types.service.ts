@@ -1,4 +1,9 @@
+import { handleCreatePhoneCall } from "@calcom/platform-libraries";
+import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
+import type { SortOrderType } from "@calcom/platform-types";
+import { ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import type { CreatePhoneCallInput } from "@/ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import {
   TransformedCreateTeamEventTypeInput,
@@ -7,13 +12,9 @@ import {
 import { DatabaseTeamEventType } from "@/modules/organizations/event-types/services/output.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Injectable, NotFoundException, Logger } from "@nestjs/common";
-
-import type { SortOrderType } from "@calcom/platform-types";
-
-import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
 
 @Injectable()
 export class TeamsEventTypesService {
@@ -24,7 +25,8 @@ export class TeamsEventTypesService {
     private readonly dbWrite: PrismaWriteService,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly teamsRepository: TeamsRepository
   ) {}
 
   async createTeamEventType(
@@ -44,8 +46,6 @@ export class TeamsEventTypesService {
       input: { teamId: teamId, ...rest },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         prisma: this.dbWrite.prisma,
       },
     });
@@ -128,8 +128,6 @@ export class TeamsEventTypesService {
       },
       ctx: {
         user: eventTypeUser,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         prisma: this.dbWrite.prisma,
       },
     });
@@ -147,6 +145,31 @@ export class TeamsEventTypesService {
     const childrenEventTypes = await this.teamsEventTypesRepository.getEventTypeChildren(eventType.id);
 
     return [eventType, ...childrenEventTypes];
+  }
+
+  async createPhoneCall(
+    user: UserWithProfile,
+    teamId: number,
+    eventTypeId: number,
+    body: CreatePhoneCallInput
+  ) {
+    const team = await this.teamsRepository.getById(teamId);
+    if (!team) {
+      throw new NotFoundException(`Team with id ${teamId} not found`);
+    }
+
+    if (!team.parentId) {
+      throw new ForbiddenException(`Team with id ${teamId} is not part of an organization`);
+    }
+
+    return handleCreatePhoneCall({
+      user: {
+        id: user.id,
+        timeZone: user.timeZone,
+        profile: { organization: { id: team.parentId } },
+      },
+      input: { ...body, eventTypeId },
+    });
   }
 
   async deleteTeamEventType(teamId: number, eventTypeId: number) {

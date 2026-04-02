@@ -1384,6 +1384,37 @@ describe("Organizations Event Types Endpoints", () => {
       });
     });
 
+    describe("createPhoneCall", () => {
+      const phoneCallBody = {
+        yourPhoneNumber: "+15551234567",
+        numberToCall: "+15557654321",
+        calApiKey: "fake-api-key",
+        enabled: true,
+        templateType: "CUSTOM_TEMPLATE",
+      };
+
+      it("should return 403 for user outside team", async () => {
+        return request(app.getHttpServer())
+          .post(`/v2/teams/${falseTestTeam.id}/event-types/${collectiveEventType.id}/create-phone-call`)
+          .send(phoneCallBody)
+          .expect(403);
+      });
+
+      it("should return 403 for team not part of an organization", async () => {
+        return request(app.getHttpServer())
+          .post(`/v2/teams/${team.id}/event-types/${collectiveEventType.id}/create-phone-call`)
+          .send(phoneCallBody)
+          .expect(403);
+      });
+
+      it("should return 403 for non-existent team", async () => {
+        return request(app.getHttpServer())
+          .post(`/v2/teams/999999/event-types/${collectiveEventType.id}/create-phone-call`)
+          .send(phoneCallBody)
+          .expect(403);
+      });
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(userAdmin.email);
       await userRepositoryFixture.deleteByEmail(teamMember1.email);
