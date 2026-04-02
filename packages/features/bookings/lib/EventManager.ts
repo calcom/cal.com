@@ -1189,24 +1189,31 @@ export default class EventManager {
       result = result.concat(
         this.calendarCredentials
           .filter((cred) => cred.type.includes("other_calendar"))
-          .map(async (cred) => {
+          .map( (cred) => {
             const calendarReference = booking.references.find((ref) => ref.type === cred.type);
 
             if (!calendarReference) {
-              return {
+        // Ensure consistent return type:
+        // This branch previously returned a plain object, while other branches return Promises.
+        // Wrapping with Promise.resolve ensures all items in `result` are Promise-based,
+        // making Promise.all(result) behavior consistent and predictable.
+              return Promise.resolve({
                 appName: cred.appName || cred.appId || "",
                 type: cred.type,
                 success: false,
                 uid: "",
                 originalEvent: event,
                 credentialId: cred.id,
-              };
+              });
             }
             const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
               calendarReference;
-            return await updateEvent(cred, event, bookingRefUid ?? null, bookingExternalCalendarId ?? null);
-          })
-      );
+        // Removed unnecessary async/await:
+        // updateEvent already returns a Promise, so wrapping it with async/await was redundant.
+        // Returning the Promise directly keeps the flow consistent with other parts of the function.
+
+            return  updateEvent(cred, event, bookingRefUid ?? null, bookingExternalCalendarId ?? null);
+          }))
 
       return Promise.all(result);
     } catch (error) {
