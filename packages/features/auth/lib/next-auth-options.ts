@@ -1837,8 +1837,8 @@ export const getOptions = ({
 
     async redirect({ url, baseUrl }) {
       try {
-        const parsedUrl = new URL(url);
         const parsedBase = new URL(baseUrl);
+        const parsedUrl = url.startsWith("/") ? new URL(url, parsedBase) : new URL(url);
 
         // Normalize host by removing "app." prefix
         const normalizeHost = (host: string): string => host.replace(/^app\./, "");
