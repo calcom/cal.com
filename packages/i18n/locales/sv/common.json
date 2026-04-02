@@ -5161,7 +5161,6 @@
   "match": "Matcha",
   "all_conditions": "Alla villkor (OCH)",
   "any_condition": "Något villkor (ELLER)",
-  "pbac_resource_blocklist": "Blocklista",
   "this_meeting_is_in_the_past": "Det här mötet har redan ägt rum.",
   "stop_transcription": "Stoppa transkribering",
   "start_recording": "Starta inspelning",

@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Ezin izan da PBAC gaitu zure erakundean",
   "pbac_resource_feature_opt_in": "Eginbideen hautaketa",
   "pbac_desc_view_feature_opt_in": "Ikusi eginbideen hautaketa ezarpenak",
-  "pbac_desc_update_feature_opt_in": "Kudeatu eginbideen hautaketa ezarpenak"
+  "pbac_desc_update_feature_opt_in": "Kudeatu eginbideen hautaketa ezarpenak",
+  "pbac_resource_custom_domain": "Domeinu pertsonalizatuak",
+  "pbac_desc_create_custom_domain": "Gehitu domeinu pertsonalizatuak",
+  "pbac_desc_view_custom_domain": "Ikusi domeinu pertsonalizatuak",
+  "pbac_desc_update_custom_domain": "Eguneratu domeinu pertsonalizatuak",
+  "pbac_desc_delete_custom_domain": "Kendu domeinu pertsonalizatuak",
+  "pbac_resource_blocklist": "Blokeo-zerrenda"
 }

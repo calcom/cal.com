@@ -5161,7 +5161,6 @@
   "match": "Correspondência",
   "all_conditions": "Todas as condições (E)",
   "any_condition": "Qualquer condição (OU)",
-  "pbac_resource_blocklist": "Lista de bloqueio",
   "this_meeting_is_in_the_past": "Esta reunião já passou.",
   "stop_transcription": "Parar transcrição",
   "start_recording": "Iniciar gravação",

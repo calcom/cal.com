@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Falha ao habilitar PBAC para sua organização",
   "pbac_resource_feature_opt_in": "Adesão a recursos",
   "pbac_desc_view_feature_opt_in": "Visualizar configurações de adesão a recursos",
-  "pbac_desc_update_feature_opt_in": "Gerenciar configurações de adesão a recursos"
+  "pbac_desc_update_feature_opt_in": "Gerenciar configurações de adesão a recursos",
+  "pbac_resource_custom_domain": "Domínios personalizados",
+  "pbac_desc_create_custom_domain": "Adicionar domínios personalizados",
+  "pbac_desc_view_custom_domain": "Visualizar domínios personalizados",
+  "pbac_desc_update_custom_domain": "Atualizar domínios personalizados",
+  "pbac_desc_delete_custom_domain": "Remover domínios personalizados",
+  "pbac_resource_blocklist": "Lista de bloqueio"
 }

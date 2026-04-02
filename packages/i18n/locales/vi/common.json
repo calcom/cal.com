@@ -5161,7 +5161,6 @@
   "match": "Khớp",
   "all_conditions": "Tất cả điều kiện (VÀ)",
   "any_condition": "Bất kỳ điều kiện nào (HOẶC)",
-  "pbac_resource_blocklist": "Danh sách chặn",
   "this_meeting_is_in_the_past": "Cuộc họp này đã diễn ra trong quá khứ.",
   "stop_transcription": "Dừng phiên âm",
   "start_recording": "Bắt đầu ghi âm",

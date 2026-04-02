@@ -5161,7 +5161,6 @@
   "match": "התאמה",
   "all_conditions": "כל התנאים (AND)",
   "any_condition": "כל תנאי (OR)",
-  "pbac_resource_blocklist": "רשימת חסימה",
   "this_meeting_is_in_the_past": "פגישה זו התקיימה בעבר.",
   "stop_transcription": "עצור תמלול",
   "start_recording": "התחל הקלטה",

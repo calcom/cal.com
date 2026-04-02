@@ -122,5 +122,11 @@
   "pbac_enabled_error": "조직에 대한 PBAC 활성화에 실패했습니다",
   "pbac_resource_feature_opt_in": "기능 선택 참여",
   "pbac_desc_view_feature_opt_in": "기능 선택 참여 설정 보기",
-  "pbac_desc_update_feature_opt_in": "기능 선택 참여 설정 관리"
+  "pbac_desc_update_feature_opt_in": "기능 선택 참여 설정 관리",
+  "pbac_resource_custom_domain": "커스텀 도메인",
+  "pbac_desc_create_custom_domain": "커스텀 도메인 추가",
+  "pbac_desc_view_custom_domain": "커스텀 도메인 보기",
+  "pbac_desc_update_custom_domain": "커스텀 도메인 업데이트",
+  "pbac_desc_delete_custom_domain": "커스텀 도메인 제거",
+  "pbac_resource_blocklist": "차단 목록"
 }

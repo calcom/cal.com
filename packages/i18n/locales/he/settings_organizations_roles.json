@@ -122,5 +122,11 @@
   "pbac_enabled_error": "הפעלת PBAC עבור הארגון שלך נכשלה",
   "pbac_resource_feature_opt_in": "הצטרפות לתכונות",
   "pbac_desc_view_feature_opt_in": "צפייה בהגדרות הצטרפות לתכונות",
-  "pbac_desc_update_feature_opt_in": "ניהול הגדרות הצטרפות לתכונות"
+  "pbac_desc_update_feature_opt_in": "ניהול הגדרות הצטרפות לתכונות",
+  "pbac_resource_custom_domain": "דומיינים מותאמים אישית",
+  "pbac_desc_create_custom_domain": "הוספת דומיינים מותאמים אישית",
+  "pbac_desc_view_custom_domain": "צפייה בדומיינים מותאמים אישית",
+  "pbac_desc_update_custom_domain": "עדכון דומיינים מותאמים אישית",
+  "pbac_desc_delete_custom_domain": "הסרת דומיינים מותאמים אישית",
+  "pbac_resource_blocklist": "רשימת חסימות"
 }

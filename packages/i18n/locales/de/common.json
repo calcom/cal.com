@@ -5161,7 +5161,6 @@
   "match": "Übereinstimmung",
   "all_conditions": "Alle Bedingungen (UND)",
   "any_condition": "Beliebige Bedingung (ODER)",
-  "pbac_resource_blocklist": "Sperrliste",
   "this_meeting_is_in_the_past": "Dieses Meeting liegt in der Vergangenheit.",
   "stop_transcription": "Transkription stoppen",
   "start_recording": "Aufnahme starten",

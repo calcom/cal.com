@@ -5161,7 +5161,6 @@
   "match": "Совпадение",
   "all_conditions": "Все условия (И)",
   "any_condition": "Любое условие (ИЛИ)",
-  "pbac_resource_blocklist": "Список блокировки",
   "this_meeting_is_in_the_past": "Эта встреча уже прошла.",
   "stop_transcription": "Остановить транскрипцию",
   "start_recording": "Начать запись",

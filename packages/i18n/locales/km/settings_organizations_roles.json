@@ -122,5 +122,11 @@
   "pbac_enabled_error": "បរាជ័យក្នុងការបើក PBAC សម្រាប់អង្គការរបស់អ្នក",
   "pbac_resource_feature_opt_in": "ជ្រើសរើសមុខងារ",
   "pbac_desc_view_feature_opt_in": "មើលការកំណត់ជ្រើសរើសមុខងារ",
-  "pbac_desc_update_feature_opt_in": "គ្រប់គ្រងការកំណត់ជ្រើសរើសមុខងារ"
+  "pbac_desc_update_feature_opt_in": "គ្រប់គ្រងការកំណត់ជ្រើសរើសមុខងារ",
+  "pbac_resource_custom_domain": "ដែនផ្ទាល់ខ្លួន",
+  "pbac_desc_create_custom_domain": "បន្ថែមដែនផ្ទាល់ខ្លួន",
+  "pbac_desc_view_custom_domain": "មើលដែនផ្ទាល់ខ្លួន",
+  "pbac_desc_update_custom_domain": "ធ្វើបច្ចុប្បន្នភាពដែនផ្ទាល់ខ្លួន",
+  "pbac_desc_delete_custom_domain": "លុបដែនផ្ទាល់ខ្លួន",
+  "pbac_resource_blocklist": "បញ្ជីរាំងខ្ទប់"
 }

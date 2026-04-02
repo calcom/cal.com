@@ -5161,7 +5161,6 @@
   "match": "ផ្គូផ្គង",
   "all_conditions": "លក្ខខណ្ឌទាំងអស់ (AND)",
   "any_condition": "លក្ខខណ្ឌណាមួយ (OR)",
-  "pbac_resource_blocklist": "បញ្ជីហាមឃាត់",
   "this_meeting_is_in_the_past": "ការប្រជុំនេះបានកន្លងផុតទៅហើយ។",
   "stop_transcription": "បញ្ឈប់ការចម្លង",
   "start_recording": "ចាប់ផ្តើមថត",

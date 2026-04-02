@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Не удалось включить PBAC для вашей организации",
   "pbac_resource_feature_opt_in": "Включение функции",
   "pbac_desc_view_feature_opt_in": "Просмотр настроек включения функций",
-  "pbac_desc_update_feature_opt_in": "Управление настройками включения функций"
+  "pbac_desc_update_feature_opt_in": "Управление настройками включения функций",
+  "pbac_resource_custom_domain": "Пользовательские домены",
+  "pbac_desc_create_custom_domain": "Добавить пользовательские домены",
+  "pbac_desc_view_custom_domain": "Просмотреть пользовательские домены",
+  "pbac_desc_update_custom_domain": "Обновить пользовательские домены",
+  "pbac_desc_delete_custom_domain": "Удалить пользовательские домены",
+  "pbac_resource_blocklist": "Черный список"
 }

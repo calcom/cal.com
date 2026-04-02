@@ -122,5 +122,11 @@
   "pbac_enabled_error": "PBAC kuruluşunuz için etkinleştirilemedi",
   "pbac_resource_feature_opt_in": "Özellik katılımı",
   "pbac_desc_view_feature_opt_in": "Özellik katılım ayarlarını görüntüle",
-  "pbac_desc_update_feature_opt_in": "Özellik katılım ayarlarını yönet"
+  "pbac_desc_update_feature_opt_in": "Özellik katılım ayarlarını yönet",
+  "pbac_resource_custom_domain": "Özel alanlar",
+  "pbac_desc_create_custom_domain": "Özel alan ekle",
+  "pbac_desc_view_custom_domain": "Özel alanları görüntüle",
+  "pbac_desc_update_custom_domain": "Özel alanları güncelle",
+  "pbac_desc_delete_custom_domain": "Özel alanları kaldır",
+  "pbac_resource_blocklist": "Engelleme listesi"
 }

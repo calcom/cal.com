@@ -5161,7 +5161,6 @@
   "match": "Vaste",
   "all_conditions": "Kõik tingimused (JA)",
   "any_condition": "Suvaline tingimus (VÕI)",
-  "pbac_resource_blocklist": "Blokeerimisnimekiri",
   "this_meeting_is_in_the_past": "See kohtumine on möödunud.",
   "stop_transcription": "Peata transkribeerimine",
   "start_recording": "Alusta salvestamist",

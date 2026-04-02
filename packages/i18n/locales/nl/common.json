@@ -5161,7 +5161,6 @@
   "match": "Overeenkomst",
   "all_conditions": "Alle voorwaarden (EN)",
   "any_condition": "Elke voorwaarde (OF)",
-  "pbac_resource_blocklist": "Blokkeerlijst",
   "this_meeting_is_in_the_past": "Deze afspraak ligt in het verleden.",
   "stop_transcription": "Transcriptie stoppen",
   "start_recording": "Opname starten",

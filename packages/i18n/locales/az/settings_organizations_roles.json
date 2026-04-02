@@ -122,5 +122,11 @@
   "pbac_enabled_error": "PBAC təşkilatınız üçün aktivləşdirilə bilmədi",
   "pbac_resource_feature_opt_in": "Funksiyaya qoşulma",
   "pbac_desc_view_feature_opt_in": "Funksiyaya qoşulma parametrlərini görüntülə",
-  "pbac_desc_update_feature_opt_in": "Funksiyaya qoşulma parametrlərini idarə et"
+  "pbac_desc_update_feature_opt_in": "Funksiyaya qoşulma parametrlərini idarə et",
+  "pbac_resource_custom_domain": "Fərdi domenlər",
+  "pbac_desc_create_custom_domain": "Fərdi domenlər əlavə edin",
+  "pbac_desc_view_custom_domain": "Fərdi domenləri görüntüləyin",
+  "pbac_desc_update_custom_domain": "Fərdi domenləri yeniləyin",
+  "pbac_desc_delete_custom_domain": "Fərdi domenləri silin",
+  "pbac_resource_blocklist": "Qara siyahı"
 }

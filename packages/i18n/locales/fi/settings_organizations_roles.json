@@ -122,5 +122,11 @@
   "pbac_enabled_error": "PBAC:n käyttöönotto epäonnistui organisaatiollesi",
   "pbac_resource_feature_opt_in": "Ominaisuuksien käyttöönotto",
   "pbac_desc_view_feature_opt_in": "Näytä ominaisuuksien käyttöönottoasetukset",
-  "pbac_desc_update_feature_opt_in": "Hallinnoi ominaisuuksien käyttöönottoasetuksia"
+  "pbac_desc_update_feature_opt_in": "Hallinnoi ominaisuuksien käyttöönottoasetuksia",
+  "pbac_resource_custom_domain": "Mukautetut verkkotunnukset",
+  "pbac_desc_create_custom_domain": "Lisää mukautettuja verkkotunnuksia",
+  "pbac_desc_view_custom_domain": "Näytä mukautetut verkkotunnukset",
+  "pbac_desc_update_custom_domain": "Päivitä mukautettuja verkkotunnuksia",
+  "pbac_desc_delete_custom_domain": "Poista mukautettuja verkkotunnuksia",
+  "pbac_resource_blocklist": "Estolista"
 }

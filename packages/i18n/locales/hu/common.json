@@ -5161,7 +5161,6 @@
   "match": "Egyezés",
   "all_conditions": "Minden feltétel (ÉS)",
   "any_condition": "Bármely feltétel (VAGY)",
-  "pbac_resource_blocklist": "Tiltólista",
   "this_meeting_is_in_the_past": "Ez a találkozó már elmúlt.",
   "stop_transcription": "Átírás leállítása",
   "start_recording": "Felvétel indítása",

@@ -5161,7 +5161,6 @@
   "match": "مطابقة",
   "all_conditions": "جميع الشروط (و)",
   "any_condition": "أي شرط (أو)",
-  "pbac_resource_blocklist": "القائمة السوداء",
   "this_meeting_is_in_the_past": "هذا الاجتماع في الماضي.",
   "stop_transcription": "إيقاف النسخ",
   "start_recording": "بدء التسجيل",

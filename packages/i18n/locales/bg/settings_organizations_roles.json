@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Неуспешно активиране на PBAC за вашата организация",
   "pbac_resource_feature_opt_in": "Избор на функции",
   "pbac_desc_view_feature_opt_in": "Преглед на настройките за избор на функции",
-  "pbac_desc_update_feature_opt_in": "Управление на настройките за избор на функции"
+  "pbac_desc_update_feature_opt_in": "Управление на настройките за избор на функции",
+  "pbac_resource_custom_domain": "Персонализирани домейни",
+  "pbac_desc_create_custom_domain": "Добавяне на персонализирани домейни",
+  "pbac_desc_view_custom_domain": "Преглед на персонализирани домейни",
+  "pbac_desc_update_custom_domain": "Актуализиране на персонализирани домейни",
+  "pbac_desc_delete_custom_domain": "Премахване на персонализирани домейни",
+  "pbac_resource_blocklist": "Списък с блокирани"
 }

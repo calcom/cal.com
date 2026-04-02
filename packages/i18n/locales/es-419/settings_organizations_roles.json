@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Error al habilitar PBAC para tu organización",
   "pbac_resource_feature_opt_in": "Activación de funciones",
   "pbac_desc_view_feature_opt_in": "Ver configuración de activación de funciones",
-  "pbac_desc_update_feature_opt_in": "Administrar configuración de activación de funciones"
+  "pbac_desc_update_feature_opt_in": "Administrar configuración de activación de funciones",
+  "pbac_resource_custom_domain": "Dominios personalizados",
+  "pbac_desc_create_custom_domain": "Agregar dominios personalizados",
+  "pbac_desc_view_custom_domain": "Ver dominios personalizados",
+  "pbac_desc_update_custom_domain": "Actualizar dominios personalizados",
+  "pbac_desc_delete_custom_domain": "Eliminar dominios personalizados",
+  "pbac_resource_blocklist": "Lista de bloqueo"
 }

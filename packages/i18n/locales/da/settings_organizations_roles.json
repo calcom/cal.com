@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Kunne ikke aktivere PBAC for din organisation",
   "pbac_resource_feature_opt_in": "Feature-tilvalg",
   "pbac_desc_view_feature_opt_in": "Se indstillinger for feature-tilvalg",
-  "pbac_desc_update_feature_opt_in": "Administrer indstillinger for feature-tilvalg"
+  "pbac_desc_update_feature_opt_in": "Administrer indstillinger for feature-tilvalg",
+  "pbac_resource_custom_domain": "Tilpassede domæner",
+  "pbac_desc_create_custom_domain": "Tilføj tilpassede domæner",
+  "pbac_desc_view_custom_domain": "Se tilpassede domæner",
+  "pbac_desc_update_custom_domain": "Opdater tilpassede domæner",
+  "pbac_desc_delete_custom_domain": "Fjern tilpassede domæner",
+  "pbac_resource_blocklist": "Blokeringsliste"
 }

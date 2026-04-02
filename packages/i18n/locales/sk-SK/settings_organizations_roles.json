@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Nepodarilo sa povoliť PBAC pre vašu organizáciu",
   "pbac_resource_feature_opt_in": "Prihlásenie k funkciám",
   "pbac_desc_view_feature_opt_in": "Zobraziť nastavenia prihlasovania k funkciám",
-  "pbac_desc_update_feature_opt_in": "Spravovať nastavenia prihlasovania k funkciám"
+  "pbac_desc_update_feature_opt_in": "Spravovať nastavenia prihlasovania k funkciám",
+  "pbac_resource_custom_domain": "Vlastné domény",
+  "pbac_desc_create_custom_domain": "Pridať vlastné domény",
+  "pbac_desc_view_custom_domain": "Zobraziť vlastné domény",
+  "pbac_desc_update_custom_domain": "Aktualizovať vlastné domény",
+  "pbac_desc_delete_custom_domain": "Odstrániť vlastné domény",
+  "pbac_resource_blocklist": "Zoznam blokovaných"
 }

@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Impossibile abilitare PBAC per la tua organizzazione",
   "pbac_resource_feature_opt_in": "Adesione alle funzionalità",
   "pbac_desc_view_feature_opt_in": "Visualizza le impostazioni di adesione alle funzionalità",
-  "pbac_desc_update_feature_opt_in": "Gestisci le impostazioni di adesione alle funzionalità"
+  "pbac_desc_update_feature_opt_in": "Gestisci le impostazioni di adesione alle funzionalità",
+  "pbac_resource_custom_domain": "Domini personalizzati",
+  "pbac_desc_create_custom_domain": "Aggiungi domini personalizzati",
+  "pbac_desc_view_custom_domain": "Visualizza domini personalizzati",
+  "pbac_desc_update_custom_domain": "Aggiorna domini personalizzati",
+  "pbac_desc_delete_custom_domain": "Rimuovi domini personalizzati",
+  "pbac_resource_blocklist": "Lista di blocco"
 }

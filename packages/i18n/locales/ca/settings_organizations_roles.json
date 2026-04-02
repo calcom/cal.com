@@ -122,5 +122,11 @@
   "pbac_enabled_error": "No s'ha pogut habilitar el PBAC per a la teva organització",
   "pbac_resource_feature_opt_in": "Activació de funcions",
   "pbac_desc_view_feature_opt_in": "Visualitza la configuració d'activació de funcions",
-  "pbac_desc_update_feature_opt_in": "Gestiona la configuració d'activació de funcions"
+  "pbac_desc_update_feature_opt_in": "Gestiona la configuració d'activació de funcions",
+  "pbac_resource_custom_domain": "Dominis personalitzats",
+  "pbac_desc_create_custom_domain": "Afegir dominis personalitzats",
+  "pbac_desc_view_custom_domain": "Veure dominis personalitzats",
+  "pbac_desc_update_custom_domain": "Actualitzar dominis personalitzats",
+  "pbac_desc_delete_custom_domain": "Eliminar dominis personalitzats",
+  "pbac_resource_blocklist": "Llista de bloqueig"
 }

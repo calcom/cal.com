@@ -122,5 +122,11 @@
   "pbac_enabled_error": "فشل في تمكين PBAC لمؤسستك",
   "pbac_resource_feature_opt_in": "الاشتراك في الميزات",
   "pbac_desc_view_feature_opt_in": "عرض إعدادات الاشتراك في الميزات",
-  "pbac_desc_update_feature_opt_in": "إدارة إعدادات الاشتراك في الميزات"
+  "pbac_desc_update_feature_opt_in": "إدارة إعدادات الاشتراك في الميزات",
+  "pbac_resource_custom_domain": "النطاقات المخصصة",
+  "pbac_desc_create_custom_domain": "إضافة نطاقات مخصصة",
+  "pbac_desc_view_custom_domain": "عرض النطاقات المخصصة",
+  "pbac_desc_update_custom_domain": "تحديث النطاقات المخصصة",
+  "pbac_desc_delete_custom_domain": "إزالة النطاقات المخصصة",
+  "pbac_resource_blocklist": "قائمة الحظر"
 }

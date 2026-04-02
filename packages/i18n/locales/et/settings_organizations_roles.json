@@ -122,5 +122,11 @@
   "pbac_enabled_error": "PBAC lubamine sinu organisatsioonile ebaõnnestus",
   "pbac_resource_feature_opt_in": "Funktsiooni valikuline lubamine",
   "pbac_desc_view_feature_opt_in": "Vaata funktsiooni valikulise lubamise seadeid",
-  "pbac_desc_update_feature_opt_in": "Halda funktsiooni valikulise lubamise seadeid"
+  "pbac_desc_update_feature_opt_in": "Halda funktsiooni valikulise lubamise seadeid",
+  "pbac_resource_custom_domain": "Kohandatud domeenid",
+  "pbac_desc_create_custom_domain": "Lisa kohandatud domeene",
+  "pbac_desc_view_custom_domain": "Vaata kohandatud domeene",
+  "pbac_desc_update_custom_domain": "Uuenda kohandatud domeene",
+  "pbac_desc_delete_custom_domain": "Eemalda kohandatud domeenid",
+  "pbac_resource_blocklist": "Blokeerimisnimekiri"
 }

@@ -5161,7 +5161,6 @@
   "match": "ম্যাচ",
   "all_conditions": "সব শর্ত (AND)",
   "any_condition": "যেকোনো শর্ত (OR)",
-  "pbac_resource_blocklist": "ব্লকলিস্ট",
   "this_meeting_is_in_the_past": "এই মিটিংটি অতীতে হয়েছে।",
   "stop_transcription": "ট্রান্সক্রিপশন বন্ধ করুন",
   "start_recording": "রেকর্ডিং শুরু করুন",

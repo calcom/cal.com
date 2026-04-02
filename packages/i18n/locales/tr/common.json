@@ -5161,7 +5161,6 @@
   "match": "Eşleştir",
   "all_conditions": "Tüm koşullar (VE)",
   "any_condition": "Herhangi bir koşul (VEYA)",
-  "pbac_resource_blocklist": "Engelleme Listesi",
   "this_meeting_is_in_the_past": "Bu toplantı geçmişte kaldı.",
   "stop_transcription": "Transkripsiyon durdur",
   "start_recording": "Kaydı başlat",

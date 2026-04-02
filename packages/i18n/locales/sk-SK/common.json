@@ -5161,7 +5161,6 @@
   "match": "Zhoda",
   "all_conditions": "Všetky podmienky (AND)",
   "any_condition": "Ľubovoľná podmienka (OR)",
-  "pbac_resource_blocklist": "Zoznam blokovaných",
   "this_meeting_is_in_the_past": "Toto stretnutie je v minulosti.",
   "stop_transcription": "Zastaviť prepis",
   "start_recording": "Spustiť nahrávanie",

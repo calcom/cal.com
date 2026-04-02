@@ -5161,7 +5161,6 @@
   "match": "Съвпадение",
   "all_conditions": "Всички условия (И)",
   "any_condition": "Някое от условията (ИЛИ)",
-  "pbac_resource_blocklist": "Черен списък",
   "this_meeting_is_in_the_past": "Тази среща е в миналото.",
   "stop_transcription": "Спри транскрипцията",
   "start_recording": "Започни записване",

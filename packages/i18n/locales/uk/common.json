@@ -5161,7 +5161,6 @@
   "match": "Збіг",
   "all_conditions": "Усі умови (І)",
   "any_condition": "Будь-яка умова (АБО)",
-  "pbac_resource_blocklist": "Чорний список",
   "this_meeting_is_in_the_past": "Ця зустріч вже відбулася.",
   "stop_transcription": "Зупинити транскрипцію",
   "start_recording": "Почати запис",

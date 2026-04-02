@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Det gick inte att aktivera PBAC för din organisation",
   "pbac_resource_feature_opt_in": "Funktionstillval",
   "pbac_desc_view_feature_opt_in": "Visa inställningar för funktionstillval",
-  "pbac_desc_update_feature_opt_in": "Hantera inställningar för funktionstillval"
+  "pbac_desc_update_feature_opt_in": "Hantera inställningar för funktionstillval",
+  "pbac_resource_custom_domain": "Anpassade domäner",
+  "pbac_desc_create_custom_domain": "Lägg till anpassade domäner",
+  "pbac_desc_view_custom_domain": "Visa anpassade domäner",
+  "pbac_desc_update_custom_domain": "Uppdatera anpassade domäner",
+  "pbac_desc_delete_custom_domain": "Ta bort anpassade domäner",
+  "pbac_resource_blocklist": "Blockeringslista"
 }

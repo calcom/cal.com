@@ -5161,7 +5161,6 @@
   "match": "일치",
   "all_conditions": "모든 조건 (AND)",
   "any_condition": "임의 조건 (OR)",
-  "pbac_resource_blocklist": "차단 목록",
   "this_meeting_is_in_the_past": "이 미팅은 과거입니다.",
   "stop_transcription": "전사 중지",
   "start_recording": "녹화 시작",

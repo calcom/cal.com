@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Neuspelo omogućavanje PBAC-a za vašu organizaciju",
   "pbac_resource_feature_opt_in": "Uključivanje funkcija",
   "pbac_desc_view_feature_opt_in": "Pregledaj podešavanja uključivanja funkcija",
-  "pbac_desc_update_feature_opt_in": "Upravljaj podešavanjima uključivanja funkcija"
+  "pbac_desc_update_feature_opt_in": "Upravljaj podešavanjima uključivanja funkcija",
+  "pbac_resource_custom_domain": "Prilagođeni domeni",
+  "pbac_desc_create_custom_domain": "Dodaj prilagođene domene",
+  "pbac_desc_view_custom_domain": "Pregledaj prilagođene domene",
+  "pbac_desc_update_custom_domain": "Ažuriraj prilagođene domene",
+  "pbac_desc_delete_custom_domain": "Ukloni prilagođene domene",
+  "pbac_resource_blocklist": "Lista blokiranih"
 }

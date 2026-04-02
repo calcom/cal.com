@@ -5161,7 +5161,6 @@
   "match": "Vastaavuus",
   "all_conditions": "Kaikki ehdot (JA)",
   "any_condition": "Mikä tahansa ehto (TAI)",
-  "pbac_resource_blocklist": "Estolista",
   "this_meeting_is_in_the_past": "Tämä tapaaminen on menneisyydessä.",
   "stop_transcription": "Pysäytä litterointi",
   "start_recording": "Aloita tallennus",

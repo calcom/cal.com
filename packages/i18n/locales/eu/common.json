@@ -5161,7 +5161,6 @@
   "match": "Bat etorri",
   "all_conditions": "Baldintza guztiak (ETA)",
   "any_condition": "Edozein baldintza (EDO)",
-  "pbac_resource_blocklist": "Blokeo-zerrenda",
   "this_meeting_is_in_the_past": "Bilera hau iraganekoa da.",
   "stop_transcription": "Gelditu transkripzioa",
   "start_recording": "Hasi grabazioa",

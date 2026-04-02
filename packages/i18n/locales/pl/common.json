@@ -5161,7 +5161,6 @@
   "match": "Dopasuj",
   "all_conditions": "Wszystkie warunki (AND)",
   "any_condition": "Dowolny warunek (OR)",
-  "pbac_resource_blocklist": "Lista blokad",
   "this_meeting_is_in_the_past": "To spotkanie miało miejsce w przeszłości.",
   "stop_transcription": "Zatrzymaj transkrypcję",
   "start_recording": "Rozpocznij nagrywanie",

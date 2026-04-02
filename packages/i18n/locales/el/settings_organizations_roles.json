@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Αποτυχία ενεργοποίησης του PBAC για τον οργανισμό σας",
   "pbac_resource_feature_opt_in": "Συμμετοχή σε λειτουργίες",
   "pbac_desc_view_feature_opt_in": "Προβολή ρυθμίσεων συμμετοχής σε λειτουργίες",
-  "pbac_desc_update_feature_opt_in": "Διαχείριση ρυθμίσεων συμμετοχής σε λειτουργίες"
+  "pbac_desc_update_feature_opt_in": "Διαχείριση ρυθμίσεων συμμετοχής σε λειτουργίες",
+  "pbac_resource_custom_domain": "Προσαρμοσμένοι τομείς",
+  "pbac_desc_create_custom_domain": "Προσθήκη προσαρμοσμένων τομέων",
+  "pbac_desc_view_custom_domain": "Προβολή προσαρμοσμένων τομέων",
+  "pbac_desc_update_custom_domain": "Ενημέρωση προσαρμοσμένων τομέων",
+  "pbac_desc_delete_custom_domain": "Αφαίρεση προσαρμοσμένων τομέων",
+  "pbac_resource_blocklist": "Λίστα αποκλεισμού"
 }

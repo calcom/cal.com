@@ -5161,7 +5161,6 @@
   "match": "Αντιστοίχιση",
   "all_conditions": "Όλες οι συνθήκες (AND)",
   "any_condition": "Οποιαδήποτε συνθήκη (OR)",
-  "pbac_resource_blocklist": "Λίστα αποκλεισμού",
   "this_meeting_is_in_the_past": "Αυτή η συνάντηση έχει παρέλθει.",
   "stop_transcription": "Διακοπή μεταγραφής",
   "start_recording": "Έναρξη εγγραφής",

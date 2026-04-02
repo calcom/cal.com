@@ -5161,7 +5161,6 @@
   "match": "Coincidencia",
   "all_conditions": "Todas las condiciones (Y)",
   "any_condition": "Cualquier condición (O)",
-  "pbac_resource_blocklist": "Lista de bloqueo",
   "this_meeting_is_in_the_past": "Esta reunión ya pasó.",
   "stop_transcription": "Detener transcripción",
   "start_recording": "Iniciar grabación",

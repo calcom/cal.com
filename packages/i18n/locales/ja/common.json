@@ -5161,7 +5161,6 @@
   "match": "一致",
   "all_conditions": "すべての条件(AND)",
   "any_condition": "いずれかの条件(OR)",
-  "pbac_resource_blocklist": "ブロックリスト",
   "this_meeting_is_in_the_past": "このミーティングは過去のものです。",
   "stop_transcription": "文字起こしを停止",
   "start_recording": "録画を開始",

@@ -5161,7 +5161,6 @@
   "match": "Shoda",
   "all_conditions": "Všechny podmínky (A)",
   "any_condition": "Jakákoli podmínka (NEBO)",
-  "pbac_resource_blocklist": "Seznam blokovaných",
   "this_meeting_is_in_the_past": "Tato schůzka se konala v minulosti.",
   "stop_transcription": "Zastavit přepis",
   "start_recording": "Spustit nahrávání",

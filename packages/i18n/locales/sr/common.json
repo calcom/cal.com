@@ -5161,7 +5161,6 @@
   "match": "Podudaranje",
   "all_conditions": "Svi uslovi (AND)",
   "any_condition": "Bilo koji uslov (OR)",
-  "pbac_resource_blocklist": "Lista blokiranih",
   "this_meeting_is_in_the_past": "Ovaj sastanak je u prošlosti.",
   "stop_transcription": "Zaustavi transkript",
   "start_recording": "Pokreni snimanje",

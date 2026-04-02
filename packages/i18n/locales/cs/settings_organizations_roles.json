@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Nepodařilo se povolit PBAC pro vaši organizaci",
   "pbac_resource_feature_opt_in": "Přihlášení k funkcím",
   "pbac_desc_view_feature_opt_in": "Zobrazit nastavení přihlášení k funkcím",
-  "pbac_desc_update_feature_opt_in": "Spravovat nastavení přihlášení k funkcím"
+  "pbac_desc_update_feature_opt_in": "Spravovat nastavení přihlášení k funkcím",
+  "pbac_resource_custom_domain": "Vlastní domény",
+  "pbac_desc_create_custom_domain": "Přidat vlastní domény",
+  "pbac_desc_view_custom_domain": "Zobrazit vlastní domény",
+  "pbac_desc_update_custom_domain": "Aktualizovat vlastní domény",
+  "pbac_desc_delete_custom_domain": "Odebrat vlastní domény",
+  "pbac_resource_blocklist": "Seznam blokovaných"
 }

@@ -122,5 +122,11 @@
   "pbac_enabled_error": "PBAC konnte nicht für Ihre Organisation aktiviert werden",
   "pbac_resource_feature_opt_in": "Feature-Aktivierung",
   "pbac_desc_view_feature_opt_in": "Feature-Aktivierungseinstellungen anzeigen",
-  "pbac_desc_update_feature_opt_in": "Feature-Aktivierungseinstellungen verwalten"
+  "pbac_desc_update_feature_opt_in": "Feature-Aktivierungseinstellungen verwalten",
+  "pbac_resource_custom_domain": "Benutzerdefinierte Domains",
+  "pbac_desc_create_custom_domain": "Benutzerdefinierte Domains hinzufügen",
+  "pbac_desc_view_custom_domain": "Benutzerdefinierte Domains anzeigen",
+  "pbac_desc_update_custom_domain": "Benutzerdefinierte Domains aktualisieren",
+  "pbac_desc_delete_custom_domain": "Benutzerdefinierte Domains entfernen",
+  "pbac_resource_blocklist": "Sperrliste"
 }

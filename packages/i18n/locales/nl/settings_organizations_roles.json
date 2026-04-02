@@ -122,5 +122,11 @@
   "pbac_enabled_error": "PBAC inschakelen voor uw organisatie is mislukt",
   "pbac_resource_feature_opt_in": "Functie-inschrijving",
   "pbac_desc_view_feature_opt_in": "Bekijk functie-inschrijvingsinstellingen",
-  "pbac_desc_update_feature_opt_in": "Beheer functie-inschrijvingsinstellingen"
+  "pbac_desc_update_feature_opt_in": "Beheer functie-inschrijvingsinstellingen",
+  "pbac_resource_custom_domain": "Aangepaste domeinen",
+  "pbac_desc_create_custom_domain": "Aangepaste domeinen toevoegen",
+  "pbac_desc_view_custom_domain": "Aangepaste domeinen bekijken",
+  "pbac_desc_update_custom_domain": "Aangepaste domeinen bijwerken",
+  "pbac_desc_delete_custom_domain": "Aangepaste domeinen verwijderen",
+  "pbac_resource_blocklist": "Blokkeerlijst"
 }

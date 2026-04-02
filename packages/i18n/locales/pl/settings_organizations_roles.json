@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Nie udało się włączyć PBAC dla Twojej organizacji",
   "pbac_resource_feature_opt_in": "Włączanie funkcji",
   "pbac_desc_view_feature_opt_in": "Wyświetl ustawienia włączania funkcji",
-  "pbac_desc_update_feature_opt_in": "Zarządzaj ustawieniami włączania funkcji"
+  "pbac_desc_update_feature_opt_in": "Zarządzaj ustawieniami włączania funkcji",
+  "pbac_resource_custom_domain": "Niestandardowe domeny",
+  "pbac_desc_create_custom_domain": "Dodawanie niestandardowych domen",
+  "pbac_desc_view_custom_domain": "Wyświetlanie niestandardowych domen",
+  "pbac_desc_update_custom_domain": "Aktualizowanie niestandardowych domen",
+  "pbac_desc_delete_custom_domain": "Usuwanie niestandardowych domen",
+  "pbac_resource_blocklist": "Lista blokowanych"
 }

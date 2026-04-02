@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Nem sikerült engedélyezni a PBAC-ot a szervezet számára",
   "pbac_resource_feature_opt_in": "Funkció bekapcsolás",
   "pbac_desc_view_feature_opt_in": "Funkció bekapcsolási beállítások megtekintése",
-  "pbac_desc_update_feature_opt_in": "Funkció bekapcsolási beállítások kezelése"
+  "pbac_desc_update_feature_opt_in": "Funkció bekapcsolási beállítások kezelése",
+  "pbac_resource_custom_domain": "Egyéni domainek",
+  "pbac_desc_create_custom_domain": "Egyéni domainek hozzáadása",
+  "pbac_desc_view_custom_domain": "Egyéni domainek megtekintése",
+  "pbac_desc_update_custom_domain": "Egyéni domainek frissítése",
+  "pbac_desc_delete_custom_domain": "Egyéni domainek eltávolítása",
+  "pbac_resource_blocklist": "Tiltólista"
 }

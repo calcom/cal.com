@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Activarea PBAC pentru organizația dumneavoastră a eșuat",
   "pbac_resource_feature_opt_in": "Activare funcționalitate experimentală",
   "pbac_desc_view_feature_opt_in": "Vizualizează setările de activare a funcționalităților",
-  "pbac_desc_update_feature_opt_in": "Gestionează setările de activare a funcționalităților"
+  "pbac_desc_update_feature_opt_in": "Gestionează setările de activare a funcționalităților",
+  "pbac_resource_custom_domain": "Domenii personalizate",
+  "pbac_desc_create_custom_domain": "Adaugă domenii personalizate",
+  "pbac_desc_view_custom_domain": "Vizualizează domeniile personalizate",
+  "pbac_desc_update_custom_domain": "Actualizează domeniile personalizate",
+  "pbac_desc_delete_custom_domain": "Elimină domeniile personalizate",
+  "pbac_resource_blocklist": "Listă de blocare"
 }

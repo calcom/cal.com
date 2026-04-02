@@ -5161,7 +5161,6 @@
   "match": "Potrivire",
   "all_conditions": "Toate condițiile (ȘI)",
   "any_condition": "Oricare condiție (SAU)",
-  "pbac_resource_blocklist": "Lista de blocare",
   "this_meeting_is_in_the_past": "Această întâlnire este în trecut.",
   "stop_transcription": "Oprește transcrierea",
   "start_recording": "Începe înregistrarea",

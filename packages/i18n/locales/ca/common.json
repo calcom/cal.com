@@ -5161,7 +5161,6 @@
   "match": "Coincidència",
   "all_conditions": "Totes les condicions (I)",
   "any_condition": "Qualsevol condició (O)",
-  "pbac_resource_blocklist": "Llista de bloqueig",
   "this_meeting_is_in_the_past": "Aquesta reunió és del passat.",
   "stop_transcription": "Atura la transcripció",
   "start_recording": "Inicia l'enregistrament",

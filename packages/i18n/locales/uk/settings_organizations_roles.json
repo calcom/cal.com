@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Не вдалося увімкнути PBAC для вашої організації",
   "pbac_resource_feature_opt_in": "Підключення функцій",
   "pbac_desc_view_feature_opt_in": "Переглядати налаштування підключення функцій",
-  "pbac_desc_update_feature_opt_in": "Керувати налаштуваннями підключення функцій"
+  "pbac_desc_update_feature_opt_in": "Керувати налаштуваннями підключення функцій",
+  "pbac_resource_custom_domain": "Власні домени",
+  "pbac_desc_create_custom_domain": "Додавати власні домени",
+  "pbac_desc_view_custom_domain": "Переглядати власні домени",
+  "pbac_desc_update_custom_domain": "Оновлювати власні домени",
+  "pbac_desc_delete_custom_domain": "Видаляти власні домени",
+  "pbac_resource_blocklist": "Чорний список"
 }

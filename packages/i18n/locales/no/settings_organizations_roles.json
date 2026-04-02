@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Kunne ikke aktivere PBAC for organisasjonen din",
   "pbac_resource_feature_opt_in": "Funksjonsaktivering",
   "pbac_desc_view_feature_opt_in": "Vis innstillinger for funksjonsaktivering",
-  "pbac_desc_update_feature_opt_in": "Administrer innstillinger for funksjonsaktivering"
+  "pbac_desc_update_feature_opt_in": "Administrer innstillinger for funksjonsaktivering",
+  "pbac_resource_custom_domain": "Egendefinerte domener",
+  "pbac_desc_create_custom_domain": "Legg til egendefinerte domener",
+  "pbac_desc_view_custom_domain": "Vis egendefinerte domener",
+  "pbac_desc_update_custom_domain": "Oppdater egendefinerte domener",
+  "pbac_desc_delete_custom_domain": "Fjern egendefinerte domener",
+  "pbac_resource_blocklist": "Blokkeringsliste"
 }

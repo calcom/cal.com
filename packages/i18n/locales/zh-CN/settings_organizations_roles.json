@@ -122,5 +122,11 @@
   "pbac_enabled_error": "未能为您的组织启用 PBAC",
   "pbac_resource_feature_opt_in": "功能加入",
   "pbac_desc_view_feature_opt_in": "查看功能加入设置",
-  "pbac_desc_update_feature_opt_in": "管理功能加入设置"
+  "pbac_desc_update_feature_opt_in": "管理功能加入设置",
+  "pbac_resource_custom_domain": "自定义域名",
+  "pbac_desc_create_custom_domain": "添加自定义域名",
+  "pbac_desc_view_custom_domain": "查看自定义域名",
+  "pbac_desc_update_custom_domain": "更新自定义域名",
+  "pbac_desc_delete_custom_domain": "删除自定义域名",
+  "pbac_resource_blocklist": "黑名单"
 }

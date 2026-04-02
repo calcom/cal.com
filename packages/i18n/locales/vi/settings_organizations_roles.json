@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Không thể bật PBAC cho tổ chức của bạn",
   "pbac_resource_feature_opt_in": "Tham gia tính năng",
   "pbac_desc_view_feature_opt_in": "Xem cài đặt tham gia tính năng",
-  "pbac_desc_update_feature_opt_in": "Quản lý cài đặt tham gia tính năng"
+  "pbac_desc_update_feature_opt_in": "Quản lý cài đặt tham gia tính năng",
+  "pbac_resource_custom_domain": "Tên miền tùy chỉnh",
+  "pbac_desc_create_custom_domain": "Thêm tên miền tùy chỉnh",
+  "pbac_desc_view_custom_domain": "Xem tên miền tùy chỉnh",
+  "pbac_desc_update_custom_domain": "Cập nhật tên miền tùy chỉnh",
+  "pbac_desc_delete_custom_domain": "Xóa tên miền tùy chỉnh",
+  "pbac_resource_blocklist": "Danh sách chặn"
 }

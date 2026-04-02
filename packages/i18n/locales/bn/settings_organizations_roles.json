@@ -122,5 +122,11 @@
   "pbac_enabled_error": "আপনার প্রতিষ্ঠানের জন্য PBAC সক্রিয় করতে ব্যর্থ হয়েছে",
   "pbac_resource_feature_opt_in": "ফিচার অপ্ট-ইন",
   "pbac_desc_view_feature_opt_in": "ফিচার অপ্ট-ইন সেটিংস দেখুন",
-  "pbac_desc_update_feature_opt_in": "ফিচার অপ্ট-ইন সেটিংস পরিচালনা করুন"
+  "pbac_desc_update_feature_opt_in": "ফিচার অপ্ট-ইন সেটিংস পরিচালনা করুন",
+  "pbac_resource_custom_domain": "কাস্টম ডোমেইন",
+  "pbac_desc_create_custom_domain": "কাস্টম ডোমেইন যুক্ত করুন",
+  "pbac_desc_view_custom_domain": "কাস্টম ডোমেইন দেখুন",
+  "pbac_desc_update_custom_domain": "কাস্টম ডোমেইন আপডেট করুন",
+  "pbac_desc_delete_custom_domain": "কাস্টম ডোমেইন সরান",
+  "pbac_resource_blocklist": "ব্লকতালিকা"
 }

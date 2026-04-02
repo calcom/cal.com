@@ -122,5 +122,11 @@
   "pbac_enabled_error": "組織のPBACの有効化に失敗しました",
   "pbac_resource_feature_opt_in": "機能のオプトイン",
   "pbac_desc_view_feature_opt_in": "機能のオプトイン設定を表示",
-  "pbac_desc_update_feature_opt_in": "機能のオプトイン設定を管理"
+  "pbac_desc_update_feature_opt_in": "機能のオプトイン設定を管理",
+  "pbac_resource_custom_domain": "カスタムドメイン",
+  "pbac_desc_create_custom_domain": "カスタムドメインを追加",
+  "pbac_desc_view_custom_domain": "カスタムドメインを表示",
+  "pbac_desc_update_custom_domain": "カスタムドメインを更新",
+  "pbac_desc_delete_custom_domain": "カスタムドメインを削除",
+  "pbac_resource_blocklist": "ブロックリスト"
 }

@@ -5161,7 +5161,6 @@
   "match": "Match",
   "all_conditions": "Alle betingelser (OG)",
   "any_condition": "Enhver betingelse (ELLER)",
-  "pbac_resource_blocklist": "Blokliste",
   "this_meeting_is_in_the_past": "Dette møde er fortid.",
   "stop_transcription": "Stop transskription",
   "start_recording": "Start optagelse",
