@@ -8,7 +8,7 @@ import { AtomsWrapper } from "../src/components/atoms-wrapper";
 export const CalendarViewComponent = () => {
   return (
     <AtomsWrapper>
-      <BookerSection area="header" className="bg-default dark:bg-muted sticky top-0 z-10">
+      <BookerSection area="header" className="bg-default dark:bg-muted sticky top-0 z-10 border-default ltr:border-l rtl:border-r">
         <Header
           isPlatform={true}
           isCalendarView={true}

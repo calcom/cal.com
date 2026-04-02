@@ -426,7 +426,9 @@ const BookerComponent = ({
                 className={classNames(
                   layout === BookerLayouts.MONTH_VIEW && "fixed top-4 z-10 ltr:right-4 rtl:left-4",
                   (layout === BookerLayouts.COLUMN_VIEW || layout === BookerLayouts.WEEK_VIEW) &&
-                    "bg-default dark:bg-cal-muted sticky top-0 z-10"
+                    "bg-default dark:bg-cal-muted sticky top-0 z-10 h-full -ml-px ltr:border-l rtl:border-r",
+                  layout === BookerLayouts.COLUMN_VIEW && "border-default",
+                  layout === BookerLayouts.WEEK_VIEW && "border-subtle"
                 )}>
                 {isPlatform && layout === BookerLayouts.MONTH_VIEW ? (
                   <></>
@@ -467,7 +469,7 @@ const BookerComponent = ({
                 {!hideEventTypeDetails && orgBannerUrl && (
                   <img
                     loading="eager"
-                    className="-mb-9 h-auto w-full object-contain object-top ltr:rounded-tl-md rtl:rounded-tr-md sm:h-16 sm:object-cover"
+                    className="-mb-9 h-auto w-full object-contain object-top ltr:rounded-tl-md rtl:rounded-tr-md sm:h-[70px] sm:object-cover"
                     alt="org banner"
                     src={orgBannerUrl}
                   />
@@ -562,7 +564,8 @@ const BookerComponent = ({
                   layout === BookerLayouts.COLUMN_VIEW)
               }
               className={classNames(
-                "border-subtle rtl:border-default flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
+                "flex h-full w-full flex-col overflow-x-auto px-5 py-3 pb-0 rtl:border-r ltr:md:border-l",
+                layout === BookerLayouts.COLUMN_VIEW ? "border-default" : "border-subtle rtl:border-default",
                 layout === BookerLayouts.MONTH_VIEW &&
                   "h-full overflow-hidden md:w-(--booker-timeslots-width)",
                 layout !== BookerLayouts.MONTH_VIEW && "sticky top-0"
