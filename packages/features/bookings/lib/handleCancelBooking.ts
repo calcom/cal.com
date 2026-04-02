@@ -88,6 +88,7 @@ export type CancelBookingInput = {
   userUuid?: string;
   bookingData: z.infer<typeof bookingCancelInput>;
   actionSource: ValidActionSource;
+  impersonatedByUserUuid: string | null;
 } & PlatformParams;
 
 type Dependencies = {
@@ -179,6 +180,9 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
   } = input;
 
   const userUuid = input.userUuid ?? null;
+  const impersonatedByUserUuid = input.impersonatedByUserUuid ?? null;
+
+  const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
 
   const actionSource = input.actionSource;
 
@@ -557,6 +561,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
       organizationId: orgId ?? null,
       operationId,
       source: actionSource,
+      context: auditContext,
       isBookingAuditEnabled,
     });
   } else {
@@ -592,6 +597,7 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
           new: BookingStatus.CANCELLED,
         },
       },
+      context: auditContext,
       isBookingAuditEnabled,
     });
 
@@ -756,6 +762,7 @@ export class BookingCancelService implements IBookingCancelService {
     const cancelBookingInput: CancelBookingInput = {
       bookingData: input.bookingData,
       ...(input.bookingMeta || {}),
+      impersonatedByUserUuid: input.bookingMeta?.impersonatedByUserUuid ?? null,
       actionSource: input.actionSource,
     };
 

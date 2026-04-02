@@ -72,6 +72,7 @@ async function handler(req: NextApiRequest & RequestMeta) {
       noEmail: req.noEmail,
       skipAvailabilityCheck: bypassAvailability,
       skipEventLimitsCheck: bypassEventLimits,
+      impersonatedByUserUuid: session?.user?.impersonatedBy?.uuid ?? null,
     },
     creationSource: "WEBAPP",
   });

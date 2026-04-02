@@ -37,6 +37,7 @@ type AddGuestsOptions = {
   input: TAddGuestsInputSchema;
   emailsEnabled?: boolean;
   actionSource: ValidActionSource;
+  impersonatedByUserUuid: string | null;
 };
 
 export type Booking = NonNullable<
@@ -49,6 +50,7 @@ export const addGuestsHandler = async ({
   input,
   emailsEnabled = true,
   actionSource,
+  impersonatedByUserUuid,
 }: AddGuestsOptions) => {
   const { user } = ctx;
   const { bookingId, guests } = input;
@@ -93,6 +95,7 @@ export const addGuestsHandler = async ({
   }
 
   const bookingEventHandlerService = getBookingEventHandlerService();
+  const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
   const featuresRepository = getFeaturesRepository();
   const organizationId = user.organizationId ?? null;
   const isBookingAuditEnabled = organizationId
@@ -107,6 +110,7 @@ export const addGuestsHandler = async ({
     auditData: {
       added: uniqueGuestEmails,
     },
+    context,
     isBookingAuditEnabled,
   });
 

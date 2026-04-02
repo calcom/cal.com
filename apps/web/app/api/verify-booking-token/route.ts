@@ -108,6 +108,7 @@ async function handleBookingAction(
         emailsEnabled: true,
         actionSource: "MAGIC_LINK",
         actor: makeUserActor(user.uuid),
+        impersonatedByUserUuid: null,
       },
     });
   } catch (e) {

@@ -1,4 +1,4 @@
-﻿// This is your Prisma Schema file
+// This is your Prisma Schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -36,7 +36,7 @@ generator kysely {
 }
 
 generator enums {
-  provider = "ts-node --transpile-only ./enum-generator.ts"
+  provider = "prisma-enum-generator"
 }
 
 enum SchedulingType {
@@ -352,6 +352,7 @@ enum IdentityProvider {
   CAL
   GOOGLE
   SAML
+  AZUREAD
 }
 
 model DestinationCalendar {

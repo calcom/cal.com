@@ -29,6 +29,7 @@ const fireBookingEvents = async ({
   rescheduledBy,
   actionSource,
   actorUserUuid,
+  impersonatedByUserUuid,
   isBookingAuditEnabled,
   deps,
 }: {
@@ -42,6 +43,7 @@ const fireBookingEvents = async ({
   rescheduledBy: string | undefined;
   actionSource: ActionSource;
   actorUserUuid: string | null;
+  impersonatedByUserUuid: string | null;
   isBookingAuditEnabled: boolean;
   deps: {
     bookingEventHandler: BookingEventHandlerService;
@@ -75,6 +77,8 @@ const fireBookingEvents = async ({
       return;
     }
 
+    const auditContext = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
+
     if (rescheduleUid && originalRescheduledBooking) {
       const movedToDifferentBooking = newBooking.uid && newBooking.uid !== previousSeatedBooking.uid;
       const newBookingStartTimeMs =
@@ -107,6 +111,7 @@ const fireBookingEvents = async ({
           },
         },
         source: actionSource,
+        context: auditContext,
         isBookingAuditEnabled,
       });
     } else {
@@ -122,6 +127,7 @@ const fireBookingEvents = async ({
           endTime: previousSeatedBooking.endTime.getTime(),
         },
         source: actionSource,
+        context: auditContext,
         isBookingAuditEnabled,
       });
     }
@@ -159,6 +165,7 @@ const handleSeats = async (
     fullName,
     traceContext,
     actionSource,
+    impersonatedByUserUuid,
     deps: { bookingEventHandler },
   } = newSeatedBookingObject;
   // TODO: We could allow doing more things to support good dry run for seats
@@ -244,6 +251,7 @@ const handleSeats = async (
       rescheduledBy,
       actionSource,
       actorUserUuid: reqUserUuid ?? null,
+      impersonatedByUserUuid,
       isBookingAuditEnabled,
       deps: { bookingEventHandler, logger: loggerWithEventDetails },
     });

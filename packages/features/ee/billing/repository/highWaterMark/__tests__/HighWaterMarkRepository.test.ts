@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { HighWaterMarkRepository } from "../HighWaterMarkRepository";
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 // Create mock Prisma client
 const createMockPrisma = () => ({
   team: {

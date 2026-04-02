@@ -921,6 +921,7 @@ describe("CalendarSyncService - error isolation", () => {
     expect(mockHandleCancelBooking).toHaveBeenCalledWith({
       userId: 99,
       actionSource: "SYSTEM",
+      impersonatedByUserUuid: null,
       bookingData: {
         uid: "my-booking-uid",
         cancellationReason: "Cancelled on user's calendar",
@@ -947,6 +948,7 @@ describe("CalendarSyncService - error isolation", () => {
           skipCalendarSyncTaskCreation: true,
           skipAvailabilityCheck: true,
           skipEventLimitsCheck: true,
+          impersonatedByUserUuid: null,
         },
       })
     );
