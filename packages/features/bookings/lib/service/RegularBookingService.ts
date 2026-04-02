@@ -129,6 +129,10 @@ import { getEventType } from "../handleNewBooking/getEventType";
 import type { getEventTypeResponse } from "../handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "../handleNewBooking/getLocationValuesForDb";
 import { getRequiresConfirmationFlags } from "../handleNewBooking/getRequiresConfirmationFlags";
+import {
+  getRoundRobinHostLimitOverrides,
+  groupRoundRobinHostsByEffectiveLimits,
+} from "../handleNewBooking/resolveRoundRobinHostEffectiveLimits";
 import { getSeatedBooking } from "../handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "../handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "../handleNewBooking/handleAppsStatus";
@@ -1100,9 +1104,32 @@ async function handler(
         }
       });
 
+      // Foundation for per-host limits: currently no host-specific overrides are persisted,
+      // so this groups all hosts into a single bucket and preserves current behavior.
+      const roundRobinLimitBuckets = groupRoundRobinHostsByEffectiveLimits({
+        schedulingType: eventType.schedulingType,
+        eventLimits: {
+          minimumBookingNotice: eventType.minimumBookingNotice,
+          beforeEventBuffer: eventType.beforeEventBuffer,
+          afterEventBuffer: eventType.afterEventBuffer,
+          slotInterval: eventType.slotInterval,
+          bookingLimits: eventType.bookingLimits,
+          durationLimits: eventType.durationLimits,
+          periodType: eventType.periodType,
+          periodDays: eventType.periodDays,
+          periodCountCalendarDays: eventType.periodCountCalendarDays,
+          periodStartDate: eventType.periodStartDate,
+          periodEndDate: eventType.periodEndDate,
+        },
+        hosts: nonFixedUsers,
+        getHostOverrides: getRoundRobinHostLimitOverrides,
+      });
+
+      const bucketedNonFixedUsers = roundRobinLimitBuckets.flatMap((bucket) => bucket.hosts);
+
       // Group non-fixed users by their group IDs
       const luckyUserPools = groupHostsByGroupId({
-        hosts: nonFixedUsers,
+        hosts: bucketedNonFixedUsers,
         hostGroups: eventType.hostGroups,
       });
 
@@ -1112,6 +1139,10 @@ async function handler(
         "Computed available users",
         safeStringify({
           availableUsers: availableUsers.map((user) => user.id),
+          roundRobinLimitBuckets: roundRobinLimitBuckets.map((bucket) => ({
+            profileKey: bucket.profileKey,
+            hostIds: bucket.hosts.map((host) => host.id),
+          })),
           luckyUserPools: Object.fromEntries(
             Object.entries(luckyUserPools).map(([groupId, users]) => [groupId, users.map((user) => user.id)])
           ),
