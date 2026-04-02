@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@calcom/prisma";
 
 import type { AdminTable } from "../AdminTable";
 import type { AdminTableRegistry } from "../AdminTableRegistry";
