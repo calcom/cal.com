@@ -314,6 +314,23 @@ const ProfileView = ({ user }: Props) => {
         </div>
       )}
 
+      {/* Sign Out Section */}
+      <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
+        <Label className="mb-0 text-base font-semibold">{t("sign_out")}</Label>
+        <p className="text-subtle text-sm">{t("Log out of your current session")}</p>
+
+      </div>
+      <SectionBottomActions align="end">
+        <Button
+          data-testid="sign-out-button"
+          color="secondary"
+          StartIcon="log-out"
+          onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
+          {t("sign_out")}
+        </Button>
+      </SectionBottomActions>
+
+      {/* Danger Zone */}
       <div className="border-subtle mt-6 rounded-lg rounded-b-none border border-b-0 p-6">
         <Label className="mb-0 text-base font-semibold text-red-700">{t("danger_zone")}</Label>
         <p className="text-subtle text-sm">{t("account_deletion_cannot_be_undone")}</p>
