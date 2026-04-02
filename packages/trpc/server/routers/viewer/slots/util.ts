@@ -978,18 +978,16 @@ export class AvailableSlotsService {
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
     const allUserIds = Array.from(userIdAndEmailMap.keys());
 
-    let guestBusyTimes: EventBusyDetails[] = [];
-    if (input.rescheduleUid) {
-      guestBusyTimes = await this._getGuestBusyTimesForReschedule({
-        rescheduleUid: input.rescheduleUid,
-        startDate: startTimeDate,
-        endDate: endTimeDate,
-        hostEmails: Array.from(userIdAndEmailMap.values()),
-      });
-    }
-
     const bookingRepo = this.dependencies.bookingRepo;
-    const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
+    const [guestBusyTimes, currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
+      input.rescheduleUid
+        ? this._getGuestBusyTimesForReschedule({
+            rescheduleUid: input.rescheduleUid,
+            startDate: startTimeDate,
+            endDate: endTimeDate,
+            hostEmails: Array.from(userIdAndEmailMap.values()),
+          })
+        : ([] as EventBusyDetails[]),
       bookingRepo.findAllExistingBookingsForEventTypeBetween({
         startDate: startTimeDate,
         endDate: endTimeDate,
