@@ -208,7 +208,10 @@ export async function getBookings({
       if (attendeeFilterBookingIds.length === 0) {
         q = q.where("Booking.id", "=", -1);
       } else {
-        q = q.where("Booking.id", "in", attendeeFilterBookingIds);
+        // Use ANY(array) instead of IN($1,$2,...$N) to pass a single array
+        // parameter. IN expands to N individual params which overflows PG's
+        // bind limit when used inside UNION ALL branches.
+        q = q.where(sql`"Booking"."id" = ANY(${sql.val(attendeeFilterBookingIds)}::int[])` as any);
       }
     }
     if (nameFilterParams && !nameIsPositive) {
@@ -421,22 +424,54 @@ export async function getBookings({
     );
     ({ bookingsFromQuery: bookingsFromUnion, totalCount } = await executePaginatedAndCount(base));
   } else {
-    const base = applyCommonFilters(
+    // UNION ALL: two separate queries that PG plans independently, each with
+    // an efficient index scan (Nested Loop on Attendee_email_idx → Booking_pkey
+    // for the attendee branch, index scan on Booking_userId_idx for the user
+    // branch), then deduplicate. This avoids the OR + correlated EXISTS which
+    // forces PG into a sequential scan at scale.
+    const queryByUserId = applyCommonFilters(
+      kysely.selectFrom("Booking").where("Booking.userId", "=", user.id)
+    )
+      .select("Booking.id")
+      .select("Booking.startTime")
+      .select("Booking.endTime")
+      .select("Booking.createdAt")
+      .select("Booking.updatedAt");
+
+    const queryByAttendee = applyCommonFilters(
+      // @ts-expect-error Kysely widens the type to include "Attendee" after INNER JOIN,
+      // but applyCommonFilters only references "Booking.*" columns so this is safe.
       kysely
         .selectFrom("Booking")
-        .where(({ or, eb, exists, selectFrom }) =>
-          or([
-            eb("Booking.userId", "=", user.id),
-            exists(
-              selectFrom("Attendee")
-                .select("Attendee.id")
-                .whereRef("Attendee.bookingId", "=", "Booking.id")
-                .where("Attendee.email", "=", user.email)
-            ),
-          ])
-        )
-    );
-    ({ bookingsFromQuery: bookingsFromUnion, totalCount } = await executePaginatedAndCount(base));
+        .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+        .where("Attendee.email", "=", user.email)
+    )
+      .select("Booking.id")
+      .select("Booking.startTime")
+      .select("Booking.endTime")
+      .select("Booking.createdAt")
+      .select("Booking.updatedAt");
+
+    const unionQuery = queryByUserId.unionAll(queryByAttendee);
+
+    const [bookings, countResult] = await Promise.all([
+      kysely
+        .selectFrom(unionQuery.as("union_subquery"))
+        .distinct()
+        .selectAll("union_subquery")
+        .orderBy(orderBy.key, orderBy.order)
+        .orderBy("id", orderBy.order)
+        .limit(take)
+        .offset(skip)
+        .execute(),
+      kysely
+        .selectFrom(unionQuery.as("count_subquery"))
+        .select(({ fn }) => fn.count<number>("count_subquery.id").distinct().as("bookingCount"))
+        .executeTakeFirst(),
+    ]);
+
+    bookingsFromUnion = bookings;
+    totalCount = Number(countResult?.bookingCount ?? 0);
   }
 
   log.debug(`Get bookings for user ${user.id}`);

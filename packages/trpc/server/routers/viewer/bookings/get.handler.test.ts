@@ -264,6 +264,8 @@ describe("getBookings - PBAC Permission Checks", () => {
       limit: vi.fn(() => mockQueryBuilder),
       offset: vi.fn(() => mockQueryBuilder),
       distinct: vi.fn(() => mockQueryBuilder),
+      unionAll: vi.fn(() => mockQueryBuilder),
+      as: vi.fn(() => "union_subquery"),
       executeTakeFirst: vi.fn().mockResolvedValue({ bookingCount: 0 }),
       execute: vi.fn().mockResolvedValue([]),
     };
