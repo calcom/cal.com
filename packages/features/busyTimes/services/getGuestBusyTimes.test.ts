@@ -96,7 +96,7 @@ describe("GuestBusyTimesService", () => {
         ],
       });
       mockPrisma.user.findMany.mockResolvedValue([]);
-      mockPrisma.secondaryEmail.findMany.mockResolvedValue([]);
+      mockPrisma.secondaryEmail.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
       const result = await service.getGuestBusyTimes({
         rescheduleUid: "test-uid",
@@ -122,7 +122,8 @@ describe("GuestBusyTimesService", () => {
       });
 
       mockPrisma.user.findMany.mockResolvedValue([{ id: guestUserId, email: guestEmail }]);
-      mockPrisma.secondaryEmail.findMany.mockResolvedValue([]);
+      // First call for unmatched emails (none), second call for all verified secondaries
+      mockPrisma.secondaryEmail.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
       mockPrisma.booking.findMany.mockResolvedValue([
         {
@@ -164,12 +165,19 @@ describe("GuestBusyTimesService", () => {
       // Not found by primary email
       mockPrisma.user.findMany.mockResolvedValue([]);
 
-      // Found by secondary email
-      mockPrisma.secondaryEmail.findMany.mockResolvedValue([
-        {
-          user: { id: guestUserId, email: primaryEmail },
-        },
-      ]);
+      // Found by secondary email (first call), then fetch all verified secondaries (second call)
+      mockPrisma.secondaryEmail.findMany
+        .mockResolvedValueOnce([
+          {
+            user: { id: guestUserId, email: primaryEmail },
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            userId: guestUserId,
+            email: secondaryEmail,
+          },
+        ]);
 
       mockPrisma.booking.findMany.mockResolvedValue([]);
 
@@ -194,7 +202,7 @@ describe("GuestBusyTimesService", () => {
       });
 
       mockPrisma.user.findMany.mockResolvedValue([{ id: guestUserId, email: "guest@cal.com" }]);
-      mockPrisma.secondaryEmail.findMany.mockResolvedValue([]);
+      mockPrisma.secondaryEmail.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
       mockPrisma.booking.findMany.mockResolvedValue([
         {
@@ -249,7 +257,7 @@ describe("GuestBusyTimesService", () => {
       });
 
       mockPrisma.user.findMany.mockResolvedValue([{ id: guestUserId, email: "guest@cal.com" }]);
-      mockPrisma.secondaryEmail.findMany.mockResolvedValue([]);
+      mockPrisma.secondaryEmail.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
       mockPrisma.booking.findMany.mockResolvedValue([]);
 
       await service.getGuestBusyTimes({
@@ -289,7 +297,8 @@ describe("GuestBusyTimesService", () => {
         { id: 100, email: "caluser1@cal.com" },
         { id: 101, email: "caluser2@cal.com" },
       ]);
-      mockPrisma.secondaryEmail.findMany.mockResolvedValue([]);
+      // First call for unmatched emails, second call for all verified secondaries
+      mockPrisma.secondaryEmail.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 
       // Set up bookings for each user
       let callCount = 0;
@@ -347,12 +356,19 @@ describe("GuestBusyTimesService", () => {
       // Found by primary email
       mockPrisma.user.findMany.mockResolvedValue([{ id: userId, email: primaryEmail }]);
 
-      // Also found by secondary email (same user)
-      mockPrisma.secondaryEmail.findMany.mockResolvedValue([
-        {
-          user: { id: userId, email: primaryEmail },
-        },
-      ]);
+      // Also found by secondary email (same user), then fetch all verified secondaries
+      mockPrisma.secondaryEmail.findMany
+        .mockResolvedValueOnce([
+          {
+            user: { id: userId, email: primaryEmail },
+          },
+        ])
+        .mockResolvedValueOnce([
+          {
+            userId: userId,
+            email: secondaryEmail,
+          },
+        ]);
 
       mockPrisma.booking.findMany.mockResolvedValue([]);
 
@@ -378,7 +394,7 @@ describe("GuestBusyTimesService", () => {
       });
 
       mockPrisma.user.findMany.mockResolvedValue([{ id: 100, email: "guest@cal.com" }]);
-      mockPrisma.secondaryEmail.findMany.mockResolvedValue([]);
+      mockPrisma.secondaryEmail.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
       mockPrisma.booking.findMany.mockResolvedValue([
         {
           id: 10,
@@ -427,7 +443,7 @@ describe("GuestBusyTimesService", () => {
       });
 
       mockPrisma.user.findMany.mockResolvedValue([{ id: guestUserId, email: "guest@cal.com" }]);
-      mockPrisma.secondaryEmail.findMany.mockResolvedValue([]);
+      mockPrisma.secondaryEmail.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
       mockPrisma.booking.findMany.mockResolvedValue([]);
 
       await service.getGuestBusyTimes({
@@ -463,7 +479,7 @@ describe("GuestBusyTimesService", () => {
       });
 
       mockPrisma.user.findMany.mockResolvedValue([{ id: 100, email: "guest@cal.com" }]);
-      mockPrisma.secondaryEmail.findMany.mockResolvedValue([]);
+      mockPrisma.secondaryEmail.findMany.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
       mockPrisma.booking.findMany.mockResolvedValue([]);
 
       const result = await service.getGuestBusyTimes({

@@ -21,6 +21,8 @@ export interface BookingAttendee {
 interface CalComUser {
   id: number;
   email: string;
+  /** All verified emails for this user (primary + verified secondaries) */
+  allEmails: string[];
 }
 
 /**
@@ -126,7 +128,7 @@ export class GuestBusyTimesService {
       for (const user of calComUsers) {
         const userBusyTimes = await this.getUserBookingBusyTimes({
           userId: user.id,
-          userEmail: user.email,
+          userEmails: user.allEmails,
           startTime,
           endTime,
           excludeBookingUid: rescheduleUid,
@@ -144,7 +146,11 @@ export class GuestBusyTimesService {
       };
     } catch (error) {
       // Fail gracefully - never block rescheduling on errors
-      log.error("Error fetching guest busy times, failing open", { error, rescheduleUid });
+      log.error("Error fetching guest busy times, failing open", {
+        errorName: error instanceof Error ? error.name : "UnknownError",
+        errorMessage: error instanceof Error ? error.message : String(error),
+        rescheduleUid,
+      });
       return {
         busyTimes: [],
         calComUserCount: 0,
@@ -178,7 +184,7 @@ export class GuestBusyTimesService {
 
   /**
    * Finds Cal.com users among the attendees using case-insensitive email matching.
-   * Also checks secondary verified emails.
+   * Also checks secondary verified emails and returns all verified emails for each user.
    */
   private async findCalComUsersFromAttendees(attendees: BookingAttendee[]): Promise<CalComUser[]> {
     const attendeeEmails = attendees.map((a) => a.email.toLowerCase());
@@ -201,7 +207,7 @@ export class GuestBusyTimesService {
     const unmatchedEmails = attendeeEmails.filter((email) => !foundPrimaryEmails.has(email));
 
     // Query 2: Find users by verified secondary email for unmatched emails
-    let usersBySecondaryEmail: CalComUser[] = [];
+    let usersBySecondaryEmail: { id: number; email: string }[] = [];
 
     if (unmatchedEmails.length > 0) {
       const secondaryEmailMatches = await this.dependencies.prisma.secondaryEmail.findMany({
@@ -229,34 +235,70 @@ export class GuestBusyTimesService {
 
     // Combine and deduplicate by user ID
     const allUsers = [...usersByPrimaryEmail, ...usersBySecondaryEmail];
-    const uniqueUsers = new Map<number, CalComUser>();
+    const uniqueUsersMap = new Map<number, { id: number; email: string }>();
 
     for (const user of allUsers) {
-      if (!uniqueUsers.has(user.id)) {
-        uniqueUsers.set(user.id, user);
+      if (!uniqueUsersMap.has(user.id)) {
+        uniqueUsersMap.set(user.id, user);
       }
     }
 
-    return Array.from(uniqueUsers.values());
+    // Query 3: For each unique user, fetch all their verified emails (primary + verified secondaries)
+    const userIds = Array.from(uniqueUsersMap.keys());
+    const allSecondaryEmails = await this.dependencies.prisma.secondaryEmail.findMany({
+      where: {
+        userId: {
+          in: userIds,
+        },
+        emailVerified: {
+          not: null,
+        },
+      },
+      select: {
+        userId: true,
+        email: true,
+      },
+    });
+
+    // Build map of userId -> all verified emails
+    const userEmailsMap = new Map<number, string[]>();
+    for (const user of uniqueUsersMap.values()) {
+      userEmailsMap.set(user.id, [user.email]); // Start with primary email
+    }
+
+    for (const secondaryEmail of allSecondaryEmails) {
+      const emails = userEmailsMap.get(secondaryEmail.userId);
+      if (emails) {
+        emails.push(secondaryEmail.email);
+      }
+    }
+
+    // Build final CalComUser array with all emails
+    return Array.from(uniqueUsersMap.values()).map((user) => ({
+      id: user.id,
+      email: user.email,
+      allEmails: userEmailsMap.get(user.id) || [user.email],
+    }));
   }
 
   /**
    * Fetches busy times from a user's bookings.
    * Includes both ACCEPTED and PENDING bookings.
    * Excludes the booking being rescheduled.
+   * Checks against all verified emails (primary + verified secondaries).
    */
   private async getUserBookingBusyTimes(params: {
     userId: number;
-    userEmail: string;
+    userEmails: string[];
     startTime: Date;
     endTime: Date;
     excludeBookingUid: string;
   }): Promise<EventBusyDetails[]> {
-    const { userId, userEmail, startTime, endTime, excludeBookingUid } = params;
+    const { userId, userEmails, startTime, endTime, excludeBookingUid } = params;
 
     // Find all bookings where the user is either:
     // 1. The owner (userId matches)
-    // 2. An attendee (email matches in attendees)
+    // 2. An attendee (any of their emails match in attendees)
     const bookings = await this.dependencies.prisma.booking.findMany({
       where: {
         AND: [
@@ -287,7 +329,7 @@ export class GuestBusyTimesService {
                 attendees: {
                   some: {
                     email: {
-                      equals: userEmail,
+                      in: userEmails, // Check against all verified emails
                       mode: "insensitive",
                     },
                   },

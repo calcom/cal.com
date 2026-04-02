@@ -1536,10 +1536,14 @@ export class AvailableSlotsService {
         }
       } catch (error) {
         // Fail gracefully - don't block rescheduling if guest availability check fails
-        loggerWithEventDetails.error("Failed to check guest availability during reschedule, continuing with host slots only", {
-          error,
-          rescheduleUid: input.rescheduleUid,
-        });
+        loggerWithEventDetails.error(
+          "Failed to check guest availability during reschedule, continuing with host slots only",
+          {
+            errorName: error instanceof Error ? error.name : "UnknownError",
+            errorMessage: error instanceof Error ? error.message : String(error),
+            rescheduleUid: input.rescheduleUid,
+          }
+        );
       }
     }
 
