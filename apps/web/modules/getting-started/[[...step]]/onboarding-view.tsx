@@ -65,7 +65,12 @@ const stepRouteSchema = z.object({
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 const OnboardingPage = (props: PageProps) => {
-  const { country = "IN" } = props;
+  const {
+    // country = "IN",
+    userId,
+    metadata,
+  } = props;
+
   const pathname = usePathname();
   const params = useParamsWithFallback();
 
@@ -82,7 +87,6 @@ const OnboardingPage = (props: PageProps) => {
   }, [props.google_signup_to_be_tracked, props.email]);
   const router = useRouter();
   const { update } = useSession();
-  const [user] = trpc.viewer.me.calid_get.useSuspenseQuery();
   const { t } = useLocale();
   const [isNextStepLoading, startTransition] = useTransition();
 
@@ -258,7 +262,7 @@ const OnboardingPage = (props: PageProps) => {
                 <UserSettings
                   nextStep={goToNextStep}
                   hideUsername={false}
-                  isPhoneFieldMandatory={country === "IN"}
+                  // isPhoneFieldMandatory={country === "IN"}
                 />
               )}
               {currentStep === "connected-calendar" && (
@@ -269,7 +273,8 @@ const OnboardingPage = (props: PageProps) => {
                 <ConnectedVideoStep
                   nextStep={goToNextStep}
                   isPageLoading={isNextStepLoading}
-                  userId={user?.id}
+                  userId={userId}
+                  userMetadata={metadata}
                 />
               )}
             </Suspense>

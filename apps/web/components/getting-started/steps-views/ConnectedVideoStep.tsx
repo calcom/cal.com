@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { List } from "@calcom/ui/components/list";
 import useCalendlyImport from "@calcom/web/lib/hooks/useCalendlyImport";
 
@@ -17,23 +16,23 @@ import { StepConnectionLoader } from "../components/StepConnectionLoader";
 interface ConnectedAppStepProps {
   nextStep: () => void;
   isPageLoading: boolean;
-  userId?: number;
+  userId: number;
+  userMetadata?: ReturnType<typeof userMetadata.parse> | null;
 }
 
 const ConnectedVideoStep = ({ ...props }: ConnectedAppStepProps) => {
-  const { nextStep, isPageLoading, userId } = props;
+  const { nextStep, isPageLoading, userId, userMetadata: _userMetadata } = props;
   const searchParams = useSearchParams();
   const [isCalendlyAuthorized, setIsCalendlyAuthorized] = useState<boolean | null>(null);
   const hasCheckedCalendlyRef = useRef(false);
   const hasImportedAndFinishedRef = useRef(false);
 
-  const { importFromCalendly, importing, sendCampaignEmails, handleChangeNotifyUsers } = useCalendlyImport(
-    userId ?? 0
-  );
+  const { importFromCalendly, importing, sendCampaignEmails, handleChangeNotifyUsers } =
+    useCalendlyImport(userId);
 
   // Check if user has Calendly connected (for "Import from Calendly and finish" button)
   useEffect(() => {
-    if (!userId || hasCheckedCalendlyRef.current) return;
+    if (hasCheckedCalendlyRef.current) return;
     hasCheckedCalendlyRef.current = true;
 
     fetch(`/api/import/calendly/auth?userId=${userId}`)
@@ -44,7 +43,7 @@ const ConnectedVideoStep = ({ ...props }: ConnectedAppStepProps) => {
 
   // When returning from Calendly OAuth with redirected=1, auto-import and finish
   useEffect(() => {
-    if (!userId || !isCalendlyAuthorized || hasImportedAndFinishedRef.current) return;
+    if (!isCalendlyAuthorized || hasImportedAndFinishedRef.current) return;
     const redirected = searchParams.get("redirected");
     if (redirected !== "1") return;
 
@@ -53,8 +52,6 @@ const ConnectedVideoStep = ({ ...props }: ConnectedAppStepProps) => {
   }, [userId, isCalendlyAuthorized, searchParams, importFromCalendly, nextStep]);
 
   const handleImportFromCalendlyAndFinish = () => {
-    if (!userId) return;
-
     if (isCalendlyAuthorized) {
       importFromCalendly().then(() => nextStep());
     } else {
@@ -83,10 +80,10 @@ const ConnectedVideoStep = ({ ...props }: ConnectedAppStepProps) => {
     sortByMostPopular: true,
     sortByInstalledFirst: true,
   });
-  const { data } = useMeQuery();
+  // const { data } = useMeQuery();
   const { t } = useLocale();
 
-  const metadata = userMetadata.parse(data?.metadata);
+  const metadata = userMetadata.parse(_userMetadata);
 
   const defaultConferencingApp = metadata?.defaultConferencingApp?.appSlug;
   return (
@@ -136,28 +133,26 @@ const ConnectedVideoStep = ({ ...props }: ConnectedAppStepProps) => {
           {t("finish")}
         </Button>
         <span className="text-subtle flex justify-center text-center text-sm">{t("or")}</span>
-        {userId && (
-          <div className="flex flex-col items-center gap-3">
-            <Button
-              color="primary"
-              data-testid="import-from-calendly-and-finish-button"
-              className={cn(
-                "bg-active border-active dark:border-default flex w-full flex-row justify-center rounded-md border text-center text-sm dark:bg-gray-200"
-              )}
-              loading={importing}
-              disabled={importing || isPageLoading}
-              onClick={handleImportFromCalendlyAndFinish}>
-              {t("calendly_import")}
-            </Button>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={sendCampaignEmails}
-                onCheckedChange={(checked) => handleChangeNotifyUsers(!!checked)}
-              />
-              <span className="text-subtle text-sm">{t("notify_calendly_import")}</span>
-            </div>
+        <div className="flex flex-col items-center gap-3">
+          <Button
+            color="primary"
+            data-testid="import-from-calendly-and-finish-button"
+            className={cn(
+              "bg-active border-active dark:border-default flex w-full flex-row justify-center rounded-md border text-center text-sm dark:bg-gray-200"
+            )}
+            loading={importing}
+            disabled={importing || isPageLoading}
+            onClick={handleImportFromCalendlyAndFinish}>
+            {t("calendly_import")}
+          </Button>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={sendCampaignEmails}
+              onCheckedChange={(checked) => handleChangeNotifyUsers(!!checked)}
+            />
+            <span className="text-subtle text-sm">{t("notify_calendly_import")}</span>
           </div>
-        )}
+        </div>
       </div>
     </>
   );

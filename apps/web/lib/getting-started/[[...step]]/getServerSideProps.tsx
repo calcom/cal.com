@@ -32,10 +32,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!session?.user?.id) {
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
+  const userId = session.user.id;
 
   const userRepo = new UserRepository(prisma);
   const user = await userRepo.findUserTeams({
-    id: session.user.id,
+    id: userId,
   });
 
   if (!user) {
@@ -79,7 +80,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     google_signup_to_be_tracked = true;
     const existingMetadata = (isPrismaObjOrUndefined(user.metadata) as Record<string, unknown>) || {};
     await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: userId },
       data: {
         metadata: {
           ...existingMetadata,
@@ -89,13 +90,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     });
   }
 
-  const country = await getRequestCountryOrigin(req); // Default to IN if country not found
+  // const country = await getRequestCountryOrigin(req); // Default to IN if country not found
   return {
     props: {
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
-      country,
+      // country,
       email: user.email,
-      userId: user.id,
+      userId,
       google_signup_to_be_tracked,
       has_google_signup_tracked,
       hasCompletedOnboarding: hasNotStartedOnboarding,
