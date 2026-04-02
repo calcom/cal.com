@@ -1509,7 +1509,7 @@ model RoutingFormResponseField {
   response         App_RoutingForms_FormResponse   @relation(fields: [responseId], references: [id], map: "RoutingFormResponseField_response_fkey", onDelete: Cascade)
   denormalized     RoutingFormResponseDenormalized @relation("DenormalizedResponseToFields", fields: [responseId], references: [id], onDelete: Cascade)
 
-  @@index([responseId])
+  @@index([responseId, fieldId])
   @@index([fieldId])
   @@index([valueNumber])
   @@index([valueStringArray], type: Gin)
@@ -1576,12 +1576,12 @@ model RoutingFormResponseDenormalized {
   response                App_RoutingForms_FormResponse @relation(fields: [id], references: [id], onDelete: Cascade)
   fields                  RoutingFormResponseField[]    @relation("DenormalizedResponseToFields")
 
-  @@index([formId])
-  @@index([formTeamId])
-  @@index([formUserId])
+  @@index([formUserId, createdAt])
   @@index([formId, createdAt])
+  @@index([formTeamId, createdAt])
+  @@index([formTeamId, formId, createdAt])
   @@index([bookingId])
-  @@index([bookingUserId])
+  @@index([bookingUserId, createdAt])
   @@index([eventTypeId, eventTypeParentId])
 }
 
