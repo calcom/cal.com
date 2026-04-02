@@ -28,6 +28,7 @@ type UserProfile =
 
 interface ImpersonatedUserData extends Pick<User, "id" | "username" | "email" | "name" | "role" | "locale"> {
   organizationId: number | null;
+  completedOnboarding: boolean;
   profile: UserProfile;
   calIdTeams: Array<{
     calIdTeamId: number;
@@ -101,6 +102,7 @@ class ImpersonationQueries {
         role: true,
         name: true,
         email: true,
+        completedOnboarding: true,
         disableImpersonation: true,
         locale: true,
         calIdTeams: {
@@ -132,6 +134,7 @@ class ImpersonationQueries {
         role: true,
         organizationId: true,
         locale: true,
+        completedOnboarding: true,
         profiles: true,
         calIdTeams: {
           where: { acceptedInvitation: true },
@@ -265,6 +268,7 @@ class ImpersonationHandlers {
         organizationId: originalUser.organizationId,
         role: originalUser.role,
         username: originalUser.username,
+        completedOnboarding: originalUser.completedOnboarding,
         profile: userProfile,
       },
       impersonatedByUID: originalUserId,
@@ -289,6 +293,7 @@ class ImpersonationHandlers {
       belongsToActiveCalIdTeam: hasActiveCalIdTeam,
       organizationId: targetUser.organizationId,
       locale: targetUser.locale,
+      completedOnboarding: targetUser.completedOnboarding,
       profile: targetUser.profile,
     };
 
