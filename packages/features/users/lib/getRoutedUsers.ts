@@ -96,6 +96,50 @@ type BaseHost<User extends BaseUser> = {
   groupId: string | null;
 };
 
+type NormalizedHost<User extends BaseUser> = {
+  isFixed: boolean;
+  user: User;
+  priority?: number | null;
+  weight?: number | null;
+  overrideMinimumBookingNotice?: number | null;
+  overrideBeforeEventBuffer?: number | null;
+  overrideAfterEventBuffer?: number | null;
+  overrideSlotInterval?: number | null;
+  overrideBookingLimits?: Prisma.JsonValue | null;
+  overrideDurationLimits?: Prisma.JsonValue | null;
+  overridePeriodType?: PeriodType | null;
+  overridePeriodStartDate?: Date | null;
+  overridePeriodEndDate?: Date | null;
+  overridePeriodDays?: number | null;
+  overridePeriodCountCalendarDays?: boolean | null;
+  createdAt: Date | null;
+  groupId: string | null;
+};
+
+function normalizeHostProjection<User extends BaseUser, Host extends BaseHost<User>>(
+  host: Host
+): NormalizedHost<User> {
+  return {
+    isFixed: host.isFixed,
+    user: host.user,
+    priority: host.priority,
+    weight: host.weight,
+    overrideMinimumBookingNotice: host.overrideMinimumBookingNotice,
+    overrideBeforeEventBuffer: host.overrideBeforeEventBuffer,
+    overrideAfterEventBuffer: host.overrideAfterEventBuffer,
+    overrideSlotInterval: host.overrideSlotInterval,
+    overrideBookingLimits: host.overrideBookingLimits,
+    overrideDurationLimits: host.overrideDurationLimits,
+    overridePeriodType: host.overridePeriodType,
+    overridePeriodStartDate: host.overridePeriodStartDate,
+    overridePeriodEndDate: host.overridePeriodEndDate,
+    overridePeriodDays: host.overridePeriodDays,
+    overridePeriodCountCalendarDays: host.overridePeriodCountCalendarDays,
+    createdAt: host.createdAt,
+    groupId: host.groupId,
+  };
+}
+
 export type EventType = {
   assignAllTeamMembers: boolean;
   assignRRMembersUsingSegment: boolean;
@@ -119,25 +163,7 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
 }) {
   if (eventType.hosts?.length && eventType.schedulingType) {
     return {
-      hosts: eventType.hosts.map((host) => ({
-        isFixed: host.isFixed,
-        user: host.user,
-        priority: host.priority,
-        weight: host.weight,
-        overrideMinimumBookingNotice: host.overrideMinimumBookingNotice,
-        overrideBeforeEventBuffer: host.overrideBeforeEventBuffer,
-        overrideAfterEventBuffer: host.overrideAfterEventBuffer,
-        overrideSlotInterval: host.overrideSlotInterval,
-        overrideBookingLimits: host.overrideBookingLimits,
-        overrideDurationLimits: host.overrideDurationLimits,
-        overridePeriodType: host.overridePeriodType,
-        overridePeriodStartDate: host.overridePeriodStartDate,
-        overridePeriodEndDate: host.overridePeriodEndDate,
-        overridePeriodDays: host.overridePeriodDays,
-        overridePeriodCountCalendarDays: host.overridePeriodCountCalendarDays,
-        createdAt: host.createdAt,
-        groupId: host.groupId,
-      })),
+      hosts: eventType.hosts.map(normalizeHostProjection),
       fallbackHosts: null,
     };
   } else {
@@ -170,25 +196,7 @@ export async function getNormalizedHostsWithDelegationCredentials<
   };
 }) {
   if (eventType.hosts?.length && eventType.schedulingType) {
-    const hostsWithoutDelegationCredential = eventType.hosts.map((host) => ({
-      isFixed: host.isFixed,
-      user: host.user,
-      priority: host.priority,
-      weight: host.weight,
-      overrideMinimumBookingNotice: host.overrideMinimumBookingNotice,
-      overrideBeforeEventBuffer: host.overrideBeforeEventBuffer,
-      overrideAfterEventBuffer: host.overrideAfterEventBuffer,
-      overrideSlotInterval: host.overrideSlotInterval,
-      overrideBookingLimits: host.overrideBookingLimits,
-      overrideDurationLimits: host.overrideDurationLimits,
-      overridePeriodType: host.overridePeriodType,
-      overridePeriodStartDate: host.overridePeriodStartDate,
-      overridePeriodEndDate: host.overridePeriodEndDate,
-      overridePeriodDays: host.overridePeriodDays,
-      overridePeriodCountCalendarDays: host.overridePeriodCountCalendarDays,
-      createdAt: host.createdAt,
-      groupId: host.groupId,
-    }));
+    const hostsWithoutDelegationCredential = eventType.hosts.map(normalizeHostProjection);
     const firstHost = hostsWithoutDelegationCredential[0];
     const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
       memberId: firstHost?.user?.id ?? null,
@@ -234,25 +242,7 @@ export async function findMatchingHostsWithEventSegment<User extends BaseUser>({
   hosts,
 }: {
   eventType: EventType;
-  hosts: {
-    isFixed: boolean;
-    user: User;
-    priority?: number | null;
-    weight?: number | null;
-    overrideMinimumBookingNotice?: number | null;
-    overrideBeforeEventBuffer?: number | null;
-    overrideAfterEventBuffer?: number | null;
-    overrideSlotInterval?: number | null;
-    overrideBookingLimits?: Prisma.JsonValue | null;
-    overrideDurationLimits?: Prisma.JsonValue | null;
-    overridePeriodType?: PeriodType | null;
-    overridePeriodStartDate?: Date | null;
-    overridePeriodEndDate?: Date | null;
-    overridePeriodDays?: number | null;
-    overridePeriodCountCalendarDays?: boolean | null;
-    createdAt: Date | null;
-    groupId: string | null;
-  }[];
+  hosts: NormalizedHost<User>[];
 }) {
   const matchingRRTeamMembers = await findMatchingTeamMembersIdsForEventRRSegment({
     ...eventType,
