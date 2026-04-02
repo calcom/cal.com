@@ -197,19 +197,20 @@ export default async function handleChildrenEventTypes({
   // Calculate if there are new workflows for which assigned members will get too
   const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
 
-  // Store result for existent event types deletion process
-  let deletedExistentEventTypes = undefined;
+  // Accumulate deletion results across both new and old user paths
+  let deletedExistentEventTypesCount = 0;
 
   // New users added
   if (newUserIds?.length) {
     // Check if there are children with existent homonym event types to send notifications
-    deletedExistentEventTypes = await checkExistentEventTypes({
+    const result = await checkExistentEventTypes({
       updatedEventType,
       children,
       prisma,
       userIds: newUserIds,
       teamName: oldEventType.team?.name ?? null,
     });
+    if (result?.count) deletedExistentEventTypesCount += result.count;
 
     // Create event types for new users added
     const eventTypesToCreateData = newUserIds.map((userId) => {
@@ -307,13 +308,14 @@ export default async function handleChildrenEventTypes({
   // Old users updated
   if (oldUserIds?.length) {
     // 1. Initial Checks and Setup
-    deletedExistentEventTypes = await checkExistentEventTypes({
+    const result = await checkExistentEventTypes({
       updatedEventType,
       children,
       prisma,
       userIds: oldUserIds,
       teamName: oldEventType.team?.name || null,
     });
+    if (result?.count) deletedExistentEventTypesCount += result.count;
 
     const { unlockedFields } = managedEventTypeValues.metadata?.managedEventConfig ?? {};
 
@@ -523,5 +525,10 @@ export default async function handleChildrenEventTypes({
     });
   }
 
-  return { newUserIds, oldUserIds, deletedUserIds, deletedExistentEventTypes };
+  return {
+    newUserIds,
+    oldUserIds,
+    deletedUserIds,
+    deletedExistentEventTypes: deletedExistentEventTypesCount > 0 ? { count: deletedExistentEventTypesCount } : undefined,
+  };
 }
