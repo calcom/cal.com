@@ -3,13 +3,20 @@ import dayjs from "@calcom/dayjs";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Prevent vitest worker shutdown race condition: getBusyTimesService transitively imports
-// webhook DI modules (WebhookTasker.module → WebhookTriggerTasker.module) which import
-// WebhookTriggerTasker. That import triggers slow module resolution via vite's RPC.
-// When the worker shuts down before it completes, it causes
-// "Closing rpc while fetch was pending" errors.
-vi.mock("@calcom/features/webhooks/lib/tasker/WebhookTriggerTasker", () => ({
-  WebhookTriggerTasker: vi.fn(),
+vi.mock("@calcom/features/calendars/lib/CalendarManager", () => ({
+  getBusyCalendarTimes: vi.fn().mockResolvedValue({ success: true, data: [] }),
+  createEvent: vi.fn().mockResolvedValue({}),
+  updateEvent: vi.fn().mockResolvedValue({}),
+  deleteEvent: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("@calcom/app-store/delegationCredential", () => ({
+  enrichHostsWithDelegationCredentials: vi.fn(),
+  getUsersCredentialsIncludeServiceAccountKey: vi.fn(),
+  getCredentialForSelectedCalendar: vi.fn(),
+  findUniqueDelegationCalendarCredential: vi.fn(),
+  getAllDelegationCredentialsForUserIncludeServiceAccountKey: vi.fn(),
+  getDelegationCredentialOrFindRegularCredential: vi.fn(),
 }));
 
 vi.mock("@calcom/prisma", () => ({
