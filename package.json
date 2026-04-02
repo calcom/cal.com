@@ -121,6 +121,8 @@
     "vitest-mock-extended": "3.1.0"
   },
   "resolutions": {
+    "path-to-regexp@^8.0.0": "8.4.0",
+    "path-to-regexp@0.1.12": "0.1.13",
     "@isaacs/brace-expansion": "5.0.1",
     "types-ramda": "0.29.4",
     "@apidevtools/json-schema-ref-parser": "9.0.9",
