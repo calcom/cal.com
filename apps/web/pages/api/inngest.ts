@@ -2,6 +2,7 @@ import { MetaError } from "@calid/features/modules/workflows/providers/meta";
 import { createInngestWorkflowContext, getInngestClient, JobName } from "@calid/job-dispatcher";
 import {
   calendlyImportService,
+  runCalendlyImportWithContinuation,
   bookingExportService,
   razorpayAppRevokedService,
   razorpayPaymentLinkPaidService,
@@ -52,7 +53,27 @@ const handleCalendlyImportFn = inngestClient.createFunction(
   { event: `${JobName.CALENDLY_IMPORT}-${key}` },
   async ({ event, step, logger }) => {
     const ctx = createInngestWorkflowContext(step, logger);
-    await calendlyImportService(ctx, event.data as CalendlyImportJobData);
+
+    logger.info("Calendly import Inngest handler started", { userId: event.data?.user?.id });
+
+    const continuation = await runCalendlyImportWithContinuation({
+      runImport: async () => {
+        await calendlyImportService(ctx, event.data as CalendlyImportJobData);
+      },
+      scheduleContinuation: async () => {
+        await inngestClient.send({
+          name: `${JobName.CALENDLY_IMPORT}-${key}`,
+          data: event.data as CalendlyImportJobData,
+        });
+      },
+    });
+
+    if (continuation.continued) {
+      logger.info("Calendly import continuation scheduled", { userId: event.data?.user?.id });
+      return { message: `Continuation scheduled for userID: ${event.data.user.id}` };
+    }
+
+    logger.info("Calendly import Inngest handler completed", { userId: event.data?.user?.id });
     return { message: `Import completed for userID: ${event.data.user.id}` };
   }
 );

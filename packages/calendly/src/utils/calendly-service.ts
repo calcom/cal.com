@@ -21,6 +21,7 @@ import type {
 } from "../types";
 
 const waitTime = 65000; //1min 5 seconds
+const RETRIABLE_STATUS_CODES = new Set([429, 502, 503, 504, 520]);
 
 export default class CalendlyAPIService {
   private apiConfig: {
@@ -129,7 +130,7 @@ export default class CalendlyAPIService {
       try {
         return (await this.request.get(url, await this.requestConfiguration())).data;
       } catch (e) {
-        if (axios.isAxiosError(e) && e.response && (e.response.status === 429 || e.response.status === 520)) {
+        if (axios.isAxiosError(e) && e.response && RETRIABLE_STATUS_CODES.has(e.response.status)) {
           throw new RetryAfterError(
             `RetryError - ${fnName}: ${e instanceof Error ? e.message : e}`,
             waitTime
@@ -319,7 +320,7 @@ export default class CalendlyAPIService {
             return response.data;
           } catch (e) {
             if (axios.isAxiosError(e) && e.response) {
-              if (e.response.status === 429 || e.response.status === 520) {
+              if (RETRIABLE_STATUS_CODES.has(e.response.status)) {
                 throw new RetryAfterError(
                   `RetryError - getUserScheduledEventInvitees: ${e instanceof Error ? e.message : e}`,
                   waitTime

@@ -20,6 +20,7 @@ import { getServerTimezone } from "@calcom/lib/timezone";
 import prisma from "@calcom/prisma";
 import { BookingStatus, IntegrationProvider, SchedulingType } from "@calcom/prisma/enums";
 
+import { CALENDLY_IMPORT_CONTINUATION_ERROR } from "./calendlyImportContinuation";
 import type { CalendlyImportJobData } from "./type";
 
 // ============================================================================
@@ -166,44 +167,46 @@ const fetchCalendlyData = async (
   userAvailabilitySchedules: CalendlyUserAvailabilitySchedules[];
   userEventTypes: CalendlyEventType[];
 }> => {
-  return await ctx.run("fetch-calendly-data", async () => {
-    try {
-      const userAvailabilitySchedules = await cAService.getUserAvailabilitySchedules({
-        userUri: ownerUniqIdentifier,
-        step: ctx as any,
-      });
+  try {
+    ctx.log("Fetching Calendly availability schedules");
+    const userAvailabilitySchedules = await cAService.getUserAvailabilitySchedules({
+      userUri: ownerUniqIdentifier,
+      step: ctx as any,
+    });
 
-      const userEventTypes = await cAService.getUserEventTypes({
-        userUri: ownerUniqIdentifier,
-        active: true,
-        step: ctx as any,
-      });
+    ctx.log("Fetching Calendly event types");
+    const userEventTypes = await cAService.getUserEventTypes({
+      userUri: ownerUniqIdentifier,
+      active: true,
+      step: ctx as any,
+    });
 
-      const sixHoursBefore = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+    const sixHoursBefore = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
 
-      const existingUser = await prisma.user.findUnique({
-        where: { id: userId },
-      });
-      const calendlyNextPageUrl = isPrismaObjOrUndefined(existingUser?.metadata)?.calendlyNextPageUrl;
-      const userScheduledEvents = await cAService.getUserScheduledEvents({
-        userId,
-        userUri: ownerUniqIdentifier,
-        maxStartTime: sixHoursBefore.replace(/(\.\d{3})Z$/, "$1000Z"),
-        step: ctx as any,
-        ...(calendlyNextPageUrl && {
-          next_page: calendlyNextPageUrl as string,
-        }),
-      });
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    const calendlyNextPageUrl = isPrismaObjOrUndefined(existingUser?.metadata)?.calendlyNextPageUrl;
 
-      return {
-        userScheduledEvents,
-        userAvailabilitySchedules,
-        userEventTypes,
-      };
-    } catch (error) {
-      throw new Error(`fetchCalendlyData failed: ${error instanceof Error ? error.message : error}`);
-    }
-  });
+    ctx.log("Fetching Calendly scheduled events");
+    const userScheduledEvents = await cAService.getUserScheduledEvents({
+      userId,
+      userUri: ownerUniqIdentifier,
+      maxStartTime: sixHoursBefore.replace(/(\.\d{3})Z$/, "$1000Z"),
+      step: ctx as any,
+      ...(calendlyNextPageUrl && {
+        next_page: calendlyNextPageUrl as string,
+      }),
+    });
+
+    return {
+      userScheduledEvents,
+      userAvailabilitySchedules,
+      userEventTypes,
+    };
+  } catch (error) {
+    throw new Error(`fetchCalendlyData failed: ${error instanceof Error ? error.message : error}`);
+  }
 };
 
 const combinedRules = (rules: CalendlyUserAvailabilityRules[]): CombinedAvailabilityRules[] => {
@@ -257,13 +260,10 @@ const getEventScheduler = async (
 
   for (let i = 0; i < uuids.length; i += batchSize) {
     const batchUuids = uuids.slice(i, i + batchSize);
-
-    const inviteesResults = await ctx.run(`get-invitees-batch-${i / batchSize + 1}`, async () => {
-      return await getUserScheduledEventInvitees({
-        uuids: batchUuids,
-        batch: i / batchSize + 1,
-        step: ctx as any,
-      });
+    const inviteesResults = await getUserScheduledEventInvitees({
+      uuids: batchUuids,
+      batch: i / batchSize + 1,
+      step: ctx as any,
     });
 
     const inviteesMap = new Map(inviteesResults.map(({ uuid, invitees }) => [uuid, invitees]));
@@ -882,11 +882,11 @@ export async function calendlyImportService(
     } else {
       // Signal continuation required
       ctx.log("More events to process - continuation required");
-      throw new Error("CONTINUATION_REQUIRED");
+      throw new Error(CALENDLY_IMPORT_CONTINUATION_ERROR);
     }
   } catch (error) {
     // If it's the continuation signal, rethrow it
-    if (error instanceof Error && error.message === "CONTINUATION_REQUIRED") {
+    if (error instanceof Error && error.message === CALENDLY_IMPORT_CONTINUATION_ERROR) {
       throw error;
     }
 
