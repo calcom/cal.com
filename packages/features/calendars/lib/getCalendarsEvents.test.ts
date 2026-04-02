@@ -2,6 +2,16 @@ import "@calcom/testing/lib/__mocks__/prisma";
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
+// Prevent vitest worker shutdown race condition: getCalendarsEvents transitively imports
+// webhook DI modules which load the payload builder registry (v2021-10-20/index.ts).
+// The RecordingPayloadBuilder import triggers slow module resolution via vite's RPC.
+// When the worker shuts down before it completes, it causes
+// "Closing rpc while fetch was pending" errors.
+vi.mock("@calcom/features/webhooks/lib/factory/versioned/registry", () => ({
+  createPayloadBuilderFactory: vi.fn().mockReturnValue({}),
+  DEFAULT_WEBHOOK_VERSION: "v2021-10-20",
+}));
+
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";

@@ -3,6 +3,15 @@ import dayjs from "@calcom/dayjs";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+// Prevent vitest worker shutdown race condition: getBusyTimesService transitively imports
+// webhook DI modules (WebhookTasker.module → WebhookTriggerTasker.module) which import
+// WebhookTriggerTasker. That import triggers slow module resolution via vite's RPC.
+// When the worker shuts down before it completes, it causes
+// "Closing rpc while fetch was pending" errors.
+vi.mock("@calcom/features/webhooks/lib/tasker/WebhookTriggerTasker", () => ({
+  WebhookTriggerTasker: vi.fn(),
+}));
+
 vi.mock("@calcom/prisma", () => ({
   default: prisma,
   prisma,
