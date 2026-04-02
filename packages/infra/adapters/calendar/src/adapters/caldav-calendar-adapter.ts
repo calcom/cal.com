@@ -223,10 +223,16 @@ function buildICalEvent(uid: string, event: CalendarEventInput): string {
   if (event.location) {
     lines.push(`LOCATION:${escapeICalText(event.location)}`);
   }
+  // SCHEDULE-AGENT=CLIENT tells the CalDAV server not to send its own
+  // invitation emails, preventing duplicates with Cal.com's emails (RFC 6638).
+  if (event.organizer) {
+    const orgCn = event.organizer.name ? `;CN=${escapeICalText(event.organizer.name)}` : "";
+    lines.push(`ORGANIZER${orgCn};SCHEDULE-AGENT=CLIENT:mailto:${event.organizer.email}`);
+  }
   if (event.attendees) {
     for (const attendee of event.attendees) {
       const cn = attendee.name ? `;CN=${escapeICalText(attendee.name)}` : "";
-      lines.push(`ATTENDEE${cn}:mailto:${attendee.email}`);
+      lines.push(`ATTENDEE${cn};SCHEDULE-AGENT=CLIENT:mailto:${attendee.email}`);
     }
   }
 
