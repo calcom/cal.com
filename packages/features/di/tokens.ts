@@ -9,6 +9,7 @@ import { BOOKING_REPORT_DI_TOKENS } from "@calcom/features/bookingReport/di/toke
 import { BOOKING_DI_TOKENS } from "@calcom/features/bookings/di/tokens";
 import { CALENDAR_SUBSCRIPTION_DI_TOKENS } from "@calcom/features/calendar-subscription/di/tokens";
 import { CALENDARS_DI_TOKENS } from "@calcom/features/calendars/di/tokens";
+import { CRM_TASKER_DI_TOKENS } from "@calcom/features/crmManager/di/tasker/tokens";
 import { ACTIVE_USER_BILLING_DI_TOKENS } from "@calcom/features/ee/billing/active-user/di/tokens";
 import { ORGANIZATION_DI_TOKENS } from "@calcom/features/ee/organizations/di/tokens";
 import { EVENT_TYPE_DI_TOKENS } from "@calcom/features/eventtypes/di/tokens";
@@ -119,6 +120,7 @@ export const DI_TOKENS = {
   ...EVENT_TYPE_DI_TOKENS,
   ...CALENDARS_DI_TOKENS,
   ...CALENDAR_SUBSCRIPTION_DI_TOKENS,
+  ...CRM_TASKER_DI_TOKENS,
   ...EXPERIMENTS_DI_TOKENS,
   USER_CREATION_SERVICE: Symbol("UserCreationService"),
   USER_CREATION_SERVICE_MODULE: Symbol("UserCreationServiceModule"),

@@ -21,6 +21,7 @@ export default defineConfig({
     "./bookings/lib/tasker/trigger/notifications",
     "./booking-audit/lib/tasker/trigger",
     "./calendars/lib/tasker/trigger",
+    "./crmManager/tasker/trigger",
     "./ee/billing/service/dunning/trigger",
     "./ee/billing/service/proration/tasker/trigger",
     "./ee/organizations/lib/billing/tasker/trigger",

@@ -1,63 +1,41 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-vi.mock("@calcom/features/tasker");
-vi.mock("@calcom/features/tasker/tasks", () => ({
-  tasksConfig: {
-    createCRMEvent: {
-      maxAttempts: 10,
-    },
-  },
+const mockCreateEvent = vi.fn();
+
+vi.mock("@calcom/features/crmManager/di/tasker/crm-tasker.container", () => ({
+  getCRMTasker: () => ({
+    createEvent: mockCreateEvent,
+  }),
 }));
 
-import tasker from "@calcom/features/tasker";
-import { tasksConfig } from "@calcom/features/tasker/tasks";
 import CRMScheduler from "./crmScheduler";
-
-const mockedTasker: ReturnType<typeof vi.mocked<typeof tasker>> = vi.mocked(tasker);
 
 describe("CRMScheduler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  test("scenario 28: calls tasker.create with correct task name and payload", async () => {
-    mockedTasker.create.mockResolvedValue("task-id-1");
+  test("scenario 28: calls CRMTasker.createEvent with correct payload", async () => {
+    mockCreateEvent.mockResolvedValue({ runId: "run-123" });
 
     await CRMScheduler.createEvent({ bookingUid: "booking-123" });
 
-    expect(mockedTasker.create).toHaveBeenCalledWith(
-      "createCRMEvent",
-      { bookingUid: "booking-123" },
-      { maxAttempts: 10 }
-    );
+    expect(mockCreateEvent).toHaveBeenCalledWith({
+      payload: { bookingUid: "booking-123" },
+    });
   });
 
-  test("scenario 29: uses tasksConfig.createCRMEvent.maxAttempts when defined", async () => {
-    mockedTasker.create.mockResolvedValue("task-id-2");
+  test("scenario 29: returns the runId from CRMTasker", async () => {
+    mockCreateEvent.mockResolvedValue({ runId: "run-456" });
 
-    await CRMScheduler.createEvent({ bookingUid: "booking-456" });
+    const result = await CRMScheduler.createEvent({ bookingUid: "booking-456" });
 
-    const callArgs = mockedTasker.create.mock.calls[0];
-    expect(callArgs[2]).toEqual({ maxAttempts: tasksConfig.createCRMEvent?.maxAttempts });
+    expect(result).toEqual({ runId: "run-456" });
   });
 
-  test("scenario 30: falls back to maxAttempts 5 when tasksConfig.createCRMEvent is undefined", async () => {
-    // Override the tasksConfig mock to remove createCRMEvent
-    const originalConfig = tasksConfig.createCRMEvent;
-    // @ts-expect-error -- intentionally setting to undefined for test
-    tasksConfig.createCRMEvent = undefined;
+  test("scenario 30: propagates errors from CRMTasker", async () => {
+    mockCreateEvent.mockRejectedValue(new Error("CRM task failed"));
 
-    mockedTasker.create.mockResolvedValue("task-id-3");
-
-    await CRMScheduler.createEvent({ bookingUid: "booking-789" });
-
-    expect(mockedTasker.create).toHaveBeenCalledWith(
-      "createCRMEvent",
-      { bookingUid: "booking-789" },
-      { maxAttempts: 5 }
-    );
-
-    // Restore
-    tasksConfig.createCRMEvent = originalConfig;
+    await expect(CRMScheduler.createEvent({ bookingUid: "booking-789" })).rejects.toThrow("CRM task failed");
   });
 });
