@@ -210,7 +210,7 @@ async function getAllUserAndTeamEventTypes(teamIds: number[], notMemberOfTeamId:
     membership.user.eventTypes.map((et: any) => et.id)
   );
 
-  return teamEventTypes.map((et) => et.id).concat(userEventTypes);
+  return teamEventTypes.map((et: any) => et.id).concat(userEventTypes);
 }
 
 export async function isAuthorizedToAddActiveOnIds({

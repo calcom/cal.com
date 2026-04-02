@@ -55,7 +55,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
 
   const { routes, routers } = await getEnrichedRoutesAndRouters(parsedRoutes, form.userId);
 
-  const connectedForms = (await getConnectedForms(prisma, form)).map((f) => ({
+  const connectedForms = ((await getConnectedForms(prisma, form)) as any[]).map((f) => ({
     id: f.id,
     name: f.name,
     description: f.description,

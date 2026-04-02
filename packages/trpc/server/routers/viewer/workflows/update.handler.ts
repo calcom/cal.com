@@ -40,10 +40,7 @@ import {
 
 type UpdateOptions = {
   ctx: {
-    user: Pick<
-      NonNullable<TrpcSessionUser>,
-      "id" | "metadata" | "locale" | "organizationId"
-    > & { timeFormat?: number | null; timeZone?: string | null };
+    user: any;
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;

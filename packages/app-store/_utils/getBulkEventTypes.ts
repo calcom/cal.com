@@ -97,3 +97,22 @@ export const filterEventTypesWhereLocationUpdateIsAllowed = <
   });
   return filteredEventTypes;
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

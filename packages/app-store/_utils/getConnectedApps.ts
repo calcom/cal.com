@@ -148,14 +148,14 @@ export async function getConnectedApps({
   //TODO: Refactor this to pick up only needed fields and prevent more leaking
   let apps = await Promise.all(
     enabledApps.map(async ({ credentials: _, credential, key: _2 /* don't leak to frontend */, ...app }) => {
-      const userCredentialIds = credentials.filter((c) => c.appId === app.slug && !c.teamId).map((c) => c.id);
+      const userCredentialIds = credentials.filter((c: any) => c.appId === app.slug && !c.teamId).map((c: any) => c.id);
       const invalidCredentialIds = credentials
-        .filter((c) => c.appId === app.slug && c.invalid)
-        .map((c) => c.id);
+        .filter((c: any) => c.appId === app.slug && c.invalid)
+        .map((c: any) => c.id);
       const teams = await Promise.all(
         credentials
-          .filter((c) => c.appId === app.slug && c.teamId)
-          .map(async (c) => {
+          .filter((c: any) => c.appId === app.slug && c.teamId)
+          .map(async (c: any) => {
             const team = userTeams.find((team) => team.id === c.teamId);
             if (!team) {
               return null;
