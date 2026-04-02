@@ -43,6 +43,7 @@ Cal.com API v2 enables AI agents to:
 - **Manage event types** - Create and configure different meeting types
 - **Handle rescheduling and cancellations** - Modify existing bookings
 - **Manage schedules** - Set and update user availability
+- **Track credit usage** - Check balances and charge credits for agent interactions
 
 ## Authentication
 
@@ -200,6 +201,112 @@ curl -X POST "https://api.cal.com/v2/bookings/{bookingUid}/cancel" \
   }'
 ```
 
+## Credit management
+
+If your AI agent runs on the Cal.com platform, you can track usage by checking and charging credits through the API. This is useful for metering agent interactions against your account's credit balance.
+
+### Check available credits
+
+Before performing a billable action, verify that the user or team has sufficient credits:
+
+```bash
+curl -X GET "https://api.cal.com/v2/credits/available" \
+  -H "Authorization: Bearer cal_live_xxxxxxxxxxxx" \
+  -H "cal-api-version: 2024-08-13"
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "hasCredits": true,
+    "balance": {
+      "monthlyRemaining": 450,
+      "additional": 200
+    }
+  }
+}
+```
+
+The `balance` object breaks down your remaining credits:
+- `monthlyRemaining` — credits included in your current billing cycle
+- `additional` — purchased credits outside the monthly allowance
+
+### Charge credits
+
+After a completed agent interaction, charge the appropriate number of credits:
+
+```bash
+curl -X POST "https://api.cal.com/v2/credits/charge" \
+  -H "Authorization: Bearer cal_live_xxxxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -H "cal-api-version: 2024-08-13" \
+  -d '{
+    "credits": 5,
+    "creditFor": "AI_AGENT",
+    "externalRef": "agent-thread-abc-1711432800000"
+  }'
+```
+
+Response:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "charged": true,
+    "remainingBalance": {
+      "monthlyRemaining": 445,
+      "additional": 200
+    }
+  }
+}
+```
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `credits` | Yes | Number of credits to charge (minimum 1) |
+| `creditFor` | Yes | Usage type — use `AI_AGENT` for agent interactions |
+| `externalRef` | No | Unique reference string for idempotency. Prevents double-charging if the same request is retried. |
+
+<Tip>
+  Always include an `externalRef` tied to your agent's conversation or thread ID. This prevents duplicate charges if a network retry sends the same request twice.
+</Tip>
+
+### Example: check-then-charge pattern
+
+```typescript
+const headers = {
+  "Authorization": "Bearer cal_live_xxxxxxxxxxxx",
+  "Content-Type": "application/json",
+  "cal-api-version": "2024-08-13"
+};
+
+// 1. Check credits before starting work
+const available = await fetch("https://api.cal.com/v2/credits/available", { headers });
+const { data } = await available.json();
+
+if (!data.hasCredits) {
+  throw new Error("No credits available");
+}
+
+// 2. Perform the agent interaction
+const result = await runAgentTask();
+
+// 3. Charge credits after completion
+await fetch("https://api.cal.com/v2/credits/charge", {
+  method: "POST",
+  headers,
+  body: JSON.stringify({
+    credits: 5,
+    creditFor: "AI_AGENT",
+    externalRef: `thread-${threadId}-${Date.now()}`
+  })
+});
+```
+
 ## Best practices for AI agents
 
 ### Handle time zones correctly
@@ -289,3 +396,5 @@ Key endpoints for agents:
 | `GET /v2/event-types` | List event types |
 | `GET /v2/schedules` | Get user schedules |
 | `POST /v2/webhooks` | Configure webhooks |
+| `GET /v2/credits/available` | Check credit balance |
+| `POST /v2/credits/charge` | Charge credits for usage |
