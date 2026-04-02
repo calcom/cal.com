@@ -50,7 +50,6 @@ import type { CalendarFetchMode, EventBusyDetails, IntervalLimitUnit } from "@ca
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { TimeRange, WorkingHours as WorkingHoursWithUserId } from "@calcom/types/schedule";
 import type { Ensure, Optional } from "@calcom/types/utils";
-import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
 import { detectEventTypeScheduleForUser } from "./detectEventTypeScheduleForUser";
 
@@ -507,7 +506,6 @@ export class UserAvailabilityService {
     // but not using these values at all, wasting CPU. Adding this check here temporarily to avoid a larger refactor
     // since other callers do using this data.
     if (returnDateOverrides) {
-      const calculateDateOverridesSpan = Sentry.startInactiveSpan({ name: "calculateDateOverrides" });
       const availabilityWithDates = availability.filter((availability) => !!availability.date);
 
       for (let i = 0; i < availabilityWithDates.length; i++) {
@@ -526,8 +524,6 @@ export class UserAvailabilityService {
           });
         }
       }
-
-      calculateDateOverridesSpan.end();
     }
 
     const outOfOfficeDays =

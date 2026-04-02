@@ -9,7 +9,6 @@ import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
-import { withReporting } from "@calcom/lib/sentryWrapper";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
 import type { Booking, EventType, Prisma, SelectedCalendar } from "@calcom/prisma/client";
@@ -27,7 +26,7 @@ export interface IBusyTimesService {
 export class BusyTimesService {
   constructor(public readonly dependencies: IBusyTimesService) {}
 
-  async _getBusyTimes(params: {
+  async getBusyTimes(params: {
     credentials: CredentialForCalendarService[];
     userId: number;
     userEmail: string;
@@ -293,8 +292,6 @@ export class BusyTimesService {
     );
     return busyTimes;
   }
-
-  getBusyTimes = withReporting(this._getBusyTimes.bind(this), "getBusyTimes");
 
   getStartEndDateforLimitCheck(
     startDate: string,

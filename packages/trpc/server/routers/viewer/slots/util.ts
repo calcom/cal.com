@@ -252,7 +252,7 @@ export class AvailableSlotsService {
    * if date overrides should be included (to handle timezone edge cases), which can
    * cause slots from adjacent days to leak into the response.
    */
-  private _filterSlotsByRequestedDateRange<
+  private filterSlotsByRequestedDateRange<
     T extends Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
   >({
     slotsMappedToDate,
@@ -292,12 +292,8 @@ export class AvailableSlotsService {
     }
     return filtered;
   }
-  private filterSlotsByRequestedDateRange = withReporting(
-    this._filterSlotsByRequestedDateRange.bind(this),
-    "filterSlotsByRequestedDateRange"
-  );
 
-  private _getAllDatesWithBookabilityStatus(availableDates: string[]) {
+  private getAllDatesWithBookabilityStatus(availableDates: string[]) {
     const availableDatesSet = new Set(availableDates);
     const firstDate = dayjs(availableDates[0]);
     const lastDate = dayjs(availableDates[availableDates.length - 1]);
@@ -313,11 +309,6 @@ export class AvailableSlotsService {
     }
     return allDates;
   }
-
-  private getAllDatesWithBookabilityStatus = withReporting(
-    this._getAllDatesWithBookabilityStatus.bind(this),
-    "getAllDatesWithBookabilityStatus"
-  );
 
   private async getUserIdFromUsername(
     username: string,
@@ -868,7 +859,7 @@ export class AvailableSlotsService {
   }
   private getOOODates = withReporting(this._getOOODates.bind(this), "getOOODates");
 
-  private _getUsersWithCredentials({
+  private getUsersWithCredentials({
     hosts,
   }: {
     hosts: {
@@ -879,11 +870,6 @@ export class AvailableSlotsService {
   }) {
     return hosts.map(({ isFixed, groupId, user }) => ({ isFixed, groupId, ...user }));
   }
-
-  private getUsersWithCredentials = withReporting(
-    this._getUsersWithCredentials.bind(this),
-    "getUsersWithCredentials"
-  );
 
   private getStartTime(startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) {
     const startTimeMin = dayjs.utc().add(minimumBookingNotice || 1, "minutes");
@@ -1070,7 +1056,7 @@ export class AvailableSlotsService {
       teamBookingLimitsPromise,
     ]);
 
-    function _enrichUsersWithData() {
+    function enrichUsersWithData() {
       return usersWithCredentials.map((currentUser) => {
         const seenBookingIds = new Set<number>();
         const userCurrentBookings: typeof currentBookingsAllUsers = [];
@@ -1103,7 +1089,6 @@ export class AvailableSlotsService {
         };
       });
     }
-    const enrichUsersWithData = withReporting(_enrichUsersWithData.bind(this), "enrichUsersWithData");
     const users = enrichUsersWithData();
 
     const premappedUsersAvailability = await this.dependencies.userAvailabilityService.getUsersAvailability({
@@ -1596,7 +1581,7 @@ export class AvailableSlotsService {
       timeZone: input.timeZone,
     });
 
-    function _mapSlotsToDate() {
+    function mapSlotsToDate() {
       const currentSeatsMap = new Map();
 
       if (currentSeats && currentSeats.length > 0) {
@@ -1639,7 +1624,6 @@ export class AvailableSlotsService {
         Object.create(null)
       );
     }
-    const mapSlotsToDate = withReporting(_mapSlotsToDate.bind(this), "mapSlotsToDate");
     const slotsMappedToDate = mapSlotsToDate();
 
     const availableDates = Object.keys(slotsMappedToDate);
@@ -1664,7 +1648,7 @@ export class AvailableSlotsService {
       bookerUtcOffset,
     });
 
-    const _mapWithinBoundsSlotsToDate = () => {
+    const mapWithinBoundsSlotsToDate = () => {
       let foundAFutureLimitViolation = false;
       // This should never happen. Just for type safety, we already check in the upper scope
       if (!eventType) throw new TRPCError({ code: "NOT_FOUND" });
@@ -1697,10 +1681,6 @@ export class AvailableSlotsService {
 
       return withinBoundsSlotsMappedToDate;
     };
-    const mapWithinBoundsSlotsToDate = withReporting(
-      _mapWithinBoundsSlotsToDate.bind(this),
-      "mapWithinBoundsSlotsToDate"
-    );
     const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
 
     const filteredSlotsMappedToDate = this.filterSlotsByRequestedDateRange({

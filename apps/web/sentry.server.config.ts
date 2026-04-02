@@ -12,9 +12,8 @@ Sentry.init({
   sampleRate: parseFloat(process.env.SENTRY_SAMPLE_RATE ?? "1.0") || 1.0,
   tracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE ?? "0.0") || 0.0,
   integrations: [Sentry.httpIntegration()],
-  // Filter noisy Prisma child spans (serialize, compile, query, db_query) but keep prisma:client:operation.
-  // Also filter low-level "db" spans (pg-pool.connect, SELECT, etc.) that are children of Prisma spans.
-  ignoreSpans: [{ op: /^prisma:client:(?!operation)/ }, { op: "db" }],
+  // Drop all Prisma and low-level DB spans — we have other ways to monitor slow queries.
+  ignoreSpans: [{ op: /^prisma:/ }, { op: "db" }],
   beforeSend(event) {
     event.tags = {
       ...event.tags,
