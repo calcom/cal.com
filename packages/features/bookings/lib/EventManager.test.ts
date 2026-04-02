@@ -18,6 +18,11 @@ vi.mock("@calcom/features/watchlist/operations/check-if-users-are-blocked.contro
 vi.mock("@calcom/features/watchlist/lib/telemetry", () => ({
   sentrySpan: vi.fn(),
 }));
+vi.mock("@calcom/lib/i18n", () => ({
+  locales: ["en"],
+  localeOptions: [{ value: "en", label: "English" }],
+  defaultLocaleOption: { value: "en", label: "English" },
+}));
 
 import process from "node:process";
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
