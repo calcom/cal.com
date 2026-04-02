@@ -6,6 +6,7 @@ import type { GetUserAvailabilityResult } from "@calcom/features/availability/li
 import type { userSelect } from "@calcom/prisma";
 import type { App } from "@calcom/prisma/client";
 import type { Prisma } from "@calcom/prisma/client";
+import type { PeriodType } from "@calcom/prisma/enums";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
@@ -39,6 +40,17 @@ export type IsFixedAwareUser = User & {
   organization?: { slug: string };
   priority?: number;
   weight?: number;
+  overrideMinimumBookingNotice?: number | null;
+  overrideBeforeEventBuffer?: number | null;
+  overrideAfterEventBuffer?: number | null;
+  overrideSlotInterval?: number | null;
+  overrideBookingLimits?: Prisma.JsonValue | null;
+  overrideDurationLimits?: Prisma.JsonValue | null;
+  overridePeriodType?: PeriodType | null;
+  overridePeriodStartDate?: Date | null;
+  overridePeriodEndDate?: Date | null;
+  overridePeriodDays?: number | null;
+  overridePeriodCountCalendarDays?: boolean | null;
   userLevelSelectedCalendars: SelectedCalendar[];
   allSelectedCalendars: SelectedCalendar[];
   groupId?: string | null;

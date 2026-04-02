@@ -3,8 +3,10 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { Prisma } from "@calcom/prisma/client";
 import type { RRResetInterval } from "@calcom/prisma/client";
 import type { RRTimestampBasis } from "@calcom/prisma/enums";
+import type { PeriodType } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -79,6 +81,17 @@ type BaseHost<User extends BaseUser> = {
   priority?: number | null;
   weight?: number | null;
   weightAdjustment?: number | null;
+  overrideMinimumBookingNotice?: number | null;
+  overrideBeforeEventBuffer?: number | null;
+  overrideAfterEventBuffer?: number | null;
+  overrideSlotInterval?: number | null;
+  overrideBookingLimits?: Prisma.JsonValue | null;
+  overrideDurationLimits?: Prisma.JsonValue | null;
+  overridePeriodType?: PeriodType | null;
+  overridePeriodStartDate?: Date | null;
+  overridePeriodEndDate?: Date | null;
+  overridePeriodDays?: number | null;
+  overridePeriodCountCalendarDays?: boolean | null;
   user: User;
   groupId: string | null;
 };
@@ -111,6 +124,17 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
         user: host.user,
         priority: host.priority,
         weight: host.weight,
+        overrideMinimumBookingNotice: host.overrideMinimumBookingNotice,
+        overrideBeforeEventBuffer: host.overrideBeforeEventBuffer,
+        overrideAfterEventBuffer: host.overrideAfterEventBuffer,
+        overrideSlotInterval: host.overrideSlotInterval,
+        overrideBookingLimits: host.overrideBookingLimits,
+        overrideDurationLimits: host.overrideDurationLimits,
+        overridePeriodType: host.overridePeriodType,
+        overridePeriodStartDate: host.overridePeriodStartDate,
+        overridePeriodEndDate: host.overridePeriodEndDate,
+        overridePeriodDays: host.overridePeriodDays,
+        overridePeriodCountCalendarDays: host.overridePeriodCountCalendarDays,
         createdAt: host.createdAt,
         groupId: host.groupId,
       })),
@@ -151,6 +175,17 @@ export async function getNormalizedHostsWithDelegationCredentials<
       user: host.user,
       priority: host.priority,
       weight: host.weight,
+      overrideMinimumBookingNotice: host.overrideMinimumBookingNotice,
+      overrideBeforeEventBuffer: host.overrideBeforeEventBuffer,
+      overrideAfterEventBuffer: host.overrideAfterEventBuffer,
+      overrideSlotInterval: host.overrideSlotInterval,
+      overrideBookingLimits: host.overrideBookingLimits,
+      overrideDurationLimits: host.overrideDurationLimits,
+      overridePeriodType: host.overridePeriodType,
+      overridePeriodStartDate: host.overridePeriodStartDate,
+      overridePeriodEndDate: host.overridePeriodEndDate,
+      overridePeriodDays: host.overridePeriodDays,
+      overridePeriodCountCalendarDays: host.overridePeriodCountCalendarDays,
       createdAt: host.createdAt,
       groupId: host.groupId,
     }));
@@ -204,6 +239,17 @@ export async function findMatchingHostsWithEventSegment<User extends BaseUser>({
     user: User;
     priority?: number | null;
     weight?: number | null;
+    overrideMinimumBookingNotice?: number | null;
+    overrideBeforeEventBuffer?: number | null;
+    overrideAfterEventBuffer?: number | null;
+    overrideSlotInterval?: number | null;
+    overrideBookingLimits?: Prisma.JsonValue | null;
+    overrideDurationLimits?: Prisma.JsonValue | null;
+    overridePeriodType?: PeriodType | null;
+    overridePeriodStartDate?: Date | null;
+    overridePeriodEndDate?: Date | null;
+    overridePeriodDays?: number | null;
+    overridePeriodCountCalendarDays?: boolean | null;
     createdAt: Date | null;
     groupId: string | null;
   }[];

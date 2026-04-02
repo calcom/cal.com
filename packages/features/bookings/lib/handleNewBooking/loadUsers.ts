@@ -81,14 +81,45 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
     eventType,
     hosts: hosts ?? fallbackHosts,
   });
-  return matchingHosts.map(({ user, isFixed, priority, weight, createdAt, groupId }) => ({
-    ...user,
-    isFixed,
-    priority,
-    weight,
-    createdAt,
-    groupId,
-  }));
+  return matchingHosts.map(
+    ({
+      user,
+      isFixed,
+      priority,
+      weight,
+      overrideMinimumBookingNotice,
+      overrideBeforeEventBuffer,
+      overrideAfterEventBuffer,
+      overrideSlotInterval,
+      overrideBookingLimits,
+      overrideDurationLimits,
+      overridePeriodType,
+      overridePeriodStartDate,
+      overridePeriodEndDate,
+      overridePeriodDays,
+      overridePeriodCountCalendarDays,
+      createdAt,
+      groupId,
+    }) => ({
+      ...user,
+      isFixed,
+      priority,
+      weight,
+      overrideMinimumBookingNotice,
+      overrideBeforeEventBuffer,
+      overrideAfterEventBuffer,
+      overrideSlotInterval,
+      overrideBookingLimits,
+      overrideDurationLimits,
+      overridePeriodType,
+      overridePeriodStartDate,
+      overridePeriodEndDate,
+      overridePeriodDays,
+      overridePeriodCountCalendarDays,
+      createdAt,
+      groupId,
+    })
+  );
 };
 
 const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: string | null) => {
