@@ -122,5 +122,11 @@
   "pbac_enabled_error": "Failed to enable PBAC for your organization",
   "pbac_resource_feature_opt_in": "Feature Opt-In",
   "pbac_desc_view_feature_opt_in": "View feature opt-in settings",
-  "pbac_desc_update_feature_opt_in": "Manage feature opt-in settings"
+  "pbac_desc_update_feature_opt_in": "Manage feature opt-in settings",
+  "pbac_resource_custom_domain": "Custom domains",
+  "pbac_desc_create_custom_domain": "Add custom domains",
+  "pbac_desc_view_custom_domain": "View custom domains",
+  "pbac_desc_update_custom_domain": "Update custom domains",
+  "pbac_desc_delete_custom_domain": "Remove custom domains",
+  "pbac_resource_blocklist": "Blocklist"
 }

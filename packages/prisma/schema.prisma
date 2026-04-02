@@ -722,6 +722,8 @@ model Team {
   seatChangeLogs    SeatChangeLog[]
   monthlyProrations MonthlyProration[]
 
+  customDomain CustomDomain?
+
   @@unique([slug, parentId])
   @@index([parentId])
 }
@@ -3834,6 +3836,20 @@ model RoutingTrace {
 
   assignmentReasonId Int?              @unique
   assignmentReason   AssignmentReason? @relation(fields: [assignmentReasonId], references: [id], onDelete: Cascade)
+}
+
+model CustomDomain {
+  id            String   @id @default(cuid())
+  teamId        Int      @unique
+  slug          String   @unique
+  verified      Boolean  @default(false)
+  lastCheckedAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([lastCheckedAt(sort: Asc)])
 }
 
 model ExternalAvatar {

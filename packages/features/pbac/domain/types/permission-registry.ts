@@ -14,6 +14,7 @@ export enum Resource {
   OutOfOffice = "ooo",
   Watchlist = "watchlist",
   FeatureOptIn = "featureOptIn",
+  CustomDomain = "organization.customDomain",
 }
 
 export enum CrudAction {
@@ -621,6 +622,31 @@ export const PERMISSION_REGISTRY = {
       description: "Manage feature opt-in settings",
       category: "featureOptIn",
       dependsOn: ["featureOptIn.read"],
+    },
+  },
+  [Resource.CustomDomain]: {
+    [CrudAction.Create]: {
+      description: "Add custom domains",
+      category: "customDomain",
+      scope: [Scope.Organization],
+      dependsOn: ["organization.customDomain.read"],
+    },
+    [CrudAction.Read]: {
+      description: "View custom domains",
+      category: "customDomain",
+      scope: [Scope.Organization],
+    },
+    [CrudAction.Update]: {
+      description: "Update custom domains",
+      category: "customDomain",
+      scope: [Scope.Organization],
+      dependsOn: ["organization.customDomain.read"],
+    },
+    [CrudAction.Delete]: {
+      description: "Remove custom domains",
+      category: "customDomain",
+      scope: [Scope.Organization],
+      dependsOn: ["organization.customDomain.read"],
     },
   },
 } satisfies PermissionRegistry;

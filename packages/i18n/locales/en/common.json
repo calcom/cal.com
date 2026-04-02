@@ -5164,7 +5164,6 @@
   "match": "Match",
   "all_conditions": "All conditions (AND)",
   "any_condition": "Any condition (OR)",
-  "pbac_resource_blocklist": "Blocklist",
   "this_meeting_is_in_the_past": "This meeting is in the past.",
   "stop": "Stop",
   "stop_transcription": "Stop transcription",

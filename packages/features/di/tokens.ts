@@ -1,5 +1,6 @@
 import { ABUSE_RULES_DI_TOKENS } from "@calcom/features/abuse-rules/di/tokens";
 import { ABUSE_SCORING_TASKER_DI_TOKENS } from "@calcom/features/abuse-scoring/di/tasker/tokens";
+import { CUSTOM_DOMAIN_DI_TOKENS } from "@calcom/features/custom-domains/di/tokens";
 import { ABUSE_SCORING_DI_TOKENS } from "@calcom/features/abuse-scoring/di/tokens";
 import { AUDIT_DI_TOKENS } from "@calcom/features/audit/di/tokens";
 import { AUTH_DI_TOKENS } from "@calcom/features/auth/di/tokens";
@@ -109,6 +110,7 @@ export const DI_TOKENS = {
   ...WATCHLIST_DI_TOKENS,
   ...ACTIVE_USER_BILLING_DI_TOKENS,
   ...ORGANIZATION_DI_TOKENS,
+  ...CUSTOM_DOMAIN_DI_TOKENS,
   ...ORGANIZATION_SETTINGS_DI_TOKENS,
   ...AVATAR_DI_TOKENS,
   ...TRANSLATION_DI_TOKENS,

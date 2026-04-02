@@ -5,6 +5,7 @@ import authedProcedure, {
   authedAdminProcedure,
   authedOrgAdminProcedure,
 } from "../../../procedures/authedProcedure";
+import { MembershipRole } from "@calcom/prisma/enums";
 import { createOrgPbacProcedure } from "../../../procedures/pbacProcedures";
 import { router } from "../../../trpc";
 import { eventOwnerProcedure } from "../eventTypes/util";
@@ -39,6 +40,9 @@ import { ZOrgPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
+import { ZCheckInputSchema as ZCustomDomainCheckInputSchema } from "./custom-domain.check.schema";
+import { ZAddInputSchema as ZCustomDomainAddInputSchema } from "./custom-domain.add.schema";
+import { ZReplaceInputSchema as ZCustomDomainReplaceInputSchema } from "./custom-domain.replace.schema";
 import { ZUploadOnboardingImageSchema } from "./uploadOnboardingImage.schema";
 
 export const viewerOrganizationsRouter = router({
@@ -228,6 +232,56 @@ export const viewerOrganizationsRouter = router({
     }),
   pendingReportsCount: authedOrgAdminProcedure.query(async (opts) => {
     const { default: handler } = await import("./pendingReportsCount.handler");
+    return handler(opts);
+  }),
+
+  getCustomDomain: createOrgPbacProcedure("organization.customDomain.read", [
+    MembershipRole.OWNER,
+    MembershipRole.ADMIN,
+    MembershipRole.MEMBER,
+  ]).query(async (opts) => {
+    const { default: handler } = await import("./custom-domain.get.handler");
+    return handler(opts);
+  }),
+
+  checkCustomDomainAvailability: createOrgPbacProcedure("organization.customDomain.create", [
+    MembershipRole.OWNER,
+    MembershipRole.ADMIN,
+  ]).input(ZCustomDomainCheckInputSchema).query(async (opts) => {
+    const { default: handler } = await import("./custom-domain.check.handler");
+    return handler(opts);
+  }),
+
+  addCustomDomain: createOrgPbacProcedure("organization.customDomain.create", [
+    MembershipRole.OWNER,
+    MembershipRole.ADMIN,
+  ]).input(ZCustomDomainAddInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./custom-domain.add.handler");
+    return handler(opts);
+  }),
+
+  removeCustomDomain: createOrgPbacProcedure("organization.customDomain.delete", [
+    MembershipRole.OWNER,
+    MembershipRole.ADMIN,
+  ]).mutation(async (opts) => {
+    const { default: handler } = await import("./custom-domain.remove.handler");
+    return handler(opts);
+  }),
+
+  replaceCustomDomain: createOrgPbacProcedure("organization.customDomain.update", [
+    MembershipRole.OWNER,
+    MembershipRole.ADMIN,
+  ]).input(ZCustomDomainReplaceInputSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./custom-domain.replace.handler");
+    return handler(opts);
+  }),
+
+  verifyCustomDomain: createOrgPbacProcedure("organization.customDomain.read", [
+    MembershipRole.OWNER,
+    MembershipRole.ADMIN,
+    MembershipRole.MEMBER,
+  ]).query(async (opts) => {
+    const { default: handler } = await import("./custom-domain.verify.handler");
     return handler(opts);
   }),
 });

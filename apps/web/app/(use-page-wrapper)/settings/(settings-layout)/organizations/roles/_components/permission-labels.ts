@@ -35,6 +35,7 @@ export const RESOURCE_LABELS: ResourceLabelsMap = {
   [Resource.OutOfOffice]: "pbac_resource_out_of_office",
   [Resource.Watchlist]: "pbac_resource_blocklist",
   [Resource.FeatureOptIn]: "pbac_resource_feature_opt_in",
+  [Resource.CustomDomain]: "pbac_resource_custom_domain",
 };
 
 /**
@@ -192,6 +193,12 @@ export const PERMISSION_LABELS: PermissionLabelsMap = {
   [Resource.FeatureOptIn]: {
     read: { i18nKey: "pbac_action_read", descriptionI18nKey: "pbac_desc_view_feature_opt_in" },
     update: { i18nKey: "pbac_action_update", descriptionI18nKey: "pbac_desc_update_feature_opt_in" },
+  },
+  [Resource.CustomDomain]: {
+    create: { i18nKey: "pbac_action_create", descriptionI18nKey: "pbac_desc_create_custom_domain" },
+    read: { i18nKey: "pbac_action_read", descriptionI18nKey: "pbac_desc_view_custom_domain" },
+    update: { i18nKey: "pbac_action_update", descriptionI18nKey: "pbac_desc_update_custom_domain" },
+    delete: { i18nKey: "pbac_action_delete", descriptionI18nKey: "pbac_desc_delete_custom_domain" },
   },
 };
 
