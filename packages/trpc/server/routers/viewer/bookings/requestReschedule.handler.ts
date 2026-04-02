@@ -12,14 +12,12 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import {
-  cancelNoShowTasksForBooking,
-  deleteWebhookScheduledTriggers,
-} from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { cancelNoShowTasksForBooking } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { getTranslation } from "@calcom/i18n/server";
 import { CalendarEventBuilder } from "@calcom/lib/builders/CalendarEvent/builder";
@@ -116,9 +114,29 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     cancelledBy: user.email,
   });
 
+  const teamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: bookingToReschedule.eventType?.teamId ?? null },
+      parentId: bookingToReschedule.eventType?.parentId ?? null,
+    },
+  });
+
+  const triggerForUser = !teamId || (teamId && bookingToReschedule.eventType?.parentId);
+  const organizerUserId = triggerForUser ? bookingToReschedule.userId : null;
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
+
   // delete scheduled jobs of previous booking
   const webhookPromises = [];
-  webhookPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
+  webhookPromises.push(
+    getWebhookProducer().cancelDelayedWebhooks({
+      bookingId: bookingToReschedule.id,
+      bookingUid: bookingToReschedule.uid,
+      eventTypeId: bookingToReschedule.eventTypeId ?? undefined,
+      userId: organizerUserId ?? undefined,
+      teamId,
+      orgId,
+    })
+  );
   webhookPromises.push(cancelNoShowTasksForBooking({ bookingUid: bookingToReschedule.uid }));
 
   await Promise.all(webhookPromises).catch((error) => {
@@ -287,16 +305,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
   // Send webhook
   const eventTrigger: WebhookTriggerEvents = "BOOKING_CANCELLED";
 
-  const teamId = await getTeamIdFromEventType({
-    eventType: {
-      team: { id: bookingToReschedule.eventType?.teamId ?? null },
-      parentId: bookingToReschedule.eventType?.parentId ?? null,
-    },
-  });
-
-  const triggerForUser = !teamId || (teamId && bookingToReschedule.eventType?.parentId);
-  const userId = triggerForUser ? bookingToReschedule.userId : null;
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+  const userId = organizerUserId;
 
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberOptions = {

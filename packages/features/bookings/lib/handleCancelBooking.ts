@@ -19,6 +19,7 @@ import { processNoShowFeeOnCancellation } from "@calcom/features/bookings/lib/pa
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { getOrgMembershipRepository } from "@calcom/features/di/containers/OrgMembershipRepository";
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
@@ -30,11 +31,7 @@ import {
 } from "@calcom/features/eventtypes/di/EventTypeService.container";
 import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
-import {
-  cancelNoShowTasksForBooking,
-  deleteWebhookScheduledTriggers,
-} from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { cancelNoShowTasksForBooking } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getTranslation } from "@calcom/i18n/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -56,7 +53,6 @@ import type { z } from "zod";
 import { BookingRepository } from "../repositories/BookingRepository";
 import { PrismaBookingAttendeeRepository } from "../repositories/PrismaBookingAttendeeRepository";
 import { isCancellationReasonRequired } from "./cancellationReason";
-import { isActionDisabledByScope } from "./isActionDisabledByScope";
 import type {
   CancelBookingMeta,
   CancelRegularBookingData,
@@ -67,6 +63,7 @@ import { getBookingToDelete } from "./getBookingToDelete";
 import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 import type { IBookingCancelService } from "./interfaces/IBookingCancelService";
+import { isActionDisabledByScope } from "./isActionDisabledByScope";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
@@ -719,8 +716,17 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     const workflowReminderPromises = [];
 
     for (const booking of updatedBookings) {
-      // delete scheduled webhook triggers of cancelled bookings
-      webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
+      // cancel delayed meeting webhooks for cancelled bookings
+      webhookTriggerPromises.push(
+        getWebhookProducer().cancelDelayedWebhooks({
+          bookingId: booking.id,
+          bookingUid: booking.uid,
+          eventTypeId: bookingToDelete.eventTypeId ?? undefined,
+          userId: organizerUserId ?? undefined,
+          teamId,
+          orgId,
+        })
+      );
       webhookTriggerPromises.push(cancelNoShowTasksForBooking({ bookingUid: booking.uid }));
 
       //Workflows - cancel all reminders for cancelled bookings

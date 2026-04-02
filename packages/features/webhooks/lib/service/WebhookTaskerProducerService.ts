@@ -1,6 +1,9 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { v4 as uuidv4 } from "uuid";
-import type { PaymentTriggerEvents, RecordingTriggerEvents } from "../factory/versioned/PayloadBuilderFactory";
+import type {
+  PaymentTriggerEvents,
+  RecordingTriggerEvents,
+} from "../factory/versioned/PayloadBuilderFactory";
 import type { IWebhookRepository } from "../interface/IWebhookRepository";
 import type { ILogger } from "../interface/infrastructure";
 import type {
@@ -8,6 +11,8 @@ import type {
   QueueBookingTriggerEvent,
   QueueBookingWebhookParams,
   QueueFormWebhookParams,
+  QueueMeetingTriggerEvent,
+  QueueMeetingWebhookParams,
   QueueOOOWebhookParams,
   QueuePaymentWebhookParams,
   QueueRecordingWebhookParams,
@@ -16,7 +21,11 @@ import type {
 } from "../interface/WebhookProducerService";
 import type { WebhookDeliveryOptions } from "../tasker/types";
 import type { WebhookTasker } from "../tasker/WebhookTasker";
-import type { CancelDelayedWebhookPayload, WebhookTaskPayload } from "../types/webhookTask";
+import type {
+  CancelDelayedWebhookPayload,
+  MeetingWebhookTaskPayload,
+  WebhookTaskPayload,
+} from "../types/webhookTask";
 
 /**
  * Lightweight Producer Service for webhook delivery.
@@ -191,11 +200,87 @@ export class WebhookTaskerProducerService implements IWebhookProducerService {
     await this.queueTask(operationId, taskPayload);
   }
 
+  async queueMeetingWebhook(
+    triggerEvent: QueueMeetingTriggerEvent,
+    params: QueueMeetingWebhookParams
+  ): Promise<void> {
+    const operationId = params.operationId || uuidv4();
+
+    this.log.debug("Queueing meeting webhook task", {
+      operationId,
+      triggerEvent,
+      bookingId: params.bookingId,
+      bookingUid: params.bookingUid,
+    });
+
+    const taskPayload: MeetingWebhookTaskPayload = {
+      operationId,
+      triggerEvent,
+      bookingId: params.bookingId,
+      bookingUid: params.bookingUid,
+      startTime: params.startTime,
+      endTime: params.endTime,
+      eventTypeId: params.eventTypeId,
+      teamId: params.teamId,
+      userId: params.userId,
+      orgId: params.orgId,
+      oAuthClientId: params.oAuthClientId,
+      metadata: params.metadata,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      const delay =
+        triggerEvent === WebhookTriggerEvents.MEETING_STARTED
+          ? new Date(params.startTime)
+          : new Date(params.endTime);
+
+      await this.deps.webhookTasker.scheduleWebhook(taskPayload, { delay });
+      this.log.debug("Meeting webhook scheduled", {
+        operationId,
+        triggerEvent,
+        delay: delay.toISOString(),
+      });
+    } catch (error) {
+      this.log.error("Failed to schedule meeting webhook", {
+        operationId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
+  }
+
   async cancelDelayedWebhooks(payload: CancelDelayedWebhookPayload): Promise<void> {
     this.log.debug("Cancelling delayed webhooks", {
       bookingId: payload.bookingId,
       bookingUid: payload.bookingUid,
     });
+
+    const subscriberContext = {
+      userId: payload.userId,
+      eventTypeId: payload.eventTypeId,
+      teamId: payload.teamId,
+      orgId: payload.orgId,
+      oAuthClientId: payload.oAuthClientId,
+    };
+
+    const [meetingStartedSubs, meetingEndedSubs] = await Promise.all([
+      this.deps.webhookRepository.getSubscribers({
+        ...subscriberContext,
+        triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+      }),
+      this.deps.webhookRepository.getSubscribers({
+        ...subscriberContext,
+        triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+      }),
+    ]);
+
+    if (meetingStartedSubs.length === 0 && meetingEndedSubs.length === 0) {
+      this.log.debug("No meeting webhook subscribers found, skipping cancellation", {
+        bookingId: payload.bookingId,
+      });
+      return;
+    }
 
     try {
       await this.deps.webhookTasker.cancelDelayedWebhook(payload);

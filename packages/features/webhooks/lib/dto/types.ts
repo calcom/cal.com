@@ -1,8 +1,108 @@
 import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/lib/formSubmissionUtils";
-import type { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { BookingStatus, CreationSource, PaymentOption, TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type {
+  BookingMetadata,
+  BookingResponses,
+  CustomInputSchema,
+  EventTypeBookingFields,
+} from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, ConferenceData, Person } from "@calcom/types/Calendar";
 import type { WebhookVersion } from "../interface/IWebhookRepository";
+
+/**
+ * Booking shape returned by BookingRepository.findBookingForMeetingWebhook().
+ * Matches the select used in that query — keep in sync when the select changes.
+ */
+type MeetingWebhookBooking = {
+  id: number;
+  uid: string;
+  title: string;
+  description: string | null;
+  customInputs: CustomInputSchema[];
+  responses: BookingResponses;
+  startTime: Date;
+  endTime: Date;
+  location: string | null;
+  status: BookingStatus;
+  paid: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: number | null;
+  userPrimaryEmail: string | null;
+  eventTypeId: number | null;
+  destinationCalendarId: number | null;
+  cancellationReason: string | null;
+  rejectionReason: string | null;
+  reassignReason: string | null;
+  reassignById: number | null;
+  dynamicEventSlugRef: string | null;
+  dynamicGroupSlugRef: string | null;
+  rescheduled: boolean | null;
+  fromReschedule: string | null;
+  recurringEventId: string | null;
+  smsReminderNumber: string | null;
+  scheduledJobs: string[];
+  metadata: BookingMetadata;
+  isRecorded: boolean;
+  iCalUID: string | null;
+  iCalSequence: number;
+  rating: number | null;
+  ratingFeedback: string | null;
+  noShowHost: boolean | null;
+  cancelledBy: string | null;
+  rescheduledBy: string | null;
+  creationSource: CreationSource | null;
+  idempotencyKey: string | null;
+  user: {
+    email: string;
+    name: string | null;
+    username: string | null;
+    timeZone: string;
+    locale: string | null;
+    uuid: string;
+    isPlatformManaged: boolean;
+  } | null;
+  eventType: {
+    bookingFields: EventTypeBookingFields | null;
+    team: {
+      logoUrl: string | null;
+      parent: {
+        logoUrl: string | null;
+        name: string;
+      } | null;
+    } | null;
+  } | null;
+  attendees: {
+    id: number;
+    name: string;
+    email: string;
+    timeZone: string;
+    locale: string | null;
+    phoneNumber: string | null;
+    bookingId: number | null;
+    noShow: boolean | null;
+  }[];
+  payment: {
+    id: number;
+    appId: string | null;
+    bookingId: number;
+    amount: number;
+    fee: number;
+    currency: string;
+    success: boolean;
+    refunded: boolean;
+    paymentOption: PaymentOption | null;
+  }[];
+  references: {
+    id: number;
+    type: string;
+    uid: string;
+    meetingId: string | null;
+    meetingUrl: string | null;
+    bookingId: number | null;
+  }[];
+};
 
 export interface BaseEventDTO {
   triggerEvent: WebhookTriggerEvents;
@@ -263,90 +363,20 @@ export interface RoutingFormFallbackHitDTO extends BaseEventDTO {
   responses: Record<string, unknown> | null;
 }
 
+/**
+ * MEETING_STARTED / MEETING_ENDED DTOs carry the raw Prisma booking
+ * (with getCalEventResponses applied) to match the legacy scheduleTrigger
+ * payload format. The MeetingPayloadBuilder spreads booking as-is into
+ * the flat webhook payload.
+ */
 export interface MeetingStartedDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.MEETING_STARTED;
-  booking: {
-    id: number;
-    startTime: Date;
-    endTime: Date;
-    title: string;
-    description: string | null;
-    customInputs: Record<string, unknown> | null;
-    responses: Record<string, unknown> | null;
-    userFieldsResponses: Record<string, unknown> | null;
-    location: string | null;
-    status: string;
-    user: {
-      username: string | null;
-      name: string | null;
-      email: string;
-      timeZone: string;
-      locale: string | null;
-    } | null;
-    eventType: {
-      title: string;
-      description: string | null;
-      requiresConfirmation: boolean;
-      price: number;
-      currency: string;
-      length: number;
-      team: {
-        logoUrl: string | null;
-        parent: {
-          logoUrl: string | null;
-          name: string;
-        } | null;
-      } | null;
-    } | null;
-    attendees: {
-      name: string;
-      email: string;
-      timeZone: string;
-    }[];
-  };
+  booking: MeetingWebhookBooking;
 }
 
 export interface MeetingEndedDTO extends BaseEventDTO {
   triggerEvent: typeof WebhookTriggerEvents.MEETING_ENDED;
-  booking: {
-    id: number;
-    startTime: Date;
-    endTime: Date;
-    title: string;
-    description: string | null;
-    customInputs: Record<string, unknown> | null;
-    responses: Record<string, unknown> | null;
-    userFieldsResponses: Record<string, unknown> | null;
-    location: string | null;
-    status: string;
-    user: {
-      username: string | null;
-      name: string | null;
-      email: string;
-      timeZone: string;
-      locale: string | null;
-    } | null;
-    eventType: {
-      title: string;
-      description: string | null;
-      requiresConfirmation: boolean;
-      price: number;
-      currency: string;
-      length: number;
-      team: {
-        logoUrl: string | null;
-        parent: {
-          logoUrl: string | null;
-          name: string;
-        } | null;
-      } | null;
-    } | null;
-    attendees: {
-      name: string;
-      email: string;
-      timeZone: string;
-    }[];
-  };
+  booking: MeetingWebhookBooking;
 }
 
 export interface InstantMeetingDTO extends BaseEventDTO {

@@ -28,6 +28,7 @@ webhookTaskConsumerModule.bind(WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER).toFactory((
     resolve(WEBHOOK_TOKENS.RECORDING_DATA_FETCHER) as IWebhookDataFetcher,
     resolve(WEBHOOK_TOKENS.OOO_DATA_FETCHER) as IWebhookDataFetcher,
     resolve(WEBHOOK_TOKENS.WRONG_ASSIGNMENT_DATA_FETCHER) as IWebhookDataFetcher,
+    resolve(WEBHOOK_TOKENS.MEETING_DATA_FETCHER) as IWebhookDataFetcher,
   ];
   const payloadBuilderFactory: PayloadBuilderFactory = resolve(
     WEBHOOK_TOKENS.PAYLOAD_BUILDER_FACTORY

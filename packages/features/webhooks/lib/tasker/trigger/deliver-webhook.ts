@@ -4,7 +4,12 @@ import { logger, retry, schemaTask, type TaskWithSchema } from "@trigger.dev/sdk
 import type { WebhookDeliveryResult, WebhookSubscriber } from "../../dto/types";
 import type { WebhookPayload } from "../../factory/types";
 import type { IWebhookRepository } from "../../interface/IWebhookRepository";
-import { isGenericWebhookTrigger, WebhookHttpError, WebhookSendError } from "../../service/WebhookService";
+import {
+  isFlatWebhookTrigger,
+  isGenericWebhookTrigger,
+  WebhookHttpError,
+  WebhookSendError,
+} from "../../service/WebhookService";
 import type { WebhookTaskPayload } from "../../types/webhookTask";
 import { webhookDeliveryTaskConfig, webhookRetryConfig } from "./config";
 import { webhookDeliveryTaskSchema } from "./schema";
@@ -376,9 +381,14 @@ export const deliverWebhook: TaskWithSchema<
       subscriberCount: subscribers.length,
     });
 
-    const sendFn: SendFn = isGenericWebhookTrigger(triggerEvent)
-      ? webhookService.sendGenericWebhookDirectly.bind(webhookService)
-      : webhookService.sendWebhookDirectly.bind(webhookService);
+    let sendFn: SendFn;
+    if (isFlatWebhookTrigger(triggerEvent)) {
+      sendFn = webhookService.sendFlatWebhookDirectly.bind(webhookService);
+    } else if (isGenericWebhookTrigger(triggerEvent)) {
+      sendFn = webhookService.sendGenericWebhookDirectly.bind(webhookService);
+    } else {
+      sendFn = webhookService.sendWebhookDirectly.bind(webhookService);
+    }
 
     let successCount = 0;
     let failureCount = 0;

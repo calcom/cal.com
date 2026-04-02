@@ -25,6 +25,8 @@ const mockWebhookProducer: MockWebhookProducer = vi.hoisted(() => ({
   queueFormSubmittedWebhook: vi.fn().mockResolvedValue(undefined),
   queueRecordingWebhook: vi.fn().mockResolvedValue(undefined),
   queueOOOCreatedWebhook: vi.fn().mockResolvedValue(undefined),
+  queueMeetingWebhook: vi.fn().mockResolvedValue(undefined),
+  cancelDelayedWebhooks: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@calcom/features/webhooks/lib/service/WebhookTaskerProducerService", () => {
@@ -38,6 +40,8 @@ vi.mock("@calcom/features/webhooks/lib/service/WebhookTaskerProducerService", ()
     queueFormSubmittedWebhook = mockWebhookProducer.queueFormSubmittedWebhook;
     queueRecordingWebhook = mockWebhookProducer.queueRecordingWebhook;
     queueOOOCreatedWebhook = mockWebhookProducer.queueOOOCreatedWebhook;
+    queueMeetingWebhook = mockWebhookProducer.queueMeetingWebhook;
+    cancelDelayedWebhooks = mockWebhookProducer.cancelDelayedWebhooks;
   };
   return { WebhookTaskerProducerService: MockProducer };
 });
@@ -186,11 +190,16 @@ describe("Webhook Producer – BOOKING_REQUESTED", () => {
           status: BookingStatus.PENDING,
         });
 
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          userId: organizer.id,
-        }, "BOOKING_REQUESTED");
+        expectWebhookProducerCalled(
+          mockWebhookProducer,
+          "queueBookingWebhook",
+          {
+            bookingUid: createdBooking.uid,
+            eventTypeId: 1,
+            userId: organizer.id,
+          },
+          "BOOKING_REQUESTED"
+        );
 
         expectWebhookProducerNotCalled(mockWebhookProducer, "queueBookingWebhook", "BOOKING_CREATED");
         expectWebhookProducerNotCalled(mockWebhookProducer, "queueBookingWebhook", "BOOKING_RESCHEDULED");
@@ -270,11 +279,16 @@ describe("Webhook Producer – BOOKING_REQUESTED", () => {
           status: BookingStatus.PENDING,
         });
 
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          userId: organizer.id,
-        }, "BOOKING_REQUESTED");
+        expectWebhookProducerCalled(
+          mockWebhookProducer,
+          "queueBookingWebhook",
+          {
+            bookingUid: createdBooking.uid,
+            eventTypeId: 1,
+            userId: organizer.id,
+          },
+          "BOOKING_REQUESTED"
+        );
 
         expectBookingRequestedEmails({ booker, organizer, emails });
       },
@@ -438,11 +452,16 @@ describe("Webhook Producer – BOOKING_REQUESTED", () => {
           status: BookingStatus.PENDING,
         });
 
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          userId: organizer.id,
-        }, "BOOKING_REQUESTED");
+        expectWebhookProducerCalled(
+          mockWebhookProducer,
+          "queueBookingWebhook",
+          {
+            bookingUid: createdBooking.uid,
+            eventTypeId: 1,
+            userId: organizer.id,
+          },
+          "BOOKING_REQUESTED"
+        );
 
         expectBookingRequestedEmails({ booker, organizer, emails });
       },
@@ -556,11 +575,16 @@ describe("Webhook Producer – BOOKING_REQUESTED", () => {
           status: BookingStatus.PENDING,
         });
 
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          userId: organizer.id,
-        }, "BOOKING_REQUESTED");
+        expectWebhookProducerCalled(
+          mockWebhookProducer,
+          "queueBookingWebhook",
+          {
+            bookingUid: createdBooking.uid,
+            eventTypeId: 1,
+            userId: organizer.id,
+          },
+          "BOOKING_REQUESTED"
+        );
 
         expectBookingRequestedEmails({ booker, organizer, emails });
       },
@@ -681,11 +705,16 @@ describe("Webhook Producer – BOOKING_REQUESTED", () => {
           },
         });
 
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          userId: organizer.id,
-        }, "BOOKING_REQUESTED");
+        expectWebhookProducerCalled(
+          mockWebhookProducer,
+          "queueBookingWebhook",
+          {
+            bookingUid: createdBooking.uid,
+            eventTypeId: 1,
+            userId: organizer.id,
+          },
+          "BOOKING_REQUESTED"
+        );
 
         expectWebhookProducerNotCalled(mockWebhookProducer, "queueBookingWebhook", "BOOKING_RESCHEDULED");
 
@@ -936,11 +965,16 @@ describe("Webhook Producer – BOOKING_REQUESTED", () => {
           status: BookingStatus.PENDING,
         });
 
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          teamId: 1,
-        }, "BOOKING_REQUESTED");
+        expectWebhookProducerCalled(
+          mockWebhookProducer,
+          "queueBookingWebhook",
+          {
+            bookingUid: createdBooking.uid,
+            eventTypeId: 1,
+            teamId: 1,
+          },
+          "BOOKING_REQUESTED"
+        );
 
         expectWebhookProducerNotCalled(mockWebhookProducer, "queueBookingWebhook", "BOOKING_CREATED");
 
@@ -1024,15 +1058,20 @@ describe("Webhook Producer – BOOKING_REQUESTED", () => {
           status: BookingStatus.PENDING,
         });
 
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          userId: organizer.id,
-          platformClientId: "test-platform-client-id",
-          platformRescheduleUrl: "https://platform.example.com/reschedule",
-          platformCancelUrl: "https://platform.example.com/cancel",
-          platformBookingUrl: "https://platform.example.com/booking",
-        }, "BOOKING_REQUESTED");
+        expectWebhookProducerCalled(
+          mockWebhookProducer,
+          "queueBookingWebhook",
+          {
+            bookingUid: createdBooking.uid,
+            eventTypeId: 1,
+            userId: organizer.id,
+            platformClientId: "test-platform-client-id",
+            platformRescheduleUrl: "https://platform.example.com/reschedule",
+            platformCancelUrl: "https://platform.example.com/cancel",
+            platformBookingUrl: "https://platform.example.com/booking",
+          },
+          "BOOKING_REQUESTED"
+        );
 
         expectBookingRequestedEmails({ booker, organizer, emails });
       },
@@ -1154,11 +1193,16 @@ describe("Webhook Producer – BOOKING_REQUESTED", () => {
           },
         });
 
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          userId: organizer.id,
-        }, "BOOKING_REQUESTED");
+        expectWebhookProducerCalled(
+          mockWebhookProducer,
+          "queueBookingWebhook",
+          {
+            bookingUid: createdBooking.uid,
+            eventTypeId: 1,
+            userId: organizer.id,
+          },
+          "BOOKING_REQUESTED"
+        );
 
         // Verify rescheduledBy is NOT in the webhook params (PII should not be in task payload)
         const webhookCall = mockWebhookProducer.queueBookingWebhook.mock.calls[0];

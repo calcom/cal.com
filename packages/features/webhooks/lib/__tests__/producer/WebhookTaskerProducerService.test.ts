@@ -34,6 +34,8 @@ describe("WebhookTaskerProducerService", () => {
   beforeEach(() => {
     mockWebhookTasker = {
       deliverWebhook: vi.fn().mockResolvedValue({ taskId: "mock-task-id" }),
+      scheduleWebhook: vi.fn().mockResolvedValue({ taskId: "mock-schedule-id" }),
+      cancelDelayedWebhook: vi.fn().mockResolvedValue({ taskId: "mock-cancel-id" }),
     } as unknown as WebhookTasker;
 
     mockWebhookRepository = {
@@ -308,6 +310,123 @@ describe("WebhookTaskerProducerService", () => {
           bookingUid: "booking-123",
         }),
         undefined
+      );
+    });
+  });
+
+  describe("queueMeetingWebhook", () => {
+    it("should schedule MEETING_STARTED with delay as Date", async () => {
+      const startTime = "2026-04-01T10:00:00.000Z";
+      const endTime = "2026-04-01T11:00:00.000Z";
+
+      await producer.queueMeetingWebhook(WebhookTriggerEvents.MEETING_STARTED, {
+        bookingId: 123,
+        bookingUid: "booking-123",
+        startTime,
+        endTime,
+        eventTypeId: 456,
+        userId: 789,
+      });
+
+      expect(mockWebhookTasker.scheduleWebhook).toHaveBeenCalledWith(
+        expect.objectContaining({
+          triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+          bookingId: 123,
+          bookingUid: "booking-123",
+          startTime,
+          endTime,
+        }),
+        expect.objectContaining({
+          delay: new Date(startTime),
+        })
+      );
+    });
+
+    it("should schedule MEETING_ENDED with delay as endTime Date", async () => {
+      const startTime = "2026-04-01T10:00:00.000Z";
+      const endTime = "2026-04-01T11:00:00.000Z";
+
+      await producer.queueMeetingWebhook(WebhookTriggerEvents.MEETING_ENDED, {
+        bookingId: 123,
+        bookingUid: "booking-123",
+        startTime,
+        endTime,
+      });
+
+      expect(mockWebhookTasker.scheduleWebhook).toHaveBeenCalledWith(
+        expect.objectContaining({
+          triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+        }),
+        expect.objectContaining({
+          delay: new Date(endTime),
+        })
+      );
+    });
+
+    it("should log and rethrow error if scheduleWebhook fails", async () => {
+      vi.mocked(mockWebhookTasker.scheduleWebhook).mockRejectedValueOnce(new Error("Schedule failed"));
+
+      await expect(
+        producer.queueMeetingWebhook(WebhookTriggerEvents.MEETING_STARTED, {
+          bookingId: 123,
+          bookingUid: "booking-123",
+          startTime: "2026-04-01T10:00:00.000Z",
+          endTime: "2026-04-01T11:00:00.000Z",
+        })
+      ).rejects.toThrow("Schedule failed");
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Failed to schedule meeting webhook",
+        expect.objectContaining({ error: "Schedule failed" })
+      );
+    });
+  });
+
+  describe("cancelDelayedWebhooks", () => {
+    it("should cancel delayed webhooks when meeting subscribers exist", async () => {
+      await producer.cancelDelayedWebhooks({
+        bookingId: 123,
+        bookingUid: "booking-123",
+        userId: 789,
+        eventTypeId: 456,
+      });
+
+      expect(mockWebhookTasker.cancelDelayedWebhook).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bookingId: 123,
+          bookingUid: "booking-123",
+        })
+      );
+    });
+
+    it("should skip cancellation when no meeting subscribers exist", async () => {
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValue([]);
+
+      await producer.cancelDelayedWebhooks({
+        bookingId: 123,
+        bookingUid: "booking-123",
+      });
+
+      expect(mockWebhookTasker.cancelDelayedWebhook).not.toHaveBeenCalled();
+      expect(mockLogger.debug).toHaveBeenCalledWith(
+        "No meeting webhook subscribers found, skipping cancellation",
+        expect.objectContaining({ bookingId: 123 })
+      );
+    });
+
+    it("should log and rethrow error if cancel fails", async () => {
+      vi.mocked(mockWebhookTasker.cancelDelayedWebhook).mockRejectedValueOnce(new Error("Cancel failed"));
+
+      await expect(
+        producer.cancelDelayedWebhooks({
+          bookingId: 123,
+          bookingUid: "booking-123",
+        })
+      ).rejects.toThrow("Cancel failed");
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        "Failed to cancel delayed webhooks",
+        expect.objectContaining({ error: "Cancel failed" })
       );
     });
   });

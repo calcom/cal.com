@@ -46,6 +46,11 @@ export interface IWebhookProcessor {
     payload: WebhookPayload,
     subscriber: WebhookSubscriber
   ): Promise<import("../dto/types").WebhookDeliveryResult>;
+  sendFlatWebhookDirectly(
+    trigger: WebhookTriggerEvents,
+    payload: WebhookPayload,
+    subscriber: WebhookSubscriber
+  ): Promise<import("../dto/types").WebhookDeliveryResult>;
 }
 
 // Scheduling Interface - Webhook scheduling operations

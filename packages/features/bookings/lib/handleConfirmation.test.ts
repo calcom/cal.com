@@ -58,18 +58,12 @@ vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService", () => ({
 }));
 
 const mockQueueBookingWebhook = vi.fn().mockResolvedValue(undefined);
+const mockQueueMeetingWebhook = vi.fn().mockResolvedValue(undefined);
 vi.mock("@calcom/features/di/webhooks/containers/webhook", () => ({
   getWebhookProducer: () => ({
     queueBookingWebhook: mockQueueBookingWebhook,
+    queueMeetingWebhook: mockQueueMeetingWebhook,
   }),
-}));
-
-vi.mock("@calcom/features/webhooks/lib/getWebhooks", () => ({
-  default: vi.fn().mockResolvedValue([]),
-}));
-
-vi.mock("@calcom/features/webhooks/lib/scheduleTrigger", () => ({
-  scheduleTrigger: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@calcom/lib/CalEventParser", () => ({
@@ -226,6 +220,77 @@ describe("handleConfirmation", () => {
         eventTypeId: 1,
       })
     );
+  });
+
+  it("queues MEETING_STARTED and MEETING_ENDED webhooks for confirmed bookings", async () => {
+    const args = makeArgs();
+    await handleConfirmation(args as never);
+
+    expect(mockQueueMeetingWebhook).toHaveBeenCalledWith(
+      WebhookTriggerEvents.MEETING_STARTED,
+      expect.objectContaining({
+        bookingUid: "test-uid-123",
+        bookingId: 1,
+        startTime: expect.any(String),
+        endTime: expect.any(String),
+      })
+    );
+    expect(mockQueueMeetingWebhook).toHaveBeenCalledWith(
+      WebhookTriggerEvents.MEETING_ENDED,
+      expect.objectContaining({
+        bookingUid: "test-uid-123",
+        bookingId: 1,
+        startTime: expect.any(String),
+        endTime: expect.any(String),
+      })
+    );
+  });
+
+  it("queues meeting webhooks for each booking in a recurring event", async () => {
+    const args = makeArgs();
+    (args as Record<string, unknown>).recurringEventId = "recurring-123";
+
+    args.prisma.booking.findMany.mockResolvedValue([
+      { id: 1, status: BookingStatus.PENDING, uid: "uid-1", metadata: {} },
+      { id: 2, status: BookingStatus.PENDING, uid: "uid-2", metadata: {} },
+    ]);
+    args.prisma.booking.update.mockResolvedValue({
+      id: 1,
+      uid: "uid-1",
+      status: BookingStatus.ACCEPTED,
+      description: null,
+      location: null,
+      attendees: [],
+      startTime: new Date("2024-01-15T10:00:00Z"),
+      endTime: new Date("2024-01-15T10:30:00Z"),
+      smsReminderNumber: null,
+      cancellationReason: null,
+      metadata: null,
+      customInputs: {},
+      title: "Test",
+      responses: {},
+      eventType: {
+        slug: "test-event",
+        bookingFields: null,
+        schedulingType: null,
+        hosts: [],
+        owner: { hideBranding: false },
+      },
+    });
+
+    await handleConfirmation(args as never);
+
+    // Each updated booking should get MEETING_STARTED and MEETING_ENDED queued
+    const meetingStartedCalls = mockQueueMeetingWebhook.mock.calls.filter(
+      (call: unknown[]) => call[0] === WebhookTriggerEvents.MEETING_STARTED
+    );
+    const meetingEndedCalls = mockQueueMeetingWebhook.mock.calls.filter(
+      (call: unknown[]) => call[0] === WebhookTriggerEvents.MEETING_ENDED
+    );
+
+    // At least one MEETING_STARTED and one MEETING_ENDED per updated booking
+    expect(meetingStartedCalls.length).toBeGreaterThanOrEqual(1);
+    expect(meetingEndedCalls.length).toBeGreaterThanOrEqual(1);
   });
 
   it("handles recurring events by updating all pending bookings", async () => {

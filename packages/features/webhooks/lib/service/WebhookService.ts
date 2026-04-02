@@ -4,7 +4,7 @@ import type { WebhookPayload } from "../factory/types";
 import type { ILogger, ITasker } from "../interface/infrastructure";
 import type { IWebhookRepository, IWebhookService } from "../interface/services";
 import type { WebhookPayloadType } from "../sendPayload";
-import sendPayload, { sendGenericWebhookPayload } from "../sendPayload";
+import sendPayload, { sendFlatWebhookPayload, sendGenericWebhookPayload } from "../sendPayload";
 
 /**
  * Error thrown when a webhook HTTP POST receives a non-OK response.
@@ -59,6 +59,19 @@ const GENERIC_WEBHOOK_TRIGGERS = new Set<WebhookTriggerEvents>([
 
 export function isGenericWebhookTrigger(trigger: WebhookTriggerEvents): boolean {
   return GENERIC_WEBHOOK_TRIGGERS.has(trigger);
+}
+
+/**
+ * Trigger events that use the flat payload format: `{ triggerEvent, ...data }`.
+ * Matches the legacy handleWebhookScheduledTriggers format for backward compatibility.
+ */
+const FLAT_WEBHOOK_TRIGGERS = new Set<WebhookTriggerEvents>([
+  WebhookTriggerEvents.MEETING_STARTED,
+  WebhookTriggerEvents.MEETING_ENDED,
+]);
+
+export function isFlatWebhookTrigger(trigger: WebhookTriggerEvents): boolean {
+  return FLAT_WEBHOOK_TRIGGERS.has(trigger);
 }
 
 export class WebhookService implements IWebhookService {
@@ -212,6 +225,47 @@ export class WebhookService implements IWebhookService {
         result.status,
         subscriberUrl,
         `Webhook POST to ${subscriberUrl} failed with status ${result.status}: ${result.message ?? ""}`
+      );
+    }
+
+    return {
+      ok: true,
+      status: result.status,
+      message: result.message,
+      duration: 0,
+      subscriberUrl,
+      webhookId: subscriber.id,
+    };
+  }
+
+  async sendFlatWebhookDirectly(
+    trigger: WebhookTriggerEvents,
+    payload: WebhookPayload,
+    subscriber: WebhookSubscriber
+  ): Promise<WebhookDeliveryResult> {
+    const { subscriberUrl } = subscriber;
+    if (!subscriberUrl) throw new Error("Missing subscriber URL");
+
+    let result: { ok: boolean; status: number; message?: string };
+    try {
+      result = await sendFlatWebhookPayload({
+        secretKey: subscriber.secret,
+        triggerEvent: trigger,
+        webhook: subscriber,
+        data: payload.payload as Record<string, unknown>,
+      });
+    } catch (error) {
+      throw new WebhookSendError(
+        subscriberUrl,
+        `Failed to send flat webhook to ${subscriberUrl}: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+
+    if (!result.ok) {
+      throw new WebhookHttpError(
+        result.status,
+        subscriberUrl,
+        `Flat webhook POST to ${subscriberUrl} failed with status ${result.status}: ${result.message ?? ""}`
       );
     }
 

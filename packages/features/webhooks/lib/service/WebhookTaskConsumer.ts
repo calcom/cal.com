@@ -9,6 +9,8 @@ import type {
   BookingRejectedDTO,
   BookingRequestedDTO,
   BookingRescheduledDTO,
+  MeetingEndedDTO,
+  MeetingStartedDTO,
   OOOCreatedDTO,
   RecordingReadyDTO,
   RoutingFormFallbackHitDTO,
@@ -26,6 +28,7 @@ import type { ILogger } from "../interface/infrastructure";
 import type { IWebhookService } from "../interface/services";
 import type {
   BookingWebhookTaskPayload,
+  MeetingWebhookTaskPayload,
   RoutingFormFallbackHitWebhookTaskPayload,
   WebhookTaskPayload,
   WrongAssignmentMetadata,
@@ -253,6 +256,13 @@ export class WebhookTaskConsumer {
   private buildDTO(eventData: Record<string, unknown>, payload: WebhookTaskPayload): WebhookEventDTO | null {
     if (payload.triggerEvent === WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED) {
       return this.buildNoShowDTO(eventData, payload);
+    }
+
+    if (
+      payload.triggerEvent === WebhookTriggerEvents.MEETING_STARTED ||
+      payload.triggerEvent === WebhookTriggerEvents.MEETING_ENDED
+    ) {
+      return this.buildMeetingDTO(eventData, payload as MeetingWebhookTaskPayload);
     }
 
     const { triggerEvent, timestamp } = payload;
@@ -572,5 +582,31 @@ export class WebhookTaskConsumer {
       teamId: payload.teamId ?? null,
       orgId: payload.orgId ?? undefined,
     } satisfies OOOCreatedDTO;
+  }
+
+  /**
+   * Build meeting DTO from raw booking data.
+   *
+   * The eventData IS the raw booking (with getCalEventResponses applied),
+   * not wrapped in a { booking } object. We pass it through as-is to
+   * match the legacy scheduleTrigger payload format.
+   */
+  private buildMeetingDTO(
+    eventData: Record<string, unknown>,
+    payload: MeetingWebhookTaskPayload
+  ): MeetingStartedDTO | MeetingEndedDTO | null {
+    if (payload.triggerEvent === WebhookTriggerEvents.MEETING_STARTED) {
+      return {
+        triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+        createdAt: payload.timestamp,
+        booking: eventData as MeetingStartedDTO["booking"],
+      };
+    }
+
+    return {
+      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+      createdAt: payload.timestamp,
+      booking: eventData as MeetingEndedDTO["booking"],
+    };
   }
 }

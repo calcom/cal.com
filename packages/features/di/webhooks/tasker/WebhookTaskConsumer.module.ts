@@ -1,26 +1,25 @@
-import type { Container } from "@evyweb/ioctopus";
-
 import type { ModuleLoader } from "@calcom/features/di/di";
 import type { WebhookTaskConsumer } from "@calcom/features/webhooks/lib/service/WebhookTaskConsumer";
-
+import type { Container } from "@evyweb/ioctopus";
 import { moduleLoader as bookingRepositoryModuleLoader } from "../../modules/Booking";
-import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
 import { moduleLoader as oooRepositoryModuleLoader } from "../../modules/Ooo";
 import { moduleLoader as prismaModuleLoader } from "../../modules/Prisma";
 import { routingFormResponseRepositoryModule } from "../../modules/RoutingFormResponse";
 import { moduleLoader as userRepositoryModuleLoader } from "../../modules/User";
 import { moduleLoader as wrongAssignmentReportRepositoryModuleLoader } from "../../modules/WrongAssignmentReport";
+import { moduleLoader as loggerModuleLoader } from "../../shared/services/logger.service";
 import { taskerServiceModule } from "../../shared/services/tasker.service";
 import { SHARED_TOKENS } from "../../shared/shared.tokens";
+import { DI_TOKENS } from "../../tokens";
 import { bookingWebhookDataFetcherModule } from "../modules/BookingWebhookDataFetcher.module";
 import { formWebhookDataFetcherModule } from "../modules/FormWebhookDataFetcher.module";
+import { meetingWebhookDataFetcherModule } from "../modules/MeetingWebhookDataFetcher.module";
 import { oooWebhookDataFetcherModule } from "../modules/OOOWebhookDataFetcher.module";
 import { paymentWebhookDataFetcherModule } from "../modules/PaymentWebhookDataFetcher.module";
 import { recordingWebhookDataFetcherModule } from "../modules/RecordingWebhookDataFetcher.module";
-import { wrongAssignmentWebhookDataFetcherModule } from "../modules/WrongAssignmentWebhookDataFetcher.module";
 import { webhookModule } from "../modules/Webhook.module";
 import { webhookTaskConsumerModule } from "../modules/WebhookTaskConsumer.module";
-import { DI_TOKENS } from "../../tokens";
+import { wrongAssignmentWebhookDataFetcherModule } from "../modules/WrongAssignmentWebhookDataFetcher.module";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 
 const token = WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER;
@@ -53,6 +52,7 @@ const loadModule = (container: Container) => {
   container.load(WEBHOOK_TOKENS.RECORDING_DATA_FETCHER, recordingWebhookDataFetcherModule);
   container.load(WEBHOOK_TOKENS.OOO_DATA_FETCHER, oooWebhookDataFetcherModule);
   container.load(WEBHOOK_TOKENS.WRONG_ASSIGNMENT_DATA_FETCHER, wrongAssignmentWebhookDataFetcherModule);
+  container.load(WEBHOOK_TOKENS.MEETING_DATA_FETCHER, meetingWebhookDataFetcherModule);
 
   container.load(WEBHOOK_TOKENS.WEBHOOK_TASK_CONSUMER, webhookTaskConsumerModule);
 };

@@ -22,6 +22,8 @@ const mockWebhookProducer: MockWebhookProducer = vi.hoisted(() => ({
   queueFormSubmittedWebhook: vi.fn().mockResolvedValue(undefined),
   queueRecordingWebhook: vi.fn().mockResolvedValue(undefined),
   queueOOOCreatedWebhook: vi.fn().mockResolvedValue(undefined),
+  queueMeetingWebhook: vi.fn().mockResolvedValue(undefined),
+  cancelDelayedWebhooks: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@calcom/features/webhooks/lib/service/WebhookTaskerProducerService", () => {
@@ -35,6 +37,8 @@ vi.mock("@calcom/features/webhooks/lib/service/WebhookTaskerProducerService", ()
     queueFormSubmittedWebhook = mockWebhookProducer.queueFormSubmittedWebhook;
     queueRecordingWebhook = mockWebhookProducer.queueRecordingWebhook;
     queueOOOCreatedWebhook = mockWebhookProducer.queueOOOCreatedWebhook;
+    queueMeetingWebhook = mockWebhookProducer.queueMeetingWebhook;
+    cancelDelayedWebhooks = mockWebhookProducer.cancelDelayedWebhooks;
   };
   return { WebhookTaskerProducerService: MockProducer };
 });
@@ -54,8 +58,8 @@ import process from "node:process";
 import { BookingStatus } from "@calcom/prisma/enums";
 import {
   expectBookingToBeInDatabase,
-  expectSuccessfulBookingCreationEmails,
   expectICalUIDAsString,
+  expectSuccessfulBookingCreationEmails,
 } from "@calcom/testing/lib/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
@@ -140,11 +144,16 @@ describe("Webhook Producer - BOOKING_CREATED", () => {
           status: BookingStatus.ACCEPTED,
         });
 
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          userId: organizer.id,
-        }, "BOOKING_CREATED");
+        expectWebhookProducerCalled(
+          mockWebhookProducer,
+          "queueBookingWebhook",
+          {
+            bookingUid: createdBooking.uid,
+            eventTypeId: 1,
+            userId: organizer.id,
+          },
+          "BOOKING_CREATED"
+        );
 
         expectWebhookProducerNotCalled(mockWebhookProducer, "queueBookingWebhook", "BOOKING_REQUESTED");
         expectWebhookProducerNotCalled(mockWebhookProducer, "queueBookingWebhook", "BOOKING_RESCHEDULED");
@@ -233,11 +242,16 @@ describe("Webhook Producer - BOOKING_CREATED", () => {
           status: BookingStatus.ACCEPTED,
         });
 
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          userId: organizer.id,
-        }, "BOOKING_CREATED");
+        expectWebhookProducerCalled(
+          mockWebhookProducer,
+          "queueBookingWebhook",
+          {
+            bookingUid: createdBooking.uid,
+            eventTypeId: 1,
+            userId: organizer.id,
+          },
+          "BOOKING_CREATED"
+        );
 
         const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
         expectSuccessfulBookingCreationEmails({
@@ -323,11 +337,16 @@ describe("Webhook Producer - BOOKING_CREATED", () => {
         });
 
         // Should fire BOOKING_REQUESTED, not BOOKING_CREATED
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          userId: organizer.id,
-        }, "BOOKING_REQUESTED");
+        expectWebhookProducerCalled(
+          mockWebhookProducer,
+          "queueBookingWebhook",
+          {
+            bookingUid: createdBooking.uid,
+            eventTypeId: 1,
+            userId: organizer.id,
+          },
+          "BOOKING_REQUESTED"
+        );
 
         expectWebhookProducerNotCalled(mockWebhookProducer, "queueBookingWebhook", "BOOKING_CREATED");
       },
@@ -409,11 +428,16 @@ describe("Webhook Producer - BOOKING_CREATED", () => {
           status: BookingStatus.ACCEPTED,
         });
 
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          userId: organizer.id,
-        }, "BOOKING_CREATED");
+        expectWebhookProducerCalled(
+          mockWebhookProducer,
+          "queueBookingWebhook",
+          {
+            bookingUid: createdBooking.uid,
+            eventTypeId: 1,
+            userId: organizer.id,
+          },
+          "BOOKING_CREATED"
+        );
 
         expectWebhookProducerNotCalled(mockWebhookProducer, "queueBookingWebhook", "BOOKING_REQUESTED");
 
@@ -506,15 +530,20 @@ describe("Webhook Producer - BOOKING_CREATED", () => {
           status: BookingStatus.ACCEPTED,
         });
 
-        expectWebhookProducerCalled(mockWebhookProducer, "queueBookingWebhook", {
-          bookingUid: createdBooking.uid,
-          eventTypeId: 1,
-          userId: organizer.id,
-          platformClientId: "test-platform-client-id",
-          platformRescheduleUrl: "https://platform.example.com/reschedule",
-          platformCancelUrl: "https://platform.example.com/cancel",
-          platformBookingUrl: "https://platform.example.com/booking",
-        }, "BOOKING_CREATED");
+        expectWebhookProducerCalled(
+          mockWebhookProducer,
+          "queueBookingWebhook",
+          {
+            bookingUid: createdBooking.uid,
+            eventTypeId: 1,
+            userId: organizer.id,
+            platformClientId: "test-platform-client-id",
+            platformRescheduleUrl: "https://platform.example.com/reschedule",
+            platformCancelUrl: "https://platform.example.com/cancel",
+            platformBookingUrl: "https://platform.example.com/booking",
+          },
+          "BOOKING_CREATED"
+        );
       },
       timeout
     );

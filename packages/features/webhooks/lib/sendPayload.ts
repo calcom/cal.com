@@ -359,4 +359,28 @@ const _sendPayload = async (
   };
 };
 
+/**
+ * Send a flat webhook payload matching the legacy scheduleTrigger format.
+ * Produces `{ triggerEvent, ...data }` — no `{ payload: ... }` wrapper.
+ * Used for MEETING_STARTED / MEETING_ENDED to preserve backward compatibility.
+ *
+ * Note: Custom payloadTemplate is intentionally ignored — the legacy
+ * handleWebhookScheduledTriggers cron never applied templates for these events.
+ */
+export const sendFlatWebhookPayload = async ({
+  secretKey,
+  triggerEvent,
+  webhook,
+  data,
+}: {
+  secretKey: string | null;
+  triggerEvent: string;
+  webhook: WebhookForPayload;
+  data: Record<string, unknown>;
+}) => {
+  const body = JSON.stringify({ triggerEvent, ...data });
+
+  return _sendPayload(secretKey, webhook, body, "application/json");
+};
+
 export default sendPayload;

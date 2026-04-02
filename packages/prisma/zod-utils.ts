@@ -534,6 +534,8 @@ export const bookingMetadataSchema = z
   .nullable()
   .describe("BookingMetadata");
 
+export type BookingMetadata = z.infer<typeof bookingMetadataSchema>;
+
 export const customInputOptionSchema = z.array(
   z.object({
     label: z.string(),
@@ -1193,4 +1195,5 @@ export const fieldSchema = baseFieldSchema.merge(
 );
 
 export const eventTypeBookingFields = z.array(fieldSchema);
+export type EventTypeBookingFields = z.infer<typeof eventTypeBookingFields>;
 export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;

@@ -8,6 +8,7 @@ import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManage
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import {
@@ -17,9 +18,6 @@ import {
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -34,7 +32,6 @@ import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { v4 as uuidv4 } from "uuid";
-import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
 async function fireBookingAcceptedEvent({
@@ -496,61 +493,31 @@ export async function handleConfirmation(args: {
       );
     }
 
-    const subscribersMeetingStarted = await getWebhooks({
-      userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-      teamId: eventType?.teamId,
-      orgId,
-      oAuthClientId: platformClientParams?.platformClientId,
-    });
-    const subscribersMeetingEnded = await getWebhooks({
-      userId,
-      eventTypeId: booking.eventTypeId,
-      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-      teamId: eventType?.teamId,
-      orgId,
-      oAuthClientId: platformClientParams?.platformClientId,
-    });
+    const webhookProducer = getWebhookProducer();
+    const meetingWebhookPromises: Promise<unknown>[] = [];
 
-    const scheduleTriggerPromises: Promise<unknown>[] = [];
-
-    const updatedBookingsWithCalEventResponses = updatedBookings.map((booking) => {
-      return {
-        ...booking,
-        ...getCalEventResponses({
-          bookingFields: booking.eventType?.bookingFields ?? null,
-          booking,
-        }),
+    for (const b of updatedBookings) {
+      const meetingParams = {
+        bookingId: b.id,
+        bookingUid: b.uid,
+        startTime: b.startTime.toISOString(),
+        endTime: b.endTime.toISOString(),
+        eventTypeId: booking.eventTypeId ?? undefined,
+        teamId: eventType?.teamId,
+        userId: userId ?? undefined,
+        orgId,
+        oAuthClientId: platformClientParams?.platformClientId,
       };
-    });
 
-    subscribersMeetingStarted.forEach((subscriber) => {
-      updatedBookingsWithCalEventResponses.forEach((booking) => {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-          })
-        );
-      });
-    });
-    subscribersMeetingEnded.forEach((subscriber) => {
-      updatedBookingsWithCalEventResponses.forEach((booking) => {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-          })
-        );
-      });
-    });
+      meetingWebhookPromises.push(
+        webhookProducer.queueMeetingWebhook(WebhookTriggerEvents.MEETING_STARTED, meetingParams)
+      );
+      meetingWebhookPromises.push(
+        webhookProducer.queueMeetingWebhook(WebhookTriggerEvents.MEETING_ENDED, meetingParams)
+      );
+    }
 
-    await Promise.all(scheduleTriggerPromises);
+    await Promise.all(meetingWebhookPromises);
 
     await scheduleNoShowTriggers({
       booking: {

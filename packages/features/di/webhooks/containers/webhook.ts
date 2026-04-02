@@ -21,13 +21,14 @@ import { taskerServiceModule } from "../../shared/services/tasker.service";
 import { SHARED_TOKENS } from "../../shared/shared.tokens";
 import { bookingWebhookDataFetcherModule } from "../modules/BookingWebhookDataFetcher.module";
 import { formWebhookDataFetcherModule } from "../modules/FormWebhookDataFetcher.module";
+import { meetingWebhookDataFetcherModule } from "../modules/MeetingWebhookDataFetcher.module";
 import { oooWebhookDataFetcherModule } from "../modules/OOOWebhookDataFetcher.module";
-import { wrongAssignmentWebhookDataFetcherModule } from "../modules/WrongAssignmentWebhookDataFetcher.module";
 import { paymentWebhookDataFetcherModule } from "../modules/PaymentWebhookDataFetcher.module";
 import { recordingWebhookDataFetcherModule } from "../modules/RecordingWebhookDataFetcher.module";
 import { webhookModule } from "../modules/Webhook.module";
 import { moduleLoader as webhookProducerServiceModuleLoader } from "../modules/WebhookProducerService.module";
 import { webhookTaskConsumerModule } from "../modules/WebhookTaskConsumer.module";
+import { wrongAssignmentWebhookDataFetcherModule } from "../modules/WrongAssignmentWebhookDataFetcher.module";
 import { WEBHOOK_TOKENS } from "../Webhooks.tokens";
 
 const webhookContainer: Container = createContainer();
@@ -61,6 +62,7 @@ webhookContainer.load(WEBHOOK_TOKENS.FORM_DATA_FETCHER, formWebhookDataFetcherMo
 webhookContainer.load(WEBHOOK_TOKENS.RECORDING_DATA_FETCHER, recordingWebhookDataFetcherModule);
 webhookContainer.load(WEBHOOK_TOKENS.OOO_DATA_FETCHER, oooWebhookDataFetcherModule);
 webhookContainer.load(WEBHOOK_TOKENS.WRONG_ASSIGNMENT_DATA_FETCHER, wrongAssignmentWebhookDataFetcherModule);
+webhookContainer.load(WEBHOOK_TOKENS.MEETING_DATA_FETCHER, meetingWebhookDataFetcherModule);
 
 // Load Producer/Consumer modules
 // Use moduleLoader pattern for producer service to load WebhookTasker dependencies

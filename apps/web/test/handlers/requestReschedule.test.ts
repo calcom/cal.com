@@ -547,6 +547,204 @@ describe("Handler: requestReschedule", () => {
 
     test.todo("Verify that the email should go to organizer as well as the team members");
   });
+
+  describe("Meeting webhook cancellation on reschedule", () => {
+    test(`should cancel delayed meeting webhooks when requesting reschedule for a booking with MEETING_STARTED/MEETING_ENDED webhooks`, async ({
+      emails,
+    }) => {
+      const { requestRescheduleHandler } = await import(
+        "@calcom/trpc/server/routers/viewer/bookings/requestReschedule.handler"
+      );
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+      });
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const bookingUid = "MOCKED_BOOKING_UID_MEETING_WEBHOOKS";
+      const eventTypeSlug = "event-type-1";
+      await createBookingScenario(
+        getScenarioData({
+          webhooks: [
+            {
+              userId: organizer.id,
+              eventTriggers: ["MEETING_STARTED", "MEETING_ENDED"],
+              subscriberUrl: "http://my-webhook.example.com",
+              active: true,
+              eventTypeId: 1,
+              appId: null,
+            },
+          ],
+          eventTypes: [
+            {
+              id: 1,
+              slug: eventTypeSlug,
+              slotInterval: 45,
+              length: 45,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          bookings: [
+            {
+              uid: bookingUid,
+              eventTypeId: 1,
+              userId: 101,
+              status: BookingStatus.ACCEPTED,
+              startTime: `${plus1DateString}T05:00:00.000Z`,
+              endTime: `${plus1DateString}T05:15:00.000Z`,
+              attendees: [
+                getMockBookingAttendee({
+                  id: 2,
+                  name: booker.name,
+                  email: booker.email,
+                  locale: "hi",
+                  timeZone: "Asia/Kolkata",
+                  noShow: false,
+                }),
+              ],
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+        })
+      );
+
+      const loggedInUser = {
+        organizationId: null,
+        id: 101,
+        username: "organizer",
+        name: "Organizer",
+        email: "organizer@example.com",
+      };
+
+      // Should not throw — cancelDelayedWebhooks should handle gracefully
+      // even when there are no trigger.dev runs to cancel (sync mode)
+      await requestRescheduleHandler(
+        getTrpcHandlerData({
+          user: loggedInUser,
+          input: {
+            bookingUid,
+            rescheduleReason: "Need to reschedule",
+          },
+        })
+      );
+
+      // Verify booking was cancelled (reschedule flow)
+      const prismock = (await import("@calcom/prisma")).default;
+      const updatedBooking = await prismock.booking.findUnique({ where: { uid: bookingUid } });
+      expect(updatedBooking?.status).toBe(BookingStatus.CANCELLED);
+      expect(updatedBooking?.rescheduled).toBe(true);
+    });
+
+    test(`should handle reschedule gracefully when no meeting webhooks are configured`, async ({
+      emails,
+    }) => {
+      const { requestRescheduleHandler } = await import(
+        "@calcom/trpc/server/routers/viewer/bookings/requestReschedule.handler"
+      );
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+      });
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const bookingUid = "MOCKED_BOOKING_UID_NO_MEETING_WEBHOOKS";
+      const eventTypeSlug = "event-type-1";
+      await createBookingScenario(
+        getScenarioData({
+          webhooks: [
+            {
+              userId: organizer.id,
+              eventTriggers: ["BOOKING_CREATED"],
+              subscriberUrl: "http://my-webhook.example.com",
+              active: true,
+              eventTypeId: 1,
+              appId: null,
+            },
+          ],
+          eventTypes: [
+            {
+              id: 1,
+              slug: eventTypeSlug,
+              slotInterval: 45,
+              length: 45,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          bookings: [
+            {
+              uid: bookingUid,
+              eventTypeId: 1,
+              userId: 101,
+              status: BookingStatus.ACCEPTED,
+              startTime: `${plus1DateString}T05:00:00.000Z`,
+              endTime: `${plus1DateString}T05:15:00.000Z`,
+              attendees: [
+                getMockBookingAttendee({
+                  id: 2,
+                  name: booker.name,
+                  email: booker.email,
+                  locale: "hi",
+                  timeZone: "Asia/Kolkata",
+                  noShow: false,
+                }),
+              ],
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+        })
+      );
+
+      const loggedInUser = {
+        organizationId: null,
+        id: 101,
+        username: "organizer",
+        name: "Organizer",
+        email: "organizer@example.com",
+      };
+
+      // Should complete without errors even without meeting webhooks
+      await requestRescheduleHandler(
+        getTrpcHandlerData({
+          user: loggedInUser,
+          input: {
+            bookingUid,
+            rescheduleReason: "Need to reschedule",
+          },
+        })
+      );
+
+      const prismock = (await import("@calcom/prisma")).default;
+      const updatedBooking = await prismock.booking.findUnique({ where: { uid: bookingUid } });
+      expect(updatedBooking?.status).toBe(BookingStatus.CANCELLED);
+      expect(updatedBooking?.rescheduled).toBe(true);
+    });
+  });
 });
 
 function getTrpcHandlerData({

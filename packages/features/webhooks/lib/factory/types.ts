@@ -2,6 +2,7 @@ import type {
   BookingNoShowUpdatedPayload,
   DelegationCredentialErrorPayloadType,
   EventPayloadType,
+  MeetingStartedDTO,
   OOOEntryPayloadType,
   WrongAssignmentReportDTO,
 } from "../dto/types";
@@ -38,45 +39,14 @@ export interface RecordingPayload {
   };
 }
 
-export interface MeetingPayload {
-  id: number;
-  startTime: Date;
-  endTime: Date;
-  title: string;
-  description: string | null;
-  customInputs: Record<string, unknown> | null;
-  responses: Record<string, unknown> | null;
-  userFieldsResponses: Record<string, unknown> | null;
-  location: string | null;
-  status: string;
-  user: {
-    username: string | null;
-    name: string | null;
-    email: string;
-    timeZone: string;
-    locale: string | null;
-  } | null;
-  eventType: {
-    title: string;
-    description: string | null;
-    requiresConfirmation: boolean;
-    price: number;
-    currency: string;
-    length: number;
-    team: {
-      logoUrl: string | null;
-      parent: {
-        logoUrl: string | null;
-        name: string;
-      } | null;
-    } | null;
-  } | null;
-  attendees: {
-    name: string;
-    email: string;
-    timeZone: string;
-  }[];
-}
+/**
+ * Payload for MEETING_STARTED / MEETING_ENDED webhooks.
+ *
+ * Uses the raw Prisma booking shape from BookingRepository.findBookingForMeetingWebhook()
+ * (with getCalEventResponses applied). The flat send path spreads this as
+ * `{ triggerEvent, ...booking }` to match the legacy scheduleTrigger format.
+ */
+export type MeetingPayload = MeetingStartedDTO["booking"];
 
 export interface InstantMeetingPayload {
   title: string;

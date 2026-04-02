@@ -2218,6 +2218,120 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  /**
+   * Fetch a booking for MEETING_STARTED / MEETING_ENDED webhook payloads.
+   *
+   * Returns the raw booking shape that the legacy scheduleTrigger path stored
+   * (all scalar fields + user, attendees, eventType, payment, references).
+   */
+  async findBookingForMeetingWebhook(bookingUid: string) {
+    return this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: {
+        id: true,
+        uid: true,
+        title: true,
+        description: true,
+        customInputs: true,
+        responses: true,
+        startTime: true,
+        endTime: true,
+        location: true,
+        status: true,
+        paid: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+        userPrimaryEmail: true,
+        eventTypeId: true,
+        destinationCalendarId: true,
+        cancellationReason: true,
+        rejectionReason: true,
+        reassignReason: true,
+        reassignById: true,
+        dynamicEventSlugRef: true,
+        dynamicGroupSlugRef: true,
+        rescheduled: true,
+        fromReschedule: true,
+        recurringEventId: true,
+        smsReminderNumber: true,
+        scheduledJobs: true,
+        metadata: true,
+        isRecorded: true,
+        iCalUID: true,
+        iCalSequence: true,
+        rating: true,
+        ratingFeedback: true,
+        noShowHost: true,
+        cancelledBy: true,
+        rescheduledBy: true,
+        creationSource: true,
+        idempotencyKey: true,
+        user: {
+          select: {
+            email: true,
+            name: true,
+            username: true,
+            timeZone: true,
+            locale: true,
+            uuid: true,
+            isPlatformManaged: true,
+          },
+        },
+        eventType: {
+          select: {
+            bookingFields: true,
+            team: {
+              select: {
+                logoUrl: true,
+                parent: {
+                  select: {
+                    logoUrl: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        attendees: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            timeZone: true,
+            locale: true,
+            phoneNumber: true,
+            bookingId: true,
+            noShow: true,
+          },
+        },
+        payment: {
+          select: {
+            id: true,
+            appId: true,
+            bookingId: true,
+            amount: true,
+            fee: true,
+            currency: true,
+            success: true,
+            refunded: true,
+            paymentOption: true,
+          },
+        },
+        references: {
+          select: {
+            id: true,
+            type: true,
+            uid: true,
+            meetingId: true,
+            meetingUrl: true,
+            bookingId: true,
+          },
+        },
+      },
+    });
+  }
 
   async findByIdForReassignment(bookingId: number) {
     return await this.prismaClient.booking.findUnique({

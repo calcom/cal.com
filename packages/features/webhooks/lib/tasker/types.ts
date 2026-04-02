@@ -1,6 +1,9 @@
 import type { TriggerOptions } from "@trigger.dev/sdk";
-
-import type { CancelDelayedWebhookPayload, WebhookTaskPayload } from "../types/webhookTask";
+import type {
+  CancelDelayedWebhookPayload,
+  MeetingWebhookTaskPayload,
+  WebhookTaskPayload,
+} from "../types/webhookTask";
 
 /**
  * Result of delivering a webhook task
@@ -23,6 +26,19 @@ export type WebhookDeliveryOptions = Pick<TriggerOptions, "idempotencyKey" | "id
  * - WebhookTriggerTasker: Queues to trigger.dev (for production)
  */
 export interface IWebhookTasker {
-  deliverWebhook(payload: WebhookTaskPayload, options?: WebhookDeliveryOptions): Promise<WebhookDeliveryResult>;
+  deliverWebhook(
+    payload: WebhookTaskPayload,
+    options?: WebhookDeliveryOptions
+  ): Promise<WebhookDeliveryResult>;
   cancelDelayedWebhook(payload: CancelDelayedWebhookPayload): Promise<WebhookDeliveryResult>;
+  /**
+   * Schedule a webhook for future delivery.
+   *
+   * - Async (trigger.dev): delegates to deliverWebhook with delay option
+   * - Sync (E2E): writes to WebhookScheduledTriggers via legacy scheduleTrigger
+   */
+  scheduleWebhook(
+    payload: MeetingWebhookTaskPayload,
+    options?: WebhookDeliveryOptions
+  ): Promise<WebhookDeliveryResult>;
 }

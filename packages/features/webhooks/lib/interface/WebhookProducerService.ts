@@ -186,6 +186,26 @@ export type QueueBookingTriggerEvent =
   | typeof WebhookTriggerEvents.BOOKING_REQUESTED
   | typeof WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED;
 
+/**
+ * Parameters for queueing meeting-related webhooks
+ * Used for: MEETING_STARTED, MEETING_ENDED
+ */
+export interface QueueMeetingWebhookParams extends BaseQueueWebhookParams {
+  bookingId: number;
+  bookingUid: string;
+  startTime: string;
+  endTime: string;
+  eventTypeId?: number;
+  teamId?: number | null;
+  userId?: number;
+  orgId?: number;
+  oAuthClientId?: string | null;
+}
+
+export type QueueMeetingTriggerEvent =
+  | typeof WebhookTriggerEvents.MEETING_STARTED
+  | typeof WebhookTriggerEvents.MEETING_ENDED;
+
 export interface IWebhookProducerService {
   queueBookingWebhook(
     triggerEvent: QueueBookingTriggerEvent,
@@ -244,6 +264,15 @@ export interface IWebhookProducerService {
    * Queue a webhook delivery task for WRONG_ASSIGNMENT_REPORT event
    */
   queueWrongAssignmentReportWebhook(params: QueueWrongAssignmentWebhookParams): Promise<void>;
+
+  /**
+   * Queue a delayed webhook delivery for meeting start/end events.
+   * The webhook fires at the booking's startTime (MEETING_STARTED) or endTime (MEETING_ENDED).
+   */
+  queueMeetingWebhook(
+    triggerEvent: QueueMeetingTriggerEvent,
+    params: QueueMeetingWebhookParams
+  ): Promise<void>;
 
   /**
    * Cancel previously scheduled delayed webhooks for a booking
