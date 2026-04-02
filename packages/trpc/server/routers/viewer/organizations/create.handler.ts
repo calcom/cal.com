@@ -7,6 +7,7 @@ import {
   sendOrganizationCreationEmail,
 } from "@calcom/emails/organization-email-service";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { getAvailabilityRepository } from "@calcom/features/availability/di/availability-repository.container";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
@@ -278,7 +279,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       user: { ...orgOwner, organizationId: organization.id },
     });
 
-    await prisma.availability.createMany({
+    const availabilityRepository = getAvailabilityRepository();
+    await availabilityRepository.createMany({
       data: availability.map((schedule) => ({
         days: schedule.days,
         startTime: schedule.startTime,

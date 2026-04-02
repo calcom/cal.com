@@ -1,5 +1,6 @@
 import { sendOrganizationCreationEmail } from "@calcom/emails/organization-email-service";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { getAvailabilityRepository } from "@calcom/features/availability/di/availability-repository.container";
 import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { getOrganizationRepository } from "@calcom/features/ee/organizations/di/OrganizationRepository.container";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -418,7 +419,8 @@ export abstract class BaseOnboardingService implements IOrganizationOnboardingSe
       }
 
       const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
-      await prisma.availability.createMany({
+      const availabilityRepository = getAvailabilityRepository();
+      await availabilityRepository.createMany({
         data: availability.map((schedule) => ({
           days: schedule.days,
           startTime: schedule.startTime,

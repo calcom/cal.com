@@ -4,6 +4,7 @@ import { CUSTOM_DOMAIN_DI_TOKENS } from "@calcom/features/custom-domains/di/toke
 import { ABUSE_SCORING_DI_TOKENS } from "@calcom/features/abuse-scoring/di/tokens";
 import { AUDIT_DI_TOKENS } from "@calcom/features/audit/di/tokens";
 import { AUTH_DI_TOKENS } from "@calcom/features/auth/di/tokens";
+import { AVAILABILITY_DI_TOKENS } from "@calcom/features/availability/di/tokens";
 import { AVATAR_DI_TOKENS } from "@calcom/features/avatars/di/tokens";
 import { BOOKING_AUDIT_DI_TOKENS } from "@calcom/features/booking-audit/di/tokens";
 import { BOOKING_REPORT_DI_TOKENS } from "@calcom/features/bookingReport/di/tokens";
@@ -124,6 +125,7 @@ export const DI_TOKENS = {
   ...CALENDAR_SUBSCRIPTION_DI_TOKENS,
   ...CRM_TASKER_DI_TOKENS,
   ...EXPERIMENTS_DI_TOKENS,
+  ...AVAILABILITY_DI_TOKENS,
   USER_CREATION_SERVICE: Symbol("UserCreationService"),
   USER_CREATION_SERVICE_MODULE: Symbol("UserCreationServiceModule"),
 };
