@@ -86,12 +86,15 @@ export class ManagedOrganizationsService {
       organization.id
     );
 
-    const apiKey = await this.apiKeysService.createApiKey(authUser.id, {
-      apiKeyDaysValid,
-      apiKeyNeverExpires,
-      note: `Managed organization API key. ManagerOrgId: ${managerOrganizationId}. ManagedOrgId: ${organization.id}`,
-      teamId: organization.id,
-    });
+    const apiKey = await this.apiKeysService.createApiKey(
+      { id: authUser.id, uuid: authUser.uuid, organizationId: authUser.organizationId ?? null },
+      {
+        apiKeyDaysValid,
+        apiKeyNeverExpires,
+        note: `Managed organization API key. ManagerOrgId: ${managerOrganizationId}. ManagedOrgId: ${organization.id}`,
+        teamId: organization.id,
+      }
+    );
 
     const outputOrganization =
       this.managedOrganizationsOutputService.getOutputManagedOrganization(organization);

@@ -37,13 +37,17 @@ import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { Person } from "@calcom/types/Calendar";
 import { TRPCError } from "@trpc/server";
 import type { TFunction } from "i18next";
-import type { TrpcSessionUser } from "../../../types";
 import type { TRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import type { PersonAttendeeCommonFields } from "./types";
 
+type RequestRescheduleUser = PersonAttendeeCommonFields & {
+  uuid: string;
+  profile?: { organizationId: number | null } | null;
+};
+
 type RequestRescheduleOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: RequestRescheduleUser;
   };
   input: TRequestRescheduleInputSchema;
   source: ValidActionSource;

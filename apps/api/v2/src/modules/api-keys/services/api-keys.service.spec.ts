@@ -86,10 +86,13 @@ describe("ApiKeysService", () => {
       const mockApiKey = { id: "key-1", hashedKey: "abc" };
       (createApiKeyHandler as jest.Mock).mockResolvedValue(mockApiKey);
 
-      const result = await service.createApiKey(1, { apiKeyDaysValid: 60 });
+      const result = await service.createApiKey(
+        { id: 1, uuid: "test-uuid", organizationId: null },
+        { apiKeyDaysValid: 60 }
+      );
 
       expect(createApiKeyHandler).toHaveBeenCalledWith({
-        ctx: { user: { id: 1 } },
+        ctx: { user: { id: 1, uuid: "test-uuid", organizationId: null } },
         input: expect.objectContaining({
           neverExpires: false,
         }),
@@ -101,10 +104,10 @@ describe("ApiKeysService", () => {
       const mockApiKey = { id: "key-1" };
       (createApiKeyHandler as jest.Mock).mockResolvedValue(mockApiKey);
 
-      await service.createApiKey(1, { apiKeyNeverExpires: true });
+      await service.createApiKey({ id: 1, uuid: "test-uuid", organizationId: null }, { apiKeyNeverExpires: true });
 
       expect(createApiKeyHandler).toHaveBeenCalledWith({
-        ctx: { user: { id: 1 } },
+        ctx: { user: { id: 1, uuid: "test-uuid", organizationId: null } },
         input: expect.objectContaining({
           neverExpires: true,
         }),
@@ -113,17 +116,17 @@ describe("ApiKeysService", () => {
 
     it("should throw BadRequestException when both apiKeyDaysValid and apiKeyNeverExpires are set", async () => {
       await expect(
-        service.createApiKey(1, { apiKeyDaysValid: 30, apiKeyNeverExpires: true })
+        service.createApiKey({ id: 1, uuid: "test-uuid", organizationId: null }, { apiKeyDaysValid: 30, apiKeyNeverExpires: true })
       ).rejects.toThrow(BadRequestException);
     });
 
     it("should default to 30 days when no expiration specified", async () => {
       (createApiKeyHandler as jest.Mock).mockResolvedValue({ id: "key-1" });
 
-      await service.createApiKey(1, {});
+      await service.createApiKey({ id: 1, uuid: "test-uuid", organizationId: null }, {});
 
       expect(createApiKeyHandler).toHaveBeenCalledWith({
-        ctx: { user: { id: 1 } },
+        ctx: { user: { id: 1, uuid: "test-uuid", organizationId: null } },
         input: expect.objectContaining({
           neverExpires: false,
           expiresAt: expect.any(Date),
@@ -140,7 +143,11 @@ describe("ApiKeysService", () => {
       (createApiKeyHandler as jest.Mock).mockResolvedValue(mockNewKey);
       (apiKeysRepository.deleteById as jest.Mock).mockResolvedValue(undefined);
 
-      const result = await service.refreshApiKey(1, "cal_test_abc123", { apiKeyDaysValid: 30 });
+      const result = await service.refreshApiKey(
+        { id: 1, uuid: "test-uuid", organizationId: null },
+        "cal_test_abc123",
+        { apiKeyDaysValid: 30 }
+      );
 
       expect(apiKeysRepository.deleteById).toHaveBeenCalledWith("old-key");
       expect(result).toEqual(mockNewKey);
@@ -149,7 +156,9 @@ describe("ApiKeysService", () => {
     it("should throw UnauthorizedException when API key not found in database", async () => {
       (apiKeysRepository.getApiKeyFromHash as jest.Mock).mockResolvedValue(null);
 
-      await expect(service.refreshApiKey(1, "cal_test_invalid", {})).rejects.toThrow(UnauthorizedException);
+      await expect(
+        service.refreshApiKey({ id: 1, uuid: "test-uuid", organizationId: null }, "cal_test_invalid", {})
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 });

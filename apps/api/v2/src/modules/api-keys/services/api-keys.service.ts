@@ -30,7 +30,10 @@ export class ApiKeysService {
     return apiKey;
   }
 
-  async createApiKey(authUserId: number, createApiKeyInput: CreateApiKeyInput) {
+  async createApiKey(
+    authUser: { id: number; uuid: string; organizationId: number | null },
+    createApiKeyInput: CreateApiKeyInput
+  ) {
     if (createApiKeyInput.apiKeyDaysValid && createApiKeyInput.apiKeyNeverExpires) {
       throw new BadRequestException(
         "ApiKeysService -Cannot set both apiKeyDaysValid and apiKeyNeverExpires. It has to be either or none of them."
@@ -45,7 +48,9 @@ export class ApiKeysService {
     const apiKey = await createApiKeyHandler({
       ctx: {
         user: {
-          id: authUserId,
+          id: authUser.id,
+          uuid: authUser.uuid,
+          organizationId: authUser.organizationId,
         },
       },
       input: {
@@ -59,7 +64,11 @@ export class ApiKeysService {
     return apiKey;
   }
 
-  async refreshApiKey(authUserId: number, apiKey: string, refreshApiKeyInput: RefreshApiKeyInput) {
+  async refreshApiKey(
+    authUser: { id: number; uuid: string; organizationId: number | null },
+    apiKey: string,
+    refreshApiKeyInput: RefreshApiKeyInput
+  ) {
     const strippedApiKey = stripApiKey(apiKey, this.config.get<string>("api.keyPrefix"));
     const apiKeyHash = sha256Hash(strippedApiKey);
     const apiKeyInDb = await this.apiKeysRepository.getApiKeyFromHash(apiKeyHash);
@@ -67,7 +76,7 @@ export class ApiKeysService {
       throw new UnauthorizedException("ApiKeysService - provided api key is not valid.");
     }
 
-    const newApiKey = await this.createApiKey(authUserId, {
+    const newApiKey = await this.createApiKey(authUser, {
       ...refreshApiKeyInput,
       note: apiKeyInDb.note || undefined,
       teamId: apiKeyInDb.teamId || undefined,

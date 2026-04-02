@@ -5,7 +5,10 @@ import { RefreshApiKeyOutput } from "@/modules/api-keys/outputs/refresh-api-key.
 import { ApiKeysService } from "@/modules/api-keys/services/api-keys.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { ApiAuthGuardRequest } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import {
+  ApiAuthGuardRequest,
+  ApiAuthGuardUser,
+} from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from "@nestjs/common";
 import { ApiTags, ApiHeader, ApiOperation } from "@nestjs/swagger";
 
@@ -29,11 +32,15 @@ export class ApiKeysController {
   @HttpCode(HttpStatus.OK)
   async refresh(
     @Body() body: RefreshApiKeyInput,
-    @GetUser("id") userId: number,
+    @GetUser() user: ApiAuthGuardUser,
     @Req() request: ApiAuthGuardRequest
   ): Promise<RefreshApiKeyOutput> {
     const currentApiKey = await this.apiKeysService.getRequestApiKey(request);
-    const newApiKey = await this.apiKeysService.refreshApiKey(userId, currentApiKey, body);
+    const newApiKey = await this.apiKeysService.refreshApiKey(
+      { id: user.id, uuid: user.uuid, organizationId: user.organizationId ?? null },
+      currentApiKey,
+      body
+    );
     return {
       status: SUCCESS_STATUS,
       data: {
