@@ -135,6 +135,78 @@ describe("createActiveFiltersValidator", () => {
     });
   });
 
+  describe("utm filters", () => {
+    it("preserves utmSource filter unchanged", () => {
+      const validator = createActiveFiltersValidator(defaultAccessibleResources);
+      const filters: ActiveFilters = [
+        {
+          f: "utmSource",
+          v: {
+            type: ColumnFilterType.TEXT,
+            data: { operator: "contains", operand: "google" },
+          },
+        },
+      ];
+
+      const result = validator(filters);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].f).toBe("utmSource");
+      expect(result[0].v).toEqual({
+        type: ColumnFilterType.TEXT,
+        data: { operator: "contains", operand: "google" },
+      });
+    });
+
+    it("preserves all five UTM filters unchanged", () => {
+      const validator = createActiveFiltersValidator(defaultAccessibleResources);
+      const filters: ActiveFilters = [
+        { f: "utmSource", v: { type: ColumnFilterType.TEXT, data: { operator: "contains", operand: "google" } } },
+        { f: "utmMedium", v: { type: ColumnFilterType.TEXT, data: { operator: "equals", operand: "cpc" } } },
+        { f: "utmCampaign", v: { type: ColumnFilterType.TEXT, data: { operator: "startsWith", operand: "spring" } } },
+        { f: "utmTerm", v: { type: ColumnFilterType.TEXT, data: { operator: "contains", operand: "booking" } } },
+        { f: "utmContent", v: { type: ColumnFilterType.TEXT, data: { operator: "endsWith", operand: "banner" } } },
+      ];
+
+      const result = validator(filters);
+
+      expect(result).toHaveLength(5);
+      expect(result.map((f) => f.f)).toEqual([
+        "utmSource",
+        "utmMedium",
+        "utmCampaign",
+        "utmTerm",
+        "utmContent",
+      ]);
+    });
+
+    it("preserves UTM filters alongside validated ID filters", () => {
+      const validator = createActiveFiltersValidator(defaultAccessibleResources);
+      const filters: ActiveFilters = [
+        {
+          f: "userId",
+          v: { type: ColumnFilterType.MULTI_SELECT, data: [1, 999] },
+        },
+        {
+          f: "utmSource",
+          v: { type: ColumnFilterType.TEXT, data: { operator: "contains", operand: "google" } },
+        },
+      ];
+
+      const result = validator(filters);
+
+      // userId is trimmed to valid IDs; utmSource passes through unchanged
+      expect(result).toHaveLength(2);
+      expect(result[0].f).toBe("userId");
+      expect(result[0].v).toEqual({ type: ColumnFilterType.MULTI_SELECT, data: [1] });
+      expect(result[1].f).toBe("utmSource");
+      expect(result[1].v).toEqual({
+        type: ColumnFilterType.TEXT,
+        data: { operator: "contains", operand: "google" },
+      });
+    });
+  });
+
   describe("other filters", () => {
     it("preserves filters that are not userId, eventTypeId, or teamId", () => {
       const validator = createActiveFiltersValidator(defaultAccessibleResources);

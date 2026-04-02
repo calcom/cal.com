@@ -27,6 +27,104 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
+describe("getHandler - UTM filters", () => {
+  const mockUser = {
+    id: 1,
+    email: "user@example.com",
+    name: "Test User",
+    profile: {
+      organizationId: null,
+    },
+  };
+
+  const mockPrisma = {} as unknown as PrismaClient;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getAllUserBookings).mockResolvedValue({
+      bookings: [],
+      recurringInfo: [],
+      totalCount: 0,
+    });
+  });
+
+  it("should pass UTM filters as plain strings to getAllUserBookings", async () => {
+    await getHandler({
+      ctx: { user: mockUser as any, prisma: mockPrisma },
+      input: {
+        filters: {
+          utmSource: "google",
+          utmMedium: "cpc",
+          utmCampaign: "spring_sale",
+          utmTerm: "booking",
+          utmContent: "banner",
+        },
+        limit: 10,
+        offset: 0,
+      },
+    });
+
+    expect(getAllUserBookings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: expect.objectContaining({
+          utmSource: "google",
+          utmMedium: "cpc",
+          utmCampaign: "spring_sale",
+          utmTerm: "booking",
+          utmContent: "banner",
+        }),
+      })
+    );
+  });
+
+  it("should pass UTM filter as a structured text filter value to getAllUserBookings", async () => {
+    const utmSourceFilter = {
+      type: "t" as const,
+      data: { operator: "contains" as const, operand: "google" },
+    };
+
+    await getHandler({
+      ctx: { user: mockUser as any, prisma: mockPrisma },
+      input: {
+        filters: { utmSource: utmSourceFilter },
+        limit: 10,
+        offset: 0,
+      },
+    });
+
+    expect(getAllUserBookings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: expect.objectContaining({ utmSource: utmSourceFilter }),
+      })
+    );
+  });
+
+  it("should pass UTM filters alongside other filters", async () => {
+    await getHandler({
+      ctx: { user: mockUser as any, prisma: mockPrisma },
+      input: {
+        filters: {
+          userIds: [1],
+          utmSource: "facebook",
+          utmCampaign: "retargeting",
+        },
+        limit: 10,
+        offset: 0,
+      },
+    });
+
+    expect(getAllUserBookings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: expect.objectContaining({
+          userIds: [1],
+          utmSource: "facebook",
+          utmCampaign: "retargeting",
+        }),
+      })
+    );
+  });
+});
+
 describe("getHandler", () => {
   const mockUser = {
     id: 1,
