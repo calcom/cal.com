@@ -8,6 +8,7 @@ import { PrismaSelectedSlotRepository } from "@/lib/repositories/prisma-selected
 import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository";
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { BusyTimesService } from "@/lib/services/busy-times.service";
+import { GuestBusyTimesService } from "@/lib/services/guest-busy-times.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
 import { NoSlotsNotificationService } from "@/lib/services/no-slots-notification.service";
 import { OrgMembershipLookupService } from "@/lib/services/org-membership-lookup.service";
@@ -36,6 +37,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
     checkBookingLimitsService: CheckBookingLimitsService,
     userAvailabilityService: UserAvailabilityService,
     busyTimesService: BusyTimesService,
+    guestBusyTimesService: GuestBusyTimesService,
     noSlotsNotificationService: NoSlotsNotificationService,
     orgMembershipLookupService: OrgMembershipLookupService
   ) {
@@ -52,6 +54,7 @@ export class AvailableSlotsService extends BaseAvailableSlotsService {
       checkBookingLimitsService,
       userAvailabilityService,
       busyTimesService,
+      guestBusyTimesService,
       qualifiedHostsService,
       featuresRepo: featuresRepository,
       noSlotsNotificationService,

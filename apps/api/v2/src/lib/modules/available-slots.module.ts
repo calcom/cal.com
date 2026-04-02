@@ -11,6 +11,7 @@ import { PrismaTeamRepository } from "@/lib/repositories/prisma-team.repository"
 import { PrismaUserRepository } from "@/lib/repositories/prisma-user.repository";
 import { AvailableSlotsService } from "@/lib/services/available-slots.service";
 import { BusyTimesService } from "@/lib/services/busy-times.service";
+import { GuestBusyTimesService } from "@/lib/services/guest-busy-times.service";
 import { CheckBookingLimitsService } from "@/lib/services/check-booking-limits.service";
 import { FilterHostsService } from "@/lib/services/filter-hosts.service";
 import { NoSlotsNotificationService } from "@/lib/services/no-slots-notification.service";
@@ -40,6 +41,7 @@ import { Module } from "@nestjs/common";
     AvailableSlotsService,
     UserAvailabilityService,
     BusyTimesService,
+    GuestBusyTimesService,
     FilterHostsService,
     QualifiedHostsService,
     NoSlotsNotificationService,

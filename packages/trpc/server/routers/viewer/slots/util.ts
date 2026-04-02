@@ -15,6 +15,7 @@ import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-f
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
+import type { GuestBusyTimesService } from "@calcom/features/busyTimes/services/getGuestBusyTimes";
 import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -83,6 +84,7 @@ export interface IAvailableSlotsService {
   checkBookingLimitsService: CheckBookingLimitsService;
   userAvailabilityService: UserAvailabilityService;
   busyTimesService: BusyTimesService;
+  guestBusyTimesService: GuestBusyTimesService;
   redisClient: IRedisService;
   featuresRepo: FeaturesRepository;
   qualifiedHostsService: QualifiedHostsService;
@@ -1497,6 +1499,48 @@ export class AvailableSlotsService {
             return !!item;
           }
         );
+    }
+
+    // Filter out slots where guests (Cal.com users) are busy during reschedule
+    // This only applies when host reschedules - we check if attendees are Cal.com users
+    // and filter out slots that conflict with their bookings
+    if (input.rescheduleUid) {
+      try {
+        const guestBusyTimesResult = await this.dependencies.guestBusyTimesService.getGuestBusyTimes({
+          rescheduleUid: input.rescheduleUid,
+          startTime: startTime.toDate(),
+          endTime: endTime.toDate(),
+          schedulingType: eventType.schedulingType,
+        });
+
+        if (guestBusyTimesResult.busyTimes.length > 0) {
+          loggerWithEventDetails.debug(
+            `Filtering ${guestBusyTimesResult.busyTimes.length} guest busy time(s) from ${guestBusyTimesResult.calComUserCount} Cal.com user guest(s)`
+          );
+
+          availableTimeSlots = availableTimeSlots.filter((slot) => {
+            const slotStart = slot.time;
+            const slotEnd = slot.time.add(input.duration || eventType.length, "minute");
+
+            // Check if slot overlaps with any guest busy time
+            const hasConflict = guestBusyTimesResult.busyTimes.some((busy) => {
+              const busyStart = dayjs(busy.start);
+              const busyEnd = dayjs(busy.end);
+
+              // Overlap exists if slot starts before busy ends AND slot ends after busy starts
+              return slotStart.isBefore(busyEnd) && slotEnd.isAfter(busyStart);
+            });
+
+            return !hasConflict;
+          });
+        }
+      } catch (error) {
+        // Fail gracefully - don't block rescheduling if guest availability check fails
+        loggerWithEventDetails.error("Failed to check guest availability during reschedule, continuing with host slots only", {
+          error,
+          rescheduleUid: input.rescheduleUid,
+        });
+      }
     }
 
     // fr-CA uses YYYY-MM-DD
