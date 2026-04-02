@@ -164,6 +164,7 @@ describe("cancelAttendeeSeat", () => {
         timeZone: "UTC",
         locale: "en",
         phoneNumber: null,
+        cancellationReason: null,
       }),
       30 * 60
     );
@@ -177,12 +178,15 @@ describe("cancelAttendeeSeat", () => {
         userId: 100,
         orgId: 7,
         attendeeSeatId: "seat-ref-123",
-        metadata: {},
       })
+    );
+    // No metadata with PII should be passed to the queue
+    expect(mockQueueBookingCancelledWebhook).toHaveBeenCalledWith(
+      expect.not.objectContaining({ metadata: expect.anything() })
     );
   });
 
-  it("includes cancellationReason in queue metadata (not PII) when evt has one", async () => {
+  it("stashes cancellationReason in KV instead of queue metadata", async () => {
     const data = {
       seatReferenceUid: "seat-ref-123",
       bookingToDelete: makeBookingToDelete(),
@@ -196,14 +200,16 @@ describe("cancelAttendeeSeat", () => {
       orgId: 7,
     });
 
+    // cancellationReason should be stashed in KV alongside attendee PII
+    expect(mockKVPut).toHaveBeenCalledWith(
+      "webhook:cancelled-seat:seat-ref-123",
+      expect.stringContaining('"cancellationReason":"Schedule conflict"'),
+      30 * 60
+    );
+
+    // Queue call should NOT contain cancellationReason in metadata
     expect(mockQueueBookingCancelledWebhook).toHaveBeenCalledWith(
-      expect.objectContaining({
-        bookingUid: "booking-uid",
-        attendeeSeatId: "seat-ref-123",
-        metadata: {
-          cancellationReason: "Schedule conflict",
-        },
-      })
+      expect.not.objectContaining({ metadata: expect.anything() })
     );
   });
 

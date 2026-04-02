@@ -5,9 +5,9 @@ import {
 } from "@calcom/app-store/delegationCredential";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails/email-manager";
 import { updateMeeting } from "@calcom/features/conferencing/lib/videoClient";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
-import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import { getKV } from "@calcom/features/di/containers/KV";
+import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
 import { getTranslation } from "@calcom/i18n/server";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { HttpError } from "@calcom/lib/http-error";
@@ -73,6 +73,7 @@ async function cancelAttendeeSeat(
           timeZone: attendee.timeZone,
           locale: attendee.locale,
           phoneNumber: attendee.phoneNumber ?? null,
+          cancellationReason: evt.cancellationReason ?? null,
         }),
         KV_TTL_SECONDS
       );
@@ -200,9 +201,6 @@ async function cancelAttendeeSeat(
         platformCancelUrl: webhookContext?.platformCancelUrl,
         platformBookingUrl: webhookContext?.platformBookingUrl,
         attendeeSeatId: seatReferenceUid,
-        metadata: {
-          ...(evt.cancellationReason ? { cancellationReason: evt.cancellationReason } : {}),
-        },
       });
     } catch (e) {
       logger.error(

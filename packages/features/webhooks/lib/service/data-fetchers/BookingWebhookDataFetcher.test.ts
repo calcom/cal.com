@@ -69,14 +69,12 @@ describe("BookingWebhookDataFetcher", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(getTranslation).mockResolvedValue(
-      ((key: string, opts?: Record<string, string>) => {
-        if (key === "x_marked_as_no_show") return `${opts?.x} marked as no-show`;
-        if (key === "x_unmarked_as_no_show") return `${opts?.x} unmarked as no-show`;
-        if (key === "no_show_updated") return "No-show status updated";
-        return key;
-      }) as never
-    );
+    vi.mocked(getTranslation).mockResolvedValue(((key: string, opts?: Record<string, string>) => {
+      if (key === "x_marked_as_no_show") return `${opts?.x} marked as no-show`;
+      if (key === "x_unmarked_as_no_show") return `${opts?.x} unmarked as no-show`;
+      if (key === "no_show_updated") return "No-show status updated";
+      return key;
+    }) as never);
 
     mockLogger = createMockLogger();
     mockBookingRepository = {
@@ -505,7 +503,8 @@ describe("BookingWebhookDataFetcher", () => {
       const result = await fetcher.fetchEventData(payload);
 
       expect(mockKVGet).toHaveBeenCalledWith("webhook:cancelled-seat:seat-ref-abc");
-      const calEvent = ((result as Record<string, unknown>).data as Record<string, unknown>).calendarEvent as { attendees: unknown[] };
+      const calEvent = ((result as Record<string, unknown>).data as Record<string, unknown>)
+        .calendarEvent as { attendees: unknown[] };
       expect(calEvent.attendees).toHaveLength(1);
       expect(calEvent.attendees[0]).toEqual(
         expect.objectContaining({
@@ -529,7 +528,8 @@ describe("BookingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      const calEvent = ((result as Record<string, unknown>).data as Record<string, unknown>).calendarEvent as { attendees: unknown[] };
+      const calEvent = ((result as Record<string, unknown>).data as Record<string, unknown>)
+        .calendarEvent as { attendees: unknown[] };
       expect(calEvent.attendees).toHaveLength(1);
       expect(calEvent.attendees[0]).toEqual(
         expect.objectContaining({
@@ -554,7 +554,8 @@ describe("BookingWebhookDataFetcher", () => {
 
       const result = await fetcher.fetchEventData(payload);
 
-      const calEvent = ((result as Record<string, unknown>).data as Record<string, unknown>).calendarEvent as { attendees: unknown[] };
+      const calEvent = ((result as Record<string, unknown>).data as Record<string, unknown>)
+        .calendarEvent as { attendees: unknown[] };
       expect(calEvent.attendees).toHaveLength(1);
       expect(calEvent.attendees[0]).toEqual(
         expect.objectContaining({
@@ -566,6 +567,55 @@ describe("BookingWebhookDataFetcher", () => {
         bookingUid: "booking-uid-1",
         seatId: "seat-ref-bad",
       });
+    });
+
+    it("should set calendarEvent.cancellationReason from KV when present", async () => {
+      const { mockCalendarEvent } = setupBookingAndBuilder();
+      mockKVGet.mockResolvedValueOnce(
+        JSON.stringify({
+          email: "cancelled@example.com",
+          name: "Cancelled User",
+          timeZone: "America/New_York",
+          locale: "en",
+          phoneNumber: null,
+          cancellationReason: "Schedule conflict",
+        })
+      );
+
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
+        attendeeSeatId: "seat-ref-reason",
+      } as Partial<BookingWebhookTaskPayload>);
+
+      const result = await fetcher.fetchEventData(payload);
+
+      const calEvent = ((result as Record<string, unknown>).data as Record<string, unknown>)
+        .calendarEvent as { cancellationReason?: string };
+      expect(calEvent.cancellationReason).toBe("Schedule conflict");
+    });
+
+    it("should not set calendarEvent.cancellationReason when KV entry has no reason", async () => {
+      const { mockCalendarEvent } = setupBookingAndBuilder();
+      mockKVGet.mockResolvedValueOnce(
+        JSON.stringify({
+          email: "cancelled@example.com",
+          name: "Cancelled User",
+          timeZone: "America/New_York",
+          locale: "en",
+          phoneNumber: null,
+        })
+      );
+
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
+        attendeeSeatId: "seat-ref-no-reason",
+      } as Partial<BookingWebhookTaskPayload>);
+
+      const result = await fetcher.fetchEventData(payload);
+
+      const calEvent = ((result as Record<string, unknown>).data as Record<string, unknown>)
+        .calendarEvent as { cancellationReason?: string };
+      expect(calEvent.cancellationReason).toBeUndefined();
     });
 
     it("should not touch KV when BOOKING_CANCELLED has no attendeeSeatId (non-seat cancellation)", async () => {

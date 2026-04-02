@@ -542,10 +542,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
           platformCancelUrl,
           platformBookingUrl,
           allRemainingBookings: !!allRemainingBookings,
-          metadata: {
-            ...(cancellationReason ? { cancellationReason } : {}),
-            ...(cancelledBy ? { cancelledBy } : {}),
-          },
         });
       } catch (e) {
         log.error(
@@ -603,10 +599,6 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
           platformRescheduleUrl,
           platformCancelUrl,
           platformBookingUrl,
-          metadata: {
-            ...(cancellationReason ? { cancellationReason } : {}),
-            ...(cancelledBy ? { cancelledBy } : {}),
-          },
         });
       } catch (e) {
         log.error(

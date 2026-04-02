@@ -402,12 +402,8 @@ export class WebhookTaskConsumer {
         return {
           ...baseDTO,
           triggerEvent,
-          cancelledBy:
-            (bookingPayload.metadata?.cancelledBy as string) ?? booking.cancelledBy ?? undefined,
-          cancellationReason:
-            (bookingPayload.metadata?.cancellationReason as string) ??
-            booking.cancellationReason ??
-            undefined,
+          cancelledBy: booking.cancelledBy ?? undefined,
+          cancellationReason: booking.cancellationReason ?? calendarEvent.cancellationReason ?? undefined,
           requestReschedule: false,
           metadata:
             typeof booking.metadata === "object" &&

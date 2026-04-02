@@ -232,7 +232,6 @@ export const transcriptionDownloadLinksSchema = z.object({
   recording: z.string().optional(),
 });
 
-
 export interface TranscriptionDownloadLinks {
   transcription?: Array<{ format: string; link: string }>;
   recording?: string;
@@ -261,6 +260,7 @@ export const cancelledSeatAttendeeSchema = z.object({
   timeZone: z.string(),
   locale: z.string().nullable(),
   phoneNumber: z.string().nullable().optional(),
+  cancellationReason: z.string().nullable().optional(),
 });
 
 export type CancelledSeatAttendee = z.infer<typeof cancelledSeatAttendeeSchema>;

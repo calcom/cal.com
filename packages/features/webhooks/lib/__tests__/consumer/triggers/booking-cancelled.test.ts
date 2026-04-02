@@ -387,6 +387,39 @@ describe("BOOKING_CANCELLED Trigger", () => {
       expect(p.requestReschedule).toBe(false);
     });
 
+    it("falls back to calendarEvent.cancellationReason for seat cancellations", async () => {
+      vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
+        data: {
+          calendarEvent: createMockCalendarEvent({
+            cancellationReason: "Seat released",
+          }),
+          booking: createMockBooking({
+            cancellationReason: null,
+            cancelledBy: null,
+          }),
+        },
+      });
+
+      vi.mocked(mockWebhookRepository.getSubscribers).mockResolvedValueOnce([defaultSubscriber]);
+
+      const consumerWithRealBuilder = buildConsumerWithRealBuilder();
+      await consumerWithRealBuilder.processWebhookTask(
+        {
+          operationId: "op-seat-cancel-reason",
+          triggerEvent: WebhookTriggerEvents.BOOKING_CANCELLED,
+          bookingUid: "booking-uid-123",
+          eventTypeId: 456,
+          userId: 789,
+          timestamp: new Date().toISOString(),
+        },
+        "task-seat-cancel-reason"
+      );
+
+      const p = getDeliveredPayload();
+      expect(p.cancelledBy).toBeUndefined();
+      expect(p.cancellationReason).toBe("Seat released");
+    });
+
     it("includes metadata from booking when present", async () => {
       vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
         data: {
@@ -419,7 +452,9 @@ describe("BOOKING_CANCELLED Trigger", () => {
     it("handles cancellation without cancelledBy (unauthenticated cancellation)", async () => {
       vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
         data: {
-          calendarEvent: createMockCalendarEvent(),
+          calendarEvent: createMockCalendarEvent({
+            cancellationReason: undefined,
+          }),
           booking: createMockBooking({
             cancelledBy: null,
             cancellationReason: null,

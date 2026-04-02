@@ -1,5 +1,6 @@
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { getKV } from "@calcom/features/di/containers/KV";
 import { getTranslation } from "@calcom/i18n/server";
 import { Prisma } from "@calcom/prisma/client";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -11,7 +12,6 @@ import type {
 import type { ILogger } from "../../interface/infrastructure";
 import type { BookingWebhookTaskPayload } from "../../types/webhookTask";
 import { cancelledSeatAttendeeSchema, noShowMetadataSchema } from "../../types/webhookTask";
-import { getKV } from "@calcom/features/di/containers/KV";
 
 export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
   private readonly BOOKING_TRIGGERS = new Set([
@@ -115,6 +115,9 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
                 phoneNumber: seatAttendee.data.phoneNumber ?? undefined,
               },
             ];
+            if (seatAttendee.data.cancellationReason) {
+              calendarEvent.cancellationReason = seatAttendee.data.cancellationReason;
+            }
           } else {
             this.logger.warn("Cancelled seat attendee KV data failed validation", {
               bookingUid,
@@ -130,10 +133,10 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
             ];
           }
         } else {
-          this.logger.warn(
-            "Cancelled seat attendee KV entry missing (TTL expired or KV unavailable)",
-            { bookingUid, seatId: payload.attendeeSeatId }
-          );
+          this.logger.warn("Cancelled seat attendee KV entry missing (TTL expired or KV unavailable)", {
+            bookingUid,
+            seatId: payload.attendeeSeatId,
+          });
           calendarEvent.attendees = [
             {
               email: "",
