@@ -2016,7 +2016,7 @@ __metadata:
     jest: "npm:29.7.0"
     jest-date-mock: "npm:1.0.10"
     jest-junit: "npm:^16.0.0"
-    lodash: "npm:4.17.23"
+    lodash: "npm:4.18.0"
     luxon: "npm:3.4.4"
     nest-winston: "npm:1.9.4"
     node-mocks-http: "npm:1.16.2"
@@ -2106,7 +2106,7 @@ __metadata:
     "@calcom/types": "workspace:*"
     "@calcom/ui": "workspace:*"
     "@calcom/zoomvideo": "workspace:*"
-    lodash: "npm:4.17.23"
+    lodash: "npm:4.18.0"
     qs-stringify: "npm:1.2.1"
     react-i18next: "npm:12.3.1"
   peerDependencies:
@@ -3521,7 +3521,7 @@ __metadata:
     jsdom: "npm:22.0.0"
     kbar: "npm:0.1.0-beta.36"
     libphonenumber-js: "npm:^1.12.38"
-    lodash: "npm:4.17.23"
+    lodash: "npm:4.18.0"
     markdown-it: "npm:14.1.1"
     md5: "npm:2.3.0"
     memory-cache: "npm:0.2.0"
@@ -27848,10 +27848,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash-es@npm:4.17.23":
-  version: 4.17.23
-  resolution: "lodash-es@npm:4.17.23"
-  checksum: 10/1feae200df22eb0bd93ca86d485e77784b8a9fb1d13e91b66e9baa7a7e5e04be088c12a7e20c2250fc0bd3db1bc0ef0affc7d9e3810b6af2455a3c6bf6dde59e
+"lodash-es@npm:4.18.0":
+  version: 4.18.0
+  resolution: "lodash-es@npm:4.18.0"
+  checksum: 10/a74d83e86b43f6d25ed750a5ea07768bf3ac472ff9daf7b9f2301ce0c9767107bf7a10d4e85f9b8ec87354c1decc63cafa5d85ab72fd88fd338b9abd1ba7ec86
   languageName: node
   linkType: hard
 
@@ -27988,10 +27988,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.17.23":
-  version: 4.17.23
-  resolution: "lodash@npm:4.17.23"
-  checksum: 10/82504c88250f58da7a5a4289f57a4f759c44946c005dd232821c7688b5fcfbf4a6268f6a6cdde4b792c91edd2f3b5398c1d2a0998274432cff76def48735e233
+"lodash@npm:4.18.0":
+  version: 4.18.0
+  resolution: "lodash@npm:4.18.0"
+  checksum: 10/8f7f3c2013026623feb0950c2a3310427a7f3a978daedac5b9b2fb52044bb2fe38cb31e08484017f20c2297199a1ddce5c7accf8ebd108956876ce9162dedfff
   languageName: node
   linkType: hard
 
