@@ -11,6 +11,7 @@ export const DryRunMessage = ({ isEmbed }: { isEmbed?: boolean }) => {
 
   return (
     <div
+      data-testid="dry-run-banner"
       onClick={() => setIsVisible(false)}
       className={`bg-default border-subtle fixed left-1/2 ${
         !isEmbed ? "top-4" : "top-0"

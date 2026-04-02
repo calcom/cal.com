@@ -5,17 +5,24 @@ import { useSession } from "next-auth/react";
 import type { RefCallback } from "react";
 import { useEffect, useState } from "react";
 
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
-import { Button } from "@calcom/ui/components/button";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
 import { TextField } from "@calcom/ui/components/form";
+import { Button } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "@coss/ui/components/dialog";
+import { Tooltip, TooltipPopup, TooltipTrigger } from "@coss/ui/components/tooltip";
 import { CheckIcon } from "@coss/ui/icons";
-import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
 
@@ -93,7 +100,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
         </Button>
         <Button
           type="button"
-          color="minimal"
+          variant="ghost"
           onClick={() => {
             if (currentUsername) {
               setInputUsernameValue(currentUsername);
@@ -162,36 +169,44 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           <ActionButtons />
         </div>
       )}
-      <Dialog open={openDialogSaveUsername}>
-        <DialogContent type="confirmation" Icon="pencil" title={t("confirm_username_change_dialog_title")}>
-          <div className="flex flex-row">
-            <div className="mb-4 w-full pt-1">
-              <div className="bg-subtle flex w-full flex-wrap justify-between gap-6 rounded-sm  px-4 py-3 text-sm">
-                <div>
-                  <p className="text-subtle">{t("current_username")}</p>
-                  <Tooltip content={currentUsername}>
-                    <p
-                      className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis break-all"
-                      data-testid="current-username">
-                      {currentUsername}
-                    </p>
-                  </Tooltip>
-                </div>
-                <div>
-                  <p className="text-subtle" data-testid="new-username">
-                    {t("new_username")}
-                  </p>
-                  <Tooltip content={inputUsernameValue}>
-                    <p className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis break-all">
-                      {inputUsernameValue}
-                    </p>
-                  </Tooltip>
-                </div>
+      <Dialog open={openDialogSaveUsername} onOpenChange={setOpenDialogSaveUsername}>
+        <DialogPopup>
+          <DialogHeader>
+            <DialogTitle>{t("confirm_username_change_dialog_title")}</DialogTitle>
+          </DialogHeader>
+          <DialogPanel>
+            <div className="bg-subtle flex w-full flex-wrap justify-between gap-6 rounded-sm px-4 py-3 text-sm">
+              <div>
+                <p className="text-subtle">{t("current_username")}</p>
+                <Tooltip>
+                  <TooltipTrigger
+                    className="text-emphasis mt-1 max-w-md cursor-default overflow-hidden text-ellipsis break-all text-left"
+                    data-testid="current-username"
+                    render={<p />}>
+                    {currentUsername}
+                  </TooltipTrigger>
+                  <TooltipPopup>{currentUsername}</TooltipPopup>
+                </Tooltip>
+              </div>
+              <div>
+                <p className="text-subtle" data-testid="new-username">
+                  {t("new_username")}
+                </p>
+                <Tooltip>
+                  <TooltipTrigger
+                    className="text-emphasis mt-1 max-w-md cursor-default overflow-hidden text-ellipsis break-all text-left"
+                    render={<p />}>
+                    {inputUsernameValue}
+                  </TooltipTrigger>
+                  <TooltipPopup>{inputUsernameValue}</TooltipPopup>
+                </Tooltip>
               </div>
             </div>
-          </div>
-
-          <DialogFooter className="mt-4">
+          </DialogPanel>
+          <DialogFooter>
+            <DialogClose render={<Button variant="ghost" />}>
+              {t("cancel")}
+            </DialogClose>
             <Button
               type="button"
               loading={updateUsernameMutation.isPending}
@@ -199,12 +214,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
               onClick={updateUsername}>
               {t("save")}
             </Button>
-
-            <DialogClose color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
-              {t("cancel")}
-            </DialogClose>
           </DialogFooter>
-        </DialogContent>
+        </DialogPopup>
       </Dialog>
     </div>
   );

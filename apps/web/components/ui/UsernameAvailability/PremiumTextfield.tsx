@@ -2,12 +2,12 @@ import classNames from "classnames";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { RefCallback } from "react";
 import { useEffect, useState } from "react";
 
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -16,14 +16,19 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/types/server/routers/_app";
-import { Button } from "@calcom/ui/components/button";
-import {
-  DialogContent,
-  DialogFooter,
-  DialogClose,
-} from "@calcom/ui/components/dialog";
 import { Label, Input } from "@calcom/ui/components/form";
 import { Icon } from "@calcom/ui/components/icon";
+import { Button } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "@coss/ui/components/dialog";
 import { CheckIcon, ExternalLinkIcon } from "@coss/ui/icons";
 
 import type { TRPCClientErrorLike } from "@trpc/client";
@@ -155,10 +160,9 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         <div className="flex flex-row">
           <Button
             type="button"
-            color="primary"
             className="mx-2"
-            href={paymentLink}
             data-testid="reserve-username-btn"
+            render={<Link href={paymentLink} />}
           >
             {t("Reserve")}
           </Button>
@@ -173,7 +177,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         <div className="flex flex-row">
           <Button
             type="button"
-            color="primary"
             className="mx-2"
             onClick={() => setOpenDialogSaveUsername(true)}
             data-testid="update-username-btn"
@@ -182,7 +185,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
           </Button>
           <Button
             type="button"
-            color="secondary"
+            variant="outline"
             onClick={() => {
               if (currentUsername) {
                 setInputUsernameValue(currentUsername);
@@ -311,59 +314,51 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         </p>
       )}
 
-      <Dialog open={openDialogSaveUsername}>
-        <DialogContent
-          Icon="pencil"
-          title={t("confirm_username_change_dialog_title")}
-          description={
-            <>
-              {usernameChangeCondition &&
-                usernameChangeCondition ===
-                  UsernameChangeStatusEnum.UPGRADE && (
-                  <p className="text-default mb-4 text-sm">
-                    {t("change_username_standard_to_premium")}
-                  </p>
-                )}
-            </>
-          }
-        >
-          <div className="flex flex-row">
-            <div className="mb-4 w-full px-4 pt-1">
-              <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">
-                <div className="flex-1 px-2">
-                  <p className="text-subtle">{t("current_username")}</p>
-                  <p
-                    className="text-emphasis mt-1 break-all"
-                    data-testid="current-username"
-                  >
-                    {currentUsername}
-                  </p>
-                </div>
-                <div className="ml-6 flex-1">
-                  <p className="text-subtle" data-testid="new-username">
-                    {t("new_username")}
-                  </p>
-                  <p className="text-emphasis break-all">
-                    {inputUsernameValue}
-                  </p>
-                </div>
+      <Dialog open={openDialogSaveUsername} onOpenChange={setOpenDialogSaveUsername}>
+        <DialogPopup>
+          <DialogHeader>
+            <DialogTitle>{t("confirm_username_change_dialog_title")}</DialogTitle>
+            {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
+              <DialogDescription>
+                {t("change_username_standard_to_premium")}
+              </DialogDescription>
+            )}
+          </DialogHeader>
+          <DialogPanel>
+            <div className="bg-subtle flex w-full flex-wrap rounded-sm py-3 text-sm">
+              <div className="flex-1 px-2">
+                <p className="text-subtle">{t("current_username")}</p>
+                <p
+                  className="text-emphasis mt-1 break-all"
+                  data-testid="current-username"
+                >
+                  {currentUsername}
+                </p>
+              </div>
+              <div className="ml-6 flex-1">
+                <p className="text-subtle" data-testid="new-username">
+                  {t("new_username")}
+                </p>
+                <p className="text-emphasis break-all">
+                  {inputUsernameValue}
+                </p>
               </div>
             </div>
-          </div>
-
-          <DialogFooter className="mt-4">
+          </DialogPanel>
+          <DialogFooter>
+            <DialogClose render={<Button variant="ghost" />}>
+              {t("cancel")}
+            </DialogClose>
             {/* redirect to checkout */}
             {usernameChangeCondition === UsernameChangeStatusEnum.UPGRADE && (
               <Button
                 type="button"
                 loading={updateUsername.isPending}
                 data-testid="go-to-billing"
-                href={paymentLink}
+                render={<Link href={paymentLink} />}
               >
-                <>
-                  {t("go_to_stripe_billing")}{" "}
-                  <ExternalLinkIcon className="ml-1 h-4 w-4" />
-                </>
+                {t("go_to_stripe_billing")}{" "}
+                <ExternalLinkIcon className="ml-1 h-4 w-4" />
               </Button>
             )}
             {/* Normal save */}
@@ -379,14 +374,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 {t("save")}
               </Button>
             )}
-            <DialogClose
-              color="secondary"
-              onClick={() => setOpenDialogSaveUsername(false)}
-            >
-              {t("cancel")}
-            </DialogClose>
           </DialogFooter>
-        </DialogContent>
+        </DialogPopup>
       </Dialog>
     </div>
   );

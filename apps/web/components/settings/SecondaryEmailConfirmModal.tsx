@@ -1,7 +1,15 @@
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { DialogContent, DialogFooter, DialogClose } from "@calcom/ui/components/dialog";
+import { Button } from "@coss/ui/components/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPopup,
+  DialogTitle,
+} from "@coss/ui/components/dialog";
 
 interface SecondaryEmailConfirmModalProps {
   email: string;
@@ -12,18 +20,22 @@ const SecondaryEmailConfirmModal = ({ email, onCancel }: SecondaryEmailConfirmMo
   const { t } = useLocale();
 
   return (
-    <Dialog open={true}>
-      <DialogContent
-        title={t("confirm_email")}
-        description={<ServerTrans t={t} i18nKey="confirm_email_description" values={{ email }} />}
-        type="creation"
-        data-testid="secondary-email-confirm-dialog">
+    <Dialog open onOpenChange={(open) => !open && onCancel()}>
+      <DialogPopup data-testid="secondary-email-confirm-dialog">
+        <DialogHeader>
+          <DialogTitle>{t("confirm_email")}</DialogTitle>
+          <DialogDescription className="break-all">
+            <ServerTrans t={t} i18nKey="confirm_email_description" values={{ email }} />
+          </DialogDescription>
+        </DialogHeader>
         <DialogFooter>
-          <DialogClose color="primary" onClick={onCancel} data-testid="secondary-email-confirm-done-button">
+          <DialogClose
+            render={<Button data-testid="secondary-email-confirm-done-button" />}
+            onClick={onCancel}>
             {t("done")}
           </DialogClose>
         </DialogFooter>
-      </DialogContent>
+      </DialogPopup>
     </Dialog>
   );
 };

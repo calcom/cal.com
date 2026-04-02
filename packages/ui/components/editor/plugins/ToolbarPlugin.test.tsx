@@ -26,6 +26,7 @@ vi.mock("../../button", () => ({
 vi.mock("../../dropdown", () => ({
   Dropdown: ({ children }: any) => <div data-testid="dropdown">{children}</div>,
   DropdownMenuTrigger: ({ children }: any) => <div data-testid="dropdown-trigger">{children}</div>,
+  DropdownMenuPortal: ({ children }: any) => <>{children}</>,
   DropdownMenuContent: ({ children }: any) => <div data-testid="dropdown-content">{children}</div>,
   DropdownMenuItem: ({ children }: any) => <div data-testid="dropdown-item">{children}</div>,
 }));

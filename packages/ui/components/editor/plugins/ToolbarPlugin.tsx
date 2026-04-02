@@ -28,7 +28,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { Button } from "../../button";
-import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../dropdown";
+import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuPortal, DropdownMenuTrigger } from "../../dropdown";
 import { ChevronDownIcon, ChevronUpIcon } from "@coss/ui/icons";
 import type { TextEditorProps } from "../types";
 import { AddVariablesDropdown } from "./AddVariablesDropdown";
@@ -471,6 +471,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                   }
                 </>
               </DropdownMenuTrigger>
+              <DropdownMenuPortal>
               <DropdownMenuContent align="start" className="flex flex-col gap-1">
                 {Object.keys(blockTypeToBlockName).map((key) => {
                   return (
@@ -494,6 +495,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                   );
                 })}
               </DropdownMenuContent>
+              </DropdownMenuPortal>
             </Dropdown>
           </>
         )}

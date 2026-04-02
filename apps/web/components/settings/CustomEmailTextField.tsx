@@ -13,11 +13,11 @@ import {
 } from "@calcom/ui/components/dropdown";
 import { InputError, Input } from "@calcom/ui/components/form";
 
-import type { FormValues } from "~/settings/my-account/profile-view";
+import type { ProfileFormValues } from "~/settings/my-account/components/profile-form-card";
 
 type CustomEmailTextFieldProps = {
-  formMethods: UseFormReturn<FormValues>;
-  formMethodFieldName: keyof FormValues;
+  formMethods: UseFormReturn<ProfileFormValues>;
+  formMethodFieldName: keyof ProfileFormValues;
   errorMessage: string;
   emailVerified: boolean;
   emailPrimary: boolean;
