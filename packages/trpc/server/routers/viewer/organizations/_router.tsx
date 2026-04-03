@@ -1,5 +1,7 @@
 import { createPhoneCallSchema } from "@calcom/features/calAIPhone/zod-utils";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
+import { TRPCError } from "@trpc/server";
 import type { NextApiRequest } from "next";
 import authedProcedure, {
   authedAdminProcedure,
@@ -19,6 +21,7 @@ import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateSelfHostedInputSchema } from "./createSelfHosted.schema";
+import { ZCreateSmtpConfigurationInputSchema } from "./create-smtp-configuration.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
 import { ZCreateWatchlistEntryInputSchema } from "./createWatchlistEntry.schema";
 import { ZCreateWithPaymentIntentInputSchema } from "./createWithPaymentIntent.schema";
@@ -37,13 +40,35 @@ import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
 import { ZListWatchlistEntriesInputSchema } from "./listWatchlistEntries.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZOrgPasswordResetSchema } from "./sendPasswordReset.schema";
+import { ZSendSmtpTestEmailInputSchema } from "./send-smtp-test-email.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
+import { ZTestSmtpConnectionInputSchema } from "./test-smtp-connection.schema";
 import { ZUpdateInputSchema } from "./update.schema";
+import { ZUpdateSmtpConfigurationInputSchema } from "./update-smtp-configuration.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
 import { ZCheckInputSchema as ZCustomDomainCheckInputSchema } from "./custom-domain.check.schema";
 import { ZAddInputSchema as ZCustomDomainAddInputSchema } from "./custom-domain.add.schema";
 import { ZReplaceInputSchema as ZCustomDomainReplaceInputSchema } from "./custom-domain.replace.schema";
 import { ZUploadOnboardingImageSchema } from "./uploadOnboardingImage.schema";
+
+const assertCustomSmtpEnabled = async ({
+  ctx,
+  next,
+}: {
+  ctx: { user: { profile?: { organizationId?: number | null } | null; organizationId?: number | null } };
+  next: () => Promise<any>;
+}) => {
+  const organizationId = ctx.user.profile?.organizationId || ctx.user.organizationId;
+  if (!organizationId) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Custom SMTP is not available" });
+  }
+  const teamFeatureRepository = getTeamFeatureRepository();
+  const enabled = await teamFeatureRepository.checkIfTeamHasFeature(organizationId, "custom-smtp-for-orgs");
+  if (!enabled) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Custom SMTP is not enabled for this organization" });
+  }
+  return next();
+};
 
 export const viewerOrganizationsRouter = router({
   getOrganizationOnboarding: authedProcedure.query(async (opts) => {
@@ -235,6 +260,42 @@ export const viewerOrganizationsRouter = router({
     return handler(opts);
   }),
 
+  getSmtpConfiguration: authedOrgAdminProcedure.use(assertCustomSmtpEnabled).query(async (opts) => {
+    const { default: handler } = await import("./get-smtp-configuration.handler");
+    return handler(opts);
+  }),
+  createSmtpConfiguration: authedOrgAdminProcedure
+    .use(assertCustomSmtpEnabled)
+    .input(ZCreateSmtpConfigurationInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./create-smtp-configuration.handler");
+      return handler(opts);
+    }),
+  deleteSmtpConfiguration: authedOrgAdminProcedure.use(assertCustomSmtpEnabled).mutation(async (opts) => {
+    const { default: handler } = await import("./delete-smtp-configuration.handler");
+    return handler(opts);
+  }),
+  updateSmtpConfiguration: authedOrgAdminProcedure
+    .use(assertCustomSmtpEnabled)
+    .input(ZUpdateSmtpConfigurationInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./update-smtp-configuration.handler");
+      return handler(opts);
+    }),
+  testSmtpConnection: authedOrgAdminProcedure
+    .use(assertCustomSmtpEnabled)
+    .input(ZTestSmtpConnectionInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./test-smtp-connection.handler");
+      return handler(opts);
+    }),
+  sendSmtpTestEmail: authedOrgAdminProcedure
+    .use(assertCustomSmtpEnabled)
+    .input(ZSendSmtpTestEmailInputSchema)
+    .mutation(async (opts) => {
+      const { default: handler } = await import("./send-smtp-test-email.handler");
+      return handler(opts);
+    }),
   getCustomDomain: createOrgPbacProcedure("organization.customDomain.read", [
     MembershipRole.OWNER,
     MembershipRole.ADMIN,
