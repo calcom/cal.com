@@ -26,6 +26,7 @@ export const ZTriggerFormSubmittedNoEventWorkflowPayloadSchema = z.object({
       locale: z.string().nullable(),
     }),
   }),
+  organizationId: z.number().nullable().optional(),
   hideBranding: z.boolean(),
   smsReminderNumber: z.string().nullable(),
   workflow: ZWorkflow,
@@ -42,6 +43,7 @@ export async function triggerFormSubmittedNoEventWorkflow(payload: string): Prom
     workflow,
     submittedAt,
     routedEventTypeId,
+    organizationId,
   } = ZTriggerFormSubmittedNoEventWorkflowPayloadSchema.parse(JSON.parse(payload));
 
   const shouldTrigger = await shouldTriggerFormSubmittedNoEvent({
@@ -62,6 +64,7 @@ export async function triggerFormSubmittedNoEventWorkflow(payload: string): Prom
         responses: responses as FORM_SUBMITTED_WEBHOOK_RESPONSES,
         user: { email: form.user.email, timeFormat: form.user.timeFormat, locale: form.user.locale ?? "en" },
         routedEventTypeId: routedEventTypeId ?? null,
+        organizationId: organizationId ?? null,
       },
       hideBranding,
       workflows: [workflow as Workflow],

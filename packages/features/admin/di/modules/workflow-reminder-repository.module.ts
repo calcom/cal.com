@@ -1,6 +1,6 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/Prisma";
-import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/workflow-reminder-repository";
 
 import { ADMIN_DI_TOKENS } from "../tokens";
 

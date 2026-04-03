@@ -5,7 +5,7 @@ import { LockUserAccountAction } from "../../actions/lock-user-account";
 import { ADMIN_DI_TOKENS } from "../tokens";
 import { adminUserRepositoryModuleLoader } from "./AdminUserRepository.module";
 import { userUnblockServiceModuleLoader } from "./UserUnblockService.module";
-import { workflowRemovalServiceModuleLoader } from "./WorkflowRemovalService.module";
+import { workflowRemovalServiceModuleLoader } from "./workflow-removal-service.module";
 
 const thisModule = createModule();
 const token = ADMIN_DI_TOKENS.LOCK_USER_ACCOUNT_ACTION;

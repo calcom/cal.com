@@ -6,8 +6,8 @@ import type { timeUnitLowerCase } from "@calcom/ee/workflows/lib/reminders/smsRe
 import type { Workflow, WorkflowStep } from "@calcom/ee/workflows/lib/types";
 import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import type { CreditCheckFn } from "@calcom/features/ee/billing/credit-service";
-import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/workflow-reminder-repository";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/workflow-repository";
 import { getHideBranding } from "@calcom/features/profile/lib/hideBranding";
 import { tasker } from "@calcom/features/tasker";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -93,12 +93,14 @@ export class WorkflowService {
     responseId,
     routedEventTypeId,
     creditCheckFn,
+    organizationId,
   }: {
     responseId: number;
     workflows: Workflow[];
     responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
     routedEventTypeId: number | null;
     creditCheckFn: CreditCheckFn;
+    organizationId?: number | null;
     form: {
       id: string;
       userId: number;
@@ -141,6 +143,7 @@ export class WorkflowService {
         responses,
         user: { email: form.user.email, timeFormat: form.user.timeFormat, locale: form.user.locale ?? "en" },
         routedEventTypeId,
+        organizationId,
       },
       hideBranding,
       workflows: workflowsToTrigger,
@@ -168,6 +171,7 @@ export class WorkflowService {
           smsReminderNumber,
           hideBranding,
           routedEventTypeId,
+          organizationId,
           form: {
             id: form.id,
             userId: form.userId,
@@ -367,12 +371,18 @@ export class WorkflowService {
     workflowStep,
     seatReferenceUid,
     creditCheckFn,
+    evtOrganizationId,
   }: {
     workflow: Omit<Workflow, "steps">;
     workflowStep: WorkflowStep;
     seatReferenceUid: string | undefined;
     creditCheckFn: CreditCheckFn;
+    evtOrganizationId?: number | null;
   }) {
+    const workflowOrganizationId = workflow.team?.isOrganization
+      ? workflow.teamId
+      : (workflow.team?.parentId ?? null);
+
     return {
       triggerEvent: workflow.trigger,
       timeSpan: {
@@ -386,6 +396,7 @@ export class WorkflowService {
       seatReferenceUid,
       verifiedAt: workflowStep.verifiedAt || null,
       creditCheckFn,
+      organizationId: evtOrganizationId ?? workflowOrganizationId ?? null,
     };
   }
 }

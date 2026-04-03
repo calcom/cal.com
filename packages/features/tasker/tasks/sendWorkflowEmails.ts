@@ -2,8 +2,8 @@ import { sendCustomWorkflowEmail } from "@calcom/emails/workflow-email-service";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
-import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
-import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
+import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/email-workflow-service";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/workflow-reminder-repository";
 import { prisma } from "@calcom/prisma";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { z } from "zod";
@@ -24,6 +24,7 @@ export const ZSendWorkflowEmailsSchemaEager = z.object({
         .passthrough()
     )
     .optional(),
+  organizationId: z.number().nullable().optional(),
 });
 
 const ZSendWorkflowEmailsSchemaLazy = z.object({

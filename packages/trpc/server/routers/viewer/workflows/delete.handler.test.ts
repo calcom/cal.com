@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/workflow-repository";
 import { WorkflowActions } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -20,7 +20,7 @@ vi.mock("@calcom/features/calAIPhone", () => ({
   createDefaultAIPhoneServiceProvider: vi.fn(),
 }));
 
-vi.mock("@calcom/features/ee/workflows/repositories/WorkflowRepository", () => ({
+vi.mock("@calcom/features/ee/workflows/repositories/workflow-repository", () => ({
   WorkflowRepository: {
     deleteAllWorkflowReminders: vi.fn(),
   },

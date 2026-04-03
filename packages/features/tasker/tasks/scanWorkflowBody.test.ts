@@ -1,8 +1,10 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 import { LockReason, lockUser } from "@calcom/features/ee/api-keys/lib/autoLock";
 import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+
+import { scanWorkflowBody, iffyScanBody } from "./scanWorkflowBody";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { iffyScanBody, scanWorkflowBody } from "./scanWorkflowBody";
 
 vi.mock("@calcom/features/ee/api-keys/lib/autoLock", async (importActual) => {
   const actual = await importActual<typeof import("@calcom/features/ee/api-keys/lib/autoLock")>();
@@ -14,6 +16,12 @@ vi.mock("@calcom/features/ee/api-keys/lib/autoLock", async (importActual) => {
 
 vi.mock("@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications", () => ({
   scheduleWorkflowNotifications: vi.fn(),
+}));
+
+vi.mock("@calcom/features/profile/repositories/ProfileRepository", () => ({
+  ProfileRepository: {
+    findFirstOrganizationIdForUser: vi.fn().mockResolvedValue(null),
+  },
 }));
 
 vi.mock("./scanWorkflowBody", async (importActual) => {
@@ -46,6 +54,7 @@ const mockWorkflow = {
   trigger: "BEFORE",
   activeOn: [{ eventTypeId: 1 }],
   team: null,
+  userId: 1,
 };
 
 describe("scanWorkflowBody", () => {
@@ -57,6 +66,7 @@ describe("scanWorkflowBody", () => {
     process.env.IFFY_API_KEY = "test-key";
     prismaMock.workflowStep.findMany.mockResolvedValue([mockWorkflowStep]);
     prismaMock.workflow.findFirst.mockResolvedValue(mockWorkflow);
+    vi.mocked(ProfileRepository.findFirstOrganizationIdForUser).mockResolvedValue(null);
   });
 
   it("should skip scan if IFFY_API_KEY is not set", async () => {
@@ -173,6 +183,7 @@ describe("scanWorkflowBody", () => {
       trigger: mockWorkflow.trigger,
       userId: 1,
       teamId: null,
+      organizationId: null,
     });
   });
 
@@ -230,5 +241,31 @@ describe("scanWorkflowBody", () => {
     expect(scheduleWorkflowNotifications).toHaveBeenCalled();
 
     expect(lockUser).not.toHaveBeenCalled();
+  });
+
+  it("should use user's organization for personal workflows by org members", async () => {
+    const payload = JSON.stringify({
+      userId: 1,
+      workflowStepIds: [1],
+    });
+
+    prismaMock.workflowStep.findMany.mockResolvedValue([mockWorkflowStep]);
+    prismaMock.workflow.findFirst.mockResolvedValue(mockWorkflow);
+    vi.mocked(ProfileRepository.findFirstOrganizationIdForUser).mockResolvedValue(500);
+
+    await scanWorkflowBody(payload);
+
+    expect(ProfileRepository.findFirstOrganizationIdForUser).toHaveBeenCalledWith({ userId: 1 });
+    expect(scheduleWorkflowNotifications).toHaveBeenCalledWith({
+      activeOn: [1],
+      isOrg: false,
+      workflowSteps: [expect.objectContaining(mockWorkflowStep)],
+      time: mockWorkflow.time,
+      timeUnit: mockWorkflow.timeUnit,
+      trigger: mockWorkflow.trigger,
+      userId: 1,
+      teamId: null,
+      organizationId: 500,
+    });
   });
 });

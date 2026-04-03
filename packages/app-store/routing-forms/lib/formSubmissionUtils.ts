@@ -4,7 +4,7 @@ import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webh
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/workflow-service";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { Tasker } from "@calcom/features/tasker/tasker";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
@@ -103,12 +103,13 @@ export function getFieldResponse({
 export const sendResponseEmail = async (
   form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">,
   orderedResponses: OrderedResponses,
-  toAddresses: string[]
+  toAddresses: string[],
+  organizationId?: number | null
 ) => {
   try {
     if (typeof window === "undefined") {
       const { default: ResponseEmail } = await import("../emails/templates/response-email");
-      const email = new ResponseEmail({ form: form, toAddresses, orderedResponses });
+      const email = new ResponseEmail({ form, toAddresses, orderedResponses, organizationId });
       await email.sendEmail();
     }
   } catch (e) {
@@ -287,6 +288,7 @@ export async function _onFormSubmission(
         responseId,
         responses: fieldResponsesByIdentifier,
         routedEventTypeId,
+        organizationId: orgId,
         creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
         form: {
           ...form,
@@ -309,13 +311,13 @@ export async function _onFormSubmission(
               ","
             )}`
           );
-          await sendResponseEmail(form, orderedResponses, form.userWithEmails);
+          await sendResponseEmail(form, orderedResponses, form.userWithEmails, orgId);
         }
       } else if (form.settings?.emailOwnerOnSubmission) {
         moduleLogger.debug(
           `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
         );
-        await sendResponseEmail(form, orderedResponses, [form.user.email]);
+        await sendResponseEmail(form, orderedResponses, [form.user.email], orgId);
       }
     } catch (e) {
       moduleLogger.error("Error triggering routing form response side effects", e);

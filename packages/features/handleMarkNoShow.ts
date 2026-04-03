@@ -16,7 +16,7 @@ import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 import type { ExtendedCalendarEvent } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/workflow-service";
 import {
   type EventTypeBrandingData,
   getEventTypeService,

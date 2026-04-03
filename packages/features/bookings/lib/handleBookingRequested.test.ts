@@ -21,7 +21,7 @@ vi.mock("@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType", () => 
   getAllWorkflowsFromEventType: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService", () => ({
+vi.mock("@calcom/features/ee/workflows/lib/service/workflow-service", () => ({
   WorkflowService: {
     scheduleWorkflowsFilteredByTriggerEvent: vi.fn().mockResolvedValue(undefined),
   },

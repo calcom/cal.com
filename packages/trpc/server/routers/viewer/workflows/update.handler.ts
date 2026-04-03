@@ -13,9 +13,10 @@ import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/re
 import { scheduleWorkflowNotifications } from "@calcom/features/ee/workflows/lib/scheduleWorkflowNotifications";
 import { verifyEmailSender } from "@calcom/features/ee/workflows/lib/verifyEmailSender";
 import { WorkflowRelationsRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRelationsRepository";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/workflow-repository";
 import { WorkflowStepRepository } from "@calcom/features/ee/workflows/repositories/WorkflowStepRepository";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import tasker from "@calcom/features/tasker";
 import { addPermissionsToWorkflow } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
@@ -67,6 +68,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const userWorkflow = await WorkflowRepository.findUniqueForUpdate(id);
 
   const isOrg = !!userWorkflow?.team?.isOrganization;
+  let organizationId = isOrg ? userWorkflow?.teamId : (userWorkflow?.team?.parentId ?? null);
+
+  if (!organizationId && userWorkflow?.userId) {
+    organizationId = await ProfileRepository.findFirstOrganizationIdForUser({ userId: userWorkflow.userId });
+  }
 
   const isUserAuthorized = await isAuthorized(userWorkflow, ctx.user.id, "workflow.update");
 
@@ -237,6 +243,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         trigger,
         userId: user.id,
         teamId: userWorkflow.teamId,
+        organizationId,
       });
     }
   } else {
@@ -251,6 +258,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       userId: user.id,
       teamId: userWorkflow.teamId,
       alreadyScheduledActiveOnIds: activeOnEventTypeIds.filter((activeOn) => !newActiveOn.includes(activeOn)), // alreadyScheduledActiveOnIds
+      organizationId,
     });
   }
 
@@ -525,6 +533,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             trigger,
             userId: user.id,
             teamId: userWorkflow.teamId,
+            organizationId,
           });
         }
 
@@ -629,6 +638,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         trigger,
         userId: user.id,
         teamId: userWorkflow.teamId,
+        organizationId,
       });
     }
   }

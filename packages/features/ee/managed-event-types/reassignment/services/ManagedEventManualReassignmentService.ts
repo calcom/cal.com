@@ -26,8 +26,8 @@ import {
 } from "@calcom/features/ee/managed-event-types/reassignment/utils";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/workflow-service";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/workflow-repository";
 import {
   type EventTypeBrandingData,
   getEventTypeService,

@@ -1,6 +1,6 @@
 import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone";
 import { isAuthorized } from "@calcom/features/ee/workflows/lib/isAuthorized";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/workflow-repository";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions } from "@calcom/prisma/enums";

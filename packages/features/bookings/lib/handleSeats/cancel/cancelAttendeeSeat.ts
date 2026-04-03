@@ -7,7 +7,7 @@ import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails/email-manager";
 import { updateMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { getKV } from "@calcom/features/di/containers/KV";
 import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/workflow-repository";
 import { getTranslation } from "@calcom/i18n/server";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { HttpError } from "@calcom/lib/http-error";

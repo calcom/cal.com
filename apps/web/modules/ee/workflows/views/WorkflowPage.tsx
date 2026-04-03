@@ -20,7 +20,7 @@ import {
   getTranslatedText,
   translateVariablesToEnglish,
 } from "@calcom/features/ee/workflows/lib/variableTranslations";
-import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/workflow-repository";
 import type { WorkflowPermissions } from "@calcom/features/workflows/repositories/WorkflowPermissionsRepository";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

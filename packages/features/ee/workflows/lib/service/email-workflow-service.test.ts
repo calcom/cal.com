@@ -1,5 +1,5 @@
 import type { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
-import type { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
+import type { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/workflow-reminder-repository";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import {
   SchedulingType,
@@ -10,7 +10,7 @@ import {
 } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { EmailWorkflowService } from "./EmailWorkflowService";
+import { EmailWorkflowService } from "./email-workflow-service";
 
 vi.mock("@calcom/emails/workflow-email-service", () => ({
   sendCustomWorkflowEmail: vi.fn(),
@@ -82,6 +82,18 @@ vi.mock("@calcom/features/di/containers/BookingRepository", () => ({
 vi.mock("short-uuid", () => ({
   __esModule: true,
   default: () => ({ fromUUID: (uid: string) => uid }),
+}));
+
+vi.mock("@calcom/features/ee/billing/credit-service", () => ({
+  CreditService: class {
+    hasAvailableCredits = vi.fn().mockResolvedValue(true);
+  },
+}));
+
+vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
+  UserRepository: class {
+    findById = vi.fn().mockResolvedValue({ createdDate: new Date("2024-01-01") });
+  },
 }));
 
 const mockWorkflowReminderRepository: Pick<WorkflowReminderRepository, "findByIdIncludeStepAndWorkflow"> = {
@@ -219,6 +231,74 @@ describe("EmailWorkflowService", () => {
       }
 
       expect(mockBookingSeatRepository.getByUidIncludeAttendee).toHaveBeenCalledWith("seat-123");
+    });
+
+    test("should pass evt.organizationId to sendCustomWorkflowEmail for personal workflow of org user", async () => {
+      const { sendCustomWorkflowEmail } = await import("@calcom/emails/workflow-email-service");
+      const ORG_ID = 42;
+
+      const orgUserEvt = {
+        uid: "booking-123",
+        bookerUrl: "https://cal.com",
+        title: "Test Meeting",
+        startTime: "2024-12-01T10:00:00Z",
+        endTime: "2024-12-01T11:00:00Z",
+        organizer: {
+          name: "Organizer Name",
+          email: "organizer@example.com",
+          timeZone: "UTC",
+          language: { locale: "en", translate: (key: string) => key },
+          timeFormat: TimeFormat.TWELVE_HOUR,
+        },
+        attendees: [
+          {
+            name: "Attendee Name",
+            email: "attendee@example.com",
+            timeZone: "UTC",
+            language: { locale: "en", translate: (key: string) => key },
+          },
+        ],
+        organizationId: ORG_ID,
+      };
+
+      vi.mocked(mockWorkflowReminderRepository.findByIdIncludeStepAndWorkflow).mockResolvedValue({
+        id: 1,
+        seatReferenceId: null,
+        workflowStep: {
+          id: 1,
+          action: WorkflowActions.EMAIL_ATTENDEE,
+          sendTo: null,
+          template: WorkflowTemplates.REMINDER,
+          reminderBody: null,
+          emailSubject: null,
+          sender: null,
+          includeCalendarEvent: false,
+          verifiedAt: new Date(),
+          autoTranslateEnabled: false,
+          sourceLocale: null,
+          numberVerificationPending: false,
+          numberRequired: false,
+          workflow: {
+            userId: 1,
+            teamId: null,
+            team: null,
+            trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+            time: 24,
+            timeUnit: TimeUnit.HOUR,
+          },
+        },
+      });
+
+      await emailWorkflowService.handleSendEmailWorkflowTask({
+        evt: orgUserEvt as CalendarEvent,
+        workflowReminderId: 1,
+      });
+
+      expect(sendCustomWorkflowEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          organizationId: ORG_ID,
+        })
+      );
     });
   });
 

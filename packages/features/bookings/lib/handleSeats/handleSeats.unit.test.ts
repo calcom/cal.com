@@ -23,7 +23,7 @@ vi.mock("@calcom/features/ee/billing/credit-service", () => ({
   },
 }));
 
-vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService", () => ({
+vi.mock("@calcom/features/ee/workflows/lib/service/workflow-service", () => ({
   WorkflowService: {
     scheduleWorkflowsForNewBooking: vi.fn(),
   },
@@ -417,7 +417,7 @@ describe("handleSeats unit tests", () => {
 
   describe("post-booking workflows and webhooks", () => {
     it("triggers workflows and webhooks when resultBooking is returned", async () => {
-      const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/WorkflowService");
+      const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/workflow-service");
 
       const bookingObject = createMinimalBookingObject({
         workflows: [],
@@ -443,7 +443,7 @@ describe("handleSeats unit tests", () => {
     });
 
     it("does not trigger workflows or webhooks when resultBooking is null", async () => {
-      const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/WorkflowService");
+      const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/workflow-service");
 
       const bookingObject = createMinimalBookingObject();
       const featuresRepo = createMockFeaturesRepository();
@@ -642,7 +642,7 @@ describe("handleSeats unit tests", () => {
 
   describe("attendee phone number for workflows", () => {
     it("uses invitee phoneNumber for SMS reminders when available", async () => {
-      const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/WorkflowService");
+      const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/workflow-service");
       const mockSchedule = vi.mocked(WorkflowService.scheduleWorkflowsForNewBooking);
 
       const bookingObject = createMinimalBookingObject({
@@ -684,7 +684,7 @@ describe("handleSeats unit tests", () => {
     });
 
     it("falls back to smsReminderNumber when invitee has no phoneNumber", async () => {
-      const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/WorkflowService");
+      const { WorkflowService } = await import("@calcom/features/ee/workflows/lib/service/workflow-service");
       const mockSchedule = vi.mocked(WorkflowService.scheduleWorkflowsForNewBooking);
 
       const bookingObject = createMinimalBookingObject({

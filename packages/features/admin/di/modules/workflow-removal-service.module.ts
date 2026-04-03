@@ -1,5 +1,5 @@
 import { createModule, type ModuleLoader } from "@calcom/features/di/di";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/workflow-repository";
 
 import { ADMIN_DI_TOKENS } from "../tokens";
 

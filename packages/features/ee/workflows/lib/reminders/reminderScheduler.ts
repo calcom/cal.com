@@ -8,10 +8,11 @@ import {
   isSMSOrWhatsappAction,
   isWhatsappAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/email-workflow-service";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/workflow-service";
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
-import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/workflow-reminder-repository";
+import { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 import { formatCalEventExtended } from "@calcom/lib/formatCalendarEvent";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import { getTranslation } from "@calcom/i18n/server";
@@ -117,6 +118,7 @@ const processWorkflowStep = async (
     workflowStep: step,
     seatReferenceUid: seatReferenceUid,
     creditCheckFn,
+    evtOrganizationId: calendarEvent?.organizationId ?? formData?.organizationId,
   });
 
   if (isSMSAction(step.action)) {
@@ -294,7 +296,7 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
   userIdsWithNoCredits: number[];
 }) => {
   const { WorkflowReminderRepository } = await import(
-    "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository"
+    "@calcom/features/ee/workflows/repositories/workflow-reminder-repository"
   );
 
   const workflowReminderRepository = new WorkflowReminderRepository(prisma);
@@ -318,6 +320,17 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
 
         if (sendTo) {
           const t = await getTranslation(sendTo.locale ?? "en", "common");
+          const workflow = msg.workflowStep?.workflow;
+          let organizationId = workflow?.team?.isOrganization
+            ? workflow?.teamId
+            : (workflow?.team?.parentId ?? null);
+
+          if (!organizationId && workflow?.userId) {
+            organizationId = await ProfileRepository.findFirstOrganizationIdForUser({
+              userId: workflow.userId,
+            });
+          }
+
           await sendOrScheduleWorkflowEmails({
             to: [sendTo.email],
             subject: t("notification_about_your_booking"),
@@ -325,6 +338,7 @@ const _cancelScheduledMessagesAndScheduleEmails = async ({
             replyTo: msg.booking?.user?.email ?? "",
             sendAt: msg.scheduledDate,
             referenceUid: msg.uuid || undefined,
+            organizationId,
           });
         }
       }

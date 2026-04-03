@@ -957,6 +957,8 @@ export class EventTypeRepository implements IEventTypesRepository {
                   slug: true,
                   name: true,
                   members: true,
+                  isOrganization: true,
+                  parentId: true,
                 },
               },
               activeOn: {
@@ -1279,6 +1281,8 @@ export class EventTypeRepository implements IEventTypesRepository {
                   slug: true,
                   name: true,
                   members: true,
+                  isOrganization: true,
+                  parentId: true,
                 },
               },
               activeOn: {

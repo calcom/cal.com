@@ -47,6 +47,7 @@ function expectFormSubmittedNoEventWorkflowToBeCalled(payload: WorkflowPayload) 
           locale: payload.form.user.locale ?? "en",
         },
         routedEventTypeId: payload.routedEventTypeId ?? null,
+        organizationId: payload.organizationId ?? null,
       },
       hideBranding: payload.hideBranding,
       smsReminderNumber: payload.smsReminderNumber,
@@ -178,5 +179,67 @@ describe("Form submitted, no event booked workflow trigger", () => {
 
     // Should not call scheduleWorkflowReminders when validation fails
     expect(mockScheduleWorkflowReminders).not.toHaveBeenCalled();
+  });
+
+  it("should pass organizationId to formData when present in payload", async () => {
+    mockShouldTriggerFormSubmittedNoEvent.mockResolvedValue(true);
+    const payload: WorkflowPayload = {
+      responseId: 3,
+      form: {
+        id: "org-form",
+        userId: 1,
+        teamId: 10,
+        fields: [{ type: "email", identifier: "email" }],
+        user: {
+          email: "orguser@example.com",
+          timeFormat: 12,
+          locale: "en",
+        },
+      },
+      responses: {
+        email: { value: "submitter@example.com", response: "submitter@example.com" },
+      },
+      organizationId: 42,
+      routedEventTypeId: null,
+      hideBranding: false,
+      smsReminderNumber: null,
+      submittedAt: new Date("2024-01-01T10:00:00Z"),
+      workflow: {
+        id: 3,
+        name: "Org Workflow",
+        teamId: 10,
+        trigger: WorkflowTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+        time: 15,
+        timeUnit: TimeUnit.MINUTE,
+        userId: null,
+        steps: [
+          {
+            id: 3,
+            action: WorkflowActions.EMAIL_ATTENDEE,
+            sendTo: null,
+            template: WorkflowTemplates.CUSTOM,
+            reminderBody: "Follow up",
+            emailSubject: "Follow Up",
+            sender: null,
+            includeCalendarEvent: false,
+            numberVerificationPending: false,
+            numberRequired: false,
+            verifiedAt: null,
+          },
+        ],
+      },
+    };
+
+    prismaMock.booking.findFirst.mockResolvedValue(null);
+
+    await triggerFormSubmittedNoEventWorkflow(JSON.stringify(payload));
+
+    expect(mockScheduleWorkflowReminders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        formData: expect.objectContaining({
+          organizationId: 42,
+        }),
+      })
+    );
   });
 });

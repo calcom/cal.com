@@ -3,7 +3,7 @@ import type { ActionSource } from "@calcom/features/booking-audit/lib/types/acti
 import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/workflow-service";
 import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories/PrismaTeamFeatureRepository";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";

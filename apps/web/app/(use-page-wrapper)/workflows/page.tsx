@@ -2,7 +2,7 @@
 // import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 // import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 // import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-// import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+// import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/workflow-repository";
 import LegacyPage from "@calcom/web/modules/ee/workflows/views/WorkflowsPage";
 
 export const unstable_dynamicStaleTime = 30;

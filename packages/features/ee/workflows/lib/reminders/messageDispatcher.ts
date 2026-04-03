@@ -27,6 +27,7 @@ export async function sendSmsOrFallbackEmail(props: {
     email: string;
     t: TFunction;
     replyTo: string;
+    organizationId?: number | null;
   };
   creditCheckFn: CreditCheckFn;
 }) {
@@ -42,6 +43,7 @@ export async function sendSmsOrFallbackEmail(props: {
         subject: fallbackData.t("notification_about_your_booking"),
         html: twilioData.bodyWithoutOptOut || twilioData.body,
         replyTo: fallbackData.replyTo,
+        organizationId: fallbackData.organizationId,
       });
     }
 
@@ -73,6 +75,7 @@ export async function scheduleSmsOrFallbackEmail(props: {
     t: TFunction;
     replyTo: string;
     workflowStepId?: number;
+    organizationId?: number | null;
   };
   creditCheckFn: CreditCheckFn;
 }) {
@@ -100,6 +103,7 @@ export async function scheduleSmsOrFallbackEmail(props: {
         replyTo: fallbackData.replyTo,
         sendAt: twilioData.scheduledDate,
         referenceUid: reminder.uuid || undefined,
+        organizationId: fallbackData.organizationId,
       });
       return { emailReminderId: reminder.id, sid: null };
     }

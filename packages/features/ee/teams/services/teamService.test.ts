@@ -1,7 +1,7 @@
 import prismaMock from "@calcom/testing/lib/__mocks__/prismaMock";
 import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
 import { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/queries";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/workflow-service";
 import { createAProfileForAnExistingUser } from "@calcom/features/profile/lib/createAProfileForAnExistingUser";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -21,7 +21,7 @@ const { MockSeatChangeTrackingService } = vi.hoisted(() => {
 
 vi.mock("@calcom/ee/billing/di/containers/Billing");
 vi.mock("@calcom/features/di/containers/TeamRepository");
-vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService");
+vi.mock("@calcom/features/ee/workflows/lib/service/workflow-service");
 vi.mock("@calcom/lib/domainManager/organization");
 vi.mock("@calcom/features/ee/teams/lib/removeMember");
 vi.mock("@calcom/features/profile/lib/createAProfileForAnExistingUser");

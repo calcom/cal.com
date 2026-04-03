@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { TFunction } from "i18next";
 
+// biome-ignore lint/nursery/noImportCycles: Mock imports must come first for vitest mocking to work
 import i18nMock from "../__mocks__/libServerI18n";
+// biome-ignore lint/nursery/noImportCycles: Mock imports must come first for vitest mocking to work
 import prismock from "../__mocks__/prisma";
 import { v4 as uuidv4 } from "uuid";
 import { vi } from "vitest";
 import "vitest-fetch-mock";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { encryptSecret } from "@calcom/lib/crypto/keyring";
 import { type WeekDays, weekdayToWeekIndex } from "@calcom/lib/dayjs";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import logger from "@calcom/lib/logger";
@@ -1086,6 +1089,10 @@ export async function createOrganization(orgData: {
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
   withTeam?: boolean;
+  withSmtpConfig?: {
+    fromEmail: string;
+    fromName: string;
+  };
 }): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]>; children: any }> {
   const org = await prismock.team.create({
     data: {
@@ -1112,6 +1119,28 @@ export async function createOrganization(orgData: {
       },
     });
   }
+  if (orgData.withSmtpConfig) {
+    await createSmtpConfiguration({
+      organizationId: org.id,
+      fromEmail: orgData.withSmtpConfig.fromEmail,
+      fromName: orgData.withSmtpConfig.fromName,
+      isEnabled: true,
+    });
+    // Seed the feature flag so canUseCustomSmtp() passes for this org
+    await prismock.feature.upsert({
+      where: { slug: "custom-smtp-for-orgs" },
+      create: { slug: "custom-smtp-for-orgs", enabled: true, type: "OPERATIONAL" },
+      update: {},
+    });
+    await prismock.teamFeatures.create({
+      data: {
+        teamId: org.id,
+        featureId: "custom-smtp-for-orgs",
+        enabled: true,
+        assignedBy: "test-setup",
+      },
+    });
+  }
   assertNonNullableSlug(org);
   const team = await prismock.team.findUnique({ where: { id: org.id }, include: { children: true } });
   if (!team) {
@@ -1134,6 +1163,37 @@ export async function createCredentials(
     data: credentialData,
   });
   return credentials;
+}
+
+export interface SmtpConfigurationTestData {
+  organizationId: number;
+  fromEmail: string;
+  fromName: string;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpUser?: string;
+  smtpPassword?: string;
+  smtpSecure?: boolean;
+  isEnabled?: boolean;
+}
+
+export async function createSmtpConfiguration(data: SmtpConfigurationTestData) {
+  const aad = { teamId: data.organizationId };
+  const smtpUser = data.smtpUser ?? "testuser";
+  const smtpPassword = data.smtpPassword ?? "testpassword";
+
+  return prismock.smtpConfiguration.create({
+    data: {
+      teamId: data.organizationId,
+      fromEmail: data.fromEmail,
+      fromName: data.fromName,
+      smtpHost: data.smtpHost ?? "test-smtp.example.com",
+      smtpPort: data.smtpPort ?? 587,
+      smtpUser: JSON.stringify(encryptSecret({ ring: "SMTP", plaintext: smtpUser, aad })),
+      smtpPassword: JSON.stringify(encryptSecret({ ring: "SMTP", plaintext: smtpPassword, aad })),
+      smtpSecure: data.smtpSecure ?? true,
+    },
+  });
 }
 
 // async function addPaymentsToDb(payments: Prisma.PaymentCreateInput[]) {
@@ -1739,7 +1799,7 @@ export function mockNoTranslations() {
   });
 }
 
-export const enum BookingLocations {
+export enum BookingLocations {
   CalVideo = "integrations:daily",
   ZoomVideo = "integrations:zoom",
   GoogleMeet = "integrations:google:meet",

@@ -29,7 +29,7 @@ import {
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { EventStatus } from "ics";
-import type { WorkflowReminderRepository } from "../../repositories/WorkflowReminderRepository";
+import type { WorkflowReminderRepository } from "../../repositories/workflow-reminder-repository";
 import {
   getTemplateBodyForAction,
   getTemplateSubjectForAction,
@@ -50,7 +50,7 @@ import type {
   ScheduleEmailReminderAction,
   WorkflowContextData,
 } from "../types";
-import { WorkflowService } from "./WorkflowService";
+import { WorkflowService } from "./workflow-service";
 
 export class EmailWorkflowService {
   constructor(
@@ -81,6 +81,11 @@ export class EmailWorkflowService {
     }
 
     const workflow = workflowReminder.workflowStep.workflow;
+    const isOrganization = workflow.team?.isOrganization ?? false;
+    const workflowOrganizationId = workflow.team?.isOrganization
+      ? workflow.teamId
+      : workflow.team?.parentId ?? null;
+    const organizationId = workflowOrganizationId ?? evt.organizationId ?? null;
 
     let emailAttendeeSendToOverride: string | null = null;
     if (workflowReminder.seatReferenceId) {
@@ -98,6 +103,7 @@ export class EmailWorkflowService {
       workflowStep: workflowReminder.workflowStep,
       seatReferenceUid: workflowReminder.seatReferenceId || undefined,
       creditCheckFn,
+      evtOrganizationId: evt.organizationId,
     });
 
     const hideBranding =
@@ -125,6 +131,8 @@ export class EmailWorkflowService {
       action: workflowReminder.workflowStep.action as ScheduleEmailReminderAction,
       template: workflowReminder.workflowStep.template,
       includeCalendarEvent: workflowReminder.workflowStep.includeCalendarEvent,
+      isOrganization,
+      organizationId,
     });
 
     const results = await Promise.allSettled(
@@ -165,12 +173,15 @@ export class EmailWorkflowService {
   }: {
     evt?: CalendarEvent;
     workflowStep: WorkflowStep;
-    workflow: Pick<Workflow, "userId">;
+    workflow: Pick<Workflow, "userId" | "teamId"> & {
+      team?: { isOrganization?: boolean; parentId?: number | null } | null;
+    };
     emailAttendeeSendToOverride?: string | null;
     formData?: FormSubmissionData;
     commonScheduleFunctionParams: ReturnType<typeof WorkflowService.generateCommonScheduleFunctionParams>;
     hideBranding?: boolean;
   }) {
+    const isOrganization = workflow.team?.isOrganization ?? false;
     if (!workflowStep.verifiedAt) {
       throw new Error(`Workflow step ${workflowStep.id} is not verified`);
     }
@@ -250,6 +261,7 @@ export class EmailWorkflowService {
       includeCalendarEvent: workflowStep.includeCalendarEvent,
       ...contextData,
       verifiedAt: workflowStep.verifiedAt,
+      isOrganization,
       workflowStepId: workflowStep.id,
       autoTranslateEnabled: workflowStep.autoTranslateEnabled,
       sourceLocale: workflowStep.sourceLocale,
@@ -289,6 +301,8 @@ export class EmailWorkflowService {
     template,
     includeCalendarEvent,
     triggerEvent,
+    isOrganization,
+    organizationId,
     workflowStepId,
     autoTranslateEnabled,
     sourceLocale,
@@ -304,6 +318,8 @@ export class EmailWorkflowService {
     template?: WorkflowTemplates;
     includeCalendarEvent?: boolean;
     triggerEvent: WorkflowTriggerEvents;
+    isOrganization?: boolean;
+    organizationId?: number | null;
     workflowStepId?: number;
     autoTranslateEnabled?: boolean;
     sourceLocale?: string | null;
@@ -691,6 +707,7 @@ export class EmailWorkflowService {
       ...(replyTo && { replyTo }),
       attachments,
       sender,
+      organizationId,
     };
   }
 

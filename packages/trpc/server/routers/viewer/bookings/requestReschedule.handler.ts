@@ -14,7 +14,7 @@ import { deleteMeeting } from "@calcom/features/conferencing/lib/videoClient";
 import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/workflow-repository";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { cancelNoShowTasksForBooking } from "@calcom/features/webhooks/lib/scheduleTrigger";

@@ -157,7 +157,7 @@ async function handler(req: NextRequest) {
             break;
           }
           case WorkflowActions.EMAIL_ATTENDEE:
-              sendTo = targetAttendee?.email;
+            sendTo = targetAttendee?.email;
             break;
           case WorkflowActions.EMAIL_ADDRESS:
             sendTo = reminder.workflowStep.sendTo;
@@ -358,12 +358,28 @@ async function handler(req: NextRequest) {
             title: booking.title || booking.eventType?.title || "",
           };
 
+          // Organization accounts are allowed to use cloaked links (URL behind text)
+          // since they are paid accounts with lower spam/scam risk
+          const isOrganization = reminder.workflowStep?.workflow?.team?.isOrganization ?? false;
+          let organizationId = isOrganization
+            ? reminder.workflowStep?.workflow?.teamId
+            : (reminder.workflowStep?.workflow?.team?.parentId ?? null);
+
+          if (!organizationId && reminder.workflowStep?.workflow?.userId) {
+            const { ProfileRepository } = await import(
+              "@calcom/features/profile/repositories/ProfileRepository"
+            );
+            organizationId = await ProfileRepository.findFirstOrganizationIdForUser({
+              userId: reminder.workflowStep.workflow.userId,
+            });
+          }
+
           const customReplyTo = reminder.booking?.eventType?.customReplyToEmail;
-              const fallbackReplyTo =
-                reminder.booking?.userPrimaryEmail ?? reminder.booking?.user?.email;
-              const replyTo = reminder.booking?.eventType?.hideOrganizerEmail
-                ? customReplyTo
-                : customReplyTo ?? fallbackReplyTo;
+          const fallbackReplyTo =
+            reminder.booking?.userPrimaryEmail ?? reminder.booking?.user?.email;
+          const replyTo = reminder.booking?.eventType?.hideOrganizerEmail
+            ? customReplyTo
+            : customReplyTo ?? fallbackReplyTo;
 
           const mailData = {
             subject: emailContent.emailSubject,
@@ -380,8 +396,9 @@ async function handler(req: NextRequest) {
                 ]
               : undefined,
             sender: reminder.workflowStep.sender,
-          ...(replyTo ? { replyTo } : {}),
-        };
+            organizationId,
+            ...(replyTo ? { replyTo } : {}),
+          };
 
           if (isSendgridEnabled) {
             sendEmailPromises.push(
@@ -463,11 +480,28 @@ async function handler(req: NextRequest) {
             ? customReplyTo
             : customReplyTo || fallbackReplyTo;
 
+          // Organization accounts are allowed to use cloaked links (URL behind text)
+          // since they are paid accounts with lower spam/scam risk
+          const isOrganization = reminder.workflowStep?.workflow?.team?.isOrganization ?? false;
+          let organizationId = isOrganization
+            ? reminder.workflowStep?.workflow?.teamId
+            : (reminder.workflowStep?.workflow?.team?.parentId ?? null);
+
+          if (!organizationId && reminder.workflowStep?.workflow?.userId) {
+            const { ProfileRepository } = await import(
+              "@calcom/features/profile/repositories/ProfileRepository"
+            );
+            organizationId = await ProfileRepository.findFirstOrganizationIdForUser({
+              userId: reminder.workflowStep.workflow.userId,
+            });
+          }
+
           const mailData = {
             subject: emailContent.emailSubject,
             to: [sendTo],
             html: emailContent.emailBody,
             sender: reminder.workflowStep?.sender,
+            organizationId,
             ...(replyTo ? { replyTo } : {}),
           };
           if (isSendgridEnabled) {

@@ -11,7 +11,7 @@ vi.mock("@calcom/features/bookings/lib/payment/getBooking");
 vi.mock("@calcom/features/webhooks/lib/getWebhooks");
 vi.mock("@calcom/features/webhooks/lib/sendOrSchedulePayload");
 vi.mock("@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType");
-vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService");
+vi.mock("@calcom/features/ee/workflows/lib/service/workflow-service");
 vi.mock("@calcom/features/tasker");
 vi.mock("@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials", () => ({
   getAllCredentialsIncludeServiceAccountKey: vi.fn().mockResolvedValue([]),
@@ -116,7 +116,7 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/workflow-service";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation

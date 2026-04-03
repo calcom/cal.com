@@ -4,7 +4,7 @@
 import "@calcom/lib/__mocks__/logger";
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/workflow-service";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
@@ -55,7 +55,7 @@ vi.mock("@calcom/features/di/webhooks/containers/webhook", () => ({
 }));
 
 // Mock workflow dependencies
-vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService", () => ({
+vi.mock("@calcom/features/ee/workflows/lib/service/workflow-service", () => ({
   WorkflowService: {
     getAllWorkflowsFromRoutingForm: vi.fn(() => Promise.resolve([])),
     scheduleFormWorkflows: vi.fn(() => Promise.resolve()),
@@ -227,6 +227,7 @@ describe("_onFormSubmission", () => {
           },
           responseId,
           routedEventTypeId: null,
+          organizationId: 1,
           form: {
             ...mockForm,
             fields: mockForm.fields.map((field) => ({
@@ -360,7 +361,7 @@ describe("_onFormSubmission", () => {
   });
 
   describe("Response Email", () => {
-    it("should send response email to team members for a team form", async () => {
+    it("should send response email to team members for a team form with organizationId", async () => {
       const teamForm = {
         ...mockForm,
         teamId: 1,
@@ -374,11 +375,12 @@ describe("_onFormSubmission", () => {
         form: teamForm,
         toAddresses: ["team-member1@example.com", "team-member2@example.com"],
         orderedResponses: [mockResponse["field-1"], mockResponse["field-2"]],
+        organizationId: 1,
       });
       expect(mockSendEmail).toHaveBeenCalled();
     });
 
-    it("should send response email to owner when enabled", async () => {
+    it("should send response email to owner when enabled with organizationId", async () => {
       const ownerForm = {
         ...mockForm,
         settings: { emailOwnerOnSubmission: true },
@@ -390,6 +392,7 @@ describe("_onFormSubmission", () => {
         form: ownerForm,
         toAddresses: [ownerForm.user.email],
         orderedResponses: [mockResponse["field-1"], mockResponse["field-2"]],
+        organizationId: 1,
       });
       expect(mockSendEmail).toHaveBeenCalled();
     });

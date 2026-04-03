@@ -43,7 +43,7 @@ vi.mock("@calcom/emails/email-manager", () => ({
   sendCancelledSeatEmailsAndSMS: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@calcom/features/ee/workflows/repositories/WorkflowRepository", () => ({
+vi.mock("@calcom/features/ee/workflows/repositories/workflow-repository", () => ({
   WorkflowRepository: { deleteAllWorkflowReminders: vi.fn().mockResolvedValue(undefined) },
 }));
 

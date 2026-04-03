@@ -1,6 +1,6 @@
 import { prisma } from "@calcom/prisma/__mocks__/prisma";
 import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/workflow-service";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TeamService } from "./teamService";
@@ -11,7 +11,7 @@ vi.mock("@calcom/prisma", () => ({
 
 vi.mock("@calcom/ee/billing/di/containers/Billing");
 vi.mock("@calcom/features/di/containers/TeamRepository");
-vi.mock("@calcom/features/ee/workflows/lib/service/WorkflowService");
+vi.mock("@calcom/features/ee/workflows/lib/service/workflow-service");
 vi.mock("@calcom/lib/domainManager/organization");
 vi.mock("@calcom/features/ee/teams/lib/removeMember");
 vi.mock("@calcom/features/ee/billing/credit-service", () => ({

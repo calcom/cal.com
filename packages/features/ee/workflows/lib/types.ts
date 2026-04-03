@@ -28,6 +28,11 @@ export type Workflow = {
   userId: number | null;
   teamId: number | null;
   steps: WorkflowStep[];
+  team?: {
+    isOrganization: boolean;
+    parentId: number | null;
+    [key: string]: unknown;
+  } | null;
 };
 
 export type WorkflowStep = {
@@ -54,6 +59,13 @@ export const ZWorkflow: z.ZodType<Workflow> = z.object({
   timeUnit: z.enum(TIME_UNIT).nullable(),
   userId: z.number().nullable(),
   teamId: z.number().nullable(),
+  team: z
+    .object({
+      isOrganization: z.boolean(),
+      parentId: z.number().nullable(),
+    })
+    .nullable()
+    .optional(),
   steps: z
     .object({
       id: z.number(),
@@ -74,6 +86,7 @@ export const ZWorkflow: z.ZodType<Workflow> = z.object({
 export type FormSubmissionData = {
   responses: FORM_SUBMITTED_WEBHOOK_RESPONSES;
   routedEventTypeId: number | null;
+  organizationId?: number | null;
   user: {
     email: string;
     timeFormat: number | null;
@@ -121,6 +134,7 @@ export type BookingInfo = {
   videoCallData?: {
     url?: string;
   };
+  organizationId?: number | null;
   platformClientId?: string | null;
   platformRescheduleUrl?: string | null;
   platformCancelUrl?: string | null;

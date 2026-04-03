@@ -2,7 +2,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowMethods } from "@calcom/prisma/enums";
 import { beforeEach, describe, expect, it } from "vitest";
 import { type DeepMockProxy, mockDeep, mockReset } from "vitest-mock-extended";
-import { WorkflowReminderRepository } from "./WorkflowReminderRepository";
+import { WorkflowReminderRepository } from "./workflow-reminder-repository";
 
 describe("WorkflowReminderRepository", () => {
   let prismaMock: DeepMockProxy<PrismaClient>;
@@ -201,6 +201,18 @@ describe("WorkflowReminderRepository", () => {
           workflowStep: {
             select: {
               action: true,
+              workflow: {
+                select: {
+                  userId: true,
+                  teamId: true,
+                  team: {
+                    select: {
+                      isOrganization: true,
+                      parentId: true,
+                    },
+                  },
+                },
+              },
             },
           },
           scheduledDate: true,
@@ -312,6 +324,12 @@ describe("WorkflowReminderRepository", () => {
                   timeUnit: true,
                   userId: true,
                   teamId: true,
+                  team: {
+                    select: {
+                      isOrganization: true,
+                      parentId: true,
+                    },
+                  },
                 },
               },
             },

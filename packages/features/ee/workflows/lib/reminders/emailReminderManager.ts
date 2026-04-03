@@ -1,8 +1,8 @@
 import dayjs from "@calcom/dayjs";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
-import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
-import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/WorkflowReminderRepository";
+import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/email-workflow-service";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/workflow-service";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/workflow-reminder-repository";
 import tasker from "@calcom/features/tasker";
 import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -38,6 +38,8 @@ type scheduleEmailReminderArgs = ScheduleReminderArgs & {
   hideBranding?: boolean;
   includeCalendarEvent?: boolean;
   verifiedAt: Date | null;
+  isOrganization?: boolean;
+  organizationId?: number | null;
   autoTranslateEnabled?: boolean;
   sourceLocale?: string | null;
 };
@@ -54,6 +56,7 @@ type SendEmailReminderParams = {
       disposition: string;
     }[];
     sender?: string | null;
+    organizationId?: number | null;
   };
   sendTo: string[];
   triggerEvent: WorkflowTriggerEvents;
@@ -117,6 +120,8 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     hideBranding,
     includeCalendarEvent,
     action,
+    isOrganization,
+    organizationId,
     autoTranslateEnabled,
     sourceLocale,
   } = args;
@@ -156,6 +161,8 @@ const scheduleEmailReminderForEvt = async (args: scheduleEmailReminderArgs & { e
     template,
     includeCalendarEvent,
     triggerEvent,
+    isOrganization,
+    organizationId,
     workflowStepId,
     autoTranslateEnabled,
     sourceLocale,
@@ -187,6 +194,8 @@ const scheduleEmailReminderForForm = async (
     emailSubject = "",
     emailBody = "",
     hideBranding,
+    isOrganization,
+    organizationId,
   } = args;
 
   const emailContent = {
@@ -219,6 +228,7 @@ const scheduleEmailReminderForForm = async (
     subject: emailContent.emailSubject,
     html: emailContent.emailBody,
     sender,
+    organizationId,
   };
 
   await sendOrScheduleWorkflowEmailWithReminder({

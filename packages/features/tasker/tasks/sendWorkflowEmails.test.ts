@@ -18,7 +18,7 @@ vi.mock("@calcom/features/bookings/repositories/BookingSeatRepository", () => ({
 }));
 
 const mockHandleSendEmailWorkflowTask = vi.fn();
-vi.mock("@calcom/features/ee/workflows/lib/service/EmailWorkflowService", () => ({
+vi.mock("@calcom/features/ee/workflows/lib/service/email-workflow-service", () => ({
   EmailWorkflowService: vi.fn().mockImplementation(function () {
     return {
       handleSendEmailWorkflowTask: mockHandleSendEmailWorkflowTask,
@@ -26,7 +26,7 @@ vi.mock("@calcom/features/ee/workflows/lib/service/EmailWorkflowService", () => 
   }),
 }));
 
-vi.mock("@calcom/features/ee/workflows/repositories/WorkflowReminderRepository", () => ({
+vi.mock("@calcom/features/ee/workflows/repositories/workflow-reminder-repository", () => ({
   WorkflowReminderRepository: vi.fn(),
 }));
 

@@ -19,7 +19,7 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/workflow-service";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getPlatformParams } from "@calcom/features/platform-oauth-client/get-platform-params";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation

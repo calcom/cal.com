@@ -6,7 +6,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
-import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import type { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/workflow-repository";
 import { FilterResults } from "~/filters/components/FilterResults";
 import { TeamsFilter } from "~/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";

@@ -42,8 +42,8 @@ import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBooke
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { BookingLocationService } from "@calcom/features/ee/round-robin/lib/bookingLocationService";
 import { getAllWorkflowsFromEventType } from "@calcom/features/ee/workflows/lib/getAllWorkflowsFromEventType";
-import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
-import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/WorkflowRepository";
+import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/workflow-service";
+import { WorkflowRepository } from "@calcom/features/ee/workflows/repositories/workflow-repository";
 import {
   type EventTypeBrandingData,
   getEventTypeService,

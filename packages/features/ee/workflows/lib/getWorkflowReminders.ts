@@ -8,6 +8,10 @@ type PartialWorkflowStep =
       workflow: {
         userId?: number;
         teamId?: number;
+        team?: {
+          isOrganization: boolean;
+          parentId?: number | null;
+        } | null;
       };
     })
   | null;
@@ -147,6 +151,12 @@ export const select = {
         select: {
           userId: true,
           teamId: true,
+          team: {
+            select: {
+              isOrganization: true,
+              parentId: true,
+            },
+          },
         },
       },
     },

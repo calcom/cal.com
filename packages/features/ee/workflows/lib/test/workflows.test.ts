@@ -7,8 +7,8 @@ import {
   TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
 import dayjs from "@calcom/dayjs";
-import * as featureRepositoryContainer from "@calcom/features/di/containers/FeatureRepository";
 import { scheduleBookingReminders } from "@calcom/features/ee/workflows/lib/scheduleBookingReminders";
+import { CachedFeatureRepository } from "@calcom/features/flags/repositories/CachedFeatureRepository";
 import tasker from "@calcom/features/tasker";
 import * as rateLimitModule from "@calcom/lib/checkRateLimitAndThrowError";
 import type { Prisma } from "@calcom/prisma/client";
@@ -20,6 +20,8 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import {
+  expectEmailSentViaCustomSmtp,
+  expectEmailSentViaDefaultSmtp,
   expectSMSWorkflowToBeNotTriggered,
   expectSMSWorkflowToBeTriggered,
 } from "@calcom/testing/lib/bookingScenario/expects";
@@ -33,6 +35,11 @@ import { scheduleAIPhoneCall } from "../reminders/aiPhoneCallManager";
 import { scheduleEmailReminder } from "../reminders/emailReminderManager";
 import * as emailProvider from "../reminders/providers/emailProvider";
 import { bookingSelect } from "../scheduleWorkflowNotifications";
+
+vi.mock("@calcom/lib/crypto", () => ({
+  symmetricDecrypt: vi.fn(),
+  symmetricEncrypt: vi.fn(),
+}));
 
 const workflowSelect = {
   id: true,
@@ -1239,9 +1246,9 @@ describe("Routing Form Variables", () => {
 
   test("should pass routing form responses to AI phone call workflows", async () => {
     // Mock the feature flag
-    const mockCheckFeature = vi.spyOn(featureRepositoryContainer, "getFeatureRepository").mockReturnValue({
-      checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
-    } as unknown as ReturnType<typeof featureRepositoryContainer.getFeatureRepository>);
+    const mockCheckFeature = vi
+      .spyOn(CachedFeatureRepository.prototype, "checkIfFeatureIsEnabledGlobally")
+      .mockResolvedValue(true);
 
     // Mock rate limiting
     const mockRateLimit = vi
@@ -1330,5 +1337,348 @@ describe("Routing Form Variables", () => {
     mockTaskerCreate.mockRestore();
     mockCheckFeature.mockRestore();
     mockRateLimit.mockRestore();
+  });
+});
+
+describe("Custom SMTP Email Routing for Workflows", () => {
+  setupAndTeardown();
+
+  test("should route workflow emails via org custom SMTP when organization has SMTP configuration", async ({
+    emails,
+  }) => {
+    const org = await createOrganization({
+      name: "Test Org with SMTP",
+      slug: "testorg-smtp",
+      withSmtpConfig: {
+        fromEmail: "workflows@testorg.com",
+        fromName: "TestOrg Workflows",
+      },
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      defaultScheduleId: null,
+      organizationId: org.id,
+      schedules: [TestData.schedules.IstMorningShift],
+    });
+
+    await createBookingScenario(
+      getScenarioData({
+        workflows: [
+          {
+            name: "Org Workflow with SMTP",
+            userId: 101,
+            trigger: "NEW_EVENT",
+            action: "EMAIL_ATTENDEE",
+            template: "REMINDER",
+            activeOn: [1],
+          },
+        ],
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            useEventTypeDestinationCalendarEmail: true,
+            owner: 101,
+            users: [{ id: 101 }],
+          },
+        ],
+        bookings: [
+          {
+            uid: "smtp-test-booking",
+            eventTypeId: 1,
+            userId: 101,
+            status: BookingStatus.ACCEPTED,
+            startTime: `2024-05-25T10:00:00.000Z`,
+            endTime: `2024-05-25T10:30:00.000Z`,
+            attendees: [{ email: "attendee@example.com", locale: "en" }],
+          },
+        ],
+        organizer,
+      })
+    );
+
+    const mockEvt = {
+      uid: "smtp-test-booking",
+      title: "Test Event",
+      startTime: "2024-05-25T10:00:00.000Z",
+      endTime: "2024-05-25T10:30:00.000Z",
+      bookerUrl: "https://cal.com",
+      organizationId: org.id,
+      attendees: [
+        {
+          name: "Test Attendee",
+          email: "attendee@example.com",
+          timeZone: "UTC",
+          language: { locale: "en" },
+        },
+      ],
+      organizer: {
+        name: "Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+      },
+    };
+
+    await scheduleEmailReminder({
+      evt: mockEvt,
+      triggerEvent: WorkflowTriggerEvents.NEW_EVENT,
+      timeSpan: { time: null, timeUnit: null },
+      sendTo: ["attendee@example.com"],
+      action: WorkflowActions.EMAIL_ATTENDEE,
+      verifiedAt: new Date(),
+      organizationId: org.id,
+    });
+
+    expectEmailSentViaCustomSmtp({
+      emails,
+      to: "attendee@example.com",
+      expectedFromEmail: "workflows@testorg.com",
+    });
+  });
+
+  test("should use default SMTP when organization has no custom SMTP configuration", async ({ emails }) => {
+    const org = await createOrganization({
+      name: "Test Org without SMTP",
+      slug: "testorg-no-smtp",
+    });
+
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 102,
+      defaultScheduleId: null,
+      organizationId: org.id,
+      schedules: [TestData.schedules.IstMorningShift],
+    });
+
+    await createBookingScenario(
+      getScenarioData({
+        workflows: [
+          {
+            name: "Org Workflow without SMTP",
+            userId: 102,
+            trigger: "NEW_EVENT",
+            action: "EMAIL_ATTENDEE",
+            template: "REMINDER",
+            activeOn: [2],
+          },
+        ],
+        eventTypes: [
+          {
+            id: 2,
+            slotInterval: 30,
+            length: 30,
+            useEventTypeDestinationCalendarEmail: true,
+            owner: 102,
+            users: [{ id: 102 }],
+          },
+        ],
+        bookings: [
+          {
+            uid: "default-smtp-test-booking",
+            eventTypeId: 2,
+            userId: 102,
+            status: BookingStatus.ACCEPTED,
+            startTime: `2024-05-25T11:00:00.000Z`,
+            endTime: `2024-05-25T11:30:00.000Z`,
+            attendees: [{ email: "attendee2@example.com", locale: "en" }],
+          },
+        ],
+        organizer,
+      })
+    );
+
+    const mockEvt = {
+      uid: "default-smtp-test-booking",
+      title: "Test Event",
+      startTime: "2024-05-25T11:00:00.000Z",
+      endTime: "2024-05-25T11:30:00.000Z",
+      bookerUrl: "https://cal.com",
+      organizationId: org.id,
+      attendees: [
+        {
+          name: "Test Attendee 2",
+          email: "attendee2@example.com",
+          timeZone: "UTC",
+          language: { locale: "en" },
+        },
+      ],
+      organizer: {
+        name: "Organizer",
+        email: "organizer@example.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+      },
+    };
+
+    await scheduleEmailReminder({
+      evt: mockEvt,
+      triggerEvent: WorkflowTriggerEvents.NEW_EVENT,
+      timeSpan: { time: null, timeUnit: null },
+      sendTo: ["attendee2@example.com"],
+      action: WorkflowActions.EMAIL_ATTENDEE,
+      verifiedAt: new Date(),
+      organizationId: org.id,
+    });
+
+    expectEmailSentViaDefaultSmtp({
+      emails,
+      to: "attendee2@example.com",
+    });
+  });
+
+  test("should route form submission workflow emails via org custom SMTP", async ({ emails }) => {
+    const org = await createOrganization({
+      name: "Test Org with Form SMTP",
+      slug: "testorg-form-smtp",
+      withSmtpConfig: {
+        fromEmail: "forms@testorg.com",
+        fromName: "TestOrg Forms",
+      },
+    });
+
+    const mockFormData = {
+      responses: {
+        name: {
+          value: "Test User",
+          response: "Test User",
+        },
+        email: {
+          value: "formuser@example.com",
+          response: "formuser@example.com",
+        },
+      },
+      routedEventTypeId: null,
+      user: {
+        email: "formuser@example.com",
+        timeFormat: 12,
+        locale: "en",
+      },
+      organizationId: org.id,
+    };
+
+    await scheduleEmailReminder({
+      emailBody: "Thank you {NAME} for your submission",
+      emailSubject: "Form Submission Received",
+      triggerEvent: WorkflowTriggerEvents.FORM_SUBMITTED,
+      sendTo: ["formuser@example.com"],
+      action: WorkflowActions.EMAIL_ATTENDEE,
+      verifiedAt: new Date(),
+      formData: mockFormData,
+      organizationId: org.id,
+      timeSpan: {
+        time: null,
+        timeUnit: null,
+      },
+    });
+
+    expectEmailSentViaCustomSmtp({
+      emails,
+      to: "formuser@example.com",
+      expectedFromEmail: "forms@testorg.com",
+    });
+  });
+
+  test("should route personal workflow emails via org custom SMTP when user is org member", async ({
+    emails,
+  }) => {
+    const org = await createOrganization({
+      name: "Test Org with SMTP",
+      slug: "testorg-personal-smtp",
+      withSmtpConfig: {
+        fromEmail: "personal@testorg.com",
+        fromName: "TestOrg Personal",
+      },
+    });
+
+    const organizer = getOrganizer({
+      name: "Org Member",
+      email: "member@example.com",
+      id: 103,
+      defaultScheduleId: null,
+      organizationId: org.id,
+      schedules: [TestData.schedules.IstMorningShift],
+    });
+
+    await createBookingScenario(
+      getScenarioData({
+        workflows: [
+          {
+            name: "Personal Workflow of Org Member",
+            userId: 103,
+            trigger: "NEW_EVENT",
+            action: "EMAIL_ATTENDEE",
+            template: "REMINDER",
+            activeOn: [1],
+          },
+        ],
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            useEventTypeDestinationCalendarEmail: true,
+            owner: 103,
+            users: [{ id: 103 }],
+          },
+        ],
+        bookings: [
+          {
+            uid: "personal-workflow-smtp-test",
+            eventTypeId: 1,
+            userId: 103,
+            status: BookingStatus.ACCEPTED,
+            startTime: `2024-05-25T10:00:00.000Z`,
+            endTime: `2024-05-25T10:30:00.000Z`,
+            attendees: [{ email: "attendee@example.com", locale: "en" }],
+          },
+        ],
+        organizer,
+      })
+    );
+
+    const mockEvt = {
+      uid: "personal-workflow-smtp-test",
+      title: "Test Event",
+      startTime: "2024-05-25T10:00:00.000Z",
+      endTime: "2024-05-25T10:30:00.000Z",
+      bookerUrl: "https://cal.com",
+      organizationId: org.id,
+      attendees: [
+        {
+          name: "Test Attendee",
+          email: "attendee@example.com",
+          timeZone: "UTC",
+          language: { locale: "en" },
+        },
+      ],
+      organizer: {
+        name: "Org Member",
+        email: "member@example.com",
+        timeZone: "UTC",
+        language: { locale: "en" },
+      },
+    };
+
+    await scheduleEmailReminder({
+      evt: mockEvt,
+      triggerEvent: WorkflowTriggerEvents.NEW_EVENT,
+      timeSpan: { time: null, timeUnit: null },
+      sendTo: ["attendee@example.com"],
+      action: WorkflowActions.EMAIL_ATTENDEE,
+      verifiedAt: new Date(),
+      organizationId: org.id,
+    });
+
+    expectEmailSentViaCustomSmtp({
+      emails,
+      to: "attendee@example.com",
+      expectedFromEmail: "personal@testorg.com",
+    });
   });
 });
