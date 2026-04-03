@@ -1,6 +1,12 @@
 export const ADMIN_DI_TOKENS = {
   LOCK_USER_ACCOUNT_ACTION: Symbol("LockUserAccountAction"),
   LOCK_USER_ACCOUNT_ACTION_MODULE: Symbol("LockUserAccountActionModule"),
+  REMOVE_TWO_FACTOR_ACTION: Symbol("RemoveTwoFactorAction"),
+  REMOVE_TWO_FACTOR_ACTION_MODULE: Symbol("RemoveTwoFactorActionModule"),
+  VERIFY_WORKFLOWS_ACTION: Symbol("VerifyWorkflowsAction"),
+  VERIFY_WORKFLOWS_ACTION_MODULE: Symbol("VerifyWorkflowsActionModule"),
+  ADMIN_WORKFLOW_REPOSITORY: Symbol("AdminWorkflowRepository"),
+  ADMIN_WORKFLOW_REPOSITORY_MODULE: Symbol("AdminWorkflowRepositoryModule"),
   DELETE_ORG_ONBOARDING_ACTION: Symbol("DeleteOrganizationOnboardingAction"),
   DELETE_ORG_ONBOARDING_ACTION_MODULE: Symbol("DeleteOrganizationOnboardingActionModule"),
   EDIT_ORG_ONBOARDING_ACTION: Symbol("EditOrganizationOnboardingAction"),

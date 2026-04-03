@@ -2,9 +2,13 @@ import { createContainer } from "@calcom/features/di/di";
 import type { DeleteOrganizationOnboardingAction } from "../actions/delete-organization-onboarding";
 import type { EditOrganizationOnboardingAction } from "../actions/edit-organization-onboarding";
 import type { LockUserAccountAction } from "../actions/lock-user-account";
+import type { RemoveTwoFactorAction } from "../actions/remove-two-factor";
+import type { VerifyWorkflowsAction } from "../actions/verify-workflows";
 import { deleteOrganizationOnboardingActionModuleLoader } from "./modules/DeleteOrganizationOnboardingAction.module";
 import { editOrganizationOnboardingActionModuleLoader } from "./modules/EditOrganizationOnboardingAction.module";
 import { lockUserAccountActionModuleLoader } from "./modules/LockUserAccountAction.module";
+import { removeTwoFactorActionModuleLoader } from "./modules/RemoveTwoFactorAction.module";
+import { verifyWorkflowsActionModuleLoader } from "./modules/VerifyWorkflowsAction.module";
 import { ADMIN_DI_TOKENS } from "./tokens";
 
 const container = createContainer();
@@ -12,6 +16,16 @@ const container = createContainer();
 export function getLockUserAccountAction(): LockUserAccountAction {
   lockUserAccountActionModuleLoader.loadModule(container);
   return container.get<LockUserAccountAction>(ADMIN_DI_TOKENS.LOCK_USER_ACCOUNT_ACTION);
+}
+
+export function getRemoveTwoFactorAction(): RemoveTwoFactorAction {
+  removeTwoFactorActionModuleLoader.loadModule(container);
+  return container.get<RemoveTwoFactorAction>(ADMIN_DI_TOKENS.REMOVE_TWO_FACTOR_ACTION);
+}
+
+export function getVerifyWorkflowsAction(): VerifyWorkflowsAction {
+  verifyWorkflowsActionModuleLoader.loadModule(container);
+  return container.get<VerifyWorkflowsAction>(ADMIN_DI_TOKENS.VERIFY_WORKFLOWS_ACTION);
 }
 
 export function getDeleteOrganizationOnboardingAction(): DeleteOrganizationOnboardingAction {
