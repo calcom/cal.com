@@ -149,7 +149,12 @@ export default function JoinCall(props: PageProps) {
 
       callFrame?.join();
 
+      callFrame?.on("joined-meeting" , () => {
+        if(timeout) clearTimeout(timeout);
+      });
+
       callFrame?.on("error", () => {
+       try{ callFrame?.destroy(); } catch(e) {}
        setVideoFailed(true);
       });
 
