@@ -232,10 +232,7 @@ const OnboardingPage = ({
   };
 
   return (
-    <div
-      key={pathname}
-      className="text-emphasis min-h-screen px-4"
-      data-testid="onboarding">
+    <div key={pathname} className="text-emphasis min-h-screen px-4" data-testid="onboarding">
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]" ref={formPortalRef}>

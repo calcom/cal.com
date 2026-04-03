@@ -1,3 +1,5 @@
+import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { IWebhookDataFetcher, SubscriberContext } from "../../interface/IWebhookDataFetcher";
 import type { ILogger } from "../../interface/infrastructure";
@@ -13,7 +15,10 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
     WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
   ]);
 
-  constructor(private readonly logger: ILogger) {}
+  constructor(
+    private readonly logger: ILogger,
+    private readonly bookingRepository: BookingRepository
+  ) {}
 
   canHandle(triggerEvent: WebhookTriggerEvents): boolean {
     return this.BOOKING_TRIGGERS.has(triggerEvent as never);
@@ -27,9 +32,44 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
       return null;
     }
 
-    // TODO: Implement using BookingRepository/EventTypeRepository/UserRepository (Phase 1+)
-    this.logger.debug("Booking data fetch not implemented yet (Phase 0 scaffold)", { bookingUid });
-    return { bookingUid, _scaffold: true };
+    try {
+      // Fetch complete booking data with all related entities
+      const booking = await this.bookingRepository.getBookingForCalEventBuilderFromUid(bookingUid);
+
+      if (!booking) {
+        this.logger.warn("Booking not found", { bookingUid });
+        return null;
+      }
+
+      // Build CalendarEvent using the builder pattern (same pattern used by email/sms tasks)
+      // Map oAuthClientId to platformClientId for platform metadata
+      const calendarEvent = (
+        await CalendarEventBuilder.fromBooking(booking, {
+          platformClientId: payload.oAuthClientId ?? undefined,
+          platformRescheduleUrl: payload.platformRescheduleUrl ?? undefined,
+          platformCancelUrl: payload.platformCancelUrl ?? undefined,
+          platformBookingUrl: payload.platformBookingUrl ?? undefined,
+        })
+      ).build();
+
+      if (!calendarEvent) {
+        this.logger.error("Failed to build CalendarEvent from booking", { bookingUid });
+        return null;
+      }
+
+      // Return complete data needed for webhook payload building
+      return {
+        calendarEvent,
+        booking,
+        eventType: booking.eventType,
+      };
+    } catch (error) {
+      this.logger.error("Error fetching booking data for webhook", {
+        bookingUid,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
   }
 
   getSubscriberContext(payload: BookingWebhookTaskPayload): SubscriberContext {

@@ -1,9 +1,7 @@
-import { captureException } from "@sentry/nextjs";
-
 import type { TeamFeaturesDto } from "@calcom/lib/dto/TeamFeaturesDto";
 import type { PrismaClient } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
-
+import { captureException } from "@sentry/nextjs";
 import type { FeatureId, TeamFeatures } from "../config";
 
 export interface ITeamFeatureRepository {
@@ -24,6 +22,7 @@ export interface ITeamFeatureRepository {
   setAutoOptIn(teamId: number, enabled: boolean): Promise<void>;
   checkIfTeamHasFeature(teamId: number, featureId: FeatureId): Promise<boolean>;
   getEnabledFeatures(teamId: number): Promise<TeamFeatures | null>;
+  getTeamsWithFeatureEnabled(featureId: FeatureId): Promise<number[]>;
 }
 
 export class PrismaTeamFeatureRepository implements ITeamFeatureRepository {
@@ -249,5 +248,19 @@ export class PrismaTeamFeatureRepository implements ITeamFeatureRepository {
     ) as TeamFeatures;
 
     return features;
+  }
+
+  async getTeamsWithFeatureEnabled(featureId: FeatureId): Promise<number[]> {
+    const result = await this.prisma.teamFeatures.findMany({
+      where: {
+        featureId,
+        enabled: true,
+      },
+      select: {
+        teamId: true,
+      },
+    });
+
+    return result.map((tf) => tf.teamId);
   }
 }

@@ -40,19 +40,18 @@ export function createAppsFixture(page: Page) {
         await page.waitForURL(`apps/installation/event-types?slug=${app}`);
       }
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(1000);
+      await page.locator(`[data-testid="select-event-type-${eventTypeIds[0]}"]`).waitFor({ state: "visible" });
       for (const id of eventTypeIds) {
         await page.click(`[data-testid="select-event-type-${id}"]`);
       }
 
       await page.click(`[data-testid="save-event-types"]`);
 
-      // adding valid GTM container ID to gtm-tracking-id-input because this field is required and the test fails without it
+      // adding random-tracking-id to gtm-tracking-id-input because this field is required and the test fails without it
       if (app === "gtm") {
         await page.waitForLoadState("domcontentloaded");
         for (let index = 0; index < eventTypeIds.length; index++) {
-          await page.getByTestId("gtm-tracking-id-input").nth(index).fill("GTM-ABC123");
+          await page.getByTestId("gtm-tracking-id-input").nth(index).fill("random-tracking-id");
         }
       }
       await page.click(`[data-testid="configure-step-save"]`);
@@ -88,8 +87,7 @@ export function createAppsFixture(page: Page) {
       await page.getByTestId("install-app-button").click();
       await page.waitForURL(`apps/installation/event-types?slug=${app.slug}`);
 
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(1000);
+      await page.locator(`[data-testid="select-event-type-${eventTypeIds[0]}"]`).waitFor({ state: "visible" });
       for (const id of eventTypeIds) {
         await page.click(`[data-testid="select-event-type-${id}"]`);
       }
@@ -129,8 +127,11 @@ export function createAppsFixture(page: Page) {
     activeApp: async (app: string) => {
       await page.locator(`[data-testid='${app}-app-switch']`).click();
     },
-    verifyAppsInfo: async (activeApps: number) => {
-      await expect(page.locator(`text=1 apps, ${activeApps} active`)).toBeVisible();
+    verifyAppsInfo: async (installedApps: number, activeApps: number) => {
+      const appsLabel = installedApps === 1 ? "app" : "apps";
+      await expect(
+        page.locator(`text=${installedApps} ${appsLabel}, ${activeApps} active`)
+      ).toBeVisible();
     },
     verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
       await page.goto(`event-types/${eventTypeId}?tabName=apps`);

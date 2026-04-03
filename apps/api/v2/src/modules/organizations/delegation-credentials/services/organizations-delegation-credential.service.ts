@@ -174,7 +174,7 @@ export class OrganizationsDelegationCredentialService {
         this.logger.warn(`Invalid email format for user ${userId}: missing domain`);
         return;
       }
-      const emailDomain = `@${emailParts[1]}`;
+      const emailDomain = emailParts[1];
 
       const delegationCredential =
         await this.organizationsDelegationCredentialRepository.findEnabledByOrgIdAndDomain(

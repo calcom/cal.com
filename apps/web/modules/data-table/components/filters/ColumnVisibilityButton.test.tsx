@@ -30,7 +30,7 @@ const TestWrapper = () => {
   }, [table]);
 
   return <ColumnVisibilityButton table={table} />;
-}
+};
 
 describe("ColumnVisibilityButton", () => {
   beforeEach(() => {
@@ -48,7 +48,9 @@ describe("ColumnVisibilityButton", () => {
 
     await waitFor(() => {
       expect(tableRef).not.toBeNull();
-      const allVisible = tableRef!.getAllLeafColumns().every((col: Column<{ a: number; b: number; c: number }, unknown>) => col.getIsVisible());
+      const allVisible = tableRef!
+        .getAllLeafColumns()
+        .every((col: Column<{ a: number; b: number; c: number }, unknown>) => col.getIsVisible());
       expect(allVisible).toBe(true);
     });
   });

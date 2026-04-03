@@ -9,9 +9,7 @@ export interface ICalendarsSyncTaskerDependencies {
 }
 
 export class CalendarsSyncTasker implements ICalendarsTasker {
-  constructor(
-    public readonly dependencies: ITaskerDependencies & ICalendarsSyncTaskerDependencies
-  ) {}
+  constructor(public readonly dependencies: ITaskerDependencies & ICalendarsSyncTaskerDependencies) {}
 
   async ensureDefaultCalendars(
     payload: Parameters<ICalendarsTasker["ensureDefaultCalendars"]>[0]

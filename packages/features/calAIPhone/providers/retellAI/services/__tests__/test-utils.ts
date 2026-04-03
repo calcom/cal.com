@@ -192,14 +192,20 @@ export const setupRateLimitMocks = () => {
 
 // Test Error Classes
 export class TestError extends Error {
-  constructor(message: string, public code?: string) {
+  constructor(
+    message: string,
+    public code?: string
+  ) {
     super(message);
     this.name = "TestError";
   }
 }
 
 export class TestRetellAPIError extends Error {
-  constructor(message: string, public statusCode: number = 500) {
+  constructor(
+    message: string,
+    public statusCode: number = 500
+  ) {
     super(message);
     this.name = "TestRetellAPIError";
   }

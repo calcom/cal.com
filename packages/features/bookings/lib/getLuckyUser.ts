@@ -370,7 +370,7 @@ export class LuckyUserService implements ILuckyUserService {
   private filterUsersBasedOnWeights<
     T extends PartialUser & {
       weight?: number | null;
-    }
+    },
   >({
     availableUsers,
     bookingsOfAvailableUsersOfInterval,
@@ -493,7 +493,7 @@ export class LuckyUserService implements ILuckyUserService {
     T extends PartialUser & {
       priority?: number | null;
       weight?: number | null;
-    }
+    },
   >(
     allRRHosts: GetLuckyUserParams<T>["allRRHosts"],
     attributesQueryValueChild: Record<
@@ -693,15 +693,18 @@ export class LuckyUserService implements ILuckyUserService {
       )
     );
 
-    return usersBusyTimesQuery.reduce((usersBusyTime, userBusyTimeQuery, index) => {
-      if (userBusyTimeQuery.success) {
-        usersBusyTime.push({
-          userId: usersWithCredentials[index].id,
-          busyTimes: userBusyTimeQuery.data,
-        });
-      }
-      return usersBusyTime;
-    }, [] as { userId: number; busyTimes: Awaited<ReturnType<typeof getBusyCalendarTimes>>["data"] }[]);
+    return usersBusyTimesQuery.reduce(
+      (usersBusyTime, userBusyTimeQuery, index) => {
+        if (userBusyTimeQuery.success) {
+          usersBusyTime.push({
+            userId: usersWithCredentials[index].id,
+            busyTimes: userBusyTimeQuery.data,
+          });
+        }
+        return usersBusyTime;
+      },
+      [] as { userId: number; busyTimes: Awaited<ReturnType<typeof getBusyCalendarTimes>>["data"] }[]
+    );
   }
 
   private async getBookingsOfInterval({
@@ -736,7 +739,7 @@ export class LuckyUserService implements ILuckyUserService {
     T extends PartialUser & {
       priority?: number | null;
       weight?: number | null;
-    }
+    },
   >(getLuckyUserParams: GetLuckyUserParams<T>): Promise<FetchedData> {
     const startTime = performance.now();
 
@@ -763,9 +766,8 @@ export class LuckyUserService implements ILuckyUserService {
       );
     })();
 
-    const { attributeWeights, virtualQueuesData } = await this.prepareQueuesAndAttributesData(
-      getLuckyUserParams
-    );
+    const { attributeWeights, virtualQueuesData } =
+      await this.prepareQueuesAndAttributesData(getLuckyUserParams);
 
     const interval =
       eventType.isRRWeightsEnabled && getLuckyUserParams.eventType.team?.rrResetInterval
@@ -917,7 +919,7 @@ export class LuckyUserService implements ILuckyUserService {
     T extends PartialUser & {
       priority?: number | null;
       weight?: number | null;
-    }
+    },
   >(getLuckyUserParams: GetLuckyUserParams<T>) {
     // Early return if only one available user to avoid unnecessary data fetching
     if (getLuckyUserParams.availableUsers.length === 1) {
@@ -938,7 +940,7 @@ export class LuckyUserService implements ILuckyUserService {
     T extends PartialUser & {
       priority?: number | null;
       weight?: number | null;
-    }
+    },
   >({ availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T> & FetchedData) {
     const {
       eventType,

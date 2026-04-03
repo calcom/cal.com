@@ -106,8 +106,8 @@ export default function RecurringEventController({
                 isSeatsOffered
                   ? t("seats_doesnt_support_recurring")
                   : hasBookingLimitPerBooker
-                  ? t("booking_limit_per_booker_doesnt_support_recurring")
-                  : undefined
+                    ? t("booking_limit_per_booker_doesnt_support_recurring")
+                    : undefined
               }
               onCheckedChange={(e) => {
                 if (!e) {

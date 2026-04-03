@@ -65,7 +65,6 @@ export const CSATOverTimeChart = () => {
     },
   });
 
-
   return (
     <ChartCard title={t("csat_over_time")} className="h-full" isPending={isPending} isError={isError}>
       {isSuccess ? (

@@ -13,10 +13,13 @@ Keep comments limited and avoid obvious ones. Comments should explain "why" not 
 
 ## When to Comment
 
-- Complex business logic that isn't obvious from the code
+- Business decisions or domain logic that isn't obvious from the code
 - Workarounds or hacks with explanation of why they're needed
 - Non-obvious performance optimizations
 - Important security considerations
+- Troubleshooting context (e.g., why a particular approach was chosen after hitting issues)
+
+If none of these apply, skip the comment entirely. The function name, parameters, and return type should speak for themselves.
 
 ## When NOT to Comment
 

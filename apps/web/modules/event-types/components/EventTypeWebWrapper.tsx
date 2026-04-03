@@ -45,30 +45,27 @@ type EventPermissions = {
   };
 };
 
-const ManagedEventTypeDialog = dynamic(() =>
-  import("@calcom/features/eventtypes/components/dialogs/ManagedEventDialog")
+const ManagedEventTypeDialog = dynamic(
+  () => import("@calcom/features/eventtypes/components/dialogs/ManagedEventDialog")
 );
 
 const AssignmentWarningDialog = dynamic(() => import("./dialogs/AssignmentWarningDialog"));
 
-const EventSetupTab = dynamic(
-  () => import("./tabs/setup/EventSetupTabWebWrapper").then((mod) => mod),
-  { loading: () => null }
-);
+const EventSetupTab = dynamic(() => import("./tabs/setup/EventSetupTabWebWrapper").then((mod) => mod), {
+  loading: () => null,
+});
 
 const EventAvailabilityTab = dynamic(() =>
   import("./tabs/availability/EventAvailabilityTabWebWrapper").then((mod) => mod)
 );
 
-const EventTeamAssignmentTab = dynamic(() => import("./tabs/assignment/EventTeamAssignmentTabWebWrapper").then((mod) => mod));
-
-const EventLimitsTab = dynamic(() =>
-  import("./tabs/limits/EventLimitsTabWebWrapper").then((mod) => mod)
+const EventTeamAssignmentTab = dynamic(() =>
+  import("./tabs/assignment/EventTeamAssignmentTabWebWrapper").then((mod) => mod)
 );
 
-const EventAdvancedTab = dynamic(() =>
-  import("./tabs/advanced/EventAdvancedWebWrapper").then((mod) => mod)
-);
+const EventLimitsTab = dynamic(() => import("./tabs/limits/EventLimitsTabWebWrapper").then((mod) => mod));
+
+const EventAdvancedTab = dynamic(() => import("./tabs/advanced/EventAdvancedWebWrapper").then((mod) => mod));
 
 const EventInstantTab = dynamic(() =>
   import("./tabs/instant/EventInstantTab").then((mod) => mod.EventInstantTab)
@@ -78,9 +75,7 @@ const EventRecurringTab = dynamic(() =>
   import("./tabs/recurring/EventRecurringWebWrapper").then((mod) => mod)
 );
 
-const EventAppsTab = dynamic(() =>
-  import("./tabs/apps/EventAppsTab").then((mod) => mod.EventAppsTab)
-);
+const EventAppsTab = dynamic(() => import("./tabs/apps/EventAppsTab").then((mod) => mod.EventAppsTab));
 
 const EventWorkflowsTab = dynamic(() => import("./tabs/workflows/EventWorkflowsTab"));
 
@@ -88,9 +83,7 @@ const EventWebhooksTab = dynamic(() =>
   import("./tabs/webhooks/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
 );
 
-const EventAITab = dynamic(() =>
-  import("./tabs/ai/EventAITab").then((mod) => mod.EventAITab)
-);
+const EventAITab = dynamic(() => import("./tabs/ai/EventAITab").then((mod) => mod.EventAITab));
 
 export type EventTypeWebWrapperProps = {
   id: number;

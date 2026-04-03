@@ -15,12 +15,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     appStore = await getAppRegistry();
   }
 
-  const categories = appStore.reduce((c, app) => {
-    for (const category of app.categories) {
-      c[category] = c[category] ? c[category] + 1 : 1;
-    }
-    return c;
-  }, {} as Record<string, number>);
+  const categories = appStore.reduce(
+    (c, app) => {
+      for (const category of app.categories) {
+        c[category] = c[category] ? c[category] + 1 : 1;
+      }
+      return c;
+    },
+    {} as Record<string, number>
+  );
 
   return {
     props: {

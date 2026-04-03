@@ -8,7 +8,7 @@ import { useIsPlatformBookerEmbed } from "@calcom/atoms/hooks/useIsPlatformBooke
 import { useBookerStoreContext } from "@calcom/features/bookings/Booker/BookerStoreProvider";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import ServerTrans from "@calcom/lib/components/ServerTrans";
-import { WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_PRIVACY_POLICY_URL, WEBSITE_TERMS_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
@@ -115,9 +115,9 @@ export const BookEventForm = ({
   const watchedCfToken = bookingForm.watch("cfToken");
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex flex-col h-full">
       <Form
-        className="flex h-full flex-col"
+        className="flex flex-col h-full"
         onChange={() => {
           // Form data is saved in store. This way when user navigates back to
           // still change the timeslot, and comes back to the form, all their values
@@ -180,10 +180,11 @@ export const BookEventForm = ({
         ) : null}
 
         {!isPlatform && (
-          <div className="text-subtle my-3 w-full text-xs">
+          <div className="my-3 w-full text-xs text-subtle">
             <ServerTrans
               t={t}
               i18nKey="signing_up_terms"
+              values={{ appName: APP_NAME }}
               components={[
                 <Link
                   className="text-emphasis hover:underline"
@@ -205,7 +206,7 @@ export const BookEventForm = ({
         )}
 
         {isPlatformBookerEmbed && (
-          <div className="text-subtle my-3 w-full text-xs">
+          <div className="my-3 w-full text-xs text-subtle">
             {t("proceeding_agreement")}{" "}
             <Link
               className="text-emphasis hover:underline"
@@ -225,7 +226,7 @@ export const BookEventForm = ({
             .
           </div>
         )}
-        <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
+        <div className="flex justify-end mt-auto space-x-2 modalsticky rtl:space-x-reverse">
           {isInstantMeeting ? (
             <Button type="submit" color="primary" loading={loadingStates.creatingInstantBooking}>
               {isPaidEvent ? t("pay_and_book") : t("confirm")}
@@ -261,10 +262,10 @@ export const BookEventForm = ({
                 {rescheduleUid && bookingData
                   ? t("reschedule")
                   : renderConfirmNotVerifyEmailButtonCond
-                  ? isPaidEvent
-                    ? t("pay_and_book")
-                    : t("confirm")
-                  : t("verify_email_button")}
+                    ? isPaidEvent
+                      ? t("pay_and_book")
+                      : t("confirm")
+                    : t("verify_email_button")}
               </Button>
             </>
           )}
@@ -324,9 +325,9 @@ const getError = ({
     <>
       {responseVercelIdHeader ?? ""} {t(messageKey, { date, count })}
       {error.data?.traceId && (
-        <div className="text-subtle mt-2 text-xs">
+        <div className="mt-2 text-xs text-subtle">
           <span className="font-medium">{t("trace_reference_id")}:</span>
-          <code className="ml-1 select-all break-all font-mono">{error.data.traceId}</code>
+          <code className="ml-1 font-mono break-all select-all">{error.data.traceId}</code>
         </div>
       )}
     </>

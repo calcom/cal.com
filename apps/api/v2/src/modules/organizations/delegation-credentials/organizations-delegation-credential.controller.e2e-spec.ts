@@ -139,7 +139,7 @@ describe("Organizations Delegation Credentials Endpoints", () => {
         data: {
           workspacePlatformId: workspacePlatform.id,
           organizationId: org.id,
-          domain: "@test-domain.com",
+          domain: "test-domain.com",
           serviceAccountKey: encryptedServiceAccountKey,
           enabled: false,
         },
@@ -194,7 +194,7 @@ describe("Organizations Delegation Credentials Endpoints", () => {
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data.enabled).toEqual(true);
 
-      expect(ensureDefaultCalendarsSpy).toHaveBeenCalledWith(org.id, "@test-domain.com");
+      expect(ensureDefaultCalendarsSpy).toHaveBeenCalledWith(org.id, "test-domain.com");
     });
 
     it("should not call ensureDefaultCalendars when disabling delegation credentials", async () => {

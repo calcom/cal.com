@@ -21,7 +21,7 @@ export class FeaturesRepository implements IFeaturesRepository {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private static featuresCache: { data: any[]; expiry: number } | null = null;
 
-  constructor(private prismaClient: PrismaClient) { }
+  constructor(private prismaClient: PrismaClient) {}
 
   private clearCache() {
     FeaturesRepository.featuresCache = null;

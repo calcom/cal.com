@@ -46,8 +46,9 @@ export default function DisableReschedulingController({
 
   const [shouldShowRadioButtons, setShouldShowRadioButtons] = useState(
     disableRescheduling ||
-    (currentMinimumRescheduleNotice !== null && currentMinimumRescheduleNotice > 0) ||
-    eventType.disableRescheduling === true || false
+      (currentMinimumRescheduleNotice !== null && currentMinimumRescheduleNotice > 0) ||
+      eventType.disableRescheduling === true ||
+      false
   );
   useEffect(() => {
     if (currentMinimumRescheduleNotice && currentMinimumRescheduleNotice > 0) {
@@ -108,8 +109,8 @@ export default function DisableReschedulingController({
                       disableRescheduling
                         ? "always"
                         : currentMinimumRescheduleNotice !== null && currentMinimumRescheduleNotice > 0
-                        ? "notice"
-                        : "always"
+                          ? "notice"
+                          : "always"
                     }
                     onValueChange={(val) => {
                       const handler = (val: string) => {

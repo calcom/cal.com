@@ -1,17 +1,17 @@
-import formbricks from "@formbricks/js/app";
+import formbricks from "@formbricks/js";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 
-const initFormbricks = ({
+const initFormbricks = async ({
   userId,
   attributes,
 }: {
   userId: string;
   attributes: { [key: string]: string | null | undefined };
 }) => {
-  const filteredAttributes: Record<string, string | number> = {};
+  const filteredAttributes: Record<string, string> = {};
   Object.entries(attributes).forEach(([key, value]) => {
     if (value !== null && value !== undefined) {
       filteredAttributes[key] = value;
@@ -19,13 +19,12 @@ const initFormbricks = ({
   });
 
   if (process.env.NEXT_PUBLIC_FORMBRICKS_HOST_URL && process.env.NEXT_PUBLIC_FORMBRICKS_ENVIRONMENT_ID) {
-    formbricks.init({
+    await formbricks.setup({
       environmentId: process.env.NEXT_PUBLIC_FORMBRICKS_ENVIRONMENT_ID,
-      apiHost: process.env.NEXT_PUBLIC_FORMBRICKS_HOST_URL,
-      debug: process.env.NODE_ENV === "development",
-      userId,
-      attributes: filteredAttributes,
+      appUrl: process.env.NEXT_PUBLIC_FORMBRICKS_HOST_URL,
     });
+    await formbricks.setUserId(userId);
+    await formbricks.setAttributes(filteredAttributes);
   }
 };
 

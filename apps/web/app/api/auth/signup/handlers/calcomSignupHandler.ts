@@ -1,14 +1,23 @@
-import { cookies, headers } from "next/headers";
-import { NextResponse } from "next/server";
-
+import process from "node:process";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { getLocaleFromRequest } from "@calcom/features/auth/lib/getLocaleFromRequest";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
+import { SIGNUP_ERROR_CODES } from "@calcom/features/auth/signup/constants";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
+import { joinAnyChildTeamOnOrgInvite } from "@calcom/features/auth/signup/utils/organization";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
+import {
+  findTokenByToken,
+  throwIfTokenExpired,
+  validateAndGetCorrectedUsernameForTeam,
+} from "@calcom/features/auth/signup/utils/token";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/features/auth/signup/utils/validateUsername";
+import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { getBillingProviderService } from "@calcom/features/ee/billing/di/containers/Billing";
+import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
+import { GlobalWatchlistRepository } from "@calcom/features/watchlist/lib/repository/GlobalWatchlistRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
+import { normalizeEmail } from "@calcom/features/watchlist/lib/utils/normalization";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -19,19 +28,17 @@ import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
 import { getTrackingFromCookies } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
-import { CreationSource } from "@calcom/prisma/enums";
-import { IdentityProvider } from "@calcom/prisma/enums";
+import {
+  CreationSource,
+  IdentityProvider,
+  WatchlistAction,
+  WatchlistSource,
+  WatchlistType,
+} from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 import { buildLegacyRequest } from "@calcom/web/lib/buildLegacyCtx";
-
-import { joinAnyChildTeamOnOrgInvite } from "@calcom/features/auth/signup/utils/organization";
-import { SIGNUP_ERROR_CODES } from "@calcom/features/auth/signup/constants";
-
-import {
-  findTokenByToken,
-  throwIfTokenExpired,
-  validateAndGetCorrectedUsernameForTeam,
-} from "@calcom/features/auth/signup/utils/token";
+import { cookies, headers } from "next/headers";
+import { NextResponse } from "next/server";
 
 const log = logger.getSubLogger({ prefix: ["signupCalcomHandler"] });
 
@@ -280,15 +287,42 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
       await prefillAvatar({ email });
     }
-    // Only send verification email for non-premium usernames
-    // Premium usernames will get a magic link after payment in paymentCallback
-    if (!checkoutSessionId) {
-      sendEmailVerification({
-        email,
-        language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
-        username: username || "",
+  }
+
+  const featureRepository = getFeatureRepository();
+  const signupWatchlistReviewEnabled =
+    await featureRepository.checkIfFeatureIsEnabledGlobally("signup-watchlist-review");
+
+  if (signupWatchlistReviewEnabled && !token) {
+    const globalWatchlistRepo = new GlobalWatchlistRepository(prisma);
+    const normalizedEmail = normalizeEmail(email);
+    const existing = await globalWatchlistRepo.findBlockedEmail(normalizedEmail);
+
+    if (!existing) {
+      await globalWatchlistRepo.createEntry({
+        type: WatchlistType.EMAIL,
+        value: normalizedEmail,
+        action: WatchlistAction.BLOCK,
+        source: WatchlistSource.SIGNUP,
+        description: "Auto-added during signup review",
       });
     }
+
+    const userRepository = new UserRepository(prisma);
+    await userRepository.lockByEmail({ email });
+
+    return NextResponse.json(
+      { message: "Created user", stripeCustomerId: customer.stripeCustomerId, accountUnderReview: true },
+      { status: 201 }
+    );
+  }
+
+  if (!checkoutSessionId && !token) {
+    sendEmailVerification({
+      email,
+      language: await getLocaleFromRequest(buildLegacyRequest(await headers(), await cookies())),
+      username: username || "",
+    });
   }
 
   if (checkoutSessionId) {

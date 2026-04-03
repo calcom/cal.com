@@ -1,6 +1,7 @@
 import { OrganizationsWebhooksRepository } from "@/modules/organizations/webhooks/organizations-webhooks.repository";
 import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
+import { validateWebhookUrl, validateWebhookUrlIfChanged } from "@/modules/webhooks/utils/validate-webhook-url";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 
@@ -12,6 +13,8 @@ export class OrganizationsWebhooksService {
   ) {}
 
   async createWebhook(orgId: number, body: PipedInputWebhookType) {
+    validateWebhookUrl(body.subscriberUrl);
+
     const existingWebhook = await this.organizationsWebhooksRepository.findWebhookByUrl(
       orgId,
       body.subscriberUrl
@@ -40,6 +43,8 @@ export class OrganizationsWebhooksService {
   }
 
   async updateWebhook(webhookId: string, body: UpdateWebhookInputDto) {
+    const existingSubscriberUrl = await this.webhooksRepository.getWebhookSubscriberUrl(webhookId);
+    validateWebhookUrlIfChanged(body.subscriberUrl, existingSubscriberUrl);
     return this.webhooksRepository.updateWebhook(webhookId, body);
   }
 }

@@ -23,10 +23,10 @@ export const createOrUpdateMemberships = async ({
 }) => {
   return await prisma.$transaction(async (tx) => {
     // Determine the organization context - either the team itself (if it's an org) or its parent
-    const organizationId = team.isOrganization ? team.id : team.parent?.id ?? null;
+    const organizationId = team.isOrganization ? team.id : (team.parent?.id ?? null);
     const orgSettings = team.isOrganization
       ? team.organizationSettings
-      : team.parent?.organizationSettings ?? null;
+      : (team.parent?.organizationSettings ?? null);
 
     // Create profile if user is joining an organization context (either directly or via sub-team)
     if (organizationId) {

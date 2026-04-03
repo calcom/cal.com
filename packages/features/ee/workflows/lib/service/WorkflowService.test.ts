@@ -20,9 +20,11 @@ vi.mock("@calcom/features/profile/lib/hideBranding", () => ({
 
 const mockWorkflowReminderCreate = vi.fn();
 vi.mock("@calcom/features/ee/workflows/repositories/WorkflowReminderRepository", () => ({
-  WorkflowReminderRepository: vi.fn().mockImplementation(function() { return {
-    create: mockWorkflowReminderCreate,
-  }; }),
+  WorkflowReminderRepository: vi.fn().mockImplementation(function () {
+    return {
+      create: mockWorkflowReminderCreate,
+    };
+  }),
 }));
 
 vi.mock("@calcom/prisma", () => ({
@@ -288,6 +290,10 @@ describe("WorkflowService.scheduleLazyEmailWorkflow", () => {
       {
         bookingUid: "booking-123",
         workflowReminderId: 1,
+        platformClientId: "",
+        platformRescheduleUrl: "",
+        platformCancelUrl: "",
+        platformBookingUrl: "",
       },
       {
         scheduledAt: expect.any(Date),
@@ -332,6 +338,10 @@ describe("WorkflowService.scheduleLazyEmailWorkflow", () => {
       {
         bookingUid: "booking-456",
         workflowReminderId: 2,
+        platformClientId: "",
+        platformRescheduleUrl: "",
+        platformCancelUrl: "",
+        platformBookingUrl: "",
       },
       {
         scheduledAt: expect.any(Date),

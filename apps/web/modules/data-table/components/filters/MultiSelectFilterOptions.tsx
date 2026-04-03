@@ -1,6 +1,6 @@
 "use client";
 
-import { useDataTable } from "@calcom/features/data-table/hooks";
+import { useDataTable } from "~/data-table/hooks";
 import type { FilterableColumn } from "@calcom/features/data-table/lib/types";
 import { ZMultiSelectFilterValue, ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import type { FilterType } from "@calcom/types/data-table";

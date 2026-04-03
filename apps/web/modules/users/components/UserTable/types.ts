@@ -1,7 +1,6 @@
 import type { RouterOutputs } from "@calcom/trpc/react";
 
-export type UserTableUser =
-  RouterOutputs["viewer"]["organizations"]["listMembers"]["rows"][number];
+export type UserTableUser = RouterOutputs["viewer"]["organizations"]["listMembers"]["rows"][number];
 
 export type PlatformManagedUserTableUser = Omit<
   UserTableUser,

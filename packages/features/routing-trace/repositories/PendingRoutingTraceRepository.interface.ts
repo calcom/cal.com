@@ -1,7 +1,4 @@
-import type {
-  BaseRoutingTrace,
-  RoutingTrace,
-} from "./RoutingTraceRepository.interface";
+import type { BaseRoutingTrace, RoutingTrace } from "./RoutingTraceRepository.interface";
 
 export interface RoutingTraceWithQueuedResponse extends BaseRoutingTrace {
   queuedFormResponseId: string;
@@ -20,10 +17,7 @@ export interface IPendingRoutingTraceRepository {
   findByFormResponseId(formResponseId: number): Promise<PendingRoutingTraceRecord | null>;
   findByQueuedFormResponseId(queuedFormResponseId: string): Promise<PendingRoutingTraceRecord | null>;
   /** Link a pending trace (created with queuedFormResponseId) to a formResponseId when the queued response is processed */
-  linkToFormResponse(args: {
-    queuedFormResponseId: string;
-    formResponseId: number;
-  }): Promise<void>;
+  linkToFormResponse(args: { queuedFormResponseId: string; formResponseId: number }): Promise<void>;
 }
 
 interface BaseCreateArgs {
@@ -38,6 +32,4 @@ interface CreateWithQueuedFormResponse extends BaseCreateArgs {
   queuedFormResponseId: string;
 }
 
-export type IPendingRoutingTraceRepositoryCreateArgs =
-  | CreateWithFormResponse
-  | CreateWithQueuedFormResponse;
+export type IPendingRoutingTraceRepositoryCreateArgs = CreateWithFormResponse | CreateWithQueuedFormResponse;

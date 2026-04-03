@@ -1,4 +1,3 @@
- 
 import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
@@ -9,7 +8,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
-import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
 import type { SeatedBooking, RescheduleSeatedBookingObject, NewTimeSlotBooking } from "../../types";
@@ -119,7 +118,9 @@ const combineTwoSeatedBookings = async (
 
   evt.attendees = updatedBookingAttendees;
 
-  evt = { ...addVideoCallDataToEvent(updatedNewBooking.references, evt), bookerUrl: evt.bookerUrl };
+  evt = CalendarEventBuilder.fromEvent(evt)
+    .withVideoCallDataFromReferences(updatedNewBooking.references)
+    .build();
 
   const copyEvent = cloneDeep(evt);
 

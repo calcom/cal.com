@@ -617,14 +617,15 @@ test.describe("Bookings", () => {
       await page.locator(`[data-testid="select-filter-options-teamId"] [role="option"]`).first().click();
       await bookingsGetResponse2;
 
+      await expect(page.getByTestId("filter-popover-trigger-teamId")).toBeVisible({ timeout: 10000 });
+
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
 
-      await expect
-        .poll(async () => {
-          return await bookingListItems.count();
-        })
-        .toBe(1);
+      await expect(
+        upcomingBookingsTable.locator('[data-testid="booking-item"]', { hasText: teamBooking!.title })
+      ).toBeVisible({ timeout: 10000 });
+
       await expect(bookingListItems.first().getByTestId("title-and-attendees")).toContainText(
         teamBooking!.title
       );
@@ -677,12 +678,11 @@ test.describe("Bookings", () => {
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
 
-      await expect
-        .poll(async () => {
-          return await bookingListItems.count();
-        })
-        .toBe(1);
+      await expect(
+        upcomingBookingsTable.locator('[data-testid="booking-item"]', { hasText: "Personal Event Booking" })
+      ).toBeHidden({ timeout: 10000 });
 
+      await expect(bookingListItems).toHaveCount(1);
       await expect(bookingListItems.first().getByTestId("title-and-attendees")).toContainText(
         managedEventBooking!.title
       );
@@ -756,12 +756,63 @@ test.describe("Bookings", () => {
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
 
-      await expect
-        .poll(async () => {
-          return await bookingListItems.count();
-        })
-        .toBe(1);
+      await expect(
+        upcomingBookingsTable.locator('[data-testid="booking-item"]', { hasText: "Team 2 Booking" })
+      ).toBeHidden({ timeout: 10000 });
+
+      await expect(bookingListItems).toHaveCount(1);
     });
+  });
+
+  test("clicking a booking item adds uid param to URL when bookings-v3 is enabled", async ({
+    page,
+    users,
+    bookings,
+    prisma,
+  }) => {
+    const existingFlag = await prisma.feature.findUnique({ where: { slug: "bookings-v3" } });
+    await prisma.feature.upsert({
+      where: { slug: "bookings-v3" },
+      update: { enabled: true },
+      create: { slug: "bookings-v3", enabled: true, type: "OPERATIONAL" },
+    });
+
+    try {
+      const user = await users.create();
+
+      const bookingFixture = await createBooking({
+        title: "Test booking for uid param",
+        bookingsFixture: bookings,
+        relativeDate: 3,
+        organizer: user,
+        organizerEventType: user.eventTypes[0],
+        attendees: [{ name: "Attendee", email: "attendee@example.com", timeZone: "Europe/Berlin" }],
+      });
+
+      await user.apiLogin();
+      const bookingsGetResponse = page.waitForResponse((response) =>
+        /\/api\/trpc\/bookings\/get.*/.test(response.url())
+      );
+      await page.goto("/bookings/upcoming", { waitUntil: "domcontentloaded" });
+      await bookingsGetResponse;
+
+      const bookingItem = page.locator(`[data-booking-uid="${bookingFixture.uid}"]`);
+      await expect(bookingItem).toBeVisible();
+      const bookingButton = bookingItem.locator('[role="button"]').first();
+      await bookingButton.waitFor({ state: "visible" });
+      await bookingButton.click();
+
+      await expect(page).toHaveURL(new RegExp(`[?&]uid=${bookingFixture.uid}(&|$)`));
+    } finally {
+      if (existingFlag) {
+        await prisma.feature.update({
+          where: { slug: "bookings-v3" },
+          data: { enabled: existingFlag.enabled },
+        });
+      } else {
+        await prisma.feature.deleteMany({ where: { slug: "bookings-v3" } });
+      }
+    }
   });
 });
 

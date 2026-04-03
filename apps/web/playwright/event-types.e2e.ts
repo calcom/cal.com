@@ -105,7 +105,7 @@ test.describe("Event Types tests", () => {
         '[data-testid="event-types"] a[href^="/event-types/"] >> nth=0'
       );
       const href = await firstElement.getAttribute("href");
-      expect(href).toBeTruthy();
+      expect(href).not.toBeNull();
       const [eventTypeId] = new URL(WEBAPP_URL + href).pathname.split("/").reverse();
       const firstTitle = await page.locator(`[data-testid=event-type-title-${eventTypeId}]`).innerText();
       const firstFullSlug = await page.locator(`[data-testid=event-type-slug-${eventTypeId}]`).innerText();
@@ -365,7 +365,7 @@ test.describe("Event Types tests", () => {
         await page.getByTestId(removeButtomId).nth(0).click();
         await page.getByTestId(removeButtomId).nth(0).click();
 
-        // Add Multiple Organizer Phone Number options
+        // Add Multiple Phone Call location options
         await page.getByTestId("location-select").last().click();
         await page.getByTestId("location-select-item-userPhone").click();
 

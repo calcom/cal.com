@@ -78,7 +78,7 @@ vi.mock("@calcom/features/ee/billing/service/seatTracking/SeatChangeTrackingServ
   },
 }));
 
-vi.mock("@calcom/lib/server/i18n", () => ({
+vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
 
