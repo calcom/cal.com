@@ -12,6 +12,7 @@ import { oauthClientTable } from "./tables/oauth-client";
 import { orgBillingTable } from "./tables/org-billing";
 import { orgDunningTable } from "./tables/org-dunning";
 import { orgSettingsTable } from "./tables/org-settings";
+import { organizationOnboardingTable } from "./tables/organization-onboarding";
 import { paymentTable } from "./tables/payment";
 import { profileTable } from "./tables/profile";
 import { scheduleTable } from "./tables/schedule";
@@ -54,6 +55,7 @@ const ALL_TABLES: TableRegistry = [
   userFeaturesTable,
   teamFeaturesTable,
   oauthClientTable,
+  organizationOnboardingTable,
 ] as const;
 
 export const registry = new AdminTableRegistry(ALL_TABLES);
