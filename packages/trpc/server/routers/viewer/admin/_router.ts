@@ -1,37 +1,38 @@
 import { createAdminDataViewRouter } from "@calcom/features/admin-dataview/server/trpc-router";
-
+import { z } from "zod";
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
-import { z } from "zod";
-
+import { abuseRulesRouter } from "./abuseRules/_router";
+import { abuseScoringRouter } from "./abuseScoring/_router";
 import { ZAdminAssignFeatureToTeamSchema } from "./assignFeatureToTeam.schema";
 import { ZBillingPortalLinkSchema } from "./billingPortalLink.schema";
 import { ZCreateCouponSchema } from "./createCoupon.schema";
 import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
+import { ZDeleteOrgOnboardingSchema } from "./deleteOrgOnboarding.schema";
+import { ZEditOrgOnboardingSchema } from "./editOrgOnboarding.schema";
+import { experimentsRouter } from "./experiments/_router";
 import { ZGetDeploymentInfoSchema } from "./getDeploymentInfo.schema";
+import { ZGetTeamOwnersSchema } from "./getTeamOwners.schema";
 import { ZAdminGetTeamsForFeatureSchema } from "./getTeamsForFeature.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZLookupBillingCustomerSchema } from "./lookupBillingCustomer.schema";
+import { ZRecreateOwnershipSchema } from "./recreateOwnership.schema";
 import { ZRefreshDunningSchema } from "./refreshDunning.schema";
 import { ZReleaseUsernameSchema } from "./releaseUsername.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZResendPurchaseCompleteEmailSchema } from "./resendPurchaseCompleteEmail.schema";
+import { ZSearchUsersByEmailSchema } from "./searchUsersByEmail.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
 import { ZSetSMSLockState } from "./setSMSLockState.schema";
 import { toggleFeatureFlag } from "./toggleFeatureFlag.procedure";
-import { ZGetTeamOwnersSchema } from "./getTeamOwners.schema";
-import { ZSearchUsersByEmailSchema } from "./searchUsersByEmail.schema";
 import { ZTransferBillingSchema } from "./transferBilling.schema";
-import { ZRecreateOwnershipSchema } from "./recreateOwnership.schema";
 import { ZTransferOwnershipSchema } from "./transferOwnership.schema";
-import { ZUpsertDunningSchema } from "./upsertDunning.schema";
 import { ZAdminUnassignFeatureFromTeamSchema } from "./unassignFeatureFromTeam.schema";
 import { ZUpdateBillingModeSchema } from "./updateBillingMode.schema";
 import { ZUpdateDeploymentBillingSchema } from "./updateDeploymentBilling.schema";
+import { ZUpsertDunningSchema } from "./upsertDunning.schema";
 import { ZAdminVerifyWorkflowsSchema } from "./verifyWorkflows.schema";
-import { abuseRulesRouter } from "./abuseRules/_router";
-import { abuseScoringRouter } from "./abuseScoring/_router";
 import { watchlistRouter } from "./watchlist/_router";
 import { ZWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
 import {
@@ -40,7 +41,6 @@ import {
   workspacePlatformUpdateSchema,
   workspacePlatformUpdateServiceAccountSchema,
 } from "./workspacePlatform/schema";
-import { experimentsRouter } from "./experiments/_router";
 
 const NAMESPACE = "admin";
 
@@ -57,6 +57,14 @@ export const adminRouter = router({
   }),
   lockUserAccount: authedAdminProcedure.input(ZAdminLockUserAccountSchema).mutation(async (opts) => {
     const { default: handler } = await import("./lockUserAccount.handler");
+    return handler(opts);
+  }),
+  deleteOrgOnboarding: authedAdminProcedure.input(ZDeleteOrgOnboardingSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./deleteOrgOnboarding.handler");
+    return handler(opts);
+  }),
+  editOrgOnboarding: authedAdminProcedure.input(ZEditOrgOnboardingSchema).mutation(async (opts) => {
+    const { default: handler } = await import("./editOrgOnboarding.handler");
     return handler(opts);
   }),
   toggleFeatureFlag,
@@ -196,9 +204,7 @@ export const adminRouter = router({
   globalSearch: authedAdminProcedure
     .input(z.object({ query: z.string().min(1).max(200) }))
     .query(async ({ input }) => {
-      const { getAdminDataViewService } = await import(
-        "@calcom/features/admin-dataview/di/container"
-      );
+      const { getAdminDataViewService } = await import("@calcom/features/admin-dataview/di/container");
       const service = getAdminDataViewService();
       return service.globalSearch(input.query);
     }),

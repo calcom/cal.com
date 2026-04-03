@@ -1,7 +1,7 @@
 "use client";
 
 import type { AdminTable } from "@calcom/features/admin-dataview/AdminTable";
-
+import { EditOrgOnboardingForm } from "./EditOrgOnboardingForm";
 import { ReleaseUsernameForm } from "./ReleaseUsernameForm";
 import { TransferBillingActionForm } from "./TransferBillingActionForm";
 import { TransferOwnershipActionForm } from "./TransferOwnershipActionForm";
@@ -16,6 +16,7 @@ export interface ActionFormProps {
 }
 
 export const ACTION_FORM_COMPONENTS: Record<string, React.ComponentType<ActionFormProps>> = {
+  "edit-org-onboarding": EditOrgOnboardingForm,
   "release-username": ReleaseUsernameForm,
   "transfer-billing": TransferBillingActionForm,
   "transfer-ownership": TransferOwnershipActionForm,

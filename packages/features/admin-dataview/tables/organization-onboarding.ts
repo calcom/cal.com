@@ -114,6 +114,30 @@ export const organizationOnboardingTable: TableDefinition = {
     },
     ...timestamps(),
   ],
-  actions: [],
+  actions: [
+    {
+      id: "edit",
+      label: "Edit Record",
+      icon: "pencil",
+      variant: "default",
+      mutation: "admin.editOrgOnboarding",
+      buildInput: (row) => ({ id: row.id }),
+      formId: "edit-org-onboarding",
+    },
+    {
+      id: "delete",
+      label: "Delete Record",
+      icon: "trash-2",
+      variant: "destructive",
+      mutation: "admin.deleteOrgOnboarding",
+      buildInput: (row) => ({ id: row.id }),
+      confirm: {
+        title: "Delete {{name}}?",
+        description:
+          "This will permanently delete the onboarding record for {{orgOwnerEmail}} ({{slug}}). This action cannot be undone.",
+        confirmLabel: "Delete",
+      },
+    },
+  ],
   panels: [],
 };
