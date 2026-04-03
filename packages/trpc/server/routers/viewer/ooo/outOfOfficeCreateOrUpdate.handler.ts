@@ -102,7 +102,40 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     toUserId = user?.id;
   }
 
-  if (!input.reasonId) {
+  let resolvedReasonId = input.reasonId;
+
+  if (!resolvedReasonId && input.customReason) {
+    const customEmoji = input.customEmoji || "📌";
+    const customReasonText = input.customReason.trim();
+
+    const existingCustomReason = await prisma.outOfOfficeReason.findFirst({
+      where: {
+        userId: oooUserId,
+        reason: customReasonText,
+      },
+      select: { id: true },
+    });
+
+    if (existingCustomReason) {
+      resolvedReasonId = existingCustomReason.id;
+      await prisma.outOfOfficeReason.update({
+        where: { id: existingCustomReason.id },
+        data: { emoji: customEmoji, enabled: true },
+      });
+    } else {
+      const newReason = await prisma.outOfOfficeReason.create({
+        data: {
+          emoji: customEmoji,
+          reason: customReasonText,
+          enabled: true,
+          userId: oooUserId,
+        },
+      });
+      resolvedReasonId = newReason.id;
+    }
+  }
+
+  if (!resolvedReasonId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "reason_id_required" });
   }
 
@@ -180,7 +213,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       notes: input.notes,
       showNotePublicly: input.showNotePublicly ?? false,
       userId: oooUserId,
-      reasonId: input.reasonId,
+      reasonId: resolvedReasonId,
       toUserId: toUserId,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -191,7 +224,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       notes: input.notes,
       ...(input.showNotePublicly !== undefined && { showNotePublicly: input.showNotePublicly }),
       userId: oooUserId,
-      reasonId: input.reasonId,
+      reasonId: resolvedReasonId,
       toUserId: toUserId ? toUserId : null,
     },
   });
@@ -239,15 +272,17 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
         },
       })
     : null;
-  const reason = await prisma.outOfOfficeReason.findUnique({
-    where: {
-      id: input.reasonId,
-    },
-    select: {
-      reason: true,
-      emoji: true,
-    },
-  });
+  const reason = resolvedReasonId
+    ? await prisma.outOfOfficeReason.findUnique({
+        where: {
+          id: resolvedReasonId,
+        },
+        select: {
+          reason: true,
+          emoji: true,
+        },
+      })
+    : null;
   if (toUserId) {
     // await send email to notify user
     const userToNotify = await prisma.user.findUnique({
@@ -355,7 +390,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
         emoji: reason?.emoji,
         reason: reason?.reason,
       },
-      reasonId: input.reasonId,
+      reasonId: resolvedReasonId,
       user: {
         id: oooUserId,
         name: oooUserFullName,

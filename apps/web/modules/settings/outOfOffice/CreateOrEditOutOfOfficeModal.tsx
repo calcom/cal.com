@@ -101,12 +101,27 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         avatarUrl: member.avatarUrl,
       })) || [];
 
-  const { data: outOfOfficeReasonList, isPending: isReasonListPending } =
-    trpc.viewer.ooo.outOfOfficeReasonList.useQuery();
-  const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
-    label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
-    value: reason.id,
-  }));
+  const CUSTOM_REASON_VALUE = -1;
+
+  const { data: outOfOfficeReasonList, isPending: isReasonListPending } = trpc.viewer.ooo.outOfOfficeReasonList.useQuery();
+  
+  const plainReasons = useMemo(() => {
+    return (outOfOfficeReasonList || []).map((r: { reason: string; userId: number | null }) => 
+      (r.userId === null ? t(r.reason) : r.reason).toLowerCase().trim()
+    );
+  }, [outOfOfficeReasonList, t]);
+
+  const reasonList = useMemo(() => {
+    return [
+      ...(outOfOfficeReasonList || []).map((reason) => ({
+        label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
+        value: reason.id,
+      })),
+      { label: `📌 ${t("custom")}`, value: CUSTOM_REASON_VALUE },
+    ];
+  }, [outOfOfficeReasonList, t]);
+
+  const [isCustomReason, setIsCustomReason] = useState(false);
 
   const [profileRedirect, setProfileRedirect] = useState(!!currentlyEditingOutOfOfficeEntry?.toTeamUserId);
 
@@ -118,7 +133,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
     control,
     register,
     watch,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
     getValues,
   } = useForm<BookingRedirectForm>({
     defaultValues: currentlyEditingOutOfOfficeEntry
@@ -196,11 +211,19 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
             if (!data.dateRange.endDate) {
               showToast(t("end_date_not_selected"), "error");
             } else {
-              createOrEditOutOfOfficeEntry.mutate({
+              const submissionData: Record<string, unknown> = {
                 ...data,
                 startDateOffset: -1 * data.dateRange.startDate.getTimezoneOffset(),
                 endDateOffset: -1 * data.dateRange.endDate.getTimezoneOffset(),
-              });
+              };
+
+              if (isCustomReason) {
+                delete submissionData.reasonId;
+                submissionData.customReason = data.customReason;
+                submissionData.customEmoji = data.customEmoji || "📌";
+              }
+
+              createOrEditOutOfOfficeEntry.mutate(submissionData as Parameters<typeof createOrEditOutOfOfficeEntry.mutate>[0]);
             }
           })}>
           <div className="h-full px-1">
@@ -313,11 +336,21 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       name="reason"
                       data-testid="reason_select"
                       menuPlacement="bottom"
-                      value={reasonList.find((reason) => reason.value === value)}
+                      value={
+                        isCustomReason
+                          ? { label: `📌 ${t("custom")}`, value: CUSTOM_REASON_VALUE }
+                          : reasonList.find((reason) => reason.value === value)
+                      }
                       placeholder={t("ooo_select_reason")}
                       options={reasonList}
                       onChange={(selectedOption) => {
-                        if (selectedOption?.value) {
+                        if (selectedOption?.value === CUSTOM_REASON_VALUE) {
+                          setIsCustomReason(true);
+                          onChange(CUSTOM_REASON_VALUE);
+                        } else if (selectedOption?.value) {
+                          setIsCustomReason(false);
+                          setValue("customReason", undefined);
+                          setValue("customEmoji", undefined);
                           onChange(selectedOption.value);
                         }
                       }}
@@ -327,45 +360,90 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
               </div>
             </div>
 
-            {/* Notes input */}
+            {/* Custom Reason Inputs */}
+            {isCustomReason && (
+              <div className="mt-4 grid grid-cols-5 gap-4">
+                <div className="col-span-1">
+                  <Label className="text-emphasis mb-1 text-sm font-medium">Emoji</Label>
+                  <Input
+                    data-testid="custom_emoji_input"
+                    className="h-10 w-full text-center text-lg"
+                    maxLength={4}
+                    defaultValue="📌"
+                    {...register("customEmoji")}
+                  />
+                </div>
+                <div className="col-span-4">
+                  <Label className="text-emphasis mb-1 text-sm font-medium">{t("Custom Reason")}</Label>
+                  <Input
+                    data-testid="custom_reason_input"
+                    className={classNames(
+                      "h-10 w-full px-3 text-sm focus:ring-2 focus:ring-black dark:bg-transparent dark:focus:ring-white",
+                      errors.customReason && "border-red-500 focus:ring-red-500"
+                    )}
+                    maxLength={100}
+                    placeholder="e.g. Client visit, Focus day, Recovery day"
+                    {...register("customReason", {
+                      validate: (val) => {
+                        if (!isCustomReason) return true;
+                        if (!val?.trim()) return t("ooo_custom_reason_required_error") || "Custom reason is required";
+                        if (plainReasons.includes(val.trim().toLowerCase())) {
+                          return t("ooo_reason_already_exists_error") || "This reason already exists in the list. Please select it from the dropdown instead.";
+                        }
+                        return true;
+                      },
+                    })}
+                  />
+                  {errors.customReason && (
+                    <p className="mt-1 text-xs text-red-500">{errors.customReason.message}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Notes input & Public Status */}
             <div className="mt-4">
-              <p className="text-emphasis text-sm font-medium">{t("notes")}</p>
+              <Label className="text-emphasis text-sm font-medium">{t("notes")}</Label>
               <TextArea
                 data-testid="notes_input"
-                className="border-subtle mt-2 h-10 w-full rounded-lg border px-2"
+                className="border-subtle mt-1 h-24 w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:ring-black dark:bg-transparent dark:focus:ring-white"
                 placeholder={t("additional_notes")}
                 {...register("notes")}
                 onChange={(e) => {
-                  const newNotes = e?.target.value;
-                  setValue("notes", newNotes);
-                  if (!newNotes?.trim()) {
+                  const value = e?.target.value;
+                  setValue("notes", value);
+                  if (value?.trim()) {
+                    setValue("showNotePublicly", true);
+                  } else {
                     setValue("showNotePublicly", false);
                   }
                 }}
               />
+
               <Controller
                 control={control}
                 name="showNotePublicly"
                 render={({ field: { value, onChange } }) => (
-                  <div className="mt-2 flex items-center">
+                  <div className="mt-3 flex items-center space-x-2">
                     <Checkbox
                       id="show-note-publicly"
                       data-testid="show-note-publicly-checkbox"
                       checked={value ?? false}
                       onCheckedChange={onChange}
-                      disabled={!hasValidNotes}
+                      disabled={!watch("notes")?.trim()}
                     />
                     <label
                       htmlFor="show-note-publicly"
                       className={classNames(
-                        "ml-2 text-sm",
-                        hasValidNotes ? "text-emphasis cursor-pointer" : "text-muted cursor-not-allowed"
+                        "text-sm",
+                        watch("notes")?.trim() ? "text-emphasis cursor-pointer" : "text-muted cursor-not-allowed"
                       )}>
                       {t("show_note_publicly_description")}
                     </label>
                   </div>
                 )}
               />
+              <p className="text-muted mt-2 text-xs italic">{t("show_note_publicly_description")}</p>
             </div>
 
             <div className="bg-cal-muted my-4 rounded-xl p-5">
