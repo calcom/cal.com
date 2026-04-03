@@ -161,9 +161,10 @@ export default function Login({
                 {/* Social Login Buttons */}
                 {!twoFactorRequired && showSocialLogin && (
                   <>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-3">
                       {isGoogleLoginEnabled && (
                         <Button
+                          size="lg"
                           className="flex-1"
                           disabled={formState.isSubmitting}
                           data-testid="google"
@@ -182,6 +183,7 @@ export default function Login({
                       {isOutlookLoginEnabled && (
                         <Button
                           variant="outline"
+                          size="lg"
                           className="flex-1"
                           data-testid="microsoft"
                           onClick={async (e) => {
