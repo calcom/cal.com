@@ -40,7 +40,7 @@ describe("getOrgIdFromMemberOrTeamId", () => {
     );
   });
 
-  it("returns org ID when found by teamId", async () => {
+  it("returns org ID when found by teamId (child team)", async () => {
     vi.mocked(prisma.team.findFirst).mockResolvedValueOnce({ id: 200 } as never);
 
     const result = await getOrgIdFromMemberOrTeamId({ teamId: 50 });
@@ -56,6 +56,26 @@ describe("getOrgIdFromMemberOrTeamId", () => {
                   children: { some: { id: 50 } },
                 }),
               ]),
+            }),
+          ]),
+        }),
+      })
+    );
+  });
+
+  it("returns org ID when teamId is itself an organization", async () => {
+    vi.mocked(prisma.team.findFirst).mockResolvedValueOnce({ id: 50 } as never);
+
+    const result = await getOrgIdFromMemberOrTeamId({ teamId: 50 });
+
+    expect(result).toBe(50);
+    expect(prisma.team.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          OR: expect.arrayContaining([
+            expect.objectContaining({
+              id: 50,
+              isOrganization: true,
             }),
           ]),
         }),

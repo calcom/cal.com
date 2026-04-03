@@ -32,8 +32,9 @@ function isSelfHostedDangerousIP(ip: string): boolean {
     }
 
     return SELF_HOSTED_BLOCKED_RANGES.has(addr.range());
-  } catch {
-    return false;
+  } catch (error) {
+    log.warn("Failed to parse IP address, treating as dangerous", { ip, error });
+    return true;
   }
 }
 

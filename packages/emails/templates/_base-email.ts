@@ -37,7 +37,6 @@ interface SmtpEmailConfig {
 export default class BaseEmail {
   name = "";
   protected organizationId?: number | null;
-  protected smtpConfig?: SmtpEmailConfig | null;
 
   private async canUseCustomSmtp(): Promise<boolean> {
     const className = this.name;
@@ -49,9 +48,14 @@ export default class BaseEmail {
     return teamFeatureRepository.checkIfTeamHasFeature(this.organizationId, "custom-smtp-for-orgs");
   }
 
-  // Overridden in feat/smtp-service-trpc to fetch config via DI container
   protected async resolveSmtpConfig(): Promise<SmtpEmailConfig | null> {
-    return this.smtpConfig ?? null;
+    if (!this.organizationId) return null;
+
+    const { getSmtpConfigurationService } = await import(
+      "@calcom/features/di/smtp-configuration/containers/smtp-configuration"
+    );
+    const service = getSmtpConfigurationService();
+    return service.getDecryptedConfigForOrg(this.organizationId);
   }
 
   private async getOrgSmtpConfig(): Promise<SmtpEmailConfig | null> {
@@ -218,14 +222,16 @@ export default class BaseEmail {
             organizationId: this.organizationId,
             emailClass: this.name,
           });
-        } catch {
+        } catch (defaultSmtpError) {
           log.error("sendEmail failed with both org and default SMTP", {
             organizationId: this.organizationId,
+            error: defaultSmtpError,
             emailClass: this.name,
           });
         }
       } else {
         log.error("sendEmail failed", {
+          error: orgSmtpError,
           emailClass: this.name,
         });
       }

@@ -37,6 +37,10 @@ const getOrgMemberOrTeamWhere = (memberId?: number | null, teamId?: number | nul
         },
       ],
     });
+    conditions.push({
+      id: teamId,
+      isOrganization: true,
+    });
   }
 
   return {
