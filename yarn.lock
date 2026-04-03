@@ -2346,7 +2346,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/domains@workspace:packages/infra/adapters/domain":
+"@calcom/domains@workspace:*, @calcom/domains@workspace:packages/infra/adapters/domain":
   version: 0.0.0-use.local
   resolution: "@calcom/domains@workspace:packages/infra/adapters/domain"
   dependencies:
@@ -2605,6 +2605,7 @@ __metadata:
   dependencies:
     "@calcom/atoms": "workspace:*"
     "@calcom/dayjs": "workspace:*"
+    "@calcom/domains": "workspace:*"
     "@calcom/i18n": "workspace:*"
     "@calcom/lib": "workspace:*"
     "@calcom/testing": "workspace:*"
