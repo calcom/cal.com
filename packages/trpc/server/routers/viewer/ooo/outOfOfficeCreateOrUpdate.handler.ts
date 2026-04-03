@@ -150,7 +150,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   const validReason = await prisma.outOfOfficeReason.findFirst({
     where: {
       id: resolvedReasonId,
-      OR: [{ userId: null, enabled: true }, { userId: oooUserId }],
+      enabled: true,
+      OR: [{ userId: null }, { userId: oooUserId }],
     },
     select: { id: true },
   });
