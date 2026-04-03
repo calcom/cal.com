@@ -248,22 +248,27 @@ describe("handleInstantMeeting", () => {
       expect(result.message).toBe("Success");
       expect(result.bookingId).toBeDefined();
 
-      // Verify the audit event handler was called
       expect(onBookingCreatedSpy).toHaveBeenCalledTimes(1);
 
-      // Verify the audit event was fired with correct booking data
       const callArgs = onBookingCreatedSpy.mock.calls[0][0];
       expect(callArgs.payload.booking.uid).toBe(result.bookingUid);
       expect(callArgs.payload.config.isDryRun).toBe(false);
-      expect(callArgs.actor).toBeDefined();
-      expect(callArgs.auditData).toBeDefined();
-      expect(callArgs.source).toBeDefined();
+      expect(callArgs.actor).toEqual(
+        expect.objectContaining({ identifiedBy: expect.any(String) })
+      );
+      expect(callArgs.auditData).toEqual(
+        expect.objectContaining({
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+          status: expect.any(String),
+        })
+      );
+      expect(callArgs.source).toEqual(expect.any(String));
 
       onBookingCreatedSpy.mockRestore();
     });
 
     it("should not throw when booking audit event fails", async () => {
-      // Simulate an audit failure by making onBookingCreated throw
       const { BookingEventHandlerService } = await import("../onBookingEvents/BookingEventHandlerService");
       const onBookingCreatedSpy = vi
         .spyOn(BookingEventHandlerService.prototype, "onBookingCreated")
@@ -325,14 +330,12 @@ describe("handleInstantMeeting", () => {
         instant: true,
       };
 
-      // Even if audit event handler throws, booking should still succeed
       const result = await instantBookingCreateService.createBooking({
         bookingData: mockBookingData,
       });
 
       expect(result.message).toBe("Success");
       expect(result.bookingId).toBeDefined();
-      // Verify the audit handler was actually called (and failed)
       expect(onBookingCreatedSpy).toHaveBeenCalled();
 
       onBookingCreatedSpy.mockRestore();
