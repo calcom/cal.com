@@ -1,10 +1,7 @@
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
-
-import { describe, expect, it, beforeEach, vi } from "vitest";
-import type { z } from "zod";
-
 import type { CredentialPayload } from "@calcom/types/Credential";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { z } from "zod";
 import type { appDataSchema } from "../zod";
 import type { SalesforceCRM } from "./CrmService";
 import { createSalesforceCrmServiceWithSalesforceType } from "./CrmService";
@@ -125,7 +122,7 @@ describe("SalesforceCRMService", () => {
 
     service = createSalesforceCrmServiceWithSalesforceType(mockCredential, {}, true);
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore - accessing private property for testing
+    // @ts-expect-error - accessing private property for testing
     service.conn = Promise.resolve(mockConnection);
   });
 
@@ -1097,6 +1094,188 @@ describe("SalesforceCRMService", () => {
       ]);
 
       expect(querySpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("deleteEvent", () => {
+    const mockCalendarEvent = {
+      title: "Test Booking",
+      startTime: "2024-01-01T10:00:00Z",
+      endTime: "2024-01-01T11:00:00Z",
+      uid: "booking-uid-123",
+      organizer: {
+        email: "organizer@example.com",
+        name: "Organizer",
+        timeZone: "UTC",
+        language: { translate: (key: string) => key, locale: "en" },
+        id: 1,
+      },
+      attendees: [
+        {
+          email: "attendee@example.com",
+          name: "Attendee",
+          timeZone: "UTC",
+          language: { translate: (key: string) => key, locale: "en" },
+        },
+      ],
+      responses: null,
+    };
+
+    it("should delete the event record when no cancel write options are enabled", async () => {
+      mockAppOptions({});
+
+      const deleteFn = vi.fn().mockResolvedValue({ success: true });
+      mockConnection.sobject.mockReturnValue({ delete: deleteFn });
+
+      await service.deleteEvent("event-sf-id", mockCalendarEvent);
+
+      expect(mockConnection.sobject).toHaveBeenCalledWith("Event");
+      expect(deleteFn).toHaveBeenCalledWith("event-sf-id");
+    });
+
+    it("should write to contact/lead on cancel when onCancelWriteToRecord is enabled", async () => {
+      mockAppOptions({
+        onCancelWriteToRecord: true,
+        onCancelWriteToRecordFields: {
+          Last_Booking_Status__c: {
+            value: "Cancelled",
+            fieldType: "string",
+            whenToWrite: "every_booking",
+          },
+        },
+      });
+
+      const deleteFn = vi.fn().mockResolvedValue({ success: true });
+      const updateFn = vi.fn().mockResolvedValue({ success: true });
+      mockConnection.sobject.mockImplementation((objectType: string) => {
+        if (objectType === "Event") return { delete: deleteFn };
+        return { update: updateFn };
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      // getEventWhoId query - returns the contact assigned to the event
+      querySpy.mockResolvedValueOnce({
+        records: [{ WhoId: "003CONTACT001" }],
+      });
+      // ensureFieldsExistOnObject (describe) mock
+      mockConnection.describe = vi.fn().mockResolvedValue({
+        fields: [{ name: "Last_Booking_Status__c", type: "string", length: 255 }],
+      });
+      // fetchPersonRecord query for writeToRecord
+      querySpy.mockResolvedValueOnce({
+        records: [{ Id: "003CONTACT001", Last_Booking_Status__c: null }],
+      });
+
+      await service.deleteEvent("event-sf-id", mockCalendarEvent);
+
+      // Event should be deleted (no onCancelWriteToEventRecord)
+      expect(deleteFn).toHaveBeenCalledWith("event-sf-id");
+      // Contact should be updated via WhoId lookup
+      expect(updateFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          Id: "003CONTACT001",
+          Last_Booking_Status__c: "Cancelled",
+        })
+      );
+    });
+
+    it("should write to both event record and contact/lead when both cancel write options are enabled", async () => {
+      mockAppOptions({
+        onCancelWriteToEventRecord: true,
+        onCancelWriteToEventRecordFields: {
+          Status__c: {
+            value: "Cancelled",
+            fieldType: "string",
+            whenToWrite: "every_booking",
+          },
+        },
+        onCancelWriteToRecord: true,
+        onCancelWriteToRecordFields: {
+          Last_Booking_Status__c: {
+            value: "Cancelled",
+            fieldType: "string",
+            whenToWrite: "every_booking",
+          },
+        },
+      });
+
+      const updateFn = vi.fn().mockResolvedValue({ success: true });
+      mockConnection.sobject.mockReturnValue({ update: updateFn });
+
+      mockConnection.describe = vi.fn().mockResolvedValue({
+        fields: [
+          { name: "Status__c", type: "string", length: 255 },
+          { name: "Last_Booking_Status__c", type: "string", length: 255 },
+        ],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      // getEventWhoId query - returns the contact assigned to the event
+      querySpy.mockResolvedValueOnce({
+        records: [{ WhoId: "003CONTACT001" }],
+      });
+      // fetchPersonRecord for event record write
+      querySpy.mockResolvedValueOnce({
+        records: [{ Id: "event-sf-id", Status__c: null }],
+      });
+      // fetchPersonRecord for person record write
+      querySpy.mockResolvedValueOnce({
+        records: [{ Id: "003CONTACT001", Last_Booking_Status__c: null }],
+      });
+
+      await service.deleteEvent("event-sf-id", mockCalendarEvent);
+
+      // Event record should NOT be deleted (written to instead)
+      // Both event record and contact should be updated
+      expect(updateFn).toHaveBeenCalledTimes(2);
+    });
+
+    it("should not write to contact/lead when onCancelWriteToRecord is disabled", async () => {
+      mockAppOptions({
+        onCancelWriteToRecord: false,
+        onCancelWriteToRecordFields: {
+          Last_Booking_Status__c: {
+            value: "Cancelled",
+            fieldType: "string",
+            whenToWrite: "every_booking",
+          },
+        },
+      });
+
+      const deleteFn = vi.fn().mockResolvedValue({ success: true });
+      mockConnection.sobject.mockReturnValue({ delete: deleteFn });
+
+      await service.deleteEvent("event-sf-id", mockCalendarEvent);
+
+      // Event should be deleted normally
+      expect(deleteFn).toHaveBeenCalledWith("event-sf-id");
+      // No contact query should have been made
+      expect(mockConnection.query).not.toHaveBeenCalled();
+    });
+
+    it("should gracefully handle when event has no WhoId", async () => {
+      mockAppOptions({
+        onCancelWriteToRecord: true,
+        onCancelWriteToRecordFields: {
+          Last_Booking_Status__c: {
+            value: "Cancelled",
+            fieldType: "string",
+            whenToWrite: "every_booking",
+          },
+        },
+      });
+
+      const deleteFn = vi.fn().mockResolvedValue({ success: true });
+      mockConnection.sobject.mockReturnValue({ delete: deleteFn });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      // getEventWhoId returns no WhoId
+      querySpy.mockResolvedValueOnce({ records: [{ WhoId: null }] });
+
+      // Should not throw
+      await service.deleteEvent("event-sf-id", mockCalendarEvent);
+
+      expect(deleteFn).toHaveBeenCalledWith("event-sf-id");
     });
   });
 });

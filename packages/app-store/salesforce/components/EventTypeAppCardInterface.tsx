@@ -1,27 +1,27 @@
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-
-import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
-import { InputField, Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
+import { InputField, Label, Select, Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
 import { showToast } from "@calcom/ui/components/toast";
-
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { SalesforceRecordEnum } from "../lib/enums";
 import type { appDataSchema, RRSkipFieldRule } from "../zod";
 import FieldRulesSettings from "./components/FieldRulesSettings";
 import WriteToObjectSettings, { BookingActionEnum } from "./components/WriteToObjectSettings";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType, onAppInstallSuccess }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
+  app,
+  eventType,
+  onAppInstallSuccess,
+}) {
   const pathname = usePathname();
 
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
@@ -47,6 +47,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const roundRobinSkipFallbackToLeadOwner = getAppData("roundRobinSkipFallbackToLeadOwner") ?? false;
   const onCancelWriteToEventRecord = getAppData("onCancelWriteToEventRecord") ?? false;
   const onCancelWriteToEventRecordFields = getAppData("onCancelWriteToEventRecordFields") ?? {};
+  const onCancelWriteToRecord = getAppData("onCancelWriteToRecord") ?? false;
+  const onCancelWriteToRecordFields = getAppData("onCancelWriteToRecordFields") ?? {};
   const rrSkipFieldRules = (getAppData("rrSkipFieldRules") ?? []) as RRSkipFieldRule[];
 
   const { t } = useLocale();
@@ -457,6 +459,19 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               setAppData("onCancelWriteToEventRecord", checked);
             }}
             updateWriteToObjectData={(data) => setAppData("onCancelWriteToEventRecordFields", data)}
+          />
+        </Section.SubSection>
+
+        <Section.SubSection>
+          <WriteToObjectSettings
+            bookingAction={BookingActionEnum.ON_CANCEL}
+            optionLabel={t("salesforce_on_cancel_write_to_record", { record: createEventOn })}
+            optionEnabled={onCancelWriteToRecord}
+            writeToObjectData={onCancelWriteToRecordFields}
+            optionSwitchOnChange={(checked) => {
+              setAppData("onCancelWriteToRecord", checked);
+            }}
+            updateWriteToObjectData={(data) => setAppData("onCancelWriteToRecordFields", data)}
           />
         </Section.SubSection>
 

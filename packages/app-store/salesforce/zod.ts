@@ -1,7 +1,6 @@
 import { z } from "zod";
-
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
-import { SalesforceRecordEnum, WhenToWriteToRecord, SalesforceFieldType } from "./lib/enums";
+import { SalesforceFieldType, SalesforceRecordEnum, WhenToWriteToRecord } from "./lib/enums";
 
 export const writeToBookingEntry = z.object({
   value: z.union([z.string(), z.boolean()]),
@@ -72,6 +71,8 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   ignoreGuests: z.boolean().optional(),
   onCancelWriteToEventRecord: z.boolean().optional(),
   onCancelWriteToEventRecordFields: z.record(z.string(), writeToBookingEntry).optional(),
+  onCancelWriteToRecord: z.boolean().optional(),
+  onCancelWriteToRecordFields: z.record(z.string(), writeToBookingEntry).optional(),
 });
 
 export const appKeysSchema = z.object({

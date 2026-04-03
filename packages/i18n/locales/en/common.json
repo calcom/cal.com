@@ -4012,6 +4012,7 @@
   "last_updated": "Last updated",
   "completed_onboarding": "Completed onboarding",
   "salesforce_on_cancel_write_to_event": "On cancelled booking, write to event record instead of deleting event",
+  "salesforce_on_cancel_write_to_record": "On cancelled booking, write to a custom field on the attendee {{record}} record",
   "salesforce_on_every_cancellation": "On every cancellation",
   "salesforce_rr_skip_field_rules": "Field rules for round robin skip",
   "salesforce_rr_skip_field_rule_ignore": "Ignore",
