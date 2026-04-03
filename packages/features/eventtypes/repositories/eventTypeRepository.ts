@@ -718,6 +718,7 @@ export class EventTypeRepository implements IEventTypesRepository {
       hosts: {
         select: {
           isFixed: true,
+          isOrganizer: true,
           userId: true,
           priority: true,
           weight: true,
@@ -1034,6 +1035,7 @@ export class EventTypeRepository implements IEventTypesRepository {
       hosts: {
         select: {
           isFixed: true,
+          isOrganizer: true,
           userId: true,
           groupId: true,
           priority: true,

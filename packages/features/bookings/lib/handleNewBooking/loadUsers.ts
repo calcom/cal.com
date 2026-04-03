@@ -27,6 +27,15 @@ type EventType = Pick<
   | "rrSegmentQueryValue"
 >;
 
+export type LoadedUser = NewBookingEventType["users"][number] & {
+  isFixed?: boolean;
+  isOrganizer?: boolean;
+  priority?: number | null;
+  weight?: number | null;
+  createdAt?: Date | null;
+  groupId?: string | null;
+};
+
 export const loadUsers = async ({
   eventType,
   dynamicUserList,
@@ -43,7 +52,7 @@ export const loadUsers = async ({
   hostname: string;
   forcedSlug: string | undefined;
   isPlatform: boolean;
-}) => {
+}): Promise<LoadedUser[]> => {
   try {
     const { currentOrgDomain } = getOrgDomainConfig({
       hostname,
@@ -73,7 +82,7 @@ export const loadUsers = async ({
   }
 };
 
-const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEventType["users"]> => {
+const loadUsersByEventType = async (eventType: EventType): Promise<LoadedUser[]> => {
   const { hosts, fallbackHosts } = getNormalizedHosts({
     eventType: { ...eventType, hosts: eventType.hosts.filter(Boolean) },
   });
@@ -81,9 +90,10 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
     eventType,
     hosts: hosts ?? fallbackHosts,
   });
-  return matchingHosts.map(({ user, isFixed, priority, weight, createdAt, groupId }) => ({
+  return matchingHosts.map(({ user, isFixed, isOrganizer, priority, weight, createdAt, groupId }) => ({
     ...user,
     isFixed,
+    isOrganizer,
     priority,
     weight,
     createdAt,
@@ -148,9 +158,8 @@ export const findUsersByUsername = async ({
   });
 };
 
-export type LoadedUsers = Awaited<ReturnType<typeof loadUsers>>;
+export type LoadedUsers = LoadedUser[];
 
-export type OrganizerUser = LoadedUsers[number] & {
-  isFixed?: boolean;
+export type OrganizerUser = LoadedUser & {
   metadata?: Prisma.JsonValue;
 };

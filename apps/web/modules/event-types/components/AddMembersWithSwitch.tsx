@@ -91,6 +91,7 @@ const CheckedHostField = ({
                   weight: option.weight ?? 100,
                   scheduleId: option.defaultScheduleId,
                   groupId: option.groupId,
+                  isOrganizer: option.isOrganizer,
                 }))
               );
           }}
@@ -104,6 +105,7 @@ const CheckedHostField = ({
                 ...option,
                 priority: host.priority ?? 2,
                 isFixed,
+                isOrganizer: host.isOrganizer,
                 weight: host.weight ?? 100,
                 groupId: host.groupId,
               });
