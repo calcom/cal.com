@@ -1,12 +1,39 @@
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { App, Generic, getOGImageVersion, Meeting, parseSvgPaths } from "@calcom/lib/OgImages";
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import type { SatoriOptions } from "satori";
-import { z, ZodError } from "zod";
-
-import { Meeting, App, Generic, getOGImageVersion } from "@calcom/lib/OgImages";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ZodError, z } from "zod";
 
 export const runtime = "edge";
+
+/**
+ * Fetches an image URL and converts it to a data URI.
+ * This is needed because Satori (the OG image renderer) cannot reliably fetch
+ * cross-origin images in the Edge Runtime. By pre-fetching and embedding as
+ * data URIs, we ensure avatars and other external images render correctly.
+ */
+async function fetchImageAsDataUri(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const contentType = response.headers.get("content-type") || "image/png";
+    const buffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    // Convert bytes to a binary string in fixed-size chunks.  Using
+    // String.fromCharCode.apply with chunks avoids both O(n²) string
+    // concatenation and call-stack overflow from spreading large arrays.
+    const chunks: string[] = [];
+    const CHUNK_SIZE = 8192;
+    for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+      const slice = bytes.subarray(i, Math.min(i + CHUNK_SIZE, bytes.length));
+      chunks.push(String.fromCharCode.apply(null, Array.from(slice)));
+    }
+    return `data:${contentType};base64,${btoa(chunks.join(""))}`;
+  } catch {
+    return null;
+  }
+}
 
 const meetingSchema = z.object({
   imageType: z.literal("meeting"),
@@ -36,11 +63,26 @@ async function handler(req: NextRequest) {
   const imageType = searchParams.get("type");
 
   try {
-    const fontResults = await Promise.allSettled([
-      fetch(new URL("/fonts/cal.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
-      fetch(new URL("/fonts/Inter-Regular.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
-      fetch(new URL("/fonts/Inter-Medium.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
+    // Fetch fonts and SVG logos in parallel. The logos are parsed into path `d`
+    // attributes so they can be rendered as inline <svg> JSX (Satori does not
+    // support SVG in <img> tags).  This keeps the public SVG files as the
+    // single source of truth — no hardcoded path data in the code.
+    const [fontResults, darkLogoSvg, lightLogoSvg] = await Promise.all([
+      Promise.allSettled([
+        fetch(new URL("/fonts/cal.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
+        fetch(new URL("/fonts/Inter-Regular.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
+        fetch(new URL("/fonts/Inter-Medium.ttf", WEBAPP_URL)).then((res) => res.arrayBuffer()),
+      ]),
+      fetch(new URL("/calcom-logo-white-word.svg", WEBAPP_URL))
+        .then((res) => (res.ok ? res.text() : ""))
+        .catch(() => ""),
+      fetch(new URL("/cal-logo-word-black.svg", WEBAPP_URL))
+        .then((res) => (res.ok ? res.text() : ""))
+        .catch(() => ""),
     ]);
+
+    const darkLogoPaths = parseSvgPaths(darkLogoSvg);
+    const lightLogoPaths = parseSvgPaths(lightLogoSvg);
 
     const fonts: SatoriOptions["fonts"] = [];
 
@@ -75,12 +117,17 @@ async function handler(req: NextRequest) {
             imageType,
           });
 
+          // Pre-fetch the profile image and convert to a data URI to avoid
+          // cross-origin fetch failures inside Satori's image renderer.
+          const meetingImageDataUri = meetingImage ? await fetchImageAsDataUri(meetingImage) : null;
+
           const etag = await getOGImageVersion("meeting");
           const img = new ImageResponse(
             <Meeting
               title={title}
-              profile={{ name: meetingProfileName, image: meetingImage }}
+              profile={{ name: meetingProfileName, image: meetingImageDataUri ?? meetingImage }}
               users={names.map((name, index) => ({ name, username: usernames[index] }))}
+              logoPaths={darkLogoPaths}
             />,
             ogConfig
           );
@@ -128,7 +175,7 @@ async function handler(req: NextRequest) {
 
           const etag = await getOGImageVersion("app", { svgHash });
           const img = new ImageResponse(
-            <App name={name} description={description} slug={slug} logoUrl={logoUrl} />,
+            <App name={name} description={description} slug={slug} logoUrl={logoUrl} logoPaths={darkLogoPaths} />,
             ogConfig
           );
 
@@ -167,7 +214,10 @@ async function handler(req: NextRequest) {
           });
 
           const etag = await getOGImageVersion("generic");
-          const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig);
+          const img = new ImageResponse(
+            <Generic title={title} description={description} logoPaths={lightLogoPaths} />,
+            ogConfig
+          );
 
           return new Response(img.body, {
             status: 200,

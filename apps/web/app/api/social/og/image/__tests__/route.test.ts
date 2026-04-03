@@ -1,8 +1,6 @@
-import { NextRequest } from "next/server";
-import { describe, expect, test, vi, beforeEach } from "vitest";
-
 import { getOGImageVersion } from "@calcom/lib/OgImages";
-
+import { NextRequest } from "next/server";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { GET } from "../route";
 
 vi.mock("next/og", () => ({
@@ -44,8 +42,11 @@ describe("GET /api/social/og/image", () => {
   beforeEach(() => {
     vi.resetAllMocks();
 
+    // Default mock handles both font fetches (.arrayBuffer) and SVG logo fetches (.text/.ok)
     vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
       arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(8)),
+      text: vi.fn().mockResolvedValue('<svg><path d="M0 0H10V10H0Z" fill="#000"/></svg>'),
     } as any);
   });
 
@@ -117,6 +118,135 @@ describe("GET /api/social/og/image", () => {
 
       expect(response.status).toBe(500);
       expect(await response.text()).toBe("Internal server error");
+    });
+  });
+
+  // These tests verify that the route handler pre-fetches avatar images and
+  // converts them to base64 data URIs before passing to Satori.  Without this,
+  // Satori fails to render cross-origin images in the Edge Runtime — which was
+  // the root cause of broken avatars in OG images after the Next.js 16.2.1 upgrade.
+  /** Extract the JSX element (first arg) passed to the ImageResponse constructor. */
+  function getMeetingJsxProps(mock: ReturnType<typeof vi.fn>) {
+    const firstArg = mock.mock.calls[0][0] as { props: { profile: { image?: string | null } } };
+    return firstArg.props;
+  }
+
+  describe("Avatar image pre-fetching (prevents cross-origin failures in Satori)", () => {
+    async function setupImageResponseMock() {
+      const { ImageResponse } = await import("next/og");
+      // Return a real Response (ImageResponse extends Response) so the route
+      // handler can read `.body` exactly as it would in production.
+      vi.mocked(ImageResponse).mockImplementation(function () {
+        return new Response(new Uint8Array([1, 2, 3, 4])) as unknown as InstanceType<typeof ImageResponse>;
+      });
+      return vi.mocked(ImageResponse);
+    }
+
+    function resolveInputUrl(input: RequestInfo | URL): string {
+      if (input instanceof URL) return input.toString();
+      if (typeof input === "string") return input;
+      return input.url;
+    }
+
+    function mockFetchWithAvatar(avatarUrl: string, avatarResponse: Response | Error): void {
+      vi.mocked(global.fetch).mockImplementation(async function (input: RequestInfo | URL) {
+        const url = resolveInputUrl(input);
+
+        if (url === avatarUrl) {
+          if (avatarResponse instanceof Error) throw avatarResponse;
+          return avatarResponse;
+        }
+
+        // Default: return font data
+        return new Response(new ArrayBuffer(8));
+      });
+    }
+
+    test("converts meetingImage to a base64 data URI before passing to the renderer", async () => {
+      const avatarUrl = "https://cal.com/api/avatar/test-user.png";
+      const pngBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+
+      mockFetchWithAvatar(
+        avatarUrl,
+        new Response(pngBytes.buffer, {
+          status: 200,
+          headers: { "content-type": "image/png" },
+        })
+      );
+
+      const imageResponseMock = await setupImageResponseMock();
+
+      const request = createNextRequest(
+        `http://example.com/api/social/og/image?type=meeting&title=Test&meetingProfileName=John&meetingImage=${encodeURIComponent(avatarUrl)}`
+      );
+      const response = await GET(request);
+
+      expect(response.status).toBe(200);
+
+      // Verify the avatar URL was fetched for pre-processing
+      const fetchedUrls = vi.mocked(global.fetch).mock.calls.map((call) => resolveInputUrl(call[0]));
+      expect(fetchedUrls).toContain(avatarUrl);
+
+      // Verify ImageResponse received a data URI, not the raw external URL
+      const { profile } = getMeetingJsxProps(imageResponseMock);
+      expect(profile.image).toMatch(/^data:image\/png;base64,/);
+      expect(profile.image).not.toBe(avatarUrl);
+    });
+
+    test("falls back to original URL when avatar fetch returns non-OK status", async () => {
+      const avatarUrl = "https://cal.com/api/avatar/test-user.png";
+
+      mockFetchWithAvatar(avatarUrl, new Response(null, { status: 404 }));
+
+      const imageResponseMock = await setupImageResponseMock();
+
+      const request = createNextRequest(
+        `http://example.com/api/social/og/image?type=meeting&title=Test&meetingProfileName=John&meetingImage=${encodeURIComponent(avatarUrl)}`
+      );
+      const response = await GET(request);
+
+      expect(response.status).toBe(200);
+
+      // Should fall back to the original URL when pre-fetch fails
+      const { profile } = getMeetingJsxProps(imageResponseMock);
+      expect(profile.image).toBe(avatarUrl);
+    });
+
+    test("falls back to original URL when avatar fetch throws a network error", async () => {
+      const avatarUrl = "https://cal.com/api/avatar/test-user.png";
+
+      mockFetchWithAvatar(avatarUrl, new Error("Network error"));
+
+      const imageResponseMock = await setupImageResponseMock();
+
+      const request = createNextRequest(
+        `http://example.com/api/social/og/image?type=meeting&title=Test&meetingProfileName=John&meetingImage=${encodeURIComponent(avatarUrl)}`
+      );
+      const response = await GET(request);
+
+      expect(response.status).toBe(200);
+
+      const { profile } = getMeetingJsxProps(imageResponseMock);
+      expect(profile.image).toBe(avatarUrl);
+    });
+
+    test("skips pre-fetch when meetingImage is not provided", async () => {
+      vi.mocked(global.fetch).mockImplementation(async function () {
+        return new Response(new ArrayBuffer(8));
+      });
+
+      const imageResponseMock = await setupImageResponseMock();
+
+      const request = createNextRequest(
+        "http://example.com/api/social/og/image?type=meeting&title=Test&meetingProfileName=John"
+      );
+      const response = await GET(request);
+
+      expect(response.status).toBe(200);
+
+      // When no meetingImage param is provided, profile.image should be falsy
+      const { profile } = getMeetingJsxProps(imageResponseMock);
+      expect(profile.image).toBeFalsy();
     });
   });
 

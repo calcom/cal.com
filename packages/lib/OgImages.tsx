@@ -1,6 +1,5 @@
 import type React from "react";
-
-import { CAL_URL, LOGO, LOGO_DARK, WEBAPP_URL } from "./constants";
+import { CAL_URL, WEBAPP_URL } from "./constants";
 
 // Ensures tw prop is typed.
 declare module "react" {
@@ -14,6 +13,8 @@ export interface MeetingImageProps {
   title: string;
   profile: { name: string; image?: string | null };
   users?: { name: string; username: string }[];
+  /** SVG path `d` attributes for the Cal.com logo, fetched from the public SVG file. */
+  logoPaths?: string[];
 }
 
 export interface AppImageProps {
@@ -21,11 +22,15 @@ export interface AppImageProps {
   description: string;
   slug: string;
   logoUrl: string;
+  /** SVG path `d` attributes for the Cal.com logo, fetched from the public SVG file. */
+  logoPaths?: string[];
 }
 
 export interface GenericImageProps {
   title: string;
   description: string;
+  /** SVG path `d` attributes for the Cal.com logo, fetched from the public SVG file. */
+  logoPaths?: string[];
 }
 
 export interface ScreenshotImageProps {
@@ -52,21 +57,18 @@ const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CA
 const OG_ASSETS = {
   meeting: {
     id: "meeting-og-image-v1", // Bump version when changing Meeting component structure/styling
-    logo: LOGO,
     logoWidth: "350",
     avatarSize: "160",
     variant: "dark" as const,
   },
   app: {
     id: "app-og-image-v1", // Bump version when changing App component structure/styling
-    logo: LOGO,
     logoWidth: "150",
     iconSize: "172",
     variant: "light" as const,
   },
   generic: {
     id: "generic-og-image-v1", // Bump version when changing Generic component structure/styling
-    logo: LOGO_DARK,
     logoWidth: "350",
     variant: "light" as const,
   },
@@ -159,6 +161,34 @@ export const constructGenericImage = async ({ title, description }: GenericImage
   return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
+/**
+ * Extracts `d` attribute values from `<path>` elements in an SVG string.
+ * Used to parse the Cal.com logo SVGs fetched at request time so they can
+ * be rendered as inline `<svg>` JSX (Satori does not support SVG in <img> tags).
+ */
+export function parseSvgPaths(svgContent: string): string[] {
+  const paths: string[] = [];
+  const re = /\bd="([^"]+)"/g;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(svgContent)) !== null) {
+    paths.push(match[1]);
+  }
+  return paths;
+}
+
+const CalcomLogoSvg = ({ width, fill, paths }: { width: string; fill: string; paths: string[] }) => {
+  const numericWidth = parseInt(width, 10);
+  const scale = numericWidth / 101;
+  const height = Math.round(22 * scale);
+  return (
+    <svg width={numericWidth} height={height} viewBox="0 0 101 22" fill="none">
+      {paths.map((d) => (
+        <path key={d.substring(0, 20)} d={d} fill={fill} />
+      ))}
+    </svg>
+  );
+};
+
 const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps) => (
   <div tw="flex w-full h-full">
     <img
@@ -178,7 +208,7 @@ const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps
  * remember to bump the version in OG_ASSETS.meeting.id (e.g., "meeting-og-image-v1" → "meeting-og-image-v2")
  * to ensure proper cache invalidation.
  */
-export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
+export const Meeting = ({ title, users = [], profile, logoPaths = [] }: MeetingImageProps) => {
   const config = OG_ASSETS.meeting;
 
   // We filter attendees here based on whether they have an image and filter duplicates.
@@ -205,7 +235,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
     <Wrapper variant={config.variant}>
       <div tw="h-full flex flex-col justify-start">
         <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
-          <img src={`${WEBAPP_URL}/${config.logo}`} width={config.logoWidth} alt="Logo" />
+          <CalcomLogoSvg width={config.logoWidth} fill="#292929" paths={logoPaths} />
           {avatars.length > 0 && (
             <div style={{ color: "#111827" }} tw="font-bold text-[92px] mx-8 bottom-2">
               /
@@ -218,8 +248,8 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
                 key={avatar}
                 src={avatar}
                 alt="Profile"
-                width={config.avatarSize}
-                height={config.avatarSize}
+                width={Number(config.avatarSize)}
+                height={Number(config.avatarSize)}
               />
             ))}
             {avatars.length > 3 && (
@@ -292,17 +322,14 @@ const VisualBlur = ({ logoUrl }: { logoUrl: string }) => {
  * remember to bump the version in OG_ASSETS.app.id (e.g., "app-og-image-v1" → "app-og-image-v2")
  * to ensure proper cache invalidation.
  */
-export const App = ({ name, description, logoUrl }: AppImageProps) => {
+export const App = ({ name, description, logoUrl, logoPaths = [] }: AppImageProps) => {
   const config = OG_ASSETS.app;
 
   return (
     <Wrapper variant={config.variant}>
-      <img
-        src={`${WEBAPP_URL}/${config.logo}`}
-        width={config.logoWidth}
-        alt="Logo"
-        tw="absolute right-[48px] top-[48px]"
-      />
+      <div tw="flex absolute right-[48px] top-[48px]">
+        <CalcomLogoSvg width={config.logoWidth} fill="#292929" paths={logoPaths} />
+      </div>
 
       <VisualBlur logoUrl={logoUrl} />
 
@@ -311,8 +338,8 @@ export const App = ({ name, description, logoUrl }: AppImageProps) => {
           <img
             src={`${WEBAPP_URL}${logoUrl}`}
             alt="App icon"
-            width={config.iconSize}
-            height={config.iconSize}
+            width={Number(config.iconSize)}
+            height={Number(config.iconSize)}
           />
         </div>
       </div>
@@ -333,14 +360,14 @@ export const App = ({ name, description, logoUrl }: AppImageProps) => {
  * remember to bump the version in OG_ASSETS.generic.id (e.g., "generic-og-image-v1" → "generic-og-image-v2")
  * to ensure proper cache invalidation.
  */
-export const Generic = ({ title, description }: GenericImageProps) => {
+export const Generic = ({ title, description, logoPaths = [] }: GenericImageProps) => {
   const config = OG_ASSETS.generic;
 
   return (
     <Wrapper variant={config.variant}>
       <div tw="h-full flex flex-col justify-start">
         <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
-          <img src={`${WEBAPP_URL}/${config.logo}`} width={config.logoWidth} alt="Logo" />
+          <CalcomLogoSvg width={config.logoWidth} fill="#000000" paths={logoPaths} />
         </div>
 
         <div style={{ color: "#111827" }} tw="relative flex text-[54px] w-full flex-col mt-auto">
