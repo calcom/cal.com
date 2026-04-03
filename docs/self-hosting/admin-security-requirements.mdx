@@ -1,0 +1,53 @@
+---
+title: "Admin security requirements"
+description: "Understand the password and two-factor authentication requirements for admin accounts in self-hosted Cal.com instances."
+---
+
+Admin accounts on self-hosted Cal.com instances must meet specific security requirements. If these requirements are not met, the admin's privileges are temporarily restricted until they update their credentials.
+
+## Requirements
+
+To retain full admin access, your account must satisfy **both** of the following:
+
+1. **Password length** — at least 15 characters (must also include uppercase, lowercase, and a number)
+2. **Two-factor authentication (2FA)** — enabled on the account
+
+If either requirement is not met, your role is automatically changed to `INACTIVE_ADMIN` at login. You can still access the application, but admin-level actions are unavailable until you resolve the issue.
+
+## What happens when requirements are not met
+
+When you log in as an admin without meeting the security criteria, Cal.com:
+
+1. Sets your session role to `INACTIVE_ADMIN`
+2. Displays a persistent warning banner at the top of every page explaining what needs to be fixed
+3. Links you directly to the relevant settings page
+
+The banner message varies depending on what is missing:
+
+| Missing requirement | Banner action |
+| --- | --- |
+| Password and 2FA | Directs you to change your password |
+| Password only | Directs you to change your password |
+| 2FA only | Directs you to enable two-factor authentication |
+
+<Note>
+After you update your password or enable 2FA, you are signed out automatically so the system can re-evaluate your credentials on the next login.
+</Note>
+
+## How to resolve
+
+<Steps>
+  <Step title="Update your password (if needed)">
+    Go to **Settings > Security > Password** and set a new password that is at least 15 characters long and includes uppercase letters, lowercase letters, and a number.
+  </Step>
+  <Step title="Enable two-factor authentication (if needed)">
+    Go to **Settings > Security > Two-factor authentication** and follow the prompts to enable 2FA on your account.
+  </Step>
+  <Step title="Sign in again">
+    After making changes, you are signed out automatically. Log in again with your updated credentials to regain full admin access.
+  </Step>
+</Steps>
+
+<Info>
+This enforcement only applies to admin accounts that use Cal.com credential-based authentication. Admins who sign in through an external identity provider (such as SAML or OIDC) are not affected.
+</Info>

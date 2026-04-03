@@ -897,6 +897,7 @@
               "self-hosting/database-migrations",
               "self-hosting/upgrading",
               "self-hosting/sso-setup",
+              "self-hosting/admin-security-requirements",
               "self-hosting/docker",
               "self-hosting/license-key"
             ]
