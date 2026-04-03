@@ -1,4 +1,4 @@
-import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
+import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/prisma-ooo-repository";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import dayjs from "@calcom/dayjs";
 

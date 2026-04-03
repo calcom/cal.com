@@ -21,7 +21,7 @@ import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembers
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
-import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
+import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/prisma-ooo-repository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";

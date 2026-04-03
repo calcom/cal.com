@@ -1,8 +1,6 @@
 import type { PrismaClient } from "@calcom/prisma";
 
-export type OOOEntryForWebhook = NonNullable<
-  Awaited<ReturnType<PrismaOOORepository["findByIdForWebhook"]>>
->;
+export type OOOEntryForWebhook = NonNullable<Awaited<ReturnType<PrismaOOORepository["findByIdForWebhook"]>>>;
 
 export class PrismaOOORepository {
   constructor(private prismaClient: PrismaClient) {}
@@ -215,6 +213,14 @@ export class PrismaOOORepository {
         start: true,
         end: true,
         userId: true,
+      },
+    });
+  }
+
+  async findEnabledReasons() {
+    return this.prismaClient.outOfOfficeReason.findMany({
+      where: {
+        enabled: true,
       },
     });
   }

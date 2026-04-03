@@ -6,7 +6,7 @@ import type { PrismaAttributeRepository } from "@calcom/features/attributes/repo
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { getBusyCalendarTimes } from "@calcom/features/calendars/lib/CalendarManager";
 import type { HostRepository } from "@calcom/features/host/repositories/HostRepository";
-import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
+import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/prisma-ooo-repository";
 import { mergeOverlappingRanges } from "@calcom/features/schedules/lib/date-ranges";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import logger from "@calcom/lib/logger";

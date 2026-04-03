@@ -17,7 +17,7 @@ import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepo
 import { getUserFeatureRepository } from "@calcom/features/di/containers/UserFeatureRepository";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
-import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
+import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/prisma-ooo-repository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { DateOverride, WorkingHours } from "@calcom/features/schedules/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/features/schedules/lib/date-ranges";

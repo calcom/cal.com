@@ -1,11 +1,7 @@
-import prisma from "@calcom/prisma";
+import { getOOORepository } from "@calcom/features/di/containers/ooo-repository";
 
 export const outOfOfficeReasonList = async () => {
-  const outOfOfficeReasons = await prisma.outOfOfficeReason.findMany({
-    where: {
-      enabled: true,
-    },
-  });
-
+  const oooRepository = getOOORepository();
+  const outOfOfficeReasons = await oooRepository.findEnabledReasons();
   return outOfOfficeReasons;
 };
