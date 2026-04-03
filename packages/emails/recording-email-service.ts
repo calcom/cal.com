@@ -18,7 +18,11 @@ const sendEmail = (prepare: () => BaseEmail) => {
   });
 };
 
-export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, downloadLink: string) => {
+export const sendDailyVideoRecordingEmails = async (
+  calEvent: CalendarEvent,
+  downloadLink: string,
+  options?: { skipAttendeeEmails?: boolean }
+) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
@@ -26,10 +30,12 @@ export const sendDailyVideoRecordingEmails = async (calEvent: CalendarEvent, dow
     sendEmail(() => new OrganizerDailyVideoDownloadRecordingEmail(calendarEvent, downloadLink))
   );
 
-  for (const attendee of calendarEvent.attendees) {
-    emailsToSend.push(
-      sendEmail(() => new AttendeeDailyVideoDownloadRecordingEmail(calendarEvent, attendee, downloadLink))
-    );
+  if (!options?.skipAttendeeEmails) {
+    for (const attendee of calendarEvent.attendees) {
+      emailsToSend.push(
+        sendEmail(() => new AttendeeDailyVideoDownloadRecordingEmail(calendarEvent, attendee, downloadLink))
+      );
+    }
   }
   await Promise.all(emailsToSend);
 };

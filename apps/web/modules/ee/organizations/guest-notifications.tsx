@@ -54,6 +54,8 @@ const GuestNotificationsView = ({ permissions }: { permissions: { canRead: boole
               currentOrg.organizationSettings.disableAttendeeLocationChangeEmail ?? false,
             disableAttendeeNewEventEmail:
               currentOrg.organizationSettings.disableAttendeeNewEventEmail ?? false,
+            disableAttendeeCalVideoRecordingEmail:
+              currentOrg.organizationSettings.disableAttendeeCalVideoRecordingEmail ?? false,
           }}
           readOnly={isDisabled}
         />

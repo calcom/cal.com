@@ -25,6 +25,7 @@ import {
   recordingReadySchema,
   testRequestSchema,
 } from "@calcom/web/lib/daily-webhook/schema";
+import { getIsRecordingEmailDisabled } from "@calcom/web/lib/daily-webhook/should-skip-attendee-recording-emails";
 import {
   triggerRecordingReadyWebhook,
   triggerTranscriptionGeneratedWebhook,
@@ -100,7 +101,7 @@ export async function postHandler(request: NextRequest) {
 
       const bookingRepository = new BookingRepository(prisma);
 
-      const [evt, updateRecordStatus, downloadLink, teamId] = await Promise.all([
+      const [evt, updateRecordStatus, downloadLink, teamId, isRecordingEmailDisabled] = await Promise.all([
         getCalendarEvent(booking),
         bookingRepository.updateRecordedStatus({
           bookingUid: booking.uid,
@@ -112,6 +113,10 @@ export async function postHandler(request: NextRequest) {
             team: { id: booking?.eventType?.teamId ?? null },
             parentId: booking?.eventType?.parentId ?? null,
           },
+        }),
+        getIsRecordingEmailDisabled({
+          eventType: booking.eventType,
+          organizerUserId: booking.user?.id ?? null,
         }),
       ]);
 
@@ -134,7 +139,9 @@ export async function postHandler(request: NextRequest) {
           errorMsg: "submit transcription batch processor job",
         },
         {
-          fn: sendDailyVideoRecordingEmails(evt, downloadLink),
+          fn: sendDailyVideoRecordingEmails(evt, downloadLink, {
+            skipAttendeeEmails: isRecordingEmailDisabled,
+          }),
           errorMsg: "send recording emails",
         },
       ];

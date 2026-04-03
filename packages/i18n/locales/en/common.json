@@ -4499,6 +4499,8 @@
   "attendee_reschedule_request_email_description": "Email sent when organizer requests attendee to reschedule",
   "attendee_location_change_email_description": "Email sent when meeting location is updated",
   "attendee_new_event_email_description": "Email sent to existing attendees when new guests are added",
+  "cal_video_recording": "Cal Video recording",
+  "cal_video_recording_email_description": "Email sent to attendees with the Cal Video recording download link",
   "host_reassignment": "Host reassignment",
   "awaiting_payment": "Awaiting payment",
   "reschedule_request": "Reschedule request",

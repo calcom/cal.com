@@ -79,6 +79,27 @@ describe("recording-email-service", () => {
       expect(OrganizerDailyVideoDownloadRecordingEmail).toHaveBeenCalledTimes(1);
       expect(AttendeeDailyVideoDownloadRecordingEmail).toHaveBeenCalledTimes(3);
     });
+
+    it("skips attendee emails when skipAttendeeEmails is true", async () => {
+      const evt = createCalEvent(3);
+      await sendDailyVideoRecordingEmails(evt, "https://download.link/rec", { skipAttendeeEmails: true });
+      expect(OrganizerDailyVideoDownloadRecordingEmail).toHaveBeenCalledTimes(1);
+      expect(AttendeeDailyVideoDownloadRecordingEmail).not.toHaveBeenCalled();
+    });
+
+    it("sends attendee emails when skipAttendeeEmails is false", async () => {
+      const evt = createCalEvent(2);
+      await sendDailyVideoRecordingEmails(evt, "https://download.link/rec", { skipAttendeeEmails: false });
+      expect(OrganizerDailyVideoDownloadRecordingEmail).toHaveBeenCalledTimes(1);
+      expect(AttendeeDailyVideoDownloadRecordingEmail).toHaveBeenCalledTimes(2);
+    });
+
+    it("sends attendee emails when options is undefined", async () => {
+      const evt = createCalEvent(2);
+      await sendDailyVideoRecordingEmails(evt, "https://download.link/rec");
+      expect(OrganizerDailyVideoDownloadRecordingEmail).toHaveBeenCalledTimes(1);
+      expect(AttendeeDailyVideoDownloadRecordingEmail).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe("sendDailyVideoTranscriptEmails", () => {

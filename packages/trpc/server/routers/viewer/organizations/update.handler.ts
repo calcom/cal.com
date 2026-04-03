@@ -127,6 +127,10 @@ const updateOrganizationSettings = async ({
     data.disableAttendeeNewEventEmail = input.disableAttendeeNewEventEmail;
   }
 
+  if (Object.hasOwn(input, "disableAttendeeCalVideoRecordingEmail")) {
+    data.disableAttendeeCalVideoRecordingEmail = input.disableAttendeeCalVideoRecordingEmail;
+  }
+
   if (Object.hasOwn(input, "skipCrmOnBookingReport")) {
     data.skipCrmOnBookingReport = input.skipCrmOnBookingReport;
   }

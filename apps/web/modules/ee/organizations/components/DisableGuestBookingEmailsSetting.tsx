@@ -75,6 +75,7 @@ interface IDisableGuestBookingEmailsSettingProps {
     disableAttendeeRescheduleRequestEmail: boolean;
     disableAttendeeLocationChangeEmail: boolean;
     disableAttendeeNewEventEmail: boolean;
+    disableAttendeeCalVideoRecordingEmail: boolean;
   };
   readOnly?: boolean;
 }
@@ -100,6 +101,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
   const [dialogAction, setDialogAction] = useState<"enable" | "disable">("disable");
   const [dialogMode, setDialogMode] = useState<"all" | "individual">("all");
   const [pendingEmailType, setPendingEmailType] = useState<EmailType | null>(null);
+  const [calVideoRecordingPending, setCalVideoRecordingPending] = useState(false);
 
   const [emailSettings, setEmailSettings] = useState<EmailSettings>({
     [EmailType.CONFIRMATION]: props.settings.disableAttendeeConfirmationEmail,
@@ -113,7 +115,16 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
     [EmailType.NEW_EVENT]: props.settings.disableAttendeeNewEventEmail,
   });
 
-  const allDisabled = Object.values(emailSettings).every(Boolean);
+  const [calVideoRecordingEmailDisabled, setCalVideoRecordingEmailDisabled] = useState(
+    props.settings.disableAttendeeCalVideoRecordingEmail
+  );
+
+  const allDisabled = Object.values(emailSettings).every(Boolean) && calVideoRecordingEmailDisabled;
+
+  const resetPendingDialogState = () => {
+    setCalVideoRecordingPending(false);
+    setPendingEmailType(null);
+  };
 
   const mutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: async () => {
@@ -128,14 +139,16 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
   });
 
   const handleDisableAll = (disable: boolean) => {
-    const apiPayload = Object.fromEntries(
-      Object.values(EMAIL_TYPE_TO_SETTING_KEY).map((key) => [key, disable])
-    );
+    const apiPayload = {
+      ...Object.fromEntries(Object.values(EMAIL_TYPE_TO_SETTING_KEY).map((key) => [key, disable])),
+      disableAttendeeCalVideoRecordingEmail: disable,
+    };
     mutation.mutate(apiPayload);
 
     setEmailSettings(
       Object.fromEntries(Object.values(EmailType).map((type) => [type, disable])) as EmailSettings
     );
+    setCalVideoRecordingEmailDisabled(disable);
   };
 
   const handleIndividualToggle = (type: EmailType, disabled: boolean) => {
@@ -152,6 +165,13 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
   };
 
   const confirmIndividualToggle = () => {
+    if (calVideoRecordingPending) {
+      const shouldDisable = dialogAction === "disable";
+      mutation.mutate({ disableAttendeeCalVideoRecordingEmail: shouldDisable });
+      setCalVideoRecordingEmailDisabled(shouldDisable);
+      setCalVideoRecordingPending(false);
+      return;
+    }
     if (pendingEmailType === null) return;
     const settingKey = EMAIL_TYPE_TO_SETTING_KEY[pendingEmailType];
     const shouldDisable = dialogAction === "disable";
@@ -162,7 +182,14 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
 
   return (
     <div className="space-y-6">
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+      <Dialog
+        open={showConfirmDialog}
+        onOpenChange={(open) => {
+          setShowConfirmDialog(open);
+          if (!open) {
+            resetPendingDialogState();
+          }
+        }}>
         <ConfirmationDialogContent
           variety={dialogAction === "disable" ? "danger" : "warning"}
           title={
@@ -173,7 +200,11 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
                     : "enable_all_guest_booking_emails_confirm_title"
                 )
               : t("disable_individual_guest_email_confirm_title", {
-                  emailType: pendingEmailType ? t(EMAIL_TYPE_LABELS[pendingEmailType]) : "",
+                  emailType: calVideoRecordingPending
+                    ? t("cal_video_recording")
+                    : pendingEmailType
+                      ? t(EMAIL_TYPE_LABELS[pendingEmailType])
+                      : "",
                 })
           }
           confirmBtnText={t(
@@ -189,6 +220,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
             } else {
               confirmIndividualToggle();
             }
+            resetPendingDialogState();
             setShowConfirmDialog(false);
           }}>
           <p className="mt-2">
@@ -199,7 +231,11 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
                     : "enable_all_guest_booking_emails_confirm_description"
                 )
               : t("disable_individual_guest_email_confirm_description", {
-                  emailType: pendingEmailType ? t(EMAIL_TYPE_LABELS[pendingEmailType]) : "",
+                  emailType: calVideoRecordingPending
+                    ? t("cal_video_recording")
+                    : pendingEmailType
+                      ? t(EMAIL_TYPE_LABELS[pendingEmailType])
+                      : "",
                 })}
           </p>
         </ConfirmationDialogContent>
@@ -314,6 +350,36 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               testId="disable-attendee-new-event-email"
               disabled={readOnly || allDisabled}
             />
+            <tr>
+              <td className="text-default px-6 py-4 text-sm font-medium">
+                {t("cal_video_recording")}
+              </td>
+              <td className="text-default px-6 py-4 text-sm">
+                {t("cal_video_recording_email_description")}
+              </td>
+              <td className="px-6 py-4 text-center">
+                <Checkbox
+                  checked={!calVideoRecordingEmailDisabled}
+                  onCheckedChange={(checked) => {
+                    const disable = !checked;
+                    if (disable) {
+                      setPendingEmailType(null);
+                      setDialogAction("disable");
+                      setDialogMode("individual");
+                      setShowConfirmDialog(true);
+                      // Store a flag to handle this in confirm
+                      setCalVideoRecordingPending(true);
+                    } else {
+                      mutation.mutate({ disableAttendeeCalVideoRecordingEmail: false });
+                      setCalVideoRecordingEmailDisabled(false);
+                    }
+                  }}
+                  data-testid="disable-cal-video-recording-email"
+                  disabled={readOnly || allDisabled}
+                  aria-label={t("cal_video_recording")}
+                />
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>

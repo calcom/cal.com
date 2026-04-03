@@ -59,6 +59,7 @@ export type TUpdateInputSchemaInput = {
   disableAttendeeRescheduleRequestEmail?: boolean;
   disableAttendeeLocationChangeEmail?: boolean;
   disableAttendeeNewEventEmail?: boolean;
+  disableAttendeeCalVideoRecordingEmail?: boolean;
   skipCrmOnBookingReport?: boolean;
 };
 
@@ -96,6 +97,7 @@ export type TUpdateInputSchema = {
   disableAttendeeRescheduleRequestEmail?: boolean;
   disableAttendeeLocationChangeEmail?: boolean;
   disableAttendeeNewEventEmail?: boolean;
+  disableAttendeeCalVideoRecordingEmail?: boolean;
   skipCrmOnBookingReport?: boolean;
 };
 
@@ -139,5 +141,6 @@ export const ZUpdateInputSchema: z.ZodType<TUpdateInputSchema, z.ZodTypeDef, TUp
     disableAttendeeRescheduleRequestEmail: z.boolean().optional(),
     disableAttendeeLocationChangeEmail: z.boolean().optional(),
     disableAttendeeNewEventEmail: z.boolean().optional(),
+    disableAttendeeCalVideoRecordingEmail: z.boolean().optional(),
     skipCrmOnBookingReport: z.boolean().optional(),
   });

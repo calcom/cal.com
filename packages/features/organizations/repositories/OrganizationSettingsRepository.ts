@@ -16,6 +16,7 @@ export class OrganizationSettingsRepository {
         disableAttendeeRescheduleRequestEmail: true,
         disableAttendeeLocationChangeEmail: true,
         disableAttendeeNewEventEmail: true,
+        disableAttendeeCalVideoRecordingEmail: true,
       },
     });
   }
