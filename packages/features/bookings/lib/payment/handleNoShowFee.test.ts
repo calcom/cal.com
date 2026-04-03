@@ -460,4 +460,68 @@ describe("handleNoShowFee", () => {
       expect(getTranslation).toHaveBeenCalledWith("en", "common");
     });
   });
+
+  describe("smtp", () => {
+    it("should pass organizationId from user profile to no-show fee email", async () => {
+      const orgId = 42;
+      const orgBooking = {
+        ...mockBooking,
+        user: {
+          ...mockBooking.user,
+          id: 1,
+          hideBranding: false,
+          profiles: [
+            {
+              organizationId: orgId,
+              organization: { hideBranding: false },
+            },
+          ],
+        },
+        eventTypeId: null,
+      };
+
+      mockPaymentService.chargeCard.mockResolvedValue({ success: true, paymentId: "pay_123" });
+      vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId).mockResolvedValue(
+        mockCredential
+      );
+      vi.mocked(sendNoShowFeeChargedEmail).mockResolvedValue(undefined);
+
+      await handleNoShowFee({
+        booking: orgBooking,
+        payment: mockPayment,
+      });
+
+      expect(sendNoShowFeeChargedEmail).toHaveBeenCalled();
+      const calledEvt = vi.mocked(sendNoShowFeeChargedEmail).mock.calls[0][1];
+      expect(calledEvt.organizationId).toBe(orgId);
+    });
+
+    it("should set organizationId to null when user has no org profile", async () => {
+      const nonOrgBooking = {
+        ...mockBooking,
+        user: {
+          ...mockBooking.user,
+          id: 1,
+          hideBranding: false,
+          profiles: [],
+        },
+        eventTypeId: null,
+      };
+
+      mockPaymentService.chargeCard.mockResolvedValue({ success: true, paymentId: "pay_123" });
+      vi.mocked(CredentialRepository.findPaymentCredentialByAppIdAndUserIdOrTeamId).mockResolvedValue(
+        mockCredential
+      );
+      vi.mocked(sendNoShowFeeChargedEmail).mockResolvedValue(undefined);
+
+      await handleNoShowFee({
+        booking: nonOrgBooking,
+        payment: mockPayment,
+      });
+
+      expect(sendNoShowFeeChargedEmail).toHaveBeenCalled();
+      const calledEvt = vi.mocked(sendNoShowFeeChargedEmail).mock.calls[0][1];
+      expect(calledEvt.organizationId).toBeNull();
+    });
+  });
 });

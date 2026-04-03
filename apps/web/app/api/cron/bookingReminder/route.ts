@@ -58,6 +58,11 @@ async function postHandler(request: NextRequest) {
             destinationCalendar: true,
             isPlatformManaged: true,
             platformOAuthClients: { select: { id: true, areEmailsEnabled: true } },
+            profiles: {
+              select: {
+                organizationId: true,
+              },
+            },
           },
         },
         eventType: {
@@ -65,6 +70,11 @@ async function postHandler(request: NextRequest) {
             recurringEvent: true,
             bookingFields: true,
             metadata: true,
+            team: {
+              select: {
+                parentId: true,
+              },
+            },
           },
         },
         responses: true,
@@ -139,6 +149,7 @@ async function postHandler(request: NextRequest) {
         uid: booking.uid,
         recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
         destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
+        organizationId: user.profiles?.[0]?.organizationId ?? booking.eventType?.team?.parentId ?? null,
       };
 
       await sendOrganizerRequestReminderEmail(evt, booking?.eventType?.metadata as EventTypeMetadata);

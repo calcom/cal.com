@@ -5,21 +5,28 @@ import {
   getBooker,
   getDate,
   getGoogleCalendarCredential,
+  getMockBookingAttendee,
   getOrganizer,
   getScenarioData,
   mockCalendarToHaveNoBusySlots,
   mockSuccessfulVideoMeetingCreation,
   TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
+import { getMockRequestDataForCancelBooking } from "@calcom/testing/lib/bookingScenario/getMockRequestDataForCancelBooking";
 import { processPaymentRefund } from "@calcom/features/bookings/lib/payment/processPaymentRefund";
 import { BookingStatus } from "@calcom/prisma/enums";
 import {
+  expectBookingCancelledWebhookToHaveBeenFired,
+  expectEmailSentViaCustomSmtp,
   expectWorkflowToBeNotTriggered,
   expectWorkflowToBeTriggered,
 } from "@calcom/testing/lib/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/testing/lib/bookingScenario/setupAndTeardown";
+import { testWithOrgSmtpConfig } from "@calcom/testing/lib/bookingScenario/test";
 import { test } from "@calcom/testing/lib/fixtures/fixtures";
 import { beforeEach, describe, expect, vi } from "vitest";
+
+const timeout = 20000;
 
 vi.mock("@calcom/features/bookings/lib/payment/processPaymentRefund", () => ({
   processPaymentRefund: vi.fn(),
@@ -2422,5 +2429,249 @@ describe("Cancel Booking", () => {
 
       expect(result.success).toBe(true);
     });
+  });
+
+  describe("smtp", () => {
+    testWithOrgSmtpConfig(
+      "should send cancellation emails via org custom SMTP when configured",
+      async ({ emails, org }) => {
+        const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@testorg.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const uidOfBookingToBeCancelled = "smtp-cancel-test-uid";
+        const idOfBookingToBeCancelled = 5010;
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+        await createBookingScenario(
+          getScenarioData(
+            {
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 30,
+                  length: 30,
+                  users: [{ id: 101 }],
+                },
+              ],
+              bookings: [
+                {
+                  id: idOfBookingToBeCancelled,
+                  uid: uidOfBookingToBeCancelled,
+                  eventTypeId: 1,
+                  userId: 101,
+                  attendees: [
+                    {
+                      email: booker.email,
+                      name: booker.name,
+                      timeZone: "Asia/Kolkata",
+                    },
+                  ],
+                  responses: {
+                    email: booker.email,
+                    name: booker.name,
+                    location: { optionValue: "", value: BookingLocations.CalVideo },
+                  },
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T05:15:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
+                },
+              ],
+              organizer,
+              apps: [TestData.apps["daily-video"]],
+            },
+            org?.organization
+              ? {
+                  ...org.organization,
+                  profileUsername: "organizer",
+                }
+              : null
+          )
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+          },
+        });
+
+        await handleCancelBooking({
+          bookingData: {
+            id: idOfBookingToBeCancelled,
+            uid: uidOfBookingToBeCancelled,
+            cancelledBy: organizer.email,
+            cancellationReason: "Testing SMTP cancellation",
+          },
+          actionSource: "WEBAPP",
+        });
+
+        // Verify cancellation emails were sent via org custom SMTP
+        expectEmailSentViaCustomSmtp({
+          emails,
+          to: organizer.email,
+          expectedFromEmail: "bookings@testorg.com",
+        });
+        expectEmailSentViaCustomSmtp({
+          emails,
+          to: booker.email,
+          expectedFromEmail: "bookings@testorg.com",
+        });
+      },
+      { fromEmail: "bookings@testorg.com", fromName: "TestOrg Bookings" },
+      timeout
+    );
+
+    testWithOrgSmtpConfig(
+      "should send seat cancellation emails via org custom SMTP when configured",
+      async ({ emails, org }) => {
+        const handleCancelBooking = (await import("@calcom/features/bookings/lib/handleCancelBooking")).default;
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@testorg.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+        });
+
+        const uidOfBooking = "smtp-seat-cancel-uid";
+        const idOfBooking = 5020;
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const seatReferenceUid = "booking-seat-smtp-2";
+
+        await createBookingScenario(
+          getScenarioData(
+            {
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 30,
+                  length: 30,
+                  users: [{ id: 101 }],
+                  seatsPerTimeSlot: 4,
+                  seatsShowAttendees: false,
+                },
+              ],
+              bookings: [
+                {
+                  id: idOfBooking,
+                  uid: uidOfBooking,
+                  eventTypeId: 1,
+                  userId: 101,
+                  attendees: [
+                    getMockBookingAttendee({
+                      id: 1,
+                      name: "Seat 1",
+                      email: "seat1@example.com",
+                      locale: "en",
+                      timeZone: "Asia/Kolkata",
+                      bookingSeat: {
+                        referenceUid: "booking-seat-smtp-1",
+                        data: {},
+                      },
+                    }),
+                    getMockBookingAttendee({
+                      id: 2,
+                      name: "Seat 2",
+                      email: "seat2@example.com",
+                      locale: "en",
+                      timeZone: "Asia/Kolkata",
+                      bookingSeat: {
+                        referenceUid: seatReferenceUid,
+                        data: {},
+                      },
+                    }),
+                  ],
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T05:15:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
+                },
+              ],
+              organizer,
+              apps: [TestData.apps["daily-video"]],
+            },
+            org?.organization
+              ? {
+                  ...org.organization,
+                  profileUsername: "organizer",
+                }
+              : null
+          )
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+          },
+        });
+
+        const mockCancelBookingData = getMockRequestDataForCancelBooking({
+          id: idOfBooking,
+          uid: uidOfBooking,
+          seatReferenceUid,
+        });
+
+        await handleCancelBooking({
+          bookingData: {
+            ...mockCancelBookingData,
+            cancellationReason: "Testing SMTP seat cancellation",
+          },
+          actionSource: "WEBAPP",
+        });
+
+        // Verify seat cancellation emails were sent via org custom SMTP
+        // OrganizerAttendeeCancelledSeatEmail to organizer
+        expectEmailSentViaCustomSmtp({
+          emails,
+          to: organizer.email,
+          expectedFromEmail: "bookings@testorg.com",
+        });
+        // AttendeeCancelledSeatEmail to the cancelled attendee
+        expectEmailSentViaCustomSmtp({
+          emails,
+          to: "seat2@example.com",
+          expectedFromEmail: "bookings@testorg.com",
+        });
+      },
+      { fromEmail: "bookings@testorg.com", fromName: "TestOrg Bookings" },
+      timeout
+    );
   });
 });

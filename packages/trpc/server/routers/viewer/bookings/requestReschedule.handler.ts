@@ -190,6 +190,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source }: RequestRe
     iCalUID: bookingToReschedule.iCalUID,
     iCalSequence: (bookingToReschedule.iCalSequence ?? 0) + 1,
     customReplyToEmail: bookingToReschedule.eventType?.customReplyToEmail,
+    organizationId: eventType?.team?.parentId ?? user.profile?.organizationId ?? null,
     team: bookingToReschedule.eventType?.team
       ? {
           name: bookingToReschedule.eventType.team.name,

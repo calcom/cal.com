@@ -4,6 +4,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { type Booking, type TUser, addGuestsHandler, validateUserPermissions } from "./addGuests.handler";
 
 const {
@@ -84,6 +85,12 @@ vi.mock("@calcom/features/bookings/lib/BookingEmailSmsHandler", () => ({
     return {
       handleAddGuests: vi.fn().mockResolvedValue(undefined),
     };
+  }),
+}));
+
+vi.mock("@calcom/features/ee/event-types/lib/getEventTypeService", () => ({
+  getEventTypeService: vi.fn().mockReturnValue({
+    shouldHideBrandingForEventType: vi.fn().mockResolvedValue(false),
   }),
 }));
 
@@ -300,7 +307,7 @@ describe("addGuests.handler", () => {
         ctx: { user: { id: 1, email: "organizer@example.com", organizationId: null, uuid: "org-uuid" } },
         input: { bookingId: 1, guests: [{ email: "newguest@example.com" }] },
         emailsEnabled: false,
-        actionSource: { type: "system", service: "test" },
+        actionSource: "SYSTEM" as const
       });
 
       expect(mockUpdateCalendarAttendees).toHaveBeenCalledTimes(1);
@@ -322,6 +329,123 @@ describe("addGuests.handler", () => {
         value: "Acme Corp",
         isHidden: false,
       });
+    });
+  });
+
+  describe("addGuestsHandler - organizationId propagation", () => {
+    const ORG_ID = 42;
+
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    const makeBookingFixture = (orgId: number | null) => ({
+      id: 1,
+      uid: "booking-org",
+      userId: 1,
+      eventTypeId: 100,
+      title: "Test Booking",
+      startTime: new Date(),
+      endTime: new Date(),
+      description: "Test",
+      metadata: null,
+      location: "Office",
+      responses: null,
+      customInputs: null,
+      iCalUID: null,
+      iCalSequence: 0,
+      oneTimePassword: null,
+      attendees: [],
+      user: {
+        id: 1,
+        name: "Organizer",
+        email: "organizer@testorg.com",
+        username: "organizer",
+        timeZone: "UTC",
+        locale: "en",
+        timeFormat: 12,
+        destinationCalendar: null,
+        profiles: orgId ? [{ organizationId: orgId }] : [],
+      },
+      destinationCalendar: null,
+      eventType: {
+        id: 100,
+        slug: "test-event",
+        title: "Test Event",
+        description: null,
+        hideCalendarNotes: false,
+        hideCalendarEventDetails: false,
+        hideOrganizerEmail: false,
+        schedulingType: null,
+        seatsPerTimeSlot: null,
+        seatsShowAttendees: false,
+        seatsShowAvailabilityCount: false,
+        customReplyToEmail: null,
+        disableRescheduling: false,
+        disableCancelling: false,
+        requiresConfirmation: false,
+        recurringEvent: null,
+        metadata: null,
+        eventName: null,
+        team: null,
+        users: [],
+        hosts: [],
+        workflows: [],
+        bookingFields: [],
+      },
+      references: [],
+      seatsReferences: [],
+    });
+
+    const handlerInput = {
+      ctx: { user: { id: 1, email: "organizer@testorg.com", organizationId: ORG_ID, uuid: "org-uuid" } },
+      input: { bookingId: 1, guests: [{ email: "guest@example.com" }] },
+      emailsEnabled: false,
+      actionSource: "SYSTEM" as const,
+    };
+
+    it("should pass booking with org profiles to CalendarEventBuilder when user belongs to org", async () => {
+      mockGetBookingForCalEventBuilder.mockResolvedValue(makeBookingFixture(ORG_ID));
+      mockCalendarEventBuild.mockReturnValue({
+        type: "test-event",
+        title: "Test",
+        startTime: new Date().toISOString(),
+        endTime: new Date().toISOString(),
+        organizer: { name: "", email: "", timeZone: "UTC", language: { translate: (k: string) => k, locale: "en" } },
+        attendees: [],
+        organizationId: ORG_ID,
+      });
+
+      await addGuestsHandler(handlerInput);
+
+      expect(vi.mocked(CalendarEventBuilder.fromBooking)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user: expect.objectContaining({
+            profiles: [{ organizationId: ORG_ID }],
+          }),
+        })
+      );
+    });
+
+    it("should pass booking with empty profiles to CalendarEventBuilder when user has no org", async () => {
+      mockGetBookingForCalEventBuilder.mockResolvedValue(makeBookingFixture(null));
+      mockCalendarEventBuild.mockReturnValue({
+        type: "test-event",
+        title: "Test",
+        startTime: new Date().toISOString(),
+        endTime: new Date().toISOString(),
+        organizer: { name: "", email: "", timeZone: "UTC", language: { translate: (k: string) => k, locale: "en" } },
+        attendees: [],
+        organizationId: null,
+      });
+
+      await addGuestsHandler({ ...handlerInput, ctx: { user: { ...handlerInput.ctx.user, organizationId: null } } });
+
+      expect(vi.mocked(CalendarEventBuilder.fromBooking)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          user: expect.objectContaining({ profiles: [] }),
+        })
+      );
     });
   });
 

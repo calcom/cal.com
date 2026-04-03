@@ -51,6 +51,11 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
           username: true,
           credentials: true,
           destinationCalendar: true,
+          profiles: {
+            select: {
+              organizationId: true,
+            },
+          },
         },
       },
     },
@@ -125,6 +130,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
             members: [],
           }
         : undefined,
+      organizationId: userOwner.profiles?.[0]?.organizationId ?? null,
     });
     const director = new CalendarEventDirector();
     director.setBuilder(builder);

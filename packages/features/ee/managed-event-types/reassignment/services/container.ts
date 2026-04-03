@@ -4,7 +4,7 @@ import { UserRepository } from "@calcom/features/users/repositories/UserReposito
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { AssignmentReasonRepository } from "@calcom/features/assignment-reason/repositories/AssignmentReasonRepository";
 import type { LuckyUserService } from "@calcom/features/bookings/lib/getLuckyUser";
-import { ManagedEventManualReassignmentService } from "./ManagedEventManualReassignmentService";
+import { ManagedEventManualReassignmentService } from "./managed-event-manual-reassignment-service";
 import { ManagedEventReassignmentService } from "./ManagedEventReassignmentService";
 import { ManagedEventAssignmentReasonService } from "./ManagedEventAssignmentReasonRecorder";
 

@@ -1245,3 +1245,187 @@ describe("roundRobinManualReassignment - Audit Data Verification", () => {
     });
   });
 });
+
+describe("roundRobinManualReassignment - organizationId propagation", () => {
+  setupAndTeardown();
+
+  beforeEach(() => {
+    const mockOnReassignment = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(getBookingEventHandlerService).mockReturnValue({
+      onReassignment: mockOnReassignment,
+    } as unknown as BookingEventHandlerService);
+  });
+
+  test("should propagate orgId to calEvent.organizationId in reassigned emails when orgId is set", async () => {
+    const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+    await mockEventManagerReschedule();
+
+    const sendReassignedScheduledEmailsAndSMSSpy = vi.spyOn(
+      await import("@calcom/emails/email-manager"),
+      "sendReassignedScheduledEmailsAndSMS"
+    );
+
+    const testDestinationCalendar = createTestDestinationCalendar();
+    const originalHost = createTestUser({ id: 1, destinationCalendar: testDestinationCalendar });
+    const newHost = createTestUser({ id: 2 });
+    const users = [originalHost, newHost];
+
+    const bookingToReassignUid = "booking-org-reassign";
+    const ORG_ID = 42;
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          createRoundRobinEventType({
+            id: 1,
+            slug: "round-robin-event",
+            users,
+          }),
+        ],
+        bookings: [
+          await createTestBooking({
+            eventTypeId: 1,
+            userId: originalHost.id,
+            bookingId: 125,
+            bookingUid: bookingToReassignUid,
+          }),
+        ],
+        organizer: originalHost,
+        usersApartFromOrganizer: users.slice(1),
+      })
+    );
+
+    await roundRobinManualReassignment({
+      bookingId: 125,
+      newUserId: newHost.id,
+      orgId: ORG_ID,
+      reassignedById: 1,
+      actionSource: "WEBAPP",
+      reassignedByUuid: originalHost.uuid,
+    });
+
+    expect(sendReassignedScheduledEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
+    const calEvent = sendReassignedScheduledEmailsAndSMSSpy.mock.calls[0][0].calEvent;
+    expect(calEvent.organizationId).toBe(ORG_ID);
+  });
+
+  test("should set calEvent.organizationId to null when orgId is null", async () => {
+    const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+    await mockEventManagerReschedule();
+
+    const emailManager = await import("@calcom/emails/email-manager");
+    const sendReassignedScheduledEmailsAndSMSSpy = vi.spyOn(emailManager, "sendReassignedScheduledEmailsAndSMS");
+    sendReassignedScheduledEmailsAndSMSSpy.mockClear();
+
+    const testDestinationCalendar = createTestDestinationCalendar();
+    const originalHost = createTestUser({ id: 1, destinationCalendar: testDestinationCalendar });
+    const newHost = createTestUser({ id: 2 });
+    const users = [originalHost, newHost];
+
+    const bookingToReassignUid = "booking-no-org-reassign";
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          createRoundRobinEventType({
+            id: 1,
+            slug: "round-robin-event",
+            users,
+          }),
+        ],
+        bookings: [
+          await createTestBooking({
+            eventTypeId: 1,
+            userId: originalHost.id,
+            bookingId: 126,
+            bookingUid: bookingToReassignUid,
+          }),
+        ],
+        organizer: originalHost,
+        usersApartFromOrganizer: users.slice(1),
+      })
+    );
+
+    await roundRobinManualReassignment({
+      bookingId: 126,
+      newUserId: newHost.id,
+      orgId: null,
+      reassignedById: 1,
+      actionSource: "WEBAPP",
+      reassignedByUuid: originalHost.uuid,
+    });
+
+    expect(sendReassignedScheduledEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
+    const calEvent = sendReassignedScheduledEmailsAndSMSSpy.mock.calls[0][0].calEvent;
+    expect(calEvent.organizationId).toBeNull();
+  });
+
+  test("should propagate orgId to calEvent.organizationId in cancellation emails for previous RR host", async () => {
+    const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+    await mockEventManagerReschedule();
+
+    const emailManager = await import("@calcom/emails/email-manager");
+    const sendReassignedEmailsAndSMSSpy = vi.spyOn(emailManager, "sendReassignedEmailsAndSMS");
+    sendReassignedEmailsAndSMSSpy.mockClear();
+
+    const testDestinationCalendar = createTestDestinationCalendar();
+    const originalHost = createTestUser({ id: 1, destinationCalendar: testDestinationCalendar });
+    const previousRRHost = createTestUser({ id: 2 });
+    const newHost = createTestUser({ id: 3 });
+    const users = [originalHost, previousRRHost, newHost];
+
+    const bookingToReassignUid = "booking-org-reassign-cancel";
+    const ORG_ID = 42;
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          createRoundRobinEventType({
+            id: 1,
+            slug: "round-robin-event",
+            users,
+          }),
+        ],
+        bookings: [
+          await createTestBooking({
+            eventTypeId: 1,
+            userId: originalHost.id,
+            bookingId: 127,
+            bookingUid: bookingToReassignUid,
+            attendees: [
+              getMockBookingAttendee({
+                id: 2,
+                name: "attendee",
+                email: "attendee@test.com",
+                locale: "en",
+                timeZone: "Asia/Kolkata",
+              }),
+              getMockBookingAttendee({
+                id: previousRRHost.id,
+                name: previousRRHost.name,
+                email: previousRRHost.email,
+                locale: "en",
+                timeZone: previousRRHost.timeZone,
+              }),
+            ],
+          }),
+        ],
+        organizer: originalHost,
+        usersApartFromOrganizer: users.slice(1),
+      })
+    );
+
+    await roundRobinManualReassignment({
+      bookingId: 127,
+      newUserId: newHost.id,
+      orgId: ORG_ID,
+      reassignedById: 1,
+      actionSource: "WEBAPP",
+      reassignedByUuid: originalHost.uuid,
+    });
+
+    expect(sendReassignedEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
+    const calEvent = sendReassignedEmailsAndSMSSpy.mock.calls[0][0].calEvent;
+    expect(calEvent.organizationId).toBe(ORG_ID);
+  });
+});

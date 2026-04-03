@@ -239,4 +239,33 @@ describe("billing-email-service", () => {
       expect(ProrationReminderEmail).not.toHaveBeenCalled();
     });
   });
+
+  describe("smtp", () => {
+    it("passes calEvent with organizationId to OrganizerPaymentRefundFailedEmail", async () => {
+      const orgId = 42;
+      const evt = { ...createCalEvent(), organizationId: orgId } as CalendarEvent;
+      await sendOrganizerPaymentRefundFailedEmail(evt);
+
+      const constructorCall = vi.mocked(OrganizerPaymentRefundFailedEmail).mock.calls[0];
+      expect(constructorCall[0]).toEqual(expect.objectContaining({ calEvent: expect.objectContaining({ organizationId: orgId }) }));
+    });
+
+    it("passes calEvent with organizationId to NoShowFeeChargedEmail", async () => {
+      const orgId = 42;
+      const evt = { ...createCalEvent(), organizationId: orgId } as CalendarEvent;
+      const attendee = { email: "a@t.com", name: "A", timeZone: "UTC" } as Person;
+      await sendNoShowFeeChargedEmail(attendee, evt);
+
+      const constructorCall = vi.mocked(NoShowFeeChargedEmail).mock.calls[0];
+      expect(constructorCall[0].organizationId).toBe(orgId);
+    });
+
+    it("passes calEvent without organizationId to OrganizerPaymentRefundFailedEmail when not set", async () => {
+      const evt = createCalEvent();
+      await sendOrganizerPaymentRefundFailedEmail(evt);
+
+      const constructorCall = vi.mocked(OrganizerPaymentRefundFailedEmail).mock.calls[0];
+      expect(constructorCall[0].calEvent.organizationId).toBeUndefined();
+    });
+  });
 });

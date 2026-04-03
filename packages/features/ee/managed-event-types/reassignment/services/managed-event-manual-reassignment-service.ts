@@ -137,6 +137,7 @@ export class ManagedEventManualReassignmentService {
       newBooking,
       originalBookingFull,
       apps,
+      orgId,
       logger: reassignLogger,
     });
 
@@ -229,6 +230,7 @@ export class ManagedEventManualReassignmentService {
         videoCallData,
         additionalInformation,
         reassignReason,
+        orgId,
         logger: reassignLogger,
       });
     }
@@ -421,6 +423,7 @@ export class ManagedEventManualReassignmentService {
     newBooking,
     originalBookingFull,
     apps,
+    orgId,
     logger,
   }: {
     newUser: NonNullable<Awaited<ReturnType<UserRepository["findByIdWithCredentialsAndCalendar"]>>>;
@@ -431,6 +434,7 @@ export class ManagedEventManualReassignmentService {
       Awaited<ReturnType<BookingRepository["findByIdWithAttendeesPaymentAndReferences"]>>
     >;
     apps: ReturnType<typeof eventTypeAppMetadataOptionalSchema.parse>;
+    orgId: number | null;
     logger: ReturnType<typeof loggerType.getSubLogger>;
   }): Promise<{
     bookingLocation: string | null;
@@ -515,6 +519,7 @@ export class ManagedEventManualReassignmentService {
         .withIdentifiers({
           iCalUID: newBooking.iCalUID || undefined,
         })
+        .withOrganization(orgId)
         .withUid(newBooking.uid);
 
       if (newUser.destinationCalendar) {
@@ -669,6 +674,7 @@ export class ManagedEventManualReassignmentService {
     videoCallData,
     additionalInformation,
     reassignReason,
+    orgId,
     logger,
   }: {
     newBooking: ManagedEventReassignmentCreatedBooking;
@@ -682,6 +688,7 @@ export class ManagedEventManualReassignmentService {
     videoCallData: CalendarEvent["videoCallData"];
     additionalInformation: AdditionalInformation;
     reassignReason?: string;
+    orgId: number | null;
     logger: ReturnType<typeof loggerType.getSubLogger>;
   }) {
     try {
@@ -725,6 +732,7 @@ export class ManagedEventManualReassignmentService {
         .withLocation({
           location: bookingLocation || null,
         })
+        .withOrganization(orgId)
         .withUid(newBooking.uid);
 
       if (videoCallData) {

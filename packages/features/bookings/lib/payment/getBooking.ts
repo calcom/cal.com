@@ -231,6 +231,7 @@ export async function getBooking(bookingId: number) {
     disableCancelling: booking.eventType?.disableCancelling ?? false,
     disableCancellingScope: booking.eventType?.disableCancellingScope ?? null,
     disableRescheduling: booking.eventType?.disableRescheduling ?? false,
+    organizationId: organizerOrganizationId ?? booking.eventType?.team?.parentId ?? null,
     disableReschedulingScope: booking.eventType?.disableReschedulingScope ?? null,
   };
 

@@ -31,17 +31,19 @@ vi.mock("@calcom/features/users/repositories/UserRepository", () => ({
   },
 }));
 
+const mockBuildCalEventFromBooking = vi.fn().mockResolvedValue({
+  location: "integrations:zoom",
+  type: "test",
+  title: "Test",
+  startTime: new Date(),
+  endTime: new Date(),
+  organizer: { id: 101, email: "host@example.com", name: "Host" },
+  attendees: [],
+  additionalInformation: {},
+});
+
 vi.mock("@calcom/lib/buildCalEventFromBooking", () => ({
-  buildCalEventFromBooking: vi.fn().mockResolvedValue({
-    location: "integrations:zoom",
-    type: "test",
-    title: "Test",
-    startTime: new Date(),
-    endTime: new Date(),
-    organizer: { id: 101, email: "host@example.com", name: "Host" },
-    attendees: [],
-    additionalInformation: {},
-  }),
+  buildCalEventFromBooking: mockBuildCalEventFromBooking,
 }));
 
 vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
@@ -50,8 +52,10 @@ vi.mock("@calcom/features/bookings/repositories/BookingRepository", () => ({
   },
 }));
 
+const mockSendLocationChangeEmailsAndSMS = vi.fn().mockResolvedValue(undefined);
+
 vi.mock("@calcom/emails/email-manager", () => ({
-  sendLocationChangeEmailsAndSMS: vi.fn().mockResolvedValue(undefined),
+  sendLocationChangeEmailsAndSMS: mockSendLocationChangeEmailsAndSMS,
 }));
 
 vi.mock("@calcom/features/bookings/di/BookingEventHandlerService.container", () => ({
@@ -321,6 +325,167 @@ describe.skip("editLocation.handler", () => {
         },
       });
     });
+  });
+});
+
+describe("editLocation.handler - organizationId propagation", () => {
+  const HOST_ID = 101;
+  const ORG_ID = 42;
+
+  const hostUser = {
+    id: HOST_ID,
+    email: "host@example.com",
+    name: "Host User",
+    locale: "en",
+    metadata: null,
+    destinationCalendar: null,
+  };
+
+  const adminUser = {
+    id: 999,
+    email: "admin@example.com",
+    name: "Admin User",
+    uuid: "admin-uuid",
+    locale: "en",
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUpdateLocation.mockResolvedValue({
+      results: [{ success: true, updatedEvent: {} }],
+      referencesToCreate: [],
+    });
+    mockUserRepoFindByIdOrThrow.mockResolvedValue(hostUser);
+  });
+
+  test("passes organizationId from booking.user.profiles to buildCalEventFromBooking when user belongs to org", async () => {
+    const { editLocationHandler } = await import("./editLocation.handler");
+
+    const booking = {
+      id: 1,
+      uid: "booking-org-1",
+      userId: HOST_ID,
+      location: "integrations:zoom",
+      metadata: {},
+      responses: {},
+      references: [],
+      user: {
+        ...hostUser,
+        profiles: [{ organizationId: ORG_ID }],
+        destinationCalendar: null,
+      },
+      eventType: { metadata: {}, team: null },
+    };
+
+    await editLocationHandler({
+      ctx: {
+        booking: booking as never,
+        user: adminUser as never,
+      },
+      input: {
+        bookingId: 1,
+        newLocation: "integrations:zoom",
+        credentialId: null,
+      },
+      actionSource: "WEBAPP",
+    });
+
+    expect(mockBuildCalEventFromBooking).toHaveBeenCalledTimes(1);
+    expect(mockBuildCalEventFromBooking).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organizationId: ORG_ID,
+      })
+    );
+  });
+
+  test("passes organizationId as null when booking user has no profiles", async () => {
+    const { editLocationHandler } = await import("./editLocation.handler");
+
+    const booking = {
+      id: 1,
+      uid: "booking-no-org-1",
+      userId: HOST_ID,
+      location: "integrations:zoom",
+      metadata: {},
+      responses: {},
+      references: [],
+      user: {
+        ...hostUser,
+        profiles: [],
+        destinationCalendar: null,
+      },
+      eventType: { metadata: {}, team: null },
+    };
+
+    await editLocationHandler({
+      ctx: {
+        booking: booking as never,
+        user: adminUser as never,
+      },
+      input: {
+        bookingId: 1,
+        newLocation: "integrations:zoom",
+        credentialId: null,
+      },
+      actionSource: "WEBAPP",
+    });
+
+    expect(mockBuildCalEventFromBooking).toHaveBeenCalledTimes(1);
+    expect(mockBuildCalEventFromBooking).toHaveBeenCalledWith(
+      expect.objectContaining({
+        organizationId: null,
+      })
+    );
+  });
+
+  test("sendLocationChangeEmailsAndSMS receives calEvent with organizationId from buildCalEventFromBooking", async () => {
+    const { editLocationHandler } = await import("./editLocation.handler");
+
+    // Make buildCalEventFromBooking return a calEvent with organizationId
+    mockBuildCalEventFromBooking.mockResolvedValueOnce({
+      location: "integrations:zoom",
+      type: "test",
+      title: "Test",
+      startTime: new Date(),
+      endTime: new Date(),
+      organizer: { id: HOST_ID, email: "host@example.com", name: "Host" },
+      attendees: [],
+      additionalInformation: {},
+      organizationId: ORG_ID,
+    });
+
+    const booking = {
+      id: 1,
+      uid: "booking-smtp-1",
+      userId: HOST_ID,
+      location: "integrations:zoom",
+      metadata: {},
+      responses: {},
+      references: [],
+      user: {
+        ...hostUser,
+        profiles: [{ organizationId: ORG_ID }],
+        destinationCalendar: null,
+      },
+      eventType: { metadata: {}, team: null },
+    };
+
+    await editLocationHandler({
+      ctx: {
+        booking: booking as never,
+        user: adminUser as never,
+      },
+      input: {
+        bookingId: 1,
+        newLocation: "integrations:zoom",
+        credentialId: null,
+      },
+      actionSource: "WEBAPP",
+    });
+
+    expect(mockSendLocationChangeEmailsAndSMS).toHaveBeenCalledTimes(1);
+    const calEvent = mockSendLocationChangeEmailsAndSMS.mock.calls[0][0];
+    expect(calEvent.organizationId).toBe(ORG_ID);
   });
 });
 
