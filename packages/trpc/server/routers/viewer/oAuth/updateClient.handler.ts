@@ -264,7 +264,6 @@ type UpdateOAuthClientData = {
   name?: string;
   purpose?: string;
   redirectUris?: string[];
-  redirectUri?: string;
   logo?: string | null;
   websiteUrl?: string | null;
   scopes?: AccessScope[];
@@ -303,7 +302,6 @@ function buildUpdateClientUpdateData(params: {
   if (purpose !== undefined) updateData.purpose = purpose;
   if (redirectUris !== undefined) {
     updateData.redirectUris = redirectUris;
-    updateData.redirectUri = redirectUris[0];
   }
   if (logo !== undefined) updateData.logo = logo;
   if (websiteUrl !== undefined) updateData.websiteUrl = websiteUrl;

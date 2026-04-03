@@ -567,7 +567,6 @@ test.describe("OAuth client creation", () => {
         clientId,
         name: clientName,
         purpose: "Approved client for redirectUri reapproval test",
-        redirectUri: "",
         redirectUris: initialRedirectUris,
         websiteUrl: null,
         logo: null,

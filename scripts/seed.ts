@@ -1159,7 +1159,6 @@ async function main() {
       hashedSecret: clientHashedSecret,
       name: "atoms examples app oauth 2 client",
       purpose: "test atoms examples app with oauth 2",
-      redirectUri: "http://localhost:4321",
       redirectUris: ["http://localhost:4321"],
       websiteUrl: "http://localhost:4321",
       enablePkce: false,

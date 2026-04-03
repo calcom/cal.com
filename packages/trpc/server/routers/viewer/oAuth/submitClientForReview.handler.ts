@@ -64,7 +64,7 @@ export const submitClientForReviewHandler = async ({ ctx, input }: SubmitClientO
     clientName: client.name,
     purpose: client.purpose,
     clientId: client.clientId,
-    redirectUri: client.redirectUris.join(", "),
+    redirectUris: client.redirectUris,
     submitterEmail: ctx.user.email,
     submitterName: ctx.user.name,
   });

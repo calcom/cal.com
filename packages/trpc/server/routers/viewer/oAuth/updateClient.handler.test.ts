@@ -435,7 +435,6 @@ describe("updateClientHandler", () => {
 
     expect(mocks.update).toHaveBeenCalledWith(CLIENT_ID, {
       redirectUris: [updatedRedirectUri],
-      redirectUri: updatedRedirectUri,
     });
   });
 

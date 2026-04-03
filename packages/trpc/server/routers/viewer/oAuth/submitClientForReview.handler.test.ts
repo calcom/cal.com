@@ -147,7 +147,7 @@ describe("submitClientHandler", () => {
       clientName: createdClient.name,
       purpose: createdClient.purpose,
       clientId: createdClient.clientId,
-      redirectUri: "https://example.com/callback",
+      redirectUris: ["https://example.com/callback"],
       submitterEmail: ctx.user.email,
       submitterName: ctx.user.name,
     });

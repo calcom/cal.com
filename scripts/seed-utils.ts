@@ -193,7 +193,6 @@ type OAuthClientInput = {
   hashedSecret: string;
   name: string;
   purpose: string;
-  redirectUri: string;
   redirectUris: [string];
   websiteUrl: string;
   enablePkce: boolean;

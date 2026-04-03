@@ -45,7 +45,7 @@ describe("AdminOAuthClientNotification", () => {
       clientName: "My Client",
       purpose: "My Purpose",
       clientId: "client_123",
-      redirectUri: "https://example.com/callback",
+      redirectUris: ["https://example.com/callback"],
       submitterEmail: "submitter@example.com",
       submitterName: "Submitter Name",
     };
@@ -79,7 +79,7 @@ describe("AdminOAuthClientNotification", () => {
     expect(html).toContain(input.clientId);
 
     expect(html).toContain(">Redirect URI<");
-    expect(html).toContain(input.redirectUri);
+    expect(html).toContain(input.redirectUris[0]);
 
     expect(html).toContain(">Submitted By<");
     expect(html).toContain(`${input.submitterName} (${input.submitterEmail})`);

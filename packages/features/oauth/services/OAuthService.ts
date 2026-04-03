@@ -18,7 +18,6 @@ import jwt from "jsonwebtoken";
 
 export interface OAuth2Client {
   clientId: string;
-  redirectUri: string;
   redirectUris: string[];
   name: string;
   logo: string | null;
@@ -89,7 +88,6 @@ export class OAuthService {
 
     return {
       clientId: client.clientId,
-      redirectUri: client.redirectUri,
       redirectUris: client.redirectUris,
       name: client.name,
       logo: client.logo,
@@ -130,7 +128,6 @@ export class OAuthService {
 
     return {
       clientId: client.clientId,
-      redirectUri: client.redirectUri,
       redirectUris: client.redirectUris,
       name: client.name,
       logo: client.logo,
@@ -222,7 +219,6 @@ export class OAuthService {
       authorizationCode,
       client: {
         clientId: client.clientId,
-        redirectUri: client.redirectUri,
         redirectUris: client.redirectUris,
         name: client.name,
         logo: client.logo,

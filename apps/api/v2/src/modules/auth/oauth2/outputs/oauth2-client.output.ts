@@ -1,7 +1,7 @@
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { OAuthClientType } from "@calcom/prisma/enums";
 import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
-import { Expose, Type } from "class-transformer";
+import { Expose, Transform, Type } from "class-transformer";
 import {
   IsArray,
   IsBoolean,
@@ -33,6 +33,7 @@ export class OAuth2ClientDto {
 
   @ApiHideProperty()
   @IsString()
+  @Transform(({ obj }: { obj: { redirectUris?: string[] } }) => obj.redirectUris?.[0])
   @Expose({ name: "redirectUri" })
   redirect_uri!: string;
 

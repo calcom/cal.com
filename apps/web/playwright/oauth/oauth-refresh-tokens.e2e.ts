@@ -37,7 +37,6 @@ test.describe("OAuth - refresh tokens", () => {
       data: {
         clientId,
         name,
-        redirectUri: "https://example.com",
         redirectUris: ["https://example.com"],
         clientType,
         status,

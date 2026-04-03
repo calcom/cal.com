@@ -21,7 +21,6 @@ export const oauthClientTable: TableDefinition = {
       showInList: true,
     },
     { column: "name", label: "Name", type: "string", access: "readonly", searchable: true, showInList: true },
-    { column: "redirectUri", label: "Redirect URI", type: "url", access: "readonly", showInList: false },
     { column: "redirectUris", label: "Redirect URIs", type: "json", access: "readonly", showInList: false },
     {
       column: "clientType",
@@ -62,7 +61,6 @@ export const oauthClientTable: TableDefinition = {
     { column: "createdAt", label: "Created", type: "datetime", access: "readonly", showInList: true },
 
     // Sensitive fields — hidden
-    { column: "clientSecret", label: "Client Secret", type: "string", access: "hidden" },
     { column: "clientSecrets", label: "Client Secrets", type: "string", access: "hidden" },
   ],
 };

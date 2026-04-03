@@ -150,7 +150,6 @@ describe("OAuth2 Controller Endpoints", () => {
       oAuthClient = await oAuthClientFixture.create({
         clientId: testClientId,
         name: "Test OAuth Client",
-        redirectUri: testRedirectUri,
         redirectUris: [testRedirectUri],
         hashedSecret,
         clientType: OAuthClientType.CONFIDENTIAL,

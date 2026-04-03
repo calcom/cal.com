@@ -9,7 +9,7 @@ type AdminOAuthClientNotification = {
   clientName: string;
   purpose: string | null;
   clientId: string;
-  redirectUri: string;
+  redirectUris: string[];
   submitterEmail: string;
   submitterName: string | null;
 };
@@ -18,7 +18,7 @@ export const AdminOAuthClientNotificationEmail = ({
   clientName,
   purpose,
   clientId,
-  redirectUri,
+  redirectUris,
   submitterEmail,
   submitterName,
   language,
@@ -106,7 +106,7 @@ export const AdminOAuthClientNotificationEmail = ({
               }}>
               {language("redirect_uri")}
             </td>
-            <td style={{ padding: "12px", borderBottom: "1px solid #e5e7eb" }}>{redirectUri}</td>
+            <td style={{ padding: "12px", borderBottom: "1px solid #e5e7eb" }}>{redirectUris.join(", ")}</td>
           </tr>
           <tr style={{ lineHeight: "24px" }}>
             <td style={{ padding: "12px", fontWeight: 600 }}>{language("submitted_by")}</td>

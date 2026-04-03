@@ -10,7 +10,7 @@ export type OAuthClientNotification = {
   clientName: string;
   purpose: string | null;
   clientId: string;
-  redirectUri: string;
+  redirectUris: string[];
   submitterEmail: string;
   submitterName: string | null;
 };
@@ -33,7 +33,7 @@ export default class AdminOAuthClientNotification extends BaseEmail {
         clientName: this.input.clientName,
         purpose: this.input.purpose,
         clientId: this.input.clientId,
-        redirectUri: this.input.redirectUri,
+        redirectUris: this.input.redirectUris,
         submitterEmail: this.input.submitterEmail,
         submitterName: this.input.submitterName,
         language: this.input.t,
