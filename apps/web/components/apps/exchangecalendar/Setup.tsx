@@ -9,6 +9,8 @@ import { ExchangeAuthentication, ExchangeVersion } from "@calcom/app-store/excha
 import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/components/alert";
+
+import { isOpenedByCalendarConnectWindow, notifyCalendarConnectWindowAndClose } from "~/auth/calendar-connect-window";
 import { Button } from "@calcom/ui/components/button";
 import { EmailField } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
@@ -65,8 +67,8 @@ export default function ExchangeSetup() {
 
   return (
     <>
-      <div className="bg-emphasis flex h-screen">
-        <div className="bg-default m-auto rounded p-5 md:w-[560px] md:p-10">
+      <div className="bg-emphasis flex h-screen dark:bg-inherit">
+        <div className="bg-default dark:bg-cal-muted border-subtle m-auto rounded p-5 dark:border md:w-[560px] md:p-10">
           <div className="flex flex-col stack-y-5 md:flex-row md:space-x-5 md:stack-y-0">
             <div>
               {/* eslint-disable @next/next/no-img-element */}
@@ -78,7 +80,7 @@ export default function ExchangeSetup() {
             </div>
             <div className="grow">
               <h1 className="text-default">{t("exchange_add")}</h1>
-              <div className="text-sm">{t("credentials_stored_encrypted")}</div>
+              <div className="text-default text-sm">{t("credentials_stored_encrypted")}</div>
               <div className="my-2 mt-5">
                 <Form
                   form={form}
@@ -94,6 +96,8 @@ export default function ExchangeSetup() {
                     const json = await res.json();
                     if (!res.ok) {
                       setErrorMessage(json?.message || t("something_went_wrong"));
+                    } else if (isOpenedByCalendarConnectWindow()) {
+                      notifyCalendarConnectWindowAndClose();
                     } else {
                       router.push(json.url);
                     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { isLegacyClient, parseScopeParam, SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
+import { isLegacyClient, isLegacyScope, parseScopeParam, SCOPE_EXCEEDS_CLIENT_REGISTRATION_ERROR } from "@calcom/features/oauth/constants";
 import { OAUTH_ERROR_REASONS } from "@calcom/features/oauth/services/OAuthService";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -18,7 +18,19 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { getGroupedScopeDisplayItems } from "./scopes";
 
-export function Authorize() {
+type AuthorizeCallbacks = {
+  onAuthorizationAllowed: (data: { authorizationCode: string; redirectUrl: string | null }) => void;
+  onAuthorizationError: (error: { data?: { code?: string } | null; message: string }) => void;
+  onAuthorizationDenied: () => void;
+};
+
+type AuthorizeClassNames = {
+  container?: string;
+  card?: string;
+  footer?: string;
+};
+
+export function Authorize({ callbacks, classNames }: { callbacks?: AuthorizeCallbacks; classNames?: AuthorizeClassNames } = {}) {
   const { t } = useLocale();
   const { status } = useSession();
   const { data: user } = useMeQuery();
@@ -33,6 +45,7 @@ export function Authorize() {
   const code_challenge = searchParams?.get("code_challenge") as string;
   const code_challenge_method = searchParams?.get("code_challenge_method") as string;
   const show_account_selector = searchParams?.get("show_account_selector") === "true";
+  const embedParam = searchParams?.get("onboardingEmbed");
 
   const queryString = searchParams?.toString();
 
@@ -63,10 +76,18 @@ export function Authorize() {
 
   const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
     onSuccess: (data) => {
+      if (callbacks?.onAuthorizationAllowed) {
+        callbacks.onAuthorizationAllowed(data);
+        return;
+      }
       window.location.href =
         data.redirectUrl ?? `${redirect_uri}?code=${data.authorizationCode}&state=${state}`;
     },
     onError: (error) => {
+      if (callbacks?.onAuthorizationError) {
+        callbacks.onAuthorizationError(error);
+        return;
+      }
       if (redirect_uri) {
         redirectToOAuthError({
           redirectUri: redirect_uri,
@@ -119,6 +140,9 @@ export function Authorize() {
       if (registerParam) {
         urlSearchParams.set("register", registerParam);
       }
+      if (embedParam) {
+        urlSearchParams.set("onboardingEmbed", embedParam);
+      }
       router.replace(`/auth/login?${urlSearchParams.toString()}`);
     }
   }, [status]);
@@ -153,15 +177,15 @@ export function Authorize() {
     return (
       <div className="flex justify-center pt-32">
         <div className="flex items-center space-x-3">
-          <span className="text-lg font-medium text-gray-700">{t("authorizing")}</span>
+          <span className="text-emphasis text-lg font-medium">{t("authorizing")}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <div className="px-9 pt-2 pb-3 mt-2 max-w-xl rounded-md border bg-default border-subtle">
+    <div className={classNames?.container ?? "flex justify-center items-center min-h-screen"}>
+      <div className={classNames?.card ?? "px-9 pt-2 pb-3 mt-2 max-w-xl rounded-md border bg-default border-subtle"}>
         <div className="flex justify-center items-center">
           <Avatar
             alt=""
@@ -178,14 +202,14 @@ export function Authorize() {
             </div>
           </div>
         </div>
-        <h1 className="px-5 pt-3 pb-3 text-2xl font-semibold tracking-tight text-center">
+        <h1 className="text-emphasis px-5 pt-3 pb-3 text-2xl font-semibold tracking-tight text-center">
           {t("access_cal_account", {
             clientName: client.name,
             appName: APP_NAME,
           })}
         </h1>
         {!show_account_selector && (
-          <div className="flex flex-col justify-center items-center mb-6 text-sm text-gray-600">
+          <div className="flex flex-col justify-center items-center mb-6 text-sm text-subtle">
             <div className="flex gap-2 items-center" data-testid="signed-in-user">
               <Avatar
                 size="sm"
@@ -215,11 +239,11 @@ export function Authorize() {
             />
           </>
         )}
-        <div className="mt-8 mb-4 text-sm font-semibold">
+        <div className="text-emphasis mt-8 mb-4 text-sm font-semibold">
           {t("allow_client_to", { clientName: client.name })}
         </div>
-        {isLegacy && effectiveScopes.length === 0 ? (
-          <ul className="text-sm stack-y-3" data-testid="legacy-permissions-list">
+        {isLegacy && (effectiveScopes.length === 0 || effectiveScopes.every(isLegacyScope)) ? (
+          <ul className="text-default text-sm stack-y-3" data-testid="legacy-permissions-list">
             <li className="relative pl-5">
               <span className="absolute left-0">&#10003;</span>{" "}
               {t("associate_with_cal_account", { clientName: client.name })}
@@ -250,7 +274,7 @@ export function Authorize() {
             </li>
           </ul>
         ) : (
-          <div className="space-y-4 text-sm">
+          <div className="text-default space-y-4 text-sm">
             {scopeGroups.map((group) => (
               <div key={group.categoryKey ?? "all"}>
                 {group.categoryKey ? (
@@ -273,28 +297,39 @@ export function Authorize() {
             <InfoIcon className="mr-1 mt-0.5 h-4 w-4" />
           </div>
           <div className="ml-1">
-            <div className="mb-1 text-sm font-medium">
+            <div className="text-emphasis mb-1 text-sm font-medium">
               {t("allow_client_to_do", { clientName: client.name })}
             </div>
-            <div className="text-sm">{t("oauth_access_information", { appName: APP_NAME })}</div>{" "}
+            <div className="text-default text-sm">{t("oauth_access_information", { appName: APP_NAME })}</div>{" "}
           </div>
         </div>
+        <div className={classNames?.footer ?? ""}>
         <div className="-mx-9 mb-4 border-b border-subtle border-" />
         <div className="flex justify-end">
-          <Button
-            className="mr-2"
-            color="minimal"
-            onClick={() => {
-              const separator = redirect_uri.includes("?") ? "&" : "?";
-              const params = new URLSearchParams();
-              params.set("error", "access_denied");
-              if (state) {
-                params.set("state", state);
-              }
-              window.location.href = `${redirect_uri}${separator}${params.toString()}`;
-            }}>
-            {t("go_back")}
-          </Button>
+          {!embedParam && (
+            <Button
+              className="mr-2"
+              color="minimal"
+              onClick={() => {
+                const separator = redirect_uri.includes("?") ? "&" : "?";
+                const params = new URLSearchParams();
+                params.set("error", "access_denied");
+                if (state) {
+                  params.set("state", state);
+                }
+                window.location.href = `${redirect_uri}${separator}${params.toString()}`;
+              }}>
+              {t("go_back")}
+            </Button>
+          )}
+          {embedParam && (
+            <Button
+              className="mr-2"
+              color="minimal"
+              onClick={() => callbacks?.onAuthorizationDenied?.()}>
+              {t("deny")}
+            </Button>
+          )}
           <Button
             onClick={() => {
               generateAuthCodeMutation.mutate({
@@ -312,6 +347,7 @@ export function Authorize() {
             data-testid="allow-button">
             {t("allow")}
           </Button>
+        </div>
         </div>
       </div>
     </div>

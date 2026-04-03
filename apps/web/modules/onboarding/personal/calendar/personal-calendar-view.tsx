@@ -17,13 +17,23 @@ import { useAppInstallation } from "../_components/useAppInstallation";
 
 type PersonalCalendarViewProps = {
   userEmail: string;
+  onCompleted?: () => void;
+  backUrl?: string;
+  calendarReturnTo?: string;
 };
 
-export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) => {
+export const PersonalCalendarView = ({
+  userEmail,
+  onCompleted,
+  backUrl,
+  calendarReturnTo,
+}: PersonalCalendarViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
   const { installingAppSlug, setInstallingAppSlug, createInstallHandlers } = useAppInstallation();
-  const { submitPersonalOnboarding, isSubmitting } = useSubmitPersonalOnboarding();
+  const { submitPersonalOnboarding, isSubmitting } = useSubmitPersonalOnboarding({
+    onCompleted,
+  });
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showFadeGradient, setShowFadeGradient] = useState(false);
 
@@ -93,7 +103,7 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
   };
 
   const handleBack = () => {
-    router.push("/onboarding/personal/settings");
+    router.push(backUrl ?? "/onboarding/personal/settings");
   };
 
   return (
@@ -141,7 +151,7 @@ export const PersonalCalendarView = ({ userEmail }: PersonalCalendarViewProps) =
                 isInstalling={installingAppSlug === app.slug}
                 onInstallClick={setInstallingAppSlug}
                 installOptions={createInstallHandlers(app.slug, {
-                  returnTo: `${WEBAPP_URL}/onboarding/personal/calendar`,
+                  returnTo: calendarReturnTo ?? `${WEBAPP_URL}/onboarding/personal/calendar`,
                 })}
               />
             ))}

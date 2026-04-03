@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { isOpenedByCalendarConnectWindow, notifyCalendarConnectWindowAndClose } from "~/auth/calendar-connect-window";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
@@ -23,8 +25,8 @@ export default function Exchange2016CalendarSetup() {
   const [errorMessage, setErrorMessage] = useState("");
 
   return (
-    <div className="bg-emphasis flex h-screen">
-      <div className="bg-default m-auto rounded p-5 md:w-[560px] md:p-10">
+    <div className="bg-emphasis flex h-screen dark:bg-inherit">
+      <div className="bg-default dark:bg-cal-muted border-subtle m-auto rounded p-5 dark:border md:w-[560px] md:p-10">
         <div>
           <img
             src="/api/app-store/exchange2016calendar/icon.svg"
@@ -34,7 +36,7 @@ export default function Exchange2016CalendarSetup() {
         </div>
         <div className="flex w-10/12 flex-col">
           <h1 className="text-default">{t("add_exchange2016")}</h1>
-          <div className="mt-1 text-sm">{t("credentials_stored_encrypted")}</div>
+          <div className="text-default mt-1 text-sm">{t("credentials_stored_encrypted")}</div>
           <div className="my-2 mt-3">
             <Form
               form={form}
@@ -50,6 +52,8 @@ export default function Exchange2016CalendarSetup() {
                 const json = await res.json();
                 if (!res.ok) {
                   setErrorMessage(json?.message || t("something_went_wrong"));
+                } else if (isOpenedByCalendarConnectWindow()) {
+                  notifyCalendarConnectWindowAndClose();
                 } else {
                   router.push(json.url);
                 }

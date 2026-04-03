@@ -395,6 +395,12 @@ const nextConfig = (phase: string): NextConfig => {
       return [
         {
           source: "/auth/:path*",
+          missing: [
+            {
+              type: "cookie" as const,
+              key: "onboarding-embed-verified",
+            },
+          ],
           headers: [
             {
               key: "X-Frame-Options",
@@ -404,6 +410,12 @@ const nextConfig = (phase: string): NextConfig => {
         },
         {
           source: "/signup",
+          missing: [
+            {
+              type: "cookie" as const,
+              key: "onboarding-embed-verified",
+            },
+          ],
           headers: [
             {
               key: "X-Frame-Options",

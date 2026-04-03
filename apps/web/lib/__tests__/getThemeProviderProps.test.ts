@@ -161,6 +161,7 @@ describe("getThemeProviderProps", () => {
 
       expect(result).toEqual({
         ...embedPageExpectedProps,
+        forcedTheme: "dark",
         storageKey: expectedStorageKey,
         key: expectedStorageKey,
       });

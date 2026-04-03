@@ -37,6 +37,8 @@ export default function App({ Component, pageProps }: AppProps) {
 
   const router = useRouter();
   const pathname = router.pathname;
+  const isOnboardingE2e = pathname.startsWith("/e2e/onboarding-");
+  const isOnboarding = pathname.startsWith("/onboarding");
 
   const oAuth2Mode = process.env.NEXT_PUBLIC_OAUTH2_MODE === "true";
 
@@ -47,6 +49,7 @@ export default function App({ Component, pageProps }: AppProps) {
 
 
   useEffect(() => {
+    if (isOnboardingE2e || isOnboarding) return;
     fetch("/api/get-users", { method: "get" }).then(async (res) => {
       const data = await res.json();
       if (data.users.length === 1) {
@@ -66,6 +69,7 @@ export default function App({ Component, pageProps }: AppProps) {
   }, []);
 
   useEffect(() => {
+    if (isOnboardingE2e || isOnboarding) return;
     if (!router.isReady) return;
 
     if (seeding) return;
@@ -117,6 +121,14 @@ export default function App({ Component, pageProps }: AppProps) {
       setUsername(selectedUser.username);
     }
   }, [selectedUser]);
+
+  if (isOnboardingE2e || isOnboarding) {
+    return (
+      <div className={`${poppins.className} text-black`}>
+        <Component {...pageProps} />
+      </div>
+    );
+  }
 
   return (
     <div className={`${poppins.className} text-black`}>

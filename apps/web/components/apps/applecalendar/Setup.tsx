@@ -5,6 +5,8 @@ import { Toaster } from "sonner";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { isOpenedByCalendarConnectWindow, notifyCalendarConnectWindowAndClose } from "~/auth/calendar-connect-window";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { PasswordField } from "@calcom/ui/components/form";
@@ -40,7 +42,7 @@ export default function AppleCalendarSetup() {
               {t("connect_apple_server")}
             </h1>
 
-            <div className="mt-1 text-sm">
+            <div className="text-default mt-1 text-sm">
               {t("apple_server_generate_password", { appName: APP_NAME })}{" "}
               <a
                 className="font-bold hover:underline"
@@ -67,6 +69,8 @@ export default function AppleCalendarSetup() {
                     const json = await res.json();
                     if (!res.ok) {
                       setErrorMessage(t(json?.message) || t("something_went_wrong"));
+                    } else if (isOpenedByCalendarConnectWindow()) {
+                      notifyCalendarConnectWindowAndClose();
                     } else {
                       router.push(json.url);
                     }

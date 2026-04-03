@@ -43,6 +43,8 @@ export { useConnectedCalendars } from "./hooks/useConnectedCalendars";
 export { useIsPlatform } from "./hooks/useIsPlatform";
 export { useMe } from "./hooks/useMe";
 export { ListSchedulesPlatformWrapper as ListSchedules } from "./list-schedules/index";
+export { OnboardingEmbed } from "./onboarding/export";
+export type { OnboardingEmbedProps, OnboardingError } from "./onboarding/types";
 export { Router } from "./router";
 export { SelectedCalendarsSettingsPlatformWrapper as SelectedCalendarsSettings } from "./selected-calendars/index";
 export { TroubleshooterPlatformWrapper as TroubleShooter } from "./troubleshooter/index";

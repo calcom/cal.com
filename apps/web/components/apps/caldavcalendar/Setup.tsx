@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "sonner";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+import { isOpenedByCalendarConnectWindow, notifyCalendarConnectWindowAndClose } from "~/auth/calendar-connect-window";
 import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/components/form";
@@ -24,8 +26,8 @@ export default function CalDavCalendarSetup() {
   const [errorActionUrl, setErrorActionUrl] = useState("");
 
   return (
-    <div className="bg-emphasis flex h-screen">
-      <div className="bg-default m-auto rounded p-5 md:w-[560px] md:p-10">
+    <div className="bg-emphasis flex h-screen dark:bg-inherit">
+      <div className="bg-default dark:bg-cal-muted border-subtle m-auto rounded p-5 dark:border md:w-[560px] md:p-10">
         <div className="flex flex-col stack-y-5 md:flex-row md:space-x-5 md:stack-y-0">
           <div>
             {/* eslint-disable @next/next/no-img-element */}
@@ -37,7 +39,7 @@ export default function CalDavCalendarSetup() {
           </div>
           <div className="flex w-10/12 flex-col">
             <h1 className="text-default">{t("connect_caldav")}</h1>
-            <div className="mt-1 text-sm">{t("credentials_stored_encrypted")}</div>
+            <div className="text-default mt-1 text-sm">{t("credentials_stored_encrypted")}</div>
             <div className="my-2 mt-3">
               <Form
                 form={form}
@@ -56,6 +58,8 @@ export default function CalDavCalendarSetup() {
                     if (json.actionUrl) {
                       setErrorActionUrl(json.actionUrl);
                     }
+                  } else if (isOpenedByCalendarConnectWindow()) {
+                    notifyCalendarConnectWindowAndClose();
                   } else {
                     router.push(json.url);
                   }

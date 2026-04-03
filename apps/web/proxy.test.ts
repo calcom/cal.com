@@ -485,6 +485,21 @@ describe("Middleware Matcher Configuration", () => {
       "/:path*/embed",
       "/availability",
       "/api/auth/signup",
+      "/onboarding/:path*",
+      "/auth/oauth2/authorize",
+      "/signup",
     ]);
+  });
+
+  describe("Onboarding Embed Cookie", () => {
+    it("should not set frame-ancestors without embed-verified cookie", async () => {
+      const req = createTestRequest({
+        url: `${WEBAPP_URL}/auth/login?embed=true&client_id=fake&redirect_uri=https://evil.com&scope=read&state=abc`,
+      });
+
+      const res = await callProxy(req);
+      const csp = getHeader(res, "content-security-policy");
+      expect(!csp || !csp.includes("frame-ancestors")).toBe(true);
+    });
   });
 });

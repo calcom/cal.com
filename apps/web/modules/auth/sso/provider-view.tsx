@@ -18,6 +18,7 @@ export default function Provider(props: SSOProviderPageProps) {
 
   useEffect(() => {
     const email = searchParams?.get("email");
+    const callbackUrl = searchParams?.get("callbackUrl") || undefined;
     if (props.provider === "saml") {
       if (!email) {
         router.push(`/auth/error?error=Email not provided`);
@@ -31,7 +32,9 @@ export default function Provider(props: SSOProviderPageProps) {
 
       signIn("saml", {}, { tenant: props.tenant, product: props.product });
     } else if (props.provider === "google" && email) {
-      signIn("google", {}, { login_hint: email });
+      signIn("google", { callbackUrl }, { login_hint: email });
+    } else if (props.provider === "google") {
+      signIn("google", { callbackUrl });
     } else if (props.provider === "microsoft") {
       signIn("azure-ad");
     } else {

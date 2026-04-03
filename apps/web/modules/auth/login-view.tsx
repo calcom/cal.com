@@ -9,7 +9,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/components/alert";
 import { Icon } from "@calcom/ui/components/icon";
+import { showToast } from "@calcom/ui/components/toast";
 import { SAMLLogin } from "@calcom/web/modules/auth/components/SAMLLogin";
+import { openGoogleAuthWindow, useGoogleAuthWindowListener } from "@calcom/web/modules/auth/google-auth-window";
 import { LastUsed, useLastUsed } from "@calcom/web/modules/auth/hooks/useLastUsed";
 import { AnimatedGridBackground } from "@calcom/web/modules/auth/world-map";
 import AddToHomescreen from "@components/AddToHomescreen";
@@ -102,6 +104,24 @@ export default function Login({
 
   callbackUrl = safeCallbackUrl || "";
 
+  const isEmbed = searchParams?.get("onboardingEmbed") === "true";
+  const embedThemeParam = isEmbed ? searchParams?.get("theme") : null;
+  const embedEmail = isEmbed ? searchParams?.get("email") : null;
+  const embedUsername = isEmbed ? searchParams?.get("username") : null;
+
+  useGoogleAuthWindowListener(isEmbed);
+
+  const signupUrl = (() => {
+    if (!callbackUrl) return `${WEBSITE_URL}/signup`;
+    
+    const params = new URLSearchParams({ redirect: callbackUrl });
+    if (isEmbed) params.set("onboardingEmbed", "true");
+    if (embedThemeParam) params.set("theme", embedThemeParam);
+    if (embedEmail) params.set("email", embedEmail);
+    if (embedUsername) params.set("username", embedUsername);
+    return `${WEBSITE_URL}/signup?${params.toString()}`;
+  })();
+
   const { data, isPending, error } = trpc.viewer.public.ssoConnections.useQuery();
 
   useEffect(
@@ -171,9 +191,15 @@ export default function Login({
                           onClick={async (e) => {
                             e.preventDefault();
                             setLastUsed("google");
-                            await signIn("google", {
-                              callbackUrl,
-                            });
+                            if (isEmbed) {
+                              if (!openGoogleAuthWindow()) {
+                                showToast(t("popup_blocked_by_browser"), "error");
+                              }
+                            } else {
+                              await signIn("google", {
+                                callbackUrl,
+                              });
+                            }
                           }}>
                           <GoogleIcon />
                           <span>{t("signin_with_google")}</span>
@@ -338,11 +364,7 @@ export default function Login({
               <CardFrameFooter className="flex items-center justify-center gap-3">
                 {showSignupLink && (
                   <Link
-                    href={
-                      callbackUrl
-                        ? `${WEBSITE_URL}/signup?redirect=${encodeURIComponent(callbackUrl)}`
-                        : `${WEBSITE_URL}/signup`
-                    }
+                    href={signupUrl}
                     className="text-sm font-medium text-emphasis hover:underline">
                     {t("create_account")}
                   </Link>

@@ -1,15 +1,38 @@
+import type { PlaywrightTestConfig } from "@playwright/test";
 import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
-import path from "node:path"
+import path from "node:path";
 
 const envPath = process.env.CI ? path.resolve(__dirname, ".env") : path.resolve(__dirname, ".env.local");
 
 dotenv.config({ path: envPath });
 
+
 const DEFAULT_EXPECT_TIMEOUT = process.env.CI ? 30000 : 120000;
 const DEFAULT_TEST_TIMEOUT = process.env.CI ? 60000 : 240000;
 
 const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
+
+const webServer: PlaywrightTestConfig["webServer"] = [
+  {
+    command: process.env.CI
+      ? `yarn workspace @calcom/atoms dev-on && yarn workspace @calcom/atoms build && rm -f prisma/dev.db && yarn prisma db push && NEXT_PUBLIC_IS_E2E=1 NODE_ENV=test NEXT_PUBLIC_X_CAL_ID="${process.env.ATOMS_E2E_OAUTH_CLIENT_ID}" X_CAL_SECRET_KEY="${process.env.ATOMS_E2E_OAUTH_CLIENT_SECRET}" NEXT_PUBLIC_CALCOM_API_URL="${process.env.ATOMS_E2E_API_URL}" VITE_BOOKER_EMBED_OAUTH_CLIENT_ID="${process.env.ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED}" VITE_BOOKER_EMBED_API_URL="${process.env.ATOMS_E2E_API_URL}" ORGANIZATION_ID=${process.env.ATOMS_E2E_ORG_ID} yarn dev:e2e`
+      : `rm -f prisma/dev.db && yarn prisma db push && yarn dev:e2e`,
+    url: "http://localhost:4322",
+    timeout: 600_000,
+    reuseExistingServer: !process.env.CI,
+  },
+];
+
+if (process.env.ONBOARDING_E2E) {
+  webServer.push({
+    command:
+      "yarn workspace @calcom/web copy-app-store-static && NEXT_PUBLIC_IS_E2E=1 NODE_OPTIONS='--dns-result-order=ipv4first' yarn workspace @calcom/web start -p 3000",
+    url: "http://localhost:3000",
+    timeout: 120_000,
+    reuseExistingServer: !process.env.CI,
+  });
+}
 
 export default defineConfig({
   forbidOnly: !!process.env.CI,
@@ -42,12 +65,5 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
-    command: process.env.CI
-      ? `yarn workspace @calcom/atoms dev-on && yarn workspace @calcom/atoms build && rm -f prisma/dev.db && yarn prisma db push && NEXT_PUBLIC_IS_E2E=1 NODE_ENV=test NEXT_PUBLIC_X_CAL_ID="${process.env.ATOMS_E2E_OAUTH_CLIENT_ID}" X_CAL_SECRET_KEY="${process.env.ATOMS_E2E_OAUTH_CLIENT_SECRET}" NEXT_PUBLIC_CALCOM_API_URL="${process.env.ATOMS_E2E_API_URL}" VITE_BOOKER_EMBED_OAUTH_CLIENT_ID="${process.env.ATOMS_E2E_OAUTH_CLIENT_ID_BOOKER_EMBED}" VITE_BOOKER_EMBED_API_URL="${process.env.ATOMS_E2E_API_URL}" ORGANIZATION_ID=${process.env.ATOMS_E2E_ORG_ID} yarn dev:e2e`
-      : `rm -f prisma/dev.db && yarn prisma db push && yarn dev:e2e`,
-    url: "http://localhost:4322",
-    timeout: 600_000,
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer,
 });

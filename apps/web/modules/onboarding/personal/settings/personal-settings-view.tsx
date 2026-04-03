@@ -24,12 +24,14 @@ type PersonalSettingsViewProps = {
   userEmail: string;
   userName?: string;
   fromTeamOnboarding?: boolean;
+  nextStepUrl?: string;
 };
 
 export const PersonalSettingsView = ({
   userEmail,
   userName,
   fromTeamOnboarding = false,
+  nextStepUrl,
 }: PersonalSettingsViewProps) => {
   const router = useRouter();
   const { t } = useLocale();
@@ -108,7 +110,7 @@ export const PersonalSettingsView = ({
     // Refresh the NextAuth session so server-side checks see completedOnboarding: true
     await updateSession();
 
-    router.push("/onboarding/personal/calendar");
+    router.push(nextStepUrl ?? "/onboarding/personal/calendar");
   });
 
   if (!user) {
@@ -122,15 +124,18 @@ export const PersonalSettingsView = ({
         <OnboardingCard
           title={t("add_your_details")}
           subtitle={t("personal_details_subtitle")}
+          floatingFooter={true}
           footer={
-            <div className="flex w-full items-center justify-end gap-4">
-              {!fromTeamOnboarding && (
+            <div className="flex w-full items-center justify-between gap-4">
+              {!fromTeamOnboarding ? (
                 <Button
                   color="minimal"
                   className="rounded-[10px]"
                   onClick={() => router.push("/onboarding/getting-started")}>
                   {t("back")}
                 </Button>
+              ) : (
+                <div />
               )}
               <Button
                 type="submit"

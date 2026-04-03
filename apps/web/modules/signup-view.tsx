@@ -28,6 +28,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { INVALID_CLOUDFLARE_TOKEN_ERROR } from "@calcom/lib/server/checkCfTurnstileToken";
+import { openGoogleAuthWindow, useGoogleAuthWindowListener } from "@calcom/web/modules/auth/google-auth-window";
 import { signupSchema as apiSignupSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import classNames from "@calcom/ui/classNames";
@@ -203,6 +204,7 @@ export default function Signup({
   const [displayEmailForm, setDisplayEmailForm] = useState(token);
   const [turnstileKey, setTurnstileKey] = useState(0);
   const searchParams = useCompatSearchParams();
+  const isEmbed = searchParams?.get("onboardingEmbed") === "true";
   const { t, i18n } = useLocale();
   const router = useRouter();
   const formMethods = useForm<FormValues>({
@@ -222,14 +224,31 @@ export default function Signup({
     }
   }, [redirectUrl]);
 
+  useEffect(() => {
+    if (!searchParams) return;
+    const usernameParam = searchParams.get("username");
+    if (usernameParam && !formMethods.getValues("username")) {
+      formMethods.setValue("username", usernameParam);
+    }
+    const emailParam = searchParams.get("email");
+    if (emailParam && !formMethods.getValues("email")) {
+      formMethods.setValue("email", emailParam);
+    }
+  }, [searchParams, formMethods]);
+
+  useGoogleAuthWindowListener(isEmbed);
+
   const loadingSubmitState = isSubmitSuccessful || isSubmitting;
   const displayBackButton = token ? false : displayEmailForm;
 
   const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
 
   const isOAuthSignup = redirectUrl?.includes("auth/oauth2/authorize") ?? false;
+  const isEmbedOAuthSignup = (isEmbed && redirectUrl?.includes("client_id")) ?? false;
   const oauthClientId =
-    isOAuthSignup && redirectUrl ? new URL(redirectUrl).searchParams.get("client_id") : null;
+    (isOAuthSignup || isEmbedOAuthSignup) && redirectUrl
+      ? new URL(redirectUrl, window.location.origin).searchParams.get("client_id")
+      : null;
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
     const { cfToken, ...data } = _data;
@@ -241,6 +260,7 @@ export default function Signup({
       is_premium_username: premiumUsername,
       username_taken: usernameTaken,
       is_oauth_signup: isOAuthSignup,
+      is_embed_oauth_signup: isEmbedOAuthSignup,
       oauth_client_id: oauthClientId,
     });
 
@@ -257,10 +277,13 @@ export default function Signup({
       if (!result.ok) {
         if (isUserAlreadyExistsError(result)) {
           showToast(t(token ? "account_already_exists_please_login" : "account_already_exists"), "warning");
-          const callbackUrl = token ? `/teams?token=${token}` : "/event-types";
+          
+          let callbackUrl = redirectUrl || "/event-types";
+          if (token) callbackUrl = `/teams?token=${token}`;
+
           setTimeout(() => {
             router.push(
-              `/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}&email=${encodeURIComponent(data.email)}`
+              `/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}&email=${encodeURIComponent(data.email)}${isEmbed ? "&onboardingEmbed=true" : ""}`
             );
           }, 3000);
           return;
@@ -305,6 +328,11 @@ export default function Signup({
       };
 
       const constructCallBackIfUrlNotPresent = () => {
+        if (redirectUrl) return redirectUrl;
+        if (isEmbed) {
+          const redirect = searchParams?.get("redirect");
+          if (redirect) return redirect;
+        }
         if (isPlatformUser) {
           return `${WEBAPP_URL}/${gettingStartedWithPlatform}?from=signup`;
         }
@@ -337,6 +365,7 @@ export default function Signup({
         is_premium_username: premiumUsername,
         error_message: errorMessage,
         is_oauth_signup: isOAuthSignup,
+        is_embed_oauth_signup: isEmbedOAuthSignup,
         oauth_client_id: oauthClientId,
       });
       formMethods.setError("apiError", { message: errorMessage });
@@ -384,12 +413,17 @@ export default function Signup({
       ) : null}
       <div
         className={classNames(
-          "light bg-cal-muted 2xl:bg-default flex min-h-screen w-full flex-col items-center justify-center [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
+          "flex min-h-screen w-full flex-col items-center justify-center [--cal-brand:#111827] dark:[--cal-brand:#FFFFFF]",
           "[--cal-brand-subtle:#9CA3AF]",
           "[--cal-brand-text:#FFFFFF] dark:[--cal-brand-text:#000000]",
-          "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1] "
+          "[--cal-brand-emphasis:#101010] dark:[--cal-brand-emphasis:#e1e1e1]",
+          isEmbed ? "bg-default text-emphasis" : "light bg-cal-muted 2xl:bg-default"
         )}>
-        <div className="bg-cal-muted 2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6">
+        <div
+          className={classNames(
+            "2xl:border-subtle grid w-full max-w-[1440px] grid-cols-1 grid-rows-1 overflow-hidden lg:grid-cols-2 2xl:rounded-[20px] 2xl:border 2xl:py-6",
+            isEmbed ? "bg-default" : "bg-cal-muted"
+          )}>
           {/* Left side */}
           <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-24 2xl:px-28">
             {accountUnderReview ? (
@@ -718,7 +752,14 @@ export default function Signup({
                               ? `${GOOGLE_AUTH_URL}?${searchQueryParams.toString()}`
                               : GOOGLE_AUTH_URL;
 
-                            router.push(url);
+                            if (isEmbed) {
+                              if (!openGoogleAuthWindow()) {
+                                showToast(t("popup_blocked_by_browser"), "error");
+                              }
+                              setIsGoogleLoading(false);
+                            } else {
+                              router.push(url);
+                            }
                           }}>
                           {t("continue_with_google")}
                         </Button>
@@ -843,7 +884,10 @@ export default function Signup({
               </>
             )}
           </div>
-          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
+          <div className={classNames(
+            "border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:max-w-full lg:border lg:py-12 lg:pl-12",
+            isEmbed ? "hidden" : "lg:flex"
+          )}>
             {IS_CALCOM && (
               <>
                 <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">

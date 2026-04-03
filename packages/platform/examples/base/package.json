@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:onboarding": "ONBOARDING_E2E=1 playwright test tests/onboarding-embed/"
   },
   "dependencies": {
     "@calcom/atoms": "workspace:*",

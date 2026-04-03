@@ -138,8 +138,14 @@ export function getThemeProviderProps({
         ? `booking-theme${appearanceIdSuffix}`
         : undefined;
 
+  const embedForcedTheme =
+    isEmbedMode && themeParsed.success && themeParsed.data !== "auto" && themeParsed.data !== "system"
+      ? themeParsed.data
+      : undefined;
+
   const themeProviderProps = {
     storageKey,
+    forcedTheme: embedForcedTheme,
     nonce: props.nonce,
     enableColorScheme: false,
     // Enables theme switching based on system preference if true

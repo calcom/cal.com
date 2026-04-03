@@ -28,7 +28,7 @@ const DEFAULT_EVENT_TYPES = [
   },
 ];
 
-export const useSubmitPersonalOnboarding = () => {
+export const useSubmitPersonalOnboarding = ({ onCompleted }: { onCompleted?: () => void } = {}) => {
   const router = useRouter();
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -57,6 +57,11 @@ export const useSubmitPersonalOnboarding = () => {
       }
 
       await utils.viewer.me.get.refetch();
+
+      if (onCompleted) {
+        onCompleted();
+        return;
+      }
 
       const redirectUrl = localStorage.getItem(ONBOARDING_REDIRECT_KEY);
       if (redirectUrl) {

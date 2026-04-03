@@ -8,7 +8,7 @@ import { hashPassword } from "@calcom/lib/auth/hashPassword";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import prisma from "@calcom/prisma";
 import type { Prisma, UserPermissionRole } from "@calcom/prisma/client";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { type AccessScope, MembershipRole } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export async function createUserAndEventType({
@@ -196,15 +196,17 @@ type OAuthClientInput = {
   redirectUris: [string];
   websiteUrl: string;
   enablePkce: boolean;
+  scopes?: AccessScope[];
 };
 
 export async function createOAuthClientForUser(userId: number, oAuthClient: OAuthClientInput) {
-  const { enablePkce, hashedSecret, ...restOfOAuthClient } = oAuthClient;
+  const { enablePkce, hashedSecret, scopes, ...restOfOAuthClient } = oAuthClient;
   await prisma.oAuthClient.create({
     data: {
       userId,
       ...restOfOAuthClient,
       clientType: enablePkce ? "PUBLIC" : "CONFIDENTIAL",
+      scopes: scopes ?? [],
       ...(hashedSecret && {
         clientSecrets: { create: { hashedSecret, secretHint: "****" } },
       }),

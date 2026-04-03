@@ -4,9 +4,42 @@ import { usePathname } from "next/navigation";
 
 import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getCenteredPopupFeatures } from "@calcom/lib/popup";
+import { showToast } from "@calcom/ui/components/toast";
 import type { App } from "@calcom/types/App";
 
-function gotoUrl(url: string, newTab?: boolean) {
+function isInOnboardingEmbed() {
+  return new URLSearchParams(window.location.search).get("onboardingEmbed") === "true";
+}
+
+function appendEmbedParamsToUrl(url: string, theme?: string | null): string {
+  const parsed = new URL(url, window.location.origin);
+  parsed.searchParams.set("calendarConnectPopup", "true");
+  parsed.searchParams.set("onboardingEmbed", "true");
+  if (theme) {
+    parsed.searchParams.set("theme", theme);
+  }
+  return parsed.toString();
+}
+
+function openEmbedPopup(url: string, preOpenedPopup: Window | null): void {
+  const theme = new URLSearchParams(window.location.search).get("theme");
+  const popupUrl = appendEmbedParamsToUrl(url, theme);
+  if (preOpenedPopup) {
+    preOpenedPopup.location.href = popupUrl;
+  } else {
+    const popup = window.open(popupUrl, "calendar-connect-window", getCenteredPopupFeatures(600, 700));
+    if (!popup) {
+      showToast("Popup blocked by browser. Please allow popups for this site to connect your calendar.", "error");
+    }
+  }
+}
+
+function gotoUrl(url: string, newTab?: boolean, preOpenedPopup?: Window | null) {
+  if (isInOnboardingEmbed()) {
+    openEmbedPopup(url, preOpenedPopup ?? null);
+    return;
+  }
   if (newTab) {
     window.open(url, "_blank");
     return;
@@ -52,6 +85,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
         : variables && variables.returnTo
         ? variables.returnTo
         : undefined;
+      const inOnboardingEmbed = isInOnboardingEmbed();
       if (variables === "") {
         type = _type;
       } else {
@@ -80,9 +114,15 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
         returnTo,
       });
 
+      // note(Lauris): pre-open popup synchronously before the async fetch — Safari and Mozilla block window.open() after await
+      const preOpenedPopup = inOnboardingEmbed
+        ? window.open("about:blank", "calendar-connect-window", getCenteredPopupFeatures(600, 700))
+        : null;
+
       const res = await fetch(`/api/integrations/${type}/add${searchParams}`);
 
       if (!res.ok) {
+        preOpenedPopup?.close();
         const errorBody = await res.json();
         throw new Error(errorBody.message || "Something went wrong");
       }
@@ -93,19 +133,21 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
       // Check first that the URL is absolute, then check that it is of different origin from the current.
       if (externalUrl) {
         // TODO: For Omni installation to authenticate and come back to the page where installation was initiated, some changes need to be done in all apps' add callbacks
-        gotoUrl(json.url, json.newTab);
-        return { setupPending: !json.newTab, message: json.message };
+        gotoUrl(json.url, json.newTab, preOpenedPopup);
+        return { setupPending: inOnboardingEmbed ? false : !json.newTab, message: json.message };
       } else if (json.url) {
-        gotoUrl(json.url, json.newTab);
+        gotoUrl(json.url, json.newTab, preOpenedPopup);
         return {
-          setupPending:
-            json?.url?.endsWith("/setup") || json?.url?.includes("/apps/installation/event-types"),
+          setupPending: inOnboardingEmbed
+            ? false
+            : json?.url?.endsWith("/setup") || json?.url?.includes("/apps/installation/event-types"),
           message: json.message,
         };
       } else if (returnTo) {
-        gotoUrl(returnTo, false);
-        return { setupPending: true, message: json.message };
+        gotoUrl(returnTo, false, preOpenedPopup);
+        return { setupPending: inOnboardingEmbed ? false : true, message: json.message };
       } else {
+        preOpenedPopup?.close();
         return { setupPending: false, message: json.message };
       }
     },

@@ -1,5 +1,6 @@
 import process from "node:process";
 import { getCspHeader, getCspNonce } from "@lib/csp";
+import { verifyOnboardingEmbedVerifiedCookie, ONBOARDING_EMBED_VERIFIED_COOKIE_NAME } from "@lib/onboarding-embed-verified-cookie";
 import { get } from "@vercel/edge-config";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
@@ -101,7 +102,7 @@ const proxy = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     res.cookies.delete("next-auth.session-token");
   }
 
-  return responseWithHeaders({ url, res, req: reqWithEnrichedHeaders });
+  return await responseWithHeaders({ url, res, req: reqWithEnrichedHeaders });
 };
 
 const embeds = {
@@ -151,9 +152,39 @@ const contentSecurityPolicy = {
   },
 };
 
-function responseWithHeaders({ url, res, req }: { url: URL; res: NextResponse; req: NextRequest }) {
+const onboardingEmbed = {
+  addResponseHeaders: ({ res, trustedOrigin }: { res: NextResponse; trustedOrigin: string }) => {
+    const existing = res.headers.get("Content-Security-Policy") || "";
+    if (existing.includes("frame-ancestors")) return res;
+    const separator = existing ? "; " : "";
+    res.headers.set("Content-Security-Policy", `${existing}${separator}frame-ancestors ${trustedOrigin}`);
+    return res;
+  },
+};
+
+function isOnboardingEmbedRequest(url: URL): boolean {
+  const { searchParams } = url;
+  return (
+    searchParams.get("onboardingEmbed") === "true" &&
+    !!searchParams.get("client_id") &&
+    !!searchParams.get("redirect_uri") &&
+    !!searchParams.get("scope") &&
+    !!searchParams.get("state")
+  );
+}
+
+async function responseWithHeaders({ url, res, req }: { url: URL; res: NextResponse; req: NextRequest }) {
   const resWithCSP = contentSecurityPolicy.addResponseHeaders({ res, req });
   const resWithEmbeds = embeds.addResponseHeaders({ url, res: resWithCSP });
+
+  const onboardingEmbedCookie = req.cookies.get(ONBOARDING_EMBED_VERIFIED_COOKIE_NAME)?.value;
+  if (onboardingEmbedCookie && isOnboardingEmbedRequest(url)) {
+    const trustedOrigin = await verifyOnboardingEmbedVerifiedCookie(onboardingEmbedCookie);
+    if (trustedOrigin) {
+      return onboardingEmbed.addResponseHeaders({ res: resWithEmbeds, trustedOrigin });
+    }
+  }
+
   return resWithEmbeds;
 }
 
@@ -163,7 +194,7 @@ function enrichRequestWithHeaders({ req }: { req: NextRequest }) {
 }
 
 export const config = {
-  matcher: ["/auth/login", "/login", "/apps/installed", "/auth/logout", "/:path*/embed", "/availability", "/api/auth/signup"],
+  matcher: ["/auth/login", "/login", "/apps/installed", "/auth/logout", "/:path*/embed", "/availability", "/api/auth/signup", "/onboarding/:path*", "/auth/oauth2/authorize", "/signup"],
 };
 
 export default proxy;
