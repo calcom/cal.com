@@ -1,7 +1,7 @@
 import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-enums";
 import {
-  type CreateEventTypeInput_2024_06_14,
   type BookingLimitsKeyOutputType_2024_06_14,
+  type CreateEventTypeInput_2024_06_14,
   type TransformBookingLimitsSchema_2024_06_14,
 } from "@calcom/platform-types";
 
@@ -13,7 +13,10 @@ export function transformIntervalLimitsApiToInternal(
     return res;
   }
   inputBookingLimits &&
-    Object.entries(inputBookingLimits).map(([key, value]) => {
+    Object.entries(inputBookingLimits).forEach(([key, value]) => {
+      if (!(key in BookingLimitsEnum_2024_06_14)) {
+        return;
+      }
       const outputKey: BookingLimitsKeyOutputType_2024_06_14 = BookingLimitsEnum_2024_06_14[
         key as keyof typeof BookingLimitsEnum_2024_06_14
       ] satisfies BookingLimitsKeyOutputType_2024_06_14;
