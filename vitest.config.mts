@@ -132,11 +132,22 @@ export default defineConfig({
         "**/node_modules/**",
         "**/__mocks__/**",
         "**/*.generated.ts",
+        "**/*.d.ts",
         "**/dist/**",
         "**/apps/api/v2/**",
         "**/apps/web/playwright/**",
         "**/packages/platform/examples/**",
         "**/packages/platform/types/**",
+        // Platform atoms uses @/ path aliases that Vite cannot resolve during
+        // coverage collection, causing Rollup parse failures.
+        "**/packages/platform/atoms/connect/**",
+        "**/packages/platform/atoms/*/wrappers/**",
+        "**/packages/platform/atoms/src/components/**",
+        // DI module wiring files use inline `type` imports that Rollup's JS
+        // parser cannot handle. They contain no testable logic.
+        "**/*.module.ts",
+        // Barrel re-export files using `export type` syntax.
+        "**/packages/features/ee/organizations/lib/service/onboarding/index.ts",
         "**/trigger/config.ts",
         "**/trigger/schema.ts",
         "**/seed.ts",

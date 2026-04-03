@@ -3,10 +3,29 @@ import "@calcom/testing/lib/__mocks__/prisma";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 // Prevent vitest worker shutdown race condition: getCalendarsEvents transitively imports
-// webhook DI modules which load the payload builder registry (v2021-10-20/index.ts).
-// The RecordingPayloadBuilder import triggers slow module resolution via vite's RPC.
-// When the worker shuts down before it completes, it causes
-// "Closing rpc while fetch was pending" errors.
+// the webhook DI container (via getCalendar → CalendarSubscription DI → videoClient →
+// office365video → triggerDelegationCredentialErrorWebhook → webhook container).
+// The container eagerly imports OOOWebhookService → WebhookService at module scope.
+// If those imports resolve after the test environment tears down, vitest throws
+// EnvironmentTeardownError. Mocking the container and registry prevents the deep chain.
+vi.mock("@calcom/features/di/webhooks/containers/webhook", () => ({
+  webhookContainer: {},
+  getWebhookTaskConsumer: vi.fn(),
+  getWebhookService: vi.fn(),
+  getWebhookFeature: vi.fn().mockReturnValue({
+    producer: {},
+    consumer: {},
+    core: {},
+    booking: {},
+    form: {},
+    recording: {},
+    ooo: {},
+    notifier: {},
+    repository: { findByOrgIdAndTrigger: vi.fn().mockResolvedValue([]) },
+  }),
+  getWebhookProducer: vi.fn(),
+}));
+
 vi.mock("@calcom/features/webhooks/lib/factory/versioned/registry", () => ({
   createPayloadBuilderFactory: vi.fn().mockReturnValue({}),
   DEFAULT_WEBHOOK_VERSION: "v2021-10-20",
