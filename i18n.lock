@@ -5351,6 +5351,7 @@ checksums:
     session_timeout_changed: 0ff8588b78cea70477e377d800c9f5e2
     session_timeout_change_error: 63f736cc2ff539f76b47cffa07f40f9d
     something_went_wrong: d2178e82ee8359dea326f25cbe89018b
+    popup_blocked_by_browser: c5d36352a025d1472cb50bd3bf379c4f
     something_doesnt_look_right: 81b08ae13ac80c71cd9cc14a138eb1e6
     please_try_again: 346a18a54564881c888b95873d03df44
     super_secure_new_password: 63a8809582a9385c4aa1435bbfebc57c
@@ -5460,6 +5461,7 @@ checksums:
     book_a_team_member: b8e5675f47f7e25bbad229647464b1c5
     or: 0208d355f231c386b19390f0bea41b95
     go_back: 050ad9e6589a60da7605d8cca4cf155f
+    deny: 5e4572e4d0e5bce1f27f74f857be1c6a
     email_or_username: 1918f8d570a046878b957c930e48d363
     send_invite_email: 186fce16785eb3b26d51263601cef194
     role: 53743bbb6ca938f5b893552e839d067f
@@ -9150,6 +9152,8 @@ checksums:
     attendee_reschedule_request_email_description: 874048f2d6045cd1bf54f211eed16a29
     attendee_location_change_email_description: 26906ec875ce3da29c00520b6ae11052
     attendee_new_event_email_description: 8cbe5df39971dc77d308dfed29106ede
+    cal_video_recording: 6d93818e786313df4f6697fc70ff3fa6
+    cal_video_recording_email_description: 67815fc0fe45fbb2404cc997a7a41532
     host_reassignment: a48e366bf64cedc35001a5fc86702836
     awaiting_payment: b3436a84081ec3d3ae2b33dcda235dd6
     reschedule_request: c2aeb9f1fe213b5d9800a0c550f948a8
@@ -9621,6 +9625,9 @@ checksums:
     upgrade_banner_routing_form_subtitle: 8083907e8754e0788a2d8d642792b465
     upgrade_banner_team_attributes_title: f5201d0e0d2f352ee17317072496c3a3
     upgrade_banner_team_attributes_subtitle: 4a26d86a14a3b9f18cf9b071a68072f1
+    upgrade_banner_smtp_name: e38e6efba08f4775c5f561f188c7b027
+    upgrade_banner_smtp_title: e2555692ffb8f609fe67feaeee747231
+    upgrade_banner_smtp_subtitle: 346513ab9cabdf1c704ce5bd34ab4bce
     play_video: 6dd156128b9b4e410d0b00cb2c826ced
     watch_on_youtube: ef087676cbb1c4be03c35504ee012423
     connected_accounts: 1ea9eba980f33e2023ae61338d0a633b
@@ -9830,6 +9837,43 @@ checksums:
     teams_upgrade_banner_title: 07d1bd0d9dbc5b1e05578874798653d0
     teams_upgrade_banner_description: d6298eefcd20720be554558b106519ec
     teams_upgrade_banner_cta: 2e946837fab0f40b1d9ca9c8bcb9cb9b
+    custom_email: aea2bbe9887faa1163bca0809f1255d5
+    custom_email_description: 28aa7ecdb230b9eeed788a0be63e95d7
+    smtp_setup: 1724d39ab6fa4466cac763f7e161fc15
+    smtp_host: 4473d88aeaed9f76a2aca7dbb5fc1496
+    smtp_port: df1cc53eb9963f5a132911d7c447bb8f
+    smtp_username: 2ee65bc2dd2f12cf2672f95b2a054bf8
+    smtp_password: 223a61cf906ab9c40d22612c588dff48
+    smtp_encryption: 0696af0d67eb394c9e3a50f3a1bd2196
+    sending_email_address: 9982b29930fc4d26469617c11d0c0d42
+    test_connection: 0938466ff18038db7a204d77bce36289
+    test_connection_first: 166c55601ef953cfe41e8e1a56ff5641
+    smtp_connection_success: 4476e237eded394e46b274d13f3e2864
+    smtp_connection_failed: c5d2e78a378a158dd177c213bab93395
+    fill_smtp_fields: 9f4ee65f4a8d8e81eae80e511c7df1d6
+    from_email: 21fdb086f318ba112e9d1e48aac7a708
+    send_a_test: 23ff470ba4d197c2926209f4a5b83c46
+    smtp_test_email_sent: ebbe9a8c616f87ff4b36f80c8bed9f0b
+    smtp_test_email_failed: f4938e2ee33359772663cd376e3b8ab6
+    smtp_test_email_subject: dd129970d9a2a7a7ae21b2b648b20e31
+    smtp_test_email_header: 45ed07445be550ff0a41a4e45e8448a6
+    smtp_test_email_body: b75c7bba3b228536c2e6f1f94e11836f
+    smtp_test_email_config_details: 00572aa8eef34eb7dae8f761ca00df67
+    smtp_configuration_created: eae609ab376b67cf009656386746bae0
+    smtp_configuration_updated: 5ed4009402d355f8414af2cd8dc45cbb
+    smtp_configuration_deleted: e507ace5ddfd8fe1fb5721cf58558fed
+    smtp_password_placeholder: 6c1d1133076f31e97aef6ef0b02aa2af
+    smtp_username_placeholder: a147c34828561ac0e686f26e534e902b
+    delete_smtp_configuration: 3480541621d782f34f2efa857e7c99eb
+    delete_smtp_configuration_description: 802ca1754d71385708237ec626ce05ac
+    confirm_delete_smtp_configuration: 8bcf303dd10a645b5baacb02b47d72c9
+    smtp_empty_state_title: 68d1e1226469f85f2e2524f0786af9e4
+    smtp_empty_state_subtitle: 90f993930f1e5ba32e2bc05c9f966c29
+    smtp_connect: 8778ee245078a8be4a2ce855c8c56edc
+    connection_successful: 613d793b6cac0bd3cd02a97dd9f9ce29
+    connection_failed: 545b27de332ad1dbe0cf86160b156f63
+    connection_ssl_tls: 9cc8ad1223c219622de2fc1dbb24c836
+    connection_starttls: 1df512e5d81438d20c781a87cc9b2650
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
   ce54a49cd5a93685e6240f285184eb58:
     role_name: 6166d263954a8c5e41e988801c2cfb20
