@@ -1,6 +1,5 @@
 import type { FormValues, Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import type { SchedulingType } from "@calcom/prisma/enums";
-import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { FixedHostsCustomClassNames } from "./FixedHosts";
@@ -27,7 +26,7 @@ export const Hosts = ({
   teamId: number;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
-  setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  setAssignAllTeamMembers: (value: boolean) => void;
   customClassNames?: HostsCustomClassNames;
   isSegmentApplicable: boolean;
   hideFixedHostsForCollective?: boolean;

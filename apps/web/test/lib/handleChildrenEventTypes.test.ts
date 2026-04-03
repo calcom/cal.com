@@ -17,6 +17,14 @@ vi.mock("@calcom/lib/logger", () => ({
   },
 }));
 
+// Mock the EventTypeRepository DI container
+const mockHideAndRenamePersonalByUserIdsAndSlugs = vi.fn();
+vi.mock("@calcom/features/di/containers/EventTypeRepository", () => ({
+  getEventTypeRepository: () => ({
+    hideAndRenamePersonalByUserIdsAndSlugs: mockHideAndRenamePersonalByUserIdsAndSlugs,
+  }),
+}));
+
 // Helper to setup transaction mock that executes the callback with the prisma mock
 const setupTransactionMock = () => {
   prismaMock.$transaction.mockImplementation(async (callback) => {
@@ -81,7 +89,7 @@ describe("handleChildrenEventTypes", () => {
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
       expect(result.deletedUserIds).toEqual(undefined);
-      expect(result.deletedExistentEventTypes).toBeUndefined();
+      expect(result.hiddenExistentEventTypes).toEqual(undefined);
       expect(result.message).toBe("No managed event type");
     });
 
@@ -103,7 +111,7 @@ describe("handleChildrenEventTypes", () => {
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
       expect(result.deletedUserIds).toEqual(undefined);
-      expect(result.deletedExistentEventTypes).toBeUndefined();
+      expect(result.hiddenExistentEventTypes).toEqual(undefined);
       expect(result.message).toBe("No managed event metadata");
     });
 
@@ -128,7 +136,7 @@ describe("handleChildrenEventTypes", () => {
       expect(result.newUserIds).toEqual(undefined);
       expect(result.oldUserIds).toEqual(undefined);
       expect(result.deletedUserIds).toEqual(undefined);
-      expect(result.deletedExistentEventTypes).toBeUndefined();
+      expect(result.hiddenExistentEventTypes).toEqual(undefined);
       expect(result.message).toBe("Missing event type");
     });
   });
@@ -222,7 +230,7 @@ describe("handleChildrenEventTypes", () => {
       expect(result.newUserIds).toEqual([4]);
       expect(result.oldUserIds).toEqual([]);
       expect(result.deletedUserIds).toEqual([]);
-      expect(result.deletedExistentEventTypes).toBeUndefined();
+      expect(result.hiddenExistentEventTypes).toEqual(undefined);
     });
 
     it("Updates old users", async () => {
@@ -302,7 +310,7 @@ describe("handleChildrenEventTypes", () => {
       expect(result.newUserIds).toEqual([]);
       expect(result.oldUserIds).toEqual([4]);
       expect(result.deletedUserIds).toEqual([]);
-      expect(result.deletedExistentEventTypes).toBeUndefined();
+      expect(result.hiddenExistentEventTypes).toEqual(undefined);
     });
 
     it("Deletes old users", async () => {
@@ -320,7 +328,7 @@ describe("handleChildrenEventTypes", () => {
       expect(result.newUserIds).toEqual([]);
       expect(result.oldUserIds).toEqual([]);
       expect(result.deletedUserIds).toEqual([4]);
-      expect(result.deletedExistentEventTypes).toBeUndefined();
+      expect(result.hiddenExistentEventTypes).toEqual(undefined);
     });
 
     it("Adds new users and updates/delete old users", async () => {
@@ -353,12 +361,12 @@ describe("handleChildrenEventTypes", () => {
       expect(result.newUserIds).toEqual([5]);
       expect(result.oldUserIds).toEqual([4]);
       expect(result.deletedUserIds).toEqual([1]);
-      expect(result.deletedExistentEventTypes).toBeUndefined();
+      expect(result.hiddenExistentEventTypes).toEqual(undefined);
     });
   });
 
   describe("Slug conflicts", () => {
-    it("Deletes existent event types for new users added", async () => {
+    it("Hides and renames personal event types for new users added", async () => {
       const {
         schedulingType,
         id,
@@ -411,7 +419,7 @@ describe("handleChildrenEventTypes", () => {
       };
       prismaMock.eventType.createManyAndReturn.mockResolvedValue([createdEventType]);
 
-      prismaMock.eventType.deleteMany.mockResolvedValue({ count: 1 });
+      mockHideAndRenamePersonalByUserIdsAndSlugs.mockResolvedValue({ count: 1 });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [], team: { name: "" } },
@@ -421,6 +429,10 @@ describe("handleChildrenEventTypes", () => {
         prisma: prismaMock,
         profileId: null,
         updatedValues: {},
+      });
+      expect(mockHideAndRenamePersonalByUserIdsAndSlugs).toHaveBeenCalledWith({
+        userIds: [4],
+        slugs: ["something"],
       });
       const { createdAt, updatedAt, successRedirectUrlUpdatedAt, ...expectedEvType } = evType;
       expect(prismaMock.eventType.createManyAndReturn).toHaveBeenCalledWith({
@@ -450,9 +462,9 @@ describe("handleChildrenEventTypes", () => {
       expect(result.newUserIds).toEqual([4]);
       expect(result.oldUserIds).toEqual([]);
       expect(result.deletedUserIds).toEqual([]);
-      expect(result.deletedExistentEventTypes).toEqual({ count: 1 });
+      expect(result.hiddenExistentEventTypes).toEqual({ count: 1 });
     });
-    it("Deletes existent event types for old users updated", async () => {
+    it("Hides and renames personal event types for old users updated", async () => {
       const {
         schedulingType,
         id,
@@ -488,7 +500,7 @@ describe("handleChildrenEventTypes", () => {
       // @ts-expect-error - partial mock for test purposes
       prismaMock.eventType.update.mockResolvedValue({ id: 102 });
 
-      prismaMock.eventType.deleteMany.mockResolvedValue({ count: 1 });
+      mockHideAndRenamePersonalByUserIdsAndSlugs.mockResolvedValue({ count: 1 });
       const result = await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
@@ -500,6 +512,10 @@ describe("handleChildrenEventTypes", () => {
         updatedValues: {
           length: 30,
         },
+      });
+      expect(mockHideAndRenamePersonalByUserIdsAndSlugs).toHaveBeenCalledWith({
+        userIds: [4],
+        slugs: ["something"],
       });
       const { profileId, autoTranslateDescriptionEnabled, successRedirectUrlUpdatedAt, createdAt, updatedAt, ...rest } = evType;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
@@ -525,9 +541,9 @@ describe("handleChildrenEventTypes", () => {
       expect(result.newUserIds).toEqual([]);
       expect(result.oldUserIds).toEqual([4]);
       expect(result.deletedUserIds).toEqual([]);
-      expect(result.deletedExistentEventTypes).toEqual({ count: 1 });
+      expect(result.hiddenExistentEventTypes).toEqual({ count: 1 });
     });
-    it("Accumulates deletion counts when both new and old users have slug conflicts", async () => {
+    it("Accumulates hide/rename counts when both new and old users have slug conflicts", async () => {
       const {
         schedulingType,
         id,
@@ -583,8 +599,8 @@ describe("handleChildrenEventTypes", () => {
       // @ts-expect-error - partial mock for test purposes
       prismaMock.eventType.update.mockResolvedValue({ id: 102 });
 
-      // First call (new users) deletes 1, second call (old users) deletes 2
-      prismaMock.eventType.deleteMany
+      // First call (new users) hides 1, second call (old users) hides 2
+      mockHideAndRenamePersonalByUserIdsAndSlugs
         .mockResolvedValueOnce({ count: 1 })
         .mockResolvedValueOnce({ count: 2 });
 
@@ -605,7 +621,7 @@ describe("handleChildrenEventTypes", () => {
       });
 
       // Count should be accumulated (1 + 2 = 3), not overwritten to just 2
-      expect(result.deletedExistentEventTypes).toEqual({ count: 3 });
+      expect(result.hiddenExistentEventTypes).toEqual({ count: 3 });
       expect(result.newUserIds).toEqual([5]);
       expect(result.oldUserIds).toEqual([4]);
     });

@@ -2,8 +2,7 @@ import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignA
 import type { ChildrenEventTypeSelectCustomClassNames } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import type { FormValues, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import classNames from "@calcom/ui/classNames";
-import type { Dispatch, SetStateAction } from "react";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { ChildrenEventTypesList } from "./ChildrenEventTypesList";
 import type { mapMemberToChildrenOption } from "./EventTeamAssignmentTab";
 
@@ -21,10 +20,9 @@ export const ChildrenEventTypes = ({
 }: {
   childrenEventTypeOptions: ReturnType<typeof mapMemberToChildrenOption>[];
   assignAllTeamMembers: boolean;
-  setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  setAssignAllTeamMembers: (value: boolean) => void;
   customClassNames?: ChildrenEventTypesCustomClassNames;
 }) => {
-  const { setValue } = useFormContext<FormValues>();
   return (
     <div
       className={classNames(
@@ -36,7 +34,6 @@ export const ChildrenEventTypes = ({
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           customClassNames={customClassNames?.assignAllTeamMembers}
-          onActive={() => setValue("children", childrenEventTypeOptions, { shouldDirty: true })}
         />
         {!assignAllTeamMembers ? (
           <Controller<FormValues>

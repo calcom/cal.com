@@ -5,7 +5,6 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseFormReturn } from "react-hook-form";
 
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
-import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import type {
   TabMap,
   EventTypeSetupProps,
@@ -53,7 +52,6 @@ export type EventTypeComponentProps = EventTypeSetupProps & {
   tabMap: TabMap;
   onDelete: (id: number) => void;
   isDeleting?: boolean;
-  onConflict: (eventTypes: ChildrenEventType[]) => void;
   children?: React.ReactNode;
   handleSubmit: (values: FormValues) => void;
   formMethods: UseFormReturn<FormValues>;

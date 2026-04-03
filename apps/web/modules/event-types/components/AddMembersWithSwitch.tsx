@@ -10,7 +10,7 @@ import { Segment } from "./Segment";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Label, SettingsToggle } from "@calcom/ui/components/form";
-import { type ComponentProps, type Dispatch, type SetStateAction, useMemo } from "react";
+import { type ComponentProps, useMemo } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { Options } from "react-select";
 import { AddMembersWithSwitchWebWrapper } from "./AddMembersWithSwitchWebWrapper";
@@ -183,7 +183,7 @@ export type AddMembersWithSwitchProps = {
   value: Host[];
   onChange: (hosts: Host[]) => void;
   assignAllTeamMembers: boolean;
-  setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  setAssignAllTeamMembers: (value: boolean) => void;
   automaticAddAllEnabled: boolean;
   onActive: () => void;
   isFixed: boolean;
@@ -278,8 +278,13 @@ export function AddMembersWithSwitch({
     isSegmentApplicable,
   });
 
-  const onAssignAllTeamMembersInactive = () => {
-    setAssignRRMembersUsingSegment(false);
+  const handleSetAssignAll = (active: boolean) => {
+    setAssignAllTeamMembers(active);
+    if (active) {
+      onActive();
+    } else {
+      setAssignRRMembersUsingSegment(false);
+    }
   };
 
   switch (assignmentState) {
@@ -291,9 +296,7 @@ export function AddMembersWithSwitch({
           {!groupId && (
             <AssignAllTeamMembers
               assignAllTeamMembers={assignAllTeamMembers}
-              setAssignAllTeamMembers={setAssignAllTeamMembers}
-              onActive={onActive}
-              onInactive={onAssignAllTeamMembersInactive}
+              setAssignAllTeamMembers={handleSetAssignAll}
               customClassNames={customClassNames?.assingAllTeamMembers}
             />
           )}
@@ -321,9 +324,7 @@ export function AddMembersWithSwitch({
             {assignmentState === AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE && !groupId && (
               <AssignAllTeamMembers
                 assignAllTeamMembers={assignAllTeamMembers}
-                setAssignAllTeamMembers={setAssignAllTeamMembers}
-                onActive={onActive}
-                onInactive={onAssignAllTeamMembersInactive}
+                setAssignAllTeamMembers={handleSetAssignAll}
                 customClassNames={customClassNames?.assingAllTeamMembers}
               />
             )}

@@ -4,6 +4,7 @@ import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-util
 import { sendSlugReplacementEmail } from "@calcom/emails/integration-email-service";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/i18n/server";
+import { getEventTypeRepository } from "@calcom/features/di/containers/EventTypeRepository";
 import type { PrismaClient } from "@calcom/prisma";
 import type { EventType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -67,10 +68,9 @@ const sendAllSlugReplacementEmails = async (
 const checkExistentEventTypes = async ({
   updatedEventType,
   children,
-  prisma,
   userIds,
   teamName,
-}: Pick<handleChildrenEventTypesProps, "updatedEventType" | "children" | "prisma"> & {
+}: Pick<handleChildrenEventTypesProps, "updatedEventType" | "children"> & {
   userIds: number[];
   teamName: string | null;
 }) => {
@@ -78,25 +78,24 @@ const checkExistentEventTypes = async ({
     (ch) => ch.owner.eventTypeSlugs.includes(updatedEventType.slug) && userIds.includes(ch.owner.id)
   );
 
-  // If so, delete their event type with the same slug to proceed to create a managed one
+  // Hide and rename personal event types with conflicting slugs instead of deleting them.
+  // This preserves the personal event type and its bookings while freeing the slug for the managed child.
   if (replaceEventType?.length) {
-    const deletedReplacedEventTypes = await prisma.eventType.deleteMany({
-      where: {
-        slug: updatedEventType.slug,
-        userId: {
-          in: replaceEventType.map((evTy) => evTy.owner.id),
-        },
-      },
+    const affectedUserIds = replaceEventType.map((evTy) => evTy.owner.id);
+    const eventTypeRepository = getEventTypeRepository();
+    const hiddenEventTypes = await eventTypeRepository.hideAndRenamePersonalByUserIdsAndSlugs({
+      userIds: affectedUserIds,
+      slugs: [updatedEventType.slug],
     });
 
-    // Sending notification after deleting
+    // Sending notification after hiding/renaming
     await sendAllSlugReplacementEmails(
       replaceEventType.map((evTy) => evTy.owner),
       updatedEventType.slug,
       teamName
     );
 
-    return deletedReplacedEventTypes;
+    return hiddenEventTypes;
   }
 };
 
@@ -197,20 +196,19 @@ export default async function handleChildrenEventTypes({
   // Calculate if there are new workflows for which assigned members will get too
   const currentWorkflowIds = eventType.workflows?.map((wf) => wf.workflowId);
 
-  // Accumulate deletion results across both new and old user paths
-  let deletedExistentEventTypesCount = 0;
+  // Accumulate hide/rename results across both new and old user paths
+  let hiddenExistentEventTypesCount = 0;
 
   // New users added
   if (newUserIds?.length) {
-    // Check if there are children with existent homonym event types to send notifications
+    // Check if there are children with existent homonym event types to hide/rename and send notifications
     const result = await checkExistentEventTypes({
       updatedEventType,
       children,
-      prisma,
       userIds: newUserIds,
       teamName: oldEventType.team?.name ?? null,
     });
-    if (result?.count) deletedExistentEventTypesCount += result.count;
+    if (result?.count) hiddenExistentEventTypesCount += result.count;
 
     // Create event types for new users added
     const eventTypesToCreateData = newUserIds.map((userId) => {
@@ -311,11 +309,10 @@ export default async function handleChildrenEventTypes({
     const result = await checkExistentEventTypes({
       updatedEventType,
       children,
-      prisma,
       userIds: oldUserIds,
       teamName: oldEventType.team?.name || null,
     });
-    if (result?.count) deletedExistentEventTypesCount += result.count;
+    if (result?.count) hiddenExistentEventTypesCount += result.count;
 
     const { unlockedFields } = managedEventTypeValues.metadata?.managedEventConfig ?? {};
 
@@ -529,6 +526,6 @@ export default async function handleChildrenEventTypes({
     newUserIds,
     oldUserIds,
     deletedUserIds,
-    deletedExistentEventTypes: deletedExistentEventTypesCount > 0 ? { count: deletedExistentEventTypesCount } : undefined,
+    hiddenExistentEventTypes: hiddenExistentEventTypesCount > 0 ? { count: hiddenExistentEventTypesCount } : undefined,
   };
 }

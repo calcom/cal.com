@@ -356,10 +356,6 @@ const EventType = forwardRef<
     }
   };
 
-  const onConflict = (conflicts: ChildrenEventType[]) => {
-    setSlugExistsChildrenDialogOpen(conflicts);
-  };
-
   const { tabsNavigation, currentTab } = usePlatformTabsNavigations({
     formMethods: form,
     eventType,
@@ -372,7 +368,6 @@ const EventType = forwardRef<
         {...restProps}
         tabMap={tabMap}
         onDelete={onDelete}
-        onConflict={onConflict}
         handleSubmit={handleSubmit}
         formMethods={form}
         isUpdating={updateMutation.isPending}

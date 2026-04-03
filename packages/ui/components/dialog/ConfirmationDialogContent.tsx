@@ -14,6 +14,7 @@ export type ConfirmationDialogContentProps = {
   isPending?: boolean;
   loadingText?: string;
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  onCancel?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   title: string;
   variety?: "danger" | "warning" | "success";
 } & ConfirmBtnType;
@@ -37,6 +38,7 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
     loadingText = t("loading"),
     isPending = false,
     onConfirm,
+    onCancel,
     children,
   } = props;
 
@@ -83,7 +85,7 @@ export const ConfirmationContent = (props: PropsWithChildren<ConfirmationDialogC
             {isPending ? loadingText : confirmBtnText}
           </DialogClose>
         )}
-        <DialogClose disabled={isPending}>{cancelBtnText}</DialogClose>
+        <DialogClose disabled={isPending} onClick={(e) => onCancel && onCancel(e)}>{cancelBtnText}</DialogClose>
       </div>
     </>
   );

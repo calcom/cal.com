@@ -28,7 +28,19 @@ export const SlugReplacementEmail = (
         <p style={{ fontWeight: 400, lineHeight: "24px" }}>
           <ServerTrans t={t} i18nKey="email_body_slug_replacement_notice" values={{ teamName, slug }} />
         </p>
-        <p style={{ fontWeight: 400, lineHeight: "24px" }}>{t("email_body_slug_replacement_info")}</p>
+        <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+          <ServerTrans
+            t={t}
+            i18nKey="email_body_slug_replacement_info"
+            components={[
+              <a
+                key="event-types-link"
+                href={`${WEBAPP_URL}/event-types`}
+                style={{ color: "#292929", fontWeight: 600 }}
+              />,
+            ]}
+          />
+        </p>
         <table
           role="presentation"
           border={0}

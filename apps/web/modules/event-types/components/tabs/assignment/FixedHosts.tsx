@@ -12,7 +12,6 @@ import type { AddMembersWithSwitchCustomClassNames } from "@calcom/web/modules/e
 import AddMembersWithSwitch from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
 import type { TFunction } from "i18next";
 import Link from "next/link";
-import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -51,7 +50,7 @@ export const FixedHosts = ({
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
-  setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  setAssignAllTeamMembers: (value: boolean) => void;
   isRoundRobinEvent?: boolean;
   customClassNames?: FixedHostsCustomClassNames;
 }) => {

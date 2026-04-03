@@ -9,8 +9,9 @@ import classNames from "@calcom/ui/classNames";
 import { Label, Select, SettingsToggle } from "@calcom/ui/components/form";
 import { RadioAreaGroup as RadioArea } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
-import { mapUserToValue } from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
-import { useCallback, useState } from "react";
+import AssignAllManagedWarningDialog from "@calcom/web/modules/event-types/components/dialogs/assign-all-managed-warning-dialog";
+import { useTeamEventAssignment } from "@calcom/web/modules/event-types/hooks/use-team-event-assignment";
+import { useCallback } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { ChildrenEventTypesCustomClassNames } from "./ChildrenEventTypes";
 import { ChildrenEventTypes } from "./ChildrenEventTypes";
@@ -72,60 +73,42 @@ export const EventTeamAssignmentTab = ({
   hideFixedHostsForCollective = false,
 }: EventTeamAssignmentTabBaseProps) => {
   const { t } = useLocale();
+  const { control, setValue } = useFormContext<FormValues>();
+
+  const {
+    assignAllTeamMembers,
+    attemptSetAssignAll,
+    childrenEventTypeOptions,
+    teamMembersOptions,
+    eventTypeSlug,
+    isManagedEventType,
+    resetAssignAll,
+    warningDialog,
+  } = useTeamEventAssignment({ eventType, teamMembers });
 
   const schedulingTypeOptions: {
     value: SchedulingType;
     label: string;
-    // description: string;
   }[] = [
     {
       value: "COLLECTIVE",
       label: t("collective"),
-      // description: t("collective_description"),
     },
     {
       value: "ROUND_ROBIN",
       label: t("round_robin"),
-      // description: t("round_robin_description"),
     },
   ];
-  const pendingMembers = (member: (typeof teamMembers)[number]) =>
-    !!eventType.team?.parentId || !!member.username;
-  const teamMembersOptions = teamMembers
-    .filter(pendingMembers)
-    .map((member) => mapUserToValue(member, t("pending")));
-  const childrenEventTypeOptions = teamMembers.filter(pendingMembers).map((member) => {
-    return mapMemberToChildrenOption(
-      {
-        ...member,
-        eventTypes: member.eventTypes.filter(
-          (et) => et !== eventType.slug || !eventType.children.some((c) => c.owner.id === member.id)
-        ),
-      },
-      eventType.slug,
-      t("pending")
-    );
-  });
-  const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-  const { getValues, setValue, control } = useFormContext<FormValues>();
-  const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
-    getValues("assignAllTeamMembers") ?? false
-  );
-
-  const resetRROptions = () => {
-    setValue("assignRRMembersUsingSegment", false, { shouldDirty: true });
-    setValue("assignAllTeamMembers", false, { shouldDirty: true });
-    setAssignAllTeamMembers(false);
-  };
 
   const handleSchedulingTypeChange = useCallback(
     (schedulingType: SchedulingType | undefined, onChange: (value: SchedulingType | undefined) => void) => {
       if (schedulingType) {
         onChange(schedulingType);
-        resetRROptions();
+        setValue("assignRRMembersUsingSegment", false, { shouldDirty: true });
+        resetAssignAll();
       }
     },
-    [setValue, setAssignAllTeamMembers]
+    [resetAssignAll, setValue]
   );
 
   const handleMaxLeadThresholdChange = (val: string, onChange: (value: number | null) => void) => {
@@ -276,7 +259,7 @@ export const EventTeamAssignmentTab = ({
             isSegmentApplicable={isSegmentApplicable}
             teamId={team.id}
             assignAllTeamMembers={assignAllTeamMembers}
-            setAssignAllTeamMembers={setAssignAllTeamMembers}
+            setAssignAllTeamMembers={attemptSetAssignAll}
             teamMembers={teamMembersOptions}
             customClassNames={customClassNames?.hosts}
             hideFixedHostsForCollective={hideFixedHostsForCollective}
@@ -284,12 +267,20 @@ export const EventTeamAssignmentTab = ({
         </>
       )}
       {team && isManagedEventType && (
-        <ChildrenEventTypes
-          assignAllTeamMembers={assignAllTeamMembers}
-          setAssignAllTeamMembers={setAssignAllTeamMembers}
-          childrenEventTypeOptions={childrenEventTypeOptions}
-          customClassNames={customClassNames?.childrenEventTypes}
-        />
+        <>
+          <ChildrenEventTypes
+            assignAllTeamMembers={assignAllTeamMembers}
+            setAssignAllTeamMembers={attemptSetAssignAll}
+            childrenEventTypeOptions={childrenEventTypeOptions}
+            customClassNames={customClassNames?.childrenEventTypes}
+          />
+          <AssignAllManagedWarningDialog
+            isOpen={warningDialog.isOpen}
+            eventTypeSlug={eventTypeSlug}
+            onConfirm={warningDialog.onConfirm}
+            onClose={warningDialog.onClose}
+          />
+        </>
       )}
     </div>
   );

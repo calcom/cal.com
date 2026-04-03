@@ -16,7 +16,6 @@ import type { AddMembersWithSwitchCustomClassNames } from "@calcom/web/modules/e
 import AddMembersWithSwitch from "@calcom/web/modules/event-types/components/AddMembersWithSwitch";
 import { EditWeightsForAllTeamMembers } from "@calcom/web/modules/event-types/components/EditWeightsForAllTeamMembers";
 import { XIcon } from "@coss/ui/icons";
-import type { Dispatch, SetStateAction } from "react";
 import { useCallback } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
@@ -45,7 +44,7 @@ export const RoundRobinHosts = ({
   onChange: (hosts: Host[]) => void;
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
-  setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  setAssignAllTeamMembers: (value: boolean) => void;
   customClassNames?: RoundRobinHostsCustomClassNames;
   teamId: number;
   isSegmentApplicable: boolean;

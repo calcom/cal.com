@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { EventPermissionProvider } from "@calcom/features/pbac/client/context/EventPermissionContext";
 import { useWorkflowPermission } from "@calcom/features/pbac/client/hooks/useEventPermission";
@@ -25,11 +26,11 @@ import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrap
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
 
 import WebShell from "@calcom/web/modules/shell/Shell";
-import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import { EventType as EventTypeComponent } from "./EventType";
 import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
 import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
 import { useTabsNavigations } from "@calcom/atoms/event-types/hooks/useTabsNavigations";
+import { useManagedEventConflictCheck } from "../hooks/use-managed-event-conflict-check";
 
 type EventPermissions = {
   eventTypes: {
@@ -45,10 +46,6 @@ type EventPermissions = {
     canDelete: boolean;
   };
 };
-
-const ManagedEventTypeDialog = dynamic(
-  () => import("@calcom/features/eventtypes/components/dialogs/ManagedEventDialog")
-);
 
 const AssignmentWarningDialog = dynamic(() => import("./dialogs/AssignmentWarningDialog"));
 
@@ -148,7 +145,6 @@ const EventTypeWeb = ({
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
   const { eventType, locationOptions, team, teamMembers, destinationCalendar } = rest;
-  const [slugExistsChildrenDialogOpen, setSlugExistsChildrenDialogOpen] = useState<ChildrenEventType[]>([]);
   const { data: eventTypeApps, isPending: isPendingApps } = trpc.viewer.apps.integrations.useQuery({
     extendsFeature: "EventType",
     teamId: eventType.team?.id || eventType.parent?.teamId,
@@ -211,7 +207,14 @@ const EventTypeWeb = ({
     },
   });
 
-  const { form, handleSubmit } = useEventTypeForm({ eventType, onSubmit: updateMutation.mutate });
+  const { form, handleSubmit: rawHandleSubmit } = useEventTypeForm({
+    eventType,
+    onSubmit: updateMutation.mutate,
+  });
+  const { handleSubmit, conflictDialog } = useManagedEventConflictCheck({
+    schedulingType: eventType.schedulingType,
+    onSubmit: rawHandleSubmit,
+  });
   const slug = form.watch("slug") ?? eventType.slug;
 
   const { data: allActiveWorkflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
@@ -350,10 +353,6 @@ const EventTypeWeb = ({
     };
   }, []);
 
-  const onConflict = (conflicts: ChildrenEventType[]) => {
-    setSlugExistsChildrenDialogOpen(conflicts);
-  };
-
   const querySchema = z.object({
     tabName: z
       .enum([
@@ -392,14 +391,14 @@ const EventTypeWeb = ({
       showToast(t("event_type_deleted_successfully"), "success");
       isTeamEventTypeDeleted.current = true;
       appRouter.push("/event-types");
-      setSlugExistsChildrenDialogOpen([]);
+      conflictDialog.cancel();
       setIsOpenAssignmentWarnDialog(false);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
-        setSlugExistsChildrenDialogOpen([]);
+        conflictDialog.cancel();
       } else if (err instanceof TRPCClientError) {
         showToast(err.message, "error");
       }
@@ -424,7 +423,6 @@ const EventTypeWeb = ({
         deleteMutation.mutate({ id });
       }}
       isDeleting={deleteMutation.isPending}
-      onConflict={onConflict}
       handleSubmit={handleSubmit}
       eventTypeApps={eventTypeApps}
       formMethods={form}
@@ -434,22 +432,18 @@ const EventTypeWeb = ({
       tabsNavigation={tabsNavigation}
       Shell={WebShell}>
       <>
-        {slugExistsChildrenDialogOpen.length ? (
+        {conflictDialog.conflictingChildren.length > 0 && (
           <ManagedEventTypeDialog
-            slugExistsChildrenDialogOpen={slugExistsChildrenDialogOpen}
+            slugExistsChildrenDialogOpen={conflictDialog.conflictingChildren}
             isPending={form.formState.isSubmitting}
-            onOpenChange={() => {
-              setSlugExistsChildrenDialogOpen([]);
-            }}
+            onOpenChange={conflictDialog.cancel}
             slug={slug}
             onConfirm={(e: { preventDefault: () => void }) => {
               e.preventDefault();
-              handleSubmit(form.getValues());
-              // telemetry.event(telemetryEventTypes.slugReplacementAction);
-              setSlugExistsChildrenDialogOpen([]);
+              conflictDialog.confirm();
             }}
           />
-        ) : null}
+        )}
         <AssignmentWarningDialog
           isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}
           setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}

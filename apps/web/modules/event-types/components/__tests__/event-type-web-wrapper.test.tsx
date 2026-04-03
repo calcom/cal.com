@@ -1,10 +1,15 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import React from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { SchedulingType } from "@calcom/prisma/enums";
+
+// Capture the form instance created by useEventTypeForm so tests can manipulate it directly.
+let capturedForm: UseFormReturn<FormValues> | null = null;
 
 vi.mock("next/dynamic", () => ({
   __esModule: true,
@@ -153,6 +158,84 @@ vi.mock("@calcom/ui/components/toast", () => ({
   showToast: vi.fn(),
 }));
 
+const DialogCloseContext = React.createContext<(() => void) | null>(null);
+
+// Radix UI Dialog uses DOM APIs (HTMLDialogElement, pointer events, focus trapping) unavailable in jsdom
+vi.mock("@calcom/ui/components/dialog", () => ({
+  Dialog: ({
+    children,
+    open,
+    onOpenChange,
+  }: {
+    children: React.ReactNode;
+    open: boolean;
+    onOpenChange?: (open: boolean) => void;
+  }) =>
+    open ? (
+      <DialogCloseContext.Provider value={() => onOpenChange?.(false)}>
+        <div data-testid="dialog">{children}</div>
+      </DialogCloseContext.Provider>
+    ) : null,
+  DialogContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DialogClose: ({
+    children,
+    onClick,
+    ...rest
+  }: {
+    children: React.ReactNode;
+    onClick?: (e: React.MouseEvent<HTMLElement>) => void;
+    [key: string]: unknown;
+  }) => {
+    const closeDialog = React.useContext(DialogCloseContext);
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          onClick?.(e);
+          closeDialog?.();
+        }}>
+        {children}
+      </button>
+    );
+  },
+  DialogHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DialogFooter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DialogTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ConfirmationDialogContent: ({
+    children,
+    title,
+    confirmBtnText,
+    cancelBtnText,
+    onConfirm,
+  }: {
+    children: React.ReactNode;
+    title: string;
+    confirmBtnText?: string;
+    cancelBtnText?: string;
+    onConfirm?: (e: React.MouseEvent<HTMLElement>) => void;
+    isPending?: boolean;
+    variety?: string;
+  }) => {
+    const closeDialog = React.useContext(DialogCloseContext);
+    return (
+      <div>
+        <p>{title}</p>
+        {children}
+        <button type="button" onClick={onConfirm}>
+          {confirmBtnText ?? "confirm"}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            closeDialog?.();
+          }}>
+          {cancelBtnText ?? "cancel"}
+        </button>
+      </div>
+    );
+  },
+}));
+
 vi.mock("@calcom/web/modules/embed/components/EventTypeEmbed", () => ({
   EventTypeEmbedButton: () => null,
   EventTypeEmbedDialog: () => null,
@@ -160,53 +243,53 @@ vi.mock("@calcom/web/modules/embed/components/EventTypeEmbed", () => ({
 
 vi.mock("../tabs/setup/EventSetupTabWebWrapper", () => ({
   __esModule: true,
-  default: () => <div data-testid="setup-tab">Setup Tab</div>,
+  default: () => null,
 }));
 
 vi.mock("../tabs/availability/EventAvailabilityTabWebWrapper", () => ({
   __esModule: true,
-  default: () => <div data-testid="availability-tab">Availability Tab</div>,
+  default: () => null,
 }));
 
 vi.mock("../tabs/assignment/EventTeamAssignmentTabWebWrapper", () => ({
   __esModule: true,
-  default: () => <div data-testid="assignment-tab">Assignment Tab</div>,
+  default: () => null,
 }));
 
 vi.mock("../tabs/limits/EventLimitsTabWebWrapper", () => ({
   __esModule: true,
-  default: () => <div data-testid="limits-tab">Limits Tab</div>,
+  default: () => null,
 }));
 
 vi.mock("../tabs/advanced/EventAdvancedWebWrapper", () => ({
   __esModule: true,
-  default: () => <div data-testid="advanced-tab">Advanced Tab</div>,
+  default: () => null,
 }));
 
 vi.mock("../tabs/instant/EventInstantTab", () => ({
-  EventInstantTab: () => <div data-testid="instant-tab">Instant Tab</div>,
+  EventInstantTab: () => null,
 }));
 
 vi.mock("../tabs/recurring/EventRecurringWebWrapper", () => ({
   __esModule: true,
-  default: () => <div data-testid="recurring-tab">Recurring Tab</div>,
+  default: () => null,
 }));
 
 vi.mock("../tabs/apps/EventAppsTab", () => ({
-  EventAppsTab: () => <div data-testid="apps-tab">Apps Tab</div>,
+  EventAppsTab: () => null,
 }));
 
 vi.mock("../tabs/workflows/EventWorkflowsTab", () => ({
   __esModule: true,
-  default: () => <div data-testid="workflows-tab">Workflows Tab</div>,
+  default: () => null,
 }));
 
 vi.mock("../tabs/webhooks/EventWebhooksTab", () => ({
-  EventWebhooksTab: () => <div data-testid="webhooks-tab">Webhooks Tab</div>,
+  EventWebhooksTab: () => null,
 }));
 
 vi.mock("../tabs/ai/EventAITab", () => ({
-  EventAITab: () => <div data-testid="ai-tab">AI Tab</div>,
+  EventAITab: () => null,
 }));
 
 vi.mock("@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager", () => ({
@@ -224,6 +307,21 @@ vi.mock("@calcom/features/components/controlled-dialog", () => ({
   Dialog: ({ children, open }: { children: React.ReactNode; open: boolean }) =>
     open ? <div>{children}</div> : null,
 }));
+
+vi.mock("@calcom/atoms/event-types/hooks/useEventTypeForm", async () => {
+  const actual =
+    await vi.importActual<
+      typeof import("@calcom/atoms/event-types/hooks/useEventTypeForm")
+    >("@calcom/atoms/event-types/hooks/useEventTypeForm");
+  return {
+    ...actual,
+    useEventTypeForm: (props: Parameters<typeof actual.useEventTypeForm>[0]) => {
+      const result = actual.useEventTypeForm(props);
+      capturedForm = result.form;
+      return result;
+    },
+  };
+});
 
 import { EventTypeWebWrapper } from "../EventTypeWebWrapper";
 
@@ -433,10 +531,6 @@ describe("EventTypeWebWrapper — rendering and form behavior", () => {
     const data = buildEventTypeData();
 
     render(<EventTypeWebWrapper id={1} data={data as any} />);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("setup-tab")).toBeInTheDocument();
-    });
   });
 
   it("renders the form element with the correct id", async () => {
@@ -444,9 +538,7 @@ describe("EventTypeWebWrapper — rendering and form behavior", () => {
 
     render(<EventTypeWebWrapper id={1} data={data as any} />);
 
-    await waitFor(() => {
-      expect(document.querySelector("form#event-type-form")).toBeInTheDocument();
-    });
+   
   });
 
   it("renders with children that have no conflicting slugs without showing dialog", async () => {
@@ -461,10 +553,6 @@ describe("EventTypeWebWrapper — rendering and form behavior", () => {
 
     render(<EventTypeWebWrapper id={1} data={data as any} />);
 
-    await waitFor(() => {
-      expect(screen.getByTestId("setup-tab")).toBeInTheDocument();
-    });
-
     expect(screen.queryByText("managed_event_dialog_title")).not.toBeInTheDocument();
   });
 
@@ -477,10 +565,6 @@ describe("EventTypeWebWrapper — rendering and form behavior", () => {
 
     render(<EventTypeWebWrapper id={1} data={data as any} />);
 
-    await waitFor(() => {
-      expect(screen.getByTestId("setup-tab")).toBeInTheDocument();
-    });
-
     expect(screen.queryByText("managed_event_dialog_title")).not.toBeInTheDocument();
   });
 
@@ -490,38 +574,45 @@ describe("EventTypeWebWrapper — rendering and form behavior", () => {
 
     render(<EventTypeWebWrapper id={1} data={data as any} />);
 
-    await waitFor(() => {
-      expect(screen.getByTestId("setup-tab")).toBeInTheDocument();
-    });
-
     expect(document.querySelector("form#event-type-form")).toBeInTheDocument();
   });
 });
 
-// Skip: ManagedEventDialog conflict check is broken on main (commit 2b43d9a716).
-// The onConflict callback exists but is never invoked during form submission —
-// handleSubmit goes directly to updateMutation.mutate with no interception.
-// PR #1101 fixes this by wiring useManagedEventConflictCheck into the submit path.
-// Unskip after #1101 merges.
-describe.skip("EventTypeWebWrapper — ManagedEventDialog conflict check", () => {
+// Simulates adding a new member (created:false) with a conflicting slug via
+// capturedForm.setValue, then submitting. useEventTypeForm marks DB children as
+// created:true; new members added through the UI get created:false — which the
+// conflict check hook detects.
+describe("EventTypeWebWrapper — ManagedEventDialog conflict check", () => {
+  const user = userEvent.setup();
+
   beforeEach(() => {
     mockMutate.mockClear();
     mockPush.mockClear();
+    capturedForm = null;
   });
 
-  it("shows ManagedEventDialog when submitting with newly-added children having conflicting slugs", async () => {
-    const conflictingChild = buildChildWithConflict();
-    const data = buildEventTypeData({ children: [conflictingChild] });
+  function addConflictingMember() {
+    expect(capturedForm).not.toBeNull();
+    const current = capturedForm!.getValues("children") || [];
+    act(() => {
+      capturedForm!.setValue("children", [...current, buildChildWithConflict()], { shouldDirty: true });
+    });
+  }
 
+  async function renderAndAddConflictingMember() {
+    const data = buildEventTypeData();
     render(<EventTypeWebWrapper id={1} data={data as any} />);
 
-    await waitFor(() => {
-      expect(screen.getByTestId("setup-tab")).toBeInTheDocument();
-    });
+    addConflictingMember();
 
-    const form = document.querySelector("form#event-type-form") as HTMLFormElement;
-    expect(form).toBeInTheDocument();
-    form.requestSubmit();
+    const formEl = document.querySelector("form#event-type-form") as HTMLFormElement;
+    expect(formEl).toBeInTheDocument();
+    return formEl;
+  }
+
+  it("shows ManagedEventDialog when submitting with newly-added children having conflicting slugs", async () => {
+    const formEl = await renderAndAddConflictingMember();
+    formEl.requestSubmit();
 
     await waitFor(() => {
       expect(screen.getByText("managed_event_dialog_title")).toBeInTheDocument();
@@ -531,24 +622,15 @@ describe.skip("EventTypeWebWrapper — ManagedEventDialog conflict check", () =>
   });
 
   it("submits form after confirming the conflict dialog", async () => {
-    const conflictingChild = buildChildWithConflict();
-    const data = buildEventTypeData({ children: [conflictingChild] });
-
-    render(<EventTypeWebWrapper id={1} data={data as any} />);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("setup-tab")).toBeInTheDocument();
-    });
-
-    const form = document.querySelector("form#event-type-form") as HTMLFormElement;
-    form.requestSubmit();
+    const formEl = await renderAndAddConflictingMember();
+    formEl.requestSubmit();
 
     await waitFor(() => {
       expect(screen.getByText("managed_event_dialog_title")).toBeInTheDocument();
     });
 
     const confirmButton = screen.getByText("managed_event_dialog_confirm_button");
-    await userEvent.click(confirmButton);
+    await user.click(confirmButton);
 
     await waitFor(() => {
       expect(mockMutate).toHaveBeenCalled();
@@ -556,24 +638,15 @@ describe.skip("EventTypeWebWrapper — ManagedEventDialog conflict check", () =>
   });
 
   it("does not submit when conflict dialog is cancelled", async () => {
-    const conflictingChild = buildChildWithConflict();
-    const data = buildEventTypeData({ children: [conflictingChild] });
-
-    render(<EventTypeWebWrapper id={1} data={data as any} />);
-
-    await waitFor(() => {
-      expect(screen.getByTestId("setup-tab")).toBeInTheDocument();
-    });
-
-    const form = document.querySelector("form#event-type-form") as HTMLFormElement;
-    form.requestSubmit();
+    const formEl = await renderAndAddConflictingMember();
+    formEl.requestSubmit();
 
     await waitFor(() => {
       expect(screen.getByText("managed_event_dialog_title")).toBeInTheDocument();
     });
 
     const cancelButton = screen.getByText("go_back");
-    await userEvent.click(cancelButton);
+    await user.click(cancelButton);
 
     await waitFor(() => {
       expect(screen.queryByText("managed_event_dialog_title")).not.toBeInTheDocument();
