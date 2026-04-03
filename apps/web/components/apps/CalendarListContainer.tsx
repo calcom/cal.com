@@ -5,10 +5,12 @@ import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { List } from "@calcom/ui/components/list";
+import { Loader } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateSettingsCalendars } from "@calcom/web/app/cache/path/settings/my-account";
 import AppListCard from "@calcom/web/modules/apps/components/AppListCard";
@@ -16,8 +18,6 @@ import { SkeletonLoader } from "@calcom/web/modules/apps/components/SkeletonLoad
 import { SelectedCalendarsSettingsWebWrapper } from "@calcom/web/modules/calendars/components/SelectedCalendarsSettingsWebWrapper";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-
-import { QueryCell } from "@lib/QueryCell";
 import { Suspense, useEffect } from "react";
 import { DestinationCalendarSettingsWebWrapper } from "./DestinationCalendarSettingsWebWrapper";
 
@@ -39,35 +39,40 @@ function CalendarList(props: Props): JSX.Element {
   const { t } = useLocale();
   const query = trpc.viewer.apps.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
 
+  if (query.isPending) {
+    return <Loader />;
+  }
+
+  if (query.isError) {
+    return <Alert severity="error" title="Something went wrong" message={query.error.message} />;
+  }
+
+  const data = query.data;
+
   return (
-    <QueryCell
-      query={query}
-      success={({ data }) => (
-        <List>
-          {data.items.map((item) => (
-            <AppListCard
-              title={item.name}
-              key={item.name}
-              logo={item.logo}
-              description={item.description}
-              shouldHighlight
-              slug={item.slug}
-              actions={
-                <InstallAppButton
-                  type={item.type}
-                  render={(buttonProps) => (
-                    <Button color="secondary" {...buttonProps}>
-                      {t("connect")}
-                    </Button>
-                  )}
-                  onChanged={() => props.onChanged()}
-                />
-              }
+    <List>
+      {data.items.map((item) => (
+        <AppListCard
+          title={item.name}
+          key={item.name}
+          logo={item.logo}
+          description={item.description}
+          shouldHighlight
+          slug={item.slug}
+          actions={
+            <InstallAppButton
+              type={item.type}
+              render={(buttonProps) => (
+                <Button color="secondary" {...buttonProps}>
+                  {t("connect")}
+                </Button>
+              )}
+              onChanged={() => props.onChanged()}
             />
-          ))}
-        </List>
-      )}
-    />
+          }
+        />
+      ))}
+    </List>
   );
 }
 

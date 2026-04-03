@@ -1,10 +1,7 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import LocationSelect from "@calcom/features/form/components/LocationSelect";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import * as React from "react";
 import { vi } from "vitest";
-
-import LocationSelect from "@calcom/features/form/components/LocationSelect";
-
-import { QueryCell } from "../../../lib/QueryCell";
 import { EditLocationDialog } from "../EditLocationDialog";
 
 // // Mock the trpc hook
@@ -36,10 +33,6 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
   useLocale: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("../../../lib/QueryCell", () => ({
-  QueryCell: vi.fn(),
-}));
-
 vi.mock("@calcom/features/form/components/LocationSelect", () => {
   return {
     default: vi.fn(),
@@ -59,102 +52,106 @@ describe("EditLocationDialog", () => {
     isOpenDialog: true,
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    QueryCell.mockImplementation(({ success }) => {
-      return success({
-        data: [
+    const { trpc } = await import("@calcom/trpc/react");
+    const mockLocationData = [
+      {
+        label: "Conferencing",
+        options: [
           {
-            label: "Conferencing",
-            options: [
-              {
-                value: "integrations:campfire_video",
-                label: CampfireLabel,
-                disabled: false,
-                icon: "/app-store/campfire/icon.svg",
-                slug: "campfire",
-                credentialId: 2,
-                teamName: null,
-              },
-              {
-                value: "integrations:daily",
-                label: "Cal Video (Default)",
-                disabled: false,
-                icon: "/app-store/dailyvideo/icon.svg",
-                slug: "daily-video",
-                credentialId: 0,
-                teamName: "Global",
-              },
-              {
-                value: "integrations:zoom",
-                label: ZoomVideoLabel,
-                disabled: false,
-                icon: "/app-store/zoomvideo/icon.svg",
-                slug: "zoom",
-                credentialId: 1,
-                teamName: null,
-              },
-              {
-                label: "Organizer's default app",
-                value: "conferencing",
-                icon: "/link.svg",
-              },
-            ],
+            value: "integrations:campfire_video",
+            label: CampfireLabel,
+            disabled: false,
+            icon: "/app-store/campfire/icon.svg",
+            slug: "campfire",
+            credentialId: 2,
+            teamName: null,
           },
           {
-            label: "in person",
-            options: [
-              {
-                label: "In Person (Attendee Address)",
-                value: "attendeeInPerson",
-                icon: "/map-pin-dark.svg",
-              },
-              {
-                label: "In Person (Organizer Address)",
-                value: "inPerson",
-                icon: "/map-pin-dark.svg",
-              },
-            ],
+            value: "integrations:daily",
+            label: "Cal Video (Default)",
+            disabled: false,
+            icon: "/app-store/dailyvideo/icon.svg",
+            slug: "daily-video",
+            credentialId: 0,
+            teamName: "Global",
           },
           {
-            label: "Other",
-            options: [
-              {
-                label: "Custom attendee location",
-                value: "somewhereElse",
-                icon: "/message-pin.svg",
-              },
-              {
-                label: "Link meeting",
-                value: "link",
-                icon: "/link.svg",
-              },
-            ],
+            value: "integrations:zoom",
+            label: ZoomVideoLabel,
+            disabled: false,
+            icon: "/app-store/zoomvideo/icon.svg",
+            slug: "zoom",
+            credentialId: 1,
+            teamName: null,
           },
           {
-            label: "phone",
-            options: [
-              {
-                label: AttendeePhoneNumberLabel,
-                value: "phone",
-                icon: "/phone.svg",
-              },
-              {
-                label: OrganizerPhoneLabel,
-                value: "userPhone",
-                icon: "/phone.svg",
-              },
-            ],
+            label: "Organizer's default app",
+            value: "conferencing",
+            icon: "/link.svg",
           },
         ],
-      });
+      },
+      {
+        label: "in person",
+        options: [
+          {
+            label: "In Person (Attendee Address)",
+            value: "attendeeInPerson",
+            icon: "/map-pin-dark.svg",
+          },
+          {
+            label: "In Person (Organizer Address)",
+            value: "inPerson",
+            icon: "/map-pin-dark.svg",
+          },
+        ],
+      },
+      {
+        label: "Other",
+        options: [
+          {
+            label: "Custom attendee location",
+            value: "somewhereElse",
+            icon: "/message-pin.svg",
+          },
+          {
+            label: "Link meeting",
+            value: "link",
+            icon: "/link.svg",
+          },
+        ],
+      },
+      {
+        label: "phone",
+        options: [
+          {
+            label: AttendeePhoneNumberLabel,
+            value: "phone",
+            icon: "/phone.svg",
+          },
+          {
+            label: OrganizerPhoneLabel,
+            value: "userPhone",
+            icon: "/phone.svg",
+          },
+        ],
+      },
+    ];
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    trpc.viewer.apps.locationOptions.useQuery.mockReturnValue({
+      data: mockLocationData,
+      isPending: false,
+      isError: false,
+      status: "success",
     });
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     LocationSelect.mockImplementation(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ({ options, defaultValue, onChange }: { options: any; defaultValue: any; onChange: any }) => {
@@ -234,6 +231,61 @@ describe("EditLocationDialog", () => {
       render(<EditLocationDialog {...mockProps} booking={{ location: "Office" }} />);
 
       expect(screen.queryByText(OrganizerDefaultConferencingAppLabel)).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Query Loading and Error States", () => {
+    it("renders a loader when the locations query is pending", async () => {
+      const { trpc } = await import("@calcom/trpc/react");
+      // @ts-expect-error - mock
+      trpc.viewer.apps.locationOptions.useQuery.mockReturnValue({
+        isPending: true,
+        isError: false,
+        data: undefined,
+      });
+
+      render(<EditLocationDialog {...mockProps} booking={{ location: "Office" }} />);
+
+      expect(screen.getByText("edit_location")).toBeInTheDocument();
+      // The loader should be shown instead of the location select
+      expect(screen.queryByTestId("location-select")).not.toBeInTheDocument();
+    });
+
+    it("renders an error alert when the locations query fails", async () => {
+      const { trpc } = await import("@calcom/trpc/react");
+      // @ts-expect-error - mock
+      trpc.viewer.apps.locationOptions.useQuery.mockReturnValue({
+        isPending: false,
+        isError: true,
+        error: { message: "Failed to fetch locations" },
+        data: undefined,
+      });
+
+      render(<EditLocationDialog {...mockProps} booking={{ location: "Office" }} />);
+
+      expect(screen.getByText("edit_location")).toBeInTheDocument();
+      expect(screen.getByText("something_went_wrong")).toBeInTheDocument();
+      expect(screen.getByText("Failed to fetch locations")).toBeInTheDocument();
+      expect(screen.queryByTestId("location-select")).not.toBeInTheDocument();
+    });
+
+    it("does not fire the query when dialog is closed", async () => {
+      const { trpc } = await import("@calcom/trpc/react");
+      // @ts-expect-error - mock
+      trpc.viewer.apps.locationOptions.useQuery.mockReturnValue({
+        isPending: false,
+        isError: false,
+        data: [],
+      });
+
+      render(
+        <EditLocationDialog {...mockProps} isOpenDialog={false} booking={{ location: "Office", userId: 1 }} />
+      );
+
+      // @ts-expect-error - mock
+      const lastCall = trpc.viewer.apps.locationOptions.useQuery.mock.calls.at(-1);
+      // The enabled option should be false when the dialog is closed
+      expect(lastCall?.[1]?.enabled).toBe(false);
     });
   });
 });

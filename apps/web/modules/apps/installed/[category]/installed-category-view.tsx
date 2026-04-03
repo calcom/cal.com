@@ -1,28 +1,25 @@
 "use client";
 
-import { useReducer } from "react";
-
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
-import { AppList, type HandleDisconnect } from "@calcom/web/modules/apps/components/AppList";
-import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/web/modules/apps/components/AppSetDefaultLinkDialog";
-import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
-import { SkeletonLoader } from "@calcom/web/modules/apps/components/SkeletonLoader";
+import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import type { Icon } from "@calcom/ui/components/icon";
 import { ShellSubHeading } from "@calcom/ui/components/layout";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { QueryCell } from "@lib/QueryCell";
-
+import { AppList, type HandleDisconnect } from "@calcom/web/modules/apps/components/AppList";
+import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/web/modules/apps/components/AppSetDefaultLinkDialog";
+import { SkeletonLoader } from "@calcom/web/modules/apps/components/SkeletonLoader";
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
+import { useReducer } from "react";
 
 interface IntegrationsContainerProps {
   variant?: AppCategories;
@@ -111,66 +108,69 @@ const IntegrationsContainer = ({
     crm: "contact",
   };
 
-  return (
-    <QueryCell
-      query={query}
-      customLoader={<SkeletonLoader />}
-      success={({ data }) => {
-        if (!data.items.length) {
-          const emptyHeaderCategory = getAppCategoryTitle(variant || "other", true);
+  if (query.isPending) {
+    return <SkeletonLoader />;
+  }
 
-          return (
-            <EmptyScreen
-              Icon={emptyIcon[variant || "other"]}
-              headline={t("no_category_apps", {
-                category: emptyHeaderCategory,
-              })}
-              description={t(`no_category_apps_description_${variant || "other"}`)}
-              buttonRaw={
-                <Button
-                  color="secondary"
-                  data-testid={`connect-${variant || "other"}-apps`}
-                  href={variant ? `/apps/categories/${variant}` : "/apps/categories/other"}>
-                  {t(`connect_${variant || "other"}_apps`)}
-                </Button>
-              }
-            />
-          );
+  if (query.isError) {
+    return <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />;
+  }
+
+  const data = query.data;
+
+  if (!data.items.length) {
+    const emptyHeaderCategory = getAppCategoryTitle(variant || "other", true);
+
+    return (
+      <EmptyScreen
+        Icon={emptyIcon[variant || "other"]}
+        headline={t("no_category_apps", {
+          category: emptyHeaderCategory,
+        })}
+        description={t(`no_category_apps_description_${variant || "other"}`)}
+        buttonRaw={
+          <Button
+            color="secondary"
+            data-testid={`connect-${variant || "other"}-apps`}
+            href={variant ? `/apps/categories/${variant}` : "/apps/categories/other"}>
+            {t(`connect_${variant || "other"}_apps`)}
+          </Button>
         }
-        return (
-          <div className="border-subtle rounded-md border p-7">
-            <ShellSubHeading
-              title={t(variant || "other")}
-              subtitle={t(`installed_app_${variant || "other"}_description`)}
-              className="mb-6"
-              actions={
-                <Button
-                  data-testid="add-apps"
-                  href={variant ? `/apps/categories/${variant}` : "/apps"}
-                  color="secondary"
-                  StartIcon="plus">
-                  {t("add")}
-                </Button>
-              }
-            />
+      />
+    );
+  }
 
-            <AppList
-              handleDisconnect={handleDisconnect}
-              data={data}
-              variant={variant}
-              defaultConferencingApp={defaultConferencingApp}
-              handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
-              handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
-              isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
-              eventTypes={eventTypesQueryData?.eventTypes}
-              isEventTypesFetching={isEventTypesFetching}
-              handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
-              handleBulkEditDialogToggle={handleBulkEditDialogToggle}
-            />
-          </div>
-        );
-      }}
-    />
+  return (
+    <div className="border-subtle rounded-md border p-7">
+      <ShellSubHeading
+        title={t(variant || "other")}
+        subtitle={t(`installed_app_${variant || "other"}_description`)}
+        className="mb-6"
+        actions={
+          <Button
+            data-testid="add-apps"
+            href={variant ? `/apps/categories/${variant}` : "/apps"}
+            color="secondary"
+            StartIcon="plus">
+            {t("add")}
+          </Button>
+        }
+      />
+
+      <AppList
+        handleDisconnect={handleDisconnect}
+        data={data}
+        variant={variant}
+        defaultConferencingApp={defaultConferencingApp}
+        handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
+        handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
+        isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
+        eventTypes={eventTypesQueryData?.eventTypes}
+        isEventTypesFetching={isEventTypesFetching}
+        handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
+        handleBulkEditDialogToggle={handleBulkEditDialogToggle}
+      />
+    </div>
   );
 };
 

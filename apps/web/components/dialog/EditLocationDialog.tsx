@@ -1,10 +1,3 @@
-import { ErrorMessage } from "@hookform/error-message";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { isValidPhoneNumber } from "libphonenumber-js/max";
-import { useEffect, useState } from "react";
-import { Controller, useForm, useWatch, useFormContext } from "react-hook-form";
-import { z } from "zod";
-
 import type { EventLocationType, LocationObject } from "@calcom/app-store/locations";
 import {
   getEventLocationType,
@@ -15,17 +8,23 @@ import {
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import { Dialog } from "@calcom/features/components/controlled-dialog";
-import PhoneInput from "@calcom/web/components/phone-input";
-import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
+import type { GroupOptionType, LocationOption } from "@calcom/features/form/components/LocationSelect";
 import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui/components/alert";
 import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/components/dialog";
 import { Form, Input } from "@calcom/ui/components/form";
+import { Loader } from "@calcom/ui/components/skeleton";
+import PhoneInput from "@calcom/web/components/phone-input";
 import { MapPinIcon } from "@coss/ui/icons";
-
-import { QueryCell } from "../../lib/QueryCell";
+import { ErrorMessage } from "@hookform/error-message";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { isValidPhoneNumber } from "libphonenumber-js/max";
+import { useEffect, useState } from "react";
+import { Controller, useForm, useFormContext, useWatch } from "react-hook-form";
+import { z } from "zod";
 
 interface ISetLocationDialog {
   saveLocation: ({
@@ -275,61 +274,19 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               <p className="text-emphasis mb-2 ml-1 break-all text-sm">
                 {getHumanReadableLocationValue(booking.location, t)}
               </p>
-              <QueryCell
-                query={locationsQuery}
-                success={({ data }) => {
-                  if (!data.length) return null;
-                  let locationOptions = [...data].map((option) => {
-                    if (teamId) {
-                      // Let host's Default conferencing App option show for Team Event
-                      return option;
-                    }
-                    return {
-                      ...option,
-                      options: option.options.filter((o) => o.value !== OrganizerDefaultConferencingAppType),
-                    };
-                  });
-
-                  locationOptions = locationOptions.map((locationOption) =>
-                    filterLocationOptionsForBooking(locationOption)
-                  );
-
-                  return (
-                    <Controller
-                      name="locationType"
-                      control={locationFormMethods.control}
-                      render={() => (
-                        <div className="py-4">
-                          <LocationSelect
-                            maxMenuHeight={300}
-                            name="location"
-                            defaultValue={selection}
-                            options={locationOptions}
-                            isSearchable
-                            onChange={(val) => {
-                              if (val) {
-                                locationFormMethods.setValue("locationType", val.value);
-                                locationFormMethods.setValue("credentialId", val.credentialId);
-                                locationFormMethods.unregister([
-                                  "locationLink",
-                                  "locationAddress",
-                                  "locationPhoneNumber",
-                                ]);
-                                locationFormMethods.clearErrors([
-                                  "locationLink",
-                                  "locationPhoneNumber",
-                                  "locationAddress",
-                                ]);
-                                setSelectedLocation?.(val);
-                              }
-                            }}
-                          />
-                        </div>
-                      )}
-                    />
-                  );
-                }}
-              />
+              {locationsQuery.isPending ? (
+                <Loader />
+              ) : locationsQuery.isError ? (
+                <Alert severity="error" title={t("something_went_wrong")} message={locationsQuery.error.message} />
+              ) : (
+                <LocationSelectSection
+                  locationData={locationsQuery.data}
+                  teamId={teamId}
+                  selection={selection}
+                  locationFormMethods={locationFormMethods}
+                  setSelectedLocation={setSelectedLocation}
+                />
+              )}
               {selectedLocation && SelectedLocationInput}
             </div>
           </div>
@@ -355,9 +312,57 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
   );
 };
 
-function filterLocationOptionsForBooking<T extends { options: { value: string }[] }>(locationOption: T) {
-  return {
-    ...locationOption,
-    options: locationOption.options.filter((o) => !isAttendeeInputRequired(o.value)),
-  };
+function LocationSelectSection({
+  locationData,
+  teamId,
+  selection,
+  locationFormMethods,
+  setSelectedLocation,
+}: {
+  locationData: GroupOptionType[];
+  teamId?: number;
+  selection?: LocationOption;
+  locationFormMethods: ReturnType<typeof useForm>;
+  setSelectedLocation?: (param: LocationOption | undefined) => void;
+}) {
+  if (locationData.length === 0) {
+    return null;
+  }
+
+  const locationOptions = locationData.map((option) => {
+    const filtered = teamId
+      ? option.options
+      : option.options.filter((o) => o.value !== OrganizerDefaultConferencingAppType);
+    return {
+      ...option,
+      options: filtered.filter((o) => !isAttendeeInputRequired(o.value)),
+    };
+  });
+
+  return (
+    <Controller
+      name="locationType"
+      control={locationFormMethods.control}
+      render={() => (
+        <div className="py-4">
+          <LocationSelect
+            maxMenuHeight={300}
+            name="location"
+            defaultValue={selection}
+            options={locationOptions}
+            isSearchable
+            onChange={(val) => {
+              if (val) {
+                locationFormMethods.setValue("locationType", val.value);
+                locationFormMethods.setValue("credentialId", val.credentialId);
+                locationFormMethods.unregister(["locationLink", "locationAddress", "locationPhoneNumber"]);
+                locationFormMethods.clearErrors(["locationLink", "locationPhoneNumber", "locationAddress"]);
+                setSelectedLocation?.(val);
+              }
+            }}
+          />
+        </div>
+      )}
+    />
+  );
 }
