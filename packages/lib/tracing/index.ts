@@ -14,7 +14,10 @@ export interface IdGenerator {
 }
 
 export class DistributedTracing {
-  constructor(private idGenerator: IdGenerator, private loggerInstance: Logger<unknown>) {}
+  constructor(
+    private idGenerator: IdGenerator,
+    private loggerInstance: Logger<unknown>
+  ) {}
 
   createTrace(operation: string, context?: Partial<TraceContext>): TraceContext {
     const { traceId, spanId, meta, ...otherContext } = context || {};

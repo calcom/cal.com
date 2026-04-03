@@ -1,9 +1,6 @@
 import { createContainer } from "@calcom/features/di/di";
 
-import {
-  type AttributeService,
-  moduleLoader as attributeServiceModule,
-} from "./AttributeService.module";
+import { type AttributeService, moduleLoader as attributeServiceModule } from "./AttributeService.module";
 
 const attributeServiceContainer = createContainer();
 

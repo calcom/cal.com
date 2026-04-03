@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { Mock } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 // We'll test the wrapped proxy as it would be used in production
-import proxy, { checkPostMethod, POST_METHODS_ALLOWED_API_ROUTES } from "./proxy";
+import proxy from "./proxy";
 import { config } from "./proxy";
 
 // Mock dependencies at module level
@@ -145,34 +145,6 @@ const callProxy = async (req: NextRequest): Promise<Response> => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (await (proxy as any)(req)) as Response;
 };
-
-describe("Middleware - POST requests restriction", () => {
-  const createRequest = (path: string, method: string) => {
-    return new NextRequest(
-      new Request(`${WEBAPP_URL}${path}`, {
-        method,
-      })
-    );
-  };
-
-  it("should allow POST requests to /api routes", async () => {
-    const req1 = createRequest("/api/auth/signup", "POST");
-    const res1 = checkPostMethod(req1);
-    expect(res1).toBeNull();
-  });
-
-  it("should allow GET requests to app routes", async () => {
-    const req = createRequest("/team/xyz", "GET");
-    const res = checkPostMethod(req);
-    expect(res).toBeNull();
-  });
-
-  it("should allow GET requests to /api routes", async () => {
-    const req = createRequest("/api/auth/signup", "GET");
-    const res = checkPostMethod(req);
-    expect(res).toBeNull();
-  });
-});
 
 describe("Middleware Integration Tests", () => {
   beforeEach(() => {
@@ -486,9 +458,11 @@ describe("Middleware Matcher Configuration", () => {
 
   it("should include all core middleware routes", () => {
     expect(matcher).toContain("/auth/login");
-    expect(matcher).toContain("/login");
-    expect(matcher).toContain("/apps/installed");
     expect(matcher).toContain("/auth/logout");
+    expect(matcher).toContain("/api/auth/signup");
+    expect(matcher).toContain("/apps/installed");
+    expect(matcher).toContain("/availability");
+    expect(matcher).toContain("/login");
     expect(matcher).toContain("/:path*/embed");
   });
 
@@ -497,37 +471,20 @@ describe("Middleware Matcher Configuration", () => {
     expect(uniqueEntries.size).toBe(matcher.length);
   });
 
-  it("should cover every POST_METHODS_ALLOWED_API_ROUTES route via exact match or wildcard", () => {
-    const wildcardPrefixes = matcher
-      .filter((entry) => entry.endsWith(":path*"))
-      .map((entry) => entry.replace(":path*", ""));
-
-    for (const route of POST_METHODS_ALLOWED_API_ROUTES) {
-      const matcherEntry = route.endsWith("/") ? `${route}:path*` : route;
-      const coveredByWildcard = wildcardPrefixes.some((prefix) => route.startsWith(prefix));
-      const coveredByExact = matcher.includes(matcherEntry);
-      expect(
-        coveredByWildcard || coveredByExact,
-        `POST route "${route}" is not covered by any matcher entry`
-      ).toBe(true);
-    }
+  it("should not contain any /api/ routes except /api/auth/signup", () => {
+    const apiRoutes = matcher.filter((entry) => entry.startsWith("/api/") && entry !== "/api/auth/signup");
+    expect(apiRoutes).toEqual([]);
   });
 
-  it("should not contain API matcher entries without corresponding POST_METHODS_ALLOWED_API_ROUTES routes", () => {
-    const NON_API_ROUTES = ["/auth/login", "/login", "/apps/installed", "/auth/logout", "/:path*/embed"];
-    const apiMatcherEntries = matcher.filter((entry) => !NON_API_ROUTES.includes(entry));
-
-    for (const entry of apiMatcherEntries) {
-      if (entry.endsWith(":path*")) {
-        const prefix = entry.replace(":path*", "");
-        const hasCoveredRoutes = POST_METHODS_ALLOWED_API_ROUTES.some((route) => route.startsWith(prefix));
-        expect(hasCoveredRoutes, `Matcher wildcard "${entry}" doesn't cover any POST route`).toBe(true);
-      } else {
-        expect(
-          POST_METHODS_ALLOWED_API_ROUTES,
-          `Matcher has "${entry}" but it's missing from POST_METHODS_ALLOWED_API_ROUTES`
-        ).toContain(entry);
-      }
-    }
+  it("should only contain the expected reduced route set", () => {
+    expect(matcher).toEqual([
+      "/auth/login",
+      "/login",
+      "/apps/installed",
+      "/auth/logout",
+      "/:path*/embed",
+      "/availability",
+      "/api/auth/signup",
+    ]);
   });
 });

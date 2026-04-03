@@ -62,22 +62,12 @@ export class RoutingTraceService {
   }
 
   /** To be called by the domain specific routing trace services */
-  addStep({
-    domain,
-    step,
-    data = {},
-  }: {
-    domain: string;
-    step: string;
-    data?: Record<string, unknown>;
-  }) {
+  addStep({ domain, step, data = {} }: { domain: string; step: string; data?: Record<string, unknown> }) {
     this.routingTraceSteps.push({ domain, step, timestamp: Date.now(), data });
   }
 
   /** Save pending trace when routing form is submitted (before booking is created) */
-  async savePendingRoutingTrace(
-    args: { formResponseId: number } | { queuedFormResponseId: string }
-  ) {
+  async savePendingRoutingTrace(args: { formResponseId: number } | { queuedFormResponseId: string }) {
     await this.deps.pendingRoutingTraceRepository.create({
       trace: this.routingTraceSteps,
       ...args,
@@ -97,28 +87,38 @@ export class RoutingTraceService {
     isRerouting: boolean;
     reroutedByEmail?: string | null;
   }): Promise<ProcessRoutingTraceResult | null> {
-    const { formResponseId, queuedFormResponseId, bookingId, bookingUid, organizerEmail, isRerouting, reroutedByEmail } = args;
+    const {
+      formResponseId,
+      queuedFormResponseId,
+      bookingId,
+      bookingUid,
+      organizerEmail,
+      isRerouting,
+      reroutedByEmail,
+    } = args;
 
     let pendingTrace = null;
     if (formResponseId) {
       pendingTrace = await this.deps.pendingRoutingTraceRepository.findByFormResponseId(formResponseId);
     } else if (queuedFormResponseId) {
-      pendingTrace = await this.deps.pendingRoutingTraceRepository.findByQueuedFormResponseId(queuedFormResponseId);
+      pendingTrace =
+        await this.deps.pendingRoutingTraceRepository.findByQueuedFormResponseId(queuedFormResponseId);
     }
 
     if (!pendingTrace) {
-      logger.warn("Could not find pending routing trace for form response", { formResponseId, queuedFormResponseId, bookingId });
+      logger.warn("Could not find pending routing trace for form response", {
+        formResponseId,
+        queuedFormResponseId,
+        bookingId,
+      });
       return null;
     }
 
-    const assignmentReasonData = this.extractAssignmentReasonFromTrace(
-      pendingTrace.trace,
-      {
-        organizerEmail,
-        isRerouting,
-        reroutedByEmail,
-      }
-    );
+    const assignmentReasonData = this.extractAssignmentReasonFromTrace(pendingTrace.trace, {
+      organizerEmail,
+      isRerouting,
+      reroutedByEmail,
+    });
 
     let assignmentReasonId: number | undefined;
 
@@ -169,24 +169,16 @@ export class RoutingTraceService {
     );
 
     if (crmAssignmentStep && crmAssignmentStep.data) {
-      const {
-        email,
-        recordType,
-        recordId,
-        rrSkipToAccountLookupField,
-        rrSKipToAccountLookupFieldName,
-      } = crmAssignmentStep.data as {
-        email?: string;
-        recordType?: string | null;
-        recordId?: string;
-        rrSkipToAccountLookupField?: boolean;
-        rrSKipToAccountLookupFieldName?: string | null;
-      };
+      const { email, recordType, recordId, rrSkipToAccountLookupField, rrSKipToAccountLookupFieldName } =
+        crmAssignmentStep.data as {
+          email?: string;
+          recordType?: string | null;
+          recordId?: string;
+          rrSkipToAccountLookupField?: boolean;
+          rrSKipToAccountLookupFieldName?: string | null;
+        };
 
-      if (
-        email &&
-        email.toLowerCase() === context.organizerEmail.toLowerCase()
-      ) {
+      if (email && email.toLowerCase() === context.organizerEmail.toLowerCase()) {
         return {
           reasonEnum: AssignmentReasonEnum.SALESFORCE_ASSIGNMENT,
           reasonString: this.buildSalesforceReasonString({
@@ -215,8 +207,8 @@ export class RoutingTraceService {
       const reasonEnum = context.isRerouting
         ? AssignmentReasonEnum.REROUTED
         : routeIsFallback
-        ? AssignmentReasonEnum.ROUTING_FORM_ROUTING_FALLBACK
-        : AssignmentReasonEnum.ROUTING_FORM_ROUTING;
+          ? AssignmentReasonEnum.ROUTING_FORM_ROUTING_FALLBACK
+          : AssignmentReasonEnum.ROUTING_FORM_ROUTING;
 
       return {
         reasonEnum,
@@ -260,13 +252,7 @@ export class RoutingTraceService {
     rrSkipToAccountLookupField?: boolean;
     rrSKipToAccountLookupFieldName?: string | null;
   }): string {
-    const {
-      email,
-      recordType,
-      recordId,
-      rrSkipToAccountLookupField,
-      rrSKipToAccountLookupFieldName,
-    } = data;
+    const { email, recordType, recordId, rrSkipToAccountLookupField, rrSKipToAccountLookupFieldName } = data;
 
     if (rrSkipToAccountLookupField && rrSKipToAccountLookupFieldName) {
       return `Salesforce account lookup field: ${rrSKipToAccountLookupFieldName} - ${email}${
@@ -275,8 +261,6 @@ export class RoutingTraceService {
     }
 
     const recordLabel = recordType.toLowerCase();
-    return `Salesforce ${recordLabel} owner: ${email}${
-      recordId ? ` (${recordType} ID: ${recordId})` : ""
-    }`;
+    return `Salesforce ${recordLabel} owner: ${email}${recordId ? ` (${recordType} ID: ${recordId})` : ""}`;
   }
 }

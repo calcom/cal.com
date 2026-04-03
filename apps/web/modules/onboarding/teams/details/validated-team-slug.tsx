@@ -8,7 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import classNames from "@calcom/ui/classNames";
 import { Label, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { LoaderIcon } from "@coss/ui/icons";
 
 import { checkTeamSlugAvailability } from "./action/check-team-slug-availability";
 
@@ -100,7 +100,7 @@ export function ValidatedTeamSlug({ value, onChange, onValidationChange }: Valid
         addOnLeading={urlPrefix}
         addOnSuffix={
           validationState === "checking" ? (
-            <Icon name="loader" className="text-subtle h-3 w-3 animate-spin" />
+            <LoaderIcon className="text-subtle h-3 w-3 animate-spin" />
           ) : undefined
         }
         className={classNames(validationState === "taken" ? "border-error" : "")}

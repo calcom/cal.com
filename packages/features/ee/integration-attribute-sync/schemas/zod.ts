@@ -38,8 +38,10 @@ const attributeConditionSchema = baseConditionSchema.extend({
 });
 
 // Discriminated union for conditions
-export const attributeSyncRuleConditionSchema: z.ZodType<TAttributeSyncRuleCondition> =
-  z.discriminatedUnion("identifier", [teamConditionSchema, attributeConditionSchema]);
+export const attributeSyncRuleConditionSchema: z.ZodType<TAttributeSyncRuleCondition> = z.discriminatedUnion(
+  "identifier",
+  [teamConditionSchema, attributeConditionSchema]
+);
 
 export const attributeSyncRuleSchema: z.ZodType<IAttributeSyncRule> = z.object({
   operator: ruleOperatorSchema,

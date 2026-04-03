@@ -99,7 +99,7 @@ const Download = () => {
           EndIcon="file-down"
           color="secondary"
           loading={isDownloading}
-          className="h-full self-end sm:self-baseline">
+          className="h-full">
           {t("download")}
         </Button>
       </DropdownMenuTrigger>

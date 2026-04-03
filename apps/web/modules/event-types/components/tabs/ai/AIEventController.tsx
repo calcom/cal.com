@@ -20,7 +20,7 @@ import { EmptyScreen } from "@calcom/ui/components/empty-screen";
 import { Label } from "@calcom/ui/components/form";
 import { TextField } from "@calcom/ui/components/form";
 import { SettingsToggle } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 
 type AIEventControllerProps = {
@@ -90,7 +90,7 @@ const ErrorMessage = ({ fieldName, message }: { fieldName: string; message: stri
   const { t } = useLocale();
   return (
     <div data-testid={`error-message-${fieldName}`} className="mt-2 flex items-center text-sm text-red-700 ">
-      <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+      <InfoIcon className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
       <p>{t(message || "invalid_input")}</p>
     </div>
   );

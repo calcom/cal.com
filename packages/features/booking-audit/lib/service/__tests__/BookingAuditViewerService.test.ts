@@ -23,6 +23,11 @@ vi.mock("@calcom/features/bookings/repositories/BookingRepository");
 vi.mock("@calcom/features/membership/repositories/MembershipRepository");
 vi.mock("@calcom/features/credentials/repositories/CredentialRepository");
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 type MockBooking = {
   userId: number;
   user: {
@@ -158,7 +163,13 @@ type MockUser = {
 
 const createMockUser = (
   uuid?: string,
-  overrides?: Partial<{ id: number; uuid: string; name: string | null; email: string; avatarUrl: string | null }>
+  overrides?: Partial<{
+    id: number;
+    uuid: string;
+    name: string | null;
+    email: string;
+    avatarUrl: string | null;
+  }>
 ) => {
   const userUuid = uuid ?? overrides?.uuid ?? `user-uuid-${overrides?.id ?? 123}`;
   const user: MockUser = {

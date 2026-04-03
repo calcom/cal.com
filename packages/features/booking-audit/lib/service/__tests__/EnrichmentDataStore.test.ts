@@ -31,10 +31,7 @@ describe("EnrichmentDataStore", () => {
 
   describe("constructor", () => {
     it("should pre-populate usersByUuid map with nulls for declared userUuids", () => {
-      const store = new EnrichmentDataStore(
-        { userUuids: ["uuid-1", "uuid-2"] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ userUuids: ["uuid-1", "uuid-2"] }, repositories);
 
       expect(() => store.getUserByUuid("uuid-1")).not.toThrow();
       expect(() => store.getUserByUuid("uuid-2")).not.toThrow();
@@ -43,10 +40,7 @@ describe("EnrichmentDataStore", () => {
     });
 
     it("should pre-populate attendeesById map with nulls for declared attendeeIds", () => {
-      const store = new EnrichmentDataStore(
-        { attendeeIds: [1, 2, 3] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ attendeeIds: [1, 2, 3] }, repositories);
 
       expect(() => store.getAttendeeById(1)).not.toThrow();
       expect(() => store.getAttendeeById(2)).not.toThrow();
@@ -55,10 +49,7 @@ describe("EnrichmentDataStore", () => {
     });
 
     it("should pre-populate credentialsById map with nulls for declared credentialIds", () => {
-      const store = new EnrichmentDataStore(
-        { credentialIds: [10, 20] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ credentialIds: [10, 20] }, repositories);
 
       expect(() => store.getCredentialById(10)).not.toThrow();
       expect(() => store.getCredentialById(20)).not.toThrow();
@@ -82,10 +73,7 @@ describe("EnrichmentDataStore", () => {
       ];
       vi.mocked(mockUserRepository.findByUuids).mockResolvedValue(mockUsers);
 
-      const store = new EnrichmentDataStore(
-        { userUuids: ["uuid-1", "uuid-2"] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ userUuids: ["uuid-1", "uuid-2"] }, repositories);
       await store.fetch();
 
       expect(mockUserRepository.findByUuids).toHaveBeenCalledWith({ uuids: ["uuid-1", "uuid-2"] });
@@ -100,10 +88,7 @@ describe("EnrichmentDataStore", () => {
       ];
       vi.mocked(mockAttendeeRepository.findByIds).mockResolvedValue(mockAttendees);
 
-      const store = new EnrichmentDataStore(
-        { attendeeIds: [1, 2] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ attendeeIds: [1, 2] }, repositories);
       await store.fetch();
 
       expect(mockAttendeeRepository.findByIds).toHaveBeenCalledWith({ ids: [1, 2] });
@@ -118,10 +103,7 @@ describe("EnrichmentDataStore", () => {
       ];
       vi.mocked(mockCredentialRepository.findByIds).mockResolvedValue(mockCredentials);
 
-      const store = new EnrichmentDataStore(
-        { credentialIds: [10, 20] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ credentialIds: [10, 20] }, repositories);
       await store.fetch();
 
       expect(mockCredentialRepository.findByIds).toHaveBeenCalledWith({ ids: [10, 20] });
@@ -136,9 +118,7 @@ describe("EnrichmentDataStore", () => {
       vi.mocked(mockAttendeeRepository.findByIds).mockResolvedValue([
         { id: 1, name: "Attendee", email: "attendee@example.com" },
       ]);
-      vi.mocked(mockCredentialRepository.findByIds).mockResolvedValue([
-        { id: 10, appId: "app" },
-      ]);
+      vi.mocked(mockCredentialRepository.findByIds).mockResolvedValue([{ id: 10, appId: "app" }]);
 
       const store = new EnrichmentDataStore(
         { userUuids: ["uuid-1"], attendeeIds: [1], credentialIds: [10] },
@@ -165,10 +145,7 @@ describe("EnrichmentDataStore", () => {
         { id: 1, uuid: "uuid-1", name: "User 1", email: "user1@example.com", avatarUrl: null },
       ]);
 
-      const store = new EnrichmentDataStore(
-        { userUuids: ["uuid-1", "uuid-2", "uuid-3"] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ userUuids: ["uuid-1", "uuid-2", "uuid-3"] }, repositories);
       await store.fetch();
 
       expect(store.getUserByUuid("uuid-1")).not.toBeNull();
@@ -179,10 +156,7 @@ describe("EnrichmentDataStore", () => {
 
   describe("getUserByUuid", () => {
     it("should throw error when accessing undeclared UUID", () => {
-      const store = new EnrichmentDataStore(
-        { userUuids: ["uuid-1"] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ userUuids: ["uuid-1"] }, repositories);
 
       expect(() => store.getUserByUuid("undeclared-uuid")).toThrow(
         'EnrichmentDataStore: getUserByUuid("undeclared-uuid") called but was not declared in getDataRequirements'
@@ -192,23 +166,23 @@ describe("EnrichmentDataStore", () => {
     it("should return null for declared UUID that does not exist in database", async () => {
       vi.mocked(mockUserRepository.findByUuids).mockResolvedValue([]);
 
-      const store = new EnrichmentDataStore(
-        { userUuids: ["uuid-1"] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ userUuids: ["uuid-1"] }, repositories);
       await store.fetch();
 
       expect(store.getUserByUuid("uuid-1")).toBeNull();
     });
 
     it("should return user data for declared UUID that exists in database", async () => {
-      const mockUser = { id: 1, uuid: "uuid-1", name: "Test User", email: "test@example.com", avatarUrl: null };
+      const mockUser = {
+        id: 1,
+        uuid: "uuid-1",
+        name: "Test User",
+        email: "test@example.com",
+        avatarUrl: null,
+      };
       vi.mocked(mockUserRepository.findByUuids).mockResolvedValue([mockUser]);
 
-      const store = new EnrichmentDataStore(
-        { userUuids: ["uuid-1"] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ userUuids: ["uuid-1"] }, repositories);
       await store.fetch();
 
       expect(store.getUserByUuid("uuid-1")).toEqual(mockUser);
@@ -217,10 +191,7 @@ describe("EnrichmentDataStore", () => {
 
   describe("getAttendeeById", () => {
     it("should throw error when accessing undeclared attendee ID", () => {
-      const store = new EnrichmentDataStore(
-        { attendeeIds: [1] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ attendeeIds: [1] }, repositories);
 
       expect(() => store.getAttendeeById(999)).toThrow(
         "EnrichmentDataStore: getAttendeeById(999) called but was not declared in getDataRequirements"
@@ -230,10 +201,7 @@ describe("EnrichmentDataStore", () => {
     it("should return null for declared ID that does not exist in database", async () => {
       vi.mocked(mockAttendeeRepository.findByIds).mockResolvedValue([]);
 
-      const store = new EnrichmentDataStore(
-        { attendeeIds: [1] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ attendeeIds: [1] }, repositories);
       await store.fetch();
 
       expect(store.getAttendeeById(1)).toBeNull();
@@ -243,10 +211,7 @@ describe("EnrichmentDataStore", () => {
       const mockAttendee = { id: 1, name: "Test Attendee", email: "attendee@example.com" };
       vi.mocked(mockAttendeeRepository.findByIds).mockResolvedValue([mockAttendee]);
 
-      const store = new EnrichmentDataStore(
-        { attendeeIds: [1] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ attendeeIds: [1] }, repositories);
       await store.fetch();
 
       expect(store.getAttendeeById(1)).toEqual(mockAttendee);
@@ -255,10 +220,7 @@ describe("EnrichmentDataStore", () => {
 
   describe("getCredentialById", () => {
     it("should throw error when accessing undeclared credential ID", () => {
-      const store = new EnrichmentDataStore(
-        { credentialIds: [10] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ credentialIds: [10] }, repositories);
 
       expect(() => store.getCredentialById(999)).toThrow(
         "EnrichmentDataStore: getCredentialById(999) called but was not declared in getDataRequirements"
@@ -268,10 +230,7 @@ describe("EnrichmentDataStore", () => {
     it("should return null for declared ID that does not exist in database", async () => {
       vi.mocked(mockCredentialRepository.findByIds).mockResolvedValue([]);
 
-      const store = new EnrichmentDataStore(
-        { credentialIds: [10] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ credentialIds: [10] }, repositories);
       await store.fetch();
 
       expect(store.getCredentialById(10)).toBeNull();
@@ -281,10 +240,7 @@ describe("EnrichmentDataStore", () => {
       const mockCredential = { id: 10, appId: "google-calendar" };
       vi.mocked(mockCredentialRepository.findByIds).mockResolvedValue([mockCredential]);
 
-      const store = new EnrichmentDataStore(
-        { credentialIds: [10] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ credentialIds: [10] }, repositories);
       await store.fetch();
 
       expect(store.getCredentialById(10)).toEqual(mockCredential);
@@ -300,10 +256,7 @@ describe("EnrichmentDataStore", () => {
       ];
       vi.mocked(mockUserRepository.findByUuids).mockResolvedValue(mockUsers);
 
-      const store = new EnrichmentDataStore(
-        { userUuids: ["uuid-1", "uuid-2", "uuid-3"] },
-        repositories
-      );
+      const store = new EnrichmentDataStore({ userUuids: ["uuid-1", "uuid-2", "uuid-3"] }, repositories);
       await store.fetch();
 
       expect(store.getUserByUuid("uuid-1")).toEqual(mockUsers[0]);

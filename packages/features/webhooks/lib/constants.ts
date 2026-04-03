@@ -1,5 +1,4 @@
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
-
 import { WebhookVersion } from "./interface/IWebhookRepository";
 
 // this is exported as we can't use `WebhookTriggerEvents` in the frontend straight-off
@@ -67,6 +66,7 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
   "routing-forms": [
     WebhookTriggerEvents.FORM_SUBMITTED,
     WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+    WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT,
   ] as const,
 };
 

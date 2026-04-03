@@ -44,12 +44,7 @@ export type SelectInnerClassNames = {
 };
 
 export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
-  [Key in FieldPath<TFieldValues>]: FieldPathValue<
-    TFieldValues,
-    Key
-  > extends TValue
-    ? Key
-    : never;
+  [Key in FieldPath<TFieldValues>]: FieldPathValue<TFieldValues, Key> extends TValue ? Key : never;
 }[FieldPath<TFieldValues>];
 
 export const ScheduleDay = <TFieldValues extends FieldValues>({
@@ -99,10 +94,9 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
                 onCheckedChange={(isChecked) => {
                   if (isChecked) {
                     const previousDayRange = lastNonEmptyDayRangeRef.current;
-                    const newValue =
-                      (previousDayRange && previousDayRange.length > 0
-                        ? previousDayRange
-                        : [DEFAULT_DAY_RANGE]) as TFieldValues[typeof name];
+                    const newValue = (
+                      previousDayRange && previousDayRange.length > 0 ? previousDayRange : [DEFAULT_DAY_RANGE]
+                    ) as TFieldValues[typeof name];
 
                     setValue(name, newValue);
                   } else {
@@ -188,7 +182,7 @@ const CopyButton = ({
 
 export const ScheduleComponent = <
   TFieldValues extends FieldValues,
-  TPath extends FieldPathByValue<TFieldValues, TimeRange[][]>
+  TPath extends FieldPathByValue<TFieldValues, TimeRange[][]>,
 >({
   name,
   control,
@@ -408,10 +402,7 @@ const TimeRangeField = ({
   );
 };
 
-export function parseTimeString(
-  input: string,
-  timeFormat: number | null
-): Date | null {
+export function parseTimeString(input: string, timeFormat: number | null): Date | null {
   if (!input.trim()) return null;
 
   const formats = timeFormat === 12 ? ["h:mma", "HH:mm"] : ["HH:mm", "h:mma"];
@@ -463,8 +454,7 @@ const LazySelect = ({
       if (actionMeta.action === "input-change" && newValue.trim()) {
         const trimmedValue = newValue.trim();
 
-        const formats =
-          userTimeFormat === 12 ? ["h:mma", "HH:mm"] : ["HH:mm", "h:mma"];
+        const formats = userTimeFormat === 12 ? ["h:mma", "HH:mm"] : ["HH:mm", "h:mma"];
         const parsedTime = dayjs(trimmedValue, formats, true);
         const looksLikeTime = /^\d{1,2}:\d{2}(a|p|am|pm)?$/i.test(trimmedValue);
 
@@ -492,10 +482,7 @@ const LazySelect = ({
 
   const filteredOptions = React.useMemo(() => {
     const dropdownOptions = options.filter((option) =>
-      defaultFilter(
-        { ...option, data: option.label, value: option.label },
-        inputValue
-      )
+      defaultFilter({ ...option, data: option.label, value: option.label }, inputValue)
     );
 
     const trimmedInput = inputValue.trim();
@@ -505,15 +492,11 @@ const LazySelect = ({
       if (parsedTime) {
         const parsedDayjs = dayjs(parsedTime);
         // Validate against min/max bounds using same logic as filter function
-        const withinBounds =
-          (!min || parsedDayjs.isAfter(min)) &&
-          (!max || parsedDayjs.isBefore(max));
+        const withinBounds = (!min || parsedDayjs.isAfter(min)) && (!max || parsedDayjs.isBefore(max));
 
         if (withinBounds) {
           const parsedTimestamp = parsedTime.valueOf();
-          const existsInOptions = options.some(
-            (option) => option.value === parsedTimestamp
-          );
+          const existsInOptions = options.some((option) => option.value === parsedTimestamp);
 
           if (!existsInOptions) {
             const manualOption: IOption = {
@@ -616,9 +599,7 @@ const useOptions = (timeFormat: number | null) => {
     ({ offset, limit, current }: { offset?: ConfigType; limit?: ConfigType; current?: ConfigType }) => {
       if (current) {
         const currentValue = dayjs(current).toDate().valueOf();
-        const currentOption = options.find(
-          (option) => option.value === currentValue
-        );
+        const currentOption = options.find((option) => option.value === currentValue);
         if (currentOption) {
           setFilteredOptions([currentOption]);
         } else {
@@ -635,10 +616,7 @@ const useOptions = (timeFormat: number | null) => {
         setFilteredOptions(
           options.filter((option) => {
             const time = dayjs(option.value);
-            return (
-              (!limit || time.isBefore(limit)) &&
-              (!offset || time.isAfter(offset))
-            );
+            return (!limit || time.isBefore(limit)) && (!offset || time.isAfter(offset));
           })
         );
     },

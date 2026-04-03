@@ -1,24 +1,24 @@
 /* Schedule any workflow reminder that falls within the next 2 hours for SMS */
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 
 import dayjs from "@calcom/dayjs";
-import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { isAttendeeAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { scheduleSmsOrFallbackEmail } from "@calcom/features/ee/workflows/lib/reminders/messageDispatcher";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { UrlShortenerFactory } from "@calcom/features/url-shortener/UrlShortenerFactory";
+import { DUB_SMS_DOMAIN, DUB_SMS_FOLDER_ID } from "@calcom/lib/constants";
+import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
-
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
-import { select, getWorkflowRecipientEmail } from "../lib/getWorkflowReminders";
+import { getWorkflowRecipientEmail, select } from "../lib/getWorkflowReminders";
 import type { VariablesType } from "../lib/reminders/templates/customTemplate";
 import customTemplate from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
@@ -74,10 +74,15 @@ export async function handler(req: NextRequest) {
         }
       }
 
+      const attendeePhoneNumber =
+        reminder.seatReferenceId && targetAttendee?.phoneNumber
+          ? targetAttendee.phoneNumber
+          : reminder.booking?.smsReminderNumber || targetAttendee?.phoneNumber;
+
       const sendTo =
         reminder.workflowStep.action === WorkflowActions.SMS_NUMBER
           ? reminder.workflowStep.sendTo
-          : targetAttendee?.phoneNumber;
+          : attendeePhoneNumber;
 
       const userName =
         reminder.workflowStep.action === WorkflowActions.SMS_ATTENDEE ? targetAttendee?.name || "" : "";
@@ -136,8 +141,12 @@ export async function handler(req: NextRequest) {
           }`,
         };
 
+        const shortener = await UrlShortenerFactory.create({ userId, teamId });
         const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
-          await bulkShortenLinks([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink]);
+          await shortener.shortenMany([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink], {
+            domain: DUB_SMS_DOMAIN,
+            folderId: DUB_SMS_FOLDER_ID,
+          });
 
         const variables: VariablesType = {
           eventName: reminder.booking?.eventType?.title,

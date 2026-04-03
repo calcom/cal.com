@@ -29,7 +29,7 @@ import {
   InputField,
   Label,
 } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { ArrowDownIcon, ArrowUpIcon, MailIcon, PhoneIcon } from "@coss/ui/icons";
 import { showToast } from "@calcom/ui/components/toast";
 
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
@@ -69,6 +69,23 @@ const getLocationFieldType = (field: RhfFormField) => {
 
   return baseFieldType;
 };
+
+function isWhitespaceOnly(val: unknown): boolean {
+  return typeof val === "string" && val.length > 0 && val.trim().length === 0;
+}
+
+function hasWhitespaceOnlyLabel(data: RhfFormField): boolean {
+  if (isWhitespaceOnly(data.label)) return true;
+  const variants = data.variantsConfig?.variants;
+  if (!variants) return false;
+  for (const variant of Object.values(variants)) {
+    const fields = variant?.fields ?? [];
+    for (const f of fields) {
+      if (isWhitespaceOnly(f?.label)) return true;
+    }
+  }
+  return false;
+}
 
 /**
  * It works with a react-hook-form only.
@@ -171,12 +188,12 @@ export const FormBuilder = function FormBuilder({
                 {
                   value: "email",
                   label: "Email",
-                  iconLeft: <Icon name="mail" className="h-4 w-4" />,
+                  iconLeft: <MailIcon className="h-4 w-4" />,
                 },
                 {
                   value: "phone",
                   label: "Phone",
-                  iconLeft: <Icon name="phone" className="h-4 w-4" />,
+                  iconLeft: <PhoneIcon className="h-4 w-4" />,
                 },
               ]}
               onValueChange={(value) => {
@@ -283,7 +300,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-subtle hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index - 1)}>
-                        <Icon name="arrow-up" className="h-5 w-5" />
+                        <ArrowUpIcon className="h-5 w-5" />
                       </button>
                     )}
                     {index < fields.length - 1 && (
@@ -291,7 +308,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:border-emphasis border-subtle hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index + 1)}>
-                        <Icon name="arrow-down" className="h-5 w-5" />
+                        <ArrowDownIcon className="h-5 w-5" />
                       </button>
                     )}
                   </>
@@ -387,6 +404,11 @@ export const FormBuilder = function FormBuilder({
             const type = data.type || "text";
             const isNewField = !fieldDialog.data;
 
+            if (hasWhitespaceOnlyLabel(data)) {
+              showToast(t("label_cannot_be_whitespace"), "error");
+              return;
+            }
+
             if (data.name === "guests" && type !== "multiemail") {
               showToast(t("guests_field_must_be_multiemail"), "error");
               return;
@@ -433,7 +455,7 @@ function Options({
   label = "Options",
   value,
 
-  onChange = () => {},
+  onChange = () => { },
   className = "",
   readOnly = false,
   showPrice = false,
@@ -645,7 +667,7 @@ function FieldEditDialog({
                 }
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
-              value={dialog.data ? getLocationFieldType(dialog.data) : fieldTypesConfigMap[formFieldType]}
+              value={fieldTypesConfigMap[formFieldType]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
@@ -900,12 +922,12 @@ function FieldLabel({ field }: { field: RhfFormField }) {
         <span
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
-            __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
+            __html: markdownToSafeHTMLClient(field.label?.trim() || t(field.defaultLabel || "") || ""),
           }}
         />
       );
     } else {
-      return <span>{field.label || t(field.defaultLabel || "")}</span>;
+      return <span>{field.label?.trim() || t(field.defaultLabel || "")}</span>;
     }
   }
   const variant = field.variant || defaultVariant;
@@ -1008,16 +1030,17 @@ function VariantFields({
           const rhfVariantFieldPrefix = `variantsConfig.variants.${variantName}.fields.${index}` as const;
           const fieldTypeConfigVariants =
             fieldTypeConfigVariantsConfig.variants[
-              variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
+            variantName as keyof typeof fieldTypeConfigVariantsConfig.variants
             ];
           const appUiFieldConfig =
             fieldTypeConfigVariants.fieldsMap[f.name as keyof typeof fieldTypeConfigVariants.fieldsMap];
+
           return (
             <li className={classNames(!isSimpleVariant ? "p-4" : "")} key={f.name}>
               {!isSimpleVariant && (
                 <Label className="flex justify-between">
                   <span>{`Field ${index + 1}`}</span>
-                  <span className="text-muted">{f.name}</span>
+                  <span className="text-muted">{t(appUiFieldConfig?.defaultLabel || "")}</span>
                 </Label>
               )}
               <InputField

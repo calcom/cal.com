@@ -21,6 +21,9 @@ type TaskPayloads = {
   translateEventTypeData: z.infer<
     typeof import("./tasks/translateEventTypeData").ZTranslateEventDataPayloadSchema
   >;
+  translateWorkflowStepData: z.infer<
+    typeof import("./tasks/translateWorkflowStepData").ZTranslateWorkflowStepDataPayloadSchema
+  >;
   createCRMEvent: z.infer<typeof import("./tasks/crm/schema").createCRMEventSchema>;
   sendWorkflowEmails: z.infer<typeof import("./tasks/sendWorkflowEmails").ZSendWorkflowEmailsSchema>;
   scanWorkflowBody: z.infer<typeof import("./tasks/scanWorkflowBody").scanWorkflowBodySchema>;

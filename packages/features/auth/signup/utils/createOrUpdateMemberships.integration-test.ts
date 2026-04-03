@@ -60,11 +60,7 @@ async function createTestOrganization(data: {
   return { ...team, organizationSettings };
 }
 
-async function createTestSubteam(data: {
-  name: string;
-  slug: string;
-  parentId: number;
-}): Promise<Team> {
+async function createTestSubteam(data: { name: string; slug: string; parentId: number }): Promise<Team> {
   const uniqueId = generateUniqueId();
   const uniqueSlug = `${data.slug}-${uniqueId}`;
 
@@ -95,10 +91,7 @@ describe("createOrUpdateMemberships Integration Tests", () => {
       // Clean up in reverse dependency order
       await prisma.profile.deleteMany({
         where: {
-          OR: [
-            { userId: { in: userIds } },
-            { organizationId: { in: teamIds } },
-          ],
+          OR: [{ userId: { in: userIds } }, { organizationId: { in: teamIds } }],
         },
       });
       await prisma.membership.deleteMany({

@@ -127,14 +127,20 @@ describe("PayloadBuilderFactory", () => {
     });
 
     it("should route instant meeting events to instant meeting builder", () => {
-      const builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.INSTANT_MEETING);
+      const builder = factory.getBuilder(
+        WebhookVersionEnum.V_2021_10_20,
+        WebhookTriggerEvents.INSTANT_MEETING
+      );
       expect(builder).toBe(defaultBuilders.instantMeeting);
     });
   });
 
   describe("Fallback Behavior", () => {
     it("should fallback to default version when requested version not found", () => {
-      const builder = factory.getBuilder(WebhookVersionEnum.V_2099_99_99, WebhookTriggerEvents.BOOKING_CREATED);
+      const builder = factory.getBuilder(
+        WebhookVersionEnum.V_2099_99_99,
+        WebhookTriggerEvents.BOOKING_CREATED
+      );
 
       // Should get default builder, not throw
       expect(builder).toBe(defaultBuilders.booking);
@@ -159,12 +165,30 @@ describe("PayloadBuilderFactory", () => {
   describe("Type Safety", () => {
     it("should return correctly typed builder for each trigger", () => {
       // These type assertions verify compile-time type safety
-      const bookingBuilder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
-      const formBuilder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.FORM_SUBMITTED);
-      const oooBuilder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.OOO_CREATED);
-      const recordingBuilder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.RECORDING_READY);
-      const meetingBuilder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.MEETING_STARTED);
-      const instantBuilder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.INSTANT_MEETING);
+      const bookingBuilder = factory.getBuilder(
+        WebhookVersionEnum.V_2021_10_20,
+        WebhookTriggerEvents.BOOKING_CREATED
+      );
+      const formBuilder = factory.getBuilder(
+        WebhookVersionEnum.V_2021_10_20,
+        WebhookTriggerEvents.FORM_SUBMITTED
+      );
+      const oooBuilder = factory.getBuilder(
+        WebhookVersionEnum.V_2021_10_20,
+        WebhookTriggerEvents.OOO_CREATED
+      );
+      const recordingBuilder = factory.getBuilder(
+        WebhookVersionEnum.V_2021_10_20,
+        WebhookTriggerEvents.RECORDING_READY
+      );
+      const meetingBuilder = factory.getBuilder(
+        WebhookVersionEnum.V_2021_10_20,
+        WebhookTriggerEvents.MEETING_STARTED
+      );
+      const instantBuilder = factory.getBuilder(
+        WebhookVersionEnum.V_2021_10_20,
+        WebhookTriggerEvents.INSTANT_MEETING
+      );
 
       // Runtime verification
       expect(bookingBuilder).toBeDefined();
@@ -221,7 +245,10 @@ describe("PayloadBuilderFactory", () => {
         },
       };
 
-      const builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
+      const builder = factory.getBuilder(
+        WebhookVersionEnum.V_2021_10_20,
+        WebhookTriggerEvents.BOOKING_CREATED
+      );
       const payload = builder.build(mockDTO);
 
       expect(payload).toBeDefined();
@@ -244,8 +271,14 @@ describe("PayloadBuilderFactory", () => {
       factory.registerVersion(WebhookVersionEnum.V_2024_12_01, v2Builders);
 
       // Both versions should work
-      const v1Builder = factory.getBuilder(WebhookVersionEnum.V_2021_10_20, WebhookTriggerEvents.BOOKING_CREATED);
-      const v2Builder = factory.getBuilder(WebhookVersionEnum.V_2024_12_01, WebhookTriggerEvents.BOOKING_CREATED);
+      const v1Builder = factory.getBuilder(
+        WebhookVersionEnum.V_2021_10_20,
+        WebhookTriggerEvents.BOOKING_CREATED
+      );
+      const v2Builder = factory.getBuilder(
+        WebhookVersionEnum.V_2024_12_01,
+        WebhookTriggerEvents.BOOKING_CREATED
+      );
 
       expect(v1Builder).toBe(defaultBuilders.booking);
       expect(v2Builder).toBe(v2Builders.booking);
@@ -253,4 +286,3 @@ describe("PayloadBuilderFactory", () => {
     });
   });
 });
-

@@ -1,5 +1,5 @@
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
-import { useDataTable } from "@calcom/features/data-table/hooks";
+import { useDataTable } from "~/data-table/hooks";
 import type {
   CombinedFilterSegment,
   FilterSegmentOutput,

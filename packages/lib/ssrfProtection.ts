@@ -31,8 +31,12 @@ const CLOUD_METADATA_ENDPOINTS: string[] = [
   "metadata.google.com", // GCP alternate
 ];
 
-// Hostnames blocked on Cal.com SaaS (includes metadata + localhost)
-const BLOCKED_HOSTNAMES: string[] = [...CLOUD_METADATA_ENDPOINTS, "localhost"];
+const LOOPBACK_HOSTNAMES: string[] = ["localhost", "127.0.0.1", "::1", "[::1]", "0.0.0.0"];
+
+// Hostnames blocked on Cal.com SaaS (includes metadata + loopback)
+const BLOCKED_HOSTNAMES: string[] = [...CLOUD_METADATA_ENDPOINTS, ...LOOPBACK_HOSTNAMES];
+
+const CAL_AVATAR_PATH_REGEX = /^\/api\/avatar\/.+\.png$/;
 
 const ERRORS = {
   HTTPS_ONLY: "Only HTTPS URLs are allowed",
@@ -109,6 +113,10 @@ function validateUrlCore(urlString: string): SSRFValidationResult | { url: URL }
 
   if (urlString.startsWith("data:")) {
     return { isValid: false, error: ERRORS.NON_IMAGE_DATA_URL };
+  }
+
+  if (CAL_AVATAR_PATH_REGEX.test(urlString)) {
+    return { isValid: true };
   }
 
   let url: URL;

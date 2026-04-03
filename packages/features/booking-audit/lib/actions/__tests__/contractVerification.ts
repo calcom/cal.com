@@ -1,4 +1,10 @@
-import type { EnrichmentDataStore, DataRequirements, StoredUser, StoredAttendee, StoredCredential } from "../../service/EnrichmentDataStore";
+import type {
+  EnrichmentDataStore,
+  DataRequirements,
+  StoredUser,
+  StoredAttendee,
+  StoredCredential,
+} from "../../service/EnrichmentDataStore";
 import type { IAuditActionService, BaseStoredAuditData } from "../IAuditActionService";
 
 type AccessedData = {
@@ -146,7 +152,9 @@ export async function verifyDataRequirementsContract(
 
   for (const uuid of accessedData.userUuids) {
     if (!declaredRequirements.userUuids?.includes(uuid)) {
-      errors.push(`Under-declaration: getUserByUuid("${uuid}") was called but not declared in getDataRequirements`);
+      errors.push(
+        `Under-declaration: getUserByUuid("${uuid}") was called but not declared in getDataRequirements`
+      );
     }
   }
 
@@ -158,7 +166,9 @@ export async function verifyDataRequirementsContract(
 
   for (const id of accessedData.attendeeIds) {
     if (!declaredRequirements.attendeeIds?.includes(id)) {
-      errors.push(`Under-declaration: getAttendeeById(${id}) was called but not declared in getDataRequirements`);
+      errors.push(
+        `Under-declaration: getAttendeeById(${id}) was called but not declared in getDataRequirements`
+      );
     }
   }
 
@@ -170,7 +180,9 @@ export async function verifyDataRequirementsContract(
 
   for (const id of accessedData.credentialIds) {
     if (!declaredRequirements.credentialIds?.includes(id)) {
-      errors.push(`Under-declaration: getCredentialById(${id}) was called but not declared in getDataRequirements`);
+      errors.push(
+        `Under-declaration: getCredentialById(${id}) was called but not declared in getDataRequirements`
+      );
     }
   }
 

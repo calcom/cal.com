@@ -1,6 +1,6 @@
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails/integration-email-service";
-import { getTranslation } from "@calcom/lib/server/i18n";
+import { getTranslation } from "@calcom/i18n/server";
 import type { PrismaClient } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 
