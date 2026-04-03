@@ -180,15 +180,12 @@ describe("handleInstantMeeting", () => {
     });
 
     it("should fire booking audit event with correct data when org has booking-audit feature", async () => {
-      const mockOnBookingCreated = vi.fn().mockResolvedValue(undefined);
-      const mockCheckIfTeamHasFeature = vi.fn().mockResolvedValue(true);
+      const { BookingEventHandlerService } = await import("../onBookingEvents/BookingEventHandlerService");
+      const onBookingCreatedSpy = vi
+        .spyOn(BookingEventHandlerService.prototype, "onBookingCreated")
+        .mockResolvedValue(undefined);
 
-      // Spy on the DI container to inject our mocks
-      const { getInstantBookingCreateService: getService } = await import(
-        "../../di/InstantBookingCreateService.container"
-      );
-
-      const instantBookingCreateService = getService();
+      const instantBookingCreateService = getInstantBookingCreateService();
       const organizer = getOrganizer({
         name: "Organizer",
         email: "organizer@example.com",
@@ -251,12 +248,18 @@ describe("handleInstantMeeting", () => {
       expect(result.message).toBe("Success");
       expect(result.bookingId).toBeDefined();
 
-      // Verify the booking was created with AWAITING_HOST status
-      const booking = await prismock.booking.findUnique({
-        where: { id: result.bookingId },
-        select: { status: true, uid: true, startTime: true, endTime: true },
-      });
-      expect(booking?.status).toBe(BookingStatus.AWAITING_HOST);
+      // Verify the audit event handler was called
+      expect(onBookingCreatedSpy).toHaveBeenCalledTimes(1);
+
+      // Verify the audit event was fired with correct booking data
+      const callArgs = onBookingCreatedSpy.mock.calls[0][0];
+      expect(callArgs.payload.booking.uid).toBe(result.bookingUid);
+      expect(callArgs.payload.config.isDryRun).toBe(false);
+      expect(callArgs.actor).toBeDefined();
+      expect(callArgs.auditData).toBeDefined();
+      expect(callArgs.source).toBeDefined();
+
+      onBookingCreatedSpy.mockRestore();
     });
 
     it("should not throw when booking audit event fails", async () => {
