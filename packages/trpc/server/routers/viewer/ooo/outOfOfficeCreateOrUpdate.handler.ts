@@ -107,6 +107,12 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   if (!resolvedReasonId && input.customReason) {
     const customEmoji = input.customEmoji || "📌";
     const customReasonText = input.customReason.trim();
+    if (!customReasonText) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Custom reason cannot be empty",
+      });
+    }
 
     const existingCustomReason = await prisma.outOfOfficeReason.findFirst({
       where: {
