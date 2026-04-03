@@ -181,9 +181,12 @@ export function StudioTable({ table, onOpenDetail }: StudioTableProps) {
     [table.slug, page, table.pageSize, sortField, sortDir, search, recordId, prismaFilters]
   );
 
-  const { data, isPending, refetch } = trpc.viewer.admin.dataview.list.useQuery(queryInput, {
+  const { data, isPending, isFetching, refetch } = trpc.viewer.admin.dataview.list.useQuery(queryInput, {
     placeholderData: keepPreviousData,
   });
+
+  // True when showing stale data while fresh data loads (pagination, sort, search, filter)
+  const isBackgroundLoading = isFetching && !isPending;
 
   const handleSearch = useCallback(
     (value: string) => {
@@ -329,7 +332,11 @@ export function StudioTable({ table, onOpenDetail }: StudioTableProps) {
       </div>
 
       {/* ── Spreadsheet grid ── */}
-      <div ref={containerRef} className="overflow-auto">
+      <div ref={containerRef} className="relative overflow-auto">
+        {/* Loading overlay for pagination / sort / search transitions */}
+        {isBackgroundLoading && (
+          <div className="bg-emphasis absolute inset-x-0 top-0 z-20 h-0.5 animate-pulse" />
+        )}
         <TableNew className="border-0">
           <TableHeader className="bg-subtle sticky top-0 z-10">
             <TableRow className="hover:bg-subtle border-0">
@@ -380,9 +387,9 @@ export function StudioTable({ table, onOpenDetail }: StudioTableProps) {
             </TableRow>
           </TableHeader>
 
-          <TableBody>
+          <TableBody className={classNames(isBackgroundLoading && "opacity-60 transition-opacity duration-150")}>
             {isPending && rows.length === 0
-              ? Array.from({ length: 10 }).map((_, i) => (
+              ? Array.from({ length: pageSize }).map((_, i) => (
                   <TableRow key={`skel-${i}`}>
                     <TableCell className="border-subtle border-r text-right">
                       <div className="bg-muted h-3 w-6 animate-pulse rounded" />
@@ -465,16 +472,20 @@ export function StudioTable({ table, onOpenDetail }: StudioTableProps) {
         <div className="flex items-center gap-1">
           <button
             className="hover:bg-subtle text-default disabled:text-muted rounded p-1 disabled:cursor-not-allowed"
-            disabled={page <= 1}
+            disabled={page <= 1 || isFetching}
             onClick={() => setPage(page - 1)}>
             <ChevronLeftIcon className="h-4 w-4" />
           </button>
           <span className="text-default mx-2 text-xs tabular-nums">
-            {page} / {totalPages}
+            {isFetching ? (
+              <span className="text-subtle animate-pulse">Loading…</span>
+            ) : (
+              `${page} / ${totalPages}`
+            )}
           </span>
           <button
             className="hover:bg-subtle text-default disabled:text-muted rounded p-1 disabled:cursor-not-allowed"
-            disabled={page >= totalPages}
+            disabled={page >= totalPages || isFetching}
             onClick={() => setPage(page + 1)}>
             <ChevronRightIcon className="h-4 w-4" />
           </button>
