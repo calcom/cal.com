@@ -164,6 +164,25 @@ Now with this setup you can:
 3. You can create a team called "global" where you add all managed users so all managed users have the same event type or a subset of managed users have the same event type belonging to "subset-team"
 if you want to have a subset of managed users have the same event type.
 
+## Slug conflict resolution
+
+When a managed event type is assigned to a user who already has a personal event type with the same slug, the system automatically resolves the conflict. Instead of deleting the personal event type, Cal.com **hides and renames** it so the user retains access to their original event type configuration.
+
+Here is what happens:
+
+1. The personal event type is hidden from the user's public booking page.
+2. The personal event type slug is renamed to `{original-slug}-personal-{id}` (for example, `coffee-tasting-personal-1234`).
+3. The managed event type takes over the original slug, so the user's booking link continues to work with the new managed event type settings.
+4. The user receives an email notification explaining that their booking link has been replaced by a managed event type controlled by a team administrator.
+
+<Info>
+The hidden personal event type is still accessible on the user's event types page. This means users can review or reconfigure it if the managed event type is later removed.
+</Info>
+
+This conflict resolution applies in the following scenarios:
+- A new member is added to a team that has a managed event type with `assignAllTeamMembers: true`.
+- An existing team member is assigned a managed event type whose slug matches one of their personal event types.
+
 ---
 
 <CardGroup cols={2}>
