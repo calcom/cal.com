@@ -7112,11 +7112,11 @@ checksums:
     admin_has_disabled: cce3e7a7a4b1bbec66badc1e87000211
     disable_attendees_emails_description: 599d02e85ac77e84f780b71488700390
     disabled_app_affects_event_type: 7f9e3220171741025732900dc23daf5f
-    event_replaced_notice: e0bf9d47652039d81fb6ab7fd287acbb
-    email_subject_slug_replacement: cc4f5bd334a5ae689056b76915b099d6
-    email_body_slug_replacement_notice: 9ce6c0631a08d83fa5022db347906f8e
-    email_body_slug_replacement_info: fd52211d0853a99555934f6e59666274
-    email_body_slug_replacement_suggestion: 245616786f7de0471c05b64b1ee81b4b
+    event_replaced_notice: d260c845e591bd7b0e941fc7586cac7e
+    email_subject_slug_replacement: c6bb41358a322d460bad03b6d3232fba
+    email_body_slug_replacement_notice: d444333a32eba88465993b48e11a69cc
+    email_body_slug_replacement_info: 978a49be3fa8842065ac1d80b4832888
+    email_body_slug_replacement_suggestion: 1a470478c501b1610c8679dc1ecbd8d6
     disable_payment_app: b373fa5c7894f9550f1061d2c0df5e23
     payment_disabled_still_able_to_book: d0befcf1326b8b4f87786885e8f82e4f
     app_disabled_with_event_type: ffe83147c5ac31d708dd25f60b720db7
@@ -7475,6 +7475,8 @@ checksums:
     managed_event_dialog_information_one: a2d299c0ff087fe6e6b5330e73192a1b
     managed_event_dialog_information_other: e26300355b2f070362bc94ac531d8431
     managed_event_dialog_clarification: 159f1bd7eec7654d03359be54a1399a1
+    assign_all_managed_warning_title: 142e600966124befdb1e8958c601fa48
+    assign_all_managed_warning_description: 73c12ac5484abec8d5cbcc633e69a318
     review_event_type: c155f6e57fbf9f38bff6b2ad71235053
     looking_for_more_analytics: c64d3c279c351c0dd9b48028e3f2bdd7
     looking_for_more_insights: f245400c6511b85e78c316bacefe8a47
@@ -8661,6 +8663,7 @@ checksums:
     last_updated: e1c731316d903fa762f5c302fa907756
     completed_onboarding: b8cffa4b7fda2f5a008b15c8be37ad3c
     salesforce_on_cancel_write_to_event: 5d82dd4959cc2ae009a750f096ad74e0
+    salesforce_on_cancel_write_to_record: d8a1ae5886698b4b62ad68617a4f0afa
     salesforce_on_every_cancellation: a54453f804195b3747564b1ceb0d60b4
     salesforce_rr_skip_field_rules: 5ac31d6f756db9d3fc1c65fa9874312e
     salesforce_rr_skip_field_rule_ignore: 8edaf611ce4116a464a9faaa30ce8edd
@@ -9809,7 +9812,6 @@ checksums:
     match: 5589bf1edc4df14c04c298e9317f5439
     all_conditions: 3b4cd8b3d6605bf028c3d8eefadbb172
     any_condition: a91f73aadbd74c9b4b44ad10599649ea
-    pbac_resource_blocklist: 17845897553ffa9b8d09b57e295ed5c7
     this_meeting_is_in_the_past: 0be95a9732b4f7cbc34c0c2c11d64b69
     stop_transcription: c5c6260f9ba1b461d9c212022148b5cf
     start_recording: 1120c5e5a7a2675d0e7f8cd11afe6cd3
@@ -9819,6 +9821,15 @@ checksums:
     please_wait_while_we_stop_transcription: 4bf50f6ddc00a23d5025aa47780e3e11
     please_wait_while_we_start_recording: 2e498287d3ade5473374b6bee77ae97d
     please_wait_while_we_stop_recording: d77c459f36358a1026525046882aec81
+    seat_billing: 949a892793b4b8091727c864a4fde46d
+    seat_billing_description: f5a3d826a0c60172c9cd343072a2cb21
+    seat_billing_description_no_date: 58cabb960acfedcf60540bc14c683b3f
+    current_members: a7118332af077080a14685ebce5987ed
+    peak_seats_this_period: 291fd8f2d35c58369af4c7c784bc4b0a
+    paid_seats_count: cc1416f3f9eee374c0cbad5ab593116e
+    teams_upgrade_banner_title: 07d1bd0d9dbc5b1e05578874798653d0
+    teams_upgrade_banner_description: d6298eefcd20720be554558b106519ec
+    teams_upgrade_banner_cta: 2e946837fab0f40b1d9ca9c8bcb9cb9b
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850
   ce54a49cd5a93685e6240f285184eb58:
     role_name: 6166d263954a8c5e41e988801c2cfb20
