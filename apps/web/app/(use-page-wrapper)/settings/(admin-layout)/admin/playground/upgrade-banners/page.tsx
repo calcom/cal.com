@@ -2,7 +2,7 @@
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/components/icon";
-import { WideUpgradeBanner } from "@calcom/web/modules/billing/components/WideUpgradeBanner";
+import { WideUpgradeBanner } from "@calcom/web/modules/billing/components/wide-upgrade-banner";
 import Link from "next/link";
 
 const FULLSCREEN_PAGES = [

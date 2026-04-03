@@ -72,7 +72,7 @@ import { CircleHelpIcon, InfoIcon, PhoneIcon } from "@coss/ui/icons";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { useHasActiveTeamPlan, useHasPaidPlan } from "@calcom/web/modules/billing/hooks/useHasPaidPlan";
-import { WideUpgradeBanner } from "@calcom/web/modules/billing/components/WideUpgradeBanner";
+import { WideUpgradeBanner } from "@calcom/web/modules/billing/components/wide-upgrade-banner";
 import { AgentConfigurationSheet }from "./agent-configuration/AgentConfigurationSheet";
 import { TestPhoneCallDialog } from "./TestPhoneCallDialog";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";

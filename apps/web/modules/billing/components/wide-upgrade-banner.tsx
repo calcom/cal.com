@@ -1,12 +1,13 @@
 "use client";
 
+import classNames from "@calcom/ui/classNames";
 import { useClientOnly } from "@calcom/lib/hooks/useClientOnly";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
+import { Icon } from "@calcom/ui/components/icon";
 import { OrgBadge, TeamBadge } from "@calcom/web/modules/billing/components/PlanBadge";
 import { UpgradePlanDialog } from "@calcom/web/modules/billing/components/UpgradePlanDialog";
 import { Button } from "@coss/ui/components/button";
-import { ArrowRightIcon, XIcon } from "@coss/ui/icons";
 import Image from "next/image";
 import Link from "next/link";
 import posthog from "posthog-js";
@@ -48,6 +49,8 @@ export type WideUpgradeBannerProps = {
   size?: "md" | "sm";
   button?: string | React.ReactNode;
   image?: string;
+  imageContainerClassName?: string;
+  containerClassName?: string;
   learnMoreButton?: {
     text: string;
     href?: string;
@@ -66,6 +69,8 @@ export function WideUpgradeBanner({
   size = "md",
   button,
   image,
+  imageContainerClassName,
+  containerClassName,
   learnMoreButton,
   dismissible = true,
   showBadge = true,
@@ -86,7 +91,7 @@ export function WideUpgradeBanner({
       <UpgradePlanDialog tracking={tracking} target={target} openLinksInNewTab={openLinksInNewTab}>
         <Button size={isSmall ? "sm" : "default"} variant="outline">
           {button ?? t("upgrade")}
-          <ArrowRightIcon />
+          <Icon name="arrow-right" />
         </Button>
       </UpgradePlanDialog>
     ) : (
@@ -104,20 +109,20 @@ export function WideUpgradeBanner({
             setVisible(false);
             posthog.capture("large_upgrade_banner_dismissed", { source: tracking, target });
           }}>
-          <XIcon className="h-4 w-4" />
+          <Icon name="x" className="h-4 w-4" />
         </Button>
       )}
       {/* Left Content */}
-      <div className={`flex flex-1 flex-col py-5 px-6${isSmall ? " pr-0" : ""}`}>
+      <div className={classNames(`flex flex-1 flex-col py-5 px-6${isSmall ? " pr-0" : ""}`, containerClassName)}>
         {isSmall ? (
           <div className="flex items-center gap-1.5">
-            <h2 className="font-heading text-sm font-semibold leading-none text-default">{title}</h2>
+            <h2 className="font-cal text-sm font-semibold leading-none text-default">{title}</h2>
             {showBadge && (target === "team" ? <TeamBadge size="sm" /> : <OrgBadge size="sm" />)}
           </div>
         ) : (
           <div>
             {showBadge && (target === "team" ? <TeamBadge /> : <OrgBadge />)}
-            <h2 className="mt-1 font-heading text-lg font-semibold leading-none text-default">{title}</h2>
+            <h2 className="mt-1 font-cal text-lg font-semibold leading-none text-default">{title}</h2>
           </div>
         )}
         {subtitle && <p className={`mt-1 text-sm font-normal text-subtle`}>{subtitle}</p>}
@@ -157,7 +162,7 @@ export function WideUpgradeBanner({
         <div className={`shrink-0 p-6 pl-4${dismissible ? " pr-6 mt-5" : ""}`}>{upgradeButton}</div>
       ) : (
         image && (
-          <div className="relative hidden w-1/2 max-w-[520px] self-stretch overflow-hidden md:block">
+          <div className={classNames("relative hidden w-1/2 max-w-[520px] self-stretch overflow-hidden md:block", imageContainerClassName)}>
             <Image
               src={image}
               alt={title}

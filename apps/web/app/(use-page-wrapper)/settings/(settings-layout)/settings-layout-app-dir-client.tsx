@@ -395,9 +395,11 @@ import { SettingsPermissionsProvider, useSettingsPermissions } from "./SettingsP
 
 const useTabs = ({
   isDelegationCredentialEnabled,
+  isCustomSmtpEnabled,
   isPbacEnabled,
 }: {
   isDelegationCredentialEnabled: boolean;
+  isCustomSmtpEnabled: boolean;
   isPbacEnabled: boolean;
 }) => {
   const permissions = useSettingsPermissions();
@@ -440,6 +442,14 @@ const useTabs = ({
               section: "organization",
               page: "delegation_credential",
             },
+          });
+        }
+
+        if (isCustomSmtpEnabled && permissions?.canUpdateOrganization) {
+          newArray.push({
+            name: "custom_email",
+            href: "/settings/organizations/domains",
+            trackingMetadata: { section: "organization", page: "domains" },
           });
         }
 
@@ -532,6 +542,7 @@ const useTabs = ({
     orgBranding,
     user,
     isDelegationCredentialEnabled,
+    isCustomSmtpEnabled,
     isPbacEnabled,
     permissions,
   ]);
@@ -887,8 +898,15 @@ const SettingsSidebarContainer = ({
     feature: "pbac",
   });
 
+  const isCustomSmtpEnabled = useIsFeatureEnabledForTeam({
+    teamFeatures,
+    teamId: organizationId,
+    feature: "custom-smtp-for-orgs",
+  });
+
   const tabsWithPermissions = useTabs({
     isDelegationCredentialEnabled,
+    isCustomSmtpEnabled,
     isPbacEnabled,
   });
 
@@ -1255,7 +1273,6 @@ function SettingsLayoutAppDirClient({
 }: SettingsLayoutProps) {
   const pathname = usePathname();
   const isFullWidthPage =
-    pathname === "/settings" ||
     (pathname?.includes("/settings/teams/") &&
       (pathname?.includes("/attributes") || pathname?.includes("/roles"))) ||
     pathname?.startsWith("/settings/admin/playground");

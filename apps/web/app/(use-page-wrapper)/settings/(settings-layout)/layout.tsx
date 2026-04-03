@@ -10,8 +10,8 @@ import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import React from "react";
-import type { SettingsLayoutProps } from "./SettingsLayoutAppDirClient";
-import SettingsLayoutAppDirClient from "./SettingsLayoutAppDirClient";
+import type { SettingsLayoutProps } from "./settings-layout-app-dir-client";
+import SettingsLayoutAppDirClient from "./settings-layout-app-dir-client";
 
 const getTeamFeatures = unstable_cache(
   async (teamId: number) => {

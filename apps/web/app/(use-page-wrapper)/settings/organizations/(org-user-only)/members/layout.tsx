@@ -1,4 +1,4 @@
-import SettingsLayoutAppDirClient from "app/(use-page-wrapper)/settings/(settings-layout)/SettingsLayoutAppDirClient";
+import SettingsLayoutAppDirClient from "app/(use-page-wrapper)/settings/(settings-layout)/settings-layout-app-dir-client";
 import { getTranslate } from "app/_utils";
 
 import { CTA_CONTAINER_CLASS_NAME } from "@calcom/features/data-table/lib/utils";

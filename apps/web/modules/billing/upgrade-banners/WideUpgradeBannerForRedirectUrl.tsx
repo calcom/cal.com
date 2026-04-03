@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WideUpgradeBanner } from "@calcom/web/modules/billing/components/WideUpgradeBanner";
+import { WideUpgradeBanner } from "@calcom/web/modules/billing/components/wide-upgrade-banner";
 
 export function WideUpgradeBannerForRedirectUrl() {
   const { t } = useLocale();
