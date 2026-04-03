@@ -1,4 +1,5 @@
 import process from "node:process";
+import { filterSlotsForGuestBusyTimes } from "./filterSlotsForGuestBusyTimes";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
@@ -1534,16 +1535,11 @@ export class AvailableSlotsService {
 
           if (guestBusyBookings.length > 0) {
             const eventLength = input.duration || eventType.length;
-            availableTimeSlots = availableTimeSlots.filter((slot) => {
-              const slotStart = slot.time.valueOf();
-              const slotEnd = slotStart + eventLength * 60 * 1000;
-              // A slot is unavailable if it overlaps with any guest booking
-              return !guestBusyBookings.some((booking) => {
-                const bookingStart = new Date(booking.startTime).valueOf();
-                const bookingEnd = new Date(booking.endTime).valueOf();
-                return slotStart < bookingEnd && slotEnd > bookingStart;
-              });
-            });
+            availableTimeSlots = filterSlotsForGuestBusyTimes(
+              availableTimeSlots,
+              eventLength,
+              guestBusyBookings
+            );
           }
         }
       }

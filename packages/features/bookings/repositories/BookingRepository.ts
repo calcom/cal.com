@@ -1568,7 +1568,10 @@ export class BookingRepository implements IBookingRepository {
                 some: { email: { in: userEmails } },
               },
               // Exclude bookings already owned by these users (avoid duplicates)
-              NOT: { userId: { in: userIds } },
+              OR: [
+                { userId: null },
+                { userId: { notIn: userIds } },
+              ],
             },
             select: { startTime: true, endTime: true },
           })

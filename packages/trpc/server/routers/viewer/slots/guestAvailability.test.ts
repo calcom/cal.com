@@ -7,30 +7,10 @@
  */
 import { describe, it, expect } from "vitest";
 import dayjs from "@calcom/dayjs";
-
-// ---------------------------------------------------------------------------
-// Pure helper that mirrors the slot-filtering logic added in util.ts
-// so we can unit-test it without spinning up the full service.
-// ---------------------------------------------------------------------------
-
-type BusyInterval = { startTime: Date; endTime: Date };
-
-function filterSlotsForGuestBusyTimes(
-  slots: Array<{ time: dayjs.Dayjs }>,
-  eventLengthMinutes: number,
-  guestBusyBookings: BusyInterval[]
-): Array<{ time: dayjs.Dayjs }> {
-  if (guestBusyBookings.length === 0) return slots;
-  return slots.filter((slot) => {
-    const slotStart = slot.time.valueOf();
-    const slotEnd = slotStart + eventLengthMinutes * 60 * 1000;
-    return !guestBusyBookings.some((booking) => {
-      const bookingStart = new Date(booking.startTime).valueOf();
-      const bookingEnd = new Date(booking.endTime).valueOf();
-      return slotStart < bookingEnd && slotEnd > bookingStart;
-    });
-  });
-}
+import {
+  filterSlotsForGuestBusyTimes,
+  type GuestBusyInterval,
+} from "./filterSlotsForGuestBusyTimes";
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -40,7 +20,7 @@ describe("Guest availability filtering during reschedule (#16378)", () => {
   const eventLength = 30; // 30-minute meeting
 
   const slot = (isoTime: string) => ({ time: dayjs(isoTime) });
-  const busyInterval = (start: string, end: string): BusyInterval => ({
+  const busyInterval = (start: string, end: string): GuestBusyInterval => ({
     startTime: new Date(start),
     endTime: new Date(end),
   });
