@@ -54,6 +54,14 @@ export const deleteTeamHandler = async ({ ctx, input }: DeleteOptions) => {
     },
   });
 
+  // Clean up notification preferences for this team (no FK cascade on polymorphic targetId)
+  await prisma.notificationPreference.deleteMany({
+    where: {
+      targetType: "TEAM",
+      targetId: input.teamId,
+    },
+  });
+
   await prisma.team.delete({
     where: {
       id: input.teamId,

@@ -512,8 +512,6 @@ model User {
   smsLockState                   SMSLockState                  @default(UNLOCKED)
   smsLockReviewedByAdmin         Boolean                       @default(false)
   NotificationsSubscriptions     NotificationsSubscriptions[]
-  UserNotificationSettings       UserNotificationSettings?
-  UserNotificationPreferences    UserNotificationPreferences[]
   referralLinkId                 String?
   features                       UserFeatures[]
   reassignedBookings             Booking[]                     @relation("reassignByUser")
@@ -575,30 +573,24 @@ model NotificationsSubscriptions {
   @@index([type, identifier])
 }
 
-model UserNotificationSettings {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  enabled   Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum NotificationPreferenceTargetType {
+  USER
+  TEAM
+  ORGANIZATION
 }
 
-model UserNotificationPreferences {
-  id              Int               @id @default(autoincrement())
-  userId          Int
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  event           NotificationEvent
-  emailEnabled    Boolean
-  appPushEnabled  Boolean
-  webPushEnabled  Boolean
-  slackEnabled    Boolean
-  telegramEnabled Boolean
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+model NotificationPreference {
+  id           Int                              @id @default(autoincrement())
+  targetType   NotificationPreferenceTargetType
+  targetId     Int
+  key          String
+  booleanValue Boolean
+  createdAt    DateTime                         @default(now())
+  updatedAt    DateTime                         @updatedAt
 
-  @@unique([userId, event])
-  @@index([event])
+  @@unique([targetType, targetId, key])
+  @@index([targetType, targetId])
+  @@index([key])
 }
 
 // It holds Organization Profiles as well as User Profiles for users that have been added to an organization

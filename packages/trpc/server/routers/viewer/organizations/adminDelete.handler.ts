@@ -48,6 +48,24 @@ export const adminDeleteHandler = async ({ input }: AdminDeleteOption) => {
   await deleteAllRedirectsForUsers(foundOrg.members.map((member) => member.user));
 
   await renameUsersToAvoidUsernameConflicts(foundOrg.members.map((member) => member.user));
+
+  // Clean up notification preferences for this organization and its child teams
+  // (no FK cascade on polymorphic targetId, and child teams are cascade-deleted by prisma.team.delete)
+  const childTeams = await prisma.team.findMany({
+    where: { parentId: input.orgId },
+    select: { id: true },
+  });
+  const childTeamIds = childTeams.map((t) => t.id);
+
+  await prisma.notificationPreference.deleteMany({
+    where: {
+      OR: [
+        { targetType: "ORGANIZATION", targetId: input.orgId },
+        ...(childTeamIds.length > 0 ? [{ targetType: "TEAM" as const, targetId: { in: childTeamIds } }] : []),
+      ],
+    },
+  });
+
   await prisma.team.delete({
     where: {
       id: input.orgId,

@@ -5,6 +5,15 @@ import type { User } from "@calcom/prisma/client";
 export async function deleteUser(user: Pick<User, "id" | "email" | "metadata">) {
   // If 2FA is disabled or totpCode is valid then delete the user from stripe and database
   await deleteStripeCustomer(user).catch(console.warn);
+
+  // Clean up notification preferences for this user (no FK cascade on polymorphic targetId)
+  await prisma.notificationPreference.deleteMany({
+    where: {
+      targetType: "USER",
+      targetId: user.id,
+    },
+  });
+
   // Remove my account
   // TODO: Move this to Repository pattern.
   await prisma.user.delete({
