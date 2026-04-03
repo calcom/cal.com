@@ -47,7 +47,10 @@ export class AdminDataViewService {
     const skip = (page - 1) * pageSize;
     const sortField = table.resolveSortField(params.sortField);
     const sortDirection = params.sortDirection ?? table.defaultSortDirection;
-    const where = table.buildWhere(params.search, params.filters);
+    const where = {
+      ...table.defaultWhere,
+      ...table.buildWhere(params.search, params.filters),
+    };
     const select = table.buildPrismaSelect();
 
     const hasFilters = Object.keys(where).length > 0;
@@ -91,7 +94,7 @@ export class AdminDataViewService {
 
     const row = await delegate.findUnique({
       select,
-      where: { [table.primaryKeyColumn]: pkValue },
+      where: { [table.primaryKeyColumn]: pkValue, ...table.defaultWhere },
     });
 
     if (!row) return null;
@@ -194,7 +197,8 @@ export class AdminDataViewService {
 
         if (orConditions.length === 0) return null;
 
-        const where = orConditions.length === 1 ? orConditions[0] : { OR: orConditions };
+        const baseWhere = orConditions.length === 1 ? orConditions[0] : { OR: orConditions };
+        const where = table.defaultWhere ? { ...table.defaultWhere, ...baseWhere } : baseWhere;
 
         const [rows, total] = await Promise.all([
           delegate.findMany({

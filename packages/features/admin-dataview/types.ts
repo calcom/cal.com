@@ -122,6 +122,12 @@ export interface TableDefinition {
   actions?: ActionDefinition[];
   /** Custom panels shown in the detail view (e.g. billing, audit log) */
   panels?: PanelDefinition[];
+  /**
+   * Base `where` clause merged into every query for this table.
+   * Useful for opting out of Prisma extensions that inject default filters
+   * (e.g. `{ locked: { in: [true, false] } }` to include locked users).
+   */
+  defaultWhere?: Record<string, unknown>;
 }
 
 /**

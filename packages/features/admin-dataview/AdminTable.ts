@@ -34,6 +34,9 @@ export class AdminTable {
   get panels() {
     return this.def.panels;
   }
+  get defaultWhere() {
+    return this.def.defaultWhere;
+  }
   get pageSize() {
     return this.def.pageSize ?? 50;
   }
