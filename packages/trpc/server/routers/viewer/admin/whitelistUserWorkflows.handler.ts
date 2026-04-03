@@ -1,8 +1,11 @@
-import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
-import prisma from "@calcom/prisma";
+import { ObservableAdminAction } from "@calcom/features/admin/actions/observable-admin-action";
+import { getWhitelistUserWorkflowsAction } from "@calcom/features/admin/di/container";
+import logger from "@calcom/lib/logger";
 
 import type { TrpcSessionUser } from "../../../types";
 import type { TWhitelistUserWorkflows } from "./whitelistUserWorkflows.schema";
+
+const log = logger.getSubLogger({ prefix: ["admin"] });
 
 type GetOptions = {
   ctx: {
@@ -11,15 +14,14 @@ type GetOptions = {
   input: TWhitelistUserWorkflows;
 };
 
-export const whitelistUserWorkflows = async ({ input }: GetOptions) => {
-  const { userId, whitelistWorkflows } = input;
-
-  const user = await new UserRepository(prisma).updateWhitelistWorkflows({
-    id: userId,
-    whitelistWorkflows,
+const whitelistUserWorkflowsHandler = async ({ ctx, input }: GetOptions) => {
+  const action = new ObservableAdminAction(getWhitelistUserWorkflowsAction(), {
+    actionId: "whitelistUserWorkflows",
+    actor: { id: ctx.user.id, email: ctx.user.email },
+    logger: log,
   });
 
-  return { whitelistWorkflows: user.whitelistWorkflows };
+  return action.execute(input);
 };
 
-export default whitelistUserWorkflows;
+export default whitelistUserWorkflowsHandler;

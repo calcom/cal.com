@@ -5,6 +5,8 @@ export const ADMIN_DI_TOKENS = {
   REMOVE_TWO_FACTOR_ACTION_MODULE: Symbol("RemoveTwoFactorActionModule"),
   VERIFY_WORKFLOWS_ACTION: Symbol("VerifyWorkflowsAction"),
   VERIFY_WORKFLOWS_ACTION_MODULE: Symbol("VerifyWorkflowsActionModule"),
+  WHITELIST_USER_WORKFLOWS_ACTION: Symbol("WhitelistUserWorkflowsAction"),
+  WHITELIST_USER_WORKFLOWS_ACTION_MODULE: Symbol("WhitelistUserWorkflowsActionModule"),
   ADMIN_WORKFLOW_REPOSITORY: Symbol("AdminWorkflowRepository"),
   ADMIN_WORKFLOW_REPOSITORY_MODULE: Symbol("AdminWorkflowRepositoryModule"),
   DELETE_ORG_ONBOARDING_ACTION: Symbol("DeleteOrganizationOnboardingAction"),

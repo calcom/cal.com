@@ -14,4 +14,15 @@ export class AdminWorkflowRepository {
       },
     });
   }
+
+  async setWhitelisted(userId: number, whitelistWorkflows: boolean) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      select: {
+        id: true,
+        whitelistWorkflows: true,
+      },
+      data: { whitelistWorkflows },
+    });
+  }
 }

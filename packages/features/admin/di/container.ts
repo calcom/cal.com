@@ -4,11 +4,13 @@ import type { EditOrganizationOnboardingAction } from "../actions/edit-organizat
 import type { LockUserAccountAction } from "../actions/lock-user-account";
 import type { RemoveTwoFactorAction } from "../actions/remove-two-factor";
 import type { VerifyWorkflowsAction } from "../actions/verify-workflows";
+import type { WhitelistUserWorkflowsAction } from "../actions/whitelist-user-workflows";
 import { deleteOrganizationOnboardingActionModuleLoader } from "./modules/DeleteOrganizationOnboardingAction.module";
 import { editOrganizationOnboardingActionModuleLoader } from "./modules/EditOrganizationOnboardingAction.module";
 import { lockUserAccountActionModuleLoader } from "./modules/LockUserAccountAction.module";
 import { removeTwoFactorActionModuleLoader } from "./modules/RemoveTwoFactorAction.module";
 import { verifyWorkflowsActionModuleLoader } from "./modules/VerifyWorkflowsAction.module";
+import { whitelistUserWorkflowsActionModuleLoader } from "./modules/whitelist-user-workflows-action.module";
 import { ADMIN_DI_TOKENS } from "./tokens";
 
 const container = createContainer();
@@ -36,4 +38,9 @@ export function getDeleteOrganizationOnboardingAction(): DeleteOrganizationOnboa
 export function getEditOrganizationOnboardingAction(): EditOrganizationOnboardingAction {
   editOrganizationOnboardingActionModuleLoader.loadModule(container);
   return container.get<EditOrganizationOnboardingAction>(ADMIN_DI_TOKENS.EDIT_ORG_ONBOARDING_ACTION);
+}
+
+export function getWhitelistUserWorkflowsAction(): WhitelistUserWorkflowsAction {
+  whitelistUserWorkflowsActionModuleLoader.loadModule(container);
+  return container.get<WhitelistUserWorkflowsAction>(ADMIN_DI_TOKENS.WHITELIST_USER_WORKFLOWS_ACTION);
 }
