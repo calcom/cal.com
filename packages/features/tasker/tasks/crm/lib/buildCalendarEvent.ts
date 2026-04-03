@@ -1,8 +1,9 @@
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { addVideoCallDataToEvent } from "@calcom/features/bookings/lib/handleNewBooking/addVideoCallDataToEvent";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, RequiredCalendarEvent } from "@calcom/types/Calendar";
 
 const buildCalendarEvent: (bookingUid: string) => Promise<CalendarEvent> = async (bookingUid: string) => {
   const booking = await prisma.booking.findUnique({
@@ -18,12 +19,23 @@ const buildCalendarEvent: (bookingUid: string) => Promise<CalendarEvent> = async
           username: true,
           timeZone: true,
           timeFormat: true,
+          profiles: {
+            select: {
+              organizationId: true,
+            },
+            take: 1,
+          },
         },
       },
       eventType: {
         select: {
           slug: true,
           bookingFields: true,
+          team: {
+            select: {
+              parentId: true,
+            },
+          },
         },
       },
       attendees: {
@@ -51,6 +63,8 @@ const buildCalendarEvent: (bookingUid: string) => Promise<CalendarEvent> = async
     throw new Error(`event type not found for booking ${bookingUid}`);
   }
 
+  const organizationId = booking.user.profiles?.[0]?.organizationId ?? null;
+  const bookerUrl = await getBookerBaseUrl(booking.eventType.team?.parentId ?? organizationId);
   const organizerT = await getTranslation(booking.user?.locale ?? "en", "common");
 
   const attendeePromises = [];
@@ -68,12 +82,13 @@ const buildCalendarEvent: (bookingUid: string) => Promise<CalendarEvent> = async
 
   const attendeeList = await Promise.all(attendeePromises);
 
-  let calendarEvent: CalendarEvent = {
+  let calendarEvent: RequiredCalendarEvent = {
     uid: bookingUid,
     type: booking.eventType.slug,
     title: booking.title,
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
+    bookerUrl,
     organizer: {
       email: booking.user.email,
       name: booking.user.name || "Nameless",
@@ -89,7 +104,9 @@ const buildCalendarEvent: (bookingUid: string) => Promise<CalendarEvent> = async
     }),
   };
 
-  calendarEvent = addVideoCallDataToEvent(booking.references, calendarEvent);
+  calendarEvent = CalendarEventBuilder.enrichEvent(calendarEvent)
+    .withVideoCallDataFromReferences(booking.references)
+    .build();
 
   return calendarEvent;
 };

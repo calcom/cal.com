@@ -142,6 +142,7 @@ describe("roundRobinReassignment test", () => {
       prevOrganizer: originalHost,
       newOrganizer: newHost,
       emails,
+      previousOrganizerHeading: "event_request_reassigned",
     });
   });
 });

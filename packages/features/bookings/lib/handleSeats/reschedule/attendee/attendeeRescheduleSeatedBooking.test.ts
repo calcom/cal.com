@@ -4,8 +4,16 @@ vi.mock("@calcom/emails/email-manager", () => ({
   sendRescheduledSeatEmailAndSMS: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@calcom/features/bookings/lib/handleNewBooking/addVideoCallDataToEvent", () => ({
-  addVideoCallDataToEvent: vi.fn((_refs, evt) => evt),
+vi.mock("@calcom/features/CalendarEventBuilder", () => ({
+  CalendarEventBuilder: {
+    enrichEvent: vi.fn((evt) => {
+      const builder = {
+        withVideoCallDataFromReferences: vi.fn(() => builder),
+        build: vi.fn(() => evt),
+      };
+      return builder;
+    }),
+  },
 }));
 
 vi.mock("@calcom/i18n/server", () => ({

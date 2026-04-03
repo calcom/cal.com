@@ -96,6 +96,7 @@ import type {
   AppsStatus,
   CalEventResponses,
   CalendarEvent,
+  RequiredCalendarEvent,
 } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -107,7 +108,6 @@ import { getAllCredentialsIncludeServiceAccountKey } from "../getAllCredentialsF
 import { refreshCredentials } from "../getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "../getBookingDataSchema";
 import type { LuckyUserService } from "../getLuckyUser";
-import { addVideoCallDataToEvent } from "../handleNewBooking/addVideoCallDataToEvent";
 import {
   buildBookingCreatedAuditData,
   buildBookingRescheduledAuditData,
@@ -281,7 +281,7 @@ export const buildEventForTeamEventType = async ({
   schedulingType,
   team,
 }: {
-  existingEvent: Partial<CalendarEvent>;
+  existingEvent: RequiredCalendarEvent;
   users: (Pick<User, "id" | "name" | "timeZone" | "locale" | "email"> & {
     destinationCalendar: DestinationCalendar | null;
     isFixed?: boolean;
@@ -332,35 +332,17 @@ export const buildEventForTeamEventType = async ({
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  const updatedEvt = CalendarEventBuilder.fromEvent(evt)
-    ?.withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
+  evt = CalendarEventBuilder.enrichEvent(evt)
+    .withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
     .build();
 
-  if (!updatedEvt) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Failed to build event with destination calendar due to missing required fields",
-    });
-  }
-
-  evt = updatedEvt;
-
-  const teamEvt = CalendarEventBuilder.fromEvent(evt)
-    ?.withTeam({
+  return CalendarEventBuilder.enrichEvent(evt)
+    .withTeam({
       members: teamMembers,
       name: team?.name || "Nameless",
       id: team?.id ?? 0,
     })
     .build();
-
-  if (!teamEvt) {
-    throw new HttpError({
-      statusCode: 400,
-      message: "Failed to build team event due to missing required fields",
-    });
-  }
-
-  return teamEvt;
 };
 
 function buildTroubleshooterData({
@@ -1435,37 +1417,22 @@ async function handler(
     });
   }
 
-  let evt: CalendarEvent = builtEvt;
+  let evt: RequiredCalendarEvent = { ...builtEvt, bookerUrl };
 
   if (input.bookingData.thirdPartyRecurringEventId) {
-    const updatedEvt = CalendarEventBuilder.fromEvent(evt)
-      ?.withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
+    evt = CalendarEventBuilder.enrichEvent(evt)
+      .withRecurringEventId(input.bookingData.thirdPartyRecurringEventId)
       .build();
-
-    if (!updatedEvt) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Failed to build event with recurring event ID due to missing required fields",
-      });
-    }
-
-    evt = updatedEvt;
   }
 
   if (isTeamEventType) {
-    const teamEvt = await buildEventForTeamEventType({
+    evt = await buildEventForTeamEventType({
       existingEvent: evt,
       schedulingType: eventType.schedulingType,
       users,
       team: eventType.team,
       organizerUser,
     });
-
-    if (!teamEvt) {
-      throw new HttpError({ statusCode: 400, message: "Failed to build team event" });
-    }
-
-    evt = teamEvt;
   }
 
   // data needed for triggering webhooks
@@ -1687,22 +1654,13 @@ async function handler(
       // Rescheduling logic for the original seated event was handled in handleSeats
       // We want to use new booking logic for the new time slot
       originalRescheduledBooking = null;
-      const updatedEvt = CalendarEventBuilder.fromEvent(evt)
-        ?.withIdentifiers({
+      evt = CalendarEventBuilder.enrichEvent(evt)
+        .withIdentifiers({
           iCalUID: getICalUID({
             attendeeId: bookingSeat?.attendeeId,
           }),
         })
         .build();
-
-      if (!updatedEvt) {
-        throw new HttpError({
-          statusCode: 400,
-          message: "Failed to build event with new identifiers due to missing required fields",
-        });
-      }
-
-      evt = updatedEvt;
     }
   }
 
@@ -1823,44 +1781,22 @@ async function handler(
         }
       }
 
-      const updatedEvtWithUid = CalendarEventBuilder.fromEvent(evt)
-        ?.withUid(booking.uid ?? null)
+      evt = CalendarEventBuilder.enrichEvent(evt)
+        .withUid(booking.uid ?? null)
         .build();
 
-      if (!updatedEvtWithUid) {
-        throw new HttpError({
-          statusCode: 400,
-          message: "Failed to build event with UID due to missing required fields",
-        });
-      }
-
-      evt = updatedEvtWithUid;
-
-      const updatedEvtWithPassword = CalendarEventBuilder.fromEvent(evt)
-        ?.withOneTimePassword(booking.oneTimePassword ?? null)
+      evt = CalendarEventBuilder.enrichEvent(evt)
+        .withOneTimePassword(booking.oneTimePassword ?? null)
         .build();
-
-      if (!updatedEvtWithPassword) {
-        throw new HttpError({
-          statusCode: 400,
-          message: "Failed to build event with one-time password due to missing required fields",
-        });
-      }
-
-      evt = updatedEvtWithPassword;
 
       // Add assignment reason to evt for emails
       if (assignmentReason) {
-        const updatedEvtWithAssignmentReason = CalendarEventBuilder.fromEvent(evt)
-          ?.withAssignmentReason({
+        evt = CalendarEventBuilder.enrichEvent(evt)
+          .withAssignmentReason({
             category: getAssignmentReasonCategory(assignmentReason.reasonEnum),
             details: assignmentReason.reasonString ?? null,
           })
           .build();
-
-        if (updatedEvtWithAssignmentReason) {
-          evt = updatedEvtWithAssignmentReason;
-        }
       }
 
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
@@ -1942,7 +1878,9 @@ async function handler(
     // cancel workflow reminders from previous rescheduled booking
     await WorkflowRepository.deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
 
-    evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
+    evt = CalendarEventBuilder.enrichEvent(evt)
+      .withVideoCallDataFromReferences(originalRescheduledBooking.references)
+      .build();
     evt.rescheduledBy = reqBody.rescheduledBy;
 
     // If organizer is changed in RR event then we need to delete the previous host destination calendar events

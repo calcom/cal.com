@@ -7,18 +7,60 @@ import type z from "zod";
 
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
-import type {
-  BookingSeat,
-  DestinationCalendar,
-  Prisma,
-  SelectedCalendar as _SelectedCalendar,
-} from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import type { Ensure } from "./utils";
 
 export type { VideoCallData } from "./VideoApiAdapter";
+
+export type BookingSeatDto = {
+  id: number;
+  referenceUid: string;
+  bookingId: number;
+  attendeeId: number;
+  data: Prisma.JsonValue;
+  metadata: Prisma.JsonValue;
+};
+
+export type DestinationCalendarDto = {
+  id: number;
+  integration: string;
+  externalId: string;
+  primaryEmail: string | null;
+  userId: number | null;
+  eventTypeId: number | null;
+  credentialId: number | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+  delegationCredentialId: string | null;
+  domainWideDelegationCredentialId: string | null;
+  customCalendarReminder: number | null;
+};
+
+export type SelectedCalendarDto = {
+  id: string;
+  userId: number;
+  integration: string;
+  externalId: string;
+  credentialId: number | null;
+  createdAt: Date | null;
+  updatedAt: Date | null;
+  googleChannelId: string | null;
+  googleChannelKind: string | null;
+  googleChannelResourceId: string | null;
+  googleChannelResourceUri: string | null;
+  googleChannelExpiration: string | null;
+  channelId: string | null;
+  channelKind: string | null;
+  channelResourceId: string | null;
+  channelResourceUri: string | null;
+  channelExpiration: string | null;
+  syncedAt: Date | null;
+  syncToken: string | null;
+  syncSubscribedAt: Date | null;
+};
 
 type PaymentInfo = {
   link?: string | null;
@@ -40,7 +82,7 @@ export type Person = {
   bookingId?: number | null;
   locale?: string | null;
   timeFormat?: TimeFormat;
-  bookingSeat?: BookingSeat | null;
+  bookingSeat?: BookingSeatDto | null;
   phoneNumber?: string | null;
 };
 
@@ -190,7 +232,7 @@ export interface CalendarEvent {
   videoCallData?: VideoCallData;
   paymentInfo?: PaymentInfo | null;
   requiresConfirmation?: boolean | null;
-  destinationCalendar?: DestinationCalendar[] | null;
+  destinationCalendar?: DestinationCalendarDto[] | null;
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
@@ -235,6 +277,10 @@ export interface CalendarEvent {
   } | null;
 }
 
+export type RequiredCalendarEvent = CalendarEvent & {
+  bookerUrl: string;
+};
+
 export interface EntryPoint {
   entryPointType?: string;
   uri?: string;
@@ -252,7 +298,8 @@ export interface AdditionalInformation {
   hangoutLink?: string;
 }
 
-export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, "externalId" | "integration"> {
+export interface IntegrationCalendar
+  extends Ensure<Partial<SelectedCalendarDto>, "externalId" | "integration"> {
   primary?: boolean;
   name?: string;
   readOnly?: boolean;
@@ -262,7 +309,7 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
   credentialId?: number | null;
   integrationTitle?: string;
   integration: string;
-  customCalendarReminder?: DestinationCalendar["customCalendarReminder"];
+  customCalendarReminder?: DestinationCalendarDto["customCalendarReminder"];
 }
 
 /**

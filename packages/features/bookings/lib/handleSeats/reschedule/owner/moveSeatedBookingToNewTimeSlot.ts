@@ -1,16 +1,14 @@
-import { cloneDeep } from "lodash";
-
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
-
-import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
+import { cloneDeep } from "lodash";
 import type { Booking } from "../../../handleNewBooking/createBooking";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
-import type { SeatedBooking, RescheduleSeatedBookingObject } from "../../types";
+import type { RescheduleSeatedBookingObject, SeatedBooking } from "../../types";
 
 async function updateBooking({
   bookingId,
@@ -57,8 +55,8 @@ const moveSeatedBookingToNewTimeSlot = async (
     noEmail,
     isConfirmedByDefault,
     additionalNotes,
+    evt,
   } = rescheduleSeatedBookingObject;
-  let { evt } = rescheduleSeatedBookingObject;
 
   const newBooking = await updateBooking({
     bookingId: seatedBooking.id,
@@ -67,22 +65,24 @@ const moveSeatedBookingToNewTimeSlot = async (
     cancellationReason: rescheduleReason,
   });
 
-  evt = { ...addVideoCallDataToEvent(newBooking.references, evt), bookerUrl: evt.bookerUrl };
+  const evtWithVideoCallData = CalendarEventBuilder.enrichEvent(evt)
+    .withVideoCallDataFromReferences(newBooking.references)
+    .build();
 
-  const copyEvent = cloneDeep(evt);
+  const copyEvent = cloneDeep(evtWithVideoCallData);
 
   const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newBooking.id);
 
   // @NOTE: This code is duplicated and should be moved to a function
   // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
   // to the default description when we are sending the emails.
-  evt.description = eventType.description;
+  evtWithVideoCallData.description = eventType.description;
 
   const results = updateManager.results;
 
   const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
-  evt.iCalUID = calendarResult?.updatedEvent.iCalUID || undefined;
+  evtWithVideoCallData.iCalUID = calendarResult?.updatedEvent.iCalUID || undefined;
 
   if (results.length > 0 && results.some((res) => !res.success)) {
     const error = {
@@ -101,13 +101,13 @@ const moveSeatedBookingToNewTimeSlot = async (
         metadata.hangoutLink = updatedEvent.hangoutLink;
         metadata.conferenceData = updatedEvent.conferenceData;
         metadata.entryPoints = updatedEvent.entryPoints;
-        evt.appsStatus = handleAppsStatus(results, newBooking, reqAppsStatus);
+        evtWithVideoCallData.appsStatus = handleAppsStatus(results, newBooking, reqAppsStatus);
       }
     }
   }
 
   if (noEmail !== true && isConfirmedByDefault) {
-    const copyEvent = cloneDeep(evt);
+    const copyEvent = cloneDeep(evtWithVideoCallData);
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
     await sendRescheduledEmailsAndSMS(
       {

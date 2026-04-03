@@ -278,7 +278,6 @@ describe("handleNewBooking", () => {
               getMockPassingAppStatus({ slug: appStoreMetadata.googlecalendar.slug }),
             ],
           });
-
         },
         timeout
       );
@@ -646,7 +645,6 @@ describe("handleNewBooking", () => {
             organizer,
             emails,
           });
-
         },
         timeout
       );
@@ -1373,7 +1371,6 @@ describe("handleNewBooking", () => {
               emails,
               iCalUID: "MOCKED_GOOGLE_CALENDAR_ICS_ID",
             });
-
           },
           timeout
         );
@@ -1922,7 +1919,7 @@ describe("handleNewBooking", () => {
     });
     describe("Team event-type", () => {
       test(
-        "should send correct schedule/cancellation/reassigned emails to hosts when round robin is rescheduled to different host",
+        "should send correct rescheduling emails when round robin is rescheduled by the booker and keeps the same host",
         async ({ emails }) => {
           const handleNewBooking = getNewBookingHandler();
           const booker = getBooker({
@@ -2069,7 +2066,6 @@ describe("handleNewBooking", () => {
               }),
             },
           });
-
         },
         timeout
       );
@@ -2212,7 +2208,6 @@ describe("handleNewBooking", () => {
               }),
             },
           });
-
         },
         timeout
       );
@@ -2408,7 +2403,6 @@ describe("handleNewBooking", () => {
               }),
             },
           });
-
         },
         timeout
       );
@@ -2560,7 +2554,6 @@ describe("handleNewBooking", () => {
               }),
             },
           });
-
         },
         timeout
       );
@@ -2724,7 +2717,6 @@ describe("handleNewBooking", () => {
               }),
             },
           });
-
         },
         timeout
       );

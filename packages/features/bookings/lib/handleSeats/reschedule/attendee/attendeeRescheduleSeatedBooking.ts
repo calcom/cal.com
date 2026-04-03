@@ -1,15 +1,13 @@
-import { cloneDeep } from "lodash";
-
 import { sendRescheduledSeatEmailAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
-import { addVideoCallDataToEvent } from "@calcom/features/bookings/lib/handleNewBooking/addVideoCallDataToEvent";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { getTranslation } from "@calcom/i18n/server";
 import prisma from "@calcom/prisma";
-import type { Person, CalendarEvent } from "@calcom/types/Calendar";
-
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import { cloneDeep } from "lodash";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import lastAttendeeDeleteBooking from "../../lib/lastAttendeeDeleteBooking";
-import type { RescheduleSeatedBookingObject, SeatAttendee, NewTimeSlotBooking } from "../../types";
+import type { NewTimeSlotBooking, RescheduleSeatedBookingObject, SeatAttendee } from "../../types";
 
 const attendeeRescheduleSeatedBooking = async (
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,
@@ -56,9 +54,9 @@ const attendeeRescheduleSeatedBooking = async (
     // We don't want to trigger rescheduling logic of the original booking
     originalRescheduledBooking = null;
 
-    const evtWithVideoCallData = originalBookingReferences
-      ? addVideoCallDataToEvent(originalBookingReferences, evt)
-      : evt;
+    const evtWithVideoCallData = CalendarEventBuilder.enrichEvent(evt)
+      .withVideoCallDataFromReferences(originalBookingReferences)
+      .build();
 
     await sendRescheduledSeatEmailAndSMS(evtWithVideoCallData, seatAttendee as Person, eventType.metadata);
 
@@ -102,9 +100,9 @@ const attendeeRescheduleSeatedBooking = async (
 
   await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
-  const copyEventWithVideoCallData = newTimeSlotBooking.references
-    ? addVideoCallDataToEvent(newTimeSlotBooking.references, copyEvent)
-    : copyEvent;
+  const copyEventWithVideoCallData = CalendarEventBuilder.enrichEvent(copyEvent)
+    .withVideoCallDataFromReferences(newTimeSlotBooking.references)
+    .build();
 
   await sendRescheduledSeatEmailAndSMS(
     copyEventWithVideoCallData,

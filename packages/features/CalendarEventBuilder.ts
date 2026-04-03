@@ -13,13 +13,46 @@ import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTimeFormatStringFromUserTimeFormat, type TimeFormat } from "@calcom/lib/timeFormat";
-import type { Attendee, BookingSeat, DestinationCalendar, Prisma, User } from "@calcom/prisma/client";
+import type { Prisma } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { bookingResponses as bookingResponsesSchema } from "@calcom/prisma/zod-utils";
-import type { AppsStatus, CalEventResponses, CalendarEvent, Person } from "@calcom/types/Calendar";
+import type {
+  AppsStatus,
+  BookingSeatDto,
+  CalEventResponses,
+  CalendarEvent,
+  DestinationCalendarDto,
+  Person,
+  RequiredCalendarEvent,
+} from "@calcom/types/Calendar";
 import type { VideoCallData } from "@calcom/types/VideoApiAdapter";
 import type { TFunction } from "i18next";
 import type { z } from "zod";
+
+type UserForCalEvent = {
+  id: number;
+  name: string | null;
+  locale: string | null;
+  username: string | null;
+  email: string;
+  timeFormat: number | null;
+  timeZone: string;
+};
+
+type AttendeeForCalEvent = {
+  locale: string | null;
+  name: string;
+  timeZone: string;
+  email: string;
+  phoneNumber: string | null;
+};
+
+type BookingReferenceForCalEvent = {
+  type: string;
+  meetingId: string | null;
+  meetingPassword: string | null;
+  meetingUrl: string | null;
+};
 
 const log = logger.getSubLogger({ prefix: ["CalendarEventBuilder"] });
 const APP_TYPE_TO_NAME_MAP = new Map<string, string>(ALL_APPS.map((app) => [app.type, app.name]));
@@ -51,9 +84,7 @@ export type BookingMetaOptions = {
   hashedLink?: string;
 };
 
-async function _buildPersonFromUser(
-  user: Pick<User, "id" | "name" | "locale" | "username" | "email" | "timeFormat" | "timeZone">
-) {
+async function _buildPersonFromUser(user: UserForCalEvent) {
   const translate = await getTranslation(user.locale ?? "en", "common");
   return {
     id: user.id,
@@ -67,11 +98,8 @@ async function _buildPersonFromUser(
 }
 
 async function _buildPersonFromAttendee(
-  attendee: Pick<Attendee, "locale" | "name" | "timeZone" | "email" | "phoneNumber"> & {
-    bookingSeat: Pick<
-      BookingSeat,
-      "id" | "referenceUid" | "bookingId" | "metadata" | "data" | "attendeeId"
-    > | null;
+  attendee: AttendeeForCalEvent & {
+    bookingSeat: BookingSeatDto | null;
   }
 ) {
   const translate = await getTranslation(attendee.locale ?? "en", "common");
@@ -86,15 +114,21 @@ async function _buildPersonFromAttendee(
   } satisfies Person;
 }
 
-export class CalendarEventBuilder {
+export class CalendarEventBuilder<TEvent extends Partial<CalendarEvent> = Partial<CalendarEvent>> {
   private event: Partial<CalendarEvent>;
+  private readonly isExistingEventBuilder: boolean;
 
-  constructor(existingEvent?: Partial<CalendarEvent>) {
+  constructor(existingEvent?: Partial<CalendarEvent>, options?: { isExistingEventBuilder?: boolean }) {
     this.event = existingEvent || {};
+    this.isExistingEventBuilder = options?.isExistingEventBuilder ?? false;
   }
 
   static fromEvent(event: Partial<CalendarEvent>) {
     return new CalendarEventBuilder(event);
+  }
+
+  static enrichEvent<TExistingEvent extends RequiredCalendarEvent>(event: TExistingEvent) {
+    return new CalendarEventBuilder<TExistingEvent>(event, { isExistingEventBuilder: true });
   }
 
   /**
@@ -104,7 +138,9 @@ export class CalendarEventBuilder {
    * sensible defaults so that downstream consumers (e.g. recording webhooks)
    * are never blocked by stale data.
    */
-  static async fromBookingWithOptionalRelations(booking: BookingForCalEventBuilder): Promise<MinimalCalendarEvent> {
+  static async fromBookingWithOptionalRelations(
+    booking: BookingForCalEventBuilder
+  ): Promise<MinimalCalendarEvent> {
     const t = await getTranslation(booking.user?.locale ?? "en", "common");
 
     const attendeesList = await Promise.all(
@@ -182,15 +218,6 @@ export class CalendarEventBuilder {
     const attendeesList = await Promise.all(attendees.map(_buildPersonFromAttendee));
     const additionalNotes = description || undefined;
 
-    const videoRef = references.find((r) => r.type.endsWith("_video"));
-    const videoCallData = videoRef
-      ? {
-          type: videoRef.type,
-          id: videoRef.meetingId,
-          password: videoRef.meetingPassword,
-          url: videoRef.meetingUrl,
-        }
-      : undefined;
     const appsStatus: AppsStatus[] = [];
 
     const organizationId = user.profiles?.[0]?.organizationId ?? null;
@@ -303,7 +330,8 @@ export class CalendarEventBuilder {
             profiles: user.profiles ?? [],
           },
         } satisfies EventTypeBrandingData)
-      );
+      )
+      .withVideoCallDataFromReferences(references);
 
     // Seats — prefer the explicit attendeeSeatId from the webhook queue over the
     // email-matching heuristic which breaks for multi-seat bookings because
@@ -318,16 +346,6 @@ export class CalendarEventBuilder {
             s.attendee.phoneNumber === bookingResponses.attendeePhoneNumber)
       );
       if (currentSeat) builder.withAttendeeSeatId(currentSeat.referenceUid);
-    }
-
-    // Video
-    if (videoCallData && videoCallData.url) {
-      builder.withVideoCallData({
-        ...videoCallData,
-        id: videoCallData.id ?? "",
-        password: videoCallData.password ?? "",
-        url: videoCallData.url,
-      });
     }
 
     references
@@ -367,7 +385,7 @@ export class CalendarEventBuilder {
         user.destinationCalendar,
         ...hostsWithoutOrganizerData.map((h) => h.user.destinationCalendar).filter(Boolean),
         user.destinationCalendar,
-      ].filter(Boolean) as NonNullable<DestinationCalendar>[];
+      ].filter(Boolean) as DestinationCalendarDto[];
 
       builder
         .withTeam({
@@ -588,6 +606,21 @@ export class CalendarEventBuilder {
     return this;
   }
 
+  withVideoCallDataFromReferences(references: BookingReferenceForCalEvent[] = []) {
+    const videoCallReference = references.find((reference) => reference.type.endsWith("_video"));
+
+    if (!videoCallReference?.meetingUrl) {
+      return this;
+    }
+
+    return this.withVideoCallData({
+      type: videoCallReference.type,
+      id: videoCallReference.meetingId ?? "",
+      password: videoCallReference.meetingPassword ?? "",
+      url: videoCallReference.meetingUrl,
+    } satisfies VideoCallData);
+  }
+
   withTeam(team?: { name: string; members: Person[]; id: number }) {
     this.event = {
       ...this.event,
@@ -688,7 +721,15 @@ export class CalendarEventBuilder {
       .map(([key]) => key);
   }
 
-  build(): CalendarEvent | null {
+  build<TExistingEvent extends RequiredCalendarEvent>(
+    this: CalendarEventBuilder<TExistingEvent>
+  ): TExistingEvent;
+  build(): CalendarEvent | null;
+  build() {
+    if (this.isExistingEventBuilder) {
+      return this.event;
+    }
+
     const missingFields = this.getMissingRequiredFields();
 
     if (missingFields.length > 0) {
@@ -703,6 +744,6 @@ export class CalendarEventBuilder {
       return null;
     }
 
-    return this.event as CalendarEvent;
+    return this.event;
   }
 }

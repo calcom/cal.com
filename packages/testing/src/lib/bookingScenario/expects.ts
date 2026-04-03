@@ -712,11 +712,13 @@ export async function expectSuccessfulRoundRobinReschedulingEmails({
   newOrganizer,
   prevOrganizer,
   bookerReschedule,
+  previousOrganizerHeading,
 }: {
   emails: Fixtures["emails"];
   newOrganizer: { email: string; name: string };
   prevOrganizer: { email: string; name: string };
   bookerReschedule?: boolean;
+  previousOrganizerHeading?: "event_request_cancelled" | "event_request_reassigned";
 }) {
   if (newOrganizer !== prevOrganizer) {
     await vi.waitFor(() => {
@@ -735,7 +737,7 @@ export async function expectSuccessfulRoundRobinReschedulingEmails({
       await vi.waitFor(() => {
         expect(emails).toHaveEmail(
           {
-            heading: "event_request_cancelled",
+            heading: previousOrganizerHeading ?? "event_request_cancelled",
             to: `${prevOrganizer.email}`,
           },
           `${prevOrganizer.email}`
@@ -746,7 +748,7 @@ export async function expectSuccessfulRoundRobinReschedulingEmails({
       await vi.waitFor(() => {
         expect(emails).toHaveEmail(
           {
-            heading: "event_request_reassigned",
+            heading: previousOrganizerHeading ?? "event_request_reassigned",
             to: `${prevOrganizer.email}`,
           },
           `${prevOrganizer.email}`
@@ -1024,8 +1026,6 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
     });
   }
 }
-
-
 
 export function expectBookingCancelledWebhookToHaveBeenFired({
   organizer,

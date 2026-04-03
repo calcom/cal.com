@@ -1,17 +1,15 @@
-import { cloneDeep } from "lodash";
-import { uuid } from "short-uuid";
-
 import { sendRescheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type EventManager from "@calcom/features/bookings/lib/EventManager";
+import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-
-import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
+import { cloneDeep } from "lodash";
+import { uuid } from "short-uuid";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking/logger";
-import type { SeatedBooking, RescheduleSeatedBookingObject, NewTimeSlotBooking } from "../../types";
+import type { NewTimeSlotBooking, RescheduleSeatedBookingObject, SeatedBooking } from "../../types";
 
 const combineTwoSeatedBookings = async (
   rescheduleSeatedBookingObject: RescheduleSeatedBookingObject,
@@ -29,8 +27,8 @@ const combineTwoSeatedBookings = async (
     isConfirmedByDefault,
     additionalNotes,
     rescheduleReason,
+    evt,
   } = rescheduleSeatedBookingObject;
-  let { evt } = rescheduleSeatedBookingObject;
   // Merge two bookings together
   const attendeesToMove = [],
     attendeesToDelete = [];
@@ -118,9 +116,11 @@ const combineTwoSeatedBookings = async (
 
   evt.attendees = updatedBookingAttendees;
 
-  evt = { ...addVideoCallDataToEvent(updatedNewBooking.references, evt), bookerUrl: evt.bookerUrl };
+  const evtWithVideoCallData = CalendarEventBuilder.enrichEvent(evt)
+    .withVideoCallDataFromReferences(updatedNewBooking.references)
+    .build();
 
-  const copyEvent = cloneDeep(evt);
+  const copyEvent = cloneDeep(evtWithVideoCallData);
 
   const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
 
@@ -128,7 +128,7 @@ const combineTwoSeatedBookings = async (
 
   const calendarResult = results.find((result) => result.type.includes("_calendar"));
 
-  evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
+  evtWithVideoCallData.iCalUID = Array.isArray(calendarResult?.updatedEvent)
     ? calendarResult?.updatedEvent[0]?.iCalUID
     : calendarResult?.updatedEvent?.iCalUID || undefined;
 

@@ -20,8 +20,16 @@ vi.mock("@calcom/prisma", () => {
   return { default: mockPrisma };
 });
 
-vi.mock("../../../handleNewBooking/addVideoCallDataToEvent", () => ({
-  addVideoCallDataToEvent: vi.fn((_refs, evt) => evt),
+vi.mock("@calcom/features/CalendarEventBuilder", () => ({
+  CalendarEventBuilder: {
+    enrichEvent: vi.fn((evt) => {
+      const builder = {
+        withVideoCallDataFromReferences: vi.fn(() => builder),
+        build: vi.fn(() => evt),
+      };
+      return builder;
+    }),
+  },
 }));
 
 vi.mock("../../../handleNewBooking/findBookingQuery", () => ({

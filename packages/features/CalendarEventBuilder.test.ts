@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { type BookingForCalEventBuilder, CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
 import { TimeFormat } from "@calcom/lib/timeFormat";
-import type { Person } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person, RequiredCalendarEvent } from "@calcom/types/Calendar";
 import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
@@ -471,6 +471,47 @@ describe("CalendarEventBuilder", () => {
     }
   });
 
+  it("should create an event with video call data from booking references", () => {
+    const bookingReferences: Parameters<CalendarEventBuilder["withVideoCallDataFromReferences"]>[0] = [
+      {
+        type: "google_calendar",
+        meetingId: "calendar-123",
+        meetingPassword: "calendar-password",
+        meetingUrl: "https://calendar.example.com/123",
+      },
+      {
+        type: "daily_video",
+        meetingId: null,
+        meetingPassword: null,
+        meetingUrl: "https://daily.example.com/123",
+      },
+    ];
+
+    const event = new CalendarEventBuilder()
+      .withBasicDetails({
+        bookerUrl: "https://cal.com/user/test-slug",
+        title: "Test Event",
+        startTime: mockStartTime,
+        endTime: mockEndTime,
+      })
+      .withEventType({
+        slug: "test-slug",
+        id: 123,
+      })
+      .withVideoCallDataFromReferences(bookingReferences)
+      .build();
+
+    expect(event).not.toBeNull();
+    if (event) {
+      expect(event.videoCallData).toEqual({
+        type: "daily_video",
+        id: "",
+        password: "",
+        url: "https://daily.example.com/123",
+      });
+    }
+  });
+
   it("should create an event with team information", () => {
     const team = {
       name: "Engineering Team",
@@ -878,29 +919,42 @@ describe("CalendarEventBuilder", () => {
     });
   });
 
-  it("should create an event from an existing event", () => {
-    const existingEvent = {
+  it("should create an event from an existing complete event", () => {
+    const existingEvent: RequiredCalendarEvent = {
       title: "Existing Event",
       startTime: mockStartTime,
       endTime: mockEndTime,
       type: "existing-type",
+      organizer: {
+        email: "organizer@example.com",
+        name: "Organizer",
+        timeZone: "UTC",
+        language: { translate: mockTranslate, locale: "en" },
+      },
+      attendees: [],
       bookerUrl: "https://cal.com/user/test-slug",
     };
 
-    const event = CalendarEventBuilder.fromEvent(existingEvent)
-      .withBasicDetails({
-        bookerUrl: "https://cal.com/user/test-slug",
-        title: "Updated Event",
-        startTime: mockStartTime,
-        endTime: mockEndTime,
-      })
+    const event: RequiredCalendarEvent = CalendarEventBuilder.enrichEvent(existingEvent)
+      .withVideoCallDataFromReferences([
+        {
+          type: "daily_video",
+          meetingId: "meeting-id",
+          meetingPassword: "password",
+          meetingUrl: "https://video.example.com/meeting-id",
+        },
+      ])
       .build();
 
-    expect(event).not.toBeNull();
-    if (event) {
-      expect(event.title).toBe("Updated Event");
-      expect(event.type).toBe("existing-type");
-    }
+    expect(event.title).toBe("Existing Event");
+    expect(event.type).toBe("existing-type");
+    expect(event.bookerUrl).toBe("https://cal.com/user/test-slug");
+    expect(event.videoCallData).toEqual({
+      type: "daily_video",
+      id: "meeting-id",
+      password: "password",
+      url: "https://video.example.com/meeting-id",
+    });
   });
 
   it("should propagate disableCancelling and disableRescheduling", () => {
