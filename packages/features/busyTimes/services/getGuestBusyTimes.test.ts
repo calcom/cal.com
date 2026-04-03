@@ -1,8 +1,6 @@
-import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
-
 import dayjs from "@calcom/dayjs";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GuestBusyTimesService, type IGuestBusyTimesService } from "./getGuestBusyTimes";
 
 // Mock Prisma client
@@ -162,20 +160,24 @@ describe("GuestBusyTimesService", () => {
         attendees: [{ email: secondaryEmail, name: "Guest User", timeZone: "UTC" }],
       });
 
-      // Not found by primary email
+      // Found by secondary email lookup (not by primary - user's primary email is different)
       mockPrisma.user.findMany.mockResolvedValue([]);
 
-      // Found by secondary email (first call), then fetch all verified secondaries (second call)
+      // Found by secondary email (first call to secondaryEmail.findMany)
+      // Second call fetches all verified secondaries for found users
       mockPrisma.secondaryEmail.findMany
         .mockResolvedValueOnce([
           {
             user: { id: guestUserId, email: primaryEmail },
+            email: secondaryEmail,
+            emailVerified: new Date(),
           },
         ])
         .mockResolvedValueOnce([
           {
             userId: guestUserId,
             email: secondaryEmail,
+            emailVerified: new Date(),
           },
         ]);
 

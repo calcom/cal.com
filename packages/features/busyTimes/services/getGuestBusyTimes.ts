@@ -1,4 +1,3 @@
-import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
@@ -262,7 +261,7 @@ export class GuestBusyTimesService {
 
     // Build map of userId -> all verified emails
     const userEmailsMap = new Map<number, string[]>();
-    for (const user of uniqueUsersMap.values()) {
+    for (const user of Array.from(uniqueUsersMap.values())) {
       userEmailsMap.set(user.id, [user.email]); // Start with primary email
     }
 

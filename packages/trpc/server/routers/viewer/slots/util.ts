@@ -9,6 +9,7 @@ import type {
   GetAvailabilityUser,
   UserAvailabilityService,
 } from "@calcom/features/availability/lib/getUserAvailability";
+import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
@@ -17,12 +18,14 @@ import type { BookingRepository } from "@calcom/features/bookings/repositories/B
 import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
 import type { GuestBusyTimesService } from "@calcom/features/busyTimes/services/getGuestBusyTimes";
 import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import getSlots from "@calcom/features/schedules/lib/slots";
 import type { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
@@ -49,7 +52,6 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarFetchMode, EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -58,8 +60,6 @@ import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import type { GetScheduleOptions } from "./types";
-import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
-import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
@@ -84,7 +84,7 @@ export interface IAvailableSlotsService {
   checkBookingLimitsService: CheckBookingLimitsService;
   userAvailabilityService: UserAvailabilityService;
   busyTimesService: BusyTimesService;
-  guestBusyTimesService: GuestBusyTimesService;
+  guestBusyTimesService?: GuestBusyTimesService;
   redisClient: IRedisService;
   featuresRepo: FeaturesRepository;
   qualifiedHostsService: QualifiedHostsService;
@@ -1501,10 +1501,10 @@ export class AvailableSlotsService {
         );
     }
 
-    // Filter out slots where guests (Cal.com users) are busy during reschedule
-    // This only applies when host reschedules - we check if attendees are Cal.com users
-    // and filter out slots that conflict with their bookings
-    if (input.rescheduleUid) {
+    // Filter out slots where guests (Cal.com users) are busy during reschedule.
+    // This runs whenever a reschedule UID is present; we check whether attendees are
+    // Cal.com users and filter out slots that conflict with their bookings.
+    if (input.rescheduleUid && this.dependencies.guestBusyTimesService) {
       try {
         const guestBusyTimesResult = await this.dependencies.guestBusyTimesService.getGuestBusyTimes({
           rescheduleUid: input.rescheduleUid,
@@ -1518,17 +1518,19 @@ export class AvailableSlotsService {
             `Filtering ${guestBusyTimesResult.busyTimes.length} guest busy time(s) from ${guestBusyTimesResult.calComUserCount} Cal.com user guest(s)`
           );
 
+          // Pre-normalize busy times to milliseconds for efficient comparisons
+          const guestBusyTimeRanges = guestBusyTimesResult.busyTimes.map((busy) => ({
+            startMs: dayjs(busy.start).valueOf(),
+            endMs: dayjs(busy.end).valueOf(),
+          }));
+
           availableTimeSlots = availableTimeSlots.filter((slot) => {
-            const slotStart = slot.time;
-            const slotEnd = slot.time.add(input.duration || eventType.length, "minute");
+            const slotStartMs = slot.time.valueOf();
+            const slotEndMs = slot.time.add(input.duration || eventType.length, "minute").valueOf();
 
-            // Check if slot overlaps with any guest busy time
-            const hasConflict = guestBusyTimesResult.busyTimes.some((busy) => {
-              const busyStart = dayjs(busy.start);
-              const busyEnd = dayjs(busy.end);
-
-              // Overlap exists if slot starts before busy ends AND slot ends after busy starts
-              return slotStart.isBefore(busyEnd) && slotEnd.isAfter(busyStart);
+            // Overlap exists if slot starts before busy ends AND slot ends after busy starts
+            const hasConflict = guestBusyTimeRanges.some((busy) => {
+              return slotStartMs < busy.endMs && slotEndMs > busy.startMs;
             });
 
             return !hasConflict;
