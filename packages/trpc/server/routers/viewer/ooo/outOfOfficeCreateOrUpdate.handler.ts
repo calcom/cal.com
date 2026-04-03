@@ -103,8 +103,9 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   }
 
   let resolvedReasonId = input.reasonId;
+  const CUSTOM_REASON_VALUE = -1;
 
-  if (!resolvedReasonId && input.customReason) {
+  if ((!resolvedReasonId || resolvedReasonId === CUSTOM_REASON_VALUE) && input.customReason) {
     const customEmoji = input.customEmoji || "📌";
     const customReasonText = input.customReason.trim();
     if (!customReasonText) {
@@ -141,8 +142,24 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     }
   }
 
-  if (!resolvedReasonId) {
+  if (!resolvedReasonId || resolvedReasonId === CUSTOM_REASON_VALUE) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "reason_id_required" });
+  }
+
+  // Check if the reason is valid and owned by the user (or is a system default)
+  const validReason = await prisma.outOfOfficeReason.findFirst({
+    where: {
+      id: resolvedReasonId,
+      OR: [{ userId: null, enabled: true }, { userId: oooUserId }],
+    },
+    select: { id: true },
+  });
+
+  if (!validReason) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Reason not found or you don't have access to it",
+    });
   }
 
   // Prevent infinite redirects but consider time ranges
