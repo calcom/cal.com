@@ -1,9 +1,7 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { prisma } from "@calcom/prisma";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { OrganizationPaymentService } from "./OrganizationPaymentService";
 import type { IOrganizationPermissionService } from "./OrganizationPermissionService";
 
@@ -26,6 +24,7 @@ vi.mock("@calcom/prisma", () => {
   const prismaMock = {
     organizationOnboarding: {
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
     },
@@ -91,6 +90,9 @@ describe("OrganizationPaymentService", () => {
       stripeCustomerId: "mock_customer_id",
       isComplete: false,
     });
+
+    // By default, no conflicting onboarding record exists
+    vi.mocked(prisma.organizationOnboarding.findUnique).mockResolvedValue(null);
   });
 
   describe("createPaymentIntent", () => {

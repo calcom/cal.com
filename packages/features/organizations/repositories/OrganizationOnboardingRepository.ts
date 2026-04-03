@@ -135,6 +135,18 @@ export class OrganizationOnboardingRepository {
       },
     });
   }
+  static async clearStripeCustomerId(id: OnboardingId) {
+    logger.debug("Clearing stripeCustomerId from organization onboarding", { id });
+    return await prisma.organizationOnboarding.update({
+      where: {
+        id,
+      },
+      data: {
+        stripeCustomerId: null,
+      },
+    });
+  }
+
   static async delete(id: OnboardingId) {
     logger.debug("Deleting organization onboarding", { id });
     return await prisma.organizationOnboarding.delete({

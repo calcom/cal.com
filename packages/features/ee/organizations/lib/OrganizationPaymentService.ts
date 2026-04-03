@@ -399,6 +399,25 @@ export class OrganizationPaymentService {
 
     log.debug("Updating onboarding with stripe details and form data");
 
+    // If another onboarding record already holds this stripeCustomerId (e.g. from a previous
+    // failed/abandoned attempt), unset it so we don't violate the unique constraint.
+    const existingOnboardingWithCustomerId =
+      await OrganizationOnboardingRepository.findByStripeCustomerId(stripeCustomerId);
+    if (
+      existingOnboardingWithCustomerId &&
+      existingOnboardingWithCustomerId.id !== organizationOnboarding.id
+    ) {
+      log.warn(
+        "Found stale onboarding record with same stripeCustomerId, clearing it",
+        safeStringify({
+          staleOnboardingId: existingOnboardingWithCustomerId.id,
+          currentOnboardingId: organizationOnboarding.id,
+          stripeCustomerId,
+        })
+      );
+      await OrganizationOnboardingRepository.clearStripeCustomerId(existingOnboardingWithCustomerId.id);
+    }
+
     // Update the onboarding record with all the form data
     await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
       stripeCustomerId,
