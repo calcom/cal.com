@@ -9,7 +9,6 @@ import { CalendarSwitchComponent, type ICalendarSwitchProps } from "@calcom/ui/c
 import { DisconnectIntegrationComponent } from "@calcom/ui/components/disconnect-calendar-integration";
 import { Dropdown, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/components/dropdown";
 import { Switch } from "@calcom/ui/components/form";
-          <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
 import { useState } from "react";
 import * as Connect from "../../connect";
 import { AppleConnect } from "../../connect/apple/AppleConnect";
