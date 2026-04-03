@@ -1499,6 +1499,57 @@ export class AvailableSlotsService {
         );
     }
 
+    // ── Guest availability filtering (reschedule only) ──────────────────────
+    // When rescheduling, check whether attendees are Cal.com users. If so,
+    // filter out any time slots during which they have an existing booking.
+    if (input.rescheduleUid && availableTimeSlots.length > 0) {
+      const bookingRepo = this.dependencies.bookingRepo;
+      const userRepo = this.dependencies.userRepo;
+
+      // Fetch the original booking's attendees
+      const originalBooking = await bookingRepo.findOriginalRescheduledBookingUserId({
+        rescheduleUid: input.rescheduleUid,
+      });
+
+      if (originalBooking?.attendees && originalBooking.attendees.length > 0) {
+        const attendeeEmails = originalBooking.attendees.map((a) => a.email);
+
+        // Identify which attendees are Cal.com users (look them up by email)
+        const calcomGuestUsers = (
+          await Promise.all(attendeeEmails.map((email) => userRepo.findByEmail({ email })))
+        ).filter((u): u is NonNullable<typeof u> => u !== null && u !== undefined);
+
+        if (calcomGuestUsers.length > 0) {
+          const guestUserIds = calcomGuestUsers.map((u) => u.id);
+          const guestEmails = calcomGuestUsers.map((u) => u.email);
+
+          // Fetch busy times for guest Cal.com users in the slot range
+          const guestBusyBookings = await bookingRepo.findAcceptedBookingsForUserIdsBetween({
+            userIds: guestUserIds,
+            userEmails: guestEmails,
+            startDate: startTime.toDate(),
+            endDate: endTime.toDate(),
+            excludeUid: input.rescheduleUid,
+          });
+
+          if (guestBusyBookings.length > 0) {
+            const eventLength = input.duration || eventType.length;
+            availableTimeSlots = availableTimeSlots.filter((slot) => {
+              const slotStart = slot.time.valueOf();
+              const slotEnd = slotStart + eventLength * 60 * 1000;
+              // A slot is unavailable if it overlaps with any guest booking
+              return !guestBusyBookings.some((booking) => {
+                const bookingStart = new Date(booking.startTime).valueOf();
+                const bookingEnd = new Date(booking.endTime).valueOf();
+                return slotStart < bookingEnd && slotEnd > bookingStart;
+              });
+            });
+          }
+        }
+      }
+    }
+    // ────────────────────────────────────────────────────────────────────────
+
     // fr-CA uses YYYY-MM-DD
     const formatter = new Intl.DateTimeFormat("fr-CA", {
       year: "numeric",

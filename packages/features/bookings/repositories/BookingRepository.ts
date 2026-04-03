@@ -1529,6 +1529,55 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  /**
+   * Fetches accepted bookings (owned or attended) for given user IDs within a date range.
+   * Used to check guest availability during reschedule slot filtering.
+   */
+  async findAcceptedBookingsForUserIdsBetween({
+    userIds,
+    userEmails,
+    startDate,
+    endDate,
+    excludeUid,
+  }: {
+    userIds: number[];
+    userEmails: string[];
+    startDate: Date;
+    endDate: Date;
+    excludeUid?: string;
+  }) {
+    if (userIds.length === 0) return [];
+
+    const sharedWhere = {
+      startTime: { lt: endDate },
+      endTime: { gt: startDate },
+      status: BookingStatus.ACCEPTED,
+      ...(excludeUid ? { uid: { not: excludeUid } } : {}),
+    };
+
+    const [ownedBookings, attendedBookings] = await Promise.all([
+      this.prismaClient.booking.findMany({
+        where: { ...sharedWhere, userId: { in: userIds } },
+        select: { startTime: true, endTime: true },
+      }),
+      userEmails.length > 0
+        ? this.prismaClient.booking.findMany({
+            where: {
+              ...sharedWhere,
+              attendees: {
+                some: { email: { in: userEmails } },
+              },
+              // Exclude bookings already owned by these users (avoid duplicates)
+              NOT: { userId: { in: userIds } },
+            },
+            select: { startTime: true, endTime: true },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    return [...ownedBookings, ...attendedBookings];
+  }
+
   async getBookingForPaymentProcessing(bookingId: number) {
     return await this.prismaClient.booking.findUnique({
       where: {
