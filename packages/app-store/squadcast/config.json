@@ -6,22 +6,18 @@
   "logo": "icon.svg",
   "url": "https://squadcast.fm",
   "variant": "conferencing",
-  "categories": [
-    "conferencing"
-  ],
+  "categories": ["conferencing"],
   "publisher": "Bandhan Majumder",
   "email": "bandhan.majumder4@gmail.com",
   "appData": {
     "location": {
-      "type": "integrations:{SLUG}_video",
-      "label": "{TITLE}",
-      "linkType": "static",
-      "organizerInputPlaceholder": "https://sqdc.st/s/xyz",
-      "urlRegExp": "^https?:\/\/(www\\.)?sqdc\\.st\/s\/[A-Za-z0-9]+$"
+      "type": "integrations:squadcast_conferencing",
+      "label": "SquadCast",
+      "linkType": "dynamic"
     }
   },
-  "description": "High-quality audio and video content with our in-browser software for premium recordings auto-saved with cloud storage. ",
+  "description": "High-quality audio and video content with our in-browser software for premium recordings auto-saved with cloud storage.",
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "event-type-location-video-static"
+  "__template": "basic"
 }
