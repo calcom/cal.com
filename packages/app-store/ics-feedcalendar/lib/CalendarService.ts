@@ -146,6 +146,8 @@ class ICSFeedCalendarService implements Calendar {
     // we use the userId from selectedCalendars to fetch the user's timeZone from the database primarily for all-day events without any timezone information
     const userTimeZone = userId ? await this.getUserTimezoneFromDB(userId) : "Europe/London";
     const events: { start: string; end: string; title: string }[] = [];
+    const rangeStart = dayjs(dateFrom);
+    const rangeEnd = dayjs(dateTo);
 
     calendars.forEach(({ vcalendar }) => {
       const vevents = vcalendar.getAllSubcomponents("vevent");
@@ -287,8 +289,11 @@ class ICSFeedCalendarService implements Calendar {
         const finalStartISO = dayjs(event.startDate.toJSDate()).toISOString();
         const finalEndISO = dayjs(event.endDate.toJSDate()).toISOString();
 
-        // Skip events outside the requested date range
-        if (dayjs(finalStartISO).isAfter(dayjs(dateTo)) || dayjs(finalEndISO).isBefore(dayjs(dateFrom))) {
+        // Skip events outside the requested date range.
+        // Use strict overlap semantics: exclude if start >= rangeEnd OR end <= rangeStart.
+        // The !isAfter(rangeStart) handles all-day events whose DTEND is midnight at the range
+        // start (exclusive boundary per RFC 5545 §3.6.1).
+        if (!dayjs(finalStartISO).isBefore(rangeEnd) || !dayjs(finalEndISO).isAfter(rangeStart)) {
           return;
         }
 

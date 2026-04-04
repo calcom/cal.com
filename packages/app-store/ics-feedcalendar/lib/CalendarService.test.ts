@@ -55,6 +55,7 @@ function makeEvent({
   dtend = "20260404T110000Z",
   status,
   transp,
+  allDay = false,
 }: {
   uid?: string;
   summary?: string;
@@ -62,13 +63,16 @@ function makeEvent({
   dtend?: string;
   status?: string;
   transp?: string;
+  allDay?: boolean;
 }) {
+  const dtStartLine = allDay ? `DTSTART;VALUE=DATE:${dtstart}` : `DTSTART:${dtstart}`;
+  const dtEndLine = allDay ? `DTEND;VALUE=DATE:${dtend}` : `DTEND:${dtend}`;
   const lines = [
     "BEGIN:VEVENT",
     `UID:${uid}`,
     `SUMMARY:${summary}`,
-    `DTSTART:${dtstart}`,
-    `DTEND:${dtend}`,
+    dtStartLine,
+    dtEndLine,
   ];
   if (status) lines.push(`STATUS:${status}`);
   if (transp) lines.push(`TRANSP:${transp}`);
@@ -309,6 +313,94 @@ describe("ICSFeedCalendarService - getAvailability", () => {
       const result = await service.getAvailability({ dateFrom, dateTo, selectedCalendars });
       expect(result).toHaveLength(1);
       expect(result[0].title).toBe("Active In Range");
+    });
+  });
+
+  describe("all-day events (VALUE=DATE)", () => {
+    it("includes an all-day event falling on the queried date", async () => {
+      const service = getService();
+      service.fetchCalendars = vi.fn().mockResolvedValue([
+        {
+          url: "https://example.com/calendar.ics",
+          vcalendar: buildVCalendar([
+            makeEvent({
+              uid: "allday-in-range@test",
+              summary: "All Day Event",
+              dtstart: "20260404",
+              dtend: "20260405",
+              allDay: true,
+            }),
+          ]),
+        },
+      ]);
+
+      const result = await service.getAvailability({ dateFrom, dateTo, selectedCalendars });
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe("All Day Event");
+    });
+
+    it("excludes an all-day event on a different date", async () => {
+      const service = getService();
+      service.fetchCalendars = vi.fn().mockResolvedValue([
+        {
+          url: "https://example.com/calendar.ics",
+          vcalendar: buildVCalendar([
+            makeEvent({
+              uid: "allday-out-of-range@test",
+              summary: "All Day Event Yesterday",
+              dtstart: "20260403",
+              dtend: "20260404",
+              allDay: true,
+            }),
+          ]),
+        },
+      ]);
+
+      const result = await service.getAvailability({ dateFrom, dateTo, selectedCalendars });
+      // DTEND is exclusive in iCal for all-day events; April 3 event ends at April 4 00:00 UTC
+      // which is exactly dateFrom — it should be excluded as the event ends exactly at range start
+      expect(result).toHaveLength(0);
+    });
+  });
+
+  describe("events spanning the entire queried range", () => {
+    it("includes a multi-day event that starts before dateFrom and ends after dateTo", async () => {
+      const service = getService();
+      service.fetchCalendars = vi.fn().mockResolvedValue([
+        {
+          url: "https://example.com/calendar.ics",
+          vcalendar: buildVCalendar([
+            makeEvent({
+              uid: "spanning@test",
+              summary: "Multi-day Conference",
+              dtstart: "20260401T000000Z",
+              dtend: "20260410T000000Z",
+            }),
+          ]),
+        },
+      ]);
+
+      const result = await service.getAvailability({ dateFrom, dateTo, selectedCalendars });
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe("Multi-day Conference");
+    });
+  });
+
+  describe("STATUS:TENTATIVE behavior", () => {
+    it("treats STATUS:TENTATIVE events as busy (they should block availability)", async () => {
+      const service = getService();
+      service.fetchCalendars = vi.fn().mockResolvedValue([
+        {
+          url: "https://example.com/calendar.ics",
+          vcalendar: buildVCalendar([
+            makeEvent({ uid: "tentative@test", summary: "Tentative Meeting", status: "TENTATIVE" }),
+          ]),
+        },
+      ]);
+
+      const result = await service.getAvailability({ dateFrom, dateTo, selectedCalendars });
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe("Tentative Meeting");
     });
   });
 });
