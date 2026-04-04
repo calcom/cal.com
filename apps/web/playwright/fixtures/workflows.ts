@@ -127,8 +127,8 @@ export function createWorkflowPageFixture(page: Page) {
       getWorkflowButton("delete-button"),
     ]);
 
-    expect(editButton.isDisabled()).toBeTruthy();
-    expect(deleteButton.isDisabled()).toBeTruthy();
+    await expect(editButton).toBeDisabled();
+    await expect(deleteButton).toBeDisabled();
   };
 
   const assertWorkflowWasTriggered = async (emails: Fixtures["emails"], emailsToBeReceived: string[]) => {

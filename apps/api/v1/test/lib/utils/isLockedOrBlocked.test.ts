@@ -1,13 +1,21 @@
-import type { NextApiRequest } from "next";
-import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
-
 import { getWatchlistFeature } from "@calcom/features/di/watchlist/containers/watchlist";
 import type { WatchlistFeature } from "@calcom/features/watchlist/lib/facade/WatchlistFeature";
-
+import type { NextApiRequest } from "next";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { isLockedOrBlocked } from "../../../lib/utils/isLockedOrBlocked";
 
 vi.mock("@calcom/features/di/watchlist/containers/watchlist", () => ({
   getWatchlistFeature: vi.fn(),
+}));
+
+vi.mock("@calcom/features/auth/lib/verifyEmail", () => ({
+  sendEmailVerification: vi.fn(),
+  verifyEmail: vi.fn(),
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
 }));
 
 describe("isLockedOrBlocked", () => {

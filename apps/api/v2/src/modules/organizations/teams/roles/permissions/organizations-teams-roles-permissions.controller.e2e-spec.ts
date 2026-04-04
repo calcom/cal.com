@@ -274,13 +274,6 @@ describe("Organizations Teams Roles Permissions Endpoints", () => {
 
       // Clean up user
       await userRepositoryFixture.deleteByEmail(pbacOrgUserWithRolePermission.email);
-
-      // Clean up feature definition
-      try {
-        await featuresRepositoryFixture.deleteBySlug("pbac");
-      } catch (err) {
-        console.log(err);
-      }
     } catch (err) {
       console.log(err);
     } finally {

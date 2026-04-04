@@ -54,9 +54,18 @@ export default function ForgotPassword(props: PageProps) {
     }
   };
 
-  const debouncedHandleSubmitPasswordRequest = debounce(submitForgotPasswordRequest, 250);
+  const submitRef = React.useRef(submitForgotPasswordRequest);
+  submitRef.current = submitForgotPasswordRequest;
 
-  const handleSubmit = async (e: SyntheticEvent) => {
+  const debouncedHandleSubmitPasswordRequest = React.useRef(
+    debounce((args: { email: string }) => submitRef.current(args), 250)
+  ).current;
+
+  React.useEffect(() => {
+    return () => debouncedHandleSubmitPasswordRequest.cancel();
+  }, []);
+
+  const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
 
     if (!email) {
@@ -71,7 +80,7 @@ export default function ForgotPassword(props: PageProps) {
     setError(null);
     setSuccess(false);
 
-    await debouncedHandleSubmitPasswordRequest({ email });
+    debouncedHandleSubmitPasswordRequest({ email });
   };
 
   const Success = () => {

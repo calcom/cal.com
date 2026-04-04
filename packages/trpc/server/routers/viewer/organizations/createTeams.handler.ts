@@ -7,13 +7,11 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
+import { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
-
 import { TRPCError } from "@trpc/server";
-
 import { inviteMembersWithNoInviterPermissionCheck } from "../teams/inviteMember/inviteMember.handler";
 import type { TCreateTeamsSchema } from "./createTeams.schema";
 
@@ -231,16 +229,34 @@ async function moveTeam({
         parentId: org.id,
       },
     });
-
-    const creditService = new CreditService();
-    await creditService.moveCreditsFromTeamToOrg({ teamId, orgId: org.id });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "slug_already_in_use_in_org",
+      });
+    }
     log.error(
       "Error while moving team to organization",
       safeStringify(error),
       safeStringify({
         teamId,
         newSlug,
+        orgId: org.id,
+      })
+    );
+    throw error;
+  }
+
+  try {
+    const creditService = new CreditService();
+    await creditService.moveCreditsFromTeamToOrg({ teamId, orgId: org.id });
+  } catch (error) {
+    log.error(
+      "Error while moving credits from team to organization",
+      safeStringify(error),
+      safeStringify({
+        teamId,
         orgId: org.id,
       })
     );

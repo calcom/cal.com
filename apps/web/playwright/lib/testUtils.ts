@@ -109,7 +109,22 @@ export async function selectFirstAvailableTimeSlotNextMonth(page: Page | Frame) 
   // Wait for the booker to be ready before interacting
   const incrementMonth = page.getByTestId("incrementMonth");
   await incrementMonth.waitFor();
+
+  // Wait for the initial schedule data to load (available days rendered in date picker).
+  // This ensures the waitForResponse listener below only catches the month-change response,
+  // not the initial page load response. Without this, column view can race: stale time slots
+  // from the current month get clicked before the new month's schedule data arrives, causing
+  // the quick availability check to permanently disable the confirm button.
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
+
+  // Listen for the getSchedule response triggered by the month change.
+  // waitForResponse is only available on Page, not Frame.
+  const scheduleResponse =
+    "waitForResponse" in page
+      ? page.waitForResponse((resp) => resp.url().includes("getSchedule") && resp.status() === 200)
+      : Promise.resolve();
   await incrementMonth.click();
+  await scheduleResponse;
 
   // Wait for available day to appear after month increment
   const firstAvailableDay = page.locator('[data-testid="day"][data-disabled="false"]').nth(0);
@@ -125,7 +140,16 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   // Wait for the booker to be ready before interacting
   const incrementMonth = page.getByTestId("incrementMonth");
   await incrementMonth.waitFor();
+
+  // Wait for initial schedule data to load before changing month (see selectFirstAvailableTimeSlotNextMonth)
+  await page.locator('[data-testid="day"][data-disabled="false"]').nth(0).waitFor();
+
+  // Listen for the getSchedule response triggered by the month change
+  const scheduleResponse = page.waitForResponse(
+    (resp) => resp.url().includes("getSchedule") && resp.status() === 200
+  );
   await incrementMonth.click();
+  await scheduleResponse;
 
   // Wait for available day to appear after month increment
   const secondAvailableDay = page.locator('[data-testid="day"][data-disabled="false"]').nth(1);

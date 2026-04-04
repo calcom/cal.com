@@ -8,6 +8,11 @@ import { BookingAccessService } from "./BookingAccessService";
 vi.mock("../repositories/BookingRepository");
 vi.mock("@calcom/features/users/repositories/UserRepository");
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("BookingAccessService", () => {
   let service: BookingAccessService;
   let mockPrismaClient: PrismaClient;
@@ -339,5 +344,4 @@ describe("BookingAccessService", () => {
       });
     });
   });
-
 });

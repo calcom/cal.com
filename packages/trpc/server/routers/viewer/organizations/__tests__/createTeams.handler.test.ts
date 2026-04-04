@@ -1,14 +1,10 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, expect, it, beforeEach, vi } from "vitest";
-
 import slugify from "@calcom/lib/slugify";
-import { MembershipRole, UserPermissionRole, CreationSource, RedirectType } from "@calcom/prisma/enums";
-
+import { Prisma } from "@calcom/prisma/client";
+import { CreationSource, MembershipRole, RedirectType, UserPermissionRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createTeamsHandler } from "../createTeams.handler";
-
 // Helper functions for creating test data
 async function createTestUser(data: {
   email: string;
@@ -1252,6 +1248,64 @@ describe("createTeams handler - Comprehensive Tests", () => {
         "member2@example.com",
       ]);
       inviteSpy.mockRestore();
+    });
+
+    it("should throw CONFLICT error when moving team with slug that already exists in the organization", async () => {
+      const { owner, organization } = await createScenario();
+
+      const teamToMove = await createTestTeam({
+        name: "Team To Move",
+        slug: "original-slug",
+        parentId: null,
+      });
+
+      await createTestMembership({
+        userId: owner.id,
+        teamId: teamToMove.id,
+        role: MembershipRole.OWNER,
+      });
+
+      // Mock the Prisma update to throw a unique constraint error (P2002)
+      // This simulates what happens when the database rejects a duplicate slug
+      const originalUpdate = prismock.team.update;
+      prismock.team.update = vi.fn().mockRejectedValueOnce(
+        new Prisma.PrismaClientKnownRequestError(
+          "Unique constraint failed on the fields: (`slug`,`parentId`)",
+          {
+            code: "P2002",
+            clientVersion: "5.0.0",
+          }
+        )
+      );
+
+      await expect(
+        createTeamsHandler({
+          ctx: {
+            user: {
+              id: owner.id,
+              organizationId: organization.id,
+            },
+          },
+          input: {
+            teamNames: [],
+            orgId: organization.id,
+            moveTeams: [
+              {
+                id: teamToMove.id,
+                shouldMove: true,
+                newSlug: "conflicting-slug",
+              },
+            ],
+            creationSource: CreationSource.WEBAPP,
+          },
+        })
+      ).rejects.toMatchObject({
+        code: "CONFLICT",
+        message: "slug_already_in_use_in_org",
+      });
+
+      // Restore the original update function
+      prismock.team.update = originalUpdate;
     });
   });
 });

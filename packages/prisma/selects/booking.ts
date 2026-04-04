@@ -27,3 +27,106 @@ export const bookingDetailsSelect = {
     },
   },
 } satisfies Prisma.BookingSelect;
+
+export const bookingWithUserAndEventDetailsSelect = {
+  title: true,
+  description: true,
+  startTime: true,
+  endTime: true,
+  userPrimaryEmail: true,
+  uid: true,
+  iCalUID: true,
+  iCalSequence: true,
+  eventTypeId: true,
+  id: true,
+  userId: true,
+  location: true,
+  responses: true,
+  metadata: true,
+  destinationCalendar: {
+    select: {
+      id: true,
+      integration: true,
+      externalId: true,
+      primaryEmail: true,
+      userId: true,
+      eventTypeId: true,
+      credentialId: true,
+      delegationCredentialId: true,
+      domainWideDelegationCredentialId: true,
+      createdAt: true,
+      updatedAt: true,
+      customCalendarReminder: true,
+    },
+  },
+  attendees: {
+    select: {
+      email: true,
+      name: true,
+      timeZone: true,
+      locale: true,
+    },
+  },
+  references: {
+    select: {
+      id: true,
+      type: true,
+      uid: true,
+      deleted: true,
+      credentialId: true,
+      delegationCredentialId: true,
+      externalCalendarId: true,
+    },
+  },
+  user: {
+    select: {
+      email: true,
+      name: true,
+      timeZone: true,
+      locale: true,
+      credentials: {
+        select: {
+          id: true,
+          type: true,
+          delegationCredentialId: true,
+        },
+      },
+      destinationCalendar: {
+        select: {
+          id: true,
+          integration: true,
+          externalId: true,
+          primaryEmail: true,
+          userId: true,
+          eventTypeId: true,
+          credentialId: true,
+          delegationCredentialId: true,
+          domainWideDelegationCredentialId: true,
+          createdAt: true,
+          updatedAt: true,
+          customCalendarReminder: true,
+        },
+      },
+      profiles: {
+        select: {
+          organizationId: true,
+        },
+      },
+    },
+  },
+  eventType: {
+    select: {
+      title: true,
+      metadata: true,
+      recurringEvent: true,
+      seatsPerTimeSlot: true,
+      seatsShowAttendees: true,
+      hideOrganizerEmail: true,
+      customReplyToEmail: true,
+    },
+  },
+} satisfies Prisma.BookingSelect;
+
+export type BookingWithUserAndEventDetails = Prisma.BookingGetPayload<{
+  select: typeof bookingWithUserAndEventDetailsSelect;
+}>;

@@ -290,6 +290,10 @@ describe("WorkflowService.scheduleLazyEmailWorkflow", () => {
       {
         bookingUid: "booking-123",
         workflowReminderId: 1,
+        platformClientId: "",
+        platformRescheduleUrl: "",
+        platformCancelUrl: "",
+        platformBookingUrl: "",
       },
       {
         scheduledAt: expect.any(Date),
@@ -334,6 +338,10 @@ describe("WorkflowService.scheduleLazyEmailWorkflow", () => {
       {
         bookingUid: "booking-456",
         workflowReminderId: 2,
+        platformClientId: "",
+        platformRescheduleUrl: "",
+        platformCancelUrl: "",
+        platformBookingUrl: "",
       },
       {
         scheduledAt: expect.any(Date),

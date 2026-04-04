@@ -12,7 +12,7 @@ import { ListSchedules } from "@calcom/atoms";
 export default function ListSchedules() {
   return (
     <>
-      <ListSchedules getRedirectUrl={(scheduleId) => `/availability/${scheduleId}`} />
+      <ListSchedules getScheduleUrl={(scheduleId) => `/availability/${scheduleId}`} />
     </>
   );
 }
@@ -39,7 +39,7 @@ Below is a list of props that can be passed to the List schedules atom.
 
 | Name           | Required | Description                                                                                                       |
 | :------------- | :------- | :---------------------------------------------------------------------------------------------------------------- |
-| getRedirectUrl | No       | Callback function that determines where the user should be redirected when they click on a schedule from the atom |
+| getScheduleUrl | No       | Callback function that determines where the user should be redirected when they click on a schedule from the atom |
 
 ## Combining list schedules atom with availability settings atom
 
@@ -57,13 +57,13 @@ import { ListSchedules } from "@calcom/atoms";
 export default function ListSchedules() {
   return (
     <>
-      <ListSchedules getRedirectUrl={(scheduleId) => `/availability/${scheduleId}`} />
+      <ListSchedules getScheduleUrl={(scheduleId) => `/availability/${scheduleId}`} />
     </>
   );
 }
 ```
 
-`getRedirectUrl` prop is a callback function that determines where the user should be redirected when they click on a schedule from the atom. Say if you want to display your availability settings atom on the page `/availability/:scheduleId`, you need to make sure you return the exact same url when you call the `getRedirectUrl` function.
+`getScheduleUrl` prop is a callback function that determines where the user should be redirected when they click on a schedule from the atom. Say if you want to display your availability settings atom on the page `/availability/:scheduleId`, you need to make sure you return the exact same url when you call the `getScheduleUrl` function.
 
     </Step>
     <Step title="Setup availability settings atom">

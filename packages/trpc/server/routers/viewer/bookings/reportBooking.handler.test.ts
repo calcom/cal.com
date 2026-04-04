@@ -1,13 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { PrismaBookingReportRepository } from "@calcom/features/bookingReport/repositories/PrismaBookingReportRepository";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
-import { BookingStatus, BookingReportReason } from "@calcom/prisma/enums";
-
+import { BookingReportReason, BookingStatus } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { reportBookingHandler } from "./reportBooking.handler";
 
 vi.mock("@calcom/features/bookingReport/repositories/PrismaBookingReportRepository");
@@ -21,6 +18,11 @@ vi.mock("@calcom/lib/logger", () => ({
       error: vi.fn(),
     }),
   },
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
 }));
 
 describe("reportBookingHandler", () => {

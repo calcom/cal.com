@@ -7,8 +7,8 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { Prisma } from "@calcom/prisma/client";
-import { RedirectType } from "@calcom/prisma/enums";
 import type { MembershipRole } from "@calcom/prisma/enums";
+import { RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["orgMigration"] });
@@ -26,7 +26,7 @@ type UserMetadata = {
  * Make sure that the migration is idempotent
  */
 export async function moveUserToOrg({
-  user: { id: userId, userName: userName },
+  user: { id: userId, userName },
   targetOrg: {
     id: targetOrgId,
     username: targetOrgUsername,
@@ -429,7 +429,7 @@ async function dbMoveUserToOrg({
       username: targetOrgUsername,
       metadata: {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         ...(userToMoveToOrg.metadata || {}),
         migratedToOrgFrom: {
           username: nonOrgUserName,
@@ -574,54 +574,6 @@ async function removeUserAlongWithItsTeamsRedirects({
   }
 }
 
-async function dbRemoveTeamFromOrg({ teamId }: { teamId: number }) {
-  const team = await prisma.team.findUnique({
-    where: {
-      id: teamId,
-    },
-  });
-
-  if (!team) {
-    throw new HttpError({
-      statusCode: 400,
-      message: `Team with id: ${teamId} not found`,
-    });
-  }
-
-  const teamMetadata = teamMetadataStrictSchema.parse(team?.metadata);
-  try {
-    return await prisma.team.update({
-      where: {
-        id: teamId,
-      },
-      data: {
-        parentId: null,
-        slug: teamMetadata?.migratedToOrgFrom?.teamSlug || team.slug,
-        metadata: {
-          ...teamMetadata,
-          migratedToOrgFrom: {
-            reverted: true,
-            lastRevertTime: new Date().toISOString(),
-          },
-        },
-      },
-      include: {
-        members: true,
-      },
-    });
-  } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      if (e.code === "P2002") {
-        throw new HttpError({
-          message: `Looks like the team's name is already taken by some other team outside the org or an org itself. Please change this team's name or the other team/org's name. If you rename the team that you are trying to remove from the org, you will have to manually remove the redirect from the database for that team as the slug would have changed.`,
-          statusCode: 400,
-        });
-      }
-    }
-    throw e;
-  }
-}
-
 async function removeTeamsWithoutItsMemberFromOrg({ userToRemoveFromOrg }: { userToRemoveFromOrg: User }) {
   const memberships = await prisma.membership.findMany({
     where: {
@@ -688,7 +640,7 @@ async function dbRemoveUserFromOrg({
       username: nonOrgUserName,
       metadata: {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error
         ...(userToRemoveFromOrg.metadata || {}),
         migratedToOrgFrom: {
           username: null,

@@ -200,7 +200,7 @@ test.describe("Out of office", () => {
     const eventTypeLink = page.locator('[data-testid="event-type-link"]').first();
     await eventTypeLink.click();
 
-    await expect(page.getByTestId("away-emoji")).toBeTruthy();
+    await expect(page.getByTestId("away-emoji").first()).toBeVisible();
   });
 
   test("User can create Entry for past", async ({ page, users }) => {
@@ -338,7 +338,6 @@ test.describe("Out of office", () => {
   });
 
   test("User cannot create infinite or overlapping reverse redirect OOOs", async ({ page, users }) => {
-    const t = await localize("en");
     const teamMatesObj = [{ name: "member-1" }, { name: "member-2" }];
     const owner = await users.create(
       { name: "owner" },
@@ -367,7 +366,7 @@ test.describe("Out of office", () => {
       await goToOOOPage(page);
       await openOOODialog(page);
       await selectDateAndCreateOOO(page, "2", "5", owner.id, 400);
-      await expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
+      await expect(page.getByTestId("toast-error")).toBeVisible();
     });
   });
 
@@ -410,7 +409,7 @@ test.describe("Out of office", () => {
         await page.getByTestId("ooofor_username_select").click();
         await page.getByTestId(`select-option-${member2User?.id}`).click();
         await selectDateAndCreateOOO(page, "1", "3", member1User?.id, 400, true);
-        expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
+        await expect(page.getByTestId("toast-error")).toBeVisible();
         await page.locator(`text=${t("cancel")}`).click();
       });
 
@@ -428,7 +427,7 @@ test.describe("Out of office", () => {
 
       await test.step("Delete OOO successfully", async () => {
         await page.getByTestId(`ooo-delete-${member3User?.username}`).click();
-        expect(page.locator(`text=${t("success_deleted_entry_out_of_office")}`)).toBeTruthy();
+        await expect(page.getByTestId("toast-success").last()).toBeVisible();
       });
     });
     test("Non-Admin has read-only access to team mate's OOO", async ({ page, users }) => {

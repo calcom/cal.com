@@ -1,11 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { CreditsRepository } from "@calcom/features/credits/repositories/CreditsRepository";
 import { sendVerificationCode } from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-
 import { TRPCError } from "@trpc/server";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
 import { sendVerificationCodeHandler } from "./sendVerificationCode.handler";
 
@@ -13,6 +10,11 @@ vi.mock("@calcom/lib/checkRateLimitAndThrowError");
 vi.mock("@calcom/features/credits/repositories/CreditsRepository");
 vi.mock("@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber");
 vi.mock("../teams/hasTeamPlan.handler");
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
 
 describe("sendVerificationCodeHandler", () => {
   const mockUser = {

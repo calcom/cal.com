@@ -1,18 +1,30 @@
 import { makeUserActor } from "@calcom/platform-libraries/bookings";
 import type {
-  BookingInputLocation_2024_08_13,
   UpdateBookingInputLocation_2024_08_13,
   UpdateBookingLocationInput_2024_08_13,
 } from "@calcom/platform-types";
-import { Booking } from "@calcom/prisma/client";
-import { ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import type { Prisma } from "@calcom/prisma/client";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from "@nestjs/common";
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/repositories/bookings.repository";
+import { BookingLocationCalendarSyncService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-location-calendar-sync.service";
+import {
+  type BookingForLocationUpdate,
+  BookingLocationIntegrationService_2024_08_13,
+  type BookingLocationResponse,
+} from "@/ee/bookings/2024-08-13/services/booking-location-integration.service";
+import { BookingVideoService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/booking-video.service";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { PrismaFeaturesRepository } from "@/lib/repositories/prisma-features.repository";
 import { BookingEventHandlerService } from "@/lib/services/booking-event-handler.service";
-import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
+import type { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { EventTypeAccessService } from "@/modules/event-types/services/event-type-access.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 
@@ -28,15 +40,18 @@ export class BookingLocationService_2024_08_13 {
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly eventTypeAccessService: EventTypeAccessService,
     private readonly bookingEventHandlerService: BookingEventHandlerService,
-    private readonly featuresRepository: PrismaFeaturesRepository
+    private readonly bookingVideoService: BookingVideoService_2024_08_13,
+    private readonly featuresRepository: PrismaFeaturesRepository,
+    private readonly integrationService: BookingLocationIntegrationService_2024_08_13,
+    private readonly calendarSyncService: BookingLocationCalendarSyncService_2024_08_13
   ) {}
 
   async updateBookingLocation(
     bookingUid: string,
     input: UpdateBookingLocationInput_2024_08_13,
     user: ApiAuthGuardUser
-  ) {
-    const existingBooking = await this.bookingsRepository.getByUidWithEventType(bookingUid);
+  ): Promise<BookingLocationResponse> {
+    const existingBooking = await this.bookingsRepository.getBookingByUidWithUserAndEventDetails(bookingUid);
     if (!existingBooking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
     }
@@ -58,6 +73,12 @@ export class BookingLocationService_2024_08_13 {
     const { location } = input;
 
     if (location) {
+      if (location.type !== "integration") {
+        const locationValue = this.getNonIntegrationLocationValue(location);
+        if (locationValue) {
+          await this.calendarSyncService.syncCalendarEvent(existingBooking.id, locationValue);
+        }
+      }
       return await this.updateLocation(existingBooking, location, user);
     }
 
@@ -65,13 +86,12 @@ export class BookingLocationService_2024_08_13 {
   }
 
   private async updateLocation(
-    existingBooking: Booking,
+    existingBooking: BookingForLocationUpdate,
     inputLocation: UpdateBookingInputLocation_2024_08_13,
     user: ApiAuthGuardUser
-  ) {
+  ): Promise<BookingLocationResponse> {
     const bookingUid = existingBooking.uid;
     const oldLocation = existingBooking.location;
-    const bookingLocation = this.getLocationValue(inputLocation) ?? existingBooking.location;
 
     if (!existingBooking.userId) {
       throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
@@ -87,18 +107,38 @@ export class BookingLocationService_2024_08_13 {
       throw new NotFoundException(`No user found for booking with uid=${bookingUid}`);
     }
 
-    const bookingFieldsLocation = this.inputService.transformLocation(
-      inputLocation as BookingInputLocation_2024_08_13
-    );
+    if (inputLocation.type === "integration") {
+      return this.integrationService.handleIntegrationLocationUpdate(
+        existingBooking,
+        inputLocation,
+        user,
+        existingBookingHost
+      );
+    }
+
+    const bookingLocation = this.getNonIntegrationLocationValue(inputLocation);
+    if (!bookingLocation) {
+      throw new BadRequestException(`Missing or invalid location value for type: ${inputLocation.type}`);
+    }
+
+    const bookingFieldsLocation = this.inputService.transformLocation(inputLocation);
 
     const responses = (existingBooking.responses || {}) as Record<string, unknown>;
     const { location: _existingLocation, ...rest } = responses;
 
-    const updatedBookingResponses = { ...rest, location: bookingFieldsLocation };
+    const updatedBookingResponses = {
+      ...rest,
+      location: bookingFieldsLocation,
+    };
+
+    const metadataWithoutVideoUrl = this.getMetadataWithoutVideoCallUrl(existingBooking.metadata);
+
+    await this.bookingVideoService.deleteOldVideoMeetingIfNeeded(existingBooking.id);
 
     const updatedBooking = await this.bookingsRepository.updateBooking(bookingUid, {
       location: bookingLocation,
       responses: updatedBookingResponses,
+      metadata: metadataWithoutVideoUrl as Prisma.InputJsonValue,
     });
 
     const organizationId = existingBookingHost.organizationId ?? null;
@@ -120,10 +160,41 @@ export class BookingLocationService_2024_08_13 {
       isBookingAuditEnabled,
     });
 
+    if (bookingLocation) {
+      await this.sendLocationChangeNotifications(existingBooking.id, existingBooking.uid, bookingLocation);
+    }
+
     return this.bookingsService.getBooking(updatedBooking.uid, user);
   }
 
-  private getLocationValue(loc: UpdateBookingInputLocation_2024_08_13): string | undefined {
+  private async sendLocationChangeNotifications(
+    bookingId: number,
+    bookingUid: string,
+    bookingLocation: string
+  ): Promise<void> {
+    const bookingWithDetails = await this.bookingsRepository.getBookingByIdWithUserAndEventDetails(bookingId);
+
+    if (!bookingWithDetails || !bookingWithDetails.user) {
+      this.logger.warn(
+        `Unable to send location change notifications: ${!bookingWithDetails ? "booking details" : "user"} not found for bookingId=${bookingId}`
+      );
+      return;
+    }
+
+    const evt = await this.calendarSyncService.buildCalEventFromBookingData(
+      bookingWithDetails,
+      bookingLocation,
+      null
+    );
+    await this.calendarSyncService.sendLocationChangeNotifications(
+      evt,
+      bookingUid,
+      bookingLocation,
+      bookingWithDetails.eventType?.metadata as Record<string, unknown> | undefined
+    );
+  }
+
+  private getNonIntegrationLocationValue(loc: UpdateBookingInputLocation_2024_08_13): string | undefined {
     if (loc.type === "address") return loc.address;
     if (loc.type === "link") return loc.link;
     if (loc.type === "phone") return loc.phone;
@@ -132,11 +203,17 @@ export class BookingLocationService_2024_08_13 {
     if (loc.type === "attendeeDefined") return loc.location;
 
     this.logger.log(
-      `Booking location service getLocationValue - loc ${JSON.stringify(
-        loc
-      )} was passed but the type is not supported.`
+      `Booking location service getNonIntegrationLocationValue - unsupported type: ${loc.type}`
     );
 
     return undefined;
+  }
+
+  // in case of video integrations we need to clear the videoCallUrl from metadata when explicitly setting a new non-integration location
+  // this ensures the frontend shows the new location instead of the old integration URL
+  private getMetadataWithoutVideoCallUrl(metadata: unknown): Record<string, unknown> {
+    const existingMetadata = (metadata || {}) as Record<string, unknown>;
+    const { videoCallUrl: _removedVideoUrl, ...metadataWithoutVideoUrl } = existingMetadata;
+    return metadataWithoutVideoUrl;
   }
 }

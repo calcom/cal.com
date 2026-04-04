@@ -3,6 +3,7 @@ import type z from "zod";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { TraceContext } from "@calcom/lib/tracing";
 import type { Prisma } from "@calcom/prisma/client";
+import type { BuiltCalendarEvent } from "@calcom/features/CalendarEventBuilder";
 import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 
 import type { BookingEventHandlerService } from "../../onBookingEvents/BookingEventHandlerService";
@@ -29,9 +30,7 @@ export type NewSeatedBookingObject = {
   rescheduleUid: string | undefined;
   reqBookingUid: string | undefined;
   eventType: NewBookingEventType;
-  evt: Omit<CalendarEvent, "bookerUrl"> & {
-    bookerUrl: string;
-  };
+  evt: BuiltCalendarEvent;
   invitee: Invitee;
   allCredentials: Awaited<ReturnType<typeof getAllCredentialsIncludeServiceAccountKey>>;
   organizerUser: OrganizerUser;

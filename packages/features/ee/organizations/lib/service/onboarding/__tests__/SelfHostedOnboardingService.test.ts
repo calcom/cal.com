@@ -1,14 +1,11 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
-import { describe, expect, it, vi, beforeEach } from "vitest";
-
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { OrganizationOnboardingRepository } from "@calcom/features/organizations/repositories/OrganizationOnboardingRepository";
 import * as constants from "@calcom/lib/constants";
-import { UserPermissionRole, CreationSource, MembershipRole, BillingPeriod } from "@calcom/prisma/enums";
+import { BillingPeriod, CreationSource, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SelfHostedOrganizationOnboardingService } from "../SelfHostedOnboardingService";
 import type { CreateOnboardingIntentInput, OrganizationOnboardingData } from "../types";
 
@@ -39,7 +36,6 @@ vi.mock("@calcom/trpc/server/routers/viewer/organizations/createTeams.handler", 
 vi.mock("@calcom/lib/domainManager/organization", () => ({
   createDomain: vi.fn(),
 }));
-
 vi.mock("@calcom/i18n/server", () => {
   return {
     getTranslation: async (locale: string, namespace: string) => {

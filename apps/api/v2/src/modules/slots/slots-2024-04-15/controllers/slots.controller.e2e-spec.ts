@@ -513,6 +513,8 @@ describe("Slots 2024-04-15 Endpoints", () => {
     });
 
     it("should do a booking for seated event and slot should show attendees count and bookingUid", async () => {
+      await selectedSlotRepositoryFixture.deleteAllByUserId(user.id);
+
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
         uid: `booking-uid-seated-${seatedEventTypeId}-${randomString()}`,
@@ -548,7 +550,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
         },
       });
 
-      bookingSeatsRepositoryFixture.create({
+      await bookingSeatsRepositoryFixture.create({
         referenceUid: `seat-${randomString()}`,
         data: {},
         booking: {
@@ -596,6 +598,8 @@ describe("Slots 2024-04-15 Endpoints", () => {
     });
 
     it("should do a booking for seated event and slot should show attendees count and bookingUid in range format", async () => {
+      await selectedSlotRepositoryFixture.deleteAllByUserId(user.id);
+
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
         uid: `booking-uid-seated-${seatedEventTypeId}-${randomString()}`,
@@ -631,7 +635,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
         },
       });
 
-      bookingSeatsRepositoryFixture.create({
+      await bookingSeatsRepositoryFixture.create({
         referenceUid: `seat-${randomString()}`,
         data: {},
         booking: {

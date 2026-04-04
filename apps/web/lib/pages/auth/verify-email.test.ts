@@ -56,6 +56,75 @@ describe("moveUserToMatchingOrg", () => {
       ],
     };
 
+    it("should always invite as MEMBER role, not an elevated role", async() => {
+      const org = {
+        id: "org123",
+        slug: "test-org",
+        requestedSlug: null
+      }
+
+      organizationScenarios.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
+        org,
+        { email }
+      )
+
+      await moveUserToMatchingOrg({ email })
+
+      const call = vi.mocked(inviteMembersWithNoInviterPermissionCheck).mock.calls[0][0]
+      expect(call.invitations[0].role).toBe(MembershipRole.MEMBER)
+    })
+
+    it("should pass inviterName as null", async () => {
+      const org = {
+        id: "org123",
+        slug: "test-org",
+        requestedSlug: null,
+      };
+      organizationScenarios.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
+        org,
+        { email }
+      );
+ 
+      await moveUserToMatchingOrg({ email });
+ 
+      const call = vi.mocked(inviteMembersWithNoInviterPermissionCheck).mock.calls[0][0];
+      expect(call.inviterName).toBeNull();
+    });
+
+    it("should pass creationSource as WEBAPP", async () => {
+      const org = {
+        id: "org123",
+        slug: "test-org",
+        requestedSlug: null,
+      };
+      organizationScenarios.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
+        org,
+        { email }
+      );
+ 
+      await moveUserToMatchingOrg({ email });
+ 
+      const call = vi.mocked(inviteMembersWithNoInviterPermissionCheck).mock.calls[0][0];
+      expect(call.creationSource).toBe(CreationSource.WEBAPP);
+    });
+
+    it("should pass exactly one invitation", async () => {
+      const org = {
+        id: "org123",
+        slug: "test-org",
+        requestedSlug: null,
+      };
+      organizationScenarios.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
+        org,
+        { email }
+      );
+ 
+      await moveUserToMatchingOrg({ email });
+ 
+      const call = vi.mocked(inviteMembersWithNoInviterPermissionCheck).mock.calls[0][0];
+      expect(call.invitations).toHaveLength(1);
+    });
+
     it("when organization has a slug and requestedSlug(slug is used)", async () => {
       const org = {
         id: "org123",
@@ -98,4 +167,23 @@ describe("moveUserToMatchingOrg", () => {
       });
     });
   });
+
+  describe("error handling", () => {
+    it("should propagate errors thrown by inviteMembersWithNoInviterPermissionCheck", async () => {
+      const org = {
+        id: "org123",
+        slug: "test-org",
+        requestedSlug: null,
+      };
+      organizationScenarios.organizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.fakeReturnOrganization(
+        org,
+        { email }
+      );
+ 
+      const error = new Error("Invite failed");
+      vi.mocked(inviteMembersWithNoInviterPermissionCheck).mockRejectedValue(error);
+ 
+      await expect(moveUserToMatchingOrg({ email })).rejects.toThrow("Invite failed");
+    });
+  })
 });

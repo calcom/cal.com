@@ -617,14 +617,15 @@ test.describe("Bookings", () => {
       await page.locator(`[data-testid="select-filter-options-teamId"] [role="option"]`).first().click();
       await bookingsGetResponse2;
 
+      await expect(page.getByTestId("filter-popover-trigger-teamId")).toBeVisible({ timeout: 10000 });
+
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
 
-      await expect
-        .poll(async () => {
-          return await bookingListItems.count();
-        })
-        .toBe(1);
+      await expect(
+        upcomingBookingsTable.locator('[data-testid="booking-item"]', { hasText: teamBooking!.title })
+      ).toBeVisible({ timeout: 10000 });
+
       await expect(bookingListItems.first().getByTestId("title-and-attendees")).toContainText(
         teamBooking!.title
       );
@@ -677,12 +678,11 @@ test.describe("Bookings", () => {
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
 
-      await expect
-        .poll(async () => {
-          return await bookingListItems.count();
-        })
-        .toBe(1);
+      await expect(
+        upcomingBookingsTable.locator('[data-testid="booking-item"]', { hasText: "Personal Event Booking" })
+      ).toBeHidden({ timeout: 10000 });
 
+      await expect(bookingListItems).toHaveCount(1);
       await expect(bookingListItems.first().getByTestId("title-and-attendees")).toContainText(
         managedEventBooking!.title
       );
@@ -756,11 +756,11 @@ test.describe("Bookings", () => {
       const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
       const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
 
-      await expect
-        .poll(async () => {
-          return await bookingListItems.count();
-        })
-        .toBe(1);
+      await expect(
+        upcomingBookingsTable.locator('[data-testid="booking-item"]', { hasText: "Team 2 Booking" })
+      ).toBeHidden({ timeout: 10000 });
+
+      await expect(bookingListItems).toHaveCount(1);
     });
   });
 
@@ -798,8 +798,9 @@ test.describe("Bookings", () => {
 
       const bookingItem = page.locator(`[data-booking-uid="${bookingFixture.uid}"]`);
       await expect(bookingItem).toBeVisible();
-
-      await bookingItem.locator('[role="button"]').first().click();
+      const bookingButton = bookingItem.locator('[role="button"]').first();
+      await bookingButton.waitFor({ state: "visible" });
+      await bookingButton.click();
 
       await expect(page).toHaveURL(new RegExp(`[?&]uid=${bookingFixture.uid}(&|$)`));
     } finally {

@@ -54,6 +54,11 @@ vi.mock("@calcom/features/routing-trace/di/RoutingTraceService.container", () =>
   })),
 }));
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 const mockForm: {
   id: string;
   user: { id: number; name: string };

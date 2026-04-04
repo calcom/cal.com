@@ -20,7 +20,6 @@ vi.mock("@calcom/lib/logger", () => ({
     }),
   },
 }));
-
 describe("ProfileRepository.findByUpIdWithAuth - IDOR Security Fix", () => {
   let user1: { id: number; email: string; username: string };
   let user2: { id: number; email: string; username: string };

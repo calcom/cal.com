@@ -33,9 +33,10 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     });
   }
 
+  const { webhookId: _webhookId, ...inputWithoutWebhookId } = input;
   const webhookData: Prisma.WebhookCreateInput = {
     id: v4(),
-    ...input,
+    ...inputWithoutWebhookId,
   };
   if (input.platform && user.role !== "ADMIN") {
     throw new TRPCError({ code: "UNAUTHORIZED" });

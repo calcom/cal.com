@@ -1,13 +1,11 @@
-import { z } from "zod";
-
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
-import { isValidPermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import type { PermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
+import { isValidPermissionString } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
 import { prisma } from "@calcom/prisma";
-import { RoleType, MembershipRole } from "@calcom/prisma/enums";
-
+import { MembershipRole, RoleType } from "@calcom/prisma/enums";
+import { z } from "zod";
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 
@@ -129,6 +127,13 @@ export const permissionsRouter = router({
       }
 
       const roleService = new RoleService();
+
+      // Verify the role belongs to the specified team to prevent IDOR
+      const roleBelongsToTeam = await roleService.roleBelongsToTeam(input.roleId, input.teamId);
+      if (!roleBelongsToTeam) {
+        throw new Error("Role not found in this team");
+      }
+
       return roleService.update({
         roleId: input.roleId,
         permissions: input.permissions,
@@ -165,6 +170,13 @@ export const permissionsRouter = router({
       }
 
       const roleService = new RoleService();
+
+      // Verify the role belongs to the specified team to prevent IDOR
+      const roleBelongsToTeam = await roleService.roleBelongsToTeam(input.roleId, input.teamId);
+      if (!roleBelongsToTeam) {
+        throw new Error("Role not found in this team");
+      }
+
       await roleService.deleteRole(input.roleId);
       return { success: true };
     }),

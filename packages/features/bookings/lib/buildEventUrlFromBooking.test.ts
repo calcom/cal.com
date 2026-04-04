@@ -1,13 +1,15 @@
 import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
-
-import { describe, it, vi, expect, beforeEach } from "vitest";
-
 import { getBrand } from "@calcom/features/ee/organizations/lib/getBrand";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildEventUrlFromBooking } from "./buildEventUrlFromBooking";
 
 vi.mock("@calcom/features/ee/organizations/lib/getBrand", () => ({
   getBrand: vi.fn(),
+}));
+
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
 }));
 
 const WEBSITE_URL = "https://buildEventTest.example";

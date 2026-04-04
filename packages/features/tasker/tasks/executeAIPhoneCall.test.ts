@@ -1,6 +1,11 @@
 import { convertResponsesToVariableFormats } from "@calcom/features/tasker/tasks/executeAIPhoneCall";
 import { describe, expect, it } from "vitest";
 
+vi.mock("@calcom/prisma", () => ({
+  default: {},
+  prisma: {},
+}));
+
 describe("executeAIPhoneCall - convertResponsesToVariableFormats", () => {
   it("should generate both variable formats for identifiers with underscores", () => {
     const responses = {

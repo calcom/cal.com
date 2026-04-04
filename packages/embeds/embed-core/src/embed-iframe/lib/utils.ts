@@ -66,6 +66,10 @@ export function keepParentInformedAboutDimensionChanges({ embedStore }: { embedS
   let isInitialDimensionPass = true;
   let isWindowLoadComplete = false;
   runAsap(function informAboutScroll() {
+    // Can't inform parent about dimensions if document doesn't exist
+    if (typeof document === "undefined") {
+      return;
+    }
     if (document.readyState !== "complete") {
       // Wait for window to load to correctly calculate the initial scroll height.
       runAsap(informAboutScroll);
