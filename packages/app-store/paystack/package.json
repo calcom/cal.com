@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/paystack",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "scripts": {
+    "test": "TZ=UTC vitest run"
+  },
+  "dependencies": {
+    "@calcom/lib": "workspace:*",
+    "@paystack/inline-js": "^2.0.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@calcom/types": "workspace:*",
+    "@types/uuid": "^9.0.0"
+  },
+  "description": "Paystack payment integration for Cal.com"
+}

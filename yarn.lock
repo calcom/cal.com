@@ -2881,6 +2881,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/paystack@workspace:packages/app-store/paystack":
+  version: 0.0.0-use.local
+  resolution: "@calcom/paystack@workspace:packages/app-store/paystack"
+  dependencies:
+    "@calcom/lib": "workspace:*"
+    "@calcom/types": "workspace:*"
+    "@paystack/inline-js": "npm:^2.0.0"
+    "@types/uuid": "npm:^9.0.0"
+    uuid: "npm:^9.0.0"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/ping@workspace:packages/app-store/ping":
   version: 0.0.0-use.local
   resolution: "@calcom/ping@workspace:packages/app-store/ping"
@@ -10476,6 +10488,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@paystack/inline-js@npm:^2.0.0":
+  version: 2.22.8
+  resolution: "@paystack/inline-js@npm:2.22.8"
+  checksum: 10/925a9e1d5d90fcde4d8316493afef2c988d5d8f503bc5c439669aa345348cf383fa083c3e2c4f83ecad45d0bd943977e050464ce85042f06a2117da02fa13cdd
+  languageName: node
+  linkType: hard
+
 "@pkgjs/parseargs@npm:^0.11.0":
   version: 0.11.0
   resolution: "@pkgjs/parseargs@npm:0.11.0"
@@ -16468,7 +16487,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/uuid@npm:^9.0.1":
+"@types/uuid@npm:^9.0.0, @types/uuid@npm:^9.0.1":
   version: 9.0.8
   resolution: "@types/uuid@npm:9.0.8"
   checksum: 10/b8c60b7ba8250356b5088302583d1704a4e1a13558d143c549c408bf8920535602ffc12394ede77f8a8083511b023704bc66d1345792714002bfa261b17c5275

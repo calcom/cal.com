@@ -56,6 +56,13 @@ const BtcpayPaymentComponent = dynamic(
   }
 );
 
+const PaystackPaymentComponent = dynamic(
+  () => import("@calcom/app-store/paystack/components/PaystackPaymentComponent"),
+  {
+    ssr: false,
+  }
+);
+
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t, i18n } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
@@ -173,6 +180,18 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   )}
                   {props.payment.appId === "btcpayserver" && !props.payment.success && (
                     <BtcpayPaymentComponent payment={props.payment} paymentPageProps={props} />
+                  )}
+                  {props.payment.appId === "paystack" && !props.payment.success && (
+                    <PaystackPaymentComponent
+                      payment={props.payment}
+                      clientId={
+                        (props.payment.data as unknown as { publicKey: string }).publicKey ?? ""
+                      }
+                      bookingUid={props.booking.uid}
+                      bookingTitle={eventName}
+                      amount={props.payment.amount}
+                      currency={props.payment.currency}
+                    />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>

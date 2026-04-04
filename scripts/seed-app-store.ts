@@ -235,6 +235,9 @@ export default async function main() {
     });
   }
 
+  // Paystack doesn't require env vars at seed time — keys are entered via Setup UI
+  await createApp("paystack", "paystack", ["payment"], "paystack_payment");
+
   if (process.env.CLOSECOM_CLIENT_ID && process.env.CLOSECOM_CLIENT_SECRET) {
     await createApp("closecom", "closecom", ["crm"], "closecom_crm", {
       client_id: process.env.CLOSECOM_CLIENT_ID,
