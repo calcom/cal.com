@@ -2,10 +2,12 @@ import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils"
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails/email-manager";
 import type { Actor } from "@calcom/features/booking-audit/lib/dto/types";
-import type { ActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
+import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
 import type { EventManagerUser } from "@calcom/features/bookings/lib/EventManager";
 import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
+import { getFeaturesRepository } from "@calcom/features/di/containers/FeaturesRepository";
+import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import {
@@ -33,29 +35,32 @@ import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import { v4 as uuidv4 } from "uuid";
-
 import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
-import type { ISimpleLogger } from "@calcom/features/di/shared/services/logger.service";
 
 async function fireBookingAcceptedEvent({
   actor,
   organizationId,
   actionSource,
   acceptedBookings,
+  isBookingAuditEnabled,
   tracingLogger,
+  impersonatedByUserUuid,
 }: {
   actor: Actor;
   organizationId: number | null;
-  actionSource: ActionSource;
+  actionSource: ValidActionSource;
   acceptedBookings: {
     uid: string;
     oldStatus: BookingStatus;
   }[];
+  isBookingAuditEnabled: boolean;
   tracingLogger: ISimpleLogger;
+  impersonatedByUserUuid: string | null;
 }) {
   try {
     const bookingEventHandlerService = getBookingEventHandlerService();
+    const context = impersonatedByUserUuid ? { impersonatedBy: impersonatedByUserUuid } : undefined;
     if (acceptedBookings.length > 1) {
       const operationId = uuidv4();
       await bookingEventHandlerService.onBulkBookingsAccepted({
@@ -69,6 +74,8 @@ async function fireBookingAcceptedEvent({
         organizationId,
         operationId,
         source: actionSource,
+        context,
+        isBookingAuditEnabled,
       });
     } else if (acceptedBookings.length === 1) {
       const acceptedBooking = acceptedBookings[0];
@@ -80,6 +87,8 @@ async function fireBookingAcceptedEvent({
           status: { old: acceptedBooking.oldStatus, new: BookingStatus.ACCEPTED },
         },
         source: actionSource,
+        context,
+        isBookingAuditEnabled,
       });
     }
   } catch (error) {
@@ -129,8 +138,9 @@ export async function handleConfirmation(args: {
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
   traceContext: TraceContext;
-  actionSource: ActionSource;
+  actionSource: ValidActionSource;
   actor: Actor;
+  impersonatedByUserUuid: string | null;
 }) {
   const {
     user,
@@ -145,6 +155,7 @@ export async function handleConfirmation(args: {
     traceContext,
     actionSource,
     actor,
+    impersonatedByUserUuid,
   } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
@@ -410,6 +421,11 @@ export async function handleConfirmation(args: {
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
+  const featuresRepository = getFeaturesRepository();
+  const isBookingAuditEnabled = orgId
+    ? await featuresRepository.checkIfTeamHasFeature(orgId, "booking-audit")
+    : false;
+
   const bookerUrl = await getBookerBaseUrl(orgId ?? null);
 
   await fireBookingAcceptedEvent({
@@ -417,7 +433,9 @@ export async function handleConfirmation(args: {
     acceptedBookings,
     organizationId: orgId ?? null,
     actionSource,
+    isBookingAuditEnabled,
     tracingLogger,
+    impersonatedByUserUuid,
   });
 
   //Workflows - set reminders for confirmed events
@@ -445,7 +463,7 @@ export async function handleConfirmation(args: {
           evt: evtOfBooking,
           workflows,
           requiresConfirmation: false,
-          hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+          hideBranding: evtOfBooking.hideBranding ?? false,
           seatReferenceUid: evt.attendeeSeatId,
           isPlatformNoEmail: !emailsEnabled && Boolean(platformClientParams?.platformClientId),
           traceContext: spanContext,
@@ -458,7 +476,7 @@ export async function handleConfirmation(args: {
         workflows,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
-        hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+        hideBranding: evtOfBooking.hideBranding,
         isConfirmedByDefault: true,
         isNormalBookingOrFirstRecurringSlot: isFirstBooking,
         isRescheduleEvent: false,
@@ -559,14 +577,15 @@ export async function handleConfirmation(args: {
       length: eventType?.length,
     };
 
+    const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
     const payload: EventPayloadType = {
-      ...evt,
+      ...evtWithoutAssignmentReason,
       ...eventTypeInfo,
       bookingId,
       eventTypeId: eventType?.id,
       status: "ACCEPTED",
       smsReminderNumber: booking.smsReminderNumber || undefined,
-      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
+      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : {},
       ...(platformClientParams ? platformClientParams : {}),
     };
 

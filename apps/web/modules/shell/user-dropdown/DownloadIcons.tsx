@@ -602,12 +602,7 @@ export function LinuxIcon({ className }: { className?: string }) {
           strokeWidth="0.3"
           strokeLinecap="round"
         />
-        <path
-          d="M8.5 9.5C8.5 9.5 9 9.8 9.5 9.5"
-          stroke="#020204"
-          strokeWidth="0.2"
-          strokeLinecap="round"
-        />
+        <path d="M8.5 9.5C8.5 9.5 9 9.8 9.5 9.5" stroke="#020204" strokeWidth="0.2" strokeLinecap="round" />
         <path
           d="M10.5 9.5C10.5 9.5 11 9.8 11.5 9.5"
           stroke="#020204"

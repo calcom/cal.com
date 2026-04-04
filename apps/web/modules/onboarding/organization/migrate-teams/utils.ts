@@ -12,4 +12,3 @@ export const getSuggestedSlug = ({
 
   return teamSlug.replace(`${orgSlug}-`, "").replace(`-${orgSlug}`, "");
 };
-

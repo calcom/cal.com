@@ -1,50 +1,50 @@
 import { z } from "zod";
 
 const UserActorSchema = z.object({
-    identifiedBy: z.literal("user"),
-    userUuid: z.string(),
+  identifiedBy: z.literal("user"),
+  userUuid: z.string(),
 });
 
 const AttendeeActorSchema = z.object({
-    identifiedBy: z.literal("attendee"),
-    attendeeId: z.number(),
+  identifiedBy: z.literal("attendee"),
+  attendeeId: z.number(),
 });
 
 const ActorByIdSchema = z.object({
-    identifiedBy: z.literal("id"),
-    id: z.string(),
+  identifiedBy: z.literal("id"),
+  id: z.string(),
 });
 
 const GuestActorSchema = z.object({
-    identifiedBy: z.literal("guest"),
-    email: z.string(),
-    name: z.string().nullable(),
+  identifiedBy: z.literal("guest"),
+  email: z.string(),
+  name: z.string().nullable(),
 });
 
 const AppActorByCredentialIdSchema = z.object({
-    identifiedBy: z.literal("app"),
-    credentialId: z.number(),
+  identifiedBy: z.literal("app"),
+  credentialId: z.number(),
 });
 
 const AppActorBySlugSchema = z.object({
-    identifiedBy: z.literal("appSlug"),
-    appSlug: z.string(),
-    name: z.string(),
+  identifiedBy: z.literal("appSlug"),
+  appSlug: z.string(),
+  name: z.string(),
 });
 
 export const ActorSchema = z.discriminatedUnion("identifiedBy", [
-    ActorByIdSchema,
-    UserActorSchema,
-    AttendeeActorSchema,
-    GuestActorSchema,
-    AppActorByCredentialIdSchema,
-    AppActorBySlugSchema,
+  ActorByIdSchema,
+  UserActorSchema,
+  AttendeeActorSchema,
+  GuestActorSchema,
+  AppActorByCredentialIdSchema,
+  AppActorBySlugSchema,
 ]);
 
 export const PiiFreeActorSchema = z.discriminatedUnion("identifiedBy", [
-    ActorByIdSchema,
-    UserActorSchema,
-    AttendeeActorSchema,
+  ActorByIdSchema,
+  UserActorSchema,
+  AttendeeActorSchema,
 ]);
 
 export type Actor = z.infer<typeof ActorSchema>;
@@ -63,8 +63,7 @@ export type AppActorBySlug = z.infer<typeof AppActorBySlugSchema>;
  * This is separate from action-specific data because impersonation is orthogonal to the action type
  */
 export const BookingAuditContextSchema = z.object({
-    impersonatedBy: z.string().optional(),
+  impersonatedBy: z.string().optional(),
 });
 
 export type BookingAuditContext = z.infer<typeof BookingAuditContextSchema>;
-

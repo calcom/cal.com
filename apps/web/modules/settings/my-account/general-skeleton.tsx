@@ -1,6 +1,6 @@
 "use client";
 
-import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Skeleton } from "@coss/ui/components/skeleton";
 

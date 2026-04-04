@@ -24,6 +24,7 @@ const _findBookingQuery = async (bookingId: number) => {
           email: true,
           timeZone: true,
           username: true,
+          isPlatformManaged: true,
         },
       },
       eventType: {

@@ -30,6 +30,8 @@ export const useIntercom = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const { data } = trpc.viewer.me.get.useQuery();
   const { data: statsData } = trpc.viewer.me.myStats.useQuery(undefined, {
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
     trpc: {
       context: {
         skipBatch: true,
@@ -151,6 +153,8 @@ export const useBootIntercom = () => {
   const { data: user } = trpc.viewer.me.get.useQuery();
   const isTieredSupportEnabled = flagMap["tiered-support-chat"];
   const { data: statsData } = trpc.viewer.me.myStats.useQuery(undefined, {
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
     trpc: {
       context: {
         skipBatch: true,

@@ -9,7 +9,7 @@ import { Button } from "@calcom/ui/components/button";
 import { DialogContent, DialogFooter, DialogHeader, DialogClose } from "@calcom/ui/components/dialog";
 import { Input } from "@calcom/ui/components/form";
 import { Label } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
+import { InfoIcon } from "@coss/ui/icons";
 
 export const VerifyCodeDialog = ({
   isOpenDialog,
@@ -82,7 +82,8 @@ export const VerifyCodeDialog = ({
 
   useEffect(() => setValue(""), [isOpenDialog]);
 
-  const digitClassName = "h-12 w-12 text-xl! text-center";
+  const digitClassName =
+    "h-12 w-12 text-center text-xl! text-emphasis caret-emphasis [-webkit-text-fill-color:currentColor]";
 
   return (
     <Dialog
@@ -113,7 +114,7 @@ export const VerifyCodeDialog = ({
             {error && (
               <div className="mt-2 flex items-center gap-x-2 text-sm text-red-700">
                 <div>
-                  <Icon name="info" className="h-3 w-3" />
+                  <InfoIcon className="h-3 w-3" />
                 </div>
                 <p>{error}</p>
               </div>

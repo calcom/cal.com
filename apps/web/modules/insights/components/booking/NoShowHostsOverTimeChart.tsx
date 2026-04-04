@@ -67,7 +67,11 @@ export const NoShowHostsOverTimeChart = () => {
   });
 
   return (
-    <ChartCard title={t("no_show_hosts_over_time")} className="h-full" isPending={isPending} isError={isError}>
+    <ChartCard
+      title={t("no_show_hosts_over_time")}
+      className="h-full"
+      isPending={isPending}
+      isError={isError}>
       {isSuccess ? (
         <div className="linechart ml-4 mt-4 h-80 sm:ml-0">
           <ResponsiveContainer width="100%" height="100%">

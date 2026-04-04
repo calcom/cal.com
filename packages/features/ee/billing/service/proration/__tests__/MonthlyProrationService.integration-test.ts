@@ -1,19 +1,32 @@
+import { createMemberships } from "@calcom/features/ee/teams/lib/inviteMemberUtils";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import type { IFeaturesRepository } from "@calcom/features/flags/features.repository.interface";
 import prisma from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { createMemberships } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { buildMonthlyProrationMetadata } from "../../../lib/proration-utils";
 import type { IBillingProviderService } from "../../billingProvider/IBillingProviderService";
 import { SeatChangeTrackingService } from "../../seatTracking/SeatChangeTrackingService";
 import { MonthlyProrationService } from "../MonthlyProrationService";
 
+function getTestDates() {
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth(); // 0-indexed
+
+  const monthKey = `${year}-${String(month + 1).padStart(2, "0")}`;
+
+  const subscriptionStart = new Date(Date.UTC(year, month - 6, 1, 0, 0, 0));
+  const subscriptionEnd = new Date(Date.UTC(year, month + 6, 1, 0, 0, 0));
+  const subscriptionTrialEnd = new Date(Date.UTC(year, month - 6, 8, 0, 0, 0));
+
+  return { monthKey, subscriptionStart, subscriptionEnd, subscriptionTrialEnd };
+}
+
 const mockBillingService: IBillingProviderService = {
-  createInvoiceItem: vi
-    .fn()
-    .mockResolvedValue({ invoiceItemId: "ii_test_123" }),
+  createInvoiceItem: vi.fn().mockResolvedValue({ invoiceItemId: "ii_test_123" }),
   deleteInvoiceItem: vi.fn().mockResolvedValue(undefined),
   createInvoice: vi.fn().mockResolvedValue({ invoiceId: "in_test_123" }),
   finalizeInvoice: vi.fn().mockResolvedValue({ invoiceUrl: "https://invoice.stripe.com/test" }),
@@ -37,18 +50,12 @@ const mockBillingService: IBillingProviderService = {
   handleSubscriptionCancel: vi.fn().mockResolvedValue(undefined),
   handleSubscriptionCreation: vi.fn().mockResolvedValue(undefined),
   handleEndTrial: vi.fn().mockResolvedValue(undefined),
-  createCustomer: vi
-    .fn()
-    .mockResolvedValue({ stripeCustomerId: "cus_test_123" }),
-  createPaymentIntent: vi
-    .fn()
-    .mockResolvedValue({ id: "pi_test_123", client_secret: "secret_123" }),
-  createSubscriptionCheckout: vi
-    .fn()
-    .mockResolvedValue({
-      checkoutUrl: "https://checkout.test",
-      sessionId: "cs_test_123",
-    }),
+  createCustomer: vi.fn().mockResolvedValue({ stripeCustomerId: "cus_test_123" }),
+  createPaymentIntent: vi.fn().mockResolvedValue({ id: "pi_test_123", client_secret: "secret_123" }),
+  createSubscriptionCheckout: vi.fn().mockResolvedValue({
+    checkoutUrl: "https://checkout.test",
+    sessionId: "cs_test_123",
+  }),
   createPrice: vi.fn().mockResolvedValue({ priceId: "price_test_123" }),
   getPrice: vi.fn().mockResolvedValue(null),
   getSubscriptionStatus: vi.fn().mockResolvedValue(null),
@@ -58,7 +65,9 @@ const mockBillingService: IBillingProviderService = {
   updateCustomer: vi.fn().mockResolvedValue(undefined),
   getPaymentIntentFailureReason: vi.fn().mockResolvedValue(null),
   hasDefaultPaymentMethod: vi.fn().mockResolvedValue(true),
-} as IBillingProviderService;
+  voidInvoice: vi.fn().mockResolvedValue(undefined),
+  createSubscriptionUsageRecord: vi.fn().mockResolvedValue(undefined),
+} satisfies IBillingProviderService;
 
 const mockFeaturesRepository: IFeaturesRepository = {
   checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(true),
@@ -88,7 +97,8 @@ describe("MonthlyProrationService Integration Tests", () => {
   let testUser: User;
   let testTeam: Team;
   let billingCustomerId: string;
-  const monthKey = "2026-01";
+  const testDates = getTestDates();
+  const monthKey = testDates.monthKey;
 
   beforeEach(async () => {
     const timestamp = Date.now();
@@ -119,10 +129,6 @@ describe("MonthlyProrationService Integration Tests", () => {
       },
     });
 
-    const subscriptionStart = new Date("2025-06-01T00:00:00Z");
-    const subscriptionEnd = new Date("2026-06-01T00:00:00Z");
-    const subscriptionTrialEnd = new Date("2025-06-08T00:00:00Z");
-
     billingCustomerId = `cus_test_${timestamp}`;
 
     await prisma.teamBilling.create({
@@ -134,9 +140,9 @@ describe("MonthlyProrationService Integration Tests", () => {
         billingPeriod: "ANNUALLY",
         pricePerSeat: 12000,
         paidSeats: 0,
-        subscriptionStart,
-        subscriptionEnd,
-        subscriptionTrialEnd,
+        subscriptionStart: testDates.subscriptionStart,
+        subscriptionEnd: testDates.subscriptionEnd,
+        subscriptionTrialEnd: testDates.subscriptionTrialEnd,
         status: "ACTIVE",
         planName: "TEAM",
       },
@@ -144,10 +150,7 @@ describe("MonthlyProrationService Integration Tests", () => {
   });
 
   it("should process end-to-end proration for annual team with seat additions", async () => {
-    const prorationService = new MonthlyProrationService(
-      undefined,
-      mockBillingService
-    );
+    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
     const timestamp = Date.now();
     const randomSuffix = Math.random().toString(36).substring(7);
 
@@ -217,23 +220,19 @@ describe("MonthlyProrationService Integration Tests", () => {
     });
 
     expect(seatChanges).toHaveLength(2);
-    expect(
-      seatChanges.every((sc) => sc.processedInProrationId === proration?.id)
-    ).toBe(true);
+    expect(seatChanges.every((sc) => sc.processedInProrationId === proration?.id)).toBe(true);
   });
 
   it("should create a $0 proration for team with no net change", async () => {
     const seatTracker = new SeatChangeTrackingService();
-    const prorationService = new MonthlyProrationService(
-      undefined,
-      mockBillingService
-    );
+    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
 
     await seatTracker.logSeatAddition({
       teamId: testTeam.id,
       userId: testUser.id,
       triggeredBy: testUser.id,
       seatCount: 2,
+      monthKey,
     });
 
     await seatTracker.logSeatRemoval({
@@ -241,6 +240,7 @@ describe("MonthlyProrationService Integration Tests", () => {
       userId: testUser.id,
       triggeredBy: testUser.id,
       seatCount: 2,
+      monthKey,
     });
 
     const proration = await prorationService.createProrationForTeam({
@@ -293,9 +293,9 @@ describe("MonthlyProrationService Integration Tests", () => {
         billingPeriod: "ANNUALLY",
         pricePerSeat: 10000,
         paidSeats: 0,
-        subscriptionStart: new Date("2025-06-01T00:00:00Z"),
-        subscriptionEnd: new Date("2026-06-01T00:00:00Z"),
-        subscriptionTrialEnd: new Date("2025-06-08T00:00:00Z"),
+        subscriptionStart: testDates.subscriptionStart,
+        subscriptionEnd: testDates.subscriptionEnd,
+        subscriptionTrialEnd: testDates.subscriptionTrialEnd,
         status: "ACTIVE",
         planName: "TEAM",
       },
@@ -308,6 +308,7 @@ describe("MonthlyProrationService Integration Tests", () => {
       userId: testUser.id,
       triggeredBy: testUser.id,
       seatCount: 2,
+      monthKey,
     });
 
     await seatTracker.logSeatAddition({
@@ -315,6 +316,7 @@ describe("MonthlyProrationService Integration Tests", () => {
       userId: testUser.id,
       triggeredBy: testUser.id,
       seatCount: 3,
+      monthKey,
     });
 
     const prorationService = new MonthlyProrationService({
@@ -326,27 +328,21 @@ describe("MonthlyProrationService Integration Tests", () => {
       monthKey,
     });
 
-    const filteredResults = results.filter((r) =>
-      [testTeam.id, testTeam2.id].includes(r.teamId)
-    );
+    const filteredResults = results.filter((r) => [testTeam.id, testTeam2.id].includes(r.teamId));
     expect(filteredResults).toHaveLength(2);
-    expect(filteredResults.every((r) => r.status === "INVOICE_CREATED")).toBe(
-      true
-    );
+    expect(filteredResults.every((r) => r.status === "INVOICE_CREATED")).toBe(true);
   });
 
   it("should handle payment success callback", async () => {
     const seatTracker = new SeatChangeTrackingService();
-    const prorationService = new MonthlyProrationService(
-      undefined,
-      mockBillingService
-    );
+    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
 
     await seatTracker.logSeatAddition({
       teamId: testTeam.id,
       userId: testUser.id,
       triggeredBy: testUser.id,
       seatCount: 2,
+      monthKey,
     });
 
     const proration = await prorationService.createProrationForTeam({
@@ -368,16 +364,14 @@ describe("MonthlyProrationService Integration Tests", () => {
 
   it("should handle payment failure callback", async () => {
     const seatTracker = new SeatChangeTrackingService();
-    const prorationService = new MonthlyProrationService(
-      undefined,
-      mockBillingService
-    );
+    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
 
     await seatTracker.logSeatAddition({
       teamId: testTeam.id,
       userId: testUser.id,
       triggeredBy: testUser.id,
       seatCount: 2,
+      monthKey,
     });
 
     const proration = await prorationService.createProrationForTeam({
@@ -402,10 +396,7 @@ describe("MonthlyProrationService Integration Tests", () => {
 
   it("should call handleSubscriptionUpdate when updating subscription quantity", async () => {
     const seatTracker = new SeatChangeTrackingService();
-    const prorationService = new MonthlyProrationService(
-      undefined,
-      mockBillingService
-    );
+    const prorationService = new MonthlyProrationService(undefined, mockBillingService);
 
     // Reset the mock to track calls
     vi.mocked(mockBillingService.handleSubscriptionUpdate).mockClear();
@@ -415,6 +406,7 @@ describe("MonthlyProrationService Integration Tests", () => {
       userId: testUser.id,
       triggeredBy: testUser.id,
       seatCount: 2,
+      monthKey,
     });
 
     const proration = await prorationService.createProrationForTeam({
@@ -439,20 +431,16 @@ describe("MonthlyProrationService Integration Tests", () => {
     const seatTracker = new SeatChangeTrackingService();
     const failingBillingService = {
       ...mockBillingService,
-      handleSubscriptionUpdate: vi
-        .fn()
-        .mockRejectedValue(new Error("Subscription not found")),
+      handleSubscriptionUpdate: vi.fn().mockRejectedValue(new Error("Subscription not found")),
     };
-    const prorationService = new MonthlyProrationService(
-      undefined,
-      failingBillingService
-    );
+    const prorationService = new MonthlyProrationService(undefined, failingBillingService);
 
     await seatTracker.logSeatAddition({
       teamId: testTeam.id,
       userId: testUser.id,
       triggeredBy: testUser.id,
       seatCount: 2,
+      monthKey,
     });
 
     const proration = await prorationService.createProrationForTeam({
@@ -461,8 +449,8 @@ describe("MonthlyProrationService Integration Tests", () => {
     });
 
     // Should throw when trying to update subscription
-    await expect(
-      prorationService.handleProrationPaymentSuccess(proration!.id)
-    ).rejects.toThrow("Subscription not found");
+    await expect(prorationService.handleProrationPaymentSuccess(proration!.id)).rejects.toThrow(
+      "Subscription not found"
+    );
   });
 });

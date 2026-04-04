@@ -13,9 +13,8 @@ type MeOptions = {
 export const platformMeHandler = async ({ ctx }: MeOptions) => {
   const { user: sessionUser } = ctx;
 
-  const allUserEnrichedProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(
-    sessionUser
-  );
+  const allUserEnrichedProfiles =
+    await ProfileRepository.findAllProfilesForUserIncludingMovedUser(sessionUser);
 
   const mainProfile =
     allUserEnrichedProfiles.find((profile) => sessionUser.movedToProfileId === profile.id) ||

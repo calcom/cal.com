@@ -1,9 +1,9 @@
 "use client";
 
+import { ChevronDownIcon } from "@coss/ui/icons";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import type { ReactNode } from "react";
 import { forwardRef } from "react";
-
 import { Icon } from "../icon";
 import type { ButtonBaseProps, ButtonProps } from "./Button";
 import { Button, buttonClasses } from "./Button";
@@ -51,7 +51,7 @@ export const SplitButton = forwardRef<HTMLButtonElement, SplitButtonProps>(funct
               size: mainButtonProps.size,
               className: "rounded-l-none px-2",
             })}>
-            <Icon name="chevron-down" className="h-4 w-4" />
+            <ChevronDownIcon className="h-4 w-4" />
           </button>
         </DropdownMenuPrimitive.Trigger>
 

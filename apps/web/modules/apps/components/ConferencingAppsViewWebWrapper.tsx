@@ -1,27 +1,26 @@
 "use client";
 
-import { useReducer } from "react";
-
-import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import { AppList } from "@calcom/features/apps/components/AppList";
+import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { EmptyScreen } from "@calcom/ui/components/empty-screen";
-import { SkeletonText, SkeletonContainer } from "@calcom/ui/components/skeleton";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
+import AppListCardWebWrapper from "@calcom/web/modules/apps/components/AppListCardWebWrapper";
+import { useReducer } from "react";
 
-import { AppList } from "./AppList";
-import DisconnectIntegrationModal from "./DisconnectIntegrationModal";
-
-type UpdateUsersDefaultConferencingAppParams = {
+export type UpdateUsersDefaultConferencingAppParams = {
   appSlug: string;
   appLink?: string;
   onSuccessCallback: () => void;
   onErrorCallback: () => void;
 };
 
-type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
+export type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
 type RemoveAppParams = { credentialId: number; teamId?: number; callback: () => void };
 
 export const SkeletonLoader = () => {
@@ -142,6 +141,7 @@ export const InstalledConferencingApps = ({
       isEventTypesFetching={false}
       handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
       handleBulkEditDialogToggle={handleBulkEditDialogToggle}
+      AppListCardComponent={AppListCardWebWrapper}
     />
   );
 };

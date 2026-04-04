@@ -131,8 +131,8 @@ export class FilterSegmentRepository implements IFilterSegmentRepository {
     const preferredSegmentId = preference?.segmentId
       ? { id: preference.segmentId, type: "user" as const }
       : preference?.systemSegmentId
-      ? { id: preference.systemSegmentId, type: "system" as const }
-      : null;
+        ? { id: preference.systemSegmentId, type: "system" as const }
+        : null;
 
     return {
       segments: parsedSegments,

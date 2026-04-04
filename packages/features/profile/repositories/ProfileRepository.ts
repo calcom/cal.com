@@ -4,7 +4,7 @@ import { getParsedTeam } from "@calcom/features/ee/teams/lib/getParsedTeam";
 import { DATABASE_CHUNK_SIZE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { IProfileRepository } from "@calcom/lib/server/repository/dto/IProfileRepository";
+import type { IProfileRepository } from "./IProfileRepository";
 import prisma from "@calcom/prisma";
 import type { Prisma, PrismaClient, User as PrismaUser, Team } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";

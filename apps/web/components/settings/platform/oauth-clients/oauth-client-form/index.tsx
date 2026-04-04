@@ -5,8 +5,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { Button } from "@calcom/ui/components/button";
 import { Label, TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import { InfoIcon } from "@coss/ui/icons";
 
 type OAuthClientFormProps = {
   defaultValues?: Partial<FormValues>;
@@ -227,7 +227,7 @@ export const OAuthClientForm = ({
               className="max-w-[400px] whitespace-normal"
               content="If enabled and the managed user has calendar connected, an event in the calendar will be created. By default true. Disable it if you want to create events in the calendar manually.">
               <div className="ml-1">
-                <Icon name="info" className="h-4 w-4 text-gray-500" aria-hidden="true" />
+                <InfoIcon className="h-4 w-4 text-gray-500" />
               </div>
             </Tooltip>
           </div>
@@ -252,7 +252,7 @@ export const OAuthClientForm = ({
               className="max-w-[400px] whitespace-normal"
               content="If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user.">
               <div className="ml-1">
-                <Icon name="info" className="h-4 w-4 text-gray-500" aria-hidden="true" />
+                <InfoIcon className="h-4 w-4 text-gray-500" />
               </div>
             </Tooltip>
           </div>

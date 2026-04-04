@@ -1,10 +1,9 @@
 "use client";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { UploadIcon } from "@coss/ui/icons";
 import { useCallback, useState } from "react";
 import { z } from "zod";
-
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 import { Button } from "../button";
 import { Input, Label } from "../form";
 import { Icon } from "../icon";
@@ -67,7 +66,7 @@ export const formatFileSize = (bytes: number): string => {
   const k = 1024;
   const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 };
 
 export default function FileUploader({
@@ -206,7 +205,7 @@ export default function FileUploader({
             className={`mb-0 inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
               disabled ? "cursor-not-allowed opacity-50" : ""
             }`}>
-            <Icon name="upload" className="h-4 w-4" />
+            <UploadIcon className="h-4 w-4" />
             {buttonText}
           </Label>
           <div className="flex items-center">

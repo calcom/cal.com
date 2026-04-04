@@ -1,0 +1,44 @@
+---
+title: "Troubleshooter"
+---
+
+The Troubleshooter atom helps users debug their availability and scheduling issues. It displays a sidebar where users can select an event type, view their schedule, and toggle connected calendars alongside a large calendar view that visually shows the resulting availability. Essentially, it lets users diagnose why certain time slots may or may not appear as available.
+
+Below code snippet can be used to render the Troubleshooter atom
+
+```js
+import { TroubleShooter } from "@calcom/atoms";
+
+export default function TroubleShooterAtom() {
+  return (
+    <>
+      <TroubleShooter />
+    </>
+  );
+}
+```
+
+For a demonstration of the Troubleshooter atom, please refer to the video below.
+
+<p></p>
+
+    <iframe
+      style={{ width: "100%", maxWidth: "560px" }}
+      height="315"
+      src="https://www.loom.com/embed/2646075c4ec543399f2acf6b035af9ce"
+      frameborder="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen="true"
+    ></iframe>
+
+<p></p>
+
+
+We offer some customizations to the Troubleshooter atom via props. Below is a list of props that can be passed to the Troubleshooter atom.
+
+<p></p>
+
+| Name                  | Required | Description                                                              |
+| :-------------------- | :------- | :----------------------------------------------------------------------- |
+| onManageCalendarsClick             | No       | Callback triggered when the "Manage Calendars" button is clicked (shown when calendars are connected) |
+| onInstallCalendarClick             | No       | Callback triggered when the "Install Calendar" button is clicked (shown when no calendars are connected) |

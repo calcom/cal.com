@@ -1,21 +1,19 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-import { unstable_cache } from "next/cache";
-import { cookies, headers } from "next/headers";
-import { notFound } from "next/navigation";
-
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamWithMembers } from "@calcom/features/ee/teams/lib/queries";
 import type { AppFlags } from "@calcom/features/flags/config";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
-import { Resource, CrudAction, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
+import { CrudAction, Resource, Scope } from "@calcom/features/pbac/domain/types/permission-registry";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import { RoleService } from "@calcom/features/pbac/services/role.service";
-import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { prisma } from "@calcom/prisma";
-
+import { FullscreenUpgradeBannerForRolesAndPermissions } from "@calcom/web/modules/billing/upgrade-banners/FullscreenUpgradeBannerForRolesAndPermissions";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-
+import { _generateMetadata, getTranslate } from "app/_utils";
+import { unstable_cache } from "next/cache";
+import { cookies, headers } from "next/headers";
+import { notFound } from "next/navigation";
 import { CreateRoleCTA } from "../../../organizations/roles/_components/CreateRoleCta";
 import { RolesList } from "../../../organizations/roles/_components/RolesList";
 import { roleSearchParamsCache } from "../../../organizations/roles/_components/searchParams";
@@ -110,9 +108,9 @@ const Page = async ({
     return notFound();
   }
 
-  // Check if team has a parent (is a sub-team)
+  // Standalone teams (not in an org): show upgrade banner
   if (!team.parent?.id) {
-    return notFound();
+    return <FullscreenUpgradeBannerForRolesAndPermissions />;
   }
 
   // Check if parent team has PBAC feature enabled

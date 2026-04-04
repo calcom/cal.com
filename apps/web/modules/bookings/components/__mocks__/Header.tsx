@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-// Mock layout components
-vi.mock("../Header", () => ({
+
+vi.mock("@calcom/features/bookings/components/Header", () => ({
   Header: ({ children }: { children: React.ReactNode }) => <div data-testid="header">{children}</div>,
 }));

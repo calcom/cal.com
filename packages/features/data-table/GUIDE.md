@@ -101,13 +101,17 @@ DataTableProvider (Context)
 ### Basic Setup
 
 ```tsx
-import {
-  DataTableProvider,
-  DataTableWrapper,
-  DataTableFilters,
-  useDataTable,
-  ColumnFilterType,
-} from "@calcom/features/data-table";
+// Types and utilities stay in @calcom/features/data-table
+import { ColumnFilterType } from "@calcom/features/data-table";
+
+// Hooks, contexts, and providers are in apps/web/modules/data-table
+// (use ~/data-table/... imports within apps/web)
+import { DataTableProvider } from "~/data-table/DataTableProvider";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+
+// UI components are in apps/web/modules/data-table/components
+import { DataTableWrapper } from "~/data-table/components/DataTableWrapper";
+import { DataTableFilters } from "~/data-table/components/filters";
 
 // 1. Define your data type
 type User = {
@@ -586,7 +590,7 @@ const table = useReactTable({
 
 **Custom Faceted Values Hook Example:**
 
-From `apps/web/modules/bookings/hooks/useFacetedUniqueValues.ts`:
+From `apps/web/modules/bookings/hooks/useFacetedUniqueValues.ts` (hooks live in `apps/web/modules/`):
 
 ```tsx
 export function useFacetedUniqueValues() {
@@ -625,7 +629,7 @@ export function useFacetedUniqueValues() {
 **Usage in Table Configuration:**
 
 ```tsx
-// From packages/features/users/components/UserTable/UserListTable.tsx
+// From apps/web/modules/users/components/UserTable/UserListTable.tsx
 const table = useReactTable({
   // ... other options
   getFacetedUniqueValues: (_, columnId) => () => {
@@ -848,6 +852,10 @@ The DataTable system is designed for **server-side filtering, sorting, and pagin
 #### Basic Server-Side Pattern
 
 ```tsx
+// Hooks are imported from ~/data-table/hooks/ within apps/web
+import { useDataTable } from "~/data-table/hooks/useDataTable";
+import { useColumnFilters } from "~/data-table/hooks/useColumnFilters";
+
 // Get current table state for API calls
 const { limit, offset, sorting } = useDataTable();
 const columnFilters = useColumnFilters();
@@ -951,7 +959,7 @@ async getFilterConditions(): Promise<Prisma.Sql | null> {
 For complex cases where you need to manipulate filter data before sending to the backend, extract the logic into a separate hook:
 
 ```tsx
-// packages/features/insights/hooks/useInsightsRoutingParameters.ts
+// apps/web/modules/insights/hooks/useInsightsRoutingParameters.ts
 export function useInsightsRoutingParameters() {
   const { scope, selectedTeamId } = useInsightsOrgTeams();
 
@@ -982,10 +990,10 @@ export function useInsightsRoutingParameters() {
 
 #### Key Hooks for Server-Side Integration
 
-- **`useColumnFilters()`** - Get applied filters for backend requests
-- **`useDataTable()`** - Get `limit`, `offset`, `sorting` for pagination
-- **`useFilterValue(columnId, schema)`** - Get specific filter value with validation
-- **Custom parameter hooks** - Extract complex manipulation logic
+- **`useColumnFilters()`** - Get applied filters for backend requests (import from `~/data-table/hooks/useColumnFilters`)
+- **`useDataTable()`** - Get `limit`, `offset`, `sorting` for pagination (import from `~/data-table/hooks/useDataTable`)
+- **`useFilterValue(columnId, schema)`** - Get specific filter value with validation (import from `~/data-table/hooks/useFilterValue`)
+- **Custom parameter hooks** - Extract complex manipulation logic (place in `apps/web/modules/`)
 
 #### Server Utility Functions
 
@@ -1072,7 +1080,7 @@ const { ctaContainerRef } = useDataTable();
 
 ### Example 1: User Management Table
 
-From `packages/features/users/components/UserTable/UserListTable.tsx`:
+From `apps/web/modules/users/components/UserTable/UserListTable.tsx`:
 
 ```tsx
 <DataTableWrapper<UserTableUser>
@@ -1110,7 +1118,7 @@ From `packages/features/users/components/UserTable/UserListTable.tsx`:
 
 ### Example 2: Bookings List
 
-From `apps/web/modules/bookings/components/BookingsList.tsx`:
+From `apps/web/modules/bookings/components/BookingsList.tsx` (hooks/providers imported from `~/data-table/`):
 
 ```tsx
 <DataTableWrapper
@@ -1145,7 +1153,7 @@ From `apps/web/modules/bookings/components/BookingsList.tsx`:
 
 ### Example 3: Team Member List with Infinite Scroll
 
-From `packages/features/ee/teams/components/MemberList.tsx`:
+From `apps/web/modules/ee/teams/components/MemberList.tsx`:
 
 ```tsx
 <DataTableWrapper
@@ -1417,4 +1425,8 @@ const BOOKING_SEGMENTS: SystemFilterSegment[] = [
 ];
 ```
 
-This guide covers the complete DataTable system. For specific implementation details, refer to the source files in `packages/features/data-table/` and the usage examples throughout the Cal.com codebase.
+This guide covers the complete DataTable system. For specific implementation details, refer to:
+- **Types, utilities, serializers, server-side code**: `packages/features/data-table/lib/`
+- **Hooks, contexts, DataTableProvider**: `apps/web/modules/data-table/`
+- **UI components (DataTable, DataTableWrapper, filters, etc.)**: `apps/web/modules/data-table/components/`
+- **Usage examples**: Throughout `apps/web/modules/` (bookings, insights, users, etc.)

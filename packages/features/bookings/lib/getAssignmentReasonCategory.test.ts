@@ -26,7 +26,9 @@ describe("getAssignmentReasonCategory", () => {
   });
 
   it("returns 'salesforce_assigned' for SALESFORCE_ASSIGNMENT", () => {
-    expect(getAssignmentReasonCategory(AssignmentReasonEnum.SALESFORCE_ASSIGNMENT)).toBe("salesforce_assigned");
+    expect(getAssignmentReasonCategory(AssignmentReasonEnum.SALESFORCE_ASSIGNMENT)).toBe(
+      "salesforce_assigned"
+    );
   });
 
   it("returns 'routed' for unknown enum values (default case)", () => {

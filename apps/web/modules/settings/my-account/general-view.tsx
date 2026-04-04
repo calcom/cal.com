@@ -1,13 +1,7 @@
 "use client";
 
-import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
-import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
-import SectionBottomActions from "@calcom/web/modules/settings/components/SectionBottomActions";
-import SettingsHeader from "@calcom/web/modules/settings/components/SettingsHeader";
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { formatLocalizedDateTime } from "@calcom/lib/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
@@ -16,14 +10,16 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
+import { Form, Label, Select, SettingsToggle } from "@calcom/ui/components/form";
+import { Icon } from "@calcom/ui/components/icon";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTravelSchedules } from "@calcom/web/app/cache/travelSchedule";
-
+import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import TravelScheduleModal from "@components/settings/TravelScheduleModal";
+import { revalidateSettingsGeneral } from "app/(use-page-wrapper)/settings/(settings-layout)/my-account/general/actions";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 export type FormValues = {
   locale: {
@@ -107,22 +103,16 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
     defaultValues: {
       locale: {
         value: localeProp || "",
-        label:
-          localeOptions.find((option) => option.value === localeProp)?.label ||
-          "",
+        label: localeOptions.find((option) => option.value === localeProp)?.label || "",
       },
       timeZone: user.timeZone || "",
       timeFormat: {
         value: user.timeFormat || 12,
-        label:
-          timeFormatOptions.find((option) => option.value === user.timeFormat)
-            ?.label || 12,
+        label: timeFormatOptions.find((option) => option.value === user.timeFormat)?.label || 12,
       },
       weekStart: {
         value: user.weekStart,
-        label:
-          weekStartOptions.find((option) => option.value === user.weekStart)
-            ?.label || "",
+        label: weekStartOptions.find((option) => option.value === user.weekStart)?.label || "",
       },
       travelSchedules:
         travelSchedules.map((schedule) => {
@@ -142,30 +132,25 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
   } = formMethods;
   const isDisabled = isSubmitting || !isDirty;
 
-  const [isAllowDynamicBookingChecked, setIsAllowDynamicBookingChecked] =
-    useState(!!user.allowDynamicBooking);
+  const [isAllowDynamicBookingChecked, setIsAllowDynamicBookingChecked] = useState(
+    !!user.allowDynamicBooking
+  );
   const [isAllowSEOIndexingChecked, setIsAllowSEOIndexingChecked] = useState(
     user.organizationSettings?.allowSEOIndexing === false
       ? !!user.organizationSettings?.allowSEOIndexing
       : !!user.allowSEOIndexing
   );
-  const [
-    isReceiveMonthlyDigestEmailChecked,
-    setIsReceiveMonthlyDigestEmailChecked,
-  ] = useState(!!user.receiveMonthlyDigestEmail);
-  const [
-    isRequireBookerEmailVerificationChecked,
-    setIsRequireBookerEmailVerificationChecked,
-  ] = useState(!!user.requiresBookerEmailVerification);
+  const [isReceiveMonthlyDigestEmailChecked, setIsReceiveMonthlyDigestEmailChecked] = useState(
+    !!user.receiveMonthlyDigestEmail
+  );
+  const [isRequireBookerEmailVerificationChecked, setIsRequireBookerEmailVerificationChecked] = useState(
+    !!user.requiresBookerEmailVerification
+  );
 
   const watchedTzSchedules = formMethods.watch("travelSchedules");
 
   return (
-    <SettingsHeader
-      title={t("general")}
-      description={t("general_description")}
-      borderInShellHeader={true}
-    >
+    <SettingsHeader title={t("general")} description={t("general_description")} borderInShellHeader={true}>
       <div>
         <Form
           form={formMethods}
@@ -177,8 +162,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               timeFormat: values.timeFormat.value,
               weekStart: values.weekStart.value,
             });
-          }}
-        >
+          }}>
           <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
             <Controller
               name="locale"
@@ -192,6 +176,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     options={localeOptions}
                     value={value}
                     onChange={onChange}
+                    data-testid="locale-select"
                   />
                 </>
               )}
@@ -222,8 +207,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                         className="w-full sm:w-1/2"
                         color="secondary"
                         StartIcon="calendar"
-                        onClick={() => setIsTZScheduleOpen(true)}
-                      >
+                        onClick={() => setIsTZScheduleOpen(true)}>
                         {t("schedule_timezone_change")}
                       </Button>
                     )}
@@ -242,8 +226,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                           "flex items-center p-4",
                           index !== 0 ? "border-subtle border-t" : ""
                         )}
-                        key={index}
-                      >
+                        key={index}>
                         <div>
                           <div className="text-emphasis font-semibold">{`${formatLocalizedDateTime(
                             schedule.startDate,
@@ -258,9 +241,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                                 )}`
                               : ``
                           }`}</div>
-                          <div className="text-subtle">
-                            {schedule.timeZone.replace(/_/g, " ")}
-                          </div>
+                          <div className="text-subtle">{schedule.timeZone.replace(/_/g, " ")}</div>
                         </div>
                         <Button
                           color="destructive"
@@ -271,11 +252,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                             const updatedSchedules = watchedTzSchedules.filter(
                               (s, filterIndex) => filterIndex !== index
                             );
-                            formMethods.setValue(
-                              "travelSchedules",
-                              updatedSchedules,
-                              { shouldDirty: true }
-                            );
+                            formMethods.setValue("travelSchedules", updatedSchedules, { shouldDirty: true });
                           }}
                         />
                       </div>
@@ -286,8 +263,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                   StartIcon="plus"
                   color="secondary"
                   className="mt-4"
-                  onClick={() => setIsTZScheduleOpen(true)}
-                >
+                  onClick={() => setIsTZScheduleOpen(true)}>
                   {t("add")}
                 </Button>
               </div>
@@ -305,18 +281,14 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     value={value}
                     options={timeFormatOptions}
                     onChange={(event) => {
-                      if (event)
-                        formMethods.setValue(
-                          "timeFormat",
-                          { ...event },
-                          { shouldDirty: true }
-                        );
+                      if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
                     }}
                   />
                 </>
               )}
             />
             <div className="text-gray text-subtle mt-2 flex items-center text-xs">
+              <Icon name="info" className="mr-2" />
               {t("timeformat_profile_hint")}
             </div>
             <Controller
@@ -331,12 +303,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                     value={value}
                     options={weekStartOptions}
                     onChange={(event) => {
-                      if (event)
-                        formMethods.setValue(
-                          "weekStart",
-                          { ...event },
-                          { shouldDirty: true }
-                        );
+                      if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
                     }}
                   />
                 </>
@@ -350,8 +317,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
               disabled={isDisabled}
               color="primary"
               type="submit"
-              data-testid="general-submit-button"
-            >
+              data-testid="general-submit-button">
               <>{t("update")}</>
             </Button>
           </SectionBottomActions>
@@ -375,10 +341,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
           toggleSwitchAtTheEnd={true}
           title={t("seo_indexing")}
           description={t("allow_seo_indexing")}
-          disabled={
-            mutation.isPending ||
-            user.organizationSettings?.allowSEOIndexing === false
-          }
+          disabled={mutation.isPending || user.organizationSettings?.allowSEOIndexing === false}
           checked={isAllowSEOIndexingChecked}
           onCheckedChange={(checked) => {
             setIsAllowSEOIndexingChecked(checked);

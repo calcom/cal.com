@@ -29,7 +29,10 @@ describe("RoutingTraceService", () => {
     };
   }
 
-  function createMockAssignmentReasonRepository(): Pick<AssignmentReasonRepository, "createAssignmentReason"> {
+  function createMockAssignmentReasonRepository(): Pick<
+    AssignmentReasonRepository,
+    "createAssignmentReason"
+  > {
     return {
       createAssignmentReason: vi.fn(),
     };

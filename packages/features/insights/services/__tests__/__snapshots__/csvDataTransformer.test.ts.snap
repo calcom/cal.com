@@ -251,6 +251,11 @@ exports[`csvDataTransformer > transformBookingsForCsv > snapshot: complete trans
     "uid": "booking-1",
     "userEmail": "sales@company.com",
     "userUsername": "sales",
+    "utm_campaign": "spring-sale",
+    "utm_content": "banner-ad",
+    "utm_medium": "cpc",
+    "utm_source": "google",
+    "utm_term": "scheduling",
   },
   {
     "Budget": null,
@@ -286,6 +291,11 @@ exports[`csvDataTransformer > transformBookingsForCsv > snapshot: complete trans
     "uid": "booking-2",
     "userEmail": "trainer@company.com",
     "userUsername": "trainer",
+    "utm_campaign": "",
+    "utm_content": "",
+    "utm_medium": "",
+    "utm_source": "",
+    "utm_term": "",
   },
   {
     "Budget": null,
@@ -321,6 +331,11 @@ exports[`csvDataTransformer > transformBookingsForCsv > snapshot: complete trans
     "uid": null,
     "userEmail": "user@company.com",
     "userUsername": "user",
+    "utm_campaign": "",
+    "utm_content": "",
+    "utm_medium": "",
+    "utm_source": "",
+    "utm_term": "",
   },
 ]
 `;

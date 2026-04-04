@@ -167,7 +167,6 @@ jobs:
       pull-requests: read
     outputs:
       has-files-requiring-all-checks: ${{ steps.filter-exclusions.outputs.has-files-requiring-all-checks }}
-      has-companion: ${{ steps.filter-inclusions.outputs.has-companion }}
       has-api-v2-changes: ${{ steps.filter-inclusions.outputs.has-api-v2-changes }}
       has-prisma-changes: ${{ steps.filter-inclusions.outputs.has-prisma-changes }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
@@ -196,22 +195,19 @@ jobs:
           filters: |
             has-files-requiring-all-checks:
               - '**'
-              - '!companion/**'
               - '!.vscode/**'
               - '!**/*.md'
               - '!**/*.mdx'
               - '!.github/CODEOWNERS'
               - '!docs/**'
               - '!help/**'
-              - '!apps/web/public/static/locales/**/common.json'
+              - '!packages/i18n/locales/**/common.json'
               - '!i18n.lock'
       - name: Check for specific path changes
         uses: dorny/paths-filter@v3
         id: filter-inclusions
         with:
           filters: |
-            has-companion:
-              - "companion/**"
             has-api-v2-changes:
               - "apps/api/v2/**"
               - "packages/platform-constants/**"
@@ -326,6 +322,13 @@ jobs:
     uses: ./.github/workflows/api-v2-unit-tests.yml
     secrets: inherit
 
+  security-audit:
+    name: Security Audit
+    needs: [prepare]
+    if: ${{ needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/security-audit.yml
+    secrets: inherit
+
   check-prisma-migrations:
     name: Check Prisma Migrations
     needs: [prepare]
@@ -368,27 +371,6 @@ jobs:
     needs: [prepare]
     if: ${{ needs.prepare.outputs.run-e2e == 'true' && needs.prepare.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/docs-build.yml
-    secrets: inherit
-
-  build-companion:
-    name: Companion builds
-    needs: [prepare]
-    if: needs.prepare.outputs.has-companion == 'true'
-    uses: ./.github/workflows/companion-build.yml
-    secrets: inherit
-
-  typecheck-companion:
-    name: Type Checks
-    needs: [prepare]
-    if: needs.prepare.outputs.has-companion == 'true'
-    uses: ./.github/workflows/companion-typecheck.yml
-    secrets: inherit
-
-  lint-companion:
-    name: Linters
-    needs: [prepare]
-    if: needs.prepare.outputs.has-companion == 'true'
-    uses: ./.github/workflows/companion-lint.yml
     secrets: inherit
 
   build:
@@ -462,6 +444,7 @@ jobs:
         type-check,
         unit-test,
         api-v2-unit-test,
+        security-audit,
         check-api-v2-breaking-changes,
         check-prisma-migrations,
         integration-test,
@@ -470,9 +453,6 @@ jobs:
         build-api-v2,
         build-atoms,
         build-docs,
-        build-companion,
-        typecheck-companion,
-        lint-companion,
         setup-db,
         e2e,
         e2e-api-v2,
@@ -504,6 +484,7 @@ jobs:
             needs.type-check.result != 'success' ||
             needs.unit-test.result != 'success' ||
             needs.api-v2-unit-test.result != 'success' ||
+            needs.security-audit.result != 'success' ||
             (needs.prepare.outputs.has-api-v2-changes == 'true' && needs.check-api-v2-breaking-changes.result != 'success') ||
             (needs.prepare.outputs.has-prisma-changes == 'true' && needs.check-prisma-migrations.result != 'success') ||
               needs.build.result != 'success' ||
@@ -518,13 +499,5 @@ jobs:
               needs.e2e-embed.result != 'success' ||
               needs.e2e-embed-react.result != 'success' ||
               needs.e2e-app-store.result != 'success'
-            )
-          ) ||
-          (
-            needs.prepare.outputs.has-companion == 'true' &&
-            (
-              needs.build-companion.result != 'success' ||
-              needs.typecheck-companion.result != 'success' ||
-              needs.lint-companion.result != 'success'
             )
           )

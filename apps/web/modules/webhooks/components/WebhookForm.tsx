@@ -1,26 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-
-import SectionBottomActions from "@calcom/web/modules/settings/components/SectionBottomActions";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import customTemplate, { hasTemplateIntegration } from "@calcom/features/webhooks/lib/integrationTemplate";
 import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeUnit, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { Select } from "@calcom/ui/components/form";
-import { TextArea } from "@calcom/ui/components/form";
-import { ToggleGroup } from "@calcom/ui/components/form";
 import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
-
-import { TimeTimeUnitInput } from "~/ee/workflows/components/TimeTimeUnitInput";
-
+import { Button } from "@coss/ui/components/button";
+import { Card, CardFrame, CardFrameFooter, CardPanel } from "@coss/ui/components/card";
+import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@coss/ui/components/collapsible";
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxClear,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxPopup,
+  ComboboxValue,
+} from "@coss/ui/components/combobox";
+import { Field, FieldDescription, FieldError, FieldLabel } from "@coss/ui/components/field";
+import { Group, GroupSeparator } from "@coss/ui/components/group";
+import { Input } from "@coss/ui/components/input";
+import { NumberField, NumberFieldGroup, NumberFieldInput } from "@coss/ui/components/number-field";
+import { ScrollArea } from "@coss/ui/components/scroll-area";
+import { Select, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "@coss/ui/components/select";
+import { Spinner } from "@coss/ui/components/spinner";
+import { Switch } from "@coss/ui/components/switch";
+import { Textarea } from "@coss/ui/components/textarea";
+import { ExternalLinkIcon, TrashIcon } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import WebhookTestDisclosure from "./WebhookTestDisclosure";
 
 export type TWebhook = RouterOutputs["viewer"]["webhook"]["list"][number];
@@ -73,6 +87,7 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
   "routing-forms": [
     { value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" },
     { value: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT, label: "form_submitted_no_event" },
+    { value: WebhookTriggerEvents.ROUTING_FORM_FALLBACK_HIT, label: "routing_form_fallback_hit_trigger" },
   ],
 } as const;
 
@@ -300,12 +315,17 @@ const WebhookForm = (props: {
     },
   });
 
-  formMethods.register("version");
-
   const triggers = formMethods.watch("eventTriggers") || [];
   const subscriberUrl = formMethods.watch("subscriberUrl");
   const time = formMethods.watch("time");
   const timeUnit = formMethods.watch("timeUnit");
+
+  const TIME_UNITS = [TimeUnit.MINUTE, TimeUnit.HOUR, TimeUnit.DAY] as const;
+  const timeUnitItems = TIME_UNITS.map((unit) => ({
+    value: unit,
+    label: t(`${unit.toLowerCase()}_timeUnit`),
+  }));
+  const selectedTimeUnitItem = timeUnitItems.find((item) => item.value === timeUnit) ?? timeUnitItems[2];
 
   const isCreating = !props?.webhook?.id;
   const needsTime = triggers.some(
@@ -316,10 +336,6 @@ const WebhookForm = (props: {
   const hasTime = !!time && !!timeUnit;
   const hasUrl = !!subscriberUrl;
   const showTimeSection = needsTime;
-
-  const [useCustomTemplate, setUseCustomTemplate] = useState(
-    props?.webhook?.payloadTemplate !== undefined && props?.webhook?.payloadTemplate !== null
-  );
 
   function insertVariableIntoTemplate(current: string, name: string, value: string): string {
     try {
@@ -342,6 +358,9 @@ const WebhookForm = (props: {
     }
   }
 
+  const [customPayloadOpen, setCustomPayloadOpen] = useState(
+    props?.webhook?.payloadTemplate !== undefined && props?.webhook?.payloadTemplate !== null
+  );
   const [showVariables, setShowVariables] = useState(false);
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
@@ -364,274 +383,401 @@ const WebhookForm = (props: {
     }
   }, [changeSecret, formMethods]);
 
-  const formContent = (
+  const formFields = (
+    <div className="flex flex-col gap-6">
+      <Controller
+        name="subscriberUrl"
+        control={formMethods.control}
+        rules={{
+          required: t("subscriber_url_required", "Subscriber URL is required"),
+        }}
+        render={({
+          field: { ref, name, value, onBlur, onChange },
+          fieldState: { invalid, isTouched, isDirty, error },
+        }) => (
+          <Field name={name} invalid={invalid} touched={isTouched} dirty={isDirty}>
+            <FieldLabel>{t("subscriber_url")}</FieldLabel>
+            <Input
+              ref={ref}
+              placeholder="https://example.com/webhook"
+              type="url"
+              value={value}
+              required
+              onBlur={onBlur}
+              onValueChange={(urlValue) => {
+                onChange(urlValue);
+                if (urlValue && hasTemplateIntegration({ url: urlValue })) {
+                  setCustomPayloadOpen(true);
+                  formMethods.setValue("payloadTemplate", customTemplate({ url: urlValue }), {
+                    shouldDirty: true,
+                  });
+                }
+              }}
+            />
+            <FieldError match={!!error}>{error?.message}</FieldError>
+          </Field>
+        )}
+      />
+      <Controller
+        name="active"
+        control={formMethods.control}
+        render={({ field: { name, value, onChange }, fieldState: { invalid, isTouched, isDirty } }) => (
+          <Field name={name} invalid={invalid} touched={isTouched} dirty={isDirty}>
+            <FieldLabel>
+              <Switch checked={value} onCheckedChange={(checked) => onChange(checked)} />
+              {t("enable_webhook")}
+            </FieldLabel>
+          </Field>
+        )}
+      />
+      <Controller
+        name="eventTriggers"
+        control={formMethods.control}
+        render={({ field: { name, onChange, value }, fieldState: { invalid, isTouched, isDirty } }) => {
+          const selectedItems = translatedTriggerOptions.filter((option) => value.includes(option.value));
+          return (
+            <Field name={name} invalid={invalid} touched={isTouched} dirty={isDirty}>
+              <FieldLabel>{t("event_triggers")}</FieldLabel>
+              <Combobox
+                value={selectedItems}
+                onValueChange={(newValue) => {
+                  onChange(newValue.map((item) => item.value));
+                  const noShowWebhookTriggerExists = !!newValue.find(
+                    (trigger) =>
+                      trigger.value === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+                      trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+                  );
+
+                  if (noShowWebhookTriggerExists) {
+                    formMethods.setValue("time", props.webhook?.time ?? 5, { shouldDirty: true });
+                    formMethods.setValue("timeUnit", props.webhook?.timeUnit ?? TimeUnit.MINUTE, {
+                      shouldDirty: true,
+                    });
+                  } else {
+                    formMethods.setValue("time", undefined, { shouldDirty: true });
+                    formMethods.setValue("timeUnit", undefined, { shouldDirty: true });
+                  }
+                }}
+                items={translatedTriggerOptions}
+                multiple>
+                <ComboboxChips>
+                  <ComboboxValue>
+                    {(selectedValues: { value: WebhookTriggerEvents; label: string }[]) => (
+                      <>
+                        {selectedValues?.map((item) => (
+                          <ComboboxChip
+                            key={item.value}
+                            removeProps={{ "aria-label": `${t("remove")} ${item.label}` }}>
+                            {item.label}
+                          </ComboboxChip>
+                        ))}
+                        <ComboboxChipsInput
+                          aria-label={t("event_triggers")}
+                          placeholder={
+                            selectedValues.length > 0
+                              ? undefined
+                              : t("select_event_triggers", "Select event triggers…")
+                          }
+                        />
+                      </>
+                    )}
+                  </ComboboxValue>
+                </ComboboxChips>
+                <ComboboxPopup>
+                  <ComboboxEmpty>{t("no_options_available")}</ComboboxEmpty>
+                  <ComboboxList>
+                    {(item: { value: WebhookTriggerEvents; label: string }) => (
+                      <ComboboxItem key={item.value} value={item}>
+                        {item.label}
+                      </ComboboxItem>
+                    )}
+                  </ComboboxList>
+                </ComboboxPopup>
+                <ComboboxClear render={<Button size="xs" variant="outline" />}>
+                  <TrashIcon />
+                  {t("clear_all_triggers", "Clear all triggers")}
+                </ComboboxClear>
+              </Combobox>
+            </Field>
+          );
+        }}
+      />
+
+      {showTimeSection && (
+        <Controller
+          name="time"
+          control={formMethods.control}
+          render={({
+            field: { value: timeValue, onChange: onTimeChange },
+            fieldState: { invalid: timeInvalid, isTouched: timeTouched, isDirty: timeDirty },
+          }) => (
+            <Controller
+              name="timeUnit"
+              control={formMethods.control}
+              render={({
+                field: { name, onChange: onTimeUnitChange },
+                fieldState: { invalid, isTouched, isDirty },
+              }) => (
+                <Field
+                  name={name}
+                  invalid={invalid || timeInvalid}
+                  touched={isTouched || timeTouched}
+                  dirty={isDirty || timeDirty}>
+                  <FieldLabel>{t("how_long_after_user_no_show_minutes")}</FieldLabel>
+                  <Group aria-label={t("how_long_after_user_no_show_minutes")} className="w-full">
+                    <NumberField
+                      aria-label="Duration"
+                      className="gap-0"
+                      value={timeValue ?? 5}
+                      min={0}
+                      onValueChange={(newValue) => onTimeChange(newValue ?? 5)}
+                      render={<NumberFieldGroup />}>
+                      <NumberFieldInput className="text-left" />
+                    </NumberField>
+                    <GroupSeparator />
+                    <Select
+                      value={selectedTimeUnitItem}
+                      onValueChange={(newValue) => {
+                        if (!newValue) return;
+                        onTimeUnitChange(newValue.value);
+                      }}
+                      items={timeUnitItems}>
+                      <SelectTrigger className="w-fit min-w-none">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectPopup>
+                        {timeUnitItems.map((item) => (
+                          <SelectItem key={item.value} value={item}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectPopup>
+                    </Select>
+                  </Group>
+                </Field>
+              )}
+            />
+          )}
+        />
+      )}
+
+      <Controller
+        name="secret"
+        control={formMethods.control}
+        render={({ field: { name, value, onChange }, fieldState: { invalid, isTouched, isDirty } }) => (
+          <Field name={name} invalid={invalid} touched={isTouched} dirty={isDirty}>
+            {hasSecretKey ? (
+              <>
+                <FieldLabel>{t("secret")}</FieldLabel>
+                <div className="flex w-full gap-2">
+                  <Input
+                    autoComplete="off"
+                    type={changeSecret ? "text" : "password"}
+                    value={changeSecret ? newSecret : "••••••••••••"}
+                    readOnly={!changeSecret}
+                    disabled={!changeSecret}
+                    onValueChange={
+                      changeSecret
+                        ? (v) => {
+                            setNewSecret(v);
+                            onChange(v);
+                          }
+                        : undefined
+                    }
+                    placeholder={changeSecret ? t("leave_blank_to_remove_secret") : undefined}
+                    className="flex-1"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (changeSecret) {
+                        setChangeSecret(false);
+                        setNewSecret("");
+                      } else {
+                        const currentSecret = value || props?.webhook?.secret || "";
+                        setNewSecret(currentSecret);
+                        setChangeSecret(true);
+                      }
+                    }}>
+                    {changeSecret ? t("cancel") : t("edit")}
+                  </Button>
+                </div>
+                <FieldDescription>{t("forgotten_secret_description")}</FieldDescription>
+              </>
+            ) : (
+              <>
+                <FieldLabel>{t("secret")}</FieldLabel>
+                <Input type="text" value={value ?? ""} onValueChange={onChange} />
+              </>
+            )}
+          </Field>
+        )}
+      />
+
+      <Controller
+        name="payloadTemplate"
+        control={formMethods.control}
+        render={({ field: { name, value, onChange }, fieldState: { invalid, isTouched, isDirty } }) => {
+          // Flatten webhookVariables into a single array for payloadVariables
+          const payloadVariables = webhookVariables.flatMap(({ variables }) =>
+            variables.map(({ name: n, variable, description }) => ({
+              name: n,
+              variable: `{{${variable}}}`,
+              description,
+            }))
+          );
+
+          return (
+            <Collapsible onOpenChange={setCustomPayloadOpen} open={customPayloadOpen}>
+              <Field name={name} invalid={invalid} touched={isTouched} dirty={isDirty}>
+                <FieldLabel>
+                  <CollapsibleTrigger
+                    nativeButton={false}
+                    render={
+                      <Switch
+                        checked={customPayloadOpen}
+                        onCheckedChange={(checked) => {
+                          setCustomPayloadOpen(checked);
+                          if (!checked) onChange(undefined);
+                        }}
+                      />
+                    }
+                  />
+                  {t("custom_payload_template", "Custom Payload Template")}
+                </FieldLabel>
+              </Field>
+              <CollapsiblePanel className="-mx-1">
+                <div className="px-1 mt-4 flex flex-col items-start gap-2">
+                  <Textarea
+                    className="font-mono"
+                    placeholder={"{\n  \n}"}
+                    rows={4}
+                    value={value || ""}
+                    onChange={(e) => onChange(e?.target?.value ?? "")}
+                  />
+                  <Collapsible className="w-full" onOpenChange={setShowVariables} open={showVariables}>
+                    <CollapsibleTrigger
+                      render={
+                        <Button size="sm" variant="outline">
+                          {showVariables
+                            ? t("webhook_hide_variables", "Hide available variables")
+                            : t("webhook_show_variable", "Show available variables")}
+                        </Button>
+                      }
+                    />
+                    <CollapsiblePanel>
+                      <ScrollArea
+                        className="mt-4 h-64 rounded-lg border border-input"
+                        scrollbarGutter
+                        scrollFade>
+                        <div className="p-2">
+                          {webhookVariables.map(({ category, variables }) => (
+                            <div key={category}>
+                              <p className="my-1 px-[calc(--spacing(2)+1px)] font-medium text-sm">
+                                {category}
+                              </p>
+                              <ul>
+                                {variables.map(({ name, variable, description }) => (
+                                  <li key={name}>
+                                    <Button
+                                      className="h-auto! w-full flex-col items-start gap-0.5 px-2 py-1.5 text-left"
+                                      variant="ghost"
+                                      onClick={() => {
+                                        const currentValue = formMethods.getValues("payloadTemplate") || "{}";
+                                        const updatedValue = insertVariableIntoTemplate(
+                                          currentValue,
+                                          name,
+                                          variable
+                                        );
+                                        onChange(updatedValue);
+                                      }}>
+                                      <span className="font-mono text-xs">{variable}</span>
+                                      <span className="font-normal text-muted-foreground text-xs">
+                                        {description}
+                                      </span>
+                                    </Button>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </CollapsiblePanel>
+                  </Collapsible>
+                </div>
+              </CollapsiblePanel>
+            </Collapsible>
+          );
+        }}
+      />
+    </div>
+  );
+
+  const cancelButton = props.onCancel ? (
+    <Button type="button" variant="ghost" onClick={props.onCancel}>
+      {t("cancel")}
+    </Button>
+  ) : (
+    <Button type="button" variant="ghost" render={<Link href="/settings/developer/webhooks" />}>
+      {t("cancel")}
+    </Button>
+  );
+
+  const submitButton = (
+    <Button
+      type="submit"
+      data-testid="create_webhook"
+      disabled={!canSubmit || formMethods.formState.isSubmitting}>
+      {formMethods.formState.isSubmitting && <Spinner className="absolute" />}
+      <span className={formMethods.formState.isSubmitting ? "invisible" : undefined}>
+        {props?.webhook?.id ? t("save") : t("create_webhook")}
+      </span>
+    </Button>
+  );
+
+  if (props.headerWrapper) {
+    const cardContent = (
+      <CardFrame>
+        <Card className="rounded-b-none!">
+          <CardPanel>{formFields}</CardPanel>
+        </Card>
+        <CardFrameFooter className="flex justify-end gap-2">
+          {cancelButton}
+          {submitButton}
+        </CardFrameFooter>
+      </CardFrame>
+    );
+
+    return (
+      <Form
+        form={formMethods}
+        handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
+        {props.headerWrapper(
+          formMethods,
+          <div className="flex flex-col gap-4">
+            {cardContent}
+            <WebhookTestDisclosure />
+          </div>
+        )}
+      </Form>
+    );
+  }
+
+  return (
     <Form
       form={formMethods}
       handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
-      <div className="border-subtle border p-6">
-        <Controller
-          name="subscriberUrl"
-          control={formMethods.control}
-          render={({ field: { value } }) => (
-            <>
-              <TextField
-                name="subscriberUrl"
-                label={t("subscriber_url")}
-                labelClassName="font-medium text-emphasis font-sm"
-                value={value}
-                required
-                type="url"
-                onChange={(e) => {
-                  formMethods.setValue("subscriberUrl", e?.target.value, { shouldDirty: true });
-                  if (hasTemplateIntegration({ url: e.target.value })) {
-                    setUseCustomTemplate(true);
-                    formMethods.setValue("payloadTemplate", customTemplate({ url: e.target.value }), {
-                      shouldDirty: true,
-                    });
-                  }
-                }}
-              />
-            </>
-          )}
-        />
-        <Controller
-          name="active"
-          control={formMethods.control}
-          render={({ field: { value } }) => (
-            <div className="font-sm text-emphasis mt-6 font-medium">
-              <Switch
-                label={t("enable_webhook")}
-                checked={value}
-                // defaultChecked={props?.webhook?.active ? props?.webhook?.active : true}
-                onCheckedChange={(value) => {
-                  formMethods.setValue("active", value, { shouldDirty: true });
-                }}
-              />
-            </div>
-          )}
-        />
-        <Controller
-          name="eventTriggers"
-          control={formMethods.control}
-          render={({ field: { onChange, value } }) => {
-            const selectValue = translatedTriggerOptions.filter((option) => value.includes(option.value));
-            return (
-              <div className="mt-6">
-                <Label className="font-sm text-emphasis font-medium">
-                  <>{t("event_triggers")}</>
-                </Label>
-                <Select
-                  grow
-                  options={translatedTriggerOptions}
-                  isMulti
-                  styles={{
-                    indicatorsContainer: (base) =>
-                      Object.assign({}, base, {
-                        alignItems: "flex-start",
-                      }),
-                  }}
-                  value={selectValue}
-                  onChange={(event) => {
-                    onChange(event.map((selection) => selection.value));
-                    const noShowWebhookTriggerExists = !!event.find(
-                      (trigger) =>
-                        trigger.value === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-                        trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-                    );
-
-                    if (noShowWebhookTriggerExists) {
-                      formMethods.setValue("time", props.webhook?.time ?? 5, { shouldDirty: true });
-                      formMethods.setValue("timeUnit", props.webhook?.timeUnit ?? TimeUnit.MINUTE, {
-                        shouldDirty: true,
-                      });
-                    } else {
-                      formMethods.setValue("time", undefined, { shouldDirty: true });
-                      formMethods.setValue("timeUnit", undefined, { shouldDirty: true });
-                    }
-                  }}
-                />
-              </div>
-            );
-          }}
-        />
-
-        {showTimeSection && (
-          <div className="mt-5">
-            <Label>{t("how_long_after_user_no_show_minutes")}</Label>
-            <TimeTimeUnitInput disabled={false} defaultTime={5} />
-          </div>
-        )}
-
-        <Controller
-          name="secret"
-          control={formMethods.control}
-          render={({ field: { value } }) => (
-            <div className="mt-6">
-              {!!hasSecretKey && !changeSecret && (
-                <>
-                  <Label className="font-sm text-emphasis font-medium">Secret</Label>
-                  <div className="bg-default stack-y-0 rounded-md border-0 border-neutral-200 sm:mx-0 md:border">
-                    <div className="text-emphasis rounded-sm border-b p-2 text-sm">
-                      {t("forgotten_secret_description")}
-                    </div>
-                    <div className="p-2">
-                      <Button
-                        color="secondary"
-                        type="button"
-                        onClick={() => {
-                          setChangeSecret(true);
-                        }}>
-                        {t("change_secret")}
-                      </Button>
-                    </div>
-                  </div>
-                </>
-              )}
-              {!!hasSecretKey && changeSecret && (
-                <>
-                  <TextField
-                    autoComplete="off"
-                    label={t("secret")}
-                    labelClassName="font-medium text-emphasis font-sm"
-                    {...formMethods.register("secret")}
-                    value={newSecret}
-                    onChange={(event) => setNewSecret(event.currentTarget.value)}
-                    type="text"
-                    placeholder={t("leave_blank_to_remove_secret")}
-                  />
-                  <Button
-                    color="secondary"
-                    type="button"
-                    className="py-1 text-xs"
-                    onClick={() => {
-                      setChangeSecret(false);
-                    }}>
-                    {t("cancel")}
-                  </Button>
-                </>
-              )}
-              {!hasSecretKey && (
-                <TextField
-                  name="secret"
-                  label={t("secret")}
-                  labelClassName="font-medium text-emphasis font-sm"
-                  value={value ?? ""}
-                  onChange={(e) => {
-                    formMethods.setValue("secret", e?.target.value, { shouldDirty: true });
-                  }}
-                />
-              )}
-            </div>
-          )}
-        />
-
-        <Controller
-          name="payloadTemplate"
-          control={formMethods.control}
-          render={({ field: { value } }) => (
-            <>
-              <Label className="font-sm text-emphasis mt-6">
-                <>{t("payload_template")}</>
-              </Label>
-              <div className="mb-2">
-                <ToggleGroup
-                  onValueChange={(val) => {
-                    if (val === "default") {
-                      setUseCustomTemplate(false);
-                      formMethods.setValue("payloadTemplate", undefined, { shouldDirty: true });
-                    } else {
-                      setUseCustomTemplate(true);
-                    }
-                  }}
-                  value={useCustomTemplate ? "custom" : "default"}
-                  options={[
-                    { value: "default", label: t("default") },
-                    { value: "custom", label: t("custom") },
-                  ]}
-                  isFullWidth={true}
-                />
-              </div>
-              {useCustomTemplate && (
-                <div className="stack-y-3">
-                  <TextArea
-                    name="customPayloadTemplate"
-                    rows={8}
-                    value={value || ""}
-                    placeholder={`{\n\n}`}
-                    onChange={(e) =>
-                      formMethods.setValue("payloadTemplate", e?.target.value, { shouldDirty: true })
-                    }
-                  />
-
-                  <Button type="button" color="secondary" onClick={() => setShowVariables(!showVariables)}>
-                    {showVariables ? t("webhook_hide_variables") : t("webhook_show_variable")}
-                  </Button>
-
-                  {showVariables && (
-                    <div className="border-muted max-h-80 overflow-y-auto rounded-md border p-3">
-                      {webhookVariables.map(({ category, variables }) => (
-                        <div key={category} className="mb-4">
-                          <h4 className="mb-2 text-sm font-medium">{category}</h4>
-                          <div className="stack-y-2">
-                            {variables.map(({ name, variable, description }) => (
-                              <div
-                                key={name}
-                                className="hover:bg-cal-muted cursor-pointer rounded p-2 text-sm transition-colors"
-                                onClick={() => {
-                                  const currentValue = formMethods.getValues("payloadTemplate") || "{}";
-                                  const updatedValue = insertVariableIntoTemplate(
-                                    currentValue,
-                                    name,
-                                    variable
-                                  );
-                                  formMethods.setValue("payloadTemplate", updatedValue, {
-                                    shouldDirty: true,
-                                  });
-                                }}>
-                                <div className="text-emphasis font-mono">{variable}</div>
-                                <div className="text-muted mt-1 text-xs">{description}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        />
-      </div>
+      {formFields}
       <SectionBottomActions align="end" className="gap-2">
-        <Button
-          type="button"
-          color="minimal"
-          onClick={props.onCancel}
-          {...(!props.onCancel ? { href: `${WEBAPP_URL}/settings/developer/webhooks` } : {})}>
-          {t("cancel")}
-        </Button>
-        <Button
-          type="submit"
-          data-testid="create_webhook"
-          disabled={!canSubmit}
-          loading={formMethods.formState.isSubmitting}>
-          {props?.webhook?.id ? t("save") : t("create_webhook")}
-        </Button>
+        {cancelButton}
+        {submitButton}
       </SectionBottomActions>
-
       <div className="mb-4 mt-6 rounded-md">
         <WebhookTestDisclosure />
       </div>
     </Form>
   );
-
-  // If headerWrapper is provided, wrap the form content with it
-  if (props.headerWrapper) {
-    return <>{props.headerWrapper(formMethods, formContent)}</>;
-  }
-
-  return formContent;
 };
 
 export default WebhookForm;

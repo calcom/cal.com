@@ -1,5 +1,8 @@
 import type { Brand } from "@calcom/types/utils";
 
+import type { tabs } from "../lib/EmbedTabs";
+import type { useEmbedTypes } from "../lib/hooks";
+
 export type EmbedType = "inline" | "floating-popup" | "element-click" | "email" | "headless";
 type EmbedConfig = {
   layout?: BookerLayouts;
@@ -52,3 +55,5 @@ export type PreviewState = {
 };
 
 export type EmbedFramework = "react" | "react-atom" | "HTML";
+export type EmbedTabs = typeof tabs;
+export type EmbedTypes = ReturnType<typeof useEmbedTypes>;

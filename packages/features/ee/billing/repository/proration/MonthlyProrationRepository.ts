@@ -90,4 +90,17 @@ export class MonthlyProrationRepository {
       },
     });
   }
+
+  async findForEmail(prorationId: string) {
+    return await this.prisma.monthlyProration.findUnique({
+      where: { id: prorationId },
+      select: {
+        invoiceId: true,
+        monthKey: true,
+        netSeatIncrease: true,
+        proratedAmount: true,
+        status: true,
+      },
+    });
+  }
 }

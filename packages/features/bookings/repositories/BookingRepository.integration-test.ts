@@ -339,9 +339,7 @@ describe("BookingRepository (Integration Tests)", () => {
       });
 
       expect(bookings).toHaveLength(1);
-      expect(bookings[0].startTime.toISOString()).toBe(
-        "2025-06-26T00:00:00.000Z"
-      );
+      expect(bookings[0].startTime.toISOString()).toBe("2025-06-26T00:00:00.000Z");
     });
   });
 });
