@@ -120,31 +120,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    // Re-verify with Paystack API (belt and suspenders)
-    const client = new PaystackClient(parsedKeys.data.secret_key);
-    const verification = await client.verifyTransaction(reference);
+    // Everything after the lock must rollback on failure so retries can re-process
+    try {
+      // Re-verify with Paystack API (belt and suspenders)
+      const client = new PaystackClient(parsedKeys.data.secret_key);
+      const verification = await client.verifyTransaction(reference);
 
-    if (verification.status !== "success") {
-      // Rollback the success flag since verification failed
+      if (verification.status !== "success") {
+        log.error("Paystack verification failed", { reference, status: verification.status });
+        throw new HttpCode({ statusCode: 400, message: "Payment verification failed" });
+      }
+
+      // Confirm the booking
+      const traceContext = distributedTracing.createTrace("paystack_webhook", {
+        meta: { reference, bookingId: payment.bookingId },
+      });
+
+      await handlePaymentSuccess({
+        paymentId: payment.id,
+        bookingId: payment.bookingId,
+        appSlug: "paystack",
+        traceContext,
+      });
+    } catch (processingError) {
+      // Rollback so webhook retries can re-process this payment
       await prisma.payment.update({
         where: { id: payment.id },
         data: { success: false },
       });
-      log.error("Paystack verification failed", { reference, status: verification.status });
-      throw new HttpCode({ statusCode: 400, message: "Payment verification failed" });
+      throw processingError;
     }
-
-    // Confirm the booking
-    const traceContext = distributedTracing.createTrace("paystack_webhook", {
-      meta: { reference, bookingId: payment.bookingId },
-    });
-
-    await handlePaymentSuccess({
-      paymentId: payment.id,
-      bookingId: payment.bookingId,
-      appSlug: "paystack",
-      traceContext,
-    });
   } catch (_err) {
     const err = getServerErrorFromUnknown(_err);
     log.error(`Webhook Error: ${err.message}`, safeStringify(err));
