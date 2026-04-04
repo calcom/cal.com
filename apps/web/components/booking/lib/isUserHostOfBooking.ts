@@ -1,10 +1,20 @@
 import type { BookingItemProps } from "../types";
 
+/**
+ * Whether the current viewer should be treated as a host for booking UI (e.g. cancel when
+ * `disableCancelling` is on). Matches server-side host checks in `handleCancelBooking`, including
+ * org admin of the booking organizer — that relationship is computed in `viewer.bookings.get` and
+ * exposed as `isLoggedInUserOrgAdminOfBookingHost` so the client stays synchronous.
+ */
 export function isUserHostOfBooking(booking: BookingItemProps): boolean {
   const loggedInUserId = booking.loggedInUser.userId;
 
   if (!loggedInUserId) {
     return false;
+  }
+
+  if (booking.isLoggedInUserOrgAdminOfBookingHost) {
+    return true;
   }
 
   if (booking.user?.id != null && booking.user.id === loggedInUserId) {
