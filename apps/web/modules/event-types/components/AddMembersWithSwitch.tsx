@@ -10,10 +10,13 @@ import { Segment } from "./Segment";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { Label, SettingsToggle } from "@calcom/ui/components/form";
-import { type ComponentProps, type Dispatch, type SetStateAction, useMemo } from "react";
+import { type ComponentProps, type Dispatch, type SetStateAction, useMemo, useCallback } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { Options } from "react-select";
 import { AddMembersWithSwitchWebWrapper } from "./AddMembersWithSwitchWebWrapper";
+import { trpc } from "@calcom/trpc/react";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
 
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
 import type {
@@ -63,6 +66,8 @@ const CheckedHostField = ({
   isRRWeightsEnabled,
   groupId,
   customClassNames,
+  teamId,
+  allowEmailInvites,
   ...rest
 }: {
   labelText?: string;
@@ -74,7 +79,43 @@ const CheckedHostField = ({
   helperText?: React.ReactNode | string;
   isRRWeightsEnabled?: boolean;
   groupId: string | null;
+  teamId?: number;
+  allowEmailInvites?: boolean;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
+  const { t } = useLocale();
+  const inviteMutation = trpc.viewer.teams.inviteMember.useMutation();
+
+  // Handle inviting new members by email
+  const handleEmailInvite = useCallback(
+    async (emails: string[]): Promise<{ success: string[]; failed: string[] }> => {
+      if (!teamId || emails.length === 0) {
+        return { success: [], failed: emails };
+      }
+
+      const success: string[] = [];
+      const failed: string[] = [];
+
+      // Invite each email
+      for (const email of emails) {
+        try {
+          await inviteMutation.mutateAsync({
+            teamId,
+            usernameOrEmail: email,
+            role: MembershipRole.MEMBER,
+            language: "en",
+            creationSource: CreationSource.WEBAPP,
+          });
+          success.push(email);
+        } catch (error) {
+          failed.push(email);
+        }
+      }
+
+      return { success, failed };
+    },
+    [teamId, inviteMutation]
+  );
+
   return (
     <div className="flex flex-col rounded-md">
       <div>
@@ -116,6 +157,10 @@ const CheckedHostField = ({
           isRRWeightsEnabled={isRRWeightsEnabled}
           customClassNames={customClassNames}
           groupId={groupId}
+          allowEmailInvites={allowEmailInvites}
+          teamId={teamId}
+          onEmailInvite={allowEmailInvites ? handleEmailInvite : undefined}
+          isInviting={inviteMutation.isPending}
           {...rest}
         />
       </div>
@@ -194,6 +239,8 @@ export type AddMembersWithSwitchProps = {
   groupId: string | null;
   "data-testid"?: string;
   customClassNames?: AddMembersWithSwitchCustomClassNames;
+  // New prop for email invitation feature
+  allowEmailInvites?: boolean;
 };
 
 enum AssignmentState {
@@ -260,6 +307,7 @@ export function AddMembersWithSwitch({
   isSegmentApplicable,
   groupId,
   customClassNames,
+  allowEmailInvites = false,
   ...rest
 }: AddMembersWithSwitchProps) {
   const { t } = useLocale();
@@ -345,6 +393,8 @@ export function AddMembersWithSwitch({
               isRRWeightsEnabled={isRRWeightsEnabled}
               groupId={groupId}
               customClassNames={customClassNames?.teamMemberSelect}
+              teamId={teamId}
+              allowEmailInvites={allowEmailInvites}
             />
           </div>
         </>
