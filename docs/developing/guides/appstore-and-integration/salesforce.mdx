@@ -1,0 +1,82 @@
+---
+title: "Salesforce integration"
+description: "Configure how Cal.com syncs booking data with Salesforce contacts, leads, and events."
+---
+
+The Salesforce integration lets you automatically sync booking data to your Salesforce CRM. When connected, Cal.com creates Salesforce events linked to contacts or leads, and can write custom field values at different stages of the booking lifecycle.
+
+## Prerequisites
+
+- A Salesforce account with API access
+- The Salesforce app installed and connected in your Cal.com instance
+
+## Event type settings
+
+After connecting Salesforce, you can configure per-event-type settings by navigating to the event type's **Apps** tab and expanding the Salesforce section.
+
+### Attendee record type
+
+Choose how Cal.com identifies attendees in Salesforce:
+
+- **Contact** — Look up or create a Contact record for the attendee
+- **Lead** — Look up or create a Lead record for the attendee
+- **Contact under Account** — Look up the Contact under their Account
+
+### Write to event record on booking
+
+Enable **On booking, write to the event object** to set custom field values on the Salesforce event whenever a booking is created. Add field name and value pairs to configure which event fields are updated.
+
+### Write to contact or lead record on booking
+
+Enable **On booking, write to a custom field on the attendee record** to update fields on the attendee's Contact or Lead record whenever a booking is created. For each field you configure, you can set:
+
+- **Field name** — The Salesforce API name of the field to write to
+- **Field type** — The data type (text, date, datetime, phone, checkbox, picklist, textarea, or custom)
+- **Value** — The value to write. Date fields support dynamic values like `booking_start_date`, `booking_created_date`, or `booking_cancel_date`
+- **When to write** — Choose between writing on every booking or only when the field is empty
+
+### Write to event record on cancellation
+
+Enable **On cancelled booking, write to event record instead of deleting event** to preserve the Salesforce event when a booking is cancelled. Instead of deleting the event, Cal.com writes your configured field values to it. This is useful when you want to keep a record of cancelled meetings in Salesforce.
+
+For each field, configure the field name, type, value, and write condition, the same as for booking-time writes.
+
+<Note>
+  When this option is disabled, Cal.com deletes the Salesforce event on cancellation.
+</Note>
+
+### Write to contact or lead record on cancellation
+
+Enable **On cancelled booking, write to a custom field on the attendee record** to update fields on the attendee's Contact or Lead record when a booking is cancelled. This lets you track cancellation status directly on the person record in Salesforce.
+
+The field configuration options are the same as for booking-time writes:
+
+- **Field name** — The Salesforce API name of the field
+- **Field type** — The data type (text, date, datetime, phone, checkbox, picklist, textarea, or custom)
+- **Value** — The value to write
+- **When to write** — Write on every cancellation, or only when the field is empty
+
+#### Example: tracking cancellation date
+
+To record the date a booking was cancelled on the Contact record:
+
+1. In Salesforce, add a custom date field to the Contact object (e.g., `Last_Cancellation_Date__c`)
+2. In Cal.com, open the event type's Salesforce settings
+3. Enable **On cancelled booking, write to a custom field on the attendee Contact record**
+4. Add a field entry:
+   - Field name: `Last_Cancellation_Date__c`
+   - Field type: Date
+   - Value: `booking_cancel_date`
+   - When to write: Every booking
+
+### Additional settings
+
+| Setting | Description |
+|---|---|
+| **Ignore guests** | Only process the primary attendee, not additional guests |
+| **Skip contact creation** | Do not create a new Contact if one doesn't exist (Contact mode only) |
+| **Check for existing contact** | When using Lead mode, also check if a Contact exists before creating a Lead |
+| **Create contact under account** | When creating contacts, link them to the matching Account |
+| **Change record owner on booking** | Reassign the Contact or Lead owner to a specified user when a booking is made |
+| **Send no-show attendee data** | Write attendee no-show status to a field on the Salesforce event object |
+| **Book directly with attendee owner** | For round-robin event types, skip round-robin logic and route directly to the Salesforce record owner |
