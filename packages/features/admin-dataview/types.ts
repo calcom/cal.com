@@ -6,15 +6,7 @@
  */
 
 /** Scalar types we understand how to render / validate */
-export type FieldType =
-  | "string"
-  | "number"
-  | "boolean"
-  | "datetime"
-  | "json"
-  | "enum"
-  | "email"
-  | "url";
+export type FieldType = "string" | "number" | "boolean" | "datetime" | "json" | "enum" | "email" | "url";
 
 /** Access level for a single field */
 export type FieldAccess =
@@ -40,6 +32,14 @@ export interface FieldDefinition {
   isPrimary?: boolean;
   /** Brief description shown as tooltip in the UI */
   description?: string;
+  /**
+   * A regex pattern (as a string) that will be stripped from user input
+   * before the filter value is applied. Useful for cleaning pasted URLs
+   * in email fields, etc. Applied on every keystroke and paste event.
+   *
+   * Example: "^https?://" strips leading http:// or https:// from input.
+   */
+  sanitizeRegex?: string;
   /**
    * The actual PostgreSQL column name when it differs from the Prisma field name
    * (i.e. the field uses `@map`). Used by the SQL query service.

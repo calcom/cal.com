@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-
-import type { FieldDefinition } from "@calcom/features/admin-dataview/types";
+import type { FieldDefinition, FieldType } from "@calcom/features/admin-dataview/types";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
-import { Popover, PopoverTrigger, PopoverContent } from "@calcom/ui/components/popover";
-import { FilterIcon, XIcon, CheckIcon } from "@coss/ui/icons";
+import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import { CheckIcon, FilterIcon, XIcon } from "@coss/ui/icons";
+import { useCallback, useEffect, useRef, useState } from "react";
 export type ColumnFilterValue =
   | { type: "text"; operator: TextOperator; value: string }
   | { type: "number"; operator: NumberOperator; value: number | null }
@@ -108,23 +107,67 @@ function FilterBody({
     case "string":
     case "email":
     case "url":
-      return <TextFilter value={value as Extract<ColumnFilterValue, { type: "text" }> | null} onChange={onChange} />;
+      return (
+        <TextFilter
+          field={field}
+          value={value as Extract<ColumnFilterValue, { type: "text" }> | null}
+          onChange={onChange}
+        />
+      );
     case "number":
-      return <NumberFilter value={value as Extract<ColumnFilterValue, { type: "number" }> | null} onChange={onChange} />;
+      return (
+        <NumberFilter
+          value={value as Extract<ColumnFilterValue, { type: "number" }> | null}
+          onChange={onChange}
+        />
+      );
     case "boolean":
-      return <BooleanFilter value={value as Extract<ColumnFilterValue, { type: "boolean" }> | null} onChange={onChange} />;
+      return (
+        <BooleanFilter
+          value={value as Extract<ColumnFilterValue, { type: "boolean" }> | null}
+          onChange={onChange}
+        />
+      );
     case "enum":
-      return <EnumFilter field={field} value={value as Extract<ColumnFilterValue, { type: "enum" }> | null} onChange={onChange} />;
+      return (
+        <EnumFilter
+          field={field}
+          value={value as Extract<ColumnFilterValue, { type: "enum" }> | null}
+          onChange={onChange}
+        />
+      );
     case "datetime":
-      return <NullFilter value={value as Extract<ColumnFilterValue, { type: "null" }> | null} onChange={onChange} />;
+      return (
+        <NullFilter
+          value={value as Extract<ColumnFilterValue, { type: "null" }> | null}
+          onChange={onChange}
+        />
+      );
     default:
       return <span className="text-muted text-xs">Filtering not supported for {field.type}</span>;
   }
 }
+/** Default regex for email fields: strip leading http(s):// and trailing path/query */
+const EMAIL_SANITIZE_REGEX = "^https?://|[/\\?#].*$";
+
+function sanitizeInput(value: string, fieldType: FieldType, sanitizeRegex: string | undefined): string {
+  let pattern = sanitizeRegex;
+  if (!pattern && fieldType === "email") {
+    pattern = EMAIL_SANITIZE_REGEX;
+  }
+  if (!pattern) return value;
+  try {
+    return value.replace(new RegExp(pattern, "gi"), "");
+  } catch {
+    return value;
+  }
+}
 function TextFilter({
+  field,
   value,
   onChange,
 }: {
+  field: FieldDefinition;
   value: Extract<ColumnFilterValue, { type: "text" }> | null;
   onChange: (value: ColumnFilterValue | null) => void;
 }) {
@@ -136,6 +179,10 @@ function TextFilter({
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  const handleTextChange = (raw: string) => {
+    setText(sanitizeInput(raw, field.type, field.sanitizeRegex));
+  };
 
   const handleApply = () => {
     if (!needsOperand || text.trim()) {
@@ -168,7 +215,7 @@ function TextFilter({
           placeholder="Value…"
           className="border-subtle bg-default text-default placeholder:text-muted h-8 w-full rounded border px-2 text-xs outline-none focus:border-blue-500"
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => handleTextChange(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleApply()}
         />
       )}
@@ -351,7 +398,14 @@ export function filterToPrismaWhere(column: string, filter: ColumnFilterValue): 
       break;
     }
     case "number": {
-      const opMap: Record<string, string> = { eq: "equals", neq: "not", gt: "gt", gte: "gte", lt: "lt", lte: "lte" };
+      const opMap: Record<string, string> = {
+        eq: "equals",
+        neq: "not",
+        gt: "gt",
+        gte: "gte",
+        lt: "lt",
+        lte: "lte",
+      };
       return { [column]: { [opMap[filter.operator]]: filter.value } };
     }
     case "boolean":
