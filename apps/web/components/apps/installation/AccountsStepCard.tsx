@@ -54,7 +54,7 @@ const AccountSelector: FC<AccountSelectorProps> = ({
         }
       }}>
       <Avatar
-        alt={avatar || ""}
+        alt={t("avatar_of_name", { name })}
         imageSrc={getPlaceholderAvatar(avatar, name)} // if no image, use default avatar
         size="sm"
       />
