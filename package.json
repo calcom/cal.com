@@ -64,6 +64,7 @@
     "postinstall": "husky install && turbo run post-install",
     "pre-commit": "lint-staged",
     "predev": "echo 'Checking env files'",
+    "generate:app-reserved-slugs": "npx ts-node scripts/generate-app-reserved-route-slugs.ts",
     "prisma": "yarn workspace @calcom/prisma prisma",
     "start": "turbo run start --filter=\"@calcom/web\"",
     "tdd": "vitest watch",
