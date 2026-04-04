@@ -1,43 +1,38 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { nameOfDay } from "@calcom/lib/weekday";
+import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
+import { Button } from "@coss/ui/components/button";
+import { Card, CardFrame, CardFrameFooter, CardPanel } from "@coss/ui/components/card";
+import {
+  Combobox,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxPopup,
+  ComboboxTrigger,
+  ComboboxValue,
+} from "@coss/ui/components/combobox";
+import { Field, FieldDescription, FieldLabel } from "@coss/ui/components/field";
+import { Form } from "@coss/ui/components/form";
+import { Select, SelectButton, SelectItem, SelectPopup, SelectTrigger, SelectValue } from "@coss/ui/components/select";
+import { toastManager } from "@coss/ui/components/toast";
+import { SearchIcon } from "@coss/ui/icons";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
+import { FieldGrid } from "@coss/ui/shared/field-grid";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useEffect, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
-
-import { TimezoneSelect } from "@calcom/web/modules/timezone/components/TimezoneSelect";
 import LicenseRequired from "~/ee/common/components/LicenseRequired";
 import { DisableAutofillOnBookingPageSwitch } from "~/ee/organizations/components/DisableAutofillOnBookingPageSwitch";
 import { DisablePhoneOnlySMSNotificationsSwitch } from "~/ee/organizations/components/DisablePhoneOnlySMSNotificationsSwitch";
 import { LockEventTypeSwitch } from "~/ee/organizations/components/LockEventTypeSwitch";
 import { NoSlotsNotificationSwitch } from "~/ee/organizations/components/NoSlotsNotificationSwitch";
-import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { nameOfDay } from "@calcom/lib/weekday";
-import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
-import classNames from "@calcom/ui/classNames";
-import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { Select } from "@calcom/ui/components/form";
-import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
-
-const SkeletonLoader = () => {
-  return (
-    <SkeletonContainer>
-      <div className="stack-y-6 mb-8 mt-6">
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-
-        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
-      </div>
-    </SkeletonContainer>
-  );
-};
+import { SkeletonLoader } from "~/ee/organizations/general-skeleton";
 
 interface GeneralViewProps {
   currentOrg: RouterOutputs["viewer"]["organizations"]["listCurrent"];
@@ -83,20 +78,28 @@ const OrgGeneralView = ({
 
   return (
     <LicenseRequired>
-      <GeneralView
-        currentOrg={currentOrg}
-        localeProp={session.data?.user.locale ?? "en"}
-        permissions={permissions}
-      />
+      <AppHeader>
+        <AppHeaderContent title={t("general")}>
+          <AppHeaderDescription>{t("general_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
 
-      {permissions.canEdit && (
-        <>
-          <LockEventTypeSwitch currentOrg={currentOrg} />
-          <NoSlotsNotificationSwitch currentOrg={currentOrg} />
-          <DisablePhoneOnlySMSNotificationsSwitch currentOrg={currentOrg} />
-          <DisableAutofillOnBookingPageSwitch currentOrg={currentOrg} />
-        </>
-      )}
+      <div className="flex flex-col gap-4">
+        <GeneralView
+          currentOrg={currentOrg}
+          localeProp={session.data?.user.locale ?? "en"}
+          permissions={permissions}
+        />
+
+        {permissions.canEdit && (
+          <>
+            <LockEventTypeSwitch currentOrg={currentOrg} />
+            <NoSlotsNotificationSwitch currentOrg={currentOrg} />
+            <DisablePhoneOnlySMSNotificationsSwitch currentOrg={currentOrg} />
+            <DisableAutofillOnBookingPageSwitch currentOrg={currentOrg} />
+          </>
+        )}
+      </div>
     </LicenseRequired>
   );
 };
@@ -104,13 +107,41 @@ const OrgGeneralView = ({
 const GeneralView = ({ currentOrg, permissions, localeProp }: GeneralViewProps) => {
   const { t } = useLocale();
 
+  const timezoneItems = useMemo(() => {
+    const tzNames = Intl.supportedValuesOf("timeZone");
+    return tzNames
+      .map((tz) => {
+        const formatter = new Intl.DateTimeFormat("en", {
+          timeZone: tz,
+          timeZoneName: "shortOffset",
+        });
+        const parts = formatter.formatToParts(new Date());
+        const offset = parts.find((p) => p.type === "timeZoneName")?.value || "";
+        const display = offset === "GMT" ? "GMT+0" : offset;
+
+        const m = offset.match(/GMT([+-]?)(\d+)(?::(\d+))?/);
+        const sign = m?.[1] === "-" ? -1 : 1;
+        const hrs = Number.parseInt(m?.[2] || "0", 10);
+        const mins = Number.parseInt(m?.[3] || "0", 10);
+        const total = sign * (hrs * 60 + mins);
+
+        return {
+          label: tz.replace(/_/g, " "),
+          value: tz,
+          offset: display,
+          numericOffset: total,
+        };
+      })
+      .sort((a, b) => a.numericOffset - b.numericOffset);
+  }, []);
+
   const mutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: async () => {
       reset(getValues());
-      showToast(t("settings_updated_successfully"), "success");
+      toastManager.add({ title: t("settings_updated_successfully"), type: "success" });
     },
     onError: () => {
-      showToast(t("error_updating_settings"), "error");
+      toastManager.add({ title: t("error_updating_settings"), type: "error" });
     },
   });
 
@@ -152,85 +183,135 @@ const GeneralView = ({ currentOrg, permissions, localeProp }: GeneralViewProps) 
   const isDisabled = isSubmitting || !isDirty || !permissions.canEdit;
   return (
     <Form
-      form={formMethods}
-      handleSubmit={(values) => {
+      className="contents"
+      onSubmit={formMethods.handleSubmit((values) => {
         mutation.mutate({
           ...values,
           timeFormat: values.timeFormat.value,
           weekStart: values.weekStart.value,
         });
-      }}>
-      <div
-        className={classNames(
-          "border-subtle border-x border-y-0 px-4 py-8 sm:px-6",
-          !permissions.canEdit && "rounded-b-lg border-y"
-        )}>
-        <Controller
-          name="timeZone"
-          control={formMethods.control}
-          render={({ field: { value } }) => (
-            <>
-              <Label className="text-emphasis">
-                <>{t("timezone")}</>
-              </Label>
-              <TimezoneSelect
-                id="timezone"
-                value={value}
-                onChange={(event) => {
-                  if (event) formMethods.setValue("timeZone", event.value, { shouldDirty: true });
+      })}>
+      <CardFrame>
+        <Card>
+          <CardPanel>
+            <FieldGrid>
+              <Controller
+                name="timeZone"
+                control={formMethods.control}
+                render={({ field: { name, value } }) => {
+                  const selectedItem = timezoneItems.find((tz) => tz.value === value) ?? null;
+                  return (
+                    <Field name={name}>
+                      <FieldLabel>{t("timezone")}</FieldLabel>
+                      <Combobox
+                        autoHighlight
+                        value={selectedItem}
+                        onValueChange={(val) => {
+                          if (val) formMethods.setValue("timeZone", val.value, { shouldDirty: true });
+                        }}
+                        items={timezoneItems}>
+                        <ComboboxTrigger render={<SelectButton />}>
+                          <ComboboxValue />
+                        </ComboboxTrigger>
+                        <ComboboxPopup aria-label={t("timezone")}>
+                          <div className="border-b p-2">
+                            <ComboboxInput
+                              className="rounded-md before:rounded-[calc(var(--radius-md)-1px)]"
+                              placeholder={t("timezone")}
+                              showTrigger={false}
+                              startAddon={<SearchIcon aria-hidden="true" />}
+                            />
+                          </div>
+                          <ComboboxEmpty>{t("no_options_available")}</ComboboxEmpty>
+                          <ComboboxList>
+                            {(item) => (
+                              <ComboboxItem
+                                key={item.value}
+                                value={item}
+                                className="*:[div]:flex *:[div]:justify-between *:[div]:items-center *:[div]:gap-1">
+                                <span>{item.value.replace(/_/g, " ")}</span>
+                                <span className="text-muted-foreground/72 text-sm font-medium sm:text-xs">
+                                  {item.offset}
+                                </span>
+                              </ComboboxItem>
+                            )}
+                          </ComboboxList>
+                        </ComboboxPopup>
+                      </Combobox>
+                    </Field>
+                  );
                 }}
               />
-            </>
-          )}
-        />
-        <Controller
-          name="timeFormat"
-          control={formMethods.control}
-          render={({ field: { value } }) => (
-            <>
-              <Label className="text-emphasis mt-6">
-                <>{t("time_format")}</>
-              </Label>
-              <Select
-                value={value}
-                options={timeFormatOptions}
-                onChange={(event) => {
-                  if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
-                }}
+              <Controller
+                name="weekStart"
+                control={formMethods.control}
+                render={({ field: { name, value, onBlur, onChange } }) => (
+                  <Field name={name}>
+                    <FieldLabel>{t("start_of_week")}</FieldLabel>
+                    <Select
+                      aria-label={t("start_of_week")}
+                      value={value}
+                      onValueChange={(val) => {
+                        if (val) onChange(val);
+                      }}
+                      onOpenChange={(open) => {
+                        if (!open) onBlur();
+                      }}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectPopup>
+                        {weekStartOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectPopup>
+                    </Select>
+                  </Field>
+                )}
               />
-            </>
-          )}
-        />
-        <div className="text-gray text-default mt-2 flex items-center text-sm">
-          {t("timeformat_profile_hint")}
-        </div>
-        <Controller
-          name="weekStart"
-          control={formMethods.control}
-          render={({ field: { value } }) => (
-            <>
-              <Label className="text-emphasis mt-6">
-                <>{t("start_of_week")}</>
-              </Label>
-              <Select
-                value={value}
-                options={weekStartOptions}
-                onChange={(event) => {
-                  if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
-                }}
+              <Controller
+                name="timeFormat"
+                control={formMethods.control}
+                render={({ field: { name, value, onBlur, onChange } }) => (
+                  <Field name={name}>
+                    <FieldLabel>{t("time_format")}</FieldLabel>
+                    <Select
+                      aria-label={t("time_format")}
+                      value={value}
+                      onValueChange={(val) => {
+                        if (val) onChange(val);
+                      }}
+                      onOpenChange={(open) => {
+                        if (!open) onBlur();
+                      }}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectPopup>
+                        {timeFormatOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectPopup>
+                    </Select>
+                    <FieldDescription>{t("timeformat_profile_hint")}</FieldDescription>
+                  </Field>
+                )}
               />
-            </>
-          )}
-        />
-      </div>
-
-      {permissions?.canEdit && (
-        <SectionBottomActions align="end">
-          <Button disabled={isDisabled} color="primary" type="submit">
-            {t("update")}
-          </Button>
-        </SectionBottomActions>
-      )}
+            </FieldGrid>
+          </CardPanel>
+        </Card>
+        {permissions?.canEdit && (
+          <CardFrameFooter className="flex justify-end">
+            <Button disabled={isDisabled} type="submit">
+              {t("update")}
+            </Button>
+          </CardFrameFooter>
+        )}
+      </CardFrame>
     </Form>
   );
 };

@@ -1,10 +1,9 @@
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
+import { toastManager } from "@coss/ui/components/toast";
+import { SettingsToggle } from "@coss/ui/shared/settings-toggle";
+import { useState } from "react";
 
 interface GeneralViewProps {
   currentOrg: RouterOutputs["viewer"]["organizations"]["listCurrent"];
@@ -19,10 +18,10 @@ export const NoSlotsNotificationSwitch = ({ currentOrg }: GeneralViewProps) => {
 
   const mutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: async () => {
-      showToast(t("settings_updated_successfully"), "success");
+      toastManager.add({ title: t("settings_updated_successfully"), type: "success" });
     },
     onError: () => {
-      showToast(t("error_updating_settings"), "error");
+      toastManager.add({ title: t("error_updating_settings"), type: "error" });
     },
     onSettled: () => {
       utils.viewer.organizations.listCurrent.invalidate();
@@ -32,7 +31,6 @@ export const NoSlotsNotificationSwitch = ({ currentOrg }: GeneralViewProps) => {
   return (
     <>
       <SettingsToggle
-        toggleSwitchAtTheEnd={true}
         title={t("organization_no_slots_notification_switch_title")}
         disabled={mutation?.isPending}
         description={t("organization_no_slots_notification_switch_description")}
@@ -43,7 +41,6 @@ export const NoSlotsNotificationSwitch = ({ currentOrg }: GeneralViewProps) => {
           });
           setNotificationActive(checked);
         }}
-        switchContainerClassName="mt-6"
       />
     </>
   );

@@ -76,6 +76,7 @@ export default defineConfig({
       // Web modules sub-path aliases (must come before the generic ~ → api/v1 alias)
       { find: "~/data-table", replacement: path.resolve(__dirname, "apps/web/modules/data-table") },
       { find: "~/filters", replacement: path.resolve(__dirname, "apps/web/modules/filters") },
+      { find: "~/ee", replacement: path.resolve(__dirname, "apps/web/modules/ee") },
       // API v1 path alias
       { find: "~", replacement: path.resolve(__dirname, "apps/api/v1") },
       // apps/web path aliases
