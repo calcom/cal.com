@@ -115,8 +115,8 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       if (Array.isArray(value)) {
         // Correctly appends each item so they stay separate with '&'
         value.forEach((v) => searchParams.append(key, v));
-      } else if (value) {
-        searchParams.set(key, value);
+      } else if (value !== undefined && value !== null) {
+        searchParams.append(key, value);
       }
     });
 
@@ -179,8 +179,8 @@ Object.entries(context.query).forEach(([key, value]) => {
   if (Array.isArray(value)) {
     // Correctly appends each item so they stay separate with '&'
     value.forEach((v) => searchParams.append(key, v));
-  } else if (value) {
-    searchParams.set(key, value);
+  } else if (value !== undefined && value !== null) {
+    searchParams.append(key, value);
   }
 });
 
