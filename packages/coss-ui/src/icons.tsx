@@ -3,6 +3,7 @@ import {
   ActivityIcon as LucideActivityIcon,
   ArrowDownIcon as LucideArrowDownIcon,
   ArrowLeftIcon as LucideArrowLeftIcon,
+  ArrowLeftRightIcon as LucideArrowLeftRightIcon,
   ArrowRightIcon as LucideArrowRightIcon,
   ArrowUpIcon as LucideArrowUpIcon,
   ArrowUpRightIcon as LucideArrowUpRightIcon,
@@ -171,6 +172,7 @@ function createIcon(Icon: LucideIcon, testId: string) {
 export const ActivityIcon = createIcon(LucideActivityIcon, "activity-icon");
 export const ArrowDownIcon = createIcon(LucideArrowDownIcon, "arrow-down-icon");
 export const ArrowLeftIcon = createIcon(LucideArrowLeftIcon, "arrow-left-icon");
+export const ArrowLeftRightIcon = createIcon(LucideArrowLeftRightIcon, "arrow-left-right-icon");
 export const ArrowRightIcon = createIcon(LucideArrowRightIcon, "arrow-right-icon");
 export const ArrowUpRightIcon = createIcon(LucideArrowUpRightIcon, "arrow-up-right-icon");
 export const ArrowUpIcon = createIcon(LucideArrowUpIcon, "arrow-up-icon");

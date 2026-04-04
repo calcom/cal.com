@@ -1,4 +1,27 @@
-import type { IconName } from "@calcom/ui/components/icon/icon-names";
+import type { IconProps } from "@coss/ui/icons";
+import {
+  ArrowLeftRightIcon,
+  BellIcon,
+  BuildingIcon,
+  CalendarIcon,
+  CalendarX2Icon,
+  CodeIcon,
+  CreditCardIcon,
+  GlobeIcon,
+  KeyIcon,
+  LayersIcon,
+  LockIcon,
+  PaintbrushIcon,
+  SettingsIcon,
+  ShieldCheckIcon,
+  ShieldIcon,
+  SparklesIcon,
+  TagsIcon,
+  UserIcon,
+  VenetianMaskIcon,
+  VideoIcon,
+  WebhookIcon,
+} from "@coss/ui/icons";
 import type { SettingsPermissions } from "../../SettingsPermissionsContext";
 
 type SectionVisibility = "always" | "org" | "admin";
@@ -8,7 +31,7 @@ export type OrgPermissionKey = keyof SettingsPermissions;
 export interface SettingsItem {
   titleKey: string;
   descriptionKey: string;
-  icon: IconName;
+  icon: (props: IconProps) => JSX.Element;
   href: string;
   isExternalLink?: boolean;
   keywords?: string[];
@@ -30,14 +53,14 @@ export const settingsSections: SettingsSection[] = [
       {
         titleKey: "profile",
         descriptionKey: "settings_home_profile_description",
-        icon: "user",
+        icon: UserIcon,
         href: "/settings/my-account/profile",
         keywords: ["name", "username", "bio", "avatar", "photo", "picture", "email"],
       },
       {
         titleKey: "general",
         descriptionKey: "settings_home_general_description",
-        icon: "settings",
+        icon: SettingsIcon,
         href: "/settings/my-account/general",
         keywords: [
           "timezone",
@@ -59,56 +82,56 @@ export const settingsSections: SettingsSection[] = [
       {
         titleKey: "calendars",
         descriptionKey: "settings_home_calendars_description",
-        icon: "calendar",
+        icon: CalendarIcon,
         href: "/settings/my-account/calendars",
         keywords: ["google", "outlook", "apple", "calendar sync", "connected calendars", "icloud"],
       },
       {
         titleKey: "conferencing",
         descriptionKey: "settings_home_conferencing_description",
-        icon: "video",
+        icon: VideoIcon,
         href: "/settings/my-account/conferencing",
         keywords: ["zoom", "google meet", "teams", "video", "conferencing apps", "daily", "cal video"],
       },
       {
         titleKey: "out_of_office",
         descriptionKey: "settings_home_out_of_office_description",
-        icon: "calendar-x-2",
+        icon: CalendarX2Icon,
         href: "/settings/my-account/out-of-office",
         keywords: ["vacation", "away", "redirect", "unavailable", "ooo", "holiday", "time off"],
       },
       {
         titleKey: "manage_billing",
         descriptionKey: "settings_home_billing_description",
-        icon: "credit-card",
+        icon: CreditCardIcon,
         href: "/settings/billing",
         keywords: ["subscription", "payment", "credit card", "invoice", "charges"],
       },
       {
         titleKey: "plans",
         descriptionKey: "settings_home_plans_description",
-        icon: "layers",
+        icon: LayersIcon,
         href: "/settings/billing/plans",
         keywords: ["upgrade", "downgrade", "pricing", "features", "team", "enterprise", "organization"],
       },
       {
         titleKey: "appearance",
         descriptionKey: "settings_home_appearance_description",
-        icon: "paintbrush",
+        icon: PaintbrushIcon,
         href: "/settings/my-account/appearance",
         keywords: ["theme", "dark mode", "light mode", "brand color", "booking page", "logo", "branding"],
       },
       {
         titleKey: "push_notifications",
         descriptionKey: "settings_home_push_notifications_description",
-        icon: "bell",
+        icon: BellIcon,
         href: "/settings/my-account/push-notifications",
         keywords: ["mobile", "alerts", "reminders", "notifications"],
       },
       {
         titleKey: "features",
         descriptionKey: "settings_home_features_description",
-        icon: "sparkles",
+        icon: SparklesIcon,
         href: "/settings/my-account/features",
         keywords: ["beta", "experimental", "opt-in", "new features"],
       },
@@ -121,28 +144,28 @@ export const settingsSections: SettingsSection[] = [
       {
         titleKey: "password",
         descriptionKey: "settings_home_password_description",
-        icon: "key",
+        icon: KeyIcon,
         href: "/settings/security/password",
         keywords: ["change password", "reset password", "update password"],
       },
       {
         titleKey: "impersonation",
         descriptionKey: "settings_home_impersonation_description",
-        icon: "venetian-mask",
+        icon: VenetianMaskIcon,
         href: "/settings/security/impersonation",
         keywords: ["allow impersonation", "admin access", "support access"],
       },
       {
         titleKey: "two_factor_auth",
         descriptionKey: "settings_home_2fa_description",
-        icon: "lock",
+        icon: LockIcon,
         href: "/settings/security/two-factor-auth",
         keywords: ["2fa", "authenticator", "security key", "totp", "mfa", "multi-factor"],
       },
       {
         titleKey: "compliance",
         descriptionKey: "settings_home_compliance_description",
-        icon: "shield-check",
+        icon: ShieldCheckIcon,
         href: "/settings/security/compliance",
         keywords: ["data protection"],
       },
@@ -155,28 +178,28 @@ export const settingsSections: SettingsSection[] = [
       {
         titleKey: "profile",
         descriptionKey: "settings_home_org_profile_description",
-        icon: "building",
+        icon: BuildingIcon,
         href: "/settings/organizations/profile",
         keywords: ["organization name", "org logo", "organization profile"],
       },
       {
         titleKey: "general",
         descriptionKey: "settings_home_org_general_description",
-        icon: "settings",
+        icon: SettingsIcon,
         href: "/settings/organizations/general",
         keywords: ["organization settings", "org settings"],
       },
       {
         titleKey: "guest_notifications",
         descriptionKey: "settings_home_org_guest_notifications_description",
-        icon: "bell",
+        icon: BellIcon,
         href: "/settings/organizations/guest-notifications",
         keywords: ["guest emails", "attendee notifications"],
       },
       {
         titleKey: "attributes",
         descriptionKey: "settings_home_org_attributes_description",
-        icon: "tags",
+        icon: TagsIcon,
         href: "/settings/organizations/attributes",
         keywords: ["custom attributes", "user attributes", "member attributes"],
         requiredPermission: "canViewAttributes",
@@ -184,7 +207,7 @@ export const settingsSections: SettingsSection[] = [
       {
         titleKey: "privacy_and_security",
         descriptionKey: "settings_home_org_privacy_description",
-        icon: "lock",
+        icon: LockIcon,
         href: "/settings/organizations/privacy",
         keywords: ["organization privacy", "org security"],
         requiredPermission: "canUpdateOrganization",
@@ -192,7 +215,7 @@ export const settingsSections: SettingsSection[] = [
       {
         titleKey: "manage_billing",
         descriptionKey: "settings_home_org_billing_description",
-        icon: "credit-card",
+        icon: CreditCardIcon,
         href: "/settings/organizations/billing",
         keywords: ["organization billing", "org subscription", "org payment"],
         requiredPermission: "canViewOrganizationBilling",
@@ -200,7 +223,7 @@ export const settingsSections: SettingsSection[] = [
       {
         titleKey: "roles",
         descriptionKey: "settings_home_org_roles_description",
-        icon: "shield",
+        icon: ShieldIcon,
         href: "/settings/organizations/roles",
         keywords: ["permissions", "access control", "admin", "member roles"],
         requiredPermission: "canViewRoles",
@@ -208,7 +231,7 @@ export const settingsSections: SettingsSection[] = [
       {
         titleKey: "features",
         descriptionKey: "settings_home_org_features_description",
-        icon: "sparkles",
+        icon: SparklesIcon,
         href: "/settings/organizations/features",
         keywords: ["organization features", "org beta", "org opt-in"],
         requiredPermission: "canUpdateOrganization",
@@ -216,7 +239,7 @@ export const settingsSections: SettingsSection[] = [
       {
         titleKey: "single_sign_on",
         descriptionKey: "settings_home_org_sso_description",
-        icon: "lock",
+        icon: LockIcon,
         href: "/settings/organizations/sso",
         keywords: ["sso", "saml", "okta", "azure ad", "identity provider"],
         requiredPermission: "canUpdateOrganization",
@@ -224,7 +247,7 @@ export const settingsSections: SettingsSection[] = [
       {
         titleKey: "directory_sync",
         descriptionKey: "settings_home_org_dsync_description",
-        icon: "arrow-left-right",
+        icon: ArrowLeftRightIcon,
         href: "/settings/organizations/dsync",
         keywords: ["scim", "user provisioning", "directory sync", "auto provision"],
         requiredPermission: "canUpdateOrganization",
@@ -238,21 +261,21 @@ export const settingsSections: SettingsSection[] = [
       {
         titleKey: "webhooks",
         descriptionKey: "settings_home_webhooks_description",
-        icon: "webhook",
+        icon: WebhookIcon,
         href: "/settings/developer/webhooks",
         keywords: ["integrations", "automation", "triggers", "events", "http callbacks"],
       },
       {
         titleKey: "api_keys",
         descriptionKey: "settings_home_api_keys_description",
-        icon: "code",
+        icon: CodeIcon,
         href: "/settings/developer/api-keys",
         keywords: ["developer", "access token", "api access", "api key"],
       },
       {
         titleKey: "oauth_clients",
         descriptionKey: "settings_home_oauth_description",
-        icon: "globe",
+        icon: GlobeIcon,
         href: "/settings/developer/oauth",
         keywords: ["apps", "third party", "authorization", "oauth apps"],
       },

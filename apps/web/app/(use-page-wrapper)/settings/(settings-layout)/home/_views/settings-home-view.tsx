@@ -4,8 +4,7 @@ import { useOrgBranding } from "@calcom/features/ee/organizations/context/provid
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextField } from "@calcom/ui/components/form";
-import { Icon } from "@calcom/ui/components/icon";
-import { SearchIcon } from "@coss/ui/icons";
+import { ExternalLinkIcon, SearchIcon } from "@coss/ui/icons";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useSettingsPermissions } from "../../SettingsPermissionsContext";
@@ -119,12 +118,12 @@ function SettingsItemCard({ item, t }: { item: SettingsItem; t: (key: string) =>
       {...linkProps}
       className="flex items-start gap-3 rounded-md p-2 transition-colors hover:bg-muted">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-subtle">
-        <Icon name={item.icon} className="h-5 w-5 text-emphasis" />
+        <item.icon className="h-5 w-5 text-emphasis" />
       </div>
       <div className="min-w-0">
         <p className="flex items-center gap-1.5 text-sm font-medium text-emphasis">
           {t(item.titleKey)}
-          {item.isExternalLink && <Icon name="external-link" className="h-3 w-3 text-subtle" />}
+          {item.isExternalLink && <ExternalLinkIcon className="h-3 w-3 text-subtle" />}
         </p>
         <p className="mt-0.5 text-xs leading-relaxed text-subtle">{t(item.descriptionKey)}</p>
       </div>
