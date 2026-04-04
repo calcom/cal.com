@@ -4568,6 +4568,7 @@
   "location_applied_to_hosts_other": "Location applied to {{count}} hosts",
   "booking_audit_action": {
     "created": "Booked with {{host}}",
+    "created_awaiting_host": "Booked (awaiting host)",
     "created_with_seat": "Seat Booked with {{host}}",
     "cancelled": "Cancelled",
     "rescheduled": "Rescheduled {{oldDate}} -> <0>{{newDate}}</0>",
