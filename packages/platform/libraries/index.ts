@@ -124,15 +124,27 @@ export { verifyCodeUnAuthenticated } from "@calcom/features/auth/lib/verifyCodeU
 export { sendEmailVerificationByCode } from "@calcom/features/auth/lib/verifyEmail";
 export { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 export type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
+export { CreditService } from "@calcom/features/ee/billing/credit-service";
 export { getCheckoutSessionExpiresAt } from "@calcom/features/ee/billing/helpers/getCheckoutSessionExpiresAt";
 export { StripeBillingService } from "@calcom/features/ee/billing/service/billingProvider/StripeBillingService";
 export { TeamService } from "@calcom/features/ee/teams/services/teamService";
+export { AppPushSubscriptionRepository } from "@calcom/features/notifications/app-push-subscription-repository";
+export type {
+  AppPushPlatform,
+  RegisterAppPushSubscriptionInput,
+  RemoveAppPushSubscriptionInput,
+} from "@calcom/features/notifications/app-push-subscription-schema";
+export {
+  appPushPlatformSchema,
+  registerAppPushSubscriptionSchema,
+  removeAppPushSubscriptionSchema,
+} from "@calcom/features/notifications/app-push-subscription-schema";
+export { AppPushSubscriptionService } from "@calcom/features/notifications/app-push-subscription-service";
 export { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
 export type { Tasker } from "@calcom/features/tasker/tasker";
 export { getTasker } from "@calcom/features/tasker/tasker-factory";
 export { getUsernameValidationService } from "@calcom/features/users/di/UsernameValidationService.container";
 export { validateUrlForSSRFSync } from "@calcom/lib/ssrfProtection";
+export { CreditUsageType } from "@calcom/prisma/enums";
 export { checkEmailVerificationRequired } from "@calcom/trpc/server/routers/publicViewer/checkIfUserEmailVerificationRequired.handler";
 export { verifyCode as verifyCodeAuthenticated } from "@calcom/trpc/server/routers/viewer/organizations/verifyCode.handler";
-export { CreditService } from "@calcom/features/ee/billing/credit-service";
-export { CreditUsageType } from "@calcom/prisma/enums";
