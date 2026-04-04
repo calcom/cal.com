@@ -1,9 +1,11 @@
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
 export async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
-  return await prisma.booking.findUniqueOrThrow({
+  const booking = await prisma.booking.findUnique({
     where: {
       id,
       uid,
@@ -120,6 +122,12 @@ export async function getBookingToDelete(id: number | undefined, uid: string | u
       status: true,
     },
   });
+
+  if (!booking) {
+    throw new ErrorWithCode(ErrorCode.BookingNotFound, "Booking not found");
+  }
+
+  return booking;
 }
 
 export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
