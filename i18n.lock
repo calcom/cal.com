@@ -6003,7 +6003,7 @@ checksums:
     starting: ecb6106868f7a5d0005c145872b1be85
     disable_guests: 0a08485a03ec651d886b8296493c060e
     disable_autofill_on_booking_page: 90279498e422506599fc68b1be09427c
-    disable_autofill_on_booking_page_description: 86674336def7288c9f8d1721dc050628
+    disable_autofill_on_booking_page_description: 5f879dc256e21f9b4360ed083b8adf00
     disable_guests_description: 281a1cbfe45420d8bff674beac8df8c7
     private_link: 1dd269915c46559a31ac22b426964a1d
     enable_private_url: 22e89f032746a085905134dc9b3e328d
@@ -8011,9 +8011,9 @@ checksums:
     org_admin_no_slots%7Ccontent: 268140e1f797ca6e244f4323100dedcd
     org_admin_no_slots%7Ccta: 5ba661090be09ce20c3de4065e9e6432
     organization_no_slots_notification_switch_title: 1cc2a64f54fd84bd5811feca5fc87ddd
-    organization_no_slots_notification_switch_description: 26328eb7a51cf76b0784548082304a9d
+    organization_no_slots_notification_switch_description: 824e803fc2471d53c71721f02c29e84a
     organization_disable_phone_only_sms_notifications_switch_title: 151ad3a330c942ffc46a945da0aaae8b
-    organization_disable_phone_only_sms_notifications_switch_description: 12b5cda47cc9f9a47e10599ee42b0d66
+    organization_disable_phone_only_sms_notifications_switch_description: 9223b22e0b7e70681bc08acfbc1d656d
     email_team_invite%7Csubject%7Cadded_to_org: 93e640f58f1b85bd28a57d701be296d8
     email_team_invite%7Csubject%7Cinvited_to_org: 24c4b84dc386b76c36ad163049627488
     email_team_invite%7Csubject%7Cadded_to_subteam: fd1877260436f261dccd59f7425f0f7f
@@ -8056,9 +8056,9 @@ checksums:
     send_event_details_to: 305c1c393570c2ea7fcb58c1983e615a
     schedule_tz_without_end_date: 1802c26db3bcee8ddfa41c8dc5b3bdec
     select_members: 2c6b34479a74ef7d7458f52aa02f5173
-    lock_event_types_modal_header: cfb94e5815864664fb480b56eb3bee72
-    org_delete_event_types_org_admin: d2416597d66816f58053a04798291b0d
-    org_hide_event_types_org_admin: 3404655e31e36b3e32a7fe09dde64a38
+    lock_event_types_modal_header: 0ba6aa6039d72e4187ce65686d85d803
+    org_delete_event_types_org_admin: 0755b18a14be5f8a8f7cb1a477f01ed9
+    org_hide_event_types_org_admin: dc1ed7f8324c01556fd171768c2b7ecb
     hide_org_eventtypes: 7d6c39cfa941d37d24423abb2a38d356
     delete_org_eventtypes: 8b945604d095a193869cda164e2b26d5
     lock_org_users_eventtypes: 9b540b66be8c2aada9c3ba7e30597b88
