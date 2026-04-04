@@ -109,7 +109,18 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
     // EXAMPLE - context.params: { orgSlug: 'acme', user: 'member0+owner1' }
     // EXAMPLE - context.query: { redirect: 'undefined', orgRedirection: 'undefined', user: 'member0+owner1' }
-    const originalQueryString = new URLSearchParams(context.query as Record<string, string>).toString();
+    const searchParams = new URLSearchParams();
+
+    Object.entries(context.query).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        // Correctly appends each item so they stay separate with '&'
+        value.forEach((v) => searchParams.append(key, v));
+      } else if (value) {
+        searchParams.set(key, value);
+      }
+    });
+
+    const originalQueryString = searchParams.toString();
     const destinationWithQuery = `${destinationUrl}?${originalQueryString}`;
     log.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
     return {
@@ -162,7 +173,18 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     // Redirect but don't change the URL
     const urlDestination = `/${user.profile.username}/${eventTypes[0].slug}`;
     const { query } = context;
-    const urlQuery = new URLSearchParams(encode(query));
+    const searchParams = new URLSearchParams();
+
+Object.entries(context.query).forEach(([key, value]) => {
+  if (Array.isArray(value)) {
+    // Correctly appends each item so they stay separate with '&'
+    value.forEach((v) => searchParams.append(key, v));
+  } else if (value) {
+    searchParams.set(key, value);
+  }
+});
+
+const urlQuery = searchParams.toString();
 
     return {
       redirect: {
