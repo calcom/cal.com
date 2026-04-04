@@ -157,6 +157,10 @@ class ICSFeedCalendarService implements Calendar {
         // added to cal.com as an ICS feed, it should probably not be ignored.
         // if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
 
+        // Skip cancelled events - they should not block availability
+        const status = String(vevent.getFirstPropertyValue("status") || "");
+        if (status.toUpperCase() === "CANCELLED") return;
+
         const event = new ICAL.Event(vevent);
         const title = String(vevent.getFirstPropertyValue("summary"));
         const dtstartProperty = vevent.getFirstProperty("dtstart");
@@ -282,6 +286,12 @@ class ICSFeedCalendarService implements Calendar {
 
         const finalStartISO = dayjs(event.startDate.toJSDate()).toISOString();
         const finalEndISO = dayjs(event.endDate.toJSDate()).toISOString();
+
+        // Skip events outside the requested date range
+        if (dayjs(finalStartISO).isAfter(dayjs(dateTo)) || dayjs(finalEndISO).isBefore(dayjs(dateFrom))) {
+          return;
+        }
+
         return events.push({
           start: finalStartISO,
           end: finalEndISO,
