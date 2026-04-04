@@ -131,6 +131,8 @@ export async function handleConfirmation(args: {
   traceContext: TraceContext;
   actionSource: ValidActionSource;
   actor: Actor;
+  /** ID of a booking already atomically claimed (transitioned to ACCEPTED) by the caller. */
+  claimedBookingId?: number;
 }) {
   const {
     user,
@@ -145,6 +147,7 @@ export async function handleConfirmation(args: {
     traceContext,
     actionSource,
     actor,
+    claimedBookingId,
   } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
@@ -253,19 +256,23 @@ export async function handleConfirmation(args: {
   if (recurringEventId) {
     // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
     // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
-    const unconfirmedRecurringBookings = await prisma.booking.findMany({
+    // When claimedBookingId is provided, it means the caller (e.g. confirm.handler.ts) has
+    // already atomically transitioned that booking from PENDING to ACCEPTED.
+    const recurringBookingsToConfirm = await prisma.booking.findMany({
       where: {
         recurringEventId,
-        status: BookingStatus.PENDING,
+        ...(claimedBookingId
+          ? { OR: [{ status: BookingStatus.PENDING }, { id: claimedBookingId }] }
+          : { status: BookingStatus.PENDING }),
       },
     });
 
-    acceptedBookings = unconfirmedRecurringBookings.map((booking) => ({
-      oldStatus: booking.status,
-      uid: booking.uid,
+    acceptedBookings = recurringBookingsToConfirm.map((recurringBooking) => ({
+      oldStatus: BookingStatus.PENDING,
+      uid: recurringBooking.uid,
     }));
 
-    const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) =>
+    const updateBookingsPromise = recurringBookingsToConfirm.map((recurringBooking) =>
       prisma.booking.update({
         where: {
           id: recurringBooking.id,

@@ -293,9 +293,56 @@ describe("handleConfirmation", () => {
     expect(meetingEndedCalls.length).toBeGreaterThanOrEqual(1);
   });
 
-  it("handles recurring events by updating all pending bookings", async () => {
+  it("handles recurring events with claimedBookingId by using OR clause", async () => {
     const args = makeArgs();
     (args as Record<string, unknown>).recurringEventId = "recurring-123";
+    (args as Record<string, unknown>).claimedBookingId = 1;
+
+    args.prisma.booking.findMany.mockResolvedValue([
+      { id: 1, status: BookingStatus.ACCEPTED, uid: "uid-1", metadata: {} },
+      { id: 2, status: BookingStatus.PENDING, uid: "uid-2", metadata: {} },
+    ]);
+    args.prisma.booking.update.mockResolvedValue({
+      id: 1,
+      uid: "uid-1",
+      status: BookingStatus.ACCEPTED,
+      description: null,
+      location: null,
+      attendees: [],
+      startTime: new Date("2024-01-15T10:00:00Z"),
+      endTime: new Date("2024-01-15T10:30:00Z"),
+      smsReminderNumber: null,
+      cancellationReason: null,
+      metadata: null,
+      customInputs: {},
+      title: "Test",
+      responses: {},
+      eventType: {
+        slug: "test-event",
+        bookingFields: null,
+        schedulingType: null,
+        hosts: [],
+        owner: { hideBranding: false },
+      },
+    });
+
+    await handleConfirmation(args as never);
+
+    // When claimedBookingId is provided, query should use OR clause to include the claimed booking
+    expect(args.prisma.booking.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          recurringEventId: "recurring-123",
+          OR: [{ status: BookingStatus.PENDING }, { id: 1 }],
+        }),
+      })
+    );
+  });
+
+  it("handles recurring events without claimedBookingId by querying only PENDING", async () => {
+    const args = makeArgs();
+    (args as Record<string, unknown>).recurringEventId = "recurring-123";
+    // No claimedBookingId — e.g. called from handlePaymentSuccess or Stripe webhook
 
     args.prisma.booking.findMany.mockResolvedValue([
       { id: 1, status: BookingStatus.PENDING, uid: "uid-1", metadata: {} },
@@ -327,9 +374,13 @@ describe("handleConfirmation", () => {
 
     await handleConfirmation(args as never);
 
+    // Without claimedBookingId, query should only filter by PENDING status
     expect(args.prisma.booking.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({ recurringEventId: "recurring-123" }),
+        where: expect.objectContaining({
+          recurringEventId: "recurring-123",
+          status: BookingStatus.PENDING,
+        }),
       })
     );
   });

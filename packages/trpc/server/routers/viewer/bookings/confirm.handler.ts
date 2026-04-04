@@ -257,17 +257,21 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
   }
 
+  // Atomically claim the booking to prevent duplicate calendar events from concurrent
+  // confirmation requests. Only the first request transitions PENDING → ACCEPTED (count=1);
+  // subsequent requests get count=0 and are rejected.
+  if (confirmed) {
+    const claimResult = await prisma.booking.updateMany({
+      where: { id: bookingId, status: BookingStatus.PENDING },
+      data: { status: BookingStatus.ACCEPTED },
+    });
+    if (claimResult.count === 0) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
+    }
+  }
+
   // If booking requires payment and is not paid, we don't allow confirmation
   if (confirmed && booking.payment.length > 0 && !booking.paid) {
-    await prisma.booking.update({
-      where: {
-        id: bookingId,
-      },
-      data: {
-        status: BookingStatus.ACCEPTED,
-      },
-    });
-
     return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
   }
 
@@ -423,34 +427,48 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   }
 
   if (confirmed) {
-    const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
-    const userWithCredentials = {
-      ...user,
-      credentials,
-    };
-    const allCredentials = await getAllCredentialsIncludeServiceAccountKey(userWithCredentials, {
-      ...booking.eventType,
-      metadata: booking.eventType?.metadata as EventTypeMetadata,
-    });
-    const conferenceCredentialId = getLocationValueForDB(
-      booking.location ?? "",
-      (booking.eventType?.locations as LocationObject[]) || []
-    );
-    evt.conferenceCredentialId = conferenceCredentialId.conferenceCredentialId;
+    // Wrap post-claim processing in try-catch: if anything after the atomic claim fails
+    // (e.g. credential fetching, recurring event validation), roll back the booking status
+    // to PENDING so the user can retry instead of being stuck with an ACCEPTED booking
+    // that has no calendar events or confirmation emails.
+    try {
+      const credentials = await getUsersCredentialsIncludeServiceAccountKey(user);
+      const userWithCredentials = {
+        ...user,
+        credentials,
+      };
+      const allCredentials = await getAllCredentialsIncludeServiceAccountKey(userWithCredentials, {
+        ...booking.eventType,
+        metadata: booking.eventType?.metadata as EventTypeMetadata,
+      });
+      const conferenceCredentialId = getLocationValueForDB(
+        booking.location ?? "",
+        (booking.eventType?.locations as LocationObject[]) || []
+      );
+      evt.conferenceCredentialId = conferenceCredentialId.conferenceCredentialId;
 
-    await handleConfirmation({
-      user: { ...user, credentials: allCredentials },
-      evt,
-      recurringEventId,
-      prisma,
-      bookingId,
-      booking,
-      emailsEnabled,
-      platformClientParams,
-      traceContext,
-      actionSource,
-      actor,
-    });
+      await handleConfirmation({
+        user: { ...user, credentials: allCredentials },
+        evt,
+        recurringEventId,
+        prisma,
+        bookingId,
+        booking,
+        emailsEnabled,
+        platformClientParams,
+        traceContext,
+        actionSource,
+        actor,
+        claimedBookingId: bookingId,
+      });
+    } catch (error) {
+      // Roll back: revert the booking from ACCEPTED back to PENDING so it can be retried.
+      await prisma.booking.updateMany({
+        where: { id: bookingId, status: BookingStatus.ACCEPTED },
+        data: { status: BookingStatus.PENDING },
+      });
+      throw error;
+    }
   } else {
     evt.rejectionReason = rejectionReason;
     let rejectedBookings: {
