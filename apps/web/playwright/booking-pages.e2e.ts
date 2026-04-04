@@ -1,16 +1,3 @@
-import { test, todo } from "./lib/fixtures";
-import {
-  bookFirstEvent,
-  bookOptinEvent,
-  bookTimeSlot,
-  confirmBooking,
-  confirmReschedule,
-  expectSlotNotAllowedToBook,
-  selectFirstAvailableTimeSlotNextMonth,
-  testEmail,
-  testName,
-  cancelBookingFromBookingsList,
-} from "./lib/testUtils";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { randomString } from "@calcom/lib/random";
@@ -18,6 +5,19 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
+import { test, todo } from "./lib/fixtures";
+import {
+  bookFirstEvent,
+  bookOptinEvent,
+  bookTimeSlot,
+  cancelBookingFromBookingsList,
+  confirmBooking,
+  confirmReschedule,
+  expectSlotNotAllowedToBook,
+  selectFirstAvailableTimeSlotNextMonth,
+  testEmail,
+  testName,
+} from "./lib/testUtils";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
 test.describe.configure({ mode: "parallel" });
@@ -486,8 +486,6 @@ test.describe("Booking on different layouts", () => {
 
     await page.click('[data-testid="toggle-group-item-column_view"]');
 
-    // Use the standard helper to select an available time slot next month
-    // This is more robust than manually clicking incrementMonth and reloading
     await selectFirstAvailableTimeSlotNextMonth(page);
 
     // Fill what is this meeting about? name email and notes
