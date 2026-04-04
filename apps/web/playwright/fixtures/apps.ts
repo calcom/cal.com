@@ -127,8 +127,11 @@ export function createAppsFixture(page: Page) {
     activeApp: async (app: string) => {
       await page.locator(`[data-testid='${app}-app-switch']`).click();
     },
-    verifyAppsInfo: async (activeApps: number) => {
-      await expect(page.locator(`text=1 apps, ${activeApps} active`)).toBeVisible();
+    verifyAppsInfo: async (installedApps: number, activeApps: number) => {
+      const appsLabel = installedApps === 1 ? "app" : "apps";
+      await expect(
+        page.locator(`text=${installedApps} ${appsLabel}, ${activeApps} active`)
+      ).toBeVisible();
     },
     verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
       await page.goto(`event-types/${eventTypeId}?tabName=apps`);
