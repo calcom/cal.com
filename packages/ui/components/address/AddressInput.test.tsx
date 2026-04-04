@@ -1,8 +1,12 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import AddressInput from "./AddressInput";
 
 describe("AddressInput", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it("renders with placeholder", () => {
     render(<AddressInput value="" onChange={vi.fn()} placeholder="Enter address" />);
     expect(screen.getByPlaceholderText("Enter address")).toBeInTheDocument();
