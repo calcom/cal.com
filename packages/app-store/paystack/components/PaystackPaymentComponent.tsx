@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { convertFromSmallestToPresentableCurrencyUnit } from "@calcom/lib/currencyConversions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Payment } from "@calcom/prisma/client";
 import { Button } from "@calcom/ui/components/button";
@@ -40,7 +41,7 @@ export default function PaystackPaymentComponent({
   const formattedAmount = new Intl.NumberFormat("en", {
     style: "currency",
     currency: currency.toUpperCase(),
-  }).format(amount / 100);
+  }).format(convertFromSmallestToPresentableCurrencyUnit(amount, currency));
 
   const handlePayment = async () => {
     setStatus("loading");

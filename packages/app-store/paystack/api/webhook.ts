@@ -108,8 +108,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    // Idempotency: if already successful, skip
-    if (payment.success) {
+    // Atomic idempotency: only proceed if we can flip success from false to true
+    const updated = await prisma.payment.updateMany({
+      where: { id: payment.id, success: false },
+      data: { success: true },
+    });
+
+    if (updated.count === 0) {
+      // Another request already processed this payment
       res.status(200).json({ message: "Payment already processed" });
       return;
     }
@@ -119,6 +125,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const verification = await client.verifyTransaction(reference);
 
     if (verification.status !== "success") {
+      // Rollback the success flag since verification failed
+      await prisma.payment.update({
+        where: { id: payment.id },
+        data: { success: false },
+      });
       log.error("Paystack verification failed", { reference, status: verification.status });
       throw new HttpCode({ statusCode: 400, message: "Payment verification failed" });
     }

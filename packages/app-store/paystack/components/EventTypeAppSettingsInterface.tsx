@@ -143,7 +143,10 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                     defaultValue={getAppData("refundDaysCount")}
                     required={getAppData("refundPolicy") === RefundPolicy.DAYS}
                     value={getAppData("refundDaysCount") ?? ""}
-                    onChange={(e) => setAppData("refundDaysCount", parseInt(e.currentTarget.value))}
+                    onChange={(e) => {
+                      const parsed = parseInt(e.currentTarget.value);
+                      setAppData("refundDaysCount", Number.isNaN(parsed) ? undefined : parsed);
+                    }}
                   />
                   <Select
                     options={dayTypeOptions}

@@ -14,15 +14,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { teamId } = req.query;
   const teamIdNumber = teamId ? Number(teamId) : null;
 
+  if (teamIdNumber !== null && Number.isNaN(teamIdNumber)) {
+    return res.status(400).json({ message: "Invalid teamId" });
+  }
+
   await throwIfNotHaveAdminAccessToTeam({ teamId: teamIdNumber, userId: req.session.user.id });
-  const installForObject = teamIdNumber ? { teamId: teamIdNumber } : { userId: req.session.user.id };
 
   const appType = config.type;
+  const ownerFilter = teamIdNumber ? { teamId: teamIdNumber } : { userId: req.session.user.id };
+
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
         type: appType,
-        ...installForObject,
+        ...ownerFilter,
       },
     });
     if (alreadyInstalled) {
@@ -33,10 +38,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         type: appType,
         key: {},
         appId: "paystack",
-        ...(teamIdNumber ? { teamId: teamIdNumber } : { userId: req.session.user.id }),
+        ...ownerFilter,
       },
     });
   } catch (error: unknown) {
+    if (error instanceof Error && error.message === "Already installed") {
+      return res.status(409).json({ message: error.message });
+    }
     const httpError = getServerErrorFromUnknown(error);
     return res.status(httpError.statusCode).json({ message: httpError.message });
   }
