@@ -1,6 +1,5 @@
 import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSideProps } from "next";
-import { encode } from "node:querystring";
 import type { z } from "zod";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -170,7 +169,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   if (eventTypes.length === 1 && context.query.redirect !== "false") {
     // Redirect but don't change the URL
     const urlDestination = `/${user.profile.username}/${eventTypes[0].slug}`;
-    const { query } = context;
     const searchParams = new URLSearchParams();
 
 Object.entries(context.query).forEach(([key, value]) => {
