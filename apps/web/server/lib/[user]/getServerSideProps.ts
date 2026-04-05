@@ -110,10 +110,8 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     // EXAMPLE - context.params: { orgSlug: 'acme', user: 'member0+owner1' }
     // EXAMPLE - context.query: { redirect: 'undefined', orgRedirection: 'undefined', user: 'member0+owner1' }
     const searchParams = new URLSearchParams();
-
     Object.entries(context.query).forEach(([key, value]) => {
       if (Array.isArray(value)) {
-        // Correctly appends each item so they stay separate with '&'
         value.forEach((v) => searchParams.append(key, v));
       } else if (value !== undefined && value !== null) {
         searchParams.append(key, value);
@@ -177,7 +175,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
 Object.entries(context.query).forEach(([key, value]) => {
   if (Array.isArray(value)) {
-    // Correctly appends each item so they stay separate with '&'
     value.forEach((v) => searchParams.append(key, v));
   } else if (value !== undefined && value !== null) {
     searchParams.append(key, value);
