@@ -85,7 +85,7 @@ const CheckedHostField = ({
   const { t } = useLocale();
   const inviteMutation = trpc.viewer.teams.inviteMember.useMutation();
 
-  // Handle inviting new members by email
+  // Handle inviting new members by email with concurrency limit
   const handleEmailInvite = useCallback(
     async (emails: string[]): Promise<{ success: string[]; failed: string[] }> => {
       if (!teamId || emails.length === 0) {
@@ -95,20 +95,39 @@ const CheckedHostField = ({
       const success: string[] = [];
       const failed: string[] = [];
 
-      // Invite each email
-      for (const email of emails) {
-        try {
-          await inviteMutation.mutateAsync({
-            teamId,
-            usernameOrEmail: email,
-            role: MembershipRole.MEMBER,
-            language: "en",
-            creationSource: CreationSource.WEBAPP,
-          });
-          success.push(email);
-        } catch (error) {
-          failed.push(email);
-        }
+      // Process emails with concurrency limit to avoid rate limiting
+      const CONCURRENCY_LIMIT = 3;
+      const batches: string[][] = [];
+      
+      for (let i = 0; i < emails.length; i += CONCURRENCY_LIMIT) {
+        batches.push(emails.slice(i, i + CONCURRENCY_LIMIT));
+      }
+
+      for (const batch of batches) {
+        const results = await Promise.all(
+          batch.map(async (email) => {
+            try {
+              await inviteMutation.mutateAsync({
+                teamId,
+                usernameOrEmail: email,
+                role: MembershipRole.MEMBER,
+                language: "en",
+                creationSource: CreationSource.WEBAPP,
+              });
+              return { email, success: true };
+            } catch (error) {
+              return { email, success: false };
+            }
+          })
+        );
+
+        results.forEach((result) => {
+          if (result.success) {
+            success.push(result.email);
+          } else {
+            failed.push(result.email);
+          }
+        });
       }
 
       return { success, failed };
