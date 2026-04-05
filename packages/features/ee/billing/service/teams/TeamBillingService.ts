@@ -22,6 +22,8 @@ import {
   type TeamBillingInput,
   TeamBillingPublishResponseStatus,
 } from "./ITeamBillingService";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { CreditService } from "../../credit-service"
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
 
@@ -133,6 +135,26 @@ export class TeamBillingService implements ITeamBillingService {
   }
   async downgrade() {
     try {
+      const creditService = new CreditService();
+
+      const owner = await prisma.membership.findFirst({
+        where : {
+           teamId : this.team.id,
+           role : MembershipRole.OWNER
+        },
+      });
+
+      if(!owner) {
+        throw new Error(`No owner found for team ${this.team.id}`);
+      }
+
+      await creditService.moveCreditsFromTeamToUser({
+        teamId : this.team.id,
+        userId : owner.userId,
+      });
+      
+
+
       const { mergeMetadata } = getMetadataHelpers(teamPaymentMetadataSchema, this.team.metadata);
       const metadata = mergeMetadata({
         paymentId: undefined,
