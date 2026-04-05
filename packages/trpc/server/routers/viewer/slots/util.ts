@@ -3,6 +3,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getAggregatedAvailability } from "@calcom/features/availability/lib/getAggregatedAvailability/getAggregatedAvailability";
+import { findUsersForAvailabilityCheck } from "@calcom/features/availability/lib/findUsersForAvailabilityCheck";
 import type {
   CurrentSeats,
   EventType,
@@ -883,6 +884,31 @@ export class AvailableSlotsService {
     const usersWithCredentials = this.getUsersWithCredentials({
       hosts,
     });
+        // When rescheduling, also consider attendees' availability if they are platform users.
+        // This ensures guests' calendars are checked, not just the organizer's.
+        if (input.rescheduleUid) {
+          const rescheduleBookingInfo = await this.dependencies.bookingRepo.findOriginalRescheduledBookingUserId({
+            rescheduleUid: input.rescheduleUid,
+          });
+          if (rescheduleBookingInfo?.attendees?.length) {
+            const attendeeEmails = rescheduleBookingInfo.attendees.map((a) => a.email);
+            for (const email of attendeeEmails) {
+              const attendeeUser = await findUsersForAvailabilityCheck({
+                where: { email: { equals: email, mode: "insensitive" } },
+              });
+              if (attendeeUser) {
+                const alreadyIncluded = usersWithCredentials.some((u) => u.id === attendeeUser.id);
+                if (!alreadyIncluded) {
+                  usersWithCredentials.push({
+                    ...attendeeUser,
+                    isFixed: undefined,
+                    groupId: null,
+                  });
+                }
+              }
+            }
+          }
+        }
 
     loggerWithEventDetails.debug("Using users", {
       usersWithCredentials: usersWithCredentials.map((user) => user.email),
