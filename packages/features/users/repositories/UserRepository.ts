@@ -1519,6 +1519,7 @@ export class UserRepository {
   /**
    * Find Cal.com users by their primary or verified secondary email addresses.
    * Used to look up guest availability during rescheduling.
+   * Reuses findVerifiedUsersByEmailsRaw to avoid duplicating the verified email lookup SQL.
    */
   async findByEmails({
     emails,
@@ -1527,22 +1528,12 @@ export class UserRepository {
   }): Promise<Array<{ id: number; email: string; matchedEmail: string }>> {
     if (!emails.length) return [];
     const normalizedEmails = emails.map((e) => e.toLowerCase());
-    const emailListSql = Prisma.join(normalizedEmails.map((e) => Prisma.sql`${e}`));
-    return this.prismaClient.$queryRaw<Array<{ id: number; email: string; matchedEmail: string }>>(Prisma.sql`
-      SELECT u."id", u."email", u."email" AS "matchedEmail"
-      FROM "public"."users" AS u
-      WHERE u."email" IN (${emailListSql})
-        AND u."emailVerified" IS NOT NULL
-        AND u."locked" = FALSE
-      UNION
-      SELECT u."id", u."email", t0."email" AS "matchedEmail"
-      FROM "public"."users" AS u
-      INNER JOIN "public"."SecondaryEmail" AS t0
-        ON t0."userId" = u."id"
-      WHERE t0."email" IN (${emailListSql})
-        AND t0."emailVerified" IS NOT NULL
-        AND u."locked" = FALSE
-    `);
+    const users = await this.findVerifiedUsersByEmailsRaw(normalizedEmails);
+    return users.map((u) => ({
+      id: u.id,
+      email: u.email,
+      matchedEmail: u.matchedEmail,
+    }));
   }
 
 }
