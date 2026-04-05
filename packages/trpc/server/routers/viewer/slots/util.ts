@@ -129,6 +129,67 @@ function withSlotsCache(
   };
 }
 
+export interface GuestBusyTimesDeps {
+  bookingRepo: Pick<BookingRepository, "findByUidIncludeEventType" | "findAcceptedByUserIdsOrEmails">;
+  userRepo: Pick<UserRepository, "findByEmails">;
+}
+
+/**
+ * When rescheduling, look up the original booking attendees (guests),
+ * check if any are Cal.com users, and return their accepted bookings
+ * as busy times so the host cannot double-book them.
+ */
+export async function getGuestBusyTimesForReschedule({
+  rescheduleUid,
+  startDate,
+  endDate,
+  hostEmails,
+  bookingRepo,
+  userRepo,
+}: {
+  rescheduleUid: string;
+  startDate: Date;
+  endDate: Date;
+  hostEmails: string[];
+} & GuestBusyTimesDeps): Promise<EventBusyDetails[]> {
+  try {
+    const booking = await bookingRepo.findByUidIncludeEventType({
+      bookingUid: rescheduleUid,
+    });
+    if (!booking?.attendees?.length) return [];
+
+    const hostEmailsLower = new Set(hostEmails.map((e) => e.toLowerCase()));
+    const guestEmails = booking.attendees
+      .map((a) => a.email)
+      .filter((email) => !hostEmailsLower.has(email.toLowerCase()));
+    if (!guestEmails.length) return [];
+
+    const calUsers = await userRepo.findByEmails({ emails: guestEmails });
+    if (!calUsers.length) return [];
+
+    const allEmails = [...new Set(calUsers.flatMap((u) => [u.email, u.matchedEmail]))];
+
+    const guestBookings = await bookingRepo.findAcceptedByUserIdsOrEmails({
+      userIds: calUsers.map((u) => u.id),
+      emails: allEmails,
+      startDate,
+      endDate,
+      excludeUid: rescheduleUid,
+    });
+
+    return guestBookings
+      .filter((b) => b.startTime && b.endTime)
+      .map((b) => ({
+        start: b.startTime.toISOString(),
+        end: b.endTime.toISOString(),
+        source: "guest-availability",
+      }));
+  } catch {
+    log.warn("Failed to fetch guest busy times for reschedule");
+    return [];
+  }
+}
+
 export class AvailableSlotsService {
   constructor(public readonly dependencies: IAvailableSlotsService) {}
 
@@ -1003,6 +1064,20 @@ export class AvailableSlotsService {
     const enrichUsersWithData = withReporting(_enrichUsersWithData.bind(this), "enrichUsersWithData");
     const users = enrichUsersWithData();
 
+    // Fetch guest busy times when rescheduling to avoid double-booking guests
+    let guestBusyTimes: EventBusyDetails[] = [];
+    if (input.rescheduleUid) {
+      const hostEmails = usersWithCredentials.map((u) => u.email);
+      guestBusyTimes = await getGuestBusyTimesForReschedule({
+        rescheduleUid: input.rescheduleUid,
+        startDate: startTime.toDate(),
+        endDate: endTime.toDate(),
+        hostEmails,
+        bookingRepo: this.dependencies.bookingRepo,
+        userRepo: this.dependencies.userRepo,
+      });
+    }
+
     const premappedUsersAvailability = await this.dependencies.userAvailabilityService.getUsersAvailability({
       users,
       query: {
@@ -1026,6 +1101,7 @@ export class AvailableSlotsService {
         eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
         teamBookingLimits: teamBookingLimitsMap,
         teamForBookingLimits: teamForBookingLimits,
+        guestBusyTimes,
       },
     });
     /* We get all users working hours and busy slots */
