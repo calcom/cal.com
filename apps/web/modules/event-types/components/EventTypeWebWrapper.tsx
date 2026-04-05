@@ -519,14 +519,18 @@ const EventTypeWeb = ({
           isOpen={isOpenUnsavedChangesDialog}
           setIsOpen={setIsOpenUnsavedChangesDialog}
           onDiscard={() => {
-            formIsDirtyRef.current = false;
-            if (unsavedChangesPendingUrl.current) {
-              appRouter.push(unsavedChangesPendingUrl.current);
+            const pendingUrl = unsavedChangesPendingUrl.current;
+            unsavedChangesPendingUrl.current = null;
+            if (pendingUrl) {
+              formIsDirtyRef.current = false;
+              appRouter.push(pendingUrl);
             } else if (hadPriorHistoryRef.current) {
               // Back button: go back past the extra history entry and the current page
+              formIsDirtyRef.current = false;
               window.history.go(-2);
             } else {
               // Direct entry (no prior history): navigate to parent page
+              formIsDirtyRef.current = false;
               appRouter.push("/event-types");
             }
           }}
