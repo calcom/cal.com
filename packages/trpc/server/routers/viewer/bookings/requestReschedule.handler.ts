@@ -120,7 +120,7 @@ export const requestRescheduleHandler = async ({ ctx, input, source, impersonate
           userId: user.id,
           teamId,
           permission: "booking.update",
-          fallbackRoles: ["ADMIN"],
+          fallbackRoles: ["ADMIN", "OWNER"],
         })
       )
     );
