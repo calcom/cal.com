@@ -911,7 +911,10 @@ export class AvailableSlotsService {
         }
 
     loggerWithEventDetails.debug("Using users", {
-      usersWithCredentials: usersWithCredentials.map((user) => user.email),
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      userCount: usersWithCredentials.length,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      userIds: usersWithCredentials.map((user) => user.id),
     });
 
     const durationToUse = input.duration || 0;
