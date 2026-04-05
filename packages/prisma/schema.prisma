@@ -454,6 +454,9 @@ model User {
   // participate in SEO indexing or not
   allowSEOIndexing Boolean? @default(true)
 
+  // enable live captions (real-time transcription) during Cal Video calls for deaf and hard of hearing users
+  liveCaptionsEnabled Boolean @default(false)
+
   // receive monthly digest email for teams or not
   receiveMonthlyDigestEmail       Boolean? @default(true)
   // require email verification when someone books using your email
