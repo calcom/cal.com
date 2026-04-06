@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
 import getAllUserBookings from "@calcom/features/bookings/lib/getAllUserBookings";
+import { sanitizeOrganizerEmailFields } from "@calcom/features/bookings/lib/sanitize-organizer-email-fields";
 import { isTextFilterValue } from "@calcom/features/data-table/lib/utils";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
 import type { DB } from "@calcom/kysely";
@@ -771,6 +772,28 @@ export async function getBookings({
         if (rescheduledBooking) {
           rescheduler = rescheduledBooking.rescheduledBy;
         }
+      }
+
+      // Filter out organizer information if hideOrganizerEmail is true
+      const isHost = checkIfUserIsHost(user.id, booking);
+      const isTeamMember =
+        !!booking.eventType?.teamId && teamIdsWithBookingPermission.includes(booking.eventType.teamId);
+      const canViewHiddenData = isHost || isTeamMember;
+      if (booking.eventType?.hideOrganizerEmail && !canViewHiddenData) {
+        const sanitized = sanitizeOrganizerEmailFields({
+          organizerEmails: [booking.userPrimaryEmail, booking.user?.email],
+          cancelledBy: booking.cancelledBy,
+          rescheduledBy: booking.rescheduledBy,
+        });
+        booking.cancelledBy = sanitized.cancelledBy;
+        booking.rescheduledBy = sanitized.rescheduledBy;
+
+        const sanitizedRescheduler = sanitizeOrganizerEmailFields({
+          organizerEmails: [booking.userPrimaryEmail, booking.user?.email],
+          cancelledBy: null,
+          rescheduledBy: rescheduler,
+        });
+        rescheduler = sanitizedRescheduler.rescheduledBy;
       }
 
       return {

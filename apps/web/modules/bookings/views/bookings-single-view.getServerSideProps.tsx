@@ -1,11 +1,8 @@
-import { createRouterCaller } from "app/_trpc/context";
-import type { GetServerSidePropsContext } from "next";
-import { z } from "zod";
-
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/app-store/zod-utils";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
+import { sanitizeOrganizerEmailFields } from "@calcom/features/bookings/lib/sanitize-organizer-email-fields";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import { isTeamMember } from "@calcom/features/ee/teams/lib/queries";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
@@ -17,8 +14,10 @@ import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUi
 import prisma from "@calcom/prisma";
 import { customInputSchema } from "@calcom/prisma/zod-utils";
 import { meRouter } from "@calcom/trpc/server/routers/viewer/me/_router";
-
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
+import { createRouterCaller } from "app/_trpc/context";
+import type { GetServerSidePropsContext } from "next";
+import { z } from "zod";
 
 const stringToBoolean = z
   .string()
@@ -235,12 +234,29 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const internalNotes = await getInternalNotePresets(eventType.team?.id ?? eventType.parent?.teamId ?? null);
 
   // Filter out organizer information if hideOrganizerEmail is true
+  const organizerEmails = [bookingInfo.userPrimaryEmail, bookingInfo.user?.email];
+
   const sanitizedPreviousBooking =
-    eventType.hideOrganizerEmail &&
-    previousBooking &&
-    previousBooking.rescheduledBy === bookingInfo.user?.email
-      ? { ...previousBooking, rescheduledBy: bookingInfo.user?.name }
+    eventType.hideOrganizerEmail && !canViewHiddenData && previousBooking
+      ? {
+          ...previousBooking,
+          ...sanitizeOrganizerEmailFields({
+            organizerEmails,
+            cancelledBy: null,
+            rescheduledBy: previousBooking.rescheduledBy,
+          }),
+        }
       : previousBooking;
+
+  if (eventType.hideOrganizerEmail && !canViewHiddenData) {
+    const sanitized = sanitizeOrganizerEmailFields({
+      organizerEmails,
+      cancelledBy: bookingInfo.cancelledBy,
+      rescheduledBy: bookingInfo.rescheduledBy,
+    });
+    bookingInfo.cancelledBy = sanitized.cancelledBy;
+    bookingInfo.rescheduledBy = sanitized.rescheduledBy;
+  }
 
   const isPlatformBooking = eventType.users[0]?.isPlatformManaged || eventType.team?.createdByOAuthClientId;
 
