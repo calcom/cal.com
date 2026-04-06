@@ -1,15 +1,16 @@
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Expose, Type } from "class-transformer";
+import { IsBoolean, IsEnum, IsOptional, ValidateNested } from "class-validator";
+import { Locales } from "@/lib/enums/locales";
 import {
   HOST,
   RECIPIENT_TYPES,
-  RecipientType,
   REMINDER,
+  RecipientType,
   TEMPLATES,
   TemplateType,
 } from "@/modules/workflows/inputs/workflow-step.input";
 import { HOUR, TIME_UNITS, TimeUnitType } from "@/modules/workflows/inputs/workflow-trigger.input";
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Expose, Type } from "class-transformer";
-import { IsBoolean, IsOptional, ValidateNested } from "class-validator";
 
 export class WorkflowMessageOutputDto {
   @ApiProperty({
@@ -47,7 +48,10 @@ export class BaseWorkflowStepOutputDto {
   @Expose()
   recipient!: RecipientType;
 
-  @ApiPropertyOptional({ description: "Verified email address if action is EMAIL_ADDRESS", example: "notifications@example.com" })
+  @ApiPropertyOptional({
+    description: "Verified email address if action is EMAIL_ADDRESS",
+    example: "notifications@example.com",
+  })
   @Expose()
   email?: string;
 
@@ -89,6 +93,28 @@ export class BaseWorkflowStepOutputDto {
   @ValidateNested()
   @Type(() => WorkflowMessageOutputDto)
   message!: WorkflowMessageOutputDto;
+
+  @ApiPropertyOptional({
+    description:
+      "Whether auto-translation of the workflow step content for attendees is enabled. Only available for organizations.",
+    example: false,
+    default: false,
+    type: Boolean,
+  })
+  @Expose()
+  @IsOptional()
+  @IsBoolean()
+  autoTranslateEnabled?: boolean;
+
+  @ApiPropertyOptional({
+    description: "The source locale of the workflow step content used for auto-translation (e.g. 'en').",
+    example: Locales.EN,
+    enum: Locales,
+  })
+  @Expose()
+  @IsEnum(Locales)
+  @IsOptional()
+  sourceLocale?: Locales | null;
 }
 
 export class WorkflowTriggerOffsetOutputDto {
@@ -125,11 +151,21 @@ export class BaseWorkflowOutput {
   @Expose()
   teamId?: number;
 
-  @ApiPropertyOptional({ description: "Timestamp of creation", example: "2024-05-12T10:00:00.000Z", type: String, format: "date-time" })
+  @ApiPropertyOptional({
+    description: "Timestamp of creation",
+    example: "2024-05-12T10:00:00.000Z",
+    type: String,
+    format: "date-time",
+  })
   @Expose()
   createdAt?: Date | string;
 
-  @ApiPropertyOptional({ description: "Timestamp of last update", example: "2024-05-12T11:30:00.000Z", type: String, format: "date-time" })
+  @ApiPropertyOptional({
+    description: "Timestamp of last update",
+    example: "2024-05-12T11:30:00.000Z",
+    type: String,
+    format: "date-time",
+  })
   @Expose()
   updatedAt?: Date | string;
 }

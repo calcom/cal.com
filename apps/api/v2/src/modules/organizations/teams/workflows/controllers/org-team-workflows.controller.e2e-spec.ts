@@ -49,6 +49,7 @@ import {
   OnFormSubmittedTriggerDto,
 } from "@/modules/workflows/inputs/workflow-trigger.input";
 import {
+  EventTypeWorkflowStepOutputDto,
   GetEventTypeWorkflowOutput,
   GetEventTypeWorkflowsOutput,
 } from "@/modules/workflows/outputs/event-type-workflow.output";
@@ -377,10 +378,65 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           expect(responseBody.data.trigger?.offset?.value).toEqual(trigger.offset.value);
           expect(responseBody.data.trigger?.offset?.unit).toEqual(trigger.offset.unit);
 
+          // auto-translate defaults to false when not provided
+          for (const step of responseBody.data.steps) {
+            expect(step.autoTranslateEnabled).toEqual(false);
+          }
+
           createdWorkflowId = responseBody.data.id;
           createdWorkflow = responseBody.data;
           expect(responseBody.data.type).toEqual("event-type");
         });
+    });
+
+    it("should create a workflow with autoTranslateEnabled and sourceLocale on steps", async () => {
+      const workflowWithAutoTranslate = {
+        name: `E2E Auto-Translate Workflow ${randomString()}`,
+        activation: {
+          isActiveOnAllEventTypes: true,
+          activeOnEventTypeIds: [],
+        },
+        trigger: {
+          type: BEFORE_EVENT,
+          offset: {
+            value: 1,
+            unit: DAY,
+          },
+        },
+        steps: [
+          {
+            stepNumber: 1,
+            action: "email_attendee",
+            recipient: ATTENDEE,
+            template: REMINDER,
+            sender: "CalcomAutoTranslate",
+            includeCalendarEvent: true,
+            autoTranslateEnabled: true,
+            sourceLocale: "en",
+            message: {
+              subject: "Upcoming: {EVENT_NAME}",
+              html: "<p>Reminder for your event {EVENT_NAME}.</p>",
+            },
+          },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(basePath)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send(workflowWithAutoTranslate)
+        .expect(201);
+
+      const responseBody: GetEventTypeWorkflowOutput = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data.steps).toHaveLength(1);
+
+      const step = responseBody.data.steps[0];
+      expect(step.autoTranslateEnabled).toEqual(true);
+      expect(step.sourceLocale).toEqual("en");
+
+      // cleanup
+      await workflowsRepositoryFixture.delete(responseBody.data.id);
     });
 
     it("should not create a new routing form workflow with trigger not FORM_SUBMITTED", async () => {
@@ -879,6 +935,84 @@ describe("OrganizationsTeamsWorkflowsController (E2E)", () => {
           expect(responseBody.data.trigger?.type).toEqual(trigger.type);
           expect(responseBody.data.type).toEqual("routing-form");
         });
+    });
+
+    it("should update a workflow step to enable autoTranslateEnabled", async () => {
+      const createRes = await request(app.getHttpServer())
+        .post(basePath)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({
+          name: `Workflow AutoTranslate Update ${randomString()}`,
+          activation: {
+            isActiveOnAllEventTypes: true,
+            activeOnEventTypeIds: [],
+          },
+          trigger: {
+            type: BEFORE_EVENT,
+            offset: {
+              value: 1,
+              unit: DAY,
+            },
+          },
+          steps: [
+            {
+              stepNumber: 1,
+              action: "email_attendee",
+              recipient: ATTENDEE,
+              template: REMINDER,
+              sender: "CalcomE2EStep1",
+              includeCalendarEvent: true,
+              message: {
+                subject: "Upcoming: {EVENT_NAME}",
+                html: "<p>Reminder for your event {EVENT_NAME}.</p>",
+              },
+            },
+          ],
+        })
+        .expect(201);
+
+      const workflowId = createRes.body.data.id;
+      const step1 = createRes.body.data.steps.find(
+        (step: EventTypeWorkflowStepOutputDto) => step.stepNumber === 1
+      );
+      expect(step1).toBeDefined();
+
+      const partialUpdateDto = {
+        steps: [
+          {
+            stepNumber: 1,
+            id: step1.id,
+            action: "email_attendee" as const,
+            recipient: ATTENDEE,
+            template: REMINDER,
+            sender: "CalcomE2EStep1",
+            includeCalendarEvent: true,
+            autoTranslateEnabled: true,
+            sourceLocale: "fr",
+            message: {
+              subject: "Upcoming: {EVENT_NAME}",
+              html: "<p>Reminder for your event {EVENT_NAME}.</p>",
+            },
+          },
+        ],
+      };
+
+      const response = await request(app.getHttpServer())
+        .patch(`${basePath}/${workflowId}`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send(partialUpdateDto)
+        .expect(200);
+
+      const responseBody: GetEventTypeWorkflowOutput = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+
+      const updatedStep = responseBody.data.steps.find((step) => step.id === step1.id);
+      expect(updatedStep).toBeDefined();
+      expect(updatedStep?.autoTranslateEnabled).toEqual(true);
+      expect(updatedStep?.sourceLocale).toEqual("fr");
+
+      await workflowsRepositoryFixture.delete(workflowId);
     });
 
     it("should return 404 for updating a non-existent workflow ID", async () => {

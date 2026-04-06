@@ -1,8 +1,8 @@
+import { WorkflowActions, WorkflowTemplates } from "@calcom/platform-libraries";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsNumber, IsBoolean, IsString, ValidateNested, IsIn, IsOptional } from "class-validator";
-
-import { WorkflowActions, WorkflowTemplates } from "@calcom/platform-libraries";
+import { IsBoolean, IsEnum, IsIn, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
+import { Locales } from "@/lib/enums/locales";
 
 export const EMAIL_HOST = "email_host";
 export const EMAIL_ATTENDEE = "email_attendee";
@@ -134,6 +134,27 @@ export class BaseWorkflowStepDto {
   @ApiProperty({ description: "Displayed sender name.", type: String })
   @IsString()
   sender!: string;
+
+  @ApiPropertyOptional({
+    description:
+      "Whether to enable auto-translation of the workflow step content for attendees. Only available for organizations.",
+    example: false,
+    default: false,
+    type: Boolean,
+  })
+  @IsBoolean()
+  @IsOptional()
+  autoTranslateEnabled?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      "The source locale of the workflow step content used for auto-translation (e.g. 'en'). Defaults to the user's locale.",
+    example: Locales.EN,
+    enum: Locales,
+  })
+  @IsEnum(Locales)
+  @IsOptional()
+  sourceLocale?: Locales;
 }
 
 export class BaseFormWorkflowStepDto extends BaseWorkflowStepDto {

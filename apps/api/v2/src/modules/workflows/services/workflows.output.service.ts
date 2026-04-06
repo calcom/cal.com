@@ -1,16 +1,5 @@
-import { WorkflowActivationDto } from "@/modules/workflows/inputs/create-event-type-workflow.input";
-import { WorkflowFormActivationDto } from "@/modules/workflows/inputs/create-form-workflow";
-import {
-  EventTypeWorkflowStepOutputDto,
-  EventTypeWorkflowOutput,
-} from "@/modules/workflows/outputs/event-type-workflow.output";
-import {
-  RoutingFormWorkflowOutput,
-  RoutingFormWorkflowStepOutputDto,
-} from "@/modules/workflows/outputs/routing-form-workflow.output";
-import { WorkflowType } from "@/modules/workflows/workflows.repository";
+import { Locales } from "@/lib/enums/locales";
 import { Injectable } from "@nestjs/common";
-
 import {
   ATTENDEE,
   CAL_AI_PHONE_CALL,
@@ -32,8 +21,11 @@ import {
   WHATSAPP_NUMBER,
 } from "../inputs/workflow-step.input";
 import {
+  ENUM_OFFSET_WORFLOW_TRIGGERS,
+  ENUM_ROUTING_FORM_WORFLOW_TRIGGERS,
   ENUM_TO_TIME_UNIT,
   ENUM_TO_WORKFLOW_TRIGGER,
+  FORM_WORKFLOW_TRIGGER_TYPES,
   HOUR,
   OnAfterCalVideoGuestsNoShowTriggerDto,
   OnAfterCalVideoHostsNoShowTriggerDto,
@@ -41,8 +33,8 @@ import {
   OnBeforeEventTriggerDto,
   OnCancelTriggerDto,
   OnCreationTriggerDto,
-  OnFormSubmittedTriggerDto,
   OnFormSubmittedNoEventTriggerDto,
+  OnFormSubmittedTriggerDto,
   OnNoShowUpdateTriggerDto,
   OnPaidTriggerDto,
   OnPaymentInitiatedTriggerDto,
@@ -50,10 +42,18 @@ import {
   OnRequestedTriggerDto,
   OnRescheduleTriggerDto,
   WORKFLOW_TRIGGER_TO_ENUM,
-  FORM_WORKFLOW_TRIGGER_TYPES,
-  ENUM_ROUTING_FORM_WORFLOW_TRIGGERS,
-  ENUM_OFFSET_WORFLOW_TRIGGERS,
 } from "../inputs/workflow-trigger.input";
+import { WorkflowActivationDto } from "@/modules/workflows/inputs/create-event-type-workflow.input";
+import { WorkflowFormActivationDto } from "@/modules/workflows/inputs/create-form-workflow";
+import {
+  EventTypeWorkflowOutput,
+  EventTypeWorkflowStepOutputDto,
+} from "@/modules/workflows/outputs/event-type-workflow.output";
+import {
+  RoutingFormWorkflowOutput,
+  RoutingFormWorkflowStepOutputDto,
+} from "@/modules/workflows/outputs/routing-form-workflow.output";
+import { WorkflowType } from "@/modules/workflows/workflows.repository";
 
 export type TriggerDtoType =
   | OnAfterEventTriggerDto
@@ -188,7 +188,7 @@ export class WorkflowsOutputService {
       recipient: config.recipient,
       sender: step.sender ?? "Default Sender",
       includeCalendarEvent: step.includeCalendarEvent,
-      phoneRequired: config.requiresPhone ? step.numberRequired ?? false : undefined,
+      phoneRequired: config.requiresPhone ? (step.numberRequired ?? false) : undefined,
       email: config.recipient === EMAIL ? customRecipient : "",
       phone: config.recipient === PHONE_NUMBER ? customRecipient : "",
       message: {
@@ -196,6 +196,8 @@ export class WorkflowsOutputService {
         html: config.messageKey === "html" ? reminderBody : undefined,
         text: config.messageKey === "text" ? reminderBody : undefined,
       },
+      autoTranslateEnabled: step.autoTranslateEnabled ?? false,
+      sourceLocale: (step.sourceLocale as Locales) ?? null,
     };
 
     return this._isFormAllowedStepAction(action)
