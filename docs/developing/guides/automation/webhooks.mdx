@@ -77,6 +77,10 @@ Webhook payloads are versioned. The version of the payload sent is included in t
 Example: x-cal-webhook-version: 2021-10-20
 </Note>
 
+<Note>
+  For **seated event types**, the `attendees` array in webhook payloads contains only the attendee associated with the specific seat that triggered the webhook. For example, when a new seat is booked, the webhook includes only that seat's attendee — not all attendees across the entire booking. This applies to all booking-related triggers (`BOOKING_CREATED`, `BOOKING_CANCELLED`, `BOOKING_RESCHEDULED`, etc.).
+</Note>
+
 Select a version and trigger event to view the example payload:
 
 <Tabs>
@@ -1738,7 +1742,7 @@ where `{{type}}` represents the event type slug and `{{title}}` represents the t
 | description        | String   | The event's description as described in the event type settings                                                                                                                                                                                                                                                                |
 | location           | String   | Location of the event                                                                                                                                                                                                                                                                                                          |
 | organizer          | Person   | The organizer of the event                                                                                                                                                                                                                                                                                                     |
-| attendees          | Person[] | The event booker & any guests                                                                                                                                                                                                                                                                                                  |
+| attendees          | Person[] | The event booker & any guests. For seated event types, this contains only the attendee for the specific seat that triggered the webhook.                                                                                                                                                                                        |
 | uid                | String   | The UID of the booking                                                                                                                                                                                                                                                                                                         |
 | rescheduleUid      | String   | The UID for rescheduling                                                                                                                                                                                                                                                                                                       |
 | cancellationReason | String   | Reason for cancellation                                                                                                                                                                                                                                                                                                        |
