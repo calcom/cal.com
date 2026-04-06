@@ -214,6 +214,57 @@ describe("BookingWebhookDataFetcher", () => {
       });
     });
 
+    it("should include only the matching attendee for seat-scoped booking webhooks", async () => {
+      const mockBooking = { eventType: { id: 10 } };
+      mockBookingRepository.getBookingForCalEventBuilderFromUid.mockResolvedValue(mockBooking);
+      const mockCalendarEvent = {
+        title: "Test",
+        attendees: [
+          { email: "a@example.com", bookingSeat: { referenceUid: "seat-a" } },
+          { email: "b@example.com", bookingSeat: { referenceUid: "seat-b" } },
+        ],
+      };
+      const mockBuilder = { build: vi.fn().mockReturnValue(mockCalendarEvent) };
+      vi.mocked(CalendarEventBuilder.fromBooking).mockResolvedValue(mockBuilder as never);
+
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+        attendeeSeatId: "seat-b",
+      } as Partial<BookingWebhookTaskPayload>);
+
+      const result = await fetcher.fetchEventData(payload);
+
+      const calEvent = ((result as Record<string, unknown>).data as Record<string, unknown>)
+        .calendarEvent as { attendees: Array<{ email: string }> };
+      expect(calEvent.attendees).toEqual([{ email: "b@example.com", bookingSeat: { referenceUid: "seat-b" } }]);
+    });
+
+    it("should keep attendees unchanged when seat-scoped attendee cannot be resolved", async () => {
+      const mockBooking = { eventType: { id: 10 } };
+      mockBookingRepository.getBookingForCalEventBuilderFromUid.mockResolvedValue(mockBooking);
+      const mockCalendarEvent = {
+        title: "Test",
+        attendees: [{ email: "a@example.com", bookingSeat: { referenceUid: "seat-a" } }],
+      };
+      const mockBuilder = { build: vi.fn().mockReturnValue(mockCalendarEvent) };
+      vi.mocked(CalendarEventBuilder.fromBooking).mockResolvedValue(mockBuilder as never);
+
+      const payload = createPayload({
+        triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+        attendeeSeatId: "seat-missing",
+      } as Partial<BookingWebhookTaskPayload>);
+
+      const result = await fetcher.fetchEventData(payload);
+
+      const calEvent = ((result as Record<string, unknown>).data as Record<string, unknown>)
+        .calendarEvent as { attendees: Array<{ email: string }> };
+      expect(calEvent.attendees).toEqual([{ email: "a@example.com", bookingSeat: { referenceUid: "seat-a" } }]);
+      expect(mockLogger.warn).not.toHaveBeenCalledWith(
+        "Could not resolve seat attendee for webhook payload",
+        expect.anything()
+      );
+    });
+
     it("should pass undefined attendeeSeatId when not provided in payload", async () => {
       const mockBooking = { eventType: { id: 10 } };
       mockBookingRepository.getBookingForCalEventBuilderFromUid.mockResolvedValue(mockBooking);

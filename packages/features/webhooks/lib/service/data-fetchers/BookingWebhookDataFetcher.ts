@@ -72,6 +72,16 @@ export class BookingWebhookDataFetcher implements IWebhookDataFetcher {
         return { data: null };
       }
 
+      if (payload.attendeeSeatId && payload.triggerEvent !== WebhookTriggerEvents.BOOKING_CANCELLED) {
+        const attendees = calendarEvent.attendees ?? [];
+        const seatAttendee = attendees.find(
+          (attendee) => attendee.bookingSeat?.referenceUid === payload.attendeeSeatId
+        );
+        if (seatAttendee) {
+          calendarEvent.attendees = [seatAttendee];
+        }
+      }
+
       // Legacy parity: recurringEvent was only included when all remaining instances
       // were cancelled. The builder always populates it from eventType, so strip it
       // for single-booking cancellations to preserve payload parity.
