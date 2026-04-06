@@ -3096,6 +3096,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3508,6 +3524,22 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3598,7 +3630,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           },
           {
@@ -3655,6 +3687,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3694,6 +3734,14 @@
               "enum": ["google-meet", "zoom", "msteams", "daily-video"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3725,13 +3773,11 @@
             }
           },
           {
-            "name": "app",
+            "name": "orgId",
             "required": true,
             "in": "path",
-            "description": "Conferencing application type",
             "schema": {
-              "enum": ["google-meet", "zoom", "msteams", "daily-video"],
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -3771,6 +3817,14 @@
             "schema": {
               "enum": ["google-meet", "zoom", "msteams"],
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -3983,6 +4037,14 @@
               "enum": ["asc", "desc"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4047,6 +4109,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4104,6 +4174,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4181,6 +4259,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4240,6 +4326,14 @@
           },
           {
             "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4411,6 +4505,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -4478,6 +4580,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -4555,6 +4665,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4624,6 +4742,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -6326,6 +6452,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -6478,7 +6612,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           },
           {
@@ -6525,6 +6659,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -6565,6 +6707,14 @@
           },
           {
             "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -6795,6 +6945,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -6948,6 +7106,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -7022,6 +7188,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7079,6 +7253,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7156,6 +7338,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7208,6 +7398,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7270,6 +7468,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7342,6 +7548,14 @@
           },
           {
             "name": "workflowId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -7515,6 +7729,14 @@
             "required": false,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -8032,6 +8254,14 @@
               "enum": ["asc", "desc"],
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8081,6 +8311,14 @@
           },
           {
             "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8160,6 +8398,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -8219,6 +8465,22 @@
           },
           {
             "name": "oooId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8393,6 +8655,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -8452,6 +8722,14 @@
           },
           {
             "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8521,6 +8799,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8578,6 +8864,14 @@
           },
           {
             "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8650,6 +8944,14 @@
           },
           {
             "name": "scheduleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -8856,6 +9158,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8910,6 +9220,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8963,6 +9281,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -10215,7 +10541,7 @@
       "patch": {
         "operationId": "BookingLocationController_2024_08_13_updateBookingLocation",
         "summary": "Update booking location for an existing booking",
-        "description": "**Current Limitation:** Updating a booking location will update the location in Cal.com, but the corresponding Calendar event will not be updated automatically. The old location will persist in the Calendar event. This is a known limitation that will be addressed in a future update.\n    \n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>",
+        "description": "**Current Limitation:** Updating a booking location will update the location in Cal.com, but the corresponding Calendar event will not be updated automatically. The old location will persist in the Calendar event. This is a known limitation that will be addressed in a future update.\n\n    <Note>The cal-api-version header is required for this endpoint. Without it, the request will fail with a 404 error.</Note>",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -10487,11 +10813,408 @@
         "tags": ["Bookings / Guests"]
       }
     },
-    "/v2/calendars/{calendar}/event/{eventUid}": {
+    "/v2/calendars/connections": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_listConnections",
+        "summary": "List calendar connections",
+        "description": "Returns all calendar connections for the authenticated user (Google, Office 365, Apple). Use connectionId in connection-scoped endpoints. Note: Event CRUD (list/create/get/update/delete events) is currently only supported for Google Calendar connections; other types will return 400.",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListConnectionsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/connections/{connectionId}/events": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_listConnectionEvents",
+        "summary": "List events for a connection",
+        "description": "List events in a date range for a specific calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "required": true,
+            "in": "path",
+            "description": "Calendar connection ID from GET /connections",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Start of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "End of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-31",
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "IANA time zone for the request (e.g. America/New_York)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarId",
+            "required": false,
+            "in": "query",
+            "description": "Calendar ID. Use 'primary' for the user's primary calendar, or the external ID of a connected calendar.",
+            "schema": {
+              "default": "primary",
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListUnifiedCalendarEventsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      },
+      "post": {
+        "operationId": "CalUnifiedCalendarsController_createConnectionEvent",
+        "summary": "Create event on a connection",
+        "description": "Create a new event on the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/connections/{connectionId}/events/{eventId}": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_getConnectionEvent",
+        "summary": "Get event for a connection",
+        "description": "Get a single event by ID for the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      },
+      "patch": {
+        "operationId": "CalUnifiedCalendarsController_updateConnectionEvent",
+        "summary": "Update event for a connection",
+        "description": "Update an event on the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      },
+      "delete": {
+        "operationId": "CalUnifiedCalendarsController_deleteConnectionEvent",
+        "summary": "Delete event for a connection",
+        "description": "Delete/cancel an event on the specified calendar connection. Only supported for Google Calendar connections; other connection types return 400.",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/connections/{connectionId}/freebusy": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_getConnectionFreeBusy",
+        "summary": "Get free/busy for a connection",
+        "description": "Get busy time slots for the specified calendar connection.",
+        "parameters": [
+          {
+            "name": "connectionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Start of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "End of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "IANA time zone (e.g. America/New_York)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBusyTimesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/{calendar}/events/{eventUid}": {
       "get": {
         "operationId": "CalUnifiedCalendarsController_getCalendarEventDetails",
         "summary": "Get meeting details from calendar",
-        "description": "Returns detailed information about a meeting including attendance metrics",
+        "description": "Returns detailed information about a meeting including attendance metrics. The singular /event/ path is deprecated — use /events/ (plural) instead. For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
         "parameters": [
           {
             "name": "calendar",
@@ -10534,13 +11257,11 @@
           }
         },
         "tags": ["Cal Unified Calendars"]
-      }
-    },
-    "/v2/calendars/{calendar}/events/{eventUid}": {
+      },
       "patch": {
         "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
         "summary": "Update meeting details in calendar",
-        "description": "Updates event information in the specified calendar provider",
+        "description": "Updates event information in the specified calendar provider. The singular /event/ path is deprecated — use /events/ (plural) instead. For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
         "parameters": [
           {
             "name": "calendar",
@@ -10587,6 +11308,348 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      },
+      "delete": {
+        "operationId": "CalUnifiedCalendarsController_deleteCalendarEvent",
+        "summary": "Delete a calendar event",
+        "description": "Delete/cancel an event on the authenticated user's calendar. Currently only Google Calendar is supported.",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google", "office365", "apple"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The calendar provider's event ID (e.g. Google Calendar event ID)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/{calendar}/event/{eventUid}": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_getCalendarEventDetails",
+        "summary": "Get meeting details from calendar",
+        "description": "Returns detailed information about a meeting including attendance metrics. The singular /event/ path is deprecated — use /events/ (plural) instead. For connection-scoped access use GET /connections/{connectionId}/events/{eventId}.",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      },
+      "patch": {
+        "operationId": "CalUnifiedCalendarsController_updateCalendarEvent",
+        "summary": "Update meeting details in calendar",
+        "description": "Updates event information in the specified calendar provider. The singular /event/ path is deprecated — use /events/ (plural) instead. For connection-scoped access use PATCH /connections/{connectionId}/events/{eventId}.",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventUid",
+            "required": true,
+            "in": "path",
+            "description": "The Google Calendar event ID. You can retrieve this by getting booking references from the following endpoints:\n\n- For team events: https://cal.com/docs/api-reference/v2/orgs-teams-bookings/get-booking-references-for-a-booking\n\n- For user events: https://cal.com/docs/api-reference/v2/bookings/get-booking-references-for-a-booking",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/{calendar}/events": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_listCalendarEvents",
+        "summary": "List calendar events",
+        "description": "List events in a date range for the authenticated user's calendar. Currently only Google Calendar is supported.",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google", "office365", "apple"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Start of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "End of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-31",
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "IANA time zone for the request (e.g. America/New_York)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendarId",
+            "required": false,
+            "in": "query",
+            "description": "Calendar ID. Use 'primary' for the user's primary calendar, or the external ID of a connected calendar.",
+            "schema": {
+              "default": "primary",
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListUnifiedCalendarEventsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      },
+      "post": {
+        "operationId": "CalUnifiedCalendarsController_createCalendarEvent",
+        "summary": "Create a calendar event",
+        "description": "Create a new event on the authenticated user's calendar. Currently only Google Calendar is supported.",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google", "office365", "apple"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUnifiedCalendarEventInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUnifiedCalendarEventOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Cal Unified Calendars"]
+      }
+    },
+    "/v2/calendars/{calendar}/freebusy": {
+      "get": {
+        "operationId": "CalUnifiedCalendarsController_getFreeBusy",
+        "summary": "Get free/busy times",
+        "description": "Get busy time slots for the authenticated user's selected calendars in the given date range. Currently only Google Calendar is supported.",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": ["google", "office365", "apple"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "description": "Start of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "description": "End of the date range (ISO 8601 date or date-time)",
+            "schema": {
+              "example": "2026-03-10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "IANA time zone (e.g. America/New_York)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "value must be `Bearer <token>` where `<token>` is api key prefixed with cal_ or managed user access token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBusyTimesOutput"
                 }
               }
             }
@@ -11816,6 +12879,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -11863,6 +12934,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -11895,6 +12974,14 @@
           },
           {
             "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clientId",
             "required": true,
             "in": "path",
             "schema": {
@@ -12632,6 +13719,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -12678,6 +13773,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -12713,6 +13816,14 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13105,6 +14216,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13210,6 +14329,14 @@
           },
           {
             "name": "managedOrganizationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -13390,6 +14517,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -13430,6 +14573,22 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13480,6 +14639,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -13528,6 +14695,14 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -13602,6 +14777,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13665,6 +14848,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13711,6 +14902,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -13756,6 +14955,14 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -15414,6 +16621,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -15457,6 +16672,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15533,6 +16756,14 @@
               "example": 0,
               "type": "number"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -15564,6 +16795,14 @@
           },
           {
             "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
             "required": true,
             "in": "path",
             "schema": {
@@ -15606,6 +16845,22 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -15653,6 +16908,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -15688,6 +16959,22 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -16088,6 +17375,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "requestBody": {
@@ -16128,6 +17423,14 @@
             "required": true,
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -28978,7 +30281,10 @@
             "enum": ["success", "error"]
           },
           "data": {
-            "$ref": "#/components/schemas/RoutingFormResponseOutput"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingFormResponseOutput"
+            }
           }
         },
         "required": ["status", "data"]
@@ -32322,6 +33628,52 @@
         },
         "required": ["type", "phone"]
       },
+      "UpdateBookingInputIntegrationLocation_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "integration",
+            "description": "only allowed value for type is `integration`"
+          },
+          "integration": {
+            "type": "string",
+            "example": "cal-video",
+            "enum": [
+              "cal-video",
+              "google-meet",
+              "zoom",
+              "whereby-video",
+              "whatsapp-video",
+              "webex-video",
+              "telegram-video",
+              "tandem",
+              "sylaps-video",
+              "skype-video",
+              "sirius-video",
+              "signal-video",
+              "shimmer-video",
+              "salesroom-video",
+              "roam-video",
+              "riverside-video",
+              "ping-video",
+              "office365-video",
+              "mirotalk-video",
+              "jitsi",
+              "jelly-video",
+              "jelly-conferencing",
+              "huddle",
+              "facetime-video",
+              "element-call-video",
+              "eightxeight-video",
+              "discord-video",
+              "demodesk-video",
+              "campfire-video"
+            ]
+          }
+        },
+        "required": ["type", "integration"]
+      },
       "UpdateBookingLocationInput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -32345,6 +33697,9 @@
               },
               {
                 "$ref": "#/components/schemas/UpdateBookingInputPhoneLocation_2024_08_13"
+              },
+              {
+                "$ref": "#/components/schemas/UpdateBookingInputIntegrationLocation_2024_08_13"
               }
             ]
           }
@@ -32822,6 +34177,55 @@
         },
         "required": ["status", "data"]
       },
+      "CalendarConnectionItem": {
+        "type": "object",
+        "properties": {
+          "connectionId": {
+            "type": "string",
+            "description": "Stable ID for this calendar connection (use in connection-scoped endpoints)",
+            "example": "123"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["google", "office365", "apple"],
+            "description": "Calendar provider type",
+            "example": "google"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true,
+            "description": "Primary email for this connection (null if unavailable)",
+            "example": "user@gmail.com"
+          }
+        },
+        "required": ["connectionId", "type"]
+      },
+      "ListConnectionsData": {
+        "type": "object",
+        "properties": {
+          "connections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarConnectionItem"
+            }
+          }
+        },
+        "required": ["connections"]
+      },
+      "ListConnectionsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ListConnectionsData"
+          }
+        },
+        "required": ["status", "data"]
+      },
       "CalendarEventVideoLocation": {
         "type": "object",
         "properties": {
@@ -33137,6 +34541,90 @@
           }
         },
         "required": ["start", "end", "id", "title", "source"]
+      },
+      "ListUnifiedCalendarEventsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UnifiedCalendarEventOutput"
+            }
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "CreateEventDateTimeWithZone": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Start or end time in ISO 8601 format"
+          },
+          "timeZone": {
+            "type": "string",
+            "description": "IANA time zone (e.g. America/New_York)"
+          }
+        },
+        "required": ["time", "timeZone"]
+      },
+      "CreateEventAttendee": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the attendee"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the attendee"
+          }
+        },
+        "required": ["email"]
+      },
+      "CreateUnifiedCalendarEventInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the calendar event"
+          },
+          "start": {
+            "description": "Start date and time with time zone",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreateEventDateTimeWithZone"
+              }
+            ]
+          },
+          "end": {
+            "description": "End date and time with time zone",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreateEventDateTimeWithZone"
+              }
+            ]
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "description": "Description of the event"
+          },
+          "attendees": {
+            "description": "List of attendees",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateEventAttendee"
+            }
+          }
+        },
+        "required": ["title", "start", "end"]
       },
       "GetUnifiedCalendarEventOutput": {
         "type": "object",
