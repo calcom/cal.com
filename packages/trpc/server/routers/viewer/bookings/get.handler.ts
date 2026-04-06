@@ -346,83 +346,139 @@ export async function getBookings({
     );
     ({ bookingsFromQuery: bookingsFromUnion, totalCount } = await executePaginatedAndCount(base));
   } else if (hasTeamAccess) {
-    const base = applyCommonFilters(
+    // UNION ALL: split the 4-way OR into separate queries that PG plans
+    // independently, each with an efficient index scan. The single OR-based
+    // query forced PG into sequential scans on the Booking table due to
+    // correlated EXISTS sub-queries in the eventTypeScope check, causing
+    // statement timeouts on past/cancelled pages with large datasets.
+
+    // Pre-compute team data once so each branch can use simple IN() filters
+    // instead of CTE-based subqueries that PG re-evaluates per row.
+    const [teamUserIds, teamEmails, teamEventTypeIds] = await Promise.all([
       kysely
-        .with("team_user_ids", (db) =>
-          db
-            .selectFrom("Membership")
-            .select("Membership.userId")
-            .where("Membership.teamId", "in", teamIdsWithBookingPermission!)
-        )
-        .with("team_emails", (db) =>
-          db
-            .selectFrom("users")
-            .select("users.email")
-            .where("users.id", "in", (eb) => eb.selectFrom("team_user_ids").select("team_user_ids.userId"))
-        )
-        .with("team_event_type_ids", (db) =>
-          db
-            .selectFrom("EventType")
-            .select("EventType.id")
-            .where("EventType.teamId", "in", teamIdsWithBookingPermission!)
-        )
-        .selectFrom("Booking")
-        .where(({ or, and, eb, exists, selectFrom }) =>
+        .selectFrom("Membership")
+        .select("Membership.userId")
+        .where("Membership.teamId", "in", teamIdsWithBookingPermission!)
+        .execute()
+        .then((rows) => rows.map((r) => r.userId)),
+      kysely
+        .selectFrom("Membership")
+        .innerJoin("users", "users.id", "Membership.userId")
+        .select("users.email")
+        .where("Membership.teamId", "in", teamIdsWithBookingPermission!)
+        .execute()
+        .then((rows) => rows.map((r) => r.email)),
+      kysely
+        .selectFrom("EventType")
+        .select("EventType.id")
+        .where("EventType.teamId", "in", teamIdsWithBookingPermission!)
+        .execute()
+        .then((rows) => rows.map((r) => r.id)),
+    ]);
+
+    // Restrict to team/personal event types only.
+    const applyEventTypeScope = (
+      q: SelectQueryBuilder<DB, "Booking", {}>
+    ): SelectQueryBuilder<DB, "Booking", {}> => {
+      if (teamEventTypeIds.length === 0) {
+        return q.where(({ or, eb, exists, selectFrom }) =>
           or([
-            eb("Booking.userId", "=", user.id),
-            and([
-              eb("Booking.userId", "in", (sub) =>
-                sub.selectFrom("team_user_ids").select("team_user_ids.userId")
-              ),
-              // Allow team event types, personal event types, and bookings without event type — exclude other teams' event types
-              or([
-                eb("Booking.eventTypeId", "is", null),
-                eb("Booking.eventTypeId", "in", (sub) =>
-                  sub.selectFrom("team_event_type_ids").select("team_event_type_ids.id")
-                ),
-                exists(
-                  selectFrom("EventType")
-                    .select("EventType.id")
-                    .whereRef("EventType.id", "=", "Booking.eventTypeId")
-                    .where("EventType.teamId", "is", null)
-                ),
-              ]),
-            ]),
-            eb("Booking.eventTypeId", "in", (sub) =>
-              sub.selectFrom("team_event_type_ids").select("team_event_type_ids.id")
+            eb("Booking.eventTypeId", "is", null),
+            exists(
+              selectFrom("EventType")
+                .select("EventType.id")
+                .whereRef("EventType.id", "=", "Booking.eventTypeId")
+                .where("EventType.teamId", "is", null)
             ),
-            and([
-              exists(
-                selectFrom("Attendee")
-                  .select("Attendee.id")
-                  .whereRef("Attendee.bookingId", "=", "Booking.id")
-                  .where(({ or: innerOr, eb: innerEb }) =>
-                    innerOr([
-                      innerEb("Attendee.email", "=", user.email),
-                      innerEb("Attendee.email", "in", (sub) =>
-                        sub.selectFrom("team_emails").select("team_emails.email")
-                      ),
-                    ])
-                  )
-              ),
-              // Allow team event types, personal event types, and bookings without event type — exclude other teams' event types
-              or([
-                eb("Booking.eventTypeId", "is", null),
-                eb("Booking.eventTypeId", "in", (sub) =>
-                  sub.selectFrom("team_event_type_ids").select("team_event_type_ids.id")
-                ),
-                exists(
-                  selectFrom("EventType")
-                    .select("EventType.id")
-                    .whereRef("EventType.id", "=", "Booking.eventTypeId")
-                    .where("EventType.teamId", "is", null)
-                ),
-              ]),
-            ]),
           ])
-        )
+        );
+      }
+      return q.where(({ or, eb, exists, selectFrom }) =>
+        or([
+          eb("Booking.eventTypeId", "is", null),
+          eb("Booking.eventTypeId", "in", teamEventTypeIds),
+          exists(
+            selectFrom("EventType")
+              .select("EventType.id")
+              .whereRef("EventType.id", "=", "Booking.eventTypeId")
+              .where("EventType.teamId", "is", null)
+          ),
+        ])
+      );
+    }
+
+    const selectBookingCols = (q: SelectQueryBuilder<DB, "Booking", {}>) =>
+      q
+        .select("Booking.id")
+        .select("Booking.startTime")
+        .select("Booking.endTime")
+        .select("Booking.createdAt")
+        .select("Booking.updatedAt");
+
+    const queryOwnBookings = selectBookingCols(
+      applyCommonFilters(kysely.selectFrom("Booking").where("Booking.userId", "=", user.id))
     );
-    ({ bookingsFromQuery: bookingsFromUnion, totalCount } = await executePaginatedAndCount(base));
+
+    const queryTeamUserBookings =
+      teamUserIds.length > 0
+        ? selectBookingCols(
+            applyEventTypeScope(
+              applyCommonFilters(
+                kysely.selectFrom("Booking").where("Booking.userId", "in", teamUserIds)
+              )
+            )
+          )
+        : null;
+
+    const queryTeamEventTypes =
+      teamEventTypeIds.length > 0
+        ? selectBookingCols(
+            applyCommonFilters(
+              kysely.selectFrom("Booking").where("Booking.eventTypeId", "in", teamEventTypeIds)
+            )
+          )
+        : null;
+
+    const attendeeEmails = Array.from(new Set([user.email, ...teamEmails]));
+    const queryByAttendee = selectBookingCols(
+      applyEventTypeScope(
+        applyCommonFilters(
+          // @ts-expect-error Kysely type widening after INNER JOIN; only Booking.* columns are referenced.
+          kysely
+            .selectFrom("Booking")
+            .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+            .where("Attendee.email", "in", attendeeEmails)
+        )
+      )
+    );
+
+    let unionQuery = queryOwnBookings;
+    if (queryTeamUserBookings) {
+      unionQuery = unionQuery.unionAll(queryTeamUserBookings);
+    }
+    if (queryTeamEventTypes) {
+      unionQuery = unionQuery.unionAll(queryTeamEventTypes);
+    }
+    unionQuery = unionQuery.unionAll(queryByAttendee);
+
+    const [bookings, countResult] = await Promise.all([
+      kysely
+        .selectFrom(unionQuery.as("union_subquery"))
+        .distinct()
+        .selectAll("union_subquery")
+        .orderBy(orderBy.key, orderBy.order)
+        .orderBy("id", orderBy.order)
+        .limit(take)
+        .offset(skip)
+        .execute(),
+      kysely
+        .selectFrom(unionQuery.as("count_subquery"))
+        .select(({ fn }) => fn.count<number>("count_subquery.id").distinct().as("bookingCount"))
+        .executeTakeFirst(),
+    ]);
+
+    bookingsFromUnion = bookings;
+    totalCount = Number(countResult?.bookingCount ?? 0);
   } else {
     // UNION ALL: two separate queries that PG plans independently, each with
     // an efficient index scan (Nested Loop on Attendee_email_idx → Booking_pkey
