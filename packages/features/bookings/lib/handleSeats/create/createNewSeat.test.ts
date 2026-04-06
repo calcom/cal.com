@@ -8,6 +8,13 @@ vi.mock("@calcom/prisma", () => ({
   prisma: {},
 }));
 
+// `createNewSeat.ts` pulls in `getCalendar` via refreshCredentials / EventManager. The real module
+// imports `calendar.services.generated`, which kicks off dynamic imports for every calendar app;
+// those can finish after Vitest tears down the environment and surface as unhandled rejections.
+vi.mock("@calcom/app-store/_utils/getCalendar", () => ({
+  getCalendar: vi.fn().mockResolvedValue(null),
+}));
+
 describe("addSeatToBooking", () => {
   const makeMockPrisma = () => {
     const txMock = {
