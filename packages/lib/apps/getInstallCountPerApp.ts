@@ -2,9 +2,11 @@ import { z } from "zod";
 
 import prisma from "@calcom/prisma";
 
-import { unstable_cache } from "../unstable_cache";
+const TTL_MS = 5 * 60 * 1000; // 5 minutes – same as the old unstable_cache revalidate
+let cached: Record<string, number> | null = null;
+let cachedAt = 0;
 
-const computeInstallCountsFromDB = async (): Promise<Record<string, number>> => {
+const fetchInstallCounts = async (): Promise<Record<string, number>> => {
   const mostPopularApps = z.array(z.object({ appId: z.string(), installCount: z.number() })).parse(
     await prisma.$queryRaw`
     SELECT
@@ -29,13 +31,18 @@ const computeInstallCountsFromDB = async (): Promise<Record<string, number>> => 
   );
 };
 
-const cachedGetInstallCounts = unstable_cache(computeInstallCountsFromDB, ["app-install-counts"], {
-  revalidate: 300,
-});
-
 const getInstallCountPerApp = async (): Promise<Record<string, number>> => {
-  return cachedGetInstallCounts();
+  const now = Date.now();
+  if (cached && now - cachedAt < TTL_MS) return cached;
+  cached = await fetchInstallCounts();
+  cachedAt = now;
+  return cached;
 };
 
 export default getInstallCountPerApp;
-export { computeInstallCountsFromDB };
+
+/** @internal test-only – resets the module-level TTL cache */
+export function _resetCache() {
+  cached = null;
+  cachedAt = 0;
+}

@@ -1,15 +1,16 @@
-import { trpc } from "@calcom/trpc/react";
+import { useQuery } from "@tanstack/react-query";
+
+import { getCachedAvatarUrl } from "./getCachedAvatarUrl";
 
 export function useAvatarUrl(email: string | undefined, enabled: boolean) {
-  const { data } = trpc.viewer.bookings.getAvatarUrl.useQuery(
-    { email: email ?? "" },
-    {
-      enabled: enabled && !!email,
-      staleTime: 24 * 60 * 60 * 1000, // 24 hours
-      gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
-      retry: false,
-    }
-  );
+  const { data } = useQuery({
+    queryKey: ["getAvatarUrl", email],
+    queryFn: () => getCachedAvatarUrl(email as string),
+    enabled: enabled && !!email,
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours
+    gcTime: 7 * 24 * 60 * 60 * 1000, // 7 days
+    retry: false,
+  });
 
-  return data?.url ?? null;
+  return data ?? null;
 }

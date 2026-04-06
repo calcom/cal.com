@@ -328,6 +328,12 @@
                       "@trpc/server"
                     ],
                     "message": "lib package should not import from @trpc/server to avoid circular dependencies."
+                  },
+                  {
+                    "group": [
+                      "next/cache"
+                    ],
+                    "message": "lib package must not import next/cache. Use next/cache directly in apps/web instead."
                   }
                 ]
               }
@@ -385,6 +391,12 @@
                       "@calcom/trpc/**"
                     ],
                     "message": "app-store package should not import from trpc to avoid circular dependencies."
+                  },
+                  {
+                    "group": [
+                      "next/cache"
+                    ],
+                    "message": "app-store package must not import next/cache. Use next/cache directly in apps/web instead."
                   }
                 ]
               }
@@ -419,6 +431,12 @@
                       "../../apps/web/**"
                     ],
                     "message": "features package should not import from apps/web to avoid circular dependencies."
+                  },
+                  {
+                    "group": [
+                      "next/cache"
+                    ],
+                    "message": "features package must not import next/cache. Use next/cache directly in apps/web instead."
                   }
                 ]
               }
@@ -445,6 +463,12 @@
                       "@calcom/web/**"
                     ],
                     "message": "trpc package should not import from apps/web to avoid circular dependencies."
+                  },
+                  {
+                    "group": [
+                      "next/cache"
+                    ],
+                    "message": "trpc package must not import next/cache. Use next/cache directly in apps/web instead."
                   }
                 ]
               }
