@@ -8,7 +8,6 @@ import tasker from "@calcom/features/tasker";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import { logBlockedSSRFAttempt, validateUrlForSSRF } from "@calcom/lib/ssrfProtection";
 import { getTranslation } from "@calcom/i18n/server";
 import { prisma } from "@calcom/prisma";
 import type { Prisma, Webhook, Booking, ApiKey } from "@calcom/prisma/client";
@@ -46,12 +45,6 @@ export async function addSubscription({
   } | null;
 }) {
   try {
-    const validation = await validateUrlForSSRF(subscriberUrl);
-    if (!validation.isValid) {
-      logBlockedSSRFAttempt(subscriberUrl, validation.error ?? "", { appId });
-      throw new Error(`Subscriber URL is not allowed: ${validation.error}`);
-    }
-
     const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
     const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
 
