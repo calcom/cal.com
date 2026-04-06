@@ -138,25 +138,9 @@ export class AdminBillingRepository {
 
   async transferTeamBilling(
     billingId: string,
-    billingData: { customerId: string; subscriptionId: string; subscriptionItemId: string },
-    metadataUpdate: { teamId: number; currentMetadata: Record<string, unknown> } | null
+    billingData: { customerId: string; subscriptionId: string; subscriptionItemId: string }
   ): Promise<void> {
-    await this.prismaClient.$transaction(async (tx) => {
-      await tx.teamBilling.update({ where: { id: billingId }, data: billingData });
-
-      if (metadataUpdate) {
-        await tx.team.update({
-          where: { id: metadataUpdate.teamId },
-          data: {
-            metadata: {
-              ...metadataUpdate.currentMetadata,
-              subscriptionId: billingData.subscriptionId,
-              subscriptionItemId: billingData.subscriptionItemId,
-            },
-          },
-        });
-      }
-    });
+    await this.prismaClient.teamBilling.update({ where: { id: billingId }, data: billingData });
   }
 
   async updateTeamBillingMode(
@@ -213,24 +197,8 @@ export class AdminBillingRepository {
 
   async transferOrgBilling(
     billingId: string,
-    billingData: { customerId: string; subscriptionId: string; subscriptionItemId: string },
-    metadataUpdate: { teamId: number; currentMetadata: Record<string, unknown> } | null
+    billingData: { customerId: string; subscriptionId: string; subscriptionItemId: string }
   ): Promise<void> {
-    await this.prismaClient.$transaction(async (tx) => {
-      await tx.organizationBilling.update({ where: { id: billingId }, data: billingData });
-
-      if (metadataUpdate) {
-        await tx.team.update({
-          where: { id: metadataUpdate.teamId },
-          data: {
-            metadata: {
-              ...metadataUpdate.currentMetadata,
-              subscriptionId: billingData.subscriptionId,
-              subscriptionItemId: billingData.subscriptionItemId,
-            },
-          },
-        });
-      }
-    });
+    await this.prismaClient.organizationBilling.update({ where: { id: billingId }, data: billingData });
   }
 }

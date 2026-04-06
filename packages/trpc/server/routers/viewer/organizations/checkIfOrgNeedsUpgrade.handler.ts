@@ -2,8 +2,6 @@ import { PermissionCheckService } from "@calcom/features/pbac/services/permissio
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
 import type { TrpcSessionUser } from "../../../types";
 
 type GetUpgradeableOptions = {
@@ -24,26 +22,33 @@ export async function checkIfOrgNeedsUpgradeHandler({ ctx }: GetUpgradeableOptio
 
   if (teamIdsWithBillingPermission.length === 0) return [];
 
-  let teams = await prisma.membership.findMany({
+  const teams = await prisma.membership.findMany({
     where: {
       userId: ctx.user.id,
       teamId: { in: teamIdsWithBillingPermission },
       team: {
         isPlatform: false,
         parentId: null,
+        isOrganization: true,
+        organizationBilling: null,
       },
     },
-    include: {
-      team: true,
+    select: {
+      id: true,
+      teamId: true,
+      userId: true,
+      role: true,
+      accepted: true,
+      team: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          isOrganization: true,
+          metadata: true,
+        },
+      },
     },
-  });
-
-  /** We only need to return teams that don't have a `subscriptionId` on their metadata */
-  teams = teams.filter((m) => {
-    const metadata = teamMetadataSchema.safeParse(m.team.metadata);
-    if (!m.team.isOrganization) return false;
-    if (metadata.success && metadata.data?.subscriptionId) return false;
-    return true;
   });
 
   return teams;

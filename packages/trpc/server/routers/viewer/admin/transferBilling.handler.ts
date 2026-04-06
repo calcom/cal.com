@@ -3,7 +3,6 @@ import {
   getBillingProviderService,
 } from "@calcom/features/ee/billing/di/containers/Billing";
 import logger from "@calcom/lib/logger";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../types";
 import type { TTransferBillingInput } from "./transferBilling.schema";
@@ -31,17 +30,8 @@ async function fetchNewSubscriptionItemId(subscriptionId: string): Promise<strin
   return subscription.items[0].id;
 }
 
-function getAffectedRecords(
-  entityType: "team" | "organization",
-  teamMetadata: Record<string, unknown> | null
-): string[] {
-  const records = [entityType === "team" ? "TeamBilling" : "OrganizationBilling"];
-
-  if (teamMetadata && "subscriptionId" in teamMetadata) {
-    records.push("Team metadata");
-  }
-
-  return records;
+function getAffectedRecords(entityType: "team" | "organization"): string[] {
+  return [entityType === "team" ? "TeamBilling" : "OrganizationBilling"];
 }
 
 export const transferBillingHandler = async ({ ctx, input }: TransferBillingOptions) => {
@@ -60,9 +50,7 @@ export const transferBillingHandler = async ({ ctx, input }: TransferBillingOpti
   const newSubscriptionItemId = await fetchNewSubscriptionItemId(newSubscriptionId);
 
   const team = await repo.findTeamWithMetadata(record.teamId);
-  const parsedMetadata = teamMetadataSchema.safeParse(team?.metadata);
-  const metadata = parsedMetadata.success ? parsedMetadata.data : null;
-  const affectedRecords = getAffectedRecords(entityType, metadata as Record<string, unknown> | null);
+  const affectedRecords = getAffectedRecords(entityType);
 
   if (mode === "preview") {
     log.info("Billing transfer previewed", {
@@ -91,11 +79,6 @@ export const transferBillingHandler = async ({ ctx, input }: TransferBillingOpti
     };
   }
 
-  const hasMetadataSubscription = !!(metadata && "subscriptionId" in metadata);
-  const metadataUpdate = hasMetadataSubscription
-    ? { teamId: record.teamId, currentMetadata: (team?.metadata as Record<string, unknown>) ?? {} }
-    : null;
-
   const billingPayload = {
     customerId: newCustomerId,
     subscriptionId: newSubscriptionId,
@@ -103,9 +86,9 @@ export const transferBillingHandler = async ({ ctx, input }: TransferBillingOpti
   };
 
   if (entityType === "team") {
-    await repo.transferTeamBilling(billingId, billingPayload, metadataUpdate);
+    await repo.transferTeamBilling(billingId, billingPayload);
   } else {
-    await repo.transferOrgBilling(billingId, billingPayload, metadataUpdate);
+    await repo.transferOrgBilling(billingId, billingPayload);
   }
 
   log.info("Billing transfer executed", {
@@ -124,7 +107,6 @@ export const transferBillingHandler = async ({ ctx, input }: TransferBillingOpti
       subscriptionId: newSubscriptionId,
       subscriptionItemId: newSubscriptionItemId,
     },
-    metadataUpdated: hasMetadataSubscription,
     affectedRecords,
   });
 

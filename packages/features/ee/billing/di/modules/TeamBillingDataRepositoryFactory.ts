@@ -3,9 +3,11 @@ import { moduleLoader as prismaModuleLoader } from "@calcom/features/di/modules/
 import { DI_TOKENS as GLOBAL_DI_TOKENS } from "@calcom/features/di/tokens";
 import type { PrismaClient } from "@calcom/prisma";
 
+import type { IBillingRepository } from "../../repository/billing/IBillingRepository";
 import { PrismaTeamBillingDataRepository } from "../../repository/teamBillingData/PrismaTeamBillingRepository";
 import { StubTeamBillingDataRepository } from "../../repository/teamBillingData/StubTeamBillingRepository";
 import { DI_TOKENS } from "../tokens";
+import { billingRepositoryFactoryModuleLoader } from "./BillingRepositoryFactory";
 import { isTeamBillingEnabledModuleLoader } from "./IsTeamBillingEnabled";
 
 const teamBillingDataRepositoryFactoryModule = createModule();
@@ -18,7 +20,10 @@ teamBillingDataRepositoryFactoryModule.bind(token).toFactory((resolve: ResolveFu
   }
 
   const prisma = resolve(GLOBAL_DI_TOKENS.PRISMA_CLIENT) as PrismaClient;
-  return new PrismaTeamBillingDataRepository(prisma);
+  const billingRepoFactory = resolve(DI_TOKENS.BILLING_REPOSITORY_FACTORY) as (
+    isOrganization: boolean
+  ) => IBillingRepository;
+  return new PrismaTeamBillingDataRepository(prisma, billingRepoFactory(false), billingRepoFactory(true));
 });
 
 export const teamBillingDataRepositoryModuleLoader: ModuleLoader = {
@@ -27,6 +32,7 @@ export const teamBillingDataRepositoryModuleLoader: ModuleLoader = {
     // Load dependencies first
     prismaModuleLoader.loadModule(container);
     isTeamBillingEnabledModuleLoader.loadModule(container);
+    billingRepositoryFactoryModuleLoader.loadModule(container);
 
     // Then load this module
     container.load(DI_TOKENS.TEAM_BILLING_DATA_REPOSITORY_MODULE, teamBillingDataRepositoryFactoryModule);

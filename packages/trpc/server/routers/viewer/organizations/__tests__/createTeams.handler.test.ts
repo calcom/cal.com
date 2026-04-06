@@ -14,6 +14,27 @@ vi.mock("@calcom/prisma", () => ({
   prisma: {},
 }));
 
+vi.mock("@calcom/features/ee/billing/di/containers/Billing", () => ({
+  getBillingRepositoryFactory: () => () => ({
+    findFullByTeamId: async (teamId: number) => {
+      const { default: prismockInstance } = await import("@calcom/testing/lib/__mocks__/prisma");
+      const billing = await prismockInstance.teamBilling.findFirst({
+        where: { teamId },
+      });
+      if (!billing) return null;
+      return {
+        id: String(billing.id),
+        teamId: billing.teamId,
+        subscriptionId: billing.subscriptionId,
+        subscriptionItemId: billing.subscriptionItemId,
+        customerId: billing.customerId,
+        planName: billing.planName,
+        status: billing.status,
+      };
+    },
+  }),
+}));
+
 // Helper functions for creating test data
 async function createTestUser(data: {
   email: string;
@@ -1223,15 +1244,24 @@ describe("createTeams handler - Comprehensive Tests", () => {
   });
 
   describe("Edge Cases", () => {
-    it("should handle team with subscription metadata", async () => {
+    it("should handle team with billing subscription", async () => {
       const { owner, organization } = await createScenario();
 
       const teamToMove = await createTestTeam({
         name: "Team With Subscription",
         slug: "team-with-sub",
         parentId: null,
-        metadata: {
+      });
+
+      // Create a TeamBilling record (subscriptionId is now looked up from the billing table, not metadata)
+      await prismock.teamBilling.create({
+        data: {
+          teamId: teamToMove.id,
           subscriptionId: "sub_test_123",
+          subscriptionItemId: "si_test_123",
+          customerId: "cus_test_123",
+          planName: "TEAM",
+          status: "ACTIVE",
         },
       });
 

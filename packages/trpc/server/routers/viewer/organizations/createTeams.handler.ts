@@ -1,5 +1,6 @@
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { getTeamRepository } from "@calcom/features/di/containers/TeamRepository";
+import { getBillingRepositoryFactory } from "@calcom/features/ee/billing/di/containers/Billing";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { PermissionCheckService } from "@calcom/features/pbac/services/permission-check.service";
@@ -11,7 +12,7 @@ import { type PrismaTransaction, prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole, RedirectType } from "@calcom/prisma/enums";
-import { teamMetadataSchema, teamMetadataStrictSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 import { inviteMembersWithNoInviterPermissionCheck } from "../teams/inviteMember/inviteMember.handler";
 import type { TCreateTeamsSchema } from "./createTeams.schema";
@@ -303,7 +304,7 @@ async function moveTeam({
     return membership.userId !== org.ownerId;
   }
   // Cancel existing stripe subscriptions once the team is migrated
-  const subscriptionId = getSubscriptionId(team.metadata);
+  const subscriptionId = await getSubscriptionIdFromBilling(team.id);
   if (subscriptionId) {
     await tryToCancelSubscription(subscriptionId);
   }
@@ -318,17 +319,13 @@ async function tryToCancelSubscription(subscriptionId: string) {
   }
 }
 
-function getSubscriptionId(metadata: Prisma.JsonValue) {
-  const parsedMetadata = teamMetadataStrictSchema.safeParse(metadata);
-  if (parsedMetadata.success) {
-    const subscriptionId = parsedMetadata.data?.subscriptionId;
-    if (!subscriptionId) {
-      log.warn("No subscriptionId found in team metadata", safeStringify({ metadata, parsedMetadata }));
-    }
-    return subscriptionId;
-  } else {
-    log.warn(`There has been an error`, parsedMetadata.error);
+async function getSubscriptionIdFromBilling(teamId: number): Promise<string | undefined> {
+  const billingRepository = getBillingRepositoryFactory()(false);
+  const billingRecord = await billingRepository.findFullByTeamId(teamId);
+  if (!billingRecord?.subscriptionId) {
+    log.warn("No subscriptionId found in TeamBilling", safeStringify({ teamId }));
   }
+  return billingRecord?.subscriptionId;
 }
 
 async function addTeamRedirect({

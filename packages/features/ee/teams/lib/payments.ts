@@ -16,16 +16,8 @@ import type { TrackingData } from "@calcom/lib/tracking";
 import prisma from "@calcom/prisma";
 import { BillingPeriod, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type Stripe from "stripe";
-import { z } from "zod";
 
 const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
-const teamPaymentMetadataSchema = z.object({
-  // Redefine paymentId, subscriptionId and subscriptionItemId to ensure that they are present and nonNullable
-  paymentId: z.string(),
-  subscriptionId: z.string(),
-  subscriptionItemId: z.string(),
-  orgSeats: teamMetadataSchema.unwrap().shape.orgSeats,
-});
 
 export function getOrgPriceId(billingPeriod: "MONTHLY" | "ANNUALLY"): string {
   const priceId =
@@ -227,9 +219,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     customer,
     mode: "subscription",
     expires_at: getCheckoutSessionExpiresAt(),
-    ...(promoCode
-      ? { discounts: [{ promotion_code: promoCode }] }
-      : { allow_promotion_codes: true }),
+    ...(promoCode ? { discounts: [{ promotion_code: promoCode }] } : { allow_promotion_codes: true }),
     success_url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
     line_items: [
@@ -328,41 +318,3 @@ async function getPriceObject(priceId: string) {
 
   return priceObj;
 }
-
-export const getTeamWithPaymentMetadata = async (teamId: number) => {
-  const team = await prisma.team.findUniqueOrThrow({
-    where: { id: teamId },
-    select: { metadata: true, members: true, isOrganization: true },
-  });
-
-  const metadata = teamPaymentMetadataSchema.parse(team.metadata);
-  return { ...team, metadata };
-};
-
-export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
-  try {
-    const { url } = await checkIfTeamPaymentRequired({ teamId });
-    /**
-     * If there's no pending checkout URL it means that this team has not been paid.
-     * We cannot update the subscription yet, this will be handled on publish/checkout.
-     **/
-    if (!url) return;
-    const team = await getTeamWithPaymentMetadata(teamId);
-    const { subscriptionId, subscriptionItemId } = team.metadata;
-    const membershipCount = team.members.length;
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    const subscriptionItem = subscription.items.data.find((sub) => sub.id === subscriptionItemId);
-    if (subscriptionItem === undefined) throw new Error("Subscription item not found");
-
-    await stripe.subscriptions.update(subscriptionId, {
-      items: [{ quantity: membershipCount, id: subscriptionItemId }],
-    });
-    console.info(
-      `Updated subscription ${subscriptionId} for team ${teamId} to ${team.members.length} seats.`
-    );
-  } catch (error) {
-    let message = "Unknown error on updateQuantitySubscriptionFromStripe";
-    if (error instanceof Error) message = error.message;
-    console.error(message);
-  }
-};

@@ -16,121 +16,124 @@ describe("getUpgradeableHandler", () => {
   };
 
   beforeEach(() => {
-    // Reset all mocks before each test
     vi.clearAllMocks();
   });
 
-  it("should return teams without subscriptionId in their metadata", async () => {
-    // Mock the return value of prisma.membership.findMany
-    prismaMock.membership.findMany.mockResolvedValue([
-      {
-        team: {
-          metadata: {},
-          isOrganization: false,
-          children: [],
-        },
-        user: { id: 1137 },
-        role: MembershipRole.OWNER,
-      },
-      {
-        team: {
-          metadata: { subscriptionId: "123" },
-          isOrganization: false,
-          children: [],
-        },
-        user: { id: 1137 },
-        role: MembershipRole.OWNER,
-      },
-    ]);
+  it("should return an empty array when no teams match", async () => {
+    prismaMock.membership.findMany.mockResolvedValue([]);
 
     const result = await getUpgradeableHandler(ctx);
-
-    expect(result).toEqual([
-      {
-        team: {
-          metadata: {},
-          isOrganization: false,
-          children: [],
-        },
-        user: { id: 1137 },
-        role: MembershipRole.OWNER,
-      },
-    ]);
+    expect(result).toEqual([]);
   });
 
-  it("should return teams that are not organizations", async () => {
-    // Mock the return value of prisma.membership.findMany
-    prismaMock.membership.findMany.mockResolvedValue([
+  it("should query with correct where clause filtering teams without billing at DB level", async () => {
+    // Filtering now happens at the DB level via Prisma where clause:
+    // - parentId: null (exclude sub-teams)
+    // - isOrganization: false (exclude orgs, handled by OrgUpgradeBanner)
+    // - teamBilling: null (only teams without a billing record)
+    // - children: { none: {} } (exclude orgs disguised as teams)
+    const expectedTeams = [
       {
-        team: {
-          metadata: {},
-          isOrganization: true,
-          children: [],
-        },
-        user: { id: 1137 },
+        id: 1,
+        teamId: 10,
+        userId: 1137,
         role: MembershipRole.OWNER,
-      },
-      {
+        accepted: true,
         team: {
-          metadata: {},
+          id: 10,
+          name: "Team Without Billing",
+          slug: "team-without-billing",
           isOrganization: false,
-          children: [],
+          metadata: {},
         },
-        user: { id: 1137 },
-        role: MembershipRole.OWNER,
       },
-    ]);
+    ];
+
+    prismaMock.membership.findMany.mockResolvedValue(expectedTeams);
 
     const result = await getUpgradeableHandler(ctx);
 
-    expect(result).toEqual([
-      {
-        team: {
-          metadata: {},
-          isOrganization: false,
-          children: [],
-        },
-        user: { id: 1137 },
-        role: MembershipRole.OWNER,
-      },
-    ]);
+    expect(result).toEqual(expectedTeams);
+    expect(prismaMock.membership.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          user: { id: ctx.userId },
+          role: MembershipRole.OWNER,
+          team: expect.objectContaining({
+            parentId: null,
+            isOrganization: false,
+            teamBilling: null,
+            children: { none: {} },
+          }),
+        }),
+      })
+    );
   });
 
-  it("should return teams without children", async () => {
-    // Mock the return value of prisma.membership.findMany
-    prismaMock.membership.findMany.mockResolvedValue([
+  it("should select the correct fields from prisma", async () => {
+    prismaMock.membership.findMany.mockResolvedValue([]);
+
+    await getUpgradeableHandler(ctx);
+
+    expect(prismaMock.membership.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          id: true,
+          teamId: true,
+          userId: true,
+          role: true,
+          accepted: true,
+          team: expect.objectContaining({
+            select: expect.objectContaining({
+              id: true,
+              name: true,
+              slug: true,
+              isOrganization: true,
+              metadata: true,
+            }),
+          }),
+        }),
+      })
+    );
+  });
+
+  it("should return all results from the query without additional in-memory filtering", async () => {
+    const multipleTeams = [
       {
-        team: {
-          metadata: {},
-          isOrganization: false,
-          children: [{ id: "child-id-1" }],
-        },
-        user: { id: 1137 },
+        id: 1,
+        teamId: 10,
+        userId: 1137,
         role: MembershipRole.OWNER,
+        accepted: true,
+        team: {
+          id: 10,
+          name: "Team A",
+          slug: "team-a",
+          isOrganization: false,
+          metadata: {},
+        },
       },
       {
-        team: {
-          metadata: {},
-          isOrganization: false,
-          children: [],
-        },
-        user: { id: 1137 },
+        id: 2,
+        teamId: 20,
+        userId: 1137,
         role: MembershipRole.OWNER,
+        accepted: true,
+        team: {
+          id: 20,
+          name: "Team B",
+          slug: "team-b",
+          isOrganization: false,
+          metadata: {},
+        },
       },
-    ]);
+    ];
+
+    prismaMock.membership.findMany.mockResolvedValue(multipleTeams);
 
     const result = await getUpgradeableHandler(ctx);
 
-    expect(result).toEqual([
-      {
-        team: {
-          metadata: {},
-          isOrganization: false,
-          children: [],
-        },
-        user: { id: 1137 },
-        role: MembershipRole.OWNER,
-      },
-    ]);
+    expect(result).toEqual(multipleTeams);
+    expect(result).toHaveLength(2);
   });
 });
