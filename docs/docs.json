@@ -115,6 +115,13 @@
                   "PATCH /v2/me/ooo/{oooId}",
                   "DELETE /v2/me/ooo/{oooId}"
                 ]
+              },
+              {
+                "group": "Notifications",
+                "expanded": false,
+                "pages": [
+                  "api-reference/v2/app-push-subscriptions"
+                ]
               }
             ]
           },

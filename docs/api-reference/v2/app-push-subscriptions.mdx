@@ -1,0 +1,136 @@
+---
+title: "App push notification subscriptions"
+description: "Register and manage mobile push notification subscriptions for booking updates"
+---
+
+The app push notification subscriptions API lets you register mobile devices to receive push notifications for Cal.com booking events. This is useful when building native iOS or Android apps that need real-time booking alerts.
+
+## Prerequisites
+
+- A valid [API key or OAuth token](/api-reference/v2/introduction)
+- An [Expo push token](https://docs.expo.dev/push-notifications/overview/) from your mobile app (format: `ExponentPushToken[...]`)
+
+## How it works
+
+1. Your mobile app obtains an Expo push token from the device.
+2. You register the token with Cal.com using the `POST` endpoint, specifying the platform and a unique device identifier.
+3. Cal.com delivers push notifications to the registered device when booking events occur.
+4. When the user logs out or disables notifications, you remove the subscription using the `DELETE` endpoint.
+
+Registration is **idempotent** — if you register the same token again, the existing subscription is updated rather than duplicated.
+
+## Endpoints
+
+### Register a subscription
+
+```bash
+curl -X POST https://api.cal.com/v2/notifications/subscriptions/app-push \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+    "platform": "IOS",
+    "deviceId": "device-unique-id"
+  }'
+```
+
+**Request body**
+
+| Field      | Type   | Required | Description                                                                 |
+|------------|--------|----------|-----------------------------------------------------------------------------|
+| `token`    | string | Yes      | Expo push token. Must match the format `ExponentPushToken[...]`.            |
+| `platform` | string | Yes      | Device platform. Must be `IOS` or `ANDROID`.                                |
+| `deviceId` | string | Yes      | A unique identifier for the device, used to distinguish multiple devices.   |
+
+**Response**
+
+Returns the created or updated subscription with `status: "success"`.
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": 123,
+    "userId": 456,
+    "type": "APP_PUSH",
+    "identifier": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]",
+    "platform": "IOS",
+    "deviceId": "device-unique-id"
+  }
+}
+```
+
+### Remove a subscription
+
+```bash
+curl -X DELETE https://api.cal.com/v2/notifications/subscriptions/app-push \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]"
+  }'
+```
+
+**Request body**
+
+| Field   | Type   | Required | Description                                         |
+|---------|--------|----------|-----------------------------------------------------|
+| `token` | string | Yes      | The Expo push token to unregister. Must match the format `ExponentPushToken[...]`. |
+
+**Response**
+
+Returns `status: "success"` when the subscription is removed. Returns a `404` error if no subscription exists for the given token.
+
+```json
+{
+  "status": "success"
+}
+```
+
+## Example: React Native integration
+
+```typescript
+import * as Notifications from "expo-notifications";
+
+async function registerForPushNotifications(apiToken: string) {
+  const { data: expoPushToken } = await Notifications.getExpoPushTokenAsync();
+  const deviceId = `${Platform.OS}-${Device.modelId}`;
+
+  const response = await fetch(
+    "https://api.cal.com/v2/notifications/subscriptions/app-push",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        token: expoPushToken,
+        platform: Platform.OS === "ios" ? "IOS" : "ANDROID",
+        deviceId,
+      }),
+    }
+  );
+
+  return response.json();
+}
+
+async function unregisterPushNotifications(
+  apiToken: string,
+  expoPushToken: string
+) {
+  const response = await fetch(
+    "https://api.cal.com/v2/notifications/subscriptions/app-push",
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token: expoPushToken }),
+    }
+  );
+
+  return response.json();
+}
+```
