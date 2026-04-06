@@ -32,6 +32,8 @@ type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfir
 
 const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 
+export const ESTIMATED_COUNT_THRESHOLD = 1_000;
+
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   // Support both offset-based (list) and cursor-based pagination (calendar)
   // Cursor is just the offset as a string (fake cursor pagination)
@@ -53,7 +55,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     ? input.filters.statuses
     : [input.filters.status || defaultStatus];
 
-  const { bookings, recurringInfo, totalCount } = await getAllUserBookings({
+  const { bookings, recurringInfo, totalCount, isEstimate } = await getAllUserBookings({
     ctx: {
       user: { id: user.id, email: user.email, orgId: user?.profile?.organizationId },
       prisma: prisma,
@@ -76,6 +78,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     recurringInfo,
     totalCount,
     nextCursor,
+    ...(isEstimate && { isEstimate }),
   };
 };
 
@@ -94,6 +97,7 @@ export async function getBookings({
   filters,
   take,
   skip,
+  estimatedCountThreshold = ESTIMATED_COUNT_THRESHOLD,
 }: {
   user: { id: number; email: string; orgId?: number | null };
   filters: TGetInputSchema["filters"];
@@ -108,6 +112,7 @@ export async function getBookings({
   };
   take: number;
   skip: number;
+  estimatedCountThreshold?: number;
 }) {
   const permissionCheckService = new PermissionCheckService();
   const fallbackRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
@@ -436,14 +441,52 @@ export async function getBookings({
 
   log.debug(`Get bookings for user ${user.id} SQL:`, getBookingsUnionCompiled.sql);
 
-  const totalCount = Number(
-    (
-      await kysely
-        .selectFrom(queryUnion.as("union_subquery"))
-        .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
-        .executeTakeFirst()
-    )?.bookingCount ?? 0
-  );
+  const hasTeamAccess = !!teamIdsWithBookingPermission?.length;
+
+  let totalCount: number;
+  let isEstimate = false;
+
+  if (bookingsFromUnion.length < take) {
+    // Page isn't full — exact count is known without a query.
+    totalCount = skip + bookingsFromUnion.length;
+  } else if (hasTeamAccess) {
+    // For team access queries, the exact COUNT is expensive — the UNION ALL
+    // of 7 branches forces PG into ~300K index lookups from shared buffers.
+    // Use EXPLAIN to gauge the result set size first (~10ms).
+    const countQuery = kysely
+      .selectFrom(queryUnion.as("union_subquery"))
+      .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
+      .compile();
+    const explainResult = await prisma.$queryRawUnsafe<
+      [{ "QUERY PLAN": [{ Plan: { Plans?: [{ "Plan Rows": number }]; "Plan Rows": number } }] }]
+    >(`EXPLAIN (FORMAT JSON) ${countQuery.sql}`, ...countQuery.parameters);
+    const topPlan = explainResult[0]?.["QUERY PLAN"]?.[0]?.Plan;
+    const estimatedRows = topPlan?.Plans?.[0]?.["Plan Rows"] ?? topPlan?.["Plan Rows"] ?? 0;
+
+    if (estimatedRows < estimatedCountThreshold) {
+      // Small enough that exact COUNT is fast — run it for accurate pagination.
+      totalCount = Number(
+        (
+          await kysely
+            .selectFrom(queryUnion.as("union_subquery"))
+            .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
+            .executeTakeFirst()
+        )?.bookingCount ?? 0
+      );
+    } else {
+      totalCount = Math.round(estimatedRows);
+      isEstimate = true;
+    }
+  } else {
+    totalCount = Number(
+      (
+        await kysely
+          .selectFrom(queryUnion.as("union_subquery"))
+          .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
+          .executeTakeFirst()
+      )?.bookingCount ?? 0
+    );
+  }
 
   const plainBookings = !(bookingsFromUnion?.length === 0)
     ? await kysely
@@ -816,7 +859,7 @@ export async function getBookings({
   // Enrich attendees with user data
   const enrichedBookings = await enrichAttendeesWithUserData(bookings, kysely);
 
-  return { bookings: enrichedBookings, recurringInfo, totalCount };
+  return { bookings: enrichedBookings, recurringInfo, totalCount, ...(isEstimate && { isEstimate }) };
 }
 
 type EnrichedUserData = {

@@ -45,7 +45,7 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
   // Use optional chaining to handle this defensively.
   const statusesFilter = filters?.statuses ?? (filters?.status ? [filters.status] : bookingListingByStatus);
 
-  const { bookings, recurringInfo, totalCount } = await getBookings({
+  const { bookings, recurringInfo, totalCount, isEstimate } = await getBookings({
     user,
     prisma,
     kysely,
@@ -63,6 +63,7 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
     bookings,
     recurringInfo,
     totalCount,
+    ...(isEstimate && { isEstimate }),
   };
 };
 

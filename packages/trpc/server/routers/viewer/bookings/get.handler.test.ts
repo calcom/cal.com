@@ -121,6 +121,9 @@ describe("getBookings - PBAC Permission Checks", () => {
       groupBy: vi.fn(),
     },
     $queryRaw: vi.fn().mockResolvedValue([]),
+    $queryRawUnsafe: vi
+      .fn()
+      .mockResolvedValue([{ "QUERY PLAN": [{ Plan: { Plans: [{ "Plan Rows": 0 }] } }] }]),
   } as unknown as PrismaClient;
 
   // Create a comprehensive kysely mock that handles all chain methods
@@ -144,7 +147,7 @@ describe("getBookings - PBAC Permission Checks", () => {
       orderBy: vi.fn(() => mockQueryBuilder),
       limit: vi.fn(() => mockQueryBuilder),
       offset: vi.fn(() => mockQueryBuilder),
-      compile: vi.fn(() => ({ sql: "SELECT * FROM bookings" })),
+      compile: vi.fn(() => ({ sql: "SELECT * FROM bookings", parameters: [] })),
       executeTakeFirst: vi.fn().mockResolvedValue({ bookingCount: 0 }),
       execute: vi.fn().mockResolvedValue([]),
     };
@@ -220,7 +223,7 @@ describe("getBookings - PBAC Permission Checks", () => {
               orderBy: vi.fn(() => ({
                 limit: vi.fn(() => ({
                   offset: vi.fn(() => ({
-                    compile: vi.fn(() => ({ sql: "SELECT * FROM bookings" })),
+                    compile: vi.fn(() => ({ sql: "SELECT * FROM bookings", parameters: [] })),
                   })),
                 })),
               })),
@@ -454,10 +457,15 @@ describe("getBookings - PBAC Permission Checks", () => {
       expect(mockKysely._mockQueryBuilder.distinct).toHaveBeenCalled();
     });
 
-    it("should use count with distinct for totalCount calculation", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
+    it("should use count with distinct for totalCount calculation when no team access", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      // Page must be full so the COUNT query runs (not short-circuited)
+      (mockKysely as any).executeQuery = vi.fn().mockResolvedValue({
+        rows: Array.from({ length: 10 }, (_, i) => ({ id: i + 1 })),
+      });
 
       await getBookings({
         user: mockUser,
@@ -473,6 +481,55 @@ describe("getBookings - PBAC Permission Checks", () => {
       // instead of fn.countAll() to ensure duplicates from UNION ALL
       // are not counted multiple times
       expect(mockKysely._mockQueryBuilder.executeTakeFirst).toHaveBeenCalled();
+    });
+
+    it("should skip COUNT when results don't fill the page", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      // 0 rows returned < take of 10, so count is derived without a query
+      const result = await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: mockKysely as unknown as Kysely<DB>,
+        bookingListingByStatus: ["upcoming"],
+        filters: {},
+        take: 10,
+        skip: 0,
+      });
+
+      expect(result.totalCount).toBe(0);
+      expect(result.isEstimate).toBeUndefined();
+      // $queryRawUnsafe should NOT have been called (no EXPLAIN needed)
+      expect(mockPrisma.$queryRawUnsafe).not.toHaveBeenCalled();
+    });
+
+    it("should use EXPLAIN estimate for large result sets with team access", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+      mockPrisma.$queryRawUnsafe = vi
+        .fn()
+        .mockResolvedValue([{ "QUERY PLAN": [{ Plan: { Plans: [{ "Plan Rows": 50000 }] } }] }]);
+
+      // Page is full (10 rows = take), so COUNT is needed
+      (mockKysely as any).executeQuery = vi.fn().mockResolvedValue({
+        rows: Array.from({ length: 10 }, (_, i) => ({ id: i + 1 })),
+      });
+
+      const result = await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: mockKysely as unknown as Kysely<DB>,
+        bookingListingByStatus: ["upcoming"],
+        filters: {},
+        take: 10,
+        skip: 0,
+      });
+
+      expect(result.totalCount).toBe(50000);
+      expect(result.isEstimate).toBe(true);
     });
   });
 });

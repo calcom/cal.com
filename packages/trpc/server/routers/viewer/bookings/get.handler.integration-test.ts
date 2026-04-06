@@ -312,4 +312,40 @@ describe("getBookings - integration", () => {
     expect(bookingIds).toContain(booking3.id);
     expect(bookingIds).toContain(booking1.id);
   });
+
+  it("should use EXPLAIN-based estimated count when estimate exceeds threshold", async () => {
+    // Set threshold to 0 so the EXPLAIN estimate (any value ≥ 0) always triggers
+    // the estimate path instead of falling back to exact COUNT.
+    const result = await getBookings({
+      user: { id: user1.id, email: user1.email, orgId: null },
+      prisma,
+      kysely,
+      bookingListingByStatus: ["upcoming"],
+      filters: {},
+      take: 1,
+      skip: 0,
+      estimatedCountThreshold: 0,
+    });
+
+    expect(result.bookings).toHaveLength(1);
+    expect(result.isEstimate).toBe(true);
+    expect(result.totalCount).toBeGreaterThan(0);
+  });
+
+  it("should skip COUNT entirely when page is not full", async () => {
+    const result = await getBookings({
+      user: { id: user1.id, email: user1.email, orgId: null },
+      prisma,
+      kysely,
+      bookingListingByStatus: ["upcoming"],
+      filters: {},
+      take: 50,
+      skip: 0,
+    });
+
+    // 4 bookings < take of 50, so totalCount is derived without a COUNT query
+    expect(result.bookings.length).toBeLessThan(50);
+    expect(result.totalCount).toBe(result.bookings.length);
+    expect(result.isEstimate).toBeUndefined();
+  });
 });
