@@ -469,8 +469,8 @@ describe("getBookings - PBAC Permission Checks", () => {
     });
   });
 
-  describe("UNION ALL query for team access", () => {
-    it("should use UNION ALL with selectFrom when user has team access", async () => {
+  describe("CTE-based query for team access", () => {
+    it("should use CTEs via .with() when user has team access", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
@@ -485,9 +485,7 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // Pre-computed team data queries + UNION ALL branches all use selectFrom
-      expect(mockKysely.selectFrom).toHaveBeenCalled();
-      expect(mockKysely._mockQueryBuilder.unionAll).toHaveBeenCalled();
+      expect(mockKysely.with).toHaveBeenCalled();
     });
   });
 
@@ -537,8 +535,8 @@ describe("getBookings - PBAC Permission Checks", () => {
     });
   });
 
-  describe("UNION ALL query optimization for team access", () => {
-    it("should pre-compute team data with separate queries", async () => {
+  describe("CTE + OR-based query optimization", () => {
+    it("should build CTE chain with .with() for team access path", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
@@ -553,12 +551,10 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // Pre-computed team data queries use selectFrom for Membership and EventType
-      expect(mockKysely.selectFrom).toHaveBeenCalledWith("Membership");
-      expect(mockKysely.selectFrom).toHaveBeenCalledWith("EventType");
+      expect(mockKysely.with).toHaveBeenCalledWith("team_user_ids", expect.any(Function));
     });
 
-    it("should use selectFrom Booking for UNION ALL branches", async () => {
+    it("should use selectFrom Booking on the CTE chain", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
@@ -573,7 +569,7 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      expect(mockKysely.selectFrom).toHaveBeenCalledWith("Booking");
+      expect(mockKysely._mockWithChain.selectFrom).toHaveBeenCalledWith("Booking");
     });
 
     it("should execute paginated query and count in parallel", async () => {
@@ -1515,7 +1511,7 @@ describe("getBookings - PBAC Permission Checks", () => {
       expect(mockKysely.with).toHaveBeenCalledWith("team_event_type_ids", expect.any(Function));
     });
 
-    it("should build UNION ALL query for team access (no userIds filter)", async () => {
+    it("should build CTE chain with team_user_ids, team_emails, and team_event_type_ids", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
@@ -1530,8 +1526,10 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // team access without userIds → should use UNION ALL (selectFrom) instead of CTEs
-      expect(mockKysely.selectFrom).toHaveBeenCalledWith("Booking");
+      // team access → should chain 3 CTEs: team_user_ids, then team_emails, then team_event_type_ids
+      expect(mockKysely.with).toHaveBeenCalledWith("team_user_ids", expect.any(Function));
+      expect(mockKysely._mockWithChain.with).toHaveBeenCalledWith("team_emails", expect.any(Function));
+      expect(mockKysely._mockWithChain.with).toHaveBeenCalledWith("team_event_type_ids", expect.any(Function));
     });
   });
 
