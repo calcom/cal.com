@@ -46,6 +46,9 @@ export default function JoinCall(props: PageProps) {
     isLoggedInUserPartOfMeeting,
   } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
+  const [videoLoadError, setVideoLoadError] = useState<boolean>(false);
+  const [isLoadingVideo, setIsLoadingVideo] = useState<boolean>(true);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [guestCredentials, setGuestCredentials] = useState<{
     meetingPassword: string;
     meetingUrl: string;
@@ -120,8 +123,29 @@ export default function JoinCall(props: PageProps) {
           callFrame.setUserName(userName);
         }
 
+        // Set up event listeners for loading state and errors
+        callFrame.on("loaded", () => {
+          setIsLoadingVideo(false);
+          if (loadingTimeoutRef.current) {
+            clearTimeout(loadingTimeoutRef.current);
+            loadingTimeoutRef.current = null;
+          }
+        });
+
+        callFrame.on("error", (error) => {
+          console.error("Daily iframe error:", error);
+          setVideoLoadError(true);
+          setIsLoadingVideo(false);
+          if (loadingTimeoutRef.current) {
+            clearTimeout(loadingTimeoutRef.current);
+            loadingTimeoutRef.current = null;
+          }
+        });
+
         return callFrame;
       } catch (_err) {
+        setVideoLoadError(true);
+        setIsLoadingVideo(false);
         return DailyIframe.getCallInstance();
       }
     },
@@ -134,6 +158,15 @@ export default function JoinCall(props: PageProps) {
 
     let callFrame: DailyCall | null = null;
 
+    // Set timeout for detecting loading issues (Firefox ETP, etc.)
+    loadingTimeoutRef.current = setTimeout(() => {
+      if (isLoadingVideo) {
+        console.warn("Video loading timeout - possible Firefox ETP or iframe blocking");
+        setVideoLoadError(true);
+        setIsLoadingVideo(false);
+      }
+    }, 15000); // 15 second timeout
+
     try {
       callFrame = createCallFrame(activeUserName, activeMeetingPassword, activeMeetingUrl) ?? null;
       setDaily(callFrame);
@@ -142,9 +175,19 @@ export default function JoinCall(props: PageProps) {
       callFrame?.join();
     } catch (error) {
       console.error("Failed to create or join call:", error);
+      setVideoLoadError(true);
+      setIsLoadingVideo(false);
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
     }
 
     return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
       if (callFrame) {
         try {
           callFrame.destroy();
@@ -154,6 +197,8 @@ export default function JoinCall(props: PageProps) {
       }
       setDaily(null);
       setIsCallFrameReady(false);
+      setIsLoadingVideo(true);
+      setVideoLoadError(false);
     };
   }, [
     hideLoginModal,
@@ -162,6 +207,7 @@ export default function JoinCall(props: PageProps) {
     activeMeetingUrl,
     createCallFrame,
     guestCredentials,
+    isLoadingVideo,
   ]);
 
   return (
@@ -201,6 +247,7 @@ export default function JoinCall(props: PageProps) {
           />
         )}
       </div>
+      {videoLoadError && <VideoLoadError meetingUrl={meetingUrl} />}
       {!hideLoginModal && (
         <LogInOverlay
           isOpen={!hideLoginModal}
@@ -602,5 +649,60 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
         </button>
       </div>
     </aside>
+  );
+}
+
+interface VideoLoadErrorProps {
+  meetingUrl: string;
+}
+
+function VideoLoadError({ meetingUrl }: VideoLoadErrorProps) {
+  const { t } = useLocale();
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
+      <div className="mx-4 max-w-md rounded-lg bg-default p-6 text-center shadow-xl">
+        <div className="mb-4 flex justify-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-error/10">
+            <svg
+              className="h-6 w-6 text-error"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+        </div>
+        <h3 className="mb-2 font-semibold text-emphasis text-lg">
+          {t("video_failed_to_load")}
+        </h3>
+        <p className="mb-4 text-default text-sm">
+          {t("video_load_error_description")}
+        </p>
+        <div className="space-y-2">
+          <Button
+            color="primary"
+            className="w-full"
+            onClick={() => window.location.reload()}>
+            {t("try_again")}
+          </Button>
+          <a
+            href={meetingUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full rounded-md border border-subtle bg-subtle px-4 py-2 text-center text-sm font-medium text-default hover:bg-muted">
+            {t("open_in_new_tab")}
+          </a>
+        </div>
+        <p className="mt-4 text-subtle text-xs">
+          {t("firefox_etp_hint")}
+        </p>
+      </div>
+    </div>
   );
 }
