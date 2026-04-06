@@ -1,26 +1,38 @@
 export const ADMIN_DI_TOKENS = {
-  LOCK_USER_ACCOUNT_ACTION: Symbol("LockUserAccountAction"),
-  LOCK_USER_ACCOUNT_ACTION_MODULE: Symbol("LockUserAccountActionModule"),
-  REMOVE_TWO_FACTOR_ACTION: Symbol("RemoveTwoFactorAction"),
-  REMOVE_TWO_FACTOR_ACTION_MODULE: Symbol("RemoveTwoFactorActionModule"),
-  VERIFY_WORKFLOWS_ACTION: Symbol("VerifyWorkflowsAction"),
-  VERIFY_WORKFLOWS_ACTION_MODULE: Symbol("VerifyWorkflowsActionModule"),
-  WHITELIST_USER_WORKFLOWS_ACTION: Symbol("WhitelistUserWorkflowsAction"),
-  WHITELIST_USER_WORKFLOWS_ACTION_MODULE: Symbol("WhitelistUserWorkflowsActionModule"),
-  ADMIN_WORKFLOW_REPOSITORY: Symbol("AdminWorkflowRepository"),
-  ADMIN_WORKFLOW_REPOSITORY_MODULE: Symbol("AdminWorkflowRepositoryModule"),
-  DELETE_ORG_ONBOARDING_ACTION: Symbol("DeleteOrganizationOnboardingAction"),
-  DELETE_ORG_ONBOARDING_ACTION_MODULE: Symbol("DeleteOrganizationOnboardingActionModule"),
-  EDIT_ORG_ONBOARDING_ACTION: Symbol("EditOrganizationOnboardingAction"),
-  EDIT_ORG_ONBOARDING_ACTION_MODULE: Symbol("EditOrganizationOnboardingActionModule"),
-  ADMIN_USER_REPOSITORY: Symbol("AdminUserRepository"),
-  ADMIN_USER_REPOSITORY_MODULE: Symbol("AdminUserRepositoryModule"),
-  ADMIN_ORG_ONBOARDING_REPOSITORY: Symbol("AdminOrgOnboardingRepository"),
-  ADMIN_ORG_ONBOARDING_REPOSITORY_MODULE: Symbol("AdminOrgOnboardingRepositoryModule"),
-  USER_UNBLOCK_SERVICE: Symbol("UserUnblockService"),
-  USER_UNBLOCK_SERVICE_MODULE: Symbol("UserUnblockServiceModule"),
-  WORKFLOW_REMINDER_REPOSITORY: Symbol("WorkflowReminderRepository"),
-  WORKFLOW_REMINDER_REPOSITORY_MODULE: Symbol("WorkflowReminderRepositoryModule"),
-  WORKFLOW_REMOVAL_SERVICE: Symbol("WorkflowRemovalService"),
-  WORKFLOW_REMOVAL_SERVICE_MODULE: Symbol("WorkflowRemovalServiceModule"),
+  user: {
+    REPOSITORY: Symbol("AdminUserRepository"),
+    REPOSITORY_MODULE: Symbol("AdminUserRepositoryModule"),
+    LOCK_ACCOUNT_ACTION: Symbol("LockUserAccountAction"),
+    LOCK_ACCOUNT_ACTION_MODULE: Symbol("LockUserAccountActionModule"),
+    REMOVE_TWO_FACTOR_ACTION: Symbol("RemoveTwoFactorAction"),
+    REMOVE_TWO_FACTOR_ACTION_MODULE: Symbol("RemoveTwoFactorActionModule"),
+    UNBLOCK_SERVICE: Symbol("UserUnblockService"),
+    UNBLOCK_SERVICE_MODULE: Symbol("UserUnblockServiceModule"),
+  },
+
+  workflow: {
+    REPOSITORY: Symbol("AdminWorkflowRepository"),
+    REPOSITORY_MODULE: Symbol("AdminWorkflowRepositoryModule"),
+    VERIFY_ACTION: Symbol("VerifyWorkflowsAction"),
+    VERIFY_ACTION_MODULE: Symbol("VerifyWorkflowsActionModule"),
+    WHITELIST_ACTION: Symbol("WhitelistUserWorkflowsAction"),
+    WHITELIST_ACTION_MODULE: Symbol("WhitelistUserWorkflowsActionModule"),
+    REMINDER_REPOSITORY: Symbol("WorkflowReminderRepository"),
+    REMINDER_REPOSITORY_MODULE: Symbol("WorkflowReminderRepositoryModule"),
+    REMOVAL_SERVICE: Symbol("WorkflowRemovalService"),
+    REMOVAL_SERVICE_MODULE: Symbol("WorkflowRemovalServiceModule"),
+  },
+
+  organization: {
+    ONBOARDING_REPOSITORY: Symbol("AdminOrgOnboardingRepository"),
+    ONBOARDING_REPOSITORY_MODULE: Symbol("AdminOrgOnboardingRepositoryModule"),
+    DELETE_ONBOARDING_ACTION: Symbol("DeleteOrganizationOnboardingAction"),
+    DELETE_ONBOARDING_ACTION_MODULE: Symbol(
+      "DeleteOrganizationOnboardingActionModule"
+    ),
+    EDIT_ONBOARDING_ACTION: Symbol("EditOrganizationOnboardingAction"),
+    EDIT_ONBOARDING_ACTION_MODULE: Symbol(
+      "EditOrganizationOnboardingActionModule"
+    ),
+  },
 };

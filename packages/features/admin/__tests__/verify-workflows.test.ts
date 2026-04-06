@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { VerifyWorkflowsInput } from "../actions/verify-workflows";
-import { VerifyWorkflowsAction } from "../actions/verify-workflows";
+import type { VerifyWorkflowsInput } from "../actions/workflow/verify-workflows";
+import { VerifyWorkflowsAction } from "../actions/workflow/verify-workflows";
 
 function createMockDeps() {
   return {

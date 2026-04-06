@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { RemoveTwoFactorInput } from "../actions/remove-two-factor";
-import { RemoveTwoFactorAction } from "../actions/remove-two-factor";
+import type { RemoveTwoFactorInput } from "../actions/user/remove-two-factor";
+import { RemoveTwoFactorAction } from "../actions/user/remove-two-factor";
 
 function createMockDeps() {
   return {

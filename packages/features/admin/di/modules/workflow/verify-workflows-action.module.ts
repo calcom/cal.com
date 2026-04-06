@@ -1,13 +1,13 @@
 import { bindModuleToClassOnToken, createModule, type ModuleLoader } from "@calcom/features/di/di";
 
-import { VerifyWorkflowsAction } from "../../actions/verify-workflows";
-import { ADMIN_DI_TOKENS } from "../tokens";
-import { adminUserRepositoryModuleLoader } from "./AdminUserRepository.module";
-import { adminWorkflowRepositoryModuleLoader } from "./AdminWorkflowRepository.module";
+import { VerifyWorkflowsAction } from "../../../actions/workflow/verify-workflows";
+import { ADMIN_DI_TOKENS } from "../../tokens";
+import { adminUserRepositoryModuleLoader } from "../user/admin-user-repository.module";
+import { adminWorkflowRepositoryModuleLoader } from "./admin-workflow-repository.module";
 
 const thisModule = createModule();
-const token = ADMIN_DI_TOKENS.VERIFY_WORKFLOWS_ACTION;
-const moduleToken = ADMIN_DI_TOKENS.VERIFY_WORKFLOWS_ACTION_MODULE;
+const token = ADMIN_DI_TOKENS.workflow.VERIFY_ACTION;
+const moduleToken = ADMIN_DI_TOKENS.workflow.VERIFY_ACTION_MODULE;
 
 const loadModule = bindModuleToClassOnToken({
   module: thisModule,

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { LockUserAccountAction } from "../actions/lock-user-account";
-import type { LockUserAccountInput } from "../actions/lock-user-account";
+import { LockUserAccountAction } from "../actions/user/lock-user-account";
+import type { LockUserAccountInput } from "../actions/user/lock-user-account";
 
 function createMockDeps() {
   return {

@@ -1,8 +1,8 @@
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 
-import type { AdminUserRepository } from "../repositories/AdminUserRepository";
-import type { AdminAction } from "./admin-action";
+import type { AdminUserRepository } from "../../repositories/admin-user-repository";
+import type { AdminAction } from "../admin-action";
 
 export interface RemoveTwoFactorDeps {
   userRepo: AdminUserRepository;

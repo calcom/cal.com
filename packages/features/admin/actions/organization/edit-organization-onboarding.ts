@@ -1,10 +1,11 @@
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
+
 import type {
   AdminOrgOnboardingRepository,
   UpdateOrgOnboardingData,
-} from "../repositories/AdminOrgOnboardingRepository";
-import type { AdminAction } from "./admin-action";
+} from "../../repositories/admin-org-onboarding-repository";
+import type { AdminAction } from "../admin-action";
 
 export interface EditOrganizationOnboardingDeps {
   orgOnboardingRepo: AdminOrgOnboardingRepository;

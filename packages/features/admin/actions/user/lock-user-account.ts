@@ -1,5 +1,5 @@
-import type { AdminAction } from "./admin-action";
-import type { AdminUserRepository } from "../repositories/AdminUserRepository";
+import type { AdminAction } from "../admin-action";
+import type { AdminUserRepository } from "../../repositories/admin-user-repository";
 import type { UserUnblockService } from "@calcom/features/watchlist/lib/service/UserUnblockService";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import { ErrorCode } from "@calcom/lib/errorCodes";

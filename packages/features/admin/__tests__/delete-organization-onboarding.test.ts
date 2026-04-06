@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { DeleteOrganizationOnboardingInput } from "../actions/delete-organization-onboarding";
-import { DeleteOrganizationOnboardingAction } from "../actions/delete-organization-onboarding";
+import type { DeleteOrganizationOnboardingInput } from "../actions/organization/delete-organization-onboarding";
+import { DeleteOrganizationOnboardingAction } from "../actions/organization/delete-organization-onboarding";
 
 function createMockDeps() {
   return {

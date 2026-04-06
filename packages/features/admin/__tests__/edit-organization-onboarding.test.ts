@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { EditOrganizationOnboardingInput } from "../actions/edit-organization-onboarding";
-import { EditOrganizationOnboardingAction } from "../actions/edit-organization-onboarding";
+import type { EditOrganizationOnboardingInput } from "../actions/organization/edit-organization-onboarding";
+import { EditOrganizationOnboardingAction } from "../actions/organization/edit-organization-onboarding";
 
 function createMockDeps() {
   return {

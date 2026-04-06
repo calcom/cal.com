@@ -1,9 +1,9 @@
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 
-import type { AdminUserRepository } from "../repositories/AdminUserRepository";
-import type { AdminWorkflowRepository } from "../repositories/AdminWorkflowRepository";
-import type { AdminAction } from "./admin-action";
+import type { AdminUserRepository } from "../../repositories/admin-user-repository";
+import type { AdminWorkflowRepository } from "../../repositories/admin-workflow-repository";
+import type { AdminAction } from "../admin-action";
 
 export interface VerifyWorkflowsDeps {
   userRepo: AdminUserRepository;

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { WhitelistUserWorkflowsInput } from "../actions/whitelist-user-workflows";
-import { WhitelistUserWorkflowsAction } from "../actions/whitelist-user-workflows";
+import type { WhitelistUserWorkflowsInput } from "../actions/workflow/whitelist-user-workflows";
+import { WhitelistUserWorkflowsAction } from "../actions/workflow/whitelist-user-workflows";
 
 function createMockDeps() {
   return {
