@@ -1,10 +1,8 @@
-import { expect } from "@playwright/test";
-import { v4 as uuidv4 } from "uuid";
-
 import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-
+import { expect } from "@playwright/test";
+import { v4 as uuidv4 } from "uuid";
 import { test } from "./lib/fixtures";
 import {
   confirmReschedule,
@@ -43,6 +41,7 @@ test.describe("Booking with Seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { email: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -136,6 +135,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { email: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -203,6 +203,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { email: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -282,6 +283,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { email: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -475,6 +477,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { email: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({
@@ -522,6 +525,7 @@ test.describe("Reschedule for booking with seats", () => {
         name: true,
         email: true,
       },
+      orderBy: { email: "asc" },
     });
 
     const bookingSeats = bookingAttendees.map((attendee) => ({

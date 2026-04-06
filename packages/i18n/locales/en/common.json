@@ -1231,6 +1231,7 @@
   "additional_inputs": "Additional inputs",
   "additional_input_description": "Require scheduler to input additional inputs prior the booking is confirmed",
   "label": "Label",
+  "label_cannot_be_whitespace": "Label cannot be only whitespace",
   "placeholder": "Placeholder",
   "display_add_to_calendar_organizer": "Use \"Add to calendar\" email as the organizer",
   "display_email_as_organizer": "We'll display this email address as the organizer, and send confirmation emails here.",
@@ -4567,6 +4568,7 @@
   "location_applied_to_hosts_other": "Location applied to {{count}} hosts",
   "booking_audit_action": {
     "created": "Booked with {{host}}",
+    "created_awaiting_host": "Booked (awaiting host)",
     "created_with_seat": "Seat Booked with {{host}}",
     "cancelled": "Cancelled",
     "rescheduled": "Rescheduled {{oldDate}} -> <0>{{newDate}}</0>",
