@@ -1491,7 +1491,7 @@ describe("getBookings - PBAC Permission Checks", () => {
       expect(mockKysely.selectFrom).toHaveBeenCalledWith("Booking");
     });
 
-    it("should use CTE on userIds filter path when user has team access", async () => {
+    it("should use selectFrom on userIds filter path", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([{ id: 2, email: "member@example.com" }]);
       mockPrisma.eventType.findMany = vi.fn().mockResolvedValue([]);
@@ -1507,8 +1507,8 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // userIds filter with team access → uses .with() CTE for event type scoping
-      expect(mockKysely.with).toHaveBeenCalledWith("team_event_type_ids", expect.any(Function));
+      // userIds filter → uses selectFrom, not CTEs
+      expect(mockKysely.selectFrom).toHaveBeenCalledWith("Booking");
     });
 
     it("should build CTE chain with team_user_ids, team_emails, and team_event_type_ids", async () => {
