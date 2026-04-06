@@ -976,7 +976,8 @@
                 "pages": [
                   "self-hosting/guides/organization/organization-setup",
                   "self-hosting/guides/organization/understanding-organization-env-variables",
-                  "self-hosting/guides/organization/single-organization-setup"
+                  "self-hosting/guides/organization/single-organization-setup",
+                  "self-hosting/guides/organization/guest-notification-settings"
                 ]
               }
             ]
