@@ -51,6 +51,7 @@ NEXTAUTH_URL=https://cal.yourdomain.com
 
 **Important notes:**
 - Do **not** include a trailing slash.
+- `NEXTAUTH_URL` is optional if `NEXT_PUBLIC_WEBAPP_URL` is set — it will be automatically derived as `${NEXT_PUBLIC_WEBAPP_URL}/api/auth`.
 - For Docker deployments, these must be set **before** building the image, as `NEXT_PUBLIC_WEBAPP_URL` is a build-time variable (it is inlined by Next.js during the build). Rebuild the image after changing it.
 - For Vercel deployments, you do **not** need to set `NEXTAUTH_URL` — Vercel automatically infers it from the deployment URL via the `VERCEL_URL` environment variable.
 
@@ -73,6 +74,7 @@ Related issue: [#21921](https://github.com/calcom/cal.com/issues/21921)
 REDIS_URL=redis://redis:6379
 JWT_SECRET=your_random_jwt_secret_here
 NEXTAUTH_SECRET=your_nextauth_secret_here
+CALENDSO_ENCRYPTION_KEY=your_32_character_encryption_key
 STRIPE_API_KEY=sk_test_your_stripe_key
 STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
 
@@ -203,7 +205,7 @@ yarn workspace @calcom/prisma db-deploy
 
 3. If the issue persists after migrations, check the application logs for the specific Prisma error message — it will indicate which field or constraint is failing.
 
-> **Note:** The setup endpoint (`/api/auth/setup`) creates the first user with the `ADMIN` role. It only works when the `User` table is completely empty. If a previous setup attempt partially succeeded, you may need to manually clear the users table before retrying.
+> **Note:** The setup endpoint (`/auth/setup`) creates the first user with the `ADMIN` role. It only works when the `User` table is completely empty. If a previous setup attempt partially succeeded, you may need to manually clear the users table before retrying.
 
 ---
 
