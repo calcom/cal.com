@@ -51,7 +51,7 @@ NEXTAUTH_URL=https://cal.yourdomain.com
 
 **Important notes:**
 - Do **not** include a trailing slash.
-- `NEXTAUTH_URL` is optional if `NEXT_PUBLIC_WEBAPP_URL` is set — it will be automatically derived as `${NEXT_PUBLIC_WEBAPP_URL}/api/auth`.
+- `NEXTAUTH_URL` is optional if `NEXT_PUBLIC_WEBAPP_URL` is set — NextAuth will infer the base URL from the incoming request's `Host` header when `NEXTAUTH_URL` is not explicitly configured.
 - For Docker deployments, these must be set **before** building the image, as `NEXT_PUBLIC_WEBAPP_URL` is a build-time variable (it is inlined by Next.js during the build). Rebuild the image after changing it.
 - For Vercel deployments, you do **not** need to set `NEXTAUTH_URL` — Vercel automatically infers it from the deployment URL via the `VERCEL_URL` environment variable.
 
