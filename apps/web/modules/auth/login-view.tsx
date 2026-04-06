@@ -185,7 +185,7 @@ export default function Login({
                       {isGoogleLoginEnabled && (
                         <Button
                           size="lg"
-                          className="flex-1"
+                          className="w-full"
                           disabled={formState.isSubmitting}
                           data-testid="google"
                           onClick={async (e) => {
@@ -208,9 +208,8 @@ export default function Login({
                       )}
                       {isOutlookLoginEnabled && (
                         <Button
-                          variant="outline"
                           size="lg"
-                          className="flex-1"
+                          className="w-full"
                           data-testid="microsoft"
                           onClick={async (e) => {
                             e.preventDefault();
@@ -305,7 +304,7 @@ export default function Login({
                   {/* Submit Button */}
                   <Button
                     type="submit"
-
+                    size="lg"
                     className="mt-8 w-full"
                     disabled={formState.isSubmitting}>
                     {twoFactorRequired ? t("submit") : t("continue")}
