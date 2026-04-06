@@ -1,0 +1,218 @@
+---
+title: "Troubleshooting"
+icon: "triangle-exclamation"
+---
+
+This guide covers the most common issues encountered when self-hosting Cal.com, along with their solutions.
+
+## Onboarding / Setup Issues
+
+### Stripe Payment Features Not Working
+
+**Symptom:** Stripe-related features (paid events, app store payment integration) are not available, or you see errors when attempting to use payment features.
+
+**Cause:** The Stripe integration requires several environment variables to be configured. These variables are defined across two files: `.env` (root) and `.env.appStore`. If they are missing or empty, the Stripe app will be marked as "not installed" and payment-related features will be unavailable.
+
+**Solution:** Add the following variables to your `.env` file (root):
+
+```env
+STRIPE_PRIVATE_KEY=sk_test_...
+STRIPE_CLIENT_ID=ca_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+And in your `.env.appStore` file (or `.env` if using a single file):
+
+```env
+NEXT_PUBLIC_STRIPE_PUBLIC_KEY=pk_test_...
+```
+
+> **Note:** Replace these with your actual Stripe API keys from the [Stripe Dashboard](https://dashboard.stripe.com/apikeys). If you don't need payment features, you can safely leave these empty — the app will function without them, but Stripe-related features will be disabled.
+
+Related issue: [#25993](https://github.com/calcom/cal.com/issues/25993)
+
+---
+
+## URL and Redirect Issues
+
+### Redirect to `localhost:3000` After Deployment
+
+**Symptom:** After deploying Cal.com to a server or domain, login redirects or internal links point back to `http://localhost:3000` instead of your actual domain.
+
+**Cause:** The environment variables `NEXTAUTH_URL` and `NEXT_PUBLIC_WEBAPP_URL` are not set to your production domain. These variables tell Cal.com and NextAuth where the app is hosted.
+
+**Solution:** Update your `.env` file to use your actual domain:
+
+```env
+# Replace with your actual domain
+NEXT_PUBLIC_WEBAPP_URL=https://cal.yourdomain.com
+NEXTAUTH_URL=https://cal.yourdomain.com
+```
+
+**Important notes:**
+- Do **not** include a trailing slash.
+- `NEXTAUTH_URL` is optional if `NEXT_PUBLIC_WEBAPP_URL` is set — NextAuth will infer the base URL from the incoming request's `Host` header when `NEXTAUTH_URL` is not explicitly configured.
+- For Docker deployments, these must be set **before** building the image, as `NEXT_PUBLIC_WEBAPP_URL` is a build-time variable (it is inlined by Next.js during the build). Rebuild the image after changing it.
+- For Vercel deployments, you do **not** need to set `NEXTAUTH_URL` — Vercel automatically infers it from the deployment URL via the `VERCEL_URL` environment variable.
+
+Related issue: [#21921](https://github.com/calcom/cal.com/issues/21921)
+
+---
+
+## Docker-Specific Issues
+
+### API v2 Service Not Starting
+
+**Symptom:** After running `docker compose up -d`, the `calcom-api` service fails to start or immediately exits. The web app works, but API v2 endpoints (`/api/v2/...`) return connection errors.
+
+**Cause:** The API v2 service requires several environment variables that are not in the root `.env.example`. If any required variable is missing, the service will throw a `Missing environment variable` error and exit on startup.
+
+**Solution:** Add the following variables to your root `.env` file (the `docker-compose.yml` passes these to the `calcom-api` service):
+
+```env
+# Required for API v2 (service will not start without these)
+REDIS_URL=redis://redis:6379
+JWT_SECRET=your_random_jwt_secret_here
+NEXTAUTH_SECRET=your_nextauth_secret_here
+CALENDSO_ENCRYPTION_KEY=your_32_character_encryption_key
+STRIPE_API_KEY=sk_test_your_stripe_key
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+
+# Optional (have sensible defaults)
+WEB_APP_URL=https://cal.yourdomain.com
+REDIS_PORT=6379
+LOG_LEVEL=warn
+```
+
+> **Note:** `STRIPE_API_KEY` is the API v2 equivalent of `STRIPE_PRIVATE_KEY` used by the web app. Both are Stripe secret keys but are consumed by different services. If you don't need Stripe functionality in the API, you can set a placeholder value (e.g., `sk_test_placeholder`), but the variable must be present.
+
+You can generate secure secrets with:
+
+```bash
+openssl rand -base64 32
+```
+
+Then restart the stack:
+
+```bash
+docker compose down && docker compose up -d
+```
+
+Check the API v2 service logs for further details if it still fails:
+
+```bash
+docker compose logs calcom-api
+```
+
+> **Tip:** The API v2 service has its own `.env.example` at `apps/api/v2/.env.example` with a complete list of all supported variables. Refer to it for the full configuration reference.
+
+---
+
+### `CLIENT_FETCH_ERROR` in Logs
+
+**Symptom:** The following error appears in Docker logs, and login/session fails:
+
+```
+[next-auth][error][CLIENT_FETCH_ERROR]
+request to http://<your-domain>/api/auth/session failed, reason: getaddrinfo ENOTFOUND
+```
+
+**Cause:** The Docker container cannot resolve the external hostname set in `NEXTAUTH_URL` from within the container's network.
+
+**Solution:** Add your domain to the container's `/etc/hosts` so it resolves to itself:
+
+```yaml
+# docker-compose.yml
+services:
+  calcom:
+    extra_hosts:
+      - "cal.yourdomain.com:127.0.0.1"
+```
+
+This allows the container to resolve your public domain internally while keeping `NEXTAUTH_URL` set to your public URL (required for OAuth callbacks to work).
+
+> **Important:** This approach works when `NEXTAUTH_URL` uses HTTP (e.g., `http://cal.yourdomain.com:3000`). If your `NEXTAUTH_URL` uses HTTPS, the container will attempt to connect to `127.0.0.1:443`, while the app listens on port 3000 — this will fail. In that case, ensure your reverse proxy is also running inside the Docker network, or see the SSL section below.
+
+> **Why not use `localhost`?** Setting `NEXTAUTH_URL` to `localhost` would fix this DNS error, but **breaks OAuth** — external providers like Google would redirect to `localhost` instead of your domain.
+
+---
+
+### SSL / HTTPS Issues Behind a Reverse Proxy
+
+**Symptom:** Requests fail with SSL certificate errors when Cal.com is behind a load balancer or reverse proxy that handles HTTPS termination.
+
+**Solution (choose one):**
+
+**Option 1: If your proxy forwards HTTP internally (most common)**
+
+Keep `NEXTAUTH_URL` set to your **public-facing HTTPS URL**:
+
+```env
+NEXTAUTH_URL=https://cal.yourdomain.com
+```
+
+Then configure your reverse proxy to forward these headers so internal requests work correctly:
+
+```nginx
+# Nginx example
+proxy_set_header Host $host;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Host $host;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+```
+
+> **Why not use `localhost`?** Setting `NEXTAUTH_URL=http://localhost:3000` would fix internal SSL errors, but **breaks OAuth callbacks** — external providers (Google, Microsoft) would try to redirect users to `localhost`, which fails. Always use your public URL.
+
+**Option 2: If using self-signed certificates internally**
+
+Add your internal CA to Node's trusted certificates:
+
+```env
+NODE_EXTRA_CA_CERTS=/path/to/your-internal-ca.crt
+```
+
+**Option 3: Last resort (not recommended for production)**
+
+```env
+NODE_TLS_REJECT_UNAUTHORIZED=0
+```
+
+> **Security Warning:** This disables **all** TLS certificate verification globally, including external API calls to Stripe, Google Calendar, and other services. This makes your instance vulnerable to man-in-the-middle attacks. Only use this in isolated development environments where you fully control all network traffic.
+
+---
+
+## Database Issues
+
+### First User Setup Fails
+
+**Symptom:** Attempting to create the first admin user via the `/setup` page results in an error.
+
+**Cause:** This can occur if the database migrations have not been applied, or if the database is in an inconsistent state.
+
+**Solution:**
+
+1. Ensure database migrations are applied:
+
+```bash
+# For development
+yarn workspace @calcom/prisma db-migrate
+
+# For production / Docker
+yarn workspace @calcom/prisma db-deploy
+```
+
+2. Verify the database is accessible and the `DATABASE_URL` in your `.env` is correct.
+
+3. If the issue persists after migrations, check the application logs for the specific Prisma error message — it will indicate which field or constraint is failing.
+
+> **Note:** The setup endpoint (`/auth/setup`) creates the first user with the `ADMIN` role. It only works when the `User` table is completely empty. If a previous setup attempt partially succeeded, you may need to manually clear the users table before retrying.
+
+---
+
+## Getting Further Help
+
+If your issue is not listed here:
+
+1. Search the [Cal.com GitHub Issues](https://github.com/calcom/cal.com/issues) — many common problems have documented solutions in issue threads.
+2. Check the [Cal.com Community](https://community.cal.com) forum.
+3. Review the [Docker configuration](./docker) and [Installation guide](./installation) for any steps you may have missed.
