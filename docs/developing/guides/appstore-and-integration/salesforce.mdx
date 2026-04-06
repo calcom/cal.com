@@ -49,25 +49,56 @@ For each field, configure the field name, type, value, and write condition, the 
 
 Enable **On cancelled booking, write to a custom field on the attendee record** to update fields on the attendee's Contact or Lead record when a booking is cancelled. This lets you track cancellation status directly on the person record in Salesforce.
 
-The field configuration options are the same as for booking-time writes:
+Cal.com identifies the correct contact or lead using the Salesforce event's `WhoId` field, which links back to the person originally assigned when the booking was created.
 
-- **Field name** — The Salesforce API name of the field
-- **Field type** — The data type (text, date, datetime, phone, checkbox, picklist, textarea, or custom)
-- **Value** — The value to write
-- **When to write** — Write on every cancellation, or only when the field is empty
+<Note>
+This feature works alongside the "write to record on booking" option. You can configure both independently — for example, writing a booking date on creation and a cancellation status on cancellation.
+</Note>
 
-#### Example: tracking cancellation date
+#### Enable write-to-record on cancellation
 
-To record the date a booking was cancelled on the Contact record:
+<Steps>
+  <Step title="Open event type settings">
+    Go to **Event Types**, select the event type you want to configure, and open the **Apps** tab.
+  </Step>
+  <Step title="Open Salesforce settings">
+    Find the Salesforce app card and expand its settings.
+  </Step>
+  <Step title="Enable the cancellation toggle">
+    Turn on **On cancelled booking, write to a custom field on the attendee contact/lead record**.
+  </Step>
+  <Step title="Configure fields">
+    Add one or more field mappings. For each field, specify:
 
-1. In Salesforce, add a custom date field to the Contact object (e.g., `Last_Cancellation_Date__c`)
-2. In Cal.com, open the event type's Salesforce settings
-3. Enable **On cancelled booking, write to a custom field on the attendee Contact record**
-4. Add a field entry:
-   - Field name: `Last_Cancellation_Date__c`
+    - **Field name** — The Salesforce API name of the field on the contact or lead object (for example, `Last_Booking_Status__c`)
+    - **Field type** — The data type (text, date, datetime, phone, checkbox, picklist, textarea, or custom)
+    - **Value** — The value to write when a booking is cancelled. For date fields, you can use dynamic values like `booking_cancel_date` to automatically populate the cancellation date
+    - **When to write** — Choose between writing on every cancellation or only when the field is empty
+  </Step>
+  <Step title="Save">
+    Save your event type. The configured fields update on the attendee's Salesforce record whenever a booking of this type is cancelled.
+  </Step>
+</Steps>
+
+#### Example: tracking cancellation status and date
+
+A sales team wants to track when prospects cancel discovery calls:
+
+1. In Salesforce, add custom fields to the Contact object (e.g., `Last_Booking_Status__c` and `Last_Cancel_Date__c`)
+2. In Cal.com, open the "Discovery Call" event type's Salesforce settings
+3. Enable **On cancelled booking, write to a custom field on the attendee contact/lead record**
+4. Add a first field mapping:
+   - Field name: `Last_Booking_Status__c`
+   - Field type: Text
+   - Value: `Cancelled`
+   - When to write: Every cancellation
+5. Add a second field mapping:
+   - Field name: `Last_Cancel_Date__c`
    - Field type: Date
    - Value: `booking_cancel_date`
-   - When to write: Every booking
+   - When to write: Every cancellation
+
+When a prospect cancels, their Salesforce contact record automatically updates with the cancellation status and date.
 
 ### Additional settings
 
