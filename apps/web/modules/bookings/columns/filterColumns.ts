@@ -24,6 +24,11 @@ const FILTER_COLUMN_IDS = [
   "attendeeEmail",
   "dateRange",
   "bookingUid",
+  "utmSource",
+  "utmMedium",
+  "utmCampaign",
+  "utmTerm",
+  "utmContent",
 ] as const;
 
 /**
@@ -128,5 +133,64 @@ export function buildFilterColumns({ t, permissions, status }: BuildFilterColumn
         },
       },
     }),
+    columnHelper.accessor((row) => (row.type === "data" ? row.booking.utmSource : null), {
+      id: "utmSource",
+      header: t("utm_source"),
+      enableColumnFilter: true,
+      enableSorting: false,
+      cell: () => null,
+      meta: {
+        filter: {
+          type: ColumnFilterType.TEXT,
+        },
+      },
+    }),
+    columnHelper.accessor((row) => (row.type === "data" ? row.booking.utmMedium : null), {
+      id: "utmMedium",
+      header: t("utm_medium"),
+      enableColumnFilter: true,
+      enableSorting: false,
+      cell: () => null,
+      meta: {
+        filter: {
+          type: ColumnFilterType.TEXT,
+        },
+      },
+    }),
+    columnHelper.accessor((row) => (row.type === "data" ? row.booking.utmCampaign : null), {
+      id: "utmCampaign",
+      header: t("utm_campaign"),
+      enableColumnFilter: true,
+      enableSorting: false,
+      cell: () => null,
+      meta: {
+        filter: {
+          type: ColumnFilterType.TEXT,
+        },
+      },
+    }),
+    columnHelper.accessor((row) => (row.type === "data" ? row.booking.utmTerm : null), {
+      id: "utmTerm",
+      header: t("utm_term"),
+      enableColumnFilter: true,
+      enableSorting: false,
+      cell: () => null,
+      meta: {
+        filter: {
+          type: ColumnFilterType.TEXT,
+        },
+      },
+    }),
+    columnHelper.accessor((row) => (row.type === "data" ? row.booking.utmContent : null), {
+      id: "utmContent",
+      header: t("utm_content"),
+      enableColumnFilter: true,
+      enableSorting: false,
+      cell: () => null,
+      meta: {
+        filter: {
+          type: ColumnFilterType.TEXT,
+        },
+      },
+    }),
   ];
-}
