@@ -17,10 +17,12 @@ export const useAppInstallation = () => {
   ) => {
     return {
       ...(options?.returnTo && { returnTo: options.returnTo }),
-      onSuccess: () => {
+      onSuccess: (data: { setupPending?: boolean; message?: string } | void) => {
         setInstallingAppSlug(null);
         utils.viewer.apps.integrations.invalidate();
-        showToast(t("app_successfully_installed"), "success");
+        if (!data?.setupPending) {
+          showToast(t("app_successfully_installed"), "success");
+        }
 
         options?.onSuccess?.(appSlug);
       },
