@@ -6,7 +6,8 @@
   "sideEffects": false,
   "exports": {
     "./kv-adapter": "./src/kv-adapter.ts",
-    "./create-kv-adapter": "./src/create-kv-adapter.ts"
+    "./create-kv-adapter": "./src/create-kv-adapter.ts",
+    "./memory-kv-adapter": "./src/memory-kv-adapter.ts"
   },
   "typesVersions": {
     "*": {
@@ -15,6 +16,9 @@
       ],
       "create-kv-adapter": [
         "./src/create-kv-adapter.ts"
+      ],
+      "memory-kv-adapter": [
+        "./src/memory-kv-adapter.ts"
       ]
     }
   },

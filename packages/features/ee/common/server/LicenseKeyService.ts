@@ -1,10 +1,10 @@
-import * as cache from "memory-cache";
-
 import {
   getDeploymentKey,
   getDeploymentSignatureToken,
 } from "@calcom/features/ee/deployment/lib/getDeploymentKey";
 import type { IDeploymentRepository } from "@calcom/features/ee/deployment/repositories/IDeploymentRepository";
+import { createKVAdapter } from "@calcom/kv/create-kv-adapter";
+import type { KVAdapter } from "@calcom/kv/kv-adapter";
 import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 
@@ -24,21 +24,25 @@ class LicenseKeyService implements ILicenseKeyService {
   private readonly baseUrl = CALCOM_PRIVATE_API_ROUTE;
   private readonly licenseKey: string;
   private readonly signatureToken: string | null;
-  public readonly CACHING_TIME = 86_400_000; // 24 hours in milliseconds
+  private readonly kv: KVAdapter;
+  public readonly CACHING_TIME_SECONDS = 86_400; // 24 hours in seconds
+  public readonly LAST_KNOWN_TTL_SECONDS = 604_800; // 7 days in seconds
 
   // Private constructor to prevent direct instantiation
-  private constructor(licenseKey: string, signatureToken: string | null) {
+  private constructor(licenseKey: string, signatureToken: string | null, kv: KVAdapter) {
     this.baseUrl = CALCOM_PRIVATE_API_ROUTE;
     this.licenseKey = licenseKey;
     this.signatureToken = signatureToken;
+    this.kv = kv;
   }
 
   // Static async factory method
-  public static async create(deploymentRepo: IDeploymentRepository): Promise<ILicenseKeyService> {
+  public static async create(deploymentRepo: IDeploymentRepository, kv?: KVAdapter): Promise<ILicenseKeyService> {
     const licenseKey = await getDeploymentKey(deploymentRepo);
     const signatureToken = await getDeploymentSignatureToken(deploymentRepo);
     const useNoop = !licenseKey || process.env.NEXT_PUBLIC_IS_E2E === "1";
-    return !useNoop ? new LicenseKeyService(licenseKey, signatureToken) : new NoopLicenseKeyService();
+    if (useNoop) return new NoopLicenseKeyService();
+    return new LicenseKeyService(licenseKey, signatureToken, kv ?? createLicenseKV());
   }
 
   private async fetcher({
@@ -82,8 +86,7 @@ class LicenseKeyService implements ILicenseKeyService {
     /** We skip for E2E testing */
     if (process.env.NEXT_PUBLIC_IS_E2E === "1") return true;
 
-    // Create a temporary instance to use instance methods
-    const service = new LicenseKeyService(licenseKey, "");
+    const service = new LicenseKeyService(licenseKey, "", createLicenseKV());
     return service.checkLicense();
   }
 
@@ -104,20 +107,34 @@ class LicenseKeyService implements ILicenseKeyService {
     }
   }
 
+  private cacheKey(): string {
+    return `license:${this.licenseKey}`;
+  }
+
+  private lastKnownKey(): string {
+    return `license:${this.licenseKey}:last-known`;
+  }
+
   async checkLicense(): Promise<boolean> {
     /** We skip for E2E testing */
     if (process.env.NEXT_PUBLIC_IS_E2E === "1") return true;
-    /** We check first on env */
+
+    const cachedResponse = await this.kv.get(this.cacheKey());
+    if (cachedResponse !== null) return cachedResponse === "true";
+
     const url = `${this.baseUrl}/v1/license/${this.licenseKey}`;
-    const cachedResponse = cache.get(url);
-    if (cachedResponse) return cachedResponse;
     try {
       const response = await this.fetcher({ url, licenseKey: this.licenseKey, options: { mode: "cors" } });
       const data = await response.json();
-      cache.put(url, data.status, this.CACHING_TIME);
-      return data.status;
+      const status = Boolean(data.status);
+      await this.kv.put(this.cacheKey(), String(status), this.CACHING_TIME_SECONDS);
+      // last-known has a longer TTL so we can fall back on transient failures
+      await this.kv.put(this.lastKnownKey(), String(status), this.LAST_KNOWN_TTL_SECONDS);
+      return status;
     } catch (error) {
       console.error("Check license failed:", error);
+      const lastKnown = await this.kv.get(this.lastKnownKey());
+      if (lastKnown !== null) return lastKnown === "true";
       return false;
     }
   }
@@ -140,12 +157,21 @@ export class LicenseKeySingleton {
   // eslint-disable-next-line @typescript-eslint/no-empty-function -- Private constructor to prevent direct instantiation
   private constructor() {}
 
-  public static async getInstance(deploymentRepo: IDeploymentRepository): Promise<ILicenseKeyService> {
+  public static async getInstance(deploymentRepo: IDeploymentRepository, kv?: KVAdapter): Promise<ILicenseKeyService> {
     if (!LicenseKeySingleton.instance) {
-      LicenseKeySingleton.instance = await LicenseKeyService.create(deploymentRepo);
+      LicenseKeySingleton.instance = await LicenseKeyService.create(deploymentRepo, kv);
     }
     return LicenseKeySingleton.instance;
   }
+}
+
+function createLicenseKV(): KVAdapter {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (url && token) {
+    return createKVAdapter({ provider: "upstash", url, token });
+  }
+  return createKVAdapter({ provider: "memory" });
 }
 
 export default LicenseKeyService;
