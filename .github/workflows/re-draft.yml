@@ -7,6 +7,7 @@ on:
       - completed
 
 permissions:
+  actions: read
   contents: write
   issues: write
   pull-requests: write
@@ -60,6 +61,7 @@ jobs:
     needs:
       - download-context
     permissions:
+      actions: read
       contents: write
       issues: write
       pull-requests: write
