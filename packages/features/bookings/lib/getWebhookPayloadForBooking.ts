@@ -29,7 +29,7 @@ export const getWebhookPayloadForBooking = ({
     currency: booking.eventType?.currency,
     length: booking.eventType?.length,
   };
-
+const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const payload: EventPayloadType = {
     ...evtWithoutAssignmentReason,
     ...eventTypeInfo,
