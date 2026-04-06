@@ -2449,6 +2449,8 @@ model AccessToken {
 
   platformOAuthClientId String
   userId                Int
+
+  @@index([platformOAuthClientId, expiresAt])
 }
 
 model RefreshToken {

@@ -22,6 +22,7 @@ import { OAuthAuthorizeInput } from "@/modules/oauth-clients/inputs/authorize.in
 import { ExchangeAuthorizationCodeInput } from "@/modules/oauth-clients/inputs/exchange-code.input";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersModule } from "@/modules/users/users.module";
 
 describe("OAuthFlow Endpoints", () => {
@@ -226,6 +227,54 @@ describe("OAuthFlow Endpoints", () => {
         expect(decodedRefreshToken.iat).toBeGreaterThan(0);
 
         responseRefreshToken = refreshToken;
+      });
+
+      it("POST /oauth/:clientId/refresh cleans up expired access tokens for the client", async () => {
+        const prismaWrite = app.get(PrismaWriteService).prisma;
+
+        const expiredDate = new Date(Date.now() - 60 * 60 * 1000);
+        await prismaWrite.accessToken.createMany({
+          data: [
+            {
+              secret: `expired-token-1-${randomString()}`,
+              expiresAt: expiredDate,
+              platformOAuthClientId: oAuthClient.id,
+              userId: user.id,
+            },
+            {
+              secret: `expired-token-2-${randomString()}`,
+              expiresAt: expiredDate,
+              platformOAuthClientId: oAuthClient.id,
+              userId: user.id,
+            },
+          ],
+        });
+
+        const expiredTokensBefore = await prismaWrite.accessToken.count({
+          where: { platformOAuthClientId: oAuthClient.id, expiresAt: { lte: new Date() } },
+        });
+        expect(expiredTokensBefore).toBeGreaterThanOrEqual(2);
+
+        const secretKey = oAuthClient.secret;
+        const body = {
+          refreshToken: responseRefreshToken,
+        };
+
+        const response = await request(app.getHttpServer())
+          .post(`/v2/oauth/${oAuthClient.id}/refresh`)
+          .set("x-cal-secret-key", secretKey)
+          .send(body)
+          .expect(200);
+
+        expect(response.body.data.accessToken).toBeDefined();
+        expect(response.body.data.refreshToken).toBeDefined();
+
+        const expiredTokensAfter = await prismaWrite.accessToken.count({
+          where: { platformOAuthClientId: oAuthClient.id, expiresAt: { lte: new Date() } },
+        });
+        expect(expiredTokensAfter).toBe(0);
+
+        responseRefreshToken = response.body.data.refreshToken;
       });
     });
 

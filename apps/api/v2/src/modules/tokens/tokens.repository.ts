@@ -175,7 +175,7 @@ export class TokensRepository {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, _refresh, accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
       this.dbWrite.prisma.accessToken.deleteMany({
-        where: { client: { id: clientId }, expiresAt: { lte: new Date() } },
+        where: { platformOAuthClientId: clientId, expiresAt: { lte: new Date() } },
       }),
       this.dbWrite.prisma.refreshToken.delete({ where: { secret: refreshTokenSecret } }),
       this.dbWrite.prisma.accessToken.create({
