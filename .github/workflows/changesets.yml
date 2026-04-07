@@ -17,10 +17,18 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94
+        with:
+          app-id: ${{ secrets.CI_CAL_APP_ID }}
+          private-key: ${{ secrets.CI_CAL_APP_PRIVATE_KEY }}
+          repositories: 'cal'
       - name: Checkout Repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ steps.generate-token.outputs.token }}
       - name: Setup node, yarn and install dependencies
         uses: ./.github/actions/yarn-install
       - name: Setup Node 22 and registry for OIDC trusted publishing
@@ -40,7 +48,7 @@ jobs:
           commit: "chore: version packages" # commit message
           title: "chore: version packages" # PR title
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           NPM_CONFIG_PROVENANCE: "true"
           VITE_BOOKER_EMBED_OAUTH_CLIENT_ID: ${{ secrets.CI_VITE_BOOKER_EMBED_OAUTH_CLIENT_ID }}
           VITE_BOOKER_EMBED_API_URL: ${{ vars.CI_VITE_BOOKER_EMBED_API_URL }}
