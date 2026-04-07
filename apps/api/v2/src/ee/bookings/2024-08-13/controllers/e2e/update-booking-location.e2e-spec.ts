@@ -12,13 +12,70 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
+
+const MOCK_GOOGLE_MEET_URL = "https://meet.google.com/mock-meet-id";
+const MOCK_MS_TEAMS_URL = "https://teams.microsoft.com/l/meetup-join/mock-teams-id";
+
+jest.mock("@calcom/platform-libraries/conferencing", () => ({
+  ...jest.requireActual("@calcom/platform-libraries/conferencing"),
+  createMeeting: jest.fn().mockResolvedValue({
+    appName: "daily-video",
+    type: "daily_video",
+    uid: "MOCK_UID",
+    originalEvent: {},
+    success: true,
+    createdEvent: {
+      type: "daily_video",
+      id: "MOCK_DAILY_ID",
+      password: "MOCK_DAILY_PASS",
+      url: "https://mock-daily.example.com/mock-meeting",
+    },
+    credentialId: 0,
+  }),
+}));
+
+jest.mock("@calcom/platform-libraries", () => {
+  const actual = jest.requireActual("@calcom/platform-libraries");
+  return {
+    ...actual,
+    updateEvent: jest.fn().mockImplementation((_credential, evt) => {
+      const isGoogleMeet = evt.conferenceData?.createRequest;
+      return Promise.resolve({
+        uid: "MOCK_CALENDAR_UID",
+        updatedEvent: {
+          id: "MOCK_UPDATED_EVENT_ID",
+          hangoutLink: isGoogleMeet ? MOCK_GOOGLE_MEET_URL : undefined,
+          url: isGoogleMeet ? undefined : MOCK_MS_TEAMS_URL,
+        },
+      });
+    }),
+    CredentialRepository: {
+      ...actual.CredentialRepository,
+      findCredentialForCalendarServiceById: jest.fn().mockResolvedValue({
+        id: 99999,
+        type: "google_calendar",
+        userId: 1,
+        teamId: null,
+        key: {},
+        appId: "google-calendar",
+        invalid: false,
+        delegationCredentialId: null,
+      }),
+    },
+    sendLocationChangeEmailsAndSMS: jest.fn().mockResolvedValue(undefined),
+  };
+});
+
+import { BookingReferenceRepositoryFixture } from "test/fixtures/repository/booking-reference.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
+import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
+import { mockThrottlerGuard } from "test/utils/withNoThrottler";
 import { AppModule } from "@/app.module";
 import { bootstrap } from "@/bootstrap";
 import { UpdateBookingLocationOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/update-location.output";
@@ -27,6 +84,7 @@ import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersModule } from "@/modules/users/users.module";
 
 type TestUser = {
@@ -48,15 +106,19 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
 
   let userRepositoryFixture: UserRepositoryFixture;
   let bookingsRepositoryFixture: BookingsRepositoryFixture;
+  let bookingReferenceRepositoryFixture: BookingReferenceRepositoryFixture;
+  let credentialsRepositoryFixture: CredentialsRepositoryFixture;
   let schedulesService: SchedulesService_2024_04_15;
   let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
   let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let teamRepositoryFixture: TeamRepositoryFixture;
   let tokensRepositoryFixture: TokensRepositoryFixture;
+  let prismaWrite: PrismaWriteService;
 
   let testSetup: TestSetup;
 
   beforeAll(async () => {
+    mockThrottlerGuard();
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
     })
@@ -68,11 +130,14 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
 
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
+    bookingReferenceRepositoryFixture = new BookingReferenceRepositoryFixture(moduleRef);
+    credentialsRepositoryFixture = new CredentialsRepositoryFixture(moduleRef);
     eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
     oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
     tokensRepositoryFixture = new TokensRepositoryFixture(moduleRef);
+    prismaWrite = moduleRef.get(PrismaWriteService);
 
     organization = await teamRepositoryFixture.create({
       name: `update-booking-location-organization-${randomString()}`,
@@ -320,6 +385,219 @@ describe("Bookings Endpoints 2024-08-13 update booking location", () => {
         const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
         expect(updatedBooking).toHaveProperty("id");
         expect(updatedBooking.location).toEqual(attendeeDefinedLocation);
+      });
+
+      it("can update location to type integration (cal-video)", async () => {
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "integration",
+            integration: "cal-video",
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${bookingUid}/location`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
+          .expect(200);
+
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        // cal-video location should be either a Daily video URL or the internal location string
+        expect(
+          updatedBooking.location?.startsWith("http") || updatedBooking.location === "integrations:daily"
+        ).toBe(true);
+      });
+
+      it("can update location to type integration (google-meet)", async () => {
+        const googleCredential = await credentialsRepositoryFixture.create(
+          "google_calendar",
+          { access_token: "mock", refresh_token: "mock", expiry_date: Date.now() + 3600000 },
+          testSetup.organizer.id,
+          "google-calendar"
+        );
+
+        const googleBooking = await bookingsRepositoryFixture.create({
+          uid: `google-meet-booking-${randomString(10)}`,
+          title: "google meet booking",
+          startTime: "2048-09-14T09:00:00.000Z",
+          endTime: "2048-09-14T10:00:00.000Z",
+          eventType: { connect: { id: eventTypeWithAllLocationsId } },
+          status: "ACCEPTED",
+          metadata: {},
+          responses: "null",
+          user: { connect: { id: testSetup.organizer.id } },
+        });
+
+        await bookingReferenceRepositoryFixture.create({
+          type: "google_calendar",
+          uid: "mock-google-calendar-event-uid",
+          booking: { connect: { id: googleBooking.id } },
+          credential: { connect: { id: googleCredential.id } },
+          externalCalendarId: "primary",
+        });
+
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "integration",
+            integration: "google-meet",
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${googleBooking.uid}/location`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
+          .expect(200);
+
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        expect(updatedBooking.location).toEqual(MOCK_GOOGLE_MEET_URL);
+
+        await bookingReferenceRepositoryFixture.deleteByBookingId(googleBooking.id);
+        await bookingsRepositoryFixture.deleteById(googleBooking.id);
+        await credentialsRepositoryFixture.delete(googleCredential.id);
+      });
+
+      it("should fall back to Cal Video when google-meet is requested but no Google Calendar credential exists", async () => {
+        const bookingWithoutGoogleCal = await bookingsRepositoryFixture.create({
+          uid: `no-gcal-booking-${randomString(10)}`,
+          title: "no google cal booking",
+          startTime: "2048-12-14T09:00:00.000Z",
+          endTime: "2048-12-14T10:00:00.000Z",
+          eventType: { connect: { id: eventTypeWithAllLocationsId } },
+          status: "ACCEPTED",
+          metadata: {},
+          responses: "null",
+          user: { connect: { id: testSetup.organizer.id } },
+        });
+
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "integration",
+            integration: "google-meet",
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${bookingWithoutGoogleCal.uid}/location`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
+          .expect(200);
+
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        // No Google Calendar credential → fell back to Cal Video, not Google Meet
+        expect(updatedBooking.location).not.toContain("meet.google.com");
+        expect(["integrations:daily", "https://mock-daily.example.com/mock-meeting"]).toContain(
+          updatedBooking.location
+        );
+
+        await bookingsRepositoryFixture.deleteById(bookingWithoutGoogleCal.id);
+      });
+
+      it("can update location to type integration (office365-video)", async () => {
+        const office365Credential = await credentialsRepositoryFixture.create(
+          "office365_calendar",
+          { access_token: "mock", refresh_token: "mock", expiry_date: Date.now() + 3600000 },
+          testSetup.organizer.id,
+          "office365-calendar"
+        );
+
+        const msTeamsBooking = await bookingsRepositoryFixture.create({
+          uid: `ms-teams-booking-${randomString(10)}`,
+          title: "ms teams booking",
+          startTime: "2048-10-14T09:00:00.000Z",
+          endTime: "2048-10-14T10:00:00.000Z",
+          eventType: { connect: { id: eventTypeWithAllLocationsId } },
+          status: "ACCEPTED",
+          metadata: {},
+          responses: "null",
+          user: { connect: { id: testSetup.organizer.id } },
+        });
+
+        await bookingReferenceRepositoryFixture.create({
+          type: "office365_calendar",
+          uid: "mock-office365-calendar-event-uid",
+          booking: { connect: { id: msTeamsBooking.id } },
+          credential: { connect: { id: office365Credential.id } },
+          externalCalendarId: "primary",
+        });
+
+        const updatedBookingBody: UpdateBookingLocationInput_2024_08_13 = {
+          location: {
+            type: "integration",
+            integration: "office365-video",
+          },
+        };
+
+        const updatedBookingResponse = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${msTeamsBooking.uid}/location`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
+          .expect(200);
+
+        const updatedBookingResponseBody: UpdateBookingLocationOutput_2024_08_13 =
+          updatedBookingResponse.body;
+        expect(updatedBookingResponseBody.status).toEqual(SUCCESS_STATUS);
+        if (!responseDataIsBooking(updatedBookingResponseBody.data)) {
+          throw new Error(
+            "Invalid response data - expected booking but received array of possibly recurring bookings"
+          );
+        }
+        const updatedBooking = updatedBookingResponseBody.data as BookingOutput_2024_08_13;
+        expect(updatedBooking).toHaveProperty("id");
+        expect(updatedBooking.location).toEqual(MOCK_MS_TEAMS_URL);
+
+        await bookingReferenceRepositoryFixture.deleteByBookingId(msTeamsBooking.id);
+        await bookingsRepositoryFixture.deleteById(msTeamsBooking.id);
+        await credentialsRepositoryFixture.delete(office365Credential.id);
+      });
+
+      it("should return 400 when updating to unsupported integration", async () => {
+        const updatedBookingBody = {
+          location: {
+            type: "integration",
+            integration: "unsupported-video-integration",
+          },
+        };
+
+        const response = await request(app.getHttpServer())
+          .patch(`/v2/bookings/${bookingUid}/location`)
+          .send(updatedBookingBody)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set("Authorization", `Bearer ${testSetup.organizer.accessToken}`)
+          .expect(400);
+
+        expect(response.body.status).toEqual(ERROR_STATUS);
       });
 
       afterAll(async () => {
