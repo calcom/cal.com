@@ -537,9 +537,6 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
         routingFormResponse: null,
       });
 
-      // const [firstTiedUser, secondTiedUser] = [user1WithWeight100, user2WithWeight100].sort((a, b) => a.id - b.id);
-      // // const expectedOrder = [userWithHighestWeight, firstTiedUser, secondTiedUser];
-
       expectLuckyUsers(luckyUsers, [
         // It has the highest weight
         userWithHighestWeight,
