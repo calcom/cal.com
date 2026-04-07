@@ -44,6 +44,26 @@ vi.mock("../ics-feedcalendar/lib", () => ({
   }),
 }));
 
+vi.mock("../exchange2016calendar/lib", () => ({
+  BuildCalendarService: vi.fn().mockReturnValue({
+    listCalendars: vi.fn().mockResolvedValue([]),
+  }),
+}));
+
+vi.mock("../exchangecalendar/lib", () => ({
+  BuildCalendarService: vi.fn().mockReturnValue({
+    listCalendars: vi.fn().mockResolvedValue([]),
+  }),
+}));
+
+vi.mock("../_utils/auth", () => ({
+  default: vi.fn().mockReturnValue({ user: { id: 1, email: "user@example.com" } }),
+}));
+
+vi.mock("ews-javascript-api", () => ({
+  SoapFaultDetails: class SoapFaultDetails extends Error {},
+}));
+
 vi.mock("../_utils/getInstalledAppPath", () => ({
   default: vi.fn().mockReturnValue("/apps/installed/calendar"),
 }));
@@ -140,6 +160,65 @@ describe("Calendar integration SSRF validation", () => {
         body: { ...CREDENTIAL_BODY, url: "https://outlook.office365.com/EWS/Exchange.asmx" },
       });
       await postHandler(req, res);
+
+      expect(res.statusCode).not.toBe(400);
+    });
+  });
+
+  describe("Exchange 2016", () => {
+    let postHandler: (req: CustomNextApiRequest, res: CustomNextApiResponse) => Promise<void>;
+
+    beforeEach(async () => {
+      const mod = await import("../exchange2016calendar/api/add");
+      const handlers = mod.default as unknown as { POST: Promise<{ default: typeof postHandler }> };
+      postHandler = (await handlers.POST).default;
+    });
+
+    it.each(BLOCKED_URLS)("rejects %s", async (url, error) => {
+      mockBlockedUrl(error);
+      const { req, res } = createReqRes({ body: { ...CREDENTIAL_BODY, url } });
+      await postHandler(req, res);
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it("allows valid Exchange 2016 URLs", async () => {
+      mockValidUrl();
+      const { req, res } = createReqRes({
+        body: { ...CREDENTIAL_BODY, url: "https://outlook.office365.com/EWS/Exchange.asmx" },
+      });
+      await postHandler(req, res);
+
+      expect(res.statusCode).not.toBe(400);
+    });
+  });
+
+  describe("Exchange (Classic)", () => {
+    let handler: (req: CustomNextApiRequest, res: CustomNextApiResponse) => Promise<void>;
+
+    beforeEach(async () => {
+      const mod = await import("../exchangecalendar/api/_postAdd");
+      handler = mod.default as unknown as typeof handler;
+    });
+
+    it.each(BLOCKED_URLS)("rejects %s", async (url, error) => {
+      mockBlockedUrl(error);
+      const { req, res } = createReqRes({ body: { url, username: "user@example.com", password: "p" } });
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(400);
+    });
+
+    it("allows valid Exchange Classic URLs", async () => {
+      mockValidUrl();
+      const { req, res } = createReqRes({
+        body: {
+          url: "https://outlook.office365.com/EWS/Exchange.asmx",
+          username: "user@example.com",
+          password: "p",
+        },
+      });
+      await handler(req, res);
 
       expect(res.statusCode).not.toBe(400);
     });
