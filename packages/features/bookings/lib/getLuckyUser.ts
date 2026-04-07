@@ -208,6 +208,7 @@ export class LuckyUserService implements ILuckyUserService {
     availableUsers,
     bookingsOfAvailableUsers,
     organizersWithLastCreated,
+    eventType,
   }: GetLuckyUserParams<T> & {
     bookingsOfAvailableUsers: PartialBooking[];
     organizersWithLastCreated: { id: number; bookings: { createdAt: Date }[] }[];
@@ -254,7 +255,7 @@ export class LuckyUserService implements ILuckyUserService {
     const leastRecentlyBookedUser = availableUsers.sort((a, b) => {
       if (userIdAndAtCreatedPair[a.id] > userIdAndAtCreatedPair[b.id]) return 1;
       else if (userIdAndAtCreatedPair[a.id] < userIdAndAtCreatedPair[b.id]) return -1;
-      else return 0;
+      else return eventType.isRRWeightsEnabled ? 0 : a.id - b.id;
     })[0];
 
     return leastRecentlyBookedUser;
