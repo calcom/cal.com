@@ -1273,6 +1273,7 @@ function SettingsLayoutAppDirClient({
 }: SettingsLayoutProps) {
   const pathname = usePathname();
   const isFullWidthPage =
+    pathname === "/settings" ||
     (pathname?.includes("/settings/teams/") &&
       (pathname?.includes("/attributes") || pathname?.includes("/roles"))) ||
     pathname?.startsWith("/settings/admin/playground");
