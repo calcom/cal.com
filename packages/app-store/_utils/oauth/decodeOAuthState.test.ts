@@ -56,37 +56,26 @@ describe("decodeOAuthState", () => {
     });
   });
 
-  describe("nonce-exempt apps", () => {
-    const exemptApps = ["basecamp3", "webex", "tandem"];
+  describe("all apps require nonce verification (no exemptions)", () => {
+    it.each(["basecamp3", "webex", "tandem", "stripe", "dub"])(
+      "rejects %s-shaped state without nonce",
+      () => {
+        vi.stubEnv("NEXTAUTH_SECRET", TEST_SECRET);
+        const stateObj = { returnTo: "/apps", onErrorReturnTo: "/error", fromApp: true };
+        const req = buildRequest({ state: stateObj, userId: TEST_USER_ID });
+        expect(decodeOAuthState(req)).toBeUndefined();
+      }
+    );
 
-    it.each(exemptApps)("returns state without nonce verification for exempt app: %s", (slug) => {
-      const stateObj = { returnTo: "/apps", onErrorReturnTo: "/error", fromApp: true };
-      const req = buildRequest({ state: stateObj, userId: TEST_USER_ID });
-      const result = decodeOAuthState(req, slug);
-      expect(result).toEqual(stateObj);
-    });
-
-    it("returns state for exempt app even when nonce fields are missing", () => {
-      const stateObj = { returnTo: "/apps", onErrorReturnTo: "/error", fromApp: true };
-      const req = buildRequest({ state: stateObj, userId: TEST_USER_ID });
-      expect(decodeOAuthState(req, "basecamp3")).toEqual(stateObj);
-    });
-  });
-
-  describe("formerly exempt apps now require nonce (stripe, dub)", () => {
-    it.each(["stripe", "dub"])("rejects %s state without nonce even when slug is passed", (slug) => {
-      vi.stubEnv("NEXTAUTH_SECRET", TEST_SECRET);
-      const stateObj = { returnTo: "/apps", onErrorReturnTo: "/error", fromApp: true };
-      const req = buildRequest({ state: stateObj, userId: TEST_USER_ID });
-      expect(decodeOAuthState(req, slug)).toBeUndefined();
-    });
-
-    it.each(["stripe", "dub"])("accepts %s state with valid nonce", (slug) => {
-      vi.stubEnv("NEXTAUTH_SECRET", TEST_SECRET);
-      const stateObj = buildStateWithValidNonce();
-      const req = buildRequest({ state: stateObj, userId: TEST_USER_ID });
-      expect(decodeOAuthState(req, slug)).toEqual(stateObj);
-    });
+    it.each(["basecamp3", "webex", "tandem", "stripe", "dub"])(
+      "accepts %s-shaped state with valid nonce",
+      () => {
+        vi.stubEnv("NEXTAUTH_SECRET", TEST_SECRET);
+        const stateObj = buildStateWithValidNonce();
+        const req = buildRequest({ state: stateObj, userId: TEST_USER_ID });
+        expect(decodeOAuthState(req)).toEqual(stateObj);
+      }
+    );
   });
 
   describe("mandatory nonce verification (non-exempt apps)", () => {

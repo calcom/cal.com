@@ -3,17 +3,11 @@ import process from "node:process";
 import type { NextApiRequest } from "next";
 import type { IntegrationOAuthCallbackState } from "../../types";
 
-const NONCE_EXEMPT_APPS = new Set(["basecamp3", "webex", "tandem"]);
-
-export function decodeOAuthState(req: NextApiRequest, appSlug?: string) {
+export function decodeOAuthState(req: NextApiRequest) {
   if (typeof req.query.state !== "string") {
     return undefined;
   }
   const state: IntegrationOAuthCallbackState = JSON.parse(req.query.state);
-
-  if (appSlug && NONCE_EXEMPT_APPS.has(appSlug)) {
-    return state;
-  }
 
   if (!state.nonce || !state.nonceHash) {
     return undefined;

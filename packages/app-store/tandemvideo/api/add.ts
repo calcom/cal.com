@@ -1,17 +1,19 @@
-import type { NextApiRequest, NextApiResponse } from "next";
 import { stringify } from "node:querystring";
-
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
-    // Get user
+    if (!req.session?.user?.id) {
+      return res.status(401).json({ message: "You must be logged in to do this" });
+    }
+
     await prisma.user.findFirstOrThrow({
       where: {
-        id: req.session?.user?.id,
+        id: req.session.user.id,
       },
       select: {
         id: true,
@@ -27,11 +29,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!baseUrl) return res.status(400).json({ message: "Tandem base_url missing." });
 
     const redirect_uri = encodeURI(`${WEBAPP_URL}/api/integrations/tandemvideo/callback`);
+    const state = encodeOAuthState(req);
 
-    const params = {
+    const params: Record<string, string> = {
       client_id: clientId,
       redirect_uri,
     };
+    if (state) {
+      params.state = state;
+    }
     const query = stringify(params);
     const url = `${baseUrl}/oauth/approval?${query}`;
     res.status(200).json({ url });

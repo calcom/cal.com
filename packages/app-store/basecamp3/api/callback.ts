@@ -1,4 +1,5 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -7,6 +8,18 @@ import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import appConfig from "../config.json";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const state = decodeOAuthState(req);
+  if (!state) {
+    res.status(403).json({ message: "Invalid or missing OAuth state. Request may have been forged." });
+    return;
+  }
+
+  const userId = req.session?.user.id;
+  if (!userId) {
+    res.status(401).json({ message: "You must be logged in to do this" });
+    return;
+  }
+
   const { code } = req.query;
   const { client_id, client_secret, user_agent } = await getAppKeysFromSlug("basecamp3");
 
@@ -65,14 +78,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const authResponseBody = await userAuthResponse.json();
-  const userId = req.session?.user.id;
-  if (!userId) {
-    return res.status(404).json({ message: "No user found" });
-  }
 
   await prisma.user.update({
     where: {
-      id: req.session?.user.id,
+      id: userId,
     },
     data: {
       credentials: {
@@ -85,7 +94,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  const state = decodeOAuthState(req, "basecamp3");
-
-  res.redirect(getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug }));
+  res.redirect(
+    getSafeRedirectUrl(state?.returnTo) ??
+      getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug })
+  );
 }
