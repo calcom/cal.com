@@ -1,0 +1,55 @@
+---
+title: Sendly SMS
+description: Send SMS confirmations, reminders, and cancellation notices for your Cal.com bookings.
+---
+
+# Sendly SMS for Cal.com
+
+Automatically send SMS notifications to your attendees when bookings are created, rescheduled, or cancelled. Easier to set up than Twilio with built-in templates, reminders, compliance, and booking-aware features out of the box.
+
+## Features
+
+- **Booking confirmations** — Instant SMS when someone books a meeting
+- **Rescheduling notices** — Automatic notification when a booking is moved
+- **Cancellation alerts** — Let attendees know when a booking is cancelled
+- **Pre-meeting reminders** — Configurable SMS reminders before meetings start
+- **No-show follow-ups** — Reach out when an attendee doesn't show up
+- **Custom templates** — Personalize messages with booking variables like name, time, and location
+- **Multi-attendee support** — SMS sent to all attendees with phone numbers
+
+## Getting Started
+
+1. Create a free account at [sendly.live](https://sendly.live)
+2. Get your API key from Settings > API Keys
+3. Go to [sendly.live/integrations/calcom](https://sendly.live/integrations/calcom) and enter both your Sendly and Cal.com API keys
+4. Configure which events trigger SMS and customize your templates
+5. Done — SMS notifications are live
+
+## Template Variables
+
+Use these in your message templates:
+
+| Variable | Description |
+|----------|-------------|
+| `{{attendee_name}}` | Booker's name |
+| `{{event_title}}` | Event type name |
+| `{{start_time}}` | Start time in attendee's timezone |
+| `{{end_time}}` | End time |
+| `{{duration}}` | Meeting duration |
+| `{{organizer_name}}` | Host's name |
+| `{{location}}` | Meeting location |
+| `{{cancellation_reason}}` | Reason for cancellation |
+
+## Pricing
+
+Sendly uses pay-as-you-go pricing with no monthly fees:
+
+- **US/Canada SMS**: $0.02 per message
+- **International SMS**: From $0.03 per message (90+ countries)
+
+See full pricing at [sendly.live/pricing](https://sendly.live/pricing).
+
+## Support
+
+- Email: support@sendly.live
+- Docs: [sendly.live/docs/integrations/calcom](https://sendly.live/docs/integrations/calcom)
