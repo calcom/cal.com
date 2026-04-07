@@ -467,7 +467,7 @@ test.describe("Email Signup Flow Test", async () => {
 
     await page.goto(`/settings/teams/${subTeam.id}/members`);
     await page.waitForLoadState("domcontentloaded");
-    await page.waitForTimeout(500);
+    await expect(page.getByTestId("new-member-button")).toBeVisible();
     await page.getByTestId("new-member-button").click();
     const inviteLink = await getInviteLink(page);
 
@@ -546,9 +546,9 @@ test.describe("Email Signup Flow Test", async () => {
       },
     });
 
-    expect(createdUser).toBeTruthy();
+    expect(createdUser).not.toBeNull();
     const membership = createdUser?.teams.find((m) => m.teamId === emailToken.teamId);
-    expect(membership).toBeTruthy();
+    expect(membership).not.toBeUndefined();
     expect(membership?.accepted).toBe(true);
 
     await prisma.user.delete({ where: { id: createdUser!.id } });
@@ -601,7 +601,7 @@ async function expectUserToBeAMemberOfTeam({
 }) {
   await page.goto(`/settings/teams/${teamId}/members`);
   await page.waitForLoadState("domcontentloaded");
-  await page.waitForTimeout(1000);
+  await expect(page.locator(`[data-testid="member-${username}"]`)).toBeVisible();
   expect(
     (
       await page

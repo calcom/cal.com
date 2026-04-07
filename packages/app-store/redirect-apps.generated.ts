@@ -14,6 +14,7 @@ export const REDIRECT_APPS = [
   "cron",
   "deel",
   "elevenlabs",
+  "famulor",
   "fonio-ai",
   "framer",
   "granola",

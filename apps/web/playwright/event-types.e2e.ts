@@ -105,7 +105,7 @@ test.describe("Event Types tests", () => {
         '[data-testid="event-types"] a[href^="/event-types/"] >> nth=0'
       );
       const href = await firstElement.getAttribute("href");
-      expect(href).toBeTruthy();
+      expect(href).not.toBeNull();
       const [eventTypeId] = new URL(WEBAPP_URL + href).pathname.split("/").reverse();
       const firstTitle = await page.locator(`[data-testid=event-type-title-${eventTypeId}]`).innerText();
       const firstFullSlug = await page.locator(`[data-testid=event-type-slug-${eventTypeId}]`).innerText();
