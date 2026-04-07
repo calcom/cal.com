@@ -1141,6 +1141,7 @@ model SelectedCalendar {
   syncedAt                 DateTime?
   syncErrorAt              DateTime?
   syncErrorCount           Int?      @default(0)
+  lastWebhookReceivedAt    DateTime?
 
   delegationCredential   DelegationCredential? @relation(fields: [delegationCredentialId], references: [id], onDelete: Cascade)
   delegationCredentialId String?

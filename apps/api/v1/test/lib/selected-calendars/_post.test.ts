@@ -108,6 +108,7 @@ describe("POST /api/selected-calendars", () => {
         syncedAt: null,
         syncErrorAt: null,
         syncErrorCount: null,
+        lastWebhookReceivedAt: null,
       });
 
       await handler(req, res);
@@ -165,6 +166,7 @@ describe("POST /api/selected-calendars", () => {
         syncedAt: null,
         syncErrorAt: null,
         syncErrorCount: null,
+        lastWebhookReceivedAt: null,
       });
 
       await handler(req, res);
