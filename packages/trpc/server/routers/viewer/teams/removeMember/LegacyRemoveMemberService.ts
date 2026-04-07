@@ -1,4 +1,3 @@
-import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -87,22 +86,35 @@ export class LegacyRemoveMemberService extends BaseRemoveMemberService {
     const { userId, memberIds, teamIds, isOrgAdmin } = context;
     const isRemovingSelf = memberIds.length === 1 && memberIds[0] === userId;
 
+    // Batch fetch all relevant owner memberships in a single query
+    // instead of making M x T x 2 individual isTeamOwner calls
+    const allUserIdsToCheck = isOrgAdmin ? [] : [...new Set([...memberIds, userId])];
+
+    const ownerMemberships =
+      allUserIdsToCheck.length > 0
+        ? await prisma.membership.findMany({
+            where: {
+              userId: { in: allUserIdsToCheck },
+              teamId: { in: teamIds },
+              accepted: true,
+              role: MembershipRole.OWNER,
+            },
+            select: {
+              userId: true,
+              teamId: true,
+            },
+          })
+        : [];
+
+    // Build a Set for O(1) ownership lookups
+    const ownerSet = new Set(ownerMemberships.map((m) => `${m.userId}:${m.teamId}`));
+    const isOwner = (uid: number, tid: number) => ownerSet.has(`${uid}:${tid}`);
+
     // Only a team owner can remove another team owner (org admins are exempt)
     if (!isOrgAdmin) {
-      const isAnyMemberOwnerAndCurrentUserNotOwner = await Promise.all(
-        memberIds.map(async (memberId) => {
-          const isAnyTeamOwnerAndCurrentUserNotOwner = await Promise.all(
-            teamIds.map(async (teamId) => {
-              return (
-                (await teamQueries.isTeamOwner(memberId, teamId)) &&
-                !(await teamQueries.isTeamOwner(userId, teamId))
-              );
-            })
-          ).then((results) => results.some((result) => result));
-
-          return isAnyTeamOwnerAndCurrentUserNotOwner;
-        })
-      ).then((results) => results.some((result) => result));
+      const isAnyMemberOwnerAndCurrentUserNotOwner = memberIds.some((memberId) =>
+        teamIds.some((teamId) => isOwner(memberId, teamId) && !isOwner(userId, teamId))
+      );
 
       if (isAnyMemberOwnerAndCurrentUserNotOwner) {
         throw new TRPCError({
@@ -114,9 +126,7 @@ export class LegacyRemoveMemberService extends BaseRemoveMemberService {
 
     // Check if user is trying to remove themselves from a team they own (prevent this)
     if (isRemovingSelf && hasPermission) {
-      const isOwnerOfAnyTeam = await Promise.all(
-        teamIds.map(async (teamId) => await teamQueries.isTeamOwner(userId, teamId))
-      ).then((results) => results.some((result) => result));
+      const isOwnerOfAnyTeam = teamIds.some((teamId) => isOwner(userId, teamId));
 
       if (isOwnerOfAnyTeam) {
         throw new TRPCError({
