@@ -148,12 +148,12 @@ describe("getTranslation", () => {
     expect(enT("welcome")).not.toBe(frT("welcome"));
   });
 
-  it("resolves seats_available plural for Polish: locale one-form + English fallback for many (not raw key)", async () => {
+  it("resolves seats_available plural forms for Polish (not raw key)", async () => {
     const t = await getTranslation("pl", "common");
 
     expect(t("seats_available", { count: 1 })).toBe("Dostępne miejsce");
-    // pl/common.json only overrides _one/_other; _many comes from en merge fallback until translated.
-    expect(t("seats_available", { count: 30 })).toBe("Seats available");
+    // pl/common.json now has all plural forms including _many, so count:30 resolves to Polish
+    expect(t("seats_available", { count: 30 })).toBe("Dostępnych miejsc");
     expect(t("seats_available", { count: 30 })).not.toBe("seats_available");
   });
 
