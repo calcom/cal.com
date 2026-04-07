@@ -1,12 +1,11 @@
 "use client";
 
-import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
+import { valueFormatter } from "@calcom/features/insights/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
-
-import { valueFormatter } from "@calcom/features/insights/lib";
+import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 import { ChartCard } from "../ChartCard";
 
 export const RoutingKPICards = () => {
@@ -42,7 +41,7 @@ export const RoutingKPICards = () => {
   ];
 
   if (isPending) {
-    return <LoadingKPICards categories={categories} isPending={isPending} isError={isError} />;
+    return <RoutingKPICardsSkeleton />;
   }
 
   return (
@@ -67,20 +66,16 @@ export const RoutingKPICards = () => {
   );
 };
 
-const LoadingKPICards = (props: {
-  categories: { title: string; index: string }[];
-  isPending: boolean;
-  isError: boolean;
-}) => {
+export const RoutingKPICardsSkeleton = () => {
   const { t } = useLocale();
-  const { categories, isPending, isError } = props;
 
   return (
-    <ChartCard title={t("stats")} isPending={isPending} isError={isError}>
+    <ChartCard title={t("stats")} isPending={true} isError={false}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {categories.map((item) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div
-            key={item.title}
+            // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton items
+            key={i}
             className={classNames(
               "border-muted border-b p-4 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0"
             )}>

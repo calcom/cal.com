@@ -76,7 +76,6 @@ vi.mock("@calcom/web/modules/insights/components/booking", () => ({
 }));
 vi.mock("@calcom/features/data-table", () => ({
   ColumnFilterType: { DATE_RANGE: "dr", SINGLE_SELECT: "ss" },
-  convertMapToFacetedValues: vi.fn(() => []),
   ZSingleSelectFilterValue: {},
 }));
 

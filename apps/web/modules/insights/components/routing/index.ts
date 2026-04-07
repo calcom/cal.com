@@ -4,5 +4,5 @@ export { RoutingFormResponsesTable, type RoutingFormTableType } from "./RoutingF
 export { RoutingFunnel } from "./RoutingFunnel";
 export { RoutingFunnelContent } from "./RoutingFunnelContent";
 export { RoutingFunnelSkeleton } from "./RoutingFunnelSkeleton";
-export { RoutingKPICards } from "./RoutingKPICards";
+export { RoutingKPICards, RoutingKPICardsSkeleton } from "./RoutingKPICards";
 export { WrongAssignmentReportsDashboard } from "./WrongAssignmentReportsDashboard";

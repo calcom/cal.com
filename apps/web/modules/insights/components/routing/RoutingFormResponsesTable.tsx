@@ -2,7 +2,6 @@
 
 import {
   ColumnFilterType,
-  convertMapToFacetedValues,
   type FilterableColumn,
   ZSingleSelectFilterValue,
 } from "@calcom/features/data-table";
@@ -34,7 +33,7 @@ import { useInsightsRoutingFacetedUniqueValues } from "@calcom/web/modules/insig
 import { useInsightsRoutingParameters } from "@calcom/web/modules/insights/hooks/useInsightsRoutingParameters";
 import type { RoutingFormTableRow } from "@calcom/web/modules/insights/lib/types";
 import { createColumnHelper, getCoreRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { useFilterValue } from "~/data-table/hooks/useFilterValue";
@@ -76,7 +75,7 @@ export function RoutingFormResponsesTable() {
   });
 
   const insightsRoutingParams = useInsightsRoutingParameters();
-  const { sorting, limit, offset, ctaContainerRef, updateFilter } = useDataTable();
+  const { sorting, limit, offset, ctaContainerRef } = useDataTable();
 
   const { data, isPending } = trpc.viewer.insights.routingFormResponses.useQuery({
     ...insightsRoutingParams,
@@ -165,19 +164,6 @@ export function RoutingFormResponsesTable() {
     },
     getFacetedUniqueValues: getInsightsFacetedUniqueValues,
   });
-
-  useEffect(() => {
-    if (routingFormId) {
-      return;
-    }
-    const routingForms = convertMapToFacetedValues(getInsightsFacetedUniqueValues(table, "formId")());
-    const newRoutingFormId = routingForms?.[0]?.value;
-    if (newRoutingFormId) {
-      // if routing form filter is not set, set it to the first form
-      // this also prevents user from clearing the routing form filter
-      updateFilter("formId", { type: ColumnFilterType.SINGLE_SELECT, data: newRoutingFormId });
-    }
-  }, [table, getInsightsFacetedUniqueValues, routingFormId, updateFilter]);
 
   return (
     <>
