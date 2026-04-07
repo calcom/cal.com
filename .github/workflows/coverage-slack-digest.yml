@@ -36,6 +36,9 @@ jobs:
           if_no_artifact_found: warn
         continue-on-error: true
 
+      - name: Install istanbul-lib-coverage
+        run: yarn add istanbul-lib-coverage@3
+
       - name: Build and send Slack message
         uses: actions/github-script@v7
         env:
@@ -43,12 +46,21 @@ jobs:
         with:
           script: |
             const fs = require('fs');
+            const { createCoverageMap } = require('istanbul-lib-coverage');
 
             const metrics = ['statements', 'branches', 'functions', 'lines'];
 
             function loadCoverage(filePath) {
               try {
                 return JSON.parse(fs.readFileSync(filePath, 'utf8')).total;
+              } catch {
+                return null;
+              }
+            }
+
+            function loadFinalCoverage(filePath) {
+              try {
+                return JSON.parse(fs.readFileSync(filePath, 'utf8'));
               } catch {
                 return null;
               }
@@ -73,6 +85,27 @@ jobs:
               return;
             }
 
+            // Combined coverage: true line-level merge via istanbul-lib-coverage
+            const COMBINED_THRESHOLD = 80;
+
+            function mergeCoverage(finalDataArray) {
+              const finals = finalDataArray.filter(Boolean);
+              if (finals.length === 0) return null;
+              const map = createCoverageMap({});
+              for (const src of finals) map.merge(src);
+              const s = map.getCoverageSummary();
+              return {
+                statements: { covered: s.statements.covered, total: s.statements.total, pct: s.statements.pct },
+                branches: { covered: s.branches.covered, total: s.branches.total, pct: s.branches.pct },
+                functions: { covered: s.functions.covered, total: s.functions.total, pct: s.functions.pct },
+                lines: { covered: s.lines.covered, total: s.lines.total, pct: s.lines.pct },
+              };
+            }
+
+            const unitFinal = loadFinalCoverage('coverage/unit/coverage-final.json');
+            const integrationFinal = loadFinalCoverage('coverage/integration/coverage-final.json');
+            const combined = mergeCoverage([unitFinal, integrationFinal]);
+
             const date = new Date().toISOString().split('T')[0];
             const repoUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}`;
             const actionsUrl = `${repoUrl}/actions/workflows/coverage-baseline.yml`;
@@ -81,6 +114,19 @@ jobs:
             text += formatSection('Unit Tests', unit);
             text += '\n';
             text += formatSection('Integration Tests', integration);
+            text += '\n';
+
+            if (combined) {
+              text += `*Combined (Unit + Integration)*\n`;
+              for (const m of metrics) {
+                const pct = combined[m].pct.toFixed(1);
+                const icon = combined[m].pct >= COMBINED_THRESHOLD ? ':large_green_circle:' : combined[m].pct >= 60 ? ':large_yellow_circle:' : ':red_circle:';
+                text += `${icon}  ${m}: *${pct}%* (${combined[m].covered}/${combined[m].total})\n`;
+              }
+              text += `\n:dart: *Combined target: ${COMBINED_THRESHOLD}%*\n`;
+              text += `> _Unit: aim for ~100% on logic/services. Integration: aim for 100% on DB repositories._\n`;
+            }
+
             text += `\n<${actionsUrl}|View latest baseline run>`;
 
             const webhookUrl = process.env.SLACK_WEBHOOK_URL;

@@ -77,7 +77,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-baseline-unit
-          path: ${{ github.workspace }}/coverage/coverage-summary.json
+          path: |
+            ${{ github.workspace }}/coverage/coverage-summary.json
+            ${{ github.workspace }}/coverage/coverage-final.json
           retention-days: 90
       - name: Write unit coverage summary
         if: always()
@@ -186,7 +188,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-baseline-integration
-          path: ${{ github.workspace }}/coverage/coverage-summary.json
+          path: |
+            ${{ github.workspace }}/coverage/coverage-summary.json
+            ${{ github.workspace }}/coverage/coverage-final.json
           retention-days: 90
       - name: Write integration coverage summary
         if: always()
@@ -230,11 +234,15 @@ jobs:
           path: coverage/integration
         continue-on-error: true
 
+      - name: Install istanbul-lib-coverage
+        run: yarn add istanbul-lib-coverage@3
+
       - name: Generate badge JSON files
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
+            const { createCoverageMap } = require('istanbul-lib-coverage');
 
             function badgeColor(pct) {
               if (pct >= 80) return 'brightgreen';
@@ -270,6 +278,32 @@ jobs:
               core.info(`Integration coverage: ${integrationPct}%`);
             } catch (e) {
               core.warning(`No integration coverage data: ${e.message}`);
+            }
+
+            // Combined badge: true line-level merge via istanbul-lib-coverage
+            try {
+              let unitFinal = null;
+              let integrationFinal = null;
+              try {
+                unitFinal = JSON.parse(fs.readFileSync('coverage/unit/coverage-final.json', 'utf8'));
+              } catch {}
+              try {
+                integrationFinal = JSON.parse(fs.readFileSync('coverage/integration/coverage-final.json', 'utf8'));
+              } catch {}
+
+              const sources = [unitFinal, integrationFinal].filter(Boolean);
+              if (sources.length > 0) {
+                const map = createCoverageMap({});
+                for (const src of sources) map.merge(src);
+
+                const summary = map.getCoverageSummary();
+                const linesPct = summary.lines.pct;
+                const rounded = Math.round(linesPct * 100) / 100;
+                fs.writeFileSync('badges/coverage-combined.json', JSON.stringify(makeBadge('combined coverage', rounded), null, 2));
+                core.info(`Combined coverage: ${rounded.toFixed(1)}% (${summary.lines.covered}/${summary.lines.total} lines across ${map.files().length} files)`);
+              }
+            } catch (e) {
+              core.warning(`Could not generate combined badge: ${e.message}`);
             }
 
       - name: Deploy badges to gh-pages

@@ -72,6 +72,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: unit-coverage
-          path: ${{ github.workspace }}/coverage/coverage-summary.json
+          path: |
+            ${{ github.workspace }}/coverage/coverage-summary.json
+            ${{ github.workspace }}/coverage/coverage-final.json
           if-no-files-found: warn
           retention-days: 7
