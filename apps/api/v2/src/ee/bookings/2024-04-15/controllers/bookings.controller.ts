@@ -59,12 +59,13 @@ import {
   GetOptionalUser,
 } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { BillingService } from "@/modules/billing/services/billing.service";
+import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repository";
 import { KyselyReadService } from "@/modules/kysely/kysely-read.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
@@ -121,7 +122,8 @@ export class BookingsController_2024_04_15 {
     private readonly recurringBookingService: RecurringBookingService,
     private readonly instantBookingCreateService: InstantBookingCreateService,
     private readonly eventTypeRepository: PrismaEventTypeRepository,
-    private readonly teamRepository: PrismaTeamRepository
+    private readonly teamRepository: PrismaTeamRepository,
+    private readonly bookingSeatRepository: BookingSeatRepository
   ) {}
 
   @Get("/")
@@ -484,7 +486,18 @@ export class BookingsController_2024_04_15 {
   }
 
   private async isValidRescheduleBooking(rescheduleUid: string, eventTypeId: number): Promise<boolean> {
-    const { bookingInfo } = await getBookingInfo(rescheduleUid);
+    let { bookingInfo } = await getBookingInfo(rescheduleUid);
+
+    // For seated events, rescheduleUid may be a bookingSeat.referenceUid rather than
+    // booking.uid. If no booking was found, fall back to looking up the seat and use
+    // the parent booking's uid.
+    if (!bookingInfo) {
+      const bookingSeat = await this.bookingSeatRepository.getByReferenceUid(rescheduleUid);
+      if (bookingSeat) {
+        ({ bookingInfo } = await getBookingInfo(bookingSeat.booking.uid));
+      }
+    }
+
     if (!bookingInfo) {
       return false;
     }

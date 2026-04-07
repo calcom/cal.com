@@ -8,6 +8,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
+import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -32,6 +33,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
+    let bookingSeatRepositoryFixture: BookingSeatRepositoryFixture;
     let schedulesService: SchedulesService_2024_04_15;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
@@ -60,6 +62,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
+      bookingSeatRepositoryFixture = new BookingSeatRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
       apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
@@ -619,6 +622,120 @@ describe("Bookings Endpoints 2024-04-15", () => {
         if (responseBody.data.id) {
           await bookingsRepositoryFixture.deleteById(responseBody.data.id);
         }
+      });
+
+      it("can't be rescheduled with an invalid random rescheduleUid", async () => {
+        const body: CreateBookingInput_2024_04_15 = {
+          rescheduleUid: "00000000-0000-0000-0000-000000000000",
+          start: "2040-05-24T09:30:00.000Z",
+          end: "2040-05-24T10:30:00.000Z",
+          eventTypeId: eventTypeRequiringAuthenticationId,
+          timeZone: "Europe/London",
+          language: "en",
+          metadata: {},
+          hashedLink: "",
+          responses: {
+            name: "External Attendee",
+            email: "external@example.com",
+            location: {
+              value: "link",
+              optionValue: "",
+            },
+          },
+        };
+
+        await request(app.getHttpServer()).post("/v2/bookings").send(body).expect(400);
+      });
+
+      describe("seated event reschedule with seat referenceUid", () => {
+        let seatedEventTypeId: number;
+        let bookingForSeatTest: { uid: string; id: number; seatReferenceUid: string };
+
+        beforeAll(async () => {
+          const seatedEventType = await eventTypesRepositoryFixture.create(
+            {
+              title: `seated-auth-event-type-${randomString()}`,
+              slug: `seated-auth-event-type-${randomString()}`,
+              length: 60,
+              seatsPerTimeSlot: 5,
+              bookingRequiresAuthentication: true,
+              locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
+            },
+            user.id
+          );
+          seatedEventTypeId = seatedEventType.id;
+
+          // Create a booking via the API so it is visible to the global prisma
+          // client used by getBookingInfo inside isValidRescheduleBooking.
+          const bookingResponse = await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send({
+              start: "2040-05-25T09:30:00.000Z",
+              end: "2040-05-25T10:30:00.000Z",
+              eventTypeId: seatedEventTypeId,
+              timeZone: "Europe/London",
+              language: "en",
+              metadata: {},
+              hashedLink: "",
+              responses: {
+                name: "Seated Attendee",
+                email: "seated-attendee@example.com",
+                location: { value: "inPerson", optionValue: "via 10, rome, italy" },
+              },
+            } satisfies CreateBookingInput_2024_04_15)
+            .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+            .expect(201);
+
+          const bookingId = bookingResponse.body.data.id;
+          const seats = await bookingSeatRepositoryFixture.findAllByBookingId(bookingId);
+
+          bookingForSeatTest = {
+            uid: bookingResponse.body.data.uid,
+            id: bookingId,
+            seatReferenceUid: seats[0].referenceUid,
+          };
+        });
+
+        it("can reschedule using bookingSeat.referenceUid as rescheduleUid", async () => {
+          const body: CreateBookingInput_2024_04_15 = {
+            rescheduleUid: bookingForSeatTest.seatReferenceUid,
+            rescheduledBy: user.email,
+            start: "2040-05-25T11:30:00.000Z",
+            end: "2040-05-25T12:30:00.000Z",
+            eventTypeId: seatedEventTypeId,
+            timeZone: "Europe/London",
+            language: "en",
+            metadata: {},
+            hashedLink: "",
+            responses: {
+              name: "Seated Attendee",
+              email: "seated-attendee@example.com",
+              location: {
+                value: "inPerson",
+                optionValue: "via 10, rome, italy",
+              },
+            },
+          };
+
+          const response = await request(app.getHttpServer())
+            .post("/v2/bookings")
+            .send(body)
+            .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+            .expect(201);
+
+          const responseBody: ApiSuccessResponse<RegularBookingCreateResult> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data).toBeDefined();
+          expect(responseBody.data.id).toBeDefined();
+
+          if (responseBody.data.id) {
+            await bookingsRepositoryFixture.deleteById(responseBody.data.id);
+          }
+        });
+
+        afterAll(async () => {
+          await bookingsRepositoryFixture.deleteById(bookingForSeatTest.id);
+        });
       });
     });
 

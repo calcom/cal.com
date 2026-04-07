@@ -31,8 +31,8 @@ describe("BookingSeatRepository", () => {
   describe("getByReferenceUid", () => {
     it("should find booking seat by reference UID", async () => {
       const mockSeat = {
-        id: 1,
-        referenceUid: "seat-uid-123",
+        data: {},
+        metadata: null,
         booking: { uid: "booking-uid-456" },
       };
       mockPrismaRead.prisma.bookingSeat.findUnique.mockResolvedValue(mockSeat);
@@ -41,7 +41,7 @@ describe("BookingSeatRepository", () => {
 
       expect(mockPrismaRead.prisma.bookingSeat.findUnique).toHaveBeenCalledWith({
         where: { referenceUid: "seat-uid-123" },
-        include: { booking: { select: { uid: true } } },
+        select: { data: true, metadata: true, booking: { select: { uid: true } } },
       });
       expect(result).toEqual(mockSeat);
     });
