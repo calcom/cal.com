@@ -1,11 +1,11 @@
 jest.mock("@calcom/platform-libraries", () => ({
-  TimeUnit: { HOUR: "HOUR", MINUTE: "MINUTE", DAY: "DAY" },
-  WorkflowTriggerEvents: { BEFORE_EVENT: "BEFORE_EVENT", AFTER_EVENT: "AFTER_EVENT", NEW_EVENT: "NEW_EVENT" },
   CreationSource: { API_V2: "API_V2" },
 }));
 
 jest.mock("@calcom/platform-libraries/workflows", () => ({
   updateWorkflow: jest.fn(),
+  TimeUnit: { HOUR: "HOUR", MINUTE: "MINUTE", DAY: "DAY" },
+  WorkflowTriggerEvents: { BEFORE_EVENT: "BEFORE_EVENT", AFTER_EVENT: "AFTER_EVENT", NEW_EVENT: "NEW_EVENT" },
 }));
 
 import { Test, TestingModule } from "@nestjs/testing";

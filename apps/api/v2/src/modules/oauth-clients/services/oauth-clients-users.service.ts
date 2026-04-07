@@ -1,4 +1,5 @@
-import { CreationSource, createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
+import { CreationSource, createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
+import { slugify } from "@calcom/platform-libraries/organizations";
 import type { PlatformOAuthClient, User } from "@calcom/prisma/client";
 import { BadRequestException, ConflictException, Injectable, Logger } from "@nestjs/common";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";

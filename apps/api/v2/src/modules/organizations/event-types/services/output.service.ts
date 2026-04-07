@@ -3,7 +3,7 @@ import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-eve
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
-import { SchedulingType } from "@calcom/platform-libraries";
+import { SchedulingType } from "@calcom/platform-libraries/event-types";
 import { EventTypeMetadata } from "@calcom/platform-libraries/event-types";
 import type { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 import type {

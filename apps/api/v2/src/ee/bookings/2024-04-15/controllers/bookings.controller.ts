@@ -5,15 +5,8 @@ import {
   X_CAL_CLIENT_ID,
   X_CAL_PLATFORM_EMBED,
 } from "@calcom/platform-constants";
-import {
-  BookingResponse,
-  CreationSource,
-  getAllUserBookings,
-  getBookingForReschedule,
-  getBookingInfo,
-  handleCancelBooking,
-  handleMarkNoShow,
-} from "@calcom/platform-libraries";
+import { BookingResponse, CreationSource } from "@calcom/platform-libraries";
+import { getAllUserBookings, getBookingForReschedule, getBookingInfo, handleCancelBooking, handleMarkNoShow } from "@calcom/platform-libraries/bookings";
 import { type InstantBookingCreateResult, makeUserActor } from "@calcom/platform-libraries/bookings";
 import { ErrorCode, HttpError } from "@calcom/platform-libraries/errors";
 import type { ApiResponse } from "@calcom/platform-types";

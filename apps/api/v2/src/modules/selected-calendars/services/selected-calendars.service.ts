@@ -14,7 +14,7 @@ import {
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { SelectedCalendarRepository } from "@calcom/platform-libraries";
+import { SelectedCalendarRepository } from "@calcom/platform-libraries/calendars";
 
 type SelectedCalendarsInputDelegationCredential = SelectedCalendarsInputDto & {
   delegationCredentialId: string;

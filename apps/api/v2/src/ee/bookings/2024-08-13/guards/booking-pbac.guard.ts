@@ -10,7 +10,7 @@ import {
 } from "@nestjs/common";
 import { Request } from "express";
 
-import { BookingAccessService } from "@calcom/platform-libraries";
+import { BookingAccessService } from "@calcom/platform-libraries/bookings";
 
 @Injectable()
 export class BookingPbacGuard implements CanActivate {

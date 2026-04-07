@@ -1,4 +1,4 @@
-import { WorkflowActions, WorkflowTemplates } from "@calcom/platform-libraries";
+import { WorkflowActions, WorkflowTemplates } from "@calcom/platform-libraries/workflows";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsBoolean, IsEnum, IsIn, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";

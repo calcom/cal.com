@@ -5,7 +5,7 @@ import {
   ConfirmationPolicyEnum,
   NoticeThresholdUnitEnum,
 } from "@calcom/platform-enums";
-import { SchedulingType } from "@calcom/platform-libraries";
+import { SchedulingType } from "@calcom/platform-libraries/event-types";
 import type {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,

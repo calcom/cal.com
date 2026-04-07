@@ -33,3 +33,9 @@ export { updateNewTeamMemberEventTypes } from "@calcom/features/ee/teams/lib/que
 
 export { bulkUpdateEventsToDefaultLocation } from "@calcom/app-store/_utils/bulkUpdateEventsToDefaultLocation";
 export { bulkUpdateTeamEventsToDefaultLocation } from "@calcom/app-store/_utils/bulkUpdateTeamEventsToDefaultLocation";
+
+export { dynamicEvent, getUsernameList } from "@calcom/features/eventtypes/lib/defaultEvents";
+export { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
+export { slugifyLenient } from "@calcom/lib/slugify-lenient";

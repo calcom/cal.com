@@ -15,7 +15,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { dynamicEvent } from "@calcom/platform-libraries";
+import { dynamicEvent } from "@calcom/platform-libraries/event-types";
 import {
   createEventType,
   updateEventType,

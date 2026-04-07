@@ -5,7 +5,7 @@ import {
   VERSION_2024_06_14,
   VERSION_2024_08_13,
 } from "@calcom/platform-constants";
-import { TRPCError } from "@calcom/platform-libraries";
+import { TRPCError } from "@calcom/platform-libraries/errors";
 import {
   ApiResponse,
   GetAvailableSlotsInput_2024_04_15,

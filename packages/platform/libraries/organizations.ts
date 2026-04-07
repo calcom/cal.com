@@ -18,3 +18,8 @@ export { ActiveUserBillingService } from "@calcom/features/ee/billing/active-use
 
 export { getOrganizationWatchlistOperationsService } from "@calcom/features/di/watchlist/containers/watchlist";
 export { OrganizationSettingsRepository } from "@calcom/features/organizations/repositories/OrganizationSettingsRepository";
+
+export { ProfileRepository } from "@calcom/features/profile/repositories/ProfileRepository";
+export { getUsernameValidationService } from "@calcom/features/users/di/UsernameValidationService.container";
+export type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
+export { slugify } from "@calcom/lib/slugify";

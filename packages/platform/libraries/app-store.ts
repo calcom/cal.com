@@ -47,3 +47,5 @@ export { DelegationCredentialRepository } from "@calcom/features/delegation-cred
 
 export { OAuth2UniversalSchema } from "@calcom/app-store/_utils/oauth/universalSchema";
 export { getUsersCredentialsIncludeServiceAccountKey } from "@calcom/app-store/delegationCredential";
+
+export { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";

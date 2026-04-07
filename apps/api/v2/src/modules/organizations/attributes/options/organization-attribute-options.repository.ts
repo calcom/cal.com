@@ -5,7 +5,7 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 
-import { slugify } from "@calcom/platform-libraries";
+import { slugify } from "@calcom/platform-libraries/organizations";
 
 import { GetOrganizationAttributeAssignedOptionsProp } from "./services/organization-attributes-option.service";
 

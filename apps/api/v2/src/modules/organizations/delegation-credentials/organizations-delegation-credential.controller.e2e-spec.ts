@@ -1,5 +1,5 @@
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { encryptServiceAccountKey } from "@calcom/platform-libraries";
+import { encryptServiceAccountKey } from "@calcom/platform-libraries/app-store";
 import type { Team, User } from "@calcom/prisma/client";
 
 // Mock the toggleDelegationCredentialEnabled function to bypass Google API calls

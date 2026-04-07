@@ -12,7 +12,7 @@ import { ManagedOrganizationsOutputService } from "@/modules/organizations/organ
 import { ProfilesRepository } from "@/modules/profiles/profiles.repository";
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { slugify } from "@calcom/platform-libraries";
+import { slugify } from "@calcom/platform-libraries/organizations";
 
 @Injectable()
 export class ManagedOrganizationsService {

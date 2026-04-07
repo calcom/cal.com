@@ -1,4 +1,4 @@
-import { slugify } from "@calcom/platform-libraries";
+import { slugify } from "@calcom/platform-libraries/organizations";
 import { BadRequestException, Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { StripeService } from "@/modules/stripe/stripe.service";

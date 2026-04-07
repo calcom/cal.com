@@ -1,4 +1,4 @@
-import { SchedulingType, slugifyLenient } from "@calcom/platform-libraries";
+import { SchedulingType, slugifyLenient } from "@calcom/platform-libraries/event-types";
 import { EventTypeMetadata } from "@calcom/platform-libraries/event-types";
 import {
   CreateTeamEventTypeInput_2024_06_14,

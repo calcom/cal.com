@@ -1,4 +1,4 @@
-import { handleCreatePhoneCall } from "@calcom/platform-libraries";
+import { handleCreatePhoneCall } from "@calcom/platform-libraries/conferencing";
 import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
 import type { SortOrderType } from "@calcom/platform-types";
 import { ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";

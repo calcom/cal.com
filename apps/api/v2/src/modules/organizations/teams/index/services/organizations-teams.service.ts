@@ -5,7 +5,7 @@ import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/inde
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
-import { slugify } from "@calcom/platform-libraries";
+import { slugify } from "@calcom/platform-libraries/organizations";
 
 @Injectable()
 export class OrganizationsTeamsService {

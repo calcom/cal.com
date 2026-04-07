@@ -1,4 +1,4 @@
-import { slugifyLenient } from "@calcom/platform-libraries";
+import { slugifyLenient } from "@calcom/platform-libraries/event-types";
 import { getApps, getUsersCredentialsIncludeServiceAccountKey } from "@calcom/platform-libraries/app-store";
 import {
   EventTypeMetaDataSchema,

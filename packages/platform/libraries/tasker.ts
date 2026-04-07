@@ -7,3 +7,5 @@ export {
 } from "@calcom/features/ee/organizations/lib/billing/tasker/constants";
 export type { Tasker } from "@calcom/features/tasker/tasker";
 export { getTasker } from "@calcom/features/tasker/tasker-factory";
+
+export { ENABLE_ASYNC_TASKER } from "@calcom/lib/constants";

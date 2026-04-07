@@ -1,5 +1,5 @@
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { slugify } from "@calcom/platform-libraries";
+import { slugify } from "@calcom/platform-libraries/organizations";
 import { TeamOutputDto } from "@calcom/platform-types";
 import { User } from "@calcom/prisma/client";
 import { INestApplication } from "@nestjs/common";

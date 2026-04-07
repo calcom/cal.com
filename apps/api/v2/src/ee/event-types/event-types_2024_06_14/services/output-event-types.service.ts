@@ -1,9 +1,6 @@
-import {
-  getBookingFieldsWithSystemFields,
-  parseBookingLimit,
-  parseRecurringEvent,
-  userMetadata,
-} from "@calcom/platform-libraries";
+import { userMetadata } from "@calcom/platform-libraries";
+import { getBookingFieldsWithSystemFields } from "@calcom/platform-libraries/bookings";
+import { parseBookingLimit, parseRecurringEvent } from "@calcom/platform-libraries/event-types";
 import { EventTypeMetaDataSchema, parseEventTypeColor } from "@calcom/platform-libraries/event-types";
 import { getBookerBaseUrlSync } from "@calcom/platform-libraries/organizations";
 import type {

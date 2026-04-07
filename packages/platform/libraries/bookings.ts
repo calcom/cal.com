@@ -42,3 +42,15 @@ export { BookingDataPreparationService } from "@calcom/features/bookings/lib/uti
 export type { PreparedBookingData } from "@calcom/features/bookings/lib/utils/BookingDataPreparationService";
 export type { IWebhookProducerService } from "@calcom/features/webhooks/lib/interface/WebhookProducerService";
 export { getWebhookProducer } from "@calcom/features/di/webhooks/containers/webhook";
+
+export { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+export { default as getAllUserBookings } from "@calcom/features/bookings/lib/getAllUserBookings";
+export { default as getBookingInfo } from "@calcom/features/bookings/lib/getBookingInfo";
+export { default as handleCancelBooking } from "@calcom/features/bookings/lib/handleCancelBooking";
+export { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+export { default as handleMarkNoShow } from "@calcom/features/handleMarkNoShow";
+export type { BookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
+export { confirmHandler as confirmBookingHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
+export { requestRescheduleHandler } from "@calcom/trpc/server/routers/viewer/bookings/requestReschedule.handler";
+export { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+export { getCalendarLinks } from "@calcom/features/bookings/lib/getCalendarLinks";

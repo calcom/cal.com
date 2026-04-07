@@ -1,8 +1,5 @@
-import {
-  CreationSource,
-  createNewUsersConnectToOrgIfExists,
-  getUsernameValidationService,
-} from "@calcom/platform-libraries";
+import { CreationSource, createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
+import { getUsernameValidationService } from "@calcom/platform-libraries/organizations";
 import type { Team } from "@calcom/prisma/client";
 import { ConflictException, ForbiddenException, Injectable, Logger } from "@nestjs/common";
 import { plainToInstance } from "class-transformer";

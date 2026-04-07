@@ -1,4 +1,4 @@
-import { bookingMetadataSchema } from "@calcom/platform-libraries";
+import { bookingMetadataSchema } from "@calcom/platform-libraries/bookings";
 import type {
   CreateRecurringSeatedBookingOutput_2024_08_13,
   CreateSeatedBookingOutput_2024_08_13,

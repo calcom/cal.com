@@ -1,4 +1,4 @@
-import { encryptServiceAccountKey } from "@calcom/platform-libraries";
+import { encryptServiceAccountKey } from "@calcom/platform-libraries/app-store";
 import {
   addDelegationCredential,
   type TServiceAccountKeySchema,

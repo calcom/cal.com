@@ -25,3 +25,4 @@ export class NoSlotsNotificationService {
 }
 
 export const validateRoundRobinSlotAvailability = jest.fn();
+export const MINUTES_TO_BOOK = "5";

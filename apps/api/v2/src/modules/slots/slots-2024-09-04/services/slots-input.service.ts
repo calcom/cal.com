@@ -8,7 +8,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { DateTime } from "luxon";
 
-import { dynamicEvent } from "@calcom/platform-libraries";
+import { dynamicEvent } from "@calcom/platform-libraries/event-types";
 import {
   ByUsernameAndEventTypeSlug_2024_09_04,
   ByTeamSlugAndEventTypeSlug_2024_09_04,

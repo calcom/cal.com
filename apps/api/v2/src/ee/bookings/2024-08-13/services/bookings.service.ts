@@ -1,14 +1,5 @@
-import {
-  confirmBookingHandler,
-  getAllUserBookings,
-  getCalendarLinks,
-  getTranslation,
-  handleCancelBooking,
-  handleMarkNoShow,
-  requestRescheduleHandler,
-  roundRobinManualReassignment,
-  roundRobinReassignment,
-} from "@calcom/platform-libraries";
+import { getTranslation, roundRobinManualReassignment, roundRobinReassignment } from "@calcom/platform-libraries";
+import { confirmBookingHandler, getAllUserBookings, getCalendarLinks, handleCancelBooking, handleMarkNoShow, requestRescheduleHandler } from "@calcom/platform-libraries/bookings";
 import { makeUserActor } from "@calcom/platform-libraries/bookings";
 import type { RescheduleSeatedBookingInput_2024_08_13 } from "@calcom/platform-types";
 import {

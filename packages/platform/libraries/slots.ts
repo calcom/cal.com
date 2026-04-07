@@ -14,3 +14,5 @@ export { QualifiedHostsService };
 export { FilterHostsService };
 export { NoSlotsNotificationService };
 export { validateRoundRobinSlotAvailability };
+
+export { MINUTES_TO_BOOK } from "@calcom/lib/constants";
