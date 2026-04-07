@@ -531,6 +531,7 @@ model User {
   @@index([emailVerified])
   @@index([identityProvider])
   @@index([identityProviderId])
+  @@index([email, emailVerified])
   @@map(name: "users")
 }
 
@@ -998,6 +999,8 @@ model Availability {
   @@index([userId])
   @@index([eventTypeId])
   @@index([scheduleId])
+  @@index([scheduleId, date])
+  @@index([userId, date])
 }
 
 model SelectedCalendar {
