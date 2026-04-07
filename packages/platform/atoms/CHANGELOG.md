@@ -1,3 +1,13 @@
+## 2.4.0
+
+### Minor Changes
+
+- [#1358](https://github.com/calcom/cal/pull/1358) [`ae16a5e`](https://github.com/calcom/cal/commit/ae16a5edde51d01544b404c1659379af876bdbd2) Thanks [@supalarry](https://github.com/supalarry)! - feat: OnboardingEmbed atom
+
+### Patch Changes
+
+- [`da143ae`](https://github.com/calcom/cal/commit/da143ae546080593f49bdb52adc8f29891add1ca) Thanks [@gusdudey2k](https://github.com/gusdudey2k)! - fix: unlocked fields not saved for managed event type
+
 ## 2.1.0
 
 ## 2.2.0
