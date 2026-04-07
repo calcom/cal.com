@@ -1,6 +1,6 @@
+import classNames from "@calcom/ui/classNames";
 import type { FieldValues } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
-
 import { Icon } from "../../icon";
 import { InputError } from "./InputError";
 
@@ -20,7 +20,7 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
   if (!methods) return null;
   const { formState } = methods;
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   const fieldErrors: FieldErrors<T> | undefined = formState.errors[fieldName];
 
   if (!hintErrors && fieldErrors && !fieldErrors.message) {
@@ -98,18 +98,21 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>({
     <div className="text-gray text-default mt-2 flex items-center text-sm">
       <ul className="ml-2">
         {hintErrors.map((key: string) => {
-          // if field was changed, as no error exist, show checked status and color
-          const dirty = formState.dirtyFields[fieldName];
+          const dirty = !!formState.dirtyFields[fieldName];
+          const touched = !!(formState.touchedFields as Record<string, boolean | undefined>)[fieldName];
+          const validationHasRun = touched || formState.isSubmitted;
+          const showChecks = dirty && validationHasRun;
           return (
-            <li key={key} className={!!dirty ? "text-green-600" : ""}>
-              {!!dirty ? (
+            <li key={key} className={classNames(showChecks && "text-green-600")}>
+              {showChecks && (
                 <Icon
                   name="check"
                   size="12"
                   strokeWidth="3"
                   className="-ml-1 inline-block ltr:mr-2 rtl:ml-2"
                 />
-              ) : (
+              )}
+              {!showChecks && (
                 <Icon name="circle" fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
               )}
               {t(`${fieldName}_hint_${key}`)}
