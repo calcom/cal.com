@@ -56,19 +56,19 @@ const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CA
 
 const OG_ASSETS = {
   meeting: {
-    id: "meeting-og-image-v1", // Bump version when changing Meeting component structure/styling
+    id: "meeting-og-image-v2", // Bump version when changing Meeting component structure/styling
     logoWidth: "350",
     avatarSize: "160",
     variant: "dark" as const,
   },
   app: {
-    id: "app-og-image-v1", // Bump version when changing App component structure/styling
+    id: "app-og-image-v2", // Bump version when changing App component structure/styling
     logoWidth: "150",
     iconSize: "172",
     variant: "light" as const,
   },
   generic: {
-    id: "generic-og-image-v1", // Bump version when changing Generic component structure/styling
+    id: "generic-og-image-v2", // Bump version when changing Generic component structure/styling
     logoWidth: "350",
     variant: "light" as const,
   },
@@ -205,7 +205,7 @@ const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps
 
 /**
  * ⚠️ IMPORTANT: When modifying this component's structure, styling, or visual output,
- * remember to bump the version in OG_ASSETS.meeting.id (e.g., "meeting-og-image-v1" → "meeting-og-image-v2")
+ * remember to bump the version in OG_ASSETS.meeting.id (e.g., "meeting-og-image-v2" → "meeting-og-image-v3")
  * to ensure proper cache invalidation.
  */
 export const Meeting = ({ title, users = [], profile, logoPaths = [] }: MeetingImageProps) => {
@@ -319,7 +319,7 @@ const VisualBlur = ({ logoUrl }: { logoUrl: string }) => {
 
 /**
  * ⚠️ IMPORTANT: When modifying this component's structure, styling, or visual output,
- * remember to bump the version in OG_ASSETS.app.id (e.g., "app-og-image-v1" → "app-og-image-v2")
+ * remember to bump the version in OG_ASSETS.app.id (e.g., "app-og-image-v2" → "app-og-image-v3")
  * to ensure proper cache invalidation.
  */
 export const App = ({ name, description, logoUrl, logoPaths = [] }: AppImageProps) => {
@@ -357,7 +357,7 @@ export const App = ({ name, description, logoUrl, logoPaths = [] }: AppImageProp
 
 /**
  * ⚠️ IMPORTANT: When modifying this component's structure, styling, or visual output,
- * remember to bump the version in OG_ASSETS.generic.id (e.g., "generic-og-image-v1" → "generic-og-image-v2")
+ * remember to bump the version in OG_ASSETS.generic.id (e.g., "generic-og-image-v2" → "generic-og-image-v3")
  * to ensure proper cache invalidation.
  */
 export const Generic = ({ title, description, logoPaths = [] }: GenericImageProps) => {
