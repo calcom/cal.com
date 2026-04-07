@@ -5,7 +5,7 @@ import { createDefaultAIPhoneServiceProvider } from "@calcom/features/calAIPhone
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 import { handleInsufficientCredits } from "@calcom/features/ee/billing/helpers/handleInsufficientCredits";
 import { getVariableFormats } from "@calcom/features/ee/workflows/lib/reminders/templates/customTemplate";
-import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/lib/repository/workflowReminder";
+import { WorkflowReminderRepository } from "@calcom/features/ee/workflows/repositories/workflow-reminder-repository";
 import {
   getSubmitterEmail,
   getSubmitterName,
@@ -29,9 +29,11 @@ interface ExecuteAIPhoneCallPayload {
 }
 const log = logger.getSubLogger({ prefix: [`[[executeAIPhoneCall] `] });
 
+const workflowReminderRepository = new WorkflowReminderRepository(prisma);
+
 type BookingWithRelations = NonNullable<
   NonNullable<
-    Awaited<ReturnType<typeof WorkflowReminderRepository.findWorkflowReminderForAIPhoneCallExecution>>
+    Awaited<ReturnType<typeof workflowReminderRepository.findByIdForAIPhoneCallExecution>>
   >["booking"]
 >;
 
@@ -137,7 +139,7 @@ export async function executeAIPhoneCall(payload: string) {
   log.info(`Executing AI phone call for workflow reminder ${data.workflowReminderId}`, data);
 
   try {
-    const workflowReminder = await WorkflowReminderRepository.findWorkflowReminderForAIPhoneCallExecution(
+    const workflowReminder = await workflowReminderRepository.findByIdForAIPhoneCallExecution(
       data.workflowReminderId
     );
 
@@ -264,7 +266,7 @@ export async function executeAIPhoneCall(payload: string) {
 
     log.info("AI phone call created successfully:", call);
 
-    await WorkflowReminderRepository.updateWorkflowReminderReferenceAndScheduled(data.workflowReminderId, {
+    await workflowReminderRepository.updateReferenceAndScheduled(data.workflowReminderId, {
       referenceId: call.call_id,
       scheduled: true,
     });

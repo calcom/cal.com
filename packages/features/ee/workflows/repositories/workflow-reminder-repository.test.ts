@@ -346,4 +346,187 @@ describe("WorkflowReminderRepository", () => {
       expect(result).toBeNull();
     });
   });
+
+  describe("findFutureScheduledAttendeeSMSReminders", () => {
+    it("should find future SMS reminders for phone number", async () => {
+      prismaMock.workflowReminder.findMany.mockResolvedValue([]);
+
+      await repo.findFutureScheduledAttendeeSMSReminders("+1234567890");
+
+      expect(prismaMock.workflowReminder.findMany).toHaveBeenCalledWith({
+        where: {
+          method: WorkflowMethods.SMS,
+          cancelled: null,
+          scheduledDate: { gte: expect.any(Date) },
+          booking: {
+            smsReminderNumber: "+1234567890",
+          },
+          workflowStep: {
+            action: "SMS_ATTENDEE",
+          },
+        },
+        select: {
+          id: true,
+          referenceId: true,
+        },
+      });
+    });
+  });
+
+  describe("deleteMany", () => {
+    it("should delete reminders by ids", async () => {
+      prismaMock.workflowReminder.deleteMany.mockResolvedValue({ count: 2 });
+
+      await repo.deleteMany([1, 2]);
+
+      expect(prismaMock.workflowReminder.deleteMany).toHaveBeenCalledWith({
+        where: {
+          id: {
+            in: [1, 2],
+          },
+        },
+      });
+    });
+
+    it("should return count 0 when ids is empty", async () => {
+      const result = await repo.deleteMany([]);
+
+      expect(prismaMock.workflowReminder.deleteMany).not.toHaveBeenCalled();
+      expect(result).toEqual({ count: 0 });
+    });
+  });
+
+  describe("findByStepIds", () => {
+    it("should find reminders by step ids", async () => {
+      const mockReminders = [
+        { id: 1, referenceId: "ref-1", method: WorkflowMethods.EMAIL, workflowStepId: 10, booking: { eventTypeId: 5 } },
+      ];
+      prismaMock.workflowReminder.findMany.mockResolvedValue(mockReminders);
+
+      const result = await repo.findByStepIds([10, 20]);
+
+      expect(prismaMock.workflowReminder.findMany).toHaveBeenCalledWith({
+        where: {
+          workflowStepId: {
+            in: [10, 20],
+          },
+        },
+        select: {
+          id: true,
+          referenceId: true,
+          method: true,
+          workflowStepId: true,
+          booking: {
+            select: {
+              eventTypeId: true,
+            },
+          },
+        },
+      });
+      expect(result).toEqual(mockReminders);
+    });
+
+    it("should return empty array when step ids is empty", async () => {
+      const result = await repo.findByStepIds([]);
+
+      expect(prismaMock.workflowReminder.findMany).not.toHaveBeenCalled();
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe("findByIdForAIPhoneCallExecution", () => {
+    it("should query with correct select structure for AI phone call", async () => {
+      prismaMock.workflowReminder.findUnique.mockResolvedValue(null);
+
+      await repo.findByIdForAIPhoneCallExecution(42);
+
+      expect(prismaMock.workflowReminder.findUnique).toHaveBeenCalledWith({
+        where: { id: 42 },
+        select: {
+          id: true,
+          scheduled: true,
+          referenceId: true,
+          workflowStep: {
+            select: {
+              workflow: {
+                select: {
+                  trigger: true,
+                },
+              },
+              agent: {
+                select: {
+                  outboundPhoneNumbers: { select: { phoneNumber: true } },
+                  outboundEventTypeId: true,
+                },
+              },
+            },
+          },
+          booking: {
+            select: {
+              uid: true,
+              startTime: true,
+              endTime: true,
+              eventTypeId: true,
+              responses: true,
+              location: true,
+              description: true,
+              attendees: {
+                select: {
+                  name: true,
+                  email: true,
+                  phoneNumber: true,
+                  timeZone: true,
+                },
+              },
+              eventType: {
+                select: {
+                  title: true,
+                  bookingFields: true,
+                },
+              },
+              user: {
+                select: {
+                  name: true,
+                  timeZone: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    });
+  });
+
+  describe("updateReferenceAndScheduled", () => {
+    it("should update reference and scheduled fields", async () => {
+      const mockReminder = {
+        id: 1,
+        uuid: "uuid-123",
+        bookingUid: "booking-uid",
+        workflowStepId: 1,
+        method: WorkflowMethods.EMAIL,
+        scheduledDate: new Date(),
+        scheduled: true,
+        referenceId: "new-ref",
+        cancelled: null,
+        seatReferenceId: null,
+        isMandatoryReminder: false,
+        retryCount: 0,
+      };
+      prismaMock.workflowReminder.update.mockResolvedValue(mockReminder);
+
+      await repo.updateReferenceAndScheduled(1, {
+        referenceId: "new-ref",
+        scheduled: true,
+      });
+
+      expect(prismaMock.workflowReminder.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: {
+          referenceId: "new-ref",
+          scheduled: true,
+        },
+      });
+    });
+  });
 });
