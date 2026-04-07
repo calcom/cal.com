@@ -15,6 +15,17 @@ vi.mock("@calcom/app-store/delegationCredential", () => ({
   }) => (credentials[0] && (credentials[0] as any).__test__appLink) || null,
 }));
 
+vi.mock("@calcom/app-store/utils", () => ({
+  getAppFromSlug: (slug: string) => {
+    const apps: Record<string, { appData?: { location?: { type: string } } }> = {
+      "google-meet": { appData: { location: { type: "integrations:google:meet" } } },
+      "msteams": { appData: { location: { type: "integrations:office365_video" } } },
+      "daily-video": { appData: { location: { type: "integrations:daily" } } },
+    };
+    return apps[slug] || undefined;
+  },
+}));
+
 type TestUser = {
   username: string | null;
   metadata: Prisma.JsonValue;
@@ -114,7 +125,7 @@ describe("_getLocationValuesForDb", () => {
     expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBeNull();
   });
 
-  it("falls back to provided location if preference is set but has no appLink", () => {
+  it("resolves location type from app metadata when appSlug is set but appLink is missing", () => {
     const users: TestUser[] = [
       {
         username: "frank",
@@ -136,8 +147,8 @@ describe("_getLocationValuesForDb", () => {
       users,
       location: "https://meet.example.com/group",
     });
-    expect(result.locationBodyString).toBe("https://meet.example.com/group");
-    expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBeNull();
+    expect(result.locationBodyString).toBe("integrations:daily");
+    expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBeUndefined();
   });
 
   it("sorts users according to dynamicUserList before picking the first member", () => {
@@ -241,7 +252,7 @@ describe("_getLocationValuesForDb", () => {
     expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBeNull();
   });
 
-  it("handles appSlug set without appLink for dynamic group", () => {
+  it("resolves location type from app metadata even when delegation credentials exist", () => {
     const users: TestUser[] = [
       {
         username: "slugonly",
@@ -267,10 +278,9 @@ describe("_getLocationValuesForDb", () => {
       users,
       location: "https://fallback.example.com",
     });
-    // hasMemberSetConferencingPreference is true (appSlug is set), so appLink is used (undefined),
-    // falling back to null, then locationBodyString uses original location
-    expect(result.locationBodyString).toBe("https://fallback.example.com");
-    expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBeNull();
+    // appSlug is set so the app metadata lookup is used, not the delegation credential
+    expect(result.locationBodyString).toBe("integrations:daily");
+    expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBeUndefined();
   });
 
   it("uses delegation credential when user has no conferencing preference at all", () => {
@@ -299,5 +309,83 @@ describe("_getLocationValuesForDb", () => {
     expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBe(
       "https://teams.microsoft.com/delegation"
     );
+  });
+
+  it("resolves Google Meet location type for dynamic group when first member has google-meet as default", () => {
+    const users: TestUser[] = [
+      {
+        username: "alice",
+        metadata: {
+          defaultConferencingApp: {
+            appSlug: "google-meet",
+          },
+        },
+        credentials: [],
+      },
+      {
+        username: "bob",
+        metadata: {},
+        credentials: [],
+      },
+    ];
+    const result = _getLocationValuesForDb({
+      dynamicUserList: ["alice", "bob"],
+      users,
+      location: "",
+    });
+    expect(result.locationBodyString).toBe("integrations:google:meet");
+    expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBeUndefined();
+  });
+
+  it("resolves MS Teams location type for dynamic group when first member has msteams as default", () => {
+    const users: TestUser[] = [
+      {
+        username: "carol",
+        metadata: {
+          defaultConferencingApp: {
+            appSlug: "msteams",
+          },
+        },
+        credentials: [],
+      },
+      {
+        username: "dave",
+        metadata: {},
+        credentials: [],
+      },
+    ];
+    const result = _getLocationValuesForDb({
+      dynamicUserList: ["carol", "dave"],
+      users,
+      location: "",
+    });
+    expect(result.locationBodyString).toBe("integrations:office365_video");
+    expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBeUndefined();
+  });
+
+  it("falls back to provided location when appSlug is unknown and has no appLink", () => {
+    const users: TestUser[] = [
+      {
+        username: "eve",
+        metadata: {
+          defaultConferencingApp: {
+            appSlug: "unknown-app",
+          },
+        },
+        credentials: [],
+      },
+      {
+        username: "frank",
+        metadata: {},
+        credentials: [],
+      },
+    ];
+    const result = _getLocationValuesForDb({
+      dynamicUserList: ["eve", "frank"],
+      users,
+      location: "https://fallback.example.com",
+    });
+    expect(result.locationBodyString).toBe("https://fallback.example.com");
+    expect(result.organizerOrFirstDynamicGroupMemberDefaultLocationUrl).toBeUndefined();
   });
 });

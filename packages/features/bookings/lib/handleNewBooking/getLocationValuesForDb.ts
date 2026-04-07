@@ -1,4 +1,5 @@
 import { getFirstDelegationConferencingCredentialAppLocation } from "@calcom/app-store/delegationCredential";
+import { getAppFromSlug } from "@calcom/app-store/utils";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import type { Prisma } from "@calcom/prisma/client";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -47,10 +48,22 @@ export const _getLocationValuesForDb = <
     const hasMemberSetConferencingPreference =
       !!defaultConferencingApp?.appSlug || !!defaultConferencingApp?.appLink;
 
-    firstDynamicGroupMemberDefaultLocationUrl =
-      (hasMemberSetConferencingPreference
-        ? defaultConferencingApp?.appLink
-        : firstDynamicGroupMemberDelegationCredentialConferencingAppLocation) ?? null;
+    if (hasMemberSetConferencingPreference) {
+      if (defaultConferencingApp?.appLink) {
+        // Static-link app (e.g. a personal Zoom link) — use the link directly
+        firstDynamicGroupMemberDefaultLocationUrl = defaultConferencingApp.appLink;
+      } else if (defaultConferencingApp?.appSlug) {
+        // Dynamic-link app (e.g. Google Meet, MS Teams) — resolve the location type from app metadata
+        const app = getAppFromSlug(defaultConferencingApp.appSlug);
+        const appLocationType = app?.appData?.location?.type;
+        if (appLocationType) {
+          locationBodyString = appLocationType;
+        }
+      }
+    } else {
+      firstDynamicGroupMemberDefaultLocationUrl =
+        firstDynamicGroupMemberDelegationCredentialConferencingAppLocation ?? null;
+    }
 
     locationBodyString = firstDynamicGroupMemberDefaultLocationUrl || locationBodyString;
   }
