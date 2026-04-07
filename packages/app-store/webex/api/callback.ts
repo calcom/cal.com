@@ -1,9 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
@@ -11,9 +9,20 @@ import config from "../config.json";
 import { getWebexAppKeys } from "../lib/getWebexAppKeys";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const state = decodeOAuthState(req);
+  if (!state) {
+    res.status(403).json({ message: "Invalid or missing OAuth state. Request may have been forged." });
+    return;
+  }
+
+  const userId = req.session?.user.id;
+  if (!userId) {
+    res.status(401).json({ message: "You must be logged in to do this" });
+    return;
+  }
+
   const { code } = req.query;
   const { client_id, client_secret } = await getWebexAppKeys();
-  const state = decodeOAuthState(req, "webex");
 
   /** @link https://developer.webex.com/docs/integrations#getting-an-access-token **/
 
@@ -57,10 +66,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
   delete responseBody.expires_in;
 
-  const userId = req.session?.user.id;
-  if (!userId) {
-    return res.status(404).json({ message: "No user found" });
-  }
   /**
    * With this we take care of no duplicate webex key for a single user
    * when creating a video room we only do findFirst so the if they have more than 1
@@ -72,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
     where: {
       type: config.type,
-      userId: req.session?.user.id,
+      userId,
       appId: config.slug,
     },
   });

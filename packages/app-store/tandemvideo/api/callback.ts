@@ -1,8 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
@@ -14,8 +12,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return;
   }
 
+  const state = decodeOAuthState(req);
+  if (!state) {
+    res.status(403).json({ message: "Invalid or missing OAuth state. Request may have been forged." });
+    return;
+  }
+
+  const userId = req.session?.user.id;
+  if (!userId) {
+    res.status(401).json({ message: "You must be logged in to do this" });
+    return;
+  }
+
   const code = req.query.code as string;
-  const state = decodeOAuthState(req, "tandem");
 
   let clientId = "";
   let clientSecret = "";
@@ -38,18 +47,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const responseBody = await result.json();
 
-  const userId = req.session?.user.id;
-  if (!userId) {
-    return res.status(404).json({ message: "No user found" });
-  }
-
   const existingCredentialTandemVideo = await prisma.credential.findMany({
     select: {
       id: true,
     },
     where: {
       type: "tandem_video",
-      userId: req.session?.user.id,
+      userId,
       appId: "tandem",
     },
   });
