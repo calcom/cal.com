@@ -22,6 +22,10 @@ vi.mock("@calcom/features/notifications/sendNotification", () => ({
   sendNotification: vi.fn(),
 }));
 
+vi.mock("@calcom/app-store/feishucalendar/lib/CalendarService", () => ({
+  default: class MockFeishuCalendarService {},
+}));
+
 vi.mock("@calcom/features/conferencing/lib/videoClient", () => ({
   createInstantMeetingWithCalVideo: vi.fn().mockResolvedValue({
     type: "daily_video",
