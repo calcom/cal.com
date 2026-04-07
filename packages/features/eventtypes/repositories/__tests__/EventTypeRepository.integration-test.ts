@@ -12,6 +12,7 @@ let testWorkflowIds: number[] = [];
 let testSecondaryEmailIds: number[] = [];
 let testAIPhoneCallConfigEventTypeIds: number[] = [];
 let testHostGroupIds: string[] = [];
+let testMembershipIds: number[] = [];
 
 const createTestUser = async () => {
   const timestamp = Date.now();
@@ -60,6 +61,10 @@ const cleanup = async () => {
       where: { eventTypeId: { in: testAIPhoneCallConfigEventTypeIds } },
     });
     testAIPhoneCallConfigEventTypeIds = [];
+  }
+  if (testMembershipIds.length > 0) {
+    await prisma.membership.deleteMany({ where: { id: { in: testMembershipIds } } });
+    testMembershipIds = [];
   }
   if (testHostGroupIds.length > 0) {
     await prisma.hostGroup.deleteMany({ where: { id: { in: testHostGroupIds } } });
@@ -825,5 +830,218 @@ describe("EventTypeRepository.deleteHostLocations", () => {
   it("should be a no-op when no matching host locations exist", async () => {
     const result = await repository.deleteHostLocations([{ userId: 999999, eventTypeId: 999999 }]);
     expect(result.count).toBe(0);
+  });
+});
+
+describe("EventTypeRepository.findById", () => {
+  afterEach(cleanup);
+
+  it("should return event type when user owns it (userId match)", async () => {
+    const user = await createTestUser();
+    testUserIds.push(user.id);
+
+    const et = await createTestEventType(user.id);
+
+    const result = await repository.findById({ id: et.id, userId: user.id });
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe(et.id);
+    expect(result?.title).toBe("Test Event Type");
+    expect(result?.userId).toBe(user.id);
+  });
+
+  it("should return event type when user is a team member (teamId match)", async () => {
+    const owner = await createTestUser();
+    testUserIds.push(owner.id);
+
+    const member = await createTestUser();
+    testUserIds.push(member.id);
+
+    const team = await createTestTeam();
+
+    const membership = await prisma.membership.create({
+      data: { teamId: team.id, userId: member.id, role: "MEMBER", accepted: true },
+    });
+    testMembershipIds.push(membership.id);
+
+    const et = await prisma.eventType.create({
+      data: {
+        title: "Team Event",
+        slug: `team-et-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        length: 30,
+        teamId: team.id,
+        schedulingType: "ROUND_ROBIN",
+      },
+    });
+    testEventTypeIds.push(et.id);
+
+    const result = await repository.findById({ id: et.id, userId: member.id });
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe(et.id);
+    expect(result?.teamId).toBe(team.id);
+  });
+
+  it("should return event type when user is linked via junction table only", async () => {
+    const owner = await createTestUser();
+    testUserIds.push(owner.id);
+
+    const linkedUser = await createTestUser();
+    testUserIds.push(linkedUser.id);
+
+    // Create event type owned by owner, with no team
+    const et = await prisma.eventType.create({
+      data: {
+        title: "Junction Table Event",
+        slug: `junction-et-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        length: 30,
+        userId: owner.id,
+        users: {
+          connect: [{ id: linkedUser.id }],
+        },
+      },
+    });
+    testEventTypeIds.push(et.id);
+
+    // linkedUser is NOT the owner (userId != linkedUser.id) and there's no team,
+    // so access must go through the junction table fallback
+    const result = await repository.findById({ id: et.id, userId: linkedUser.id });
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe(et.id);
+  });
+
+  it("should return null when user has no access", async () => {
+    const owner = await createTestUser();
+    testUserIds.push(owner.id);
+
+    const stranger = await createTestUser();
+    testUserIds.push(stranger.id);
+
+    const et = await createTestEventType(owner.id);
+
+    const result = await repository.findById({ id: et.id, userId: stranger.id });
+
+    expect(result).toBeNull();
+  });
+
+  it("should return null for non-existent event type", async () => {
+    const result = await repository.findById({ id: 999999, userId: 999999 });
+
+    expect(result).toBeNull();
+  });
+
+  it("should deny access when user is not a member of the event type's team", async () => {
+    const user = await createTestUser();
+    testUserIds.push(user.id);
+
+    const team = await createTestTeam();
+
+    const et = await prisma.eventType.create({
+      data: {
+        title: "Team Only Event",
+        slug: `team-only-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        length: 30,
+        teamId: team.id,
+        schedulingType: "ROUND_ROBIN",
+      },
+    });
+    testEventTypeIds.push(et.id);
+
+    // user has no membership in this team
+    const result = await repository.findById({ id: et.id, userId: user.id });
+
+    expect(result).toBeNull();
+  });
+
+  it("should return complete event type data with all relations", async () => {
+    const user = await createTestUser();
+    testUserIds.push(user.id);
+
+    const team = await createTestTeam();
+
+    const membership = await prisma.membership.create({
+      data: { teamId: team.id, userId: user.id, role: "ADMIN", accepted: true },
+    });
+    testMembershipIds.push(membership.id);
+
+    const et = await prisma.eventType.create({
+      data: {
+        title: "Full Data Event",
+        slug: `full-data-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        length: 45,
+        description: "A complete event type",
+        teamId: team.id,
+        schedulingType: "ROUND_ROBIN",
+        hosts: {
+          create: { userId: user.id, isFixed: false, priority: 1, weight: 100 },
+        },
+      },
+    });
+    testEventTypeIds.push(et.id);
+
+    const result = await repository.findById({ id: et.id, userId: user.id });
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe(et.id);
+    expect(result?.title).toBe("Full Data Event");
+    expect(result?.description).toBe("A complete event type");
+    expect(result?.length).toBe(45);
+    expect(result?.teamId).toBe(team.id);
+    expect(result?.team).not.toBeNull();
+    expect(result?.team?.id).toBe(team.id);
+    expect(result?.hosts).toHaveLength(1);
+    expect(result?.hosts[0].userId).toBe(user.id);
+    expect(result?.workflows).toBeDefined();
+    expect(result?.webhooks).toBeDefined();
+    expect(result?.children).toBeDefined();
+    expect(result?.users).toBeDefined();
+  });
+
+  it("should not include members in workflow.team select", async () => {
+    const user = await createTestUser();
+    testUserIds.push(user.id);
+
+    const team = await createTestTeam();
+
+    const membership = await prisma.membership.create({
+      data: { teamId: team.id, userId: user.id, role: "MEMBER", accepted: true },
+    });
+    testMembershipIds.push(membership.id);
+
+    const et = await prisma.eventType.create({
+      data: {
+        title: "Workflow Team Event",
+        slug: `wf-team-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+        length: 30,
+        teamId: team.id,
+        schedulingType: "ROUND_ROBIN",
+      },
+    });
+    testEventTypeIds.push(et.id);
+
+    const workflow = await prisma.workflow.create({
+      data: {
+        name: "Test Workflow",
+        trigger: WorkflowTriggerEvents.NEW_EVENT,
+        userId: user.id,
+        teamId: team.id,
+        activeOn: {
+          create: { eventTypeId: et.id },
+        },
+      },
+    });
+    testWorkflowIds.push(workflow.id);
+
+    const result = await repository.findById({ id: et.id, userId: user.id });
+
+    expect(result).not.toBeNull();
+    expect(result?.workflows).toHaveLength(1);
+    expect(result?.workflows[0].workflow.team).not.toBeNull();
+    expect(result?.workflows[0].workflow.team?.id).toBe(team.id);
+    expect(result?.workflows[0].workflow.team?.slug).toBeDefined();
+    expect(result?.workflows[0].workflow.team?.name).toBeDefined();
+    // Verify members is NOT included in workflow.team (perf optimization)
+    expect(result?.workflows[0].workflow.team).not.toHaveProperty("members");
   });
 });

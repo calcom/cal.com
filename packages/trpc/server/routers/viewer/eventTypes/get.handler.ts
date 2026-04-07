@@ -1,4 +1,4 @@
-// Cache bust: added requiresCancellationReason to eventType
+// Cache bust: removed workflow.team.members from eventType select
 import getEventTypeById from "@calcom/features/eventtypes/lib/getEventTypeById";
 import type { PrismaClient } from "@calcom/prisma";
 

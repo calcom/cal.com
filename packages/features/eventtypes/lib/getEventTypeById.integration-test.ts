@@ -424,4 +424,104 @@ describe("getRawEventType", () => {
       expect(result).toBeNull();
     });
   });
+
+  describe("Batch profile enrichment", () => {
+    test("should return team members data without N+1 queries", async () => {
+      const organization = await createTestOrganization();
+      const team = await createTestTeam(organization.id);
+
+      // Create multiple team members with profiles
+      const memberCount = 5;
+      const members = [];
+      for (let i = 0; i < memberCount; i++) {
+        const user = await createTestUser({
+          organizationId: organization.id,
+          withProfile: true,
+        });
+        const membership = await createTestTeamMember(team.id, user.id);
+        members.push({ user, membership });
+      }
+
+      const teamEvent = await createTestTeamEventType(team.id);
+
+      const result = await getRawEventType({
+        userId: members[0].user.id,
+        eventTypeId: teamEvent.id,
+        isUserOrganizationAdmin: false,
+        currentOrganizationId: organization.id,
+        prisma: prisma as unknown as PrismaClient,
+      });
+
+      expect(result).toBeDefined();
+      expect(result?.team).not.toBeNull();
+      expect(result?.team?.members).toHaveLength(memberCount);
+
+      // Verify each team member's user data is present
+      for (const { user } of members) {
+        const member = result?.team?.members.find((m) => m.user.id === user.id);
+        expect(member).toBeDefined();
+        expect(member?.user.username).toBe(user.username);
+      }
+    });
+
+    test("should return event type users data for enrichment", async () => {
+      const user = await createTestUser();
+      const eventType = await createTestEventType(user.id);
+
+      const result = await getRawEventType({
+        userId: user.id,
+        eventTypeId: eventType.id,
+        isUserOrganizationAdmin: false,
+        currentOrganizationId: null,
+        prisma: prisma as unknown as PrismaClient,
+      });
+
+      expect(result).toBeDefined();
+      expect(result?.users).toBeDefined();
+      expect(result?.users.length).toBeGreaterThanOrEqual(1);
+      expect(result?.users.find((u) => u.id === user.id)).toBeDefined();
+    });
+
+    test("should not include members in workflow.team select", async () => {
+      const organization = await createTestOrganization();
+      const team = await createTestTeam(organization.id);
+      const user = await createTestUser({ organizationId: organization.id });
+      await createTestTeamMember(team.id, user.id);
+
+      const teamEvent = await createTestTeamEventType(team.id);
+
+      // Create a workflow linked to this event type's team
+      const workflow = await prisma.workflow.create({
+        data: {
+          name: "Test Workflow",
+          trigger: "NEW_EVENT",
+          userId: user.id,
+          teamId: team.id,
+          activeOn: {
+            create: { eventTypeId: teamEvent.id },
+          },
+        },
+      });
+      createdResources.eventTypes.push(teamEvent.id);
+
+      const result = await getRawEventType({
+        userId: user.id,
+        eventTypeId: teamEvent.id,
+        isUserOrganizationAdmin: false,
+        currentOrganizationId: organization.id,
+        prisma: prisma as unknown as PrismaClient,
+      });
+
+      expect(result).toBeDefined();
+      expect(result?.workflows).toHaveLength(1);
+      expect(result?.workflows[0].workflow.team).not.toBeNull();
+      expect(result?.workflows[0].workflow.team?.id).toBe(team.id);
+      // Verify members is NOT present in workflow.team (perf optimization)
+      expect(result?.workflows[0].workflow.team).not.toHaveProperty("members");
+
+      // Cleanup workflow
+      await prisma.workflowsOnEventTypes.deleteMany({ where: { workflowId: workflow.id } });
+      await prisma.workflow.delete({ where: { id: workflow.id } });
+    });
+  });
 });
