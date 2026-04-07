@@ -1,0 +1,24 @@
+{
+  "name": "Sendly SMS",
+  "slug": "sendly-sms",
+  "type": "sendly-sms_messaging",
+  "logo": "icon.svg",
+  "url": "https://sendly.live",
+  "variant": "other",
+  "categories": ["messaging", "automation"],
+  "publisher": "Sendly",
+  "email": "support@sendly.live",
+  "description": "Send SMS confirmations, reminders, and notifications for your Cal.com bookings via Sendly. Easier to use than Twilio with built-in templates, reminders, and compliance.",
+  "isTemplate": false,
+  "imageSrc": "",
+  "dirName": "sendly-sms",
+  "key": {
+    "apiKey": {
+      "label": "Sendly API Key",
+      "placeholder": "sk_live_v1_...",
+      "required": true
+    }
+  },
+  "__createdDate": "2026-04-06",
+  "__tag": "messaging"
+}
