@@ -22,6 +22,7 @@ import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
 import { DailyProvider, useDailyEvent } from "@daily-co/daily-react";
 import type { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CalVideoPremiumFeatures } from "../cal-video-premium-features";
 
@@ -57,7 +58,10 @@ export default function JoinCall(props: PageProps) {
     !!userNameForCall && (requireEmailForGuests ? !!loggedInUserName && isLoggedInUserPartOfMeeting : true);
   const [isCallFrameReady, setIsCallFrameReady] = useState<boolean>(false);
 
-  const activeMeetingPassword = guestCredentials?.meetingPassword ?? meetingPassword;
+  const searchParams = useSearchParams();
+  const tokenParam = searchParams?.get("token") || undefined;
+
+  const activeMeetingPassword = tokenParam ?? guestCredentials?.meetingPassword ?? meetingPassword;
   const activeMeetingUrl = guestCredentials?.meetingUrl ?? meetingUrl;
   const activeUserName = guestCredentials?.userName ?? userNameForCall;
 

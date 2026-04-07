@@ -111,6 +111,7 @@ export class BookingSeatRepository {
                 userId: true,
               },
             },
+            references: true,
           },
         },
       },
