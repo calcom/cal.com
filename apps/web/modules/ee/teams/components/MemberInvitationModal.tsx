@@ -202,7 +202,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       // Required for Safari but also works on Chrome
       // Credits to https://wolfgangrittner.dev/how-to-use-clipboard-api-in-firefox/
       if (typeof ClipboardItem !== "undefined") {
-        const inviteLinkClipbardItem = new ClipboardItem({
+        const inviteLinkClipboardItem = new ClipboardItem({
           //eslint-disable-next-line no-async-promise-executor
           "text/plain": new Promise(async (resolve) => {
             // Instead of doing async work and then writing to clipboard, do async work in clipboard API itself
@@ -214,7 +214,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             resolve(new Blob([inviteLink], { type: "text/plain" }));
           }),
         });
-        await navigator.clipboard.write([inviteLinkClipbardItem]);
+        await navigator.clipboard.write([inviteLinkClipboardItem]);
       } else {
         // Fallback for browsers that don't support ClipboardItem e.g. Firefox 
         const { inviteLink } = await createInviteMutation.mutateAsync({
