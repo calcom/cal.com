@@ -31,7 +31,7 @@ export interface SelectedCalendarRepository {
       Prisma.SelectedCalendarUpdateInput,
       "syncToken" | "syncedAt" | "syncErrorAt" | "syncErrorCount"
     >
-  ): Promise<SelectedCalendar>;
+  ): Promise<{ id: string }>;
   updateSubscription(
     id: string,
     data: Pick<
@@ -45,7 +45,7 @@ export interface SelectedCalendarRepository {
       | "syncSubscribedErrorAt"
       | "syncSubscribedErrorCount"
     >
-  ): Promise<SelectedCalendar>;
+  ): Promise<{ id: string }>;
   updateLastWebhookReceivedAt(id: string): Promise<void>;
   findStaleSubscribed(staleDays: number): Promise<SelectedCalendarProjection[]>;
 }
