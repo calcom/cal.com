@@ -243,3 +243,32 @@ For detailed information, see the `agents/` directory:
 - **[agents/rules/](agents/rules/)** - Modular engineering rules
 - **[agents/commands.md](agents/commands.md)** - Complete command reference
 - **[agents/knowledge-base.md](agents/knowledge-base.md)** - Domain knowledge and business rules
+
+## Cursor Cloud specific instructions
+
+### Environment variables
+The Cloud Agent VM injects secret environment variables (e.g. `NEXT_PUBLIC_WEBAPP_URL`, `NEXTAUTH_URL`, `NEXTAUTH_COOKIE_DOMAIN`, `DATABASE_URL`) that override `.env` file values. When starting the dev server you **must** explicitly export overrides in the shell to point at localhost and the Docker Postgres instance:
+
+- `NEXT_PUBLIC_WEBAPP_URL`, `NEXT_PUBLIC_WEBSITE_URL`, `NEXTAUTH_URL` → set to the local dev server origin (port 3000)
+- `NEXT_PUBLIC_EMBED_LIB_URL` → set to the local dev embed path
+- `NEXTAUTH_COOKIE_DOMAIN` → set to empty string so cookies use the request domain
+- `DATABASE_URL`, `DATABASE_DIRECT_URL` → set to the Docker Postgres URL (port 5450, database `calendso`)
+- `NODE_OPTIONS` → set `--max-old-space-size=8192` for the large monorepo
+
+Without these overrides, the injected `NEXT_PUBLIC_WEBAPP_URL` (pointing to a non-localhost domain) and `NEXTAUTH_COOKIE_DOMAIN` (set to a non-localhost value) will cause login failures because cookies are set for a domain the browser cannot reach.
+
+### Starting services
+
+1. **Docker daemon** must be started first: `sudo dockerd &>/tmp/dockerd.log &`
+2. **PostgreSQL**: `docker compose -f packages/prisma/docker-compose.yml up -d` — runs Postgres 18 on port **5450**. Create the main database if needed: `docker exec prisma-postgres-1 psql -U postgres -c "CREATE DATABASE calendso;"`
+3. **Migrations**: `yarn prisma migrate deploy`
+4. **Seed**: `yarn db-seed` (creates test users like `pro@example.com` / `pro`)
+5. **Dev server**: `yarn dev` (starts Next.js on port 3000 via Turbopack)
+
+### Key gotchas
+- The `packages/prisma/.env` is a **symlink** to `../../.env`. Never replace it with a regular file.
+- The `.dev` TLD (e.g. `app.cal.dev`) is HSTS-preloaded in Chrome and forces HTTPS. Use `localhost:3000` in the Cloud Agent environment.
+- First page loads are slow (~15-30s) because Turbopack compiles on demand.
+- Linting and formatting use **Biome** (`yarn biome check --write .`), not ESLint.
+- Unit tests: `TZ=UTC yarn test` (Vitest). Integration tests: `VITEST_MODE=integration yarn test`.
+- See [agents/commands.md](agents/commands.md) for the full command reference.
