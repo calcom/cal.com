@@ -1,15 +1,10 @@
-import { buffer } from "micro";
-import type { NextApiRequest, NextApiResponse } from "next";
-import type Stripe from "stripe";
-
-import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import { getAppActor } from "@calcom/app-store/_utils/getAppActor";
+import { handlePaymentSuccess } from "@calcom/app-store/_utils/payments/handlePaymentSuccess";
 import {
-  eventTypeMetaDataSchemaWithTypedApps,
   eventTypeAppMetadataOptionalSchema,
+  eventTypeMetaDataSchemaWithTypedApps,
 } from "@calcom/app-store/zod-utils";
 import { sendAttendeeRequestEmailAndSMS, sendOrganizerRequestEmail } from "@calcom/emails/email-manager";
-import EventManager, { placeholderCreatedEvent } from "@calcom/features/bookings/lib/EventManager";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
@@ -27,6 +22,9 @@ import { distributedTracing } from "@calcom/lib/tracing/factory";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { buffer } from "micro";
+import type { NextApiRequest, NextApiResponse } from "next";
+import type Stripe from "stripe";
 
 const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 
@@ -67,7 +65,7 @@ export async function handleStripePaymentSuccess(event: Stripe.Event, traceConte
   });
 }
 
-const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContext) => {
+export const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContext) => {
   const setupIntent = event.data.object as Stripe.SetupIntent;
   const payment = await prisma.payment.findFirst({
     where: {
@@ -111,15 +109,9 @@ const handleSetupSuccess = async (event: Stripe.Event, traceContext: TraceContex
   const platformOAuthClient = user.isPlatformManaged
     ? await platformOAuthClientRepository.getByUserId(user.id)
     : null;
-  const areCalendarEventsEnabled = platformOAuthClient?.areCalendarEventsEnabled ?? true;
   const areEmailsEnabled = platformOAuthClient?.areEmailsEnabled ?? true;
 
   if (!requiresConfirmation) {
-    const eventManager = new EventManager({ ...user, credentials: allCredentials }, metadata?.apps);
-    const scheduleResult = areCalendarEventsEnabled
-      ? await eventManager.create(evt)
-      : placeholderCreatedEvent;
-    bookingData.references = { create: scheduleResult.referencesToCreate };
     bookingData.status = BookingStatus.ACCEPTED;
   }
 

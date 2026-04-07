@@ -112,8 +112,35 @@ function createMockPaymentService(_credentials?: unknown) {
 
       return createdPayment;
     },
-    async collectCard() {
-      return { success: true };
+    async collectCard(
+      payment: { amount: number; currency: string },
+      bookingId: number,
+      paymentOption: string,
+      _bookerEmail: string,
+      _bookerPhoneNumber?: string | null
+    ) {
+      const { default: prismaMock } = await import("@calcom/testing/lib/__mocks__/prisma");
+      const externalId = "mock_payment_external_id";
+
+      const paymentCreateData = {
+        uid: MOCK_PAYMENT_UID,
+        appId: null,
+        bookingId,
+        fee: 10,
+        success: false,
+        refunded: false,
+        data: {},
+        externalId,
+        paymentOption,
+        amount: payment.amount,
+        currency: payment.currency,
+      };
+
+      const createdPayment = await prismaMock.payment.create({
+        data: paymentCreateData,
+      });
+
+      return createdPayment;
     },
     async chargeCard() {
       return { success: true };
