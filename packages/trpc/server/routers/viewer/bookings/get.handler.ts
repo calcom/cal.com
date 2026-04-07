@@ -341,105 +341,167 @@ export async function getBookings({
     }
   }
 
-  const queriesWithFilters = bookingQueries.map(({ query, tables }) => {
-    // 1. Apply mandatory status filter
-    let fullQuery = addStatusesQueryFilters(query, bookingListingByStatus);
-
-    // 2. Filter by Event Type IDs derived from Team IDs (if provided)
-    if (eventTypeIdsFromTeamIdsFilter && eventTypeIdsFromTeamIdsFilter.length > 0) {
-      fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromTeamIdsFilter);
-    }
-
-    // 3. Filter by specific Event Type IDs (if provided)
-    // If both teamIds filter and eventTypeIds filter are provided, filter 2. ensures the event-types are within the teams
-    if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
-      fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromEventTypeIdsFilter);
-    }
-
-    // 4. Filter by Attendee Name (if provided)
-    if (filters?.attendeeName) {
-      if (typeof filters.attendeeName === "string") {
-        // Simple string match (exact)
-        fullQuery = fullQuery
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.name", "=", filters.attendeeName.trim());
-      } else if (isTextFilterValue(filters.attendeeName)) {
-        // TODO: write makeWhereClause equivalent for kysely
-        fullQuery = addAdvancedAttendeeWhereClause(
-          fullQuery,
-          "name",
-          filters.attendeeName.data.operator,
-          filters.attendeeName.data.operand,
-          tables.includes("Attendee")
-        );
-      }
-    }
-
-    // 5. Filter by Attendee Email (if provided)
-    if (filters?.attendeeEmail) {
-      if (typeof filters.attendeeEmail === "string") {
-        // Simple string match (exact)
-        fullQuery = fullQuery
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where("Attendee.email", "=", filters.attendeeEmail.trim());
-      } else if (isTextFilterValue(filters.attendeeEmail)) {
-        // TODO: write makeWhereClause equivalent for kysely
-        fullQuery = addAdvancedAttendeeWhereClause(
-          fullQuery,
-          "email",
-          filters.attendeeEmail.data.operator,
-          filters.attendeeEmail.data.operand,
-          tables.includes("Attendee")
-        );
-      }
-    }
-
-    // 6. Filter by Booking Uid (if provided)
-    if (filters?.bookingUid) {
-      fullQuery = fullQuery.where("Booking.uid", "=", filters.bookingUid.trim());
-    }
-
-    // 7. Booking Start/End Time Range Filters
-    if (filters?.afterStartDate) {
-      fullQuery = fullQuery.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
-    }
-    if (filters?.beforeEndDate) {
-      fullQuery = fullQuery.where("Booking.endTime", "<=", dayjs.utc(filters.beforeEndDate).toDate());
-    }
-
-    return fullQuery;
-  });
-
-  const queryUnion = queriesWithFilters.reduce((acc, query) => {
-    return acc.unionAll(query);
-  });
-
   const orderBy = getOrderBy(bookingListingByStatus, sort);
 
-  const getBookingsUnionCompiled = kysely
-    .selectFrom(queryUnion.as("union_subquery"))
-    .distinct()
-    .selectAll("union_subquery")
-    .$if(Boolean(filters?.afterUpdatedDate), (eb) =>
-      eb.where("union_subquery.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate())
-    )
-    .$if(Boolean(filters?.beforeUpdatedDate), (eb) =>
-      eb.where("union_subquery.updatedAt", "<=", dayjs.utc(filters.beforeUpdatedDate).toDate())
-    )
-    .$if(Boolean(filters?.afterCreatedDate), (eb) =>
-      eb.where("union_subquery.createdAt", ">=", dayjs.utc(filters.afterCreatedDate).toDate())
-    )
-    .$if(Boolean(filters?.beforeCreatedDate), (eb) =>
-      eb.where("union_subquery.createdAt", "<=", dayjs.utc(filters.beforeCreatedDate).toDate())
-    )
-    .orderBy(orderBy.key, orderBy.order)
-    .limit(take)
-    .offset(skip)
-    .compile();
+  function buildQuery(opts?: {
+    pastWindow?: { startTimeAfter: Date; startTimeBefore?: Date };
+    limit?: number;
+    offset?: number;
+  }) {
+    const queriesWithFilters = bookingQueries.map(({ query, tables }) => {
+      // 1. Apply mandatory status filter
+      let fullQuery = addStatusesQueryFilters(query, bookingListingByStatus, opts?.pastWindow);
 
-  const bookingsFromUnion = (await kysely.executeQuery(getBookingsUnionCompiled)).rows;
+      // 2. Filter by Event Type IDs derived from Team IDs (if provided)
+      if (eventTypeIdsFromTeamIdsFilter && eventTypeIdsFromTeamIdsFilter.length > 0) {
+        fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromTeamIdsFilter);
+      }
 
-  log.debug(`Get bookings for user ${user.id} SQL:`, getBookingsUnionCompiled.sql);
+      // 3. Filter by specific Event Type IDs (if provided)
+      // If both teamIds filter and eventTypeIds filter are provided, filter 2. ensures the event-types are within the teams
+      if (eventTypeIdsFromEventTypeIdsFilter && eventTypeIdsFromEventTypeIdsFilter.length > 0) {
+        fullQuery = fullQuery.where("Booking.eventTypeId", "in", eventTypeIdsFromEventTypeIdsFilter);
+      }
+
+      // 4. Filter by Attendee Name (if provided)
+      if (filters?.attendeeName) {
+        if (typeof filters.attendeeName === "string") {
+          // Simple string match (exact)
+          fullQuery = fullQuery
+            .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+            .where("Attendee.name", "=", filters.attendeeName.trim());
+        } else if (isTextFilterValue(filters.attendeeName)) {
+          // TODO: write makeWhereClause equivalent for kysely
+          fullQuery = addAdvancedAttendeeWhereClause(
+            fullQuery,
+            "name",
+            filters.attendeeName.data.operator,
+            filters.attendeeName.data.operand,
+            tables.includes("Attendee")
+          );
+        }
+      }
+
+      // 5. Filter by Attendee Email (if provided)
+      if (filters?.attendeeEmail) {
+        if (typeof filters.attendeeEmail === "string") {
+          // Simple string match (exact)
+          fullQuery = fullQuery
+            .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+            .where("Attendee.email", "=", filters.attendeeEmail.trim());
+        } else if (isTextFilterValue(filters.attendeeEmail)) {
+          // TODO: write makeWhereClause equivalent for kysely
+          fullQuery = addAdvancedAttendeeWhereClause(
+            fullQuery,
+            "email",
+            filters.attendeeEmail.data.operator,
+            filters.attendeeEmail.data.operand,
+            tables.includes("Attendee")
+          );
+        }
+      }
+
+      // 6. Filter by Booking Uid (if provided)
+      if (filters?.bookingUid) {
+        fullQuery = fullQuery.where("Booking.uid", "=", filters.bookingUid.trim());
+      }
+
+      // 7. Booking Start/End Time Range Filters
+      if (filters?.afterStartDate) {
+        fullQuery = fullQuery.where("Booking.startTime", ">=", dayjs.utc(filters.afterStartDate).toDate());
+      }
+      if (filters?.beforeEndDate) {
+        fullQuery = fullQuery.where("Booking.endTime", "<=", dayjs.utc(filters.beforeEndDate).toDate());
+      }
+
+      return fullQuery;
+    });
+
+    const queryUnion = queriesWithFilters.reduce((acc, query) => {
+      return acc.unionAll(query);
+    });
+
+    let outerQuery = kysely
+      .selectFrom(queryUnion.as("union_subquery"))
+      .distinct()
+      .selectAll("union_subquery")
+      .$if(Boolean(filters?.afterUpdatedDate), (eb) =>
+        eb.where("union_subquery.updatedAt", ">=", dayjs.utc(filters.afterUpdatedDate).toDate())
+      )
+      .$if(Boolean(filters?.beforeUpdatedDate), (eb) =>
+        eb.where("union_subquery.updatedAt", "<=", dayjs.utc(filters.beforeUpdatedDate).toDate())
+      )
+      .$if(Boolean(filters?.afterCreatedDate), (eb) =>
+        eb.where("union_subquery.createdAt", ">=", dayjs.utc(filters.afterCreatedDate).toDate())
+      )
+      .$if(Boolean(filters?.beforeCreatedDate), (eb) =>
+        eb.where("union_subquery.createdAt", "<=", dayjs.utc(filters.beforeCreatedDate).toDate())
+      )
+      .orderBy(orderBy.key, orderBy.order);
+
+    if (opts?.limit !== undefined) {
+      outerQuery = outerQuery.limit(opts.limit);
+    }
+    if (opts?.offset !== undefined) {
+      outerQuery = outerQuery.offset(opts.offset);
+    }
+
+    return { compiled: outerQuery.compile(), queryUnion };
+  }
+
+  const isPastQuery =
+    bookingListingByStatus.length === 1 && bookingListingByStatus[0] === "past";
+
+  let bookingsFromUnion: Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">[];
+
+  if (isPastQuery) {
+    // Progressive window: start narrow (1 week), widen until we have enough results.
+    // Each subsequent query only fetches the gap between the previous window boundary
+    // and the new one, so we never re-scan rows we've already seen.
+    //
+    // We fetch skip + take total rows without SQL OFFSET, then discard the first
+    // `skip` in memory. This is necessary because offset-based pagination can't be
+    // split across independent window queries (window 1 might have fewer rows than skip).
+    const now = new Date();
+    const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+    // 1w, 4w (~1mo), 12w (~3mo), 48w (~1yr), unbounded
+    const windowMultipliers: (number | null)[] = [1, 4, 12, 48, null];
+    const needed = skip + take;
+
+    let allRows: typeof bookingsFromUnion = [];
+    let previousBoundary: Date | undefined;
+
+    for (const multiplier of windowMultipliers) {
+      const startTimeAfter = multiplier ? new Date(now.getTime() - multiplier * ONE_WEEK_MS) : new Date(0);
+
+      const remaining = needed - allRows.length;
+
+      const { compiled } = buildQuery({
+        pastWindow: { startTimeAfter, startTimeBefore: previousBoundary },
+        limit: remaining,
+      });
+
+      const windowRows = (await kysely.executeQuery(compiled)).rows;
+      allRows.push(...windowRows);
+
+      log.debug(
+        `Past bookings window (${multiplier ? multiplier + "w" : "all"}): got ${windowRows.length} rows, total ${allRows.length}/${needed}`
+      );
+
+      if (allRows.length >= needed) break;
+      previousBoundary = startTimeAfter;
+    }
+
+    bookingsFromUnion = allRows.slice(skip, skip + take);
+  } else {
+    const { compiled } = buildQuery({ limit: take, offset: skip });
+    bookingsFromUnion = (await kysely.executeQuery(compiled)).rows;
+  }
+
+  // For count queries, use an unbounded union (no startTime window) so pagination totals are correct
+  const { queryUnion: countQueryUnion } = buildQuery();
+
+  log.debug(`Get bookings for user ${user.id}`);
 
   const hasTeamAccess = !!teamIdsWithBookingPermission?.length;
 
@@ -454,7 +516,7 @@ export async function getBookings({
     // of 7 branches forces PG into ~300K index lookups from shared buffers.
     // Use EXPLAIN to gauge the result set size first (~10ms).
     const countQuery = kysely
-      .selectFrom(queryUnion.as("union_subquery"))
+      .selectFrom(countQueryUnion.as("union_subquery"))
       .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
       .compile();
     const explainResult = await prisma.$queryRawUnsafe<
@@ -468,7 +530,7 @@ export async function getBookings({
       totalCount = Number(
         (
           await kysely
-            .selectFrom(queryUnion.as("union_subquery"))
+            .selectFrom(countQueryUnion.as("union_subquery"))
             .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
             .executeTakeFirst()
         )?.bookingCount ?? 0
@@ -481,7 +543,7 @@ export async function getBookings({
     totalCount = Number(
       (
         await kysely
-          .selectFrom(queryUnion.as("union_subquery"))
+          .selectFrom(countQueryUnion.as("union_subquery"))
           .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
           .executeTakeFirst()
       )?.bookingCount ?? 0
@@ -1068,7 +1130,11 @@ async function getUserIdsFromTeamIds(prisma: PrismaClient, teamIds: number[]): P
   return Array.from(new Set(users.map((user) => user.id)));
 }
 
-function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputByStatus[]) {
+function addStatusesQueryFilters(
+  query: BookingsUnionQuery,
+  statuses: InputByStatus[],
+  pastWindow?: { startTimeAfter: Date; startTimeBefore?: Date }
+) {
   if (statuses?.length) {
     return query.where(({ eb, or, and }) =>
       or(
@@ -1095,10 +1161,19 @@ function addStatusesQueryFilters(query: BookingsUnionQuery, statuses: InputBySta
           }
 
           if (status === "past") {
-            return and([
-              eb("Booking.endTime", "<=", new Date()),
+            const now = new Date();
+            const conditions = [
+              eb("Booking.endTime", "<=", now),
               eb("Booking.status", "not in", ["cancelled", "rejected"]),
-            ]);
+            ];
+            if (pastWindow) {
+              // Bound startTime so Postgres can use the [startTime, endTime, status] index
+              conditions.push(eb("Booking.startTime", ">=", pastWindow.startTimeAfter));
+              if (pastWindow.startTimeBefore) {
+                conditions.push(eb("Booking.startTime", "<", pastWindow.startTimeBefore));
+              }
+            }
+            return and(conditions);
           }
 
           if (status === "cancelled") {

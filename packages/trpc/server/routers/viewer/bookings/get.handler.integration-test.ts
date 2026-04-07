@@ -16,6 +16,14 @@ let booking3: Booking;
 let booking4: Booking;
 let teamEventType: EventType;
 
+// Past bookings at various time depths for progressive window tests
+let pastBookingRecent: Booking; // 2 days ago — within 1-week window
+let pastBooking2WeeksAgo: Booking; // 2 weeks ago — within 4-week window
+let pastBooking6WeeksAgo: Booking; // 6 weeks ago — within 12-week window
+let pastBooking6MonthsAgo: Booking; // ~6 months ago — within 48-week window
+let pastBooking2YearsAgo: Booking; // 2 years ago — only found in unbounded window
+let pastBookingCancelled: Booking; // 3 days ago, cancelled — should be excluded
+
 const timestamp = Date.now();
 
 describe("getBookings - integration", () => {
@@ -157,11 +165,82 @@ describe("getBookings - integration", () => {
         },
       },
     });
+
+    // Past bookings at various time depths for progressive window tests
+    const DAY = 24 * 60 * 60 * 1000;
+    const DURATION = 30 * 60 * 1000;
+
+    const pastDates = [
+      { days: 2, ref: "pastBookingRecent" },
+      { days: 14, ref: "pastBooking2WeeksAgo" },
+      { days: 42, ref: "pastBooking6WeeksAgo" },
+      { days: 180, ref: "pastBooking6MonthsAgo" },
+      { days: 730, ref: "pastBooking2YearsAgo" },
+    ] as const;
+
+    for (const { days, ref } of pastDates) {
+      const start = new Date(Date.now() - days * DAY);
+      const booking = await prisma.booking.create({
+        data: {
+          uid: `booking-uid-${randomString()}`,
+          title: `Past booking ${days}d ago`,
+          startTime: start,
+          endTime: new Date(start.getTime() + DURATION),
+          userId: user1.id,
+          eventTypeId: eventType1.id,
+          status: BookingStatus.ACCEPTED,
+          attendees: {
+            create: {
+              email: user2.email,
+              name: user2.name ?? "User 2",
+              timeZone: "UTC",
+            },
+          },
+        },
+      });
+      if (ref === "pastBookingRecent") pastBookingRecent = booking;
+      if (ref === "pastBooking2WeeksAgo") pastBooking2WeeksAgo = booking;
+      if (ref === "pastBooking6WeeksAgo") pastBooking6WeeksAgo = booking;
+      if (ref === "pastBooking6MonthsAgo") pastBooking6MonthsAgo = booking;
+      if (ref === "pastBooking2YearsAgo") pastBooking2YearsAgo = booking;
+    }
+
+    // Cancelled past booking — should never appear in past results
+    const cancelledStart = new Date(Date.now() - 3 * DAY);
+    pastBookingCancelled = await prisma.booking.create({
+      data: {
+        uid: `booking-uid-${randomString()}`,
+        title: "Past cancelled booking",
+        startTime: cancelledStart,
+        endTime: new Date(cancelledStart.getTime() + DURATION),
+        userId: user1.id,
+        eventTypeId: eventType1.id,
+        status: BookingStatus.CANCELLED,
+        attendees: {
+          create: {
+            email: user2.email,
+            name: user2.name ?? "User 2",
+            timeZone: "UTC",
+          },
+        },
+      },
+    });
   });
 
   afterAll(async () => {
     try {
-      const bookingIds = [booking1?.id, booking2?.id, booking3?.id, booking4?.id].filter(Boolean);
+      const bookingIds = [
+        booking1?.id,
+        booking2?.id,
+        booking3?.id,
+        booking4?.id,
+        pastBookingRecent?.id,
+        pastBooking2WeeksAgo?.id,
+        pastBooking6WeeksAgo?.id,
+        pastBooking6MonthsAgo?.id,
+        pastBooking2YearsAgo?.id,
+        pastBookingCancelled?.id,
+      ].filter(Boolean);
       if (bookingIds.length > 0) {
         await prisma.attendee.deleteMany({ where: { bookingId: { in: bookingIds } } });
         await prisma.booking.deleteMany({ where: { id: { in: bookingIds } } });
@@ -347,5 +426,225 @@ describe("getBookings - integration", () => {
     expect(result.bookings.length).toBeLessThan(50);
     expect(result.totalCount).toBe(result.bookings.length);
     expect(result.isEstimate).toBeUndefined();
+  });
+
+  // -----------------------------------------------------------------------
+  // Past bookings — progressive window queries
+  // -----------------------------------------------------------------------
+
+  describe("past bookings progressive window", () => {
+    it("should find a recent past booking (within 1-week window)", async () => {
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 50,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+      expect(ids).toContain(pastBookingRecent.id);
+    });
+
+    it("should find bookings across all time windows", async () => {
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 50,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+      expect(ids).toContain(pastBookingRecent.id);
+      expect(ids).toContain(pastBooking2WeeksAgo.id);
+      expect(ids).toContain(pastBooking6WeeksAgo.id);
+      expect(ids).toContain(pastBooking6MonthsAgo.id);
+      expect(ids).toContain(pastBooking2YearsAgo.id);
+    });
+
+    it("should return past bookings in descending startTime order across windows", async () => {
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 50,
+        skip: 0,
+      });
+
+      for (let i = 1; i < result.bookings.length; i++) {
+        const prev = new Date(result.bookings[i - 1].startTime).getTime();
+        const curr = new Date(result.bookings[i].startTime).getTime();
+        expect(prev).toBeGreaterThanOrEqual(curr);
+      }
+    });
+
+    it("should not return duplicate IDs across progressive windows", async () => {
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 50,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+      expect(ids.length).toBe(new Set(ids).size);
+    });
+
+    it("should exclude cancelled bookings from past results", async () => {
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 50,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+      expect(ids).not.toContain(pastBookingCancelled.id);
+    });
+
+    it("should have all past bookings with endTime in the past", async () => {
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 50,
+        skip: 0,
+      });
+
+      const now = Date.now();
+      for (const booking of result.bookings) {
+        expect(new Date(booking.endTime).getTime()).toBeLessThanOrEqual(now);
+      }
+    });
+
+    it("should paginate past bookings correctly across windows", async () => {
+      const page1 = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 2,
+        skip: 0,
+      });
+
+      const page2 = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 2,
+        skip: 2,
+      });
+
+      expect(page1.bookings.length).toBe(2);
+      expect(page2.bookings.length).toBe(2);
+
+      // No overlap
+      const page1Ids = new Set(page1.bookings.map((b) => b.id));
+      for (const b of page2.bookings) {
+        expect(page1Ids.has(b.id)).toBe(false);
+      }
+
+      // Page 1 has more recent bookings than page 2
+      const page1Oldest = new Date(page1.bookings[page1.bookings.length - 1].startTime).getTime();
+      const page2Newest = new Date(page2.bookings[0].startTime).getTime();
+      expect(page1Oldest).toBeGreaterThanOrEqual(page2Newest);
+    });
+
+    it("should have correct totalCount for past bookings", async () => {
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 50,
+        skip: 0,
+      });
+
+      // totalCount should match the number returned (page isn't full)
+      expect(result.totalCount).toBe(result.bookings.length);
+      // We created 5 non-cancelled past bookings
+      expect(result.bookings.length).toBeGreaterThanOrEqual(5);
+    });
+
+    it("should widen windows when take exceeds first window results", async () => {
+      // Request exactly 5 — this forces the query to go beyond the 1-week
+      // window since only 1 past booking (2 days ago) is in that range
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 5,
+        skip: 0,
+      });
+
+      expect(result.bookings.length).toBeGreaterThanOrEqual(5);
+
+      const ids = result.bookings.map((b) => b.id);
+      // Must include bookings from beyond the 1-week window
+      expect(ids).toContain(pastBooking2WeeksAgo.id);
+    });
+
+    it("should respect afterStartDate filter with past progressive window", async () => {
+      const threeMonthsAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {
+          afterStartDate: threeMonthsAgo.toISOString(),
+        },
+        take: 50,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+      // Should include bookings within the last 3 months
+      expect(ids).toContain(pastBookingRecent.id);
+      expect(ids).toContain(pastBooking2WeeksAgo.id);
+      expect(ids).toContain(pastBooking6WeeksAgo.id);
+      // Should exclude bookings older than 3 months
+      expect(ids).not.toContain(pastBooking6MonthsAgo.id);
+      expect(ids).not.toContain(pastBooking2YearsAgo.id);
+    });
+
+    it("should return past bookings for user2 who is an attendee", async () => {
+      const result = await getBookings({
+        user: { id: user2.id, email: user2.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 50,
+        skip: 0,
+      });
+
+      // user2 is an attendee on all past bookings created by user1
+      const ids = result.bookings.map((b) => b.id);
+      expect(ids).toContain(pastBookingRecent.id);
+      expect(ids).toContain(pastBooking2YearsAgo.id);
+    });
   });
 });
