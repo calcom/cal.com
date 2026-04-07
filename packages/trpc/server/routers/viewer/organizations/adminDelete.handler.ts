@@ -1,6 +1,7 @@
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -22,10 +23,18 @@ export const adminDeleteHandler = async ({ input }: AdminDeleteOption) => {
       id: input.orgId,
       isOrganization: true,
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
       members: {
         select: {
-          user: true,
+          user: {
+            select: {
+              id: true,
+              username: true,
+            },
+          },
         },
       },
     },
@@ -63,24 +72,21 @@ export const adminDeleteHandler = async ({ input }: AdminDeleteOption) => {
 export default adminDeleteHandler;
 
 async function renameUsersToAvoidUsernameConflicts(users: { id: number; username: string | null }[]) {
+  if (users.length === 0) return;
+
   for (const user of users) {
-    let currentUsername = user.username;
-
-    if (!currentUsername) {
-      currentUsername = "no-username";
-      log.warn(`User ${user.id} has no username, defaulting to ${currentUsername}`);
+    if (!user.username) {
+      log.warn(`User ${user.id} has no username, defaulting to no-username`);
     }
-
-    await prisma.user.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        // user.id being auto-incremented, we can safely assume that the username will be unique
-        username: `${currentUsername}-${user.id}`,
-      },
-    });
   }
+
+  // Batch all username updates using a single raw query instead of N individual updates.
+  // Each user gets `{currentUsername}-{userId}` to guarantee uniqueness.
+  await prisma.$executeRaw`
+    UPDATE "users"
+    SET "username" = CONCAT(COALESCE("username", 'no-username'), '-', "id"::text)
+    WHERE "id" IN (${Prisma.join(users.map((u) => u.id))})
+  `;
 }
 
 async function deleteAllRedirectsForUsers(users: { username: string | null }[]) {
