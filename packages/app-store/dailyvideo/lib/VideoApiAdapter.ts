@@ -161,8 +161,10 @@ export const updateMeetingTokenIfExpired = async ({
       properties: {
         room_name: roomName,
         exp: exp,
-        enable_recording_ui: false,
+        // is_owner grants transcription admin privileges per Daily.co docs.
+        // auto_start_transcription is false because the user controls captions via the CC toggle.
         is_owner: true,
+        auto_start_transcription: false,
       },
     }).then(meetingTokenSchema.parse);
 
@@ -218,7 +220,10 @@ export const setEnableRecordingUIAndUserIdForOrganizer = async (
       room_name: token.room_name,
       exp: token.exp,
       enable_recording_ui: false,
+      // is_owner grants transcription admin privileges per Daily.co docs.
+      // auto_start_transcription is false because the user controls captions via the CC toggle.
       is_owner: true,
+      auto_start_transcription: false,
       user_id: userId,
     },
   }).then(meetingTokenSchema.parse);
@@ -251,7 +256,10 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       properties: {
         room_name: dailyEvent.name,
         exp: dailyEvent.config.exp,
+        // is_owner grants transcription admin privileges per Daily.co docs.
+        // auto_start_transcription is false because the user controls captions via the CC toggle.
         is_owner: true,
+        auto_start_transcription: false,
         enable_recording_ui: false,
       },
     }).then(meetingTokenSchema.parse);
@@ -375,7 +383,10 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       properties: {
         room_name: dailyEvent.name,
         exp: dailyEvent.config.exp,
+        // is_owner grants transcription admin privileges per Daily.co docs.
+        // auto_start_transcription is false because the user controls captions via the CC toggle.
         is_owner: true,
+        auto_start_transcription: false,
         enable_recording_ui: false,
       },
     }).then(meetingTokenSchema.parse);
