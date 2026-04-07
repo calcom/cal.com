@@ -147,4 +147,22 @@ describe("getTranslation", () => {
 
     expect(enT("welcome")).not.toBe(frT("welcome"));
   });
+
+  it("resolves seats_available plural for Polish: locale one-form + English fallback for many (not raw key)", async () => {
+    const t = await getTranslation("pl", "common");
+
+    expect(t("seats_available", { count: 1 })).toBe("Dostępne miejsce");
+    // pl/common.json only overrides _one/_other; _many comes from en merge fallback until translated.
+    expect(t("seats_available", { count: 30 })).toBe("Seats available");
+    expect(t("seats_available", { count: 30 })).not.toBe("seats_available");
+  });
+
+  it("defines seats_available plural suffixes in English for merge fallback across locales", async () => {
+    const t = await getTranslation("en", "common");
+
+    expect(t("seats_available", { count: 0 })).toBe("Seats available");
+    expect(t("seats_available", { count: 1 })).toBe("Seat available");
+    expect(t("seats_available", { count: 2 })).toBe("Seats available");
+    expect(t("seats_available", { count: 30 })).toBe("Seats available");
+  });
 });
