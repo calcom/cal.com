@@ -1,5 +1,4 @@
 import { DelegationCredentialRepository } from "@calcom/features/delegation-credentials/repositories/DelegationCredentialRepository";
-import { getWebhookFeature } from "@calcom/features/di/webhooks/containers/webhook";
 import type { DelegationCredentialErrorPayloadType } from "@calcom/features/webhooks/lib/dto/types";
 import type { CalendarAppDelegationCredentialError } from "@calcom/lib/CalendarAppError";
 import logger from "@calcom/lib/logger";
@@ -29,6 +28,7 @@ export async function triggerDelegationCredentialErrorWebhook(params: {
       return;
     }
 
+    const { getWebhookFeature } = await import("@calcom/features/di/webhooks/containers/webhook");
     const { repository: webhookRepository } = getWebhookFeature();
     const webhooks = await webhookRepository.findByOrgIdAndTrigger({
       orgId: delegationCredential.organizationId,
