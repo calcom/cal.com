@@ -128,7 +128,7 @@ const ConditionalLink = ({
     );
   }
   return (
-    <Link href={bookingLink} className={className}>
+    <Link href={bookingLink} prefetch={false} className={className}>
       {children}
     </Link>
   );
