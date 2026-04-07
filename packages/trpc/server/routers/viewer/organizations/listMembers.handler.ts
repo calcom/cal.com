@@ -280,96 +280,93 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
   const [totalCount, teamMembers] = await Promise.all([totalCountPromise, teamMembersPromise]);
 
-  const members = await Promise.all(
-    teamMembers?.map(async (membership) => {
-      const user = await new UserRepository(prisma).enrichUserWithItsProfile({ user: membership.user });
-      let attributes:
-        | Array<{
-            id: string;
-            value: string;
-            slug: string;
-            attributeId: string;
-            weight: number;
-            isGroup: boolean;
-            contains: string[];
-          }>
-        | undefined;
-
-      if (expand?.includes("attributes")) {
-        attributes = await prisma.attributeToUser
-          .findMany({
-            where: {
-              memberId: membership.id,
-            },
-            select: {
-              attributeOption: true,
-              weight: true,
-            },
-            orderBy: {
-              attributeOption: {
-                attribute: {
-                  name: "asc",
-                },
-              },
-            },
-          })
-          .then((assignedUsers) =>
-            assignedUsers.map((au) => ({
-              ...au.attributeOption,
-              weight: au.weight ?? 100,
-            }))
-          );
-      }
-
-      return {
-        id: user.id,
-        username: user.profiles[0]?.username || user.username,
-        name: user.name,
-        email: user.email,
-        timeZone: user.timeZone,
-        role: membership.role,
-        customRole: membership.customRole,
-        accepted: membership.accepted,
-        disableImpersonation: user.disableImpersonation,
-        completedOnboarding: user.completedOnboarding,
-        lastActiveAt: membership.user.lastActiveAt
-          ? new Intl.DateTimeFormat(ctx.user.locale, {
-              timeZone: ctx.user.timeZone,
-            })
-              .format(membership.user.lastActiveAt)
-              .toLowerCase()
-          : null,
-        createdAt: membership.createdAt
-          ? new Intl.DateTimeFormat(ctx.user.locale, {
-              timeZone: ctx.user.timeZone,
-            })
-              .format(membership.createdAt)
-              .toLowerCase()
-          : null,
-        updatedAt: membership.updatedAt
-          ? new Intl.DateTimeFormat(ctx.user.locale, {
-              timeZone: ctx.user.timeZone,
-            })
-              .format(membership.updatedAt)
-              .toLowerCase()
-          : null,
-        avatarUrl: user.avatarUrl,
-        ...(ctx.user.organization.isOrgAdmin && { twoFactorEnabled: user.twoFactorEnabled }),
-        teams: user.teams
-          .filter((team) => team.team.id !== organizationId) // In this context we dont want to return the org team
-          .map((team) => {
-            if (team.team.id === organizationId) return;
-            return {
-              id: team.team.id,
-              name: team.team.name,
-              slug: team.team.slug,
-            };
-          })
-          .filter((team): team is NonNullable<typeof team> => team !== undefined),
-        attributes,
-      };
-    }) || []
+  // Batch enrich all users in a single query instead of N individual calls
+  const userRepository = new UserRepository(prisma);
+  const enrichedUsers = await userRepository.enrichUsersWithTheirProfiles(
+    teamMembers.map((m) => m.user)
   );
+  const enrichedUserMap = new Map(enrichedUsers.map((u) => [u.id, u]));
+
+  // Batch fetch all attributes in a single query instead of N individual calls
+  let attributesByMemberId: Map<
+    number,
+    Array<{
+      id: string;
+      value: string;
+      slug: string;
+      attributeId: string;
+      weight: number;
+      isGroup: boolean;
+      contains: string[];
+    }>
+  > = new Map();
+
+  if (expand?.includes("attributes")) {
+    const memberIds = teamMembers.map((m) => m.id);
+    const allAttributes = await prisma.attributeToUser.findMany({
+      where: {
+        memberId: { in: memberIds },
+      },
+      select: {
+        memberId: true,
+        attributeOption: true,
+        weight: true,
+      },
+      orderBy: {
+        attributeOption: {
+          attribute: {
+            name: "asc",
+          },
+        },
+      },
+    });
+
+    for (const attr of allAttributes) {
+      const existing = attributesByMemberId.get(attr.memberId) ?? [];
+      existing.push({
+        ...attr.attributeOption,
+        weight: attr.weight ?? 100,
+      });
+      attributesByMemberId.set(attr.memberId, existing);
+    }
+  }
+
+  const dateFormatter = new Intl.DateTimeFormat(ctx.user.locale, {
+    timeZone: ctx.user.timeZone,
+  });
+
+  const members = teamMembers.map((membership) => {
+    const user = enrichedUserMap.get(membership.user.id) ?? membership.user;
+    const attributes = attributesByMemberId.get(membership.id);
+
+    return {
+      id: user.id,
+      username: ("profiles" in user && user.profiles?.[0]?.username) || user.username,
+      name: user.name,
+      email: user.email,
+      timeZone: user.timeZone,
+      role: membership.role,
+      customRole: membership.customRole,
+      accepted: membership.accepted,
+      disableImpersonation: user.disableImpersonation,
+      completedOnboarding: user.completedOnboarding,
+      lastActiveAt: membership.user.lastActiveAt
+        ? dateFormatter.format(membership.user.lastActiveAt).toLowerCase()
+        : null,
+      createdAt: membership.createdAt ? dateFormatter.format(membership.createdAt).toLowerCase() : null,
+      updatedAt: membership.updatedAt ? dateFormatter.format(membership.updatedAt).toLowerCase() : null,
+      avatarUrl: user.avatarUrl,
+      ...(ctx.user.organization.isOrgAdmin && { twoFactorEnabled: user.twoFactorEnabled }),
+      teams: user.teams
+        .filter((team) => team.team.id !== organizationId)
+        .map((team) => ({
+          id: team.team.id,
+          name: team.team.name,
+          slug: team.team.slug,
+        })),
+      attributes,
+    };
+  });
 
   return {
     rows: members || [],
