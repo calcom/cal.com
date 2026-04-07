@@ -55,8 +55,8 @@ import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { formatCents } from "~/billing/lib/plan-data";
 import TeamInviteFromOrg from "~/ee/organizations/components/TeamInviteFromOrg";
-import InviteLinkSettingsModal from "./InviteLinkSettingsModal";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
+import InviteLinkSettingsModal from "./InviteLinkSettingsModal";
 
 type MemberInvitationModalProps = {
   isOpen: boolean;
@@ -128,15 +128,18 @@ export default function MemberInvitationModal(
     trpc.viewer.teams.checkIfMembershipExists.useMutation();
 
   // Fetch billing info to show dynamic seat price (only for standalone teams, not orgs)
+  // Gate with props.isOpen to avoid firing query when modal is mounted but not visible
   const showBillingInfo = !!IS_TEAM_BILLING_ENABLED_CLIENT && !isOrg;
   const { data: subscriptionStatus } =
     trpc.viewer.teams.getSubscriptionStatus.useQuery(
       { teamId: props.teamId },
-      { enabled: showBillingInfo }
+      { enabled: showBillingInfo && props.isOpen }
     );
   const billingPeriodKey =
     subscriptionStatus?.billingPeriod === "ANNUALLY" ? "annual" : "monthly";
-  const seatPrice = `${formatCents(BILLING_PRICING[BILLING_PLANS.TEAMS][billingPeriodKey])}/mo`;
+  const seatPrice = `${formatCents(
+    BILLING_PRICING[BILLING_PLANS.TEAMS][billingPeriodKey]
+  )}/mo`;
 
   // Check current org role and not team role
   const isOrgAdminOrOwner =
