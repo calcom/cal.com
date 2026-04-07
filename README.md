@@ -150,12 +150,32 @@ Here is what you need to be able to run Cal.com.
    - Duplicate `.env.example` to `.env`
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
    - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
-     
+
+   The following variables must be reviewed before starting the app. Most have defaults that work for local development, but **must be changed for production deployments**:
+
+   | Variable | When to change | Example |
+   |---|---|---|
+   | `NEXTAUTH_SECRET` | Always — generate with `openssl rand -base64 32` | `abc123...` |
+   | `CALENDSO_ENCRYPTION_KEY` | Always — generate with `openssl rand -base64 24` | `xyz789...` |
+   | `DATABASE_URL` | When using a custom/remote database instead of the default local one | `postgresql://user:pass@host:5432/calcom` |
+   | `NEXT_PUBLIC_WEBAPP_URL` | **Required for any non-localhost deployment** — set to your public domain | `https://cal.yourdomain.com` |
+   | `NEXTAUTH_URL` | For production deployments; leave empty on Vercel (auto-detected) | `https://cal.yourdomain.com` |
+   | `EMAIL_FROM` | When you want outgoing emails to show a custom sender address | `Cal.com <noreply@yourdomain.com>` |
+
+   > **Note:** Failing to update `NEXT_PUBLIC_WEBAPP_URL` and `NEXTAUTH_URL` is the most common cause of redirect-to-localhost issues after deployment.
+
  > **Windows users:** Replace the `packages/prisma/.env` symlink with a real copy to avoid a Prisma error (`unexpected character / in variable name`):
  >
  > ```sh
  > # Git Bash / WSL
  > rm packages/prisma/.env && cp .env packages/prisma/.env
+ > ```
+ >
+ > If you cloned without admin privileges and the symlink was not created, run:
+ >
+ > ```sh
+ > # PowerShell (run as Administrator)
+ > git clone -c core.symlinks=true https://github.com/calcom/cal.com.git
  > ```
 
 5. Setup Node
