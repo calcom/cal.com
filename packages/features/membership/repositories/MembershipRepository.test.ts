@@ -20,9 +20,12 @@ vi.mock("@calcom/prisma", () => ({
     membership: {
       findMany: vi.fn().mockResolvedValue([]),
       findFirst: vi.fn().mockResolvedValue(null),
+      count: vi.fn().mockResolvedValue(0),
     },
   },
 }));
+
+import { prisma } from "@calcom/prisma";
 
 describe("MembershipRepository", () => {
   beforeEach(() => {
@@ -35,6 +38,76 @@ describe("MembershipRepository", () => {
       const result = await repo.hasUserInAnyOfTeams({ userId: 1, teamIds: [] });
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe("isUserMemberOfAllTeams", () => {
+    it("should return true for empty teamIds array without making a DB call", async () => {
+      const repo = getMembershipRepository();
+      const result = await repo.isUserMemberOfAllTeams({ userId: 1, teamIds: [] });
+
+      expect(result).toBe(true);
+      expect(prisma.membership.count).not.toHaveBeenCalled();
+    });
+
+    it("should return true when user is member of all specified teams", async () => {
+      vi.mocked(prisma.membership.count).mockResolvedValue(3);
+
+      const repo = getMembershipRepository();
+      const result = await repo.isUserMemberOfAllTeams({ userId: 1, teamIds: [1, 2, 3] });
+
+      expect(result).toBe(true);
+      expect(prisma.membership.count).toHaveBeenCalledWith({
+        where: {
+          userId: 1,
+          teamId: { in: [1, 2, 3] },
+        },
+      });
+    });
+
+    it("should return false when user is member of only some teams", async () => {
+      vi.mocked(prisma.membership.count).mockResolvedValue(2);
+
+      const repo = getMembershipRepository();
+      const result = await repo.isUserMemberOfAllTeams({ userId: 1, teamIds: [1, 2, 3] });
+
+      expect(result).toBe(false);
+    });
+
+    it("should return false when user is not a member of any specified teams", async () => {
+      vi.mocked(prisma.membership.count).mockResolvedValue(0);
+
+      const repo = getMembershipRepository();
+      const result = await repo.isUserMemberOfAllTeams({ userId: 1, teamIds: [1, 2] });
+
+      expect(result).toBe(false);
+    });
+
+    it("should return true for a single team when user is a member", async () => {
+      vi.mocked(prisma.membership.count).mockResolvedValue(1);
+
+      const repo = getMembershipRepository();
+      const result = await repo.isUserMemberOfAllTeams({ userId: 1, teamIds: [5] });
+
+      expect(result).toBe(true);
+    });
+
+    it("should handle duplicate teamIds correctly", async () => {
+      // SQL IN clause deduplicates, so count returns 2 for unique teams [1, 2]
+      vi.mocked(prisma.membership.count).mockResolvedValue(2);
+
+      const repo = getMembershipRepository();
+      // Duplicate teamIds: [1, 1, 2] - user is member of both unique teams
+      const result = await repo.isUserMemberOfAllTeams({ userId: 1, teamIds: [1, 1, 2] });
+
+      expect(result).toBe(true);
+      // Should query with deduplicated teamIds
+      expect(prisma.membership.count).toHaveBeenCalledWith({
+        where: {
+          userId: 1,
+          teamId: { in: [1, 2] },
+        },
+      });
     });
   });
 

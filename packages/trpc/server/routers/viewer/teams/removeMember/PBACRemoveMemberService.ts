@@ -1,3 +1,4 @@
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
 import { Resource, CustomAction } from "@calcom/features/pbac/domain/types/permission-registry";
@@ -13,7 +14,18 @@ export class PBACRemoveMemberService extends BaseRemoveMemberService {
   private permissionService = new PermissionCheckService();
 
   async checkRemovePermissions(context: RemoveMemberContext): Promise<RemoveMemberPermissionResult> {
-    const { userId, teamIds, isOrg } = context;
+    const { userId, memberIds, teamIds, isOrg } = context;
+
+    const isRemovingSelf = memberIds.length === 1 && memberIds[0] === userId;
+
+    if (isRemovingSelf) {
+      const membershipRepository = getMembershipRepository();
+      const isMemberOfAllTeams = await membershipRepository.isUserMemberOfAllTeams({ userId, teamIds });
+
+      return {
+        hasPermission: isMemberOfAllTeams,
+      };
+    }
 
     const resource = isOrg ? Resource.Organization : Resource.Team;
     const removePermission = PermissionMapper.toPermissionString({

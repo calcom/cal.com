@@ -1,3 +1,4 @@
+import { getMembershipRepository } from "@calcom/features/di/containers/MembershipRepository";
 import * as teamQueries from "@calcom/features/ee/teams/lib/queries";
 import { TeamService } from "@calcom/features/ee/teams/services/teamService";
 import { PermissionMapper } from "@calcom/features/pbac/domain/mappers/PermissionMapper";
@@ -20,6 +21,7 @@ vi.mock("@calcom/features/ee/teams/services/teamService");
 vi.mock("@calcom/features/ee/teams/lib/queries");
 vi.mock("@calcom/features/pbac/services/permission-check.service");
 vi.mock("@calcom/features/pbac/domain/mappers/PermissionMapper");
+vi.mock("@calcom/features/di/containers/MembershipRepository");
 
 vi.mock("@calcom/lib/domainManager/organization", () => ({
   createDomain: vi.fn(),
@@ -47,6 +49,58 @@ describe("PBACRemoveMemberService", () => {
   });
 
   describe("checkRemovePermissions", () => {
+    describe("Self-Removal Scenarios (Member Leaving Team)", () => {
+      it("should allow MEMBER to remove themselves when they are part of all teams", async () => {
+        const userId = 1;
+        const teamIds = [1, 2];
+        const memberIds = [1]; // Same as userId - self-removal
+        const isOrg = false;
+
+        const mockMembershipRepo = {
+          isUserMemberOfAllTeams: vi.fn().mockResolvedValue(true),
+        };
+        vi.mocked(getMembershipRepository).mockReturnValue(mockMembershipRepo as any);
+
+        const result = await service.checkRemovePermissions({
+          userId,
+          isOrgAdmin: false,
+          organizationId: null,
+          memberIds,
+          teamIds,
+          isOrg,
+        });
+
+        expect(result.hasPermission).toBe(true);
+        expect(mockMembershipRepo.isUserMemberOfAllTeams).toHaveBeenCalledWith({ userId, teamIds });
+        // Permission check should not be called for self-removal
+        expect(mockPermissionCheckService.getTeamIdsWithPermission).not.toHaveBeenCalled();
+      });
+
+      it("should deny MEMBER from removing themselves when not part of all teams", async () => {
+        const userId = 1;
+        const teamIds = [1, 2];
+        const memberIds = [1]; // Same as userId - self-removal
+        const isOrg = false;
+
+        const mockMembershipRepo = {
+          isUserMemberOfAllTeams: vi.fn().mockResolvedValue(false),
+        };
+        vi.mocked(getMembershipRepository).mockReturnValue(mockMembershipRepo as any);
+
+        const result = await service.checkRemovePermissions({
+          userId,
+          isOrgAdmin: false,
+          organizationId: null,
+          memberIds,
+          teamIds,
+          isOrg,
+        });
+
+        expect(result.hasPermission).toBe(false);
+        expect(mockMembershipRepo.isUserMemberOfAllTeams).toHaveBeenCalledWith({ userId, teamIds });
+      });
+    });
+
     describe("PBAC Permission Checks", () => {
       it("should check team.remove permission for team context", async () => {
         const userId = 1;

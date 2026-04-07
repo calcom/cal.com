@@ -175,6 +175,75 @@ describe("LegacyRemoveMemberService", () => {
       });
     });
 
+    describe("Self-Removal Scenarios (Member Leaving Team)", () => {
+      it("should allow MEMBER to remove themselves from a team they are part of", async () => {
+        const userId = 1;
+        const teamIds = [1];
+        const memberIds = [1]; // Same as userId - self-removal
+
+        vi.mocked(prisma.membership.findMany).mockResolvedValue([
+          { id: 1, userId, teamId: 1, role: MembershipRole.MEMBER } as any,
+        ]);
+
+        const result = await service.checkRemovePermissions({
+          userId,
+          isOrgAdmin: false,
+          organizationId: null,
+          memberIds,
+          teamIds,
+          isOrg: false,
+        });
+
+        expect(result.hasPermission).toBe(true);
+        expect(result.userRoles?.get(1)).toBe(MembershipRole.MEMBER);
+      });
+
+      it("should allow MEMBER to remove themselves from multiple teams they are all part of", async () => {
+        const userId = 1;
+        const teamIds = [1, 2, 3];
+        const memberIds = [1]; // Same as userId - self-removal
+
+        vi.mocked(prisma.membership.findMany).mockResolvedValue([
+          { id: 1, userId, teamId: 1, role: MembershipRole.MEMBER } as any,
+          { id: 2, userId, teamId: 2, role: MembershipRole.ADMIN } as any,
+          { id: 3, userId, teamId: 3, role: MembershipRole.MEMBER } as any,
+        ]);
+
+        const result = await service.checkRemovePermissions({
+          userId,
+          isOrgAdmin: false,
+          organizationId: null,
+          memberIds,
+          teamIds,
+          isOrg: false,
+        });
+
+        expect(result.hasPermission).toBe(true);
+      });
+
+      it("should deny MEMBER from removing themselves from teams they are not part of", async () => {
+        const userId = 1;
+        const teamIds = [1, 2];
+        const memberIds = [1]; // Same as userId - self-removal
+
+        // User is only a member of team 1, not team 2
+        vi.mocked(prisma.membership.findMany).mockResolvedValue([
+          { id: 1, userId, teamId: 1, role: MembershipRole.MEMBER } as any,
+        ]);
+
+        const result = await service.checkRemovePermissions({
+          userId,
+          isOrgAdmin: false,
+          organizationId: null,
+          memberIds,
+          teamIds,
+          isOrg: false,
+        });
+
+        expect(result.hasPermission).toBe(false);
+      });
+    });
+
     describe("Regular User Scenarios", () => {
       it("should allow ADMIN to remove members", async () => {
         const userId = 1;

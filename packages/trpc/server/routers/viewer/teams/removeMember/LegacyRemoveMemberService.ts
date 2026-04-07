@@ -23,7 +23,9 @@ export class LegacyRemoveMemberService extends BaseRemoveMemberService {
   }
 
   async checkRemovePermissions(context: RemoveMemberContext): Promise<RemoveMemberPermissionResult> {
-    const { userId, isOrgAdmin, organizationId, teamIds } = context;
+    const { userId, isOrgAdmin, organizationId, memberIds, teamIds } = context;
+
+    const isRemovingSelf = memberIds.length === 1 && memberIds[0] === userId;
 
     if (isOrgAdmin) {
       if (!organizationId) {
@@ -64,6 +66,14 @@ export class LegacyRemoveMemberService extends BaseRemoveMemberService {
     membershipRoles.forEach((m) => {
       userRoles.set(m.teamId, m.role);
     });
+
+    if (isRemovingSelf) {
+      const isMemberOfAllTeams = teamIds.every((teamId) => userRoles.has(teamId));
+      return {
+        hasPermission: isMemberOfAllTeams,
+        userRoles,
+      };
+    }
 
     // Check if user has admin or owner role in all teams
     const allowedRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];

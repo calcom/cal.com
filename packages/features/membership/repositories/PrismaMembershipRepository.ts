@@ -128,6 +128,18 @@ export class PrismaMembershipRepository {
     return !!membership;
   }
 
+  async isUserMemberOfAllTeams({ userId, teamIds }: { userId: number; teamIds: number[] }): Promise<boolean> {
+    if (teamIds.length === 0) return true;
+    const uniqueTeamIds = Array.from(new Set(teamIds));
+    const count = await this.prismaClient.membership.count({
+      where: {
+        userId,
+        teamId: { in: uniqueTeamIds },
+      },
+    });
+    return count === uniqueTeamIds.length;
+  }
+
   async listAcceptedTeamMemberIds({ teamId }: { teamId: number }): Promise<number[]> {
     const memberships =
       (await this.prismaClient.membership.findMany({
