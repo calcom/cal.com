@@ -30,7 +30,7 @@ jobs:
           registry-url: "https://registry.npmjs.org"
           always-auth: false
       - name: Install npm at version supporting OIDC
-        run: npm install -g npm@latest
+        run: npm install -g npm@11.11.0
       - name: Create Release Pull Request or Publish to npm
         id: changesets
         uses: changesets/action@v1
