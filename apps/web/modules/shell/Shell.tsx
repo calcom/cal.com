@@ -105,7 +105,7 @@ export function ShellMain(props: LayoutProps) {
           className={classNames(
             "mb-0 flex items-center bg-default md:mt-0 md:mb-6",
             props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-            !props.disableSticky && "sticky top-0 z-10"
+            !props.disableSticky && "sticky top-11 sm:top-16 md:top-0 z-10 py-3 lg:mb-5 -mt-3 lg:-mt-3"
           )}>
           {!!props.backPath && (
             <Button
