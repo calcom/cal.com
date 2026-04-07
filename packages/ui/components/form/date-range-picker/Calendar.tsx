@@ -51,17 +51,17 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
-      formatters={{
-        formatWeekdayName: (day) => {
+      labels={{
+        labelDay: (day, activeModifiers) => {
+          const base = format(day, "MMMM d, yyyy");
+          if (activeModifiers?.disabled) {
+            return `${base}, unavailable`;
+          }
+          return base;
+        },
+        labelWeekday: (day) => {
           const fullNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-          return (
-            <abbr
-              title={fullNames[day.getDay()]}
-              aria-label={fullNames[day.getDay()]}
-              style={{ textDecoration: "none" }}>
-              {format(day, "EEEEE")}
-            </abbr>
-          );
+          return fullNames[day.getDay()];
         },
       }}
       components={{
@@ -77,13 +77,6 @@ function Calendar({
         ),
         IconLeft: () => <ChevronLeftIcon className="h-4 w-4 stroke-2" />,
         IconRight: () => <ChevronRightIcon className="h-4 w-4 stroke-2" />,
-        DayContent: ({ date, activeModifiers }) => {
-          let label = format(date, "MMMM d, yyyy");
-          if (activeModifiers.disabled) {
-            label = `${label}, unavailable`;
-          }
-          return <span aria-label={label}>{format(date, "d")}</span>;
-        },
       }}
       {...props}
     />
