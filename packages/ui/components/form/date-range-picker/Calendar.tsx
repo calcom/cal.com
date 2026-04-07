@@ -3,6 +3,7 @@
 import dayjs from "@calcom/dayjs";
 import cn from "@calcom/ui/classNames";
 import { ChevronLeftIcon, ChevronRightIcon } from "@coss/ui/icons";
+import { format } from "date-fns";
 import type * as React from "react";
 import { DayPicker } from "react-day-picker";
 import { buttonClasses } from "../../button/Button";
@@ -50,6 +51,19 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
+      formatters={{
+        formatWeekdayName: (day) => {
+          const fullNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+          return (
+            <abbr
+              title={fullNames[day.getDay()]}
+              aria-label={fullNames[day.getDay()]}
+              style={{ textDecoration: "none" }}>
+              {format(day, "EEEEE")}
+            </abbr>
+          );
+        },
+      }}
       components={{
         CaptionLabel: (capLabelProps) => (
           <div className="px-2">
@@ -63,6 +77,13 @@ function Calendar({
         ),
         IconLeft: () => <ChevronLeftIcon className="h-4 w-4 stroke-2" />,
         IconRight: () => <ChevronRightIcon className="h-4 w-4 stroke-2" />,
+        DayContent: ({ date, activeModifiers }) => {
+          let label = format(date, "MMMM d, yyyy");
+          if (activeModifiers.disabled) {
+            label = `${label}, unavailable`;
+          }
+          return <span aria-label={label}>{format(date, "d")}</span>;
+        },
       }}
       {...props}
     />
