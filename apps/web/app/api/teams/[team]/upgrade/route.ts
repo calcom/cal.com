@@ -47,6 +47,12 @@ async function getHandler(req: NextRequest, { params }: { params: Promise<Params
       throw new HttpError({ statusCode: 402, message: "Payment required" });
     }
 
+    // Not all sessions carry "teamId": API v2 uses "pendingPaymentTeamId" and legacy sessions predate it.
+    const sessionTeamId = checkoutSession.metadata?.teamId;
+    if (sessionTeamId && Number(sessionTeamId) !== id) {
+      throw new HttpError({ statusCode: 400, message: "Checkout session does not match team" });
+    }
+
     let team = await prisma.team.findFirst({
       where: { metadata: { path: ["paymentId"], equals: checkoutSession.id } },
     });
