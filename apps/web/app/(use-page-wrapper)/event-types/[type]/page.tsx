@@ -1,17 +1,18 @@
-import { createRouterCaller, getTRPCContext } from "app/_trpc/context";
-import type { PageProps, ReadonlyHeaders, ReadonlyRequestCookies } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { unstable_cache } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { EventTypeWebWrapper } from "@calcom/web/modules/event-types/components/EventTypeWebWrapper";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getEventTypeById } from "@calcom/features/eventtypes/lib/getEventTypeById";
 import { getEventTypePermissions } from "@calcom/features/pbac/lib/event-type-permissions";
-import { eventTypesRouter } from "@calcom/trpc/server/routers/viewer/eventTypes/_router";
+import prisma from "@calcom/prisma";
+import { EventTypeWebWrapper } from "@calcom/web/modules/event-types/components/EventTypeWebWrapper";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
+import type { Metadata } from "next";
 
 const querySchema = z.object({
   type: z
@@ -22,7 +23,7 @@ const querySchema = z.object({
     .transform((val) => Number(val)),
 });
 
-export const generateMetadata = async () => {
+export const generateMetadata = async (): Promise<Metadata> => {
   return await _generateMetadata(
     (t) => `${t("event_type")}`,
     () => "",
@@ -32,14 +33,32 @@ export const generateMetadata = async () => {
   );
 };
 
-const getCachedEventType = unstable_cache(
-  async (eventTypeId: number, headers: ReadonlyHeaders, cookies: ReadonlyRequestCookies) => {
-    const caller = await createRouterCaller(eventTypesRouter, await getTRPCContext(headers, cookies));
-    return await caller.get({ id: eventTypeId });
-  },
-  ["viewer.eventTypes.get"],
-  { revalidate: 3600 } // Cache for 1 hour
-);
+async function getCachedEventType(
+  eventTypeId: number,
+  userId: number,
+  currentOrganizationId: number | null,
+  isUserOrganizationAdmin: boolean,
+  userLocale: string | null
+) {
+  return unstable_cache(
+    async () => {
+      return getEventTypeById({
+        eventTypeId,
+        userId,
+        prisma,
+        currentOrganizationId,
+        isUserOrganizationAdmin,
+        isTrpcCall: false,
+        userLocale,
+      });
+    },
+    ["viewer.eventTypes.get", String(eventTypeId), String(userId), String(currentOrganizationId), String(isUserOrganizationAdmin), String(userLocale)],
+    {
+      revalidate: 3600,
+      tags: [`viewer.eventTypes.get.${eventTypeId}`],
+    }
+  )();
+}
 
 const ServerPage = async ({ params }: PageProps) => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
@@ -52,11 +71,18 @@ const ServerPage = async ({ params }: PageProps) => {
     throw new Error("Invalid Event Type id");
   }
   const eventTypeId = parsed.data.type;
-  const _headers = await headers();
-  const _cookies = await cookies();
+  const { user } = session;
+  const isOrgAdmin = user.org?.role === "OWNER" || user.org?.role === "ADMIN";
 
-  const data = await getCachedEventType(eventTypeId, _headers, _cookies);
+  const data = await getCachedEventType(
+    eventTypeId,
+    user.id,
+    user.profile?.organizationId ?? null,
+    isOrgAdmin,
+    user.locale ?? null
+  );
   if (!data?.eventType) {
+    // NOTE FOR LATER, this crashes the page.
     throw new Error("This event type does not exist");
   }
 

@@ -1,4 +1,4 @@
-// Cache bust: removed workflow.team.members from eventType select
+// Cache bust: added id to children select in eventTypeRepository
 import getEventTypeById from "@calcom/features/eventtypes/lib/getEventTypeById";
 import type { EventType } from "@calcom/features/eventtypes/lib/getEventTypeById";
 import type { PrismaClient } from "@calcom/prisma";

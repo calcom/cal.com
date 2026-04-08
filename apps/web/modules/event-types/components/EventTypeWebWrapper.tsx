@@ -170,7 +170,10 @@ const EventTypeWeb = ({
 
       // Reset the form with these values as new default values to ensure the correct comparison for dirtyFields eval
       form.reset(currentValues);
-      revalidateEventTypeEditPage(eventType.id);
+      revalidateEventTypeEditPage(
+        eventType.id,
+        eventType.children.map((child) => child.id)
+      );
       if (eventType.team?.slug) {
         // When an event-type is updated,
         // guests could still hit a stale cache and see the old page.

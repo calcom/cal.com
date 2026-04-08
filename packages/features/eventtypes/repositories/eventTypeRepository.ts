@@ -914,6 +914,7 @@ export class EventTypeRepository implements IEventTypesRepository {
       price: true,
       children: {
         select: {
+          id: true,
           owner: {
             select: {
               avatarUrl: true,
@@ -1235,6 +1236,7 @@ export class EventTypeRepository implements IEventTypesRepository {
       price: true,
       children: {
         select: {
+          id: true,
           owner: {
             select: {
               avatarUrl: true,
