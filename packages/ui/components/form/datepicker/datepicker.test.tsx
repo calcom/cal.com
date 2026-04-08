@@ -18,7 +18,9 @@ describe("Tests for DatePicker Component", () => {
   });
 
   test("Should show placeholder when no date is provided", () => {
-    const { getByTestId } = render(<DatePicker date={null as unknown as Date} />);
+    const { getByTestId } = render(
+      <DatePicker date={null as unknown as Date} />,
+    );
 
     const dateButton = getByTestId("pick-date");
     expect(dateButton).toHaveTextContent("Pick a date");
@@ -26,7 +28,9 @@ describe("Tests for DatePicker Component", () => {
 
   test("Should handle date selection correctly", async () => {
     const testDate = new Date("2024-02-20");
-    const { getByTestId, getAllByRole } = render(<DatePicker date={testDate} onDatesChange={onChangeMock} />);
+    const { getByTestId, getAllByRole } = render(
+      <DatePicker date={testDate} onDatesChange={onChangeMock} />,
+    );
 
     const dateButton = getByTestId("pick-date");
     fireEvent.click(dateButton);
@@ -36,28 +40,38 @@ describe("Tests for DatePicker Component", () => {
     });
 
     expect(selectedDate).toBeTruthy();
-    await expect(selectedDate).not.toHaveClass("opacity-50");
+    await expect(selectedDate).not.toHaveAttribute("aria-disabled", "true");
   });
   test("Should respect minDate prop", async () => {
     const testDate = new Date("2024-02-20");
     const minDate = new Date("2024-02-19");
     const { getByTestId, getAllByRole } = render(
-      <DatePicker date={testDate} minDate={minDate} onDatesChange={onChangeMock} />
+      <DatePicker
+        date={testDate}
+        minDate={minDate}
+        onDatesChange={onChangeMock}
+      />,
     );
 
     const dateButton = getByTestId("pick-date");
     fireEvent.click(dateButton);
 
-    const disabledDates = getAllByRole("gridcell").filter((cell) => cell.classList.contains("opacity-50"));
+    const disabledDates = getAllByRole("gridcell").filter(
+      (cell) => cell.getAttribute("aria-disabled") === "true",
+    );
     expect(disabledDates.length).toBeGreaterThan(0);
-    await expect(disabledDates[0]).toHaveAttribute("disabled");
+    await expect(disabledDates[0]).toHaveAttribute("aria-disabled", "true");
   });
 
   test("Should respect disabled prop", () => {
-    const { getByTestId } = render(<DatePicker date={testDate} disabled={true} />);
+    const { getByTestId } = render(
+      <DatePicker date={testDate} disabled={true} />,
+    );
 
     const dateButton = getByTestId("pick-date");
-    expect(dateButton.classList.toString()).toContain("disabled:cursor-not-allowed");
+    expect(dateButton.classList.toString()).toContain(
+      "disabled:cursor-not-allowed",
+    );
     expect(dateButton.classList.toString()).toContain("disabled:opacity-30");
   });
 });
