@@ -1256,34 +1256,23 @@ async function getFastExactCount({
     );
 
     // B: team event type, organizer NOT a team member
-    // Use OR IS NULL to handle nullable userId — NULL NOT IN (...) evaluates to NULL in SQL.
     const countB = applyCountFilters(
       db
         .selectFrom("Booking")
         .select("Booking.id")
         .where("Booking.eventTypeId", "in", teamEventTypeSubquery)
-        .where((eb) =>
-          eb.or([eb("Booking.userId", "not in", teamMemberSubquery), eb("Booking.userId", "is", null)])
-        )
+        .where("Booking.userId", "not in", teamMemberSubquery)
     );
 
     // C: team member is attendee, not covered by A or B
     // Uses EXISTS to avoid joining Attendee/users/Membership into the outer query,
     // which would change the table set and break Kysely's type inference.
-    // Use OR IS NULL for both nullable columns — NULL NOT IN (...) evaluates to NULL in SQL.
     const countC = applyCountFilters(
       db
         .selectFrom("Booking")
         .select("Booking.id")
-        .where((eb) =>
-          eb.or([eb("Booking.userId", "not in", teamMemberSubquery), eb("Booking.userId", "is", null)])
-        )
-        .where((eb) =>
-          eb.or([
-            eb("Booking.eventTypeId", "not in", teamEventTypeSubquery),
-            eb("Booking.eventTypeId", "is", null),
-          ])
-        )
+        .where("Booking.userId", "not in", teamMemberSubquery)
+        .where("Booking.eventTypeId", "not in", teamEventTypeSubquery)
         .where(({ exists }) =>
           exists(
             db
@@ -1324,7 +1313,7 @@ async function getFastExactCount({
     db
       .selectFrom("Booking")
       .select("Booking.id")
-      .where((eb) => eb.or([eb("Booking.userId", "is", null), eb("Booking.userId", "!=", user.id)]))
+      .where("Booking.userId", "!=", user.id)
   )
     .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
     .where("Attendee.email", "=", user.email);
