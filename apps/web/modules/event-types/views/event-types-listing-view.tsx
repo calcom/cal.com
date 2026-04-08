@@ -236,7 +236,7 @@ const Item = ({
             <EventTypeDescription eventType={type} shortenDescription />
           </div>
         ) : (
-          <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
+          <Link href={`/event-types/${type.id}?tabName=setup`} prefetch={false} title={type.title}>
             <div>
               <span
                 className="font-semibold break-words text-default ltr:mr-1 rtl:ml-1"
@@ -943,7 +943,6 @@ const CTA = ({ profileOptions }: { profileOptions: ProfileOption[] }) => {
       onClick: () => setDynamicLinkDialogSource(showOrgDynamicLink ? "org" : "team"),
     });
   }
-
 
   if (!profileOptions.length) return null;
 

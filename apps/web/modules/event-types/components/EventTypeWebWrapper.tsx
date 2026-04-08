@@ -23,7 +23,7 @@ import WebShell from "@calcom/web/modules/shell/Shell";
 import { TRPCClientError } from "@trpc/react-query";
 import dynamic from "next/dynamic";
 import { useRouter as useAppRouter, usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { useManagedEventConflictCheck } from "../hooks/use-managed-event-conflict-check";
 import { EventType as EventTypeComponent } from "./EventType";
@@ -323,33 +323,6 @@ const EventTypeWeb = ({
       handleRouteChange(pathname || "");
     },
   });
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const Components = [
-        EventSetupTab,
-        EventAvailabilityTab,
-        EventTeamAssignmentTab,
-        EventLimitsTab,
-        EventAdvancedTab,
-        EventInstantTab,
-        EventRecurringTab,
-        EventAppsTab,
-        EventWorkflowsTab,
-        EventWebhooksTab,
-      ];
-
-      Components.forEach((C) => {
-        // how to preload with app dir?
-        // @ts-expect-error Property 'render' does not exist on type 'ComponentClass
-        C.render?.preload();
-      });
-    }, 300);
-
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, []);
 
   const querySchema = z.object({
     tabName: z
