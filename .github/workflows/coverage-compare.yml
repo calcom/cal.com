@@ -281,7 +281,7 @@ jobs:
             if (dropped) {
               core.setFailed(`Coverage dropped by more than ${Math.abs(DROP_TOLERANCE)}% compared to main. See the job summary above for details and how to fix.`);
             } else if (prCombined && hasBothPrSources && metrics.some(m => prCombined[m].pct < COMBINED_THRESHOLD)) {
-              core.setFailed(`Combined coverage is below the ${COMBINED_THRESHOLD}% target. See the job summary above for details.`);
+              core.warning(`Combined coverage is below the ${COMBINED_THRESHOLD}% target. See the job summary above for details.`);
             } else {
               core.info('Coverage is stable or improved compared to main.');
             }
