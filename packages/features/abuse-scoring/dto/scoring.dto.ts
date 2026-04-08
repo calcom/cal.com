@@ -20,6 +20,16 @@ const bookingForScoringDtoSchema = z.object({
   attendees: z.array(z.object({ email: z.string() })),
 });
 
+const workflowStepForScoringDtoSchema = z.object({
+  reminderBody: z.string().nullable(),
+  emailSubject: z.string().nullable(),
+});
+
+const workflowForScoringDtoSchema = z.object({
+  name: z.string(),
+  steps: z.array(workflowStepForScoringDtoSchema),
+});
+
 export const userForScoringDtoSchema = z.object({
   id: z.number(),
   email: z.string(),
@@ -29,6 +39,7 @@ export const userForScoringDtoSchema = z.object({
   abuseScore: z.number(),
   eventTypes: z.array(eventTypeForScoringDtoSchema),
   bookings: z.array(bookingForScoringDtoSchema),
+  workflows: z.array(workflowForScoringDtoSchema),
 });
 export type UserForScoringDto = z.infer<typeof userForScoringDtoSchema>;
 

@@ -34,6 +34,7 @@ const FIELD_LABELS: Record<AbuseRuleField, string> = {
   CANCELLATION_REASON: "Cancellation Reason",
   BOOKING_LOCATION: "Booking Location",
   BOOKING_RESPONSES: "Booking Responses",
+  WORKFLOW_CONTENT: "Workflow Content",
   USERNAME: "Username",
   SIGNUP_EMAIL_DOMAIN: "Signup Email Domain",
   SIGNUP_NAME: "Signup Name",

@@ -7,6 +7,7 @@ export interface UserMetrics {
   cancellationReasons: string[];
   bookingLocations: string[];
   bookingResponses: string[];
+  workflowContent: string[];
   username: string;
   signupEmailDomain: string;
   signupName: string;

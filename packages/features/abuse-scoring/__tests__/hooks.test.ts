@@ -18,7 +18,13 @@ vi.mock("../di/tasker/AbuseScoringTasker.container", () => ({
   getAbuseScoringTasker: () => mockTasker,
 }));
 
-import { onSignup, onBookingCreated, onBookingCancelled, onEventTypeChange } from "../lib/hooks";
+import {
+  onSignup,
+  onBookingCreated,
+  onBookingCancelled,
+  onEventTypeChange,
+  onWorkflowChange,
+} from "../lib/hooks";
 
 describe("abuse-scoring hooks", () => {
   beforeEach(() => {
@@ -139,6 +145,35 @@ describe("abuse-scoring hooks", () => {
       mockService.shouldAnalyzeOnBooking.mockRejectedValue(new Error("db down"));
 
       await expect(onBookingCancelled(42)).resolves.toBeUndefined();
+    });
+  });
+
+  // ── onWorkflowChange (Gate 5) ──
+
+  describe("onWorkflowChange", () => {
+    it("does nothing when shouldUsersCheckEventType returns false", async () => {
+      mockService.shouldUsersCheckEventType.mockResolvedValue(false);
+
+      await onWorkflowChange(42);
+
+      expect(mockService.shouldUsersCheckEventType).toHaveBeenCalledWith(42);
+      expect(mockTasker.analyzeUser).not.toHaveBeenCalled();
+    });
+
+    it("dispatches analyzeUser with reason workflow_change when shouldUsersCheckEventType returns true", async () => {
+      mockService.shouldUsersCheckEventType.mockResolvedValue(true);
+
+      await onWorkflowChange(42);
+
+      expect(mockTasker.analyzeUser).toHaveBeenCalledWith({
+        payload: { userId: 42, reason: "workflow_change" },
+      });
+    });
+
+    it("swallows errors (fail-open)", async () => {
+      mockService.shouldUsersCheckEventType.mockRejectedValue(new Error("db down"));
+
+      await expect(onWorkflowChange(42)).resolves.toBeUndefined();
     });
   });
 });

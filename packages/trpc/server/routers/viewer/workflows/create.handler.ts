@@ -82,6 +82,11 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
         verifiedAt: new Date(),
       },
     });
+    // Gate 6: abuse scoring for workflow creation — async, fail-open
+    import("@calcom/features/abuse-scoring/lib/hooks")
+      .then(({ onWorkflowChange }) => onWorkflowChange(userId))
+      .catch((err) => console.error("abuse-scoring: onWorkflowChange failed to load", err));
+
     return { workflow };
   } catch (e) {
     throw e;

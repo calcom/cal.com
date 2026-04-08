@@ -30,6 +30,7 @@ function buildUser(overrides: Partial<UserForScoringDto> = {}): UserForScoringDt
     abuseScore: 0,
     eventTypes: [],
     bookings: [],
+    workflows: [],
     ...overrides,
   };
 }
@@ -180,6 +181,38 @@ describe("extractMetrics", () => {
     ];
     const metrics = extractMetrics(buildUser({ bookings }));
     expect(metrics.bookingResponses).toEqual(["spam"]);
+  });
+
+  it("extracts workflow step content", () => {
+    const metrics = extractMetrics(
+      buildUser({
+        workflows: [
+          {
+            name: "Phishing Reminder",
+            steps: [
+              { emailSubject: "Your booking at resortguest.org", reminderBody: "Click here to verify" },
+            ],
+          },
+        ],
+      })
+    );
+    expect(metrics.workflowContent).toContain("phishing reminder");
+    expect(metrics.workflowContent).toContain("your booking at resortguest.org");
+    expect(metrics.workflowContent).toContain("click here to verify");
+  });
+
+  it("handles workflows with null step fields", () => {
+    const metrics = extractMetrics(
+      buildUser({
+        workflows: [
+          {
+            name: "Legit Workflow",
+            steps: [{ emailSubject: null, reminderBody: null }],
+          },
+        ],
+      })
+    );
+    expect(metrics.workflowContent).toEqual(["legit workflow"]);
   });
 
   it("extracts username", () => {
@@ -381,6 +414,32 @@ describe("evaluateRules", () => {
     });
     const result = evaluateRules(metrics, [rule]);
     expect(result.score).toBe(25);
+  });
+
+  it("matches CONTAINS on workflow content", () => {
+    const metrics = extractMetrics(
+      buildUser({
+        workflows: [
+          {
+            name: "Booking Reminder",
+            steps: [
+              {
+                emailSubject: "Confirm your reservation at resortguest.org",
+                reminderBody: "Click the link to verify your booking",
+              },
+            ],
+          },
+        ],
+      })
+    );
+    const rule = buildRule({
+      weight: 30,
+      conditions: [
+        { id: uuid(1), field: "WORKFLOW_CONTENT", operator: "CONTAINS", value: "resortguest.org" },
+      ],
+    });
+    const result = evaluateRules(metrics, [rule]);
+    expect(result.score).toBe(30);
   });
 
   it("matches CONTAINS on username", () => {

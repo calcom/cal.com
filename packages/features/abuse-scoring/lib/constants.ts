@@ -14,6 +14,7 @@ export const ABUSE_RULE_FIELDS = [
   "CANCELLATION_REASON",
   "BOOKING_LOCATION",
   "BOOKING_RESPONSES",
+  "WORKFLOW_CONTENT",
   "USERNAME",
   "SIGNUP_EMAIL_DOMAIN",
   "SIGNUP_NAME",
@@ -33,6 +34,7 @@ export const ARRAY_FIELDS = new Set<AbuseRuleField>([
   "CANCELLATION_REASON",
   "BOOKING_LOCATION",
   "BOOKING_RESPONSES",
+  "WORKFLOW_CONTENT",
 ]);
 /** Fields that support the MATCHES_DOMAIN operator (exact + wildcard domain matching) */
 export const DOMAIN_FIELDS = new Set<AbuseRuleField>(["SIGNUP_EMAIL_DOMAIN", "REDIRECT_URL"]);

@@ -793,6 +793,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
+  // Gate 6: abuse scoring for workflow update — async, fail-open
+  import("@calcom/features/abuse-scoring/lib/hooks")
+    .then(({ onWorkflowChange }) => onWorkflowChange(user.id))
+    .catch((err) => console.error("abuse-scoring: onWorkflowChange failed to load", err));
+
   const workflowWithPermissions = await addPermissionsToWorkflow(workflow, ctx.user.id);
   return {
     workflow: workflowWithPermissions,

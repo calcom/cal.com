@@ -39,6 +39,7 @@ const FIELD_SHORT_LABELS: Record<string, string> = {
   CANCELLATION_REASON: "Cancel reason",
   BOOKING_LOCATION: "Location",
   BOOKING_RESPONSES: "Responses",
+  WORKFLOW_CONTENT: "Workflow",
   USERNAME: "Username",
   SIGNUP_EMAIL_DOMAIN: "Email domain",
   SIGNUP_NAME: "Name",

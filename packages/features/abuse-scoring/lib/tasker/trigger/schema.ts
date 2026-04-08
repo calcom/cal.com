@@ -5,6 +5,7 @@ export const ABUSE_SCORING_REASONS = [
   "event_type_change",
   "booking_created",
   "booking_cancelled",
+  "workflow_change",
 ] as const;
 
 export type AbuseScoringReason = (typeof ABUSE_SCORING_REASONS)[number];

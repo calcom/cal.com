@@ -70,6 +70,17 @@ export class AbuseScoringRepository {
             attendees: { select: { email: true } },
           },
         },
+        workflows: {
+          select: {
+            name: true,
+            steps: {
+              select: {
+                reminderBody: true,
+                emailSubject: true,
+              },
+            },
+          },
+        },
       },
     });
 

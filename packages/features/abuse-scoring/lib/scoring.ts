@@ -44,6 +44,23 @@ export function extractMetrics(user: UserForScoringDto): UserMetrics {
     }
   }
 
+  // Extract text from workflow step templates
+  const workflows = user.workflows ?? [];
+  const workflowContentTexts: string[] = [];
+  for (const wf of workflows) {
+    if (wf.name?.trim()) {
+      workflowContentTexts.push(wf.name.toLowerCase());
+    }
+    for (const step of wf.steps) {
+      if (typeof step.emailSubject === "string" && step.emailSubject.trim()) {
+        workflowContentTexts.push(step.emailSubject.toLowerCase());
+      }
+      if (typeof step.reminderBody === "string" && step.reminderBody.trim()) {
+        workflowContentTexts.push(step.reminderBody.toLowerCase());
+      }
+    }
+  }
+
   return {
     eventTypeTitles: eventTypes.map((et) => et.title.toLowerCase()),
     eventTypeDescriptions: eventTypes.map((et) => et.description?.toLowerCase()).filter(Boolean) as string[],
@@ -55,6 +72,7 @@ export function extractMetrics(user: UserForScoringDto): UserMetrics {
       .filter(Boolean) as string[],
     bookingLocations: bookings.map((b) => b.location?.toLowerCase()).filter(Boolean) as string[],
     bookingResponses: bookingResponseTexts,
+    workflowContent: workflowContentTexts,
     username: (user.username ?? "").toLowerCase(),
     signupEmailDomain: user.email.split("@")[1]?.toLowerCase() ?? "",
     signupName: (user.name ?? user.username ?? "").toLowerCase(),
@@ -77,6 +95,8 @@ function getFieldValues(metrics: UserMetrics, field: AbuseRuleField): string[] {
       return metrics.bookingLocations;
     case "BOOKING_RESPONSES":
       return metrics.bookingResponses;
+    case "WORKFLOW_CONTENT":
+      return metrics.workflowContent;
     case "USERNAME":
       return [metrics.username];
     case "SIGNUP_EMAIL_DOMAIN":

@@ -80,3 +80,25 @@ export async function onBookingCancelled(userId: number): Promise<void> {
     });
   }
 }
+
+/** Gate 5 — Called when a workflow is created or updated. */
+export async function onWorkflowChange(userId: number): Promise<void> {
+  try {
+    const { getAbuseScoringService } = await import("../di/AbuseScoringService.container");
+    const service = getAbuseScoringService();
+
+    const shouldCheck = await service.shouldUsersCheckEventType(userId);
+    if (!shouldCheck) return;
+
+    const { getAbuseScoringTasker } = await import("../di/tasker/AbuseScoringTasker.container");
+    const tasker = getAbuseScoringTasker();
+    await tasker.analyzeUser({
+      payload: { userId, reason: "workflow_change" },
+    });
+  } catch (err) {
+    log.error("onWorkflowChange failed", {
+      userId,
+      error: err instanceof Error ? err.message : err,
+    });
+  }
+}
