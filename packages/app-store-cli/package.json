@@ -8,10 +8,10 @@
     "node": ">=10"
   },
   "scripts": {
-    "build": "ts-node --transpile-only src/build.ts",
-    "cli": "ts-node --transpile-only src/cli.tsx",
-    "watch": "ts-node --transpile-only src/build.ts --watch",
-    "generate": "ts-node --transpile-only src/build.ts",
+    "build": "ts-node -r tsconfig-paths/register --transpile-only src/build.ts",
+    "cli": "ts-node -r tsconfig-paths/register --transpile-only src/cli.tsx",
+    "watch": "ts-node -r tsconfig-paths/register --transpile-only src/build.ts --watch",
+    "generate": "ts-node -r tsconfig-paths/register --transpile-only src/build.ts",
     "post-install": "yarn build"
   },
   "files": [
@@ -30,6 +30,7 @@
     "@types/react": "18.0.26",
     "chokidar": "3.6.0",
     "ts-node": "10.9.2",
+    "tsconfig-paths": "4.2.0",
     "typescript": "5.9.3"
   }
 }

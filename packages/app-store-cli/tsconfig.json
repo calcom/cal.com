@@ -8,6 +8,9 @@
     "noEmitOnError": false,
     "target": "ES2020",
     "baseUrl": ".",
+    "paths": {
+      "@calcom/*": ["../*", "../../apps/*"]
+    },
     "resolveJsonModule": true
   },
   "include": [
