@@ -102,11 +102,15 @@ jobs:
             // A small tolerance prevents false failures from this baseline drift.
             const DROP_TOLERANCE = -0.5;
 
-            let dropped = false;
-            const droppedDetails = [];
+            // Per-category drops are tracked for informational reporting only.
+            // Only combined coverage drops trigger a build failure (see below).
+            let perCategoryDropped = false;
+            const perCategoryDroppedDetails = [];
+            let combinedDropped = false;
+            const combinedDroppedDetails = [];
             let summary = '## Coverage Report\n\n';
 
-            function buildTable(label, prData, baseData) {
+            function buildTable(label, prData, baseData, { trackAsCombined = false } = {}) {
               let table = `### ${label}\n\n`;
 
               if (!prData) {
@@ -132,14 +136,20 @@ jobs:
                 const icon = diff < DROP_TOLERANCE ? ' :red_circle:' : (diff > 0 ? ' :green_circle:' : '');
                 const delta = `${sign}${diff.toFixed(2)}%${icon}`;
                 if (diff < DROP_TOLERANCE) {
-                  dropped = true;
-                  droppedDetails.push({
+                  const detail = {
                     category: label,
                     metric: m,
                     main: baseData[m].pct.toFixed(2),
                     pr: prData[m].pct.toFixed(2),
                     diff: diff.toFixed(2),
-                  });
+                  };
+                  if (trackAsCombined) {
+                    combinedDropped = true;
+                    combinedDroppedDetails.push(detail);
+                  } else {
+                    perCategoryDropped = true;
+                    perCategoryDroppedDetails.push(detail);
+                  }
                 }
                 table += `| ${m} | ${baseData[m].pct.toFixed(2)}% | ${prData[m].pct.toFixed(2)}% | ${delta} |\n`;
               }
@@ -219,7 +229,7 @@ jobs:
               ((prIntegration && baseIntegration) || (!prIntegration && !baseIntegration));
 
             if (prCombined && sameShape) {
-              summary += buildTable('Combined (Unit + Integration)', prCombined, baseCombined);
+              summary += buildTable('Combined (Unit + Integration)', prCombined, baseCombined, { trackAsCombined: true });
               summary += '> **Note:** Combined numbers are computed by merging coverage at the line level via istanbul — lines covered by *either* test type count toward the total.\n\n';
             }
 
@@ -248,14 +258,37 @@ jobs:
               }
             }
 
-            if (dropped) {
+            // ── Per-category drops (informational warning only) ────────────
+            // Per-category (unit-only or integration-only) regressions are shown
+            // as warnings but do NOT fail the build.  Code that is dual-path
+            // (e.g. if (isIntegration) … else …) or tests moved between
+            // categories can cause per-category swings even when overall
+            // coverage is stable.  The combined number is the authoritative
+            // metric because it merges hit-counts at the line level.
+            if (perCategoryDropped) {
               summary += '---\n\n';
-              summary += '### :x: Coverage Regression Detected\n\n';
-              summary += 'The following metrics dropped by more than the allowed tolerance ';
+              summary += '### :warning: Per-Category Coverage Drops (informational)\n\n';
+              summary += 'The following individual-category metrics dropped by more than ';
+              summary += `${Math.abs(DROP_TOLERANCE)}%.  `;
+              summary += 'These are shown for visibility but **do not fail the build** — ';
+              summary += 'only the combined regression check is enforced.\n\n';
+              summary += '| Category | Metric | main | PR | Drop |\n';
+              summary += '|----------|--------|-----:|---:|-----:|\n';
+              for (const d of perCategoryDroppedDetails) {
+                summary += `| ${d.category} | ${d.metric} | ${d.main}% | ${d.pr}% | ${d.diff}% |\n`;
+              }
+              summary += '\n';
+            }
+
+            // ── Combined coverage regression (build failure) ─────────────────
+            if (combinedDropped) {
+              summary += '---\n\n';
+              summary += '### :x: Combined Coverage Regression Detected\n\n';
+              summary += 'The following **combined** metrics dropped by more than the allowed tolerance ';
               summary += `(${Math.abs(DROP_TOLERANCE)}%):\n\n`;
               summary += '| Category | Metric | main | PR | Drop |\n';
               summary += '|----------|--------|-----:|---:|-----:|\n';
-              for (const d of droppedDetails) {
+              for (const d of combinedDroppedDetails) {
                 summary += `| ${d.category} | ${d.metric} | ${d.main}% | ${d.pr}% | ${d.diff}% |\n`;
               }
 
@@ -278,8 +311,10 @@ jobs:
 
             await core.summary.addRaw(summary).write();
 
-            if (dropped) {
-              core.setFailed(`Coverage dropped by more than ${Math.abs(DROP_TOLERANCE)}% compared to main. See the job summary above for details and how to fix.`);
+            if (combinedDropped) {
+              core.setFailed(`Combined coverage dropped by more than ${Math.abs(DROP_TOLERANCE)}% compared to main. See the job summary above for details and how to fix.`);
+            } else if (perCategoryDropped) {
+              core.warning(`Per-category coverage dropped in some areas but combined coverage is stable. See the job summary for details.`);
             } else if (prCombined && hasBothPrSources && metrics.some(m => prCombined[m].pct < COMBINED_THRESHOLD)) {
               core.warning(`Combined coverage is below the ${COMBINED_THRESHOLD}% target. See the job summary above for details.`);
             } else {
