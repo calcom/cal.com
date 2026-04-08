@@ -1,27 +1,18 @@
-/**
- * Cal.com App Store setup component for Sendly SMS.
- *
- * This component is rendered inside Cal.com's app settings page
- * when a user installs the Sendly SMS app. It guides them to
- * complete the setup on the Sendly dashboard.
- */
 export default function SendlySmsSetup() {
   return (
-    <div style={{ padding: "20px" }}>
-      <h2 style={{ fontSize: "18px", fontWeight: 600, marginBottom: "12px" }}>
+    <div className="p-5">
+      <h2 className="text-lg font-semibold mb-3">
         Sendly SMS Notifications
       </h2>
-      <p style={{ color: "#6b7280", marginBottom: "16px", lineHeight: 1.6 }}>
+      <p className="text-gray-500 mb-4 leading-relaxed">
         Send SMS confirmations, reminders, and cancellation notices for your
         Cal.com bookings. Sendly is easier to set up than Twilio with built-in
         templates, compliance, and booking-aware features out of the box.
       </p>
 
-      <div style={{ marginBottom: "20px" }}>
-        <h3 style={{ fontSize: "14px", fontWeight: 600, marginBottom: "8px" }}>
-          What you get:
-        </h3>
-        <ul style={{ paddingLeft: "20px", color: "#6b7280", lineHeight: 1.8 }}>
+      <div className="mb-5">
+        <h3 className="text-sm font-semibold mb-2">What you get:</h3>
+        <ul className="pl-5 text-gray-500 leading-loose list-disc">
           <li>Automatic SMS when bookings are created, rescheduled, or cancelled</li>
           <li>Pre-meeting SMS reminders (configurable timing)</li>
           <li>Customizable message templates with booking variables</li>
@@ -30,15 +21,13 @@ export default function SendlySmsSetup() {
         </ul>
       </div>
 
-      <div style={{ marginBottom: "20px" }}>
-        <h3 style={{ fontSize: "14px", fontWeight: 600, marginBottom: "8px" }}>
-          Setup:
-        </h3>
-        <ol style={{ paddingLeft: "20px", color: "#6b7280", lineHeight: 1.8 }}>
+      <div className="mb-5">
+        <h3 className="text-sm font-semibold mb-2">Setup:</h3>
+        <ol className="pl-5 text-gray-500 leading-loose list-decimal">
           <li>
             Create a free Sendly account at{" "}
             <a href="https://sendly.live" target="_blank" rel="noopener noreferrer"
-              style={{ color: "#3b82f6", textDecoration: "underline" }}>
+              className="text-blue-500 underline">
               sendly.live
             </a>
           </li>
@@ -47,7 +36,7 @@ export default function SendlySmsSetup() {
             Complete the setup at{" "}
             <a href="https://sendly.live/integrations/calcom?source=calcom-appstore"
               target="_blank" rel="noopener noreferrer"
-              style={{ color: "#3b82f6", textDecoration: "underline" }}>
+              className="text-blue-500 underline">
               sendly.live/integrations/calcom
             </a>
           </li>
@@ -58,27 +47,18 @@ export default function SendlySmsSetup() {
         href="https://sendly.live/integrations/calcom?source=calcom-appstore"
         target="_blank"
         rel="noopener noreferrer"
-        style={{
-          display: "inline-block",
-          padding: "10px 20px",
-          backgroundColor: "#3b82f6",
-          color: "white",
-          borderRadius: "6px",
-          textDecoration: "none",
-          fontWeight: 500,
-          fontSize: "14px",
-        }}
+        className="inline-block px-5 py-2.5 bg-blue-500 text-white rounded-md font-medium text-sm no-underline hover:bg-blue-600 transition-colors"
       >
         Complete Setup on Sendly
       </a>
 
-      <div style={{ marginTop: "20px", padding: "12px", backgroundColor: "#f3f4f6", borderRadius: "6px" }}>
-        <p style={{ fontSize: "13px", color: "#6b7280" }}>
+      <div className="mt-5 p-3 bg-gray-100 dark:bg-gray-800 rounded-md">
+        <p className="text-[13px] text-gray-500">
           <strong>Pricing:</strong> Sendly charges $0.02/SMS for US numbers.
           No monthly fees, no contracts. Pay only for what you send.
           See full pricing at{" "}
           <a href="https://sendly.live/pricing" target="_blank" rel="noopener noreferrer"
-            style={{ color: "#3b82f6", textDecoration: "underline" }}>
+            className="text-blue-500 underline">
             sendly.live/pricing
           </a>
         </p>
