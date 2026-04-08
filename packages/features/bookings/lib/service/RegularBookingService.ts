@@ -743,6 +743,7 @@ async function handler(
     bookingStartTime: reqBody.start,
     userId,
     originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
+    originalRescheduledBookingPaid: !!originalRescheduledBooking?.paid,
     paymentAppData,
     bookerEmail,
   });
