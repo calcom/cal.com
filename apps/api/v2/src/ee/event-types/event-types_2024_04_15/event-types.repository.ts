@@ -76,13 +76,24 @@ export class EventTypesRepository_2024_04_15 {
   }
 
   async deleteEventType(eventTypeId: number) {
-    return this.dbWrite.prisma.eventType.delete({ where: { id: eventTypeId } });
+    return this.dbWrite.prisma.eventType.delete({ where: { eventTypeId } });
   }
 
   async getEventTypeWithDuration(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
       select: { length: true },
+    });
+  }
+
+  async addUserToEventType(userId: number, eventTypeId: number) {
+    return this.dbWrite.prisma.eventType.update({
+      where: { id: eventTypeId },
+      data: {
+        users: {
+          connect: { id: userId },
+        },
+      },
     });
   }
 }

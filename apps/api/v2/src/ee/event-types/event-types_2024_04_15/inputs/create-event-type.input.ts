@@ -9,6 +9,8 @@ import {
   IsString,
   Min,
   ValidateNested,
+  IsEmail,
+  Matches,
 } from "class-validator";
 import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
 
@@ -91,13 +93,11 @@ export class CreateEventTypeInput_2024_04_15 {
   })
   afterEventBuffer?: number;
 
-  // @ApiHideProperty()
-  // @IsOptional()
-  // @IsNumber()
-  // teamId?: number;
-
-  // @ApiHideProperty()
-  // @IsOptional()
-  // @IsEnum(SchedulingType)
-  // schedulingType?: SchedulingType; -> import { SchedulingType } from "@/ee/event-types/inputs/enums/scheduling-type";
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({
+    description: "Comma-separated list of emails to assign to this event type",
+    example: "user1@example.com,user2@example.com",
+  })
+  assignEmails?: string;
 }
