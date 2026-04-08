@@ -30,6 +30,28 @@ import { getMaxHeightForModal } from "./ui-utils";
 export type { EmbedEvent } from "./sdk-action-manager";
 export type { PrefillAndIframeAttrsConfig } from "./types";
 
+/**
+ * Naming convention for URL parameters in this module:
+ *
+ * - "queryParams" (QueryParams): A plain JS object representing URL parameters.
+ *   Used throughout this module for merging, filtering, and passing params between functions.
+ *
+ * - "searchParams" (URLSearchParams): The Web API URLSearchParams instance.
+ *   Used only when interacting with the URL/iframe APIs that require this type (e.g. urlInstance.searchParams).
+ *
+ * Both representations support array values:
+ *   - queryParams: { key: ["val1", "val2"] }
+ *   - searchParams: params.append("key", "val1"); params.append("key", "val2")
+ *
+ * Use toURLSearchParams() to convert from queryParams to searchParams when needed.
+ */
+
+/**
+ * Plain object representation of URL query parameters.
+ * Analogous to URLSearchParams but as a simple Record — used for merging, filtering, and passing params between functions.
+ */
+type QueryParams = Record<string, string | string[]>;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Rest<T extends any[] | undefined> = T extends [any, ...infer U] ? U : never;
 export type Message = {
@@ -214,6 +236,89 @@ type PrefillAndIframeAttrsConfigWithGuestAndColorScheme = PrefillAndIframeAttrsC
   "ui.color-scheme"?: string | null;
 };
 
+function fromUrlSearchParams(searchParams: URLSearchParams): QueryParams {
+  return fromEntriesWithDuplicateKeys(searchParams.entries());
+}
+
+function toURLSearchParams(params: QueryParams): URLSearchParams {
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (Array.isArray(value)) {
+      value.forEach((val) => { searchParams.append(key, val); });
+    } else {
+      searchParams.set(key, value);
+    }
+  }
+  return searchParams;
+}
+
+function getQueryParamsFromPage(): QueryParams {
+  return fromUrlSearchParams(new URLSearchParams(window.location.search));
+}
+
+function filterParams(params: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(params).filter(([key, value]) => !excludeParam(key, value)));
+}
+
+/**
+ * Filters out query params that are excluded by the excludeParam function which are cal.com reserved params
+ */
+function getFilteredQueryParamsFromPage() {
+  return filterParams(getQueryParamsFromPage());
+}
+
+function removeUndefinedValues(params: Record<string, unknown>): QueryParams {
+  return Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined)) as QueryParams;
+}
+
+export function buildEnrichedQueryParams(
+  queryParamsFromConfig: PrefillAndIframeAttrsConfig
+): QueryParams {
+  const queryParamsFromPageUrl = globalCal.config?.forwardQueryParams ? getFilteredQueryParamsFromPage() : {};
+
+  // Query Params via config have higher precedence
+  const mergedQueryParams = { ...queryParamsFromPageUrl, ...queryParamsFromConfig };
+
+  return removeUndefinedValues(mergedQueryParams);
+}
+
+/**
+ * Builds a calLink string (no leading slash) from a pathname and query params.
+ * calLinks are stored without a leading "/" (e.g. "router?form=FORM_ID", "john-doe/meeting").
+ */
+function buildCalLink(pathname: string, params: QueryParams): string {
+  const path = pathname.replace(/^\//, "");
+  const search = toURLSearchParams(params).toString();
+  return search ? `${path}?${search}` : path;
+}
+
+/**
+ * Returns the "effective" calLink — the calLink enriched with page URL params
+ * (when forwardQueryParams is enabled).
+ *
+ * The effective calLink contains ONLY:
+ * - Query params explicitly passed in the calLink (e.g. `router?form=FORM_ID`)
+ * - Page URL params automatically forwarded via forwardQueryParams (e.g. `?xbc=422`)
+ *
+ * It does NOT contain config params (theme, layout, etc.) — those are passed separately
+ * via the config object and compared independently via isSameConfig.
+ *
+ * The calLink's own params always take precedence over page URL params.
+ */
+function getPageParamsEnrichedCalLink(calLink: string): {
+  calLink: string;
+  params: QueryParams;
+} {
+  const dummyOrigin = "https://example.com";
+  const calLinkUrl = new URL(calLink, dummyOrigin);
+  const calLinkParams = fromUrlSearchParams(calLinkUrl.searchParams);
+  const enrichedParams = buildEnrichedQueryParams(calLinkParams);
+  return {
+    calLink: buildCalLink(calLinkUrl.pathname, enrichedParams),
+    params: enrichedParams,
+  };
+}
+
 export class Cal {
   iframe?: HTMLIFrameElement;
 
@@ -328,7 +433,6 @@ export class Cal {
     calOrigin: string | null;
   }) {
     log("Loading in iframe", calLink, "with config", JSON.stringify(config));
-    iframe.dataset.calLink = calLink;
     const calConfig = this.getCalConfig();
     const { iframeAttrs, ...queryParamsFromConfig } = config;
 
@@ -338,7 +442,10 @@ export class Cal {
 
     iframe.setAttribute("allow", "payment");
 
-    const searchParams = this.buildFilteredQueryParams(queryParamsFromConfig);
+    const searchParams = toURLSearchParams(buildEnrichedQueryParams(queryParamsFromConfig));
+
+    // Excludes config params (theme, layout, etc.) — those are compared separately via isSameConfig.
+    iframe.dataset.effectiveCalLink = getPageParamsEnrichedCalLink(calLink).calLink;
 
     // cal.com has rewrite issues on Safari that sometimes cause 404 for assets.
     const originToUse = (calOrigin || calConfig.calOrigin || "").replace(
@@ -354,7 +461,7 @@ export class Cal {
 
     urlInstance.searchParams.set("embed", this.namespace);
 
-    const pageParams = this.getQueryParamsFromPage();
+    const pageParams = getFilteredQueryParamsFromPage();
     // cal.embed.logging=1 enabled logging in parent and by setting debug=true in iframe, it enables logging in iframe(child) as well
     if (calConfig.debug || pageParams["cal.embed.logging"] === "1") {
       urlInstance.searchParams.set("debug", "true");
@@ -535,37 +642,6 @@ export class Cal {
     scrollContainer.scrollTo({ top: newScrollTop, behavior: "smooth" });
   }
 
-  private filterParams(params: Record<string, unknown>): Record<string, unknown> {
-    return Object.fromEntries(Object.entries(params).filter(([key, value]) => !excludeParam(key, value)));
-  }
-
-  private getQueryParamsFromPage() {
-    const queryParamsFromPage = getQueryParamsFromPage();
-    // Ensure valid params are used from the page.
-    return this.filterParams(queryParamsFromPage);
-  }
-
-  private buildFilteredQueryParams(queryParamsFromConfig: PrefillAndIframeAttrsConfig): URLSearchParams {
-    const queryParamsFromPageUrl = globalCal.config?.forwardQueryParams ? this.getQueryParamsFromPage() : {};
-
-    // Query Params via config have higher precedence
-    const mergedQueryParams = { ...queryParamsFromPageUrl, ...queryParamsFromConfig };
-
-    const searchParams = new URLSearchParams();
-    for (const [key, value] of Object.entries(mergedQueryParams)) {
-      if (value === undefined) {
-        continue;
-      }
-      if (value instanceof Array) {
-        value.forEach((val) => searchParams.append(key, val));
-      } else {
-        searchParams.set(key, value as string);
-      }
-    }
-
-    return searchParams;
-  }
-
   getNextActionForModal({
     modal,
     pathWithQueryToLoad,
@@ -584,7 +660,7 @@ export class Cal {
       prerenderOptions,
     } = stateData;
     const calConfig = this.getCalConfig();
-    const lastLoadedUrlInIframeObject = this.getLastLoadedLinkInframe();
+    const lastLoadedUrlInIframeObject = this.getLastEffectiveCalLinkForIframe();
     const lastLoadedPathInIframe = lastLoadedUrlInIframeObject?.pathname ?? null;
     const urlToLoadObject = new URL(pathWithQueryToLoad, calConfig.calOrigin as string);
 
@@ -705,34 +781,25 @@ export class Cal {
   }
 
   /**
-   * Returns the last loaded URL in iframe.
-   * Removes /embed from the pathname and returns the origin.
+   * Returns the effective calLink URL stored on the iframe, parsed as a URL object.
    */
-  getLastLoadedLinkInframe() {
-    if (!this.iframe || !this.iframe.dataset.calLink) {
+  getLastEffectiveCalLinkForIframe() {
+    if (!this.iframe || !this.iframe.dataset.effectiveCalLink) {
       return null;
     }
-    const calLink = this.iframe.dataset.calLink;
-    if (!calLink) {
-      return null;
-    }
+    const calLink = this.iframe.dataset.effectiveCalLink;
     const urlObject = new URL(calLink, new URL(this.iframe.src).origin);
     return new URL(`${urlObject.pathname}${urlObject.search}`, urlObject.origin);
   }
 
-  // We record the updated params on dataset.calLink which allows us to determine if something actually changed since the last time we loaded
-  // This is used by getNextActionForModal
-  recordUpdatedParamsForIframe(params: Record<string, string | string[]>) {
-    const lastLoadedUrlInIframeObject = this.getLastLoadedLinkInframe();
+  // Records the enriched params (calLink + page URL params) on dataset.effectiveCalLink
+  // so getNextActionForModal can compare what was last requested vs what's being requested now
+  updateEffectiveCalLinkForIframe(params: QueryParams) {
+    const lastLoadedUrlInIframeObject = this.getLastEffectiveCalLinkForIframe();
     if (!lastLoadedUrlInIframeObject || !this.iframe) {
       return;
     }
-    // Create a clone of the last loaded url object in iframe
-    const urlObject = new URL(lastLoadedUrlInIframeObject.toString());
-    for (const [key, value] of Object.entries(params)) {
-      urlObject.searchParams.set(key, value as string);
-    }
-    this.iframe.dataset.calLink = `${urlObject.pathname.replace(/^\//, "")}${urlObject.search}`;
+    this.iframe.dataset.effectiveCalLink = buildCalLink(lastLoadedUrlInIframeObject.pathname, params);
   }
 
   canPrerenderLink({
@@ -744,10 +811,12 @@ export class Cal {
     calOrigin: string;
     previousEmbedRenderStartTime: number | null;
   }) {
-    const lastLoadedUrlInIframeObject = this.getLastLoadedLinkInframe();
+    const effectiveCalLink = this.getLastEffectiveCalLinkForIframe();
+    const enrichedCalLinkUrl = new URL(getPageParamsEnrichedCalLink(calLink).calLink, calOrigin);
+
     // Trying to prerender a link that is already prerendered.
     // Prevent unnecessary repeat prerenders
-    if (lastLoadedUrlInIframeObject?.toString() === new URL(calLink, calOrigin).toString()) {
+    if (effectiveCalLink?.toString() === enrichedCalLinkUrl.toString()) {
       const isThresholdCrossed = hasCrossedThreshold();
       if (isThresholdCrossed) {
         log("Threshold crossed, allowing repeat prerender");
@@ -831,10 +900,10 @@ export class Cal {
     params,
   }: {
     config: PrefillAndIframeAttrsConfig;
-    params: Record<string, string | string[]>;
+    params: QueryParams;
   }) {
     // Update the iframe query params and record the change as well on the iframe for getNextActionForModal to use
-    this.recordUpdatedParamsForIframe(params);
+    this.updateEffectiveCalLinkForIframe(params);
     this.doInIframe({
       method: "connect",
       arg: {
@@ -1162,7 +1231,7 @@ class CalApi {
     // isConnectionPossible
     if (!!existingModalEl && !!this.cal.iframe) {
       log(`Trying to reuse modal ${uid}`);
-      const lastLoadedUrlObject = this.cal.getLastLoadedLinkInframe();
+      const lastLoadedUrlObject = this.cal.getLastEffectiveCalLinkForIframe();
       const lastLoadedPathIsRouter = lastLoadedUrlObject?.pathname?.includes("/router");
 
       if (isHeadlessRouterPath && !lastLoadedPathIsRouter) {
@@ -1170,9 +1239,11 @@ class CalApi {
           "`prerender` instruction should have been fired with headless router path as calLink(i.e. router?form={FORM_ID}&PARAMS=VALUES)"
         );
       } else {
+        const { calLink: effectiveCalLink, params: enrichedParams } = getPageParamsEnrichedCalLink(calLink);
+
         const actionToTake = this.cal.getNextActionForModal({
           modal: { uid },
-          pathWithQueryToLoad: `${calLinkUrlObject.pathname}${calLinkUrlObject.search}`,
+          pathWithQueryToLoad: effectiveCalLink,
           stateData,
         });
 
@@ -1203,7 +1274,6 @@ class CalApi {
           // Send it after loadInIframe so that new iframe can process it.
           this.cal.doInIframe({ method: "__reloadInitiated", arg: {} });
         } else if (actionToTake === "connect" || actionToTake === "connect-no-slots-fetch") {
-          const paramsToAdd = fromEntriesWithDuplicateKeys(calLinkUrlObject.searchParams.entries());
           this.cal.connect({
             config: {
               ...enrichedConfig,
@@ -1213,7 +1283,7 @@ class CalApi {
                   }
                 : {}),
             },
-            params: paramsToAdd,
+            params: enrichedParams,
           });
         }
       }
@@ -1502,11 +1572,6 @@ class CalApi {
 
     this.cal.doInIframe({ method: "ui", arg: uiConfig });
   }
-}
-
-function getQueryParamsFromPage() {
-  const params = new URLSearchParams(window.location.search);
-  return fromEntriesWithDuplicateKeys(params.entries());
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
