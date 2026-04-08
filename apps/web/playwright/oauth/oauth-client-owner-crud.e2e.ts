@@ -256,18 +256,17 @@ async function deleteOAuthClient(
 ): Promise<void> {
   await goToOAuthSettings(page);
 
-  await openOAuthClientDetails(page, clientId);
-  await page.getByTestId("oauth-client-details-delete-trigger").click();
-  await expect(page.getByTestId("oauth-client-details-delete-confirm")).toBeVisible();
+  await page.getByTestId(`oauth-client-actions-${clientId}`).click();
+  await page.getByTestId(`oauth-client-delete-${clientId}`).click();
+  await expect(page.getByTestId("oauth-client-delete-confirm")).toBeVisible();
 
   const deleteResponsePromise = page.waitForResponse((res) =>
     res.url().includes("/api/trpc/oAuth/deleteClient")
   );
-  await page.getByTestId("oauth-client-details-delete-confirm").click();
+  await page.getByTestId("oauth-client-delete-confirm").click();
   const deleteResponse = await deleteResponsePromise;
   expect(deleteResponse.ok()).toBe(true);
 
-  await expect(getOAuthClientDetailsForm(page)).toHaveCount(0);
   await expect(getOAuthClientList(page).getByText(expectedNameToDisappear)).toHaveCount(0);
   await expect(getOAuthClientListItem(page, clientId)).toHaveCount(0);
 }

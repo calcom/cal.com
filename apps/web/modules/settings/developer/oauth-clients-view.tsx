@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -20,14 +18,13 @@ import {
   AppHeaderContent,
   AppHeaderDescription,
 } from "@coss/ui/shared/app-header";
-
+import { useState } from "react";
+import { NewOAuthClientButton } from "../oauth/create/NewOAuthClientButton";
 import type { OAuthClientCreateFormValues } from "../oauth/create/OAuthClientCreateModal";
 import { OAuthClientCreateDialog } from "../oauth/create/OAuthClientCreateModal";
 import { OAuthClientPreviewDialog } from "../oauth/create/OAuthClientPreviewDialog";
-import { OAuthClientDetailsDialog, type OAuthClientDetails } from "../oauth/view/OAuthClientDetailsDialog";
 import { OAuthClientsList } from "../oauth/OAuthClientsList";
-import { NewOAuthClientButton } from "../oauth/create/NewOAuthClientButton";
-
+import { type OAuthClientDetails, OAuthClientDetailsDialog } from "../oauth/view/OAuthClientDetailsDialog";
 import { OAuthClientsSkeleton } from "./oauth-clients-skeleton";
 
 const OAuthClientsView = () => {
@@ -64,9 +61,6 @@ const OAuthClientsView = () => {
       setSelectedClient(null);
       setDetailsDialogOpen(false);
       utils.viewer.oAuth.listUserClients.invalidate();
-    },
-    onError: (error) => {
-      toastManager.add({ title: error.message || t("error"), type: "error" });
     },
   });
 
@@ -158,6 +152,17 @@ const OAuthClientsView = () => {
               clientType: client.clientType,
               scopes: client.scopes,
             }))}
+            isDeletePending={deleteClientMutation.isPending}
+            onDelete={async (clientId) => {
+              try {
+                await deleteClientMutation.mutateAsync({ clientId });
+                return true;
+              } catch (error) {
+                const message = error instanceof Error ? error.message : t("error");
+                toastManager.add({ title: message, type: "error" });
+                return false;
+              }
+            }}
             onSelectClient={handleSelectClient}
           />
         ) : (
@@ -210,11 +215,7 @@ const OAuthClientsView = () => {
             scopes: values.scopes,
           });
         }}
-        onDelete={(clientId) => {
-          deleteClientMutation.mutate({ clientId });
-        }}
         isUpdatePending={updateClientMutation.isPending}
-        isDeletePending={deleteClientMutation.isPending}
       />
     </>
   );

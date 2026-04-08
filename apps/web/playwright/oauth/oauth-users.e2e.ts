@@ -1,7 +1,5 @@
 import { expect } from "@playwright/test";
-
 import { test } from "../lib/fixtures";
-
 import {
   cleanupOAuthTestData,
   createOAuthClientWithAuthorizations,
@@ -44,7 +42,7 @@ test.describe("OAuth authorized users page", () => {
     await users.deleteAll();
   });
 
-  test("Users button is visible in OAuth client list row and navigates to users page", async ({
+  test("Authorized users menu item is available from row actions and navigates to users page", async ({
     page,
     users,
     prisma,
@@ -67,10 +65,12 @@ test.describe("OAuth authorized users page", () => {
     const listItem = page.getByTestId(`oauth-client-list-item-${client.clientId}`);
     await expect(listItem).toBeVisible();
 
-    const usersButton = page.getByTestId(`oauth-client-users-${client.clientId}`);
-    await expect(usersButton).toBeVisible();
+    await page.getByTestId(`oauth-client-actions-${client.clientId}`).click();
 
-    await usersButton.click();
+    const usersItem = page.getByTestId(`oauth-client-users-${client.clientId}`);
+    await expect(usersItem).toBeVisible();
+
+    await usersItem.click();
 
     await expect(page).toHaveURL(new RegExp(`/settings/developer/oauth/${client.clientId}/users`));
   });
@@ -163,6 +163,7 @@ test.describe("OAuth authorized users page", () => {
     await owner.apiLogin();
     await goToDeveloperOAuthSettings(page);
 
+    await page.getByTestId(`oauth-client-actions-${client.clientId}`).click();
     await page.getByTestId(`oauth-client-users-${client.clientId}`).click();
     await expect(page).toHaveURL(new RegExp(`/settings/developer/oauth/${client.clientId}/users`));
 

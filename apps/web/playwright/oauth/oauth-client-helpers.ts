@@ -162,7 +162,7 @@ export async function createOAuthClientWithAuthorizations({
 }) {
   const client = await createOAuthClientInDb({ prisma, name, userId: ownerUserId });
 
-  const createdUsers = [];
+  const createdUsers: { id: number; email: string }[] = [];
   for (const auth of authorizations) {
     const user = await users.create({
       username: auth.username,

@@ -1,12 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-
 import { isLegacyClient, ORG_SCOPES, TEAM_SCOPES } from "@calcom/features/oauth/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AccessScope } from "@calcom/prisma/enums";
-
+import { Alert, AlertDescription } from "@coss/ui/components/alert";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -17,7 +14,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@coss/ui/components/alert-dialog";
-import { Alert, AlertDescription } from "@coss/ui/components/alert";
 import { Badge } from "@coss/ui/components/badge";
 import { Button } from "@coss/ui/components/button";
 import {
@@ -30,13 +26,13 @@ import {
   DialogPopup,
   DialogTitle,
 } from "@coss/ui/components/dialog";
-import { Form } from "@coss/ui/components/form";
 import { Label } from "@coss/ui/components/label";
 import { Textarea } from "@coss/ui/components/textarea";
 import { toastManager } from "@coss/ui/components/toast";
+import { CheckIcon, TriangleAlertIcon, XIcon } from "@coss/ui/icons";
 import { CopyableField } from "@coss/ui/shared/copyable-field";
-import { CheckIcon, TrashIcon, TriangleAlertIcon, XIcon } from "@coss/ui/icons";
-
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import type { OAuthClientCreateFormValues } from "../create/OAuthClientCreateModal";
 import { ClientSecretsSection } from "./ClientSecretsSection";
 import { OAuthClientFormFields } from "./OAuthClientFormFields";
@@ -66,10 +62,8 @@ const OAuthClientDetailsDialog = ({
   onApprove,
   onReject,
   onUpdate,
-  onDelete,
   isStatusChangePending,
   isUpdatePending,
-  isDeletePending,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -85,10 +79,8 @@ const OAuthClientDetailsDialog = ({
     logo: string;
     scopes: AccessScope[] | undefined;
   }) => void;
-  onDelete?: (clientId: string) => void;
   isStatusChangePending?: boolean;
   isUpdatePending?: boolean;
-  isDeletePending?: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -144,7 +136,6 @@ const OAuthClientDetailsDialog = ({
   const showAdminActions = Boolean(onApprove) || Boolean(onReject);
   const isFormDisabled = showAdminActions;
   const canEdit = Boolean(onUpdate) && !isFormDisabled;
-  const canDelete = Boolean(onDelete) && !showAdminActions;
   const isConfidentialClient = client?.clientType === "CONFIDENTIAL";
   const showSecretsSection = canEdit && isConfidentialClient;
 
@@ -169,12 +160,16 @@ const OAuthClientDetailsDialog = ({
 
   return (
     <>
-      <Dialog open={open && !!client} onOpenChange={onOpenChange} onOpenChangeComplete={handleOpenChangeComplete}>
+      <Dialog
+        open={open && !!client}
+        onOpenChange={onOpenChange}
+        onOpenChangeComplete={handleOpenChangeComplete}>
         <DialogPopup className="max-w-xl">
           {client ? (
-            <Form
+            <form
               className="contents"
               data-testid="oauth-client-details-form"
+              noValidate
               onSubmit={form.handleSubmit((values) => {
                 if (!canEdit) return;
                 const redirectUris = values.redirectUris.map((uri) => uri.trim()).filter(Boolean);
@@ -237,9 +232,7 @@ const OAuthClientDetailsDialog = ({
                 ) : null}
 
                 {showAdminActions && hasTeamOrOrgScopes(formClientScopes) ? (
-                  <Alert
-                    variant="warning"
-                    data-testid="oauth-client-team-org-scopes-warning">
+                  <Alert variant="warning" data-testid="oauth-client-team-org-scopes-warning">
                     <TriangleAlertIcon />
                     <AlertDescription>{t("oauth_client_team_org_scopes_warning")}</AlertDescription>
                   </Alert>
@@ -254,9 +247,7 @@ const OAuthClientDetailsDialog = ({
                   monospace
                 />
 
-                {showSecretsSection && clientId ? (
-                  <ClientSecretsSection clientId={clientId} />
-                ) : null}
+                {showSecretsSection && clientId ? <ClientSecretsSection clientId={clientId} /> : null}
 
                 {client.user?.email ? (
                   <div>
@@ -273,53 +264,10 @@ const OAuthClientDetailsDialog = ({
                   isPkceLocked
                   isLegacyOAuthClient={isLegacy}
                 />
-
-                {canDelete ? (
-                  <div className="pt-2">
-                    <AlertDialog>
-                      <AlertDialogTrigger
-                        render={
-                          <Button
-                            type="button"
-                            variant="destructive-outline"
-                            data-testid="oauth-client-details-delete-trigger"
-                            disabled={isDeletePending}
-                            className="w-auto"
-                          />
-                        }>
-                        <TrashIcon aria-hidden />
-                        {t("delete_oauth_client")}
-                      </AlertDialogTrigger>
-                      <AlertDialogPopup>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>{t("delete_oauth_client")}</AlertDialogTitle>
-                          <AlertDialogDescription className="mb-4">
-                            {t("confirm_delete_oauth_client")}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogClose render={<Button variant="ghost" />}>
-                            {t("cancel")}
-                          </AlertDialogClose>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            loading={isDeletePending}
-                            data-testid="oauth-client-details-delete-confirm"
-                            onClick={() => onDelete?.(client.clientId)}>
-                            {isDeletePending ? t("deleting") : t("delete")}
-                          </Button>
-                        </AlertDialogFooter>
-                      </AlertDialogPopup>
-                    </AlertDialog>
-                  </div>
-                ) : null}
               </DialogPanel>
               <DialogFooter>
                 <div className="flex gap-2 justify-end items-center w-full">
-                  <DialogClose
-                    render={<Button variant="ghost" />}
-                    data-testid="oauth-client-details-close">
+                  <DialogClose render={<Button variant="ghost" />} data-testid="oauth-client-details-close">
                     {t("close")}
                   </DialogClose>
                   {canReject ? (
@@ -347,11 +295,11 @@ const OAuthClientDetailsDialog = ({
                       <AlertDialogPopup>
                         <AlertDialogHeader>
                           <AlertDialogTitle>{t("reject_oauth_client")}</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t("reason_for_rejection")}
-                          </AlertDialogDescription>
+                          <AlertDialogDescription>{t("reason_for_rejection")}</AlertDialogDescription>
                           <div className="mt-2 space-y-2">
-                            <Label htmlFor="oauth-rejection-reason" className="sr-only">{t("reason_for_rejection")}</Label>
+                            <Label htmlFor="oauth-rejection-reason" className="sr-only">
+                              {t("reason_for_rejection")}
+                            </Label>
                             <Textarea
                               id="oauth-rejection-reason"
                               data-testid="oauth-client-details-rejection-reason"
@@ -370,7 +318,9 @@ const OAuthClientDetailsDialog = ({
                           </div>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogClose render={<Button variant="ghost" />}>{t("cancel")}</AlertDialogClose>
+                          <AlertDialogClose render={<Button variant="ghost" />}>
+                            {t("cancel")}
+                          </AlertDialogClose>
                           <Button
                             type="button"
                             variant="destructive"
@@ -399,16 +349,13 @@ const OAuthClientDetailsDialog = ({
                     </Button>
                   ) : null}
                   {canEdit ? (
-                    <Button
-                      type="submit"
-                      loading={isUpdatePending}
-                      data-testid="oauth-client-details-save">
+                    <Button type="submit" loading={isUpdatePending} data-testid="oauth-client-details-save">
                       {t("save")}
                     </Button>
                   ) : null}
                 </div>
               </DialogFooter>
-            </Form>
+            </form>
           ) : null}
         </DialogPopup>
       </Dialog>
