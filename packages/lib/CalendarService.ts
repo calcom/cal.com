@@ -463,23 +463,25 @@ export default abstract class BaseCalendarService implements Calendar {
         : undefined;
 
       // We create the event directly on iCal
+      const targetCalendars = mainHostDestinationCalendar?.externalId
+        ? calendars.filter((c) => c.externalId === mainHostDestinationCalendar.externalId)
+        : calendars.slice(0, 1);
+
+      if (targetCalendars.length === 0) {
+        throw new Error("No target calendars found to create CalDAV calendar entry");
+      }
+
       const responses = await Promise.all(
-        calendars
-          .filter((c) =>
-            mainHostDestinationCalendar?.externalId
-              ? c.externalId === mainHostDestinationCalendar.externalId
-              : true
-          )
-          .map((calendar) =>
-            createCalendarObject({
-              calendar: {
-                url: calendar.externalId,
-              },
-              filename: `${uid}.ics`,
-              iCalString: injectScheduleAgent(iCalStringWithTimezone),
-              headers: this.headers,
-            })
-          )
+        targetCalendars.map((calendar) =>
+          createCalendarObject({
+            calendar: {
+              url: calendar.externalId,
+            },
+            filename: `${uid}.ics`,
+            iCalString: injectScheduleAgent(iCalStringWithTimezone),
+            headers: this.headers,
+          })
+        )
       );
 
       if (responses.some((r) => !r.ok)) {
