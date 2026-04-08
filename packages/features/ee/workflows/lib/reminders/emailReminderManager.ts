@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { generateBriefing } from "@calcom/features/bookings/lib/generateBriefing";
 import { BookingSeatRepository } from "@calcom/features/bookings/repositories/BookingSeatRepository";
 import { EmailWorkflowService } from "@calcom/features/ee/workflows/lib/service/EmailWorkflowService";
 import { WorkflowService } from "@calcom/features/ee/workflows/lib/service/WorkflowService";
@@ -15,6 +16,7 @@ import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import type { WorkflowContextData } from "./reminderScheduler";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate, { transformRoutingFormResponsesToVariableFormat } from "./templates/customTemplate";
+import { bookingBriefTemplate } from "./templates/bookingBriefTemplate";
 
 const log = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
 
@@ -229,6 +231,64 @@ const scheduleEmailReminderForForm = async (
     scheduledDate: null,
   });
 };
+
+export async function scheduleBookingBrief(params: {
+  bookingUid: string;
+  organizerName: string;
+  organizerEmail: string;
+  attendeeName: string;
+  attendeeEmail: string;
+  eventTitle: string;
+  startTime: Date;
+  timeZone: string;
+  responses: Record<string, { label: string; value: string | string[] }>;
+}): Promise<void> {
+  try {
+    const briefing = await generateBriefing({
+      organizerName: params.organizerName,
+      organizerEmail: params.organizerEmail,
+      attendeeName: params.attendeeName,
+      attendeeEmail: params.attendeeEmail,
+      eventTitle: params.eventTitle,
+      startTime: params.startTime,
+      responses: params.responses,
+      timeZone: params.timeZone,
+    });
+    if (!briefing) {
+      console.error("[BookingBrief] Skipping — briefing generation returned null");
+      return;
+    }
+    let scheduledDate = new Date(params.startTime.getTime() - 30 * 60 * 1000);
+    const now = new Date();
+    if (scheduledDate <= now) scheduledDate = new Date(now.getTime() + 5000);
+    const { subject, html } = bookingBriefTemplate({
+      organizerName: params.organizerName,
+      attendeeName: params.attendeeName,
+      eventTitle: params.eventTitle,
+      startTime: params.startTime,
+      timeZone: params.timeZone,
+      briefing,
+    });
+    const reminder = await prisma.workflowReminder.create({
+      data: {
+        bookingUid: params.bookingUid,
+        method: WorkflowMethods.EMAIL,
+        scheduledDate,
+        scheduled: true,
+      },
+    });
+  const sendImmediately = process.env.BOOKING_BRIEF_SEND_IMMEDIATELY === "true";
+await sendOrScheduleWorkflowEmails({
+  to: [params.organizerEmail],
+  subject,
+  html,
+  sendAt: sendImmediately ? null : scheduledDate,
+  referenceUid: reminder.uuid ?? undefined,
+});
+  } catch (err) {
+    console.error("[BookingBrief]", err);
+  }
+}
 
 export const deleteScheduledEmailReminder = async (reminderId: number) => {
   const workflowReminder = await prisma.workflowReminder.findUnique({

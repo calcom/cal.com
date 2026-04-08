@@ -536,6 +536,8 @@
   "error_schedule_unauthorized_create": "You are not able to create this schedule",
   "booking_already_cancelled": "This booking was already canceled",
   "booking_already_accepted_rejected": "This booking was already accepted or rejected",
+  "booking_brief_email_subject": "Booking Brief: {{attendeeName}} — {{eventTitle}}",
+  "booking_brief_prep_tip_label": "Prep tip",
   "go_back_home": "Go back home",
   "or_go_back_home": "Or go back home",
   "no_meeting_found": "No meeting found",
