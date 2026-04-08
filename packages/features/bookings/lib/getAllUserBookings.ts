@@ -34,9 +34,18 @@ type GetOptions = {
     bookingUid?: string | undefined;
   };
   sort?: SortOptions;
+  requireExactCount?: boolean;
 };
 
-const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, skip, sort }: GetOptions) => {
+const getAllUserBookings = async ({
+  ctx,
+  filters,
+  bookingListingByStatus,
+  take,
+  skip,
+  sort,
+  requireExactCount,
+}: GetOptions) => {
   const { prisma, user, kysely } = ctx;
 
   // Support both singular 'status' and plural 'statuses' for backward compatibility
@@ -45,7 +54,7 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
   // Use optional chaining to handle this defensively.
   const statusesFilter = filters?.statuses ?? (filters?.status ? [filters.status] : bookingListingByStatus);
 
-  const { bookings, recurringInfo, totalCount, isEstimate } = await getBookings({
+  return getBookings({
     user,
     prisma,
     kysely,
@@ -57,14 +66,8 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
     sort,
     take,
     skip,
+    requireExactCount,
   });
-
-  return {
-    bookings,
-    recurringInfo,
-    totalCount,
-    ...(isEstimate && { isEstimate }),
-  };
 };
 
 export default getAllUserBookings;

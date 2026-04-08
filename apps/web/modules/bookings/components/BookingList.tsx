@@ -23,6 +23,7 @@ type BookingListViewProps = {
   table: ReactTable<RowData>;
   isPending: boolean;
   totalRowCount?: number;
+  hasNextPage?: boolean;
   ErrorView?: React.ReactNode;
   hasError?: boolean;
 };
@@ -32,6 +33,7 @@ export function BookingList({
   table,
   isPending,
   totalRowCount,
+  hasNextPage,
   ErrorView,
   hasError,
 }: BookingListViewProps) {
@@ -46,6 +48,7 @@ export function BookingList({
       headerClassName="hidden"
       isPending={isPending}
       totalRowCount={totalRowCount}
+      hasNextPage={hasNextPage}
       variant="compact"
       paginationMode="standard"
       separatorClassName="py-4 pl-6 text-xs uppercase leading-4"

@@ -55,6 +55,7 @@ export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
     const result = await utils.viewer.bookings.get.fetch({
       limit: BATCH_SIZE,
       offset,
+      requireExactCount: true,
       filters: {
         statuses: [status],
         eventTypeIds,
@@ -72,7 +73,7 @@ export function BookingsCsvDownload({ status }: BookingsCsvDownloadProps) {
 
     return {
       bookings: result.bookings,
-      totalCount: result.totalCount,
+      totalCount: result.totalCount!,
     };
   };
 

@@ -75,6 +75,7 @@ interface BookingListInnerProps extends BookingListContainerProps {
   hasError: boolean;
   errorMessage?: string;
   totalRowCount?: number;
+  hasNextPage?: boolean;
   bookings: BookingsGetOutput["bookings"];
 }
 
@@ -90,6 +91,7 @@ function BookingListInner({
   hasError,
   errorMessage,
   totalRowCount,
+  hasNextPage,
 }: BookingListInnerProps) {
   const { t } = useLocale();
   const user = useMeQuery().data;
@@ -215,6 +217,7 @@ function BookingListInner({
           table={table}
           isPending={isPending}
           totalRowCount={totalRowCount}
+          hasNextPage={hasNextPage}
           ErrorView={ErrorView}
           hasError={hasError}
         />
@@ -304,7 +307,8 @@ export function BookingListContainer(props: BookingListContainerProps) {
         isPending={query.isPending}
         hasError={!!query.error}
         errorMessage={query.error?.message}
-        totalRowCount={query.data?.totalCount}
+        totalRowCount={query.data?.totalCount ?? undefined}
+        hasNextPage={query.data?.hasMore}
         bookings={bookings}
       />
     </BookingDetailsSheetStoreProvider>

@@ -32,6 +32,7 @@ export type TGetInputRawSchema = {
   offset?: number;
   cursor?: string;
   sort?: TGetInputSchemaSort;
+  requireExactCount?: boolean;
 };
 
 export type TGetInputSchema = {
@@ -40,6 +41,7 @@ export type TGetInputSchema = {
   offset: number;
   cursor?: string;
   sort?: TGetInputSchemaSort;
+  requireExactCount?: boolean;
 };
 
 export const ZGetInputSchema: z.ZodType<TGetInputSchema, z.ZodTypeDef, TGetInputRawSchema> = z.object({
@@ -70,4 +72,5 @@ export const ZGetInputSchema: z.ZodType<TGetInputSchema, z.ZodTypeDef, TGetInput
       sortStart: z.enum(["asc", "desc"]).optional(),
     })
     .optional(),
+  requireExactCount: z.boolean().optional(),
 });

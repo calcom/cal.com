@@ -11,7 +11,8 @@ import { Select } from "../form/select";
 export interface PaginationProps {
   currentPage: number;
   pageSize: number;
-  totalItems: number;
+  totalItems?: number;
+  hasNextPage?: boolean;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
   onNext?: () => void;
@@ -25,6 +26,7 @@ export const Pagination = ({
   currentPage,
   pageSize,
   totalItems,
+  hasNextPage,
   onPageChange,
   onPageSizeChange,
   pageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS,
@@ -33,14 +35,14 @@ export const Pagination = ({
 }: PaginationProps) => {
   const { t } = useLocale();
   const [internalPageSize, setInternalPageSize] = useState(pageSize);
-  const totalPages = Math.ceil(totalItems / pageSize);
+  const knowsTotal = totalItems != null;
+  const totalPages = knowsTotal ? Math.ceil(totalItems / pageSize) : undefined;
 
   const handlePageSizeChange = (option: { value: number; label: string } | null) => {
     if (option) {
       const newPageSize = option.value;
       setInternalPageSize(newPageSize);
       onPageSizeChange(newPageSize);
-      // Reset to first page when changing page size
       onPageChange(1);
     }
   };
@@ -53,7 +55,8 @@ export const Pagination = ({
   };
 
   const handleNext = () => {
-    if (currentPage < totalPages) {
+    const canGoNext = totalPages !== undefined ? currentPage < totalPages : hasNextPage;
+    if (canGoNext) {
       onPageChange(currentPage + 1);
       onNext?.();
     }
@@ -65,7 +68,8 @@ export const Pagination = ({
   }));
 
   const startItem = (currentPage - 1) * pageSize + 1;
-  const endItem = Math.min(currentPage * pageSize, totalItems);
+  const endItem = knowsTotal ? Math.min(currentPage * pageSize, totalItems) : currentPage * pageSize;
+  const isNextDisabled = totalPages !== undefined ? currentPage >= totalPages : !hasNextPage;
 
   return (
     <div className="flex items-center justify-between space-x-2">
@@ -81,10 +85,12 @@ export const Pagination = ({
       </div>
       <div className="flex items-center space-x-2">
         <span className="text-default text-sm">
-          {t("pagination_status", {
-            currentRange: `${startItem}-${endItem}`,
-            totalItems,
-          })}
+          {knowsTotal
+            ? t("pagination_status", {
+                currentRange: `${startItem}-${endItem}`,
+                totalItems,
+              })
+            : `${startItem}-${endItem}`}
         </span>
         <ButtonGroup containerProps={{ className: "space-x-1.5" }}>
           <Button
@@ -99,7 +105,7 @@ export const Pagination = ({
             variant="icon"
             StartIcon="arrow-right"
             onClick={handleNext}
-            disabled={currentPage >= totalPages}
+            disabled={isNextDisabled}
             color="secondary"
             size="sm"
           />

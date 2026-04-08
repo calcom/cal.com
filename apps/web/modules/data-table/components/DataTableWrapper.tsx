@@ -37,7 +37,7 @@ type InfinitePaginationProps<TData> = BaseDataTableWrapperProps<TData> & {
 
 type StandardPaginationProps<TData> = BaseDataTableWrapperProps<TData> & {
   paginationMode: "standard";
-  hasNextPage?: never;
+  hasNextPage?: boolean;
   fetchNextPage?: never;
   isFetching?: never;
 };
@@ -168,6 +168,7 @@ export function DataTableWrapper<TData>({
             <DataTablePagination<TData>
               table={table}
               totalRowCount={totalRowCount}
+              hasNextPage={paginationMode === "standard" ? hasNextPage : undefined}
               paginationMode={paginationMode}
             />
           </div>

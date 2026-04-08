@@ -15,7 +15,8 @@ import { Prisma } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
-import type { Kysely, SelectQueryBuilder } from "kysely";
+import type { ExpressionBuilder, Kysely, SelectQueryBuilder } from "kysely";
+import { sql } from "kysely";
 import { jsonArrayFrom, jsonObjectFrom } from "kysely/helpers/postgres";
 import type { TrpcSessionUser } from "../../../types";
 import type { TGetInputSchema } from "./get.schema";
@@ -31,8 +32,6 @@ type GetOptions = {
 type InputByStatus = "upcoming" | "recurring" | "past" | "cancelled" | "unconfirmed";
 
 const log = logger.getSubLogger({ prefix: ["bookings.get"] });
-
-export const ESTIMATED_COUNT_THRESHOLD = 1_000;
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   // Support both offset-based (list) and cursor-based pagination (calendar)
@@ -55,7 +54,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     ? input.filters.statuses
     : [input.filters.status || defaultStatus];
 
-  const { bookings, recurringInfo, totalCount, isEstimate } = await getAllUserBookings({
+  const { bookings, recurringInfo, totalCount, hasMore } = await getAllUserBookings({
     ctx: {
       user: { id: user.id, email: user.email, orgId: user?.profile?.organizationId },
       prisma: prisma,
@@ -66,19 +65,18 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     skip,
     filters: input.filters,
     sort: input.sort,
+    requireExactCount: input.requireExactCount,
   });
 
-  // Generate next cursor for infinite query support
   const nextOffset = skip + take;
-  const hasMore = nextOffset < totalCount;
   const nextCursor = hasMore ? nextOffset.toString() : undefined;
 
   return {
     bookings,
     recurringInfo,
-    totalCount,
     nextCursor,
-    ...(isEstimate && { isEstimate }),
+    totalCount,
+    hasMore: hasMore ?? false,
   };
 };
 
@@ -88,17 +86,7 @@ type BookingsUnionQuery = SelectQueryBuilder<
   Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">
 >;
 
-export async function getBookings({
-  user,
-  prisma,
-  kysely,
-  bookingListingByStatus,
-  sort,
-  filters,
-  take,
-  skip,
-  estimatedCountThreshold = ESTIMATED_COUNT_THRESHOLD,
-}: {
+type GetBookingsBaseParams = {
   user: { id: number; email: string; orgId?: number | null };
   filters: TGetInputSchema["filters"];
   prisma: PrismaClient;
@@ -112,8 +100,19 @@ export async function getBookings({
   };
   take: number;
   skip: number;
-  estimatedCountThreshold?: number;
-}) {
+};
+
+export async function getBookings({
+  user,
+  prisma,
+  kysely,
+  bookingListingByStatus,
+  sort,
+  filters,
+  take,
+  skip,
+  requireExactCount = false,
+}: GetBookingsBaseParams & { requireExactCount?: boolean }) {
   const permissionCheckService = new PermissionCheckService();
   const fallbackRoles: MembershipRole[] = [MembershipRole.ADMIN, MembershipRole.OWNER];
 
@@ -449,26 +448,29 @@ export async function getBookings({
     return { compiled: outerQuery.compile(), queryUnion };
   }
 
-  const isPastQuery =
-    bookingListingByStatus.length === 1 && bookingListingByStatus[0] === "past";
+  const isPastQuery = bookingListingByStatus.length === 1 && bookingListingByStatus[0] === "past";
 
   let bookingsFromUnion: Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">[];
+
+  // Fetch take + 1 rows to determine hasNextPage without a count query.
+  // The extra row is stripped before returning results.
+  const fetchLimit = take + 1;
 
   if (isPastQuery) {
     // Progressive window: start narrow (1 week), widen until we have enough results.
     // Each subsequent query only fetches the gap between the previous window boundary
     // and the new one, so we never re-scan rows we've already seen.
     //
-    // We fetch skip + take total rows without SQL OFFSET, then discard the first
+    // We fetch skip + fetchLimit total rows without SQL OFFSET, then discard the first
     // `skip` in memory. This is necessary because offset-based pagination can't be
     // split across independent window queries (window 1 might have fewer rows than skip).
     const now = new Date();
     const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
     // 1w, 4w (~1mo), 12w (~3mo), 48w (~1yr), unbounded
     const windowMultipliers: (number | null)[] = [1, 4, 12, 48, null];
-    const needed = skip + take;
+    const needed = skip + fetchLimit;
 
-    let allRows: typeof bookingsFromUnion = [];
+    const allRows: typeof bookingsFromUnion = [];
     let previousBoundary: Date | undefined;
 
     for (const multiplier of windowMultipliers) {
@@ -492,62 +494,56 @@ export async function getBookings({
       previousBoundary = startTimeAfter;
     }
 
-    bookingsFromUnion = allRows.slice(skip, skip + take);
+    bookingsFromUnion = allRows.slice(skip, skip + fetchLimit);
   } else {
-    const { compiled } = buildQuery({ limit: take, offset: skip });
+    const { compiled } = buildQuery({ limit: fetchLimit, offset: skip });
     bookingsFromUnion = (await kysely.executeQuery(compiled)).rows;
   }
 
-  // For count queries, use an unbounded union (no startTime window) so pagination totals are correct
-  const { queryUnion: countQueryUnion } = buildQuery();
+  // Determine hasNextPage from the extra row, then trim to the requested page size.
+  const hasNextPage = bookingsFromUnion.length > take;
+  if (hasNextPage) {
+    bookingsFromUnion = bookingsFromUnion.slice(0, take);
+  }
 
   log.debug(`Get bookings for user ${user.id}`);
 
   const hasTeamAccess = !!teamIdsWithBookingPermission?.length;
 
-  let totalCount: number;
-  let isEstimate = false;
+  // totalCount derivation:
+  //   - Page not full: derived for free (skip + rows)
+  //   - requireExactCount (API): always compute via fast count
+  //   - Personal bookings: compute via fast count (cheap)
+  //   - Team bookings without requireExactCount: skip (expensive)
+  let totalCount: number | null = null;
 
-  if (bookingsFromUnion.length < take) {
-    // Page isn't full — exact count is known without a query.
+  if (!hasNextPage) {
     totalCount = skip + bookingsFromUnion.length;
-  } else if (hasTeamAccess) {
-    // For team access queries, the exact COUNT is expensive — the UNION ALL
-    // of 7 branches forces PG into ~300K index lookups from shared buffers.
-    // Use EXPLAIN to gauge the result set size first (~10ms).
-    const countQuery = kysely
-      .selectFrom(countQueryUnion.as("union_subquery"))
-      .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
-      .compile();
-    const explainResult = await prisma.$queryRawUnsafe<
-      [{ "QUERY PLAN": [{ Plan: { Plans?: [{ "Plan Rows": number }]; "Plan Rows": number } }] }]
-    >(`EXPLAIN (FORMAT JSON) ${countQuery.sql}`, ...countQuery.parameters);
-    const topPlan = explainResult[0]?.["QUERY PLAN"]?.[0]?.Plan;
-    const estimatedRows = topPlan?.Plans?.[0]?.["Plan Rows"] ?? topPlan?.["Plan Rows"] ?? 0;
-
-    if (estimatedRows < estimatedCountThreshold) {
-      // Small enough that exact COUNT is fast — run it for accurate pagination.
-      totalCount = Number(
-        (
-          await kysely
-            .selectFrom(countQueryUnion.as("union_subquery"))
-            .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
-            .executeTakeFirst()
-        )?.bookingCount ?? 0
-      );
-    } else {
-      totalCount = Math.round(estimatedRows);
-      isEstimate = true;
+  } else if (requireExactCount || !hasTeamAccess) {
+    {
+      const { queryUnion: countQueryUnion } = buildQuery();
+      const fastCount = await getFastExactCount({
+        kysely,
+        user,
+        bookingListingByStatus,
+        filters,
+        eventTypeIdsFromTeamIdsFilter,
+        eventTypeIdsFromEventTypeIdsFilter,
+        teamIdsWithBookingPermission,
+      });
+      if (fastCount !== null) {
+        totalCount = fastCount;
+      } else {
+        totalCount = Number(
+          (
+            await kysely
+              .selectFrom(countQueryUnion.as("union_subquery"))
+              .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
+              .executeTakeFirst()
+          )?.bookingCount ?? 0
+        );
+      }
     }
-  } else {
-    totalCount = Number(
-      (
-        await kysely
-          .selectFrom(countQueryUnion.as("union_subquery"))
-          .select(({ fn }) => fn.count("union_subquery.id").distinct().as("bookingCount"))
-          .executeTakeFirst()
-      )?.bookingCount ?? 0
-    );
   }
 
   const plainBookings = !(bookingsFromUnion?.length === 0)
@@ -921,7 +917,12 @@ export async function getBookings({
   // Enrich attendees with user data
   const enrichedBookings = await enrichAttendeesWithUserData(bookings, kysely);
 
-  return { bookings: enrichedBookings, recurringInfo, totalCount, ...(isEstimate && { isEstimate }) };
+  return {
+    bookings: enrichedBookings,
+    recurringInfo,
+    hasMore: hasNextPage || undefined,
+    totalCount,
+  };
 }
 
 type EnrichedUserData = {
@@ -1130,63 +1131,280 @@ async function getUserIdsFromTeamIds(prisma: PrismaClient, teamIds: number[]): P
   return Array.from(new Set(users.map((user) => user.id)));
 }
 
+/**
+ * Fast exact count for personal bookings (no team access).
+ *
+ * Instead of COUNT(DISTINCT id) over a 3-branch UNION ALL, this runs two
+ * simpler queries that each hit a single index:
+ *
+ * 1. COUNT(*) on Booking where userId = :id  (organizer bookings)
+ * 2. COUNT(*) on Booking JOIN Attendee where email = :email AND userId != :id
+ *    (attendee-only bookings, excluding already-counted organizer ones)
+ *
+ * The sum gives the exact total. Branch 3 (seated attendee) is a subset of
+ * branch 2 — same Attendee.email filter — so it doesn't need a separate count.
+ *
+ * Returns null when the fast path can't be used (complex filters active),
+ * signalling the caller to fall back to the UNION-based count.
+ */
+/**
+ * Fast exact count that avoids COUNT(DISTINCT) over the full UNION ALL.
+ *
+ * Personal bookings (no team access): two parallel queries:
+ *   1. COUNT(*) WHERE userId = :id  (organizer)
+ *   2. COUNT(DISTINCT id) JOIN Attendee WHERE email = :email AND userId != :id
+ *      (attendee-only, excludes organizer dupes)
+ *
+ * Team access: single query using EXISTS to deduplicate without UNION:
+ *   COUNT(*) FROM Booking WHERE
+ *     userId IN (team members via Membership subquery)
+ *     OR eventTypeId IN (team event types via EventType subquery)
+ *     OR EXISTS (Attendee with email in team member emails via Membership subquery)
+ *
+ * Returns null when filters prevent the fast path (attendeeName, attendeeEmail,
+ * bookingUid, userIds), signalling the caller to fall back to the UNION count.
+ */
+async function getFastExactCount({
+  kysely: db,
+  user,
+  bookingListingByStatus,
+  filters,
+  eventTypeIdsFromTeamIdsFilter,
+  eventTypeIdsFromEventTypeIdsFilter,
+  teamIdsWithBookingPermission,
+}: {
+  kysely: Kysely<DB>;
+  user: { id: number; email: string };
+  bookingListingByStatus: InputByStatus[];
+  filters: TGetInputSchema["filters"];
+  eventTypeIdsFromTeamIdsFilter: number[] | undefined;
+  eventTypeIdsFromEventTypeIdsFilter: number[] | undefined;
+  teamIdsWithBookingPermission: number[] | undefined;
+}): Promise<number | null> {
+  // Bail out when filters change which bookings match in ways we can't decompose.
+  if (filters?.attendeeName || filters?.attendeeEmail || filters?.bookingUid) {
+    return null;
+  }
+  if (filters?.userIds?.length) {
+    return null;
+  }
+
+  type CountQuery = SelectQueryBuilder<DB, "Booking", { id: number }>;
+
+  function applyCountFilters(query: CountQuery): CountQuery {
+    return query
+      .$if(bookingListingByStatus.length > 0, (qb) =>
+        qb.where(buildStatusWhereClause(bookingListingByStatus))
+      )
+      .$if(!!eventTypeIdsFromTeamIdsFilter?.length, (qb) =>
+        qb.where("Booking.eventTypeId", "in", eventTypeIdsFromTeamIdsFilter!)
+      )
+      .$if(!!eventTypeIdsFromEventTypeIdsFilter?.length, (qb) =>
+        qb.where("Booking.eventTypeId", "in", eventTypeIdsFromEventTypeIdsFilter!)
+      )
+      .$if(!!filters?.afterStartDate, (qb) =>
+        qb.where("Booking.startTime", ">=", dayjs.utc(filters!.afterStartDate).toDate())
+      )
+      .$if(!!filters?.beforeEndDate, (qb) =>
+        qb.where("Booking.endTime", "<=", dayjs.utc(filters!.beforeEndDate).toDate())
+      )
+      .$if(!!filters?.afterUpdatedDate, (qb) =>
+        qb.where("Booking.updatedAt", ">=", dayjs.utc(filters!.afterUpdatedDate).toDate())
+      )
+      .$if(!!filters?.beforeUpdatedDate, (qb) =>
+        qb.where("Booking.updatedAt", "<=", dayjs.utc(filters!.beforeUpdatedDate).toDate())
+      )
+      .$if(!!filters?.afterCreatedDate, (qb) =>
+        qb.where("Booking.createdAt", ">=", dayjs.utc(filters!.afterCreatedDate).toDate())
+      )
+      .$if(!!filters?.beforeCreatedDate, (qb) =>
+        qb.where("Booking.createdAt", "<=", dayjs.utc(filters!.beforeCreatedDate).toDate())
+      );
+  }
+
+  const hasTeamAccess = !!teamIdsWithBookingPermission?.length;
+
+  if (hasTeamAccess) {
+    // Team access: three parallel counts, each hitting a single index path.
+    // This avoids the 7-branch UNION ALL + DISTINCT and the slow OR-based scan.
+    //
+    // Count A: bookings where organizer is a team member (covers UNION branches 1, 7)
+    //          Uses index on (userId, status, startTime)
+    // Count B: bookings for a team event type where organizer is NOT a team member
+    //          (covers branch 6, excluding overlap with A)
+    //          Uses index on (eventTypeId)
+    // Count C: bookings where a team member is an attendee but organizer is NOT a
+    //          team member and event type is NOT a team event type
+    //          (covers branches 2-5, excluding overlap with A and B)
+    //          This is the rare edge case — typically near zero.
+
+    const teamMemberSubquery = (qb: ExpressionBuilder<DB, "Booking">) =>
+      qb
+        .selectFrom("Membership")
+        .select("Membership.userId")
+        .where("Membership.teamId", "in", teamIdsWithBookingPermission!);
+
+    const teamEventTypeSubquery = (qb: ExpressionBuilder<DB, "Booking">) =>
+      qb
+        .selectFrom("EventType")
+        .select("EventType.id")
+        .where("EventType.teamId", "in", teamIdsWithBookingPermission!);
+
+    // A: organizer is team member
+    const countA = applyCountFilters(
+      db.selectFrom("Booking").select("Booking.id").where("Booking.userId", "in", teamMemberSubquery)
+    );
+
+    // B: team event type, organizer NOT a team member
+    // Use OR IS NULL to handle nullable userId — NULL NOT IN (...) evaluates to NULL in SQL.
+    const countB = applyCountFilters(
+      db
+        .selectFrom("Booking")
+        .select("Booking.id")
+        .where("Booking.eventTypeId", "in", teamEventTypeSubquery)
+        .where((eb) =>
+          eb.or([eb("Booking.userId", "not in", teamMemberSubquery), eb("Booking.userId", "is", null)])
+        )
+    );
+
+    // C: team member is attendee, not covered by A or B
+    // Uses EXISTS to avoid joining Attendee/users/Membership into the outer query,
+    // which would change the table set and break Kysely's type inference.
+    // Use OR IS NULL for both nullable columns — NULL NOT IN (...) evaluates to NULL in SQL.
+    const countC = applyCountFilters(
+      db
+        .selectFrom("Booking")
+        .select("Booking.id")
+        .where((eb) =>
+          eb.or([eb("Booking.userId", "not in", teamMemberSubquery), eb("Booking.userId", "is", null)])
+        )
+        .where((eb) =>
+          eb.or([
+            eb("Booking.eventTypeId", "not in", teamEventTypeSubquery),
+            eb("Booking.eventTypeId", "is", null),
+          ])
+        )
+        .where(({ exists }) =>
+          exists(
+            db
+              .selectFrom("Attendee")
+              .select("Attendee.id")
+              .innerJoin("users", "users.email", "Attendee.email")
+              .innerJoin("Membership", "Membership.userId", "users.id")
+              .where("Membership.teamId", "in", teamIdsWithBookingPermission)
+              .where("Attendee.bookingId", "=", sql.ref<number>("Booking.id"))
+          )
+        )
+    );
+
+    const [resultA, resultB, resultC] = await Promise.all([
+      db
+        .selectFrom(countA.as("a"))
+        .select(({ fn }) => fn.countAll<string>().as("cnt"))
+        .executeTakeFirst(),
+      db
+        .selectFrom(countB.as("b"))
+        .select(({ fn }) => fn.countAll<string>().as("cnt"))
+        .executeTakeFirst(),
+      db
+        .selectFrom(countC.as("c"))
+        .select(({ fn }) => fn.count<string>("c.id").distinct().as("cnt"))
+        .executeTakeFirst(),
+    ]);
+
+    return Number(resultA?.cnt ?? 0) + Number(resultB?.cnt ?? 0) + Number(resultC?.cnt ?? 0);
+  }
+
+  // Personal bookings: two parallel counts that avoid UNION + DISTINCT.
+  const organizerQuery = applyCountFilters(
+    db.selectFrom("Booking").select("Booking.id").where("Booking.userId", "=", user.id)
+  );
+
+  const attendeeQuery = applyCountFilters(
+    db
+      .selectFrom("Booking")
+      .select("Booking.id")
+      .where((eb) => eb.or([eb("Booking.userId", "is", null), eb("Booking.userId", "!=", user.id)]))
+  )
+    .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+    .where("Attendee.email", "=", user.email);
+
+  const [organizerResult, attendeeResult] = await Promise.all([
+    db
+      .selectFrom(organizerQuery.as("org_sub"))
+      .select(({ fn }) => fn.countAll<string>().as("cnt"))
+      .executeTakeFirst(),
+    db
+      .selectFrom(attendeeQuery.as("att_sub"))
+      .select(({ fn }) => fn.count<string>("att_sub.id").distinct().as("cnt"))
+      .executeTakeFirst(),
+  ]);
+
+  return Number(organizerResult?.cnt ?? 0) + Number(attendeeResult?.cnt ?? 0);
+}
+
+function buildStatusWhereClause(
+  statuses: InputByStatus[],
+  pastWindow?: { startTimeAfter: Date; startTimeBefore?: Date }
+) {
+  return ({ eb, or, and }: ExpressionBuilder<DB, "Booking">) =>
+    or(
+      statuses.map((status: InputByStatus) => {
+        if (status === "upcoming") {
+          return and([
+            eb("Booking.endTime", ">=", new Date()),
+            or([
+              and([eb("Booking.recurringEventId", "is not", null), eb("Booking.status", "=", "accepted")]),
+              and([
+                eb("Booking.recurringEventId", "is", null),
+                eb("Booking.status", "not in", ["cancelled", "rejected"]),
+              ]),
+            ]),
+          ]);
+        }
+
+        if (status === "recurring") {
+          return and([
+            eb("Booking.endTime", ">=", new Date()),
+            eb("Booking.recurringEventId", "is not", null),
+            eb("Booking.status", "not in", ["cancelled", "rejected"]),
+          ]);
+        }
+
+        if (status === "past") {
+          const now = new Date();
+          const conditions = [
+            eb("Booking.endTime", "<=", now),
+            eb("Booking.status", "not in", ["cancelled", "rejected"]),
+          ];
+          if (pastWindow) {
+            conditions.push(eb("Booking.startTime", ">=", pastWindow.startTimeAfter));
+            if (pastWindow.startTimeBefore) {
+              conditions.push(eb("Booking.startTime", "<", pastWindow.startTimeBefore));
+            }
+          }
+          return and(conditions);
+        }
+
+        if (status === "cancelled") {
+          return eb("Booking.status", "in", ["cancelled", "rejected"]);
+        }
+
+        if (status === "unconfirmed") {
+          return and([eb("Booking.endTime", ">=", new Date()), eb("Booking.status", "=", "pending")]);
+        }
+        return and([]);
+      })
+    );
+}
+
 function addStatusesQueryFilters(
   query: BookingsUnionQuery,
   statuses: InputByStatus[],
   pastWindow?: { startTimeAfter: Date; startTimeBefore?: Date }
 ) {
   if (statuses?.length) {
-    return query.where(({ eb, or, and }) =>
-      or(
-        statuses.map((status) => {
-          if (status === "upcoming") {
-            return and([
-              eb("Booking.endTime", ">=", new Date()),
-              or([
-                and([eb("Booking.recurringEventId", "is not", null), eb("Booking.status", "=", "accepted")]),
-                and([
-                  eb("Booking.recurringEventId", "is", null),
-                  eb("Booking.status", "not in", ["cancelled", "rejected"]),
-                ]),
-              ]),
-            ]);
-          }
-
-          if (status === "recurring") {
-            return and([
-              eb("Booking.endTime", ">=", new Date()),
-              eb("Booking.recurringEventId", "is not", null),
-              eb("Booking.status", "not in", ["cancelled", "rejected"]),
-            ]);
-          }
-
-          if (status === "past") {
-            const now = new Date();
-            const conditions = [
-              eb("Booking.endTime", "<=", now),
-              eb("Booking.status", "not in", ["cancelled", "rejected"]),
-            ];
-            if (pastWindow) {
-              // Bound startTime so Postgres can use the [startTime, endTime, status] index
-              conditions.push(eb("Booking.startTime", ">=", pastWindow.startTimeAfter));
-              if (pastWindow.startTimeBefore) {
-                conditions.push(eb("Booking.startTime", "<", pastWindow.startTimeBefore));
-              }
-            }
-            return and(conditions);
-          }
-
-          if (status === "cancelled") {
-            return eb("Booking.status", "in", ["cancelled", "rejected"]);
-          }
-
-          if (status === "unconfirmed") {
-            return and([eb("Booking.endTime", ">=", new Date()), eb("Booking.status", "=", "pending")]);
-          }
-          return and([]);
-        })
-      )
-    );
+    return query.where(buildStatusWhereClause(statuses, pastWindow));
   }
 
   return query;

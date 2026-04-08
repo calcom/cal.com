@@ -150,10 +150,11 @@ export class BookingsController_2024_04_15 {
         prisma: this.prismaReadService.prisma as unknown as PrismaClient,
         kysely: this.kyselyReadService.kysely,
       },
+      requireExactCount: true,
     });
 
     let nextCursor = null;
-    if (bookings.totalCount > (cursor ?? 0) + (limit ?? 10)) {
+    if (bookings.totalCount! > (cursor ?? 0) + (limit ?? 10)) {
       nextCursor = (cursor ?? 0) + (limit ?? 10);
     }
     return {

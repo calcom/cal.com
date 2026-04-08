@@ -753,7 +753,7 @@ export class BookingsService_2024_08_13 {
     const skip = Math.abs(queryParams?.skip ?? 0);
     const take = Math.abs(queryParams?.take ?? 100);
 
-    const fetchedBookings: { bookings: { id: number }[]; totalCount: number } = await getAllUserBookings({
+    const fetchedBookings = await getAllUserBookings({
       bookingListingByStatus: queryParams.status || [],
       skip,
       take,
@@ -767,6 +767,7 @@ export class BookingsService_2024_08_13 {
         kysely: this.kyselyReadService.kysely,
       },
       sort: this.inputService.transformGetBookingsSort(queryParams),
+      requireExactCount: true,
     });
     // note(Lauris): fetchedBookings don't have attendees information and responses and i don't want to add them to the handler query,
     // because its used elsewhere in code that does not need that information, so i get ids, fetch bookings and then return them formatted in same order as ids.
@@ -809,7 +810,8 @@ export class BookingsService_2024_08_13 {
       }
     }
 
-    const pagination = getPagination({ skip, take, totalCount: fetchedBookings.totalCount });
+    // requireExactCount: true guarantees totalCount is a number
+    const pagination = getPagination({ skip, take, totalCount: fetchedBookings.totalCount! });
 
     return {
       bookings: formattedBookings,

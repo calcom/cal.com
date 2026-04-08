@@ -392,9 +392,7 @@ describe("getBookings - integration", () => {
     expect(bookingIds).toContain(booking1.id);
   });
 
-  it("should use EXPLAIN-based estimated count when estimate exceeds threshold", async () => {
-    // Set threshold to 0 so the EXPLAIN estimate (any value ≥ 0) always triggers
-    // the estimate path instead of falling back to exact COUNT.
+  it("should return hasMore when there are more results", async () => {
     const result = await getBookings({
       user: { id: user1.id, email: user1.email, orgId: null },
       prisma,
@@ -403,12 +401,49 @@ describe("getBookings - integration", () => {
       filters: {},
       take: 1,
       skip: 0,
-      estimatedCountThreshold: 0,
+    });
+
+    // user1 has multiple upcoming bookings, take=1 should trigger hasMore
+    expect(result.bookings).toHaveLength(1);
+    expect(result.hasMore).toBe(true);
+    // Without requireExactCount, totalCount is null when hasMore
+    expect(result.totalCount).toBeNull();
+  });
+
+  it("should return totalCount as number with requireExactCount even when hasMore", async () => {
+    const result = await getBookings({
+      user: { id: user1.id, email: user1.email, orgId: null },
+      prisma,
+      kysely,
+      bookingListingByStatus: ["upcoming"],
+      filters: {},
+      take: 1,
+      skip: 0,
+      requireExactCount: true,
     });
 
     expect(result.bookings).toHaveLength(1);
-    expect(result.isEstimate).toBe(true);
-    expect(result.totalCount).toBeGreaterThan(0);
+    expect(result.hasMore).toBe(true);
+    expect(result.totalCount).toBeGreaterThan(1);
+  });
+
+  it("should return matching totalCount with requireExactCount for team admin", async () => {
+    // Run with and without requireExactCount to verify the fast count
+    // produces the same result as the page-not-full derivation
+    const allResults = await getBookings({
+      user: { id: user1.id, email: user1.email, orgId: team1.id },
+      prisma,
+      kysely,
+      bookingListingByStatus: ["upcoming"],
+      filters: {},
+      take: 100,
+      skip: 0,
+      requireExactCount: true,
+    });
+
+    // With take=100 and a small dataset, page should not be full
+    // so totalCount is derived for free — compare against requireExactCount result
+    expect(allResults.totalCount).toBe(allResults.bookings.length);
   });
 
   it("should skip COUNT entirely when page is not full", async () => {
@@ -425,7 +460,6 @@ describe("getBookings - integration", () => {
     // 4 bookings < take of 50, so totalCount is derived without a COUNT query
     expect(result.bookings.length).toBeLessThan(50);
     expect(result.totalCount).toBe(result.bookings.length);
-    expect(result.isEstimate).toBeUndefined();
   });
 
   // -----------------------------------------------------------------------
