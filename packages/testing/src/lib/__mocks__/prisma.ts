@@ -7,7 +7,12 @@ import { getDMMF } from "@prisma/internals";
 import { createPrismock } from "prismock/build/main/lib/client";
 import { beforeEach, vi } from "vitest";
 
-vi.stubEnv("DATABASE_URL", "postgresql://user:password@localhost:5432/testdb");
+const isIntegrationMode = process.env.VITEST_MODE === "integration";
+
+// Only stub DATABASE_URL for unit tests — integration tests use the real DB connection
+if (!isIntegrationMode) {
+  vi.stubEnv("DATABASE_URL", "postgresql://user:password@localhost:5432/testdb");
+}
 
 const handlePrismockBugs = (prismock: any) => {
   const __findManyWebhook = prismock.webhook.findMany;
@@ -24,10 +29,17 @@ const handlePrismockBugs = (prismock: any) => {
 };
 
 let prismockInstance: any;
+// Holds a reference to the real PrismaClient when running in integration mode.
+// Set inside the vi.mock factory below so the proxy can delegate to it.
+let realPrismaClient: PrismaClient | null = null;
 const proxyTarget = {} as PrismaClient;
 
 const prismaMockProxy = new Proxy(proxyTarget, {
   get(target, prop) {
+    if (isIntegrationMode) {
+      if (!realPrismaClient) throw new Error("Real Prisma client not initialized yet (integration mode)");
+      return (realPrismaClient as any)[prop];
+    }
     if (!prismockInstance) {
       throw new Error("Prismock not initialized yet");
     }
@@ -37,6 +49,13 @@ const prismaMockProxy = new Proxy(proxyTarget, {
     return prismockInstance[prop];
   },
   getOwnPropertyDescriptor(target, prop) {
+    if (isIntegrationMode) {
+      if (!realPrismaClient) return undefined;
+      return (
+        Object.getOwnPropertyDescriptor(realPrismaClient, prop) ||
+        Object.getOwnPropertyDescriptor(target, prop)
+      );
+    }
     if (!prismockInstance) {
       return undefined;
     }
@@ -47,6 +66,10 @@ const prismaMockProxy = new Proxy(proxyTarget, {
     return Object.getOwnPropertyDescriptor(prismockInstance, prop);
   },
   has(target, prop) {
+    if (isIntegrationMode) {
+      if (!realPrismaClient) return false;
+      return prop in (realPrismaClient as any) || prop in target;
+    }
     if (!prismockInstance) {
       return false;
     }
@@ -56,12 +79,21 @@ const prismaMockProxy = new Proxy(proxyTarget, {
     return prop in prismockInstance;
   },
   ownKeys(_target) {
+    if (isIntegrationMode) {
+      if (!realPrismaClient) return [];
+      return Reflect.ownKeys(realPrismaClient as any);
+    }
     if (!prismockInstance) {
       return [];
     }
     return Reflect.ownKeys(prismockInstance);
   },
   set(target, prop, value) {
+    if (isIntegrationMode) {
+      if (!realPrismaClient) throw new Error("Real Prisma client not initialized yet (integration mode)");
+      (realPrismaClient as any)[prop] = value;
+      return true;
+    }
     if (!prismockInstance) {
       throw new Error("Prismock not initialized yet");
     }
@@ -71,6 +103,14 @@ const prismaMockProxy = new Proxy(proxyTarget, {
 });
 
 vi.mock("@calcom/prisma", async (importOriginal) => {
+  if (isIntegrationMode) {
+    // In integration mode, pass through the real Prisma client — no prismock interception.
+    // Store a reference so the proxy default export can also delegate to it.
+    const real = await importOriginal<{ prisma: PrismaClient; default: PrismaClient }>();
+    realPrismaClient = real.prisma;
+    return real;
+  }
+
   const original = await importOriginal<typeof import("@calcom/prisma/client")>();
   const { Prisma } = original;
 
@@ -127,7 +167,8 @@ vi.mock("@calcom/prisma", async (importOriginal) => {
 });
 
 beforeEach(() => {
-  if (prismockInstance) {
+  // Only reset prismock in unit test mode — integration tests manage their own DB state
+  if (!isIntegrationMode && prismockInstance) {
     prismockInstance.reset();
     handlePrismockBugs(prismockInstance);
   }

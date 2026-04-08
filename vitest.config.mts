@@ -112,6 +112,11 @@ export default defineConfig({
     include: getTestInclude(),
     exclude: getTestExclude(),
     pool: "forks",
+    env: {
+      // Propagate VITEST_MODE to forked child processes so __mocks__/prisma.ts
+      // can decide whether to use prismock (unit) or real Prisma (integration).
+      ...(isIntegrationMode ? { VITEST_MODE: "integration" } : {}),
+    },
     server: {
       deps: {
         inline: [/@calcom\/.*/],

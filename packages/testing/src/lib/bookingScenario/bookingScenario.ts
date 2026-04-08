@@ -354,13 +354,19 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
   for (const eventType of eventTypes) {
     // Create host groups first if they exist
     if (eventType.hostGroups?.length) {
-      await prismock.hostGroup.createMany({
-        data: eventType.hostGroups.map((group) => ({
-          id: group.id, // Preserve the input ID
-          name: group.name,
-          eventTypeId: eventType.id,
-        })),
-      });
+      const hostGroupData = eventType.hostGroups.map((group) => ({
+        id: group.id, // Preserve the input ID
+        name: group.name,
+        eventTypeId: eventType.id,
+      }));
+      const isIntegration = process.env.VITEST_MODE === "integration";
+      if (isIntegration) {
+        for (const group of hostGroupData) {
+          await prismock.hostGroup.create({ data: group });
+        }
+      } else {
+        await prismock.hostGroup.createMany({ data: hostGroupData });
+      }
     }
 
     if (!eventType.hosts?.length) continue;
@@ -453,10 +459,54 @@ export async function addEventTypesToDb(
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
-  await prismock.eventType.createMany({
-    data: eventTypes,
-  });
+  const isIntegration = process.env.VITEST_MODE === "integration";
+  const createdIds: number[] = [];
+  if (isIntegration) {
+    // Real Prisma's createMany doesn't support nested relation writes.
+    // Use individual create() calls which support nested writes.
+    // Also strip fields prismock silently handles but real Prisma rejects
+    // (users, hosts, workflows, hostGroups as arrays instead of relation syntax).
+    // Build a mapping from input index → DB-assigned id so we can resolve
+    // parent references (e.g. managed event types) after all rows exist.
+    for (const eventType of eventTypes) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { users, hosts, workflows, hostGroups, team, restrictionSchedule, includeManagedEventsInLimits, parent, owner, ...rest } = eventType as any;
+      const cleaned = Object.fromEntries(
+        Object.entries(rest).filter(([, v]) => v !== undefined)
+      );
+      // Strip hardcoded `id` and `slug` to avoid unique-constraint violations
+      // when multiple test files share the same real DB.
+      delete cleaned.id;
+      delete cleaned.slug;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const created = await prismock.eventType.create({ data: convertCreateManyToCreate(cleaned) as any });
+      createdIds.push(created.id);
+    }
+    // Resolve parent references using the index mapping.
+    for (let i = 0; i < eventTypes.length; i++) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const parentRef = (eventTypes[i] as any).parent;
+      if (parentRef?.connect?.id != null) {
+        // Find which input event type had the matching hardcoded id
+        const parentInputIdx = eventTypes.findIndex(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (et: any) => et.id === parentRef.connect.id
+        );
+        if (parentInputIdx >= 0) {
+          await prismock.eventType.update({
+            where: { id: createdIds[i] },
+            data: { parentId: createdIds[parentInputIdx] },
+          });
+        }
+      }
+    }
+  } else {
+    await prismock.eventType.createMany({
+      data: eventTypes,
+    });
+  }
   const allEventTypes = await prismock.eventType.findMany({
+    where: isIntegration ? { id: { in: createdIds } } : undefined,
     include: {
       users: true,
       workflows: true,
@@ -464,6 +514,7 @@ export async function addEventTypesToDb(
       schedule: true,
       hostGroups: true,
     },
+    orderBy: { id: "asc" },
   });
 
   for (let i = 0; i < eventTypes.length; i++) {
@@ -503,17 +554,22 @@ export async function addEventTypesToDb(
     }
 
     if (eventType.team?.id) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const teamData: any = {
+        bookingLimits: eventType.team?.bookingLimits,
+        includeManagedEventsInLimits: eventType.team?.includeManagedEventsInLimits,
+        name: "",
+      };
+      // In unit-test mode keep the hardcoded id; in integration mode let the DB assign it.
+      if (!isIntegration) {
+        teamData.id = eventType.team?.id;
+      }
       const createdTeam = await prismock.team.create({
-        data: {
-          id: eventType.team?.id,
-          bookingLimits: eventType.team?.bookingLimits,
-          includeManagedEventsInLimits: eventType.team?.includeManagedEventsInLimits,
-          name: "",
-        },
+        data: teamData,
       });
 
       await prismock.eventType.update({
-        where: { id: eventType.id },
+        where: { id: createdEventType.id },
         data: { teamId: createdTeam.id },
       });
     }
@@ -841,16 +897,94 @@ export async function addWorkflowReminders(workflowReminders: InputWorkflowRemin
   });
 }
 
+/**
+ * Recursively converts `{ createMany: { data: [...] } }` → `{ create: [...] }` throughout
+ * an object tree.  Prisma's `createMany` inside nested writes doesn't support further
+ * nesting, but `create` (array form) does.  This lets integration tests pass the same
+ * deeply-nested data structures that prismock silently accepts.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function convertCreateManyToCreate(obj: Record<string, any>): Record<string, any> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (
+      value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      "createMany" in value &&
+      value.createMany?.data
+    ) {
+      // Convert createMany → create, and recurse into each item
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      result[key] = { create: value.createMany.data.map((item: any) =>
+        typeof item === "object" && item !== null ? convertCreateManyToCreate(item) : item
+      ) };
+    } else if (value && typeof value === "object" && !Array.isArray(value) && !(value instanceof Date)) {
+      result[key] = convertCreateManyToCreate(value);
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 export async function addUsersToDb(users: InputUser[]) {
   log.silly("TestData: Creating Users", JSON.stringify(users));
-  await prismock.user.createMany({
-    data: users,
-  });
+  const isIntegration = process.env.VITEST_MODE === "integration";
+  // Map from input hardcoded user id → DB-assigned id (only used in integration mode)
+  const inputIdToDbId = new Map<number, number>();
+  if (isIntegration) {
+    // Real Prisma's createMany doesn't support nested relation writes (schedules,
+    // credentials, etc.) that prismock silently handles.  Use individual create()
+    // calls which DO support nested writes, and strip undefined values that real
+    // Postgres rejects.  Additionally, Prisma's createMany inside nested writes
+    // doesn't support further nesting, so recursively convert all
+    // `{ createMany: { data: [...] } }` → `{ create: [...] }`.
+    for (const user of users) {
+      const inputId = user.id;
+      const cleaned = Object.fromEntries(
+        Object.entries(user).filter(([, v]) => v !== undefined)
+      );
+      const converted = convertCreateManyToCreate(cleaned);
+      // Strip hardcoded `id` from the user and nested schedules to avoid
+      // unique-constraint violations when multiple test files share the same
+      // real DB.  Tests should look up created records by email, not by id.
+      delete converted.id;
+      // Generate a unique username based on email to avoid collisions on
+      // the (username, organizationId IS NULL) unique constraint when
+      // multiple test files create users with the default username.
+      if (converted.email && typeof converted.email === "string") {
+        converted.username = converted.email.replace(/@.*$/, "").replace(/[^a-z0-9-]/gi, "-");
+      }
+      if (converted.schedules && typeof converted.schedules === "object") {
+        const schedules = converted.schedules as Record<string, unknown>;
+        if (Array.isArray(schedules.create)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          schedules.create = schedules.create.map((s: any) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { id: _scheduleId, ...rest } = s;
+            return rest;
+          });
+        }
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const createdUser = await prismock.user.create({ data: converted as any });
+      if (inputId != null) {
+        inputIdToDbId.set(inputId, createdUser.id);
+      }
+    }
+  } else {
+    await prismock.user.createMany({
+      data: users,
+    });
+  }
 
   // Create OutOfOfficeEntry for users with outOfOffice data
   for (const user of users) {
     if (user.outOfOffice) {
-      log.debug("Creating OutOfOfficeEntry for user", user.id);
+      const resolvedUserId = isIntegration && user.id != null ? inputIdToDbId.get(user.id) ?? user.id : user.id;
+      log.debug("Creating OutOfOfficeEntry for user", resolvedUserId);
       for (const dateRange of user.outOfOffice.dateRanges) {
         await prismock.outOfOfficeEntry.create({
           data: {
@@ -859,7 +993,7 @@ export async function addUsersToDb(users: InputUser[]) {
             end: new Date(dateRange.end),
             user: {
               connect: {
-                id: user.id,
+                id: resolvedUserId,
               },
             },
           },
@@ -870,13 +1004,14 @@ export async function addUsersToDb(users: InputUser[]) {
 
   for (const user of users) {
     if (user.secondaryEmails) {
-      log.debug("Creating SecondaryEmail entries for user", user.id);
+      const resolvedUserId = isIntegration && user.id != null ? inputIdToDbId.get(user.id) ?? user.id : user.id;
+      log.debug("Creating SecondaryEmail entries for user", resolvedUserId);
       for (const secondaryEmail of user.secondaryEmails) {
         await prismock.secondaryEmail.create({
           data: {
             email: secondaryEmail.email,
             emailVerified: secondaryEmail.emailVerified,
-            userId: user.id,
+            userId: resolvedUserId,
           },
         });
       }
@@ -969,11 +1104,24 @@ export async function addUsers(users: InputUser[]) {
       };
     }
     if (user.credentials) {
+      const isIntegration = process.env.VITEST_MODE === "integration";
+      // In integration mode, strip the `app` metadata object from each credential.
+      // `getMockedCredential()` embeds the full appStoreMetadata as `app`, which
+      // prismock silently accepts but real Prisma rejects because `app` is a
+      // relation field (needs connect/create syntax).  The scalar `appId` FK is
+      // already present, so the relation is established without the object.
+      const credentialData = isIntegration
+        ? user.credentials.map((cred) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { app, ...rest } = cred as Record<string, unknown>;
+            return rest;
+          })
+        : user.credentials;
       newUser.credentials = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-expect-error
         createMany: {
-          data: user.credentials,
+          data: credentialData,
         },
       };
     }
@@ -1023,11 +1171,34 @@ export async function addUsers(users: InputUser[]) {
   return await addUsersToDb(prismaUsersCreate);
 }
 
+// The App Prisma model only has these scalar columns.
+const APP_MODEL_FIELDS = new Set(["slug", "dirName", "keys", "categories", "enabled", "createdAt", "updatedAt"]);
+
 async function addAppsToDb(apps: any[]) {
   log.silly("TestData: Creating Apps", JSON.stringify({ apps }));
-  await prismock.app.createMany({
-    data: apps,
-  });
+  const isIntegration = process.env.VITEST_MODE === "integration";
+  if (isIntegration) {
+    // Real Prisma: use upsert to handle apps that may already exist from
+    // other test files sharing the same DB (e.g. google-calendar).
+    // Strip fields that only exist in appStoreMetadata but not in the App model
+    // (e.g. appData, __template, name, description, title, variant, category,
+    // logo, publisher, url, email, isOAuth, delegationCredential, installed, type).
+    for (const app of apps) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sanitized: any = Object.fromEntries(
+        Object.entries(app).filter(([key]) => APP_MODEL_FIELDS.has(key))
+      );
+      await prismock.app.upsert({
+        where: { slug: app.slug },
+        update: sanitized,
+        create: sanitized,
+      });
+    }
+  } else {
+    await prismock.app.createMany({
+      data: apps,
+    });
+  }
   const allApps = await prismock.app.findMany();
   log.silly("TestData: Apps as in DB", JSON.stringify({ apps: allApps }));
 }
@@ -1043,8 +1214,18 @@ async function addSelectedSlotsToDb(selectedSlots: InputSelectedSlot[]) {
 
 export async function createBookingScenario(data: ScenarioData) {
   log.silly("TestData: Creating Scenario", JSON.stringify({ data }));
+  const isIntegration = process.env.VITEST_MODE === "integration";
+  // In integration mode, apps must be created BEFORE users so that
+  // Credential.appId FK references an existing App row.
+  if (isIntegration && data.apps) {
+    await addAppsToDb(
+      data.apps.map((app) => {
+        return { enabled: true, ...app };
+      })
+    );
+  }
   await addUsers(data.users);
-  if (data.apps) {
+  if (!isIntegration && data.apps) {
     await addAppsToDb(
       data.apps.map((app) => {
         // Enable the app by default
@@ -1094,10 +1275,14 @@ export async function createOrganization(orgData: {
     fromName: string;
   };
 }): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]>; children: any }> {
+  const isIntegration = process.env.VITEST_MODE === "integration";
+  // In integration mode, append a random suffix to slugs so that multiple
+  // test files creating organizations don't collide on the unique slug constraint.
+  const orgSlug = isIntegration ? `${orgData.slug}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` : orgData.slug;
   const org = await prismock.team.create({
     data: {
       name: orgData.name,
-      slug: orgData.slug,
+      slug: orgSlug,
       isOrganization: true,
       metadata: {
         ...(orgData.metadata || {}),
@@ -1106,10 +1291,11 @@ export async function createOrganization(orgData: {
     },
   });
   if (orgData.withTeam) {
+    const teamSlug = isIntegration ? `org-team-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` : "org-team";
     await prismock.team.create({
       data: {
         name: "Org Team",
-        slug: "org-team",
+        slug: teamSlug,
         isOrganization: false,
         parent: {
           connect: {

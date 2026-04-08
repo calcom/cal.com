@@ -34,7 +34,6 @@ const createTestWatchlistEntry = async (overrides: {
       type: overrides.type,
       value: overrides.value,
       action: overrides.action,
-      createdById: 0,
       organizationId: overrides.organizationId,
       isGlobal: overrides.organizationId !== null ? false : true,
     },
@@ -93,6 +92,12 @@ const expectNoBookingInDatabase = async (bookerEmail: string) => {
 
 describe("handleNewBooking - Spam Detection", () => {
   setupAndTeardown();
+
+  // Clean up watchlist entries between tests to avoid unique-constraint
+  // violations on (type, value) when running against real Postgres.
+  beforeEach(async () => {
+    await prisma.watchlist.deleteMany({});
+  });
 
   describe("Global Watchlist Blocking:", () => {
     test(
