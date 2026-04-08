@@ -467,6 +467,10 @@ export default abstract class BaseCalendarService implements Calendar {
         ? calendars.filter((c) => c.externalId === mainHostDestinationCalendar.externalId)
         : calendars.slice(0, 1);
 
+      if (targetCalendars.length === 0) {
+        throw new Error("No target calendars found to create CalDAV calendar entry");
+      }
+
       const responses = await Promise.all(
         targetCalendars.map((calendar) =>
           createCalendarObject({
