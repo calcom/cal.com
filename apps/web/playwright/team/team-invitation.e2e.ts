@@ -93,7 +93,7 @@ test.describe("Team", () => {
       const context = await browser.newContext();
       const inviteLinkPage = await context.newPage();
       await inviteLinkPage.goto(inviteLink);
-      await inviteLinkPage.waitForTimeout(3000);
+      await expect(inviteLinkPage.locator("button[type=submit]")).toBeVisible();
 
       await inviteLinkPage.locator("button[type=submit]").click();
       await expect(inviteLinkPage.locator('[data-testid="field-error"]')).toHaveCount(2);
