@@ -446,7 +446,7 @@ describe("getOrderedListOfLuckyUsers Integration tests", () => {
     vi.setSystemTime("2024-11-14T00:00:13Z");
   });
 
-  it("should sort as per availableUsers if no other criteria like weight/priority/calibration", async () => {
+  it("should sort by user id if no other criteria like weight/priority/calibration", async () => {
     const [host1, host2, host3] = await Promise.all([
       createHostWithBookings({
         user: { email: "test-user1@example.com" },
