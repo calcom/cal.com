@@ -28,15 +28,23 @@ describe("AvailableSlotsService - _getBusyTimesFromTeamLimitsForUsers", () => {
     { id: 2, email: "user2@example.com" },
   ];
   const teamId = 10;
-  const dateFrom = dayjs("2026-04-01");
-  const dateTo = dayjs("2026-04-30");
+  const browsingWindowStart = dayjs("2026-04-01");
+  const browsingWindowEnd = dayjs("2026-04-30");
 
   function callMethod(bookingLimits: IntervalLimit, timeZone = "UTC") {
     return (
       service as unknown as {
         _getBusyTimesFromTeamLimitsForUsers: BusyTimesFromTeamLimitsForUsers;
       }
-    )._getBusyTimesFromTeamLimitsForUsers(users, bookingLimits, dateFrom, dateTo, teamId, false, timeZone);
+    )._getBusyTimesFromTeamLimitsForUsers(
+      users,
+      bookingLimits,
+      browsingWindowStart,
+      browsingWindowEnd,
+      teamId,
+      false,
+      timeZone
+    );
   }
 
   beforeEach(() => {
@@ -48,8 +56,8 @@ describe("AvailableSlotsService - _getBusyTimesFromTeamLimitsForUsers", () => {
       },
       busyTimesService: {
         getStartEndDateforLimitCheck: vi.fn().mockReturnValue({
-          limitDateFrom: dateFrom,
-          limitDateTo: dateTo,
+          limitDateFrom: browsingWindowStart,
+          limitDateTo: browsingWindowEnd,
         }),
       },
       userAvailabilityService: {

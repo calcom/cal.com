@@ -43,8 +43,8 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
   return await userAvailabilityService.getUserAvailability(
     {
       username: username,
-      dateFrom: dayjsDateFrom,
-      dateTo: dayjsDateTo,
+      browsingWindowStart: dayjsDateFrom,
+      browsingWindowEnd: dayjsDateTo,
       returnDateOverrides: true,
       bypassBusyCalendarTimes: false,
     },

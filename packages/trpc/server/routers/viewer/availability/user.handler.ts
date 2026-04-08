@@ -23,8 +23,15 @@ export const userHandler = async ({ input }: UserOptions) => {
   const userAvailabilityService = getUserAvailabilityService();
   const user = await getUser(input.username);
   if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+  const { dateFrom, dateTo, ...rest } = input;
   return userAvailabilityService.getUserAvailabilityIncludingBusyTimesFromLimits(
-    { returnDateOverrides: true, bypassBusyCalendarTimes: false, ...input },
+    {
+      returnDateOverrides: true,
+      bypassBusyCalendarTimes: false,
+      ...rest,
+      browsingWindowStart: dateFrom,
+      browsingWindowEnd: dateTo,
+    },
     {
       user,
     }

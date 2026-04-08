@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import type { ICalendarCacheEventRepository } from "@calcom/features/calendar-subscription/lib/cache/CalendarCacheEventRepository.interface";
-import { SchedulingType } from "@calcom/prisma/enums";
 import type { SelectedCalendar } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   type GetUserAvailabilityInitialData,
@@ -345,7 +345,12 @@ describe("UserAvailabilityService", () => {
       // 2024-12-22 is a Sunday (day 0)
       const result = service.calculateHolidayBlockedDates(
         baseAvailability,
-        [{ date: "2024-12-22", holiday: { id: "sun", name: "Holiday on Sunday", date: "2024-12-22", year: 2024 } }],
+        [
+          {
+            date: "2024-12-22",
+            holiday: { id: "sun", name: "Holiday on Sunday", date: "2024-12-22", year: 2024 },
+          },
+        ],
         []
       );
       expect(result["2024-12-22"]).toBeUndefined();
@@ -355,7 +360,12 @@ describe("UserAvailabilityService", () => {
       // 2024-12-25 is a Wednesday (day 3)
       const result = service.calculateHolidayBlockedDates(
         baseAvailability,
-        [{ date: "2024-12-25", holiday: { id: "xmas", name: "Christmas Day", date: "2024-12-25", year: 2024 } }],
+        [
+          {
+            date: "2024-12-25",
+            holiday: { id: "xmas", name: "Christmas Day", date: "2024-12-25", year: 2024 },
+          },
+        ],
         []
       );
       expect(result["2024-12-25"]).toBeDefined();
@@ -559,8 +569,8 @@ describe("UserAvailabilityService", () => {
       await expect(
         service._getUserAvailability(
           {
-            dateFrom: dayjs("2024-01-15"),
-            dateTo: dayjs("2024-01-16"),
+            browsingWindowStart: dayjs("2024-01-15"),
+            browsingWindowEnd: dayjs("2024-01-16"),
             returnDateOverrides: false,
           },
           { user: null }
@@ -573,8 +583,8 @@ describe("UserAvailabilityService", () => {
 
       const result = await service._getUserAvailability(
         {
-          dateFrom: dayjs("2024-01-15T00:00:00Z"), // Monday
-          dateTo: dayjs("2024-01-16T00:00:00Z"), // Tuesday
+          browsingWindowStart: dayjs("2024-01-15T00:00:00Z"), // Monday
+          browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"), // Tuesday
           returnDateOverrides: false,
         },
         { user }
@@ -608,8 +618,8 @@ describe("UserAvailabilityService", () => {
       const result = await service._getUserAvailability(
         {
           // 2024-01-20 is a Saturday, 2024-01-21 is a Sunday
-          dateFrom: dayjs("2024-01-20T00:00:00Z"),
-          dateTo: dayjs("2024-01-21T00:00:00Z"),
+          browsingWindowStart: dayjs("2024-01-20T00:00:00Z"),
+          browsingWindowEnd: dayjs("2024-01-21T00:00:00Z"),
           returnDateOverrides: false,
         },
         { user }
@@ -656,8 +666,8 @@ describe("UserAvailabilityService", () => {
 
       const result = await service._getUserAvailability(
         {
-          dateFrom: dayjs("2024-01-15T00:00:00Z"),
-          dateTo: dayjs("2024-01-16T00:00:00Z"),
+          browsingWindowStart: dayjs("2024-01-15T00:00:00Z"),
+          browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
           returnDateOverrides: false,
         },
         { user }
@@ -695,8 +705,8 @@ describe("UserAvailabilityService", () => {
 
       const result = await service._getUserAvailability(
         {
-          dateFrom: dayjs("2024-01-15T00:00:00Z"),
-          dateTo: dayjs("2024-01-16T00:00:00Z"),
+          browsingWindowStart: dayjs("2024-01-15T00:00:00Z"),
+          browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
           returnDateOverrides: false,
         },
         { user }
@@ -756,8 +766,8 @@ describe("UserAvailabilityService", () => {
 
       const result = await service._getUserAvailability(
         {
-          dateFrom: dayjs("2024-01-15T00:00:00Z"),
-          dateTo: dayjs("2024-01-16T00:00:00Z"),
+          browsingWindowStart: dayjs("2024-01-15T00:00:00Z"),
+          browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
           returnDateOverrides: false,
           eventTypeId: 1,
         },
@@ -803,8 +813,8 @@ describe("UserAvailabilityService", () => {
 
       const result = await service._getUserAvailability(
         {
-          dateFrom: dayjs(dateFromStr),
-          dateTo: dayjs(dateToStr),
+          browsingWindowStart: dayjs(dateFromStr),
+          browsingWindowEnd: dayjs(dateToStr),
           returnDateOverrides: true,
         },
         { user }
@@ -840,8 +850,8 @@ describe("UserAvailabilityService", () => {
 
       const result = await service._getUserAvailability(
         {
-          dateFrom: dayjs("2024-01-14T00:00:00Z"),
-          dateTo: dayjs("2024-01-16T00:00:00Z"),
+          browsingWindowStart: dayjs("2024-01-14T00:00:00Z"),
+          browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
           returnDateOverrides: false,
         },
         { user }
@@ -879,8 +889,8 @@ describe("UserAvailabilityService", () => {
 
       const result = await service._getUserAvailability(
         {
-          dateFrom: dayjs("2024-01-15T00:00:00Z"),
-          dateTo: dayjs("2024-01-16T00:00:00Z"),
+          browsingWindowStart: dayjs("2024-01-15T00:00:00Z"),
+          browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
           returnDateOverrides: false,
           eventTypeId: 1,
         },
@@ -947,8 +957,8 @@ describe("UserAvailabilityService", () => {
 
       const result = await service._getUserAvailability(
         {
-          dateFrom: dayjs("2024-01-15T00:00:00Z"),
-          dateTo: dayjs("2024-01-16T00:00:00Z"),
+          browsingWindowStart: dayjs("2024-01-15T00:00:00Z"),
+          browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
           returnDateOverrides: false,
         },
         { user }
@@ -962,8 +972,8 @@ describe("UserAvailabilityService", () => {
       await expect(
         service._getUserAvailability(
           {
-            dateFrom: dayjs("2024-01-15T00:00:00Z"),
-            dateTo: dayjs("2024-01-16T00:00:00Z"),
+            browsingWindowStart: dayjs("2024-01-15T00:00:00Z"),
+            browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
             returnDateOverrides: false,
           },
           { user: null as never }
@@ -986,8 +996,8 @@ describe("UserAvailabilityService", () => {
       timeZone: "UTC",
     };
     const dateRange = {
-      dateFrom: dayjs("2024-12-23T00:00:00Z"), // Monday
-      dateTo: dayjs("2024-12-27T00:00:00Z"), // Friday
+      browsingWindowStart: dayjs("2024-12-23T00:00:00Z"), // Monday
+      browsingWindowEnd: dayjs("2024-12-27T00:00:00Z"), // Friday
       returnDateOverrides: false as const,
     };
 
@@ -1187,8 +1197,8 @@ describe("UserAvailabilityService", () => {
       const results = await service._getUsersAvailability({
         users: [user1, user2],
         query: {
-          dateFrom: "2024-01-15T00:00:00Z",
-          dateTo: "2024-01-16T00:00:00Z",
+          browsingWindowStart: "2024-01-15T00:00:00Z",
+          browsingWindowEnd: "2024-01-16T00:00:00Z",
           returnDateOverrides: false,
         },
         initialData: {
@@ -1206,8 +1216,8 @@ describe("UserAvailabilityService", () => {
         service._getUsersAvailability({
           users: [user],
           query: {
-            dateFrom: "invalid-date",
-            dateTo: "2024-01-16T00:00:00Z",
+            browsingWindowStart: "invalid-date",
+            browsingWindowEnd: "2024-01-16T00:00:00Z",
             returnDateOverrides: false,
           },
         })
@@ -1217,8 +1227,8 @@ describe("UserAvailabilityService", () => {
 
   describe("prefetchHolidayData", () => {
     const params = {
-      dateFrom: dayjs("2024-12-20T00:00:00Z"),
-      dateTo: dayjs("2024-12-31T00:00:00Z"),
+      browsingWindowStart: dayjs("2024-12-20T00:00:00Z"),
+      browsingWindowEnd: dayjs("2024-12-31T00:00:00Z"),
       returnDateOverrides: false as const,
     };
 
@@ -1274,7 +1284,9 @@ describe("UserAvailabilityService", () => {
 
     it("should batch-fetch holiday dates for unique country codes", async () => {
       const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
-      const mockHolidayDates = [{ date: "2024-12-25", holiday: { id: "xmas", name: "Christmas", date: "2024-12-25", year: 2024 } }];
+      const mockHolidayDates = [
+        { date: "2024-12-25", holiday: { id: "xmas", name: "Christmas", date: "2024-12-25", year: 2024 } },
+      ];
 
       vi.mocked(deps.holidayRepo.findManyUserSettings).mockResolvedValue([
         { userId: 1, countryCode: "US", disabledIds: [] },
@@ -1287,7 +1299,15 @@ describe("UserAvailabilityService", () => {
         getHolidayDatesInRangeForCountries: vi.fn().mockResolvedValue(
           new Map([
             ["US", mockHolidayDates],
-            ["DE", [{ date: "2024-12-25", holiday: { id: "weihnachten", name: "Weihnachten", date: "2024-12-25", year: 2024 } }]],
+            [
+              "DE",
+              [
+                {
+                  date: "2024-12-25",
+                  holiday: { id: "weihnachten", name: "Weihnachten", date: "2024-12-25", year: 2024 },
+                },
+              ],
+            ],
           ])
         ),
       } as never);
@@ -1313,7 +1333,9 @@ describe("UserAvailabilityService", () => {
 
     it("should return null for users without settings even when others have settings", async () => {
       const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
-      const mockHolidayDates = [{ date: "2024-12-25", holiday: { id: "xmas", name: "Christmas", date: "2024-12-25", year: 2024 } }];
+      const mockHolidayDates = [
+        { date: "2024-12-25", holiday: { id: "xmas", name: "Christmas", date: "2024-12-25", year: 2024 } },
+      ];
 
       vi.mocked(deps.holidayRepo.findManyUserSettings).mockResolvedValue([
         { userId: 1, countryCode: "US", disabledIds: ["disabled1"] },
@@ -1321,9 +1343,7 @@ describe("UserAvailabilityService", () => {
 
       vi.mocked(getHolidayService).mockReturnValue({
         getHolidayDatesInRange: vi.fn().mockResolvedValue([]),
-        getHolidayDatesInRangeForCountries: vi.fn().mockResolvedValue(
-          new Map([["US", mockHolidayDates]])
-        ),
+        getHolidayDatesInRangeForCountries: vi.fn().mockResolvedValue(new Map([["US", mockHolidayDates]])),
       } as never);
 
       const result = await service.prefetchHolidayData({
@@ -1426,8 +1446,8 @@ describe("UserAvailabilityService", () => {
         users: [createMockUser({ id: 1 })],
         eventType: null,
         calendarCacheEnabledForUserIds: new Set(),
-        dateFrom: dayjs("2024-01-15T00:00:00Z"),
-        dateTo: dayjs("2024-01-16T00:00:00Z"),
+        browsingWindowStart: dayjs("2024-01-15T00:00:00Z"),
+        browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
       });
 
       expect(result).toBeNull();
@@ -1436,17 +1456,15 @@ describe("UserAvailabilityService", () => {
     it("should return null when cache-enabled users have no synced calendars", async () => {
       const user = createMockUser({
         id: 1,
-        userLevelSelectedCalendars: [
-          createSelectedCalendar({ syncToken: null, syncSubscribedAt: null }),
-        ],
+        userLevelSelectedCalendars: [createSelectedCalendar({ syncToken: null, syncSubscribedAt: null })],
       });
 
       const result = await service.prefetchCalendarCacheEvents({
         users: [user],
         eventType: null,
         calendarCacheEnabledForUserIds: new Set([1]),
-        dateFrom: dayjs("2024-01-15T00:00:00Z"),
-        dateTo: dayjs("2024-01-16T00:00:00Z"),
+        browsingWindowStart: dayjs("2024-01-15T00:00:00Z"),
+        browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
       });
 
       expect(result).toBeNull();
@@ -1464,8 +1482,8 @@ describe("UserAvailabilityService", () => {
         users: [user],
         eventType: null,
         calendarCacheEnabledForUserIds: new Set([1]),
-        dateFrom: dayjs("2024-01-15T00:00:00Z"),
-        dateTo: dayjs("2024-01-16T00:00:00Z"),
+        browsingWindowStart: dayjs("2024-01-15T00:00:00Z"),
+        browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
       });
 
       expect(result).toBeNull();
@@ -1504,8 +1522,8 @@ describe("UserAvailabilityService", () => {
         users: [user],
         eventType: null,
         calendarCacheEnabledForUserIds: new Set([1]),
-        dateFrom: dayjs("2024-01-15T00:00:00Z"),
-        dateTo: dayjs("2024-01-16T00:00:00Z"),
+        browsingWindowStart: dayjs("2024-01-15T00:00:00Z"),
+        browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
       });
 
       expect(result).not.toBeNull();
@@ -1547,16 +1565,12 @@ describe("UserAvailabilityService", () => {
         users: [user1, user2],
         eventType: null,
         calendarCacheEnabledForUserIds: new Set([1]),
-        dateFrom: dayjs("2024-01-15T00:00:00Z"),
-        dateTo: dayjs("2024-01-16T00:00:00Z"),
+        browsingWindowStart: dayjs("2024-01-15T00:00:00Z"),
+        browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
       });
 
       // Should only query for user1's calendar
-      expect(mockFindAll).toHaveBeenCalledWith(
-        ["cal-user1"],
-        expect.any(Date),
-        expect.any(Date)
-      );
+      expect(mockFindAll).toHaveBeenCalledWith(["cal-user1"], expect.any(Date), expect.any(Date));
     });
 
     it("should use event-level calendars when eventType has useEventLevelSelectedCalendars", async () => {
@@ -1594,16 +1608,12 @@ describe("UserAvailabilityService", () => {
         users: [user],
         eventType: eventType as never,
         calendarCacheEnabledForUserIds: new Set([1]),
-        dateFrom: dayjs("2024-01-15T00:00:00Z"),
-        dateTo: dayjs("2024-01-16T00:00:00Z"),
+        browsingWindowStart: dayjs("2024-01-15T00:00:00Z"),
+        browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
       });
 
       // Should only query for the event-type-level calendar
-      expect(mockFindAll).toHaveBeenCalledWith(
-        ["event-cal"],
-        expect.any(Date),
-        expect.any(Date)
-      );
+      expect(mockFindAll).toHaveBeenCalledWith(["event-cal"], expect.any(Date), expect.any(Date));
     });
 
     it("should aggregate calendars across multiple cache-enabled users", async () => {
@@ -1633,8 +1643,8 @@ describe("UserAvailabilityService", () => {
         users: [user1, user2],
         eventType: null,
         calendarCacheEnabledForUserIds: new Set([1, 2]),
-        dateFrom: dayjs("2024-01-15T00:00:00Z"),
-        dateTo: dayjs("2024-01-16T00:00:00Z"),
+        browsingWindowStart: dayjs("2024-01-15T00:00:00Z"),
+        browsingWindowEnd: dayjs("2024-01-16T00:00:00Z"),
       });
 
       // Should query for both users' calendars in a single call
@@ -1662,21 +1672,21 @@ describe("UserAvailabilityService", () => {
         ],
       });
 
-      const dateFrom = dayjs("2024-01-15T00:00:00Z");
-      const dateTo = dayjs("2024-01-16T00:00:00Z");
+      const browsingWindowStart = dayjs("2024-01-15T00:00:00Z");
+      const browsingWindowEnd = dayjs("2024-01-16T00:00:00Z");
 
       await service.prefetchCalendarCacheEvents({
         users: [user],
         eventType: null,
         calendarCacheEnabledForUserIds: new Set([1]),
-        dateFrom,
-        dateTo,
+        browsingWindowStart,
+        browsingWindowEnd,
       });
 
       // The date range should be expanded (start subtracted by 11h, end added by 14h)
       const [, startArg, endArg] = mockFindAll.mock.calls[0];
-      expect(startArg.getTime()).toBeLessThan(dateFrom.toDate().getTime());
-      expect(endArg.getTime()).toBeGreaterThan(dateTo.toDate().getTime());
+      expect(startArg.getTime()).toBeLessThan(browsingWindowStart.toDate().getTime());
+      expect(endArg.getTime()).toBeGreaterThan(browsingWindowEnd.toDate().getTime());
     });
   });
 });

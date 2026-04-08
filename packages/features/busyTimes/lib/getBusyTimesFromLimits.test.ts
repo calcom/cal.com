@@ -75,8 +75,8 @@ describe("LimitSources", () => {
   });
 });
 describe("getBusyTimesFromLimits", () => {
-  const dateFrom = dayjs("2024-01-15T00:00:00Z");
-  const dateTo = dayjs("2024-01-15T23:59:59Z");
+  const browsingWindowStart = dayjs("2024-01-15T00:00:00Z");
+  const browsingWindowEnd = dayjs("2024-01-15T23:59:59Z");
   const eventType = { id: 1, length: 30 };
   const bookings: EventBusyDetails[] = [];
   const timeZone = "UTC";
@@ -89,8 +89,8 @@ describe("getBusyTimesFromLimits", () => {
     const result = await getBusyTimesFromLimits(
       null,
       null,
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       30,
       eventType,
       bookings,
@@ -106,8 +106,8 @@ describe("getBusyTimesFromLimits", () => {
     const result = await getBusyTimesFromLimits(
       bookingLimits,
       null,
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       30,
       eventType,
       bookings,
@@ -123,8 +123,8 @@ describe("getBusyTimesFromLimits", () => {
     const result = await getBusyTimesFromLimits(
       null,
       durationLimits,
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       30,
       eventType,
       bookings,
@@ -141,8 +141,8 @@ describe("getBusyTimesFromLimits", () => {
     const result = await getBusyTimesFromLimits(
       bookingLimits,
       durationLimits,
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       30,
       eventType,
       bookings,
@@ -158,8 +158,8 @@ describe("getBusyTimesFromLimits", () => {
     const result = await getBusyTimesFromLimits(
       bookingLimits,
       null,
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       30,
       eventType,
       bookings,
@@ -279,8 +279,8 @@ describe("getBusyTimesFromLimits", () => {
 });
 
 describe("getBusyTimesFromBookingLimits", () => {
-  const dateFrom = dayjs("2024-01-15T00:00:00Z");
-  const dateTo = dayjs("2024-01-15T23:59:59Z");
+  const browsingWindowStart = dayjs("2024-01-15T00:00:00Z");
+  const browsingWindowEnd = dayjs("2024-01-15T23:59:59Z");
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -307,8 +307,8 @@ describe("getBusyTimesFromBookingLimits", () => {
     await getBusyTimesFromBookingLimits({
       bookings: mockBookings,
       bookingLimits: { PER_DAY: 2 },
-      dateFrom: startOfTomorrow,
-      dateTo: startOfTomorrow.endOf("day"),
+      browsingWindowStart: startOfTomorrow,
+      browsingWindowEnd: startOfTomorrow.endOf("day"),
       limitManager,
       eventTypeId: 1,
       timeZone: "UTC",
@@ -337,8 +337,8 @@ describe("getBusyTimesFromBookingLimits", () => {
     await getBusyTimesFromBookingLimits({
       bookings: mockBookings,
       bookingLimits: { PER_DAY: 1 },
-      dateFrom: startOfTomorrow,
-      dateTo: startOfTomorrow.endOf("day"),
+      browsingWindowStart: startOfTomorrow,
+      browsingWindowEnd: startOfTomorrow.endOf("day"),
       limitManager,
       teamId: 1,
       user: { id: 1, email: "test@example.com" },
@@ -360,8 +360,8 @@ describe("getBusyTimesFromBookingLimits", () => {
     await getBusyTimesFromBookingLimits({
       bookings: [],
       bookingLimits: {},
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       limitManager,
       timeZone: "UTC",
     });
@@ -386,8 +386,8 @@ describe("getBusyTimesFromBookingLimits", () => {
     await getBusyTimesFromBookingLimits({
       bookings: testBookings,
       bookingLimits: { PER_DAY: 2 },
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       limitManager,
       timeZone: "UTC",
     });
@@ -408,8 +408,8 @@ describe("getBusyTimesFromBookingLimits", () => {
     await getBusyTimesFromBookingLimits({
       bookings: testBookings,
       bookingLimits: { PER_DAY: 5 },
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       limitManager,
       timeZone: "UTC",
     });
@@ -431,8 +431,8 @@ describe("getBusyTimesFromBookingLimits", () => {
     await getBusyTimesFromBookingLimits({
       bookings: testBookings,
       bookingLimits: { PER_WEEK: 5 },
-      dateFrom: weekDateFrom,
-      dateTo: weekDateTo,
+      browsingWindowStart: weekDateFrom,
+      browsingWindowEnd: weekDateTo,
       limitManager,
       timeZone: "UTC",
     });
@@ -449,8 +449,8 @@ describe("getBusyTimesFromBookingLimits", () => {
     await getBusyTimesFromBookingLimits({
       bookings: [],
       bookingLimits: { PER_MONTH: 10 },
-      dateFrom: monthDateFrom,
-      dateTo: monthDateTo,
+      browsingWindowStart: monthDateFrom,
+      browsingWindowEnd: monthDateTo,
       limitManager,
       timeZone: "UTC",
     });
@@ -464,7 +464,7 @@ describe("getBusyTimesFromBookingLimits", () => {
     const limitManager = new LimitManager();
     // Pre-mark the period as busy
     limitManager.addBusyTime({
-      start: dateFrom.startOf("day"),
+      start: browsingWindowStart.startOf("day"),
       unit: "day",
       title: "busy_time.event_booking_limit",
       source: "Event Booking Limit for User: 1 per day",
@@ -480,8 +480,8 @@ describe("getBusyTimesFromBookingLimits", () => {
     await getBusyTimesFromBookingLimits({
       bookings: testBookings,
       bookingLimits: { PER_DAY: 1 },
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       limitManager,
       timeZone: "UTC",
     });
@@ -498,14 +498,14 @@ describe("getBusyTimesFromTeamLimits", () => {
   });
 
   it("should fetch team bookings and check limits", async () => {
-    const dateFrom = dayjs("2024-01-15T00:00:00Z");
-    const dateTo = dayjs("2024-01-15T23:59:59Z");
+    const browsingWindowStart = dayjs("2024-01-15T00:00:00Z");
+    const browsingWindowEnd = dayjs("2024-01-15T23:59:59Z");
 
     const result = await getBusyTimesFromTeamLimits(
       { id: 1, email: "user@example.com" },
       { PER_DAY: 5 },
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       100, // teamId
       false, // includeManagedEvents
       "UTC"
@@ -515,14 +515,14 @@ describe("getBusyTimesFromTeamLimits", () => {
   });
 
   it("should pass rescheduleUid through to team limit checks", async () => {
-    const dateFrom = dayjs("2024-01-15T00:00:00Z");
-    const dateTo = dayjs("2024-01-15T23:59:59Z");
+    const browsingWindowStart = dayjs("2024-01-15T00:00:00Z");
+    const browsingWindowEnd = dayjs("2024-01-15T23:59:59Z");
 
     const result = await getBusyTimesFromTeamLimits(
       { id: 1, email: "user@example.com" },
       { PER_DAY: 5 },
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       100,
       false,
       "UTC",

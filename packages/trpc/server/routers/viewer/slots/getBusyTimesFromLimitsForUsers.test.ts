@@ -54,8 +54,8 @@ describe("AvailableSlotsService - _getBusyTimesFromLimitsForUsers", () => {
       { id: 31, email: "user31@example.com" },
     ];
     const eventType = { id: 52, length: 30 };
-    const dateFrom = dayjs("2026-01-01");
-    const dateTo = dayjs("2026-12-31");
+    const browsingWindowStart = dayjs("2026-01-01");
+    const browsingWindowEnd = dayjs("2026-12-31");
     const timeZone = "UTC";
 
     it("should call getTotalBookingDuration once for yearly duration limits instead of N times", async () => {
@@ -68,8 +68,8 @@ describe("AvailableSlotsService - _getBusyTimesFromLimitsForUsers", () => {
         users,
         null,
         durationLimits,
-        dateFrom,
-        dateTo,
+        browsingWindowStart,
+        browsingWindowEnd,
         30,
         eventType,
         timeZone
@@ -93,8 +93,8 @@ describe("AvailableSlotsService - _getBusyTimesFromLimitsForUsers", () => {
         users,
         null,
         durationLimits,
-        dateFrom,
-        dateTo,
+        browsingWindowStart,
+        browsingWindowEnd,
         30,
         eventType,
         timeZone
@@ -106,7 +106,16 @@ describe("AvailableSlotsService - _getBusyTimesFromLimitsForUsers", () => {
     it("should not call getTotalBookingDuration when no duration limits at all", async () => {
       await (
         service as unknown as { _getBusyTimesFromLimitsForUsers: BusyTimesFromLimitsForUsers }
-      )._getBusyTimesFromLimitsForUsers(users, null, null, dateFrom, dateTo, 30, eventType, timeZone);
+      )._getBusyTimesFromLimitsForUsers(
+        users,
+        null,
+        null,
+        browsingWindowStart,
+        browsingWindowEnd,
+        30,
+        eventType,
+        timeZone
+      );
 
       expect(mockDependencies.bookingRepo.getTotalBookingDuration).not.toHaveBeenCalled();
     });
@@ -123,8 +132,8 @@ describe("AvailableSlotsService - _getBusyTimesFromLimitsForUsers", () => {
         users,
         null,
         durationLimits,
-        dateFrom,
-        dateTo,
+        browsingWindowStart,
+        browsingWindowEnd,
         30,
         eventType,
         timeZone,
@@ -176,8 +185,8 @@ describe("AvailableSlotsService - _getBusyTimesFromLimitsForUsers", () => {
         users,
         null,
         durationLimits,
-        dateFrom,
-        dateTo,
+        browsingWindowStart,
+        browsingWindowEnd,
         30,
         eventType,
         timeZone
@@ -197,8 +206,8 @@ describe("AvailableSlotsService - _getBusyTimesFromLimitsForUsers", () => {
         users,
         null,
         durationLimits,
-        dateFrom,
-        dateTo,
+        browsingWindowStart,
+        browsingWindowEnd,
         30,
         eventType,
         timeZone
@@ -218,8 +227,8 @@ describe("AvailableSlotsService - _getBusyTimesFromLimitsForUsers", () => {
         users,
         null,
         durationLimits,
-        dateFrom,
-        dateTo,
+        browsingWindowStart,
+        browsingWindowEnd,
         30,
         eventType,
         timeZone

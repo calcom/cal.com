@@ -377,8 +377,8 @@ export class AvailableSlotsService {
     users: { id: number; email: string }[],
     bookingLimits: IntervalLimit | null,
     durationLimits: IntervalLimit | null,
-    dateFrom: Dayjs,
-    dateTo: Dayjs,
+    browsingWindowStart: Dayjs,
+    browsingWindowEnd: Dayjs,
     duration: number | undefined,
     eventType: NonNullable<EventType>,
     timeZone: string,
@@ -391,8 +391,8 @@ export class AvailableSlotsService {
     }
 
     const { limitDateFrom, limitDateTo } = this.dependencies.busyTimesService.getStartEndDateforLimitCheck(
-      dateFrom.toISOString(),
-      dateTo.toISOString(),
+      browsingWindowStart.toISOString(),
+      browsingWindowEnd.toISOString(),
       bookingLimits || durationLimits
     );
 
@@ -438,8 +438,8 @@ export class AvailableSlotsService {
 
         const unit = intervalLimitKeyToUnit(key);
         const periodStartDates = this.dependencies.userAvailabilityService.getPeriodStartDatesBetween(
-          dateFrom,
-          dateTo,
+          browsingWindowStart,
+          browsingWindowEnd,
           unit,
           timeZone
         );
@@ -479,8 +479,8 @@ export class AvailableSlotsService {
     const missingYearlyDurationTotals = new Set<string>();
     if (durationLimits?.PER_YEAR) {
       const yearPeriodStartDates = this.dependencies.userAvailabilityService.getPeriodStartDatesBetween(
-        dateFrom,
-        dateTo,
+        browsingWindowStart,
+        browsingWindowEnd,
         "year",
         timeZone
       );
@@ -509,8 +509,8 @@ export class AvailableSlotsService {
 
           const unit = intervalLimitKeyToUnit(key);
           const periodStartDates = this.dependencies.userAvailabilityService.getPeriodStartDatesBetween(
-            dateFrom,
-            dateTo,
+            browsingWindowStart,
+            browsingWindowEnd,
             unit,
             timeZone
           );
@@ -580,8 +580,8 @@ export class AvailableSlotsService {
 
           const unit = intervalLimitKeyToUnit(key);
           const periodStartDates = this.dependencies.userAvailabilityService.getPeriodStartDatesBetween(
-            dateFrom,
-            dateTo,
+            browsingWindowStart,
+            browsingWindowEnd,
             unit,
             timeZone
           );
@@ -612,8 +612,8 @@ export class AvailableSlotsService {
                   eventTypeId: eventType.id,
                   durationLimitKey: key,
                   yearKey,
-                  dateFrom: dateFrom.toISOString(),
-                  dateTo: dateTo.toISOString(),
+                  browsingWindowStart: browsingWindowStart.toISOString(),
+                  browsingWindowEnd: browsingWindowEnd.toISOString(),
                   timeZone,
                 });
               }
@@ -673,16 +673,16 @@ export class AvailableSlotsService {
   private async _getBusyTimesFromTeamLimitsForUsers(
     users: { id: number; email: string }[],
     bookingLimits: IntervalLimit,
-    dateFrom: Dayjs,
-    dateTo: Dayjs,
+    browsingWindowStart: Dayjs,
+    browsingWindowEnd: Dayjs,
     teamId: number,
     includeManagedEvents: boolean,
     timeZone: string,
     rescheduleUid?: string
   ) {
     const { limitDateFrom, limitDateTo } = this.dependencies.busyTimesService.getStartEndDateforLimitCheck(
-      dateFrom.toISOString(),
-      dateTo.toISOString(),
+      browsingWindowStart.toISOString(),
+      browsingWindowEnd.toISOString(),
       bookingLimits
     );
 
@@ -720,8 +720,8 @@ export class AvailableSlotsService {
 
       const unit = intervalLimitKeyToUnit(key);
       const periodStartDates = this.dependencies.userAvailabilityService.getPeriodStartDatesBetween(
-        dateFrom,
-        dateTo,
+        browsingWindowStart,
+        browsingWindowEnd,
         unit,
         timeZone
       );
@@ -780,8 +780,8 @@ export class AvailableSlotsService {
 
         const unit = intervalLimitKeyToUnit(key);
         const periodStartDates = this.dependencies.userAvailabilityService.getPeriodStartDatesBetween(
-          dateFrom,
-          dateTo,
+          browsingWindowStart,
+          browsingWindowEnd,
           unit,
           timeZone
         );
@@ -854,8 +854,12 @@ export class AvailableSlotsService {
     "getBusyTimesFromTeamLimitsForUsers"
   );
 
-  private async _getOOODates(startTimeDate: Date, endTimeDate: Date, allUserIds: number[]) {
-    return this.dependencies.oooRepo.findManyOOO({ startTimeDate, endTimeDate, allUserIds });
+  private async _getOOODates(bookingQueryStart: Date, bookingQueryEnd: Date, allUserIds: number[]) {
+    return this.dependencies.oooRepo.findManyOOO({
+      startTimeDate: bookingQueryStart,
+      endTimeDate: bookingQueryEnd,
+      allUserIds,
+    });
   }
   private getOOODates = withReporting(this._getOOODates.bind(this), "getOOODates");
 
@@ -883,8 +887,8 @@ export class AvailableSlotsService {
     eventType,
     hosts,
     loggerWithEventDetails,
-    startTime,
-    endTime,
+    browsingWindowStart,
+    browsingWindowEnd,
     bypassBusyCalendarTimes,
     silentCalendarFailures,
     mode,
@@ -900,8 +904,8 @@ export class AvailableSlotsService {
       user: GetAvailabilityUserWithDelegationCredentials;
     }[];
     loggerWithEventDetails: Logger<unknown>;
-    startTime: ReturnType<(typeof AvailableSlotsService)["prototype"]["getStartTime"]>;
-    endTime: Dayjs;
+    browsingWindowStart: ReturnType<(typeof AvailableSlotsService)["prototype"]["getStartTime"]>;
+    browsingWindowEnd: Dayjs;
     bypassBusyCalendarTimes: boolean;
     silentCalendarFailures: boolean;
     mode?: CalendarFetchMode;
@@ -917,13 +921,15 @@ export class AvailableSlotsService {
     const durationToUse = input.duration || 0;
     let currentSeats: CurrentSeats | undefined;
 
-    const startTimeDate =
+    const bookingQueryStart =
       input.rescheduleUid && durationToUse
-        ? startTime.subtract(durationToUse, "minute").toDate()
-        : startTime.toDate();
+        ? browsingWindowStart.subtract(durationToUse, "minute").toDate()
+        : browsingWindowStart.toDate();
 
-    const endTimeDate =
-      input.rescheduleUid && durationToUse ? endTime.add(durationToUse, "minute").toDate() : endTime.toDate();
+    const bookingQueryEnd =
+      input.rescheduleUid && durationToUse
+        ? browsingWindowEnd.add(durationToUse, "minute").toDate()
+        : browsingWindowEnd.toDate();
 
     const userIdAndEmailMap = new Map(usersWithCredentials.map((user) => [user.id, user.email]));
     const allUserIds = Array.from(userIdAndEmailMap.keys());
@@ -931,13 +937,13 @@ export class AvailableSlotsService {
     const bookingRepo = this.dependencies.bookingRepo;
     const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
       bookingRepo.findAllExistingBookingsForEventTypeBetween({
-        startDate: startTimeDate,
-        endDate: endTimeDate,
+        startDate: bookingQueryStart,
+        endDate: bookingQueryEnd,
         eventTypeId: eventType.id,
         seatedEvent: Boolean(eventType.seatsPerTimeSlot),
         userIdAndEmailMap,
       }),
-      this.getOOODates(startTimeDate, endTimeDate, allUserIds),
+      this.getOOODates(bookingQueryStart, bookingQueryEnd, allUserIds),
     ]);
 
     const currentBookingsByUserId = new Map<number, typeof currentBookingsAllUsers>();
@@ -998,8 +1004,8 @@ export class AvailableSlotsService {
         await this.dependencies.busyTimesService.getBusyTimesForLimitChecks({
           userIds: allUserIds,
           eventTypeId: eventType.id,
-          startDate: startTime.format(),
-          endDate: endTime.format(),
+          startDate: browsingWindowStart.format(),
+          endDate: browsingWindowEnd.format(),
           rescheduleUid: input.rescheduleUid,
           bookingLimits,
           durationLimits,
@@ -1026,8 +1032,8 @@ export class AvailableSlotsService {
         usersForLimits,
         bookingLimits,
         durationLimits,
-        startTime,
-        endTime,
+        browsingWindowStart,
+        browsingWindowEnd,
         durationInput,
         eventType,
         eventTimeZone,
@@ -1042,8 +1048,8 @@ export class AvailableSlotsService {
       teamBookingLimitsPromise = this.getBusyTimesFromTeamLimitsForUsers(
         usersForTeamLimits,
         teamBookingLimits,
-        startTime,
-        endTime,
+        browsingWindowStart,
+        browsingWindowEnd,
         teamForBookingLimits.id,
         teamForBookingLimits.includeManagedEventsInLimits,
         eventTimeZone,
@@ -1094,8 +1100,8 @@ export class AvailableSlotsService {
     const premappedUsersAvailability = await this.dependencies.userAvailabilityService.getUsersAvailability({
       users,
       query: {
-        dateFrom: startTime.format(),
-        dateTo: endTime.format(),
+        browsingWindowStart: browsingWindowStart.format(),
+        browsingWindowEnd: browsingWindowEnd.format(),
         eventTypeId: eventType.id,
         afterEventBuffer: eventType.afterEventBuffer,
         beforeEventBuffer: eventType.beforeEventBuffer,
@@ -1258,12 +1264,12 @@ export class AvailableSlotsService {
       prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
     });
 
-    const startTime = this.getStartTime(
+    const browsingWindowStart = this.getStartTime(
       startTimeAdjustedForRollingWindowComputation,
       input.timeZone,
       eventType.minimumBookingNotice
     );
-    const endTime =
+    const browsingWindowEnd =
       input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
     // when an empty array is given we should prefer to have it handled as if this wasn't given at all
     // we don't want to return no availability in this case.
@@ -1337,14 +1343,14 @@ export class AvailableSlotsService {
         eventType,
         hosts: allHosts,
         loggerWithEventDetails,
-        startTime:
-          hasFallbackRRHosts && startTime.isBefore(twoWeeksFromNow)
+        browsingWindowStart:
+          hasFallbackRRHosts && browsingWindowStart.isBefore(twoWeeksFromNow)
             ? this.getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
-            : startTime,
-        endTime:
-          hasFallbackRRHosts && endTime.isBefore(twoWeeksFromNow)
+            : browsingWindowStart,
+        browsingWindowEnd:
+          hasFallbackRRHosts && browsingWindowEnd.isBefore(twoWeeksFromNow)
             ? this.getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
-            : endTime,
+            : browsingWindowEnd,
         bypassBusyCalendarTimes,
         silentCalendarFailures,
         mode,
@@ -1355,7 +1361,7 @@ export class AvailableSlotsService {
     // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
     if (hasFallbackRRHosts) {
       let diff = 0;
-      if (startTime.isBefore(twoWeeksFromNow)) {
+      if (browsingWindowStart.isBefore(twoWeeksFromNow)) {
         //check if first two week have availability
         diff =
           aggregatedAvailability.length > 0
@@ -1370,8 +1376,8 @@ export class AvailableSlotsService {
             eventType,
             hosts: [...eligibleQualifiedRRHosts, ...eligibleFixedHosts],
             loggerWithEventDetails,
-            startTime: dayjs(),
-            endTime: twoWeeksFromNow,
+            browsingWindowStart: dayjs(),
+            browsingWindowEnd: twoWeeksFromNow,
             bypassBusyCalendarTimes,
             silentCalendarFailures,
             mode,
@@ -1406,8 +1412,8 @@ export class AvailableSlotsService {
             eventType,
             hosts: [...eligibleFallbackRRHosts, ...eligibleFixedHosts],
             loggerWithEventDetails,
-            startTime,
-            endTime,
+            browsingWindowStart,
+            browsingWindowEnd,
             bypassBusyCalendarTimes,
             silentCalendarFailures,
             mode,
@@ -1422,7 +1428,7 @@ export class AvailableSlotsService {
       allUsersAvailability.length > 1;
 
     const timeSlots = getSlots({
-      inviteeDate: startTime,
+      inviteeDate: browsingWindowStart,
       eventLength: input.duration || eventType.length,
       offsetStart: eventType.offsetStart,
       dateRanges: aggregatedAvailability,
@@ -1471,8 +1477,8 @@ export class AvailableSlotsService {
         const { dateRanges: restrictionRanges } = buildDateRanges({
           availability: restrictionAvailability,
           timeZone: restrictionTimezone || "UTC",
-          dateFrom: startTime,
-          dateTo: endTime,
+          dateFrom: browsingWindowStart,
+          dateTo: browsingWindowEnd,
           travelSchedules,
         });
 
@@ -1696,8 +1702,8 @@ export class AvailableSlotsService {
         await this.dependencies.noSlotsNotificationService.handleNotificationWhenNoSlots({
           eventDetails: {
             username: input.usernameList?.[0],
-            startTime: startTime,
-            endTime: endTime,
+            startTime: browsingWindowStart,
+            endTime: browsingWindowEnd,
             eventSlug: eventType.slug,
           },
           orgDetails,

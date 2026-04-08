@@ -185,8 +185,8 @@ describe("getUsersAvailability – holiday blocking without pre-fetched holidayD
     const [result] = await service.getUsersAvailability({
       users: [user],
       query: {
-        dateFrom: `${holidayDate}T00:00:00Z`,
-        dateTo: `${holidayDate}T23:59:59Z`,
+        browsingWindowStart: `${holidayDate}T00:00:00Z`,
+        browsingWindowEnd: `${holidayDate}T23:59:59Z`,
         returnDateOverrides: false,
       },
       initialData: {},
@@ -206,8 +206,8 @@ describe("getUsersAvailability – holiday blocking without pre-fetched holidayD
     const [result] = await service.getUsersAvailability({
       users: [user],
       query: {
-        dateFrom: `${holidayDate}T00:00:00Z`,
-        dateTo: `${holidayDate}T23:59:59Z`,
+        browsingWindowStart: `${holidayDate}T00:00:00Z`,
+        browsingWindowEnd: `${holidayDate}T23:59:59Z`,
         returnDateOverrides: false,
       },
       initialData: {},
@@ -225,8 +225,8 @@ describe("getUsersAvailability – holiday blocking without pre-fetched holidayD
     const [result] = await service.getUsersAvailability({
       users: [user],
       query: {
-        dateFrom: `${nonHolidayDate}T00:00:00Z`,
-        dateTo: `${nonHolidayDate}T23:59:59Z`,
+        browsingWindowStart: `${nonHolidayDate}T00:00:00Z`,
+        browsingWindowEnd: `${nonHolidayDate}T23:59:59Z`,
         returnDateOverrides: false,
       },
       initialData: {},
@@ -245,8 +245,8 @@ describe("getUsersAvailability – holiday blocking without pre-fetched holidayD
     const [result] = await service.getUsersAvailability({
       users: [user],
       query: {
-        dateFrom: `${holidayDate}T00:00:00Z`,
-        dateTo: `${holidayDate}T23:59:59Z`,
+        browsingWindowStart: `${holidayDate}T00:00:00Z`,
+        browsingWindowEnd: `${holidayDate}T23:59:59Z`,
         returnDateOverrides: false,
       },
       initialData: {},
@@ -267,8 +267,8 @@ describe("getUsersAvailability – holiday blocking without pre-fetched holidayD
     const results = await service.getUsersAvailability({
       users: [user1, user2],
       query: {
-        dateFrom: `${holidayDate}T00:00:00Z`,
-        dateTo: `${holidayDate}T23:59:59Z`,
+        browsingWindowStart: `${holidayDate}T00:00:00Z`,
+        browsingWindowEnd: `${holidayDate}T23:59:59Z`,
         returnDateOverrides: false,
       },
       initialData: {},
@@ -296,8 +296,8 @@ describe("getUsersAvailability – holiday blocking without pre-fetched holidayD
       const [result] = await service.getUsersAvailability({
         users: [user],
         query: {
-          dateFrom: `${holidayDate}T00:00:00Z`,
-          dateTo: `${holidayDate}T23:59:59Z`,
+          browsingWindowStart: `${holidayDate}T00:00:00Z`,
+          browsingWindowEnd: `${holidayDate}T23:59:59Z`,
           returnDateOverrides: false,
         },
         initialData: {},

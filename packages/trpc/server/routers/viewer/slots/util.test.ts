@@ -179,8 +179,8 @@ describe("AvailableSlotsService.calculateHostsAndAvailabilities", () => {
       loggerWithEventDetails: {
         debug: vi.fn(),
       },
-      startTime: dayjs("2026-01-05T00:00:00.000Z"),
-      endTime: dayjs("2026-01-06T00:00:00.000Z"),
+      browsingWindowStart: dayjs("2026-01-05T00:00:00.000Z"),
+      browsingWindowEnd: dayjs("2026-01-06T00:00:00.000Z"),
       bypassBusyCalendarTimes: false,
       silentCalendarFailures: false,
       mode: "slots",

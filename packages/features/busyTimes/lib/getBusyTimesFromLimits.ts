@@ -17,8 +17,8 @@ import type { EventBusyDetails } from "@calcom/types/Calendar";
 const _getBusyTimesFromLimits = async (
   bookingLimits: IntervalLimit | null,
   durationLimits: IntervalLimit | null,
-  dateFrom: Dayjs,
-  dateTo: Dayjs,
+  browsingWindowStart: Dayjs,
+  browsingWindowEnd: Dayjs,
   duration: number | undefined,
   eventType: NonNullable<EventType>,
   bookings: EventBusyDetails[],
@@ -36,8 +36,8 @@ const _getBusyTimesFromLimits = async (
     await getBusyTimesFromBookingLimits({
       bookings,
       bookingLimits,
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       eventTypeId: eventType.id,
       limitManager,
       rescheduleUid,
@@ -53,8 +53,8 @@ const _getBusyTimesFromLimits = async (
     await getBusyTimesFromDurationLimits(
       bookings,
       durationLimits,
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       duration,
       eventType,
       limitManager,
@@ -74,8 +74,8 @@ const _getBusyTimesFromLimits = async (
 const _getBusyTimesFromBookingLimits = async (params: {
   bookings: EventBusyDetails[];
   bookingLimits: IntervalLimit;
-  dateFrom: Dayjs;
-  dateTo: Dayjs;
+  browsingWindowStart: Dayjs;
+  browsingWindowEnd: Dayjs;
   limitManager: LimitManager;
   rescheduleUid?: string;
   eventTypeId?: number;
@@ -87,8 +87,8 @@ const _getBusyTimesFromBookingLimits = async (params: {
   const {
     bookings,
     bookingLimits,
-    dateFrom,
-    dateTo,
+    browsingWindowStart,
+    browsingWindowEnd,
     limitManager,
     eventTypeId,
     teamId,
@@ -103,7 +103,7 @@ const _getBusyTimesFromBookingLimits = async (params: {
     if (!limit) continue;
 
     const unit = intervalLimitKeyToUnit(key);
-    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+    const periodStartDates = getPeriodStartDatesBetween(browsingWindowStart, browsingWindowEnd, unit);
 
     for (const periodStart of periodStartDates) {
       if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
@@ -166,8 +166,8 @@ const _getBusyTimesFromBookingLimits = async (params: {
 const _getBusyTimesFromDurationLimits = async (
   bookings: EventBusyDetails[],
   durationLimits: IntervalLimit,
-  dateFrom: Dayjs,
-  dateTo: Dayjs,
+  browsingWindowStart: Dayjs,
+  browsingWindowEnd: Dayjs,
   duration: number | undefined,
   eventType: NonNullable<EventType>,
   limitManager: LimitManager,
@@ -179,7 +179,7 @@ const _getBusyTimesFromDurationLimits = async (
     if (!limit) continue;
 
     const unit = intervalLimitKeyToUnit(key);
-    const periodStartDates = getPeriodStartDatesBetween(dateFrom, dateTo, unit);
+    const periodStartDates = getPeriodStartDatesBetween(browsingWindowStart, browsingWindowEnd, unit);
 
     for (const periodStart of periodStartDates) {
       if (limitManager.isAlreadyBusy(periodStart, unit)) continue;
@@ -252,8 +252,8 @@ const getBusyTimesFromDurationLimits = withReporting(
 const _getBusyTimesFromTeamLimits = async (
   user: { id: number; email: string },
   bookingLimits: IntervalLimit,
-  dateFrom: Dayjs,
-  dateTo: Dayjs,
+  browsingWindowStart: Dayjs,
+  browsingWindowEnd: Dayjs,
   teamId: number,
   includeManagedEvents: boolean,
   timeZone: string,
@@ -261,8 +261,8 @@ const _getBusyTimesFromTeamLimits = async (
 ) => {
   const busyTimesService = getBusyTimesService();
   const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
-    dateFrom.toISOString(),
-    dateTo.toISOString(),
+    browsingWindowStart.toISOString(),
+    browsingWindowEnd.toISOString(),
     bookingLimits
   );
 
@@ -289,8 +289,8 @@ const _getBusyTimesFromTeamLimits = async (
   await getBusyTimesFromBookingLimits({
     bookings: busyTimes,
     bookingLimits,
-    dateFrom,
-    dateTo,
+    browsingWindowStart,
+    browsingWindowEnd,
     limitManager,
     rescheduleUid,
     teamId,

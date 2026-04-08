@@ -56,8 +56,8 @@ import { detectEventTypeScheduleForUser } from "./detectEventTypeScheduleForUser
 const log = logger.getSubLogger({ prefix: ["getUserAvailability"] });
 
 type GetUsersAvailabilityQuery = {
-  dateFrom: string;
-  dateTo: string;
+  browsingWindowStart: string;
+  browsingWindowEnd: string;
   eventTypeId?: number;
   afterEventBuffer?: number;
   beforeEventBuffer?: number;
@@ -70,8 +70,8 @@ type GetUsersAvailabilityQuery = {
 };
 
 const availabilitySchema: z.ZodType<GetUserAvailabilityParams, z.ZodTypeDef, unknown> = z.object({
-  dateFrom: stringToDayjsZod,
-  dateTo: stringToDayjsZod,
+  browsingWindowStart: stringToDayjsZod,
+  browsingWindowEnd: stringToDayjsZod,
   eventTypeId: z.number().optional(),
   afterEventBuffer: z.number().optional(),
   beforeEventBuffer: z.number().optional(),
@@ -88,8 +88,8 @@ type GetUserAvailabilityParams = {
   withSource?: boolean;
   username?: string;
   userId?: number;
-  dateFrom: Dayjs;
-  dateTo: Dayjs;
+  browsingWindowStart: Dayjs;
+  browsingWindowEnd: Dayjs;
   eventTypeId?: number;
   afterEventBuffer?: number;
   beforeEventBuffer?: number;
@@ -278,6 +278,35 @@ export function getHolidayDateRange({ start, end }: { start: Date; end: Date }):
   };
 }
 
+/**
+ * Availability Pipeline — Date Range Terminology
+ * ================================================
+ *
+ * browsingWindowStart / browsingWindowEnd (Dayjs)
+ *   The date range the booker is currently viewing in the UI.
+ *   Start is always clamped to >= now + minimumBookingNotice (i.e., never in the past).
+ *   End is the last day of the month being viewed.
+ *   For ROLLING_WINDOW period types, start may be shifted back 1 month to compute
+ *   rolling availability, but is then re-clamped to now + minimumBookingNotice.
+ *   Expansion beyond client input: none (only clamped forward to now + minimumBookingNotice).
+ *
+ * bookingQueryStart / bookingQueryEnd (Date)
+ *   The range used to query existing bookings from the database.
+ *   Derived from the browsing window, but expanded when rescheduling:
+ *     bookingQueryStart = browsingWindowStart − eventDuration (only if rescheduleUid is set)
+ *     bookingQueryEnd   = browsingWindowEnd   + eventDuration (only if rescheduleUid is set)
+ *   Without reschedule: identical to browsing window as Date objects.
+ *   Typical expansion: ±15 to ±240 minutes (the event's duration).
+ *
+ * limitCheckStart / limitCheckEnd (Dayjs)
+ *   The expanded range used to query bookings for booking/duration limit enforcement.
+ *   Derived from the browsing window, expanded to cover full limit periods:
+ *     PER_DAY:   startOf('day')  / endOf('day')   — up to ±1 day
+ *     PER_WEEK:  startOf('week') / endOf('week')   — up to ±6 days
+ *     PER_MONTH: startOf('month')/ endOf('month')  — up to ±30 days
+ *     PER_YEAR:  NOT expanded here (handled via separate direct DB query for performance)
+ *   Uses dayjs.min/dayjs.max so the largest applicable limit determines the expansion.
+ */
 export class UserAvailabilityService {
   constructor(public readonly dependencies: IUserAvailabilityService) {}
 
@@ -431,8 +460,8 @@ export class UserAvailabilityService {
     const {
       username,
       userId,
-      dateFrom,
-      dateTo,
+      browsingWindowStart,
+      browsingWindowEnd,
       eventTypeId,
       afterEventBuffer,
       beforeEventBuffer,
@@ -461,7 +490,7 @@ export class UserAvailabilityService {
     current bookings with a seats event type and display them on the calendar, even if they are full */
     let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
     if (!currentSeats && eventType?.seatsPerTimeSlot) {
-      currentSeats = await this.getCurrentSeats(eventType, dateFrom, dateTo);
+      currentSeats = await this.getCurrentSeats(eventType, browsingWindowStart, browsingWindowEnd);
     }
 
     const { isDefaultSchedule, isTimezoneSet, schedule } = detectEventTypeScheduleForUser({
@@ -515,8 +544,8 @@ export class UserAvailabilityService {
         const overrideStartDate = dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute());
         const overrideEndDate = dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute());
         if (
-          overrideStartDate.isBetween(dateFrom, dateTo, null, "[]") ||
-          overrideEndDate.isBetween(dateFrom, dateTo, null, "[]")
+          overrideStartDate.isBetween(browsingWindowStart, browsingWindowEnd, null, "[]") ||
+          overrideEndDate.isBetween(browsingWindowStart, browsingWindowEnd, null, "[]")
         ) {
           dateOverrides.push({
             start: overrideStartDate.toDate(),
@@ -530,15 +559,20 @@ export class UserAvailabilityService {
       initialData?.outOfOfficeDays ??
       (await this.dependencies.oooRepo.findUserOOODays({
         userId: user.id,
-        dateFrom: dateFrom.toISOString(),
-        dateTo: dateTo.toISOString(),
+        dateFrom: browsingWindowStart.toISOString(),
+        dateTo: browsingWindowEnd.toISOString(),
       }));
 
     const datesOutOfOffice: IOutOfOfficeData = this.calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
     const prefetchedHolidayData = this.getInitialDataItem(initialData, "holidayData");
     const holidayBlockedDates = !prefetchedHolidayData.provided
-      ? await this.fetchAndCalculateHolidayBlockedDates({ userId: user.id, dateFrom, dateTo, availability })
+      ? await this.fetchAndCalculateHolidayBlockedDates({
+          userId: user.id,
+          dateFrom: browsingWindowStart,
+          dateTo: browsingWindowEnd,
+          availability,
+        })
       : prefetchedHolidayData.value
         ? this.calculateHolidayBlockedDates(
             availability,
@@ -576,8 +610,8 @@ export class UserAvailabilityService {
     }
 
     const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
-      dateFrom,
-      dateTo,
+      dateFrom: browsingWindowStart,
+      dateTo: browsingWindowEnd,
       availability,
       timeZone: finalTimezone,
       travelSchedules,
@@ -599,8 +633,8 @@ export class UserAvailabilityService {
     const { bookingLimits, durationLimits } = await this.parseLimits(eventType);
 
     // TODO: only query what we need after applying limits (shrink date range)
-    const getBusyTimesStart = dateFrom.toISOString();
-    const getBusyTimesEnd = dateTo.toISOString();
+    const getBusyTimesStart = browsingWindowStart.toISOString();
+    const getBusyTimesEnd = browsingWindowEnd.toISOString();
 
     const selectedCalendars = getSelectedCalendars({ user, eventType });
 
@@ -618,8 +652,8 @@ export class UserAvailabilityService {
       eventTypeLimitsPromise = getBusyTimesFromLimits(
         bookingLimits,
         durationLimits,
-        dateFrom.tz(finalTimezone),
-        dateTo.tz(finalTimezone),
+        browsingWindowStart.tz(finalTimezone),
+        browsingWindowEnd.tz(finalTimezone),
         duration,
         eventType,
         initialData?.busyTimesFromLimitsBookings ?? [],
@@ -635,8 +669,8 @@ export class UserAvailabilityService {
       teamLimitsPromise = getBusyTimesFromTeamLimits(
         user,
         teamBookingLimits,
-        dateFrom.tz(finalTimezone),
-        dateTo.tz(finalTimezone),
+        browsingWindowStart.tz(finalTimezone),
+        browsingWindowEnd.tz(finalTimezone),
         teamForBookingLimits.id,
         teamForBookingLimits.includeManagedEventsInLimits,
         finalTimezone,
@@ -744,7 +778,7 @@ export class UserAvailabilityService {
     initialData: Ensure<GetUserAvailabilityInitialData, "user">
   ): Promise<GetUserAvailabilityResult> {
     const { user } = initialData || {};
-    const { dateFrom, dateTo, eventTypeId } = params;
+    const { browsingWindowStart, browsingWindowEnd, eventTypeId } = params;
     let eventType: EventType | null = initialData?.eventType || null;
     if (!eventType && eventTypeId) eventType = await this.getEventType(eventTypeId);
 
@@ -755,8 +789,8 @@ export class UserAvailabilityService {
     if (!busyTimesFromLimitsBookings && eventType && (bookingLimits || durationLimits)) {
       const busyTimesService = getBusyTimesService();
       const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
-        dateFrom.toISOString(),
-        dateTo.toISOString(),
+        browsingWindowStart.toISOString(),
+        browsingWindowEnd.toISOString(),
         bookingLimits,
         durationLimits
       );
@@ -874,7 +908,7 @@ export class UserAvailabilityService {
 
     const params = availabilitySchema.parse(query);
 
-    if (!params.dateFrom.isValid() || !params.dateTo.isValid()) {
+    if (!params.browsingWindowStart.isValid() || !params.browsingWindowEnd.isValid()) {
       throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
     }
 
@@ -895,8 +929,8 @@ export class UserAvailabilityService {
       users,
       eventType,
       calendarCacheEnabledForUserIds,
-      dateFrom: params.dateFrom,
-      dateTo: params.dateTo,
+      browsingWindowStart: params.browsingWindowStart,
+      browsingWindowEnd: params.browsingWindowEnd,
     });
 
     return await Promise.all(
@@ -980,8 +1014,8 @@ export class UserAvailabilityService {
       return getHolidayDataMap({ userIds: allUserIds, holidayDatesByCountry: null });
 
     const { start: holidayStartOfDay, end: holidayEndOfDay } = getHolidayDateRange({
-      start: params.dateFrom.toDate(),
-      end: params.dateTo.toDate(),
+      start: params.browsingWindowStart.toDate(),
+      end: params.browsingWindowEnd.toDate(),
     });
 
     const holidayService = getHolidayService();
@@ -1033,14 +1067,14 @@ export class UserAvailabilityService {
     users,
     eventType,
     calendarCacheEnabledForUserIds,
-    dateFrom,
-    dateTo,
+    browsingWindowStart,
+    browsingWindowEnd,
   }: {
     users: GetUsersAvailabilityProps["users"];
     eventType: EventType | null;
     calendarCacheEnabledForUserIds: Set<number>;
-    dateFrom: Dayjs;
-    dateTo: Dayjs;
+    browsingWindowStart: Dayjs;
+    browsingWindowEnd: Dayjs;
   }): Promise<ICalendarCacheEventRepository | null> {
     if (calendarCacheEnabledForUserIds.size === 0) return null;
 
@@ -1055,8 +1089,8 @@ export class UserAvailabilityService {
     if (allSyncedCalendarIds.length === 0) return null;
 
     const { start: expandedStart, end: expandedEnd } = expandDateRangeByUtcOffset(
-      dateFrom.toISOString(),
-      dateTo.toISOString()
+      browsingWindowStart.toISOString(),
+      browsingWindowEnd.toISOString()
     );
 
     const cacheRepo = getCalendarCacheEventRepository();

@@ -123,8 +123,8 @@ const createMockEventType = (overrides?: Partial<NonNullable<EventType>>): NonNu
 });
 
 const createParams = (overrides?: Record<string, unknown>) => ({
-  dateFrom: dayjs(DATE_FROM),
-  dateTo: dayjs(DATE_TO),
+  browsingWindowStart: dayjs(DATE_FROM),
+  browsingWindowEnd: dayjs(DATE_TO),
   returnDateOverrides: false,
   ...overrides,
 });
