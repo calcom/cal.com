@@ -1,0 +1,448 @@
+# Improved Fix for CAL-5097: Add Booking Questions to Routing Forms
+
+## Solution: Reusable Booking Questions Component
+
+### 1. `packages/features/bookings/lib/questions.ts` (Schema & Types)
+```typescript
+import { z } from 'zod';
+
+// Validation schema with comprehensive error messages
+export const BOOKING_QUESTIONS_SCHEMA = z.object({
+  id: z.string().optional(),
+  identifier: z
+    .string()
+    .min(1, 'Identifier is required')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Identifier must contain only alphanumeric characters, hyphens, and underscores'),
+  label: z.string().min(1, 'Label is required').max(255, 'Label must not exceed 255 characters'),
+  type: z.enum(['text', 'textarea', 'select', 'multiselect', 'checkbox', 'radio'], {
+    errorMap: () => ({ message: 'Invalid question type' }),
+  }),
+  required: z.boolean().default(false),
+  placeholder: z.string().max(255, 'Placeholder must not exceed 255 characters').optional(),
+  options: z
+    .array(
+      z.object({
+        label: z.string().min(1, 'Option label is required').max(255, 'Option label must not exceed 255 characters'),
+        value: z.string().min(1, 'Option value is required'),
+      })
+    )
+    .min(1, 'At least one option is required for select/multiselect/radio/checkbox types')
+    .optional(),
+});
+
+export type BookingQuestion = z.infer<typeof BOOKING_QUESTIONS_SCHEMA>;
+
+// Utility functions
+export const validateBookingQuestions = (questions: unknown): BookingQuestion[] => {
+  return z.array(BOOKING_QUESTIONS_SCHEMA).parse(questions);
+};
+
+export const requiresOptions = (type: BookingQuestion['type']): boolean => {
+  return ['select', 'multiselect', 'radio', 'checkbox'].includes(type);
+};
+
+export const generateIdentifier = (label: string): string => {
+  return label
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_-]/g, '')
+    .slice(0, 50) || `field_${Date.now()}`;
+};
+```
+
+### 2. `packages/features/bookings/components/BookingQuestionInput.tsx` (Export)
+```tsx
+import React, { useCallback } from 'react';
+import { BookingQuestion, requiresOptions } from '../lib/questions';
+
+export interface BookingQuestionInputProps {
+  question: BookingQuestion;
+  onChange: (question: BookingQuestion) => void;
+  onRemove?: () => void;
+  disabled?: boolean;
+  showIdentifier?: boolean;
+}
+
+export const BookingQuestionInput: React.FC<BookingQuestionInputProps> = ({
+  question,
+  onChange,
+  onRemove,
+  disabled = false,
+  showIdentifier = true,
+}) => {
+  const handleFieldChange = useCallback(
+    (field: keyof BookingQuestion, value: unknown) => {
+      const updated = { ...question, [field]: value };
+      
+      // Clear options if switching to non-select type
+      if (field === 'type' && !requiresOptions(value as BookingQuestion['type'])) {
+        updated.options = undefined;
+      }
+      
+      onChange(updated);
+    },
+    [question, onChange]
+  );
+
+  const handleOptionChange = useCallback(
+    (optionIndex: number, field: 'label' | 'value', value: string) => {
+      const updated = { ...question };
+      if (!updated.options) return;
+      
+      updated.options[optionIndex] = {
+        ...updated.options[optionIndex],
+        [field]: value,
+      };
+      onChange(updated);
+    },
+    [question, onChange]
+  );
+
+  const handleAddOption = useCallback(() => {
+    const updated = {
+      ...question,
+      options: [...(question.options || []), { label: '', value: '' }],
+    };
+    onChange(updated);
+  }, [question, onChange]);
+
+  const handleRemoveOption = useCallback(
+    (optionIndex: number) => {
+      const updated = {
+        ...question,
+        options: question.options?.filter((_, i) => i !== optionIndex),
+      };
+      onChange(updated);
+    },
+    [question, onChange]
+  );
+
+  return (
+    <fieldset className="border rounded-lg p-4 space-y-4" disabled={disabled}>
+      <legend className="text-lg font-semibold">Question</legend>
+
+      {/* Identifier Field */}
+      {showIdentifier && (
+        <div>
+          <label htmlFor={`identifier-${question.id}`} className="block text-sm font-medium">
+            Identifier *
+          </label>
+          <input
+            id={`identifier-${question.id}`}
+            type="text"
+            value={question.identifier}
+            onChange={(e) => handleFieldChange('identifier', e.target.value)}
+            disabled={disabled}
+            placeholder="field_name"
+            className="input input-bordered w-full"
+            aria-describedby={`identifier-help-${question.id}`}
+          />
+          <p id={`identifier-help-${question.id}`} className="text-xs text-gray-500 mt-1">
+            Use only alphanumeric characters, hyphens, and underscores
+          </p>
+        </div>
+      )}
+
+      {/* Label Field */}
+      <div>
+        <label htmlFor={`label-${question.id}`} className="block text-sm font-medium">
+          Label *
+        </label>
+        <input
+          id={`label-${question.id}`}
+          type="text"
+          value={question.label}
+          onChange={(e) => handleFieldChange('label', e.target.value)}
+          disabled={disabled}
+          maxLength={255}
+          className="input input-bordered w-full"
+        />
+      </div>
+
+      {/* Type Field */}
+      <div>
+        <label htmlFor={`type-${question.id}`} className="block text-sm font-medium">
+          Type *
+        </label>
+        <select
+          id={`type-${question.id}`}
+          value={question.type}
+          onChange={(e) => handleFieldChange('type', e.target.value)}
+          disabled={disabled}
+          className="select select-bordered w-full"
+        >
+          <option value="text">Text</option>
+          <option value="textarea">Textarea</option>
+          <option value="select">Select</option>
+          <option value="multiselect">Multi-Select</option>
+          <option value="radio">Radio</option>
+          <option value="checkbox">Checkbox</option>
+        </select>
+      </div>
+
+      {/* Placeholder Field */}
+      <div>
+        <label htmlFor={`placeholder-${question.id}`} className="block text-sm font-medium">
+          Placeholder
+        </label>
+        <input
+          id={`placeholder-${question.id}`}
+          type="text"
+          value={question.placeholder || ''}
+          onChange={(e) => handleFieldChange('placeholder', e.target.value || undefined)}
+          disabled={disabled}
+          maxLength={255}
+          className="input input-bordered w-full"
+        />
+      </div>
+
+      {/* Required Checkbox */}
+      <div className="flex items-center">
+        <input
+          id={`required-${question.id}`}
+          type="checkbox"
+          checked={question.required}
+          onChange={(e) => handleFieldChange('required', e.target.checked)}
+          disabled={disabled}
+          className="checkbox"
+        />
+        <label htmlFor={`required-${question.id}`} className="label cursor-pointer ml-2">
+          <span className="text-sm font-medium">Required</span>
+        </label>
+      </div>
+
+      {/* Options Section */}
+      {requiresOptions(question.type) && (
+        <div className="border-t pt-4">
+          <label className="block text-sm font-medium mb-2">Options *</label>
+          <div className="space-y-2">
+            {question.options?.map((option, idx) => (
+              <div key={idx} className="flex gap-2">
+                <input
+                  type="text"
+                  value={option.label}
+                  onChange={(e) => handleOptionChange(idx, 'label', e.target.value)}
+                  disabled={disabled}
+                  placeholder="Option label"
+                  className="input input-bordered flex-1"
+                  maxLength={255}
+                />
+                <input
+                  type="text"
+                  value={option.value}
+                  onChange={(e) => handleOptionChange(idx, 'value', e.target.value)}
+                  disabled={disabled}
+                  placeholder="Option value"
+                  className="input input-bordered flex-1"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveOption(idx)}
+                  disabled={disabled || (question.options?.length || 0) === 1}
+                  className="btn btn-sm btn-error"
+                  aria-label={`Remove option ${idx + 1}`}
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={handleAddOption}
+              disabled={disabled}
+              className="btn btn-sm btn-secondary"
+            >
+              Add Option
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Remove Question */}
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          disabled={disabled}
+          className="btn btn-sm btn-outline btn-error w-full"
+        >
+          Remove Question
+        </button>
+      )}
+    </fieldset>
+  );
+};
+
+export type { BookingQuestion } from '../lib/questions';
+```
+
+### 3. `packages/features/routingForms/lib/routing-form-schema.ts`
+```typescript
+import { z } from 'zod';
+import { BOOKING_QUESTIONS_SCHEMA, BookingQuestion } from '@calcom/features/bookings/lib/questions';
+
+// Extend or reuse booking questions schema for routing forms
+export const routingFormQuestionSchema = BOOKING_QUESTIONS_SCHEMA.extend({
+  // Add routing-form-specific fields if needed
+  order: z.number().int().min(0).optional(),
+});
+
+export type RoutingFormQuestion = z.infer<typeof routingFormQuestionSchema>;
+
+export const routingFormSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, 'Form name is required').max(255, 'Form name must not exceed 255 characters'),
+  description: z.string().max(1000, 'Description must not exceed 1000 characters').optional(),
+  questions: z
+    .array(routingFormQuestionSchema)
+    .min(1, 'At least one question is required')
+    .refine(
+      (questions) => new Set(questions.map((q) => q.identifier)).size === questions.length,
+      'Question identifiers must be unique'
+    ),
+});
+
+export type RoutingForm = z.infer<typeof routingFormSchema>;
+
+export const validateRoutingForm = (data: unknown): RoutingForm => {
+  return routingFormSchema.parse(data);
+};
+```
+
+### 4. `packages/features/routingForms/components/RoutingFormBuilder.tsx`
+```tsx
+import React, { useCallback } from 'react';
+import { BookingQuestionInput } from '@calcom/features/bookings/components/BookingQuestionInput';
+import type { BookingQuestion } from '@calcom/features/bookings/lib/questions';
+import { generateIdentifier } from '@calcom/features/bookings/lib/questions';
+import type { RoutingFormQuestion } from '../lib/routing-form-schema';
+
+interface RoutingFormBuilderProps {
+  questions: RoutingFormQuestion[];
+  onChange: (questions: RoutingFormQuestion[]) => void;
+  disabled?: boolean;
+  maxQuestions?: number;
+}
+
+const DEFAULT_MAX_QUESTIONS = 50;
+
+const RoutingFormBuilder: React.FC<RoutingFormBuilderProps> = ({
+  questions,
+  onChange,
+  disabled = false,
+  maxQuestions = DEFAULT_MAX_QUESTIONS,
+}) => {
+  const handleQuestionChange = useCallback(
+    (index: number, updatedQuestion: RoutingFormQuestion) => {
+      const updated = [...questions];
+      updated[index] = updatedQuestion;
+      onChange(updated);
+    },
+    [questions, onChange]
+  );
+
+  const handleRemoveQuestion = useCallback(
+    (index: number) => {
+      onChange(questions.filter((_, i) => i !== index));
+    },
+    [questions, onChange]
+  );
+
+  const handleAddQuestion = useCallback(() => {
+    if (questions.length >= maxQuestions) {
+      console.warn(`Maximum of ${maxQuestions} questions reached`);
+      return;
+    }
+
+    const newQuestion: RoutingFormQuestion = {
+      identifier: generateIdentifier('New Question'),
+      label: 'New Question',
+      type: 'text',
+      required: false,
+      order: questions.length,
+    };
+
+    onChange([...questions, newQuestion]);
+  }, [questions, onChange, maxQuestions]);
+
+  return (
+    <div className="space-y-4">
+      {questions.length === 0 && (
+        <p className="text-gray-500 text-sm italic">No questions yet. Add one to get started.</p>
+      )}
+
+      {questions.map((question, index) => (
+        <div key={question.id || `question-${index}`} className="relative">
+          <div className="absolute -left-8 top-4 text-gray-400 text-sm font-semibold">{index + 1}</div>
+          <BookingQuestionInput
+            question={question}
+            onChange={(updated) => handleQuestionChange(index, updated)}
+            onRemove={() => handleRemoveQuestion(index)}
+            disabled={disabled}
+            showIdentifier={true}
+          />
+        </div>
+      ))}
+
+      <div className="flex gap-2 pt-4">
+        <button
+          type="button"
+          onClick={handleAddQuestion}
+          disabled={disabled || questions.length >= maxQuestions}
+          className="btn btn-primary"
+          aria-label="Add a new question"
+        >
+          + Add Question {questions.length > 0 && `(${questions.length}/${maxQuestions})`}
+        </button>
+      </div>
+
+      {questions.length >= maxQuestions && (
+        <p className="text-warning text-sm" role="status">
+          Maximum number of questions ({maxQuestions}) reached
+        </p>
+      )}
+    </div>
+  );
+};
+
+export default RoutingFormBuilder;
+```
+
+### 5. `packages/features/routingForms/components/RoutingFormEditor.tsx`
+```tsx
+import React, { useState, useCallback } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import RoutingFormBuilder from './RoutingFormBuilder';
+import { routingFormSchema, type RoutingForm } from '../lib/routing-form-schema';
+import { handleError } from '@calcom/lib/errors';
+
+interface RoutingFormEditorProps {
+  initialData?: RoutingForm;
+  onSave: (form: RoutingForm) => Promise<void>;
+  isLoading?: boolean;
+}
+
+const RoutingFormEditor: React.FC<RoutingFormEditorProps> = ({
+  initialData,
+  onSave,
+  isLoading = false,
+}) => {
+  const [isSaving, setIsSaving] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+  } = useForm<RoutingForm>({
+    resolver: zodResolver(routingFormSchema),
+    defaultValues: initialData || {
+      name: '',
+      description: '',
+      questions: [],
+    },
+  });
+
+  const questions = watch('
