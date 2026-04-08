@@ -345,7 +345,7 @@ async function createOrganizationAndAddMembersAndTeams({
     };
   })[] = [];
 
-  const batchSize = 50;
+  const batchSize = 5;
   for (let i = 0; i < orgMembers.length; i += batchSize) {
     const batch = orgMembers.slice(i, i + batchSize);
 
