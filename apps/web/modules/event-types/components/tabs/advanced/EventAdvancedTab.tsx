@@ -380,26 +380,26 @@ const calendarComponents = {
         <div>
           {isConnectedCalendarSettingsApplicable
             ? showConnectedCalendarSettings && (
-                <div className="mt-4">
-                  <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
-                    {!isPlatform && (
-                      <SelectedCalendarsSettingsWebWrapper
-                        eventTypeId={eventType.id}
-                        disabledScope={SelectedCalendarSettingsScope.User}
-                        disableConnectionModification={true}
-                        scope={selectedCalendarSettingsScope}
-                        destinationCalendarId={destinationCalendar?.externalId}
-                        setScope={(scope) => {
-                          const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
-                          formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
-                            shouldDirty: true,
-                          });
-                        }}
-                      />
-                    )}
-                  </Suspense>
-                </div>
-              )
+              <div className="mt-4">
+                <Suspense fallback={<SelectedCalendarsSettingsWebWrapperSkeleton />}>
+                  {!isPlatform && (
+                    <SelectedCalendarsSettingsWebWrapper
+                      eventTypeId={eventType.id}
+                      disabledScope={SelectedCalendarSettingsScope.User}
+                      disableConnectionModification={true}
+                      scope={selectedCalendarSettingsScope}
+                      destinationCalendarId={destinationCalendar?.externalId}
+                      setScope={(scope) => {
+                        const chosenScopeIsEventLevel = scope === SelectedCalendarSettingsScope.EventType;
+                        formMethods.setValue("useEventLevelSelectedCalendars", chosenScopeIsEventLevel, {
+                          shouldDirty: true,
+                        });
+                      }}
+                    />
+                  )}
+                </Suspense>
+              </div>
+            )
             : null}
         </div>
       </div>
@@ -429,7 +429,7 @@ export const EventAdvancedTab = ({
   const [lightModeError, setLightModeError] = useState(false);
   const [multiplePrivateLinksVisible, setMultiplePrivateLinksVisible] = useState(
     !!formMethods.getValues("multiplePrivateLinks") &&
-      formMethods.getValues("multiplePrivateLinks")?.length !== 0
+    formMethods.getValues("multiplePrivateLinks")?.length !== 0
   );
   const watchedInterfaceLanguage = formMethods.watch("interfaceLanguage");
   const [interfaceLanguageVisible, setInterfaceLanguageVisible] = useState(
@@ -546,6 +546,7 @@ export const EventAdvancedTab = ({
   );
 
   const showOptimizedSlotsLocked = shouldLockDisableProps("showOptimizedSlots");
+  const minimizeGapsLocked = shouldLockDisableProps("minimizeGaps");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
 
@@ -1512,6 +1513,23 @@ export const EventAdvancedTab = ({
             />
           );
         }}
+      />
+      <Controller
+        name="minimizeGaps"
+        render={({ field: { onChange, value } }) => (
+          <SettingsToggle
+            toggleSwitchAtTheEnd={true}
+            labelClassName="text-sm"
+            title={t("minimize_gaps")}
+            description={t("minimize_gaps_description")}
+            checked={!!value}
+             {...minimizeGapsLocked}
+            onCheckedChange={(active) => {
+              onChange(active ?? false);
+            }}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+          />
+        )}
       />
       {isRoundRobinEventType && (
         <Controller

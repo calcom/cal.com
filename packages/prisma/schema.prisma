@@ -294,6 +294,8 @@ model EventType {
   createdAt DateTime? @default(now())
   updatedAt DateTime? @updatedAt
 
+  minimizeGaps Boolean @default(false)
+
   // @@partial_index([instantMeetingScheduleId])
 
   @@unique([userId, slug])

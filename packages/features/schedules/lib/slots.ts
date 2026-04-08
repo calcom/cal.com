@@ -18,6 +18,8 @@ export type GetSlots = {
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
   showOptimizedSlots?: boolean | null;
+  minimizeGaps? : boolean | null;
+  existingBookings? : {startTime : Dayjs;  endTime : Dayjs}[];
   datesOutOfOfficeTimeZone?: string;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
@@ -77,6 +79,8 @@ function buildSlotsWithDateRanges({
   offsetStart,
   datesOutOfOffice,
   showOptimizedSlots,
+  minimizeGaps,
+  existingBookings,
   datesOutOfOfficeTimeZone,
 }: {
   dateRanges: DateRange[];
@@ -87,6 +91,8 @@ function buildSlotsWithDateRanges({
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
   showOptimizedSlots?: boolean | null;
+  minimizeGaps? : boolean | null;
+  existingBookings? : {startTime : Dayjs;  endTime : Dayjs}[]; 
   datesOutOfOfficeTimeZone?: string;
 }) {
   // keep the old safeguards in; may be needed.
@@ -225,6 +231,24 @@ function buildSlotsWithDateRanges({
       slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
     }
   });
+
+  if(minimizeGaps && existingBookings && existingBookings.length > 0) {
+    const validStartTimes = new Set<string>();
+
+    for(const booking of existingBookings) {
+      validStartTimes.add(booking.endTime.toISOString());
+
+      validStartTimes.add(
+        booking.startTime.subtract(eventLength, "minutes").toISOString()
+      );
+    }
+
+    const filtered = Array.from(slots.values().filter((slot) => 
+    validStartTimes.has(slot.time.toISOString())
+    ))
+
+    return filtered.length > 0 ? filtered : Array.from(slots.values());
+  }
 
   return Array.from(slots.values());
 }

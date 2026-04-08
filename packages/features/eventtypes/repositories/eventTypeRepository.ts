@@ -1340,6 +1340,7 @@ export class EventTypeRepository implements IEventTypesRepository {
         allowReschedulingPastBookings: true,
         hideOrganizerEmail: true,
         showOptimizedSlots: true,
+        minimizeGaps: true ,
         periodCountCalendarDays: true,
         rescheduleWithSameRoundRobinHost: true,
         periodDays: true,

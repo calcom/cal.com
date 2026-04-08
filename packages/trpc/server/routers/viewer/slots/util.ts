@@ -130,7 +130,7 @@ function withSlotsCache(
 }
 
 export class AvailableSlotsService {
-  constructor(public readonly dependencies: IAvailableSlotsService) {}
+  constructor(public readonly dependencies: IAvailableSlotsService) { }
 
   private async _getReservedSlotsAndCleanupExpired({
     bookerClientUid,
@@ -916,15 +916,15 @@ export class AvailableSlotsService {
 
     const bookingLimits =
       eventType?.bookingLimits &&
-      typeof eventType?.bookingLimits === "object" &&
-      Object.keys(eventType?.bookingLimits).length > 0
+        typeof eventType?.bookingLimits === "object" &&
+        Object.keys(eventType?.bookingLimits).length > 0
         ? parseBookingLimit(eventType?.bookingLimits)
         : null;
 
     const durationLimits =
       eventType?.durationLimits &&
-      typeof eventType?.durationLimits === "object" &&
-      Object.keys(eventType?.durationLimits).length > 0
+        typeof eventType?.durationLimits === "object" &&
+        Object.keys(eventType?.durationLimits).length > 0
         ? parseDurationLimit(eventType?.durationLimits)
         : null;
 
@@ -1051,6 +1051,7 @@ export class AvailableSlotsService {
       allUsersAvailability,
       usersWithCredentials,
       currentSeats,
+      currentBookingsAllUsers,
     };
   }
 
@@ -1141,9 +1142,9 @@ export class AvailableSlotsService {
     } = input;
     const orgDetails = input?.orgSlug
       ? {
-          currentOrgDomain: input.orgSlug,
-          isValidOrgDomain: !!input.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
-        }
+        currentOrgDomain: input.orgSlug,
+        isValidOrgDomain: !!input.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
+      }
       : orgDomainConfig(ctx?.req);
 
     if (process.env.INTEGRATION_TEST_MODE === "true") {
@@ -1252,7 +1253,7 @@ export class AvailableSlotsService {
     const hasFallbackRRHosts =
       eligibleFallbackRRHosts.length > 0 && eligibleFallbackRRHosts.length > eligibleQualifiedRRHosts.length;
 
-    let { allUsersAvailability, usersWithCredentials, currentSeats } =
+    let { allUsersAvailability, usersWithCredentials, currentSeats, currentBookingsAllUsers } =
       await this.calculateHostsAndAvailabilities({
         input,
         eventType,
@@ -1354,6 +1355,11 @@ export class AvailableSlotsService {
       datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
       showOptimizedSlots: eventType.showOptimizedSlots,
       datesOutOfOfficeTimeZone: !isTeamEvent ? allUsersAvailability[0]?.timeZone : undefined,
+      minimizeGaps: eventType.minimizeGaps,
+      existingBookings: currentBookingsAllUsers.map((b) => ({
+        startTime: dayjs(b.startTime),
+        endTime: dayjs(b.endTime),
+      })),
     });
 
     let availableTimeSlots: typeof timeSlots = [];
@@ -1388,10 +1394,10 @@ export class AvailableSlotsService {
         const travelSchedules =
           isDefaultSchedule && !eventType.useBookerTimezone
             ? restrictionSchedule.user.travelSchedules.map((schedule) => ({
-                startDate: dayjs(schedule.startDate),
-                endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
-                timeZone: schedule.timeZone,
-              }))
+              startDate: dayjs(schedule.startDate),
+              endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+              timeZone: schedule.timeZone,
+            }))
             : [];
 
         const { dateRanges: restrictionRanges } = buildDateRanges({
@@ -1486,9 +1492,9 @@ export class AvailableSlotsService {
           (
             item:
               | {
-                  time: dayjs.Dayjs;
-                  userIds?: number[] | undefined;
-                }
+                time: dayjs.Dayjs;
+                userIds?: number[] | undefined;
+              }
               | undefined
           ): item is {
             time: dayjs.Dayjs;
@@ -1664,23 +1670,23 @@ export class AvailableSlotsService {
 
     const troubleshooterData = enableTroubleshooter
       ? {
-          troubleshooter: {
-            routedTeamMemberIds: routedTeamMemberIds,
-            // One that Salesforce asked for
-            askedContactOwner: contactOwnerEmailFromInput,
-            // One that we used as per Routing skipContactOwner flag
-            consideredContactOwner: contactOwnerEmail,
-            // All hosts that have been checked for availability. If no routedTeamMemberIds are provided, this will be same as hosts.
-            routedHosts: usersWithCredentials.map((user) => {
-              return {
-                userId: user.id,
-              };
-            }),
-            hostsAfterSegmentMatching: allHosts.map((host) => ({
-              userId: host.user.id,
-            })),
-          },
-        }
+        troubleshooter: {
+          routedTeamMemberIds: routedTeamMemberIds,
+          // One that Salesforce asked for
+          askedContactOwner: contactOwnerEmailFromInput,
+          // One that we used as per Routing skipContactOwner flag
+          consideredContactOwner: contactOwnerEmail,
+          // All hosts that have been checked for availability. If no routedTeamMemberIds are provided, this will be same as hosts.
+          routedHosts: usersWithCredentials.map((user) => {
+            return {
+              userId: user.id,
+            };
+          }),
+          hostsAfterSegmentMatching: allHosts.map((host) => ({
+            userId: host.user.id,
+          })),
+        },
+      }
       : null;
 
     return {
