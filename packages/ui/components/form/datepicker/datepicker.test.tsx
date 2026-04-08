@@ -48,7 +48,7 @@ describe("Tests for DatePicker Component", () => {
     const dateButton = getByTestId("pick-date");
     fireEvent.click(dateButton);
 
-    const disabledDates = getAllByRole("gridcell").filter((cell) => cell.classList.contains("opacity-50"));
+    const disabledDates = getAllByRole("gridcell").filter((cell) => cell.getAttribute("aria-disabled") === "true");
     expect(disabledDates.length).toBeGreaterThan(0);
     await expect(disabledDates[0]).toHaveAttribute("disabled");
   });
