@@ -14,96 +14,97 @@ test.afterEach(async ({ users }) => {
 });
 
 test.describe("Team", () => {
-  test("Invitation (non verified)", async ({ browser, page, users, emails }) => {
+  test("Invitation (non verified) - by email (external user)", async ({ browser, page, users, emails }) => {
     const t = await localize("en");
     const teamOwner = await users.create(undefined, { hasTeam: true });
     const { team } = await teamOwner.getFirstTeamMembership();
     await teamOwner.apiLogin();
+
+    const invitedUserEmail = users.trackEmail({
+      username: "rick",
+      domain: `domain-${Date.now()}.com`,
+    });
+    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(500);
+    await page.getByTestId("new-member-button").click();
+    await page.locator('input[name="emailOrUsername"]').fill(invitedUserEmail);
+    const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
+    await page.getByTestId("invite-new-member-button").click();
+    const response = await submitPromise;
+    expect(response.status()).toBe(200);
+    const inviteLink = await expectInvitationEmailToBeReceived(
+      page,
+      emails,
+      invitedUserEmail,
+      `${team.name}'s admin invited you to join the team ${team.name} on Cal.com`,
+      "signup?token"
+    );
+
+    //Check newly invited member exists and is pending
+    await expect(
+      page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
+    ).toHaveCount(1);
+
+    expect(inviteLink).toBeTruthy();
+
+    // Follow invite link to new window
+    const context = await browser.newContext();
+    const newPage = await context.newPage();
+    await newPage.goto(inviteLink);
+    await expect(newPage.locator("text=Create your account")).toBeVisible();
+
+    // Check required fields
+    const button = newPage.locator("button[type=submit][disabled]");
+    await expect(button).toBeVisible(); // email + 3 password hints
+
+    // Check required fields
+    await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
+    await newPage.locator("button[type=submit]").click();
+    await newPage.waitForURL((url) => {
+      const path = url.pathname;
+      return /\/(getting-started|onboarding\/(getting-started|personal\/settings))/.test(path);
+    });
+    await newPage.close();
+    await context.close();
+
+    // Check newly invited member is not pending anymore
+    await page.bringToFront();
     await page.goto(`/settings/teams/${team.id}/settings`);
+    await expect(
+      page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
+    ).toHaveCount(0, { timeout: 0 });
+  });
 
-    await test.step("To the team by email (external user)", async () => {
-      const invitedUserEmail = users.trackEmail({
-        username: "rick",
-        domain: `domain-${Date.now()}.com`,
-      });
-      await page.goto(`/settings/teams/${team.id}/members`);
-      await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
-      await page.getByTestId("new-member-button").click();
-      await page.locator('input[name="emailOrUsername"]').fill(invitedUserEmail);
-      const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
-      await page.getByTestId("invite-new-member-button").click();
-      const response = await submitPromise;
-      expect(response.status()).toBe(200);
-      const inviteLink = await expectInvitationEmailToBeReceived(
-        page,
-        emails,
-        invitedUserEmail,
-        `${team.name}'s admin invited you to join the team ${team.name} on Cal.com`,
-        "signup?token"
-      );
+  test("Invitation (non verified) - by invite link", async ({ browser, page, users }) => {
+    const teamOwner = await users.create(undefined, { hasTeam: true });
+    const { team } = await teamOwner.getFirstTeamMembership();
+    await teamOwner.apiLogin();
 
-      //Check newly invited member exists and is pending
-      await expect(
-        page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
-      ).toHaveCount(1);
-
-      expect(inviteLink).toBeTruthy();
-
-      // Follow invite link to new window
-      const context = await browser.newContext();
-      const newPage = await context.newPage();
-      await newPage.goto(inviteLink);
-      await expect(newPage.locator("text=Create your account")).toBeVisible();
-
-      // Check required fields
-      const button = newPage.locator("button[type=submit][disabled]");
-      await expect(button).toBeVisible(); // email + 3 password hints
-
-      // Check required fields
-      await newPage.locator("input[name=password]").fill(`P4ssw0rd!`);
-      await newPage.locator("button[type=submit]").click();
-      await newPage.waitForURL((url) => {
-        const path = url.pathname;
-        return /\/(getting-started|onboarding\/(getting-started|personal\/settings))/.test(path);
-      });
-      await newPage.close();
-      await context.close();
-
-      // Check newly invited member is not pending anymore
-      await page.bringToFront();
-      await page.goto(`/settings/teams/${team.id}/settings`);
-      await expect(
-        page.locator(`[data-testid="email-${invitedUserEmail.replace("@", "")}-pending"]`)
-      ).toHaveCount(0, { timeout: 0 });
+    const user = await users.create({
+      email: `user-invite-${Date.now()}@domain.com`,
+      password: "P4ssw0rd!",
     });
 
-    await test.step("To the team by invite link", async () => {
-      const user = await users.create({
-        email: `user-invite-${Date.now()}@domain.com`,
-        password: "P4ssw0rd!",
-      });
+    await page.goto(`/settings/teams/${team.id}/members`);
+    await page.waitForLoadState("domcontentloaded");
+    await page.waitForTimeout(500);
+    await page.getByTestId("new-member-button").click();
+    const inviteLink = await getInviteLink(page);
 
-      await page.goto(`/settings/teams/${team.id}/members`);
-      await page.waitForLoadState("domcontentloaded");
-      await page.waitForTimeout(500); // Add a small delay to ensure UI is fully loaded
-      await page.getByTestId("new-member-button").click();
-      const inviteLink = await getInviteLink(page);
+    const context = await browser.newContext();
+    const inviteLinkPage = await context.newPage();
+    await inviteLinkPage.goto(inviteLink);
+    await expect(inviteLinkPage.locator("button[type=submit]")).toBeVisible();
 
-      const context = await browser.newContext();
-      const inviteLinkPage = await context.newPage();
-      await inviteLinkPage.goto(inviteLink);
-      await expect(inviteLinkPage.locator("button[type=submit]")).toBeVisible();
+    await inviteLinkPage.locator("button[type=submit]").click();
+    await expect(inviteLinkPage.locator('[data-testid="field-error"]')).toHaveCount(2);
 
-      await inviteLinkPage.locator("button[type=submit]").click();
-      await expect(inviteLinkPage.locator('[data-testid="field-error"]')).toHaveCount(2);
+    await inviteLinkPage.locator("input[name=email]").fill(user.email);
+    await inviteLinkPage.locator("input[name=password]").fill(user.username || "P4ssw0rd!");
+    await inviteLinkPage.locator("button[type=submit]").click();
 
-      await inviteLinkPage.locator("input[name=email]").fill(user.email);
-      await inviteLinkPage.locator("input[name=password]").fill(user.username || "P4ssw0rd!");
-      await inviteLinkPage.locator("button[type=submit]").click();
-
-      await inviteLinkPage.waitForURL(`${WEBAPP_URL}/teams**`);
-    });
+    await inviteLinkPage.waitForURL(`${WEBAPP_URL}/teams**`);
   });
 
   test("Invitation (verified)", async ({ page, users, emails }) => {
