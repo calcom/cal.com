@@ -1,10 +1,10 @@
+import { TeamService } from "@calcom/platform-libraries";
+import { MembershipRole } from "@calcom/prisma/enums";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/teams/memberships/inputs/update-organization-team-membership.input";
 import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/teams/memberships/organizations-teams-memberships.repository";
 import { TeamsMembershipsService } from "@/modules/teams/memberships/services/teams-memberships.service";
-import { Injectable, NotFoundException } from "@nestjs/common";
-
-import { TeamService } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OrganizationsTeamsMembershipsService {
@@ -13,12 +13,17 @@ export class OrganizationsTeamsMembershipsService {
     private readonly teamsMembershipsService: TeamsMembershipsService
   ) {}
 
-  async createOrgTeamMembership(teamId: number, data: CreateOrgTeamMembershipDto) {
+  async createOrgTeamMembership(orgId: number, teamId: number, data: CreateOrgTeamMembershipDto) {
     await this.teamsMembershipsService.canUserBeAddedToTeam(data.userId, teamId);
-    const teamMembership = await this.organizationsTeamsMembershipsRepository.createOrgTeamMembership(
-      teamId,
-      data
-    );
+
+    const teamMembership =
+      await this.organizationsTeamsMembershipsRepository.createOrgTeamMembershipWithOrgMembership(
+        orgId,
+        teamId,
+        data,
+        MembershipRole.MEMBER,
+        data.accepted ?? false
+      );
     return teamMembership;
   }
 

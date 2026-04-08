@@ -417,6 +417,188 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .expect(404);
     });
 
+    describe("org membership creation on sub-team membership add", () => {
+      let orgForMembershipTest: Team;
+      let subteamForMembershipTest: Team;
+      let userWithNoOrgMembership: User;
+      let userWithExistingOrgMembership: User;
+      let userForNonAcceptedTest: User;
+
+      const userWithNoOrgMembershipEmail = `no-org-membership-${randomString()}@api.com`;
+      const userWithExistingOrgMembershipEmail = `existing-org-membership-${randomString()}@api.com`;
+      const userForNonAcceptedTestEmail = `non-accepted-test-${randomString()}@api.com`;
+
+      beforeAll(async () => {
+        orgForMembershipTest = await organizationsRepositoryFixture.create({
+          name: `org-membership-test-${randomString()}`,
+          isOrganization: true,
+        });
+
+        subteamForMembershipTest = await teamsRepositoryFixture.create({
+          name: `subteam-membership-test-${randomString()}`,
+          isOrganization: false,
+          parent: { connect: { id: orgForMembershipTest.id } },
+        });
+
+        // Make the authenticated user an admin of this org
+        await membershipsRepositoryFixture.create({
+          role: "ADMIN",
+          accepted: true,
+          user: { connect: { id: user.id } },
+          team: { connect: { id: orgForMembershipTest.id } },
+        });
+
+        await profileRepositoryFixture.create({
+          uid: `usr-${user.id}-org-${orgForMembershipTest.id}`,
+          username: `admin-${randomString()}`,
+          organization: { connect: { id: orgForMembershipTest.id } },
+          user: { connect: { id: user.id } },
+        });
+
+        // User with Profile but NO org membership
+        userWithNoOrgMembership = await userRepositoryFixture.create({
+          email: userWithNoOrgMembershipEmail,
+          username: userWithNoOrgMembershipEmail,
+        });
+
+        await profileRepositoryFixture.create({
+          uid: `usr-${userWithNoOrgMembership.id}`,
+          username: userWithNoOrgMembershipEmail,
+          organization: { connect: { id: orgForMembershipTest.id } },
+          user: { connect: { id: userWithNoOrgMembership.id } },
+        });
+
+        // User WITH an existing accepted org membership
+        userWithExistingOrgMembership = await userRepositoryFixture.create({
+          email: userWithExistingOrgMembershipEmail,
+          username: userWithExistingOrgMembershipEmail,
+        });
+
+        await profileRepositoryFixture.create({
+          uid: `usr-${userWithExistingOrgMembership.id}`,
+          username: userWithExistingOrgMembershipEmail,
+          organization: { connect: { id: orgForMembershipTest.id } },
+          user: { connect: { id: userWithExistingOrgMembership.id } },
+        });
+
+        await membershipsRepositoryFixture.create({
+          role: "MEMBER",
+          accepted: true,
+          user: { connect: { id: userWithExistingOrgMembership.id } },
+          team: { connect: { id: orgForMembershipTest.id } },
+        });
+
+        // User for testing non-accepted team membership creates non-accepted org membership
+        userForNonAcceptedTest = await userRepositoryFixture.create({
+          email: userForNonAcceptedTestEmail,
+          username: userForNonAcceptedTestEmail,
+        });
+
+        await profileRepositoryFixture.create({
+          uid: `usr-${userForNonAcceptedTest.id}`,
+          username: userForNonAcceptedTestEmail,
+          organization: { connect: { id: orgForMembershipTest.id } },
+          user: { connect: { id: userForNonAcceptedTest.id } },
+        });
+      });
+
+      it("should create org membership when user has no existing org membership", async () => {
+        // Verify no org membership exists before the API call
+        const orgMembershipBefore = await membershipsRepositoryFixture.getUserMembershipByTeamId(
+          userWithNoOrgMembership.id,
+          orgForMembershipTest.id
+        );
+        expect(orgMembershipBefore).toBeNull();
+
+        const response = await request(app.getHttpServer())
+          .post(
+            `/v2/organizations/${orgForMembershipTest.id}/teams/${subteamForMembershipTest.id}/memberships`
+          )
+          .send({
+            userId: userWithNoOrgMembership.id,
+            accepted: true,
+            role: "MEMBER",
+          } satisfies CreateOrgTeamMembershipDto)
+          .expect(201);
+
+        const responseBody: ApiSuccessResponse<TeamMembershipOutput> = response.body;
+        expect(responseBody.data.teamId).toEqual(subteamForMembershipTest.id);
+        expect(responseBody.data.userId).toEqual(userWithNoOrgMembership.id);
+
+        // Verify org membership was created
+        const orgMembershipAfter = await membershipsRepositoryFixture.getUserMembershipByTeamId(
+          userWithNoOrgMembership.id,
+          orgForMembershipTest.id
+        );
+        expect(orgMembershipAfter).toBeTruthy();
+        expect(orgMembershipAfter!.teamId).toEqual(orgForMembershipTest.id);
+        expect(orgMembershipAfter!.userId).toEqual(userWithNoOrgMembership.id);
+        expect(orgMembershipAfter!.role).toEqual("MEMBER");
+        expect(orgMembershipAfter!.accepted).toBe(true);
+      });
+
+      it("should not downgrade accepted status of existing org membership", async () => {
+        // Verify existing accepted org membership
+        const orgMembershipBefore = await membershipsRepositoryFixture.getUserMembershipByTeamId(
+          userWithExistingOrgMembership.id,
+          orgForMembershipTest.id
+        );
+        expect(orgMembershipBefore).toBeTruthy();
+        expect(orgMembershipBefore!.accepted).toBe(true);
+
+        await request(app.getHttpServer())
+          .post(
+            `/v2/organizations/${orgForMembershipTest.id}/teams/${subteamForMembershipTest.id}/memberships`
+          )
+          .send({
+            userId: userWithExistingOrgMembership.id,
+            accepted: false,
+            role: "MEMBER",
+          } satisfies CreateOrgTeamMembershipDto)
+          .expect(201);
+
+        // Verify org membership accepted status was NOT downgraded
+        const orgMembershipAfter = await membershipsRepositoryFixture.getUserMembershipByTeamId(
+          userWithExistingOrgMembership.id,
+          orgForMembershipTest.id
+        );
+        expect(orgMembershipAfter).toBeTruthy();
+        expect(orgMembershipAfter!.accepted).toBe(true);
+      });
+
+      it("should create non-accepted org membership when team membership is not accepted", async () => {
+        const response = await request(app.getHttpServer())
+          .post(
+            `/v2/organizations/${orgForMembershipTest.id}/teams/${subteamForMembershipTest.id}/memberships`
+          )
+          .send({
+            userId: userForNonAcceptedTest.id,
+            accepted: false,
+            role: "MEMBER",
+          } satisfies CreateOrgTeamMembershipDto)
+          .expect(201);
+
+        const responseBody: ApiSuccessResponse<TeamMembershipOutput> = response.body;
+        expect(responseBody.data.accepted).toBe(false);
+
+        // Verify org membership was created with accepted=false
+        const orgMembership = await membershipsRepositoryFixture.getUserMembershipByTeamId(
+          userForNonAcceptedTest.id,
+          orgForMembershipTest.id
+        );
+        expect(orgMembership).toBeTruthy();
+        expect(orgMembership!.role).toEqual("MEMBER");
+        expect(orgMembership!.accepted).toBe(false);
+      });
+
+      afterAll(async () => {
+        await userRepositoryFixture.deleteByEmail(userWithNoOrgMembershipEmail);
+        await userRepositoryFixture.deleteByEmail(userWithExistingOrgMembershipEmail);
+        await userRepositoryFixture.deleteByEmail(userForNonAcceptedTestEmail);
+        await organizationsRepositoryFixture.delete(orgForMembershipTest.id);
+      });
+    });
+
     // Auto-accept tests
     describe("auto-accept based on email domain", () => {
       let orgWithAutoAccept: Team;

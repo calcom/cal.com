@@ -28,8 +28,8 @@ import {
 import { OrganizationMembershipService } from "@/lib/services/organization-membership.service";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
+import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
@@ -239,6 +239,7 @@ export class OrganizationsTeamsMembershipsController {
 
     const membershipData = { ...data, accepted: acceptedStatus };
     const membership = await this.organizationsTeamsMembershipsService.createOrgTeamMembership(
+      orgId,
       teamId,
       membershipData
     );
