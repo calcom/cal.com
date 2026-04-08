@@ -378,6 +378,9 @@ export const createSalesforceMock = () => {
           { name: "OwnerId", type: "reference" },
           { name: "NoShow__c", type: "boolean", length: 0 },
           { name: "LastMeetingDate__c", type: "date" },
+          { name: "Meeting_Type_CP__c", type: "string", length: 255 },
+          { name: "Event_Cancelled__c", type: "boolean", length: 0 },
+          { name: "Is_Demo__c", type: "boolean", length: 0 },
         ],
       };
     }),
@@ -406,6 +409,10 @@ export const createSalesforceMock = () => {
     return records.accounts;
   };
 
+  const getEvents = () => {
+    return records.events;
+  };
+
   return {
     mockConnection,
     addContact,
@@ -415,6 +422,7 @@ export const createSalesforceMock = () => {
     addAccount,
     getAccounts,
     addUser,
+    getEvents,
     getRecords: () => records,
   };
 };

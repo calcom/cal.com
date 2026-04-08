@@ -102,6 +102,54 @@ const salesforceSettingScenario = {
       credential: createMockCredential(),
     };
   },
+  writeToEventWithCheckboxFields: () => {
+    return {
+      appOptions: {
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Meeting_Type_CP__c: "Inbound Demo",
+          Event_Cancelled__c: "false",
+          Is_Demo__c: "true",
+        },
+      },
+      credential: createMockCredential(),
+    };
+  },
+  writeToEventWithBooleanValues: () => {
+    return {
+      appOptions: {
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Is_Demo__c: false,
+        },
+      },
+      credential: createMockCredential(),
+    };
+  },
+  writeToEventWithCapitalizedCheckbox: () => {
+    return {
+      appOptions: {
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Event_Cancelled__c: "False",
+          Meeting_Type_CP__c: "Outbound Demo",
+        },
+      },
+      credential: createMockCredential(),
+    };
+  },
+  writeToEventWithArbitraryCheckboxString: () => {
+    return {
+      appOptions: {
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Event_Cancelled__c: "dsfasdf",
+          Meeting_Type_CP__c: "Inbound Demo",
+        },
+      },
+      credential: createMockCredential(),
+    };
+  },
 };
 
 describe("SalesforceCRMService", () => {
@@ -366,6 +414,113 @@ describe("SalesforceCRMService", () => {
         const allContactsInSalesforce = salesforceMock.getContacts();
         expect(allContactsInSalesforce).toHaveLength(0);
       });
+    });
+  });
+
+  describe("createEvent: checkbox field handling in writeToEventRecord", () => {
+    const mockCalendarEvent = {
+      title: "Test Booking",
+      startTime: "2024-01-01T10:00:00Z",
+      endTime: "2024-01-01T11:00:00Z",
+      uid: "booking-uid-123",
+      organizer: {
+        email: "organizer@example.com",
+        name: "Organizer",
+        timeZone: "UTC",
+        language: { translate: (key: string) => key, locale: "en" },
+        id: 1,
+      },
+      attendees: [
+        {
+          email: "attendee@example.com",
+          name: "Attendee",
+          timeZone: "UTC",
+          language: { translate: (key: string) => key, locale: "en" },
+        },
+      ],
+      responses: null,
+    };
+
+    it("should convert string checkbox values to booleans and keep text fields as strings", async () => {
+      const { appOptions, credential } = salesforceSettingScenario.writeToEventWithCheckboxFields();
+      const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
+
+      salesforceMock.addUser({
+        Id: "user001",
+        Email: "organizer@example.com",
+        IsActive: true,
+      });
+
+      const contacts = [{ id: "003CONTACT001", email: "attendee@example.com" }];
+      await crmService.createEvent(mockCalendarEvent, contacts);
+
+      const events = salesforceMock.getEvents();
+      expect(events).toHaveLength(1);
+      // Text field should remain as string
+      expect(events[0].Meeting_Type_CP__c).toBe("Inbound Demo");
+      // Checkbox fields should be converted from string to boolean
+      expect(events[0].Event_Cancelled__c).toBe(false);
+      expect(events[0].Is_Demo__c).toBe(true);
+    });
+
+    it("should preserve boolean value when already a boolean", async () => {
+      const { appOptions, credential } = salesforceSettingScenario.writeToEventWithBooleanValues();
+      const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
+
+      salesforceMock.addUser({
+        Id: "user001",
+        Email: "organizer@example.com",
+        IsActive: true,
+      });
+
+      const contacts = [{ id: "003CONTACT001", email: "attendee@example.com" }];
+      await crmService.createEvent(mockCalendarEvent, contacts);
+
+      const events = salesforceMock.getEvents();
+      expect(events).toHaveLength(1);
+      expect(events[0].Is_Demo__c).toBe(false);
+    });
+
+    it("should handle capitalized string 'False' as boolean false (case-insensitive)", async () => {
+      const { appOptions, credential } = salesforceSettingScenario.writeToEventWithCapitalizedCheckbox();
+      const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
+
+      salesforceMock.addUser({
+        Id: "user001",
+        Email: "organizer@example.com",
+        IsActive: true,
+      });
+
+      const contacts = [{ id: "003CONTACT001", email: "attendee@example.com" }];
+      await crmService.createEvent(mockCalendarEvent, contacts);
+
+      const events = salesforceMock.getEvents();
+      expect(events).toHaveLength(1);
+      // "False" (capitalized) should become boolean false
+      expect(events[0].Event_Cancelled__c).toBe(false);
+      // Text field should remain as string
+      expect(events[0].Meeting_Type_CP__c).toBe("Outbound Demo");
+    });
+
+    it("should coerce arbitrary non-'true' string to boolean false for checkbox fields", async () => {
+      const { appOptions, credential } = salesforceSettingScenario.writeToEventWithArbitraryCheckboxString();
+      const crmService = createSalesforceCrmServiceWithSalesforceType(credential, appOptions);
+
+      salesforceMock.addUser({
+        Id: "user001",
+        Email: "organizer@example.com",
+        IsActive: true,
+      });
+
+      const contacts = [{ id: "003CONTACT001", email: "attendee@example.com" }];
+      await crmService.createEvent(mockCalendarEvent, contacts);
+
+      const events = salesforceMock.getEvents();
+      expect(events).toHaveLength(1);
+      // Arbitrary string "dsfasdf" is not "true", so it should become boolean false
+      expect(events[0].Event_Cancelled__c).toBe(false);
+      // Text field should remain as string
+      expect(events[0].Meeting_Type_CP__c).toBe("Inbound Demo");
     });
   });
 

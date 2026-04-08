@@ -1886,8 +1886,15 @@ class SalesforceCRMService implements CRM {
     } = {};
 
     for (const field of customFieldInputs) {
+      const fieldValue = appOptions.onBookingWriteToEventObjectMap[field.name];
+
+      if (field.type === SalesforceFieldType.CHECKBOX) {
+        confirmedCustomFieldInputs[field.name] = String(fieldValue).toLowerCase() === "true";
+        continue;
+      }
+
       confirmedCustomFieldInputs[field.name] = await this.getTextFieldValue({
-        fieldValue: appOptions.onBookingWriteToEventObjectMap[field.name],
+        fieldValue,
         fieldLength: field.length,
         calEventResponses: event.responses,
         bookingUid: event?.uid,
