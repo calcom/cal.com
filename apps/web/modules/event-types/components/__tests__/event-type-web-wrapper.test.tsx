@@ -10,6 +10,9 @@ import { SchedulingType } from "@calcom/prisma/enums";
 
 // Capture the form instance created by useEventTypeForm so tests can manipulate it directly.
 let capturedForm: UseFormReturn<FormValues> | null = null;
+let mockTabName = "setup";
+let capturedAvailabilityTabProps: Record<string, unknown> | null = null;
+let capturedTeamAssignmentTabProps: Record<string, unknown> | null = null;
 
 vi.mock("next/dynamic", () => ({
   __esModule: true,
@@ -122,7 +125,7 @@ vi.mock("@calcom/features/pbac/client/hooks/useEventPermission", () => ({
 }));
 
 vi.mock("@calcom/lib/hooks/useTypedQuery", () => ({
-  useTypedQuery: vi.fn(() => ({ data: { tabName: "setup" } })),
+  useTypedQuery: vi.fn(() => ({ data: { tabName: mockTabName } })),
 }));
 
 vi.mock("@calcom/web/modules/shell/Shell", () => ({
@@ -248,12 +251,18 @@ vi.mock("../tabs/setup/EventSetupTabWebWrapper", () => ({
 
 vi.mock("../tabs/availability/EventAvailabilityTabWebWrapper", () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: Record<string, unknown>) => {
+    capturedAvailabilityTabProps = props;
+    return <div data-testid="availability-tab-wrapper" />;
+  },
 }));
 
 vi.mock("../tabs/assignment/EventTeamAssignmentTabWebWrapper", () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: Record<string, unknown>) => {
+    capturedTeamAssignmentTabProps = props;
+    return <div data-testid="team-assignment-tab-wrapper" />;
+  },
 }));
 
 vi.mock("../tabs/limits/EventLimitsTabWebWrapper", () => ({
@@ -525,6 +534,9 @@ describe("EventTypeWebWrapper — rendering and form behavior", () => {
   beforeEach(() => {
     mockMutate.mockClear();
     mockPush.mockClear();
+    mockTabName = "setup";
+    capturedAvailabilityTabProps = null;
+    capturedTeamAssignmentTabProps = null;
   });
 
   it("renders the component with a MANAGED event type without crashing", async () => {
@@ -578,6 +590,49 @@ describe("EventTypeWebWrapper — rendering and form behavior", () => {
   });
 });
 
+describe("EventTypeWebWrapper — tab wiring", () => {
+  beforeEach(() => {
+    mockTabName = "setup";
+    capturedAvailabilityTabProps = null;
+    capturedTeamAssignmentTabProps = null;
+  });
+
+  it("does not pass teamMembers to the availability tab", async () => {
+    mockTabName = "availability";
+    const data = buildEventTypeData();
+
+    render(<EventTypeWebWrapper id={1} data={data as any} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("availability-tab-wrapper")).toBeInTheDocument();
+    });
+
+    expect(capturedAvailabilityTabProps).toMatchObject({
+      eventType: data.eventType,
+      isTeamEvent: true,
+    });
+    expect(capturedAvailabilityTabProps).toHaveProperty("user");
+    expect(capturedAvailabilityTabProps).not.toHaveProperty("teamMembers");
+  });
+
+  it("still passes teamMembers to the team assignment tab", async () => {
+    mockTabName = "team";
+    const data = buildEventTypeData();
+
+    render(<EventTypeWebWrapper id={1} data={data as any} />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("team-assignment-tab-wrapper")).toBeInTheDocument();
+    });
+
+    expect(capturedTeamAssignmentTabProps).toMatchObject({
+      eventType: data.eventType,
+      team: data.team,
+      teamMembers: data.teamMembers,
+    });
+  });
+});
+
 // Simulates adding a new member (created:false) with a conflicting slug via
 // capturedForm.setValue, then submitting. useEventTypeForm marks DB children as
 // created:true; new members added through the UI get created:false — which the
@@ -588,7 +643,10 @@ describe("EventTypeWebWrapper — ManagedEventDialog conflict check", () => {
   beforeEach(() => {
     mockMutate.mockClear();
     mockPush.mockClear();
+    mockTabName = "setup";
     capturedForm = null;
+    capturedAvailabilityTabProps = null;
+    capturedTeamAssignmentTabProps = null;
   });
 
   function addConflictingMember() {

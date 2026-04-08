@@ -269,6 +269,7 @@ describe("getRawEventType", () => {
 
       expect(result).toBeNull();
     });
+
   });
 
   describe("Organization admin access", () => {

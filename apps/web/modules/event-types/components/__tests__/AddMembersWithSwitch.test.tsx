@@ -189,6 +189,34 @@ describe("AddMembersWithSwitch", () => {
     expect(defaultProps.onChange).toHaveBeenCalled();
   });
 
+  it("preserves display data on newly added hosts for availability", () => {
+    const onChange = vi.fn();
+
+    renderComponent({
+      componentProps: {
+        ...defaultProps,
+        onChange,
+      },
+    });
+
+    const combobox = screen.getByRole("combobox");
+    fireEvent.focus(combobox);
+    fireEvent.keyDown(combobox, { key: "ArrowDown" });
+    fireEvent.click(screen.getByText("John Doe"));
+
+    expect(onChange).toHaveBeenCalledWith([
+      expect.objectContaining({
+        isFixed: false,
+        userId: 1,
+        priority: 2,
+        weight: 100,
+        avatar: "avatar1.jpg",
+        name: "John Doe",
+        scheduleId: 1,
+      }),
+    ]);
+  });
+
   it("should show Segment when 'Automatically add all team members' is toggled on and then segment toggle is switched on", () => {
     // Start with assignAllTeamMembers: false to test the flow of enabling it
     renderComponent({

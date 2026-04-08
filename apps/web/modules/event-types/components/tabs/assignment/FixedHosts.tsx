@@ -73,6 +73,8 @@ export const FixedHosts = ({
           priority: host?.priority ?? 2,
           weight: host?.weight ?? 100,
           // if host was already added, retain scheduleId and groupId
+          avatar: host?.avatar ?? teamMember.avatar,
+          name: host?.name ?? teamMember.label,
           scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
           groupId: host?.groupId || null,
         };

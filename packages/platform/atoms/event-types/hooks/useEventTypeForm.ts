@@ -8,6 +8,8 @@ import type {
   EventTypeSetupProps,
   EventTypeUpdateInput,
   FormValues,
+  Host,
+  HostInput,
 } from "@calcom/features/eventtypes/lib/types";
 import { sortHosts } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -21,6 +23,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 type Fields = z.infer<typeof eventTypeBookingFieldsSchema>;
+
+export const stripHostsForPayload = (hosts: Host[] | undefined): HostInput[] | undefined => {
+  return hosts?.map(({ name: _name, avatar: _avatar, ...host }) => host);
+};
 
 export const useEventTypeForm = ({
   eventType,
@@ -387,6 +393,7 @@ export const useEventTypeForm = ({
     const {
       availability,
       users,
+      hosts,
       scheduleName,
       disabledCancelling,
       disableCancellingScope,
@@ -400,9 +407,11 @@ export const useEventTypeForm = ({
     // data that bloats the request payload. With many assigned users (~85+),
     // this can push the request body over the 1MB server limit.
     const strippedChildren = children ? stripChildrenForPayload(children) : undefined;
+    const strippedHosts = stripHostsForPayload(hosts);
 
     const payload = {
       ...rest,
+      hosts: strippedHosts,
       length,
       locations,
       recurringEvent,

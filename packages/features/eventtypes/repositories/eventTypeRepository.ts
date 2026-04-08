@@ -901,6 +901,8 @@ export class EventTypeRepository implements IEventTypesRepository {
           },
           user: {
             select: {
+              avatarUrl: true,
+              name: true,
               timeZone: true,
             },
           },
@@ -1220,6 +1222,8 @@ export class EventTypeRepository implements IEventTypesRepository {
           },
           user: {
             select: {
+              avatarUrl: true,
+              name: true,
               timeZone: true,
             },
           },

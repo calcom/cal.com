@@ -1,10 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { usePathname, useRouter as useAppRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { z } from "zod";
-
+import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
+import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
+import { useTabsNavigations } from "@calcom/atoms/event-types/hooks/useTabsNavigations";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import ManagedEventTypeDialog from "@calcom/features/eventtypes/components/dialogs/ManagedEventDialog";
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
@@ -15,22 +13,20 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { showToast } from "@calcom/ui/components/toast";
-
-import { TRPCClientError } from "@trpc/react-query";
-
 import { revalidateTeamEventTypeCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
 import { revalidateEventTypeEditPage } from "@calcom/web/app/(use-page-wrapper)/event-types/[type]/actions";
-
 import WebShell from "@calcom/web/modules/shell/Shell";
-import { EventType as EventTypeComponent } from "./EventType";
-import { useEventTypeForm } from "@calcom/atoms/event-types/hooks/useEventTypeForm";
-import { useHandleRouteChange } from "@calcom/atoms/event-types/hooks/useHandleRouteChange";
-import { useTabsNavigations } from "@calcom/atoms/event-types/hooks/useTabsNavigations";
+import { TRPCClientError } from "@trpc/react-query";
+import dynamic from "next/dynamic";
+import { useRouter as useAppRouter, usePathname } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { z } from "zod";
 import { useManagedEventConflictCheck } from "../hooks/use-managed-event-conflict-check";
+import { EventType as EventTypeComponent } from "./EventType";
 
 type EventPermissions = {
   eventTypes: {
@@ -245,14 +241,7 @@ const EventTypeWeb = ({
           destinationCalendar={destinationCalendar}
         />
       ),
-      availability: () => (
-        <EventAvailabilityTab
-          eventType={eventType}
-          isTeamEvent={!!team}
-          user={user}
-          teamMembers={teamMembers}
-        />
-      ),
+      availability: () => <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} user={user} />,
       team: () => (
         <EventTeamAssignmentTab
           orgId={orgBranding?.id ?? null}

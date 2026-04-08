@@ -24,11 +24,11 @@ import { Label, Select, SettingsToggle } from "@calcom/ui/components/form";
 import { Spinner } from "@calcom/ui/components/icon";
 import { SkeletonText } from "@calcom/ui/components/skeleton";
 import { GlobeIcon, UserIcon } from "@coss/ui/icons";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { memo, useEffect, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { memo, useEffect, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import type { OptionProps, SingleValueProps } from "react-select";
+import type { CSSObjectWithLabel, OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
 
 export type ScheduleQueryData = RouterOutputs["viewer"]["availability"]["schedule"]["get"];
@@ -99,19 +99,12 @@ type EventTypeTeamScheduleProps = {
   customClassNames?: TeamAvailabilityCustomClassNames;
 };
 
-export type TeamMember = {
-  avatar: string;
-  name: string | null;
-  id: number;
-};
-
 type EventTypeScheduleProps = {
   schedulesQueryData?: Array<
     Omit<RouterOutputs["viewer"]["availability"]["list"]["schedules"][number], "availability">
   >;
   isSchedulesPending?: boolean;
   eventType: EventTypeSetup;
-  teamMembers: TeamMember[];
   customClassNames?: UserAvailabilityCustomClassNames;
   fieldName?: "schedule" | "restrictionSchedule";
   scheduleQueryData?: ScheduleQueryData;
@@ -635,14 +628,12 @@ const EventTypeSchedule = ({
 const TeamMemberSchedule = ({
   host,
   index,
-  teamMembers,
   hostScheduleQuery,
   customClassNames,
   isPlatform = false,
 }: {
   host: Host;
   index: number;
-  teamMembers: TeamMember[];
   hostScheduleQuery: HostSchedulesQueryType;
   customClassNames?: TeamMemmberScheduelCustomClassNames;
   isPlatform?: boolean;
@@ -672,9 +663,8 @@ const TeamMemberSchedule = ({
       : option.value === schedules?.find((schedule) => schedule.isDefault)?.id
   );
 
-  const member = teamMembers.find((mem) => mem.id === host.userId);
-  const avatar = member?.avatar;
-  const label = member?.name;
+  const avatar = host.avatar;
+  const label = host.name;
 
   return (
     <>
@@ -695,6 +685,12 @@ const TeamMemberSchedule = ({
                   placeholder={t("select")}
                   options={options}
                   isSearchable={false}
+                  menuPosition="fixed"
+                  menuPortalTarget={typeof document === "undefined" ? undefined : document.body}
+                  styles={{
+                    menuPortal: (base) =>
+                      ({ ...base, zIndex: 9999, pointerEvents: "auto" }) as CSSObjectWithLabel,
+                  }}
                   onChange={(selected) => {
                     field.onChange(selected?.value || null);
                   }}
@@ -718,19 +714,31 @@ const TeamMemberSchedule = ({
 };
 
 const TeamAvailability = ({
-  teamMembers,
   hostSchedulesQuery,
   customClassNames,
   isPlatform = false,
 }: EventTypeTeamScheduleProps & {
-  teamMembers: TeamMember[];
   customClassNames?: TeamAvailabilityCustomClassNames;
   isPlatform?: boolean;
 }) => {
   const { t } = useLocale();
   const { watch } = useFormContext<FormValues>();
-  const [animationRef] = useAutoAnimate<HTMLUListElement>();
   const hosts = watch("hosts");
+  const shouldVirtualizeHosts = Boolean(hosts && hosts.length > 25);
+  const hostListRef = useRef<HTMLDivElement>(null);
+
+  const rowVirtualizer = useVirtualizer({
+    count: hosts?.length ?? 0,
+    estimateSize: () => 88,
+    getScrollElement: () => hostListRef.current,
+    measureElement:
+      shouldVirtualizeHosts && typeof window !== "undefined" && navigator.userAgent.indexOf("Firefox") === -1
+        ? (element) => element?.getBoundingClientRect().height
+        : undefined,
+    overscan: 6,
+    enabled: shouldVirtualizeHosts,
+  });
+
   return (
     <>
       <div
@@ -757,27 +765,67 @@ const TeamAvailability = ({
         </div>
         <div className="border-subtle rounded-b-md border border-t-0 p-6">
           {hosts && hosts.length > 0 ? (
-            <ul
-              className={classNames("mb-4 mt-3 rounded-md", hosts.length >= 1 && "border-subtle border")}
-              ref={animationRef}>
-              {hosts?.map((host, index) => (
-                <li
-                  key={host.userId}
-                  className={classNames(
-                    `flex flex-col px-3 py-2 ${index === hosts.length - 1 ? "" : "border-subtle border-b"}`,
-                    customClassNames?.teamMemberSchedule?.container
-                  )}>
-                  <TeamMemberSchedule
-                    host={host}
-                    index={index}
-                    teamMembers={teamMembers}
-                    hostScheduleQuery={hostSchedulesQuery}
-                    customClassNames={customClassNames?.teamMemberSchedule}
-                    isPlatform={isPlatform}
-                  />
-                </li>
-              ))}
-            </ul>
+            shouldVirtualizeHosts ? (
+              <div
+                ref={hostListRef}
+                className={classNames(
+                  "mb-4 mt-3 max-h-[60vh] overflow-y-auto rounded-md",
+                  hosts.length >= 1 && "border-subtle border"
+                )}>
+                <ul className="relative" style={{ height: rowVirtualizer.getTotalSize() }}>
+                  {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                    const host = hosts[virtualRow.index];
+
+                    if (!host) return null;
+
+                    return (
+                      <li
+                        ref={(node) => rowVirtualizer.measureElement(node)}
+                        key={host.userId}
+                        data-index={virtualRow.index}
+                        style={{
+                          position: "absolute",
+                          transform: `translateY(${virtualRow.start}px)`,
+                          width: "100%",
+                        }}
+                        className={classNames(
+                          `flex flex-col px-3 py-2 ${
+                            virtualRow.index === hosts.length - 1 ? "" : "border-subtle border-b"
+                          }`,
+                          customClassNames?.teamMemberSchedule?.container
+                        )}>
+                        <TeamMemberSchedule
+                          host={host}
+                          index={virtualRow.index}
+                          hostScheduleQuery={hostSchedulesQuery}
+                          customClassNames={customClassNames?.teamMemberSchedule}
+                          isPlatform={isPlatform}
+                        />
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : (
+              <ul className={classNames("mb-4 mt-3 rounded-md", hosts.length >= 1 && "border-subtle border")}>
+                {hosts.map((host, index) => (
+                  <li
+                    key={host.userId}
+                    className={classNames(
+                      `flex flex-col px-3 py-2 ${index === hosts.length - 1 ? "" : "border-subtle border-b"}`,
+                      customClassNames?.teamMemberSchedule?.container
+                    )}>
+                    <TeamMemberSchedule
+                      host={host}
+                      index={index}
+                      hostScheduleQuery={hostSchedulesQuery}
+                      customClassNames={customClassNames?.teamMemberSchedule}
+                      isPlatform={isPlatform}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )
           ) : (
             <p className="text-subtle max-w-full wrap-break-word text-sm leading-tight">
               {t("no_hosts_description")}
@@ -858,7 +906,6 @@ const UseTeamEventScheduleSettingsToggle = ({
         {useHostSchedulesForTeamEvent && (
           <div className="lg:ml-14">
             <TeamAvailability
-              teamMembers={rest.teamMembers}
               hostSchedulesQuery={rest.hostSchedulesQuery}
               customClassNames={customClassNames?.teamAvailability}
               isPlatform={isPlatform}

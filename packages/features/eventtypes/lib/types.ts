@@ -59,6 +59,8 @@ export type Host = {
   weight: number;
   scheduleId?: number | null;
   groupId: string | null;
+  name?: string | null;
+  avatar?: string;
   location?: HostLocation | null;
 };
 

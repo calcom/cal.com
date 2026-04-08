@@ -2,7 +2,9 @@ import { describe, it, expect } from "vitest";
 
 import type { ChildrenEventType } from "@calcom/features/eventtypes/lib/childrenEventType";
 import { stripChildrenForPayload } from "@calcom/features/eventtypes/lib/childrenEventType";
+import type { Host } from "@calcom/features/eventtypes/lib/types";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { stripHostsForPayload } from "./useEventTypeForm";
 
 describe("useEventTypeForm - children payload stripping", () => {
   it("should strip avatar, profile, username, and membership from children payload", () => {
@@ -147,5 +149,45 @@ describe("useEventTypeForm - children payload stripping", () => {
     const children: ChildrenEventType[] = [];
     const stripped = stripChildrenForPayload(children);
     expect(stripped).toEqual([]);
+  });
+
+  it("should strip display-only host fields from the payload", () => {
+    const hosts: Host[] = [
+      {
+        isFixed: false,
+        userId: 1,
+        profileId: 22,
+        priority: 2,
+        weight: 100,
+        scheduleId: 10,
+        groupId: "group-1",
+        location: {
+          id: "loc-1",
+          userId: 1,
+          eventTypeId: 10,
+          type: "integrations:google:meet",
+        },
+        name: "Alice",
+        avatar: "https://example.com/alice.png",
+      },
+    ];
+
+    expect(stripHostsForPayload(hosts)).toEqual([
+      {
+        isFixed: false,
+        userId: 1,
+        profileId: 22,
+        priority: 2,
+        weight: 100,
+        scheduleId: 10,
+        groupId: "group-1",
+        location: {
+          id: "loc-1",
+          userId: 1,
+          eventTypeId: 10,
+          type: "integrations:google:meet",
+        },
+      },
+    ]);
   });
 });
