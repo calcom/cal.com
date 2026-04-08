@@ -239,6 +239,82 @@ describe("Routing handler integration tests", () => {
     });
   });
 
+  describe("routingFormResponses (org scope — UNION ALL path)", () => {
+    it("should return paginated table data for org scope", async () => {
+      const service = createRoutingService(
+        { id: orgOwner.id, organizationId: org.id },
+        { scope: "org", startDate, endDate }
+      );
+
+      const result = await service.getTableData({
+        sorting: undefined,
+        limit: 10,
+        offset: 0,
+      });
+
+      expect(result).toBeDefined();
+      expect(result.total).toBeGreaterThanOrEqual(1);
+      expect(result.data.length).toBeGreaterThanOrEqual(1);
+      expect(result.data.length).toBeLessThanOrEqual(10);
+    });
+
+    it("should return same results as team scope for matching data", async () => {
+      const orgService = createRoutingService(
+        { id: orgOwner.id, organizationId: org.id },
+        { scope: "org", startDate, endDate }
+      );
+      const teamService = createRoutingService(
+        { id: orgOwner.id, organizationId: org.id },
+        { scope: "team", selectedTeamId: team.id, startDate, endDate }
+      );
+
+      const orgResult = await orgService.getTableData({ sorting: undefined, limit: 10, offset: 0 });
+      const teamResult = await teamService.getTableData({ sorting: undefined, limit: 10, offset: 0 });
+
+      // Org scope should include at least everything from the team scope
+      expect(orgResult.total).toBeGreaterThanOrEqual(teamResult.total);
+      // The team's data should be a subset of the org's data
+      const orgIds = new Set(orgResult.data.map((d) => d.id));
+      for (const item of teamResult.data) {
+        expect(orgIds.has(item.id)).toBe(true);
+      }
+    });
+
+    it("should respect limit and offset for org scope", async () => {
+      const service = createRoutingService(
+        { id: orgOwner.id, organizationId: org.id },
+        { scope: "org", startDate, endDate }
+      );
+
+      const result = await service.getTableData({
+        sorting: undefined,
+        limit: 1,
+        offset: 0,
+      });
+
+      expect(result.data.length).toBeLessThanOrEqual(1);
+    });
+
+    it("should return data sorted by createdAt DESC for org scope", async () => {
+      const service = createRoutingService(
+        { id: orgOwner.id, organizationId: org.id },
+        { scope: "org", startDate, endDate }
+      );
+
+      const result = await service.getTableData({
+        sorting: [{ id: "createdAt", desc: true }],
+        limit: 10,
+        offset: 0,
+      });
+
+      for (let i = 1; i < result.data.length; i++) {
+        expect(new Date(result.data[i - 1].createdAt).getTime()).toBeGreaterThanOrEqual(
+          new Date(result.data[i].createdAt).getTime()
+        );
+      }
+    });
+  });
+
   describe("failedBookingsByField", () => {
     it("should return failed bookings by field data", async () => {
       const service = createRoutingService(

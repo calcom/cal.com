@@ -133,6 +133,10 @@ type GetConditionsOptions = {
   };
 };
 
+type ConditionsStrategy =
+  | { type: "branches"; authBranches: Prisma.Sql[]; filterConditions: Prisma.Sql | null }
+  | { type: "single"; combined: Prisma.Sql };
+
 export class InsightsRoutingBaseService {
   private prisma: PrismaClient;
   private options: InsightsRoutingServiceOptions | null;
@@ -260,23 +264,151 @@ export class InsightsRoutingBaseService {
     limit: number;
     offset: number;
   }) {
-    const baseConditions = await this.getBaseConditions();
-
-    // Build ORDER BY clause
+    const { forCount, forRows } = await this.getConditionsStrategies(sorting);
     const orderByClause = this.buildOrderByClause(sorting);
 
-    // Get total count
+    const totalCount = await this.getTableDataCount(forCount);
+    const data = await this.getTableDataRows(forRows, orderByClause, limit, offset);
+
+    return {
+      total: totalCount,
+      data,
+    };
+  }
+
+  private async getTableDataCount(strategy: ConditionsStrategy): Promise<number> {
+    if (strategy.type === "branches") {
+      // UNION ALL per-branch COUNT — each branch uses Index Only Scan
+      const branchQueries = strategy.authBranches.map((authCondition) => {
+        const conditions = strategy.filterConditions
+          ? Prisma.sql`(${authCondition}) AND (${strategy.filterConditions})`
+          : authCondition;
+        return Prisma.sql`SELECT COUNT(*) as cnt FROM "RoutingFormResponseDenormalized" rfrd WHERE ${conditions}`;
+      });
+      const unionQuery = branchQueries.reduce((acc, query, index) => {
+        if (index === 0) return query;
+        return Prisma.sql`${acc} UNION ALL ${query}`;
+      });
+      const totalCountQuery = Prisma.sql`SELECT SUM(cnt)::bigint as count FROM (${unionQuery}) sub`;
+      const result = await this.prisma.$queryRaw<Array<{ count: bigint }>>(totalCountQuery);
+      return Number(result[0]?.count || 0);
+    }
+
+    // Standard single-query COUNT
     const totalCountQuery = Prisma.sql`
       SELECT COUNT(*) as count
       FROM "RoutingFormResponseDenormalized" rfrd
-      WHERE ${baseConditions}
+      WHERE ${strategy.combined}
     `;
+    const result = await this.prisma.$queryRaw<Array<{ count: bigint }>>(totalCountQuery);
+    return Number(result[0]?.count || 0);
+  }
 
-    const totalCountResult = await this.prisma.$queryRaw<Array<{ count: bigint }>>(totalCountQuery);
+  private async getTableDataRows(
+    strategy: ConditionsStrategy,
+    orderByClause: Prisma.Sql,
+    limit: number,
+    offset: number
+  ): Promise<Array<InsightsRoutingTableItem>> {
+    // When branches are available, use UNION ALL with per-branch LIMIT
+    // to enable index backward scans. Each branch fetches limit+offset rows,
+    // then we merge-sort and apply final LIMIT/OFFSET.
+    if (strategy.type === "branches") {
+      const perBranchLimit = limit + offset;
+      const branchQueries = strategy.authBranches.map((authCondition) => {
+        const conditions = strategy.filterConditions
+          ? Prisma.sql`(${authCondition}) AND (${strategy.filterConditions})`
+          : authCondition;
+        return Prisma.sql`(
+          SELECT rfrd."id", rfrd."createdAt"
+          FROM "RoutingFormResponseDenormalized" rfrd
+          WHERE ${conditions}
+          ${orderByClause}
+          LIMIT ${perBranchLimit}
+        )`;
+      });
+      const unionQuery = branchQueries.reduce((acc, query, index) => {
+        if (index === 0) return query;
+        return Prisma.sql`${acc} UNION ALL ${query}`;
+      });
 
-    const totalCount = Number(totalCountResult[0]?.count || 0);
+      // Fetch candidate IDs via UNION ALL with per-branch LIMIT,
+      // then join back for full data + subqueries
+      const dataQuery = Prisma.sql`
+        WITH candidate_ids AS (
+          SELECT id FROM (${unionQuery}) branches
+          ${orderByClause}
+          LIMIT ${limit}
+          OFFSET ${offset}
+        )
+        SELECT
+          rfrd."id",
+          rfrd."uuid",
+          rfrd."formId",
+          rfrd."formName",
+          rfrd."formTeamId",
+          rfrd."formUserId",
+          rfrd."bookingUid",
+          rfrd."bookingId",
+          UPPER(rfrd."bookingStatus"::text) as "bookingStatus",
+          rfrd."bookingStatusOrder",
+          rfrd."bookingCreatedAt",
+          rfrd."bookingUserId",
+          rfrd."bookingUserName",
+          rfrd."bookingUserEmail",
+          rfrd."bookingUserAvatarUrl",
+          rfrd."bookingAssignmentReason",
+          rfrd."bookingStartTime",
+          rfrd."bookingEndTime",
+          rfrd."eventTypeId",
+          rfrd."eventTypeParentId",
+          rfrd."eventTypeSchedulingType",
+          rfrd."createdAt",
+          rfrd."utm_source",
+          rfrd."utm_medium",
+          rfrd."utm_campaign",
+          rfrd."utm_term",
+          rfrd."utm_content",
+          (
+            SELECT COALESCE(
+              json_agg(
+                json_build_object(
+                  'name', a."name",
+                  'timeZone', a."timeZone",
+                  'email', a."email",
+                  'phoneNumber', a."phoneNumber"
+                )
+              ) FILTER (WHERE a."id" IS NOT NULL),
+              '[]'::json
+            )
+            FROM "Booking" b2
+            LEFT JOIN "Attendee" a ON a."bookingId" = b2."id"
+            WHERE b2."uid" = rfrd."bookingUid"
+          ) as "bookingAttendees",
+          (
+            SELECT COALESCE(
+              json_agg(
+                json_build_object(
+                  'fieldId', f."fieldId",
+                  'valueString', f."valueString",
+                  'valueNumber', f."valueNumber",
+                  'valueStringArray', f."valueStringArray"
+                )
+              ) FILTER (WHERE f."fieldId" IS NOT NULL),
+              '[]'::json
+            )
+            FROM "RoutingFormResponseField" f
+            WHERE f."responseId" = rfrd."id"
+          ) as "fields"
+        FROM "RoutingFormResponseDenormalized" rfrd
+        WHERE rfrd."id" IN (SELECT id FROM candidate_ids)
+        ${orderByClause}
+      `;
 
-    // Get paginated data with JSON aggregation for attendees and fields
+      return this.prisma.$queryRaw<Array<InsightsRoutingTableItem>>(dataQuery);
+    }
+
+    // Standard single-query path (user/team scope)
     const dataQuery = Prisma.sql`
       SELECT
         rfrd."id",
@@ -338,18 +470,13 @@ export class InsightsRoutingBaseService {
           WHERE f."responseId" = rfrd."id"
         ) as "fields"
       FROM "RoutingFormResponseDenormalized" rfrd
-      WHERE ${baseConditions}
+      WHERE ${strategy.combined}
       ${orderByClause}
       LIMIT ${limit}
       OFFSET ${offset}
     `;
 
-    const data = await this.prisma.$queryRaw<Array<InsightsRoutingTableItem>>(dataQuery);
-
-    return {
-      total: totalCount,
-      data,
-    };
+    return this.prisma.$queryRaw<Array<InsightsRoutingTableItem>>(dataQuery);
   }
 
   async getRoutingFormStats() {
@@ -692,6 +819,44 @@ export class InsightsRoutingBaseService {
     }
   }
 
+  // The UNION ALL optimization is designed for createdAt sorting (the default).
+  // For other sort columns, rows fall back to a single-query path.
+  // COUNT always uses UNION ALL when available since it doesn't depend on sorting.
+  async getConditionsStrategies(
+    sorting?: Array<{ id: string; desc: boolean }>,
+    conditionsOptions?: GetConditionsOptions
+  ): Promise<{ forCount: ConditionsStrategy; forRows: ConditionsStrategy }> {
+    const authBranches = await this.getAuthorizationBranches();
+
+    if (!authBranches) {
+      const combined = await this.getBaseConditions(conditionsOptions);
+      const single: ConditionsStrategy = { type: "single", combined };
+      return { forCount: single, forRows: single };
+    }
+
+    const filterConditions = await this.getFilterConditions(conditionsOptions);
+    const branches: ConditionsStrategy = { type: "branches", authBranches, filterConditions };
+
+    const hasNonCreatedAtSort = sorting?.some(
+      (s) => ALLOWED_SORT_COLUMNS.has(s.id) && s.id !== "createdAt"
+    );
+    if (!hasNonCreatedAtSort) {
+      return { forCount: branches, forRows: branches };
+    }
+
+    // The UNION ALL branch subqueries only SELECT id and createdAt, so the
+    // outer CTE's ORDER BY can only reference those columns. When sorting by
+    // other columns (e.g. formName, bookingUserName), we fall back to a single
+    // query with OR-based auth so all columns are available for ORDER BY.
+    const combinedAuth = authBranches.reduce((acc, branch, index) =>
+      index === 0 ? Prisma.sql`(${branch})` : Prisma.sql`${acc} OR (${branch})`
+    );
+    const combined = filterConditions
+      ? Prisma.sql`((${combinedAuth}) AND (${filterConditions}))`
+      : Prisma.sql`(${combinedAuth})`;
+    return { forCount: branches, forRows: { type: "single", combined } };
+  }
+
   async getFilterConditions(conditionsOptions?: GetConditionsOptions): Promise<Prisma.Sql | null> {
     const conditions: Prisma.Sql[] = [];
     const exclude = (conditionsOptions || {}).exclude || {};
@@ -854,6 +1019,42 @@ export class InsightsRoutingBaseService {
     } else {
       return NOTHING_CONDITION;
     }
+  }
+
+  /**
+   * Returns individual authorization conditions per team (+ personal forms).
+   * Each branch can use index backward scans independently, enabling efficient
+   * UNION ALL pagination instead of OR-based scans that prevent index usage.
+   */
+  async getAuthorizationBranches(): Promise<Prisma.Sql[] | null> {
+    if (!this.options) {
+      return null;
+    }
+
+    if (this.options.scope !== "org") {
+      return null;
+    }
+
+    const isOwnerOrAdmin = await this.isOwnerOrAdmin(this.options.userId, this.options.orgId);
+    if (!isOwnerOrAdmin) {
+      return null;
+    }
+
+    const teamRepo = getTeamRepository(this.prisma);
+    const teamsFromOrg = await teamRepo.findAllByParentId({
+      parentId: this.options.orgId,
+      select: { id: true },
+    });
+    const teamIds = [this.options.orgId, ...teamsFromOrg.map((t) => t.id)];
+
+    // One branch per team + one for personal forms
+    const branches: Prisma.Sql[] = teamIds.map(
+      (id) => Prisma.sql`rfrd."formTeamId" = ${id}`
+    );
+    branches.push(
+      Prisma.sql`rfrd."formUserId" = ${this.options.userId} AND rfrd."formTeamId" IS NULL`
+    );
+    return branches;
   }
 
   private async buildOrgAuthorizationCondition(

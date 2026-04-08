@@ -1668,4 +1668,186 @@ describe("InsightsRoutingService Integration Tests", () => {
       await testData.cleanup();
     });
   });
+
+  describe("getTableData", () => {
+    it("should return data with default sorting (createdAt DESC) in org scope", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "org",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const result = await service.getTableData({ limit: 10, offset: 0 });
+
+      expect(result.total).toBeGreaterThanOrEqual(1);
+      expect(result.data.length).toBeGreaterThanOrEqual(1);
+      expect(result.data[0]).toHaveProperty("id");
+      expect(result.data[0]).toHaveProperty("createdAt");
+      expect(result.data[0]).toHaveProperty("formId");
+
+      await testData.cleanup();
+    });
+
+    it("should return data with non-createdAt sorting in org scope (fallback path)", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "org",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      // Sort by formName — triggers single-query fallback for rows
+      const result = await service.getTableData({
+        sorting: [{ id: "formName", desc: false }],
+        limit: 10,
+        offset: 0,
+      });
+
+      expect(result.total).toBeGreaterThanOrEqual(1);
+      expect(result.data.length).toBeGreaterThanOrEqual(1);
+      expect(result.data[0]).toHaveProperty("formName");
+
+      await testData.cleanup();
+    });
+
+    it("should return data with default sorting in team scope", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "team",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: testData.team.id,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const result = await service.getTableData({ limit: 10, offset: 0 });
+
+      expect(result.total).toBeGreaterThanOrEqual(1);
+      expect(result.data.length).toBeGreaterThanOrEqual(1);
+
+      await testData.cleanup();
+    });
+
+    it("should return data with non-createdAt sorting in team scope", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "team",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: testData.team.id,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const result = await service.getTableData({
+        sorting: [{ id: "bookingUserName", desc: true }],
+        limit: 10,
+        offset: 0,
+      });
+
+      expect(result.total).toBeGreaterThanOrEqual(1);
+      expect(result.data.length).toBeGreaterThanOrEqual(1);
+
+      await testData.cleanup();
+    });
+
+    it("should return consistent results between org and team scope", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const orgService = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "org",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const teamService = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "team",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: testData.team.id,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const orgResult = await orgService.getTableData({ limit: 100, offset: 0 });
+      const teamResult = await teamService.getTableData({ limit: 100, offset: 0 });
+
+      // Org scope should contain all team scope results
+      const orgIds = new Set(orgResult.data.map((r) => r.id));
+      for (const row of teamResult.data) {
+        expect(orgIds.has(row.id)).toBe(true);
+      }
+
+      await testData.cleanup();
+    });
+
+    it("should respect limit and offset", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "org",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: undefined,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const allResults = await service.getTableData({ limit: 100, offset: 0 });
+      if (allResults.total > 1) {
+        const limitedResults = await service.getTableData({ limit: 1, offset: 0 });
+        expect(limitedResults.data.length).toBe(1);
+        expect(limitedResults.total).toBe(allResults.total);
+      }
+
+      await testData.cleanup();
+    });
+  });
 });
