@@ -12,6 +12,7 @@ import {
   isEmail,
   Validate,
   IsInt,
+  IsEmail,
 } from "class-validator";
 import { ValidationOptions, registerDecorator } from "class-validator";
 
@@ -64,8 +65,8 @@ class Response {
   @ValidateBookingName()
   name!: string | BookingName;
 
-  @Validate((value: string) => !value || isEmail(value), {
-    message: "Invalid response email",
+  @IsEmail({}, {
+    message: "Email is required and must be a valid email address",
   })
   @ApiProperty()
   email!: string;
