@@ -22,13 +22,14 @@ export const createWebhookPbacProcedure = (
     // Endpoints that just read the logged in user's data - like 'list' don't necessarily have any input
     if (!input) return next();
 
-    const { id, teamId, eventTypeId } = input;
+    const { id, webhookId, teamId, eventTypeId } = input;
+    const lookupId = id || webhookId;
     const permissionCheckService = new PermissionCheckService();
 
-    if (id) {
+    if (lookupId) {
       // Check if user is authorized to edit webhook
       const webhook = await prisma.webhook.findUnique({
-        where: { id },
+        where: { id: lookupId },
         select: {
           id: true,
           userId: true,

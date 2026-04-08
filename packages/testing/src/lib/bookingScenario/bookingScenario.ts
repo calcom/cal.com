@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { TFunction } from "i18next";
 
 import i18nMock from "../__mocks__/libServerI18n";
 import prismock from "../__mocks__/prisma";
+import type { TFunction } from "i18next";
 import { v4 as uuidv4 } from "uuid";
 import { vi } from "vitest";
 import "vitest-fetch-mock";
@@ -51,13 +51,26 @@ import type { getMockRequestDataForBooking } from "./getMockRequestDataForBookin
 import { getMockPaymentService } from "./MockPaymentService";
 
 type NonNullableVideoApiAdapter = NonNullable<VideoApiAdapter>;
+
+// Shared map of mock calendar service constructors accessible to both the vi.mock factory and mockCalendar.
+// Using a Proxy-based CalendarServiceMap ensures any calendar service key is automatically mocked,
+// preventing real module imports (e.g., feishu/lark) that trigger async fetch calls during worker shutdown.
+const calendarServiceConstructorMocks: Record<string, ReturnType<typeof vi.fn>> = {};
+
+function getOrCreateCalendarServiceMock(key: string): ReturnType<typeof vi.fn> {
+  if (!calendarServiceConstructorMocks[key]) {
+    calendarServiceConstructorMocks[key] = vi.fn();
+  }
+  return calendarServiceConstructorMocks[key];
+}
+
 vi.mock("@calcom/app-store/calendar.services.generated", () => ({
-  CalendarServiceMap: {
-    googlecalendar: Promise.resolve({ default: vi.fn() }),
-    office365calendar: Promise.resolve({ default: vi.fn() }),
-    applecalendar: Promise.resolve({ default: vi.fn() }),
-    caldavcalendar: Promise.resolve({ default: vi.fn() }),
-  },
+  CalendarServiceMap: new Proxy({} as Record<string, Promise<{ default: ReturnType<typeof vi.fn> }>>, {
+    get(_target, prop: string) {
+      if (typeof prop === "symbol") return undefined;
+      return Promise.resolve({ default: getOrCreateCalendarServiceMock(prop) });
+    },
+  }),
 }));
 
 const mockVideoAdapterRegistry: Record<string, unknown> = {};
@@ -1726,7 +1739,7 @@ export function mockNoTranslations() {
   });
 }
 
-export const enum BookingLocations {
+export enum BookingLocations {
   CalVideo = "integrations:daily",
   ZoomVideo = "integrations:zoom",
   GoogleMeet = "integrations:google:meet",
@@ -1834,162 +1847,159 @@ export async function mockCalendar(
   const getAvailabilityCalls: GetAvailabilityMethodMockCall[] = [];
   const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
 
-  const { CalendarServiceMap } = await import("@calcom/app-store/calendar.services.generated");
-  const calendarServiceKey = appStoreLookupKey as keyof typeof CalendarServiceMap;
-
-  const calendarServicePromise = CalendarServiceMap[calendarServiceKey];
-  if (calendarServicePromise) {
-    const resolvedService = await calendarServicePromise;
-    vi.mocked(resolvedService.default).mockImplementation(function MockCalendarService(credential) {
-      return {
-        createEvent: async (...rest: Parameters<Calendar["createEvent"]>): Promise<NewCalendarEventType> => {
-          if (calendarData?.creationCrash) {
-            throw new Error("MockCalendarService.createEvent fake error");
-          }
-          const [calEvent, credentialId, externalCalendarId] = rest;
-          log.debug(
-            "mockCalendar.createEvent",
-            JSON.stringify({ calEvent, credentialId, externalCalendarId })
-          );
-          createEventCalls.push({
-            args: {
-              calEvent,
-              credentialId,
-              externalCalendarId,
-            },
-            calendarServiceConstructorArgs: {
-              credential,
-            },
-          });
-          const isGoogleMeetLocation = calEvent?.location === BookingLocations.GoogleMeet;
-          if (app.type === "google_calendar") {
-            return Promise.resolve({
-              type: app.type,
-              additionalInfo: {
-                hangoutLink:
-                  normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink ||
-                  "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
-              },
+  // Use the shared mock map directly instead of dynamically importing calendar.services.generated.
+  // This avoids loading real calendar service modules (which can trigger async fetch calls that
+  // cause "Closing rpc while fetch was pending" errors when the test worker shuts down).
+  const mockCalendarServiceConstructor = getOrCreateCalendarServiceMock(appStoreLookupKey);
+  mockCalendarServiceConstructor.mockImplementation(function MockCalendarService(credential) {
+    return {
+      createEvent: async (...rest: Parameters<Calendar["createEvent"]>): Promise<NewCalendarEventType> => {
+        if (calendarData?.creationCrash) {
+          throw new Error("MockCalendarService.createEvent fake error");
+        }
+        const [calEvent, credentialId, externalCalendarId] = rest;
+        log.debug(
+          "mockCalendar.createEvent",
+          JSON.stringify({ calEvent, credentialId, externalCalendarId })
+        );
+        createEventCalls.push({
+          args: {
+            calEvent,
+            credentialId,
+            externalCalendarId,
+          },
+          calendarServiceConstructorArgs: {
+            credential,
+          },
+        });
+        const isGoogleMeetLocation = calEvent?.location === BookingLocations.GoogleMeet;
+        if (app.type === "google_calendar") {
+          return Promise.resolve({
+            type: app.type,
+            additionalInfo: {
               hangoutLink:
                 normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink ||
                 "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
-              uid: normalizedCalendarData.create?.uid || "GOOGLE_CALENDAR_EVENT_ID",
-              id: normalizedCalendarData.create?.id || "GOOGLE_CALENDAR_EVENT_ID",
-              iCalUID:
-                normalizedCalendarData.create?.iCalUID || calEvent.iCalUID || "GOOGLE_CALENDAR_EVENT_ID",
-              password: "MOCK_PASSWORD",
-              url:
-                normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink ||
-                "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
-            });
-          } else if (app.type === "office365_calendar") {
-            return Promise.resolve({
-              type: app.type,
-              additionalInfo: {},
-              uid: normalizedCalendarData.create?.uid || "OFFICE_365_CALENDAR_EVENT_ID",
-              id: normalizedCalendarData.create?.id || "OFFICE_365_CALENDAR_EVENT_ID",
-              iCalUID:
-                normalizedCalendarData.create?.iCalUID || calEvent.iCalUID || "OFFICE_365_CALENDAR_EVENT_ID",
-              password: "MOCK_PASSWORD",
-              url:
-                normalizedCalendarData.create?.appSpecificData?.office365Calendar?.url ||
-                "https://UNUSED_URL",
-            });
-          } else {
-            return Promise.resolve({
-              type: app.type,
-              additionalInfo: {},
-              uid: "PROBABLY_UNUSED_UID",
-              hangoutLink:
-                (isGoogleMeetLocation
-                  ? normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink
-                  : null) || "https://UNUSED_URL",
-              // A Calendar is always expected to return an id.
-              id: normalizedCalendarData.create?.id || "FALLBACK_MOCK_CALENDAR_EVENT_ID",
-              iCalUID: normalizedCalendarData.create?.iCalUID,
-              // Password and URL seems useless for CalendarService, plan to remove them if that's the case
-              password: "MOCK_PASSWORD",
-              url: "https://UNUSED_URL",
-            });
-          }
-        },
-        updateEvent: async (...rest: Parameters<Calendar["updateEvent"]>): Promise<NewCalendarEventType> => {
-          if (calendarData?.updationCrash) {
-            throw new Error("MockCalendarService.updateEvent fake error");
-          }
-          const [uid, event, externalCalendarId] = rest;
-          log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
-          updateEventCalls.push({
-            args: {
-              uid,
-              event,
-              externalCalendarId,
             },
-            calendarServiceConstructorArgs: {
-              credential,
-            },
+            hangoutLink:
+              normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink ||
+              "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
+            uid: normalizedCalendarData.create?.uid || "GOOGLE_CALENDAR_EVENT_ID",
+            id: normalizedCalendarData.create?.id || "GOOGLE_CALENDAR_EVENT_ID",
+            iCalUID:
+              normalizedCalendarData.create?.iCalUID || calEvent.iCalUID || "GOOGLE_CALENDAR_EVENT_ID",
+            password: "MOCK_PASSWORD",
+            url:
+              normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink ||
+              "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
           });
-          const isGoogleMeetLocation = event.location === BookingLocations.GoogleMeet;
+        } else if (app.type === "office365_calendar") {
+          return Promise.resolve({
+            type: app.type,
+            additionalInfo: {},
+            uid: normalizedCalendarData.create?.uid || "OFFICE_365_CALENDAR_EVENT_ID",
+            id: normalizedCalendarData.create?.id || "OFFICE_365_CALENDAR_EVENT_ID",
+            iCalUID:
+              normalizedCalendarData.create?.iCalUID || calEvent.iCalUID || "OFFICE_365_CALENDAR_EVENT_ID",
+            password: "MOCK_PASSWORD",
+            url:
+              normalizedCalendarData.create?.appSpecificData?.office365Calendar?.url ||
+              "https://UNUSED_URL",
+          });
+        } else {
           return Promise.resolve({
             type: app.type,
             additionalInfo: {},
             uid: "PROBABLY_UNUSED_UID",
-            iCalUID: normalizedCalendarData.update?.iCalUID,
-            id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
+            hangoutLink:
+              (isGoogleMeetLocation
+                ? normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink
+                : null) || "https://UNUSED_URL",
+            // A Calendar is always expected to return an id.
+            id: normalizedCalendarData.create?.id || "FALLBACK_MOCK_CALENDAR_EVENT_ID",
+            iCalUID: normalizedCalendarData.create?.iCalUID,
             // Password and URL seems useless for CalendarService, plan to remove them if that's the case
             password: "MOCK_PASSWORD",
             url: "https://UNUSED_URL",
-            location: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
-            hangoutLink:
-              (isGoogleMeetLocation
-                ? normalizedCalendarData.update?.appSpecificData?.googleCalendar?.hangoutLink
-                : null) || "https://UNUSED_URL",
-            conferenceData: isGoogleMeetLocation ? event.conferenceData : undefined,
           });
-        },
-        deleteEvent: async (...rest: Parameters<Calendar["deleteEvent"]>) => {
-          log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
-          deleteEventCalls.push({
-            args: {
-              uid: rest[0],
-              event: rest[1],
-              externalCalendarId: rest[2],
-            },
-            calendarServiceConstructorArgs: {
-              credential,
-            },
-          });
-        },
-        getAvailability: async (params: {
-          dateFrom: string;
-          dateTo: string;
-          selectedCalendars: IntegrationCalendar[];
-          mode: "slots" | "overlay" | "booking";
-          fallbackToPrimary?: boolean;
-        }): Promise<EventBusyDate[]> => {
-          const { dateFrom, dateTo, selectedCalendars, mode } = params;
-          if (calendarData?.getAvailabilityCrash) {
-            throw new Error("MockCalendarService.getAvailability fake error");
-          }
-          getAvailabilityCalls.push({
-            args: {
-              dateFrom,
-              dateTo,
-              selectedCalendars,
-              mode,
-            },
-            calendarServiceConstructorArgs: {
-              credential,
-            },
-          });
-          return new Promise((resolve) => {
-            resolve(calendarData?.busySlots || []);
-          });
-        },
-        listCalendars: async (): Promise<IntegrationCalendar[]> => Promise.resolve([]),
-      } as Calendar;
-    });
-  }
+        }
+      },
+      updateEvent: async (...rest: Parameters<Calendar["updateEvent"]>): Promise<NewCalendarEventType> => {
+        if (calendarData?.updationCrash) {
+          throw new Error("MockCalendarService.updateEvent fake error");
+        }
+        const [uid, event, externalCalendarId] = rest;
+        log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
+        updateEventCalls.push({
+          args: {
+            uid,
+            event,
+            externalCalendarId,
+          },
+          calendarServiceConstructorArgs: {
+            credential,
+          },
+        });
+        const isGoogleMeetLocation = event.location === BookingLocations.GoogleMeet;
+        return Promise.resolve({
+          type: app.type,
+          additionalInfo: {},
+          uid: "PROBABLY_UNUSED_UID",
+          iCalUID: normalizedCalendarData.update?.iCalUID,
+          id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
+          // Password and URL seems useless for CalendarService, plan to remove them if that's the case
+          password: "MOCK_PASSWORD",
+          url: "https://UNUSED_URL",
+          location: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
+          hangoutLink:
+            (isGoogleMeetLocation
+              ? normalizedCalendarData.update?.appSpecificData?.googleCalendar?.hangoutLink
+              : null) || "https://UNUSED_URL",
+          conferenceData: isGoogleMeetLocation ? event.conferenceData : undefined,
+        });
+      },
+      deleteEvent: async (...rest: Parameters<Calendar["deleteEvent"]>) => {
+        log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
+        deleteEventCalls.push({
+          args: {
+            uid: rest[0],
+            event: rest[1],
+            externalCalendarId: rest[2],
+          },
+          calendarServiceConstructorArgs: {
+            credential,
+          },
+        });
+      },
+      getAvailability: async (params: {
+        dateFrom: string;
+        dateTo: string;
+        selectedCalendars: IntegrationCalendar[];
+        mode: "slots" | "overlay" | "booking";
+        fallbackToPrimary?: boolean;
+      }): Promise<EventBusyDate[]> => {
+        const { dateFrom, dateTo, selectedCalendars, mode } = params;
+        if (calendarData?.getAvailabilityCrash) {
+          throw new Error("MockCalendarService.getAvailability fake error");
+        }
+        getAvailabilityCalls.push({
+          args: {
+            dateFrom,
+            dateTo,
+            selectedCalendars,
+            mode,
+          },
+          calendarServiceConstructorArgs: {
+            credential,
+          },
+        });
+        return new Promise((resolve) => {
+          resolve(calendarData?.busySlots || []);
+        });
+      },
+      listCalendars: async (): Promise<IntegrationCalendar[]> => Promise.resolve([]),
+    } as Calendar;
+  });
 
   return {
     createEventCalls,
