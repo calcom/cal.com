@@ -1789,6 +1789,8 @@ model WebhookScheduledTriggers {
   booking       Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   // @@partial_index([bookingId])
+  // @@partial_index([webhookId])
+  @@index([startAfter])
 }
 
 enum WorkflowTemplates {
@@ -2598,6 +2600,8 @@ model AttributeOption {
   // Such a relation would require its own table to be managed and we don't need it for now.
   contains      String[]
   assignedUsers AttributeToUser[]
+
+  @@index([attributeId])
 }
 
 model Attribute {
@@ -2656,6 +2660,7 @@ model AttributeToUser {
   updatedByDSync   DSyncData? @relation("updatedByDSync", fields: [updatedByDSyncId], references: [directoryId], onDelete: SetNull)
 
   @@unique([memberId, attributeOptionId])
+  @@index([attributeOptionId])
 }
 
 enum AssignmentReasonEnum {
