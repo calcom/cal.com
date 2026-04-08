@@ -6,10 +6,10 @@ import { render } from "@calcom/features/bookings/Booker/__tests__/test-utils";
 
 import { AvailableTimes } from "./AvailableTimes";
 
-vi.mock("framer-motion", async (importOriginal) => {
-  const actual = (await importOriginal()) as typeof import("framer-motion");
-  return { ...actual };
-});
+vi.mock("framer-motion", () => ({
+  AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  m: { div: ({ children }: { children: React.ReactNode }) => <>{children}</> },
+}));
 
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
   useLocale: () => ({

@@ -59,9 +59,8 @@ function Calendar({
           }
           return base;
         },
-        labelWeekday: (day) => {
-          const fullNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-          return fullNames[day.getDay()];
+        labelWeekday: (day, options) => {
+          return new Intl.DateTimeFormat(options?.locale?.code ?? "en", { weekday: "long" }).format(day);
         },
       }}
       components={{
