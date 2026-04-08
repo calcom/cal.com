@@ -1,4 +1,5 @@
 import process from "node:process";
+import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import { syncVercelEnvVars } from "@trigger.dev/build/extensions/core";
 import { defineConfig } from "@trigger.dev/sdk";
 import dotEnv from "dotenv";
@@ -76,4 +77,20 @@ export default defineConfig({
 
   // Max duration of a task in seconds
   maxDuration: 600,
+
+  ...(process.env.TRIGGER_AXIOM_API_TOKEN
+    ? {
+        telemetry: {
+          logExporters: [
+            new OTLPLogExporter({
+              url: "https://api.axiom.co/v1/logs",
+              headers: {
+                Authorization: `Bearer ${process.env.TRIGGER_AXIOM_API_TOKEN}`,
+                "X-Axiom-Dataset": process.env.TRIGGER_AXIOM_DATASET ?? "trigger",
+              },
+            }),
+          ],
+        },
+      }
+    : {}),
 });
