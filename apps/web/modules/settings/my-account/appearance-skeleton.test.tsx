@@ -67,6 +67,16 @@ vi.mock("@coss/ui/shared/app-header", () => ({
   ),
 }));
 
+vi.mock("../common/components/AppearanceSkeletonLoader", () => ({
+  AppearanceSkeletonLoader: () => (
+    <div data-testid="card-frame">
+      <div data-testid="card-frame-footer">
+        <div data-testid="skeleton-text" />
+      </div>
+    </div>
+  ),
+}));
+
 describe("AppearanceSkeleton", async () => {
   const { SkeletonLoader } = await import("./appearance-skeleton");
 

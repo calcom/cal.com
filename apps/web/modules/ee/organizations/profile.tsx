@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -107,13 +107,6 @@ const OrgProfileView = ({
     },
     [error, router]
   );
-
-  // Scroll to top when page loads
-  useEffect(() => {
-    if (!isPending && orgBranding && currentOrganisation) {
-      window.scrollTo(0, 0);
-    }
-  }, [isPending, orgBranding, currentOrganisation]);
 
   if (isPending || !orgBranding || !currentOrganisation) {
     return <SkeletonLoader />;

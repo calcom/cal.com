@@ -1,10 +1,19 @@
 "use client";
 
-import { APP_NAME, DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "@calcom/lib/constants";
-import useGetBrandingColours, { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
+import {
+  APP_NAME,
+  DEFAULT_DARK_BRAND_COLOR,
+  DEFAULT_LIGHT_BRAND_COLOR,
+} from "@calcom/lib/constants";
+import useGetBrandingColours, {
+  checkWCAGContrastColor,
+} from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { bookingThemePreviewOptions, dashboardThemePreviewOptions } from "@calcom/lib/theme/themeItems";
+import {
+  bookingThemePreviewOptions,
+  dashboardThemePreviewOptions,
+} from "@calcom/lib/theme/themeItems";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -23,7 +32,11 @@ import {
   CardFrameTitle,
   CardPanel,
 } from "@coss/ui/components/card";
-import { Collapsible, CollapsiblePanel, CollapsibleTrigger } from "@coss/ui/components/collapsible";
+import {
+  Collapsible,
+  CollapsiblePanel,
+  CollapsibleTrigger,
+} from "@coss/ui/components/collapsible";
 import { Field, FieldItem } from "@coss/ui/components/field";
 import { Fieldset } from "@coss/ui/components/fieldset";
 import { Label } from "@coss/ui/components/label";
@@ -37,7 +50,7 @@ import { revalidateSettingsAppearance } from "app/(use-page-wrapper)/settings/(s
 import { revalidateHasTeamPlan } from "app/cache/membership";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
 import { WideUpgradeBannerForBranding } from "~/billing/upgrade-banners/WideUpgradeBannerForBranding";
@@ -62,7 +75,9 @@ const useBrandColors = (
     darkVal: darkBrandColor,
   });
   const selectedTheme =
-    hasCustomBrandColors && currentTheme ? brandTheme[currentTheme as "light" | "dark"] : {};
+    hasCustomBrandColors && currentTheme
+      ? brandTheme[currentTheme as "light" | "dark"]
+      : {};
   useCalcomTheme({
     root: selectedTheme,
   });
@@ -78,13 +93,17 @@ const AppearanceView = ({
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const session = useSession();
-  const isApartOfOrganization = session.data?.user.org?.id;
+  const isApartOfOrganization =
+    session.status === "loading" || !!session.data?.user.org?.id;
   const [darkModeError, setDarkModeError] = useState(false);
   const [lightModeError, setLightModeError] = useState(false);
   const [isCustomBrandColorChecked, setIsCustomBrandColorChecked] = useState(
-    user?.brandColor !== DEFAULT_LIGHT_BRAND_COLOR || user?.darkBrandColor !== DEFAULT_DARK_BRAND_COLOR
+    user?.brandColor !== DEFAULT_LIGHT_BRAND_COLOR ||
+      user?.darkBrandColor !== DEFAULT_DARK_BRAND_COLOR
   );
-  const [hideBrandingValue, setHideBrandingValue] = useState(user?.hideBranding ?? false);
+  const [hideBrandingValue, setHideBrandingValue] = useState(
+    user?.hideBranding ?? false
+  );
   useTheme(user?.appTheme);
   useBrandColors(user?.appTheme ?? null, {
     brandColor: user?.brandColor,
@@ -98,7 +117,10 @@ const AppearanceView = ({
   });
 
   const {
-    formState: { isSubmitting: isUserAppThemeSubmitting, isDirty: isUserAppThemeDirty },
+    formState: {
+      isSubmitting: isUserAppThemeSubmitting,
+      isDirty: isUserAppThemeDirty,
+    },
     reset: resetUserAppThemeReset,
   } = userAppThemeFormMethods;
 
@@ -109,18 +131,28 @@ const AppearanceView = ({
   });
 
   const {
-    formState: { isSubmitting: isUserThemeSubmitting, isDirty: isUserThemeDirty },
+    formState: {
+      isSubmitting: isUserThemeSubmitting,
+      isDirty: isUserThemeDirty,
+    },
     reset: resetUserThemeReset,
   } = userThemeFormMethods;
 
-  const bookerLayoutFormMethods = useForm({
-    defaultValues: {
+  const bookerLayoutDefaultValues = useMemo(
+    () => ({
       metadata: user.metadata as z.infer<typeof userMetadata>,
-    },
+    }),
+    [user.metadata]
+  );
+  const bookerLayoutFormMethods = useForm({
+    defaultValues: bookerLayoutDefaultValues,
   });
 
   const {
-    formState: { isSubmitting: isBookerLayoutFormSubmitting, isDirty: isBookerLayoutFormDirty },
+    formState: {
+      isSubmitting: isBookerLayoutFormSubmitting,
+      isDirty: isBookerLayoutFormDirty,
+    },
     reset: resetBookerLayoutThemeReset,
   } = bookerLayoutFormMethods;
 
@@ -137,7 +169,10 @@ const AppearanceView = ({
   });
 
   const {
-    formState: { isSubmitting: isBrandColorsFormSubmitting, isDirty: isBrandColorsFormDirty },
+    formState: {
+      isSubmitting: isBrandColorsFormSubmitting,
+      isDirty: isBrandColorsFormDirty,
+    },
     reset: resetBrandColorsThemeReset,
   } = brandColorsFormMethods;
 
@@ -150,32 +185,52 @@ const AppearanceView = ({
       document.documentElement.classList.contains("dark"));
 
   const mutation = trpc.viewer.me.updateProfile.useMutation({
-    onSuccess: async (data) => {
+    onSuccess: async (data, variables) => {
       await utils.viewer.me.invalidate();
       revalidateSettingsAppearance();
       revalidateHasTeamPlan();
-      toastManager.add({ title: t("settings_updated_successfully"), type: "success" });
-      resetBrandColorsThemeReset({ brandColor: data.brandColor, darkBrandColor: data.darkBrandColor });
-      resetBookerLayoutThemeReset({ metadata: data.metadata });
-      resetUserThemeReset({ theme: data.theme });
-      resetUserAppThemeReset({ appTheme: data.appTheme });
+      toastManager.add({
+        title: t("settings_updated_successfully"),
+        type: "success",
+      });
+      if ("brandColor" in variables || "darkBrandColor" in variables) {
+        resetBrandColorsThemeReset({
+          brandColor: data.brandColor,
+          darkBrandColor: data.darkBrandColor,
+        });
+      }
+      if ("metadata" in variables) {
+        resetBookerLayoutThemeReset({ metadata: data.metadata });
+      }
+      if ("theme" in variables) {
+        resetUserThemeReset({ theme: data.theme });
+      }
+      if ("appTheme" in variables) {
+        resetUserAppThemeReset({ appTheme: data.appTheme });
+      }
     },
     onError: (error) => {
       if (error.message) {
         toastManager.add({ title: error.message, type: "error" });
       } else {
-        toastManager.add({ title: t("error_updating_settings"), type: "error" });
+        toastManager.add({
+          title: t("error_updating_settings"),
+          type: "error",
+        });
       }
-    },
-    onSettled: async () => {
-      await utils.viewer.me.invalidate();
-      revalidateSettingsAppearance();
-      revalidateHasTeamPlan();
     },
   });
 
+  const isSectionPending = (key: string) => {
+    return (
+      mutation.isPending && mutation.variables && key in mutation.variables
+    );
+  };
+
   const handleCustomBrandColorsToggle = (checked: boolean) => {
     if (isCustomBrandColorChecked === checked) return;
+    if (isSectionPending("brandColor") || isSectionPending("darkBrandColor"))
+      return;
     setIsCustomBrandColorChecked(checked);
     setLightModeError(false);
     setDarkModeError(false);
@@ -196,29 +251,50 @@ const AppearanceView = ({
           mutation.mutate({
             appTheme,
           });
-        }}>
+        }}
+      >
         <CardFrame>
           <CardFrameHeader>
             <CardFrameTitle>{t("app_theme")}</CardFrameTitle>
-            <CardFrameDescription>{t("app_theme_applies_note")}</CardFrameDescription>
+            <CardFrameDescription>
+              {t("app_theme_applies_note")}
+            </CardFrameDescription>
           </CardFrameHeader>
           <Card>
             <CardPanel>
-              <Field className="max-w-none gap-4" name="appTheme" render={(props) => <Fieldset {...props} />}>
+              <Field
+                className="gap-4 max-w-none"
+                name="appTheme"
+                render={(props) => <Fieldset {...props} />}
+              >
                 <RadioGroup
-                  className="flex w-full sm:flex-row gap-4 md:gap-6"
-                  value={(selectedAppTheme ?? "system") as "system" | "light" | "dark"}
+                  className="flex gap-4 w-full sm:flex-row md:gap-6"
+                  value={
+                    (selectedAppTheme ?? "system") as
+                      | "system"
+                      | "light"
+                      | "dark"
+                  }
                   onValueChange={(value) => {
-                    userAppThemeFormMethods.setValue("appTheme", value === "system" ? null : value, {
-                      shouldDirty: true,
-                    });
-                  }}>
+                    userAppThemeFormMethods.setValue(
+                      "appTheme",
+                      value === "system" ? null : value,
+                      {
+                        shouldDirty: true,
+                      }
+                    );
+                  }}
+                >
                   {dashboardThemePreviewOptions.map((item) => (
-                    <FieldItem className="flex-1" key={item.value} data-testid={`appTheme-${item.value}`}>
+                    <FieldItem
+                      className="flex-1"
+                      key={item.value}
+                      data-testid={`appTheme-${item.value}`}
+                    >
                       <SelectablePreviewOption
                         control={
                           <Radio
-                            className="peer col-start-1 row-start-2 shrink-0 max-sm:hidden"
+                            className="col-start-1 row-start-2 peer shrink-0 max-sm:hidden"
                             value={item.value}
                           />
                         }
@@ -228,7 +304,7 @@ const AppearanceView = ({
                             src={item.imageSrc}
                             fill
                             sizes="(min-width: 0) 100vw"
-                            className="size-full object-cover object-center shadow-xs"
+                            className="object-cover object-center size-full shadow-xs"
                           />
                         }
                         label={t(item.labelKey)}
@@ -241,10 +317,11 @@ const AppearanceView = ({
           </Card>
           <CardFrameFooter className="flex justify-end">
             <Button
-              loading={mutation.isPending}
+              loading={isSectionPending("appTheme")}
               disabled={isUserAppThemeSubmitting || !isUserAppThemeDirty}
               type="submit"
-              data-testid="update-app-theme-btn">
+              data-testid="update-app-theme-btn"
+            >
               {t("update")}
             </Button>
           </CardFrameFooter>
@@ -265,32 +342,50 @@ const AppearanceView = ({
               mutation.mutate({
                 theme: null,
               });
-            }}>
+            }}
+          >
             <CardFrame>
               <CardFrameHeader>
                 <CardFrameTitle>{t("theme")}</CardFrameTitle>
-                <CardFrameDescription>{t("theme_applies_note")}</CardFrameDescription>
+                <CardFrameDescription>
+                  {t("theme_applies_note")}
+                </CardFrameDescription>
               </CardFrameHeader>
               <Card>
                 <CardPanel>
                   <Field
-                    className="max-w-none gap-4"
+                    className="gap-4 max-w-none"
                     name="theme"
-                    render={(props) => <Fieldset {...props} />}>
+                    render={(props) => <Fieldset {...props} />}
+                  >
                     <RadioGroup
-                      className="flex w-full sm:flex-row gap-4 md:gap-6"
-                      value={(selectedTheme ?? "system") as "system" | "light" | "dark"}
+                      className="flex gap-4 w-full sm:flex-row md:gap-6"
+                      value={
+                        (selectedTheme ?? "system") as
+                          | "system"
+                          | "light"
+                          | "dark"
+                      }
                       onValueChange={(value) => {
-                        userThemeFormMethods.setValue("theme", value === "system" ? null : value, {
-                          shouldDirty: true,
-                        });
-                      }}>
+                        userThemeFormMethods.setValue(
+                          "theme",
+                          value === "system" ? null : value,
+                          {
+                            shouldDirty: true,
+                          }
+                        );
+                      }}
+                    >
                       {bookingThemePreviewOptions.map((item) => (
-                        <FieldItem className="flex-1" key={item.value} data-testid={`theme-${item.value}`}>
+                        <FieldItem
+                          className="flex-1"
+                          key={item.value}
+                          data-testid={`theme-${item.value}`}
+                        >
                           <SelectablePreviewOption
                             control={
                               <Radio
-                                className="peer col-start-1 row-start-2 shrink-0 max-sm:hidden"
+                                className="col-start-1 row-start-2 peer shrink-0 max-sm:hidden"
                                 value={item.value}
                               />
                             }
@@ -300,7 +395,7 @@ const AppearanceView = ({
                                 src={item.imageSrc}
                                 fill
                                 sizes="(min-width: 0) 100vw"
-                                className="size-full object-cover object-center shadow-xs"
+                                className="object-cover object-center size-full shadow-xs"
                               />
                             }
                             label={t(item.labelKey)}
@@ -313,10 +408,11 @@ const AppearanceView = ({
               </Card>
               <CardFrameFooter className="flex justify-end">
                 <Button
-                  loading={mutation.isPending}
+                  loading={isSectionPending("theme")}
                   disabled={isUserThemeSubmitting || !isUserThemeDirty}
                   type="submit"
-                  data-testid="update-theme-btn">
+                  data-testid="update-theme-btn"
+                >
                   {t("update")}
                 </Button>
               </CardFrameFooter>
@@ -326,18 +422,25 @@ const AppearanceView = ({
           <Form
             form={bookerLayoutFormMethods}
             handleSubmit={(values) => {
-              const layoutError = validateBookerLayouts(values?.metadata?.defaultBookerLayouts || null);
+              const layoutError = validateBookerLayouts(
+                values?.metadata?.defaultBookerLayouts || null
+              );
               if (layoutError) {
                 toastManager.add({ title: t(layoutError), type: "error" });
                 return;
               } else {
                 mutation.mutate(values);
               }
-            }}>
+            }}
+          >
             <CardFrame>
               <CardFrameHeader>
-                <CardFrameTitle>{t("bookerlayout_user_settings_title")}</CardFrameTitle>
-                <CardFrameDescription>{t("bookerlayout_user_settings_description")}</CardFrameDescription>
+                <CardFrameTitle>
+                  {t("bookerlayout_user_settings_title")}
+                </CardFrameTitle>
+                <CardFrameDescription>
+                  {t("bookerlayout_user_settings_description")}
+                </CardFrameDescription>
               </CardFrameHeader>
               <Card>
                 <CardPanel>
@@ -351,9 +454,12 @@ const AppearanceView = ({
               </Card>
               <CardFrameFooter className="flex justify-end">
                 <Button
-                  loading={mutation.isPending}
+                  loading={isSectionPending("metadata")}
                   type="submit"
-                  disabled={isBookerLayoutFormSubmitting || !isBookerLayoutFormDirty}>
+                  disabled={
+                    isBookerLayoutFormSubmitting || !isBookerLayoutFormDirty
+                  }
+                >
                   {t("update")}
                 </Button>
               </CardFrameFooter>
@@ -364,15 +470,22 @@ const AppearanceView = ({
             form={brandColorsFormMethods}
             handleSubmit={(values) => {
               mutation.mutate(values);
-            }}>
+            }}
+          >
             <CardFrame
               className="has-[[data-slot=collapsible-trigger][data-unchecked]]:before:bg-card before:transition-all"
               render={
-                <Collapsible open={isCustomBrandColorChecked} onOpenChange={handleCustomBrandColorsToggle} />
-              }>
+                <Collapsible
+                  open={isCustomBrandColorChecked}
+                  onOpenChange={handleCustomBrandColorsToggle}
+                />
+              }
+            >
               <CardFrameHeader className="has-[[data-slot=collapsible-trigger][data-unchecked]]:p-6 transition-all">
                 <CardFrameTitle>{t("custom_brand_colors")}</CardFrameTitle>
-                <CardFrameDescription>{t("customize_your_brand_colors")}</CardFrameDescription>
+                <CardFrameDescription>
+                  {t("customize_your_brand_colors")}
+                </CardFrameDescription>
                 <CardFrameAction>
                   <CollapsibleTrigger
                     nativeButton={false}
@@ -389,7 +502,8 @@ const AppearanceView = ({
               <Card
                 render={
                   <CollapsiblePanel className="data-ending-style:opacity-0 data-starting-style:opacity-0 transition-[height,opacity]" />
-                }>
+                }
+              >
                 <CardPanel>
                   <div className="flex flex-col gap-4">
                     <Controller
@@ -399,7 +513,9 @@ const AppearanceView = ({
                       render={() => (
                         <div className="flex flex-col gap-4">
                           <div className="flex flex-col gap-2">
-                            <Label render={<div />}>{t("light_brand_color")}</Label>
+                            <Label render={<div />}>
+                              {t("light_brand_color")}
+                            </Label>
                             <ColorPicker
                               defaultValue={DEFAULT_BRAND_COLOURS.light}
                               resetDefaultValue={DEFAULT_LIGHT_BRAND_COLOR}
@@ -409,16 +525,22 @@ const AppearanceView = ({
                                 } else {
                                   setLightModeError(true);
                                 }
-                                brandColorsFormMethods.setValue("brandColor", value, {
-                                  shouldDirty: true,
-                                });
+                                brandColorsFormMethods.setValue(
+                                  "brandColor",
+                                  value,
+                                  {
+                                    shouldDirty: true,
+                                  }
+                                );
                               }}
                             />
                           </div>
                           {lightModeError ? (
                             <Alert variant="warning">
                               <TriangleAlertIcon />
-                              <AlertDescription>{t("light_theme_contrast_error")}</AlertDescription>
+                              <AlertDescription>
+                                {t("light_theme_contrast_error")}
+                              </AlertDescription>
                             </Alert>
                           ) : null}
                         </div>
@@ -432,7 +554,9 @@ const AppearanceView = ({
                       render={() => (
                         <div className="flex flex-col gap-4">
                           <div className="flex flex-col gap-2">
-                            <Label render={<div />}>{t("dark_brand_color")}</Label>
+                            <Label render={<div />}>
+                              {t("dark_brand_color")}
+                            </Label>
                             <ColorPicker
                               defaultValue={DEFAULT_BRAND_COLOURS.dark}
                               resetDefaultValue={DEFAULT_DARK_BRAND_COLOR}
@@ -442,16 +566,22 @@ const AppearanceView = ({
                                 } else {
                                   setDarkModeError(true);
                                 }
-                                brandColorsFormMethods.setValue("darkBrandColor", value, {
-                                  shouldDirty: true,
-                                });
+                                brandColorsFormMethods.setValue(
+                                  "darkBrandColor",
+                                  value,
+                                  {
+                                    shouldDirty: true,
+                                  }
+                                );
                               }}
                             />
                           </div>
                           {darkModeError ? (
                             <Alert variant="warning">
                               <TriangleAlertIcon />
-                              <AlertDescription>{t("dark_theme_contrast_error")}</AlertDescription>
+                              <AlertDescription>
+                                {t("dark_theme_contrast_error")}
+                              </AlertDescription>
                             </Alert>
                           ) : null}
                         </div>
@@ -464,9 +594,12 @@ const AppearanceView = ({
                 <CollapsiblePanel className="data-ending-style:opacity-0 data-starting-style:opacity-0 transition-[height,opacity]">
                   <CardFrameFooter className="flex justify-end">
                     <Button
-                      loading={mutation.isPending}
-                      disabled={isBrandColorsFormSubmitting || !isBrandColorsFormDirty}
-                      type="submit">
+                      loading={isSectionPending("brandColor")}
+                      disabled={
+                        isBrandColorsFormSubmitting || !isBrandColorsFormDirty
+                      }
+                      type="submit"
+                    >
                       {t("update")}
                     </Button>
                   </CardFrameFooter>
@@ -489,7 +622,7 @@ const AppearanceView = ({
               title={t("disable_cal_branding", { appName: APP_NAME })}
               description={t("removes_cal_branding", { appName: APP_NAME })}
               checked={hideBrandingValue}
-              disabled={mutation.isPending || !hasPaidPlan}
+              disabled={isSectionPending("hideBranding") || !hasPaidPlan}
               onCheckedChange={(checked) => {
                 if (!hasPaidPlan) return;
                 setHideBrandingValue(checked);

@@ -36,7 +36,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { AppearanceSkeletonLoader } from "~/ee/common/components/CommonSkeletonLoaders";
+import { AppearanceSkeletonLoader } from "~/settings/common/components/AppearanceSkeletonLoader";
 
 type BrandColorsFormValues = {
   brandColor: string;
@@ -87,14 +87,18 @@ const ProfileView = ({ team }: ProfileViewProps) => {
     onError: (err) => {
       toastManager.add({ title: err.message, type: "error" });
     },
-    async onSuccess(res) {
+    async onSuccess(res, variables) {
       await utils.viewer.teams.get.invalidate();
       if (res) {
-        resetTheme({ theme: res.theme });
-        resetBrandColors({
-          brandColor: res.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
-          darkBrandColor: res.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
-        });
+        if ("theme" in variables) {
+          resetTheme({ theme: res.theme });
+        }
+        if ("brandColor" in variables || "darkBrandColor" in variables) {
+          resetBrandColors({
+            brandColor: res.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR,
+            darkBrandColor: res.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR,
+          });
+        }
       }
 
       toastManager.add({ title: t("your_team_updated_successfully"), type: "success" });
@@ -109,12 +113,17 @@ const ProfileView = ({ team }: ProfileViewProps) => {
     },
   });
 
+  const isSectionPending = (key: string) => {
+    return mutation.isPending && mutation.variables && key in mutation.variables;
+  };
+
   const onBrandColorsFormSubmit = (values: BrandColorsFormValues) => {
     mutation.mutate({ ...values, id: team.id });
   };
 
   const handleCustomBrandColorsToggle = (checked: boolean) => {
     if (isCustomBrandColorChecked === checked) return;
+    if (isSectionPending("brandColor") || isSectionPending("darkBrandColor")) return;
     setIsCustomBrandColorChecked(checked);
     setLightModeError(false);
     setDarkModeError(false);
@@ -186,7 +195,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
               </Card>
               <CardFrameFooter className="flex justify-end">
                 <Button
-                  loading={mutation.isPending}
+                  loading={isSectionPending("theme")}
                   disabled={isThemeSubmitting || !isThemeDirty}
                   type="submit"
                   data-testid="update-org-theme-btn">
@@ -300,7 +309,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
                 <CollapsiblePanel className="data-ending-style:opacity-0 data-starting-style:opacity-0 transition-[height,opacity]">
                   <CardFrameFooter className="flex justify-end">
                     <Button
-                      loading={mutation.isPending}
+                      loading={isSectionPending("brandColor")}
                       disabled={isBrandColorsFormSubmitting || !isBrandColorsFormDirty}
                       type="submit">
                       {t("update")}
@@ -314,7 +323,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
           <div className="flex flex-col gap-4">
             <SettingsToggle
               title={t("disable_cal_branding", { appName: APP_NAME })}
-              disabled={mutation?.isPending}
+              disabled={isSectionPending("hideBranding")}
               description={t("removes_cal_branding", { appName: APP_NAME })}
               checked={hideBrandingValue}
               onCheckedChange={(checked) => {
@@ -325,7 +334,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
 
             <SettingsToggle
               title={t("hide_book_a_team_member")}
-              disabled={mutation?.isPending}
+              disabled={isSectionPending("hideBookATeamMember")}
               description={t("hide_book_a_team_member_description", { appName: APP_NAME })}
               checked={hideBookATeamMember ?? false}
               onCheckedChange={(checked) => {
@@ -336,7 +345,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
 
             <SettingsToggle
               title={t("hide_team_profile_link")}
-              disabled={mutation?.isPending}
+              disabled={isSectionPending("hideTeamProfileLink")}
               description={t("hide_team_profile_link_description")}
               checked={hideTeamProfileLink ?? false}
               onCheckedChange={(checked) => {
