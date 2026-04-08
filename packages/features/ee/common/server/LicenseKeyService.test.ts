@@ -1,8 +1,7 @@
 import "@calcom/testing/lib/__mocks__/prisma";
 
+import * as cache from "memory-cache";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-
-import { MemoryKVAdapter } from "@calcom/kv/memory-kv-adapter";
 
 import { getDeploymentKey, getDeploymentSignatureToken } from "../../deployment/lib/getDeploymentKey";
 import { NoopLicenseKeyService } from "./LicenseKeyService";
@@ -34,6 +33,11 @@ async function stubEnvAndReload(key: string, value: string) {
 }
 
 // Mock dependencies
+vi.mock("memory-cache", () => ({
+  get: vi.fn(),
+  put: vi.fn(),
+}));
+
 vi.mock("../../deployment/lib/getDeploymentKey", () => ({
   getDeploymentKey: vi.fn(),
   getDeploymentSignatureToken: vi.fn(),
@@ -44,26 +48,12 @@ vi.mock("./private-api-utils", () => ({
   createSignature: vi.fn(),
 }));
 
-let sharedMockKV: MemoryKVAdapter;
-
-vi.mock("@calcom/kv/create-kv-adapter", () => ({
-  createKVAdapter: vi.fn(() => sharedMockKV),
-}));
-
 const BASE_HEADERS = {
   "Content-Type": "application/json",
 };
 
 describe("LicenseKeyService", () => {
-  let mockKV: MemoryKVAdapter;
-  const fakeDeploymentRepo = {
-    getLicenseKeyWithId: async () => null,
-    getSignatureToken: async () => null,
-  };
-
   beforeEach(async () => {
-    mockKV = new MemoryKVAdapter();
-    sharedMockKV = mockKV;
     vi.mocked(getDeploymentKey).mockResolvedValue(licenseKey);
     vi.mocked(getDeploymentSignatureToken).mockResolvedValue("mockSignatureToken");
   });
@@ -76,14 +66,14 @@ describe("LicenseKeyService", () => {
   describe("create", () => {
     it("should create an instance of LicenseKeyService", async () => {
       const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create(fakeDeploymentRepo, mockKV);
+      const service = await LicenseKeyService.create();
       expect(service).toBeInstanceOf(LicenseKeyService);
     });
 
     it("should create a NoopLicenseKeyService when no license key is provided", async () => {
       vi.mocked(getDeploymentKey).mockResolvedValue("");
       const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create(fakeDeploymentRepo, mockKV);
+      const service = await LicenseKeyService.create();
       expect(service).toBeInstanceOf(NoopLicenseKeyService);
     });
   });
@@ -99,7 +89,7 @@ describe("LicenseKeyService", () => {
       vi.mocked(createSignature).mockReturnValue("mocked-signature");
       stubEnvAndReload("CALCOM_PRIVATE_API_ROUTE", baseUrl);
       const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create(fakeDeploymentRepo, mockKV);
+      const service = await LicenseKeyService.create();
       const response = await service.incrementUsage();
       expect(response).toEqual(mockResponse);
       expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/v1/license/usage/increment?event=booking`, {
@@ -122,7 +112,7 @@ describe("LicenseKeyService", () => {
       vi.mocked(createSignature).mockReturnValue("mocked-signature");
       stubEnvAndReload("CALCOM_PRIVATE_API_ROUTE", baseUrl);
       const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create(fakeDeploymentRepo, mockKV);
+      const service = await LicenseKeyService.create();
       await expect(service.incrementUsage()).rejects.toThrow("API Failure");
       expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/v1/license/usage/increment?event=booking`, {
         body: undefined,
@@ -143,24 +133,25 @@ describe("LicenseKeyService", () => {
     it("should return true if NEXT_PUBLIC_IS_E2E is set", async () => {
       stubEnvAndReload("NEXT_PUBLIC_IS_E2E", "1");
       const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create(fakeDeploymentRepo, mockKV);
+      const service = await LicenseKeyService.create();
       const result = await service.checkLicense();
       expect(result).toBe(true);
     });
 
     it("should return cached response if available", async () => {
+      const url = `${baseUrl}/v1/license/${licenseKey}`;
+      vi.mocked(cache.get).mockReturnValue(true);
       stubEnvAndReload("CALCOM_PRIVATE_API_ROUTE", baseUrl);
-      await mockKV.put(`license:${licenseKey}`, "true", 86_400);
       const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create(fakeDeploymentRepo, mockKV);
+      const service = await LicenseKeyService.create();
       const result = await service.checkLicense();
       expect(result).toBe(true);
-      // Value was returned from KV - no fetch needed
-      expect(result).toBe(true);
+      expect(cache.get).toHaveBeenCalledWith(url);
     });
 
     it("should fetch license validity from API if not cached", async () => {
       const url = `${baseUrl}/v1/license/${licenseKey}`;
+      vi.mocked(cache.get).mockReturnValue(null);
       const mockResponse = { status: true };
       const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
         json: vi.fn().mockResolvedValue(mockResponse),
@@ -169,9 +160,10 @@ describe("LicenseKeyService", () => {
       vi.mocked(createSignature).mockReturnValue("mocked-signature");
       stubEnvAndReload("CALCOM_PRIVATE_API_ROUTE", baseUrl);
       const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create(fakeDeploymentRepo, mockKV);
+      const service = await LicenseKeyService.create();
       const result = await service.checkLicense();
       expect(result).toBe(true);
+      expect(cache.get).toHaveBeenCalledWith(url);
       expect(fetchSpy).toHaveBeenCalledWith(url, {
         body: undefined,
         headers: {
@@ -185,117 +177,28 @@ describe("LicenseKeyService", () => {
       });
     });
 
-    it("should store both TTL cache and last-known on successful fetch", async () => {
-      vi.spyOn(global, "fetch").mockResolvedValue({
-        json: vi.fn().mockResolvedValue({ status: true }),
-      } as any);
+    it("should return false if API call fails", async () => {
+      const url = `${baseUrl}/v1/license/${licenseKey}`;
+      stubEnvAndReload("CALCOM_PRIVATE_API_ROUTE", baseUrl);
+      vi.mocked(cache.get).mockReturnValue(null);
       vi.mocked(generateNonce).mockReturnValue("mocked-nonce");
       vi.mocked(createSignature).mockReturnValue("mocked-signature");
-      stubEnvAndReload("CALCOM_PRIVATE_API_ROUTE", baseUrl);
+      const fetchSpy = vi.spyOn(global, "fetch").mockRejectedValue(new Error("API Failure"));
       const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create(fakeDeploymentRepo, mockKV);
-      await service.checkLicense();
-      const cached = await mockKV.get(`license:${licenseKey}`);
-      const lastKnown = await mockKV.get(`license:${licenseKey}:last-known`);
-      expect(cached).toBe("true");
-      expect(lastKnown).toBe("true");
-    });
-
-    it("should return false if API call fails and no last-known value exists", async () => {
-      stubEnvAndReload("CALCOM_PRIVATE_API_ROUTE", baseUrl);
-      vi.mocked(generateNonce).mockReturnValue("mocked-nonce");
-      vi.mocked(createSignature).mockReturnValue("mocked-signature");
-      vi.spyOn(global, "fetch").mockRejectedValue(new Error("API Failure"));
-      const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create(fakeDeploymentRepo, mockKV);
+      const service = await LicenseKeyService.create();
       const result = await service.checkLicense();
       expect(result).toBe(false);
-    });
-
-    it("should return last-known value when API fails after a previous success", async () => {
-      stubEnvAndReload("CALCOM_PRIVATE_API_ROUTE", baseUrl);
-      vi.mocked(generateNonce).mockReturnValue("mocked-nonce");
-      vi.mocked(createSignature).mockReturnValue("mocked-signature");
-
-      const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create(fakeDeploymentRepo, mockKV);
-
-      // First call: fetch succeeds
-      vi.spyOn(global, "fetch").mockResolvedValueOnce({
-        json: vi.fn().mockResolvedValue({ status: true }),
-      } as any);
-      const firstResult = await service.checkLicense();
-      expect(firstResult).toBe(true);
-
-      // Simulate TTL cache expiring but last-known surviving
-      await mockKV.delete(`license:${licenseKey}`);
-
-      // Second call: fetch fails
-      vi.spyOn(global, "fetch").mockRejectedValueOnce(new Error("API Failure"));
-      const secondResult = await service.checkLicense();
-      expect(secondResult).toBe(true);
-    });
-
-    it("should return last-known value when API returns non-JSON (HTML error page)", async () => {
-      stubEnvAndReload("CALCOM_PRIVATE_API_ROUTE", baseUrl);
-      vi.mocked(generateNonce).mockReturnValue("mocked-nonce");
-      vi.mocked(createSignature).mockReturnValue("mocked-signature");
-
-      // Seed last-known from a previous success
-      await mockKV.put(`license:${licenseKey}:last-known`, "true");
-
-      // Simulate Cloudflare returning an HTML error page
-      vi.spyOn(global, "fetch").mockResolvedValueOnce({
-        json: vi
-          .fn()
-          .mockRejectedValue(
-            new SyntaxError('Unexpected token \'<\', "<!DOCTYPE "... is not valid JSON')
-          ),
-      } as any);
-
-      const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create(fakeDeploymentRepo, mockKV);
-      const result = await service.checkLicense();
-      expect(result).toBe(true);
-    });
-
-    it("should not re-fetch when TTL cache is still valid", async () => {
-      stubEnvAndReload("CALCOM_PRIVATE_API_ROUTE", baseUrl);
-      vi.mocked(generateNonce).mockReturnValue("mocked-nonce");
-      vi.mocked(createSignature).mockReturnValue("mocked-signature");
-
-      const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
-        json: vi.fn().mockResolvedValue({ status: true }),
-      } as any);
-
-      const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create(fakeDeploymentRepo, mockKV);
-
-      await service.checkLicense();
-      await service.checkLicense();
-      await service.checkLicense();
-
-      // Only the first call should hit the API
-      expect(fetchSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it("should share last-known across cold starts via KV", async () => {
-      stubEnvAndReload("CALCOM_PRIVATE_API_ROUTE", baseUrl);
-      vi.mocked(generateNonce).mockReturnValue("mocked-nonce");
-      vi.mocked(createSignature).mockReturnValue("mocked-signature");
-
-      // Simulate a previous lambda writing last-known to KV
-      await mockKV.put(`license:${licenseKey}:last-known`, "true");
-
-      // New cold start, TTL cache is empty, API is down
-      vi.spyOn(global, "fetch").mockRejectedValueOnce(new Error("Connection refused"));
-
-      const LicenseKeyService = await getLicenseKeyService();
-      const service = await LicenseKeyService.create(fakeDeploymentRepo, mockKV);
-      const result = await service.checkLicense();
-
-      // Should fall back to the last-known value from KV, not return false
-      expect(result).toBe(true);
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
+        body: undefined,
+        headers: {
+          ...BASE_HEADERS,
+          nonce: "mocked-nonce",
+          signature: "mocked-signature",
+          "x-cal-license-key": "test-license-key",
+        },
+        mode: "cors",
+        signal: expect.any(AbortSignal),
+      });
     });
   });
 });
