@@ -79,7 +79,7 @@ jobs:
               - "docs/docs.json"
               - "docs/api-reference/v2/openapi.json"
             has-agents-changes:
-              - "agents/**"
+              - ".agents/**"
             has-api-v2-changes:
               - "apps/api/v2/**"
               - "packages/platform-constants/**"

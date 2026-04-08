@@ -3,7 +3,7 @@ name: Sync Agents to Devin Knowledge
 on:
   push:
     paths:
-      - "agents/**"
+      - ".agents/**"
     branches:
       - main
 
