@@ -147,6 +147,14 @@ export default defineConfig({
         // DI module wiring files use inline `type` imports that Rollup's JS
         // parser cannot handle. They contain no testable logic.
         "**/*.module.ts",
+        // apps/web TSX files contain JSX that Rollup's JS parser cannot handle
+        // during V8 coverage collection. Excluding only .tsx preserves coverage
+        // for the ~339 plain .ts source files that parse fine.
+        "**/apps/web/**/*.tsx",
+        // These two .ts files use path aliases (@lib, @server, ~) that Rollup
+        // cannot resolve during coverage instrumentation.
+        "**/apps/web/app/api/compliance/download/route.ts",
+        "**/apps/web/server/lib/[user]/[type]/getServerSideProps.ts",
         // Barrel re-export files using `export type` syntax.
         "**/packages/features/ee/organizations/lib/service/onboarding/index.ts",
         "**/trigger/config.ts",
