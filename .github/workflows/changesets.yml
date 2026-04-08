@@ -51,7 +51,7 @@ jobs:
           title: "chore: version packages" # PR title
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-          NPM_CONFIG_PROVENANCE: "true"
+          NPM_CONFIG_PROVENANCE: "false"
           VITE_BOOKER_EMBED_OAUTH_CLIENT_ID: ${{ secrets.CI_VITE_BOOKER_EMBED_OAUTH_CLIENT_ID }}
           VITE_BOOKER_EMBED_API_URL: ${{ vars.CI_VITE_BOOKER_EMBED_API_URL }}
           NEXT_PUBLIC_WEBAPP_URL: ${{ secrets.NEXT_PUBLIC_WEBAPP_URL }}
