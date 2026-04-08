@@ -1,29 +1,47 @@
 import prismock from "@calcom/testing/lib/__mocks__/prisma";
-
 import {
   createBookingScenario,
-  getScenarioData,
   getGoogleCalendarCredential,
-  TestData,
   getOrganizer,
-  mockSuccessfulVideoMeetingCreation,
+  getScenarioData,
   mockCalendarToHaveNoBusySlots,
   mockNoTranslations,
+  mockSuccessfulVideoMeetingCreation,
+  TestData,
 } from "@calcom/testing/lib/bookingScenario/bookingScenario";
-
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import { BookingStatus } from "@calcom/prisma/enums";
-
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getInstantBookingCreateService } from "../../di/InstantBookingCreateService.container";
 import type { CreateInstantBookingData } from "../dto/types";
 
-vi.mock("@calcom/features/notifications/sendNotification", () => ({
-  sendNotification: vi.fn(),
+// Mock calendar services map to prevent real calendar service modules (feishu, lark, etc.) from being
+// imported. Their top-level imports trigger async fetch calls (getAppAccessToken) that cause
+// "Closing rpc while fetch was pending" errors when the test worker shuts down.
+// This vi.mock must be in the test file itself (not just in bookingScenario.ts) to guarantee
+// Vitest hoists it before any transitive imports resolve the real module.
+vi.mock("@calcom/app-store/calendar.services.generated", () => ({
+  CalendarServiceMap: new Proxy(
+    {},
+    {
+      get(_target: Record<string, unknown>, prop: string) {
+        if (typeof prop === "symbol") return undefined;
+        return Promise.resolve({ default: vi.fn() });
+      },
+    }
+  ),
 }));
 
-vi.mock("@calcom/app-store/feishucalendar/lib/CalendarService", () => ({
-  default: class MockFeishuCalendarService {},
+// Mock OrganizationRepository container to prevent a deep transitive import chain
+// (InstantBookingCreateService → getBookingFields → workflows/types → routing-forms →
+// webhooks DI → eventTypes → OrganizationRepository.container) from triggering a Vitest
+// module-resolution RPC that is still in flight when the worker shuts down, causing
+// "Closing rpc while fetch was pending" errors.
+vi.mock("@calcom/features/ee/organizations/di/OrganizationRepository.container", () => ({
+  getOrganizationRepository: vi.fn().mockReturnValue({}),
+}));
+
+vi.mock("@calcom/features/notifications/sendNotification", () => ({
+  sendNotification: vi.fn(),
 }));
 
 vi.mock("@calcom/features/conferencing/lib/videoClient", () => ({
@@ -257,9 +275,7 @@ describe("handleInstantMeeting", () => {
       const callArgs = onBookingCreatedSpy.mock.calls[0][0];
       expect(callArgs.payload.booking.uid).toBe(result.bookingUid);
       expect(callArgs.payload.config.isDryRun).toBe(false);
-      expect(callArgs.actor).toEqual(
-        expect.objectContaining({ identifiedBy: expect.any(String) })
-      );
+      expect(callArgs.actor).toEqual(expect.objectContaining({ identifiedBy: expect.any(String) }));
       expect(callArgs.auditData).toEqual(
         expect.objectContaining({
           startTime: expect.any(Number),
