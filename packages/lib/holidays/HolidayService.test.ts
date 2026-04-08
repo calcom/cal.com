@@ -235,4 +235,80 @@ describe("HolidayService", () => {
       expect(usHolidays[1].date).toBe("2025-12-25");
     });
   });
+
+  describe("isSupportedCountry", () => {
+    it("returns true for a valid country code", () => {
+      expect(holidayService.isSupportedCountry("US")).toBe(true);
+    });
+
+    it("returns false for an invalid country code", () => {
+      expect(holidayService.isSupportedCountry("ZZ")).toBe(false);
+    });
+  });
+
+  describe("getSupportedCountries caching", () => {
+    it("returns cached result on second call", () => {
+      const first = holidayService.getSupportedCountries();
+      const second = holidayService.getSupportedCountries();
+      expect(first).toBe(second); // Same reference = cached
+    });
+  });
+
+  describe("hasHolidaysInRange", () => {
+    it("returns true when holidays exist in range", async () => {
+      vi.mocked(mockCachingProxy.getHolidaysInRange).mockResolvedValue([mockHolidays[1]]);
+
+      const result = await holidayService.hasHolidaysInRange(
+        "US",
+        [],
+        new Date("2025-12-01"),
+        new Date("2025-12-31")
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it("returns false when no holidays exist in range", async () => {
+      vi.mocked(mockCachingProxy.getHolidaysInRange).mockResolvedValue([]);
+
+      const result = await holidayService.hasHolidaysInRange(
+        "US",
+        [],
+        new Date("2025-03-01"),
+        new Date("2025-03-31")
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it("returns false when all holidays in range are disabled", async () => {
+      vi.mocked(mockCachingProxy.getHolidaysInRange).mockResolvedValue([mockHolidays[1]]);
+
+      const result = await holidayService.hasHolidaysInRange(
+        "US",
+        ["christmas_day_2025"],
+        new Date("2025-12-01"),
+        new Date("2025-12-31")
+      );
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe("getHolidaysWithStatus - filters past holidays", () => {
+    it("excludes holidays before today", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2025-12-20"));
+      vi.mocked(mockCachingProxy.getHolidaysForCountry).mockResolvedValue(mockHolidays);
+
+      const holidays = await holidayService.getHolidaysWithStatus("US", []);
+
+      // New Year's 2025-01-01 is past, should be filtered out
+      expect(holidays.find((h) => h.id === "new_years_day_2025")).toBeUndefined();
+      // Christmas 2025-12-25 is upcoming, should be included
+      expect(holidays.find((h) => h.id === "christmas_day_2025")).toBeDefined();
+
+      vi.useRealTimers();
+    });
+  });
 });
