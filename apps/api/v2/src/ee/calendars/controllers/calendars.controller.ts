@@ -1,3 +1,35 @@
+import {
+  APPLE_CALENDAR,
+  APPS_READ,
+  APPS_WRITE,
+  CALENDARS,
+  CREDENTIAL_CALENDARS,
+  GOOGLE_CALENDAR,
+  OFFICE_365_CALENDAR,
+  SUCCESS_STATUS,
+} from "@calcom/platform-constants";
+import { ApiResponse, CalendarBusyTimesInput, CreateCalendarCredentialsInput } from "@calcom/platform-types";
+import type { User } from "@calcom/prisma/client";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseBoolPipe,
+  Post,
+  Query,
+  Redirect,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
+import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
+import { Request } from "express";
+import { z } from "zod";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CreateIcsFeedInputDto } from "@/ee/calendars/input/create-ics.input";
 import { CreateIcsFeedOutputResponseDto } from "@/ee/calendars/input/create-ics.output";
@@ -5,12 +37,12 @@ import { DeleteCalendarCredentialsInputBodyDto } from "@/ee/calendars/input/dele
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
 import {
-  DeletedCalendarCredentialsOutputResponseDto,
   DeletedCalendarCredentialsOutputDto,
+  DeletedCalendarCredentialsOutputResponseDto,
 } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
-import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { CalendarsCacheService } from "@/ee/calendars/services/calendars-cache.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
 import { IcsFeedService } from "@/ee/calendars/services/ics-feed.service";
 import { OutlookService } from "@/ee/calendars/services/outlook.service";
@@ -18,43 +50,11 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
+import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import {
-  Controller,
-  Get,
-  UseGuards,
-  Query,
-  HttpStatus,
-  HttpCode,
-  Req,
-  Param,
-  Headers,
-  Redirect,
-  BadRequestException,
-  Post,
-  Body,
-  ParseBoolPipe,
-} from "@nestjs/common";
-import { ApiHeader, ApiOperation, ApiParam, ApiQuery, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
-import { Request } from "express";
-import { z } from "zod";
-
-import { APPS_READ } from "@calcom/platform-constants";
-import {
-  SUCCESS_STATUS,
-  CALENDARS,
-  GOOGLE_CALENDAR,
-  OFFICE_365_CALENDAR,
-  APPLE_CALENDAR,
-  CREDENTIAL_CALENDARS,
-} from "@calcom/platform-constants";
-import { ApiResponse, CalendarBusyTimesInput, CreateCalendarCredentialsInput } from "@calcom/platform-types";
-import type { User } from "@calcom/prisma/client";
 
 export interface CalendarState {
   accessToken: string;
@@ -91,6 +91,7 @@ export class CalendarsController {
 
   @Post("/ics-feed/save")
   @UseGuards(ApiAuthGuard)
+  @OAuthPermissions(["APPS_WRITE"])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Save an ICS feed" })
   async createIcsFeed(
@@ -103,6 +104,7 @@ export class CalendarsController {
 
   @Get("/ics-feed/check")
   @UseGuards(ApiAuthGuard)
+  @OAuthPermissions(["APPS_READ"])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Check an ICS feed" })
   async checkIcsFeed(@GetUser("id") userId: number): Promise<ApiResponse> {
@@ -110,6 +112,7 @@ export class CalendarsController {
   }
 
   @UseGuards(ApiAuthGuard)
+  @OAuthPermissions(["APPS_READ"])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/busy-times")
   @ApiOperation({
@@ -162,6 +165,7 @@ export class CalendarsController {
 
   @Get("/")
   @UseGuards(ApiAuthGuard)
+  @OAuthPermissions(["APPS_READ"])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get all calendars" })
   async getCalendars(@GetUser("id") userId: number): Promise<ConnectedCalendarsOutput> {
@@ -180,6 +184,7 @@ export class CalendarsController {
   })
   @UseGuards(ApiAuthGuard)
   @ApiAuthGuardOnlyAllow(["API_KEY", "ACCESS_TOKEN", "THIRD_PARTY_ACCESS_TOKEN"])
+  @OAuthPermissions(["APPS_WRITE"])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
@@ -263,6 +268,7 @@ export class CalendarsController {
     name: "calendar",
   })
   @UseGuards(ApiAuthGuard)
+  @OAuthPermissions(["APPS_WRITE"])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/:calendar/credentials")
   @ApiOperation({ summary: "Save Apple calendar credentials" })
@@ -318,6 +324,7 @@ export class CalendarsController {
     name: "calendar",
   })
   @UseGuards(ApiAuthGuard)
+  @OAuthPermissions(["APPS_WRITE"])
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @Post("/:calendar/disconnect")
   @HttpCode(HttpStatus.OK)
@@ -330,9 +337,8 @@ export class CalendarsController {
     const { id: credentialId } = body;
     await this.calendarsService.checkCalendarCredentials(credentialId, user.id);
 
-    const { id, type, userId, teamId, appId, invalid } = await this.calendarsRepository.deleteCredentials(
-      credentialId
-    );
+    const { id, type, userId, teamId, appId, invalid } =
+      await this.calendarsRepository.deleteCredentials(credentialId);
 
     this.calendarsCacheService.deleteConnectedAndDestinationCalendarsCache(user.id);
 

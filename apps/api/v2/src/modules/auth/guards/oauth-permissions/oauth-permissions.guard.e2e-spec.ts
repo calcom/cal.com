@@ -181,7 +181,7 @@ describe("OAuth Permissions Guard E2E", () => {
         );
       });
 
-      it("should deny new-style token on endpoint without @OAuthPermissions decorator", async () => {
+      it("should deny new-style token with wrong scope on endpoint with @OAuthPermissions decorator", async () => {
         const token = await getAccessToken(user.id, [AccessScope.PROFILE_READ]);
 
         const response = await request(app.getHttpServer())
@@ -191,7 +191,7 @@ describe("OAuth Permissions Guard E2E", () => {
           .expect(403);
 
         expect(response.body.error.message).toBe(
-          "insufficient_scope: this endpoint is not available for third-party OAuth tokens"
+          "insufficient_scope: token does not have the required scopes. Required: APPS_WRITE. Token has: PROFILE_READ"
         );
       });
     });
