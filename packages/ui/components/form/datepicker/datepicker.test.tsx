@@ -1,6 +1,6 @@
 import { render, fireEvent } from "@testing-library/react";
 import { format } from "date-fns";
-import { vi } from "vitest";
+import { beforeEach, vi } from "vitest";
 
 import DatePicker from "./DatePicker";
 
@@ -8,6 +8,10 @@ const onChangeMock = vi.fn();
 
 describe("Tests for DatePicker Component", () => {
   const testDate = new Date("2024-02-20");
+
+  beforeEach(() => {
+    onChangeMock.mockClear();
+  });
 
   test("Should render correctly with default date", () => {
     const testDate = new Date("2024-02-20");
@@ -18,34 +22,36 @@ describe("Tests for DatePicker Component", () => {
   });
 
   test("Should show placeholder when no date is provided", () => {
-    const { getByTestId } = render(
-      <DatePicker date={null as unknown as Date} />,
-    );
+    const { getByTestId } = render(<DatePicker date={null} />);
 
     const dateButton = getByTestId("pick-date");
     expect(dateButton).toHaveTextContent("Pick a date");
   });
 
-  test("Should handle date selection correctly", async () => {
-    const testDate = new Date("2024-02-20");
+  test("Should handle date selection correctly", () => {
     const { getByTestId, getAllByRole } = render(
       <DatePicker date={testDate} onDatesChange={onChangeMock} />,
     );
 
     const dateButton = getByTestId("pick-date");
     fireEvent.click(dateButton);
+
     const gridCells = getAllByRole("gridcell");
     const selectedDate = gridCells.find((cell) => {
       return cell.getAttribute("tabindex") === "0";
     });
 
     expect(selectedDate).toBeTruthy();
-    await expect(selectedDate).not.toHaveAttribute("aria-disabled", "true");
+    expect(selectedDate).not.toHaveAttribute("aria-disabled", "true");
+
+    fireEvent.click(selectedDate as HTMLElement);
+    expect(onChangeMock).toHaveBeenCalledTimes(1);
+    expect(onChangeMock).toHaveBeenCalledWith(expect.any(Date));
   });
-  test("Should respect minDate prop", async () => {
-    const testDate = new Date("2024-02-20");
+
+  test("Should respect minDate prop", () => {
     const minDate = new Date("2024-02-19");
-    const { getByTestId, getAllByRole } = render(
+    const { getByTestId, getByRole } = render(
       <DatePicker
         date={testDate}
         minDate={minDate}
@@ -56,22 +62,26 @@ describe("Tests for DatePicker Component", () => {
     const dateButton = getByTestId("pick-date");
     fireEvent.click(dateButton);
 
-    const disabledDates = getAllByRole("gridcell").filter(
-      (cell) => cell.getAttribute("aria-disabled") === "true",
-    );
-    expect(disabledDates.length).toBeGreaterThan(0);
-    await expect(disabledDates[0]).toHaveAttribute("aria-disabled", "true");
+    const dayBeforeMinDate = getByRole("gridcell", {
+      name: /February 18.*2024/i,
+    });
+    const minDateCell = getByRole("gridcell", {
+      name: /February 19.*2024/i,
+    });
+
+    expect(dayBeforeMinDate).toHaveAttribute("aria-disabled", "true");
+    expect(minDateCell).not.toHaveAttribute("aria-disabled", "true");
   });
 
   test("Should respect disabled prop", () => {
-    const { getByTestId } = render(
+    const { getByTestId, queryByRole } = render(
       <DatePicker date={testDate} disabled={true} />,
     );
 
     const dateButton = getByTestId("pick-date");
-    expect(dateButton.classList.toString()).toContain(
-      "disabled:cursor-not-allowed",
-    );
-    expect(dateButton.classList.toString()).toContain("disabled:opacity-30");
+    expect(dateButton).toBeDisabled();
+
+    fireEvent.click(dateButton);
+    expect(queryByRole("grid")).not.toBeInTheDocument();
   });
 });

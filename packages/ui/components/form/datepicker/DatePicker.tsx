@@ -7,7 +7,7 @@ import { Button } from "../../button/Button";
 import { Calendar } from "../date-range-picker/Calendar";
 
 type Props = {
-  date: Date;
+  date: Date | null;
   onDatesChange?: ((date: Date) => void) | undefined;
   className?: string;
   disabled?: boolean;
@@ -15,9 +15,16 @@ type Props = {
   label?: string;
 };
 
-const DatePicker = ({ minDate, disabled, date, onDatesChange, className, label }: Props) => {
+const DatePicker = ({
+  minDate,
+  disabled,
+  date,
+  onDatesChange,
+  className,
+  label,
+}: Props) => {
   function handleDayClick(newDate: Date) {
-    onDatesChange?.(newDate ?? new Date());
+    onDatesChange?.(newDate);
   }
   const fromDate = minDate ?? new Date();
   const calender = (
@@ -26,8 +33,8 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className, label }
       fromDate={minDate === null ? undefined : fromDate}
       // toDate={maxDate}
       mode="single"
-      defaultMonth={date}
-      selected={date}
+      defaultMonth={date ?? fromDate}
+      selected={date ?? undefined}
       onDayClick={(day) => handleDayClick(day)}
       numberOfMonths={1}
       disabled={disabled}
@@ -43,18 +50,28 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className, label }
             data-testid="pick-date"
             color="secondary"
             EndIcon="calendar"
-            className={classNames("justify-between text-left font-normal", !date && "text-subtle")}>
-            {label ?? (date ? <>{format(date, "LLL dd, y")}</> : <span>Pick a date</span>)}
+            disabled={disabled}
+            className={classNames(
+              "justify-between text-left font-normal",
+              !date && "text-subtle",
+            )}
+          >
+            {label ??
+              (date ? (
+                <>{format(date, "LLL dd, y")}</>
+              ) : (
+                <span>Pick a date</span>
+              ))}
           </Button>
         </Popover.Trigger>
         <Popover.Portal>
-        <Popover.Content
-          className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
-          align="start"
-          sideOffset={4}
+          <Popover.Content
+            className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
+            align="start"
+            sideOffset={4}
           >
-          {calender}
-        </Popover.Content>
+            {calender}
+          </Popover.Content>
         </Popover.Portal>
       </Popover.Root>
     </div>
