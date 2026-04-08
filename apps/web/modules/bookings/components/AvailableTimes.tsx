@@ -139,19 +139,15 @@ const SlotItem = ({
     offset,
   });
 
- // Get the current hour in 24h format (0-23)
  const slotHour = computedDateWithUsersTimezone.hour();
- // defaulting to sky color
  let bottomBarColor = "bg-sky-500";
 
  if (slotHour >= 6 && slotHour < 12) {
    // Morning: 6 AM to 11:59 AM
-   // A bright, clean yellow to represent the morning sun
    bottomBarColor = "bg-yellow-400";
 
  } else if (slotHour >= 12 && slotHour < 18) {
    // Afternoon: 12 PM to 5:59 PM
-   // A warm, deeper orange to represent the afternoon/evening sun
    bottomBarColor = "bg-orange-400";
  }
 
