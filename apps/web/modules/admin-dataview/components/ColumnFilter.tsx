@@ -4,17 +4,30 @@ import type { FieldDefinition, FieldType } from "@calcom/features/admin-dataview
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@calcom/ui/components/popover";
+import { Calendar } from "@coss/ui/components/calendar";
 import { CheckIcon, FilterIcon, XIcon } from "@coss/ui/icons";
+import { endOfDay, format, startOfDay } from "date-fns";
 import { useCallback, useEffect, useRef, useState } from "react";
 export type ColumnFilterValue =
   | { type: "text"; operator: TextOperator; value: string }
   | { type: "number"; operator: NumberOperator; value: number | null }
   | { type: "boolean"; value: boolean }
   | { type: "enum"; values: string[] }
+  | { type: "datetime"; operator: DatetimeOperator; value: string; valueTo?: string }
   | { type: "null"; isNull: boolean };
 
 type TextOperator = "contains" | "equals" | "startsWith" | "endsWith" | "isEmpty" | "isNotEmpty";
 type NumberOperator = "eq" | "neq" | "gt" | "gte" | "lt" | "lte";
+type DatetimeOperator = "before" | "after" | "on" | "between" | "isEmpty" | "isNotEmpty";
+
+const DATETIME_OPERATORS: { value: DatetimeOperator; label: string }[] = [
+  { value: "before", label: "before" },
+  { value: "after", label: "after" },
+  { value: "on", label: "on" },
+  { value: "between", label: "between" },
+  { value: "isEmpty", label: "is empty" },
+  { value: "isNotEmpty", label: "is not empty" },
+];
 
 const TEXT_OPERATORS: { value: TextOperator; label: string }[] = [
   { value: "contains", label: "contains" },
@@ -61,7 +74,7 @@ export function ColumnFilter({ field, value, onChange }: ColumnFilterProps) {
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-64 p-0"
+        className={classNames("p-0", field.type === "datetime" ? "w-auto" : "w-64")}
         onClick={(e) => e.stopPropagation()} // don't trigger sort
       >
         <div className="border-subtle border-b px-3 py-2">
@@ -138,8 +151,8 @@ function FilterBody({
       );
     case "datetime":
       return (
-        <NullFilter
-          value={value as Extract<ColumnFilterValue, { type: "null" }> | null}
+        <DatetimeFilter
+          value={value as Extract<ColumnFilterValue, { type: "datetime" }> | null}
           onChange={onChange}
         />
       );
@@ -347,6 +360,92 @@ function EnumFilter({
     </div>
   );
 }
+function DatetimeFilter({
+  value,
+  onChange,
+}: {
+  value: Extract<ColumnFilterValue, { type: "datetime" }> | null;
+  onChange: (value: ColumnFilterValue | null) => void;
+}) {
+  const [operator, setOperator] = useState<DatetimeOperator>(value?.operator ?? "before");
+  const [date, setDate] = useState<Date | undefined>(value?.value ? new Date(value.value) : undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(
+    value?.valueTo ? new Date(value.valueTo) : undefined
+  );
+
+  const needsDate = operator !== "isEmpty" && operator !== "isNotEmpty";
+  const isBetween = operator === "between";
+
+  const handleApply = useCallback(() => {
+    if (!needsDate) {
+      onChange({ type: "datetime", operator, value: "" });
+      return;
+    }
+    if (!date) return;
+    if (isBetween && !dateTo) return;
+    onChange({
+      type: "datetime",
+      operator,
+      value: date.toISOString(),
+      valueTo: isBetween && dateTo ? dateTo.toISOString() : undefined,
+    });
+  }, [date, dateTo, operator, needsDate, isBetween, onChange]);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <select
+        className="border-subtle bg-default text-default h-8 w-full rounded border px-2 text-xs"
+        value={operator}
+        onChange={(e) => {
+          const op = e.target.value as DatetimeOperator;
+          setOperator(op);
+          if (op === "isEmpty" || op === "isNotEmpty") {
+            onChange({ type: "datetime", operator: op, value: "" });
+          }
+        }}>
+        {DATETIME_OPERATORS.map((op) => (
+          <option key={op.value} value={op.value}>
+            {op.label}
+          </option>
+        ))}
+      </select>
+      {needsDate && (
+        <>
+          <div className="flex flex-col gap-1">
+            {isBetween && <span className="text-muted text-[10px] uppercase tracking-wider">From</span>}
+            <div className="text-default text-xs">{date ? format(date, "MMM d, yyyy") : "Pick a date"}</div>
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(d) => setDate(d ?? undefined)}
+              defaultMonth={date}
+            />
+          </div>
+          {isBetween && (
+            <div className="flex flex-col gap-1">
+              <span className="text-muted text-[10px] uppercase tracking-wider">To</span>
+              <div className="text-default text-xs">
+                {dateTo ? format(dateTo, "MMM d, yyyy") : "Pick a date"}
+              </div>
+              <Calendar
+                mode="single"
+                selected={dateTo}
+                onSelect={(d) => setDateTo(d ?? undefined)}
+                defaultMonth={dateTo ?? date}
+              />
+            </div>
+          )}
+          <button
+            onClick={handleApply}
+            disabled={!date || (isBetween && !dateTo)}
+            className="bg-emphasis text-inverted hover:bg-emphasis/90 disabled:bg-muted h-7 rounded text-xs font-medium disabled:cursor-not-allowed">
+            Apply
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
 function NullFilter({
   value,
   onChange,
@@ -412,6 +511,33 @@ export function filterToPrismaWhere(column: string, filter: ColumnFilterValue): 
       return { [column]: filter.value };
     case "enum":
       return { [column]: { in: filter.values } };
+    case "datetime": {
+      switch (filter.operator) {
+        case "before":
+          return { [column]: { lt: startOfDay(new Date(filter.value)) } };
+        case "after":
+          return { [column]: { gt: endOfDay(new Date(filter.value)) } };
+        case "on":
+          return {
+            [column]: {
+              gte: startOfDay(new Date(filter.value)),
+              lte: endOfDay(new Date(filter.value)),
+            },
+          };
+        case "between":
+          return {
+            [column]: {
+              gte: startOfDay(new Date(filter.value)),
+              lte: filter.valueTo ? endOfDay(new Date(filter.valueTo)) : endOfDay(new Date(filter.value)),
+            },
+          };
+        case "isEmpty":
+          return { [column]: { equals: null } };
+        case "isNotEmpty":
+          return { NOT: { [column]: null } };
+      }
+      break;
+    }
     case "null":
       return filter.isNull ? { [column]: null } : { NOT: { [column]: null } };
   }

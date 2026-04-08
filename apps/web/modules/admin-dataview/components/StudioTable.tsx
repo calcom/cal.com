@@ -1,40 +1,38 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
-import Link from "next/link";
-import { useCallback, useMemo, useRef, useState } from "react";
-
-import type { FieldDefinition } from "@calcom/features/admin-dataview/types";
 import type { AdminTable } from "@calcom/features/admin-dataview/AdminTable";
+import type { FieldDefinition } from "@calcom/features/admin-dataview/types";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Badge } from "@calcom/ui/components/badge";
 import {
-  TableNew,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
+  TableNew,
   TableRow,
 } from "@calcom/ui/components/table";
-import { trpc } from "@calcom/trpc/react";
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  SearchIcon,
-  ArrowUpIcon,
   ArrowDownIcon,
   ArrowLeftIcon,
-  XIcon,
+  ArrowUpIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   FilterIcon,
+  SearchIcon,
+  XIcon,
 } from "@coss/ui/icons";
-
-import { useStudioParams, buildRelationHref, buildBackHref } from "../hooks/useStudioParams";
-import { DataCell } from "./DataCell";
-import { ColumnFilter, filterToPrismaWhere } from "./ColumnFilter";
+import { keepPreviousData } from "@tanstack/react-query";
+import { format } from "date-fns";
+import Link from "next/link";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { buildBackHref, buildRelationHref, useStudioParams } from "../hooks/useStudioParams";
 import type { ColumnFilterValue } from "./ColumnFilter";
-
-import { RowContextMenu } from "./RowActions";
+import { ColumnFilter, filterToPrismaWhere } from "./ColumnFilter";
+import { DataCell } from "./DataCell";
 import type { ContextMenuHandle } from "./RowActions";
+import { RowContextMenu } from "./RowActions";
 
 interface StudioTableProps {
   table: AdminTable;
@@ -65,6 +63,15 @@ function FilterPill({
       break;
     case "enum":
       summary = filter.values.join(", ");
+      break;
+    case "datetime":
+      if (filter.operator === "isEmpty" || filter.operator === "isNotEmpty") {
+        summary = filter.operator === "isEmpty" ? "is empty" : "is not empty";
+      } else if (filter.operator === "between" && filter.valueTo) {
+        summary = `${filter.operator} ${format(new Date(filter.value), "MMM d, yyyy")} – ${format(new Date(filter.valueTo), "MMM d, yyyy")}`;
+      } else if (filter.value) {
+        summary = `${filter.operator} ${format(new Date(filter.value), "MMM d, yyyy")}`;
+      }
       break;
     case "null":
       summary = filter.isNull ? "is empty" : "is set";
@@ -267,7 +274,10 @@ export function StudioTable({ table, onOpenDetail }: StudioTableProps) {
               </Link>
             )}
             <h2 className="text-emphasis text-base font-semibold">{table.displayNamePlural}</h2>
-            <Badge variant="gray" size="sm" title={isEstimate ? "Approximate count from database statistics" : undefined}>
+            <Badge
+              variant="gray"
+              size="sm"
+              title={isEstimate ? "Approximate count from database statistics" : undefined}>
               {isPending ? "…" : `${isEstimate ? "~" : ""}${total.toLocaleString()}`} rows
             </Badge>
             {activeFilterCount > 0 && (
@@ -324,7 +334,9 @@ export function StudioTable({ table, onOpenDetail }: StudioTableProps) {
                 />
               );
             })}
-            <button onClick={handleClearAllFilters} className="text-subtle hover:text-default text-xs underline">
+            <button
+              onClick={handleClearAllFilters}
+              className="text-subtle hover:text-default text-xs underline">
               Clear all
             </button>
           </div>
@@ -387,7 +399,8 @@ export function StudioTable({ table, onOpenDetail }: StudioTableProps) {
             </TableRow>
           </TableHeader>
 
-          <TableBody className={classNames(isBackgroundLoading && "opacity-60 transition-opacity duration-150")}>
+          <TableBody
+            className={classNames(isBackgroundLoading && "opacity-60 transition-opacity duration-150")}>
             {isPending && rows.length === 0
               ? Array.from({ length: pageSize }).map((_, i) => (
                   <TableRow key={`skel-${i}`}>
@@ -449,7 +462,13 @@ export function StudioTable({ table, onOpenDetail }: StudioTableProps) {
                               value={row[field.column]}
                               relationHref={
                                 field.relation
-                                  ? buildRelationCellHref(field, row[field.column], table, currentParams, navStack)
+                                  ? buildRelationCellHref(
+                                      field,
+                                      row[field.column],
+                                      table,
+                                      currentParams,
+                                      navStack
+                                    )
                                   : undefined
                               }
                             />
@@ -466,7 +485,8 @@ export function StudioTable({ table, onOpenDetail }: StudioTableProps) {
       <div className="border-subtle bg-default flex items-center justify-between border-t px-4 py-2">
         <span className="text-subtle text-xs">
           {rows.length > 0 ? (page - 1) * pageSize + 1 : 0}–{Math.min(page * pageSize, total)} of{" "}
-          {isEstimate ? "~" : ""}{total.toLocaleString()}
+          {isEstimate ? "~" : ""}
+          {total.toLocaleString()}
         </span>
 
         <div className="flex items-center gap-1">
