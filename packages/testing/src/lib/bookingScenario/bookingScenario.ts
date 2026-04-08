@@ -2713,6 +2713,7 @@ export const getDefaultBookingFields = ({
 };
 
 export const createDelegationCredential = async (orgId: number, type: "google" | "office365" = "google") => {
+  const isIntegration = process.env.VITEST_MODE === "integration";
   if (type === "google") {
     const encryptedServiceAccountKey = {
       type: "service_account",
@@ -2728,15 +2729,27 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
       auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
     };
 
-    const workspace = await prismock.workspacePlatform.create({
-      data: {
-        name: "Test Workspace",
-        slug: "google",
-        description: "Test Workspace",
-        defaultServiceAccountKey: encryptedServiceAccountKey,
-        enabled: true,
-      },
-    });
+    const workspace = isIntegration
+      ? await prismock.workspacePlatform.upsert({
+          where: { slug: "google" },
+          update: { defaultServiceAccountKey: encryptedServiceAccountKey, enabled: true },
+          create: {
+            name: "Test Workspace",
+            slug: "google",
+            description: "Test Workspace",
+            defaultServiceAccountKey: encryptedServiceAccountKey,
+            enabled: true,
+          },
+        })
+      : await prismock.workspacePlatform.create({
+          data: {
+            name: "Test Workspace",
+            slug: "google",
+            description: "Test Workspace",
+            defaultServiceAccountKey: encryptedServiceAccountKey,
+            enabled: true,
+          },
+        });
 
     const decryptedServiceAccountKey = {
       type: "service_account",
@@ -2778,15 +2791,27 @@ export const createDelegationCredential = async (orgId: number, type: "google" |
       tenant_id: "TENANT_ID",
     };
 
-    const workspace = await prismock.workspacePlatform.create({
-      data: {
-        name: "Test Workspace",
-        slug: "office365",
-        description: "Test Workspace",
-        defaultServiceAccountKey: encryptedServiceAccountKey,
-        enabled: true,
-      },
-    });
+    const workspace = isIntegration
+      ? await prismock.workspacePlatform.upsert({
+          where: { slug: "office365" },
+          update: { defaultServiceAccountKey: encryptedServiceAccountKey, enabled: true },
+          create: {
+            name: "Test Workspace",
+            slug: "office365",
+            description: "Test Workspace",
+            defaultServiceAccountKey: encryptedServiceAccountKey,
+            enabled: true,
+          },
+        })
+      : await prismock.workspacePlatform.create({
+          data: {
+            name: "Test Workspace",
+            slug: "office365",
+            description: "Test Workspace",
+            defaultServiceAccountKey: encryptedServiceAccountKey,
+            enabled: true,
+          },
+        });
 
     const decryptedServiceAccountKey = {
       client_id: "CLIENT_ID",
