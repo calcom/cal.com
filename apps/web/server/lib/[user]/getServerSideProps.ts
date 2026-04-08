@@ -109,7 +109,15 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
     // EXAMPLE - context.params: { orgSlug: 'acme', user: 'member0+owner1' }
     // EXAMPLE - context.query: { redirect: 'undefined', orgRedirection: 'undefined', user: 'member0+owner1' }
-    const originalQueryString = new URLSearchParams(context.query as Record<string, string>).toString();
+    const queryParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(context.query)) {
+      if (Array.isArray(value)) {
+        value.forEach((v) => queryParams.append(key, v));
+      } else if (value !== undefined) {
+        queryParams.append(key, value);
+      }
+    }
+    const originalQueryString = queryParams.toString();
     const destinationWithQuery = `${destinationUrl}?${originalQueryString}`;
     log.debug(`Dynamic group detected, redirecting to ${destinationUrl}`);
     return {
