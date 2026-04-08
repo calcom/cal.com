@@ -635,6 +635,284 @@ describe("EventTypeService", () => {
       });
     });
 
+    // Delta path is currently disabled (mergedPendingChanges = null) to prevent regression.
+    // These tests verify the delta logic and will be re-enabled when the delta path is restored.
+    // See EventTypeService.ts TODO comment for context.
+    describe.skip("pending host changes (delta path) — disabled", () => {
+      const TEAM_EVENT_TYPE = {
+        ...DEFAULT_EVENT_TYPE,
+        team: {
+          id: 10,
+          name: "Team A",
+          slug: "team-a",
+          parentId: null,
+          rrTimestampBasis: null,
+          parent: null,
+          members: [],
+        },
+        hosts: [
+          { userId: 100, isFixed: false, priority: 2, weight: 100 },
+          { userId: 200, isFixed: true, priority: 2, weight: 100 },
+        ],
+      };
+
+      function createTeamMockDeps(acceptedMemberIds: number[] = [100, 200, 300]) {
+        return createMockDeps({
+          eventTypeRepository: {
+            findByIdIncludeBrandingInfo: vi.fn().mockResolvedValue(null),
+            findByIdWithFullDetail: vi.fn().mockResolvedValue(TEAM_EVENT_TYPE),
+            updateById: vi.fn().mockResolvedValue({ slug: "test-event", schedulingType: null }),
+            syncHostGroups: vi.fn().mockResolvedValue(undefined),
+            deleteHostLocations: vi.fn().mockResolvedValue(undefined),
+            deleteEmptyHostGroups: vi.fn().mockResolvedValue(undefined),
+            findWorkflowsByEventTypeIdAndTrigger: vi.fn().mockResolvedValue([]),
+            findVerifiedSecondaryEmail: vi.fn().mockResolvedValue(null),
+            upsertAIPhoneCallConfig: vi.fn().mockResolvedValue(undefined),
+            deleteAIPhoneCallConfig: vi.fn().mockResolvedValue(undefined),
+          } as unknown as EventTypeRepository,
+          membershipRepository: {
+            hasMembership: vi.fn().mockResolvedValue(false),
+            listAcceptedTeamMemberIds: vi.fn().mockResolvedValue(acceptedMemberIds),
+          } as unknown as PrismaMembershipRepository,
+        });
+      }
+
+      it("produces create operations from hostsToAdd", async () => {
+        const deps = createTeamMockDeps();
+        const svc = new EventTypeService(deps);
+
+        await svc.update({
+          user: DEFAULT_USER,
+          input: createMinimalInput({
+            teamId: 10,
+            pendingHostChanges: {
+              hostsToAdd: [{ userId: 300, isFixed: false, priority: 3, weight: 150, groupId: null }],
+              hostsToUpdate: [],
+              hostsToRemove: [],
+            },
+          }),
+        });
+
+        const updateCall = (deps.eventTypeRepository.updateById as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        expect(updateCall.data.hosts.create).toHaveLength(1);
+        expect(updateCall.data.hosts.create[0].userId).toBe(300);
+        expect(updateCall.data.hosts.create[0].priority).toBe(3);
+        expect(updateCall.data.hosts.create[0].weight).toBe(150);
+      });
+
+      it("produces deleteMany operations from hostsToRemove", async () => {
+        const deps = createTeamMockDeps();
+        const svc = new EventTypeService(deps);
+
+        await svc.update({
+          user: DEFAULT_USER,
+          input: createMinimalInput({
+            teamId: 10,
+            pendingHostChanges: {
+              hostsToAdd: [],
+              hostsToUpdate: [],
+              hostsToRemove: [100],
+            },
+          }),
+        });
+
+        const updateCall = (deps.eventTypeRepository.updateById as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        expect(updateCall.data.hosts.deleteMany.OR).toHaveLength(1);
+        expect(updateCall.data.hosts.deleteMany.OR[0]).toEqual({ userId: 100, eventTypeId: 1 });
+      });
+
+      it("produces update operations from hostsToUpdate with location", async () => {
+        const deps = createTeamMockDeps();
+        const svc = new EventTypeService(deps);
+
+        const location = {
+          userId: 100,
+          eventTypeId: 1,
+          type: "inPerson",
+          address: "123 Main St",
+          credentialId: null,
+          link: null,
+          phoneNumber: null,
+        };
+
+        await svc.update({
+          user: DEFAULT_USER,
+          input: createMinimalInput({
+            teamId: 10,
+            pendingHostChanges: {
+              hostsToAdd: [],
+              hostsToUpdate: [{ userId: 100, location }],
+              hostsToRemove: [],
+            },
+          }),
+        });
+
+        const updateCall = (deps.eventTypeRepository.updateById as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        expect(updateCall.data.hosts.update).toHaveLength(1);
+        expect(updateCall.data.hosts.update[0].where.userId_eventTypeId).toEqual({
+          userId: 100,
+          eventTypeId: 1,
+        });
+        expect(updateCall.data.hosts.update[0].data.location.upsert.create.type).toBe("inPerson");
+      });
+
+      it("produces host location deletions when hostsToUpdate has location: null", async () => {
+        const deps = createTeamMockDeps();
+        const svc = new EventTypeService(deps);
+
+        await svc.update({
+          user: DEFAULT_USER,
+          input: createMinimalInput({
+            teamId: 10,
+            pendingHostChanges: {
+              hostsToAdd: [],
+              hostsToUpdate: [{ userId: 100, location: null }],
+              hostsToRemove: [],
+            },
+          }),
+        });
+
+        // The host location deletion is done via deleteHostLocations
+        expect(deps.eventTypeRepository.deleteHostLocations).toHaveBeenCalledWith([
+          { userId: 100, eventTypeId: 1 },
+        ]);
+      });
+
+      it("deletes all host locations when clearAllHostLocations is set", async () => {
+        const deps = createTeamMockDeps();
+        const svc = new EventTypeService(deps);
+
+        await svc.update({
+          user: DEFAULT_USER,
+          input: createMinimalInput({
+            teamId: 10,
+            pendingHostChanges: {
+              hostsToAdd: [],
+              hostsToUpdate: [],
+              hostsToRemove: [],
+              clearAllHostLocations: true,
+            },
+          }),
+        });
+
+        // Should delete host locations for all existing hosts (100, 200)
+        expect(deps.eventTypeRepository.deleteHostLocations).toHaveBeenCalledWith(
+          expect.arrayContaining([
+            { userId: 100, eventTypeId: 1 },
+            { userId: 200, eventTypeId: 1 },
+          ])
+        );
+      });
+
+      it("rejects hostsToAdd with non-team-member userId", async () => {
+        const deps = createTeamMockDeps([100, 200]); // 999 is NOT a team member
+        const svc = new EventTypeService(deps);
+
+        await expect(
+          svc.update({
+            user: DEFAULT_USER,
+            input: createMinimalInput({
+              teamId: 10,
+              pendingHostChanges: {
+                hostsToAdd: [{ userId: 999, isFixed: false, priority: 2, weight: 100, groupId: null }],
+                hostsToUpdate: [],
+                hostsToRemove: [],
+              },
+            }),
+          })
+        ).rejects.toThrow("Not all hosts are accepted team members");
+      });
+
+      it("falls back to legacy path when no pending changes are present", async () => {
+        const deps = createTeamMockDeps();
+        const svc = new EventTypeService(deps);
+
+        // Send hosts[] (legacy) without pendingHostChanges
+        await svc.update({
+          user: DEFAULT_USER,
+          input: createMinimalInput({
+            teamId: 10,
+            hosts: [
+              { userId: 100, isFixed: false, priority: 2, weight: 100, groupId: null },
+              { userId: 200, isFixed: true, priority: 2, weight: 100, groupId: null },
+            ],
+          }),
+        });
+
+        const updateCall = (deps.eventTypeRepository.updateById as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        // Legacy path should still work — update should contain hosts operations
+        expect(updateCall.data.hosts).toBeDefined();
+      });
+
+      it("falls back to legacy path when pendingHostChanges has empty arrays", async () => {
+        const deps = createTeamMockDeps();
+        const svc = new EventTypeService(deps);
+
+        // Send empty pendingHostChanges — should fallback to legacy path
+        await svc.update({
+          user: DEFAULT_USER,
+          input: createMinimalInput({
+            teamId: 10,
+            pendingHostChanges: {
+              hostsToAdd: [],
+              hostsToUpdate: [],
+              hostsToRemove: [],
+            },
+            hosts: [{ userId: 100, isFixed: false, priority: 2, weight: 100, groupId: null }],
+          }),
+        });
+
+        const updateCall = (deps.eventTypeRepository.updateById as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        // Legacy path should run since pendingHostChanges has no actual changes
+        expect(updateCall.data.hosts).toBeDefined();
+      });
+
+      it("merges RR and fixed pending changes", async () => {
+        const deps = createTeamMockDeps();
+        const svc = new EventTypeService(deps);
+
+        await svc.update({
+          user: DEFAULT_USER,
+          input: createMinimalInput({
+            teamId: 10,
+            pendingHostChanges: {
+              hostsToAdd: [{ userId: 300, isFixed: false, priority: 2, weight: 100, groupId: null }],
+              hostsToUpdate: [],
+              hostsToRemove: [],
+            },
+            pendingFixedHostChanges: {
+              hostsToAdd: [],
+              hostsToUpdate: [{ userId: 200, priority: 5 }],
+              hostsToRemove: [],
+            },
+          }),
+        });
+
+        const updateCall = (deps.eventTypeRepository.updateById as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        // Should have both RR add and fixed update merged
+        expect(updateCall.data.hosts.create).toHaveLength(1);
+        expect(updateCall.data.hosts.create[0].userId).toBe(300);
+        expect(updateCall.data.hosts.update).toHaveLength(1);
+        expect(updateCall.data.hosts.update[0].where.userId_eventTypeId.userId).toBe(200);
+      });
+
+      it("does not set hosts data when delta has no operations", async () => {
+        const deps = createTeamMockDeps();
+        const svc = new EventTypeService(deps);
+
+        await svc.update({
+          user: DEFAULT_USER,
+          input: createMinimalInput({
+            teamId: 10,
+            title: "Just a title change",
+          }),
+        });
+
+        const updateCall = (deps.eventTypeRepository.updateById as ReturnType<typeof vi.fn>).mock.calls[0][0];
+        expect(updateCall.data.hosts).toBeUndefined();
+      });
+    });
+
     describe("AI phone call config", () => {
       it("upserts AI phone call config when enabled", async () => {
         const config = {

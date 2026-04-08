@@ -11,6 +11,7 @@ import type {
   FormValues,
   EventTypeApps,
 } from "@calcom/features/eventtypes/lib/types";
+import { HostsStoreProvider } from "../hooks/hosts-context";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Form } from "@calcom/ui/components/form";
@@ -106,7 +107,9 @@ export const EventType = ({
         saveButtonRef={saveButtonRef}
         Shell={Shell}>
         <Form form={formMethods} id="event-type-form" handleSubmit={handleSubmit}>
-          <div ref={animationParentRef}>{tabMap[tabName]?.()}</div>
+          <HostsStoreProvider>
+            <div ref={animationParentRef}>{tabMap[tabName]?.()}</div>
+          </HostsStoreProvider>
         </Form>
       </EventTypeSingleLayout>
       {children}

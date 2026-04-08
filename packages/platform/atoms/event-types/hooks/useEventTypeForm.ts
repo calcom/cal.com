@@ -111,6 +111,17 @@ export const useEventTypeForm = ({
       hideOrganizerEmail: eventType.hideOrganizerEmail,
       metadata: eventType.metadata,
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
+      // Delta-based host changes for performance - only track changes, not all 700+ hosts
+      pendingHostChanges: {
+        hostsToAdd: [],
+        hostsToUpdate: [],
+        hostsToRemove: [],
+      },
+      pendingFixedHostChanges: {
+        hostsToAdd: [],
+        hostsToUpdate: [],
+        hostsToRemove: [],
+      },
       hostGroups: eventType.hostGroups || [],
       successRedirectUrl: eventType.successRedirectUrl || "",
       redirectUrlOnNoRoutingFormResponse: eventType.redirectUrlOnNoRoutingFormResponse || "",
@@ -400,6 +411,8 @@ export const useEventTypeForm = ({
       disabledRescheduling,
       disableReschedulingScope,
       requiresCancellationReason,
+      pendingHostChanges: _phc,
+      pendingFixedHostChanges: _pfhc,
       ...rest
     } = input;
     // Strip children down to only the fields the server schema expects.
@@ -408,6 +421,25 @@ export const useEventTypeForm = ({
     // this can push the request body over the 1MB server limit.
     const strippedChildren = children ? stripChildrenForPayload(children) : undefined;
     const strippedHosts = stripHostsForPayload(hosts);
+
+    // Send delta directly to backend instead of computing full hosts array
+    const pendingHostChanges = values.pendingHostChanges;
+    const hasHostChanges =
+      pendingHostChanges &&
+      (pendingHostChanges.hostsToAdd.length > 0 ||
+        pendingHostChanges.hostsToUpdate.length > 0 ||
+        pendingHostChanges.hostsToRemove.length > 0 ||
+        pendingHostChanges.clearAllHosts ||
+        pendingHostChanges.clearAllHostLocations);
+
+    const pendingFixedHostChanges = values.pendingFixedHostChanges;
+    const hasFixedHostChanges =
+      pendingFixedHostChanges &&
+      (pendingFixedHostChanges.hostsToAdd.length > 0 ||
+        pendingFixedHostChanges.hostsToUpdate.length > 0 ||
+        pendingFixedHostChanges.hostsToRemove.length > 0 ||
+        pendingFixedHostChanges.clearAllHosts ||
+        pendingFixedHostChanges.clearAllHostLocations);
 
     const payload = {
       ...rest,
@@ -433,6 +465,8 @@ export const useEventTypeForm = ({
       customInputs,
       children: strippedChildren,
       assignAllTeamMembers,
+      pendingHostChanges: hasHostChanges ? pendingHostChanges : undefined,
+      pendingFixedHostChanges: hasFixedHostChanges ? pendingFixedHostChanges : undefined,
       multiplePrivateLinks: values.multiplePrivateLinks,
       disableCancelling: disabledCancelling,
       disableCancellingScope,

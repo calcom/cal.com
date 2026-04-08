@@ -8,6 +8,8 @@ import type {
   HashedLinkInput,
   HostGroupInput,
   HostInput,
+  HostUpdateInput,
+  PendingHostChangesInput,
 } from "@calcom/features/eventtypes/lib/types";
 import { MAX_SEATS_PER_TIME_SLOT } from "@calcom/lib/constants";
 import {
@@ -85,6 +87,24 @@ const hostSchema: z.ZodType<HostInput> = z.object({
   scheduleId: z.number().optional().nullable(),
   groupId: z.string().optional().nullable(),
   location: hostLocationSchema.optional().nullable(),
+});
+
+const hostUpdateSchema: z.ZodType<HostUpdateInput> = z.object({
+  userId: z.number(),
+  isFixed: z.boolean().optional(),
+  priority: z.number().optional(),
+  weight: z.number().optional(),
+  scheduleId: z.number().optional().nullable(),
+  groupId: z.string().optional().nullable(),
+  location: hostLocationSchema.optional().nullable(),
+});
+
+const pendingHostChangesSchema: z.ZodType<PendingHostChangesInput> = z.object({
+  hostsToAdd: z.array(hostSchema),
+  hostsToUpdate: z.array(hostUpdateSchema),
+  hostsToRemove: z.array(z.number()),
+  clearAllHosts: z.boolean().optional(),
+  clearAllHostLocations: z.boolean().optional(),
 });
 
 const hostGroupSchema: z.ZodType<HostGroupInput> = z.object({
@@ -227,6 +247,8 @@ const BaseEventTypeUpdateInput: z.ZodType<TUpdateInputSchema> = z
     multiplePrivateLinks: z.array(z.union([z.string(), hashedLinkInputSchema])).optional(),
     hostGroups: z.array(hostGroupSchema).optional(),
     enablePerHostLocations: z.boolean().optional(),
+    pendingHostChanges: pendingHostChangesSchema.optional(),
+    pendingFixedHostChanges: pendingHostChangesSchema.optional(),
     shouldMergePhoneSystemFields: z.boolean().nullable().optional(),
   })
   .strict();

@@ -158,6 +158,12 @@ const EventTypeWeb = ({
       }));
       currentValues.assignAllTeamMembers = currentValues.assignAllTeamMembers || false;
 
+      // Clear delta fields after successful save to prevent replay on next submit.
+      // The Zustand store is NOT reset here because its serverHosts baseline is stale;
+      // it will refresh when tRPC queries re-fetch (triggered by invalidation below).
+      currentValues.pendingHostChanges = { hostsToAdd: [], hostsToUpdate: [], hostsToRemove: [] };
+      currentValues.pendingFixedHostChanges = { hostsToAdd: [], hostsToUpdate: [], hostsToRemove: [] };
+
       if (currentValues.hosts?.length === 0) {
         currentValues.enablePerHostLocations = false;
       }
@@ -179,6 +185,9 @@ const EventTypeWeb = ({
     async onSettled() {
       await utils.viewer.eventTypes.get.invalidate();
       await utils.viewer.eventTypes.getByViewer.invalidate();
+      // Invalidate getAllHosts so the Zustand store's server host baseline
+      // refreshes after save (prevents stale deltas accumulating across saves)
+      await utils.viewer.eventTypes.getAllHosts.invalidate();
     },
     onError: (err) => {
       let message = "";

@@ -36,7 +36,7 @@ import {
   handleCustomInputs,
   handlePeriodType,
 } from "../lib/eventTypeUpdateUtils";
-import type { EventTypeUpdateInput } from "../lib/types";
+import type { EventTypeUpdateInput, PendingHostChangesInput } from "../lib/types";
 import type { EventTypeRepository } from "../repositories/eventTypeRepository";
 
 export interface IEventTypeServiceDeps {
@@ -128,6 +128,8 @@ export class EventTypeService {
       children,
       assignAllTeamMembers,
       hosts,
+      pendingHostChanges,
+      pendingFixedHostChanges,
       id,
       multiplePrivateLinks,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -357,6 +359,17 @@ export class EventTypeService {
     }
 
     let hostLocationDeletions: { userId: number; eventTypeId: number }[] = [];
+
+    // TODO: Delta-based host changes path (Setup Tab) — disabled for now to prevent
+    // regression. The dual-write pattern writes both hosts[] and delta fields to the
+    // form, but until all tabs use the Zustand store, the backend must only use the
+    // legacy hosts[] path. The delta fields are sent but ignored. Re-enable this path
+    // once all tabs are migrated to the Zustand store and the backend can safely
+    // prefer deltas over hosts[].
+    //
+    // const mergedPendingChanges = this.mergePendingHostChanges(pendingHostChanges, pendingFixedHostChanges);
+    // See mergePendingHostChanges() at the bottom of this class for the merge logic.
+    const mergedPendingChanges = null; // Force legacy path for now
 
     if (teamId && hosts) {
       const teamMemberIds = await this.deps.membershipRepository.listAcceptedTeamMemberIds({ teamId });
@@ -659,7 +672,7 @@ export class EventTypeService {
       calVideoSettings: calVideoSettingsForChildren,
     });
 
-    if (hostGroups !== undefined || hosts) {
+    if (hostGroups !== undefined || hosts || mergedPendingChanges) {
       await this.deps.eventTypeRepository.deleteEmptyHostGroups({ eventTypeId: id });
     }
 
@@ -682,5 +695,44 @@ export class EventTypeService {
       .catch((err) => console.error("abuse-scoring: onEventTypeChange failed to load", err));
 
     return { eventType };
+  }
+
+  /**
+   * Merges RR and fixed pending host changes into a single delta object.
+   * Returns null if neither has changes, so the legacy hosts[] path runs instead.
+   */
+  private mergePendingHostChanges(
+    pendingHostChanges?: PendingHostChangesInput,
+    pendingFixedHostChanges?: PendingHostChangesInput
+  ): PendingHostChangesInput | null {
+    if (!pendingHostChanges && !pendingFixedHostChanges) return null;
+
+    const merged: PendingHostChangesInput = {
+      hostsToAdd: [
+        ...(pendingHostChanges?.hostsToAdd ?? []),
+        ...(pendingFixedHostChanges?.hostsToAdd ?? []),
+      ],
+      hostsToUpdate: [
+        ...(pendingHostChanges?.hostsToUpdate ?? []),
+        ...(pendingFixedHostChanges?.hostsToUpdate ?? []),
+      ],
+      hostsToRemove: [
+        ...(pendingHostChanges?.hostsToRemove ?? []),
+        ...(pendingFixedHostChanges?.hostsToRemove ?? []),
+      ],
+      clearAllHosts: pendingHostChanges?.clearAllHosts || pendingFixedHostChanges?.clearAllHosts,
+      clearAllHostLocations:
+        pendingHostChanges?.clearAllHostLocations || pendingFixedHostChanges?.clearAllHostLocations,
+    };
+
+    // If there are no actual changes, return null so legacy path runs
+    const hasChanges =
+      merged.hostsToAdd.length > 0 ||
+      merged.hostsToUpdate.length > 0 ||
+      merged.hostsToRemove.length > 0 ||
+      merged.clearAllHosts ||
+      merged.clearAllHostLocations;
+
+    return hasChanges ? merged : null;
   }
 }

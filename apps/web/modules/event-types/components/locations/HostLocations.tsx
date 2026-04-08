@@ -26,6 +26,8 @@ import { showToast } from "@calcom/ui/components/toast";
 import type { HostLocationsSlotProps } from "@calcom/features/eventtypes/components/locations/types";
 import PhoneInput from "@calcom/web/components/phone-input";
 import { WideUpgradeBannerForHostLocations } from "@calcom/web/modules/billing/upgrade-banners/WideUpgradeBannerForHostLocations";
+import { useAllHosts } from "../../hooks/use-all-hosts";
+import { useHostsStore } from "../../hooks/hosts-context";
 import { LoaderIcon, TriangleAlertIcon } from "@coss/ui/icons";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -748,24 +750,30 @@ const normalizeHostLocation = (host: Host, eventTypeId: number): Host => {
 const useHostLocationHandlers = (
   formMethods: ReturnType<typeof useFormContext<FormValues>>,
   hosts: Host[],
+  serverHosts: Host[],
+  setHosts: (serverHosts: Host[], newHosts: Host[]) => void,
+  clearAllHostLocations: () => void,
+  restoreHostLocations: () => void,
   eventTypeId: number
 ) => {
   const handleToggle = (checked: boolean) => {
     formMethods.setValue("enablePerHostLocations", checked, { shouldDirty: true });
     if (!checked) {
-      formMethods.setValue(
-        "hosts",
-        hosts.map((host) => ({ ...host, location: null })),
-        { shouldDirty: true }
-      );
+      // Set the clearAllHostLocations flag so the backend bulk-deletes all
+      // HostLocation rows on save. This handles all hosts, not just the
+      // currently loaded page from pagination.
+      clearAllHostLocations();
+    } else {
+      // Clear the sticky clearAllHostLocations flag so re-enabling
+      // per-host locations before saving doesn't still delete them.
+      restoreHostLocations();
     }
   };
 
   const handleLocationChange = (userId: number, location: HostLocation | null) => {
-    formMethods.setValue(
-      "hosts",
-      hosts.map((h) => normalizeHostLocation(h.userId === userId ? { ...h, location } : h, eventTypeId)),
-      { shouldDirty: true }
+    setHosts(
+      serverHosts,
+      hosts.map((h) => normalizeHostLocation(h.userId === userId ? { ...h, location } : h, eventTypeId))
     );
   };
 
@@ -774,8 +782,9 @@ const useHostLocationHandlers = (
 
 const useMassApplyMutation = (
   eventTypeId: number,
-  formMethods: ReturnType<typeof useFormContext<FormValues>>,
   hosts: Host[],
+  serverHosts: Host[],
+  setHosts: (serverHosts: Host[], newHosts: Host[]) => void,
   onSuccess: () => void
 ) => {
   const { t } = useLocale();
@@ -807,7 +816,8 @@ const useMassApplyMutation = (
               phoneNumber: phoneNumber ?? null,
             },
           }));
-          formMethods.setValue("hosts", updatedHosts, { shouldDirty: true });
+          // Use setHosts from context instead of form setValue for performance
+          setHosts(serverHosts, updatedHosts);
 
           showToast(t("location_applied_to_hosts", { count: result.updatedCount }), "success");
           onSuccess();
@@ -828,18 +838,82 @@ export const HostLocations = ({ eventTypeId, locationOptions }: HostLocationsPro
 
   const isOrg = !!session.data?.user?.org?.id;
   const enablePerHostLocations = formMethods.watch("enablePerHostLocations");
-  const hosts = formMethods.watch("hosts");
+  // Use hosts from context for mutations, query for data.
+  // We need both RR and fixed hosts so that Collective event types (all fixed)
+  // also display host rows and enable the per-host locations toggle.
+  const setRRHosts = useHostsStore((s) => s.setRRHosts);
+  const clearRRHostLocations = useHostsStore((s) => s.clearRRHostLocations);
+  const restoreRRHostLocations = useHostsStore((s) => s.restoreRRHostLocations);
+  const rrPendingChanges = useHostsStore((s) => s.rrPendingChanges);
+  const setFixedHosts = useHostsStore((s) => s.setFixedHosts);
+  const clearFixedHostLocations = useHostsStore((s) => s.clearFixedHostLocations);
+  const restoreFixedHostLocations = useHostsStore((s) => s.restoreFixedHostLocations);
+  const fixedPendingChanges = useHostsStore((s) => s.fixedPendingChanges);
+
+  const setServerHosts = useHostsStore((s) => s.setServerHosts);
+
+  const { rrHosts, rrServerHosts, fixedHosts, fixedServerHosts } = useAllHosts({
+    eventTypeId,
+    fixedPendingChanges,
+    rrPendingChanges,
+  });
+
+  // Seed server hosts into the Zustand store so HostsFormSync can compute
+  // the full hosts[] array for the form (used by other tabs + backend)
+  useEffect(() => {
+    setServerHosts(rrServerHosts, fixedServerHosts);
+  }, [rrServerHosts, fixedServerHosts, setServerHosts]);
+
+  // Combine both host types so Collective (all fixed) and RR events both work
+  const hosts = useMemo(() => [...fixedHosts, ...rrHosts], [fixedHosts, rrHosts]);
+  const serverHosts = useMemo(
+    () => [...fixedServerHosts, ...rrServerHosts],
+    [fixedServerHosts, rrServerHosts]
+  );
 
   const { hostDataMap, fullLocationOptions, containerRef, isLoading, isFetchingNextPage } =
     useHostLocationsData(eventTypeId, enablePerHostLocations, locationOptions);
-  const { handleToggle, handleLocationChange } = useHostLocationHandlers(formMethods, hosts, eventTypeId);
-  const { handleMassApply, isPending } = useMassApplyMutation(eventTypeId, formMethods, hosts, () =>
-    setIsMassApplyDialogOpen(false)
+  // Wrap setHosts/clearAllHostLocations to route to the correct context based on host type
+  const setHosts = useCallback(
+    (srvHosts: Host[], newHosts: Host[]) => {
+      const fixedSrv = srvHosts.filter((h) => h.isFixed);
+      const rrSrv = srvHosts.filter((h) => !h.isFixed);
+      const fixedNew = newHosts.filter((h) => h.isFixed);
+      const rrNew = newHosts.filter((h) => !h.isFixed);
+      setFixedHosts(fixedSrv, fixedNew);
+      setRRHosts(rrSrv, rrNew);
+    },
+    [setFixedHosts, setRRHosts]
+  );
+  const clearAllHostLocations = useCallback(() => {
+    // Read current form hosts so the store can snapshot locations before clearing
+    const currentFormHosts = formMethods.getValues("hosts") ?? [];
+    clearFixedHostLocations(currentFormHosts);
+    clearRRHostLocations(currentFormHosts);
+  }, [clearFixedHostLocations, clearRRHostLocations, formMethods]);
+  const restoreHostLocations = useCallback(() => {
+    restoreFixedHostLocations();
+    restoreRRHostLocations();
+  }, [restoreFixedHostLocations, restoreRRHostLocations]);
+
+  const { handleToggle, handleLocationChange } = useHostLocationHandlers(
+    formMethods,
+    hosts,
+    serverHosts,
+    setHosts,
+    clearAllHostLocations,
+    restoreHostLocations,
+    eventTypeId
+  );
+  const { handleMassApply, isPending } = useMassApplyMutation(
+    eventTypeId,
+    hosts,
+    serverHosts,
+    setHosts,
+    () => setIsMassApplyDialogOpen(false)
   );
 
-  const savedHosts = formMethods.formState.defaultValues?.hosts;
-  const hasSavedHosts = !!savedHosts?.length;
-  const shouldDisableCustomHostLocationsToggle = !isOrg || !hasSavedHosts;
+  const hasSavedHosts = serverHosts.length > 0;
 
   if (!isOrg) {
     return <WideUpgradeBannerForHostLocations />;
