@@ -2551,6 +2551,7 @@
   "apps_settings": "Ustawienia aplikacji",
   "fill_this_field": "Wypełnij to pole",
   "options": "Opcje",
+  "oauth_client_options_aria": "Opcje dla elementu OAuth",
   "enter_option": "Wprowadź opcję {{index}}",
   "add_an_option": "Dodaj opcję",
   "location_already_exists": "Ta lokalizacja już istnieje. Proszę wybrać nową lokalizację",

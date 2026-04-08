@@ -2551,6 +2551,7 @@
   "apps_settings": "Impostazioni delle app",
   "fill_this_field": "Compilare il campo",
   "options": "Opzioni",
+  "oauth_client_options_aria": "Opzioni per l'elemento OAuth",
   "enter_option": "Immetti opzione {{index}}",
   "add_an_option": "Aggiungi un'opzione",
   "location_already_exists": "Questa località esiste già. Seleziona una nuova località",

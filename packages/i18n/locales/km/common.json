@@ -2551,6 +2551,7 @@
   "apps_settings": "ការកំណត់កម្មវិធី",
   "fill_this_field": "សូមបំពេញវាលនេះ",
   "options": "ជម្រើស",
+  "oauth_client_options_aria": "ជម្រើសសម្រាប់ធាតុ OAuth",
   "enter_option": "បញ្ចូលជម្រើស {{index}}",
   "add_an_option": "បន្ថែមជម្រើស",
   "location_already_exists": "ទីតាំងនេះមានរួចហើយ។ សូមជ្រើសរើសទីតាំងថ្មី",

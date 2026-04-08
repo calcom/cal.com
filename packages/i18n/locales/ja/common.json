@@ -2551,6 +2551,7 @@
   "apps_settings": "アプリ設定",
   "fill_this_field": "このフィールドに入力してください",
   "options": "オプション",
+  "oauth_client_options_aria": "OAuth項目のオプション",
   "enter_option": "オプション {{index}} を入力してください",
   "add_an_option": "オプションを追加",
   "location_already_exists": "この場所は既に存在します。新しい場所を選択してください",

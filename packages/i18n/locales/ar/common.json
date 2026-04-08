@@ -2551,6 +2551,7 @@
   "apps_settings": "إعدادات التطبيقات",
   "fill_this_field": "يرجى ملء هذا الحقل",
   "options": "خيارات",
+  "oauth_client_options_aria": "خيارات لعنصر OAuth",
   "enter_option": "أدخل خيار {{index}}",
   "add_an_option": "إضافة خيار",
   "location_already_exists": "هذا الموقع موجود بالفعل. يرجى اختيار موقع جديد",

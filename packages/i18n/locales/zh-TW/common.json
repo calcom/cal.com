@@ -2551,6 +2551,7 @@
   "apps_settings": "應用程式設定",
   "fill_this_field": "請填寫此欄位",
   "options": "選項",
+  "oauth_client_options_aria": "OAuth 項目的選項",
   "enter_option": "輸入選項 {{index}}",
   "add_an_option": "新增選項",
   "location_already_exists": "此地點已存在。請選擇一個新地點",

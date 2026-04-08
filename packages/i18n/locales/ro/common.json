@@ -2551,6 +2551,7 @@
   "apps_settings": "Setări aplicații",
   "fill_this_field": "Te rugăm să completezi acest câmp",
   "options": "Opțiuni",
+  "oauth_client_options_aria": "Opțiuni pentru elementul OAuth",
   "enter_option": "Introdu opțiunea {{index}}",
   "add_an_option": "Adaugă o opțiune",
   "location_already_exists": "Această locație există deja. Vă rugăm să selectați o nouă locație",

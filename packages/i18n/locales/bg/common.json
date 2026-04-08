@@ -2551,6 +2551,7 @@
   "apps_settings": "Настройки на приложенията",
   "fill_this_field": "Моля, попълнете това поле",
   "options": "Опции",
+  "oauth_client_options_aria": "Опции за OAuth елемент",
   "enter_option": "Въведете опция {{index}}",
   "add_an_option": "Добавяне на опция",
   "location_already_exists": "Това местоположение вече съществува. Моля, изберете ново местоположение",

@@ -2551,6 +2551,7 @@
   "apps_settings": "Ρυθμίσεις εφαρμογών",
   "fill_this_field": "Παρακαλώ συμπληρώστε αυτό το πεδίο",
   "options": "Επιλογές",
+  "oauth_client_options_aria": "Επιλογές για το στοιχείο OAuth",
   "enter_option": "Εισάγετε επιλογή {{index}}",
   "add_an_option": "Προσθήκη επιλογής",
   "location_already_exists": "Αυτή η τοποθεσία υπάρχει ήδη. Παρακαλώ επιλέξτε μια νέα τοποθεσία",

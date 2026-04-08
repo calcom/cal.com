@@ -2551,6 +2551,7 @@
   "apps_settings": "Appsinstellingen",
   "fill_this_field": "Vul dit veld in",
   "options": "Opties",
+  "oauth_client_options_aria": "Opties voor OAuth-item",
   "enter_option": "Voer optie {{index}} in",
   "add_an_option": "Voeg een optie toe",
   "location_already_exists": "Deze locatie bestaat al. Kies een nieuwe locatie",

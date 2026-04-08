@@ -2551,6 +2551,7 @@
   "apps_settings": "Sovellusasetukset",
   "fill_this_field": "Täytä tämä kenttä",
   "options": "Vaihtoehdot",
+  "oauth_client_options_aria": "OAuth-kohteen valinnat",
   "enter_option": "Anna vaihtoehto {{index}}",
   "add_an_option": "Lisää vaihtoehto",
   "location_already_exists": "Tämä sijainti on jo olemassa. Valitse uusi sijainti",

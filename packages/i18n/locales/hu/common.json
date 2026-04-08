@@ -2551,6 +2551,7 @@
   "apps_settings": "Alkalmazások beállításai",
   "fill_this_field": "Kérjük, töltse ki ezt a mezőt",
   "options": "Beállítások",
+  "oauth_client_options_aria": "OAuth elem beállításai",
   "enter_option": "Adja meg az {{index}} opciót",
   "add_an_option": "Adjon hozzá egy lehetőséget",
   "location_already_exists": "Ez a helyszín már létezik. Kérjük, válasszon új helyszínt",

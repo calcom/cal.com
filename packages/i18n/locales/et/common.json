@@ -2551,6 +2551,7 @@
   "apps_settings": "Rakenduste seaded",
   "fill_this_field": "Palun täitke see väli",
   "options": "Valikud",
+  "oauth_client_options_aria": "OAuth-i kirje valikud",
   "enter_option": "Sisestage valik {{index}}",
   "add_an_option": "Lisa valik",
   "location_already_exists": "See asukoht on juba olemas. Palun valige uus asukoht",

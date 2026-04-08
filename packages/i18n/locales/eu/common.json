@@ -2551,6 +2551,7 @@
   "apps_settings": "App-en ezarpenak",
   "fill_this_field": "Mesedez, bete ezazu eremu hau",
   "options": "Aukerak",
+  "oauth_client_options_aria": "OAuth elementuaren aukerak",
   "enter_option": "Sartu {{index}} aukera",
   "add_an_option": "Gehitu aukera bat",
   "location_already_exists": "Kokapen hau existitzen da dagoeneko. Mesedez, aukeratu beste kokapen bat",

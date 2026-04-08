@@ -2551,6 +2551,7 @@
   "apps_settings": "Tətbiq parametrləri",
   "fill_this_field": "Zəhmət olmasa, bu sahəni doldurun",
   "options": "Seçimlər",
+  "oauth_client_options_aria": "OAuth elementi üçün seçimlər",
   "enter_option": "Seçim {{index}} daxil edin",
   "add_an_option": "Seçim əlavə edin",
   "location_already_exists": "Bu məkan artıq mövcuddur. Zəhmət olmasa yeni məkan seçin",

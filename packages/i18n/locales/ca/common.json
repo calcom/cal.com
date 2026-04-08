@@ -2551,6 +2551,7 @@
   "apps_settings": "Configuració d'aplicacions",
   "fill_this_field": "Si us plau, omple aquest camp",
   "options": "Opcions",
+  "oauth_client_options_aria": "Opcions per a l'element OAuth",
   "enter_option": "Introdueix l'opció {{index}}",
   "add_an_option": "Afegeix una opció",
   "location_already_exists": "Aquesta ubicació ja existeix. Si us plau, selecciona una nova ubicació",

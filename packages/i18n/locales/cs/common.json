@@ -2551,6 +2551,7 @@
   "apps_settings": "Nastavení aplikací",
   "fill_this_field": "Vyplňte prosím toto pole",
   "options": "Možnosti",
+  "oauth_client_options_aria": "Možnosti pro OAuth položku",
   "enter_option": "Zadejte možnost {{index}}",
   "add_an_option": "Přidat možnost",
   "location_already_exists": "Tato lokace již existuje. Vyberte prosím novou lokaci",

@@ -2551,6 +2551,7 @@
   "apps_settings": "Cài đặt của ứng dụng",
   "fill_this_field": "Vui lòng điền vào trường này",
   "options": "Tuỳ chọn",
+  "oauth_client_options_aria": "Tùy chọn cho mục OAuth",
   "enter_option": "Nhập tùy chọn {{index}}",
   "add_an_option": "Thêm một tuỳ chọn",
   "location_already_exists": "Địa điểm này đã tồn tại. Vui lòng chọn một địa điểm mới",

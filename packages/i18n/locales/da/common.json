@@ -2551,6 +2551,7 @@
   "apps_settings": "Indstillinger for apps",
   "fill_this_field": "Udfyld venligst dette felt",
   "options": "Muligheder",
+  "oauth_client_options_aria": "Indstillinger for OAuth-element",
   "enter_option": "Angiv Mulighed {{index}}",
   "add_an_option": "Tilføj en mulighed",
   "location_already_exists": "Denne lokation findes allerede. Vælg venligst en ny lokation",

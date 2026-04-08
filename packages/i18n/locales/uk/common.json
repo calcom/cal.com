@@ -2551,6 +2551,7 @@
   "apps_settings": "Налаштування додатків",
   "fill_this_field": "Заповніть це поле",
   "options": "Варіанти",
+  "oauth_client_options_aria": "Параметри для елемента OAuth",
   "enter_option": "Введіть варіант {{index}}",
   "add_an_option": "Додайте варіант",
   "location_already_exists": "Ця локація вже існує. Будь ласка, виберіть нову локацію",

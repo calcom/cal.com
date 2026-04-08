@@ -2551,6 +2551,7 @@
   "apps_settings": "앱 설정",
   "fill_this_field": "이 필드에 입력하세요",
   "options": "선택사항",
+  "oauth_client_options_aria": "OAuth 항목 옵션",
   "enter_option": "선택사항 {{index}} 입력",
   "add_an_option": "선택사항 추가",
   "location_already_exists": "이 위치는 이미 존재합니다. 새로운 위치를 선택해 주세요",

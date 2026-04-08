@@ -2551,6 +2551,7 @@
   "apps_settings": "Uygulama ayarları",
   "fill_this_field": "Lütfen bu alanı doldurun",
   "options": "Seçenekler",
+  "oauth_client_options_aria": "OAuth öğesi için seçenekler",
   "enter_option": "{{index}} seçeneğini girin",
   "add_an_option": "Bir seçenek ekle",
   "location_already_exists": "Bu konum zaten mevcut. Lütfen yeni bir konum seçin",

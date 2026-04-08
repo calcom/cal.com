@@ -2551,6 +2551,7 @@
   "apps_settings": "הגדרות אפליקציות",
   "fill_this_field": "נא מלא שדה זה",
   "options": "אפשרויות",
+  "oauth_client_options_aria": "אפשרויות עבור פריט OAuth",
   "enter_option": "הזנת ה-{{index}} של האפשרות",
   "add_an_option": "הוספת אפשרות",
   "location_already_exists": "מיקום זה כבר קיים. אנא בחר מיקום חדש",

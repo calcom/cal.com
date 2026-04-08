@@ -2551,6 +2551,7 @@
   "apps_settings": "App-innstillinger",
   "fill_this_field": "Vennligst fyll ut dette feltet",
   "options": "Alternativer",
+  "oauth_client_options_aria": "Alternativer for OAuth-element",
   "enter_option": "Angi alternativ {{index}}",
   "add_an_option": "Legg til et alternativ",
   "location_already_exists": "Denne lokasjonen eksisterer allerede. Vennligst velg en ny lokasjon",

@@ -2551,6 +2551,7 @@
   "apps_settings": "Inställningar för appar",
   "fill_this_field": "Fyll i det här fältet",
   "options": "Alternativ",
+  "oauth_client_options_aria": "Alternativ för OAuth-objekt",
   "enter_option": "Ange alternativ {{index}}",
   "add_an_option": "Lägg till ett alternativ",
   "location_already_exists": "Denna plats finns redan. Vänligen välj en ny plats",

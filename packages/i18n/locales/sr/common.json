@@ -2551,6 +2551,7 @@
   "apps_settings": "Podešavanja aplikacija",
   "fill_this_field": "Popunite ovo polje",
   "options": "Opcije",
+  "oauth_client_options_aria": "Opcije za OAuth stavku",
   "enter_option": "Unesite opciju {{index}}",
   "add_an_option": "Dodajte opciju",
   "location_already_exists": "Ova lokacija već postoji. Molimo izaberite novu lokaciju",

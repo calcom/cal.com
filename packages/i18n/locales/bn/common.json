@@ -2551,6 +2551,7 @@
   "apps_settings": "অ্যাপ্লিকেশন সেটিংস",
   "fill_this_field": "দয়া করে এই ক্ষেত্রটি পূরণ করুন",
   "options": "বিকল্প",
+  "oauth_client_options_aria": "OAuth আইটেমের জন্য বিকল্পসমূহ",
   "enter_option": "বিকল্প লিখুন {{index}}",
   "add_an_option": "একটি বিকল্প যুক্ত করুন",
   "location_already_exists": "এই অবস্থান ইতিমধ্যে বিদ্যমান। ",
