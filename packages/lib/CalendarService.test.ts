@@ -40,7 +40,9 @@ vi.mock("./CalEventParser", () => ({
   getRichDescription: vi.fn().mockReturnValue("Test Description"),
 }));
 
+import dayjs from "@calcom/dayjs";
 import type { CalendarServiceEvent } from "@calcom/types/Calendar";
+import ICAL from "ical.js";
 import BaseCalendarService from "./CalendarService";
 
 const createMockEvent = (overrides: Partial<CalendarServiceEvent> = {}): CalendarServiceEvent => ({
@@ -746,5 +748,163 @@ describe("CalendarService - SCHEDULE-AGENT injection", () => {
 
       await expect(service.createEvent(event, 1)).rejects.toThrow();
     });
+  });
+});
+
+describe("CalendarService - CalDAV event time parsing", () => {
+  /**
+   * Helper that mirrors the getEvents() parsing logic.
+   * Accepts a raw iCal string and returns { startDate, endDate } using the given strategy.
+   */
+  function parseDates(icalString: string, strategy: "buggy" | "fixed") {
+    const jcalData = ICAL.parse(icalString);
+    const vcalendar = new ICAL.Component(jcalData);
+    const vevent = vcalendar.getFirstSubcomponent("vevent");
+    const event = new ICAL.Event(vevent);
+
+    const vtimezone = vcalendar.getFirstSubcomponent("vtimezone");
+    const calendarTimezone = vtimezone?.getFirstPropertyValue<string>("tzid") || "";
+
+    if (strategy === "buggy") {
+      // Current code in getEvents() — double conversion
+      const startDate = calendarTimezone
+        ? dayjs.tz(event.startDate.toString(), calendarTimezone)
+        : new Date(event.startDate.toUnixTime() * 1000);
+      const endDate = calendarTimezone
+        ? dayjs.tz(event.endDate.toString(), calendarTimezone)
+        : new Date(event.endDate.toUnixTime() * 1000);
+      return {
+        startMs: startDate.valueOf(),
+        endMs: endDate.valueOf(),
+      };
+    }
+
+    // Fixed: convertToZone + toJSDate (same pattern as getAvailability)
+    if (vtimezone) {
+      const zone = new ICAL.Timezone(vtimezone);
+      event.startDate = event.startDate.convertToZone(zone);
+      event.endDate = event.endDate.convertToZone(zone);
+    }
+    const startDate = calendarTimezone
+      ? new Date(event.startDate.toJSDate())
+      : new Date(event.startDate.toUnixTime() * 1000);
+    const endDate = calendarTimezone
+      ? new Date(event.endDate.toJSDate())
+      : new Date(event.endDate.toUnixTime() * 1000);
+    return {
+      startMs: startDate.valueOf(),
+      endMs: endDate.valueOf(),
+    };
+  }
+
+  const zimbraUtcIcal = [
+    "BEGIN:VCALENDAR",
+    "BEGIN:VTIMEZONE",
+    "TZID:Europe/Berlin",
+    "BEGIN:STANDARD",
+    "DTSTART:19701025T030000",
+    "TZOFFSETFROM:+0200",
+    "TZOFFSETTO:+0100",
+    "RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10",
+    "END:STANDARD",
+    "BEGIN:DAYLIGHT",
+    "DTSTART:19700329T020000",
+    "TZOFFSETFROM:+0100",
+    "TZOFFSETTO:+0200",
+    "RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3",
+    "END:DAYLIGHT",
+    "END:VTIMEZONE",
+    "BEGIN:VEVENT",
+    "DTSTART:20240115T083000Z",
+    "DTEND:20240115T084500Z",
+    "SUMMARY:Zimbra Meeting",
+    "UID:test-zimbra-utc@example.com",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+
+  const tzidRefIcal = [
+    "BEGIN:VCALENDAR",
+    "BEGIN:VTIMEZONE",
+    "TZID:Europe/Berlin",
+    "BEGIN:STANDARD",
+    "DTSTART:19701025T030000",
+    "TZOFFSETFROM:+0200",
+    "TZOFFSETTO:+0100",
+    "RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10",
+    "END:STANDARD",
+    "BEGIN:DAYLIGHT",
+    "DTSTART:19700329T020000",
+    "TZOFFSETFROM:+0100",
+    "TZOFFSETTO:+0200",
+    "RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=3",
+    "END:DAYLIGHT",
+    "END:VTIMEZONE",
+    "BEGIN:VEVENT",
+    "DTSTART;TZID=Europe/Berlin:20240115T093000",
+    "DTEND;TZID=Europe/Berlin:20240115T094500",
+    "SUMMARY:Berlin Meeting",
+    "UID:test-berlin-tz@example.com",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+
+  it("buggy code: UTC times with VTIMEZONE produce wrong timestamps", () => {
+    // Reproduces #27877: Zimbra CalDAV events with UTC times + VTIMEZONE
+    const { startMs, endMs } = parseDates(zimbraUtcIcal, "buggy");
+    const durationMs = endMs - startMs;
+
+    // The buggy code shifts both dates by the tz offset, but since the
+    // original times are UTC and toString() strips the Z, dayjs.tz
+    // re-interprets them as local Berlin time → wrong absolute timestamps.
+    // The duration is still 15min (both shifted equally), but the
+    // absolute times are wrong.
+    const expectedStartUtcMs = Date.UTC(2024, 0, 15, 8, 30, 0);
+    expect(startMs).not.toBe(expectedStartUtcMs);
+
+    // Duration happens to stay 15min here because both are shifted equally,
+    // but the absolute time is wrong — which causes issues downstream.
+    expect(durationMs).toBe(15 * 60 * 1000);
+  });
+
+  it("fixed code: UTC times with VTIMEZONE produce correct 15min duration", () => {
+    const { startMs, endMs } = parseDates(zimbraUtcIcal, "fixed");
+
+    expect(endMs).toBeGreaterThan(startMs);
+    expect(endMs - startMs).toBe(15 * 60 * 1000);
+
+    // Absolute times should be correct: 08:30 UTC
+    const expectedStartUtcMs = Date.UTC(2024, 0, 15, 8, 30, 0);
+    expect(startMs).toBe(expectedStartUtcMs);
+  });
+
+  it("fixed code: TZID-referenced times produce correct 15min duration", () => {
+    const { startMs, endMs } = parseDates(tzidRefIcal, "fixed");
+
+    expect(endMs).toBeGreaterThan(startMs);
+    expect(endMs - startMs).toBe(15 * 60 * 1000);
+
+    // 09:30 Berlin in January = UTC+1 = 08:30 UTC
+    const expectedStartUtcMs = Date.UTC(2024, 0, 15, 8, 30, 0);
+    expect(startMs).toBe(expectedStartUtcMs);
+  });
+
+  it("fixed code: events without VTIMEZONE parse correctly", () => {
+    const noTzIcal = [
+      "BEGIN:VCALENDAR",
+      "BEGIN:VEVENT",
+      "DTSTART:20240115T083000Z",
+      "DTEND:20240115T084500Z",
+      "SUMMARY:Simple UTC Meeting",
+      "UID:test-no-tz@example.com",
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ].join("\r\n");
+
+    const { startMs, endMs } = parseDates(noTzIcal, "fixed");
+
+    expect(endMs).toBeGreaterThan(startMs);
+    expect(endMs - startMs).toBe(15 * 60 * 1000);
+    expect(startMs).toBe(Date.UTC(2024, 0, 15, 8, 30, 0));
   });
 });
