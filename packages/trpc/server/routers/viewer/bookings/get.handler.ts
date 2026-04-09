@@ -398,34 +398,27 @@ export async function getBookings({
     }
     // totalCount derivation for CTE path:
     //   - Page not full: derived for free (skip + rows)
-    //   - requireExactCount (API): always compute via fast count
+    //   - requireExactCount (API): use EXPLAIN estimate (~10ms) instead of
+    //     expensive COUNT queries that scan the full result set
     //   - Team bookings without requireExactCount: skip (expensive)
     if (!hasMore) {
       totalCount = skip + bookingsFromUnion.length;
     } else if (requireExactCount) {
-      const fastCount = await getFastExactCount({
-        kysely,
-        user,
-        bookingListingByStatus,
-        filters,
-        eventTypeIdsFromTeamIdsFilter,
-        eventTypeIdsFromEventTypeIdsFilter,
-        teamIdsWithBookingPermission,
-      });
-      if (fastCount !== null) {
-        totalCount = fastCount;
-      } else {
-        // getFastExactCount returns null when attendeeName/attendeeEmail/bookingUid
-        // filters are present (can't decompose those into fast per-table counts).
-        // Fall back to COUNT over the CTE query which already has those filters applied.
-        totalCount = Number(
-          (
-            await buildTeamCTEQuery()
-              .select(({ fn }) => fn.count<number>("Booking.id").as("bookingCount"))
-              .executeTakeFirst()
-          )?.bookingCount ?? 0
-        );
-      }
+      const countQuery = buildTeamCTEQuery()
+        .select(({ fn }) => fn.count<number>("Booking.id").as("bookingCount"))
+        .compile();
+      type PlanNode = { "Plan Rows": number; "Parent Relationship"?: string; Plans?: PlanNode[] };
+      const explainResult = await prisma.$queryRawUnsafe<[{ "QUERY PLAN": [{ Plan: PlanNode }] }]>(
+        `EXPLAIN (FORMAT JSON) ${countQuery.sql}`,
+        ...countQuery.parameters
+      );
+      const topPlan = explainResult[0]?.["QUERY PLAN"]?.[0]?.Plan;
+      // The top node is an Aggregate (Plan Rows: 1). Its Plans array contains
+      // InitPlan nodes for each CTE followed by the actual scan child (Parent
+      // Relationship: "Outer"). We need the scan child's estimate, not a CTE's.
+      const scanChild = topPlan?.Plans?.find((p) => p["Parent Relationship"] !== "InitPlan");
+      const estimatedRows = scanChild?.["Plan Rows"] ?? topPlan?.["Plan Rows"] ?? 0;
+      totalCount = Math.round(estimatedRows);
     }
   } else {
     // ── UNION ALL path: personal bookings or userIds filter ──

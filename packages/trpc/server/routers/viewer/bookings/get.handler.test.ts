@@ -123,7 +123,21 @@ describe("getBookings - PBAC Permission Checks", () => {
     $queryRaw: vi.fn().mockResolvedValue([]),
     $queryRawUnsafe: vi
       .fn()
-      .mockResolvedValue([{ "QUERY PLAN": [{ Plan: { Plans: [{ "Plan Rows": 0 }] } }] }]),
+      .mockResolvedValue([
+        {
+          "QUERY PLAN": [
+            {
+              Plan: {
+                "Plan Rows": 1,
+                Plans: [
+                  { "Plan Rows": 5, "Parent Relationship": "InitPlan" },
+                  { "Plan Rows": 0, "Parent Relationship": "Outer" },
+                ],
+              },
+            },
+          ],
+        },
+      ]),
   } as unknown as PrismaClient;
 
   // Create a comprehensive kysely mock that handles all chain methods
