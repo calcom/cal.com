@@ -304,7 +304,8 @@ export async function getBookings({
 
   const isPastQuery =
     bookingListingByStatus.length === 1 &&
-    (bookingListingByStatus[0] === "past" || bookingListingByStatus[0] === "cancelled");
+    (bookingListingByStatus[0] === "past" || bookingListingByStatus[0] === "cancelled") &&
+    orderBy.order === "desc";
 
   let bookingsFromUnion: Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">[];
   let totalCount: number | null = null;
