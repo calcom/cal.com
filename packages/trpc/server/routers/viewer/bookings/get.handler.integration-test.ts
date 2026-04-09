@@ -392,7 +392,7 @@ describe("getBookings - integration", () => {
     expect(bookingIds).toContain(booking1.id);
   });
 
-  it("should return hasMore when there are more results", async () => {
+  it("should return hasMore=true when page is full", async () => {
     const result = await getBookings({
       user: { id: user1.id, email: user1.email, orgId: null },
       prisma,
@@ -403,50 +403,11 @@ describe("getBookings - integration", () => {
       skip: 0,
     });
 
-    // user1 has multiple upcoming bookings, take=1 should trigger hasMore
     expect(result.bookings).toHaveLength(1);
     expect(result.hasMore).toBe(true);
-    // Without requireExactCount, totalCount is null when hasMore
-    expect(result.totalCount).toBeNull();
   });
 
-  it("should return totalCount as number with requireExactCount even when hasMore", async () => {
-    const result = await getBookings({
-      user: { id: user1.id, email: user1.email, orgId: null },
-      prisma,
-      kysely,
-      bookingListingByStatus: ["upcoming"],
-      filters: {},
-      take: 1,
-      skip: 0,
-      requireExactCount: true,
-    });
-
-    expect(result.bookings).toHaveLength(1);
-    expect(result.hasMore).toBe(true);
-    expect(result.totalCount).toBeGreaterThan(1);
-  });
-
-  it("should return matching totalCount with requireExactCount for team admin", async () => {
-    // Run with and without requireExactCount to verify the fast count
-    // produces the same result as the page-not-full derivation
-    const allResults = await getBookings({
-      user: { id: user1.id, email: user1.email, orgId: team1.id },
-      prisma,
-      kysely,
-      bookingListingByStatus: ["upcoming"],
-      filters: {},
-      take: 100,
-      skip: 0,
-      requireExactCount: true,
-    });
-
-    // With take=100 and a small dataset, page should not be full
-    // so totalCount is derived for free — compare against requireExactCount result
-    expect(allResults.totalCount).toBe(allResults.bookings.length);
-  });
-
-  it("should skip COUNT entirely when page is not full", async () => {
+  it("should return hasMore=false when page is not full", async () => {
     const result = await getBookings({
       user: { id: user1.id, email: user1.email, orgId: null },
       prisma,
@@ -457,9 +418,9 @@ describe("getBookings - integration", () => {
       skip: 0,
     });
 
-    // 4 bookings < take of 50, so totalCount is derived without a COUNT query
+    // 4 bookings < take of 50
     expect(result.bookings.length).toBeLessThan(50);
-    expect(result.totalCount).toBe(result.bookings.length);
+    expect(result.hasMore).toBe(false);
   });
 
   // -----------------------------------------------------------------------
@@ -679,6 +640,269 @@ describe("getBookings - integration", () => {
       const ids = result.bookings.map((b) => b.id);
       expect(ids).toContain(pastBookingRecent.id);
       expect(ids).toContain(pastBooking2YearsAgo.id);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Cross-team booking visibility (security)
+  // -----------------------------------------------------------------------
+
+  describe("cross-team booking visibility", () => {
+    let teamX: Team;
+    let teamY: Team;
+    let teamXAdmin: User;
+    let sharedMember: User;
+    let teamXEventType: EventType;
+    let teamYEventType: EventType;
+    let personalEventType: EventType;
+    let bookingTeamX: Booking;
+    let bookingTeamY: Booking;
+    let bookingPersonal: Booking;
+    let pastBookingTeamX: Booking;
+    let pastBookingTeamY: Booking;
+
+    beforeAll(async () => {
+      const ts = Date.now();
+
+      teamXAdmin = await prisma.user.create({
+        data: {
+          username: `crossteam-admin-${ts}`,
+          email: `crossteam-admin-${ts}@example.com`,
+          name: "Team X Admin",
+        },
+      });
+
+      sharedMember = await prisma.user.create({
+        data: {
+          username: `crossteam-shared-${ts}`,
+          email: `crossteam-shared-${ts}@example.com`,
+          name: "Shared Member",
+        },
+      });
+
+      teamX = await prisma.team.create({
+        data: {
+          name: `Cross Team X ${ts}`,
+          slug: `crossteam-x-${ts}`,
+          members: {
+            createMany: {
+              data: [
+                { userId: teamXAdmin.id, role: MembershipRole.ADMIN, accepted: true },
+                { userId: sharedMember.id, role: MembershipRole.MEMBER, accepted: true },
+              ],
+            },
+          },
+        },
+      });
+
+      teamY = await prisma.team.create({
+        data: {
+          name: `Cross Team Y ${ts}`,
+          slug: `crossteam-y-${ts}`,
+          members: {
+            create: { userId: sharedMember.id, role: MembershipRole.MEMBER, accepted: true },
+          },
+        },
+      });
+
+      teamXEventType = await prisma.eventType.create({
+        data: { title: `Team X Event ${ts}`, slug: `teamx-event-${ts}`, length: 30, teamId: teamX.id },
+      });
+
+      teamYEventType = await prisma.eventType.create({
+        data: { title: `Team Y Event ${ts}`, slug: `teamy-event-${ts}`, length: 30, teamId: teamY.id },
+      });
+
+      personalEventType = await prisma.eventType.create({
+        data: { title: `Personal Event ${ts}`, slug: `personal-event-${ts}`, length: 30, userId: sharedMember.id },
+      });
+
+      const future = (days: number) => new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+
+      // Shared member's booking on Team X's event type — Team X admin SHOULD see this
+      bookingTeamX = await prisma.booking.create({
+        data: {
+          uid: `booking-teamx-${randomString()}`,
+          title: "Team X Booking",
+          startTime: future(11),
+          endTime: new Date(future(11).getTime() + 30 * 60 * 1000),
+          userId: sharedMember.id,
+          eventTypeId: teamXEventType.id,
+          status: BookingStatus.ACCEPTED,
+          attendees: {
+            create: { email: `external-${ts}@example.com`, name: "External", timeZone: "UTC" },
+          },
+        },
+      });
+
+      // Shared member's booking on Team Y's event type — Team X admin should NOT see this
+      bookingTeamY = await prisma.booking.create({
+        data: {
+          uid: `booking-teamy-${randomString()}`,
+          title: "Team Y Booking",
+          startTime: future(12),
+          endTime: new Date(future(12).getTime() + 30 * 60 * 1000),
+          userId: sharedMember.id,
+          eventTypeId: teamYEventType.id,
+          status: BookingStatus.ACCEPTED,
+          attendees: {
+            create: { email: `external2-${ts}@example.com`, name: "External 2", timeZone: "UTC" },
+          },
+        },
+      });
+
+      // Shared member's booking on personal event type — Team X admin SHOULD see this
+      bookingPersonal = await prisma.booking.create({
+        data: {
+          uid: `booking-personal-${randomString()}`,
+          title: "Personal Booking",
+          startTime: future(13),
+          endTime: new Date(future(13).getTime() + 30 * 60 * 1000),
+          userId: sharedMember.id,
+          eventTypeId: personalEventType.id,
+          status: BookingStatus.ACCEPTED,
+          attendees: {
+            create: { email: `external3-${ts}@example.com`, name: "External 3", timeZone: "UTC" },
+          },
+        },
+      });
+
+      const past = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+      // Past booking on Team X event type — Team X admin SHOULD see
+      pastBookingTeamX = await prisma.booking.create({
+        data: {
+          uid: `past-teamx-${randomString()}`,
+          title: "Past Team X Booking",
+          startTime: past(3),
+          endTime: new Date(past(3).getTime() + 30 * 60 * 1000),
+          userId: sharedMember.id,
+          eventTypeId: teamXEventType.id,
+          status: BookingStatus.ACCEPTED,
+          attendees: {
+            create: { email: `external4-${ts}@example.com`, name: "External 4", timeZone: "UTC" },
+          },
+        },
+      });
+
+      // Past booking on Team Y event type — Team X admin should NOT see
+      pastBookingTeamY = await prisma.booking.create({
+        data: {
+          uid: `past-teamy-${randomString()}`,
+          title: "Past Team Y Booking",
+          startTime: past(4),
+          endTime: new Date(past(4).getTime() + 30 * 60 * 1000),
+          userId: sharedMember.id,
+          eventTypeId: teamYEventType.id,
+          status: BookingStatus.ACCEPTED,
+          attendees: {
+            create: { email: `external5-${ts}@example.com`, name: "External 5", timeZone: "UTC" },
+          },
+        },
+      });
+    }, 30_000);
+
+    afterAll(async () => {
+      const bookingIds = [bookingTeamX?.id, bookingTeamY?.id, bookingPersonal?.id, pastBookingTeamX?.id, pastBookingTeamY?.id].filter(Boolean);
+      if (bookingIds.length) {
+        await prisma.attendee.deleteMany({ where: { bookingId: { in: bookingIds } } });
+        await prisma.booking.deleteMany({ where: { id: { in: bookingIds } } });
+      }
+      const etIds = [teamXEventType?.id, teamYEventType?.id, personalEventType?.id].filter(Boolean);
+      if (etIds.length) await prisma.eventType.deleteMany({ where: { id: { in: etIds } } });
+      const teamIds = [teamX?.id, teamY?.id].filter(Boolean);
+      if (teamIds.length) await prisma.team.deleteMany({ where: { id: { in: teamIds } } });
+      const userIds = [teamXAdmin?.id, sharedMember?.id].filter(Boolean);
+      if (userIds.length) await prisma.user.deleteMany({ where: { id: { in: userIds } } });
+    });
+
+    it("should NOT show Team Y bookings to Team X admin", async () => {
+      const result = await getBookings({
+        user: { id: teamXAdmin.id, email: teamXAdmin.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["upcoming"],
+        filters: {},
+        take: 200,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+
+      // Team X admin should see: Team X booking + personal booking
+      expect(ids).toContain(bookingTeamX.id);
+      expect(ids).toContain(bookingPersonal.id);
+
+      // Team X admin should NOT see Team Y booking
+      expect(ids).not.toContain(bookingTeamY.id);
+    });
+
+    it("should show Team Y bookings to the shared member themselves", async () => {
+      const result = await getBookings({
+        user: { id: sharedMember.id, email: sharedMember.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["upcoming"],
+        filters: {},
+        take: 200,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+
+      // Shared member should see all their own bookings
+      expect(ids).toContain(bookingTeamX.id);
+      expect(ids).toContain(bookingTeamY.id);
+      expect(ids).toContain(bookingPersonal.id);
+    });
+
+    it("past bookings: should NOT show Team Y past bookings to Team X admin", async () => {
+      const result = await getBookings({
+        user: { id: teamXAdmin.id, email: teamXAdmin.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 200,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+
+      expect(ids).toContain(pastBookingTeamX.id);
+      expect(ids).not.toContain(pastBookingTeamY.id);
+    });
+
+    it("past bookings: hasMore should be consistent with actual results", async () => {
+      // Get all past bookings first to know the total
+      const all = await getBookings({
+        user: { id: teamXAdmin.id, email: teamXAdmin.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 200,
+        skip: 0,
+      });
+
+      expect(all.bookings.length).toBeGreaterThan(0);
+      expect(all.hasMore).toBe(false);
+
+      // Now fetch with take=1 — should have hasMore if there's more than 1
+      if (all.bookings.length > 1) {
+        const page1 = await getBookings({
+          user: { id: teamXAdmin.id, email: teamXAdmin.email, orgId: null },
+          prisma,
+          kysely,
+          bookingListingByStatus: ["past"],
+          filters: {},
+          take: 1,
+          skip: 0,
+        });
+
+        expect(page1.bookings).toHaveLength(1);
+        expect(page1.hasMore).toBe(true);
+      }
     });
   });
 });

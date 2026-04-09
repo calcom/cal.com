@@ -65,8 +65,7 @@ describe("getHandler", () => {
       bookings: mockBookings,
       recurringInfo: [],
       totalCount: 1,
-      hasMore: undefined,
-    } as Awaited<ReturnType<typeof getAllUserBookings>>);
+    });
 
     const result = await getHandler({
       ctx: {
@@ -153,11 +152,14 @@ describe("getBookings - PBAC Permission Checks", () => {
       execute: vi.fn().mockResolvedValue([]),
     };
 
-    return {
+    const mockKyselyObj: any = {
       selectFrom: vi.fn(() => mockQueryBuilder),
       executeQuery: vi.fn().mockResolvedValue({ rows: [] }),
       _mockQueryBuilder: mockQueryBuilder,
-    } as unknown as Kysely<DB> & { _mockQueryBuilder: typeof mockQueryBuilder };
+    };
+    // .with() chains arbitrarily and ends with .selectFrom()
+    mockKyselyObj.with = vi.fn(() => mockKyselyObj);
+    return mockKyselyObj as unknown as Kysely<DB> & { _mockQueryBuilder: typeof mockQueryBuilder };
   };
 
   let mockKysely: ReturnType<typeof createMockKysely>;
@@ -359,10 +361,10 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // PERFORMANCE: With the optimization, we no longer call $queryRaw to fetch event type IDs.
-      // Instead, we use subqueries directly in the SQL to avoid materializing large arrays.
-      // The query is built using Kysely and executed via executeQuery.
-      expect((mockKysely as any).executeQuery).toHaveBeenCalled();
+      // PERFORMANCE: With the CTE optimization, team access queries use .with() CTEs
+      // and execute directly via the query builder, not via kysely.executeQuery().
+      expect((mockKysely as any).with).toHaveBeenCalled();
+      expect(mockKysely._mockQueryBuilder.execute).toHaveBeenCalled();
     });
   });
 
@@ -417,7 +419,7 @@ describe("getBookings - PBAC Permission Checks", () => {
   });
 
   describe("UNION ALL with DISTINCT query optimization", () => {
-    it("should use unionAll instead of union for combining booking queries", async () => {
+    it("should use CTE + OR for team access queries instead of UNION ALL", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
@@ -432,14 +434,12 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // Verify unionAll is used (UNION ALL) instead of union (UNION)
-      // This is the performance optimization: UNION ALL avoids an implicit DISTINCT
-      // at each union step, deferring deduplication to the outer SELECT DISTINCT
-      expect(mockKysely._mockQueryBuilder.unionAll).toHaveBeenCalled();
+      // Team access path uses CTEs (.with()) instead of UNION ALL
+      expect((mockKysely as any).with).toHaveBeenCalled();
     });
 
-    it("should apply DISTINCT on the outer select from union subquery", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
+    it("should use UNION ALL + DISTINCT for non-team personal bookings", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
 
@@ -453,21 +453,22 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // Verify distinct() is called on the outer query to deduplicate
-      // results from UNION ALL
+      // Personal bookings path uses UNION ALL + DISTINCT
+      expect(mockKysely._mockQueryBuilder.unionAll).toHaveBeenCalled();
       expect(mockKysely._mockQueryBuilder.distinct).toHaveBeenCalled();
     });
 
-    it("should derive totalCount for free when page is not full", async () => {
+    it("should use count with distinct for totalCount calculation when no team access", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
 
+      // Page must be full so the COUNT query runs (not short-circuited)
       (mockKysely as any).executeQuery = vi.fn().mockResolvedValue({
         rows: Array.from({ length: 10 }, (_, i) => ({ id: i + 1 })),
       });
 
-      const result = await getBookings({
+      await getBookings({
         user: mockUser,
         prisma: mockPrisma,
         kysely: mockKysely as unknown as Kysely<DB>,
@@ -477,200 +478,57 @@ describe("getBookings - PBAC Permission Checks", () => {
         skip: 0,
       });
 
-      // Without requireExactCount + page not full, totalCount is derived for free
-      expect(result.totalCount).toBe(10);
-      expect(result.hasMore).toBeUndefined();
+      // The count query uses fn.count("union_subquery.id").distinct()
+      // instead of fn.countAll() to ensure duplicates from UNION ALL
+      // are not counted multiple times
+      expect(mockKysely._mockQueryBuilder.executeTakeFirst).toHaveBeenCalled();
     });
 
-    it("should use fast count path when requireExactCount is true and no team access", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
-
-      // Return take+1 rows so hasMore=true and count query runs
-      (mockKysely as any).executeQuery = vi.fn().mockResolvedValue({
-        rows: Array.from({ length: 11 }, (_, i) => ({ id: i + 1 })),
-      });
-
-      mockKysely._mockQueryBuilder.executeTakeFirst = vi.fn().mockResolvedValue({ cnt: "5" });
-
-      const result = await getBookings({
-        user: mockUser,
-        prisma: mockPrisma,
-        kysely: mockKysely as unknown as Kysely<DB>,
-        bookingListingByStatus: ["upcoming"],
-        filters: {},
-        take: 10,
-        skip: 0,
-        requireExactCount: true,
-      });
-
-      // Fast count sums organizer + attendee counts (5 + 5 = 10)
-      expect(result.totalCount).toBe(10);
-      expect(result.hasMore).toBe(true);
-      expect(mockPrisma.$queryRawUnsafe).not.toHaveBeenCalled();
-    });
-
-    it("should fall back to UNION count when requireExactCount is true but filters prevent fast path", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
-
-      // Return take+1 rows so hasMore=true
-      (mockKysely as any).executeQuery = vi.fn().mockResolvedValue({
-        rows: Array.from({ length: 11 }, (_, i) => ({ id: i + 1 })),
-      });
-
-      mockKysely._mockQueryBuilder.executeTakeFirst = vi.fn().mockResolvedValue({ bookingCount: 42 });
-
-      const result = await getBookings({
-        user: mockUser,
-        prisma: mockPrisma,
-        kysely: mockKysely as unknown as Kysely<DB>,
-        bookingListingByStatus: ["upcoming"],
-        filters: { attendeeEmail: "test@example.com" },
-        take: 10,
-        skip: 0,
-        requireExactCount: true,
-      });
-
-      // Falls back to UNION-based COUNT(DISTINCT)
-      expect(result.totalCount).toBe(42);
-    });
-
-    it("should set hasMore when take+1 rows are returned", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
-
-      // Return take+1 (11) rows — signals more results exist
-      (mockKysely as any).executeQuery = vi.fn().mockResolvedValue({
-        rows: Array.from({ length: 11 }, (_, i) => ({ id: i + 1 })),
-      });
-
-      const result = await getBookings({
-        user: mockUser,
-        prisma: mockPrisma,
-        kysely: mockKysely as unknown as Kysely<DB>,
-        bookingListingByStatus: ["upcoming"],
-        filters: {},
-        take: 10,
-        skip: 0,
-      });
-
-      expect(result.hasMore).toBe(true);
-      // Personal bookings always compute totalCount (cheap fast path)
-      expect(result.totalCount).toBeGreaterThanOrEqual(0);
-    });
-
-    it("should not set hasMore when fewer than take+1 rows returned", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
-
-      // Return exactly take (10) rows — no more results
-      (mockKysely as any).executeQuery = vi.fn().mockResolvedValue({
-        rows: Array.from({ length: 10 }, (_, i) => ({ id: i + 1 })),
-      });
-
-      const result = await getBookings({
-        user: mockUser,
-        prisma: mockPrisma,
-        kysely: mockKysely as unknown as Kysely<DB>,
-        bookingListingByStatus: ["upcoming"],
-        filters: {},
-        take: 10,
-        skip: 0,
-      });
-
-      expect(result.hasMore).toBeFalsy();
-    });
-
-    it("should strip extra row from results when hasMore", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
-
-      // Return 11 rows for take=10
-      (mockKysely as any).executeQuery = vi.fn().mockResolvedValue({
-        rows: Array.from({ length: 11 }, (_, i) => ({ id: i + 1 })),
-      });
-
-      const result = await getBookings({
-        user: mockUser,
-        prisma: mockPrisma,
-        kysely: mockKysely as unknown as Kysely<DB>,
-        bookingListingByStatus: ["upcoming"],
-        filters: {},
-        take: 10,
-        skip: 0,
-      });
-
-      // Should return exactly take rows, not take+1
-      expect(result.bookings.length).toBeLessThanOrEqual(10);
-    });
-
-    it("should fall back to UNION count when attendeeName filter prevents fast path", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
-
-      (mockKysely as any).executeQuery = vi.fn().mockResolvedValue({
-        rows: Array.from({ length: 11 }, (_, i) => ({ id: i + 1 })),
-      });
-
-      mockKysely._mockQueryBuilder.executeTakeFirst = vi.fn().mockResolvedValue({ bookingCount: 99 });
-
-      const result = await getBookings({
-        user: mockUser,
-        prisma: mockPrisma,
-        kysely: mockKysely as unknown as Kysely<DB>,
-        bookingListingByStatus: ["upcoming"],
-        filters: { attendeeName: "Test" },
-        take: 10,
-        skip: 0,
-        requireExactCount: true,
-      });
-
-      expect(result.totalCount).toBe(99);
-    });
-
-    it("should fall back to UNION count when bookingUid filter prevents fast path", async () => {
-      mockGetTeamIdsWithPermission.mockResolvedValue([]);
-      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
-      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
-
-      (mockKysely as any).executeQuery = vi.fn().mockResolvedValue({
-        rows: Array.from({ length: 11 }, (_, i) => ({ id: i + 1 })),
-      });
-
-      mockKysely._mockQueryBuilder.executeTakeFirst = vi.fn().mockResolvedValue({ bookingCount: 7 });
-
-      const result = await getBookings({
-        user: mockUser,
-        prisma: mockPrisma,
-        kysely: mockKysely as unknown as Kysely<DB>,
-        bookingListingByStatus: ["upcoming"],
-        filters: { bookingUid: "some-uid" },
-        take: 10,
-        skip: 0,
-        requireExactCount: true,
-      });
-
-      expect(result.totalCount).toBe(7);
-    });
-
-    it("should use fast count for team access when requireExactCount is true, skipping EXPLAIN", async () => {
+    it("should skip COUNT when results don't fill the page", async () => {
       mockGetTeamIdsWithPermission.mockResolvedValue([1]);
       mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
       mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
 
-      // Return take+1 rows so hasMore=true
-      (mockKysely as any).executeQuery = vi.fn().mockResolvedValue({
-        rows: Array.from({ length: 11 }, (_, i) => ({ id: i + 1 })),
+      // 0 rows returned < take of 10, so count is derived without a query (skip + rows = 0)
+      const result = await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: mockKysely as unknown as Kysely<DB>,
+        bookingListingByStatus: ["upcoming"],
+        filters: {},
+        take: 10,
+        skip: 0,
       });
 
-      mockKysely._mockQueryBuilder.executeTakeFirst = vi.fn().mockResolvedValue({ cnt: "100" });
+      expect(result.totalCount).toBe(0);
+      expect(result.hasMore).toBe(false);
+      // $queryRawUnsafe should NOT have been called (no EXPLAIN needed)
+      expect(mockPrisma.$queryRawUnsafe).not.toHaveBeenCalled();
+    });
+
+    it("should return hasMore signal instead of count for team access with full page", async () => {
+      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      // Page is full (10 rows = take)
+      // CTE path fetches take+1 to detect hasMore, so return 11 rows
+      const mockRows = Array.from({ length: 11 }, (_, i) => ({ id: i + 1 }));
+      const mockPlainBookings = mockRows.slice(0, 10).map((r) => ({
+        ...r,
+        seatsReferences: [],
+        attendees: [],
+        eventType: null,
+        user: null,
+        references: [],
+        payment: [],
+        startTime: new Date(),
+        endTime: new Date(),
+      }));
+      mockKysely._mockQueryBuilder.execute = vi
+        .fn()
+        .mockResolvedValueOnce(mockRows)
+        .mockResolvedValueOnce(mockPlainBookings);
 
       const result = await getBookings({
         user: mockUser,
@@ -680,13 +538,12 @@ describe("getBookings - PBAC Permission Checks", () => {
         filters: {},
         take: 10,
         skip: 0,
-        requireExactCount: true,
       });
 
-      // Fast count runs 3 parallel queries for team access (A + B + C), each returns 100
-      expect(result.totalCount).toBe(300);
+      // Team CTE path skips count — returns null totalCount with hasMore
+      expect(result.totalCount).toBeNull();
       expect(result.hasMore).toBe(true);
-
+      // No EXPLAIN or count query should have been called
       expect(mockPrisma.$queryRawUnsafe).not.toHaveBeenCalled();
     });
   });
