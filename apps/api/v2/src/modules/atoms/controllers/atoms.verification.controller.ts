@@ -78,6 +78,7 @@ export class AtomsVerificationController {
   @Post("/verification/email/verify-code")
   @Version(VERSION_NEUTRAL)
   @HttpCode(HttpStatus.OK)
+  @Throttle({ limit: 10, ttl: 60000, blockDuration: 60000, name: "atoms_verification_email_verify_code" })
   async verifyEmailCode(@Body() body: VerifyEmailCodeInput): Promise<VerifyEmailCodeOutput> {
     await this.verificationService.verifyEmailCodeUnAuthenticated({
       email: body.email,
