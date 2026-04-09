@@ -769,6 +769,137 @@ describe("SalesforceCRMService", () => {
           const result = await service.createContacts([{ name: "New Contact", email: "test@example.com" }]);
           expect(result).toEqual([{ id: "newContactId", email: "test@example.com" }]);
         });
+        it("matches account via normalized fallback when email domain has uppercase", async () => {
+          mockAppOptions({
+            createNewContactUnderAccount: true,
+            createEventOn: SalesforceRecordEnum.LEAD,
+          });
+
+          const querySpy = vi.spyOn(mockConnection, "query");
+          querySpy.mockResolvedValueOnce({ records: [] }); // Website IN (...) exact match — misses
+          querySpy.mockResolvedValueOnce({
+            records: [{ Id: "acc-upper", Website: "https://www.acme.com/about" }],
+          }); // Website LIKE — broad match returned, normalizes to acme.com
+          querySpy.mockResolvedValueOnce({ records: [] }); // Contact lookup under account
+
+          mockConnection.sobject.mockReturnValue({
+            create: vi.fn().mockResolvedValue({
+              success: true,
+              id: "newContactId",
+              name: "New Contact",
+              email: "test@ACME.COM",
+            }),
+          });
+
+          const result = await service.createContacts([{ name: "New Contact", email: "test@ACME.COM" }]);
+          expect(result).toEqual([{ id: "newContactId", email: "test@ACME.COM" }]);
+          expect(querySpy).toHaveBeenCalledTimes(3);
+        });
+        it("falls through to contact lookup when LIKE returns candidates but none normalize to target domain", async () => {
+          mockAppOptions({
+            createNewContactUnderAccount: true,
+            createEventOn: SalesforceRecordEnum.LEAD,
+          });
+
+          const querySpy = vi.spyOn(mockConnection, "query");
+          querySpy.mockResolvedValueOnce({ records: [] }); // Website IN (...) exact match — misses
+          querySpy.mockResolvedValueOnce({
+            // Website LIKE '%acme.com%' returns false hits that don't normalize to acme.com
+            records: [
+              { Id: "acc-false-1", Website: "https://notacme.com" },
+              { Id: "acc-false-2", Website: "https://acme.company.org" },
+            ],
+          });
+          querySpy.mockResolvedValueOnce({
+            // Contact Email LIKE domain — finds contacts under an account
+            records: [
+              { Id: "contact-1", Email: "jane@acme.com", AccountId: "acc-from-contacts" },
+              { Id: "contact-2", Email: "bob@acme.com", AccountId: "acc-from-contacts" },
+            ],
+          });
+          querySpy.mockResolvedValueOnce({ records: [] }); // createNewContactUnderAnAccount: existing contact check
+
+          mockConnection.sobject.mockReturnValue({
+            create: vi.fn().mockResolvedValue({
+              success: true,
+              id: "newContactId",
+              name: "New Contact",
+              email: "test@acme.com",
+            }),
+          });
+
+          const result = await service.createContacts([{ name: "New Contact", email: "test@acme.com" }]);
+          expect(result).toEqual([{ id: "newContactId", email: "test@acme.com" }]);
+          // 4 queries: exact IN, LIKE fallback, contact domain lookup, existing contact check
+          expect(querySpy).toHaveBeenCalledTimes(4);
+        });
+
+        it("handles null Website values in LIKE results gracefully", async () => {
+          mockAppOptions({
+            createNewContactUnderAccount: true,
+            createEventOn: SalesforceRecordEnum.LEAD,
+          });
+
+          const querySpy = vi.spyOn(mockConnection, "query");
+          querySpy.mockResolvedValueOnce({ records: [] }); // Website IN (...) exact match — misses
+          querySpy.mockResolvedValueOnce({
+            // LIKE returns a record with null Website (edge case from Salesforce)
+            records: [
+              { Id: "acc-null", Website: null },
+              { Id: "acc-valid", Website: "https://www.acme.com/about" },
+            ],
+          });
+          querySpy.mockResolvedValueOnce({ records: [] }); // Contact lookup under account
+
+          mockConnection.sobject.mockReturnValue({
+            create: vi.fn().mockResolvedValue({
+              success: true,
+              id: "newContactId",
+              name: "New Contact",
+              email: "test@acme.com",
+            }),
+          });
+
+          const result = await service.createContacts([{ name: "New Contact", email: "test@acme.com" }]);
+          expect(result).toEqual([{ id: "newContactId", email: "test@acme.com" }]);
+          expect(querySpy).toHaveBeenCalledTimes(3);
+        });
+
+        it("tries exact match first, then normalized fallback, then contact lookup (3-step order)", async () => {
+          mockAppOptions({
+            createNewContactUnderAccount: true,
+            createEventOn: SalesforceRecordEnum.LEAD,
+          });
+
+          const querySpy = vi.spyOn(mockConnection, "query");
+          querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: Website IN (...) — misses
+          querySpy.mockResolvedValueOnce({ records: [] }); // Step 2: Website LIKE — misses
+          querySpy.mockResolvedValueOnce({ records: [] }); // Step 3: Contact Email LIKE — misses
+
+          mockConnection.sobject.mockReturnValue({
+            create: vi.fn().mockResolvedValue({
+              success: true,
+              id: "newLeadId",
+              name: "New Lead",
+              email: "test@newlead.com",
+            }),
+          });
+
+          const result = await service.createContacts([{ name: "New Lead", email: "test@newlead.com" }]);
+          expect(result).toEqual([{ id: "newLeadId", email: "test@newlead.com" }]);
+
+          // Verify all 3 queries were issued in the correct order
+          expect(querySpy).toHaveBeenCalledTimes(3);
+
+          const calls = querySpy.mock.calls;
+          // Step 1: exact IN (...)
+          expect(calls[0][0]).toContain("Website IN (");
+          // Step 2: normalized LIKE fallback
+          expect(calls[1][0]).toContain("Website LIKE");
+          // Step 3: contact domain lookup
+          expect(calls[2][0]).toContain("Email LIKE");
+        });
+
         it("attendee has no account", async () => {
           mockAppOptions({
             createNewContactUnderAccount: true,
@@ -776,8 +907,9 @@ describe("SalesforceCRMService", () => {
           });
 
           const querySpy = vi.spyOn(mockConnection, "query");
-          querySpy.mockResolvedValueOnce({ records: [] });
-          querySpy.mockResolvedValueOnce({ records: [] });
+          querySpy.mockResolvedValueOnce({ records: [] }); // Website IN (...) exact match
+          querySpy.mockResolvedValueOnce({ records: [] }); // Website LIKE normalized fallback
+          querySpy.mockResolvedValueOnce({ records: [] }); // Contact Email LIKE domain
 
           mockConnection.sobject.mockReturnValue({
             create: vi.fn().mockResolvedValue({

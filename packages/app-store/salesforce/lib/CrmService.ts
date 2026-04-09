@@ -64,6 +64,7 @@ export interface SalesforceCRM extends CRM {
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
 import { getSalesforceTokenLifetime } from "./getSalesforceTokenLifetime";
 import { SalesforceGraphQLClient } from "./graphql/SalesforceGraphQLClient";
+import { normalizeWebsiteUrl } from "./utils/domain-normalization";
 import getAllPossibleWebsiteValuesFromEmailDomain from "./utils/getAllPossibleWebsiteValuesFromEmailDomain";
 import type { GetDominantAccountIdInput } from "./utils/getDominantAccountId";
 import getDominantAccountId from "./utils/getDominantAccountId";
@@ -1568,7 +1569,7 @@ class SalesforceCRMService implements CRM {
       emailDomain,
     });
 
-    // First check if an account has the same website as the email domain of the attendee
+    // Fast path: exact match against known URL variants of the email domain
     const accountQuery = await conn.query(
       `SELECT Id, Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
         emailDomain
@@ -1594,7 +1595,14 @@ class SalesforceCRMService implements CRM {
       return account.Id;
     }
 
-    // Fallback to querying which account the majority of contacts are under
+    // Normalized fallback: catch Accounts with messy Website values (paths, ports, mixed case)
+    // that the exact IN (...) query above missed.
+    const normalizedMatch = await this.findAccountByNormalizedWebsite(conn, emailDomain, log);
+    if (normalizedMatch) {
+      return normalizedMatch;
+    }
+
+    // Last resort: find the account that the majority of same-domain contacts belong to
     const response = await conn.query(
       `SELECT Id, Email, AccountId FROM Contact WHERE Email LIKE '%@${this.sanitizeSoqlValue(
         emailDomain
@@ -1631,6 +1639,58 @@ class SalesforceCRMService implements CRM {
     }
 
     return accountId;
+  }
+
+  /**
+   * Broad SOQL fetch with in-memory normalization. Catches Account.Website values
+   * that contain the email domain but have extra path segments, ports, or mixed casing
+   * that prevent exact matching.
+   *
+   * Note: The LIKE '%domain%' query caps at 50 results. For very short or common
+   * domains, false LIKE hits (e.g. "notacme.com" matching "acme.com") could
+   * theoretically fill the window and push the real match out. In practice this is
+   * unlikely since most Salesforce orgs have far fewer than 50 accounts sharing a
+   * domain substring.
+   */
+  private async findAccountByNormalizedWebsite(
+    conn: Connection,
+    emailDomain: string,
+    log: ReturnType<typeof logger.getSubLogger>
+  ): Promise<string | undefined> {
+    const sanitizedDomain = this.sanitizeSoqlValue(emailDomain);
+    const broadQuery = await conn.query(
+      `SELECT Id, Website FROM Account WHERE Website LIKE '%${sanitizedDomain}%' LIMIT 50`
+    );
+
+    if (broadQuery.records.length === 0) return undefined;
+
+    const candidates = broadQuery.records as { Id: string; Website: string }[];
+    const match = candidates.find(
+      (account) => normalizeWebsiteUrl(account.Website) === emailDomain.toLowerCase()
+    );
+
+    if (match) {
+      log.info(
+        "Found account by normalized website",
+        safeStringify({
+          emailDomain,
+          rawWebsite: match.Website,
+          normalizedWebsite: normalizeWebsiteUrl(match.Website),
+          accountId: match.Id,
+        })
+      );
+      SalesforceRoutingTraceService.accountFoundByWebsite({
+        accountId: match.Id,
+        website: match.Website,
+      });
+      return match.Id;
+    }
+
+    log.debug(
+      "Normalized website fallback found no match",
+      safeStringify({ emailDomain, candidateCount: candidates.length })
+    );
+    return undefined;
   }
 
   private setFallbackToContact(boolean: boolean) {

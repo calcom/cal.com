@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import getAllPossibleWebsiteValuesFromEmailDomain from "../getAllPossibleWebsiteValuesFromEmailDomain";
 
 describe("getAllPossibleWebsiteValuesFromEmailDomain", () => {
@@ -16,5 +15,11 @@ describe("getAllPossibleWebsiteValuesFromEmailDomain", () => {
       `https://www.${emailDomain}`,
       `https://${emailDomain}`,
     ]);
+  });
+
+  it("should return exactly 6 variants with no duplicates", () => {
+    const result = getAllPossibleWebsiteValuesFromEmailDomain("acme.com");
+    expect(result).toHaveLength(6);
+    expect(new Set(result).size).toBe(6);
   });
 });
