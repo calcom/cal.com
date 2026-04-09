@@ -55,6 +55,7 @@
                   "GET /v2/bookings/{bookingUid}/recordings",
                   "GET /v2/bookings/{bookingUid}/transcripts",
                   "POST /v2/bookings/{bookingUid}/reschedule",
+                  "POST /v2/bookings/{bookingUid}/request-reschedule",
                   "POST /v2/bookings/{bookingUid}/cancel",
                   "POST /v2/bookings/{bookingUid}/mark-absent",
                   "POST /v2/bookings/{bookingUid}/reassign",
@@ -120,7 +121,16 @@
                 "group": "Notifications",
                 "expanded": false,
                 "pages": [
-                  "api-reference/v2/app-push-subscriptions"
+                  "POST /v2/notifications/subscriptions/app-push",
+                  "DELETE /v2/notifications/subscriptions/app-push"
+                ]
+              },
+              {
+                "group": "Credits",
+                "expanded": false,
+                "pages": [
+                  "GET /v2/credits/available",
+                  "POST /v2/credits/charge"
                 ]
               }
             ]
