@@ -9,7 +9,6 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
-import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { parseEventTypeColor } from "@calcom/lib/isEventTypeColor";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -59,8 +58,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
 import type { FC } from "react";
-import { createContext, memo, useContext, useEffect, useState } from "react";
-import { z } from "zod";
+import { createContext, memo, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
 type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
@@ -110,10 +108,6 @@ interface InfiniteEventTypeListProps {
 interface InfiniteTeamsTabProps {
   activeEventTypeGroup: InfiniteEventTypeGroup;
 }
-
-const querySchema = z.object({
-  teamId: z.nullable(z.coerce.number()).optional().default(null),
-});
 
 const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props: InfiniteTeamsTabProps) => {
   const { activeEventTypeGroup } = props;
@@ -1015,19 +1009,46 @@ const InfiniteScrollMain = ({
   profiles: GetUserEventGroupsResponse["profiles"];
 }) => {
   const searchParams = useSearchParams();
-  const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
 
-  const tabs = eventTypeGroups.map((item) => ({
-    name: item.profile.name ?? "",
-    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
-    avatar: item.profile.image,
-    "data-testid": item.profile.name ?? "",
-    matchFullPath: true,
-  }));
+  // Manage the selected team tab client-side to avoid RSC round-trips on every tab switch.
+  // Initialized from the URL for deep-link support; kept in sync via popstate for back/forward.
+  const [activeTeamId, setActiveTeamId] = useState<number | null>(() => {
+    const param = searchParams?.get("teamId");
+    return param ? Number(param) : null;
+  });
 
-  const activeEventTypeGroup =
-    eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
+  useEffect(() => {
+    const onPopState = () => {
+      const param = new URLSearchParams(window.location.search).get("teamId");
+      setActiveTeamId(param ? Number(param) : null);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  const handleTabChange = useCallback((teamId: number | null) => {
+    setActiveTeamId(teamId);
+    const url = teamId ? `/event-types?teamId=${teamId}` : "/event-types";
+    window.history.pushState(window.history.state, "", url);
+  }, []);
+
+  const tabs = useMemo(
+    () =>
+      eventTypeGroups.map((item) => ({
+        name: item.profile.name ?? "",
+        href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types",
+        avatar: item.profile.image,
+        "data-testid": item.profile.name ?? "",
+        matchFullPath: true,
+        isActive: item.teamId === activeTeamId,
+        onClick: () => handleTabChange(item.teamId ?? null),
+      })),
+    [eventTypeGroups, activeTeamId, handleTabChange]
+  );
+
+  const filteredGroups = eventTypeGroups.filter((item) => item.teamId === activeTeamId);
+  const activeEventTypeGroup = filteredGroups.length > 0 ? filteredGroups : [eventTypeGroups[0]];
 
   const bookerUrl = orgBranding ? orgBranding?.fullDomain : WEBSITE_URL;
 
