@@ -743,6 +743,12 @@
             ]
           },
           {
+            "group": "Onboarding",
+            "pages": [
+              "atoms/onboarding-embed"
+            ]
+          },
+          {
             "group": "Booking",
             "pages": [
               "atoms/booker",

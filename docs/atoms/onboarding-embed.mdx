@@ -1,0 +1,265 @@
+---
+title: "Onboarding Embed"
+description: "Embed Cal.com signup, onboarding, and OAuth authorization in your app"
+---
+
+The `<OnboardingEmbed />` React component lets you embed Cal.com account creation, onboarding, and OAuth authorization directly inside your application. Users create a real Cal.com account, complete onboarding, and grant your app OAuth access — all without leaving your site. The component
+also has an inbuilt "dark" and "light" theme.
+
+The component supports two modes for receiving the authorization code:
+
+- **Callback mode** — provide `onAuthorizationAllowed` to receive the authorization code via a callback. No page navigation occurs.
+- **Redirect mode** — don't provide `onAuthorizationAllowed` and the browser navigates to your `redirectUri` with the code as a query parameter. Works like a standard OAuth redirect.
+
+```bash
+npm install @calcom/atoms
+```
+
+### Callback Mode
+
+Provide `onAuthorizationAllowed` to receive the authorization code directly. The dialog closes and your callback fires after user authorizes your OAuth client — no page reload.
+
+```tsx
+import { OnboardingEmbed } from "@calcom/atoms";
+import { useState } from "react";
+
+function App() {
+  const [state] = useState(() => crypto.randomUUID());
+
+  return (
+    <OnboardingEmbed
+      oAuthClientId="your_client_id"
+      authorization={{
+        scope: ["BOOKING_READ", "BOOKING_WRITE", "PROFILE_READ"],
+        redirectUri: "https://your-app.com/cal/callback",
+        state,
+      }}
+      onAuthorizationAllowed={({ code }) => {
+        fetch("/api/cal/exchange", {
+          method: "POST",
+          body: JSON.stringify({ code, state }),
+        });
+      }}
+      onError={(error) => console.error(error.code, error.message)}
+      onClose={() => console.log("Dialog dismissed")}
+    />
+  );
+}
+```
+
+### Redirect Mode
+
+Omit `onAuthorizationAllowed` and the browser navigates to your `redirectUri` after the user completes onboarding and grants access:
+
+```
+https://your-app.com/cal/callback?code=AUTHORIZATION_CODE&state=YOUR_STATE
+```
+
+```tsx
+import { OnboardingEmbed } from "@calcom/atoms";
+import { useState } from "react";
+
+function App() {
+  const [state] = useState(() => crypto.randomUUID());
+
+  return (
+    <OnboardingEmbed
+      oAuthClientId="your_client_id"
+      authorization={{
+        scope: ["BOOKING_READ", "BOOKING_WRITE", "PROFILE_READ"],
+        redirectUri: "https://your-app.com/cal/callback",
+        state,
+      }}
+      onError={(error) => console.error(error.code, error.message)}
+    />
+  );
+}
+```
+
+### Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `oAuthClientId` | `string` | Yes | Your OAuth client ID from [OAuth Client Credentials](/api-reference/v2/oauth#1-oauth-client-credentials). |
+| `host` | `string` | No | Cal.com host URL. Defaults to `https://app.cal.com`. Used for local development to point to cal web app. |
+| `theme` | `"light" \| "dark"` | No | Theme for the embedded onboarding UI. Defaults to `"light"`. |
+| `user` | `{ email?: string, name?: string, username?: string }` | No | Prefill user details in signup and profile steps. |
+| `authorization` | `AuthorizationProps` | Yes | OAuth authorization parameters (see below). |
+| `onAuthorizationAllowed` | `(result: { code: string }) => void` | No | Called with the authorization code on completion. If provided, enables callback mode. If omitted, enables redirect mode (browser navigates to `redirectUri`). |
+| `onError` | `(error: OnboardingError) => void` | No | Called on unrecoverable error. |
+| `onAuthorizationDenied` | `() => void` | No | Called when the user declines OAuth authorization. If provided, the callback fires and the dialog closes. If omitted, the browser navigates to `redirectUri?error=access_denied&state=YOUR_STATE`. |
+| `onClose` | `() => void` | No | Called when the user dismisses the dialog before completing. |
+| `trigger` | `ReactNode` | No | Custom trigger element. Defaults to a "Continue with Cal.com" button. |
+
+### Authorization Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `redirectUri` | `string` | Yes | One of the redirect URIs registered on your OAuth client. The server validates this against the client's registered URIs. **Must share the same origin** (scheme + domain + port) **as the page hosting the `<OnboardingEmbed />`**, because the iframe uses `postMessage` with this origin for secure communication. For example, if your OAuth client has redirect URI `https://your-app.com/cal/callback`, then pass it here exactly the same `https://your-app.com/cal/callback`. |
+| `scope` | `string[]` | Yes | OAuth scopes to request. Must be a subset of scopes registered on the OAuth client. See [Available Scopes](/api-reference/v2/oauth#available-scopes). |
+| `state` | `string` | Yes | CSRF token. Generate a unique value per session and verify it matches when you receive the authorization code. |
+| `codeChallenge` | `string` | For public clients | PKCE code challenge (S256 method). Required for public OAuth clients. Generate a `code_verifier` (random 32-byte base64url string), hash it with SHA-256, and pass the result here. Store the `code_verifier` — you'll need it to exchange the authorization code for tokens. |
+
+<Note>
+  If the user signs up via Google, the `user` prop values are ignored — name, email, and username are inferred from the Google account instead.
+</Note>
+
+### Trigger and Theme
+
+The `theme` prop controls the appearance of the trigger button, the onboarding steps, and the authorization page. The default trigger renders a "Continue with Cal.com" button:
+
+| Light theme (default) | Dark theme |
+|---|---|
+| ![](/images/onboarding-trigger-light.png) | ![](/images/onboarding-trigger-dark.png) |
+
+You can pass a custom trigger element via the `trigger` prop:
+
+```tsx
+<OnboardingEmbed
+  trigger={<button>Connect calendar</button>}
+  // ...
+/>
+```
+
+![](/images/onboarding-trigger-custom.png)
+
+### Walkthrough — Callback Mode
+
+Here's what happens when a user clicks the trigger with `onAuthorizationAllowed` provided and the `user` prop set:
+
+```tsx
+<OnboardingEmbed
+  oAuthClientId="your_client_id"
+  theme="light"
+  user={{ email: "bob@yahoo.com", name: "Bob", username: "bob100" }}
+  authorization={{
+    scope: ["EVENT_TYPE_READ"],
+    redirectUri: "https://your-app.com/cal/callback",
+    state,
+  }}
+  onAuthorizationAllowed={({ code }) => {
+    alert(`Success! Auth code: ${code}`);
+  }}
+/>
+```
+
+**1. Trigger** — The component renders a "Continue with Cal.com" button. The user clicks it to open the onboarding dialog.
+
+![](/images/onboarding-trigger-light.png)
+
+**2. Login or Signup** — The dialog opens with the login form. Existing users can sign in with email or Google. The `user.email` prop prefills the email field.
+
+![](/images/onboarding-step-login.png)
+
+New users click "Create account" to sign up with Google or email. When signing up with email, the `user.email` and `user.username` props are prefilled. When signing up with Google, the `user` prop values are ignored — name, email, and username are inferred from the Google account.
+
+![](/images/onboarding-step-signup.png)
+
+![](/images/onboarding-step-signup-form.png)
+
+**3. Profile** — After signup, the user sets up their profile. The `user.name` prop prefills the name field.
+
+![](/images/onboarding-step-profile.png)
+
+**4. Connect Calendar** — The user can connect a calendar or skip this step.
+
+![](/images/onboarding-step-calendar.png)
+
+**5. Authorize** — The user reviews the requested permissions and clicks "Allow". The displayed permissions (e.g. "View event types") correspond to the `scope` passed to the component — in this example, `["EVENT_TYPE_READ"]`.
+
+![](/images/onboarding-step-authorize.png)
+
+**6. Done** — `onAuthorizationAllowed` fires with the authorization code. Exchange it for tokens using the [token endpoint](/api-reference/v2/oauth#3-exchange-token).
+
+### Public Clients (PKCE)
+
+Public OAuth clients cannot safely store a client secret (e.g. browser-only apps). Use PKCE to secure the authorization code exchange instead. Generate a `code_verifier`, derive a `code_challenge` from it, and pass the challenge to `OnboardingEmbed`. When you receive the authorization code, exchange it with the `code_verifier` instead of a client secret.
+
+```tsx
+import { OnboardingEmbed } from "@calcom/atoms";
+import { useEffect, useMemo, useState } from "react";
+
+async function generatePkce() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  const codeVerifier = btoa(String.fromCharCode(...array))
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(codeVerifier));
+  const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+
+  return { codeVerifier, codeChallenge };
+}
+
+export function MyApp() {
+  const state = useMemo(() => crypto.randomUUID(), []);
+  const [pkce, setPkce] = useState<{ codeVerifier: string; codeChallenge: string } | null>(null);
+
+  useEffect(() => {
+    generatePkce().then(setPkce);
+  }, []);
+
+  if (!pkce) return null;
+
+  return (
+    <OnboardingEmbed
+      oAuthClientId="your_client_id"
+      authorization={{
+        scope: ["EVENT_TYPE_READ"],
+        redirectUri: "https://your-app.com/cal/callback",
+        state,
+        codeChallenge: pkce.codeChallenge,
+      }}
+      onAuthorizationAllowed={async ({ code }) => {
+        // Exchange using code_verifier instead of client_secret
+        const res = await fetch("https://api.cal.com/v2/auth/oauth2/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            client_id: "your_client_id",
+            code_verifier: pkce.codeVerifier,
+            grant_type: "authorization_code",
+            code,
+            redirect_uri: "https://your-app.com/cal/callback",
+          }),
+        });
+        const { access_token, refresh_token } = await res.json();
+      }}
+    />
+  );
+}
+```
+
+![](/images/onboarding-step-success.png)
+
+### Error Types
+
+The `onError` callback receives an error object with the following shape:
+
+```ts
+interface OnboardingError {
+  code: "INVALID_PROPS" | "SIGNUP_FAILED" | "ONBOARDING_FAILED" | "AUTHORIZATION_FAILED" | "STATE_MISMATCH" | "UNKNOWN";
+  message: string;
+}
+```
+
+| Code | Description |
+|------|-------------|
+| `INVALID_PROPS` | Required props are missing or invalid (e.g. `oAuthClientId` does not exist, `redirectUri` does not match a registered URI, or required authorization fields are empty). |
+| `SIGNUP_FAILED` | Account creation failed. |
+| `ONBOARDING_FAILED` | An error occurred during the onboarding steps. |
+| `AUTHORIZATION_FAILED` | The user denied access or OAuth consent failed. |
+| `STATE_MISMATCH` | The `state` in the response did not match the `state` you provided. Possible CSRF attack. |
+| `UNKNOWN` | An unexpected error occurred. |
+
+### How It Works
+
+The component opens a dialog containing an iframe that loads Cal.com's onboarding flow. The iframe runs on Cal.com's domain with a first-party session, so no third-party cookies are needed.
+
+The flow automatically detects the user's state:
+- **No session** — starts at signup/login, then profile setup, calendar connection, and OAuth consent.
+- **Session with incomplete onboarding** — resumes from where the user left off.
+- **Session with complete onboarding** — skips straight to OAuth consent.
+
+After the user grants access, you receive an authorization code that you exchange for access and refresh tokens using the [token endpoint](/api-reference/v2/oauth#3-exchange-token).
