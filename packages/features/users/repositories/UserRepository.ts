@@ -10,7 +10,7 @@ import { withSelectedCalendars } from "@calcom/lib/server/withSelectedCalendars"
 import type { PrismaClient } from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import type { DestinationCalendar, SelectedCalendar, User as UserType } from "@calcom/prisma/client";
-import { Prisma } from "@calcom/prisma/client";
+import { IdentityProvider, Prisma } from "@calcom/prisma/client";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -897,7 +897,7 @@ export class UserRepository {
 
   async create(
     data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
-      username: string;
+      username: string | null;
       hashedPassword?: string;
       organizationId: number | null;
       creationSource: CreationSource;
@@ -940,7 +940,7 @@ export class UserRepository {
         },
         creationSource,
         locked,
-        ...(organizationIdValue
+        ...(organizationIdValue && username
           ? {
               organizationId: organizationIdValue,
               profiles: {
@@ -1489,6 +1489,38 @@ export class UserRepository {
     });
   }
 
+  async findByEmailWithInvitedTo({ email }: { email: string } ) {
+    return this.prismaClient.user.findUnique({
+      where: {
+        email
+      },
+      select: {
+        invitedTo: true
+      }
+    })
+  }
+
+  async findByUsernameAndOrganizationId({
+    username,
+    organizationId,
+    excludeEmail,
+  }: {
+    username: string,
+    organizationId: number | null,
+    excludeEmail: string
+  }) {
+    return this.prismaClient.user.findFirst({
+      where: {
+        username,
+        organizationId,
+        NOT: { email: excludeEmail }
+      },
+      select: {
+        id: true
+      }
+    })
+  }
+
   async lockByEmail({ email }: { email: string }) {
     await this.prismaClient.user.updateMany({
       where: { email },
@@ -1514,5 +1546,42 @@ export class UserRepository {
     });
 
     return { email: user.email, username: user.username };
+  }
+
+  async upsertForSignup({
+    email,
+    username,
+    hashedPassword,
+    organizationId,
+  }:{
+    email: string,
+    username: string | null,
+    hashedPassword: string,
+    organizationId: number | null
+  }) {
+    return this.prismaClient.user.upsert({
+      where: { email },
+      update: {
+        username,
+        emailVerified: new Date(Date.now()),
+        identityProvider: IdentityProvider.CAL,
+        password: {
+          upsert: {
+            create: { hash: hashedPassword },
+            update: { hash: hashedPassword }
+          }
+        },
+        organizationId
+      },
+      create: {
+        username,
+        email,
+        emailVerified: new Date(Date.now()),
+        identityProvider: IdentityProvider.CAL,
+        password: { create: { hash: hashedPassword } },
+        organizationId
+      },
+      select: { id: true }
+    })
   }
 }
