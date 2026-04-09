@@ -73,14 +73,6 @@ ANTHROPIC_API_KEY=sk-ant-your-key-here
 
 Get a key at https://console.anthropic.com/settings/keys. Each briefing costs under $0.01 in API credits. If the variable is not set, the feature is completely inactive and has no effect on existing behavior.
 
-For local development, you can set the following variable to receive the briefing email immediately after booking instead of waiting 30 minutes:
-
-```bash
-BOOKING_BRIEF_SEND_IMMEDIATELY=true
-```
-
-Leave `BOOKING_BRIEF_SEND_IMMEDIATELY` unset in production.
-
 ### E2E Testing
 
 Be sure to set the environment variable `NEXTAUTH_URL` to the correct value. If you are running locally, as the documentation within `.env.example` mentions, the value should be `http://localhost:3000`.
