@@ -47,8 +47,15 @@ vi.mock("@calcom/features/experiments/lib/bucketing", () => ({
   assignVariant: vi.fn(() => "try_cta"),
 }));
 
-import { ExperimentContext } from "../provider";
 import { useExperiment } from "../hooks/useExperiment";
+import { ExperimentContext } from "../provider";
+
+const RUNNING_CONFIG = {
+  slug: "upgrade-dialog-try-cta",
+  status: "RUNNING" as const,
+  winner: null,
+  variants: [{ slug: "try_cta", weight: 50 }],
+};
 
 function createWrapper(
   contextValue: { configs: unknown[]; precomputedVariants: Record<string, string | null> | null } | null
@@ -67,7 +74,7 @@ describe("useExperiment", () => {
   describe("logged-in users", () => {
     it("returns precomputed variant from context", () => {
       const wrapper = createWrapper({
-        configs: [],
+        configs: [RUNNING_CONFIG],
         precomputedVariants: { "upgrade-dialog-try-cta": "try_cta" },
       });
 
@@ -79,7 +86,7 @@ describe("useExperiment", () => {
 
     it("returns null (control) when precomputed variant is null", () => {
       const wrapper = createWrapper({
-        configs: [],
+        configs: [RUNNING_CONFIG],
         precomputedVariants: { "upgrade-dialog-try-cta": null },
       });
 
@@ -91,7 +98,7 @@ describe("useExperiment", () => {
 
     it("returns null when no precomputed variants available", () => {
       const wrapper = createWrapper({
-        configs: [],
+        configs: [RUNNING_CONFIG],
         precomputedVariants: null,
       });
 
@@ -114,7 +121,7 @@ describe("useExperiment", () => {
   describe("exposure tracking", () => {
     it("does NOT auto-track by default", () => {
       const wrapper = createWrapper({
-        configs: [],
+        configs: [RUNNING_CONFIG],
         precomputedVariants: { "upgrade-dialog-try-cta": "try_cta" },
       });
 
@@ -125,7 +132,7 @@ describe("useExperiment", () => {
 
     it("auto-tracks when trackExposure option is true", () => {
       const wrapper = createWrapper({
-        configs: [],
+        configs: [RUNNING_CONFIG],
         precomputedVariants: { "upgrade-dialog-try-cta": "try_cta" },
       });
 
@@ -134,9 +141,20 @@ describe("useExperiment", () => {
       expect(mockTrackExposure).toHaveBeenCalledWith("upgrade-dialog-try-cta", "try_cta");
     });
 
-    it("trackExposure() fires only once (deduped)", () => {
+    it("does NOT auto-track when experiment is not RUNNING in DB", () => {
       const wrapper = createWrapper({
         configs: [],
+        precomputedVariants: { "upgrade-dialog-try-cta": null },
+      });
+
+      renderHook(() => useExperiment("upgrade-dialog-try-cta", { trackExposure: true }), { wrapper });
+
+      expect(mockTrackExposure).not.toHaveBeenCalled();
+    });
+
+    it("trackExposure() fires only once (deduped)", () => {
+      const wrapper = createWrapper({
+        configs: [RUNNING_CONFIG],
         precomputedVariants: { "upgrade-dialog-try-cta": "try_cta" },
       });
 
@@ -153,7 +171,7 @@ describe("useExperiment", () => {
   describe("outcome tracking", () => {
     it("trackOutcome fires with correct variant", () => {
       const wrapper = createWrapper({
-        configs: [],
+        configs: [RUNNING_CONFIG],
         precomputedVariants: { "upgrade-dialog-try-cta": "try_cta" },
       });
 
@@ -166,7 +184,7 @@ describe("useExperiment", () => {
 
     it("trackOutcome fires with null for control group", () => {
       const wrapper = createWrapper({
-        configs: [],
+        configs: [RUNNING_CONFIG],
         precomputedVariants: { "upgrade-dialog-try-cta": null },
       });
 
@@ -175,6 +193,19 @@ describe("useExperiment", () => {
       act(() => result.current.trackOutcome());
 
       expect(mockTrackOutcome).toHaveBeenCalledWith("upgrade-dialog-try-cta", null);
+    });
+
+    it("trackOutcome is a no-op when experiment is not RUNNING", () => {
+      const wrapper = createWrapper({
+        configs: [],
+        precomputedVariants: null,
+      });
+
+      const { result } = renderHook(() => useExperiment("upgrade-dialog-try-cta"), { wrapper });
+
+      act(() => result.current.trackOutcome());
+
+      expect(mockTrackOutcome).not.toHaveBeenCalled();
     });
   });
 
@@ -187,7 +218,7 @@ describe("useExperiment", () => {
       window.sessionStorage.setItem("exp_override:upgrade-dialog-try-cta", "try_cta");
 
       const wrapper = createWrapper({
-        configs: [],
+        configs: [RUNNING_CONFIG],
         precomputedVariants: { "upgrade-dialog-try-cta": null }, // bucketed as control
       });
 
@@ -201,7 +232,7 @@ describe("useExperiment", () => {
       window.sessionStorage.setItem("exp_override:upgrade-dialog-try-cta", "control");
 
       const wrapper = createWrapper({
-        configs: [],
+        configs: [RUNNING_CONFIG],
         precomputedVariants: { "upgrade-dialog-try-cta": "try_cta" }, // bucketed as variant
       });
 
@@ -215,7 +246,7 @@ describe("useExperiment", () => {
       window.sessionStorage.setItem("exp_override:upgrade-dialog-try-cta", "try_cta");
 
       const wrapper = createWrapper({
-        configs: [],
+        configs: [RUNNING_CONFIG],
         precomputedVariants: { "upgrade-dialog-try-cta": null }, // bucketed as control
       });
 

@@ -79,7 +79,8 @@ export function useExperiment<T extends ExperimentSlug>(
   const context = useContext(ExperimentContext);
   const config = EXPERIMENTS[slug];
   const target: string | undefined = config?.target;
-  const active = target === "logged-in" || target === "anonymous";
+  const runningInDb = context?.configs.some((c) => c.slug === slug) ?? false;
+  const active = (target === "logged-in" || target === "anonymous") && runningInDb;
 
   const loggedInVariant =
     target === "logged-in" && context?.precomputedVariants && slug in context.precomputedVariants
