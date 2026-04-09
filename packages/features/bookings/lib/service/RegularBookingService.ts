@@ -2214,12 +2214,23 @@ async function handler(
         const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
           ? results[0]?.updatedEvent[0]
           : (results[0]?.updatedEvent ?? results[0]?.createdEvent);
+          
+        const teamsResult = results.find((r) => r.type === "office365_video");
+        if (!teamsResult && results.some((r) => r.type === "office365_video")) {
+          tracingLogger.warn("MS Teams result not found in calendar results array");
+        }
+        const teamsUpdatedEvent = Array.isArray(teamsResult?.updatedEvent) 
+          ? teamsResult?.updatedEvent[0] 
+          : teamsResult?.updatedEvent;
+        const teamsJoinUrl = teamsUpdatedEvent?.url || teamsResult?.createdEvent?.url;
+
         metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
         metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
         metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
         evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
           metadata.hangoutLink ||
+          teamsJoinUrl ||
           createdOrUpdatedEvent?.url ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
           getVideoCallUrlFromCalEvent(evt) ||
@@ -2335,12 +2346,21 @@ async function handler(
           }
         }
         // TODO: Handle created event metadata more elegantly
-        additionalInformation.hangoutLink = results[0].createdEvent?.hangoutLink;
-        additionalInformation.conferenceData = results[0].createdEvent?.conferenceData;
-        additionalInformation.entryPoints = results[0].createdEvent?.entryPoints;
+        const calendarResult = results.find(r => r.createdEvent?.hangoutLink) || results[0];
+        additionalInformation.hangoutLink = calendarResult?.createdEvent?.hangoutLink;
+        additionalInformation.conferenceData = calendarResult?.createdEvent?.conferenceData;
+        additionalInformation.entryPoints = calendarResult?.createdEvent?.entryPoints;
+
+        const teamsResult = results.find((r) => r.type === "office365_video");
+        if (!teamsResult && results.some((r) => r.type === "office365_video")) {
+          tracingLogger.warn("MS Teams result not found in calendar results array");
+        }
+        const teamsJoinUrl = teamsResult?.createdEvent?.url;
+
         evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
           additionalInformation.hangoutLink ||
+          teamsJoinUrl ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
           videoCallUrl;
 
