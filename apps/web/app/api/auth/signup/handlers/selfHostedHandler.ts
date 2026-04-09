@@ -22,7 +22,7 @@ import { signupSchema } from "@calcom/prisma/zod-utils";
 import { NextResponse } from "next/server";
 import { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 
-import { CreationSource } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 
 export default async function handler(body: Record<string, string>) {
   const { email, password, language, token } = signupSchema.parse(body);
