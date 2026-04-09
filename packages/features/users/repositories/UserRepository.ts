@@ -277,6 +277,23 @@ export class UserRepository {
     return user;
   }
 
+  async findAvailabilityUserByEmail({ email }: { email: string }) {
+    const user = await this.prismaClient.user.findUnique({
+      where: {
+        email: email.toLowerCase(),
+      },
+      select: {
+        locked: true,
+        ...availabilityUserSelect,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+      },
+    });
+
+    return user ? withSelectedCalendars(user) : null;
+  }
+
   async findManyByEmailsWithEmailVerificationSettings({ emails }: { emails: string[] }) {
     const normalizedEmails = emails.map((e) => e.toLowerCase());
 

@@ -846,6 +846,55 @@ export class AvailableSlotsService {
     "getUsersWithCredentials"
   );
 
+  private async _getRescheduledGuestUser({
+    rescheduleUid,
+    organizerEmails,
+    schedulingType,
+  }: {
+    rescheduleUid?: string | null;
+    organizerEmails: string[];
+    schedulingType: SchedulingType;
+  }): Promise<GetAvailabilityUserWithDelegationCredentials | null> {
+    if (!rescheduleUid || schedulingType === SchedulingType.COLLECTIVE) {
+      return null;
+    }
+
+    const booking = await this.dependencies.bookingRepo.findByUidIncludeEventTypeAttendeesAndUser({
+      bookingUid: rescheduleUid,
+    });
+
+    if (!booking) {
+      return null;
+    }
+
+    const attendeeToCheck = booking.attendees.find((attendee) => {
+      const attendeeEmail = attendee.email.toLowerCase();
+      return !organizerEmails.includes(attendeeEmail);
+    });
+
+    if (!attendeeToCheck?.email) {
+      return null;
+    }
+
+    const attendeeUser = await this.dependencies.userRepo.findAvailabilityUserByEmail({
+      email: attendeeToCheck.email,
+    });
+
+    if (!attendeeUser || attendeeUser.locked) {
+      return null;
+    }
+
+    return {
+      ...attendeeUser,
+      credentials: attendeeUser.credentials ?? [],
+    };
+  }
+
+  private getRescheduledGuestUser = withReporting(
+    this._getRescheduledGuestUser.bind(this),
+    "getRescheduledGuestUser"
+  );
+
   private getStartTime(startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) {
     const startTimeMin = dayjs.utc().add(minimumBookingNotice || 1, "minutes");
     const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
@@ -1247,6 +1296,25 @@ export class AvailableSlotsService {
       };
     }
 
+    const organizerEmails = Array.from(
+      new Set(allHosts.map((host) => host.user.email.toLowerCase()).filter(Boolean))
+    );
+    const rescheduledGuestUser = await this.getRescheduledGuestUser({
+      rescheduleUid: input.rescheduleUid,
+      organizerEmails,
+      schedulingType: eventType.schedulingType,
+    });
+    const allHostsAndRescheduledGuest = rescheduledGuestUser
+      ? [
+          ...allHosts,
+          {
+            isFixed: true,
+            groupId: null,
+            user: rescheduledGuestUser,
+          },
+        ]
+      : allHosts;
+
     const twoWeeksFromNow = dayjs().add(2, "week");
 
     const hasFallbackRRHosts =
@@ -1256,7 +1324,7 @@ export class AvailableSlotsService {
       await this.calculateHostsAndAvailabilities({
         input,
         eventType,
-        hosts: allHosts,
+        hosts: allHostsAndRescheduledGuest,
         loggerWithEventDetails,
         // adjust start time so we can check for available slots in the first two weeks
         startTime:
@@ -1291,7 +1359,19 @@ export class AvailableSlotsService {
           const firstTwoWeeksAvailabilities = await this.calculateHostsAndAvailabilities({
             input,
             eventType,
-            hosts: [...eligibleQualifiedRRHosts, ...eligibleFixedHosts],
+            hosts: [
+              ...eligibleQualifiedRRHosts,
+              ...eligibleFixedHosts,
+              ...(rescheduledGuestUser
+                ? [
+                    {
+                      isFixed: true,
+                      groupId: null,
+                      user: rescheduledGuestUser,
+                    },
+                  ]
+                : []),
+            ],
             loggerWithEventDetails,
             startTime: dayjs(),
             endTime: twoWeeksFromNow,
@@ -1327,7 +1407,19 @@ export class AvailableSlotsService {
           await this.calculateHostsAndAvailabilities({
             input,
             eventType,
-            hosts: [...eligibleFallbackRRHosts, ...eligibleFixedHosts],
+            hosts: [
+              ...eligibleFallbackRRHosts,
+              ...eligibleFixedHosts,
+              ...(rescheduledGuestUser
+                ? [
+                    {
+                      isFixed: true,
+                      groupId: null,
+                      user: rescheduledGuestUser,
+                    },
+                  ]
+                : []),
+            ],
             loggerWithEventDetails,
             startTime,
             endTime,
