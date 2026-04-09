@@ -136,6 +136,7 @@ export const getHandler = async ({ ctx, input }: MeOptions) => {
     allowSEOIndexing: user.allowSEOIndexing,
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
     requiresBookerEmailVerification: user.requiresBookerEmailVerification,
+    liveCaptionsEnabled: user.liveCaptionsEnabled,
     ...profileData,
     secondaryEmails,
     isPremium: userMetadataPrased?.isPremium,
