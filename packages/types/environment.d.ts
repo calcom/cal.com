@@ -2,6 +2,8 @@ declare namespace NodeJS {
   interface ProcessEnv {
     /** Optional: Anthropic API key for Booking Brief (AI host briefing emails) */
     readonly ANTHROPIC_API_KEY: string | undefined;
+    /** Optional: Claude model for Booking Brief (default claude-opus-4-5) */
+    readonly ANTHROPIC_MODEL: string | undefined;
     readonly CALCOM_TELEMETRY_DISABLED: string | undefined;
     readonly CALENDSO_ENCRYPTION_KEY: string | undefined;
     readonly DATABASE_URL: string | undefined;

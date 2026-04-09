@@ -1,5 +1,5 @@
+import process from "node:process";
 import Anthropic from "@anthropic-ai/sdk";
-
 import type { CalEventResponses } from "@calcom/types/Calendar";
 
 export interface BriefingInput {
@@ -73,7 +73,7 @@ Return a JSON object with exactly these keys: attendeeSummary (string), suggeste
   try {
     const client = new Anthropic({ apiKey });
     const res = await client.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: process.env.ANTHROPIC_MODEL ?? "claude-opus-4-5",
       max_tokens: 800,
       system:
         "You are a meeting preparation assistant. Return only valid JSON. No markdown, no explanation, no code fences.",

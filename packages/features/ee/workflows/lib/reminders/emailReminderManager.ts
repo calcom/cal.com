@@ -9,14 +9,13 @@ import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
-import { WorkflowMethods, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
-
-import type { BookingInfo, ScheduleEmailReminderAction, FormSubmissionData } from "../types";
+import { WorkflowMethods, type WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import type { BookingInfo, FormSubmissionData, ScheduleEmailReminderAction } from "../types";
 import { sendOrScheduleWorkflowEmails } from "./providers/emailProvider";
 import type { WorkflowContextData } from "./reminderScheduler";
+import { bookingBriefTemplate } from "./templates/bookingBriefTemplate";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate, { transformRoutingFormResponsesToVariableFormat } from "./templates/customTemplate";
-import { bookingBriefTemplate } from "./templates/bookingBriefTemplate";
 
 const log = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
 
@@ -277,14 +276,13 @@ export async function scheduleBookingBrief(params: {
         scheduled: true,
       },
     });
-  const sendImmediately = process.env.BOOKING_BRIEF_SEND_IMMEDIATELY === "true";
-await sendOrScheduleWorkflowEmails({
-  to: [params.organizerEmail],
-  subject,
-  html,
-  sendAt: sendImmediately ? null : scheduledDate,
-  referenceUid: reminder.uuid ?? undefined,
-});
+    await sendOrScheduleWorkflowEmails({
+      to: [params.organizerEmail],
+      subject,
+      html,
+      sendAt: scheduledDate,
+      referenceUid: reminder.uuid ?? undefined,
+    });
   } catch (err) {
     console.error("[BookingBrief]", err);
   }
