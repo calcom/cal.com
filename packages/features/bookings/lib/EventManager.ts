@@ -273,6 +273,26 @@ export default class EventManager {
     }
   }
 
+  private fallbackGoogleMeetToCalVideoIfNeeded(evt: CalendarEvent) {
+    const [mainHostDestinationCalendar] =
+      (evt.destinationCalendar as [undefined | NonNullable<typeof evt.destinationCalendar>[number]]) ?? [];
+
+    if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
+      const [googleCalendarCredential] = this.calendarCredentials.filter(
+        (cred) => cred.type === "google_calendar"
+      );
+      // Delegation Credential case won't normally have DestinationCalendar set and thus fallback of using Google Calendar credential would be used.
+      // TODO: We could extend this logic to Regular Credentials also. Having a Google Calendar credential would cause fallback to use that credential to create calendar and thus we could have Google Meet link
+      if (!isDelegationCredential({ credentialId: googleCalendarCredential?.id })) {
+        log.warn(
+          "Falling back to Cal Video integration for Regular Credential as Google Calendar is not set as destination calendar"
+        );
+        evt.location = "integrations:daily";
+        evt.conferenceCredentialId = undefined;
+      }
+    }
+  }
+
   /**
    * Takes a CalendarEvent and creates all necessary integration entries for it.
    * When a video integration is chosen as the event's location, a video integration
@@ -310,24 +330,10 @@ export default class EventManager {
       log.warn("Falling back to cal video as no location is set");
     }
 
+    // Keep create/reschedule/update behavior consistent for Google Meet when destination isn't Google Calendar.
+    this.fallbackGoogleMeetToCalVideoIfNeeded(evt);
     const [mainHostDestinationCalendar] =
       (evt.destinationCalendar as [undefined | NonNullable<typeof evt.destinationCalendar>[number]]) ?? [];
-
-    // Fallback to Cal Video if Google Meet is selected w/o a Google Calendar connection
-    if (evt.location === MeetLocationType && mainHostDestinationCalendar?.integration !== "google_calendar") {
-      const [googleCalendarCredential] = this.calendarCredentials.filter(
-        (cred) => cred.type === "google_calendar"
-      );
-      // Delegation Credential case won't normally have DestinationCalendar set and thus fallback of using Google Calendar credential would be used. Identify that case.
-      // TODO: We could extend this logic to Regular Credentials also. Having a Google Calendar credential would cause fallback to use that credential to create calendar and thus we could have Google Meet link
-      if (!isDelegationCredential({ credentialId: googleCalendarCredential?.id })) {
-        log.warn(
-          "Falling back to Cal Video integration for Regular Credential as Google Calendar is not set as destination calendar"
-        );
-        evt["location"] = "integrations:daily";
-        evt["conferenceCredentialId"] = undefined;
-      }
-    }
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
     const isMSTeamsWithOutlookCalendar =
@@ -416,6 +422,7 @@ export default class EventManager {
 
   public async updateLocation(event: CalendarEvent, booking: PartialBooking): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
+    this.fallbackGoogleMeetToCalVideoIfNeeded(evt);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
@@ -621,6 +628,7 @@ export default class EventManager {
     skipDeleteEventsAndMeetings?: boolean
   ): Promise<CreateUpdateResult> {
     const originalEvt = processLocation(event);
+    this.fallbackGoogleMeetToCalVideoIfNeeded(originalEvt);
     const evt = cloneDeep(originalEvt);
     if (!rescheduleUid) {
       throw new Error("You called eventManager.update without an `rescheduleUid`. This should never happen.");

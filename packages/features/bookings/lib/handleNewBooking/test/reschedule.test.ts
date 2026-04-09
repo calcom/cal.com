@@ -655,6 +655,121 @@ describe("handleNewBooking", () => {
         timeout
       );
 
+      test(
+        `should fallback Google Meet to Cal Video on reschedule when destination calendar is not Google Calendar`,
+        async () => {
+          const handleNewBooking = getNewBookingHandler();
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+            destinationCalendar: {
+              integration: "office365_calendar",
+              externalId: "organizer@outlook.com",
+              primaryEmail: "organizer@outlook.com",
+            },
+          });
+
+          const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+          const uidOfBookingToBeRescheduled = "google-meet-fallback-reschedule";
+
+          await createBookingScenario(
+            getScenarioData({
+              eventTypes: [
+                {
+                  id: 1,
+                  slotInterval: 15,
+                  length: 15,
+                  locations: [{ type: BookingLocations.GoogleMeet }, { type: BookingLocations.CalVideo }],
+                  users: [{ id: 101 }],
+                  destinationCalendar: {
+                    integration: "office365_calendar",
+                    externalId: "event-type@outlook.com",
+                    primaryEmail: "event-type@outlook.com",
+                  },
+                },
+              ],
+              bookings: [
+                {
+                  uid: uidOfBookingToBeRescheduled,
+                  eventTypeId: 1,
+                  status: BookingStatus.ACCEPTED,
+                  startTime: `${plus1DateString}T05:00:00.000Z`,
+                  endTime: `${plus1DateString}T05:15:00.000Z`,
+                  location: "integrations:daily",
+                  metadata: {
+                    videoCallUrl: "http://mock-dailyvideo.example.com/existing",
+                  },
+                  references: [
+                    {
+                      type: appStoreMetadata.dailyvideo.type,
+                      uid: "EXISTING_DAILY_ID",
+                      meetingId: "EXISTING_DAILY_ID",
+                      meetingPassword: "EXISTING_DAILY_PASS",
+                      meetingUrl: "http://mock-dailyvideo.example.com/existing",
+                    },
+                  ],
+                },
+              ],
+              organizer,
+              apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+            })
+          );
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+            videoMeetingData: {
+              id: "UPDATED_DAILY_ID",
+              password: "UPDATED_DAILY_PASS",
+              url: "http://mock-dailyvideo.example.com/updated",
+            },
+          });
+          mockCalendarToHaveNoBusySlots("googlecalendar", {
+            update: {
+              uid: "UPDATED_CALENDAR_ID",
+              iCalUID: "UPDATED_CALENDAR_ICAL_UID",
+            },
+          });
+
+          const mockBookingData = getMockRequestDataForBooking({
+            data: {
+              eventTypeId: 1,
+              rescheduleUid: uidOfBookingToBeRescheduled,
+              start: `${plus1DateString}T06:00:00.000Z`,
+              end: `${plus1DateString}T06:15:00.000Z`,
+              responses: {
+                email: booker.email,
+                name: booker.name,
+                location: { optionValue: "", value: BookingLocations.GoogleMeet },
+              },
+            },
+          });
+
+          const createdBooking = await handleNewBooking({
+            bookingData: mockBookingData,
+          });
+
+          const newBooking = await prismaMock.booking.findUnique({
+            where: { uid: createdBooking.uid as string },
+            select: { location: true, references: true },
+          });
+
+          expect(newBooking?.location).toBe("integrations:daily");
+          expect(newBooking?.references.some((reference) => reference.type === appStoreMetadata.dailyvideo.type)).toBe(
+            true
+          );
+        },
+        timeout
+      );
+
       describe("Event Type that requires confirmation", () => {
         // NOTE: Tests for BOOKING_REQUESTED webhook have been moved to the new webhook architecture test suite
         // See packages/features/webhooks/lib/__tests__/ for tests using the producer/consumer pattern
