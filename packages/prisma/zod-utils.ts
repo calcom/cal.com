@@ -445,6 +445,8 @@ const schemaDefaultConferencingApp = z.object({
   appLink: z.string().optional(),
 });
 
+export const deafHearingIdentitySchema = z.enum(["deaf", "hard_of_hearing", "late_deaf"]);
+
 export const userMetadata = z
   .object({
     proPaidForByTeamId: z.number().optional(),
@@ -466,6 +468,7 @@ export const userMetadata = z
         revertTime: z.string().optional(),
       })
       .optional(),
+    deafHearingIdentity: deafHearingIdentitySchema.optional(),
   })
   .nullable();
 
