@@ -240,7 +240,7 @@ export const roundRobinReassignment = async ({
     }
 
     const eventNameObject = {
-      attendeeName: responses?.name || "Nameless",
+      attendeeName: responses?.name || attendeeList[0]?.name || "Nameless",
       eventType: eventType.title,
       eventName: eventType.eventName,
       // we send on behalf of team if >1 round robin attendee | collective

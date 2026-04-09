@@ -9,12 +9,12 @@ import {
 import { makeUserActor } from "@calcom/features/booking-audit/lib/makeActor";
 import type { ValidActionSource } from "@calcom/features/booking-audit/lib/types/actionSource";
 import { getBookingEventHandlerService } from "@calcom/features/bookings/di/BookingEventHandlerService.container";
-import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 import { getAllCredentialsIncludeServiceAccountKey } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import { getTeamFeatureRepository } from "@calcom/features/di/containers/TeamFeatureRepository";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
 import AssignmentReasonRecorder, {
@@ -27,12 +27,12 @@ import {
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getEventName } from "@calcom/features/eventtypes/lib/eventNaming";
+import { getTranslation } from "@calcom/i18n/server";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { IdempotencyKeyService } from "@calcom/lib/idempotencyKey/idempotencyKeyService";
 import { isPrismaObjOrUndefined } from "@calcom/lib/isPrismaObj";
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/i18n/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -180,6 +180,29 @@ export const roundRobinManualReassignment = async ({
     reassignedHost: newUser,
   });
 
+  const attendeePromises = [];
+  for (const attendee of booking.attendees) {
+    if (
+      attendee.email === newUser.email ||
+      attendee.email === previousRRHost?.email ||
+      teamMembers.some((member) => member.email === attendee.email)
+    ) {
+      continue;
+    }
+
+    attendeePromises.push(
+      getTranslation(attendee.locale ?? "en", "common").then((tAttendee) => ({
+        email: attendee.email,
+        name: attendee.name,
+        timeZone: attendee.timeZone,
+        language: { translate: tAttendee, locale: attendee.locale ?? "en" },
+        phoneNumber: attendee.phoneNumber || undefined,
+      }))
+    );
+  }
+
+  const attendeeList = await Promise.all(attendeePromises);
+
   if (hasOrganizerChanged) {
     const bookingResponses = booking.responses;
     const responseSchema = getBookingResponsesPartialSchema({
@@ -206,7 +229,7 @@ export const roundRobinManualReassignment = async ({
     }
 
     const newBookingTitle = getEventName({
-      attendeeName: responses?.name || "Nameless",
+      attendeeName: responses?.name || attendeeList[0]?.name || "Nameless",
       eventType: eventType.title,
       eventName: eventType.eventName,
       // we send on behalf of team if >1 round robin attendee | collective
@@ -305,28 +328,6 @@ export const roundRobinManualReassignment = async ({
   });
 
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
-  const attendeePromises = [];
-  for (const attendee of booking.attendees) {
-    if (
-      attendee.email === newUser.email ||
-      attendee.email === previousRRHost?.email ||
-      teamMembers.some((member) => member.email === attendee.email)
-    ) {
-      continue;
-    }
-
-    attendeePromises.push(
-      getTranslation(attendee.locale ?? "en", "common").then((tAttendee) => ({
-        email: attendee.email,
-        name: attendee.name,
-        timeZone: attendee.timeZone,
-        language: { translate: tAttendee, locale: attendee.locale ?? "en" },
-        phoneNumber: attendee.phoneNumber || undefined,
-      }))
-    );
-  }
-
-  const attendeeList = await Promise.all(attendeePromises);
 
   const evt: CalendarEvent = {
     type: eventType.slug,
