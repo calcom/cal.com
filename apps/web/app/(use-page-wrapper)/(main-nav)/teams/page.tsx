@@ -32,7 +32,7 @@ const ServerPage = async ({ searchParams: _searchParams }: ServerPageProps) => {
     : null;
 
   if (!session) {
-    redirect(callbackUrl ? `/auth/login?callbackUrl=${callbackUrl}` : "/auth/login");
+    redirect(callbackUrl ? `/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/auth/login");
   }
 
   const t = await getTranslate();

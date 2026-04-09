@@ -1,11 +1,8 @@
 "use client";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
-import {
-  HOSTED_CAL_FEATURES,
-  WEBAPP_URL,
-  WEBSITE_URL,
-} from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, WEBSITE_URL } from "@calcom/lib/constants";
+import { normalizeCallbackUrl } from "@calcom/lib/normalize-callback-url";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -19,28 +16,16 @@ import {
   openGoogleAuthWindow,
   useGoogleAuthWindowListener,
 } from "@calcom/web/modules/auth/google-auth-window";
-import {
-  LastUsed,
-  useLastUsed,
-} from "@calcom/web/modules/auth/hooks/useLastUsed";
+import { LastUsed, useLastUsed } from "@calcom/web/modules/auth/hooks/useLastUsed";
 import { AnimatedGridBackground } from "@calcom/web/modules/auth/world-map";
 import AddToHomescreen from "@components/AddToHomescreen";
 import BackupCode from "@components/auth/BackupCode";
 import TwoFactor from "@components/auth/TwoFactor";
 import { Button } from "@coss/ui/components/button";
-import {
-  Card,
-  CardFrame,
-  CardFrameFooter,
-  CardPanel,
-} from "@coss/ui/components/card";
+import { Card, CardFrame, CardFrameFooter, CardPanel } from "@coss/ui/components/card";
 import { Field, FieldLabel } from "@coss/ui/components/field";
 import { Input } from "@coss/ui/components/input";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@coss/ui/components/input-group";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@coss/ui/components/input-group";
 import { Separator } from "@coss/ui/components/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -61,13 +46,9 @@ interface LoginValues {
   csrfToken: string;
 }
 
-const MicrosoftIcon = () => (
-  <img className="size-4" src="/microsoft-logo.svg" alt="" />
-);
+const MicrosoftIcon = () => <img className="size-4" src="/microsoft-logo.svg" alt="" />;
 
-const GoogleIcon = () => (
-  <img className="size-4" src="/google-icon-colored.svg" alt="" />
-);
+const GoogleIcon = () => <img className="size-4" src="/google-icon-colored.svg" alt="" />;
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 export default function Login({
@@ -88,17 +69,13 @@ export default function Login({
         .string()
         .min(1, `${t("error_required_field")}`)
         .regex(emailRegex, `${t("enter_valid_email")}`),
-      ...(totpEmail
-        ? {}
-        : { password: z.string().min(1, `${t("error_required_field")}`) }),
+      ...(totpEmail ? {} : { password: z.string().min(1, `${t("error_required_field")}`) }),
     })
     // Passthrough other fields like totpCode
     .passthrough();
   const methods = useForm<LoginValues>({ resolver: zodResolver(formSchema) });
   const { register, formState } = methods;
-  const [twoFactorRequired, setTwoFactorRequired] = useState(
-    !!totpEmail || false
-  );
+  const [twoFactorRequired, setTwoFactorRequired] = useState(!!totpEmail || false);
   const [twoFactorLostAccess, setTwoFactorLostAccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastUsed, setLastUsed] = useLastUsed();
@@ -108,25 +85,12 @@ export default function Login({
     // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
     // Don't leak information about whether an email is registered or not
     [ErrorCode.IncorrectEmailPassword]: t("incorrect_email_password"),
-    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t(
-      "please_try_again"
-    )}`,
-    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t(
-      "please_try_again_and_contact_us"
-    )}`,
-    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t(
-      "account_created_with_identity_provider"
-    ),
+    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
+    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
+    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  let callbackUrl = searchParams?.get("callbackUrl") || "";
-
-  if (/"\//.test(callbackUrl)) callbackUrl = callbackUrl.substring(1);
-
-  // If not absolute URL, make it absolute
-  if (!/^https?:\/\//.test(callbackUrl)) {
-    callbackUrl = `${WEBAPP_URL}/${callbackUrl}`;
-  }
+  let callbackUrl = normalizeCallbackUrl(searchParams?.get("callbackUrl") || "");
 
   const safeCallbackUrl = getSafeRedirectUrl(callbackUrl);
 
@@ -150,8 +114,7 @@ export default function Login({
     return `${WEBSITE_URL}/signup?${params.toString()}`;
   })();
 
-  const { data, isPending, error } =
-    trpc.viewer.public.ssoConnections.useQuery();
+  const { data, isPending, error } = trpc.viewer.public.ssoConnections.useQuery();
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -179,20 +142,16 @@ export default function Login({
     else if (!res.error) {
       setLastUsed("credentials");
       router.push(callbackUrl);
-    } else if (res.error === ErrorCode.SecondFactorRequired)
-      setTwoFactorRequired(true);
-    else if (res.error === ErrorCode.IncorrectBackupCode)
-      setErrorMessage(t("incorrect_backup_code"));
-    else if (res.error === ErrorCode.MissingBackupCodes)
-      setErrorMessage(t("missing_backup_codes"));
+    } else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
+    else if (res.error === ErrorCode.IncorrectBackupCode) setErrorMessage(t("incorrect_backup_code"));
+    else if (res.error === ErrorCode.MissingBackupCodes) setErrorMessage(t("missing_backup_codes"));
     // fallback if error not found
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
 
   const showSocialLogin = isGoogleLoginEnabled || isOutlookLoginEnabled;
   const showSignupLink =
-    process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" &&
-    searchParams?.get("register") !== "false";
+    process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== "true" && searchParams?.get("register") !== "false";
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-default/80 px-4 py-10">
@@ -205,18 +164,11 @@ export default function Login({
             <Card>
               <CardPanel className="p-10">
                 {/* Logo */}
-                <h1 className="font-heading mb-1 text-center text-xl font-bold text-emphasis">
-                  Cal.com
-                </h1>
+                <h1 className="font-heading mb-1 text-center text-xl font-bold text-emphasis">Cal.com</h1>
 
                 {/* Heading */}
-                <p
-                  className="mb-6 text-center text-sm text-subtle"
-                  data-testid="login-subtitle"
-                >
-                  {twoFactorRequired
-                    ? t("2fa_code")
-                    : t("welcome_back_sign_in")}
+                <p className="mb-6 text-center text-sm text-subtle" data-testid="login-subtitle">
+                  {twoFactorRequired ? t("2fa_code") : t("welcome_back_sign_in")}
                 </p>
                 {/* Social Login Buttons */}
                 {!twoFactorRequired && showSocialLogin && (
@@ -233,18 +185,14 @@ export default function Login({
                             setLastUsed("google");
                             if (isEmbed) {
                               if (!openGoogleAuthWindow()) {
-                                showToast(
-                                  t("popup_blocked_by_browser"),
-                                  "error"
-                                );
+                                showToast(t("popup_blocked_by_browser"), "error");
                               }
                             } else {
                               await signIn("google", {
                                 callbackUrl,
                               });
                             }
-                          }}
-                        >
+                          }}>
                           <GoogleIcon />
                           <span>{t("signin_with_google")}</span>
                           {lastUsed === "google" && <LastUsed />}
@@ -262,8 +210,7 @@ export default function Login({
                             await signIn("azure-ad", {
                               callbackUrl,
                             });
-                          }}
-                        >
+                          }}>
                           <MicrosoftIcon />
                           <span>{t("signin_with_microsoft")}</span>
                           {lastUsed === "microsoft" && <LastUsed />}
@@ -274,19 +221,13 @@ export default function Login({
                     {/* Divider */}
                     <div className="my-6 flex items-center gap-4">
                       <Separator className="flex-1" />
-                      <span className="text-sm text-zinc-400">
-                        {t("or").toLowerCase()}
-                      </span>
+                      <span className="text-sm text-zinc-400">{t("or").toLowerCase()}</span>
                       <Separator className="flex-1" />
                     </div>
                   </>
                 )}
 
-                <form
-                  onSubmit={methods.handleSubmit(onSubmit)}
-                  noValidate
-                  data-testid="login-form"
-                >
+                <form onSubmit={methods.handleSubmit(onSubmit)} noValidate data-testid="login-form">
                   <input
                     defaultValue={csrfToken || undefined}
                     type="hidden"
@@ -302,17 +243,12 @@ export default function Login({
                         <Input
                           id="email"
                           type="email"
-                          defaultValue={
-                            totpEmail || (searchParams?.get("email") as string)
-                          }
+                          defaultValue={totpEmail || (searchParams?.get("email") as string)}
                           autoComplete="email"
                           {...register("email")}
                         />
                         {formState.errors.email && (
-                          <p
-                            data-testid="field-error"
-                            className="text-destructive-foreground text-xs"
-                          >
+                          <p data-testid="field-error" className="text-destructive-foreground text-xs">
                             {formState.errors.email.message}
                           </p>
                         )}
@@ -324,8 +260,7 @@ export default function Login({
                           <FieldLabel>{t("password")}</FieldLabel>
                           <Link
                             href="/auth/forgot-password"
-                            className="text-sm text-subtle hover:text-emphasis"
-                          >
+                            className="text-sm text-subtle hover:text-emphasis">
                             {t("forgot")}
                           </Link>
                         </div>
@@ -342,25 +277,13 @@ export default function Login({
                               variant="ghost"
                               size="icon-xs"
                               onClick={() => setShowPassword(!showPassword)}
-                              aria-label={
-                                showPassword
-                                  ? t("hide_password")
-                                  : t("show_password")
-                              }
-                            >
-                              {showPassword ? (
-                                <EyeOff className="size-4" />
-                              ) : (
-                                <Eye className="size-4" />
-                              )}
+                              aria-label={showPassword ? t("hide_password") : t("show_password")}>
+                              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                             </Button>
                           </InputGroupAddon>
                         </InputGroup>
                         {formState.errors.password && (
-                          <p
-                            data-testid="field-error"
-                            className="text-destructive-foreground text-xs"
-                          >
+                          <p data-testid="field-error" className="text-destructive-foreground text-xs">
                             {formState.errors.password.message}
                           </p>
                         )}
@@ -371,30 +294,15 @@ export default function Login({
                   {/* Two Factor */}
                   {twoFactorRequired && (
                     <div className="space-y-4">
-                      {!twoFactorLostAccess ? (
-                        <TwoFactor center />
-                      ) : (
-                        <BackupCode center />
-                      )}
+                      {!twoFactorLostAccess ? <TwoFactor center /> : <BackupCode center />}
                     </div>
                   )}
 
                   {/* Error Message */}
-                  {errorMessage && (
-                    <Alert
-                      severity="error"
-                      title={errorMessage}
-                      className="mt-4"
-                    />
-                  )}
+                  {errorMessage && <Alert severity="error" title={errorMessage} className="mt-4" />}
 
                   {/* Submit Button */}
-                  <Button
-                    type="submit"
-                    size="lg"
-                    className="mt-8 w-full"
-                    disabled={formState.isSubmitting}
-                  >
+                  <Button type="submit" size="lg" className="mt-8 w-full" disabled={formState.isSubmitting}>
                     {twoFactorRequired ? t("submit") : t("continue")}
                   </Button>
                 </form>
@@ -415,8 +323,7 @@ export default function Login({
                               methods.setValue("totpCode", "");
                             }
                             setErrorMessage(null);
-                          }}
-                        >
+                          }}>
                           <Icon name="arrow-left" className="mr-2 size-4" />
                           {t("go_back")}
                         </Button>
@@ -427,8 +334,7 @@ export default function Login({
                               setTwoFactorLostAccess(true);
                               setErrorMessage(null);
                               methods.setValue("totpCode", "");
-                            }}
-                          >
+                            }}>
                             <Icon name="lock" className="mr-2 size-4" />
                             {t("lost_access")}
                           </Button>
@@ -439,8 +345,7 @@ export default function Login({
                         variant="ghost"
                         onClick={() => {
                           window.location.replace("/");
-                        }}
-                      >
+                        }}>
                         {t("cancel")}
                       </Button>
                     )}
@@ -453,18 +358,13 @@ export default function Login({
             {!twoFactorRequired && (showSignupLink || displaySSOLogin) && (
               <CardFrameFooter className="flex items-center justify-center gap-3">
                 {showSignupLink && (
-                  <Link
-                    href={signupUrl}
-                    className="text-sm font-medium text-emphasis hover:underline"
-                  >
+                  <Link href={signupUrl} className="text-sm font-medium text-emphasis hover:underline">
                     {t("create_account")}
                   </Link>
                 )}
                 {displaySSOLogin && (
                   <>
-                    {showSignupLink && (
-                      <span className="text-muted-foreground">·</span>
-                    )}
+                    {showSignupLink && <span className="text-muted-foreground">·</span>}
                     <SAMLLogin
                       samlTenantID={samlTenantID}
                       samlProductID={samlProductID}
