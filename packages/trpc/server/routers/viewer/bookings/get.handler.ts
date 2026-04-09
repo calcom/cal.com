@@ -328,10 +328,7 @@ export async function getBookings({
               .where(
                 "users.id",
                 "in",
-                db
-                  .selectFrom("Membership")
-                  .select("Membership.userId")
-                  .where("Membership.teamId", "in", teamIdsWithBookingPermission!)
+                db.selectFrom("team_user_ids" as any).select("userId" as any)
               )
           )
           .with("team_event_type_ids", (db) =>
