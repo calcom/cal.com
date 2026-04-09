@@ -1332,8 +1332,12 @@ function buildStatusWhereClause(
     or(
       statuses.map((status: InputByStatus) => {
         if (status === "upcoming") {
+          const now = new Date();
           return and([
-            eb("Booking.endTime", ">=", new Date()),
+            // startTime bound lets Postgres use the leading column of (startTime, endTime, status).
+            // 24h lookback covers any in-progress booking (no event type runs longer than a day).
+            eb("Booking.startTime", ">=", new Date(now.getTime() - 60 * 60 * 1000)),
+            eb("Booking.endTime", ">=", now),
             or([
               and([eb("Booking.recurringEventId", "is not", null), eb("Booking.status", "=", "accepted")]),
               and([
@@ -1345,8 +1349,10 @@ function buildStatusWhereClause(
         }
 
         if (status === "recurring") {
+          const now = new Date();
           return and([
-            eb("Booking.endTime", ">=", new Date()),
+            eb("Booking.startTime", ">=", new Date(now.getTime() - 60 * 60 * 1000)),
+            eb("Booking.endTime", ">=", now),
             eb("Booking.recurringEventId", "is not", null),
             eb("Booking.status", "not in", ["cancelled", "rejected"]),
           ]);
@@ -1372,7 +1378,12 @@ function buildStatusWhereClause(
         }
 
         if (status === "unconfirmed") {
-          return and([eb("Booking.endTime", ">=", new Date()), eb("Booking.status", "=", "pending")]);
+          const now = new Date();
+          return and([
+            eb("Booking.startTime", ">=", new Date(now.getTime() - 60 * 60 * 1000)),
+            eb("Booking.endTime", ">=", now),
+            eb("Booking.status", "=", "pending"),
+          ]);
         }
         return and([]);
       })
