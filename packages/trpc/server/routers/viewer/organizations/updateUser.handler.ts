@@ -59,8 +59,16 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
                 },
               },
             },
-            include: {
-              members: true,
+            select: {
+              members: {
+                where: {
+                  userId: input.userId,
+                },
+                select: {
+                  userId: true,
+                  teamId: true,
+                },
+              },
             },
           },
         },
@@ -185,8 +193,8 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   // We cast to membership role as we know pbac insnt enabled on this instance.
   if (!isEditingSelf && checkAdminOrOwner(input.role as MembershipRole) && roleManager.isPBACEnabled) {
     const teamIds = requestedMember.team.children
-      .map((sub_team) => sub_team.members.find((item) => item.userId === input.userId)?.teamId)
-      .filter(Boolean) as number[]; //filter out undefined
+      .map((sub_team) => sub_team.members[0]?.teamId)
+      .filter(Boolean) as number[];
 
     await applyRoleToAllTeams(input.userId, teamIds, input.role as MembershipRole);
   }
