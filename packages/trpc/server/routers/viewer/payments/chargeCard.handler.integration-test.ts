@@ -50,12 +50,12 @@ describe("payments.chargeCard - integration", () => {
     }
   });
 
-  it("should throw NOT_FOUND for non-existent booking", async () => {
+  it("should throw FORBIDDEN for non-existent booking", async () => {
     await expect(
       chargeCardHandler({
         ctx: createCtx(user),
         input: { bookingId: 999999999 },
       })
-    ).rejects.toThrow();
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
   });
 });

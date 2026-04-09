@@ -1,5 +1,6 @@
 import { handleNoShowFee } from "@calcom/features/bookings/lib/payment/handleNoShowFee";
 import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+import { BookingAccessService } from "@calcom/features/bookings/services/BookingAccessService";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { ErrorWithCode } from "@calcom/lib/errors";
 import type { PrismaClient } from "@calcom/prisma";
@@ -14,29 +15,48 @@ interface ChargeCardHandlerOptions {
   input: TChargeCardInputSchema;
 }
 export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions) => {
-  const { prisma } = ctx;
-  const bookingRepository = new BookingRepository(prisma);
+  const { prisma, user } = ctx;
 
-  const booking = await bookingRepository.getBookingForPaymentProcessing(input.bookingId);
+  const bookingAccessService = new BookingAccessService(prisma);
+  const isAuthorized = await bookingAccessService.doesUserIdHaveAccessToBooking({
+    userId: user.id,
+    bookingId: input.bookingId,
+  });
 
-  if (!booking) {
+  if (!isAuthorized) {
     throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Booking not found",
+      code: "FORBIDDEN",
+      message: "You are not authorized to charge this booking",
     });
   }
 
-  if (booking.payment[0].success) {
+  const bookingRepository = new BookingRepository(prisma);
+  const booking = await bookingRepository.getBookingForPaymentProcessing(input.bookingId);
+
+  // Race condition guard: booking deleted between access check and fetch.
+  if (!booking) {
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Booking ${input.bookingId} not found after authorization` });
+  }
+
+  const payment = booking.payment[0];
+  if (!payment) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `The no show fee for ${booking.id} has already been charged.`,
+      message: `No payment found for booking ${booking.id}`,
+    });
+  }
+
+  if (payment.success) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `The no show fee for booking ${booking.id} has already been charged`,
     });
   }
 
   try {
     await handleNoShowFee({
       booking,
-      payment: booking.payment[0],
+      payment,
     });
   } catch (error) {
     console.error(error);
@@ -68,7 +88,7 @@ export const chargeCardHandler = async ({ ctx, input }: ChargeCardHandlerOptions
 
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
-      message: `Failed to charge no show fee for ${booking.id}`,
+      message: `Failed to charge no show fee for booking ${booking.id}`,
     });
   }
 };
