@@ -101,7 +101,7 @@ export const getAllCredentialsIncludeServiceAccountKey = async (
     // Backwards compatibility: All CRM apps are triggered for every event type. Unless disabled on the event type
     // Check if the CRM app exists on the event type
     if (eventTypeCrmCredentials[credential.id]) {
-      if (eventTypeCrmCredentials[credential.id].enabled) {
+      if (eventTypeCrmMetadata[credential.id].enabled) {
         return credential;
       }
     } else {

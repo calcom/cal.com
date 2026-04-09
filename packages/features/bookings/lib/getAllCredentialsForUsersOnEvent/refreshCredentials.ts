@@ -12,7 +12,6 @@ import { refreshCredential } from "./refreshCredential";
  *
  * @param credentials
  */
-// Define the function with underscore prefix
 const _refreshCredentials = async (
   credentials: Array<CredentialForCalendarService>
 ): Promise<Array<CredentialForCalendarService>> => {
