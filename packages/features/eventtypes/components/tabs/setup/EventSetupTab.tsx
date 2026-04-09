@@ -67,7 +67,7 @@ export type EventSetupTabCustomClassNames = {
 
 export type EventSetupTabWrapperProps = Pick<
   EventTypeSetupProps,
-  "eventType" | "locationOptions" | "team" | "teamMembers" | "destinationCalendar"
+  "eventType" | "locationOptions" | "team" | "destinationCalendar"
 > & {
   customClassNames?: EventSetupTabCustomClassNames;
 };

@@ -249,7 +249,6 @@ const EventTypeWeb = ({
           eventType={eventType}
           locationOptions={locationOptions}
           team={team}
-          teamMembers={teamMembers}
           destinationCalendar={destinationCalendar}
         />
       ),
