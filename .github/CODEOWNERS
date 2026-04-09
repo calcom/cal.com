@@ -18,6 +18,7 @@
 /packages/trpc/server/routers/viewer/bookings/confirm.handler.ts @calcom/Foundation
 /packages/trpc/server/routers/viewer/bookings/get.handler.ts @calcom/Foundation
 /packages/trpc/server/routers/viewer/slots/**/* @calcom/Foundation
+/packages/coss-ui/src/components/**/* @pasqualevitiello
 
 # Exclude test files from requiring foundation/consumer approval
 **/*.spec.*
