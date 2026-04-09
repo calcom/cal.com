@@ -298,12 +298,11 @@ function EventTypeSingleLayout({
               tabs={EventTypeTabs}
               sticky
               stickyOffset="var(--navbar-height, 64px)"
-              linkShallow
               itemClassname="items-start"
             />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
-            <HorizontalTabs tabs={EventTypeTabs} linkShallow />
+            <HorizontalTabs tabs={EventTypeTabs} />
           </div>
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div

@@ -143,7 +143,14 @@ export const useTabsNavigations = ({
       info: `${activeWebhooksNumber} ${t("active")}`,
       "data-testid": "webhooks",
     });
-    return navigation;
+
+    // Use pushState for tab switches to avoid triggering RSC fetches.
+    // The shallow prop on <Link> is ignored in App Router, so we intercept
+    // clicks via onClick and update the URL client-side instead.
+    return navigation.map((tab) => ({
+      ...tab,
+      onClick: () => window.history.pushState(null, "", tab.href),
+    }));
   }, [
     t,
     enabledAppsNumber,
