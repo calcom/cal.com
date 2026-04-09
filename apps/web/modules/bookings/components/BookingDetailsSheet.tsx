@@ -648,7 +648,7 @@ function WhereSection({ booking, meta }: { booking: BookingOutput; meta: Booking
             href={locationToDisplay}
             target="_blank"
             rel="noopener noreferrer"
-            className="truncate text-blue-600 hover:underline">
+            className="truncate text-blue-600 hover:underline dark:text-blue-400">
             {locationToDisplay}
           </a>
         </div>
