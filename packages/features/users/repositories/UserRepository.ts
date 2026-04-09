@@ -1554,35 +1554,39 @@ export class UserRepository {
     username,
     hashedPassword,
     organizationId,
-  }:{
-    email: string,
-    username: string | null,
-    hashedPassword: string,
-    organizationId: number | null
+    emailVerified,
+    identityProvider,
+  }: {
+    email: string;
+    username: string | null;
+    hashedPassword: string;
+    organizationId: number | null;
+    emailVerified: Date;
+    identityProvider: IdentityProvider;
   }) {
     return this.prismaClient.user.upsert({
       where: { email },
       update: {
         username,
-        emailVerified: new Date(Date.now()),
-        identityProvider: IdentityProvider.CAL,
+        emailVerified,
+        identityProvider,
         password: {
           upsert: {
             create: { hash: hashedPassword },
-            update: { hash: hashedPassword }
-          }
+            update: { hash: hashedPassword },
+          },
         },
-        organizationId
+        organizationId,
       },
       create: {
         username,
         email,
-        emailVerified: new Date(Date.now()),
-        identityProvider: IdentityProvider.CAL,
+        emailVerified,
+        identityProvider,
         password: { create: { hash: hashedPassword } },
-        organizationId
+        organizationId,
       },
-      select: { id: true }
-    })
+      select: { id: true },
+    });
   }
 }

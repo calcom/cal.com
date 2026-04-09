@@ -205,7 +205,9 @@ const handler: CustomNextApiHandler = async (body, usernameStatus, query) => {
           email,
           username,
           hashedPassword,
-          organizationId
+          organizationId,
+          emailVerified: new Date(),
+          identityProvider: IdentityProvider.CAL
         })
       } catch (error) {
         if (isPrismaError(error) && error.code === "P2002") {
