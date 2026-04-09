@@ -1209,6 +1209,7 @@ export class UserRepository {
         allowSEOIndexing: true,
         receiveMonthlyDigestEmail: true,
         requiresBookerEmailVerification: true,
+        liveCaptionsEnabled: true,
         profiles: true,
       },
     });
