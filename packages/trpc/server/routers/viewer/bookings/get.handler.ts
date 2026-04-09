@@ -302,7 +302,9 @@ export async function getBookings({
     "Booking.updatedAt",
   ] as const;
 
-  const isPastQuery = bookingListingByStatus.length === 1 && bookingListingByStatus[0] === "past";
+  const isPastQuery =
+    bookingListingByStatus.length === 1 &&
+    (bookingListingByStatus[0] === "past" || bookingListingByStatus[0] === "cancelled");
 
   let bookingsFromUnion: Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">[];
   let totalCount: number | null = null;
@@ -968,9 +970,9 @@ async function enrichAttendeesWithUserData<
 }
 
 /**
- * Progressive window for past bookings: start narrow (1 week), widen until
- * we have enough results. Each subsequent query only fetches the gap between
- * the previous window boundary and the new one.
+ * Progressive window for past/cancelled bookings: start narrow (1 week),
+ * widen until we have enough results. Each subsequent query only fetches the
+ * gap between the previous window boundary and the new one.
  */
 async function progressivePastWindow<
   T extends Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">,
@@ -1364,7 +1366,14 @@ function buildStatusWhereClause(
         }
 
         if (status === "cancelled") {
-          return eb("Booking.status", "in", ["cancelled", "rejected"]);
+          const conditions = [eb("Booking.status", "in", ["cancelled", "rejected"])];
+          if (pastWindow) {
+            conditions.push(eb("Booking.startTime", ">=", pastWindow.startTimeAfter));
+            if (pastWindow.startTimeBefore) {
+              conditions.push(eb("Booking.startTime", "<", pastWindow.startTimeBefore));
+            }
+          }
+          return and(conditions);
         }
 
         if (status === "unconfirmed") {
