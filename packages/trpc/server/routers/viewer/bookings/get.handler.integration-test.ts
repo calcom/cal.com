@@ -1,6 +1,6 @@
+import kysely from "@calcom/kysely";
 import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
-import kysely from "@calcom/kysely";
 import type { Booking, EventType, Team, User } from "@calcom/prisma/client";
 import { BookingStatus, MembershipRole } from "@calcom/prisma/enums";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -714,7 +714,12 @@ describe("getBookings - integration", () => {
       });
 
       personalEventType = await prisma.eventType.create({
-        data: { title: `Personal Event ${ts}`, slug: `personal-event-${ts}`, length: 30, userId: sharedMember.id },
+        data: {
+          title: `Personal Event ${ts}`,
+          slug: `personal-event-${ts}`,
+          length: 30,
+          userId: sharedMember.id,
+        },
       });
 
       const future = (days: number) => new Date(Date.now() + days * 24 * 60 * 60 * 1000);
@@ -803,7 +808,13 @@ describe("getBookings - integration", () => {
     }, 30_000);
 
     afterAll(async () => {
-      const bookingIds = [bookingTeamX?.id, bookingTeamY?.id, bookingPersonal?.id, pastBookingTeamX?.id, pastBookingTeamY?.id].filter(Boolean);
+      const bookingIds = [
+        bookingTeamX?.id,
+        bookingTeamY?.id,
+        bookingPersonal?.id,
+        pastBookingTeamX?.id,
+        pastBookingTeamY?.id,
+      ].filter(Boolean);
       if (bookingIds.length) {
         await prisma.attendee.deleteMany({ where: { bookingId: { in: bookingIds } } });
         await prisma.booking.deleteMany({ where: { id: { in: bookingIds } } });

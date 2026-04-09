@@ -547,4 +547,58 @@ describe("getBookings - PBAC Permission Checks", () => {
       expect(mockPrisma.$queryRawUnsafe).not.toHaveBeenCalled();
     });
   });
+
+  describe("App-level event type scope filtering", () => {
+    it("should return fewer bookings than SQL fetched but keep totalCount unchanged", async () => {
+      // User has access to team 1 only
+      mockGetTeamIdsWithPermission.mockResolvedValue([1]);
+      mockPrisma.user.findMany = vi.fn().mockResolvedValue([]);
+      mockPrisma.booking.groupBy = vi.fn().mockResolvedValue([]);
+
+      // SQL returns 5 rows (page not full → totalCount = skip + rows = 5)
+      // But 2 bookings belong to team 99 (not accessible) and are not
+      // organizer/attendee matches — the app-level filter should remove them.
+      const mockRows = [
+        { id: 1 },
+        { id: 2 },
+        { id: 3 }, // team 99 — filtered out
+        { id: 4 },
+        { id: 5 }, // team 99 — filtered out
+      ];
+      const mockPlainBookings = mockRows.map((r) => ({
+        ...r,
+        seatsReferences: [],
+        attendees: [],
+        // Bookings 3 and 5 belong to team 99 (no access)
+        eventType: r.id === 3 || r.id === 5 ? { teamId: 99 } : { teamId: 1 },
+        user: { id: 999 }, // Not the current user (id=1)
+        references: [],
+        payment: [],
+        startTime: new Date(),
+        endTime: new Date(),
+      }));
+
+      mockKysely._mockQueryBuilder.execute = vi
+        .fn()
+        .mockResolvedValueOnce(mockRows) // bookingsFromUnion (ID-only query)
+        .mockResolvedValueOnce(mockPlainBookings); // plainBookings (full data)
+
+      const result = await getBookings({
+        user: mockUser,
+        prisma: mockPrisma,
+        kysely: mockKysely as unknown as Kysely<DB>,
+        bookingListingByStatus: ["upcoming"],
+        filters: {},
+        take: 10,
+        skip: 0,
+      });
+
+      // SQL returned 5 rows → totalCount stays at 5 (the SQL-derived count)
+      // App-level filter removed 2 → only 3 bookings are returned on this page
+      // The UI will show e.g. "1-3 of 5" — the page has fewer rows but the
+      // overall count remains accurate to the database.
+      expect(result.bookings.length).toBe(3);
+      expect(result.totalCount).toBe(5);
+    });
+  });
 });

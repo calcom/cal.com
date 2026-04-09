@@ -341,55 +341,30 @@ export async function getBookings({
               .where("EventType.teamId", "in", teamIdsWithBookingPermission!)
           )
           .selectFrom("Booking")
-          .where(({ or, and, eb, exists, selectFrom }) => {
-            // Event type scope: allow team, personal, and null — exclude other teams.
-            // Without this, a shared member's bookings for another team's event types leak through.
-            const eventTypeScope = or([
-              eb("Booking.eventTypeId", "is", null),
+          .where(({ or, eb, exists, selectFrom }) =>
+            or([
+              eb("Booking.userId", "=", user.id),
+              eb("Booking.userId", "in", (sub) =>
+                sub.selectFrom("team_user_ids" as any).select("userId" as any)
+              ),
               eb("Booking.eventTypeId", "in", (sub) =>
                 sub.selectFrom("team_event_type_ids" as any).select("id" as any)
               ),
               exists(
-                selectFrom("EventType")
-                  .select("EventType.id")
-                  .whereRef("EventType.id", "=", "Booking.eventTypeId")
-                  .where("EventType.teamId", "is", null)
+                selectFrom("Attendee")
+                  .select("Attendee.id")
+                  .whereRef("Attendee.bookingId", "=", "Booking.id")
+                  .where(({ or: innerOr, eb: innerEb }) =>
+                    innerOr([
+                      innerEb("Attendee.email", "=", user.email),
+                      innerEb("Attendee.email", "in", (sub) =>
+                        sub.selectFrom("team_emails" as any).select("email" as any)
+                      ),
+                    ])
+                  )
               ),
-            ]);
-
-            return or([
-              // Current user's own bookings (no scope needed — always visible)
-              eb("Booking.userId", "=", user.id),
-              // Bookings by team member, scoped to team/personal event types
-              and([
-                eb("Booking.userId", "in", (sub) =>
-                  sub.selectFrom("team_user_ids" as any).select("userId" as any)
-                ),
-                eventTypeScope,
-              ]),
-              // Bookings for team event types (already scoped by definition)
-              eb("Booking.eventTypeId", "in", (sub) =>
-                sub.selectFrom("team_event_type_ids" as any).select("id" as any)
-              ),
-              // Attendee match, scoped to team/personal event types
-              and([
-                exists(
-                  selectFrom("Attendee")
-                    .select("Attendee.id")
-                    .whereRef("Attendee.bookingId", "=", "Booking.id")
-                    .where(({ or: innerOr, eb: innerEb }) =>
-                      innerOr([
-                        innerEb("Attendee.email", "=", user.email),
-                        innerEb("Attendee.email", "in", (sub) =>
-                          sub.selectFrom("team_emails" as any).select("email" as any)
-                        ),
-                      ])
-                    )
-                ),
-                eventTypeScope,
-              ]),
-            ]);
-          }),
+            ])
+          ),
         pastWindow
       );
     };
@@ -756,6 +731,22 @@ export async function getBookings({
         .execute()
     : [];
 
+  // App-level event type scope: filter out bookings for event types belonging to
+  // teams the user doesn't have access to. This replaces the correlated EXISTS
+  // (eventTypeScope) that was previously in the SQL query but caused Postgres
+  // planner estimation failures and IOPS spikes in production.
+  const scopedBookings =
+    hasTeamAccess && teamIdsWithBookingPermission?.length
+      ? plainBookings.filter((booking) => {
+          const teamId = booking.eventType?.teamId ?? null;
+          if (teamId === null) return true;
+          if (teamIdsWithBookingPermission.includes(teamId)) return true;
+          if (booking.user?.id === user.id) return true;
+          if (booking.attendees.some((a) => a.email === user.email)) return true;
+          return false;
+        })
+      : plainBookings;
+
   const [
     recurringInfoBasic,
     recurringInfoExtended,
@@ -826,7 +817,7 @@ export async function getBookings({
   log.info(
     `fetching all bookings for ${user.id}`,
     safeStringify({
-      ids: plainBookings.map((booking) => booking.id),
+      ids: scopedBookings.map((booking) => booking.id),
       filters,
       orderBy,
       take,
@@ -834,7 +825,7 @@ export async function getBookings({
     })
   );
 
-  const checkIfUserIsHost = (userId: number, booking: (typeof plainBookings)[number]) => {
+  const checkIfUserIsHost = (userId: number, booking: (typeof scopedBookings)[number]) => {
     if (booking.user?.id === userId) {
       return true;
     }
@@ -851,7 +842,7 @@ export async function getBookings({
   };
 
   const bookings = await Promise.all(
-    plainBookings.map(async (booking) => {
+    scopedBookings.map(async (booking) => {
       // If seats are enabled, the event is not set to show attendees, and the current user is not the host, filter out attendees who are not the current user
       if (
         booking.seatsReferences.length &&
