@@ -59,6 +59,7 @@ export type SessionUser = {
   allowSEOIndexing: boolean;
   receiveMonthlyDigestEmail: boolean;
   requiresBookerEmailVerification: boolean;
+  liveCaptionsEnabled: boolean;
   profiles: UserProfile[];
   allSelectedCalendars: SelectedCalendar[];
   userLevelSelectedCalendars: SelectedCalendar[];
@@ -109,6 +110,7 @@ const userSelect = {
   allowSEOIndexing: true,
   receiveMonthlyDigestEmail: true,
   requiresBookerEmailVerification: true,
+  liveCaptionsEnabled: true,
   verified: true,
   disableImpersonation: true,
   locked: true,
