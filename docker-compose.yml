@@ -117,6 +117,59 @@ services:
       - database
       - redis
 
+  # Cron service to process scheduled tasks (workflow reminders, webhooks, etc.)
+  # Required for workflow email/SMS reminders to be sent on self-hosted deployments.
+  # Set CRON_SECRET in your .env file to enable authentication.
+  cron:
+    container_name: cron
+    image: alpine:latest
+    restart: unless-stopped
+    networks:
+      - stack
+    environment:
+      - CRON_SECRET=${CRON_SECRET}
+      - CALCOM_HOST=calcom:3000
+      - CRON_API_KEY=${CRON_API_KEY}
+    depends_on:
+      - calcom
+    command: >
+      sh -c "
+        apk add --no-cache curl > /dev/null 2>&1
+
+        # Task queue processor — runs every 60s (required for workflow reminders)
+        while true; do
+          curl -sf -H \"Authorization: Bearer $${CRON_SECRET}\" http://$${CALCOM_HOST}/api/tasks/cron > /dev/null 2>&1 || echo '[cron] /api/tasks/cron failed'
+          sleep 60
+        done &
+
+        # Task cleanup — runs every 24h
+        while true; do
+          sleep 86400
+          curl -sf -H \"Authorization: Bearer $${CRON_SECRET}\" http://$${CALCOM_HOST}/api/tasks/cleanup > /dev/null 2>&1 || echo '[cron] /api/tasks/cleanup failed'
+        done &
+
+        # Calendar subscriptions sync — runs every 5 min
+        while true; do
+          curl -sf -H \"Authorization: Bearer $${CRON_SECRET}\" \"http://$${CALCOM_HOST}/api/cron/calendar-subscriptions?apiKey=$${CRON_API_KEY}\" > /dev/null 2>&1 || echo '[cron] /api/cron/calendar-subscriptions failed'
+          sleep 300
+        done &
+
+        # Credential refresh — runs every 5 min
+        while true; do
+          curl -sf -H \"Authorization: Bearer $${CRON_SECRET}\" \"http://$${CALCOM_HOST}/api/cron/credentials?apiKey=$${CRON_API_KEY}\" > /dev/null 2>&1 || echo '[cron] /api/cron/credentials failed'
+          sleep 300
+        done &
+
+        # Selected calendars sync — runs every 5 min
+        while true; do
+          curl -sf -H \"Authorization: Bearer $${CRON_SECRET}\" \"http://$${CALCOM_HOST}/api/cron/selected-calendars?apiKey=$${CRON_API_KEY}\" > /dev/null 2>&1 || echo '[cron] /api/cron/selected-calendars failed'
+          sleep 300
+        done &
+
+        # Wait for all background jobs
+        wait
+      "
+
   # Optional use of Prisma Studio. In production, comment out or remove the section below to prevent unwanted access to your database.
   studio:
     image: calcom.docker.scarf.sh/calcom/cal.com
