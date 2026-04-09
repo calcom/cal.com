@@ -1050,6 +1050,7 @@ model Booking {
   @@index([userId, status, startTime])
   @@index([eventTypeId, status])
   @@index([userId, createdAt])
+  @@index([updatedAt])
 }
 
 model Tracking {
