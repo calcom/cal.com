@@ -2,16 +2,38 @@
  * @vitest-environment jsdom
  */
 // @ts-nocheck - Test file with mock type compatibility issues that don't affect test functionality
-import { renderHook, act, waitFor } from "@testing-library/react";
-import { useSession } from "next-auth/react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+// Node.js 22+ exposes a built-in globalThis.localStorage that requires --localstorage-file.
+// Without it, the object exists but its methods (getItem, setItem, etc.) are undefined.
+// Zustand's persist middleware calls createJSONStorage(() => localStorage) at module init,
+// which captures the broken Node.js localStorage before jsdom or test-level mocks can
+// override it. vi.hoisted runs before imports, ensuring the mock is in place when the
+// store module initializes.
+const { localStorageMock } = vi.hoisted(() => {
+  const localStorageMock = {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+    key: vi.fn(),
+    length: 0,
+  };
+  Object.defineProperty(globalThis, "localStorage", {
+    value: localStorageMock,
+    writable: true,
+    configurable: true,
+  });
+  return { localStorageMock };
+});
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-
-import { useOnboardingStore, useOnboarding } from "./onboardingStore";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { useOnboarding, useOnboardingStore } from "./onboardingStore";
 
 // Mock all dependencies
 vi.mock("next-auth/react");
@@ -117,14 +139,7 @@ const createTestSearchParams = (params?: Record<string, string>) => {
   return new URLSearchParams(params);
 };
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-};
-
+// Also install on window for jsdom compatibility (localStorageMock defined via vi.hoisted above)
 Object.defineProperty(window, "localStorage", {
   value: localStorageMock,
   writable: true,
