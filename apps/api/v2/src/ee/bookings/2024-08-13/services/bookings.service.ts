@@ -662,7 +662,7 @@ export class BookingsService_2024_08_13 {
     const userIsEventTypeAdminOrOwner =
       authUser && booking.eventType
         ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(
-            authUser as NonNullable<AuthOptionalUser>,
+            { ...authUser, isSystemAdmin: authUser.isSystemAdmin ?? false },
             booking.eventType as EventType
           )
         : false;
@@ -751,7 +751,7 @@ export class BookingsService_2024_08_13 {
 
       const userIsEventTypeAdminOrOwner =
         user && formatted.eventType
-          ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner(user as NonNullable<AuthOptionalUser>, formatted.eventType)
+          ? await this.eventTypeAccessService.userIsEventTypeAdminOrOwner({ ...user, isSystemAdmin: false } as ApiAuthGuardUser, formatted.eventType)
           : false;
 
       const isRecurring = !!formatted.recurringEventId;
