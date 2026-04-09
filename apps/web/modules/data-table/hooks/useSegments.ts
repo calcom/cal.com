@@ -7,6 +7,7 @@ import { type UseSegments, SYSTEM_SEGMENT_PREFIX } from "@calcom/features/data-t
 import { isDateRangeFilterValue } from "@calcom/features/data-table/lib/utils";
 
 export const useSegments: UseSegments = ({ tableIdentifier, providedSegments, systemSegments }) => {
+  const utils = trpc.useUtils();
   const { data: rawSegments, isSuccess } = trpc.viewer.filterSegments.list.useQuery(
     {
       tableIdentifier,
@@ -15,7 +16,27 @@ export const useSegments: UseSegments = ({ tableIdentifier, providedSegments, sy
       enabled: !providedSegments, // Only fetch if segments are not provided
     }
   );
-  const { mutate: setPreference } = trpc.viewer.filterSegments.setPreference.useMutation();
+  const { mutate: setPreference } = trpc.viewer.filterSegments.setPreference.useMutation({
+    async onMutate({ segmentId }) {
+      // Cancel in-flight list refetches (e.g. from invalidate() after segment
+      // creation) so they don't overwrite this optimistic update.
+      await utils.viewer.filterSegments.list.cancel({ tableIdentifier });
+      const previousData = utils.viewer.filterSegments.list.getData({ tableIdentifier });
+      utils.viewer.filterSegments.list.setData({ tableIdentifier }, (prev) => {
+        if (!prev) return prev;
+        return { ...prev, preferredSegmentId: segmentId };
+      });
+      return { previousData };
+    },
+    onError(_err, _vars, context) {
+      if (context?.previousData) {
+        utils.viewer.filterSegments.list.setData({ tableIdentifier }, context.previousData);
+      }
+    },
+    onSettled() {
+      utils.viewer.filterSegments.list.invalidate({ tableIdentifier });
+    },
+  });
 
   const preferredSegmentId = useMemo(() => rawSegments?.preferredSegmentId || null, [rawSegments]);
 

@@ -109,7 +109,11 @@ function mockUseSegments() {
     segments: mockState.segments,
     preferredSegmentId: mockState.preferredSegmentId,
     isSuccess: mockState.isSegmentFetchedSuccessfully,
-    setPreference: mockSetPreference,
+    setPreference: (...args: unknown[]) => {
+      mockSetPreference(...args);
+      const input = args[0] as { segmentId: SegmentIdentifier | null };
+      mockState.preferredSegmentId = input.segmentId;
+    },
     isSegmentEnabled: true,
   };
 }
@@ -148,7 +152,8 @@ describe("DataTableSegmentContext", () => {
       const { result } = renderHook(() => useDataTableSegment(), { wrapper: Wrapper });
 
       expect(mockSetSegmentIdRaw).toHaveBeenCalledWith("42");
-      expect(mockSetActiveFilters).toHaveBeenCalled();
+      expect(mockSetSegmentIdRaw).toHaveBeenCalledTimes(1);
+      expect(mockSetActiveFilters).toHaveBeenCalledTimes(1);
       expect(result.current.selectedSegment).toBeDefined();
     });
 
@@ -162,6 +167,20 @@ describe("DataTableSegmentContext", () => {
       renderHook(() => useDataTableSegment(), { wrapper: Wrapper });
 
       expect(mockSetActiveFilters).toHaveBeenCalled();
+    });
+
+    it("does not call setPreference when loading the already-saved preferred segment", () => {
+      mockState.isSegmentFetchedSuccessfully = true;
+      mockState.segments = [testSegment];
+      mockState.preferredSegmentId = testPreferredSegmentId;
+
+      const Wrapper = createWrapper();
+      renderHook(() => useDataTableSegment(), { wrapper: Wrapper });
+
+      // Filters should be applied
+      expect(mockSetActiveFilters).toHaveBeenCalled();
+      // But setPreference should NOT be called — the preference is already saved
+      expect(mockSetPreference).not.toHaveBeenCalled();
     });
 
     it("does not apply segment when segments are not yet fetched", () => {
@@ -227,6 +246,43 @@ describe("DataTableSegmentContext", () => {
       expect(reapplyCalls).toHaveLength(0);
     });
 
+    it("does NOT re-apply segment after deselection + navigation back", () => {
+      // Regression test: after deselecting a segment, navigating away and back
+      // should NOT re-apply the old segment. The preference must be cleared
+      // (optimistic cache update in production, mock simulates this).
+      mockState.isSegmentFetchedSuccessfully = true;
+      mockState.segments = [testSegment];
+      mockState.preferredSegmentId = testPreferredSegmentId;
+
+      const Wrapper = createWrapper();
+      const { result, rerender } = renderHook(() => useDataTableSegment(), { wrapper: Wrapper });
+
+      // STEP 1: Segment applied on mount
+      expect(mockSetSegmentIdRaw).toHaveBeenCalledWith("42");
+      expect(result.current.selectedSegment).toBeDefined();
+      vi.clearAllMocks();
+
+      // STEP 2: User deselects
+      act(() => {
+        result.current.setSegmentId(null);
+      });
+
+      expect(mockSetSegmentIdRaw).toHaveBeenCalledWith(null);
+      expect(result.current.selectedSegment).toBeUndefined();
+      // Preference should now be null (optimistic update)
+      expect(mockState.preferredSegmentId).toBeNull();
+      vi.clearAllMocks();
+
+      // STEP 3: Navigate away and back (URL cleared, component reused)
+      mockState.segmentIdRaw = "";
+      rerender();
+
+      // The old segment must NOT be re-applied
+      const reapplyCalls = mockSetSegmentIdRaw.mock.calls.filter((call: unknown[]) => call[0] === "42");
+      expect(reapplyCalls).toHaveLength(0);
+      expect(result.current.selectedSegment).toBeUndefined();
+    });
+
     it("does NOT interfere when user creates a segment on a page with no preferred segment", () => {
       // Simulates org members page: no preferred segment, no segment in URL.
       // After initial mount the user creates and selects a segment via the UI.
@@ -264,7 +320,42 @@ describe("DataTableSegmentContext", () => {
     });
   });
 
-  describe("validator pending flow", () => {
+  describe("isValidatorPending — query gating", () => {
+    it("is true while segments are still being fetched (prevents premature data queries)", () => {
+      mockState.isSegmentFetchedSuccessfully = false;
+      mockState.segments = [];
+      mockState.preferredSegmentId = null;
+
+      const Wrapper = createWrapper();
+      const { result, rerender } = renderHook(() => useDataTableSegment(), { wrapper: Wrapper });
+
+      // During initialization, isValidatorPending must be true so that
+      // downstream data queries (e.g. bookings) don't fire with default params
+      expect(result.current.isValidatorPending).toBe(true);
+
+      // Segments finish loading (no preferred segment)
+      mockState.isSegmentFetchedSuccessfully = true;
+      rerender();
+
+      // Now ready — queries can proceed
+      expect(result.current.isValidatorPending).toBe(false);
+    });
+
+    it("is true until preferred segment filters are fully applied", () => {
+      // Segments loaded but preferred segment exists — must stay pending
+      // until filters are applied to avoid a double-fetch
+      mockState.isSegmentFetchedSuccessfully = true;
+      mockState.segments = [testSegment];
+      mockState.preferredSegmentId = testPreferredSegmentId;
+
+      const Wrapper = createWrapper();
+      const { result } = renderHook(() => useDataTableSegment(), { wrapper: Wrapper });
+
+      // After mount with immediate segment resolution, should be ready
+      expect(result.current.isValidatorPending).toBe(false);
+      expect(mockSetActiveFilters).toHaveBeenCalled();
+    });
+
     it("defers segment application when validator is loading and applies when ready", () => {
       mockState.isSegmentFetchedSuccessfully = true;
       mockState.segments = [testSegment];
@@ -286,6 +377,7 @@ describe("DataTableSegmentContext", () => {
 
       // Now the filters should be applied
       expect(mockSetActiveFilters).toHaveBeenCalled();
+      expect(result.current.isValidatorPending).toBe(false);
     });
   });
 });

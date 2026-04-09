@@ -1,17 +1,21 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from "react";
-
-import { useSegmentsNoop } from "../hooks/useSegmentsNoop";
 import type {
-  FilterSegmentOutput,
-  SystemFilterSegment,
   CombinedFilterSegment,
+  FilterSegmentOutput,
   SegmentIdentifier,
+  SystemFilterSegment,
   UseSegments,
 } from "@calcom/features/data-table/lib/types";
-import { SYSTEM_SEGMENT_PREFIX } from "@calcom/features/data-table/lib/types";
+import type React from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useStore } from "zustand";
+import { useSegmentsNoop } from "../hooks/useSegmentsNoop";
 import { useDataTableState } from "./DataTableStateContext";
+import { findSegmentById, toSegmentIdObject } from "./segment-helpers";
+import { createSegmentStore, type SegmentStoreApi } from "./segment-store";
+
+// ─── Public context type (unchanged) ────────────────────────────────────────
 
 export type DataTableSegmentContextType = {
   segments: CombinedFilterSegment[];
@@ -33,6 +37,8 @@ export function useDataTableSegment() {
   }
   return context;
 }
+
+// ─── Provider ───────────────────────────────────────────────────────────────
 
 interface DataTableSegmentProviderProps {
   children: React.ReactNode;
@@ -80,59 +86,12 @@ export function DataTableSegmentProvider({
     systemSegments,
   });
 
-  const findSelectedSegment = useCallback(
-    (segmentId: string) => {
-      return segments.find((segment) => {
-        if (
-          segment.type === "system" &&
-          segmentId &&
-          segmentId.startsWith(SYSTEM_SEGMENT_PREFIX) &&
-          segment.id === segmentId
-        ) {
-          return true;
-        } else if (segment.type === "user") {
-          const segmentIdNumber = parseInt(segmentId, 10);
-          return segment.id === segmentIdNumber;
-        }
-      });
-    },
-    [segments]
-  );
+  const [store] = useState<SegmentStoreApi>(() => createSegmentStore());
 
-  const segmentIdObject = useMemo(() => {
-    if (segmentIdRaw && segmentIdRaw.startsWith(SYSTEM_SEGMENT_PREFIX)) {
-      return {
-        id: segmentIdRaw,
-        type: "system" as const,
-      };
-    } else if (segmentIdRaw) {
-      const segmentIdNumber = parseInt(segmentIdRaw, 10);
-      if (!Number.isNaN(segmentIdNumber)) {
-        return {
-          id: segmentIdNumber,
-          type: "user" as const,
-        };
-      }
-    }
-    return null;
-  }, [segmentIdRaw]);
+  const phase = useStore(store, (s) => s.phase);
+  const selectedSegment = useStore(store, (s) => s.selectedSegment);
 
-  const [selectedSegment, setSelectedSegment] = useState<CombinedFilterSegment | undefined>(
-    segmentIdRaw ? findSelectedSegment(segmentIdRaw) : undefined
-  );
-
-  const pendingSegmentRef = useRef<{
-    segmentId: SegmentIdentifier;
-    segment: CombinedFilterSegment;
-  } | null>(null);
-
-  // Tracks whether the initialization effect has run at least once for this
-  // component instance. Distinguishes "first load" (should apply preferred
-  // segment) from "user deselected" (should not re-apply). Resets on
-  // remount but persists when Next.js reuses the component across navigations.
-  const isInitializedRef = useRef(false);
-
-  const isValidatorReady = validateActiveFilters !== "loading";
+  const isValidatorLoading = validateActiveFilters === "loading";
 
   const applySegmentFilters = useCallback(
     (segment: CombinedFilterSegment) => {
@@ -170,128 +129,135 @@ export function DataTableSegmentProvider({
     ]
   );
 
+  /**
+   * Resolve and apply a segment, or defer if the validator is still loading.
+   */
+  const resolveAndApply = useCallback(
+    (segmentId: SegmentIdentifier, segment: CombinedFilterSegment) => {
+      setSegmentIdRaw(String(segmentId.id));
+
+      if (isValidatorLoading) {
+        store.getState().setPending({ segmentId, segment }, "waitingForValidator");
+      } else {
+        applySegmentFilters(segment);
+        store.getState().setSelected(segment);
+        store.getState().markReady();
+      }
+    },
+    [isValidatorLoading, setSegmentIdRaw, applySegmentFilters, store]
+  );
+
+  // ── Effect 1: Segment fetch completed → initialize ──────────────────────
+  useEffect(() => {
+    if (!isSegmentFetchedSuccessfully) return;
+    if (store.getState().phase !== "initializing") return;
+
+    const idToResolve =
+      segmentIdRaw || (fetchedPreferredSegmentId ? String(fetchedPreferredSegmentId.id) : null);
+
+    if (!idToResolve) {
+      store.getState().markReady();
+      return;
+    }
+
+    const segment = findSegmentById(segments, idToResolve);
+    const segmentId = toSegmentIdObject(idToResolve);
+
+    if (!segment || !segmentId) {
+      store.getState().markReady();
+      return;
+    }
+
+    resolveAndApply(segmentId, segment);
+  }, [
+    isSegmentFetchedSuccessfully,
+    segments,
+    fetchedPreferredSegmentId,
+    segmentIdRaw,
+    resolveAndApply,
+    store,
+  ]);
+
+  // ── Effect 2: Validator becomes ready → flush pending segment ───────────
+  useEffect(() => {
+    if (isValidatorLoading) return;
+    const { phase, pendingSegment } = store.getState();
+    if (phase !== "waitingForValidator" || !pendingSegment) return;
+
+    applySegmentFilters(pendingSegment.segment);
+    store.getState().markReady();
+  }, [isValidatorLoading, applySegmentFilters, store]);
+
+  // ── Effect 3: Navigation-back detection ─────────────────────────────────
+  // When Next.js reuses the component instance across navigations, the URL
+  // is cleared (segmentIdRaw → "") but selectedSegment is preserved in the
+  // Zustand store. If there's a preferred segment, re-apply it.
+  //
+  // We track the previous segmentIdRaw to distinguish "navigation back"
+  // (truthy → falsy) from "initial mount" (starts falsy). Without this,
+  // Effect 3 fires redundantly after Effect 1 on initial mount because
+  // setSegmentIdRaw queues an async state update while the Zustand store
+  // is updated synchronously.
+  const prevSegmentIdRawRef = useRef(segmentIdRaw);
+
+  useEffect(() => {
+    if (!isSegmentFetchedSuccessfully) return;
+    if (store.getState().phase !== "ready") return;
+    if (segmentIdRaw) return;
+    if (!prevSegmentIdRawRef.current) return;
+    if (!fetchedPreferredSegmentId) return;
+    if (store.getState().selectedSegment === undefined) return;
+
+    const segment = findSegmentById(segments, String(fetchedPreferredSegmentId.id));
+    if (!segment) return;
+
+    resolveAndApply(fetchedPreferredSegmentId, segment);
+  }, [
+    isSegmentFetchedSuccessfully,
+    segmentIdRaw,
+    fetchedPreferredSegmentId,
+    segments,
+    resolveAndApply,
+    store,
+  ]);
+
+  // Must be declared AFTER Effect 3 so it reads the previous value, not current
+  useEffect(() => {
+    prevSegmentIdRawRef.current = segmentIdRaw;
+  });
+
+  // ── Public API ──────────────────────────────────────────────
+
   const setSegmentId = useCallback(
     (segmentId: SegmentIdentifier | null, providedSegment?: CombinedFilterSegment) => {
       if (!segmentId) {
-        pendingSegmentRef.current = null;
         setSegmentIdRaw(null);
-        setSelectedSegment(undefined);
-        setSegmentPreference({
-          tableIdentifier,
-          segmentId: null,
-        });
+        setSegmentPreference({ tableIdentifier, segmentId: null });
+        store.getState().clearSelection();
         return;
       }
 
-      const segment = providedSegment || findSelectedSegment(String(segmentId.id));
+      const segment = providedSegment || findSegmentById(segments, String(segmentId.id));
       if (!segment) {
-        pendingSegmentRef.current = null;
         setSegmentIdRaw(null);
-        setSelectedSegment(undefined);
-        setSegmentPreference({
-          tableIdentifier,
-          segmentId: null,
-        });
+        setSegmentPreference({ tableIdentifier, segmentId: null });
+        store.getState().clearSelection();
         return;
       }
 
-      setSegmentIdRaw(String(segmentId.id));
-      setSelectedSegment(segment);
-      setSegmentPreference({
-        tableIdentifier,
-        segmentId,
-      });
-
-      if (validateActiveFilters === "loading") {
-        pendingSegmentRef.current = { segmentId, segment };
-        return;
-      }
-
-      pendingSegmentRef.current = null;
-      applySegmentFilters(segment);
+      setSegmentPreference({ tableIdentifier, segmentId });
+      resolveAndApply(segmentId, segment);
     },
-    [
-      setSegmentIdRaw,
-      setSegmentPreference,
-      tableIdentifier,
-      findSelectedSegment,
-      validateActiveFilters,
-      applySegmentFilters,
-    ]
+    [segments, resolveAndApply, setSegmentIdRaw, setSegmentPreference, tableIdentifier, store]
   );
-
-  useEffect(() => {
-    if (!isValidatorReady || !pendingSegmentRef.current) {
-      return;
-    }
-    const { segment } = pendingSegmentRef.current;
-    pendingSegmentRef.current = null;
-    applySegmentFilters(segment);
-  }, [isValidatorReady, applySegmentFilters]);
-
-  // Segment initialization / re-initialization effect.
-  //
-  // Three scenarios handled:
-  // 1. First load (no URL params)       → apply the user's preferred segment
-  // 2. First load (URL has segment=X)   → resolve segment from URL
-  // 3. Navigation back                  → URL was cleared by soft navigation,
-  //    but React state (selectedSegment) was preserved because Next.js reused
-  //    the component instance. Re-apply the preferred segment.
-  //
-  // "User deselected" is safe: setSegmentId(null) clears both segmentIdRaw
-  // and selectedSegment in the same batched update, so selectedSegment is
-  // undefined and isInitializedRef is true — neither branch fires.
-  useEffect(() => {
-    if (!isSegmentFetchedSuccessfully) return;
-
-    if (fetchedPreferredSegmentId && !segmentIdRaw) {
-      if (selectedSegment !== undefined) {
-        // Case 3 – navigation back: URL cleared but component state preserved
-        setSegmentId(fetchedPreferredSegmentId);
-      } else if (!isInitializedRef.current) {
-        // Case 1 – first load with preferred segment
-        setSegmentId(fetchedPreferredSegmentId);
-      }
-    } else if (segmentIdRaw && !isInitializedRef.current) {
-      // Case 2 – first load with segment already in URL
-      const segment = findSelectedSegment(segmentIdRaw);
-      setSelectedSegment(segment);
-      if (segment) {
-        if (validateActiveFilters === "loading") {
-          pendingSegmentRef.current = {
-            segmentId: segmentIdObject!,
-            segment,
-          };
-        } else {
-          applySegmentFilters(segment);
-        }
-      }
-    }
-
-    // Mark as initialized once segment data is available, regardless of
-    // whether a segment was applied. Without this, pages that have no
-    // preferred segment and no segment in the URL (e.g. org members list)
-    // would leave isInitializedRef false, causing the effect to
-    // incorrectly treat later user-initiated segment selections as
-    // "first load with URL params" and re-run initialization logic.
-    isInitializedRef.current = true;
-  }, [
-    isSegmentFetchedSuccessfully,
-    fetchedPreferredSegmentId,
-    segmentIdRaw,
-    selectedSegment,
-    setSegmentId,
-    findSelectedSegment,
-    validateActiveFilters,
-    segmentIdObject,
-    applySegmentFilters,
-  ]);
 
   const clearSystemSegmentSelectionIfExists = useCallback(() => {
     if (selectedSegment?.type === "system") {
       setSegmentId(null);
     }
   }, [selectedSegment, setSegmentId]);
+
+  const segmentIdObject = useMemo(() => toSegmentIdObject(segmentIdRaw), [segmentIdRaw]);
 
   const hasStateChanged = useMemo(() => {
     if (!selectedSegment) return false;
@@ -332,7 +298,7 @@ export function DataTableSegmentProvider({
     hasStateChanged,
   ]);
 
-  const isValidatorPending = validateActiveFilters === "loading" && pendingSegmentRef.current !== null;
+  const isValidatorPending = phase !== "ready";
 
   const value = useMemo(
     () => ({

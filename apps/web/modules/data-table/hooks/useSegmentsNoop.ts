@@ -7,7 +7,7 @@ export const useSegmentsNoop: UseSegments = ({}) => {
   return {
     segments: [],
     preferredSegmentId: null,
-    isSuccess: false,
+    isSuccess: true,
     setPreference: noop,
     isSegmentEnabled: false,
   };
