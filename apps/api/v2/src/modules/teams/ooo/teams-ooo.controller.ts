@@ -17,6 +17,7 @@ import { ApiHeader, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
@@ -47,6 +48,7 @@ export class TeamsOOOController {
 
   @Get("/")
   @Roles("TEAM_ADMIN")
+  @OAuthPermissions(["TEAM_SCHEDULE_READ"])
   @UseGuards(IsUserInTeam)
   @ApiOperation({ summary: "Get all out-of-office entries for a team member" })
   async getTeamMemberOOO(
@@ -65,6 +67,7 @@ export class TeamsOOOController {
 
   @Post("/")
   @Roles("TEAM_ADMIN")
+  @OAuthPermissions(["TEAM_SCHEDULE_WRITE"])
   @UseGuards(IsUserInTeam)
   @ApiOperation({ summary: "Create an out-of-office entry for a team member" })
   async createTeamMemberOOO(
@@ -81,6 +84,7 @@ export class TeamsOOOController {
 
   @Patch("/:oooId")
   @Roles("TEAM_ADMIN")
+  @OAuthPermissions(["TEAM_SCHEDULE_WRITE"])
   @UseGuards(IsUserInTeam, IsUserOOO)
   @ApiOperation({ summary: "Update an out-of-office entry for a team member" })
   async updateTeamMemberOOO(
@@ -98,6 +102,7 @@ export class TeamsOOOController {
 
   @Delete("/:oooId")
   @Roles("TEAM_ADMIN")
+  @OAuthPermissions(["TEAM_SCHEDULE_WRITE"])
   @UseGuards(IsUserInTeam, IsUserOOO)
   @ApiOperation({ summary: "Delete an out-of-office entry for a team member" })
   async deleteTeamMemberOOO(

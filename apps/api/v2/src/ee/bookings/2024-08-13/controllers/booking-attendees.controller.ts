@@ -28,6 +28,7 @@ import { VERSION_2024_08_13, VERSION_2026_02_25 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -52,6 +53,7 @@ export class BookingAttendeesController_2024_08_13 {
 
   @Get("/")
   @Permissions([BOOKING_READ])
+  @OAuthPermissions(["BOOKING_READ"])
   @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
@@ -77,6 +79,7 @@ export class BookingAttendeesController_2024_08_13 {
 
   @Get("/:attendeeId")
   @Permissions([BOOKING_READ])
+  @OAuthPermissions(["BOOKING_READ"])
   @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({
@@ -104,6 +107,7 @@ export class BookingAttendeesController_2024_08_13 {
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
   @Permissions([BOOKING_WRITE])
+  @OAuthPermissions(["BOOKING_WRITE"])
   @UseGuards(ApiAuthGuard, BookingUidGuard, BookingPbacGuard)
   @Throttle({
     limit: 5,

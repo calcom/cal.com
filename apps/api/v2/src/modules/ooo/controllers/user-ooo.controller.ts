@@ -18,6 +18,7 @@ import { plainToInstance } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsUserOOO } from "@/modules/ooo/guards/is-user-ooo";
 import {
@@ -44,6 +45,7 @@ export class UserOOOController {
   constructor(private readonly userOOOService: UserOOOService) {}
 
   @Get("/")
+  @OAuthPermissions(["SCHEDULE_READ"])
   @ApiOperation({ summary: "Get all out-of-office entries for the authenticated user" })
   async getMyOOO(
     @GetUser("id") userId: number,
@@ -59,6 +61,7 @@ export class UserOOOController {
   }
 
   @Post("/")
+  @OAuthPermissions(["SCHEDULE_WRITE"])
   @ApiOperation({ summary: "Create an out-of-office entry for the authenticated user" })
   async createMyOOO(
     @GetUser("id") userId: number,
@@ -72,6 +75,7 @@ export class UserOOOController {
   }
 
   @Patch("/:oooId")
+  @OAuthPermissions(["SCHEDULE_WRITE"])
   @UseGuards(IsUserOOO)
   @ApiOperation({ summary: "Update an out-of-office entry for the authenticated user" })
   async updateMyOOO(
@@ -87,6 +91,7 @@ export class UserOOOController {
   }
 
   @Delete("/:oooId")
+  @OAuthPermissions(["SCHEDULE_WRITE"])
   @UseGuards(IsUserOOO)
   @ApiOperation({ summary: "Delete an out-of-office entry for the authenticated user" })
   async deleteMyOOO(@Param("oooId", ParseIntPipe) oooId: number): Promise<UserOooOutputResponseDto> {

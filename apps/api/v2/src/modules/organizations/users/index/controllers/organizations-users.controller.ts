@@ -25,6 +25,7 @@ import {
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -64,6 +65,7 @@ export class OrganizationsUsersController {
   @Roles("ORG_ADMIN")
   @Pbac(["organization.listMembers"])
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_MEMBERSHIP_READ"])
   @ApiOperation({
     summary: "Get all users",
     description:
@@ -98,6 +100,7 @@ export class OrganizationsUsersController {
   @Roles("ORG_ADMIN")
   @Pbac(["organization.invite"])
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_MEMBERSHIP_WRITE"])
   @ApiOperation({
     summary: "Create a user",
     description:
@@ -127,6 +130,7 @@ export class OrganizationsUsersController {
   @Roles("ORG_ADMIN")
   @Pbac(["organization.editUsers"])
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_MEMBERSHIP_WRITE"])
   @UseGuards(IsUserInOrg)
   @ApiOperation({
     summary: "Update a user",
@@ -153,6 +157,7 @@ export class OrganizationsUsersController {
   @Roles("ORG_ADMIN")
   @Pbac(["organization.remove"])
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_MEMBERSHIP_WRITE"])
   @UseGuards(IsUserInOrg)
   @ApiOperation({
     summary: "Delete a user",

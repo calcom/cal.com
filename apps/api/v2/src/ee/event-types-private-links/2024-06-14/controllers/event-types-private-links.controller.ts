@@ -18,6 +18,7 @@ import {
 } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -35,6 +36,7 @@ export class EventTypesPrivateLinksController_2024_06_14 {
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard, EventTypeOwnershipGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Create a private link for an event type", deprecated: true })
@@ -53,6 +55,7 @@ export class EventTypesPrivateLinksController_2024_06_14 {
 
   @Get("/")
   @Permissions([EVENT_TYPE_READ])
+  @OAuthPermissions(["EVENT_TYPE_READ"])
   @UseGuards(ApiAuthGuard, EventTypeOwnershipGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get all private links for an event type", deprecated: true })
@@ -69,6 +72,7 @@ export class EventTypesPrivateLinksController_2024_06_14 {
 
   @Patch("/:linkId")
   @Permissions([EVENT_TYPE_WRITE])
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard, EventTypeOwnershipGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Update a private link for an event type", deprecated: true })
@@ -88,6 +92,7 @@ export class EventTypesPrivateLinksController_2024_06_14 {
 
   @Delete("/:linkId")
   @Permissions([EVENT_TYPE_WRITE])
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard, EventTypeOwnershipGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Delete a private link for an event type", deprecated: true })

@@ -17,6 +17,7 @@ import { ApiHeader, ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/
 import { plainToClass } from "class-transformer";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
@@ -52,6 +53,7 @@ export class TeamsEventTypesWebhooksController {
   @Post("/")
   @ApiOperation({ summary: "Create a webhook for a team event type" })
   @Roles("TEAM_ADMIN")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   async createTeamEventTypeWebhook(
     @Body() body: CreateWebhookInputDto,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
@@ -71,6 +73,7 @@ export class TeamsEventTypesWebhooksController {
   @Patch("/:webhookId")
   @ApiOperation({ summary: "Update a webhook for a team event type" })
   @Roles("TEAM_ADMIN")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   async updateTeamEventTypeWebhook(
     @Body() body: UpdateWebhookInputDto,
     @Param("webhookId") webhookId: string
@@ -91,6 +94,7 @@ export class TeamsEventTypesWebhooksController {
   @ApiOperation({ summary: "Get a webhook for a team event type" })
   @ApiParam({ name: "webhookId", type: String, required: true })
   @Roles("TEAM_MEMBER")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_READ"])
   async getTeamEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
     return {
       status: SUCCESS_STATUS,
@@ -102,6 +106,7 @@ export class TeamsEventTypesWebhooksController {
 
   @Get("/")
   @Roles("TEAM_MEMBER")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_READ"])
   @ApiOperation({ summary: "Get all webhooks for a team event type" })
   async getTeamEventTypeWebhooks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
@@ -124,6 +129,7 @@ export class TeamsEventTypesWebhooksController {
 
   @Delete("/:webhookId")
   @Roles("TEAM_ADMIN")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   @ApiOperation({ summary: "Delete a webhook for a team event type" })
   @ApiParam({ name: "webhookId", type: String, required: true })
   async deleteTeamEventTypeWebhook(
@@ -140,6 +146,7 @@ export class TeamsEventTypesWebhooksController {
 
   @Delete("/")
   @Roles("TEAM_ADMIN")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   @ApiOperation({ summary: "Delete all webhooks for a team event type" })
   async deleteAllTeamEventTypeWebhooks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number

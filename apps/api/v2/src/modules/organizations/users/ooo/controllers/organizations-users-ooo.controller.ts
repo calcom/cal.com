@@ -5,6 +5,7 @@ import {
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { Pbac } from "@/modules/auth/decorators/pbac/pbac.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -69,6 +70,7 @@ export class OrganizationsUsersOOOController {
   @Pbac(["ooo.read"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_SCHEDULE_READ"])
   @UseGuards(IsUserInOrg)
   @ApiOperation({ summary: "Get all out-of-office entries for a user" })
   async getOrganizationUserOOO(
@@ -88,6 +90,7 @@ export class OrganizationsUsersOOOController {
   @Pbac(["ooo.create"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_SCHEDULE_WRITE"])
   @UseGuards(IsUserInOrg)
   @ApiOperation({ summary: "Create an out-of-office entry for a user" })
   async createOrganizationUserOOO(
@@ -105,6 +108,7 @@ export class OrganizationsUsersOOOController {
   @Pbac(["ooo.update"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_SCHEDULE_WRITE"])
   @UseGuards(IsUserInOrg, IsUserOOO)
   @ApiOperation({ summary: "Update an out-of-office entry for a user" })
   async updateOrganizationUserOOO(
@@ -124,6 +128,7 @@ export class OrganizationsUsersOOOController {
   @Pbac(["ooo.delete"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_SCHEDULE_WRITE"])
   @UseGuards(IsUserInOrg, IsUserOOO)
   @ApiOperation({ summary: "Delete an out-of-office entry for a user" })
   @ApiParam({ name: "userId", type: Number, required: true })
@@ -141,6 +146,7 @@ export class OrganizationsUsersOOOController {
   @Pbac(["ooo.read"])
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["ORG_SCHEDULE_READ"])
   @ApiOperation({ summary: "Get all out-of-office entries for organization users" })
   async getOrganizationUsersOOO(
     @Param("orgId", ParseIntPipe) orgId: number,

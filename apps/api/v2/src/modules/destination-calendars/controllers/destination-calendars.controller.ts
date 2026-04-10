@@ -1,6 +1,7 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { DestinationCalendarsInputBodyDto } from "@/modules/destination-calendars/inputs/destination-calendars.input";
 import {
@@ -26,6 +27,7 @@ export class DestinationCalendarsController {
   constructor(private readonly destinationCalendarsService: DestinationCalendarsService) {}
 
   @Put("/")
+  @OAuthPermissions(["APPS_WRITE"])
   @ApiOperation({ summary: "Update destination calendars" })
   async updateDestinationCalendars(
     @Body() input: DestinationCalendarsInputBodyDto,

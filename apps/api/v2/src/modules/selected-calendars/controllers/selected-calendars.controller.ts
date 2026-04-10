@@ -1,6 +1,7 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import {
   SelectedCalendarsInputDto,
@@ -29,6 +30,7 @@ export class SelectedCalendarsController {
   constructor(private readonly selectedCalendarsService: SelectedCalendarsService) {}
 
   @Post("/")
+  @OAuthPermissions(["APPS_WRITE"])
   @ApiOperation({ summary: "Add a selected calendar" })
   async addSelectedCalendar(
     @Body() input: SelectedCalendarsInputDto,
@@ -43,6 +45,7 @@ export class SelectedCalendarsController {
   }
 
   @Delete("/")
+  @OAuthPermissions(["APPS_WRITE"])
   @ApiOperation({ summary: "Delete a selected calendar" })
   async deleteSelectedCalendar(
     @Query() queryParams: SelectedCalendarsQueryParamsInputDto,

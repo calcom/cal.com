@@ -67,6 +67,7 @@ export class ConferencingController {
 
   @Post("/:app/connect")
   @HttpCode(HttpStatus.OK)
+  @OAuthPermissions(["APPS_WRITE"])
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Connect your conferencing application" })
@@ -86,6 +87,7 @@ export class ConferencingController {
 
   @Get("/:app/oauth/auth-url")
   @HttpCode(HttpStatus.OK)
+  @OAuthPermissions(["APPS_WRITE"])
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get OAuth conferencing app auth URL" })
@@ -186,6 +188,7 @@ export class ConferencingController {
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
+  @OAuthPermissions(["APPS_READ"])
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "List your conferencing applications" })
@@ -201,6 +204,7 @@ export class ConferencingController {
 
   @Post("/:app/default")
   @HttpCode(HttpStatus.OK)
+  @OAuthPermissions(["APPS_WRITE"])
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Set your default conferencing application" })
@@ -220,6 +224,7 @@ export class ConferencingController {
 
   @Get("/default")
   @HttpCode(HttpStatus.OK)
+  @OAuthPermissions(["APPS_READ"])
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Get your default conferencing application" })
@@ -230,6 +235,7 @@ export class ConferencingController {
 
   @Delete("/:app/disconnect")
   @HttpCode(HttpStatus.OK)
+  @OAuthPermissions(["APPS_WRITE"])
   @UseGuards(ApiAuthGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({ summary: "Disconnect your conferencing application" })

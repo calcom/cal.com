@@ -1,5 +1,6 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator";
 import { IsUserEventTypeWebhookGuard } from "@/modules/webhooks/guards/is-user-event-type-webhook-guard";
@@ -48,6 +49,7 @@ export class EventTypeWebhooksController {
   ) {}
 
   @Post("/")
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @ApiOperation({ summary: "Create a webhook" })
   async createEventTypeWebhook(
     @Body() body: CreateWebhookInputDto,
@@ -66,6 +68,7 @@ export class EventTypeWebhooksController {
   }
 
   @Patch("/:webhookId")
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @ApiOperation({ summary: "Update a webhook" })
   async updateEventTypeWebhook(
     @Body() body: UpdateWebhookInputDto,
@@ -84,6 +87,7 @@ export class EventTypeWebhooksController {
   }
 
   @Get("/:webhookId")
+  @OAuthPermissions(["EVENT_TYPE_READ"])
   @ApiOperation({ summary: "Get a webhook" })
   @ApiParam({ name: "webhookId", type: String, required: true })
   async getEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
@@ -96,6 +100,7 @@ export class EventTypeWebhooksController {
   }
 
   @Get("/")
+  @OAuthPermissions(["EVENT_TYPE_READ"])
   @ApiOperation({ summary: "Get all webhooks" })
   async getEventTypeWebhooks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
@@ -117,6 +122,7 @@ export class EventTypeWebhooksController {
   }
 
   @Delete("/:webhookId")
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @ApiOperation({ summary: "Delete a webhook" })
   @ApiParam({ name: "webhookId", type: String, required: true })
   async deleteEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
@@ -130,6 +136,7 @@ export class EventTypeWebhooksController {
   }
 
   @Delete("/")
+  @OAuthPermissions(["EVENT_TYPE_WRITE"])
   @ApiOperation({ summary: "Delete all webhooks" })
   async deleteAllEventTypeWebhooks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number

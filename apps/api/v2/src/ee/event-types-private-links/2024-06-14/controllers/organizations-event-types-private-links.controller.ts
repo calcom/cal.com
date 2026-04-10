@@ -22,6 +22,7 @@ import {
   OPTIONAL_X_CAL_SECRET_KEY_HEADER,
 } from "@/lib/docs/headers";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
@@ -49,6 +50,7 @@ export class OrganizationsEventTypesPrivateLinksController_2024_06_14 {
   @Post("/")
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @ApiOperation({ summary: "Create a private link for a team event type", deprecated: true })
   async createPrivateLink(
@@ -67,6 +69,7 @@ export class OrganizationsEventTypesPrivateLinksController_2024_06_14 {
   @Get("/")
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_READ"])
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @ApiOperation({ summary: "Get all private links for a team event type", deprecated: true })
   async getPrivateLinks(
@@ -84,6 +87,7 @@ export class OrganizationsEventTypesPrivateLinksController_2024_06_14 {
   @Patch("/:linkId")
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @ApiOperation({ summary: "Update a private link for a team event type", deprecated: true })
   async updatePrivateLink(
@@ -104,6 +108,7 @@ export class OrganizationsEventTypesPrivateLinksController_2024_06_14 {
   @Delete("/:linkId")
   @Roles("TEAM_ADMIN")
   @PlatformPlan("ESSENTIALS")
+  @OAuthPermissions(["TEAM_EVENT_TYPE_WRITE"])
   @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg, PlatformPlanGuard, IsAdminAPIEnabledGuard)
   @ApiOperation({ summary: "Delete a private link for a team event type", deprecated: true })
   async deletePrivateLink(
