@@ -63,10 +63,22 @@ const handler = async (
 
   const registeredUser = await prisma.user.findUnique({
     where: { email },
-    select: { password: { select: { hash: true } } },
+    select: {
+      emailVerified: true,
+      username: true,
+      password: { select: { hash: true } },
+    },
   });
-  if (registeredUser?.password) {
-    return NextResponse.json({ message: "user_already_exists" }, { status: 409 });
+  // Check if the email is already taken by an existing user:
+  // - has a password (signed up with credentials), OR
+  // - (when not using an invite token) has a verified email (OAuth/SSO) or a username set
+  // When a token is present, we only block on password — the invite flow pre-creates user
+  // records with a username, and the token-based path (line 128) handles its own checks.
+  if (
+    registeredUser?.password ||
+    (!token && (registeredUser?.emailVerified || registeredUser?.username))
+  ) {
+    return NextResponse.json({ message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS }, { status: 409 });
   }
 
   const usernameCheck = await getUsernameValidationService().validateAvailability({

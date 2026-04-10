@@ -99,8 +99,11 @@ vi.mock("@calcom/features/auth/signup/utils/token", () => ({
     mockValidateAndGetCorrectedUsernameForTeam(...args),
 }));
 
+import { SIGNUP_ERROR_CODES } from "@calcom/features/auth/signup/constants";
 import { runEmailAlreadyExistsTestSuite } from "@calcom/features/auth/signup/handlers/__tests__/email-already-exists.test-suite";
 import { runP2002TestSuite } from "@calcom/features/auth/signup/handlers/__tests__/p2002.test-suite";
+import { createSignupBody } from "@calcom/features/auth/signup/handlers/__tests__/mocks/signup.factories";
+import { beforeEach, describe, expect, it } from "vitest";
 // Import after mocks
 import calcomSignupHandler from "./calcomSignupHandler";
 
@@ -123,4 +126,73 @@ runP2002TestSuite("calcomHandler", callHandler, setupMocks);
 runEmailAlreadyExistsTestSuite("calcomHandler", callHandler, setupMocks, () => {
   // Mock a fully registered user (has password) to trigger emailRegistered check
   prismaMock.user.findUnique.mockResolvedValue({ password: { hash: "hashed" } } as never);
+});
+
+describe("calcomHandler – duplicate email detection for OAuth/SSO users", () => {
+  beforeEach(setupMocks);
+
+  it("returns 409 when user exists with verified email but no password (OAuth/SSO signup)", async () => {
+    prismaMock.user.findUnique.mockResolvedValue({
+      emailVerified: new Date("2024-01-01"),
+      username: null,
+      password: null,
+    } as never);
+
+    const response = await callHandler(createSignupBody());
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS,
+    });
+  });
+
+  it("returns 409 when user exists with username but no password or verified email", async () => {
+    prismaMock.user.findUnique.mockResolvedValue({
+      emailVerified: null,
+      username: "existinguser",
+      password: null,
+    } as never);
+
+    const response = await callHandler(createSignupBody());
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      message: SIGNUP_ERROR_CODES.USER_ALREADY_EXISTS,
+    });
+  });
+
+  it("does not block signup when user record has no password, no verified email, and no username", async () => {
+    prismaMock.user.findUnique.mockResolvedValue({
+      emailVerified: null,
+      username: null,
+      password: null,
+    } as never);
+    // Mock user creation so the handler can proceed past the duplicate check
+    prismaMock.user.create.mockResolvedValue({ id: 1 } as never);
+
+    const response = await callHandler(createSignupBody());
+
+    // Should proceed past the duplicate check (not 409)
+    expect(response.status).not.toBe(409);
+  });
+
+  it("allows invited org member with username to complete signup via token", async () => {
+    // Simulate an invited org member: user record pre-created with username but no password/emailVerified
+    prismaMock.user.findUnique.mockResolvedValue({
+      emailVerified: null,
+      username: "invited-user",
+      password: null,
+      invitedTo: 1,
+    } as never);
+
+    // Mock team and user creation for the token-based invite flow
+    prismaMock.team.findUnique.mockResolvedValue(createMockTeam() as never);
+    prismaMock.user.upsert.mockResolvedValue({ id: 1 } as never);
+    prismaMock.verificationToken.delete.mockResolvedValue({} as never);
+
+    const response = await callHandler(createSignupBody({ token: "valid-invite-token" }));
+
+    // Should NOT return 409 — invited users with a token must be allowed through
+    expect(response.status).not.toBe(409);
+  });
 });
