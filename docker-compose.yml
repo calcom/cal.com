@@ -35,7 +35,6 @@ services:
       - "${REDIS_PORT:-6379}:6379"
 
   calcom:
-    image: calcom.docker.scarf.sh/calcom/cal.com
     build:
       context: .
       dockerfile: Dockerfile
@@ -116,23 +115,3 @@ services:
     depends_on:
       - database
       - redis
-
-  # Optional use of Prisma Studio. In production, comment out or remove the section below to prevent unwanted access to your database.
-  studio:
-    image: calcom.docker.scarf.sh/calcom/cal.com
-    restart: always
-    networks:
-      - stack
-    ports:
-      - 5555:5555
-    env_file: .env
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
-      - DATABASE_DIRECT_URL=${DATABASE_URL}
-    depends_on:
-      - database
-    command:
-      - npx
-      - prisma
-      - studio
-# END SECTION: Optional use of Prisma Studio.
