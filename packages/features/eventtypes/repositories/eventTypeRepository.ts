@@ -2328,4 +2328,22 @@ export class EventTypeRepository implements IEventTypesRepository {
 
     return eventTypeResult;
   }
+
+  async findManyByAppMetadataCredentialId({
+    appSlug,
+    credentialId,
+  }: {
+    appSlug: string;
+    credentialId: number;
+  }) {
+    return await this.prismaClient.eventType.findMany({
+      where: {
+        metadata: {
+          path: ["apps", appSlug, "credentialId"],
+          equals: credentialId,
+        },
+      },
+      select: { id: true, metadata: true },
+    });
+  }
 }

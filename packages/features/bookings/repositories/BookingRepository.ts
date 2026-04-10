@@ -1325,6 +1325,13 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  async findCreatedAtByUid({ bookingUid }: { bookingUid: string }) {
+    return await this.prismaClient.booking.findUnique({
+      where: { uid: bookingUid },
+      select: { createdAt: true },
+    });
+  }
+
   /**
    * Follows the reschedule chain starting from a booking UID to find the latest
    * non-cancelled booking. Uses a recursive CTE for a single DB round-trip

@@ -1,5 +1,8 @@
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import { DailyLocationType } from "@calcom/app-store/constants";
+import { createSalesforceConnection } from "@calcom/app-store/salesforce/lib/create-salesforce-connection";
+import { validateSalesforceFieldMappings } from "@calcom/app-store/salesforce/lib/validate-field-mappings";
+import { isWriteToBookingEntry } from "@calcom/app-store/salesforce/zod";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/app-store/zod-utils";
 import type { DestinationCalendarService } from "@calcom/features/calendars/services/DestinationCalendarService";
 import { CalVideoSettingsRepository } from "@calcom/features/calVideoSettings/repositories/CalVideoSettingsRepository";
@@ -23,6 +26,7 @@ import logger from "@calcom/lib/logger";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import { TRPCError } from "@trpc/server";
 import {
   EventTypeAutoTranslatedField,
   RRTimestampBasis,
@@ -615,6 +619,8 @@ export class EventTypeService {
       });
     }
 
+    await this.validateSalesforceFieldMappingsIfPresent(input.metadata);
+
     const updatedEventTypeSelect = {
       slug: true,
       schedulingType: true,
@@ -695,6 +701,42 @@ export class EventTypeService {
       .catch((err) => console.error("abuse-scoring: onEventTypeChange failed to load", err));
 
     return { eventType };
+  }
+
+  /**
+   * If the event type metadata contains Salesforce field mappings
+   * (onBookingWriteToEventObjectMap), validates them against the actual
+   * Salesforce org schema before allowing the save to proceed.
+   */
+  private async validateSalesforceFieldMappingsIfPresent(
+    metadata: EventTypeUpdateInput["metadata"]
+  ): Promise<void> {
+    const sfApp = metadata?.apps?.salesforce;
+    if (!sfApp) return;
+
+    const credentialId = sfApp.credentialId;
+    const eventObjectMap = sfApp.onBookingWriteToEventObjectMap;
+
+    if (!credentialId || !eventObjectMap || typeof eventObjectMap !== "object") return;
+
+    const hasTypedEntries = Object.values(eventObjectMap).some((v) => isWriteToBookingEntry(v));
+    if (!hasTypedEntries) return;
+
+    try {
+      const conn = await createSalesforceConnection(credentialId);
+      const errors = await validateSalesforceFieldMappings(conn, eventObjectMap, "Event");
+
+      if (errors.length > 0) {
+        const details = errors.map((e) => e.error).join(". ");
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Salesforce field mapping: ${details}`,
+        });
+      }
+    } catch (err) {
+      if (err instanceof TRPCError) throw err;
+      logger.warn("Salesforce field validation skipped due to connection error", { err });
+    }
   }
 
   /**

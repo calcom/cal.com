@@ -1903,6 +1903,335 @@ describe("SalesforceCRMService", () => {
     });
   });
 
+  describe("generateWriteToEventBody type coercion", () => {
+    const mockCalendarEvent = {
+      title: "Test Booking",
+      type: "30min",
+      startTime: "2024-01-01T10:00:00.000Z",
+      endTime: "2024-01-01T10:30:00.000Z",
+      organizer: {
+        email: "organizer@example.com",
+        name: "Test Organizer",
+        timeZone: "UTC",
+        language: { translate: (key: string) => key },
+      },
+      attendees: [
+        {
+          email: "attendee@example.com",
+          name: "Test Attendee",
+          timeZone: "UTC",
+          language: { translate: (key: string) => key },
+        },
+      ],
+      uid: "booking-uid-123",
+      responses: null,
+    };
+
+    it("coerces string 'False' to boolean false for checkbox fields", async () => {
+      mockAppOptions({
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Event_Cancelled__c: "False",
+        },
+      });
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "evt-001" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+      mockConnection.query = vi.fn().mockResolvedValueOnce({ records: [{ Id: "sf-user-001" }] });
+
+      mockConnection.describe = vi.fn().mockResolvedValue({
+        fields: [{ name: "Event_Cancelled__c", type: "boolean", length: 0 }],
+      });
+
+      const contacts = [{ id: "cnt-001", email: "attendee@example.com", recordType: "Contact" as const }];
+      await service.createEvent(mockCalendarEvent as never, contacts);
+
+      const createCallArgs = createFn.mock.calls[0][0];
+      expect(createCallArgs.Event_Cancelled__c).toBe(false);
+    });
+
+    it("coerces string 'True' to boolean true for checkbox fields", async () => {
+      mockAppOptions({
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Is_Demo__c: "True",
+        },
+      });
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "evt-002" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+      mockConnection.query = vi.fn().mockResolvedValueOnce({ records: [{ Id: "sf-user-001" }] });
+
+      mockConnection.describe = vi.fn().mockResolvedValue({
+        fields: [{ name: "Is_Demo__c", type: "boolean", length: 0 }],
+      });
+
+      const contacts = [{ id: "cnt-001", email: "attendee@example.com", recordType: "Contact" as const }];
+      await service.createEvent(mockCalendarEvent as never, contacts);
+
+      const createCallArgs = createFn.mock.calls[0][0];
+      expect(createCallArgs.Is_Demo__c).toBe(true);
+    });
+
+    it("preserves boolean values from new writeToBookingEntry format", async () => {
+      mockAppOptions({
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Is_Demo__c: { value: true, fieldType: "boolean", whenToWrite: "every_booking" },
+        },
+      });
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "evt-003" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+      mockConnection.query = vi.fn().mockResolvedValueOnce({ records: [{ Id: "sf-user-001" }] });
+
+      mockConnection.describe = vi.fn().mockResolvedValue({
+        fields: [{ name: "Is_Demo__c", type: "boolean", length: 0 }],
+      });
+
+      const contacts = [{ id: "cnt-001", email: "attendee@example.com", recordType: "Contact" as const }];
+      await service.createEvent(mockCalendarEvent as never, contacts);
+
+      const createCallArgs = createFn.mock.calls[0][0];
+      expect(createCallArgs.Is_Demo__c).toBe(true);
+    });
+
+    it("passes text fields through getTextFieldValue as strings", async () => {
+      mockAppOptions({
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Meeting_Type__c: "Demo Call",
+        },
+      });
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "evt-004" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+      mockConnection.query = vi.fn().mockResolvedValueOnce({ records: [{ Id: "sf-user-001" }] });
+
+      mockConnection.describe = vi.fn().mockResolvedValue({
+        fields: [{ name: "Meeting_Type__c", type: "string", length: 255 }],
+      });
+
+      const contacts = [{ id: "cnt-001", email: "attendee@example.com", recordType: "Contact" as const }];
+      await service.createEvent(mockCalendarEvent as never, contacts);
+
+      const createCallArgs = createFn.mock.calls[0][0];
+      expect(createCallArgs.Meeting_Type__c).toBe("Demo Call");
+    });
+
+    it("handles mixed legacy and typed fields in same config", async () => {
+      mockAppOptions({
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Meeting_Type__c: "Demo Call",
+          Is_Demo__c: { value: false, fieldType: "boolean", whenToWrite: "every_booking" },
+        },
+      });
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "evt-005" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+      mockConnection.query = vi.fn().mockResolvedValueOnce({ records: [{ Id: "sf-user-001" }] });
+
+      mockConnection.describe = vi.fn().mockResolvedValue({
+        fields: [
+          { name: "Meeting_Type__c", type: "string", length: 255 },
+          { name: "Is_Demo__c", type: "boolean", length: 0 },
+        ],
+      });
+
+      const contacts = [{ id: "cnt-001", email: "attendee@example.com", recordType: "Contact" as const }];
+      await service.createEvent(mockCalendarEvent as never, contacts);
+
+      const createCallArgs = createFn.mock.calls[0][0];
+      expect(createCallArgs.Meeting_Type__c).toBe("Demo Call");
+      expect(createCallArgs.Is_Demo__c).toBe(false);
+    });
+
+    it("returns empty body when feature is disabled", async () => {
+      mockAppOptions({
+        onBookingWriteToEventObject: false,
+      });
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "evt-006" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+      mockConnection.query = vi.fn().mockResolvedValueOnce({ records: [{ Id: "sf-user-001" }] });
+
+      const contacts = [{ id: "cnt-001", email: "attendee@example.com", recordType: "Contact" as const }];
+      await service.createEvent(mockCalendarEvent as never, contacts);
+
+      const createCallArgs = createFn.mock.calls[0][0];
+      expect(createCallArgs.Event_Cancelled__c).toBeUndefined();
+    });
+
+    it("skips DATE field when getDateFieldValue returns null for unrecognised value", async () => {
+      mockAppOptions({
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Booking_Date__c: { value: "unknown-date-ref", fieldType: "date", whenToWrite: "every_booking" },
+        },
+      });
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "evt-010" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+      mockConnection.query = vi.fn().mockResolvedValueOnce({ records: [{ Id: "sf-user-001" }] });
+
+      mockConnection.describe = vi.fn().mockResolvedValue({
+        fields: [{ name: "Booking_Date__c", type: "date", length: 0 }],
+      });
+
+      const contacts = [{ id: "cnt-001", email: "attendee@example.com", recordType: "Contact" as const }];
+      await service.createEvent(mockCalendarEvent as never, contacts);
+
+      const createCallArgs = createFn.mock.calls[0][0];
+      expect(createCallArgs.Booking_Date__c).toBeUndefined();
+    });
+
+    it("skips DATE field when getDateFieldValue returns null", async () => {
+      mockAppOptions({
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Booking_Date__c: { value: "invalid-date-ref", fieldType: "date", whenToWrite: "every_booking" },
+        },
+      });
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "evt-011" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+      mockConnection.query = vi
+        .fn()
+        .mockResolvedValueOnce({ records: [{ Id: "sf-user-001" }] }) // user lookup
+        .mockResolvedValueOnce({ records: [] }); // booking lookup returns nothing → null
+
+      mockConnection.describe = vi.fn().mockResolvedValue({
+        fields: [{ name: "Booking_Date__c", type: "date", length: 0 }],
+      });
+
+      const contacts = [{ id: "cnt-001", email: "attendee@example.com", recordType: "Contact" as const }];
+      await service.createEvent(mockCalendarEvent as never, contacts);
+
+      const createCallArgs = createFn.mock.calls[0][0];
+      expect(createCallArgs.Booking_Date__c).toBeUndefined();
+    });
+
+    it("writes PICKLIST field via getPicklistFieldValue", async () => {
+      mockAppOptions({
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Meeting_Source__c: {
+            value: "Website",
+            fieldType: "picklist",
+            whenToWrite: "every_booking",
+          },
+        },
+      });
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "evt-012" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+      mockConnection.query = vi.fn().mockResolvedValueOnce({ records: [{ Id: "sf-user-001" }] });
+
+      mockConnection.describe = vi.fn().mockResolvedValue({
+        fields: [
+          {
+            name: "Meeting_Source__c",
+            type: "picklist",
+            length: 0,
+            picklistValues: [{ value: "Website", active: true }, { value: "Referral", active: true }],
+          },
+        ],
+      });
+
+      const contacts = [{ id: "cnt-001", email: "attendee@example.com", recordType: "Contact" as const }];
+      await service.createEvent(mockCalendarEvent as never, contacts);
+
+      const createCallArgs = createFn.mock.calls[0][0];
+      expect(createCallArgs.Meeting_Source__c).toBe("Website");
+    });
+
+    it("skips PICKLIST field when getPicklistFieldValue returns null", async () => {
+      mockAppOptions({
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Meeting_Source__c: {
+            value: "NonExistentValue",
+            fieldType: "picklist",
+            whenToWrite: "every_booking",
+          },
+        },
+      });
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "evt-013" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+      mockConnection.query = vi.fn().mockResolvedValueOnce({ records: [{ Id: "sf-user-001" }] });
+
+      mockConnection.describe = vi.fn().mockResolvedValue({
+        fields: [
+          {
+            name: "Meeting_Source__c",
+            type: "picklist",
+            length: 0,
+            picklistValues: [{ value: "Website", active: true }],
+          },
+        ],
+      });
+
+      const contacts = [{ id: "cnt-001", email: "attendee@example.com", recordType: "Contact" as const }];
+      await service.createEvent(mockCalendarEvent as never, contacts);
+
+      const createCallArgs = createFn.mock.calls[0][0];
+      expect(createCallArgs.Meeting_Source__c).toBeUndefined();
+    });
+
+    it("passes static text values through as-is", async () => {
+      mockAppOptions({
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Notes__c: { value: "Static Note", fieldType: "string", whenToWrite: "every_booking" },
+        },
+      });
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "evt-014" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+      mockConnection.query = vi.fn().mockResolvedValueOnce({ records: [{ Id: "sf-user-001" }] });
+
+      mockConnection.describe = vi.fn().mockResolvedValue({
+        fields: [{ name: "Notes__c", type: "string", length: 255 }],
+      });
+
+      const contacts = [{ id: "cnt-001", email: "attendee@example.com", recordType: "Contact" as const }];
+      await service.createEvent(mockCalendarEvent as never, contacts);
+
+      const createCallArgs = createFn.mock.calls[0][0];
+      expect(createCallArgs.Notes__c).toBe("Static Note");
+    });
+
+    it("does not fire eventFieldTypeCoerced trace when checkbox value is already boolean", async () => {
+      const traceSpy = vi.spyOn(
+        await import("./tracing").then((m) => m.SalesforceRoutingTraceService),
+        "eventFieldTypeCoerced"
+      );
+
+      mockAppOptions({
+        onBookingWriteToEventObject: true,
+        onBookingWriteToEventObjectMap: {
+          Is_Demo__c: { value: true, fieldType: "boolean", whenToWrite: "every_booking" },
+        },
+      });
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "evt-015" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+      mockConnection.query = vi.fn().mockResolvedValueOnce({ records: [{ Id: "sf-user-001" }] });
+
+      mockConnection.describe = vi.fn().mockResolvedValue({
+        fields: [{ name: "Is_Demo__c", type: "boolean", length: 0 }],
+      });
+
+      const contacts = [{ id: "cnt-001", email: "attendee@example.com", recordType: "Contact" as const }];
+      await service.createEvent(mockCalendarEvent as never, contacts);
+
+      expect(traceSpy).not.toHaveBeenCalled();
+      traceSpy.mockRestore();
+    });
+  });
+
   describe("deleteEvent", () => {
     const mockCalendarEvent = {
       title: "Test Booking",

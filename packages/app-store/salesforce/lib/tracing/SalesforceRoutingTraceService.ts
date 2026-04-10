@@ -246,4 +246,32 @@ export class SalesforceRoutingTraceService {
   static fuzzyMatchNoResult(data: { email: string; baseDomain: string; reason: string }): void {
     SalesforceRoutingTraceService.addStep("fuzzy_match_no_result", data);
   }
+
+  // ===== Sync Error Surfacing =====
+
+  /**
+   * Record when a Salesforce write operation fails and custom fields are dropped.
+   */
+  static syncError(data: {
+    objectType: string;
+    operation: string;
+    sfErrorCode: string;
+    sfErrorMessage: string;
+    droppedFields?: string[];
+  }): void {
+    SalesforceRoutingTraceService.addStep("sync_error", data);
+  }
+
+  /**
+   * Record when a field value is coerced to match the Salesforce field type
+   * (e.g., string "True" → boolean true for checkbox fields).
+   */
+  static eventFieldTypeCoerced(data: {
+    fieldName: string;
+    originalValue: string;
+    coercedValue: boolean | string;
+    sfFieldType: string;
+  }): void {
+    SalesforceRoutingTraceService.addStep("event_field_type_coerced", data);
+  }
 }

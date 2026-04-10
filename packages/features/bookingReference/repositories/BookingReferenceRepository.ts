@@ -76,4 +76,14 @@ export class BookingReferenceRepository implements IBookingReferenceRepository {
       data,
     });
   }
+
+  async findManyByBookingUidAndType({ bookingUid, type }: { bookingUid: string; type: string }) {
+    return await this.prismaClient.bookingReference.findMany({
+      where: {
+        type,
+        booking: { uid: bookingUid },
+        deleted: null,
+      },
+    });
+  }
 }

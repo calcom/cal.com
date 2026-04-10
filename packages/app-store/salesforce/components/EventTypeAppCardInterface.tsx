@@ -6,16 +6,22 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Alert } from "@calcom/ui/components/alert";
-import { Button } from "@calcom/ui/components/button";
 import { InputField, Label, Select, Switch } from "@calcom/ui/components/form";
 import { Section } from "@calcom/ui/components/section";
-import { showToast } from "@calcom/ui/components/toast";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { SalesforceRecordEnum } from "../lib/enums";
-import type { appDataSchema, RRSkipFieldRule } from "../zod";
+import { useMemo, useState } from "react";
+import { SalesforceFieldType, SalesforceRecordEnum, WhenToWriteToRecord } from "../lib/enums";
+import {
+  type appDataSchema,
+  isWriteToBookingEntry,
+  type LastSyncError,
+  type RRSkipFieldRule,
+  type WriteToBookingEntry,
+} from "../zod";
 import FieldRulesSettings from "./components/FieldRulesSettings";
 import WriteToObjectSettings, { BookingActionEnum } from "./components/WriteToObjectSettings";
+
+const EMPTY_RECORD: Record<string, unknown> = {};
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   app,
@@ -35,7 +41,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const createNewContactUnderAccount = getAppData("createNewContactUnderAccount");
   const createEventOn = getAppData("createEventOn") ?? SalesforceRecordEnum.CONTACT;
   const onBookingWriteToEventObject = getAppData("onBookingWriteToEventObject") ?? false;
-  const onBookingWriteToEventObjectMap = getAppData("onBookingWriteToEventObjectMap") ?? {};
+  const onBookingWriteToEventObjectMap = getAppData("onBookingWriteToEventObjectMap") ?? EMPTY_RECORD;
   const createEventOnLeadCheckForContact = getAppData("createEventOnLeadCheckForContact") ?? false;
   const onBookingChangeRecordOwner = getAppData("onBookingChangeRecordOwner") ?? false;
   const onBookingChangeRecordOwnerName = getAppData("onBookingChangeRecordOwnerName") ?? [];
@@ -50,6 +56,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const onCancelWriteToRecord = getAppData("onCancelWriteToRecord") ?? false;
   const onCancelWriteToRecordFields = getAppData("onCancelWriteToRecordFields") ?? {};
   const rrSkipFieldRules = (getAppData("rrSkipFieldRules") ?? []) as RRSkipFieldRule[];
+  const lastSyncError = getAppData("lastSyncError") as LastSyncError | null | undefined;
 
   const { t } = useLocale();
 
@@ -71,10 +78,24 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
     checkOwnerOptions.find((option) => option.value === roundRobinSkipCheckRecordOn) ?? checkOwnerOptions[0]
   );
 
-  const [newOnBookingWriteToEventObjectField, setNewOnBookingWriteToEventObjectField] = useState({
-    field: "",
-    value: "",
-  });
+  const { normalizedEventObjectMap, hasLegacyEventFields } = useMemo(() => {
+    const map = onBookingWriteToEventObjectMap as Record<string, unknown>;
+    const result: Record<string, WriteToBookingEntry> = {};
+    let legacyDetected = false;
+    for (const [key, val] of Object.entries(map)) {
+      if (isWriteToBookingEntry(val)) {
+        result[key] = val;
+      } else {
+        legacyDetected = true;
+        result[key] = {
+          value: typeof val === "boolean" ? val : String(val ?? ""),
+          fieldType: typeof val === "boolean" ? SalesforceFieldType.CHECKBOX : SalesforceFieldType.TEXT,
+          whenToWrite: WhenToWriteToRecord.EVERY_BOOKING,
+        };
+      }
+    }
+    return { normalizedEventObjectMap: result, hasLegacyEventFields: legacyDetected };
+  }, [onBookingWriteToEventObjectMap]);
 
   // Used when creating events under leads or contacts under account
   const CreateContactUnderAccount = () => {
@@ -109,6 +130,28 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
       switchChecked={enabled}
       hideSettingsIcon>
       <Section.Content>
+        {lastSyncError && (
+          <Alert
+            severity="error"
+            className="mb-4"
+            title={t("salesforce_sync_failure", { errorCode: lastSyncError.errorCode })}
+            message={`${lastSyncError.errorMessage}${
+              lastSyncError.droppedFields?.length
+                ? ` (${t("salesforce_dropped_fields")}: ${lastSyncError.droppedFields.join(", ")})`
+                : ""
+            } — ${new Date(lastSyncError.timestamp).toLocaleString()}`}
+            actions={
+              <div className="mt-1">
+                <button
+                  type="button"
+                  className="text-sm font-medium underline"
+                  onClick={() => setAppData("lastSyncError", null)}>
+                  {t("dismiss")}
+                </button>
+              </div>
+            }
+          />
+        )}
         <Section.SubSection>
           <Section.SubSectionHeader
             icon="zap"
@@ -207,110 +250,24 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
         ) : null}
 
         <Section.SubSection>
-          <Section.SubSectionHeader icon="badge-check" title={t("on_booking_write_to_event_object")}>
-            <Switch
-              size="sm"
-              labelOnLeading
-              checked={onBookingWriteToEventObject}
-              onCheckedChange={(checked) => {
-                setAppData("onBookingWriteToEventObject", checked);
-              }}
+          <WriteToObjectSettings
+            bookingAction={BookingActionEnum.ON_BOOKING}
+            optionLabel={t("on_booking_write_to_event_object")}
+            optionEnabled={onBookingWriteToEventObject}
+            optionSwitchOnChange={(checked) => {
+              setAppData("onBookingWriteToEventObject", checked);
+            }}
+            writeToObjectData={normalizedEventObjectMap}
+            updateWriteToObjectData={(data) => setAppData("onBookingWriteToEventObjectMap", data)}
+            hideWhenToWrite
+          />
+          {onBookingWriteToEventObject && hasLegacyEventFields && (
+            <Alert
+              severity="warning"
+              className="mt-2"
+              message={t("salesforce_legacy_event_fields_warning")}
             />
-          </Section.SubSectionHeader>
-          {onBookingWriteToEventObject ? (
-            <Section.SubSectionContent>
-              <div className="text-subtle flex gap-3 px-3 py-[6px] text-sm font-medium">
-                <div className="flex-1">{t("field_name")}</div>
-                <div className="flex-1">{t("value")}</div>
-                <div className="w-10" />
-              </div>
-              <Section.SubSectionNested>
-                {Object.keys(onBookingWriteToEventObjectMap).map((key) => (
-                  <div className="flex items-center gap-2" key={key}>
-                    <div className="flex-1">
-                      <InputField value={key} readOnly size="sm" className="w-full" />
-                    </div>
-                    <div className="flex-1">
-                      <InputField
-                        value={onBookingWriteToEventObjectMap[key]}
-                        readOnly
-                        size="sm"
-                        className="w-full"
-                      />
-                    </div>
-                    <div className="flex w-10 justify-center">
-                      <Button
-                        StartIcon="x"
-                        variant="icon"
-                        size="sm"
-                        color="minimal"
-                        onClick={() => {
-                          const newObject = onBookingWriteToEventObjectMap;
-                          delete onBookingWriteToEventObjectMap[key];
-                          setAppData("onBookingWriteToEventObjectMap", newObject);
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-                <div className="mt-2 flex gap-4">
-                  <div className="flex-1">
-                    <InputField
-                      size="sm"
-                      className="w-full"
-                      value={newOnBookingWriteToEventObjectField.field}
-                      onChange={(e) =>
-                        setNewOnBookingWriteToEventObjectField({
-                          ...newOnBookingWriteToEventObjectField,
-                          field: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <InputField
-                      size="sm"
-                      className="w-full"
-                      value={newOnBookingWriteToEventObjectField.value}
-                      onChange={(e) =>
-                        setNewOnBookingWriteToEventObjectField({
-                          ...newOnBookingWriteToEventObjectField,
-                          value: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="w-10" />
-                </div>
-              </Section.SubSectionNested>
-              <Button
-                className="text-subtle mt-2 w-fit"
-                size="sm"
-                color="secondary"
-                disabled={
-                  !(newOnBookingWriteToEventObjectField.field && newOnBookingWriteToEventObjectField.value)
-                }
-                onClick={() => {
-                  if (
-                    Object.keys(onBookingWriteToEventObjectMap).includes(
-                      newOnBookingWriteToEventObjectField.field.trim()
-                    )
-                  ) {
-                    showToast("Field already exists", "error");
-                    return;
-                  }
-
-                  setAppData("onBookingWriteToEventObjectMap", {
-                    ...onBookingWriteToEventObjectMap,
-                    [newOnBookingWriteToEventObjectField.field.trim()]:
-                      newOnBookingWriteToEventObjectField.value.trim(),
-                  });
-                  setNewOnBookingWriteToEventObjectField({ field: "", value: "" });
-                }}>
-                {t("add_new_field")}
-              </Button>
-            </Section.SubSectionContent>
-          ) : null}
+          )}
         </Section.SubSection>
 
         <Section.SubSection>

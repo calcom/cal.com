@@ -1,10 +1,18 @@
 import { RoutingFormResponseDataFactory } from "@calcom/app-store/routing-forms/lib/RoutingFormResponseDataFactory";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { BookingReferenceRepository } from "@calcom/features/bookingReference/repositories/BookingReferenceRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { PrismaTrackingRepository } from "@calcom/features/bookings/repositories/PrismaTrackingRepository";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { CredentialRepository } from "@calcom/features/credentials/repositories/CredentialRepository";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getFeatureRepository } from "@calcom/features/di/containers/FeatureRepository";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { getRedisService } from "@calcom/features/di/containers/Redis";
+// biome-ignore lint/style/noRestrictedImports: pre-existing violation
+import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import { PrismaRoutingFormResponseRepository as RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/PrismaRoutingFormResponseRepository";
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
@@ -14,7 +22,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { RetryableError } from "@calcom/lib/crmManager/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { prisma } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
+import { prisma as defaultPrisma } from "@calcom/prisma";
 import type { CalEventResponses, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { Contact, CRM, CrmEvent } from "@calcom/types/CrmService";
@@ -26,8 +35,8 @@ import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshT
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { findFieldValueByIdentifier } from "../../routing-forms/lib/findFieldValueByIdentifier";
 import { default as appMeta } from "../config.json";
-import type { appDataSchema, RRSkipFieldRule, writeToBookingEntry, writeToRecordDataSchema } from "../zod";
-import { RRSkipFieldRuleActionEnum } from "../zod";
+import type { appDataSchema, LastSyncError, RRSkipFieldRule, writeToRecordDataSchema } from "../zod";
+import { isWriteToBookingEntry, type WriteToBookingEntry, RRSkipFieldRuleActionEnum } from "../zod";
 import {
   DateFieldTypeData,
   RoutingReasons,
@@ -138,6 +147,10 @@ class SalesforceCRMService implements CRM {
   private hasAttemptedRefresh = false;
   private credentialId: number;
   private describeCache = new Map<string, Set<string>>();
+  private trackingRepository: PrismaTrackingRepository;
+  private bookingRepository: BookingRepository;
+  private bookingReferenceRepository: BookingReferenceRepository;
+  private eventTypeRepository: EventTypeRepository;
 
   /**
    * Escapes a string value for safe interpolation into SOQL queries.
@@ -156,9 +169,18 @@ class SalesforceCRMService implements CRM {
     return this.sanitizeSoqlValue(value).replace(/%/g, "\\%").replace(/_/g, "\\_");
   }
 
-  constructor(credential: CredentialPayload, appOptions: z.infer<typeof appDataSchema>, testMode = false) {
+  constructor(
+    credential: CredentialPayload,
+    appOptions: z.infer<typeof appDataSchema>,
+    testMode = false,
+    prismaClient: PrismaClient = defaultPrisma
+  ) {
     this.integrationName = "salesforce_other_calendar";
     this.credentialId = credential.id;
+    this.trackingRepository = new PrismaTrackingRepository(prismaClient);
+    this.bookingRepository = new BookingRepository(prismaClient);
+    this.bookingReferenceRepository = new BookingReferenceRepository({ prismaClient });
+    this.eventTypeRepository = new EventTypeRepository(prismaClient);
     if (!testMode) {
       this.conn = this.getClient(credential).then((c) => c);
     }
@@ -366,6 +388,57 @@ class SalesforceCRMService implements CRM {
     });
   };
 
+  /**
+   * Persists a sync error to the event type metadata so it can be surfaced
+   * as a diagnostic notification on the Salesforce settings tab.
+   */
+  private async persistSyncError(error: {
+    errorCode: string;
+    errorMessage: string;
+    droppedFields?: string[];
+  }): Promise<void> {
+    try {
+      const syncError: LastSyncError = {
+        timestamp: new Date().toISOString(),
+        errorCode: error.errorCode,
+        errorMessage: error.errorMessage,
+        droppedFields: error.droppedFields,
+      };
+
+      const eventTypes = await this.eventTypeRepository.findManyByAppMetadataCredentialId({
+        appSlug: "salesforce",
+        credentialId: this.credentialId,
+      });
+
+      for (const et of eventTypes) {
+        const metadata = (et.metadata ?? {}) as Record<string, unknown>;
+        const apps = (metadata.apps ?? {}) as Record<string, unknown>;
+        const sfApp = (apps.salesforce ?? {}) as Record<string, unknown>;
+
+        await this.eventTypeRepository.updateById({
+          id: et.id,
+          data: {
+            metadata: {
+              ...metadata,
+              apps: {
+                ...apps,
+                salesforce: {
+                  ...sfApp,
+                  lastSyncError: syncError,
+                },
+              },
+            },
+          },
+          select: { id: true },
+        });
+      }
+
+      this.log.info("Persisted sync error to event type metadata", { syncError });
+    } catch (err) {
+      this.log.error("Failed to persist sync error to event type metadata", { err });
+    }
+  }
+
   private salesforceCreateEvent = async (event: CalendarEvent, contacts: Contact[]) => {
     const log = logger.getSubLogger({
       prefix: [`[salesforceCreateEvent]:${event.uid}`],
@@ -406,6 +479,8 @@ class SalesforceCRMService implements CRM {
       log.warn(`Not all contacts contain ids ${contacts}`);
     }
 
+    const hasCustomFields = Object.keys(writeToEventRecord).length > 0;
+
     const createdEvent = await this.salesforceCreateEventApiCall(event, {
       EventWhoIds: eventWhoIds,
       ...writeToEventRecord,
@@ -417,15 +492,29 @@ class SalesforceCRMService implements CRM {
            "Setup > Feature Settings > Sales > Activity Settings" to be able to create events with
            multiple contact attendees.`
         );
-        // User has not configured "Allow Users to Relate Multiple Contacts to Tasks and Events"
-        // proceeding to create the event using just the first attendee as the primary WhoId
+
         return await this.salesforceCreateEventApiCall(event, {
           WhoId: firstContact.id,
+          ...writeToEventRecord,
+          ...(ownerId && { OwnerId: ownerId }),
         }).catch((reason) => Promise.reject(reason));
       }
       log.error(`Error creating event: ${JSON.stringify(reason)}`);
 
-      // Try creating a simple object without additional records
+      if (hasCustomFields) {
+        const errorCode = typeof reason === "string" ? reason : (reason?.errorCode ?? "UNKNOWN");
+        const errorMessage = typeof reason === "string" ? reason : JSON.stringify(reason);
+        const droppedFields = Object.keys(writeToEventRecord);
+        SalesforceRoutingTraceService.syncError({
+          objectType: "Event",
+          operation: "create",
+          sfErrorCode: errorCode,
+          sfErrorMessage: errorMessage,
+          droppedFields,
+        });
+        await this.persistSyncError({ errorCode, errorMessage, droppedFields });
+      }
+
       return await this.salesforceCreateEventApiCall(event, {
         WhoId: firstContact.id,
         ...(ownerId && { OwnerId: ownerId }),
@@ -1034,14 +1123,9 @@ class SalesforceCRMService implements CRM {
       return;
     }
     // Get all Salesforce events associated with the booking
-    const salesforceEvents = await prisma.bookingReference.findMany({
-      where: {
-        type: appMeta.type,
-        booking: {
-          uid: bookingUid,
-        },
-        deleted: null,
-      },
+    const salesforceEvents = await this.bookingReferenceRepository.findManyByBookingUidAndType({
+      bookingUid,
+      type: appMeta.type,
     });
 
     const salesforceEntity = await conn.describe("Event");
@@ -1701,7 +1785,7 @@ class SalesforceCRMService implements CRM {
   }: {
     recordId: string;
     startTime: string;
-    fieldsToWriteTo: Record<string, z.infer<typeof writeToBookingEntry>>;
+    fieldsToWriteTo: Record<string, WriteToBookingEntry>;
     organizerEmail?: string;
     calEventResponses?: CalEventResponses | null;
     bookingUid?: string | null;
@@ -1888,6 +1972,7 @@ class SalesforceCRMService implements CRM {
   }
 
   private async generateWriteToEventBody(event: CalendarEvent) {
+    const log = logger.getSubLogger({ prefix: ["[generateWriteToEventBody]"] });
     const appOptions = this.getAppOptions();
 
     const customFieldInputsEnabled =
@@ -1901,31 +1986,107 @@ class SalesforceCRMService implements CRM {
       ? await this.ensureFieldsExistOnObject(Object.keys(appOptions.onBookingWriteToEventObjectMap), "Event")
       : [];
 
-    const confirmedCustomFieldInputs: {
-      // This is unique to each instance so we don't know the type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      [key: string]: any;
-    } = {};
+    const confirmedCustomFieldInputs: Record<string, string | boolean> = {};
 
     for (const field of customFieldInputs) {
-      const fieldValue = appOptions.onBookingWriteToEventObjectMap[field.name];
-
-      if (field.type === SalesforceFieldType.CHECKBOX) {
-        confirmedCustomFieldInputs[field.name] = String(fieldValue).toLowerCase() === "true";
-        continue;
+      const rawConfig = appOptions.onBookingWriteToEventObjectMap[field.name];
+      const fieldConfig = this.normalizeEventFieldConfig(rawConfig);
+      const value = await this.resolveFieldValue(field, fieldConfig, event, log);
+      if (value !== undefined) {
+        confirmedCustomFieldInputs[field.name] = value;
       }
-
-      confirmedCustomFieldInputs[field.name] = await this.getTextFieldValue({
-        fieldValue,
-        fieldLength: field.length,
-        calEventResponses: event.responses,
-        bookingUid: event?.uid,
-        recordId: event?.uid ?? "Cal booking",
-        fieldName: field.name,
-      });
     }
 
+    log.debug(`Prepared event body with fields: ${Object.keys(confirmedCustomFieldInputs).join(", ")}`);
     return confirmedCustomFieldInputs;
+  }
+
+  /**
+   * Normalizes both legacy flat format ({ "Field": "value" }) and new typed format
+   * ({ "Field": { value, fieldType, whenToWrite } }) into a consistent structure.
+   */
+  private normalizeEventFieldConfig(raw: unknown): WriteToBookingEntry {
+    if (isWriteToBookingEntry(raw)) {
+      return raw;
+    }
+    return {
+      value: typeof raw === "boolean" ? raw : String(raw ?? ""),
+      fieldType: typeof raw === "boolean" ? SalesforceFieldType.CHECKBOX : SalesforceFieldType.TEXT,
+      whenToWrite: WhenToWriteToRecord.EVERY_BOOKING,
+    };
+  }
+
+  private async resolveFieldValue(
+    field: Field,
+    fieldConfig: WriteToBookingEntry,
+    event: CalendarEvent,
+    log: ReturnType<typeof logger.getSubLogger>
+  ): Promise<string | boolean | undefined> {
+    const recordId = event?.uid ?? "Cal booking";
+    const stringValue =
+      typeof fieldConfig.value === "boolean" ? String(fieldConfig.value) : fieldConfig.value;
+
+    if (field.type === SalesforceFieldType.CHECKBOX) {
+      const boolValue =
+        typeof fieldConfig.value === "boolean"
+          ? fieldConfig.value
+          : String(fieldConfig.value).toLowerCase() === "true";
+      if (typeof fieldConfig.value !== "boolean") {
+        SalesforceRoutingTraceService.eventFieldTypeCoerced({
+          fieldName: field.name,
+          originalValue: String(fieldConfig.value),
+          coercedValue: boolValue,
+          sfFieldType: field.type,
+        });
+      }
+      return boolValue;
+    }
+
+    if (field.type === SalesforceFieldType.DATE || field.type === SalesforceFieldType.DATETIME) {
+      if (!event.startTime || !event.organizer?.email) {
+        log.warn(`Missing startTime or organizer email for date field ${field.name}, skipping field`);
+        return undefined;
+      }
+      const dateValue = await this.getDateFieldValue(
+        stringValue,
+        event.startTime,
+        event?.uid,
+        event.organizer.email
+      );
+      if (!dateValue) {
+        log.warn(`Date handler returned null for ${field.name}, skipping field`);
+        return undefined;
+      }
+      return dateValue;
+    }
+
+    if (field.type === SalesforceFieldType.PICKLIST) {
+      const picklistValue = await this.getPicklistFieldValue({
+        fieldConfigValue: stringValue,
+        salesforceField: field,
+        calEventResponses: event.responses,
+        bookingUid: event?.uid,
+        recordId,
+      });
+      if (!picklistValue) {
+        log.warn(`Picklist handler returned null for ${field.name}, skipping field`);
+        return undefined;
+      }
+      return picklistValue;
+    }
+
+    const textValue = await this.getTextFieldValue({
+      fieldValue: stringValue,
+      fieldLength: field.length,
+      calEventResponses: event.responses,
+      bookingUid: event?.uid,
+      recordId,
+      fieldName: field.name,
+    });
+    if (textValue === undefined) {
+      log.warn(`Text handler returned undefined for ${field.name}, skipping field`);
+    }
+    return textValue;
   }
 
   private async getTextFieldValue({
@@ -2045,13 +2206,7 @@ class SalesforceCRMService implements CRM {
     const log = logger.getSubLogger({
       prefix: [`[getTextValueFromBookingTracking]: ${bookingUid}`],
     });
-    const tracking = await prisma.tracking.findFirst({
-      where: {
-        booking: {
-          uid: bookingUid,
-        },
-      },
-    });
+    const tracking = await this.trackingRepository.findByBookingUid(bookingUid);
     if (!tracking) {
       log.warn(`No tracking found for bookingUid ${bookingUid}`);
       return "";
@@ -2087,10 +2242,7 @@ class SalesforceCRMService implements CRM {
       if (!organizerEmail) {
         this.log.warn(`No organizer email found for bookingUid ${bookingUid}`);
       }
-      const booking = await prisma.booking.findUnique({
-        where: { uid: bookingUid },
-        select: { createdAt: true },
-      });
+      const booking = await this.bookingRepository.findCreatedAtByUid({ bookingUid });
 
       if (!booking) {
         this.log.warn(`No booking found for ${bookingUid}`);

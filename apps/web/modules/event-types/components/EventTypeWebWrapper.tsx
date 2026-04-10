@@ -203,8 +203,14 @@ const EventTypeWeb = ({
         message = `${err.data.code}: ${t("error_event_type_unauthorized_update")}`;
       }
 
-      if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
+      if (err.data?.code === "PARSE_ERROR") {
         message = `${err.data.code}: ${t(err.message)}`;
+      }
+
+      if (err.data?.code === "BAD_REQUEST") {
+        const isSalesforceValidation = err.message.startsWith("Salesforce field mapping:");
+        showToast(t(err.message), "error", { duration: isSalesforceValidation ? 30000 : 5000 });
+        return;
       }
 
       if (err.data?.code === "INTERNAL_SERVER_ERROR") {
