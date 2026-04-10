@@ -183,7 +183,8 @@
     "multer": "2.1.1",
     "flatted": "3.4.2",
     "socket.io-parser": "4.2.6",
-    "vite": "6.4.1"
+    "vite": "6.4.1",
+    "uuid": "11.1.0"
   },
   "packageExtensions": {
     "ink@3.2.0": {
@@ -202,6 +203,6 @@
     "semverRange": ""
   },
   "dependencies": {
-    "uuid": "10.0.0"
+    "uuid": "11.1.0"
   }
 }

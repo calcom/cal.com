@@ -1993,7 +1993,7 @@ __metadata:
     tsconfig-paths: "npm:4.2.0"
     typescript: "npm:5.9.3"
     tzdata: "npm:1.0.40"
-    uuid: "npm:8.3.2"
+    uuid: "npm:11.1.0"
     winston: "npm:3.17.0"
     winston-transport: "npm:4.9.0"
     zod: "npm:3.25.76"
@@ -2791,7 +2791,7 @@ __metadata:
     tsdav: "npm:2.0.3"
     tslog: "npm:4.9.2"
     typescript: "npm:5.9.3"
-    uuid: "npm:8.3.2"
+    uuid: "npm:11.1.0"
   languageName: unknown
   linkType: soft
 
@@ -3012,7 +3012,7 @@ __metadata:
     prisma: "npm:6.16.1"
     prisma-kysely: "npm:2.2.0"
     ts-node: "npm:10.9.2"
-    uuid: "npm:8.3.2"
+    uuid: "npm:11.1.0"
     zod: "npm:3.25.76"
     zod-prisma-types: "npm:3.2.4"
   bin:
@@ -3150,7 +3150,7 @@ __metadata:
     "@stripe/stripe-js": "npm:1.35.0"
     stripe: "npm:9.16.0"
     ts-node: "npm:10.9.2"
-    uuid: "npm:8.3.2"
+    uuid: "npm:11.1.0"
     zod: "npm:3.25.76"
   languageName: unknown
   linkType: soft
@@ -3210,11 +3210,10 @@ __metadata:
     "@trpc/react-query": "npm:11.0.0-next-beta.222"
     "@trpc/server": "npm:11.0.0-next-beta.222"
     "@types/cookie": "npm:0.6.0"
-    "@types/uuid": "npm:10.0.0"
     cookie: "npm:0.7.2"
     superjson: "npm:1.9.1"
     typescript: "npm:5.9.3"
-    uuid: "npm:8.3.2"
+    uuid: "npm:11.1.0"
     zod: "npm:3.25.76"
   peerDependencies:
     "@tanstack/react-query": ^5.0.0
@@ -3279,7 +3278,6 @@ __metadata:
     "@testing-library/user-event": "npm:14.6.1"
     "@types/react": "npm:18.0.26"
     "@types/react-dom": "npm:18.2.6"
-    "@types/uuid": "npm:10.0.0"
     "@wojtekmaj/react-daterange-picker": "npm:3.4.0"
     class-variance-authority: "npm:0.4.0"
     classnames: "npm:2.3.1"
@@ -3433,7 +3431,6 @@ __metadata:
     "@types/stripe": "npm:8.0.417"
     "@types/three": "npm:^0.183.1"
     "@types/turndown": "npm:5.0.1"
-    "@types/uuid": "npm:10.0.0"
     "@upstash/redis": "npm:1.35.2"
     "@vercel/edge-config": "npm:0.1.1"
     "@vercel/og": "npm:0.6.3"
@@ -3517,7 +3514,7 @@ __metadata:
     turbo: "npm:2.5.5"
     turndown: "npm:7.2.0"
     typescript: "npm:5.9.3"
-    uuid: "npm:8.3.2"
+    uuid: "npm:11.1.0"
     zod: "npm:3.25.76"
   languageName: unknown
   linkType: soft
@@ -16335,13 +16332,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/uuid@npm:10.0.0":
-  version: 10.0.0
-  resolution: "@types/uuid@npm:10.0.0"
-  checksum: 10/e3958f8b0fe551c86c14431f5940c3470127293280830684154b91dc7eb3514aeb79fe3216968833cf79d4d1c67f580f054b5be2cd562bebf4f728913e73e944
-  languageName: node
-  linkType: hard
-
 "@types/uuid@npm:^9.0.1":
   version: 9.0.8
   resolution: "@types/uuid@npm:9.0.8"
@@ -18742,7 +18732,7 @@ __metadata:
     tsc-absolute: "npm:1.0.0"
     turbo: "npm:2.7.1"
     typescript: "npm:5.9.3"
-    uuid: "npm:10.0.0"
+    uuid: "npm:11.1.0"
     vitest: "npm:4.1.2"
     vitest-fetch-mock: "npm:0.4.5"
     vitest-mock-extended: "npm:3.1.0"
@@ -38885,48 +38875,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:10.0.0":
-  version: 10.0.0
-  resolution: "uuid@npm:10.0.0"
-  bin:
-    uuid: dist/bin/uuid
-  checksum: 10/35aa60614811a201ff90f8ca5e9ecb7076a75c3821e17f0f5ff72d44e36c2d35fcbc2ceee9c4ac7317f4cc41895da30e74f3885e30313bee48fda6338f250538
-  languageName: node
-  linkType: hard
-
-"uuid@npm:11.1.0, uuid@npm:^11.1.0":
+"uuid@npm:11.1.0":
   version: 11.1.0
   resolution: "uuid@npm:11.1.0"
   bin:
     uuid: dist/esm/bin/uuid
   checksum: 10/d2da43b49b154d154574891ced66d0c83fc70caaad87e043400cf644423b067542d6f3eb641b7c819224a7cd3b4c2f21906acbedd6ec9c6a05887aa9115a9cf5
-  languageName: node
-  linkType: hard
-
-"uuid@npm:8.3.2, uuid@npm:^8.0.0, uuid@npm:^8.3.0, uuid@npm:^8.3.2":
-  version: 8.3.2
-  resolution: "uuid@npm:8.3.2"
-  bin:
-    uuid: dist/bin/uuid
-  checksum: 10/9a5f7aa1d6f56dd1e8d5f2478f855f25c645e64e26e347a98e98d95781d5ed20062d6cca2eecb58ba7c84bc3910be95c0451ef4161906abaab44f9cb68ffbdd1
-  languageName: node
-  linkType: hard
-
-"uuid@npm:9.0.0":
-  version: 9.0.0
-  resolution: "uuid@npm:9.0.0"
-  bin:
-    uuid: dist/bin/uuid
-  checksum: 10/23857699a616d1b48224bc2b8440eae6e57d25463c3a0200e514ba8279dfa3bde7e92ea056122237839cfa32045e57d8f8f4a30e581d720fd72935572853ae2e
-  languageName: node
-  linkType: hard
-
-"uuid@npm:9.0.1, uuid@npm:^9.0.0, uuid@npm:^9.0.1":
-  version: 9.0.1
-  resolution: "uuid@npm:9.0.1"
-  bin:
-    uuid: dist/bin/uuid
-  checksum: 10/9d0b6adb72b736e36f2b1b53da0d559125ba3e39d913b6072f6f033e0c87835b414f0836b45bcfaf2bdf698f92297fea1c3cc19b0b258bc182c9c43cc0fab9f2
   languageName: node
   linkType: hard
 
