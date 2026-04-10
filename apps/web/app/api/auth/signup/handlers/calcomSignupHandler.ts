@@ -27,7 +27,7 @@ import { isPrismaError } from "@calcom/lib/server/getServerErrorFromUnknown";
 import type { CustomNextApiHandler } from "@calcom/lib/server/username";
 import { usernameHandler } from "@calcom/lib/server/username";
 import { getTrackingFromCookies } from "@calcom/lib/tracking";
-import prisma from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
 import {
   CreationSource,
   IdentityProvider,
