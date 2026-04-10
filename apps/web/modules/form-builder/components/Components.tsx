@@ -12,7 +12,8 @@ import type { fieldSchema, variantsConfigSchema, FieldType } from "@calcom/prism
 import { AddressInput } from "@calcom/ui/components/address";
 import { InfoBadge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
-import { Label, CheckboxField, EmailField, EmailInputWithTypoHint, InputField, Checkbox } from "@calcom/ui/components/form";
+import { Label, CheckboxField, EmailField, InputField, Checkbox } from "@calcom/ui/components/form";
+import { EmailInputWithTypoHint } from "@calcom/ui/components/form/inputs/Input";
 import { RadioGroup, RadioField } from "@calcom/ui/components/radio";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 import { XIcon } from "@coss/ui/icons";

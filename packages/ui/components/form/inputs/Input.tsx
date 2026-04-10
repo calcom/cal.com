@@ -83,17 +83,13 @@ export const EmailField = forwardRef<HTMLInputElement, InputFieldProps>(function
   );
 });
 
-/**
- * Email input with built-in typo detection for common email domains.
- * Shows a suggestion hint when a likely domain typo is detected.
- */
+/** Email input with typo detection for common domains. */
 export const EmailInputWithTypoHint = forwardRef<HTMLInputElement, InputFieldProps>(
   function EmailInputWithTypoHint(props, ref) {
     const [localValue, setLocalValue] = useState("");
-    const suggestion = getEmailDomainSuggestion(localValue);
-
-    // Extract onChange from props so we can wrap it
-    const { onChange: originalOnChange, ...restProps } = props;
+    const { onChange: originalOnChange, value, ...restProps } = props;
+    const currentValue = (value as string) ?? localValue;
+    const suggestion = getEmailDomainSuggestion(currentValue);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setLocalValue(e.target.value);
