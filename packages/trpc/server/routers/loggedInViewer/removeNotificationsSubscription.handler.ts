@@ -1,4 +1,7 @@
-import { subscriptionSchema } from "@calcom/features/instant-meeting/schema";
+import { PrismaWebPushSubscriptionRepository } from "@calcom/features/notifications/prisma-web-push-subscription-repository";
+import { WebPushSubscriptionService } from "@calcom/features/notifications/web-push-subscription-service";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 import { TRPCError } from "@trpc/server";
@@ -11,36 +14,26 @@ type RemoveNotificationsSubscriptionOptions = {
   input: TRemoveNotificationsSubscriptionInputSchema;
 };
 
-const parseBrowserSubscription = (subscription: string) => {
-  try {
-    return subscriptionSchema.safeParse(JSON.parse(subscription));
-  } catch {
-    return subscriptionSchema.safeParse(null);
-  }
-};
-
 export const removeNotificationsSubscriptionHandler = async ({
   ctx,
   input,
 }: RemoveNotificationsSubscriptionOptions) => {
   const { user } = ctx;
 
-  const parsedSubscription = parseBrowserSubscription(input.subscription);
+  const repository = new PrismaWebPushSubscriptionRepository(prisma);
+  const service = new WebPushSubscriptionService(repository);
 
-  if (!parsedSubscription.success) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Invalid subscription",
-    });
+  try {
+    await service.remove(user.id, input.subscription);
+  } catch (error) {
+    if (error instanceof ErrorWithCode && error.code === ErrorCode.BadRequest) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Invalid subscription",
+      });
+    }
+    throw error;
   }
-
-  await prisma.notificationsSubscriptions.deleteMany({
-    where: {
-      userId: user.id,
-      type: "WEB_PUSH",
-      identifier: parsedSubscription.data.endpoint,
-    },
-  });
 
   return {
     message: "Subscription removed successfully",

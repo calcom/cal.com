@@ -1,5 +1,8 @@
-import { subscriptionSchema } from "@calcom/features/instant-meeting/schema";
-import { sendNotification } from "@calcom/features/notifications/sendNotification";
+import { sendWebPushTestNotification } from "@calcom/features/notifications/send-web-push-test-notification";
+import { PrismaWebPushSubscriptionRepository } from "@calcom/features/notifications/prisma-web-push-subscription-repository";
+import { WebPushSubscriptionService } from "@calcom/features/notifications/web-push-subscription-service";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { ErrorWithCode } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
@@ -15,14 +18,6 @@ type AddNotificationsSubscriptionOptions = {
 
 const log = logger.getSubLogger({ prefix: ["[addNotificationsSubscriptionHandler]"] });
 
-const parseBrowserSubscription = (subscription: string) => {
-  try {
-    return subscriptionSchema.safeParse(JSON.parse(subscription));
-  } catch {
-    return subscriptionSchema.safeParse(null);
-  }
-};
-
 export const addNotificationsSubscriptionHandler = async ({
   ctx,
   input,
@@ -30,54 +25,22 @@ export const addNotificationsSubscriptionHandler = async ({
   const { user } = ctx;
   const { subscription } = input;
 
-  const parsedSubscription = parseBrowserSubscription(subscription);
+  const repository = new PrismaWebPushSubscriptionRepository(prisma);
+  const service = new WebPushSubscriptionService(repository);
 
-  if (!parsedSubscription.success) {
-    log.error("Invalid subscription", parsedSubscription.error, JSON.stringify(subscription));
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Invalid subscription",
-    });
+  try {
+    const { parsed } = await service.register(user.id, subscription);
+    sendWebPushTestNotification(parsed);
+  } catch (error) {
+    if (error instanceof ErrorWithCode && error.code === ErrorCode.BadRequest) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Invalid subscription",
+      });
+    }
+    log.error("Failed to register web-push subscription", error);
+    throw error;
   }
-
-  const endpoint = parsedSubscription.data.endpoint;
-
-  await prisma.notificationsSubscriptions.upsert({
-    where: {
-      userId_type_identifier: {
-        userId: user.id,
-        type: "WEB_PUSH",
-        identifier: endpoint,
-      },
-    },
-    create: {
-      userId: user.id,
-      subscription,
-      type: "WEB_PUSH",
-      platform: "WEB",
-      identifier: endpoint,
-    },
-    update: {
-      subscription,
-      lastSeenAt: new Date(),
-    },
-  });
-
-  // send test notification
-  sendNotification({
-    subscription: {
-      endpoint: parsedSubscription.data.endpoint,
-      keys: {
-        auth: parsedSubscription.data.keys.auth,
-        p256dh: parsedSubscription.data.keys.p256dh,
-      },
-    },
-    title: "Test Notification",
-    body: "Push Notifications activated successfully",
-    url: "https://app.cal.com/",
-    requireInteraction: false,
-    type: "TEST_NOTIFICATION",
-  });
 
   return {
     message: "Subscription added successfully",

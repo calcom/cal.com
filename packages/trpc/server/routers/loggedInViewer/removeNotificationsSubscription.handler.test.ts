@@ -30,6 +30,8 @@ describe("removeNotificationsSubscriptionHandler", () => {
   });
 
   it("deletes the exact web push subscription by endpoint identifier", async () => {
+    vi.mocked(prisma.notificationsSubscriptions.deleteMany).mockResolvedValue({ count: 1 });
+
     await removeNotificationsSubscriptionHandler({
       ctx: makeCtx(),
       input: { subscription: JSON.stringify(webPushSubscription) },
@@ -54,5 +56,17 @@ describe("removeNotificationsSubscriptionHandler", () => {
       code: "BAD_REQUEST",
       message: "Invalid subscription",
     });
+  });
+
+  it("lets unexpected errors bubble without masking as BAD_REQUEST", async () => {
+    const dbError = new Error("Connection refused");
+    vi.mocked(prisma.notificationsSubscriptions.deleteMany).mockRejectedValue(dbError);
+
+    await expect(
+      removeNotificationsSubscriptionHandler({
+        ctx: makeCtx(),
+        input: { subscription: JSON.stringify(webPushSubscription) },
+      })
+    ).rejects.toThrow(dbError);
   });
 });

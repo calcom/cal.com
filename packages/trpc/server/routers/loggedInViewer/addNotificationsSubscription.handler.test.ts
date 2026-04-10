@@ -58,6 +58,15 @@ describe("addNotificationsSubscriptionHandler", () => {
         subscription: JSON.stringify(webPushSubscription),
         lastSeenAt: expect.any(Date),
       },
+      select: {
+        id: true,
+        userId: true,
+        type: true,
+        platform: true,
+        identifier: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   });
 
@@ -71,5 +80,17 @@ describe("addNotificationsSubscriptionHandler", () => {
       code: "BAD_REQUEST",
       message: "Invalid subscription",
     });
+  });
+
+  it("lets unexpected errors bubble without masking as BAD_REQUEST", async () => {
+    const dbError = new Error("Connection refused");
+    vi.mocked(prisma.notificationsSubscriptions.upsert).mockRejectedValue(dbError);
+
+    await expect(
+      addNotificationsSubscriptionHandler({
+        ctx: makeCtx(),
+        input: { subscription: JSON.stringify(webPushSubscription) },
+      })
+    ).rejects.toThrow(dbError);
   });
 });

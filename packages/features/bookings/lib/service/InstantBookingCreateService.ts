@@ -25,19 +25,11 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import type { WebhookVersion } from "../../../webhooks/lib/interface/IWebhookRepository";
-import { instantMeetingSubscriptionSchema as subscriptionSchema } from "../dto/schema";
+import { parseBrowserSubscription } from "@calcom/features/notifications/web-push-subscription-schema";
 
 interface IInstantBookingCreateServiceDependencies {
   prismaClient: PrismaClient;
 }
-
-const parseBrowserSubscription = (subscription: string) => {
-  try {
-    return subscriptionSchema.safeParse(JSON.parse(subscription));
-  } catch {
-    return subscriptionSchema.safeParse(null);
-  }
-};
 
 const handleInstantMeetingWebhookTrigger = async (args: {
   eventTypeId: number;
