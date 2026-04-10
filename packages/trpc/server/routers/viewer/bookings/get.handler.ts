@@ -327,11 +327,7 @@ export async function getBookings({
             db
               .selectFrom("users")
               .select("users.email")
-              .where(
-                "users.id",
-                "in",
-                db.selectFrom("team_user_ids" as any).select("userId" as any)
-              )
+              .where("users.id", "in", db.selectFrom("team_user_ids" as any).select("userId" as any))
           )
           .with("team_event_type_ids", (db) =>
             db
@@ -368,73 +364,107 @@ export async function getBookings({
     };
 
     // ── UNION ALL path for unbounded queries (past/cancelled) ──
-    // Each branch hits its own optimal index. PG plans each independently,
-    // avoiding the full startTime index walk that the CTE + OR approach needs.
+    // Uses the same 7-branch structure as v6.3.9. Each branch is narrow and
+    // hits its own optimal index. PG plans each independently.
     // The CTE path remains for bounded statuses where it's already fast.
     const buildTeamUnionBranches = (): BookingsUnionQuery[] => {
-      // Branch 1: bookings by current team members (Booking_userId_idx)
-      const userIdBranch = applyCommonFilters(
+      // 1. Current user created bookings
+      const currentUserBranch = applyCommonFilters(
         kysely
           .selectFrom("Booking")
           .select(bookingColumns)
-          .where(
-            "Booking.userId",
-            "in",
-            kysely
-              .selectFrom("Membership")
-              .select("Membership.userId")
-              .where("Membership.teamId", "in", teamIdsWithBookingPermission!)
-          ) as BookingsUnionQuery
+          .where("Booking.userId", "=", user.id) as BookingsUnionQuery
       );
 
-      // Branch 2: bookings on team event types by non-members (Booking_eventTypeId_idx)
-      // Catches ex-member and reassigned bookings
-      const eventTypeBranch = applyCommonFilters(
+      // 2. Current user is an attendee
+      const currentUserAttendeeBranch = applyCommonFilters(
         kysely
           .selectFrom("Booking")
           .select(bookingColumns)
-          .where(
-            "Booking.eventTypeId",
-            "in",
-            kysely
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .where("Attendee.email", "=", user.email) as unknown as BookingsUnionQuery,
+        true
+      );
+
+      // 3. Current user is an attendee via seats reference
+      const currentUserSeatedBranch = applyCommonFilters(
+        kysely
+          .selectFrom("Booking")
+          .select(bookingColumns)
+          .innerJoin("BookingSeat", "BookingSeat.bookingId", "Booking.id")
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .where("Attendee.email", "=", user.email) as unknown as BookingsUnionQuery,
+        true
+      );
+
+      // 4. Team members are attendees
+      const teamAttendeeBranch = applyCommonFilters(
+        kysely
+          .selectFrom("Booking")
+          .select(bookingColumns)
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .where("Attendee.email", "in", (eb) =>
+            eb
+              .selectFrom("users")
+              .select("users.email")
+              .innerJoin("Membership", "Membership.userId", "users.id")
+              .where("Membership.teamId", "in", teamIdsWithBookingPermission!)
+          ) as unknown as BookingsUnionQuery,
+        true
+      );
+
+      // 5. Team members are attendees via seats reference
+      const teamSeatedAttendeeBranch = applyCommonFilters(
+        kysely
+          .selectFrom("Booking")
+          .select(bookingColumns)
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .innerJoin("BookingSeat", "Attendee.id", "BookingSeat.attendeeId")
+          .where("Attendee.email", "in", (eb) =>
+            eb
+              .selectFrom("users")
+              .select("users.email")
+              .innerJoin("Membership", "Membership.userId", "users.id")
+              .where("Membership.teamId", "in", teamIdsWithBookingPermission!)
+          ) as unknown as BookingsUnionQuery,
+        true
+      );
+
+      // 6. Bookings for team event types
+      const teamEventTypeBranch = applyCommonFilters(
+        kysely
+          .selectFrom("Booking")
+          .select(bookingColumns)
+          .where("Booking.eventTypeId", "in", (eb) =>
+            eb
               .selectFrom("EventType")
               .select("EventType.id")
               .where("EventType.teamId", "in", teamIdsWithBookingPermission!)
           ) as BookingsUnionQuery
       );
 
-      // Branch 3: bookings where a team member is an attendee (Attendee_email_idx)
-      // Uses JOIN through Membership → users → Attendee → Booking so PG can
-      // drive from the small Membership set and use indexes at each join step.
-      const attendeeBranch = applyCommonFilters(
+      // 7. Bookings created by team members
+      const teamUserBranch = applyCommonFilters(
         kysely
           .selectFrom("Booking")
           .select(bookingColumns)
-          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
-          .where(({ or, eb }) =>
-            or([
-              eb("Attendee.email", "=", user.email),
-              eb(
-                "Attendee.email",
-                "in",
-                kysely
-                  .selectFrom("users")
-                  .select("users.email")
-                  .where(
-                    "users.id",
-                    "in",
-                    kysely
-                      .selectFrom("Membership")
-                      .select("Membership.userId")
-                      .where("Membership.teamId", "in", teamIdsWithBookingPermission!)
-                  )
-              ),
-            ])
-          ) as unknown as BookingsUnionQuery,
-        true
+          .where("Booking.userId", "in", (eb) =>
+            eb
+              .selectFrom("Membership")
+              .select("Membership.userId")
+              .where("Membership.teamId", "in", teamIdsWithBookingPermission!)
+          ) as BookingsUnionQuery
       );
 
-      return [userIdBranch, eventTypeBranch, attendeeBranch];
+      return [
+        currentUserBranch,
+        currentUserAttendeeBranch,
+        currentUserSeatedBranch,
+        teamAttendeeBranch,
+        teamSeatedAttendeeBranch,
+        teamEventTypeBranch,
+        teamUserBranch,
+      ];
     };
 
     // Fetch take+1 to determine hasMore without a COUNT query.
@@ -1367,10 +1397,7 @@ function buildStatusWhereClause(statuses: InputByStatus[]) {
     );
 }
 
-function addStatusesQueryFilters(
-  query: SelectQueryBuilder<any, "Booking", any>,
-  statuses: InputByStatus[]
-) {
+function addStatusesQueryFilters(query: SelectQueryBuilder<any, "Booking", any>, statuses: InputByStatus[]) {
   if (statuses?.length) {
     return query.where(buildStatusWhereClause(statuses));
   }
