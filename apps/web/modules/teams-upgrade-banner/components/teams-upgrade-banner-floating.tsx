@@ -15,7 +15,14 @@ const BANNER_IMAGE = {
 
 export function TeamsUpgradeBannerFloating(): React.ReactElement | null {
   const { t } = useLocale();
-  const { shouldShow, isDialogOpen, openDialog, openDialogFromImage, closeDialog, dismiss } = useTeamsUpgradeBanner();
+  const {
+    shouldShow,
+    isDialogOpen,
+    openDialog,
+    openDialogFromImage,
+    closeDialog,
+    dismiss,
+  } = useTeamsUpgradeBanner();
 
   if (!shouldShow && !isDialogOpen) return null;
 
@@ -26,12 +33,18 @@ export function TeamsUpgradeBannerFloating(): React.ReactElement | null {
         createPortal(
           <div
             data-testid="teams-upgrade-banner"
-            className="group fixed right-5 bottom-5 z-50 hidden max-w-xs rounded-lg border border-subtle bg-default shadow-lg md:block">
+            className="group fixed right-5 bottom-5 z-50 hidden max-w-xs rounded-lg border border-subtle bg-default shadow-lg md:block"
+          >
             <div className="p-4">
-              <h3 data-testid="teams-upgrade-banner-title" className="font-semibold text-emphasis text-lg">
+              <h3
+                data-testid="teams-upgrade-banner-title"
+                className="font-semibold text-emphasis"
+              >
                 {t("teams_upgrade_banner_title")}
               </h3>
-              <p className="mt-1 text-base text-subtle">{t("teams_upgrade_banner_description")}</p>
+              <p className="mt-1 text-sm text-subtle">
+                {t("teams_upgrade_banner_description")}
+              </p>
 
               <Button
                 type="button"
@@ -46,10 +59,22 @@ export function TeamsUpgradeBannerFloating(): React.ReactElement | null {
               <Button
                 data-testid="teams-upgrade-banner-cta"
                 className="mt-3"
-                size="sm"
-                color="secondary"
-                onClick={openDialog}>
+                size="xs"
+                color="primary"
+                onClick={openDialog}
+              >
                 {t("teams_upgrade_banner_cta")}
+              </Button>
+              <Button
+                data-testid="teams-upgrade-banner-learn-more"
+                className="ml-2"
+                size="xs"
+                color="secondary"
+                onClick={() => {
+                  window.open("https://cal.com/teams", "_blank");
+                }}
+              >
+                {t("learn_more")}
               </Button>
             </div>
 
@@ -60,10 +85,14 @@ export function TeamsUpgradeBannerFloating(): React.ReactElement | null {
               onClick={openDialogFromImage}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") openDialogFromImage();
-              }}>
+              }}
+            >
               <div
                 className="relative w-full"
-                style={{ aspectRatio: BANNER_IMAGE.width / BANNER_IMAGE.height }}>
+                style={{
+                  aspectRatio: BANNER_IMAGE.width / BANNER_IMAGE.height,
+                }}
+              >
                 <Image
                   src={BANNER_IMAGE.src}
                   alt={t("teams_upgrade_banner_title")}
