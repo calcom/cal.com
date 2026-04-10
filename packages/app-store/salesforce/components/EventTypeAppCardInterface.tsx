@@ -57,6 +57,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const onCancelWriteToRecordFields = getAppData("onCancelWriteToRecordFields") ?? {};
   const rrSkipFieldRules = (getAppData("rrSkipFieldRules") ?? []) as RRSkipFieldRule[];
   const lastSyncError = getAppData("lastSyncError") as LastSyncError | null | undefined;
+  const enableFuzzyDomainMatching = getAppData("enableFuzzyDomainMatching") ?? false;
 
   const { t } = useLocale();
 
@@ -248,6 +249,26 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
             </Section.SubSection>
           </>
         ) : null}
+
+        {(createEventOnSelectedOption.value === SalesforceRecordEnum.ACCOUNT ||
+          createEventOnSelectedOption.value === SalesforceRecordEnum.LEAD) && (
+          <Section.SubSection>
+            <Section.SubSectionHeader
+              icon="search"
+              title={t("salesforce_enable_fuzzy_domain_matching")}
+              labelFor="enable-fuzzy-domain-matching">
+              <Switch
+                size="sm"
+                id="enable-fuzzy-domain-matching"
+                labelOnLeading
+                checked={enableFuzzyDomainMatching}
+                onCheckedChange={(checked) => {
+                  setAppData("enableFuzzyDomainMatching", checked);
+                }}
+              />
+            </Section.SubSectionHeader>
+          </Section.SubSection>
+        )}
 
         <Section.SubSection>
           <WriteToObjectSettings

@@ -1549,16 +1549,20 @@ class SalesforceCRMService implements CRM {
       return accountId;
     }
 
-    // Cross-TLD fuzzy matching: "acme.co.uk" email matches Account with Website "acme.com"
-    let isFuzzyMatchingEnabled = false;
+    const appOptions = this.getAppOptions();
+    const perCredentialToggle = appOptions.enableFuzzyDomainMatching === true;
+
+    let globalFlagEnabled = false;
     try {
       const featureRepository = getFeatureRepository();
-      isFuzzyMatchingEnabled = await featureRepository.checkIfFeatureIsEnabledGlobally(
+      globalFlagEnabled = await featureRepository.checkIfFeatureIsEnabledGlobally(
         "enable-fuzzy-domain-matching"
       );
     } catch (error) {
       log.warn("Failed to check fuzzy domain matching feature flag, skipping", safeStringify({ error }));
     }
+
+    const isFuzzyMatchingEnabled = globalFlagEnabled && perCredentialToggle;
 
     if (isFuzzyMatchingEnabled) {
       const fuzzyMatch = await this.fuzzyMatchAccountByDomain(conn, email, log);

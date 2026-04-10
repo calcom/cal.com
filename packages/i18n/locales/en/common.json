@@ -3760,6 +3760,7 @@
   "salesforce_add_attendees_as": "Add new attendees as",
   "salesforce_sync_failure": "Sync failure: {{errorCode}}",
   "salesforce_dropped_fields": "dropped fields",
+  "salesforce_enable_fuzzy_domain_matching": "Match accounts by base domain across TLDs (e.g. acme.co.uk → acme.com) using Fuzzy Matching",
   "salesforce_do_not_route_to_owner": "Contact owner will not be forced (can still be host if it matches the attributes and Round Robin criteria)",
   "salesforce_route_to_custom_lookup_field": "Route to a user that matches a lookup field on an account",
   "salesforce_option": "Salesforce option",

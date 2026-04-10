@@ -951,13 +951,17 @@ describe("SalesforceCRMService", () => {
     });
   });
 
-  describe("fuzzyMatchAccountByDomain (enable-fuzzy-domain-matching feature flag)", () => {
+  describe("fuzzyMatchAccountByDomain (global flag + per-credential toggle)", () => {
+    beforeEach(() => {
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+    });
+
     it("cross-TLD match: acme.co.uk email matches acme.com account", async () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: Website IN — miss
@@ -985,12 +989,11 @@ describe("SalesforceCRMService", () => {
       expect(fuzzyCall).toContain("LIKE '%acme%'");
     });
 
-    it("does not run fuzzy match when feature flag is off", async () => {
+    it("does not run fuzzy match when per-credential toggle is off", async () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(false);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
@@ -1008,7 +1011,33 @@ describe("SalesforceCRMService", () => {
 
       await service.createContacts([{ name: "Test", email: "user@acme.co.uk" }]);
 
-      // Only 3 queries — no fuzzy step
+      expect(querySpy).toHaveBeenCalledTimes(3);
+    });
+
+    it("does not run fuzzy match when global flag is off", async () => {
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(false);
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-lead",
+          name: "Test",
+          email: "user@acme.co.uk",
+        }),
+      });
+
+      await service.createContacts([{ name: "Test", email: "user@acme.co.uk" }]);
+
       expect(querySpy).toHaveBeenCalledTimes(3);
     });
 
@@ -1016,8 +1045,8 @@ describe("SalesforceCRMService", () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
@@ -1046,8 +1075,8 @@ describe("SalesforceCRMService", () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
       mockCheckIfFreeEmailDomain.mockResolvedValueOnce(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
@@ -1074,8 +1103,8 @@ describe("SalesforceCRMService", () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
@@ -1109,8 +1138,8 @@ describe("SalesforceCRMService", () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
@@ -1135,8 +1164,8 @@ describe("SalesforceCRMService", () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({
@@ -1164,8 +1193,8 @@ describe("SalesforceCRMService", () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
@@ -1192,8 +1221,8 @@ describe("SalesforceCRMService", () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
@@ -1219,8 +1248,8 @@ describe("SalesforceCRMService", () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
@@ -1254,8 +1283,8 @@ describe("SalesforceCRMService", () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
@@ -1457,8 +1486,8 @@ describe("SalesforceCRMService", () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
@@ -1475,6 +1504,7 @@ describe("SalesforceCRMService", () => {
         }),
       });
 
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
       await service.createContacts([{ name: "Test", email: "user@my_corp.com" }]);
 
       // Verify the fuzzy SOQL escapes _ in the base domain
@@ -1484,12 +1514,16 @@ describe("SalesforceCRMService", () => {
   });
 
   describe("full account resolution waterfall", () => {
+    beforeEach(() => {
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+    });
+
     it("step 2 normalized fallback wins when exact miss but LIKE + normalization matches", async () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
@@ -1517,8 +1551,8 @@ describe("SalesforceCRMService", () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
@@ -1551,8 +1585,8 @@ describe("SalesforceCRMService", () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
@@ -1585,8 +1619,8 @@ describe("SalesforceCRMService", () => {
       mockAppOptions({
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
+        enableFuzzyDomainMatching: true,
       });
-      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
       const querySpy = vi.spyOn(mockConnection, "query");
       querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss

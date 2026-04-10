@@ -211,14 +211,16 @@ const WriteToObjectSettings = ({
 
       {optionEnabled ? (
         <Section.SubSectionContent>
-          <div className="text-subtle flex gap-3 px-3 py-[6px] text-sm font-medium">
-            <div className="flex-1">{t("field_name")}</div>
-            <div className="flex-1">{t("field_type")}</div>
-            <div className="flex-1">{t("value")}</div>
-            {!hideWhenToWrite && <div className="flex-1">{t("when_to_write")}</div>}
-            <div className="w-20" />
-          </div>
-          <Section.SubSectionNested>
+          {(Object.keys(writeToObjectData).length > 0 || isAddingNew) && (
+            <>
+              <div className="text-subtle flex gap-3 px-3 py-[6px] text-sm font-medium">
+                <div className="flex-1">{t("field_name")}</div>
+                <div className="flex-1">{t("field_type")}</div>
+                <div className="flex-1">{t("value")}</div>
+                {!hideWhenToWrite && <div className="flex-1">{t("when_to_write")}</div>}
+                <div className="w-20" />
+              </div>
+              <Section.SubSectionNested>
             {Object.keys(writeToObjectData).map((key) => {
               const isEditing = editingRows[key];
               const editData = editingData[key];
@@ -567,7 +569,9 @@ const WriteToObjectSettings = ({
                 )}
               </div>
             )}
-          </Section.SubSectionNested>
+              </Section.SubSectionNested>
+            </>
+          )}
           {!isAddingNew && (
             <Button
               className="text-subtle mt-2 w-fit"
