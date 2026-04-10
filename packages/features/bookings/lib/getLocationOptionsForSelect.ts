@@ -1,5 +1,5 @@
 import type { LocationObject } from "@calcom/app-store/locations";
-import { locationKeyToString } from "@calcom/app-store/locations";
+import { DefaultEventLocationTypeEnum, locationKeyToString } from "@calcom/app-store/locations";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { getTranslatedLocation } from "@calcom/app-store/locations";
 import type { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,7 +19,14 @@ export default function getLocationsOptionsForSelect(
         return null;
       }
       const type = eventLocation.type;
-      const translatedLocation = location.customLabel || getTranslatedLocation(location, eventLocation, t);
+      let defaultSomewhereElseLabel: string | undefined;
+      if (type === DefaultEventLocationTypeEnum.SomewhereElse) {
+        defaultSomewhereElseLabel = t("somewhere_else");
+      }
+      const translatedLocation =
+        location.customLabel ||
+        defaultSomewhereElseLabel ||
+        getTranslatedLocation(location, eventLocation, t);
 
       return {
         // XYZ: is considered a namespace in i18next https://www.i18next.com/principles/namespaces and thus it gets cleaned up.

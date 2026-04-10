@@ -463,9 +463,7 @@ export const Components: Record<FieldType, Component> = {
                         checked={value?.value === option.value}
                       />
                       <span className="text-emphasis me-2 ms-2 text-sm">
-                        {option.value === "somewhereElse"
-                          ? t("somewhere_else")
-                          : (getCleanLabel(option.label) ?? "")}
+                        {getCleanLabel(option.label) ?? ""}
                       </span>
                       <span>
                         {option.value === "phone" && (
@@ -480,11 +478,9 @@ export const Components: Record<FieldType, Component> = {
                 <>
                   <Label className="flex items-center">
                     {/* We still want to show the label of the field if it is changed by the user otherwise the best label would be the option label */}
-                    {options[0].value === "somewhereElse"
-                      ? translatedDefaultLabel
-                      : getCleanLabel(
-                          didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
-                        )}
+                    {getCleanLabel(
+                      didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
+                    )}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
                       <span className="text-default -mb-2 ml-1 text-sm font-medium">*</span>
                     ) : null}
