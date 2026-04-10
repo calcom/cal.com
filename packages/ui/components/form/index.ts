@@ -3,6 +3,7 @@ export type { Option as MultiSelectCheckboxesOptionType } from "./checkbox";
 export {
   EmailField,
   EmailInput,
+  EmailInputWithTypoHint,
   PasswordField,
   TextArea,
   TextAreaField,
