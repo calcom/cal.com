@@ -304,7 +304,7 @@
   --cal-text-emphasis: hsla(210, 30%, 4%, 1);
   --cal-text: hsla(220, 6%, 25%, 1);
   --cal-text-subtle: hsla(220, 9%, 46%, 1);
-  --cal-text-muted: hsla(218, 11%, 65%, 1);
+  --cal-text-muted: hsla(222, 10%, 33%, 1); /* #4A4E59 - WCAG AA compliant on cal-bg-subtle */
   --cal-text-inverted: hsla(0, 0%, 100%, 1);
 
   /* Content/Text Semantic */
