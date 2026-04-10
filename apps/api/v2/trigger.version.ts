@@ -1,1 +1,1 @@
-export const TRIGGER_VERSION = '20260410.2';
+export const TRIGGER_VERSION = '20260410.3';
