@@ -5193,7 +5193,7 @@
   "paid_seats_count": "Planınızda {{count}} kullanıcı dahildir",
   "teams_upgrade_banner_title": "Ekip planımızı deneyin",
   "teams_upgrade_banner_description": "Cal markalı içeriği kaldırın ve round robin zamanlama + analizler edinin.",
-  "teams_upgrade_banner_cta": "Ücretsiz başlayın",
+  "teams_upgrade_banner_cta": "Ücretsiz deneyin",
   "custom_email": "Özel e-posta",
   "custom_email_description": "E-postalarınızı ve iş akışlarınızı kendi SMTP hizmetiniz üzerinden gönderecek şekilde ayarlayın",
   "smtp_setup": "SMTP Kurulumu",

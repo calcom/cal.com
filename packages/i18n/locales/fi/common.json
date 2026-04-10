@@ -5193,7 +5193,7 @@
   "paid_seats_count": "{{count}} käyttäjäpaikkaa sisältyy pakettiin",
   "teams_upgrade_banner_title": "Kokeile Teams-suunnitelmaamme",
   "teams_upgrade_banner_description": "Poista Cal-brändäys ja hanki round robin -ajoitus + analytiikka.",
-  "teams_upgrade_banner_cta": "Aloita ilmaiseksi",
+  "teams_upgrade_banner_cta": "Kokeile ilmaiseksi",
   "custom_email": "Oma sähköposti",
   "custom_email_description": "Määritä sähköpostisi ja työnkulkusi lähettämään oman SMTP-palvelusi kautta",
   "smtp_setup": "SMTP-määritys",

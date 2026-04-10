@@ -5193,7 +5193,7 @@
   "paid_seats_count": "您的方案包含 {{count}} 個席位",
   "teams_upgrade_banner_title": "試用我們的團隊方案",
   "teams_upgrade_banner_description": "移除 Cal 品牌標識，並獲得 round robin 排程與深入分析功能。",
-  "teams_upgrade_banner_cta": "免費開始使用",
+  "teams_upgrade_banner_cta": "免費試用",
   "custom_email": "自訂電子郵件",
   "custom_email_description": "設定您的電子郵件和工作流程，透過您自己的 SMTP 服務發送",
   "smtp_setup": "SMTP 設定",

@@ -5193,7 +5193,7 @@
   "paid_seats_count": "{{count}} kasutajakohta sisaldub teie plaanis",
   "teams_upgrade_banner_title": "Proovi meie meeskondade plaani",
   "teams_upgrade_banner_description": "Eemalda Cal-i bränding ja kasuta round robin ajastamist + ülevaadet.",
-  "teams_upgrade_banner_cta": "Alusta tasuta",
+  "teams_upgrade_banner_cta": "Proovi tasuta",
   "custom_email": "Kohandatud e-post",
   "custom_email_description": "Seadistage oma e-kirjad ja töövood saatma läbi oma SMTP teenuse",
   "smtp_setup": "SMTP seadistus",

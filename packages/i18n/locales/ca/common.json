@@ -5193,7 +5193,7 @@
   "paid_seats_count": "{{count}} seients inclosos en el vostre pla",
   "teams_upgrade_banner_title": "Prova el nostre pla d'Equips",
   "teams_upgrade_banner_description": "Elimina la marca Cal i obtén programació round robin + informació estadística.",
-  "teams_upgrade_banner_cta": "Comença gratis",
+  "teams_upgrade_banner_cta": "Prova-ho gratuïtament",
   "custom_email": "Correu electrònic personalitzat",
   "custom_email_description": "Configura els teus correus i fluxos de treball per enviar-los a través del teu propi servei SMTP",
   "smtp_setup": "Configuració SMTP",

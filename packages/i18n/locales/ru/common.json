@@ -5193,7 +5193,7 @@
   "paid_seats_count": "{{count}} рабочих мест включено в ваш план",
   "teams_upgrade_banner_title": "Попробуйте наш тариф Teams",
   "teams_upgrade_banner_description": "Уберите брендинг Cal и получите round robin планирование + аналитику.",
-  "teams_upgrade_banner_cta": "Начать бесплатно",
+  "teams_upgrade_banner_cta": "Попробовать бесплатно",
   "custom_email": "Пользовательская электронная почта",
   "custom_email_description": "Настройте отправку писем и автоматизаций через ваш собственный SMTP-сервис",
   "smtp_setup": "Настройка SMTP",

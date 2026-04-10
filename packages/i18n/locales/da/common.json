@@ -5193,7 +5193,7 @@
   "paid_seats_count": "{{count}} pladser inkluderet i din plan",
   "teams_upgrade_banner_title": "Prøv vores Teams-plan",
   "teams_upgrade_banner_description": "Fjern Cal-branding og få round robin-planlægning + indsigter.",
-  "teams_upgrade_banner_cta": "Kom i gang gratis",
+  "teams_upgrade_banner_cta": "Prøv gratis",
   "custom_email": "Tilpasset e-mail",
   "custom_email_description": "Konfigurer dine e-mails og workflows til at sende gennem din egen SMTP-tjeneste",
   "smtp_setup": "SMTP-opsætning",

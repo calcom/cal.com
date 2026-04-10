@@ -5193,7 +5193,7 @@
   "paid_seats_count": "{{count}} مقاعد مشمولة في خطتك",
   "teams_upgrade_banner_title": "جرب خطة الفرق لدينا",
   "teams_upgrade_banner_description": "احذف علامة Cal التجارية واحصل على جدولة round robin + رؤى تحليلية.",
-  "teams_upgrade_banner_cta": "ابدأ مجانًا",
+  "teams_upgrade_banner_cta": "جربها مجانًا",
   "custom_email": "بريد إلكتروني مخصص",
   "custom_email_description": "قم بإعداد رسائل البريد الإلكتروني وسير العمل للإرسال من خلال خدمة SMTP الخاصة بك",
   "smtp_setup": "إعداد SMTP",

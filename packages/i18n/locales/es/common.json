@@ -5193,7 +5193,7 @@
   "paid_seats_count": "{{count}} asientos incluidos en tu plan",
   "teams_upgrade_banner_title": "Prueba nuestro plan de Equipos",
   "teams_upgrade_banner_description": "Elimina la marca de Cal y obtén programación round robin + estadísticas.",
-  "teams_upgrade_banner_cta": "Comenzar gratis",
+  "teams_upgrade_banner_cta": "Pruébalo gratis",
   "custom_email": "Correo electrónico personalizado",
   "custom_email_description": "Configura tus correos y flujos de trabajo para enviarlos a través de tu propio servicio SMTP",
   "smtp_setup": "Configuración de SMTP",

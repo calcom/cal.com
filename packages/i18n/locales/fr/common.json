@@ -5193,7 +5193,7 @@
   "paid_seats_count": "{{count}} sièges inclus dans votre forfait",
   "teams_upgrade_banner_title": "Essayez notre forfait Teams",
   "teams_upgrade_banner_description": "Supprimez l'image de marque Cal et bénéficiez de la planification round robin + des statistiques.",
-  "teams_upgrade_banner_cta": "Commencer gratuitement",
+  "teams_upgrade_banner_cta": "Essayer gratuitement",
   "custom_email": "E-mail personnalisé",
   "custom_email_description": "Configurez vos e-mails et workflows pour les envoyer via votre propre service SMTP",
   "smtp_setup": "Configuration SMTP",

@@ -5193,7 +5193,7 @@
   "paid_seats_count": "プランに含まれる{{count}}シート",
   "teams_upgrade_banner_title": "Teamsプランをお試しください",
   "teams_upgrade_banner_description": "Calブランディングを削除し、round robinスケジューリング＋インサイトを利用できます。",
-  "teams_upgrade_banner_cta": "無料で始める",
+  "teams_upgrade_banner_cta": "無料で試す",
   "custom_email": "カスタムメール",
   "custom_email_description": "独自のSMTPサービスを通じてメールとワークフローを送信するよう設定します",
   "smtp_setup": "SMTP設定",

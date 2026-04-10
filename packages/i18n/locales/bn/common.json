@@ -5193,7 +5193,7 @@
   "paid_seats_count": "আপনার প্ল্যানে {{count}}টি সিট অন্তর্ভুক্ত রয়েছে",
   "teams_upgrade_banner_title": "আমাদের টিমস প্ল্যান ব্যবহার করে দেখুন",
   "teams_upgrade_banner_description": "Cal ব্র্যান্ডিং সরান এবং round robin শিডিউলিং + ইনসাইট পান।",
-  "teams_upgrade_banner_cta": "বিনামূল্যে শুরু করুন",
+  "teams_upgrade_banner_cta": "বিনামূল্যে ব্যবহার করুন",
   "custom_email": "কাস্টম ইমেইল",
   "custom_email_description": "আপনার নিজস্ব SMTP সেবার মাধ্যমে ইমেইল এবং ওয়ার্কফ্লো পাঠানোর জন্য সেটআপ করুন",
   "smtp_setup": "SMTP সেটআপ",

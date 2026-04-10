@@ -5193,7 +5193,7 @@
   "paid_seats_count": "{{count}} chỗ đã bao gồm trong gói của bạn",
   "teams_upgrade_banner_title": "Dùng thử gói Teams",
   "teams_upgrade_banner_description": "Loại bỏ thương hiệu Cal và nhận lịch round robin + thông tin chi tiết.",
-  "teams_upgrade_banner_cta": "Bắt đầu miễn phí",
+  "teams_upgrade_banner_cta": "Dùng thử miễn phí",
   "custom_email": "Email tùy chỉnh",
   "custom_email_description": "Thiết lập email và quy trình làm việc của bạn để gửi qua dịch vụ SMTP riêng",
   "smtp_setup": "Thiết lập SMTP",

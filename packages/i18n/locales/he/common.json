@@ -5193,7 +5193,7 @@
   "paid_seats_count": "{{count}} מושבים כלולים בתוכנית שלך",
   "teams_upgrade_banner_title": "נסו את תוכנית הצוותים שלנו",
   "teams_upgrade_banner_description": "הסירו את המיתוג של Cal וקבלו תזמון round robin + תובנות.",
-  "teams_upgrade_banner_cta": "התחילו בחינם",
+  "teams_upgrade_banner_cta": "נסה בחינם",
   "custom_email": "אימייל מותאם אישית",
   "custom_email_description": "הגדר את האימיילים ותהליכי העבודה שלך לשליחה דרך שירות SMTP משלך",
   "smtp_setup": "הגדרת SMTP",

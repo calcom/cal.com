@@ -9841,7 +9841,7 @@ checksums:
     paid_seats_count: cc1416f3f9eee374c0cbad5ab593116e
     teams_upgrade_banner_title: 07d1bd0d9dbc5b1e05578874798653d0
     teams_upgrade_banner_description: d6298eefcd20720be554558b106519ec
-    teams_upgrade_banner_cta: 2e946837fab0f40b1d9ca9c8bcb9cb9b
+    teams_upgrade_banner_cta: f615a3b940c181229c620ffb55687382
     custom_email: aea2bbe9887faa1163bca0809f1255d5
     custom_email_description: 28aa7ecdb230b9eeed788a0be63e95d7
     smtp_setup: 1724d39ab6fa4466cac763f7e161fc15

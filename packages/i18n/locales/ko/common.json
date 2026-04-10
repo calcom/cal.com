@@ -5193,7 +5193,7 @@
   "paid_seats_count": "플랜에 포함된 시트 {{count}}개",
   "teams_upgrade_banner_title": "팀 플랜을 사용해보세요",
   "teams_upgrade_banner_description": "Cal 브랜딩을 제거하고 round robin 스케줄링 및 인사이트를 이용하세요.",
-  "teams_upgrade_banner_cta": "무료로 시작하기",
+  "teams_upgrade_banner_cta": "무료로 사용해보기",
   "custom_email": "사용자 지정 이메일",
   "custom_email_description": "자체 SMTP 서비스를 통해 이메일 및 워크플로우를 전송하도록 설정하세요",
   "smtp_setup": "SMTP 설정",

@@ -5193,7 +5193,7 @@
   "paid_seats_count": "{{count}} stanowisk zawartych w Twoim planie",
   "teams_upgrade_banner_title": "Wypróbuj nasz plan Teams",
   "teams_upgrade_banner_description": "Usuń branding Cal i uzyskaj round robin scheduling + analitykę.",
-  "teams_upgrade_banner_cta": "Rozpocznij za darmo",
+  "teams_upgrade_banner_cta": "Wypróbuj za darmo",
   "custom_email": "Niestandardowy e-mail",
   "custom_email_description": "Skonfiguruj swoje e-maile i workflow, aby były wysyłane przez własną usługę SMTP",
   "smtp_setup": "Konfiguracja SMTP",

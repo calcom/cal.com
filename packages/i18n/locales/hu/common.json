@@ -5193,7 +5193,7 @@
   "paid_seats_count": "{{count}} hely része a csomagodnak",
   "teams_upgrade_banner_title": "Próbálja ki a Teams csomagot",
   "teams_upgrade_banner_description": "Távolítsa el a Cal márkajelet és szerezzen round robin ütemezést + betekintéseket.",
-  "teams_upgrade_banner_cta": "Kezdje el ingyen",
+  "teams_upgrade_banner_cta": "Próbáld ki ingyen",
   "custom_email": "Egyéni e-mail",
   "custom_email_description": "Állítsa be e-mailjeit és munkafolyamatait, hogy saját SMTP szolgáltatásán keresztül küldjenek",
   "smtp_setup": "SMTP beállítás",
