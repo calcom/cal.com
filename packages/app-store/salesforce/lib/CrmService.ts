@@ -73,8 +73,6 @@ import { getSalesforceTokenLifetime } from "./getSalesforceTokenLifetime";
 import { SalesforceGraphQLClient } from "./graphql/SalesforceGraphQLClient";
 import { normalizeWebsiteUrl } from "./utils/domain-normalization";
 import getAllPossibleWebsiteValuesFromEmailDomain from "./utils/getAllPossibleWebsiteValuesFromEmailDomain";
-import type { GetDominantAccountIdInput } from "./utils/getDominantAccountId";
-import getDominantAccountId from "./utils/getDominantAccountId";
 
 class SFObjectToUpdateNotFoundError extends RetryableError {
   constructor(message: string) {
@@ -1204,8 +1202,12 @@ class SalesforceCRMService implements CRM {
     return this.doNotCreateEvent;
   }
 
-  private getDominantAccountId(contacts: GetDominantAccountIdInput) {
-    return getDominantAccountId(contacts);
+  private getAccountIdsByContactFrequency(contacts: { AccountId: string }[]): string[] {
+    const counts = new Map<string, number>();
+    for (const c of contacts) {
+      counts.set(c.AccountId, (counts.get(c.AccountId) ?? 0) + 1);
+    }
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).map(([id]) => id);
   }
 
   private async createAttendeeRecord({
@@ -1476,6 +1478,33 @@ class SalesforceCRMService implements CRM {
     return websites.map((website) => `'${this.sanitizeSoqlValue(website)}'`).join(", ");
   }
 
+  private filterExcludedRecordTypes<T extends { Id: string; Name?: string; RecordType?: { Name: string } | null }>(
+    accounts: T[],
+    excludeRecordTypes: string[],
+    log: ReturnType<typeof logger.getSubLogger>
+  ): T[] {
+    if (excludeRecordTypes.length === 0) return accounts;
+
+    const lowerExcluded = excludeRecordTypes.map((rt) => rt.toLowerCase());
+
+    return accounts.filter((a) => {
+      const recordTypeName = a.RecordType?.Name;
+      if (recordTypeName && lowerExcluded.includes(recordTypeName.toLowerCase())) {
+        log.info(
+          "Account excluded by Record Type",
+          safeStringify({ accountId: a.Id, accountName: a.Name, recordType: recordTypeName })
+        );
+        SalesforceRoutingTraceService.recordTypeExcluded({
+          accountId: a.Id,
+          accountName: a.Name ?? "",
+          recordType: recordTypeName,
+        });
+        return false;
+      }
+      return true;
+    });
+  }
+
   private async getAccountIdBasedOnEmailDomainOfContacts(email: string) {
     const conn = await this.conn;
     const emailDomain = email.split("@")[1]?.toLowerCase();
@@ -1486,39 +1515,46 @@ class SalesforceCRMService implements CRM {
     });
     log.info("getAccountIdBasedOnEmailDomainOfContacts", safeStringify({ email, emailDomain }));
 
+    const appOptions = this.getAppOptions();
+    const excludeRecordTypes = appOptions.excludeAccountRecordTypes ?? [];
+
     SalesforceRoutingTraceService.searchingByWebsiteValue({
       emailDomain,
     });
 
     // Fast path: exact match against known URL variants of the email domain
     const accountQuery = await conn.query(
-      `SELECT Id, Website FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
+      `SELECT Id, Name, Website, RecordType.Name FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
         emailDomain
-      )}) LIMIT 1`
+      )}) LIMIT 50`
     );
     if (accountQuery.records.length > 0) {
-      const account = accountQuery.records[0] as {
-        Id: string;
-        Website: string;
-      };
-      log.info(
-        "Found account based on email domain",
-        safeStringify({
-          emailDomain,
-          accountWebsite: account.Website,
-          accountId: account.Id,
-        })
+      const filtered = this.filterExcludedRecordTypes(
+        accountQuery.records as { Id: string; Name: string; Website: string; RecordType: { Name: string } | null }[],
+        excludeRecordTypes,
+        log
       );
-      SalesforceRoutingTraceService.accountFoundByWebsite({
-        accountId: account.Id,
-        website: account.Website,
-      });
-      return account.Id;
+      if (filtered.length > 0) {
+        const account = filtered[0] as { Id: string; Website: string };
+        log.info(
+          "Found account based on email domain",
+          safeStringify({
+            emailDomain,
+            accountWebsite: account.Website,
+            accountId: account.Id,
+          })
+        );
+        SalesforceRoutingTraceService.accountFoundByWebsite({
+          accountId: account.Id,
+          website: account.Website,
+        });
+        return account.Id;
+      }
     }
 
     // Normalized fallback: catch Accounts with messy Website values (paths, ports, mixed case)
     // that the exact IN (...) query above missed.
-    const normalizedMatch = await this.findAccountByNormalizedWebsite(conn, emailDomain, log);
+    const normalizedMatch = await this.findAccountByNormalizedWebsite(conn, emailDomain, excludeRecordTypes, log);
     if (normalizedMatch) {
       return normalizedMatch;
     }
@@ -1535,18 +1571,50 @@ class SalesforceCRMService implements CRM {
       contactCount: response.records.length,
     });
 
-    const accountId = this.getDominantAccountId(response.records as { AccountId: string }[]);
+    const contactRecords = response.records as { AccountId: string }[];
+    const rankedAccountIds = this.getAccountIdsByContactFrequency(contactRecords);
 
-    if (accountId) {
-      log.info("Found account based on other contacts", safeStringify({ accountId }));
-      const contactsUnderAccount = (response.records as { AccountId: string }[]).filter(
-        (r) => r.AccountId === accountId
-      );
-      SalesforceRoutingTraceService.accountSelectedByMostContacts({
-        accountId,
-        contactCount: contactsUnderAccount.length,
-      });
-      return accountId;
+    if (rankedAccountIds.length > 0) {
+      const excludedIds = new Set<string>();
+
+      if (excludeRecordTypes.length > 0) {
+        try {
+          const idList = rankedAccountIds.map((id) => `'${this.sanitizeSoqlValue(id)}'`).join(",");
+          const accountQuery = await conn.query(
+            `SELECT Id, Name, RecordType.Name FROM Account WHERE Id IN (${idList})`
+          );
+          const allAccounts = accountQuery.records as {
+            Id: string;
+            Name: string;
+            RecordType: { Name: string } | null;
+          }[];
+          const kept = this.filterExcludedRecordTypes(allAccounts, excludeRecordTypes, log);
+          const keptIds = new Set(kept.map((a) => a.Id));
+          for (const id of rankedAccountIds) {
+            if (!keptIds.has(id)) excludedIds.add(id);
+          }
+        } catch (error) {
+          log.error(
+            "Record type exclusion query failed for contact-domain accounts, skipping exclusion",
+            safeStringify({ error })
+          );
+        }
+      }
+
+      for (const candidateId of rankedAccountIds) {
+        if (excludedIds.has(candidateId)) {
+          log.info("Contact-domain account excluded by Record Type, trying next", safeStringify({ accountId: candidateId }));
+          continue;
+        }
+
+        log.info("Found account based on other contacts", safeStringify({ accountId: candidateId }));
+        const contactsUnderAccount = contactRecords.filter((r) => r.AccountId === candidateId);
+        SalesforceRoutingTraceService.accountSelectedByMostContacts({
+          accountId: candidateId,
+          contactCount: contactsUnderAccount.length,
+        });
+        return candidateId;
+      }
     }
 
     const appOptions = this.getAppOptions();
@@ -1565,7 +1633,7 @@ class SalesforceCRMService implements CRM {
     const isFuzzyMatchingEnabled = globalFlagEnabled && perCredentialToggle;
 
     if (isFuzzyMatchingEnabled) {
-      const fuzzyMatch = await this.fuzzyMatchAccountByDomain(conn, email, log);
+      const fuzzyMatch = await this.fuzzyMatchAccountByDomain(conn, email, excludeRecordTypes, log);
       if (fuzzyMatch) return fuzzyMatch;
     }
 
@@ -1594,23 +1662,26 @@ class SalesforceCRMService implements CRM {
   private async findAccountByNormalizedWebsite(
     conn: Connection,
     emailDomain: string,
+    excludeRecordTypes: string[],
     log: ReturnType<typeof logger.getSubLogger>
   ): Promise<string | undefined> {
     const sanitizedDomain = this.sanitizeSoqlLikeValue(emailDomain);
 
-    let candidates: { Id: string; Website: string }[];
+    let candidates: { Id: string; Name?: string; Website: string; RecordType?: { Name: string } | null }[];
     try {
       const broadQuery = await conn.query(
-        `SELECT Id, Website FROM Account WHERE Website LIKE '%${sanitizedDomain}%' LIMIT 50`
+        `SELECT Id, Name, Website, RecordType.Name FROM Account WHERE Website LIKE '%${sanitizedDomain}%' LIMIT 50`
       );
       if (broadQuery.records.length === 0) return undefined;
-      candidates = broadQuery.records as { Id: string; Website: string }[];
+      candidates = broadQuery.records as typeof candidates;
     } catch (error) {
       log.error("Normalized website SOQL failed, falling through to next step", safeStringify({ error }));
       return undefined;
     }
 
-    const match = candidates.find(
+    const filtered = this.filterExcludedRecordTypes(candidates, excludeRecordTypes, log);
+
+    const match = filtered.find(
       (account) => normalizeWebsiteUrl(account.Website) === emailDomain.toLowerCase()
     );
 
@@ -1633,7 +1704,7 @@ class SalesforceCRMService implements CRM {
 
     log.debug(
       "Normalized website fallback found no match",
-      safeStringify({ emailDomain, candidateCount: candidates.length })
+      safeStringify({ emailDomain, candidateCount: filtered.length })
     );
     return undefined;
   }
@@ -1650,6 +1721,7 @@ class SalesforceCRMService implements CRM {
   private async fuzzyMatchAccountByDomain(
     conn: Connection,
     email: string,
+    excludeRecordTypes: string[],
     log: ReturnType<typeof logger.getSubLogger>
   ): Promise<string | undefined> {
     try {
@@ -1700,21 +1772,29 @@ class SalesforceCRMService implements CRM {
       }
 
       const sanitizedBase = this.sanitizeSoqlLikeValue(emailBaseDomain.baseDomain);
-      const soql = `SELECT Id, Website FROM Account WHERE Website LIKE '%${sanitizedBase}%' LIMIT 100`;
+      const soql = `SELECT Id, Name, Website, RecordType.Name FROM Account WHERE Website LIKE '%${sanitizedBase}%' LIMIT 100`;
       log.info("Fuzzy match SOQL query", safeStringify({ baseDomain: emailBaseDomain.baseDomain }));
 
       const broadQuery = await conn.query(soql);
-      const rawCandidates = broadQuery.records as { Id: string; Website: string }[];
+      const rawCandidates = broadQuery.records as {
+        Id: string;
+        Name?: string;
+        Website: string;
+        RecordType?: { Name: string } | null;
+      }[];
 
-      const matches = rawCandidates.filter((account) => {
+      const baseDomainMatches = rawCandidates.filter((account) => {
         const accountBase = extractBaseDomain(account.Website);
         return accountBase?.baseDomain === emailBaseDomain.baseDomain;
       });
 
+      const matches = this.filterExcludedRecordTypes(baseDomainMatches, excludeRecordTypes, log);
+
       SalesforceRoutingTraceService.fuzzyMatchSoqlResults({
         baseDomain: emailBaseDomain.baseDomain,
         rawCount: rawCandidates.length,
-        filteredCount: matches.length,
+        baseDomainMatchCount: baseDomainMatches.length,
+        afterExclusionCount: matches.length,
       });
 
       if (matches.length === 0) {

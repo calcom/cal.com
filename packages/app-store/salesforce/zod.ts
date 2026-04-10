@@ -133,6 +133,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   onCancelWriteToEventRecordFields: z.record(z.string(), writeToBookingEntry).optional(),
   onCancelWriteToRecord: z.boolean().optional(),
   onCancelWriteToRecordFields: z.record(z.string(), writeToBookingEntry).optional(),
+  excludeAccountRecordTypes: z.array(z.string()).optional(),
   lastSyncError: lastSyncErrorSchema.nullish(),
   enableFuzzyDomainMatching: z.boolean().optional(),
 });

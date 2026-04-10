@@ -5,6 +5,12 @@ export type GetDominantAccountIdInput = {
   AccountId: string;
 }[];
 
+/**
+ * Returns the single most-frequent AccountId. Used by the GraphQL path
+ * (SalesforceGraphQLClient), which does NOT apply record-type exclusion.
+ * The SOQL path in CrmService uses getAccountIdsByContactFrequency instead
+ * so it can iterate ranked accounts and skip excluded record types.
+ */
 export default function getDominantAccountId(contacts: GetDominantAccountIdInput) {
   const log = logger.getSubLogger({ prefix: [`[getDominantAccountId]:${contacts}`] });
   // To get the dominant AccountId we only need to iterate through half the array

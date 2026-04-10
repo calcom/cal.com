@@ -1309,6 +1309,299 @@ describe("SalesforceCRMService", () => {
     });
   });
 
+  describe("Record Type exclusion filtering (excludeAccountRecordTypes)", () => {
+    it("excludes Partner account from exact match, returns Customer account", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+        excludeAccountRecordTypes: ["Partner/Alliance"],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "acc-partner", Name: "Acme Partners", Website: "acme.com", RecordType: { Name: "Partner/Alliance" } },
+          { Id: "acc-customer", Name: "Acme Corp", Website: "acme.com", RecordType: { Name: "Customer" } },
+        ],
+      }); // Step 1: exact match returns both
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({ success: true, id: "new-contact", email: "user@acme.com" }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.com" }]);
+
+      const createCall = mockConnection.sobject().create.mock.calls[0]?.[0];
+      expect(createCall).toHaveProperty("AccountId", "acc-customer");
+    });
+
+    it("all exact-match accounts excluded — falls through to normalized step", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+        excludeAccountRecordTypes: ["Partner/Alliance"],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "acc-partner", Name: "Acme Partners", Website: "acme.com", RecordType: { Name: "Partner/Alliance" } },
+        ],
+      }); // Step 1: exact match — only Partner
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "acc-norm", Name: "Acme Norm", Website: "https://www.acme.com/about", RecordType: { Name: "Customer" } },
+        ],
+      }); // Step 2: normalized — Customer found
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({ success: true, id: "new-contact", email: "user@acme.com" }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.com" }]);
+
+      const createCall = mockConnection.sobject().create.mock.calls[0]?.[0];
+      expect(createCall).toHaveProperty("AccountId", "acc-norm");
+    });
+
+    it("excludes Partner account from fuzzy match results", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+        excludeAccountRecordTypes: ["Partner/Alliance"],
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2: normalized — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3: contact domain — miss
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "acc-partner", Name: "Acme Partners", Website: "acme.com", RecordType: { Name: "Partner/Alliance" } },
+          { Id: "acc-customer", Name: "Acme Corp", Website: "acme.co.uk", RecordType: { Name: "Customer" } },
+        ],
+      }); // Step 4: fuzzy — both returned by LIKE
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({ success: true, id: "new-contact", email: "user@acme.de" }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.de" }]);
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.de" }]);
+
+      const createCall = mockConnection.sobject().create.mock.calls[0]?.[0];
+      expect(createCall).toHaveProperty("AccountId", "acc-customer");
+    });
+
+    it("all fuzzy-match accounts excluded — no match, falls to round-robin", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+        excludeAccountRecordTypes: ["Partner/Alliance", "Vendor"],
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "acc-partner", Name: "Acme Partners", Website: "acme.com", RecordType: { Name: "Partner/Alliance" } },
+          { Id: "acc-vendor", Name: "Acme Vendor", Website: "acme.io", RecordType: { Name: "Vendor" } },
+        ],
+      }); // Step 4: all excluded
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({ success: true, id: "new-lead", email: "user@acme.de" }),
+      });
+
+      await service.createContacts([{ name: "Test", email: "user@acme.de" }]);
+      expect(querySpy).toHaveBeenCalledTimes(4);
+    });
+
+    it("no exclusions configured — all accounts pass through", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "acc-partner", Name: "Acme Partners", Website: "acme.com", RecordType: { Name: "Partner/Alliance" } },
+        ],
+      }); // Step 1: exact match — Partner, but no exclusion configured
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({ success: true, id: "new-contact", email: "user@acme.com" }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.com" }]);
+
+      const createCall = mockConnection.sobject().create.mock.calls[0]?.[0];
+      expect(createCall).toHaveProperty("AccountId", "acc-partner");
+    });
+
+    it("account with no Record Type is kept (not in exclusion list)", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+        excludeAccountRecordTypes: ["Partner/Alliance"],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "acc-no-rt", Name: "Acme No RT", Website: "acme.com", RecordType: null },
+        ],
+      }); // Step 1: account with no Record Type
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({ success: true, id: "new-contact", email: "user@acme.com" }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.com" }]);
+
+      const createCall = mockConnection.sobject().create.mock.calls[0]?.[0];
+      expect(createCall).toHaveProperty("AccountId", "acc-no-rt");
+    });
+
+    it("SOQL includes RecordType.Name in exact match query", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+        excludeAccountRecordTypes: ["Partner/Alliance"],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "acc-1", Name: "Acme", Website: "acme.com", RecordType: { Name: "Customer" } },
+        ],
+      });
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({ success: true, id: "new-contact", email: "user@acme.com" }),
+      });
+
+      await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+
+      const exactQuery = querySpy.mock.calls[0][0] as string;
+      expect(exactQuery).toContain("RecordType.Name");
+    });
+
+    it("excludes dominant contact-domain account, falls back to next-best account", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+        excludeAccountRecordTypes: ["Partner"],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2: normalized — miss
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "c1", Email: "alice@acme.com", AccountId: "acc-partner" },
+          { Id: "c2", Email: "bob@acme.com", AccountId: "acc-partner" },
+          { Id: "c3", Email: "carol@acme.com", AccountId: "acc-customer" },
+        ],
+      }); // Step 3: contact domain — acc-partner dominant (2), acc-customer second (1)
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "acc-partner", Name: "Acme Partners", RecordType: { Name: "Partner" } },
+          { Id: "acc-customer", Name: "Acme Corp", RecordType: { Name: "Customer" } },
+        ],
+      }); // Batch RT check — acc-partner excluded, acc-customer kept
+      querySpy.mockResolvedValueOnce({ records: [] }); // createNewContactUnderAnAccount: existing contact check
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "new-contact", email: "user@acme.com" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+
+      await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+
+      // Single batch query fetched both accounts
+      const batchQuery = querySpy.mock.calls[3][0] as string;
+      expect(batchQuery).toContain("acc-partner");
+      expect(batchQuery).toContain("acc-customer");
+      expect(batchQuery).toContain("IN");
+      // Contact was created under acc-customer (the non-excluded one)
+      expect(createFn).toHaveBeenCalledWith(expect.objectContaining({ AccountId: "acc-customer" }));
+    });
+
+    it("case-insensitive: excludes record type regardless of casing mismatch", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+        excludeAccountRecordTypes: ["partner/alliance"],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({
+        records: [
+          {
+            Id: "acc-partner",
+            Name: "Acme Partners",
+            Website: "acme.com",
+            RecordType: { Name: "Partner/Alliance" },
+          },
+          { Id: "acc-customer", Name: "Acme Corp", Website: "acme.com", RecordType: { Name: "Customer" } },
+        ],
+      }); // Step 1: exact match — Partner has different casing than config
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({ success: true, id: "new-contact", email: "user@acme.com" }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.com" }]);
+
+      const createCall = mockConnection.sobject().create.mock.calls[0]?.[0];
+      expect(createCall).toHaveProperty("AccountId", "acc-customer");
+    });
+
+    it("contact-domain batch RT query failure gracefully skips exclusion", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+        excludeAccountRecordTypes: ["Partner"],
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2: normalized — miss
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "c1", Email: "alice@acme.com", AccountId: "acc-partner" },
+          { Id: "c2", Email: "bob@acme.com", AccountId: "acc-partner" },
+        ],
+      }); // Step 3: contact domain — acc-partner dominant
+      querySpy.mockRejectedValueOnce(new Error("SOQL query failed")); // Batch RT check fails
+      querySpy.mockResolvedValueOnce({ records: [] }); // existing contact check
+
+      const createFn = vi.fn().mockResolvedValue({ success: true, id: "new-contact", email: "user@acme.com" });
+      mockConnection.sobject.mockReturnValue({ create: createFn });
+
+      await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+
+      // Despite the RT query failure, the dominant account is still used (exclusion skipped gracefully)
+      expect(createFn).toHaveBeenCalledWith(expect.objectContaining({ AccountId: "acc-partner" }));
+    });
+  });
+
   describe("findAccountByNormalizedWebsite edge cases", () => {
     it("matches Account with port in Website field", async () => {
       mockAppOptions({

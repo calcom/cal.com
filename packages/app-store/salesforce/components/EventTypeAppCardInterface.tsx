@@ -56,6 +56,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
   const onCancelWriteToRecord = getAppData("onCancelWriteToRecord") ?? false;
   const onCancelWriteToRecordFields = getAppData("onCancelWriteToRecordFields") ?? {};
   const rrSkipFieldRules = (getAppData("rrSkipFieldRules") ?? []) as RRSkipFieldRule[];
+  const excludeAccountRecordTypes = (getAppData("excludeAccountRecordTypes") ?? []) as string[];
+  const [excludeRTInput, setExcludeRTInput] = useState(() => excludeAccountRecordTypes.join(", "));
   const lastSyncError = getAppData("lastSyncError") as LastSyncError | null | undefined;
   const enableFuzzyDomainMatching = getAppData("enableFuzzyDomainMatching") ?? false;
 
@@ -335,6 +337,39 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
               </div>
             </Section.SubSectionContent>
           ) : null}
+        </Section.SubSection>
+
+        <Section.SubSection>
+          <Section.SubSectionHeader
+            icon="filter"
+            title={t("salesforce_exclude_record_types")}
+            justify="start">
+            {null}
+          </Section.SubSectionHeader>
+          <Section.SubSectionContent classNames={{ container: "p-3" }}>
+            <div>
+              <Label
+                htmlFor="exclude-account-record-types"
+                className="text-subtle text-sm font-medium">
+                {t("salesforce_exclude_record_types_description")}
+              </Label>
+              <InputField
+                id="exclude-account-record-types"
+                size="sm"
+                placeholder="Partner/Alliance, Vendor"
+                value={excludeRTInput}
+                onChange={(e) => setExcludeRTInput(e.target.value)}
+                onBlur={() => {
+                  const values = excludeRTInput
+                    .split(",")
+                    .map((v) => v.trim())
+                    .filter(Boolean);
+                  setAppData("excludeAccountRecordTypes", values);
+                  setExcludeRTInput(values.join(", "));
+                }}
+              />
+            </div>
+          </Section.SubSectionContent>
         </Section.SubSection>
 
         {eventType.schedulingType === SchedulingType.ROUND_ROBIN ? (

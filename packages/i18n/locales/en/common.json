@@ -4029,6 +4029,8 @@
   "salesforce_field_name_placeholder": "Field name (e.g., Industry)",
   "salesforce_legacy_event_fields_warning": "Some field mappings were created before field types were available. Please edit each field to verify the correct type (e.g., Checkbox instead of Text) to avoid sync errors.",
   "salesforce_field_validation_failed": "Salesforce field mapping validation failed",
+  "salesforce_exclude_record_types": "Exclude Account Record Types",
+  "salesforce_exclude_record_types_description": "Comma-separated Record Type names to exclude from account matching (e.g., Partner/Alliance, Vendor)",
   "add_new_rule": "Add new rule",
   "report_issue": "Report issue",
   "report_issue_description": "You can submit a ticket on GitHub or upgrade your plan to receive real-time support with developer conferences",

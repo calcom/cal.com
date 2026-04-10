@@ -231,7 +231,12 @@ export class SalesforceRoutingTraceService {
     SalesforceRoutingTraceService.addStep("fuzzy_match_initiated", data);
   }
 
-  static fuzzyMatchSoqlResults(data: { baseDomain: string; rawCount: number; filteredCount: number }): void {
+  static fuzzyMatchSoqlResults(data: {
+    baseDomain: string;
+    rawCount: number;
+    baseDomainMatchCount: number;
+    afterExclusionCount: number;
+  }): void {
     SalesforceRoutingTraceService.addStep("fuzzy_match_soql_results", data);
   }
 
@@ -245,6 +250,16 @@ export class SalesforceRoutingTraceService {
 
   static fuzzyMatchNoResult(data: { email: string; baseDomain: string; reason: string }): void {
     SalesforceRoutingTraceService.addStep("fuzzy_match_no_result", data);
+  }
+
+  // ===== Record Type Exclusion =====
+
+  static recordTypeExcluded(data: {
+    accountId: string;
+    accountName: string;
+    recordType: string;
+  }): void {
+    SalesforceRoutingTraceService.addStep("record_type_excluded", data);
   }
 
   // ===== Sync Error Surfacing =====
