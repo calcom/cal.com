@@ -348,16 +348,26 @@ export const getPublicEvent = async (
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
       restrictionScheduleId: null,
       useBookerTimezone: false,
-      // Clears meta data since we don't want to send this in the public api.
+      // Only expose fields needed by the booker — avoid leaking internal user data.
       subsetOfUsers: users.map((user) => ({
-        ...user,
-        metadata: undefined,
+        name: user.name,
+        username: user.username,
+        avatarUrl: user.avatarUrl,
+        weekStart: user.weekStart,
+        brandColor: user.brandColor,
+        darkBrandColor: user.darkBrandColor,
+        profile: user.profile,
         bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
       })),
       users: fetchAllUsers
         ? users.map((user) => ({
-            ...user,
-            metadata: undefined,
+            name: user.name,
+            username: user.username,
+            avatarUrl: user.avatarUrl,
+            weekStart: user.weekStart,
+            brandColor: user.brandColor,
+            darkBrandColor: user.darkBrandColor,
+            profile: user.profile,
             bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
           }))
         : undefined,
