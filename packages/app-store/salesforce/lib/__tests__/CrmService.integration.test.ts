@@ -65,6 +65,12 @@ vi.mock("@calcom/features/credentials/repositories/CredentialRepository", () => 
   },
 }));
 
+vi.mock("@calcom/features/di/containers/FeatureRepository", () => ({
+  getFeatureRepository: () => ({
+    checkIfFeatureIsEnabledGlobally: vi.fn().mockResolvedValue(false),
+  }),
+}));
+
 // Helper to create mock credential
 const createMockCredential = (options?: { tokenLifetime?: number; issuedAt?: string }) => {
   const now = Date.now();

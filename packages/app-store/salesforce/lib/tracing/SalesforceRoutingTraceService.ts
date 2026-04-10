@@ -224,4 +224,26 @@ export class SalesforceRoutingTraceService {
   static allRecordsFilteredByFieldRules(data: { recordType: string }): void {
     SalesforceRoutingTraceService.addStep("all_records_filtered_by_field_rules", data);
   }
+
+  // ===== Fuzzy Domain Matching =====
+
+  static fuzzyMatchInitiated(data: { email: string; baseDomain: string; isFreeEmail: boolean }): void {
+    SalesforceRoutingTraceService.addStep("fuzzy_match_initiated", data);
+  }
+
+  static fuzzyMatchSoqlResults(data: { baseDomain: string; rawCount: number; filteredCount: number }): void {
+    SalesforceRoutingTraceService.addStep("fuzzy_match_soql_results", data);
+  }
+
+  static fuzzyMatchResult(data: {
+    accountId: string;
+    accountWebsite: string;
+    confidence: "exact" | "fuzzy_single" | "fuzzy_tiebreak";
+  }): void {
+    SalesforceRoutingTraceService.addStep("fuzzy_match_result", data);
+  }
+
+  static fuzzyMatchNoResult(data: { email: string; baseDomain: string; reason: string }): void {
+    SalesforceRoutingTraceService.addStep("fuzzy_match_no_result", data);
+  }
 }

@@ -45,6 +45,7 @@ export type AppFlags = {
   "otel-elastic-export": boolean;
   "audit-log": boolean;
   "workflow-reminder-links": boolean;
+  "enable-fuzzy-domain-matching": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;

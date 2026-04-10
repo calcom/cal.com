@@ -3075,6 +3075,7 @@ __metadata:
     "@urql/exchange-retry": "npm:2.0.0"
     graphql-config: "npm:5.1.3"
     graphql-introspection-json-to-sdl: "npm:1.0.3"
+    tldts: "npm:^6.1.86"
   languageName: unknown
   linkType: soft
 
@@ -37321,7 +37322,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tldts@npm:^6.1.32":
+"tldts@npm:^6.1.32, tldts@npm:^6.1.86":
   version: 6.1.86
   resolution: "tldts@npm:6.1.86"
   dependencies:

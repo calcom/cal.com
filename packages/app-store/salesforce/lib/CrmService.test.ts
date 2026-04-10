@@ -7,6 +7,18 @@ import type { SalesforceCRM } from "./CrmService";
 import { createSalesforceCrmServiceWithSalesforceType } from "./CrmService";
 import { SalesforceRecordEnum } from "./enums";
 
+const mockCheckIfFreeEmailDomain = vi.fn().mockResolvedValue(false);
+vi.mock("@calcom/features/watchlist/lib/freeEmailDomainCheck/checkIfFreeEmailDomain", () => ({
+  checkIfFreeEmailDomain: (...args: unknown[]) => mockCheckIfFreeEmailDomain(...args),
+}));
+
+const mockCheckIfFeatureIsEnabledGlobally = vi.fn().mockResolvedValue(false);
+vi.mock("@calcom/features/di/containers/FeatureRepository", () => ({
+  getFeatureRepository: () => ({
+    checkIfFeatureIsEnabledGlobally: (...args: unknown[]) => mockCheckIfFeatureIsEnabledGlobally(...args),
+  }),
+}));
+
 type AppOptions = z.infer<typeof appDataSchema>;
 
 const contactQueryResponse = {
@@ -95,6 +107,9 @@ describe("SalesforceCRMService", () => {
   setupAndTeardown();
 
   beforeEach(() => {
+    mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(false);
+    mockCheckIfFreeEmailDomain.mockResolvedValue(false);
+
     mockConnection = {
       query: vi.fn(),
       sobject: vi.fn(),
@@ -933,6 +948,665 @@ describe("SalesforceCRMService", () => {
       expect(result).toEqual(
         "'example.com', 'www.example.com', 'http://www.example.com', 'http://example.com', 'https://www.example.com', 'https://example.com'"
       );
+    });
+  });
+
+  describe("fuzzyMatchAccountByDomain (enable-fuzzy-domain-matching feature flag)", () => {
+    it("cross-TLD match: acme.co.uk email matches acme.com account", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: Website IN — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2: normalized LIKE — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3: contact domain majority — miss
+      querySpy.mockResolvedValueOnce({
+        records: [{ Id: "acc-fuzzy", Website: "acme.com" }],
+      }); // Step 4: fuzzy LIKE '%acme%' — hit
+      querySpy.mockResolvedValueOnce({ records: [] }); // createNewContactUnderAnAccount lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-contact-fuzzy",
+          name: "Test",
+          email: "user@acme.co.uk",
+        }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.co.uk" }]);
+
+      expect(result).toEqual([{ id: "new-contact-fuzzy", email: "user@acme.co.uk" }]);
+      expect(querySpy).toHaveBeenCalledTimes(5);
+      const fuzzyCall = querySpy.mock.calls[3][0] as string;
+      expect(fuzzyCall).toContain("LIKE '%acme%'");
+    });
+
+    it("does not run fuzzy match when feature flag is off", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(false);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-lead",
+          name: "Test",
+          email: "user@acme.co.uk",
+        }),
+      });
+
+      await service.createContacts([{ name: "Test", email: "user@acme.co.uk" }]);
+
+      // Only 3 queries — no fuzzy step
+      expect(querySpy).toHaveBeenCalledTimes(3);
+    });
+
+    it("filters out false positives: macmedia.com does not match acme", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3
+      querySpy.mockResolvedValueOnce({
+        records: [{ Id: "acc-false", Website: "macmedia.com" }],
+      }); // Step 4: LIKE '%acme%' returns macmedia (substring match), but base domain differs
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-lead",
+          name: "Test",
+          email: "user@acme.io",
+        }),
+      });
+
+      await service.createContacts([{ name: "Test", email: "user@acme.io" }]);
+
+      // 4 queries — fuzzy ran but found no match after filtering
+      expect(querySpy).toHaveBeenCalledTimes(4);
+    });
+
+    it("skips fuzzy match for free email domains", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+      mockCheckIfFreeEmailDomain.mockResolvedValueOnce(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-lead",
+          name: "Test",
+          email: "user@gmail.com",
+        }),
+      });
+
+      await service.createContacts([{ name: "Test", email: "user@gmail.com" }]);
+
+      // Only 3 queries — fuzzy skipped for free email
+      expect(querySpy).toHaveBeenCalledTimes(3);
+    });
+
+    it("handles multiple matches — picks first (tiebreaker deferred to PR4)", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "acc-1", Website: "acme.com" },
+          { Id: "acc-2", Website: "acme.co.uk" },
+          { Id: "acc-3", Website: "https://www.acme.io/about" },
+        ],
+      }); // Step 4: multiple base domain matches
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-contact",
+          name: "Test",
+          email: "user@acme.de",
+        }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.de" }]);
+
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.de" }]);
+      expect(querySpy).toHaveBeenCalledTimes(5);
+    });
+
+    it("returns undefined when SOQL returns 0 results", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 4: no matches
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-lead",
+          name: "Test",
+          email: "user@nonexistent.co.uk",
+        }),
+      });
+
+      await service.createContacts([{ name: "Test", email: "user@nonexistent.co.uk" }]);
+      expect(querySpy).toHaveBeenCalledTimes(4);
+    });
+
+    it("exact match in step 1 short-circuits — fuzzy never runs", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({
+        records: [{ Id: "acc-exact", Website: "acme.com" }],
+      }); // Step 1: exact hit
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-contact",
+          name: "Test",
+          email: "user@acme.com",
+        }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.com" }]);
+      // Only 2 queries — step 1 hit + contact lookup
+      expect(querySpy).toHaveBeenCalledTimes(2);
+    });
+
+    it("gracefully handles SOQL error in fuzzy step", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3
+      querySpy.mockRejectedValueOnce(new Error("SOQL timeout")); // Step 4: error
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-lead",
+          name: "Test",
+          email: "user@acme.co.uk",
+        }),
+      });
+
+      // Should not throw — falls through gracefully
+      await expect(
+        service.createContacts([{ name: "Test", email: "user@acme.co.uk" }])
+      ).resolves.toBeDefined();
+    });
+
+    it("skips fuzzy match when base domain is too short (< 3 chars)", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2: normalized — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3: contact domain — miss
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-lead",
+          name: "Test",
+          email: "user@ab.com",
+        }),
+      });
+
+      await service.createContacts([{ name: "Test", email: "user@ab.com" }]);
+
+      // Only 3 queries — fuzzy SOQL never fires because "ab" is < 3 chars
+      expect(querySpy).toHaveBeenCalledTimes(3);
+    });
+
+    it("sorts multiple matches by Id for deterministic tiebreaking", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2: normalized — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3: contact domain — miss
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "acc-zzz", Website: "acme.io" },
+          { Id: "acc-aaa", Website: "acme.com" },
+          { Id: "acc-mmm", Website: "acme.co.uk" },
+        ],
+      }); // Step 4: fuzzy — multiple matches in non-sorted order
+      querySpy.mockResolvedValueOnce({ records: [] }); // existing contact check in createNewContactUnderAnAccount
+
+      const createMock = vi.fn().mockResolvedValue({
+        success: true,
+        id: "new-contact",
+        name: "Test",
+        email: "user@acme.de",
+      });
+      mockConnection.sobject.mockReturnValue({ create: createMock });
+
+      await service.createContacts([{ name: "Test", email: "user@acme.de" }]);
+
+      // Contact was created under acc-aaa (lowest Id after deterministic sort)
+      const createCall = createMock.mock.calls[0]?.[0];
+      expect(createCall).toHaveProperty("AccountId", "acc-aaa");
+    });
+
+    it("handles email with uppercase domain — case-insensitive matching", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2: normalized — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3: contact domain — miss
+      querySpy.mockResolvedValueOnce({
+        records: [{ Id: "acc-fuzzy", Website: "acme.com" }],
+      }); // Step 4: fuzzy — hit
+      querySpy.mockResolvedValueOnce({ records: [] }); // existing contact check
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-contact",
+          name: "Test",
+          email: "user@ACME.CO.UK",
+        }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@ACME.CO.UK" }]);
+      expect(result).toEqual([{ id: "new-contact", email: "user@ACME.CO.UK" }]);
+    });
+  });
+
+  describe("findAccountByNormalizedWebsite edge cases", () => {
+    it("matches Account with port in Website field", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({
+        records: [{ Id: "acc-port", Website: "http://acme.com:8080" }],
+      }); // Step 2: normalized LIKE — hit (normalizes to acme.com)
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-contact",
+          name: "Test",
+          email: "user@acme.com",
+        }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.com" }]);
+      expect(querySpy).toHaveBeenCalledTimes(3);
+    });
+
+    it("matches Account with path and query string in Website field", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({
+        records: [{ Id: "acc-path", Website: "https://www.acme.com/about?ref=google#team" }],
+      }); // Step 2: normalized LIKE — hit
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-contact",
+          name: "Test",
+          email: "user@acme.com",
+        }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.com" }]);
+      expect(querySpy).toHaveBeenCalledTimes(3);
+    });
+
+    it("does not match subdomain Account against bare domain email", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({
+        records: [{ Id: "acc-sub", Website: "partners.acme.com" }],
+      }); // Step 2: LIKE returns subdomain, but normalization keeps "partners.acme.com" ≠ "acme.com"
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3: contact domain — miss
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-lead",
+          name: "Test",
+          email: "user@acme.com",
+        }),
+      });
+
+      await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+      // 3 queries: exact miss → normalized fallback miss (subdomain mismatch) → contact miss
+      expect(querySpy).toHaveBeenCalledTimes(3);
+    });
+
+    it("gracefully handles SOQL error in normalized fallback", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockRejectedValueOnce(new Error("SOQL timeout")); // Step 2: normalized — SOQL error
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3: contact domain — miss (should still run)
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-lead",
+          name: "Test",
+          email: "user@acme.com",
+        }),
+      });
+
+      // Should not throw — normalized fallback error is caught, falls through to contact step
+      await expect(
+        service.createContacts([{ name: "Test", email: "user@acme.com" }])
+      ).resolves.toBeDefined();
+      // 3 queries: exact miss → normalized error (caught) → contact domain miss
+      expect(querySpy).toHaveBeenCalledTimes(3);
+    });
+
+    it("picks correct candidate when LIKE returns multiple but only one normalizes to exact domain", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "acc-wrong", Website: "https://partners.acme.com/portal" }, // normalizes to partners.acme.com
+          { Id: "acc-right", Website: "http://www.acme.com:443/en/" }, // normalizes to acme.com
+          { Id: "acc-also-wrong", Website: "acme.com.br" }, // normalizes to acme.com.br
+        ],
+      }); // Step 2: normalized LIKE — multiple candidates, only one matches
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-contact",
+          name: "Test",
+          email: "user@acme.com",
+        }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.com" }]);
+      expect(querySpy).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  describe("sanitizeSoqlLikeValue escaping in SOQL queries", () => {
+    it("escapes SOQL LIKE wildcards in email domain for normalized fallback", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2: normalized — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3: contact domain — miss
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-lead",
+          name: "Test",
+          email: "user@my_company.com",
+        }),
+      });
+
+      await service.createContacts([{ name: "Test", email: "user@my_company.com" }]);
+
+      // Verify LIKE queries escape _ wildcard
+      const normalizedCall = querySpy.mock.calls[1][0] as string;
+      expect(normalizedCall).toContain("my\\_company.com");
+
+      const contactCall = querySpy.mock.calls[2][0] as string;
+      expect(contactCall).toContain("my\\_company.com");
+    });
+
+    it("escapes SOQL LIKE wildcards in base domain for fuzzy matching", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 4: fuzzy
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-lead",
+          name: "Test",
+          email: "user@my_corp.com",
+        }),
+      });
+
+      await service.createContacts([{ name: "Test", email: "user@my_corp.com" }]);
+
+      // Verify the fuzzy SOQL escapes _ in the base domain
+      const fuzzyCall = querySpy.mock.calls[3][0] as string;
+      expect(fuzzyCall).toContain("my\\_corp");
+    });
+  });
+
+  describe("full account resolution waterfall", () => {
+    it("step 2 normalized fallback wins when exact miss but LIKE + normalization matches", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({
+        records: [{ Id: "acc-norm", Website: "HTTPS://WWW.ACME.COM/ABOUT" }],
+      }); // Step 2: normalized — hit
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-contact",
+          name: "Test",
+          email: "user@acme.com",
+        }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.com" }]);
+      // Only 3 queries — steps 3 and 4 never execute
+      expect(querySpy).toHaveBeenCalledTimes(3);
+    });
+
+    it("step 3 contact majority wins when steps 1 and 2 miss", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2: normalized — miss
+      querySpy.mockResolvedValueOnce({
+        records: [
+          { Id: "c1", Email: "alice@acme.com", AccountId: "acc-majority" },
+          { Id: "c2", Email: "bob@acme.com", AccountId: "acc-majority" },
+          { Id: "c3", Email: "charlie@acme.com", AccountId: "acc-other" },
+        ],
+      }); // Step 3: contact majority — hit (2 contacts under acc-majority)
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-contact",
+          name: "Test",
+          email: "user@acme.com",
+        }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.com" }]);
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.com" }]);
+      // Only 4 queries — step 4 fuzzy never fires because step 3 found a match
+      expect(querySpy).toHaveBeenCalledTimes(4);
+    });
+
+    it("all 4 steps run when each prior step misses (full waterfall)", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2: normalized — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3: contact majority — miss
+      querySpy.mockResolvedValueOnce({
+        records: [{ Id: "acc-fuzzy-win", Website: "acme.com" }],
+      }); // Step 4: fuzzy — hit
+      querySpy.mockResolvedValueOnce({ records: [] }); // contact lookup
+
+      const createMock = vi.fn().mockResolvedValue({
+        success: true,
+        id: "new-contact",
+        name: "Test",
+        email: "user@acme.co.uk",
+      });
+      mockConnection.sobject.mockReturnValue({ create: createMock });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@acme.co.uk" }]);
+      expect(result).toEqual([{ id: "new-contact", email: "user@acme.co.uk" }]);
+      // All 5 queries: 4 waterfall steps + contact lookup
+      expect(querySpy).toHaveBeenCalledTimes(5);
+
+      // Verify the contact was created under the fuzzy-matched account
+      const createCall = createMock.mock.calls[0]?.[0];
+      expect(createCall).toHaveProperty("AccountId", "acc-fuzzy-win");
+    });
+
+    it("all 4 steps miss — creates lead without account", async () => {
+      mockAppOptions({
+        createNewContactUnderAccount: true,
+        createEventOn: SalesforceRecordEnum.LEAD,
+      });
+      mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
+
+      const querySpy = vi.spyOn(mockConnection, "query");
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 1: exact — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 2: normalized — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 3: contact — miss
+      querySpy.mockResolvedValueOnce({ records: [] }); // Step 4: fuzzy — miss
+
+      mockConnection.sobject.mockReturnValue({
+        create: vi.fn().mockResolvedValue({
+          success: true,
+          id: "new-lead-no-account",
+          name: "Test",
+          email: "user@uniquedomain.co.uk",
+        }),
+      });
+
+      const result = await service.createContacts([{ name: "Test", email: "user@uniquedomain.co.uk" }]);
+      expect(result).toEqual([{ id: "new-lead-no-account", email: "user@uniquedomain.co.uk" }]);
+      // 4 queries — all waterfall steps ran, no contact lookup because no account found
+      expect(querySpy).toHaveBeenCalledTimes(4);
     });
   });
 

@@ -43,6 +43,7 @@ const initialData: AppFlags = {
   "otel-elastic-export": false,
   "audit-log": false,
   "workflow-reminder-links": false,
+  "enable-fuzzy-domain-matching": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

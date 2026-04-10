@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeWebsiteUrl } from "../domain-normalization";
+import { extractBaseDomain, normalizeWebsiteUrl } from "../domain-normalization";
 
 // ---------------------------------------------------------------------------
 // normalizeWebsiteUrl
@@ -133,9 +133,152 @@ describe("normalizeWebsiteUrl", () => {
 });
 
 // ---------------------------------------------------------------------------
-// performance
+// extractBaseDomain
 // ---------------------------------------------------------------------------
-describe("normalizeWebsiteUrl performance", () => {
+describe("extractBaseDomain", () => {
+  describe("single-level TLDs", () => {
+    it.each([
+      ["acme.com", "acme", "acme.com"],
+      ["example.nl", "example", "example.nl"],
+      ["acme.io", "acme", "acme.io"],
+      ["google.org", "google", "google.org"],
+      ["example.net", "example", "example.net"],
+      ["startup.dev", "startup", "startup.dev"],
+    ])("%s → baseDomain=%s, registrable=%s", (input, baseDomain, registrableDomain) => {
+      expect(extractBaseDomain(input)).toEqual({ baseDomain, registrableDomain });
+    });
+  });
+
+  describe("multi-level TLDs", () => {
+    it.each([
+      ["acme.co.uk", "acme", "acme.co.uk"],
+      ["acme.com.au", "acme", "acme.com.au"],
+      ["acme.co.jp", "acme", "acme.co.jp"],
+      ["acme.co.kr", "acme", "acme.co.kr"],
+      ["acme.co.nz", "acme", "acme.co.nz"],
+      ["acme.co.za", "acme", "acme.co.za"],
+      ["acme.co.in", "acme", "acme.co.in"],
+      ["acme.com.br", "acme", "acme.com.br"],
+      ["acme.com.cn", "acme", "acme.com.cn"],
+      ["acme.com.mx", "acme", "acme.com.mx"],
+      ["acme.co.ke", "acme", "acme.co.ke"],
+      ["acme.org.uk", "acme", "acme.org.uk"],
+      ["acme.net.au", "acme", "acme.net.au"],
+    ])("%s → baseDomain=%s, registrable=%s", (input, baseDomain, registrableDomain) => {
+      expect(extractBaseDomain(input)).toEqual({ baseDomain, registrableDomain });
+    });
+  });
+
+  describe("subdomains are stripped to registrable domain", () => {
+    it.each([
+      ["app.acme.com", "acme", "acme.com"],
+      ["www.acme.com", "acme", "acme.com"],
+      ["partners.acme.com", "acme", "acme.com"],
+      ["sub.app.acme.co.uk", "acme", "acme.co.uk"],
+      ["a.b.c.example.nl", "example", "example.nl"],
+      ["blog.acme.com.au", "acme", "acme.com.au"],
+    ])("%s → baseDomain=%s, registrable=%s", (input, baseDomain, registrableDomain) => {
+      expect(extractBaseDomain(input)).toEqual({ baseDomain, registrableDomain });
+    });
+  });
+
+  describe("normalizes full URLs first", () => {
+    it.each([
+      ["https://www.acme.com/about", "acme", "acme.com"],
+      ["http://acme.co.uk:8080/en/", "acme", "acme.co.uk"],
+      ["HTTPS://APP.EXAMPLE.COM", "example", "example.com"],
+    ])("%s → baseDomain=%s, registrable=%s", (input, baseDomain, registrableDomain) => {
+      expect(extractBaseDomain(input)).toEqual({ baseDomain, registrableDomain });
+    });
+  });
+
+  describe("over-match prevention", () => {
+    it("acme.com and macmedia.com have different base domains", () => {
+      expect(extractBaseDomain("acme.com")?.baseDomain).toBe("acme");
+      expect(extractBaseDomain("macmedia.com")?.baseDomain).toBe("macmedia");
+    });
+
+    it("acme.com and acme-corp.com have different base domains", () => {
+      expect(extractBaseDomain("acme.com")?.baseDomain).toBe("acme");
+      expect(extractBaseDomain("acme-corp.com")?.baseDomain).toBe("acme-corp");
+    });
+
+    it("acme.com and acme.co.uk share the same base domain", () => {
+      expect(extractBaseDomain("acme.com")?.baseDomain).toBe(extractBaseDomain("acme.co.uk")?.baseDomain);
+    });
+  });
+
+  describe("null returns for invalid inputs", () => {
+    it.each([
+      ["", "empty string"],
+      ["   ", "whitespace"],
+      ["192.168.1.1", "IPv4"],
+      ["10.0.0.1", "IPv4"],
+      ["https://192.168.1.1/admin", "IPv4 URL"],
+      ["localhost", "localhost"],
+      ["acme", "single label"],
+    ])("returns null for %s (%s)", (input) => {
+      expect(extractBaseDomain(input)).toBeNull();
+    });
+
+    it("returns null for null/undefined", () => {
+      // @ts-expect-error -- testing runtime safety
+      expect(extractBaseDomain(null)).toBeNull();
+      // @ts-expect-error -- testing runtime safety
+      expect(extractBaseDomain(undefined)).toBeNull();
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// extractBaseDomain — additional edge cases
+// ---------------------------------------------------------------------------
+describe("extractBaseDomain — additional edge cases", () => {
+  describe("hyphenated domains", () => {
+    it.each([
+      ["my-company.com", "my-company", "my-company.com"],
+      ["acme-corp.co.uk", "acme-corp", "acme-corp.co.uk"],
+      ["super-long-name.com.au", "super-long-name", "super-long-name.com.au"],
+    ])("%s → baseDomain=%s, registrable=%s", (input, baseDomain, registrableDomain) => {
+      expect(extractBaseDomain(input)).toEqual({ baseDomain, registrableDomain });
+    });
+  });
+
+  describe("numeric domains", () => {
+    it.each([
+      ["123.com", "123", "123.com"],
+      ["365.co.uk", "365", "365.co.uk"],
+    ])("%s → baseDomain=%s, registrable=%s", (input, baseDomain, registrableDomain) => {
+      expect(extractBaseDomain(input)).toEqual({ baseDomain, registrableDomain });
+    });
+  });
+
+  describe("domains with full URL decoration", () => {
+    it.each([
+      ["https://www.my-company.com:8080/about?ref=google#team", "my-company", "my-company.com"],
+      ["HTTP://WWW.ACME.CO.UK/EN/ABOUT/", "acme", "acme.co.uk"],
+    ])("%s → baseDomain=%s, registrable=%s", (input, baseDomain, registrableDomain) => {
+      expect(extractBaseDomain(input)).toEqual({ baseDomain, registrableDomain });
+    });
+  });
+
+  describe("cross-TLD equivalence", () => {
+    it.each([
+      [["acme.com", "acme.co.uk", "acme.io", "acme.com.au", "acme.de"], "acme"],
+      [["example.com", "example.co.jp", "example.net", "example.org"], "example"],
+      [["my-corp.com", "my-corp.co.uk", "my-corp.com.br"], "my-corp"],
+    ])("all TLD variants of %s share baseDomain=%s", (domains, expectedBase) => {
+      for (const domain of domains) {
+        expect(extractBaseDomain(domain)?.baseDomain).toBe(expectedBase);
+      }
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// performance benchmarks
+// ---------------------------------------------------------------------------
+describe("performance", () => {
   it("normalizes 1 000 URLs in under 50 ms", () => {
     const urls = Array.from({ length: 1000 }, (_, i) => `https://www.company${i}.com/about?ref=test#section`);
     const start = performance.now();
@@ -157,5 +300,59 @@ describe("normalizeWebsiteUrl performance", () => {
     }
     const elapsed = performance.now() - start;
     expect(elapsed).toBeLessThan(200);
+  });
+
+  it("extracts 100 base domains in under 50ms", () => {
+    const domains = Array.from({ length: 100 }, (_, i) => `company${i}.co.uk`);
+    const start = performance.now();
+    for (const domain of domains) {
+      extractBaseDomain(domain);
+    }
+    const elapsed = performance.now() - start;
+    expect(elapsed).toBeLessThan(50);
+  });
+
+  it("normalizes 1000 URLs in under 50ms", () => {
+    const urls = Array.from(
+      { length: 1000 },
+      (_, i) => `https://www.company${i}.com:${8080 + (i % 10)}/about/page?ref=test&lang=en#section`
+    );
+    const start = performance.now();
+    for (const url of urls) {
+      normalizeWebsiteUrl(url);
+    }
+    const elapsed = performance.now() - start;
+    expect(elapsed).toBeLessThan(50);
+  });
+
+  it("fuzzy in-memory filter: extractBaseDomain comparison on 100 candidates in under 100ms", () => {
+    // Simulates the in-memory filtering step of fuzzyMatchAccountByDomain
+    const targetBase = extractBaseDomain("acme.co.uk")!;
+    const candidates = Array.from({ length: 100 }, (_, i) => ({
+      Id: `acc-${i}`,
+      Website: i % 10 === 0 ? `acme.com` : `company${i}.com`,
+    }));
+
+    const start = performance.now();
+    const matches = candidates.filter((account) => {
+      const accountBase = extractBaseDomain(account.Website);
+      return accountBase?.baseDomain === targetBase.baseDomain;
+    });
+    const elapsed = performance.now() - start;
+
+    expect(elapsed).toBeLessThan(100);
+    // 10 out of 100 candidates should match (every 10th is "acme.com")
+    expect(matches.length).toBe(10);
+  });
+
+  it("extractBaseDomain on 100 multi-level TLD domains in under 50ms", () => {
+    const tlds = [".co.uk", ".com.au", ".co.jp", ".com.br", ".co.in"];
+    const domains = Array.from({ length: 100 }, (_, i) => `company${i}${tlds[i % tlds.length]}`);
+    const start = performance.now();
+    for (const domain of domains) {
+      extractBaseDomain(domain);
+    }
+    const elapsed = performance.now() - start;
+    expect(elapsed).toBeLessThan(50);
   });
 });

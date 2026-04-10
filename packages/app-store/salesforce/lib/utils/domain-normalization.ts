@@ -1,3 +1,5 @@
+import { parse as tldtsParse } from "tldts";
+
 /**
  * Strips protocol, www, path, port, query, fragment, and lowercases.
  *
@@ -51,4 +53,33 @@ export function normalizeWebsiteUrl(url: string): string {
   }
 
   return cleaned;
+}
+
+export interface BaseDomainResult {
+  baseDomain: string;
+  registrableDomain: string;
+}
+
+/**
+ * TLD-aware base domain extraction using the Mozilla Public Suffix List (via `tldts`).
+ *
+ * Given a URL or bare domain, returns the "company" label and the full registrable domain.
+ * Handles all 9,000+ TLD patterns including multi-level ones like `.co.uk`, `.com.au`, etc.
+ *
+ * Returns `null` for inputs that aren't valid domain names (IPs, localhost, empty, single-label).
+ */
+export function extractBaseDomain(input: string): BaseDomainResult | null {
+  const domain = normalizeWebsiteUrl(input);
+  if (!domain) return null;
+
+  if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(domain)) return null;
+
+  const parsed = tldtsParse(domain, { allowPrivateDomains: false });
+
+  if (!parsed.domainWithoutSuffix || !parsed.domain) return null;
+
+  return {
+    baseDomain: parsed.domainWithoutSuffix,
+    registrableDomain: parsed.domain,
+  };
 }

@@ -3,7 +3,6 @@ import { CrmRoutingTraceService } from "@calcom/features/routing-trace/services/
 // biome-ignore lint/style/noRestrictedImports: pre-existing violation
 import type { RoutingTraceService } from "@calcom/features/routing-trace/services/RoutingTraceService";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { SalesforceRoutingTraceService } from "./SalesforceRoutingTraceService";
 
 describe("SalesforceRoutingTraceService", () => {
@@ -513,7 +512,184 @@ describe("SalesforceRoutingTraceService", () => {
         expect(addStepSpy).toHaveBeenCalledWith({
           domain: "salesforce",
           step: "graphql_no_account_found",
-          data: { email: "user@example.com", reason: "Could not find dominant account from related contacts" },
+          data: {
+            email: "user@example.com",
+            reason: "Could not find dominant account from related contacts",
+          },
+        });
+      });
+    });
+  });
+
+  describe("Fuzzy Domain Matching", () => {
+    describe("fuzzyMatchInitiated", () => {
+      it("should add step with correct data", async () => {
+        await runWithTraceContext(() => {
+          SalesforceRoutingTraceService.fuzzyMatchInitiated({
+            email: "user@acme.co.uk",
+            baseDomain: "acme",
+            isFreeEmail: false,
+          });
+        });
+
+        expect(addStepSpy).toHaveBeenCalledWith({
+          domain: "salesforce",
+          step: "fuzzy_match_initiated",
+          data: { email: "user@acme.co.uk", baseDomain: "acme", isFreeEmail: false },
+        });
+      });
+
+      it("should record free email flag when true", async () => {
+        await runWithTraceContext(() => {
+          SalesforceRoutingTraceService.fuzzyMatchInitiated({
+            email: "user@gmail.com",
+            baseDomain: "gmail",
+            isFreeEmail: true,
+          });
+        });
+
+        expect(addStepSpy).toHaveBeenCalledWith({
+          domain: "salesforce",
+          step: "fuzzy_match_initiated",
+          data: { email: "user@gmail.com", baseDomain: "gmail", isFreeEmail: true },
+        });
+      });
+    });
+
+    describe("fuzzyMatchSoqlResults", () => {
+      it("should add step with SOQL result counts", async () => {
+        await runWithTraceContext(() => {
+          SalesforceRoutingTraceService.fuzzyMatchSoqlResults({
+            baseDomain: "acme",
+            rawCount: 12,
+            filteredCount: 3,
+          });
+        });
+
+        expect(addStepSpy).toHaveBeenCalledWith({
+          domain: "salesforce",
+          step: "fuzzy_match_soql_results",
+          data: { baseDomain: "acme", rawCount: 12, filteredCount: 3 },
+        });
+      });
+
+      it("should handle zero counts", async () => {
+        await runWithTraceContext(() => {
+          SalesforceRoutingTraceService.fuzzyMatchSoqlResults({
+            baseDomain: "unknown",
+            rawCount: 0,
+            filteredCount: 0,
+          });
+        });
+
+        expect(addStepSpy).toHaveBeenCalledWith({
+          domain: "salesforce",
+          step: "fuzzy_match_soql_results",
+          data: { baseDomain: "unknown", rawCount: 0, filteredCount: 0 },
+        });
+      });
+    });
+
+    describe("fuzzyMatchResult", () => {
+      it("should add step with exact confidence", async () => {
+        await runWithTraceContext(() => {
+          SalesforceRoutingTraceService.fuzzyMatchResult({
+            accountId: "001ABC",
+            accountWebsite: "acme.com",
+            confidence: "exact",
+          });
+        });
+
+        expect(addStepSpy).toHaveBeenCalledWith({
+          domain: "salesforce",
+          step: "fuzzy_match_result",
+          data: { accountId: "001ABC", accountWebsite: "acme.com", confidence: "exact" },
+        });
+      });
+
+      it("should add step with fuzzy_single confidence", async () => {
+        await runWithTraceContext(() => {
+          SalesforceRoutingTraceService.fuzzyMatchResult({
+            accountId: "001DEF",
+            accountWebsite: "acme.co.uk",
+            confidence: "fuzzy_single",
+          });
+        });
+
+        expect(addStepSpy).toHaveBeenCalledWith({
+          domain: "salesforce",
+          step: "fuzzy_match_result",
+          data: { accountId: "001DEF", accountWebsite: "acme.co.uk", confidence: "fuzzy_single" },
+        });
+      });
+
+      it("should add step with fuzzy_tiebreak confidence", async () => {
+        await runWithTraceContext(() => {
+          SalesforceRoutingTraceService.fuzzyMatchResult({
+            accountId: "001GHI",
+            accountWebsite: "acme.com",
+            confidence: "fuzzy_tiebreak",
+          });
+        });
+
+        expect(addStepSpy).toHaveBeenCalledWith({
+          domain: "salesforce",
+          step: "fuzzy_match_result",
+          data: { accountId: "001GHI", accountWebsite: "acme.com", confidence: "fuzzy_tiebreak" },
+        });
+      });
+    });
+
+    describe("fuzzyMatchNoResult", () => {
+      it("should add step with free email reason", async () => {
+        await runWithTraceContext(() => {
+          SalesforceRoutingTraceService.fuzzyMatchNoResult({
+            email: "user@gmail.com",
+            baseDomain: "gmail",
+            reason: "Free email domain",
+          });
+        });
+
+        expect(addStepSpy).toHaveBeenCalledWith({
+          domain: "salesforce",
+          step: "fuzzy_match_no_result",
+          data: { email: "user@gmail.com", baseDomain: "gmail", reason: "Free email domain" },
+        });
+      });
+
+      it("should add step with no-match reason", async () => {
+        await runWithTraceContext(() => {
+          SalesforceRoutingTraceService.fuzzyMatchNoResult({
+            email: "user@rare.com",
+            baseDomain: "rare",
+            reason: "No accounts matched after base domain comparison",
+          });
+        });
+
+        expect(addStepSpy).toHaveBeenCalledWith({
+          domain: "salesforce",
+          step: "fuzzy_match_no_result",
+          data: {
+            email: "user@rare.com",
+            baseDomain: "rare",
+            reason: "No accounts matched after base domain comparison",
+          },
+        });
+      });
+
+      it("should add step with SOQL failure reason", async () => {
+        await runWithTraceContext(() => {
+          SalesforceRoutingTraceService.fuzzyMatchNoResult({
+            email: "user@acme.co.uk",
+            baseDomain: "acme",
+            reason: "SOQL query failed",
+          });
+        });
+
+        expect(addStepSpy).toHaveBeenCalledWith({
+          domain: "salesforce",
+          step: "fuzzy_match_no_result",
+          data: { email: "user@acme.co.uk", baseDomain: "acme", reason: "SOQL query failed" },
         });
       });
     });

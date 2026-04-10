@@ -19,7 +19,8 @@
     "@jetstreamapp/soql-parser-js": "6.1.0",
     "@jsforce/jsforce-node": "3.10.10",
     "@urql/core": "5.1.1",
-    "@urql/exchange-retry": "2.0.0"
+    "@urql/exchange-retry": "2.0.0",
+    "tldts": "^6.1.86"
   },
   "devDependencies": {
     "@calcom/types": "workspace:*",
