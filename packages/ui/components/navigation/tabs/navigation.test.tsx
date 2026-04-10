@@ -1,13 +1,16 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
-
 import type { IconName } from "../../icon";
 import HorizontalTabs from "./HorizontalTabs";
 import VerticalTabs from "./VerticalTabs";
 
-// Mock the hooks
+const { useUrlMatchesCurrentUrlMock } = vi.hoisted(() => ({
+  useUrlMatchesCurrentUrlMock: vi.fn(() => false),
+}));
+
+// Mock the hooks — default: URL does not match (tabs rely on isActive when controlled)
 vi.mock("@calcom/lib/hooks/useUrlMatchesCurrentUrl", () => ({
-  useUrlMatchesCurrentUrl: () => false,
+  useUrlMatchesCurrentUrl: () => useUrlMatchesCurrentUrlMock(),
 }));
 
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
@@ -40,6 +43,33 @@ describe("Navigation Components", () => {
 
     beforeEach(() => {
       vi.clearAllMocks();
+      useUrlMatchesCurrentUrlMock.mockReturnValue(false);
+    });
+
+    test("when isActive is set, it wins over stale URL match (controlled tab)", () => {
+      useUrlMatchesCurrentUrlMock.mockReturnValue(true);
+      render(
+        <HorizontalTabs
+          tabs={[
+            { name: "OldTeam", href: "/event-types?teamId=1", isActive: false, "data-testid": "old" },
+            { name: "NewTeam", href: "/event-types?teamId=2", isActive: true, "data-testid": "new" },
+          ]}
+        />
+      );
+
+      expect(screen.getByTestId("horizontal-tab-old")).not.toHaveAttribute("aria-current", "page");
+      expect(screen.getByTestId("horizontal-tab-new")).toHaveAttribute("aria-current", "page");
+    });
+
+    test("when isActive is true and URL hook says no match, tab is still current", () => {
+      useUrlMatchesCurrentUrlMock.mockReturnValue(false);
+      render(
+        <HorizontalTabs
+          tabs={[{ name: "Team", href: "/event-types?teamId=2", isActive: true, "data-testid": "team" }]}
+        />
+      );
+
+      expect(screen.getByTestId("horizontal-tab-team")).toHaveAttribute("aria-current", "page");
     });
 
     test("renders all tabs with correct name and href", async () => {
