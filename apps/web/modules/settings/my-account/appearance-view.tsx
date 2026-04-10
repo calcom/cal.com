@@ -474,12 +474,7 @@ const AppearanceView = ({
           >
             <CardFrame
               className="has-[[data-slot=collapsible-trigger][data-unchecked]]:before:bg-card before:transition-all"
-              render={
-                <Collapsible
-                  open={isCustomBrandColorChecked}
-                  onOpenChange={handleCustomBrandColorsToggle}
-                />
-              }
+              render={<Collapsible open={isCustomBrandColorChecked} />}
             >
               <CardFrameHeader className="has-[[data-slot=collapsible-trigger][data-unchecked]]:p-6 transition-all">
                 <CardFrameTitle>{t("custom_brand_colors")}</CardFrameTitle>
