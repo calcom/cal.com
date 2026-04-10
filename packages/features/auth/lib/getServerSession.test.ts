@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 import type { RequestMethod } from "node-mocks-http";
 import { createMocks } from "node-mocks-http";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Use vi.hoisted to import mocks before vi.mock hoisting
 const {
@@ -31,7 +31,7 @@ vi.mock("@calcom/lib/safeStringify", createSafeStringifyMock);
 vi.mock("next-auth/jwt", createGetTokenMock);
 
 import { getToken } from "next-auth/jwt";
-import { getServerSession } from "./getServerSession";
+import { clearSessionCache, getServerSession } from "./getServerSession";
 
 type MockNextApiRequest = ReturnType<typeof createMocks<NextApiRequest>>["req"];
 
@@ -48,6 +48,7 @@ describe("getServerSession", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetPrismaMock();
+    clearSessionCache();
   });
 
   describe("Token Validation", () => {
@@ -82,9 +83,12 @@ describe("getServerSession", () => {
 
       await getServerSession({ req: createMockRequest() });
 
-      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 123 },
-      });
+      expect(prismaMock.user.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 123 },
+          select: expect.any(Object),
+        })
+      );
     });
 
     it("returns null when user not found in database", async () => {
@@ -123,9 +127,12 @@ describe("getServerSession", () => {
 
       await getServerSession({ req: createMockRequest() });
 
-      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 999 },
-      });
+      expect(prismaMock.user.findUnique).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 999 },
+          select: expect.any(Object),
+        })
+      );
     });
 
     it("returns user data from database lookup", async () => {
@@ -161,6 +168,62 @@ describe("getServerSession", () => {
         expect(whereClause).toHaveProperty("id");
         expect(whereClause).not.toHaveProperty("email");
       }
+    });
+  });
+
+  describe("Cache Behavior", () => {
+    it("returns cached session on second call with same identity fields", async () => {
+      const mockUser = createMockUser();
+      setupGetTokenMock(createMockToken());
+      prismaMock.user.findUnique.mockResolvedValue(mockUser);
+
+      const first = await getServerSession({ req: createMockRequest() });
+      const second = await getServerSession({ req: createMockRequest() });
+
+      expect(first).toEqual(second);
+      // user.findUnique should only be called once (cached on second call)
+      expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
+    });
+
+    it("cache hit even when token exp/iat change (stable cache key)", async () => {
+      const mockUser = createMockUser();
+      const baseToken = createMockToken();
+      prismaMock.user.findUnique.mockResolvedValue(mockUser);
+
+      setupGetTokenMock({ ...baseToken, exp: 1000 });
+      const first = await getServerSession({ req: createMockRequest() });
+
+      setupGetTokenMock({ ...baseToken, exp: 2000 });
+      const second = await getServerSession({ req: createMockRequest() });
+
+      expect(first).toEqual(second);
+      expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(1);
+    });
+
+    it("cache miss when identity fields change", async () => {
+      const mockUser = createMockUser();
+      prismaMock.user.findUnique.mockResolvedValue(mockUser);
+
+      setupGetTokenMock(createMockToken({ upId: "usr-5" }));
+      await getServerSession({ req: createMockRequest() });
+
+      setupGetTokenMock(createMockToken({ upId: "usr-different" }));
+      await getServerSession({ req: createMockRequest() });
+
+      expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(2);
+    });
+
+    it("cache miss when belongsToActiveTeam changes", async () => {
+      const mockUser = createMockUser();
+      prismaMock.user.findUnique.mockResolvedValue(mockUser);
+
+      setupGetTokenMock(createMockToken({ belongsToActiveTeam: true }));
+      await getServerSession({ req: createMockRequest() });
+
+      setupGetTokenMock(createMockToken({ belongsToActiveTeam: false }));
+      await getServerSession({ req: createMockRequest() });
+
+      expect(prismaMock.user.findUnique).toHaveBeenCalledTimes(2);
     });
   });
 });

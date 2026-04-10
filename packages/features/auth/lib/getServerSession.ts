@@ -11,11 +11,26 @@ import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });
+
+const SESSION_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE = new LRUCache<string, Session>({ max: 1000, ttl: SESSION_CACHE_TTL });
+
 /**
- * Stores the session in memory using the stringified token as the key.
- *
+ * Only the fields from the user table that getServerSession actually uses
+ * to build the Session object.
  */
-const CACHE = new LRUCache<string, Session>({ max: 1000 });
+const sessionUserSelect = {
+  id: true,
+  uuid: true,
+  name: true,
+  username: true,
+  email: true,
+  emailVerified: true,
+  completedOnboarding: true,
+  role: true,
+  avatarUrl: true,
+  locale: true,
+} as const;
 
 /**
  * This is a slimmed down version of the `getServerSession` function from
@@ -46,7 +61,11 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const cachedSession = CACHE.get(JSON.stringify(token));
+  // Include all token fields that flow into the Session object so that changes
+  // (e.g. team subscription lapsing) don't serve stale data. Excludes exp/iat/jti
+  // which change on every refresh but don't affect session content.
+  const cacheKey = `${token.sub}:${token.upId ?? ""}:${token.profileId ?? ""}:${token.impersonatedBy?.id ?? ""}:${token.belongsToActiveTeam ?? ""}:${token.orgAwareUsername ?? ""}:${JSON.stringify(token.org ?? "")}`;
+  const cachedSession = CACHE.get(cacheKey);
 
   if (cachedSession) {
     log.debug("Returning cached session", safeStringify(cachedSession));
@@ -62,16 +81,13 @@ export async function getServerSession(options: {
 
   const userFromDb = await prisma.user.findUnique({
     where: { id: userId },
+    select: sessionUserSelect,
   });
 
   if (!userFromDb) {
     log.warn("No user found for valid token", { userId });
     return null;
   }
-
-  const deploymentRepo = new DeploymentRepository(prisma);
-  const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
-  const hasValidLicense = await licenseKeyService.checkLicense();
 
   let upId = token.upId;
 
@@ -84,11 +100,18 @@ export async function getServerSession(options: {
     return null;
   }
 
+  // Run the license check and profile enrichment concurrently since they are independent.
+  const deploymentRepo = new DeploymentRepository(prisma);
+  const licenseKeyService = await LicenseKeySingleton.getInstance(deploymentRepo);
   const userRepository = new UserRepository(prisma);
-  const user = await userRepository.enrichUserWithTheProfile({
-    user: userFromDb,
-    upId,
-  });
+
+  const [hasValidLicense, user] = await Promise.all([
+    licenseKeyService.checkLicense(),
+    userRepository.enrichUserWithTheProfile({
+      user: userFromDb,
+      upId,
+    }),
+  ]);
 
   const session: Session = {
     hasValidLicense,
@@ -136,7 +159,7 @@ export async function getServerSession(options: {
     }
   }
 
-  CACHE.set(JSON.stringify(token), session);
+  CACHE.set(cacheKey, session);
 
   log.debug("Returned session", safeStringify(session));
   return session;
