@@ -9,7 +9,7 @@ async function safeJson(response: Response) {
   }
 }
 
-async function http<T>(path: string, config: RequestInit): Promise<T> {
+async function http<T>(path: string, config: RequestInit): Promise<T | null> {
   const request = new Request(path, config);
   const response: Response = await fetch(request);
 
@@ -25,16 +25,16 @@ async function http<T>(path: string, config: RequestInit): Promise<T> {
     );
     throw err;
   }
-  // may error if there is no body, return empty array
+  // safely handles empty or non-JSON responses
   return await safeJson(response);
 }
 
-export async function get<T>(path: string, config?: RequestInit): Promise<T> {
+export async function get<T>(path: string, config?: RequestInit): Promise<T | null> {
   const init = { method: "GET", ...config };
   return await http<T>(path, init);
 }
 
-export async function post<T, U>(path: string, body: T, config?: RequestInit): Promise<U> {
+export async function post<T, U>(path: string, body: T, config?: RequestInit): Promise<U | null> {
   const init = {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -44,7 +44,7 @@ export async function post<T, U>(path: string, body: T, config?: RequestInit): P
   return await http<U>(path, init);
 }
 
-export async function put<T, U>(path: string, body: T, config?: RequestInit): Promise<U> {
+export async function put<T, U>(path: string, body: T, config?: RequestInit): Promise<U | null> {
   const init = {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -54,7 +54,7 @@ export async function put<T, U>(path: string, body: T, config?: RequestInit): Pr
   return await http<U>(path, init);
 }
 
-export async function patch<T, U>(path: string, body: T, config?: RequestInit): Promise<U> {
+export async function patch<T, U>(path: string, body: T, config?: RequestInit): Promise<U | null> {
   const init = {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -64,7 +64,7 @@ export async function patch<T, U>(path: string, body: T, config?: RequestInit): 
   return await http<U>(path, init);
 }
 
-export async function remove<T, U>(path: string, body: T, config?: RequestInit): Promise<U> {
+export async function remove<T, U>(path: string, body: T, config?: RequestInit): Promise<U | null> {
   const init = {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
