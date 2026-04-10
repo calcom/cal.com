@@ -1,5 +1,3 @@
-# Use postgres/example user/password credentials
-
 volumes:
   database-data:
   redis-data:
@@ -17,9 +15,9 @@ services:
     volumes:
       - database-data:/var/lib/postgresql
     environment:
-      - POSTGRES_USER=unicorn_user
-      - POSTGRES_PASSWORD=magical_password
-      - POSTGRES_DB=calendso
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     networks:
       - stack
 
@@ -35,14 +33,8 @@ services:
       - "${REDIS_PORT:-6379}:6379"
 
   calcom:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_WEBAPP_URL: ${NEXT_PUBLIC_WEBAPP_URL}
-        NEXT_PUBLIC_API_V2_URL: ${NEXT_PUBLIC_API_V2_URL}
-        NEXT_PUBLIC_LICENSE_CONSENT: ${NEXT_PUBLIC_LICENSE_CONSENT}
-    restart: always
+    image: ""
+    restart: unless-stopped
     networks:
       - stack
     ports:
@@ -56,10 +48,8 @@ services:
 
   calcom-api:
     container_name: calcom-api
-    build:
-      context: .
-      dockerfile: apps/api/v2/Dockerfile
-    restart: always
+    image: ""
+    restart: unless-stopped
     networks:
       - stack
     ports:
