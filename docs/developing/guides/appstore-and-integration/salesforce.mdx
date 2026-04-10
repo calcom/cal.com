@@ -111,3 +111,32 @@ When a prospect cancels, their Salesforce contact record automatically updates w
 | **Change record owner on booking** | Reassign the Contact or Lead owner to a specified user when a booking is made |
 | **Send no-show attendee data** | Write attendee no-show status to a field on the Salesforce event object |
 | **Book directly with attendee owner** | For round-robin event types, skip round-robin logic and route directly to the Salesforce record owner |
+
+## Cross-TLD fuzzy domain matching
+
+When using the **Contact under Account** attendee record type, Cal.com resolves the attendee's Salesforce Account by matching their email domain against Account `Website` fields. By default, this lookup requires an exact domain match — `acme.com` only matches Accounts whose website is on `acme.com`.
+
+With **cross-TLD fuzzy domain matching** enabled, Cal.com also matches across different top-level domains. An attendee with an `@acme.co.uk` email can be matched to a Salesforce Account whose website is `acme.com`, `acme.de`, or any other TLD variant sharing the same base domain.
+
+### How account resolution works
+
+Cal.com resolves the attendee's Salesforce Account using a multi-step waterfall:
+
+1. **Exact match** — Look for an Account whose `Website` exactly matches the attendee's email domain (for example, `acme.com`)
+2. **Normalized match** — Strip URL prefixes like `www.`, `http://`, and trailing paths, then retry the exact match
+3. **Contact email match** — Search for existing Contacts whose email domain matches, and use their linked Account
+4. **Fuzzy cross-TLD match** — Extract the base domain (for example, `acme` from `acme.co.uk`) and match it against all Account websites regardless of TLD
+
+Cal.com uses the first match found. If no Account is resolved at any step, the integration falls back to the behavior configured in your event type settings.
+
+### When to use this
+
+Fuzzy domain matching is useful when:
+
+- Your Salesforce Accounts have websites on a single TLD (for example, `acme.com`) but attendees book from regional email domains (for example, `@acme.co.uk`, `@acme.de`)
+- You want to automatically link international attendees to the correct parent Account without creating duplicate records
+- Your organization operates across multiple country domains under the same brand
+
+<Note>
+  Fuzzy matching only applies to the **Contact under Account** attendee record type. It does not affect Contact-only or Lead-only lookups.
+</Note>
