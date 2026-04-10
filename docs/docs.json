@@ -1001,7 +1001,7 @@
         ]
       },
       {
-        "tab": "API v1 Reference [Deprecated]",
+        "tab": "API v1 Reference [Shut Down]",
         "openapi": {
           "source": "/api-reference/v1/openapi-v1.json",
           "directory": "api-reference/v1"
