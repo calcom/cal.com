@@ -23,7 +23,7 @@ import WebShell from "@calcom/web/modules/shell/Shell";
 import { TRPCClientError } from "@trpc/react-query";
 import dynamic from "next/dynamic";
 import { useRouter as useAppRouter, usePathname } from "next/navigation";
-import { useMemo, useRef, useState } from "react";
+import { useDeferredValue, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { useManagedEventConflictCheck } from "../hooks/use-managed-event-conflict-check";
 import { EventType as EventTypeComponent } from "./EventType";
@@ -355,6 +355,11 @@ const EventTypeWeb = ({
     data: { tabName },
   } = useTypedQuery(querySchema);
 
+  // Defer the tab name so React keeps showing the current tab's content
+  // while the new tab's dynamic import loads, preventing the brief flash
+  // of the previous tab that occurs during Suspense resolution.
+  const deferredTabName = useDeferredValue(tabName);
+
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
@@ -407,7 +412,7 @@ const EventTypeWeb = ({
       formMethods={form}
       isUpdating={updateMutation.isPending}
       isPlatform={false}
-      tabName={tabName}
+      tabName={deferredTabName}
       tabsNavigation={tabsNavigation}
       Shell={WebShell}>
       <>

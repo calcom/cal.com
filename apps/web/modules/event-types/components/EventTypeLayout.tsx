@@ -1,13 +1,5 @@
-import { useState, Suspense } from "react";
-import type { UseFormReturn } from "react-hook-form";
-
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import {
-  EventTypeEmbedButton,
-  EventTypeEmbedDialog,
-} from "@calcom/web/modules/embed/components/EventTypeEmbed";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
-import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import classNames from "@calcom/ui/classNames";
@@ -16,21 +8,26 @@ import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import { VerticalDivider } from "@calcom/ui/components/divider";
 import {
-  DropdownMenuSeparator,
   Dropdown,
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/components/dropdown";
-import { Label } from "@calcom/ui/components/form";
-import { Switch } from "@calcom/ui/components/form";
-import { LoaderIcon } from "@coss/ui/icons";
-import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
+import { Label, Switch } from "@calcom/ui/components/form";
 import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
+import { HorizontalTabs, VerticalTabs } from "@calcom/ui/components/navigation";
 import { Skeleton } from "@calcom/ui/components/skeleton";
 import { showToast } from "@calcom/ui/components/toast";
 import { Tooltip } from "@calcom/ui/components/tooltip";
+import {
+  EventTypeEmbedButton,
+  EventTypeEmbedDialog,
+} from "@calcom/web/modules/embed/components/EventTypeEmbed";
+import { LoaderIcon } from "@coss/ui/icons";
+import { Suspense, useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { DeleteDialog } from "./dialogs/DeleteDialog";
 
 type Props = {
@@ -285,26 +282,26 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <Suspense
-        fallback={
-          <div className="flex h-64 items-center justify-center">
-            <LoaderIcon className="h-5 w-5 animate-spin" />
-          </div>
-        }>
-        <div className="flex flex-col xl:flex-row xl:space-x-6">
-          <div className="hidden xl:block">
-            <VerticalTabs
-              className="primary-navigation w-64"
-              tabs={EventTypeTabs}
-              sticky
-              stickyOffset="var(--navbar-height, 64px)"
-              itemClassname="items-start"
-            />
-          </div>
-          <div className="p-2 md:mx-0 md:p-0 xl:hidden">
-            <HorizontalTabs tabs={EventTypeTabs} />
-          </div>
-          <div className="w-full ltr:mr-2 rtl:ml-2">
+      <div className="flex flex-col xl:flex-row xl:space-x-6">
+        <div className="hidden xl:block">
+          <VerticalTabs
+            className="primary-navigation w-64"
+            tabs={EventTypeTabs}
+            sticky
+            stickyOffset="var(--navbar-height, 64px)"
+            itemClassname="items-start"
+          />
+        </div>
+        <div className="p-2 md:mx-0 md:p-0 xl:hidden">
+          <HorizontalTabs tabs={EventTypeTabs} />
+        </div>
+        <div className="w-full ltr:mr-2 rtl:ml-2">
+          <Suspense
+            fallback={
+              <div className="flex h-64 items-center justify-center">
+                <LoaderIcon className="h-5 w-5 animate-spin" />
+              </div>
+            }>
             <div
               className={classNames(
                 "bg-default border-subtle  mt-4 rounded-md sm:mx-0 xl:mt-0",
@@ -312,9 +309,9 @@ function EventTypeSingleLayout({
               )}>
               {children}
             </div>
-          </div>
+          </Suspense>
         </div>
-      </Suspense>
+      </div>
       <DeleteDialog
         isPlatform={isPlatform}
         eventTypeId={eventType.id}
