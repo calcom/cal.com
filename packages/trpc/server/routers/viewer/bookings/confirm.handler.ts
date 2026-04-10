@@ -317,7 +317,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const evt: CalendarEvent = {
     type: booking?.eventType?.slug as string,
     title: booking.title,
-    description: booking.description,
+    description: booking.eventType?.description,
     bookerUrl,
     // TODO: Remove the usage of `bookingFields` in computing responses. We can do that by storing `label` with the response. Also, this would allow us to correctly show the label for a field even after the Event Type has been deleted.
     ...getCalEventResponses({

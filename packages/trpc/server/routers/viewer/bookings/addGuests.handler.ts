@@ -327,7 +327,7 @@ export async function buildCalendarEvent(
   const evt: CalendarEvent = {
     title: booking.title || "",
     type: (booking.eventType?.title as string) || booking?.title || "",
-    description: booking.description || "",
+    description: booking.eventType?.description || "",
     startTime: booking.startTime ? dayjs(booking.startTime).format() : "",
     endTime: booking.endTime ? dayjs(booking.endTime).format() : "",
     organizer: {

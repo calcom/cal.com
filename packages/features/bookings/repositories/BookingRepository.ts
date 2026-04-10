@@ -1703,6 +1703,7 @@ export class BookingRepository implements IBookingRepository {
             teamId: true,
             bookingFields: true,
             title: true,
+            description: true,
             hideOrganizerEmail: true,
             recurringEvent: true,
             seatsPerTimeSlot: true,
