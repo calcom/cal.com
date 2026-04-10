@@ -310,7 +310,7 @@ export class CalendarEventBuilder<TEvent extends Partial<CalendarEvent> = Partia
       .withUid(uid)
       .withOneTimePassword(oneTimePassword)
       .withOrganization(organizationId)
-      .withHashedLink(meta.hashedLink ? `${bookerUrl}/d/${meta.hashedLink}/${eventType.slug}` : null)
+      .withHashedLink(meta.hashedLink ?? null)
       .withAssignmentReason(
         assignmentReason?.[0]?.reasonEnum
           ? {

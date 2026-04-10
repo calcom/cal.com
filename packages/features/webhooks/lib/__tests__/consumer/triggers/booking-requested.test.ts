@@ -503,11 +503,11 @@ describe("BOOKING_REQUESTED Trigger", () => {
       expect(p.requiresConfirmation).toBe(true);
     });
 
-    it("includes hashedLink from calendar event when present", async () => {
+    it("includes raw hashedLink (link ID) from calendar event, not a full URL", async () => {
       vi.mocked(mockBookingDataFetcher.fetchEventData).mockResolvedValueOnce({
         data: {
           calendarEvent: createMockCalendarEvent({
-            hashedLink: "https://cal.com/d/abc123hash/test-event",
+            hashedLink: "abc123hash",
           }),
           booking: createMockBooking(),
         },
@@ -530,7 +530,7 @@ describe("BOOKING_REQUESTED Trigger", () => {
       );
 
       const p = getDeliveredPayload();
-      expect(p.hashedLink).toBe("https://cal.com/d/abc123hash/test-event");
+      expect(p.hashedLink).toBe("abc123hash");
     });
 
     it("hashedLink defaults to null when not provided in calendar event", async () => {

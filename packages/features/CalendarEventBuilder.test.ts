@@ -2193,7 +2193,7 @@ describe("CalendarEventBuilder", () => {
       }
     });
 
-    it("should build hashedLink URL from metadata param", async () => {
+    it("should pass raw hashedLink from metadata param (not a URL)", async () => {
       const mockBooking = {
         uid: "booking-hashed-link-meta",
         metadata: null,
@@ -2264,7 +2264,7 @@ describe("CalendarEventBuilder", () => {
 
       expect(builtEvent).not.toBeNull();
       if (builtEvent) {
-        expect(builtEvent.hashedLink).toBe("https://cal.com/d/abc-123-uuid/private-event");
+        expect(builtEvent.hashedLink).toBe("abc-123-uuid");
       }
     });
 
@@ -2341,7 +2341,7 @@ describe("CalendarEventBuilder", () => {
       }
     });
 
-    it("should build hashedLink URL using org custom domain from bookerUrl", async () => {
+    it("should pass raw hashedLink even when org custom domain is used", async () => {
       const { getBookerBaseUrl } = await import("@calcom/features/ee/organizations/lib/getBookerUrlServer");
       vi.mocked(getBookerBaseUrl).mockResolvedValueOnce("https://acme.cal.com");
 
@@ -2420,7 +2420,7 @@ describe("CalendarEventBuilder", () => {
 
       expect(builtEvent).not.toBeNull();
       if (builtEvent) {
-        expect(builtEvent.hashedLink).toBe("https://acme.cal.com/d/custom-domain-uuid/org-event");
+        expect(builtEvent.hashedLink).toBe("custom-domain-uuid");
         expect(builtEvent.bookerUrl).toBe("https://acme.cal.com");
       }
 
