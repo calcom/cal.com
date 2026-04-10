@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, test, vi } from "vitest";
 
 import { getAvailableSlotsService } from "@calcom/features/di/containers/AvailableSlots";
 import { PrismaHolidayRepository } from "@calcom/features/holidays/repositories/PrismaHolidayRepository";
-import { HolidayService } from "@calcom/lib/holidays/HolidayService";
+import { HolidayService } from "@calcom/features/holidays/holiday-service";
 import { prisma } from "@calcom/prisma";
 import type { EventType, Schedule, Team, User } from "@calcom/prisma/client";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";

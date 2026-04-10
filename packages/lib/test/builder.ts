@@ -1,6 +1,4 @@
 import getICalUID from "@calcom/emails/lib/getICalUID";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { WebhookVersion } from "@calcom/features/webhooks/lib/interface/IWebhookRepository";
 import type { Booking, BookingReference, EventType, Prisma, Webhook } from "@calcom/prisma/client";
 import { BookingStatus, CreationSource, DisableCancelRescheduleScope } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
@@ -197,7 +195,7 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     platformOAuthClientId: null,
     time: null,
     timeUnit: null,
-    version: WebhookVersion.V_2021_10_20,
+    version: "2021-10-20",
     ...webhook,
     platform: false,
   };

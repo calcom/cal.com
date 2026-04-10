@@ -1,4 +1,4 @@
-import { getHolidayService } from "@calcom/lib/holidays/HolidayService";
+import { getHolidayService } from "@calcom/features/holidays/holiday-service";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TCheckConflictsSchema } from "./checkConflicts.schema";
@@ -10,7 +10,7 @@ type CheckConflictsOptions = {
   input: TCheckConflictsSchema;
 };
 
-export type { ConflictingBooking, HolidayConflict } from "@calcom/lib/holidays/HolidayService";
+export type { ConflictingBooking, HolidayConflict } from "@calcom/features/holidays/holiday-service";
 
 export async function checkConflictsHandler({ ctx, input }: CheckConflictsOptions) {
   const holidayService = getHolidayService();

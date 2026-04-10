@@ -1,13 +1,12 @@
 import dayjs from "@calcom/dayjs";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { HolidayRepository } from "@calcom/features/holidays/repositories/HolidayRepository";
-import { CONFLICT_CHECK_MONTHS, GOOGLE_HOLIDAY_CALENDARS } from "./constants";
+import { CONFLICT_CHECK_MONTHS, GOOGLE_HOLIDAY_CALENDARS } from "@calcom/lib/holidays/constants";
+import type { Country, Holiday, HolidayDatesByCountry, HolidayWithStatus } from "@calcom/lib/holidays/types";
 import {
   type CachedHoliday,
   getHolidayServiceCachingProxy,
   type HolidayServiceCachingProxy,
-} from "./HolidayServiceCachingProxy";
-import type { Country, Holiday, HolidayDatesByCountry, HolidayWithStatus } from "./types";
+} from "./holiday-service-caching-proxy";
+import { HolidayRepository } from "./repositories/HolidayRepository";
 
 export interface ConflictingBooking {
   id: number;

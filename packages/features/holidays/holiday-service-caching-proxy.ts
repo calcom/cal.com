@@ -1,12 +1,11 @@
 import dayjs from "@calcom/dayjs";
-// biome-ignore lint/style/noRestrictedImports: pre-existing violation
-import { HolidayRepository } from "@calcom/features/holidays/repositories/HolidayRepository";
-import { GOOGLE_HOLIDAY_CALENDARS, HOLIDAY_CACHE_DAYS } from "./constants";
+import { GOOGLE_HOLIDAY_CALENDARS, HOLIDAY_CACHE_DAYS } from "@calcom/lib/holidays/constants";
 import {
   type GoogleCalendarClient,
   type GoogleCalendarHoliday,
   getGoogleCalendarClient,
-} from "./GoogleCalendarClient";
+} from "@calcom/lib/holidays/GoogleCalendarClient";
+import { HolidayRepository } from "./repositories/HolidayRepository";
 
 export interface CachedHoliday {
   id: string;

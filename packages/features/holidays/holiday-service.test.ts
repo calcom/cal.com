@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GOOGLE_HOLIDAY_CALENDARS } from "./constants";
-import type { CachedHoliday } from "./HolidayServiceCachingProxy";
+import { GOOGLE_HOLIDAY_CALENDARS } from "@calcom/lib/holidays/constants";
+import type { CachedHoliday } from "./holiday-service-caching-proxy";
 
-vi.mock("./HolidayServiceCachingProxy", () => ({
+vi.mock("./holiday-service-caching-proxy", () => ({
   getHolidayServiceCachingProxy: vi.fn(() => ({
     getHolidaysForCountry: vi.fn(),
     getHolidaysInRange: vi.fn(),
@@ -12,8 +12,8 @@ vi.mock("./HolidayServiceCachingProxy", () => ({
   HolidayServiceCachingProxy: vi.fn(),
 }));
 
-import { getHolidayServiceCachingProxy } from "./HolidayServiceCachingProxy";
-import { HolidayService } from "./HolidayService";
+import { getHolidayServiceCachingProxy } from "./holiday-service-caching-proxy";
+import { HolidayService } from "./holiday-service";
 
 const mockHolidays: CachedHoliday[] = [
   {

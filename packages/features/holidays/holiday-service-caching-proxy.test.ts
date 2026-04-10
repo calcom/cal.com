@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@calcom/features/holidays/repositories/HolidayRepository", () => ({
+vi.mock("./repositories/HolidayRepository", () => ({
   HolidayRepository: {
     findFirstCacheEntry: vi.fn(),
     refreshCache: vi.fn(),
@@ -10,7 +10,7 @@ vi.mock("@calcom/features/holidays/repositories/HolidayRepository", () => ({
   },
 }));
 
-vi.mock("./GoogleCalendarClient", () => {
+vi.mock("@calcom/lib/holidays/GoogleCalendarClient", () => {
   const mockFetch = vi.fn();
   return {
     getGoogleCalendarClient: vi.fn().mockReturnValue({
@@ -22,7 +22,7 @@ vi.mock("./GoogleCalendarClient", () => {
   };
 });
 
-vi.mock("./constants", () => ({
+vi.mock("@calcom/lib/holidays/constants", () => ({
   GOOGLE_HOLIDAY_CALENDARS: {
     US: { name: "United States", calendarId: "en.usa#holiday@group.v.calendar.google.com" },
     DE: { name: "Germany", calendarId: "en.german#holiday@group.v.calendar.google.com" },
@@ -47,10 +47,9 @@ vi.mock("@calcom/prisma", () => ({
   prisma: {},
 }));
 
-// biome-ignore lint/style/noRestrictedImports: test file mirrors source's import of HolidayRepository
-import { HolidayRepository } from "@calcom/features/holidays/repositories/HolidayRepository";
-import { getGoogleCalendarClient } from "./GoogleCalendarClient";
-import { getHolidayServiceCachingProxy, HolidayServiceCachingProxy } from "./HolidayServiceCachingProxy";
+import { HolidayRepository } from "./repositories/HolidayRepository";
+import { getGoogleCalendarClient } from "@calcom/lib/holidays/GoogleCalendarClient";
+import { getHolidayServiceCachingProxy, HolidayServiceCachingProxy } from "./holiday-service-caching-proxy";
 
 const mockFetchHolidays = vi.mocked(getGoogleCalendarClient)().fetchHolidays as ReturnType<typeof vi.fn>;
 

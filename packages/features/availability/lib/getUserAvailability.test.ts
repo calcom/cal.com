@@ -29,7 +29,7 @@ vi.mock("@calcom/features/di/containers/BusyTimes", () => ({
   }),
 }));
 
-vi.mock("@calcom/lib/holidays/HolidayService", () => ({
+vi.mock("@calcom/features/holidays/holiday-service", () => ({
   getHolidayService: vi.fn().mockReturnValue({
     getHolidayDatesInRange: vi.fn().mockResolvedValue([]),
     getHolidayDatesInRangeForCountries: vi.fn().mockResolvedValue(new Map()),
@@ -1043,7 +1043,7 @@ describe("UserAvailabilityService", () => {
           disabledIds: [],
         });
 
-        const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
+        const { getHolidayService } = await import("@calcom/features/holidays/holiday-service");
         vi.mocked(getHolidayService).mockReturnValue({
           getHolidayDatesInRange: vi.fn().mockResolvedValue([
             {
@@ -1067,7 +1067,7 @@ describe("UserAvailabilityService", () => {
           disabledIds: ["xmas_2024"],
         });
 
-        const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
+        const { getHolidayService } = await import("@calcom/features/holidays/holiday-service");
         vi.mocked(getHolidayService).mockReturnValue({
           getHolidayDatesInRange: vi.fn().mockResolvedValue([
             {
@@ -1265,7 +1265,7 @@ describe("UserAvailabilityService", () => {
     });
 
     it("should not call holiday service when no country codes found", async () => {
-      const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
+      const { getHolidayService } = await import("@calcom/features/holidays/holiday-service");
       const mockForCountries = vi.fn().mockResolvedValue(new Map());
       vi.mocked(getHolidayService).mockReturnValue({
         getHolidayDatesInRange: vi.fn().mockResolvedValue([]),
@@ -1283,7 +1283,7 @@ describe("UserAvailabilityService", () => {
     });
 
     it("should batch-fetch holiday dates for unique country codes", async () => {
-      const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
+      const { getHolidayService } = await import("@calcom/features/holidays/holiday-service");
       const mockHolidayDates = [
         { date: "2024-12-25", holiday: { id: "xmas", name: "Christmas", date: "2024-12-25", year: 2024 } },
       ];
@@ -1332,7 +1332,7 @@ describe("UserAvailabilityService", () => {
     });
 
     it("should return null for users without settings even when others have settings", async () => {
-      const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
+      const { getHolidayService } = await import("@calcom/features/holidays/holiday-service");
       const mockHolidayDates = [
         { date: "2024-12-25", holiday: { id: "xmas", name: "Christmas", date: "2024-12-25", year: 2024 } },
       ];
@@ -1359,7 +1359,7 @@ describe("UserAvailabilityService", () => {
     });
 
     it("should deduplicate country codes across users", async () => {
-      const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
+      const { getHolidayService } = await import("@calcom/features/holidays/holiday-service");
 
       vi.mocked(deps.holidayRepo.findManyUserSettings).mockResolvedValue([
         { userId: 1, countryCode: "US", disabledIds: [] },
@@ -1384,7 +1384,7 @@ describe("UserAvailabilityService", () => {
     });
 
     it("should set dates to null when user has setting but no country code", async () => {
-      const { getHolidayService } = await import("@calcom/lib/holidays/HolidayService");
+      const { getHolidayService } = await import("@calcom/features/holidays/holiday-service");
 
       vi.mocked(deps.holidayRepo.findManyUserSettings).mockResolvedValue([
         { userId: 1, countryCode: "US", disabledIds: [] },

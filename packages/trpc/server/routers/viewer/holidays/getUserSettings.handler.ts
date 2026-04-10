@@ -1,4 +1,4 @@
-import { getHolidayService } from "@calcom/lib/holidays/HolidayService";
+import { getHolidayService } from "@calcom/features/holidays/holiday-service";
 import type { TrpcSessionUser } from "@calcom/trpc/server/types";
 
 import type { TGetUserSettingsSchema } from "./getUserSettings.schema";
