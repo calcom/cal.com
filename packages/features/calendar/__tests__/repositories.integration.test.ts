@@ -36,6 +36,10 @@ function createMockPrisma() {
       update: vi.fn(),
     },
     $executeRaw: vi.fn().mockResolvedValue(0),
+    $transaction: vi.fn().mockImplementation((args: unknown) => {
+      if (Array.isArray(args)) return Promise.all(args);
+      return (args as () => Promise<unknown>)();
+    }),
   } as unknown as PrismaClient;
 }
 
@@ -359,6 +363,7 @@ describe("PrismaSelectedCalendarRepository", () => {
           credentialId: true,
           delegationCredentialId: true,
           channelId: true,
+          channelResourceId: true,
           channelExpiration: true,
           syncSubscribedAt: true,
           syncSubscribedErrorCount: true,
@@ -404,6 +409,19 @@ describe("PrismaSelectedCalendarRepository", () => {
         data,
         select: { id: true },
       });
+    });
+  });
+
+  describe("clearUnsubscribeState", () => {
+    test("clears channel metadata and sync state in a single transaction", async () => {
+      vi.mocked(prisma.selectedCalendar.update).mockResolvedValue({} as never);
+
+      await repo.clearUnsubscribeState("sc-1");
+
+      expect((prisma as unknown as { $transaction: ReturnType<typeof vi.fn> }).$transaction).toHaveBeenCalledWith([
+        expect.anything(),
+        expect.anything(),
+      ]);
     });
   });
 

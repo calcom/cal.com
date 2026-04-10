@@ -8,7 +8,8 @@
     "./calendar-adapter": "./src/calendar-adapter.ts",
     "./calendar-adapter-types": "./src/calendar-adapter-types.ts",
     "./create-calendar-adapter": "./src/create-calendar-adapter.ts",
-    "./observable-calendar-adapter": "./src/observable-calendar-adapter.ts"
+    "./observable-calendar-adapter": "./src/observable-calendar-adapter.ts",
+    "./lib/calendar-adapter-error": "./src/lib/calendar-adapter-error.ts"
   },
   "typesVersions": {
     "*": {
@@ -23,6 +24,9 @@
       ],
       "observable-calendar-adapter": [
         "./src/observable-calendar-adapter.ts"
+      ],
+      "lib/calendar-adapter-error": [
+        "./src/lib/calendar-adapter-error.ts"
       ]
     }
   },

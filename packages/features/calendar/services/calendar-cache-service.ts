@@ -131,6 +131,22 @@ export class CalendarCacheService {
     return results;
   }
 
+  /**
+   * Fetch busy times from the cache DB only — no adapter calls.
+   * Used by CalendarService for calendars that are confirmed fresh,
+   * so adapter errors are handled in CalendarService where the
+   * circuit breaker and credential invalidation logic live.
+   */
+  async fetchFromCache(params: {
+    selectedCalendarIds: string[];
+    dateFrom: Date;
+    dateTo: Date;
+  }): Promise<Array<{ start: Date; end: Date; timeZone: string | null }>> {
+    const { selectedCalendarIds, dateFrom, dateTo } = params;
+    if (selectedCalendarIds.length === 0) return [];
+    return this.deps.cacheRepo.findBusyTimesBetween(selectedCalendarIds, dateFrom, dateTo);
+  }
+
   async handleEvents(
     selectedCalendar: Pick<SelectedCalendar, "id" | "externalId">,
     events: CalendarEvent[]

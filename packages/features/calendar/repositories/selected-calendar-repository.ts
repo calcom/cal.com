@@ -8,6 +8,7 @@ export type SelectedCalendarProjection = Pick<
   | "credentialId"
   | "delegationCredentialId"
   | "channelId"
+  | "channelResourceId"
   | "channelExpiration"
   | "syncSubscribedAt"
   | "syncSubscribedErrorCount"
@@ -46,6 +47,13 @@ export interface SelectedCalendarRepository {
       | "syncSubscribedErrorCount"
     >
   ): Promise<{ id: string }>;
+  /**
+   * Atomically clears all subscription channel metadata AND resets sync state
+   * in a single transaction. Used by `unsubscribe` to ensure both updates
+   * succeed or fail together — preventing stale channel metadata or stale
+   * cache routing if one update fails independently.
+   */
+  clearUnsubscribeState(id: string): Promise<void>;
   updateLastWebhookReceivedAt(id: string): Promise<void>;
   findStaleSubscribed(staleDays: number): Promise<SelectedCalendarProjection[]>;
 }

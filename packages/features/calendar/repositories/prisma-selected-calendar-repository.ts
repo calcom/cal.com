@@ -13,6 +13,7 @@ const SUBSCRIPTION_SELECT = {
   credentialId: true,
   delegationCredentialId: true,
   channelId: true,
+  channelResourceId: true,
   channelExpiration: true,
   syncSubscribedAt: true,
   syncSubscribedErrorCount: true,
@@ -94,6 +95,32 @@ export class PrismaSelectedCalendarRepository implements SelectedCalendarReposit
       data,
       select: { id: true },
     });
+  }
+
+  async clearUnsubscribeState(id: string): Promise<void> {
+    await this.prismaClient.$transaction([
+      this.prismaClient.selectedCalendar.update({
+        where: { id },
+        data: {
+          channelId: null,
+          channelResourceId: null,
+          channelResourceUri: null,
+          channelExpiration: null,
+          syncSubscribedAt: null,
+        },
+        select: { id: true },
+      }),
+      this.prismaClient.selectedCalendar.update({
+        where: { id },
+        data: {
+          syncToken: null,
+          syncedAt: null,
+          syncErrorAt: null,
+          syncErrorCount: 0,
+        },
+        select: { id: true },
+      }),
+    ]);
   }
 
   async updateLastWebhookReceivedAt(id: string): Promise<void> {
