@@ -1,4 +1,4 @@
-import authedOrgAdminProcedure from "../../../procedures/authedProcedure";
+import { authedOrgAdminProcedure } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
