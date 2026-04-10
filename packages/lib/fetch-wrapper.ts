@@ -1,23 +1,32 @@
 import { HttpError } from "./http-error";
 
+async function safeJson(response: Response) {
+  const text = await response.text();
+  try {
+    return text ? JSON.parse(text) : null;
+  } catch {
+    return null;
+  }
+}
+
 async function http<T>(path: string, config: RequestInit): Promise<T> {
   const request = new Request(path, config);
   const response: Response = await fetch(request);
 
   if (!response.ok) {
-    const errJson = await response.json();
+    const errJson = await safeJson(response);
     const err = HttpError.fromRequest(
       request,
       {
         ...response,
-        statusText: errJson.message || response.statusText,
+        statusText: errJson?.message || response.statusText,
       },
       errJson
     );
     throw err;
   }
   // may error if there is no body, return empty array
-  return await response.json();
+  return await safeJson(response);
 }
 
 export async function get<T>(path: string, config?: RequestInit): Promise<T> {
