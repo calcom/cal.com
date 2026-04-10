@@ -230,7 +230,7 @@ export function ProfileFormCard({
               {/* Username (injected) */}
               <FieldGridRow>
                 {usernameField}
-                <p className="text-muted-foreground flex gap-1 text-sm">
+                <p className="mt-0.5 flex gap-1 text-muted-foreground text-sm">
                   <InfoIcon aria-hidden="true" className="mt-0.5 shrink-0" />
                   <span className="flex-1">{t("tip_username_plus")}</span>
                 </p>
