@@ -46,7 +46,7 @@ Scopes control which API endpoints the OAuth token can access. Once a user autho
 | `PROFILE_WRITE` | Edit personal info | [Update my profile](https://cal.com/docs/api-reference/v2/me/update-my-profile) |
 
 <Note>
-  Some endpoints like `POST /v2/bookings` (create), `POST /v2/bookings/:bookingUid/cancel` (cancel), and `POST /v2/bookings/:bookingUid/reschedule` (reschedule) are public endpoints that do not require any scope.
+  Some endpoints like `POST /v2/bookings` (create), `POST /v2/bookings/:bookingUid/cancel` (cancel), `POST /v2/bookings/:bookingUid/reschedule` (reschedule), and slot availability endpoints are public and do not require any scope. You can still pass an OAuth access token when calling these endpoints — the token is accepted but not required. This means you can use a consistent `Authorization: Bearer <token>` header across all API requests without worrying about whether a specific endpoint is public or scoped.
 </Note>
 
 ### Team Scopes
