@@ -668,7 +668,7 @@
             "group": "AUTH & ACCESS",
             "pages": [
               {
-                "group": "Api Keys",
+                "group": "API Keys",
                 "expanded": false,
                 "pages": [
                   "POST /v2/api-keys/refresh"

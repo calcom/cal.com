@@ -135,9 +135,9 @@ trpc.viewer.webhook.list.useQuery()
 ```
 in the path mentioned above. There is usually a schema file in the same directory for each handler as well (_name_.schema.ts). This is generally how we make use of the TRPC calls in the cal.com repo.
 
-## The Cal.com API V1
+## The Cal.com API v1
 
-Our [API V1](https://github.com/calcom/cal.com/tree/main/apps/api) uses [zod validations](https://zod.dev/) to keep us typesafe and give us extensive parsing control and error handling. These validations reside in [/apps/api/lib/validations](https://github.com/calcom/cal.com/tree/main/apps/api/lib/validations). We also have [helper](https://github.com/calcom/cal.com/tree/main/apps/api/lib/helpers) and [utility](https://github.com/calcom/cal.com/tree/main/apps/api/lib/utils) functions which are used primarily within our API endpoints.
+Our [API v1](https://github.com/calcom/cal.com/tree/main/apps/api) uses [zod validations](https://zod.dev/) to keep us typesafe and give us extensive parsing control and error handling. These validations reside in [/apps/api/lib/validations](https://github.com/calcom/cal.com/tree/main/apps/api/lib/validations). We also have [helper](https://github.com/calcom/cal.com/tree/main/apps/api/lib/helpers) and [utility](https://github.com/calcom/cal.com/tree/main/apps/api/lib/utils) functions which are used primarily within our API endpoints.
 Here’s an example usage of our [zod validation in action with the respective API endpoint](https://github.com/calcom/cal.com/blob/main/apps/api/lib/validations/destination-calendar.ts):
 ```js
 export const schemaDestinationCalendarBaseBodyParams = DestinationCalendar.pick({
