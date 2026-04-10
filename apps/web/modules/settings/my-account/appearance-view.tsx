@@ -618,18 +618,20 @@ const AppearanceView = ({
       </Button> */}
 
           <div>
-            <SettingsToggle
-              title={t("disable_cal_branding", { appName: APP_NAME })}
-              description={t("removes_cal_branding", { appName: APP_NAME })}
-              checked={hideBrandingValue}
-              disabled={isSectionPending("hideBranding") || !hasPaidPlan}
-              onCheckedChange={(checked) => {
-                if (!hasPaidPlan) return;
-                setHideBrandingValue(checked);
-                mutation.mutate({ hideBranding: checked });
-              }}
-            />
-            {!hasPaidPlan ? <WideUpgradeBannerForBranding /> : null}
+            {hasPaidPlan ? (
+              <SettingsToggle
+                title={t("disable_cal_branding", { appName: APP_NAME })}
+                description={t("removes_cal_branding", { appName: APP_NAME })}
+                checked={hideBrandingValue}
+                disabled={isSectionPending("hideBranding")}
+                onCheckedChange={(checked) => {
+                  setHideBrandingValue(checked);
+                  mutation.mutate({ hideBranding: checked });
+                }}
+              />
+            ) : (
+              <WideUpgradeBannerForBranding />
+            )}
           </div>
         </>
       )}
