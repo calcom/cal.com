@@ -27,14 +27,22 @@ const makeWhereUpcomingTasks = (): Prisma.TaskWhereInput => ({
   scheduledAt: {
     lt: new Date(),
   },
-  // Get only tasks where maxAttemps has not been reached
-  attempts: {
-    lt: {
-      // @ts-expect-error prisma is tripping: '_ref' does not exist in type 'FieldRef<"Task", "Int">'
-      _ref: "maxAttempts",
-      _container: "Task",
+  // Get only tasks where maxAttempts has not been reached
+  // OR where maxAttempts is null (unlimited attempts allowed)
+  OR: [
+    {
+      maxAttempts: null,
     },
-  },
+    {
+      attempts: {
+        lt: {
+          // @ts-expect-error prisma is tripping: '_ref' does not exist in type 'FieldRef<"Task", "Int">'
+          _ref: "maxAttempts",
+          _container: "Task",
+        },
+      },
+    },
+  ],
 });
 
 type Dependencies = {
@@ -50,13 +58,15 @@ export class TaskRepository {
     options: { scheduledAt?: Date; maxAttempts?: number; referenceUid?: string } = {}
   ) {
     const { scheduledAt, maxAttempts, referenceUid } = options;
-    console.info("Creating task", { type, payload, scheduledAt, maxAttempts });
+    // Default maxAttempts to 3 if not provided to ensure tasks are processed
+    const effectiveMaxAttempts = maxAttempts ?? 3;
+    console.info("Creating task", { type, payload, scheduledAt, maxAttempts: effectiveMaxAttempts });
     const newTask = await this.deps.prismaClient.task.create({
       data: {
         payload,
         type,
         scheduledAt,
-        maxAttempts,
+        maxAttempts: effectiveMaxAttempts,
         referenceUid,
       },
     });
