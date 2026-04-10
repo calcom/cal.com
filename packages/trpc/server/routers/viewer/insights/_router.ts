@@ -89,7 +89,7 @@ export interface IResultTeamList {
 }
 
 /**
- * Helper function to create InsightsBookingService with standardized parameters
+ * Helper function to create InsightsBookingService with standardized parameters.
  */
 function createInsightsBookingService(
   ctx: { user: { id: number; organizationId: number | null } },
@@ -132,26 +132,22 @@ export const insightsRouter = router({
   bookingKPIStats: userBelongsToTeamProcedure
     .input(bookingRepositoryBaseInputSchema)
     .query(async ({ ctx, input }) => {
-      const currentPeriodService = createInsightsBookingService(ctx, input);
+      const service = createInsightsBookingService(ctx, input);
 
-      // Get current period stats
-      const currentStats = await currentPeriodService.getBookingStats();
+      // Get current stats first, then swap filters for previous period.
+      // setFilters() preserves cached auth state (branches, conditions)
+      // so the previous period query skips redundant team/membership lookups.
+      const currentStats = await service.getBookingStats();
 
-      // Calculate previous period dates and create service for previous period
-      const previousPeriodDates = currentPeriodService.calculatePreviousPeriodDates();
+      const previousPeriodDates = service.calculatePreviousPeriodDates();
       const previousPeriodColumnFilters = replaceDateRangeColumnFilter({
         columnFilters: input.columnFilters,
         newStartDate: previousPeriodDates.startDate,
         newEndDate: previousPeriodDates.endDate,
       });
 
-      const previousPeriodService = createInsightsBookingService(ctx, {
-        ...input,
-        columnFilters: previousPeriodColumnFilters,
-      });
-
-      // Get previous period stats
-      const previousStats = await previousPeriodService.getBookingStats();
+      service.setFilters({ columnFilters: previousPeriodColumnFilters });
+      const previousStats = await service.getBookingStats();
 
       // Helper function to calculate percentage change
       const getPercentage = (current: number, previous: number): number => {

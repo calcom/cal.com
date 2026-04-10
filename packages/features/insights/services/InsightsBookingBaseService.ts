@@ -135,12 +135,57 @@ const NOTHING_CONDITION = Prisma.sql`1=0`;
 
 const bookingDataKeys = new Set(Object.keys(bookingDataSchema.shape));
 
+// Result schemas for raw SQL queries — single source of truth for types and test validation
+export const bookingStatsResultSchema = z
+  .object({
+    total_bookings: z.number(),
+    completed_bookings: z.number(),
+    rescheduled_bookings: z.number(),
+    cancelled_bookings: z.number(),
+    no_show_host_bookings: z.number(),
+    avg_rating: z.number().nullable(),
+    total_ratings: z.number(),
+    ratings_above_3: z.number(),
+    no_show_guests: z.number(),
+  })
+  .strict();
+
+export type BookingStatsResult = z.infer<typeof bookingStatsResultSchema>;
+
+export const eventTrendsItemSchema = z
+  .object({
+    formattedDateFull: z.string(),
+    Month: z.string(),
+    Created: z.number(),
+    Completed: z.number(),
+    Rescheduled: z.number(),
+    Cancelled: z.number(),
+    "No-Show (Host)": z.number(),
+    "No-Show (Guest)": z.number(),
+  })
+  .strict();
+
+export type EventTrendsItem = z.infer<typeof eventTrendsItemSchema>;
+
+export const recentNoShowGuestSchema = z
+  .object({
+    bookingId: z.number(),
+    startTime: z.date(),
+    eventTypeName: z.string(),
+    guestName: z.string(),
+    guestEmail: z.string(),
+  })
+  .strict();
+
+export type RecentNoShowGuest = z.infer<typeof recentNoShowGuestSchema>;
+
 export class InsightsBookingBaseService {
   private prisma: PrismaClient;
   private options: InsightsBookingServiceOptions | null;
   private filters: InsightsBookingServiceFilterOptions | null;
   private cachedAuthConditions?: Prisma.Sql;
   private cachedFilterConditions?: Prisma.Sql | null;
+  private cachedAuthBranches?: Prisma.Sql[] | null;
 
   constructor({
     prisma,
@@ -157,6 +202,18 @@ export class InsightsBookingBaseService {
 
     const filtersValidated = insightsBookingServiceFilterOptionsSchema.safeParse(filters);
     this.filters = filtersValidated.success ? filtersValidated.data : null;
+  }
+
+  /**
+   * Replace the current filters, clearing the cached filter conditions
+   * while preserving cached auth state (auth branches, auth conditions).
+   * This allows reusing the same service instance for different date
+   * ranges without redundant team/membership DB queries.
+   */
+  setFilters(filters: InsightsBookingServiceFilterOptions): void {
+    const filtersValidated = insightsBookingServiceFilterOptionsSchema.safeParse(filters);
+    this.filters = filtersValidated.success ? filtersValidated.data : null;
+    this.cachedFilterConditions = undefined;
   }
 
   async getBookingsByHourStats({ timeZone }: { timeZone: string }) {
@@ -474,6 +531,116 @@ export class InsightsBookingBaseService {
     });
   }
 
+  /**
+   * Returns per-branch auth SQL conditions for UNION ALL decomposition.
+   * The OR in auth conditions (team bookings OR personal bookings) prevents
+   * PostgreSQL from using indexes effectively. Splitting into separate branches
+   * lets each use its own optimal index path.
+   * Returns null for user scope (single condition, no split needed).
+   */
+  async getAuthorizationBranches(): Promise<Prisma.Sql[] | null> {
+    if (this.cachedAuthBranches !== undefined) {
+      return this.cachedAuthBranches;
+    }
+    this.cachedAuthBranches = await this.buildAuthorizationBranches();
+    return this.cachedAuthBranches;
+  }
+
+  private async buildAuthorizationBranches(): Promise<Prisma.Sql[] | null> {
+    if (!this.options) {
+      return null;
+    }
+
+    if (this.options.scope === "user") {
+      return null;
+    }
+
+    if (this.options.scope === "org") {
+      return this.buildOrgAuthorizationBranches(this.options);
+    }
+
+    if (this.options.scope === "team") {
+      return this.buildTeamAuthorizationBranches(this.options);
+    }
+
+    return null;
+  }
+
+  private async buildOrgAuthorizationBranches(
+    options: Extract<InsightsBookingServiceOptions, { scope: "org" }>
+  ): Promise<Prisma.Sql[] | null> {
+    const isOwnerOrAdmin = await this.isOwnerOrAdmin(options.userId, options.orgId);
+    if (!isOwnerOrAdmin) {
+      return null;
+    }
+
+    const teamRepo = getTeamRepository(this.prisma);
+    const teamsFromOrg = await teamRepo.findAllByParentId({
+      parentId: options.orgId,
+      select: { id: true },
+    });
+    const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)].sort((a, b) => a - b);
+
+    const userIdsFromOrg =
+      teamsFromOrg.length > 0
+        ? (await getMembershipRepository().findAllByTeamIds({ teamIds, select: { userId: true } })).map(
+            (m) => m.userId
+          )
+        : [];
+
+    const branches: Prisma.Sql[] = [Prisma.sql`("teamId" = ANY(${teamIds})) AND ("isTeamBooking" = true)`];
+
+    if (userIdsFromOrg.length > 0) {
+      const uniqueUserIds = Array.from(new Set(userIdsFromOrg)).sort((a, b) => a - b);
+      branches.push(Prisma.sql`("userId" = ANY(${uniqueUserIds})) AND ("isTeamBooking" = false)`);
+    }
+
+    return branches;
+  }
+
+  private async buildTeamAuthorizationBranches(
+    options: Extract<InsightsBookingServiceOptions, { scope: "team" }>
+  ): Promise<Prisma.Sql[] | null> {
+    const isOwnerOrAdmin = await this.isOwnerOrAdmin(options.userId, options.teamId);
+    if (!isOwnerOrAdmin) {
+      return null;
+    }
+
+    const teamRepo = getTeamRepository(this.prisma);
+
+    if (options.orgId) {
+      const childTeamOfOrg = await teamRepo.findByIdAndParentId({
+        id: options.teamId,
+        parentId: options.orgId,
+        select: { id: true },
+      });
+      if (!childTeamOfOrg) {
+        return null;
+      }
+    } else {
+      const team = await teamRepo.findById({
+        id: options.teamId,
+      });
+      if (team?.parentId) {
+        return null;
+      }
+    }
+
+    const usersFromTeam = await getMembershipRepository().findAllByTeamIds({
+      teamIds: [options.teamId],
+      select: { userId: true },
+    });
+    const userIdsFromTeam = usersFromTeam.map((u) => u.userId);
+
+    const branches: Prisma.Sql[] = [Prisma.sql`("teamId" = ${options.teamId}) AND ("isTeamBooking" = true)`];
+
+    if (userIdsFromTeam.length > 0) {
+      branches.push(Prisma.sql`("userId" = ANY(${userIdsFromTeam})) AND ("isTeamBooking" = false)`);
+    }
+
+    return branches;
+  }
+
   async getCsvData({
     limit = 100,
     offset = 0,
@@ -613,52 +780,13 @@ export class InsightsBookingBaseService {
     timeZone: string;
     dateRanges: DateRange[];
     dateTarget?: "startTime" | "createdAt";
-  }) {
+  }): Promise<EventTrendsItem[]> {
     if (!dateRanges.length) {
       return [];
     }
 
-    const baseConditions = await this.getBaseConditions();
     const dateColumn = dateTarget === "startTime" ? Prisma.sql`"startTime"` : Prisma.sql`"createdAt"`;
-
-    const query = Prisma.sql`
-    WITH booking_stats AS (
-      SELECT
-        DATE(${dateColumn} AT TIME ZONE ${timeZone}) as "date",
-        "timeStatus",
-        COALESCE("noShowHost", false) AS "noShowHost",
-        COUNT(*) as "bookingsCount"
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions}
-      GROUP BY
-        1, 2, 3
-    ),
-    guest_stats AS (
-      SELECT
-        DATE(b.${dateColumn} AT TIME ZONE ${timeZone}) as "date",
-        b."timeStatus",
-        COALESCE(b."noShowHost", false) AS "noShowHost",
-        COUNT(CASE WHEN a."noShow" = true THEN 1 END) as "noShowGuests"
-      FROM "BookingTimeStatusDenormalized" b
-      INNER JOIN "Attendee" a ON a."bookingId" = b.id
-      WHERE ${baseConditions}
-      GROUP BY
-        1, 2, 3
-    )
-    SELECT
-      bs."date",
-      CAST(bs."bookingsCount" AS INTEGER) AS "bookingsCount",
-      bs."timeStatus",
-      bs."noShowHost",
-      CAST(COALESCE(gs."noShowGuests", 0) AS INTEGER) AS "noShowGuests"
-    FROM booking_stats bs
-    LEFT JOIN guest_stats gs ON (
-      bs."date" = gs."date" AND
-      bs."timeStatus" = gs."timeStatus" AND
-      bs."noShowHost" = gs."noShowHost"
-    )
-    ORDER BY bs."date"
-  `;
+    const query = await this.buildEventTrendsQuery(dateColumn, timeZone);
 
     const data =
       await this.prisma.$queryRaw<
@@ -762,6 +890,108 @@ export class InsightsBookingBaseService {
     });
 
     return result;
+  }
+
+  private async buildEventTrendsQuery(dateColumn: Prisma.Sql, timeZone: string): Promise<Prisma.Sql> {
+    const authBranches = await this.getAuthorizationBranches();
+    const filterConditions = await this.getFilterConditions();
+
+    if (authBranches && authBranches.length > 0) {
+      return this.buildEventTrendsUnionAllQuery(authBranches, filterConditions, dateColumn, timeZone);
+    }
+
+    const baseConditions = await this.getBaseConditions();
+    return this.buildEventTrendsSingleQuery(baseConditions, dateColumn, timeZone);
+  }
+
+  private buildEventTrendsSingleQuery(
+    baseConditions: Prisma.Sql,
+    dateColumn: Prisma.Sql,
+    timeZone: string
+  ): Prisma.Sql {
+    return Prisma.sql`
+    WITH booking_stats AS (
+      SELECT
+        DATE(${dateColumn} AT TIME ZONE ${timeZone}) as "date",
+        "timeStatus",
+        COALESCE("noShowHost", false) AS "noShowHost",
+        COUNT(*) as "bookingsCount"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+      GROUP BY
+        1, 2, 3
+    ),
+    guest_stats AS (
+      SELECT
+        DATE(b.${dateColumn} AT TIME ZONE ${timeZone}) as "date",
+        b."timeStatus",
+        COALESCE(b."noShowHost", false) AS "noShowHost",
+        COUNT(CASE WHEN a."noShow" = true THEN 1 END) as "noShowGuests"
+      FROM "BookingTimeStatusDenormalized" b
+      INNER JOIN "Attendee" a ON a."bookingId" = b.id
+      WHERE ${baseConditions}
+      GROUP BY
+        1, 2, 3
+    )
+    SELECT
+      bs."date",
+      CAST(bs."bookingsCount" AS INTEGER) AS "bookingsCount",
+      bs."timeStatus",
+      bs."noShowHost",
+      CAST(COALESCE(gs."noShowGuests", 0) AS INTEGER) AS "noShowGuests"
+    FROM booking_stats bs
+    LEFT JOIN guest_stats gs ON (
+      bs."date" = gs."date" AND
+      bs."timeStatus" = gs."timeStatus" AND
+      bs."noShowHost" = gs."noShowHost"
+    )
+    ORDER BY bs."date"
+    `;
+  }
+
+  private buildEventTrendsUnionAllQuery(
+    authBranches: Prisma.Sql[],
+    filterConditions: Prisma.Sql | null,
+    dateColumn: Prisma.Sql,
+    timeZone: string
+  ): Prisma.Sql {
+    const branchQueries = authBranches.map((branch) => {
+      const where = filterConditions
+        ? Prisma.sql`(${branch}) AND (${filterConditions})`
+        : Prisma.sql`${branch}`;
+      return Prisma.sql`SELECT id, "startTime", "createdAt", "endTime", status, rescheduled, "noShowHost" FROM "BookingDenormalized" WHERE ${where}`;
+    });
+
+    const unionAll = branchQueries.reduce((acc, q, i) => (i === 0 ? q : Prisma.sql`${acc} UNION ALL ${q}`));
+
+    return Prisma.sql`
+    WITH filtered AS MATERIALIZED (
+      ${unionAll}
+    ),
+    guest_noshow AS (
+      SELECT a."bookingId", COUNT(*) as cnt
+      FROM "Attendee" a
+      WHERE a."noShow" = true
+        AND a."bookingId" IN (SELECT id FROM filtered)
+      GROUP BY a."bookingId"
+    )
+    SELECT
+      DATE(f.${dateColumn} AT TIME ZONE ${timeZone}) as "date",
+      CASE
+        WHEN f.rescheduled IS TRUE THEN 'rescheduled'
+        WHEN f.status = 'cancelled'::"BookingStatus" AND f.rescheduled IS NULL THEN 'cancelled'
+        WHEN f."endTime" < now() THEN 'completed'
+        WHEN f."endTime" > now() THEN 'uncompleted'
+        ELSE NULL
+      END AS "timeStatus",
+      COALESCE(f."noShowHost", false) AS "noShowHost",
+      CAST(COUNT(*) AS INTEGER) AS "bookingsCount",
+      CAST(COALESCE(SUM(g.cnt), 0) AS INTEGER) AS "noShowGuests"
+    FROM filtered f
+    LEFT JOIN guest_noshow g ON g."bookingId" = f.id
+    GROUP BY 1, 2, 3
+    ORDER BY 1
+    `;
   }
 
   async getPopularEventsStats() {
@@ -1076,10 +1306,64 @@ export class InsightsBookingBaseService {
     return result;
   }
 
-  async getBookingStats() {
-    const baseConditions = await this.getBaseConditions();
+  async getBookingStats(): Promise<BookingStatsResult> {
+    const query = await this.buildBookingStatsQuery();
 
-    const query = Prisma.sql`
+    const stats =
+      await this.prisma.$queryRaw<
+        Array<{
+          total_bookings: bigint;
+          completed_bookings: bigint;
+          rescheduled_bookings: bigint;
+          cancelled_bookings: bigint;
+          no_show_host_bookings: bigint;
+          avg_rating: number | null;
+          total_ratings: bigint;
+          ratings_above_3: bigint;
+          no_show_guests: bigint;
+        }>
+      >(query);
+
+    const rawStats = stats[0];
+    return rawStats
+      ? {
+          total_bookings: Number(rawStats.total_bookings),
+          completed_bookings: Number(rawStats.completed_bookings),
+          rescheduled_bookings: Number(rawStats.rescheduled_bookings),
+          cancelled_bookings: Number(rawStats.cancelled_bookings),
+          no_show_host_bookings: Number(rawStats.no_show_host_bookings),
+          avg_rating: rawStats.avg_rating !== null ? Number(rawStats.avg_rating) : null,
+          total_ratings: Number(rawStats.total_ratings),
+          ratings_above_3: Number(rawStats.ratings_above_3),
+          no_show_guests: Number(rawStats.no_show_guests),
+        }
+      : {
+          total_bookings: 0,
+          completed_bookings: 0,
+          rescheduled_bookings: 0,
+          cancelled_bookings: 0,
+          no_show_host_bookings: 0,
+          avg_rating: 0,
+          total_ratings: 0,
+          ratings_above_3: 0,
+          no_show_guests: 0,
+        };
+  }
+
+  private async buildBookingStatsQuery(): Promise<Prisma.Sql> {
+    const authBranches = await this.getAuthorizationBranches();
+    const filterConditions = await this.getFilterConditions();
+
+    if (authBranches && authBranches.length > 0) {
+      return this.buildBookingStatsUnionAllQuery(authBranches, filterConditions);
+    }
+
+    const baseConditions = await this.getBaseConditions();
+    return this.buildBookingStatsSingleQuery(baseConditions);
+  }
+
+  private buildBookingStatsSingleQuery(baseConditions: Prisma.Sql): Prisma.Sql {
+    return Prisma.sql`
       WITH booking_stats AS (
         SELECT
           COUNT(*) as total_bookings,
@@ -1111,52 +1395,61 @@ export class InsightsBookingBaseService {
         gs.no_show_guests
       FROM booking_stats bs, guest_stats gs
     `;
-
-    const stats =
-      await this.prisma.$queryRaw<
-        Array<{
-          total_bookings: bigint;
-          completed_bookings: bigint;
-          rescheduled_bookings: bigint;
-          cancelled_bookings: bigint;
-          no_show_host_bookings: bigint;
-          avg_rating: number | null;
-          total_ratings: bigint;
-          ratings_above_3: bigint;
-          no_show_guests: bigint;
-        }>
-      >(query);
-
-    const rawStats = stats[0];
-    return rawStats
-      ? {
-          total_bookings: Number(rawStats.total_bookings),
-          completed_bookings: Number(rawStats.completed_bookings),
-          rescheduled_bookings: Number(rawStats.rescheduled_bookings),
-          cancelled_bookings: Number(rawStats.cancelled_bookings),
-          no_show_host_bookings: Number(rawStats.no_show_host_bookings),
-          avg_rating: rawStats.avg_rating,
-          total_ratings: Number(rawStats.total_ratings),
-          ratings_above_3: Number(rawStats.ratings_above_3),
-          no_show_guests: Number(rawStats.no_show_guests),
-        }
-      : {
-          total_bookings: 0,
-          completed_bookings: 0,
-          rescheduled_bookings: 0,
-          cancelled_bookings: 0,
-          no_show_host_bookings: 0,
-          avg_rating: 0,
-          total_ratings: 0,
-          ratings_above_3: 0,
-          no_show_guests: 0,
-        };
   }
 
-  async getRecentNoShowGuests() {
-    const baseConditions = await this.getBaseConditions();
+  private buildBookingStatsUnionAllQuery(
+    authBranches: Prisma.Sql[],
+    filterConditions: Prisma.Sql | null
+  ): Prisma.Sql {
+    const branchQueries = authBranches.map((branch) => {
+      const where = filterConditions
+        ? Prisma.sql`(${branch}) AND (${filterConditions})`
+        : Prisma.sql`${branch}`;
+      return Prisma.sql`SELECT id, "timeStatus", "noShowHost", "rating" FROM "BookingTimeStatusDenormalized" WHERE ${where}`;
+    });
 
-    const query = Prisma.sql`
+    const unionAll = branchQueries.reduce((acc, q, i) => (i === 0 ? q : Prisma.sql`${acc} UNION ALL ${q}`));
+
+    return Prisma.sql`
+      WITH filtered AS MATERIALIZED (
+        ${unionAll}
+      )
+      SELECT
+        COUNT(*) as total_bookings,
+        COUNT(CASE WHEN "timeStatus" = 'completed' THEN 1 END) as completed_bookings,
+        COUNT(CASE WHEN "timeStatus" = 'rescheduled' THEN 1 END) as rescheduled_bookings,
+        COUNT(CASE WHEN "timeStatus" = 'cancelled' THEN 1 END) as cancelled_bookings,
+        COUNT(CASE WHEN "noShowHost" = true THEN 1 END) as no_show_host_bookings,
+        AVG(CASE WHEN "rating" IS NOT NULL THEN "rating" END) as avg_rating,
+        COUNT(CASE WHEN "rating" IS NOT NULL THEN 1 END) as total_ratings,
+        COUNT(CASE WHEN "rating" > 3 THEN 1 END) as ratings_above_3,
+        (SELECT COUNT(*) FROM "Attendee" a WHERE a."noShow" = true AND a."bookingId" IN (SELECT id FROM filtered)) as no_show_guests
+      FROM filtered
+    `;
+  }
+
+  async getRecentNoShowGuests(): Promise<RecentNoShowGuest[]> {
+    const query = await this.buildRecentNoShowGuestsQuery();
+
+    const recentNoShowBookings = await this.prisma.$queryRaw<RecentNoShowGuest[]>(query);
+
+    return recentNoShowBookings;
+  }
+
+  private async buildRecentNoShowGuestsQuery(): Promise<Prisma.Sql> {
+    const authBranches = await this.getAuthorizationBranches();
+    const filterConditions = await this.getFilterConditions();
+
+    if (authBranches && authBranches.length > 0) {
+      return this.buildRecentNoShowGuestsUnionAllQuery(authBranches, filterConditions);
+    }
+
+    const baseConditions = await this.getBaseConditions();
+    return this.buildRecentNoShowGuestsSingleQuery(baseConditions);
+  }
+
+  private buildRecentNoShowGuestsSingleQuery(baseConditions: Prisma.Sql): Prisma.Sql {
+    return Prisma.sql`
       WITH booking_attendee_stats AS (
         SELECT
           b.id as booking_id,
@@ -1193,19 +1486,58 @@ export class InsightsBookingBaseService {
       ORDER BY "startTime" DESC
       LIMIT 10
     `;
+  }
 
-    const recentNoShowBookings =
-      await this.prisma.$queryRaw<
-        Array<{
-          bookingId: number;
-          startTime: Date;
-          eventTypeName: string;
-          guestName: string;
-          guestEmail: string;
-        }>
-      >(query);
+  private buildRecentNoShowGuestsUnionAllQuery(
+    authBranches: Prisma.Sql[],
+    filterConditions: Prisma.Sql | null
+  ): Prisma.Sql {
+    const branchQueries = authBranches.map((branch) => {
+      const where = filterConditions
+        ? Prisma.sql`(${branch}) AND (${filterConditions})`
+        : Prisma.sql`${branch}`;
+      return Prisma.sql`SELECT id, "startTime", title FROM "BookingDenormalized" WHERE ${where} AND status = 'accepted'::"BookingStatus"`;
+    });
 
-    return recentNoShowBookings;
+    const unionAll = branchQueries.reduce((acc, q, i) => (i === 0 ? q : Prisma.sql`${acc} UNION ALL ${q}`));
+
+    return Prisma.sql`
+      WITH filtered AS MATERIALIZED (
+        ${unionAll}
+      ),
+      attendee_counts AS (
+        SELECT
+          a."bookingId",
+          COUNT(*) as total,
+          COUNT(*) FILTER (WHERE a."noShow" = true) as no_show
+        FROM "Attendee" a
+        WHERE a."bookingId" IN (SELECT id FROM filtered)
+        GROUP BY a."bookingId"
+        HAVING COUNT(*) > 0 AND COUNT(*) = COUNT(*) FILTER (WHERE a."noShow" = true)
+      ),
+      recent_no_shows AS (
+        SELECT
+          f.id as booking_id,
+          f."startTime",
+          f.title as event_type_name,
+          a.name as guest_name,
+          a.email as guest_email,
+          ROW_NUMBER() OVER (PARTITION BY f.id ORDER BY a.id) as rn
+        FROM filtered f
+        INNER JOIN attendee_counts ac ON ac."bookingId" = f.id
+        INNER JOIN "Attendee" a ON a."bookingId" = f.id AND a."noShow" = true
+      )
+      SELECT
+        booking_id as "bookingId",
+        "startTime",
+        event_type_name as "eventTypeName",
+        guest_name as "guestName",
+        guest_email as "guestEmail"
+      FROM recent_no_shows
+      WHERE rn = 1
+      ORDER BY "startTime" DESC
+      LIMIT 10
+    `;
   }
 
   calculatePreviousPeriodDates() {
