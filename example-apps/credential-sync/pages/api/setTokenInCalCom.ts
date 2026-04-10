@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res) {
     }
 
     const result = await fetch(
-      `http://localhost:3002/api/v1/credential-sync?apiKey=${CALCOM_ADMIN_API_KEY}&userId=${userId}`,
+      `http://localhost:5555/v2/credential-sync?apiKey=${CALCOM_ADMIN_API_KEY}&userId=${userId}`,
       {
         method: "POST",
         headers: {

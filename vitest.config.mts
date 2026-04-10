@@ -73,12 +73,10 @@ export default defineConfig({
       },
       // Alias Node.js built-ins for jsdom environment
       { find: "crypto", replacement: "node:crypto" },
-      // Web modules sub-path aliases (must come before the generic ~ → api/v1 alias)
+      // Web modules sub-path aliases
       { find: "~/data-table", replacement: path.resolve(__dirname, "apps/web/modules/data-table") },
       { find: "~/filters", replacement: path.resolve(__dirname, "apps/web/modules/filters") },
       { find: "~/ee", replacement: path.resolve(__dirname, "apps/web/modules/ee") },
-      // API v1 path alias
-      { find: "~", replacement: path.resolve(__dirname, "apps/api/v1") },
       // apps/web path aliases
       { find: "@lib", replacement: path.resolve(__dirname, "apps/web/lib") },
       { find: /^@components\/(.*)/, replacement: path.resolve(__dirname, "apps/web/components/$1") },
