@@ -137,7 +137,7 @@ export class TeamsEventTypesController {
     description:
       'Use the optional `sortCreatedAt` query parameter to order results by creation date (by ID). Accepts "asc" (oldest first) or "desc" (newest first). When not provided, no explicit ordering is applied.',
   })
-  @OAuthPermissions(["TEAM_EVENT_TYPE_READ"])
+  @OAuthPermissions([])
   async getTeamEventTypes(
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14

@@ -195,7 +195,7 @@ export class OrganizationsEventTypesController {
     };
   }
 
-  @OAuthPermissions(["TEAM_EVENT_TYPE_READ"])
+  @OAuthPermissions([])
   @UseGuards(IsOrgGuard, IsTeamInOrg, IsAdminAPIEnabledGuard)
   @Get("/teams/:teamId/event-types")
   @ApiOperation({

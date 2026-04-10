@@ -34,6 +34,7 @@ import {
   AuthOptionalUser,
   GetOptionalUser,
 } from "@/modules/auth/decorators/get-optional-user/get-optional-user.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { OptionalApiAuthGuard } from "@/modules/auth/guards/optional-api-auth/optional-api-auth.guard";
 import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-reserved-slot.output";
 import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
@@ -58,6 +59,7 @@ export class SlotsController_2024_09_04 {
   constructor(private readonly slotsService: SlotsService_2024_09_04) {}
 
   @Get("/")
+  @OAuthPermissions([])
   @ApiOperation({
     summary: "Get available time slots for an event type",
     description: `
@@ -269,6 +271,7 @@ export class SlotsController_2024_09_04 {
   }
 
   @Post("/reservations")
+  @OAuthPermissions([])
   @UseGuards(OptionalApiAuthGuard)
   @ApiOperation({
     summary: "Reserve a slot",
@@ -296,6 +299,7 @@ export class SlotsController_2024_09_04 {
   }
 
   @Get("/reservations/:uid")
+  @OAuthPermissions([])
   @ApiOperation({
     summary: "Get reserved slot",
     description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
@@ -312,6 +316,7 @@ export class SlotsController_2024_09_04 {
   }
 
   @Patch("/reservations/:uid")
+  @OAuthPermissions([])
   @ApiOperation({
     summary: "Update a reserved slot",
     description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,
@@ -332,6 +337,7 @@ export class SlotsController_2024_09_04 {
   }
 
   @Delete("/reservations/:uid")
+  @OAuthPermissions([])
   @ApiOperation({
     summary: "Delete a reserved slot",
     description: `<Note>Please make sure to pass in the cal-api-version header value as mentioned in the Headers section. Not passing the correct value will default to an older version of this endpoint.</Note>`,

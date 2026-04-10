@@ -1,6 +1,7 @@
 import { AppConfig } from "@/config/type";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { ApiAuthGuardOnlyAllow } from "@/modules/auth/decorators/api-auth-guard-only-allow.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
@@ -117,6 +118,7 @@ export class BillingController {
     };
   }
 
+  @OAuthPermissions([])
   @Post("/webhook")
   @HttpCode(HttpStatus.OK)
   async stripeWebhook(

@@ -1,5 +1,6 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_HEADER } from "@/lib/docs/headers";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ResponseSlotsOutput } from "@/modules/routing-forms/outputs/response-slots.output";
 import { RoutingFormsService } from "@/modules/routing-forms/services/routing-forms.service";
 import { Controller, HttpCode, HttpStatus, Param, Post, Query, Req } from "@nestjs/common";
@@ -19,6 +20,7 @@ export class RoutingFormsController {
   constructor(private readonly routingFormsService: RoutingFormsService) {}
 
   @Post("/calculate-slots")
+  @OAuthPermissions([])
   @ApiOperation({
     summary: "Calculate slots based on routing form response",
     description:

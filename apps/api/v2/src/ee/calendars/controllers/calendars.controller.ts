@@ -221,6 +221,7 @@ export class CalendarsController {
     name: "calendar",
   })
   @Get("/:calendar/save")
+  @OAuthPermissions([])
   @HttpCode(HttpStatus.OK)
   @Redirect(undefined, 301)
   @ApiOperation({ summary: "Save Google or Outlook calendar credentials" })

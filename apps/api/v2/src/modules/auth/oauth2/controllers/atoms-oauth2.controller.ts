@@ -15,6 +15,7 @@ import { ApiExcludeController, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { OAuthService } from "@/lib/services/oauth.service";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 
 @Controller({
   path: "/v2/atoms/auth/oauth2/clients/:clientId",
@@ -28,6 +29,7 @@ export class AtomsOAuth2Controller {
   constructor(private readonly oAuthService: OAuthService) {}
 
   @Get("/")
+  @OAuthPermissions([])
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Get a provider" })
   async getClient(@Param("clientId") clientId: string) {

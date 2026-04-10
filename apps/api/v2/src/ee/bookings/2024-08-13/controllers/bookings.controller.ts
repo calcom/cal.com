@@ -108,6 +108,7 @@ export class BookingsController_2024_08_13 {
   ) {}
 
   @Post("/")
+  @OAuthPermissions([])
   @UseGuards(OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -179,6 +180,7 @@ export class BookingsController_2024_08_13 {
   }
 
   @Get("/by-seat/:seatUid")
+  @OAuthPermissions([])
   @UseGuards(OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -206,6 +208,7 @@ export class BookingsController_2024_08_13 {
   }
 
   @Get("/:bookingUid")
+  @OAuthPermissions([])
   @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -315,6 +318,7 @@ export class BookingsController_2024_08_13 {
   }
 
   @Post("/:bookingUid/reschedule")
+  @OAuthPermissions([])
   @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -356,6 +360,7 @@ export class BookingsController_2024_08_13 {
   }
 
   @Post("/:bookingUid/cancel")
+  @OAuthPermissions([])
   @UseGuards(BookingUidGuard, OptionalApiAuthGuard)
   @ApiHeader(OPTIONAL_X_CAL_CLIENT_ID_HEADER)
   @ApiHeader(OPTIONAL_X_CAL_SECRET_KEY_HEADER)
@@ -546,6 +551,7 @@ export class BookingsController_2024_08_13 {
   @Post("/:bookingUid/request-reschedule")
   @HttpCode(HttpStatus.OK)
   @Permissions([BOOKING_WRITE])
+  @OAuthPermissions(["BOOKING_WRITE"])
   @UseGuards(ApiAuthGuard, BookingUidGuard)
   @ApiHeader(API_KEY_OR_ACCESS_TOKEN_HEADER)
   @ApiOperation({

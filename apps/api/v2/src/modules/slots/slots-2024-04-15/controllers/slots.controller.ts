@@ -23,6 +23,7 @@ import {
 import { Request as ExpressRequest, Response as ExpressResponse } from "express";
 import { TRPC_ERROR_CODE, TRPC_ERROR_MAP, TRPCErrorCode } from "@/filters/trpc-exception.filter";
 import { AvailableSlotsService } from "@/lib/services/available-slots.service";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { SlotsService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots.service";
 import type { RangeSlots, TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
 import { SlotsOutputService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
@@ -43,6 +44,7 @@ export class SlotsController_2024_04_15 {
   ) {}
 
   @Post("/reserve")
+  @OAuthPermissions([])
   @ApiCreatedResponse({
     description: "Successful response returning uid of reserved slot.",
     schema: {
@@ -74,6 +76,7 @@ export class SlotsController_2024_04_15 {
   }
 
   @Delete("/selected-slot")
+  @OAuthPermissions([])
   @ApiOkResponse({
     description: "Response deleting reserved slot by uid.",
     schema: {
@@ -98,6 +101,7 @@ export class SlotsController_2024_04_15 {
   }
 
   @Get("/available")
+  @OAuthPermissions([])
   @ApiOkResponse({
     description: "Available time slots retrieved successfully",
     schema: {

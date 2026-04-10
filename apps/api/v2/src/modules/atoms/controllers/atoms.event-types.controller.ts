@@ -25,6 +25,7 @@ import { GetAtomPublicEventTypeQueryParams } from "@/modules/atoms/inputs/get-at
 import { EventTypesAtomService } from "@/modules/atoms/services/event-types-atom.service";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
@@ -60,6 +61,7 @@ export class AtomsEventTypesController {
   }
 
   @Get("/event-types/:eventSlug/public")
+  @OAuthPermissions([])
   async getPublicEventType(
     @Param("eventSlug") eventSlug: string,
     @Query() queryParams: GetAtomPublicEventTypeQueryParams

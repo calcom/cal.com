@@ -1,6 +1,7 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { API_KEY_OR_ACCESS_TOKEN_HEADER } from "@/lib/docs/headers";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import {
   StripConnectOutputDto,
@@ -77,6 +78,7 @@ export class StripeController {
   }
 
   @Get("/save")
+  @OAuthPermissions([])
   @UseGuards()
   @Redirect(undefined, 301)
   @ApiOperation({ summary: "Save Stripe credentials" })

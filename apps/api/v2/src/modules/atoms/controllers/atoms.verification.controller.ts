@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { Throttle } from "@/lib/endpoint-throttler-decorator";
 import { AddVerifiedEmailInput } from "@/modules/atoms/inputs/add-verified-email.input";
 import { CheckEmailVerificationRequiredParams } from "@/modules/atoms/inputs/check-email-verification-required-params";
@@ -38,6 +39,7 @@ import { ApiResponse } from "@calcom/platform-types";
 export class AtomsVerificationController {
   constructor(private readonly verificationService: VerificationAtomsService) {}
 
+  @OAuthPermissions([])
   @Post("/verification/email/send-code")
   @Version(VERSION_NEUTRAL)
   @HttpCode(HttpStatus.OK)
@@ -58,6 +60,7 @@ export class AtomsVerificationController {
     };
   }
 
+  @OAuthPermissions([])
   @Get("/verification/email/check")
   @Version(VERSION_NEUTRAL)
   @HttpCode(HttpStatus.OK)
@@ -75,6 +78,7 @@ export class AtomsVerificationController {
     };
   }
 
+  @OAuthPermissions([])
   @Post("/verification/email/verify-code")
   @Version(VERSION_NEUTRAL)
   @HttpCode(HttpStatus.OK)

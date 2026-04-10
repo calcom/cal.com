@@ -153,6 +153,31 @@ describe("OAuth Permissions Guard E2E", () => {
     });
   });
 
+  describe("public endpoints with @OAuthPermissions([])", () => {
+    it("should allow access with any scope to endpoint decorated with @OAuthPermissions([])", async () => {
+      const token = await getAccessToken(user.id, [AccessScope.BOOKING_READ]);
+
+      const response = await request(app.getHttpServer())
+        .get("/api/v2/timezones")
+        .set({ Authorization: `Bearer ${token}` })
+        .expect(200);
+
+      expect(response.body.status).toBe("success");
+    });
+
+    it("should allow access with any scope to endpoint with OptionalApiAuthGuard decorated with @OAuthPermissions([])", async () => {
+      const token = await getAccessToken(user.id, [AccessScope.BOOKING_READ]);
+
+      const response = await request(app.getHttpServer())
+        .get("/api/v2/event-types")
+        .query({ username: user.username })
+        .set({ Authorization: `Bearer ${token}`, "cal-api-version": "2024-06-14" })
+        .expect(200);
+
+      expect(response.body.status).toBe("success");
+    });
+  });
+
   describe("personal endpoints", () => {
     describe("positive", () => {
       it("should allow GET /me with PROFILE_READ scope", async () => {

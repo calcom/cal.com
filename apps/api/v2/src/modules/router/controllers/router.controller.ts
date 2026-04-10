@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { Controller, Req, NotFoundException, Param, Post, Body } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
@@ -20,6 +21,7 @@ export class RouterController {
   constructor(private readonly teamsEventTypesRepository: TeamsEventTypesRepository) {}
 
   @Post("/forms/:formId/submit")
+  @OAuthPermissions([])
   async getRoutingFormResponse(
     @Req() request: Request,
     @Param("formId") formId: string,

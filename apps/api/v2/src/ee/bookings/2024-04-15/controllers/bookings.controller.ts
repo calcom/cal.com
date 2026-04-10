@@ -164,6 +164,7 @@ export class BookingsController_2024_04_15 {
   }
 
   @Get("/:bookingUid")
+  @OAuthPermissions([])
   async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput_2024_04_15> {
     const { bookingInfo } = await getBookingInfo(bookingUid);
 
@@ -178,6 +179,7 @@ export class BookingsController_2024_04_15 {
   }
 
   @Get("/:bookingUid/reschedule")
+  @OAuthPermissions([])
   @UseGuards(OptionalApiAuthGuard)
   async getBookingForReschedule(
     @Param("bookingUid") bookingUid: string,
@@ -196,6 +198,7 @@ export class BookingsController_2024_04_15 {
   }
 
   @Post("/")
+  @OAuthPermissions([])
   async createBooking(
     @Req() req: BookingRequest,
     @Body() body: CreateBookingInput_2024_04_15,
@@ -242,6 +245,7 @@ export class BookingsController_2024_04_15 {
   }
 
   @Post("/:bookingUid/cancel")
+  @OAuthPermissions([])
   async cancelBooking(
     @Req() req: BookingRequest,
     @Param("bookingUid") bookingUid: string,
@@ -327,6 +331,7 @@ export class BookingsController_2024_04_15 {
   }
 
   @Post("/recurring")
+  @OAuthPermissions([])
   async createRecurringBooking(
     @Req() req: BookingRequest,
     @Body() body: CreateRecurringBookingInput_2024_04_15[],
@@ -379,6 +384,7 @@ export class BookingsController_2024_04_15 {
   }
 
   @Post("/instant")
+  @OAuthPermissions([])
   async createInstantBooking(
     @Req() req: BookingRequest,
     @Body() body: CreateBookingInput_2024_04_15,

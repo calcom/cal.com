@@ -75,6 +75,7 @@ export class GcalController {
   }
 
   @Get("/oauth/save")
+  @OAuthPermissions([])
   @Redirect(undefined, 301)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Connect a calendar" })

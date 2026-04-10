@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { OAuthPermissions } from "@/modules/auth/decorators/oauth-permissions/oauth-permissions.decorator";
 import { TimezonesService } from "@/modules/timezones/services/timezones.service";
 import { Controller, Get } from "@nestjs/common";
 import { ApiExcludeController, ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
@@ -18,6 +19,7 @@ export class TimezonesController {
   constructor(private readonly timezonesService: TimezonesService) {}
 
   @Get("/")
+  @OAuthPermissions([])
   @ApiOperation({ summary: "Get all timezones" })
   async getTimeZones(): Promise<ApiResponse<CityTimezones>> {
     const timeZones = await this.timezonesService.getCityTimeZones();
