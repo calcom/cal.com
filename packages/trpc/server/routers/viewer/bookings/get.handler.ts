@@ -224,10 +224,9 @@ export async function getBookings({
   // CTEs are present in the query's DB type.
   function applyCommonFilters<Q extends SelectQueryBuilder<any, "Booking", any>>(
     query: Q,
-    pastWindow?: { startTimeAfter: Date; startTimeBefore?: Date },
     isAttendeeTableJoined = false
   ): Q {
-    let q: any = addStatusesQueryFilters(query, bookingListingByStatus, pastWindow);
+    let q: any = addStatusesQueryFilters(query, bookingListingByStatus);
 
     if (eventTypeIdsFromTeamIdsFilter && eventTypeIdsFromTeamIdsFilter.length > 0) {
       q = q.where("Booking.eventTypeId", "in", eventTypeIdsFromTeamIdsFilter);
@@ -312,10 +311,10 @@ export async function getBookings({
   let hasMore = false;
 
   if (hasTeamAccess && !bookingQueries.length) {
-    // ── CTE path: single query with OR conditions ──
-    // Replaces 7 UNION ALL branches with one scan of Booking, using CTEs to
-    // pre-compute team membership sets. Eliminates DISTINCT overhead entirely.
-    const buildTeamCTEQuery = (pastWindow?: { startTimeAfter: Date; startTimeBefore?: Date }) => {
+    // ── CTE path: single query with OR conditions (bounded statuses only) ──
+    // Used for upcoming/recurring/unconfirmed where the startTime lower bound
+    // keeps scans tight. Unbounded statuses (past/cancelled) use UNION ALL below.
+    const buildTeamCTEQuery = () => {
       return applyCommonFilters(
         kysely
           .with("team_user_ids", (db) =>
@@ -364,25 +363,95 @@ export async function getBookings({
                   )
               ),
             ])
-          ),
-        pastWindow
+          )
       );
+    };
+
+    // ── UNION ALL path for unbounded queries (past/cancelled) ──
+    // Each branch hits its own optimal index. PG plans each independently,
+    // avoiding the full startTime index walk that the CTE + OR approach needs.
+    // The CTE path remains for bounded statuses where it's already fast.
+    const buildTeamUnionBranches = (): BookingsUnionQuery[] => {
+      // Branch 1: bookings by current team members (Booking_userId_idx)
+      const userIdBranch = applyCommonFilters(
+        kysely
+          .selectFrom("Booking")
+          .select(bookingColumns)
+          .where(
+            "Booking.userId",
+            "in",
+            kysely
+              .selectFrom("Membership")
+              .select("Membership.userId")
+              .where("Membership.teamId", "in", teamIdsWithBookingPermission!)
+          ) as BookingsUnionQuery
+      );
+
+      // Branch 2: bookings on team event types by non-members (Booking_eventTypeId_idx)
+      // Catches ex-member and reassigned bookings
+      const eventTypeBranch = applyCommonFilters(
+        kysely
+          .selectFrom("Booking")
+          .select(bookingColumns)
+          .where(
+            "Booking.eventTypeId",
+            "in",
+            kysely
+              .selectFrom("EventType")
+              .select("EventType.id")
+              .where("EventType.teamId", "in", teamIdsWithBookingPermission!)
+          ) as BookingsUnionQuery
+      );
+
+      // Branch 3: bookings where a team member is an attendee (Attendee_email_idx)
+      // Uses JOIN through Membership → users → Attendee → Booking so PG can
+      // drive from the small Membership set and use indexes at each join step.
+      const attendeeBranch = applyCommonFilters(
+        kysely
+          .selectFrom("Booking")
+          .select(bookingColumns)
+          .innerJoin("Attendee", "Attendee.bookingId", "Booking.id")
+          .where(({ or, eb }) =>
+            or([
+              eb("Attendee.email", "=", user.email),
+              eb(
+                "Attendee.email",
+                "in",
+                kysely
+                  .selectFrom("users")
+                  .select("users.email")
+                  .where(
+                    "users.id",
+                    "in",
+                    kysely
+                      .selectFrom("Membership")
+                      .select("Membership.userId")
+                      .where("Membership.teamId", "in", teamIdsWithBookingPermission!)
+                  )
+              ),
+            ])
+          ) as unknown as BookingsUnionQuery,
+        true
+      );
+
+      return [userIdBranch, eventTypeBranch, attendeeBranch];
     };
 
     // Fetch take+1 to determine hasMore without a COUNT query.
     if (isPastQuery) {
-      // Fetch one extra to determine hasMore
-      bookingsFromUnion = await progressivePastWindow(
-        (pw, limit) =>
-          buildTeamCTEQuery(pw)
-            .select(bookingColumns)
-            .orderBy(orderBy.key, orderBy.order)
-            .orderBy("Booking.id", orderBy.order)
-            .limit(limit)
-            .execute(),
-        skip,
-        take + 1
-      );
+      // Unbounded: UNION ALL lets PG use per-branch indexes directly.
+      // No progressive window needed — each branch hits its own index.
+      const branches = buildTeamUnionBranches();
+      const union = branches.reduce((acc, q) => acc.unionAll(q));
+      bookingsFromUnion = await kysely
+        .selectFrom(union.as("union_subquery"))
+        .distinct()
+        .selectAll("union_subquery")
+        .orderBy(orderBy.key, orderBy.order)
+        .orderBy("id", orderBy.order)
+        .limit(take + 1)
+        .offset(skip)
+        .execute();
       hasMore = bookingsFromUnion.length > take;
       bookingsFromUnion = bookingsFromUnion.slice(0, take);
     } else {
@@ -396,7 +465,7 @@ export async function getBookings({
       hasMore = bookingsFromUnion.length > take;
       bookingsFromUnion = bookingsFromUnion.slice(0, take);
     }
-    // totalCount derivation for CTE path:
+    // totalCount derivation for team access path:
     //   - Page not full: derived for free (skip + rows)
     //   - requireExactCount (API): use EXPLAIN estimate (~10ms) instead of
     //     expensive COUNT queries that scan the full result set
@@ -404,26 +473,33 @@ export async function getBookings({
     if (!hasMore) {
       totalCount = skip + bookingsFromUnion.length;
     } else if (requireExactCount) {
-      const countQuery = buildTeamCTEQuery()
-        .select(({ fn }) => fn.count<number>("Booking.id").as("bookingCount"))
-        .compile();
       type PlanNode = { "Plan Rows": number; "Parent Relationship"?: string; Plans?: PlanNode[] };
+      let countQueryBuilder;
+      if (isPastQuery) {
+        // Use UNION ALL shape for EXPLAIN — matches the query that was actually executed
+        const branches = buildTeamUnionBranches();
+        const union = branches.reduce((acc, q) => acc.unionAll(q));
+        countQueryBuilder = kysely
+          .selectFrom(union.as("union_subquery"))
+          .select(({ fn }) => fn.count<number>("union_subquery.id").distinct().as("bookingCount"));
+      } else {
+        countQueryBuilder = buildTeamCTEQuery().select(({ fn }) =>
+          fn.count<number>("Booking.id").as("bookingCount")
+        );
+      }
+      const countQuery = countQueryBuilder.compile();
       const explainResult = await prisma.$queryRawUnsafe<[{ "QUERY PLAN": [{ Plan: PlanNode }] }]>(
         `EXPLAIN (FORMAT JSON) ${countQuery.sql}`,
         ...countQuery.parameters
       );
       const topPlan = explainResult[0]?.["QUERY PLAN"]?.[0]?.Plan;
-      // The top node is an Aggregate (Plan Rows: 1). Its Plans array contains
-      // InitPlan nodes for each CTE followed by the actual scan child (Parent
-      // Relationship: "Outer"). We need the scan child's estimate, not a CTE's.
+      // For CTE: top node is Aggregate, scan child has the row estimate.
+      // For UNION ALL: top node is Aggregate over Append, Plan Rows is the estimate.
       const scanChild = topPlan?.Plans?.find((p) => p["Parent Relationship"] !== "InitPlan");
       const estimatedRows = scanChild?.["Plan Rows"] ?? topPlan?.["Plan Rows"] ?? 0;
       totalCount = Math.round(estimatedRows);
     }
   } else {
-    // ── UNION ALL path: personal bookings or userIds filter ──
-    // Two separate queries that PG plans independently, each with an efficient
-    // index scan, then deduplicate via DISTINCT on the union.
     // ── UNION ALL path: personal bookings or userIds filter ──
     // Separate queries that PG plans independently, each with an efficient
     // index scan, then deduplicate via DISTINCT on the union.
@@ -451,68 +527,28 @@ export async function getBookings({
 
     // Apply common filters to each branch and UNION ALL them
     const filteredQueries = bookingQueries.map(({ query, tables }) =>
-      applyCommonFilters(query, undefined, tables.includes("Attendee"))
+      applyCommonFilters(query, tables.includes("Attendee"))
     );
     const unionQuery = filteredQueries.reduce((acc, query) => acc.unionAll(query));
 
-    const buildUnionWithWindow = (pw?: { startTimeAfter: Date; startTimeBefore?: Date }) => {
-      const filtered = bookingQueries.map(({ query, tables }) =>
-        applyCommonFilters(query, pw, tables.includes("Attendee"))
-      );
-      return filtered.reduce((acc, query) => acc.unionAll(query));
-    };
+    const [bookings, countResult] = await Promise.all([
+      kysely
+        .selectFrom(unionQuery.as("union_subquery"))
+        .distinct()
+        .selectAll("union_subquery")
+        .orderBy(orderBy.key, orderBy.order)
+        .orderBy("id", orderBy.order)
+        .limit(take)
+        .offset(skip)
+        .execute(),
+      kysely
+        .selectFrom(unionQuery.as("count_subquery"))
+        .select(({ fn }) => fn.count<number>("count_subquery.id").distinct().as("bookingCount"))
+        .executeTakeFirst(),
+    ]);
 
-    if (isPastQuery) {
-      bookingsFromUnion = await progressivePastWindow(
-        async (pw, limit) => {
-          const pwUnion = buildUnionWithWindow(pw);
-          return kysely
-            .selectFrom(pwUnion.as("union_subquery"))
-            .distinct()
-            .selectAll("union_subquery")
-            .orderBy(orderBy.key, orderBy.order)
-            .orderBy("id", orderBy.order)
-            .limit(limit)
-            .execute();
-        },
-        skip,
-        take
-      );
-    } else {
-      const [bookings, countResult] = await Promise.all([
-        kysely
-          .selectFrom(unionQuery.as("union_subquery"))
-          .distinct()
-          .selectAll("union_subquery")
-          .orderBy(orderBy.key, orderBy.order)
-          .orderBy("id", orderBy.order)
-          .limit(take)
-          .offset(skip)
-          .execute(),
-        kysely
-          .selectFrom(unionQuery.as("count_subquery"))
-          .select(({ fn }) => fn.count<number>("count_subquery.id").distinct().as("bookingCount"))
-          .executeTakeFirst(),
-      ]);
-
-      bookingsFromUnion = bookings;
-      totalCount = Number(countResult?.bookingCount ?? 0);
-    }
-
-    if (isPastQuery) {
-      if (bookingsFromUnion.length < take) {
-        totalCount = skip + bookingsFromUnion.length;
-      } else {
-        totalCount = Number(
-          (
-            await kysely
-              .selectFrom(unionQuery.as("count_subquery"))
-              .select(({ fn }) => fn.count<number>("count_subquery.id").distinct().as("bookingCount"))
-              .executeTakeFirst()
-          )?.bookingCount ?? 0
-        );
-      }
-    }
+    bookingsFromUnion = bookings;
+    totalCount = Number(countResult?.bookingCount ?? 0);
   }
 
   const plainBookings = !(bookingsFromUnion?.length === 0)
@@ -971,47 +1007,6 @@ async function enrichAttendeesWithUserData<
 }
 
 /**
- * Progressive window for past/cancelled bookings: start narrow (1 week),
- * widen until we have enough results. Each subsequent query only fetches the
- * gap between the previous window boundary and the new one.
- */
-async function progressivePastWindow<
-  T extends Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">,
->(
-  executeWindow: (
-    pastWindow: { startTimeAfter: Date; startTimeBefore?: Date },
-    limit: number
-  ) => Promise<T[]>,
-  skip: number,
-  take: number
-): Promise<T[]> {
-  const now = new Date();
-  const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-  const windowMultipliers: (number | null)[] = [1, 4, 12, 48, null];
-  const needed = skip + take;
-
-  const allRows: T[] = [];
-  let previousBoundary: Date | undefined;
-
-  for (const multiplier of windowMultipliers) {
-    const startTimeAfter = multiplier ? new Date(now.getTime() - multiplier * ONE_WEEK_MS) : new Date(0);
-    const remaining = needed - allRows.length;
-
-    const windowRows = await executeWindow({ startTimeAfter, startTimeBefore: previousBoundary }, remaining);
-    allRows.push(...windowRows);
-
-    log.debug(
-      `Past bookings window (${multiplier ? multiplier + "w" : "all"}): got ${windowRows.length} rows, total ${allRows.length}/${needed}`
-    );
-
-    if (allRows.length >= needed) break;
-    previousBoundary = startTimeAfter;
-  }
-
-  return allRows.slice(skip, skip + take);
-}
-
-/**
  * Gets event type IDs for the given team IDs using an optimized raw SQL query.
  *
  * This query uses a UNION to combine:
@@ -1317,18 +1312,14 @@ async function getFastExactCount({
   return Number(organizerResult?.cnt ?? 0) + Number(attendeeResult?.cnt ?? 0);
 }
 
-function buildStatusWhereClause(
-  statuses: InputByStatus[],
-  pastWindow?: { startTimeAfter: Date; startTimeBefore?: Date }
-) {
+function buildStatusWhereClause(statuses: InputByStatus[]) {
   return ({ eb, or, and }: ExpressionBuilder<DB, "Booking">) =>
     or(
       statuses.map((status: InputByStatus) => {
         if (status === "upcoming") {
           const now = new Date();
           return and([
-            // startTime bound lets Postgres use the leading column of (startTime, endTime, status).
-            // 24h lookback covers any in-progress booking (no event type runs longer than a day).
+            // 1h lookback covers in-progress bookings; lets PG use the startTime index
             eb("Booking.startTime", ">=", new Date(now.getTime() - 60 * 60 * 1000)),
             eb("Booking.endTime", ">=", now),
             or([
@@ -1353,28 +1344,14 @@ function buildStatusWhereClause(
 
         if (status === "past") {
           const now = new Date();
-          const conditions = [
+          return and([
             eb("Booking.endTime", "<=", now),
             eb("Booking.status", "not in", ["cancelled", "rejected"]),
-          ];
-          if (pastWindow) {
-            conditions.push(eb("Booking.startTime", ">=", pastWindow.startTimeAfter));
-            if (pastWindow.startTimeBefore) {
-              conditions.push(eb("Booking.startTime", "<", pastWindow.startTimeBefore));
-            }
-          }
-          return and(conditions);
+          ]);
         }
 
         if (status === "cancelled") {
-          const conditions = [eb("Booking.status", "in", ["cancelled", "rejected"])];
-          if (pastWindow) {
-            conditions.push(eb("Booking.startTime", ">=", pastWindow.startTimeAfter));
-            if (pastWindow.startTimeBefore) {
-              conditions.push(eb("Booking.startTime", "<", pastWindow.startTimeBefore));
-            }
-          }
-          return and(conditions);
+          return eb("Booking.status", "in", ["cancelled", "rejected"]);
         }
 
         if (status === "unconfirmed") {
@@ -1392,11 +1369,10 @@ function buildStatusWhereClause(
 
 function addStatusesQueryFilters(
   query: SelectQueryBuilder<any, "Booking", any>,
-  statuses: InputByStatus[],
-  pastWindow?: { startTimeAfter: Date; startTimeBefore?: Date }
+  statuses: InputByStatus[]
 ) {
   if (statuses?.length) {
-    return query.where(buildStatusWhereClause(statuses, pastWindow));
+    return query.where(buildStatusWhereClause(statuses));
   }
 
   return query;
