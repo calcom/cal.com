@@ -36,9 +36,11 @@ export const buildBooking = (
   booking?: Partial<Booking> & { references?: Partial<BookingReference>[] }
 ): Booking & { references?: Partial<BookingReference>[]; attendees?: [] } => {
   const uid = faker.datatype.uuid();
-  return {
+  // Typed explicitly so new Booking fields cause a clear "Property X is missing" error.
+  const defaults: Booking = {
     id: faker.datatype.number(),
     uid,
+    uuid: null,
     userId: null,
     eventTypeId: null,
     idempotencyKey: null,
@@ -75,11 +77,10 @@ export const buildBooking = (
     rating: null,
     noShowHost: null,
     ratingFeedback: null,
-    attendees: [],
     oneTimePassword: null,
     creationSource: CreationSource.WEBAPP,
-    ...booking,
   };
+  return { ...defaults, attendees: [], ...booking };
 };
 
 export const buildEventType = (eventType?: Partial<EventType>): EventType => {

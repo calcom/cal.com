@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { v7 as uuidv7 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import type {
   CreateInstantBookingData,
@@ -259,11 +260,13 @@ export async function handler(
   ];
 
   // Create Partial
+  const startTime = dayjs.utc(reqBody.start).toDate();
   const newBookingData: Prisma.BookingCreateInput = {
     uid,
+    uuid: uuidv7({ msecs: startTime.getTime() }),
     responses: reqBody.responses === null ? Prisma.JsonNull : reqBody.responses,
     title: bookingTitle,
-    startTime: dayjs.utc(reqBody.start).toDate(),
+    startTime,
     endTime: dayjs.utc(reqBody.end).toDate(),
     description: reqBody.notes,
     customInputs: isPrismaObjOrUndefined(customInputs),

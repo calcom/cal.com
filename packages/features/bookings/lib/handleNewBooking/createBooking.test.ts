@@ -162,4 +162,31 @@ describe("createBooking", () => {
       })
     );
   });
+
+  it("sets uuid as UUIDv7 derived from startTime", async () => {
+    const prisma = (await import("@calcom/prisma")).default;
+    const mockCreate = vi.fn().mockResolvedValue({
+      id: 1,
+      uid: "test-uid",
+      user: { uuid: "user-uuid" },
+      attendees: [],
+      payment: [],
+      references: [],
+    });
+
+    (prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation((fn: any) =>
+      fn({
+        booking: { create: mockCreate, update: vi.fn() },
+        app_RoutingForms_FormResponse: { update: vi.fn() },
+      })
+    );
+
+    await createBooking(makeParams() as never);
+
+    const createArg = mockCreate.mock.calls[0][0];
+    const uuid = createArg.data.uuid;
+    expect(uuid).toBeDefined();
+    // UUIDv7 format: 8-4-4-4-12 hex with version 7
+    expect(uuid).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  });
 });

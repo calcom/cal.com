@@ -112,6 +112,7 @@ describe("buildDryRunBooking", () => {
       ratingFeedback: null,
       noShowHost: null,
       cancelledBy: null,
+      uuid: null,
       creationSource: CreationSource.WEBAPP,
       references: [],
       payment: [],

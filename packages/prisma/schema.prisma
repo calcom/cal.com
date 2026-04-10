@@ -968,6 +968,8 @@ enum BookingStatus {
 model Booking {
   id                           Int                               @id @default(autoincrement())
   uid                          String                            @unique
+  /// UUIDv7 derived from startTime for time-ordered keyset pagination
+  uuid                         String?                           @db.Uuid
   // (optional) UID based on slot start/end time & email against duplicates
   idempotencyKey               String?                           @unique
   user                         User?                             @relation(fields: [userId], references: [id], onDelete: Cascade)

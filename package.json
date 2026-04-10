@@ -200,5 +200,8 @@
   "syncpack": {
     "filter": "^(?!@calcom).*",
     "semverRange": ""
+  },
+  "dependencies": {
+    "uuid": "10.0.0"
   }
 }

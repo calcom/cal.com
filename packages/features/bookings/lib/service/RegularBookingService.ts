@@ -201,10 +201,13 @@ export const buildDryRunBooking = ({
     timeZone: organizerUser.timeZone,
     isPlatformManaged: organizerUser.isPlatformManaged ?? false,
   };
-  const booking = {
+  // Typed explicitly so new Booking fields cause a compile error at the
+  // missing property, not a wall of "38 more" vs "43 more" type noise.
+  const booking: ReturnTypeCreateBooking = {
     id: -101,
     uid: "DRY_RUN_UID",
     iCalUID: "DRY_RUN_ICAL_UID",
+    uuid: null,
     status: BookingStatus.ACCEPTED,
     eventTypeId: eventTypeId,
     user: sanitizedOrganizerUser,
@@ -216,38 +219,38 @@ export const buildDryRunBooking = ({
     createdAt: new Date(),
     updatedAt: new Date(),
     attendees: [],
+    metadata: {},
+    scheduledJobs: [],
+    references: [],
+    payment: [],
+    paid: false,
+    rescheduled: false,
+    isRecorded: false,
+    iCalSequence: 0,
+    creationSource: CreationSource.WEBAPP,
     oneTimePassword: null,
     smsReminderNumber: null,
-    metadata: {},
     idempotencyKey: null,
     userPrimaryEmail: null,
     description: null,
     customInputs: null,
     responses: null,
     location: null,
-    paid: false,
     cancellationReason: null,
     rejectionReason: null,
     dynamicEventSlugRef: null,
     dynamicGroupSlugRef: null,
     fromReschedule: null,
     recurringEventId: null,
-    scheduledJobs: [],
     rescheduledBy: null,
     destinationCalendarId: null,
     reassignReason: null,
     reassignById: null,
-    rescheduled: false,
-    isRecorded: false,
-    iCalSequence: 0,
     rating: null,
     ratingFeedback: null,
     noShowHost: null,
     cancelledBy: null,
-    creationSource: CreationSource.WEBAPP,
-    references: [],
-    payment: [],
-  } satisfies ReturnTypeCreateBooking;
+  };
 
   /**
    * Troubleshooting data

@@ -1,4 +1,5 @@
 import type short from "short-uuid";
+import { v7 as uuidv7 } from "uuid";
 import type { z } from "zod";
 
 import type { routingFormResponseInDbSchema } from "@calcom/app-store/routing-forms/zod";
@@ -276,12 +277,14 @@ function buildNewBookingData(params: CreateBookingParams) {
     routingFormResponseId,
   });
 
+  const startTime = dayjs.utc(evt.startTime).toDate();
   const newBookingData: Prisma.BookingCreateInput = {
     uid,
+    uuid: uuidv7({ msecs: startTime.getTime() }),
     userPrimaryEmail: evt.organizer.email,
     responses: input.responses === null || evt.seatsPerTimeSlot ? Prisma.JsonNull : input.responses,
     title: evt.title,
-    startTime: dayjs.utc(evt.startTime).toDate(),
+    startTime,
     endTime: dayjs.utc(evt.endTime).toDate(),
     description: evt.seatsPerTimeSlot ? null : evt.additionalNotes,
     customInputs: isPrismaObjOrUndefined(evt.customInputs),

@@ -65,7 +65,30 @@ const seatedBookingMetadataSchema = z.object({}).catchall(z.string()).describe("
 
 type DatabaseUser = { id: number; name: string | null; email: string; username: string | null };
 
-type DatabaseBooking = Booking & {
+type DatabaseBooking = Pick<
+  Booking,
+  | "id"
+  | "uid"
+  | "title"
+  | "description"
+  | "startTime"
+  | "endTime"
+  | "status"
+  | "eventTypeId"
+  | "location"
+  | "metadata"
+  | "responses"
+  | "recurringEventId"
+  | "iCalUID"
+  | "rating"
+  | "noShowHost"
+  | "rescheduled"
+  | "rescheduledBy"
+  | "fromReschedule"
+  | "cancellationReason"
+  | "cancelledBy"
+  | "updatedAt"
+> & {
   eventType: {
     id: number;
     slug: string;
