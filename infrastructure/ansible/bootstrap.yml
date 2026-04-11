@@ -84,7 +84,7 @@
   tasks:
     - name: Create .env file
       template:
-        src: templates/.env.j2
+        src: infrastructure/ansible/templates/.env.j2
         dest: /home/ubuntu/cal.com/.env
         owner: ubuntu
         group: ubuntu
