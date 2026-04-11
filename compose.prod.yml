@@ -1,6 +1,7 @@
 volumes:
   database-data:
   redis-data:
+  letsencrypt:
 
 networks:
   stack:
@@ -8,6 +9,30 @@ networks:
     external: false
 
 services:
+  traefik:
+    image: traefik:v3.6.13
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--providers.docker.network=stack"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@starliner.dev"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    networks:
+      - stack
+
   database:
     container_name: database
     image: postgres
@@ -33,27 +58,30 @@ services:
       - "${REDIS_PORT:-6379}:6379"
 
   calcom:
-    image: ""
+    image: ghcr.io/starlinerapp/cal.com/calcom:latest
     restart: unless-stopped
     networks:
       - stack
-    ports:
-      - 3000:3000
     env_file: .env
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${DATABASE_HOST}/${POSTGRES_DB}
       - DATABASE_DIRECT_URL=${DATABASE_URL}
     depends_on:
       - database
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=stack"
+      - "traefik.http.routers.calcom.rule=Host(`${NEXT_PUBLIC_WEBAPP_URL}`)"
+      - "traefik.http.routers.calcom.entrypoints=websecure"
+      - "traefik.http.routers.calcom.tls.certresolver=letsencrypt"
+      - "traefik.http.services.calcom.loadbalancer.server.port=3000"
 
   calcom-api:
     container_name: calcom-api
-    image: ""
+    image: ghcr.io/starlinerapp/cal.com/calcom-api:latest
     restart: unless-stopped
     networks:
       - stack
-    ports:
-      - "${API_PORT:-80}:${API_PORT:-80}"
     env_file: .env
     environment:
       - NODE_ENV=${NODE_ENV}
