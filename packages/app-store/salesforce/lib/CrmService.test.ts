@@ -1373,6 +1373,7 @@ describe("SalesforceCRMService", () => {
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
         excludeAccountRecordTypes: ["Partner/Alliance"],
+        enableFuzzyDomainMatching: true,
       });
       mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 
@@ -1404,6 +1405,7 @@ describe("SalesforceCRMService", () => {
         createNewContactUnderAccount: true,
         createEventOn: SalesforceRecordEnum.LEAD,
         excludeAccountRecordTypes: ["Partner/Alliance", "Vendor"],
+        enableFuzzyDomainMatching: true,
       });
       mockCheckIfFeatureIsEnabledGlobally.mockResolvedValue(true);
 

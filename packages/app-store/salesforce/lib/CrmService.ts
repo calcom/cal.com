@@ -1617,7 +1617,6 @@ class SalesforceCRMService implements CRM {
       }
     }
 
-    const appOptions = this.getAppOptions();
     const perCredentialToggle = appOptions.enableFuzzyDomainMatching === true;
 
     let globalFlagEnabled = false;
