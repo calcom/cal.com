@@ -21,7 +21,7 @@ import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 import { QueryCell } from "@lib/QueryCell";
 import { useReducer } from "react";
-import { APP_CATEGORY_ENTRIES } from "@calcom/app-store/_utils/getAppCategories";
+import { APP_CATEGORY_ENTRIES, ActiveAppCategoryKeys } from "@calcom/app-store/_utils/getAppCategories";
 
 interface IntegrationsContainerProps {
   variant?: AppCategories;
@@ -48,6 +48,8 @@ const IntegrationsContainer = ({
   const updateDefaultAppMutation = trpc.viewer.apps.updateUserDefaultConferencingApp.useMutation();
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
+
+  const isActiveCategory = (v: AppCategories): v is ActiveAppCategoryKeys => v in APP_CATEGORY_ENTRIES
 
   const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
     trpc.viewer.eventTypes.bulkEventFetch.useQuery();
@@ -102,21 +104,22 @@ const IntegrationsContainer = ({
       customLoader={<SkeletonLoader />}
       success={({ data }) => {
         if (!data.items.length) {
-          const emptyHeaderCategory = getAppCategoryTitle(variant || "other", true);
+          const resolvedVariant = variant && isActiveCategory(variant) ? variant : "other";
+          const emptyHeaderCategory = getAppCategoryTitle(resolvedVariant, true);
 
           return (
             <EmptyScreen
-              Icon={APP_CATEGORY_ENTRIES[variant || "other"].icon}
+              Icon={APP_CATEGORY_ENTRIES[resolvedVariant].icon}
               headline={t("no_category_apps", {
                 category: emptyHeaderCategory,
               })}
-              description={t(`no_category_apps_description_${variant || "other"}`)}
+              description={t(`no_category_apps_description_${resolvedVariant}`)}
               buttonRaw={
                 <Button
                   color="secondary"
-                  data-testid={`connect-${variant || "other"}-apps`}
-                  href={variant ? `/apps/categories/${variant}` : "/apps/categories/other"}>
-                  {t(`connect_${variant || "other"}_apps`)}
+                  data-testid={`connect-${resolvedVariant}-apps`}
+                  href={`/apps/categories/${resolvedVariant}`}>
+                  {t(`connect_${resolvedVariant}_apps`)}
                 </Button>
               }
             />

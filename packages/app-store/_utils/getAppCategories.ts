@@ -8,7 +8,7 @@ function getHref(baseURL: string, category: string, useQueryParam: boolean) {
   return useQueryParam ? `${baseUrlParsed.toString()}` : `${baseURL}/${category}`;
 }
 
-type ActiveAppCategoryKeys = Exclude<AppCategories, "video" | "web3">;
+export type ActiveAppCategoryKeys = Exclude<AppCategories, "video" | "web3">;
 
 type AppCategoryEntry = {
   name: AppCategories;
@@ -61,12 +61,12 @@ export const APP_CATEGORY_ENTRIES: Record<ActiveAppCategoryKeys, Omit<AppCategor
 }
 
 const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryEntry[] => {
-  const CATEGORY_ORDER: AppCategories[] = [
+  const CATEGORY_ORDER = [
     "analytics", "automation", "calendar", "conferencing",
     "crm", "messaging", "payment", "other",
-  ];
+  ] as const satisfies readonly ActiveAppCategoryKeys[];
 
-  return CATEGORY_ORDER.map((name) => (
+  return CATEGORY_ORDER.map((name): AppCategoryEntry => (
       {
         name,
         ...APP_CATEGORY_ENTRIES[name],
