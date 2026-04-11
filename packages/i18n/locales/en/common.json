@@ -1034,7 +1034,7 @@
   "plan_upgrade": "You need to upgrade your plan to have more than one active event type.",
   "plan_upgrade_teams": "You need to upgrade your plan to create a team.",
   "plan_upgrade_instructions": "You can <1>upgrade here</1>.",
-  "event_types_page_title": "Event types",
+  "event_types_page_title": "CSEE Event types",
   "event_types_page_subtitle": "Configure different events for people to book on your calendar.",
   "new": "New",
   "new_event_type_btn": "New event type",
