@@ -1,4 +1,4 @@
-name: destroy-infrastructure.yml
+name: Destroy Infrastructure
 on:
   workflow_dispatch:
     inputs:
