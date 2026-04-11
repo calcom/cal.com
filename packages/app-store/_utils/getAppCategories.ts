@@ -8,6 +8,8 @@ function getHref(baseURL: string, category: string, useQueryParam: boolean) {
   return useQueryParam ? `${baseUrlParsed.toString()}` : `${baseURL}/${category}`;
 }
 
+type ActiveAppCategoryKeys = Exclude<AppCategories, "video" | "web3">;
+
 type AppCategoryEntry = {
   name: AppCategories;
   href: string;
@@ -15,59 +17,62 @@ type AppCategoryEntry = {
   "data-testid": string;
 };
 
+export const APP_CATEGORY_ENTRIES: Record<ActiveAppCategoryKeys, Omit<AppCategoryEntry, "name">> = {
+  analytics: {
+    href: "",
+    icon: "chart-bar",
+    "data-testid": "analytics"
+  },
+  automation: {
+    href: "",
+    icon: "share-2",
+    "data-testid": "automation"
+  },
+  calendar: {
+    href: "",
+    icon: "calendar",
+    "data-testid": "calendar"
+  },
+  conferencing: {
+    href: "",
+    icon: "video",
+    "data-testid": "conferencing"
+  },
+  crm: {
+    href: "",
+    icon: "contact",
+    "data-testid": "crm"
+  },
+  messaging: {
+    href: "",
+    icon: "mail",
+    "data-testid": "messaging"
+  },
+  payment: {
+    href: "",
+    icon: "credit-card",
+    "data-testid": "payment"
+  },
+  other: {
+    href: "",
+    icon: "grid-3x3",
+    "data-testid": "other"
+  }
+}
+
 const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryEntry[] => {
-  // Manually sorted alphabetically, but leaving "Other" at the end
-  // TODO: Refactor and type with Record<AppCategories, AppCategoryEntry> to enforce consistency
-  return [
-    {
-      name: "analytics",
-      href: getHref(baseURL, "analytics", useQueryParam),
-      icon: "chart-bar",
-      "data-testid": "analytics",
-    },
-    {
-      name: "automation",
-      href: getHref(baseURL, "automation", useQueryParam),
-      icon: "share-2",
-      "data-testid": "automation",
-    },
-    {
-      name: "calendar",
-      href: getHref(baseURL, "calendar", useQueryParam),
-      icon: "calendar",
-      "data-testid": "calendar",
-    },
-    {
-      name: "conferencing",
-      href: getHref(baseURL, "conferencing", useQueryParam),
-      icon: "video",
-      "data-testid": "conferencing",
-    },
-    {
-      name: "crm",
-      href: getHref(baseURL, "crm", useQueryParam),
-      icon: "contact",
-      "data-testid": "crm",
-    },
-    {
-      name: "messaging",
-      href: getHref(baseURL, "messaging", useQueryParam),
-      icon: "mail",
-      "data-testid": "messaging",
-    },
-    {
-      name: "payment",
-      href: getHref(baseURL, "payment", useQueryParam),
-      icon: "credit-card",
-      "data-testid": "payment",
-    },
-    {
-      name: "other",
-      href: getHref(baseURL, "other", useQueryParam),
-      icon: "grid-3x3",
-      "data-testid": "other",
-    },
+  const CATEGORY_ORDER: AppCategories[] = [
+    "analytics", "automation", "calendar", "conferencing",
+    "crm", "messaging", "payment", "other",
   ];
+
+  return CATEGORY_ORDER.map((name) => (
+      {
+        name,
+        ...APP_CATEGORY_ENTRIES[name],
+        href: getHref(baseURL, name, useQueryParam)
+      }
+  ))
 };
 
 export default getAppCategories;
