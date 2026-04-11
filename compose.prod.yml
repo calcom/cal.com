@@ -22,7 +22,7 @@ services:
       - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=admin@starliner.dev"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@starliner.app"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
@@ -71,7 +71,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=stack"
-      - "traefik.http.routers.calcom.rule=Host(`cal.starliner.dev`)"
+      - "traefik.http.routers.calcom.rule=Host(`cal.starliner.app`)"
       - "traefik.http.routers.calcom.entrypoints=websecure"
       - "traefik.http.routers.calcom.tls.certresolver=letsencrypt"
       - "traefik.http.services.calcom.loadbalancer.server.port=3000"
@@ -123,7 +123,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=stack"
-      - "traefik.http.routers.calcom-api.rule=Host(`api.cal.starliner.dev`)"
+      - "traefik.http.routers.calcom-api.rule=Host(`api.cal.starliner.app`)"
       - "traefik.http.routers.calcom-api.entrypoints=websecure"
       - "traefik.http.routers.calcom-api.tls.certresolver=letsencrypt"
       - "traefik.http.services.calcom-api.loadbalancer.server.port=80"
