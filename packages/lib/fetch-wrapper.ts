@@ -2,10 +2,12 @@ import { HttpError } from "./http-error";
 
 async function safeJson(response: Response) {
   const text = await response.text();
+
   try {
-    return text ? JSON.parse(text) : null;
+    const json = text ? JSON.parse(text) : null;
+    return { json, text };
   } catch {
-    return null;
+    return { json: null, text };
   }
 }
 
@@ -14,19 +16,24 @@ async function http<T>(path: string, config: RequestInit): Promise<T | null> {
   const response: Response = await fetch(request);
 
   if (!response.ok) {
-    const errJson = await safeJson(response);
+    const { json: errJson, text } = await safeJson(response);
+
     const err = HttpError.fromRequest(
       request,
       {
         ...response,
-        statusText: errJson?.message || response.statusText,
+        statusText:
+          (typeof errJson?.message === "string" && errJson.message) ||
+          text ||
+          response.statusText,
       },
-      errJson
+      errJson ?? text
     );
     throw err;
   }
   // safely handles empty or non-JSON responses
-  return await safeJson(response);
+  const { json } = await safeJson(response);
+  return json;
 }
 
 export async function get<T>(path: string, config?: RequestInit): Promise<T | null> {
