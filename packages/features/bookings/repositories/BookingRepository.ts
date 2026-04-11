@@ -2213,4 +2213,35 @@ export class BookingRepository implements IBookingRepository {
       },
     });
   }
+
+  async findByIdForDailyVideoWebhook({ bookingId }: { bookingId: number }) {
+  return await this.prismaClient.booking.findUniqueOrThrow({
+      where: { id: bookingId },
+      select: {
+        ...bookingMinimalSelect,
+        uid: true,
+        location: true,
+        isRecorded: true,
+        eventTypeId: true,
+        eventType: {
+          select: {
+            teamId: true,
+            parentId: true,
+            canSendCalVideoTranscriptionEmails: true,
+            customReplyToEmail: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            timeZone: true,
+            email: true,
+            name: true,
+            locale: true,
+            destinationCalendar: true,
+          },
+        },
+      },
+    });
+  }
 }
