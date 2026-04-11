@@ -21,6 +21,7 @@ import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 import { QueryCell } from "@lib/QueryCell";
 import { useReducer } from "react";
+import { APP_CATEGORY_ENTRIES } from "@calcom/app-store/_utils/getAppCategories";
 
 interface IntegrationsContainerProps {
   variant?: AppCategories;
@@ -95,20 +96,6 @@ const IntegrationsContainer = ({
     utils.viewer.apps.getUsersDefaultConferencingApp.invalidate();
   };
 
-  // TODO: Refactor and reuse getAppCategories?
-  const emptyIcon: Record<AppCategories, React.ComponentProps<typeof Icon>["name"]> = {
-    calendar: "calendar",
-    conferencing: "video",
-    automation: "share-2",
-    analytics: "chart-bar",
-    payment: "credit-card",
-    other: "grid-3x3",
-    web3: "credit-card", // deprecated
-    video: "video", // deprecated
-    messaging: "mail",
-    crm: "contact",
-  };
-
   return (
     <QueryCell
       query={query}
@@ -119,7 +106,7 @@ const IntegrationsContainer = ({
 
           return (
             <EmptyScreen
-              Icon={emptyIcon[variant || "other"]}
+              Icon={APP_CATEGORY_ENTRIES[variant || "other"].icon}
               headline={t("no_category_apps", {
                 category: emptyHeaderCategory,
               })}
