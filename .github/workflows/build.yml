@@ -27,8 +27,8 @@ jobs:
           context: .
           file: Dockerfile
           build-args: |
-            NEXT_PUBLIC_WEBAPP_URL:http://localhost:3000
-            NEXT_PUBLIC_API_V2_URL:http://localhost:5555/api/v2
+            NEXT_PUBLIC_WEBAPP_URL=https://cal.starliner.dev
+            NEXT_PUBLIC_API_V2_URL=https://api.cal.starliner.dev
             NEXT_PUBLIC_LICENSE_CONSENT=agree
           push: true
           tags: ghcr.io/${{ github.repository }}/calcom:latest
