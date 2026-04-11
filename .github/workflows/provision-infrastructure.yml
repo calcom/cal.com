@@ -1,0 +1,60 @@
+name: Provision Infrastructure
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init & Apply
+        working-directory: infrastructure/terraform
+        env:
+          TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN }}
+        run: |
+          terraform init
+          terraform apply -var-file="values.tfvars" -auto-approve
+
+      - name: Export Terraform outputs
+        working-directory: infrastructure/terraform
+        env:
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN }}
+        run: |
+          echo "TARGET_HOST=$(terraform output -raw csee_server_ip)" >> $GITHUB_ENV
+
+      - name: Install Ansible
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install ansible
+
+      - name: Prepare SSH key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /tmp/key.pem
+          chmod 600 /tmp/key.pem
+
+      - name: Write vault password file
+        run: |
+          mkdir -p ~/.ansible
+          printf '%s' '${{ secrets.ANSIBLE_VAULT_PASSWORD }}' > ~/.ansible/.vault_pass
+          chmod 600 ~/.ansible/.vault_pass
+
+      - name: Run Ansible
+        run: |
+          ansible-playbook \
+          -i "$TARGET_HOST," \
+          -u root \
+          --private-key /tmp/key.pem \
+          infrastructure/ansible/bootstrap.yml \
+          --vault-password-file ~/.ansible/.vault_pass \
+          -e "ansible_ssh_common_args='-o StrictHostKeyChecking=no'" \
+          -e "target_host=all" \
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ansible/.vault_pass

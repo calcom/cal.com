@@ -1,0 +1,32 @@
+- name: Clone Repository
+  hosts: "{{ target_host }}"
+  become: yes
+  tasks:
+    - name: Clone repository
+      git:
+        repo: https://github.com/starlinerapp/cal.com.git
+        dest: /home/ubuntu/cal.com
+        update: yes
+        force: yes
+      become_user: ubuntu
+
+- name: Create .env file
+  hosts: "{{ target_host }}"
+  tasks:
+    - name: Create .env file
+      template:
+        src: templates/.env.j2
+        dest: /home/ubuntu/cal.com/.env
+        owner: ubuntu
+        group: ubuntu
+        mode: '0600'
+
+
+- name: Start application services
+  hosts: "{{ target_host }}"
+  tasks:
+    - name: Start containers
+      community.docker.docker_compose_v2:
+        project_src: /home/ubuntu/cal.com
+        files: "compose.prod.yml"
+      register: output

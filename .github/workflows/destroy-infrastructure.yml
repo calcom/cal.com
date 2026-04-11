@@ -1,0 +1,28 @@
+name: destroy-infrastructure.yml
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type DESTROY to confirm destruction"
+        required: true
+
+jobs:
+  destroy:
+    if: ${{ github.event.inputs.confirmation == 'DESTROY' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Destroy
+        working-directory: infrastructure/terraform
+        env:
+          TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
+          TF_TOKEN_app_terraform_io: ${{ secrets.TF_TOKEN }}
+        run: |
+          terraform init
+          terraform destroy -var-file="values.tfvars" -auto-approve
+
