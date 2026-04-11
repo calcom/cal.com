@@ -25,8 +25,18 @@
 - name: Start application services
   hosts: "{{ target_host }}"
   tasks:
-    - name: Start containers
+    - name: Pull latest images
       community.docker.docker_compose_v2:
         project_src: /home/ubuntu/cal.com
-        files: "compose.prod.yml"
+        files:
+          - compose.prod.yml
+        pull: always
+
+    - name: Recreate containers with latest images
+      community.docker.docker_compose_v2:
+        project_src: /home/ubuntu/cal.com
+        files:
+          - compose.prod.yml
+        state: present
+        recreate: always
       register: output
