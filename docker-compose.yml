@@ -65,6 +65,41 @@ services:
     depends_on:
       - database
 
+  cron:
+    image: curlimages/curl:latest
+    restart: always
+    networks:
+      - stack
+    env_file: .env
+    # Hits all essential cron endpoints periodically.
+    # 1. Tasker (Workflows, Webhooks) - every minute
+    # 2. Calendar Sync, Subscriptions, Credentials - every 5 minutes
+    command: >
+      sh -c "
+      count=0;
+      while true; do 
+        count=$$((count + 1));
+        echo \"[Cron] Minute $$count: Triggering Task /api/tasks/cron\";
+        curl -s -X POST \"http://calcom:3000/api/tasks/cron?apiKey=$${CRON_API_KEY}\" -H \"Authorization: Bearer $${CRON_SECRET}\" > /dev/null;
+        
+        if [ $$((count % 5)) -eq 0 ]; then
+          echo \"[Cron] 5-minute interval: Triggering background syncs...\";
+          curl -s \"http://calcom:3000/api/cron/calendar-subscriptions?apiKey=$${CRON_API_KEY}\" -H \"Authorization: Bearer $${CRON_SECRET}\" > /dev/null;
+          curl -s \"http://calcom:3000/api/cron/credentials?apiKey=$${CRON_API_KEY}\" -H \"Authorization: Bearer $${CRON_SECRET}\" > /dev/null;
+          curl -s \"http://calcom:3000/api/cron/selected-calendars?apiKey=$${CRON_API_KEY}\" -H \"Authorization: Bearer $${CRON_SECRET}\" > /dev/null;
+        fi;
+
+        if [ $$((count % 1440)) -eq 0 ]; then
+          echo \"[Cron] 24-hour interval: Triggering cleanup...\";
+          curl -s \"http://calcom:3000/api/tasks/cleanup?apiKey=$${CRON_API_KEY}\" -H \"Authorization: Bearer $${CRON_SECRET}\" > /dev/null;
+          count=0;
+        fi;
+        
+        sleep 60; 
+      done"
+    depends_on:
+      - calcom
+
   calcom-api:
     container_name: calcom-api
     build:
@@ -116,59 +151,6 @@ services:
     depends_on:
       - database
       - redis
-
-  # Cron service to process scheduled tasks (workflow reminders, webhooks, etc.)
-  # Required for workflow email/SMS reminders to be sent on self-hosted deployments.
-  # Set CRON_SECRET in your .env file to enable authentication.
-  cron:
-    container_name: cron
-    image: alpine:latest
-    restart: unless-stopped
-    networks:
-      - stack
-    environment:
-      - CRON_SECRET=${CRON_SECRET}
-      - CALCOM_HOST=calcom:3000
-      - CRON_API_KEY=${CRON_API_KEY}
-    depends_on:
-      - calcom
-    command: >
-      sh -c "
-        apk add --no-cache curl > /dev/null 2>&1
-
-        # Task queue processor — runs every 60s (required for workflow reminders)
-        while true; do
-          curl -sf -H \"Authorization: Bearer $${CRON_SECRET}\" http://$${CALCOM_HOST}/api/tasks/cron > /dev/null 2>&1 || echo '[cron] /api/tasks/cron failed'
-          sleep 60
-        done &
-
-        # Task cleanup — runs every 24h
-        while true; do
-          sleep 86400
-          curl -sf -H \"Authorization: Bearer $${CRON_SECRET}\" http://$${CALCOM_HOST}/api/tasks/cleanup > /dev/null 2>&1 || echo '[cron] /api/tasks/cleanup failed'
-        done &
-
-        # Calendar subscriptions sync — runs every 5 min
-        while true; do
-          curl -sf -H \"Authorization: Bearer $${CRON_SECRET}\" \"http://$${CALCOM_HOST}/api/cron/calendar-subscriptions?apiKey=$${CRON_API_KEY}\" > /dev/null 2>&1 || echo '[cron] /api/cron/calendar-subscriptions failed'
-          sleep 300
-        done &
-
-        # Credential refresh — runs every 5 min
-        while true; do
-          curl -sf -H \"Authorization: Bearer $${CRON_SECRET}\" \"http://$${CALCOM_HOST}/api/cron/credentials?apiKey=$${CRON_API_KEY}\" > /dev/null 2>&1 || echo '[cron] /api/cron/credentials failed'
-          sleep 300
-        done &
-
-        # Selected calendars sync — runs every 5 min
-        while true; do
-          curl -sf -H \"Authorization: Bearer $${CRON_SECRET}\" \"http://$${CALCOM_HOST}/api/cron/selected-calendars?apiKey=$${CRON_API_KEY}\" > /dev/null 2>&1 || echo '[cron] /api/cron/selected-calendars failed'
-          sleep 300
-        done &
-
-        # Wait for all background jobs
-        wait
-      "
 
   # Optional use of Prisma Studio. In production, comment out or remove the section below to prevent unwanted access to your database.
   studio:

@@ -1,15 +1,24 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import process from "node:process";
 
 import { TaskProcessor } from "../task-processor";
 
 async function handler(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const apiKey = request.nextUrl.searchParams.get("apiKey");
+
+  const isAuthorized =
+    authHeader === `Bearer ${process.env.CRON_SECRET}` ||
+    authHeader === `Bearer ${process.env.CRON_API_KEY}` ||
+    apiKey === process.env.CRON_API_KEY ||
+    apiKey === process.env.CRON_SECRET;
+
+  if (!isAuthorized) {
     return new Response("Unauthorized", { status: 401 });
   }
-  const processor = new TaskProcessor();
-  await processor.processQueue();
+  const taskProcessor = new TaskProcessor();
+  await taskProcessor.processQueue();
   return NextResponse.json({ success: true });
 }
 

@@ -592,7 +592,7 @@ The cron service will automatically run the following jobs:
 | `/api/cron/credentials` | Every 5 min | Refresh integration credentials |
 | `/api/cron/selected-calendars` | Every 5 min | Sync selected calendars |
 
-> **Note:** If you don't need the cron service (e.g., you're running your own external cron), you can exclude it: `docker compose up -d calcom`
+> **Note**: Manual setup of a crontab on the host machine is no longer required, as the application now handles its own background automation out-of-the-box. However, it can still be done as a precautionary measure. If you don't need the built-in cron service (e.g., you're running your own external cron), you can exclude it: `docker compose up -d calcom`
 
    **Note for first-time setup (Calendar integration)**: During the setup wizard, you may encounter a "Connect your Calendar" step that appears to be required. If you do not wish to connect a calendar at this time, you can skip this step by navigating directly to the dashboard at `<NEXT_PUBLIC_WEBAPP_URL>/event-types`. Calendar integrations can be added later from the Settings > Integrations page.
 
