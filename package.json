@@ -55,7 +55,7 @@
     "env-check:app-store": "dotenv-checker --schema .env.appStore.example --env .env.appStore",
     "env-check:common": "dotenv-checker --schema .env.example --env .env",
     "format": "biome format --write .",
-    "fmtcheck": "biome format --check .",
+    "fmtcheck": "biome check .",
     "heroku-postbuild": "turbo run @calcom/web#build",
     "lint:fix": "turbo lint:fix",
     "lint:report": "turbo lint:report",
