@@ -25,8 +25,9 @@ const _getBookingData = async <T extends z.ZodType>({
   const parsedBody = await schema.parseAsync(reqBody);
 
   // When the email is hidden in event type but user still passes in the request body object
-  if (reqBody.responses.email && !parsedBody.responses.email) {
-    parsedBody.responses.email = reqBody.responses.email;
+  const requestEmail = reqBody.responses?.email;
+  if (requestEmail && parsedBody.responses && !parsedBody.responses.email) {
+    parsedBody.responses.email = requestEmail;
   }
   
   const parsedBodyWithEnd = (body: TgetBookingDataSchema): body is ReqBodyWithEnd => {
