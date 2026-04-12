@@ -752,6 +752,52 @@ export class MultiEmailFieldInput_2024_06_14 {
   hidden?: boolean;
 }
 
+export class EmailFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({ example: "email", description: "only allowed value for type is `email`" })
+  type!: "email";
+
+  @IsString()
+  @DocsProperty({
+    description:
+      "Unique identifier for the field in format `some-slug`. It is used to access response to this booking field during the booking",
+    example: "email",
+  })
+  slug!: string;
+
+  @IsString()
+  @DocsProperty({ example: "Please enter your email" })
+  label!: string;
+
+  @IsBoolean()
+  @DocsProperty()
+  required!: boolean;
+
+  @IsString()
+  @DocsProperty({ example: "example@example.com" })
+  @IsOptional()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value. \
+      For example, if the slug is `email` and the URL contains query parameter `&email=example@example.com`, \
+      the email will be prefilled and the field will be disabled. In case of Booker atom need to pass slug you used for this booking field to defaultFormValues prop with the desired value e.g. `defaultFormValues={{email: 'example@example.com'}}`.",
+  })
+  disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+}
+
 export class CheckboxGroupFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
   @DocsProperty({ example: "checkbox", description: "only allowed value for type is `checkbox`" })
@@ -902,6 +948,7 @@ export type InputBookingField_2024_06_14 =
   | TextAreaFieldInput_2024_06_14
   | SelectFieldInput_2024_06_14
   | MultiSelectFieldInput_2024_06_14
+  | EmailFieldInput_2024_06_14
   | MultiEmailFieldInput_2024_06_14
   | CheckboxGroupFieldInput_2024_06_14
   | RadioGroupFieldInput_2024_06_14
