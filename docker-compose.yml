@@ -80,18 +80,18 @@ services:
       while true; do 
         count=$$((count + 1));
         echo \"[Cron] Minute $$count: Triggering Task /api/tasks/cron\";
-        curl -s -X POST \"http://calcom:3000/api/tasks/cron?apiKey=$${CRON_API_KEY}\" -H \"Authorization: Bearer $${CRON_SECRET}\" > /dev/null;
+        curl -s -X POST -H \"Authorization: Bearer $${CRON_SECRET:-$$CRON_API_KEY}\" \"http://calcom:3000/api/tasks/cron\" > /dev/null;
         
         if [ $$((count % 5)) -eq 0 ]; then
           echo \"[Cron] 5-minute interval: Triggering background syncs...\";
-          curl -s \"http://calcom:3000/api/cron/calendar-subscriptions?apiKey=$${CRON_API_KEY}\" -H \"Authorization: Bearer $${CRON_SECRET}\" > /dev/null;
-          curl -s \"http://calcom:3000/api/cron/credentials?apiKey=$${CRON_API_KEY}\" -H \"Authorization: Bearer $${CRON_SECRET}\" > /dev/null;
-          curl -s \"http://calcom:3000/api/cron/selected-calendars?apiKey=$${CRON_API_KEY}\" -H \"Authorization: Bearer $${CRON_SECRET}\" > /dev/null;
+          curl -s -H \"Authorization: Bearer $${CRON_SECRET:-$$CRON_API_KEY}\" \"http://calcom:3000/api/cron/calendar-subscriptions\" > /dev/null;
+          curl -s -H \"Authorization: Bearer $${CRON_SECRET:-$$CRON_API_KEY}\" \"http://calcom:3000/api/cron/credentials\" > /dev/null;
+          curl -s -H \"Authorization: Bearer $${CRON_SECRET:-$$CRON_API_KEY}\" \"http://calcom:3000/api/cron/selected-calendars\" > /dev/null;
         fi;
 
         if [ $$((count % 1440)) -eq 0 ]; then
           echo \"[Cron] 24-hour interval: Triggering cleanup...\";
-          curl -s \"http://calcom:3000/api/tasks/cleanup?apiKey=$${CRON_API_KEY}\" -H \"Authorization: Bearer $${CRON_SECRET}\" > /dev/null;
+          curl -s -H \"Authorization: Bearer $${CRON_SECRET:-$$CRON_API_KEY}\" \"http://calcom:3000/api/tasks/cleanup\" > /dev/null;
           count=0;
         fi;
         
