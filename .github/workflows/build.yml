@@ -1,7 +1,7 @@
 name: Build Images
 on:
   workflow_run:
-    workflows: ["Lint"]
+    workflows: ["Format Check"]
     types:
       - completed
 
