@@ -11,8 +11,8 @@ async function handler(request: NextRequest) {
   const isAuthorized =
     authHeader === `Bearer ${process.env.CRON_SECRET}` ||
     authHeader === `Bearer ${process.env.CRON_API_KEY}` ||
-    apiKey === process.env.CRON_API_KEY ||
-    apiKey === process.env.CRON_SECRET;
+    apiKey === process.env.CRON_API_KEY;
+
 
   if (!isAuthorized) {
     return new Response("Unauthorized", { status: 401 });
