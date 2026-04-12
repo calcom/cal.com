@@ -122,7 +122,30 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       hosts: hosts
         ? {
             createMany: {
-              data: hosts.map(({ eventTypeId: _, ...rest }) => rest),
+              data: hosts.map((host) => ({
+                userId: host.userId,
+                createdAt: host.createdAt,
+                scheduleId: host.scheduleId,
+                isFixed: host.isFixed,
+                priority: host.priority,
+                weight: host.weight,
+                weightAdjustment: host.weightAdjustment,
+                overrideMinimumBookingNotice: host.overrideMinimumBookingNotice,
+                overrideBeforeEventBuffer: host.overrideBeforeEventBuffer,
+                overrideAfterEventBuffer: host.overrideAfterEventBuffer,
+                overrideSlotInterval: host.overrideSlotInterval,
+                overrideBookingLimits:
+                  host.overrideBookingLimits === null ? Prisma.JsonNull : host.overrideBookingLimits,
+                overrideDurationLimits:
+                  host.overrideDurationLimits === null ? Prisma.JsonNull : host.overrideDurationLimits,
+                overridePeriodType: host.overridePeriodType,
+                overridePeriodStartDate: host.overridePeriodStartDate,
+                overridePeriodEndDate: host.overridePeriodEndDate,
+                overridePeriodDays: host.overridePeriodDays,
+                overridePeriodCountCalendarDays: host.overridePeriodCountCalendarDays,
+                groupId: host.groupId,
+                memberId: host.memberId,
+              })),
             },
           }
         : undefined,

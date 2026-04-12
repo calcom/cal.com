@@ -723,6 +723,17 @@ export class EventTypeRepository implements IEventTypesRepository {
           weight: true,
           scheduleId: true,
           groupId: true,
+          overrideMinimumBookingNotice: true,
+          overrideBeforeEventBuffer: true,
+          overrideAfterEventBuffer: true,
+          overrideSlotInterval: true,
+          overrideBookingLimits: true,
+          overrideDurationLimits: true,
+          overridePeriodType: true,
+          overridePeriodStartDate: true,
+          overridePeriodEndDate: true,
+          overridePeriodDays: true,
+          overridePeriodCountCalendarDays: true,
           location: {
             select: {
               id: true,
@@ -1039,6 +1050,17 @@ export class EventTypeRepository implements IEventTypesRepository {
           priority: true,
           weight: true,
           scheduleId: true,
+          overrideMinimumBookingNotice: true,
+          overrideBeforeEventBuffer: true,
+          overrideAfterEventBuffer: true,
+          overrideSlotInterval: true,
+          overrideBookingLimits: true,
+          overrideDurationLimits: true,
+          overridePeriodType: true,
+          overridePeriodStartDate: true,
+          overridePeriodEndDate: true,
+          overridePeriodDays: true,
+          overridePeriodCountCalendarDays: true,
           location: {
             select: {
               id: true,
@@ -1166,6 +1188,18 @@ export class EventTypeRepository implements IEventTypesRepository {
     return await this.prismaClient.eventType.findUnique({
       where: {
         id,
+      },
+      select: {
+        id: true,
+        userId: true,
+        teamId: true,
+        minimumBookingNotice: true,
+        schedulingType: true,
+        hosts: {
+          select: {
+            overrideMinimumBookingNotice: true,
+          },
+        },
       },
     });
   }
@@ -1410,6 +1444,17 @@ export class EventTypeRepository implements IEventTypesRepository {
             weight: true,
             priority: true,
             groupId: true,
+            overrideMinimumBookingNotice: true,
+            overrideBeforeEventBuffer: true,
+            overrideAfterEventBuffer: true,
+            overrideSlotInterval: true,
+            overrideBookingLimits: true,
+            overrideDurationLimits: true,
+            overridePeriodType: true,
+            overridePeriodStartDate: true,
+            overridePeriodEndDate: true,
+            overridePeriodDays: true,
+            overridePeriodCountCalendarDays: true,
             user: {
               select: {
                 locked: true,

@@ -84,6 +84,17 @@ const hostSchema: z.ZodType<HostInput> = z.object({
   weight: z.number().min(0).optional().nullable(),
   scheduleId: z.number().optional().nullable(),
   groupId: z.string().optional().nullable(),
+  overrideMinimumBookingNotice: z.number().min(0).optional().nullable(),
+  overrideBeforeEventBuffer: z.number().int().optional().nullable(),
+  overrideAfterEventBuffer: z.number().int().optional().nullable(),
+  overrideSlotInterval: z.number().int().optional().nullable(),
+  overrideBookingLimits: intervalLimitsType.optional().nullable(),
+  overrideDurationLimits: intervalLimitsType.optional().nullable(),
+  overridePeriodType: z.enum(["UNLIMITED", "ROLLING", "ROLLING_WINDOW", "RANGE"]).optional().nullable(),
+  overridePeriodStartDate: z.coerce.date().optional().nullable(),
+  overridePeriodEndDate: z.coerce.date().optional().nullable(),
+  overridePeriodDays: z.number().int().optional().nullable(),
+  overridePeriodCountCalendarDays: z.boolean().optional().nullable(),
   location: hostLocationSchema.optional().nullable(),
 });
 

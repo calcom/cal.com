@@ -62,6 +62,111 @@ type UpdateOptions = {
   input: TUpdateInputSchema;
 };
 
+type HostWithOverridesInput = NonNullable<TUpdateInputSchema["hosts"]>[number];
+
+type HostCreateData = Prisma.HostUncheckedCreateWithoutEventTypeInput;
+type HostUpdateData = Prisma.HostUncheckedUpdateWithoutEventTypeInput;
+
+const toNullableJsonInput = (value: Prisma.InputJsonValue | null | undefined) => {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return value === null ? Prisma.JsonNull : value;
+};
+
+export const mapHostCreateData = ({
+  host,
+  schedulingType,
+}: {
+  host: HostWithOverridesInput;
+  schedulingType: SchedulingType | null | undefined;
+}): HostCreateData => {
+  const hostData: HostCreateData = {
+    userId: host.userId,
+    isFixed: schedulingType === SchedulingType.COLLECTIVE || host.isFixed || false,
+    priority: host.priority ?? 2,
+    weight: host.weight ?? 100,
+    groupId: host.groupId,
+    scheduleId: host.scheduleId ?? null,
+    overrideMinimumBookingNotice: host.overrideMinimumBookingNotice,
+    overrideBeforeEventBuffer: host.overrideBeforeEventBuffer,
+    overrideAfterEventBuffer: host.overrideAfterEventBuffer,
+    overrideSlotInterval: host.overrideSlotInterval,
+    overrideBookingLimits: toNullableJsonInput(host.overrideBookingLimits),
+    overrideDurationLimits: toNullableJsonInput(host.overrideDurationLimits),
+    overridePeriodType: host.overridePeriodType,
+    overridePeriodStartDate: host.overridePeriodStartDate,
+    overridePeriodEndDate: host.overridePeriodEndDate,
+    overridePeriodDays: host.overridePeriodDays,
+    overridePeriodCountCalendarDays: host.overridePeriodCountCalendarDays,
+  };
+
+  if (host.location) {
+    hostData.location = {
+      create: {
+        type: host.location.type,
+        credentialId: host.location.credentialId,
+        link: host.location.link,
+        address: host.location.address,
+        phoneNumber: host.location.phoneNumber,
+      },
+    };
+  }
+
+  return hostData;
+};
+
+export const mapHostUpdateData = ({
+  host,
+  schedulingType,
+}: {
+  host: HostWithOverridesInput;
+  schedulingType: SchedulingType | null | undefined;
+}): HostUpdateData => {
+  const updateData: HostUpdateData = {
+    isFixed: schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+    priority: host.priority ?? 2,
+    weight: host.weight ?? 100,
+    scheduleId: host.scheduleId === undefined ? undefined : host.scheduleId,
+    groupId: host.groupId,
+    overrideMinimumBookingNotice: host.overrideMinimumBookingNotice,
+    overrideBeforeEventBuffer: host.overrideBeforeEventBuffer,
+    overrideAfterEventBuffer: host.overrideAfterEventBuffer,
+    overrideSlotInterval: host.overrideSlotInterval,
+    overrideBookingLimits: toNullableJsonInput(host.overrideBookingLimits),
+    overrideDurationLimits: toNullableJsonInput(host.overrideDurationLimits),
+    overridePeriodType: host.overridePeriodType,
+    overridePeriodStartDate: host.overridePeriodStartDate,
+    overridePeriodEndDate: host.overridePeriodEndDate,
+    overridePeriodDays: host.overridePeriodDays,
+    overridePeriodCountCalendarDays: host.overridePeriodCountCalendarDays,
+  };
+
+  if (host.location) {
+    updateData.location = {
+      upsert: {
+        create: {
+          type: host.location.type,
+          credentialId: host.location.credentialId,
+          link: host.location.link,
+          address: host.location.address,
+          phoneNumber: host.location.phoneNumber,
+        },
+        update: {
+          type: host.location.type,
+          credentialId: host.location.credentialId,
+          link: host.location.link,
+          address: host.location.address,
+          phoneNumber: host.location.phoneNumber,
+        },
+      },
+    };
+  }
+
+  return updateData;
+};
+
 export type UpdateEventTypeReturn = Awaited<ReturnType<typeof updateHandler>>;
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
@@ -112,6 +217,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       seatsPerTimeSlot: true,
       recurringEvent: true,
       maxActiveBookingsPerBooker: true,
+      schedulingType: true,
       fieldTranslations: {
         select: {
           field: true,
@@ -475,6 +581,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   let hostLocationDeletions: { userId: number; eventTypeId: number }[] = [];
 
   if (teamId && hosts) {
+    const resolvedSchedulingType = input.schedulingType ?? eventType.schedulingType;
     // check if all hosts can be assigned (memberships that have accepted invite)
     const teamMemberIds = await membershipRepo.listAcceptedTeamMemberIds({ teamId });
     const teamMemberIdSet = new Set(teamMemberIds);
@@ -502,95 +609,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         })),
       },
       create: newHosts.map((host) => {
-        const hostData: {
-          userId: number;
-          isFixed: boolean;
-          priority: number;
-          weight: number;
-          groupId: string | null | undefined;
-          scheduleId?: number | null | undefined;
-          location?: {
-            create: {
-              type: string;
-              credentialId: number | null | undefined;
-              link: string | null | undefined;
-              address: string | null | undefined;
-              phoneNumber: string | null | undefined;
-            };
-          };
-        } = {
-          userId: host.userId,
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed || false,
-          priority: host.priority ?? 2,
-          weight: host.weight ?? 100,
-          groupId: host.groupId,
-          scheduleId: host.scheduleId ?? null,
-        };
-        if (host.location) {
-          hostData.location = {
-            create: {
-              type: host.location.type,
-              credentialId: host.location.credentialId,
-              link: host.location.link,
-              address: host.location.address,
-              phoneNumber: host.location.phoneNumber,
-            },
-          };
-        }
-        return hostData;
+        return mapHostCreateData({ host, schedulingType: resolvedSchedulingType });
       }),
       update: existingHosts.map((host) => {
-        const updateData: {
-          isFixed: boolean | undefined;
-          priority: number;
-          weight: number;
-          scheduleId: number | null | undefined;
-          groupId: string | null | undefined;
-          location?: {
-            upsert: {
-              create: {
-                type: string;
-                credentialId: number | null | undefined;
-                link: string | null | undefined;
-                address: string | null | undefined;
-                phoneNumber: string | null | undefined;
-              };
-              update: {
-                type: string;
-                credentialId: number | null | undefined;
-                link: string | null | undefined;
-                address: string | null | undefined;
-                phoneNumber: string | null | undefined;
-              };
-            };
-          };
-        } = {
-          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-          priority: host.priority ?? 2,
-          weight: host.weight ?? 100,
-          scheduleId: host.scheduleId === undefined ? undefined : host.scheduleId,
-          groupId: host.groupId,
-        };
-        if (host.location) {
-          updateData.location = {
-            upsert: {
-              create: {
-                type: host.location.type,
-                credentialId: host.location.credentialId,
-                link: host.location.link,
-                address: host.location.address,
-                phoneNumber: host.location.phoneNumber,
-              },
-              update: {
-                type: host.location.type,
-                credentialId: host.location.credentialId,
-                link: host.location.link,
-                address: host.location.address,
-                phoneNumber: host.location.phoneNumber,
-              },
-            },
-          };
-        }
+        const updateData = mapHostUpdateData({ host, schedulingType: resolvedSchedulingType });
         return {
           where: {
             userId_eventTypeId: {

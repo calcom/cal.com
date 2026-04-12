@@ -50,6 +50,17 @@ export type Host = {
   weight: number;
   scheduleId?: number | null;
   groupId: string | null;
+  overrideMinimumBookingNotice?: number | null;
+  overrideBeforeEventBuffer?: number | null;
+  overrideAfterEventBuffer?: number | null;
+  overrideSlotInterval?: number | null;
+  overrideBookingLimits?: IntervalLimit | null;
+  overrideDurationLimits?: IntervalLimit | null;
+  overridePeriodType?: PeriodType | null;
+  overridePeriodStartDate?: Date | null;
+  overridePeriodEndDate?: Date | null;
+  overridePeriodDays?: number | null;
+  overridePeriodCountCalendarDays?: boolean | null;
   location?: HostLocation | null;
 };
 
@@ -275,6 +286,17 @@ export type HostInput = {
   weight?: number | null;
   scheduleId?: number | null;
   groupId?: string | null;
+  overrideMinimumBookingNotice?: number | null;
+  overrideBeforeEventBuffer?: number | null;
+  overrideAfterEventBuffer?: number | null;
+  overrideSlotInterval?: number | null;
+  overrideBookingLimits?: IntervalLimit | null;
+  overrideDurationLimits?: IntervalLimit | null;
+  overridePeriodType?: PeriodType | null;
+  overridePeriodStartDate?: Date | null;
+  overridePeriodEndDate?: Date | null;
+  overridePeriodDays?: number | null;
+  overridePeriodCountCalendarDays?: boolean | null;
   location?: HostLocationInput | null;
 };
 
