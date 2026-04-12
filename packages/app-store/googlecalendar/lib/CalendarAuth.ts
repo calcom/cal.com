@@ -303,6 +303,19 @@ export class CalendarAuth {
 
     return new calendar_v3.Calendar({
       auth: googleAuthClient,
+      // Override gaxios defaults to retry PATCH requests on 403 (rate limit) errors.
+      // gaxios defaults omit PATCH from httpMethodsToRetry and 403 from statusCodesToRetry,
+      // which causes Google Calendar PATCH requests (e.g., to update event details after creation)
+      // to fail silently when Google returns a 403 rateLimitExceeded error.
+      retryConfig: {
+        httpMethodsToRetry: ["GET", "HEAD", "PUT", "OPTIONS", "DELETE", "PATCH", "POST"],
+        statusCodesToRetry: [
+          [100, 199],
+          [429, 429],
+          [500, 599],
+          [403, 403],
+        ],
+      },
     });
   }
 }
