@@ -13,6 +13,15 @@ import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/ch
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import {
+  getRoundRobinHostLimitOverrides,
+  groupRoundRobinHostsByEffectiveLimits,
+  resolveRoundRobinHostEffectiveLimits,
+} from "@calcom/features/bookings/lib/handleNewBooking/resolveRoundRobinHostEffectiveLimits";
+import type {
+  EffectiveHostLimits,
+  RoundRobinHostLimitOverrideSource,
+} from "@calcom/features/bookings/lib/handleNewBooking/resolveRoundRobinHostEffectiveLimits";
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
 import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
@@ -23,6 +32,7 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
+import type { DateRange } from "@calcom/features/schedules/lib/date-ranges";
 import getSlots from "@calcom/features/schedules/lib/slots";
 import type { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import type { ISelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/ISelectedSlotRepository";
@@ -31,7 +41,7 @@ import type { UserRepository } from "@calcom/features/users/repositories/UserRep
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { filterBlockedHosts } from "@calcom/features/watchlist/operations/filter-blocked-hosts.controller";
 import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
-import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import { DEFAULT_GROUP_ID, RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/dayjs";
 import { descendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimits/intervalLimit";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
@@ -59,12 +69,118 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import type { GetScheduleOptions } from "./types";
 import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
 import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
+import type { Prisma } from "@calcom/prisma/client";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
 
 type GetAvailabilityUserWithDelegationCredentials = Omit<NonNullable<GetAvailabilityUser>, "credentials"> & {
   credentials: CredentialForCalendarService[];
+};
+
+type AvailableSlotsEventType = Exclude<
+  Awaited<ReturnType<(typeof AvailableSlotsService)["prototype"]["getRegularOrDynamicEventType"]>>,
+  null
+>;
+
+type OverrideAwareAvailabilityUser = GetAvailabilityUserWithDelegationCredentials & {
+  isFixed?: boolean;
+  groupId?: string | null;
+  overrideMinimumBookingNotice?: number | null;
+  overrideBeforeEventBuffer?: number | null;
+  overrideAfterEventBuffer?: number | null;
+  overrideSlotInterval?: number | null;
+  overrideBookingLimits?: Prisma.JsonValue | null;
+  overrideDurationLimits?: Prisma.JsonValue | null;
+  overridePeriodType?: PeriodType | null;
+  overridePeriodStartDate?: Date | null;
+  overridePeriodEndDate?: Date | null;
+  overridePeriodDays?: number | null;
+  overridePeriodCountCalendarDays?: boolean | null;
+};
+
+type OverrideAwareHost = RoundRobinHostLimitOverrideSource & {
+  isFixed?: boolean;
+  groupId?: string | null;
+  user: GetAvailabilityUserWithDelegationCredentials;
+};
+
+type SlotResult = ReturnType<typeof getSlots>[number];
+
+const getEventLevelLimits = (
+  eventType: Pick<
+    AvailableSlotsEventType,
+    | "minimumBookingNotice"
+    | "beforeEventBuffer"
+    | "afterEventBuffer"
+    | "slotInterval"
+    | "bookingLimits"
+    | "durationLimits"
+    | "periodType"
+    | "periodDays"
+    | "periodCountCalendarDays"
+    | "periodStartDate"
+    | "periodEndDate"
+  >
+): EffectiveHostLimits => ({
+  minimumBookingNotice: eventType.minimumBookingNotice,
+  beforeEventBuffer: eventType.beforeEventBuffer,
+  afterEventBuffer: eventType.afterEventBuffer,
+  slotInterval: eventType.slotInterval,
+  bookingLimits: eventType.bookingLimits,
+  durationLimits: eventType.durationLimits,
+  periodType: eventType.periodType,
+  periodDays: eventType.periodDays,
+  periodCountCalendarDays: eventType.periodCountCalendarDays,
+  periodStartDate: eventType.periodStartDate,
+  periodEndDate: eventType.periodEndDate,
+});
+
+const buildEventTypeWithEffectiveLimits = ({
+  eventType,
+  effectiveLimits,
+}: {
+  eventType: AvailableSlotsEventType;
+  effectiveLimits: EffectiveHostLimits;
+}) => ({
+  ...eventType,
+  minimumBookingNotice: effectiveLimits.minimumBookingNotice,
+  beforeEventBuffer: effectiveLimits.beforeEventBuffer,
+  afterEventBuffer: effectiveLimits.afterEventBuffer,
+  slotInterval: effectiveLimits.slotInterval,
+  bookingLimits: effectiveLimits.bookingLimits,
+  durationLimits: effectiveLimits.durationLimits,
+  periodType: effectiveLimits.periodType,
+  periodDays: effectiveLimits.periodDays,
+  periodCountCalendarDays: effectiveLimits.periodCountCalendarDays,
+  periodStartDate: effectiveLimits.periodStartDate,
+  periodEndDate: effectiveLimits.periodEndDate,
+});
+
+const getSlotKey = (slot: SlotResult) => slot.time.toISOString();
+
+const mergeSlotMaps = (slotMaps: Map<string, SlotResult>[]) => {
+  const mergedSlotMap = new Map<string, SlotResult>();
+
+  slotMaps.forEach((slotMap) => {
+    slotMap.forEach((slot, key) => {
+      mergedSlotMap.set(key, slot);
+    });
+  });
+
+  return mergedSlotMap;
+};
+
+const intersectSlotMaps = (baseSlotMap: Map<string, SlotResult>, nextSlotMap: Map<string, SlotResult>) => {
+  const intersectedSlotMap = new Map<string, SlotResult>();
+
+  baseSlotMap.forEach((slot, key) => {
+    if (nextSlotMap.has(key)) {
+      intersectedSlotMap.set(key, slot);
+    }
+  });
+
+  return intersectedSlotMap;
 };
 
 export type GetAvailableSlotsResponse = Awaited<
@@ -306,6 +422,10 @@ export class AvailableSlotsService {
   );
 
   private _getAllDatesWithBookabilityStatus(availableDates: string[]) {
+    if (availableDates.length === 0) {
+      return {};
+    }
+
     const availableDatesSet = new Set(availableDates);
     const firstDate = dayjs(availableDates[0]);
     const lastDate = dayjs(availableDates[availableDates.length - 1]);
@@ -835,10 +955,53 @@ export class AvailableSlotsService {
     hosts: {
       isFixed?: boolean;
       groupId?: string | null;
+      overrideMinimumBookingNotice?: number | null;
+      overrideBeforeEventBuffer?: number | null;
+      overrideAfterEventBuffer?: number | null;
+      overrideSlotInterval?: number | null;
+      overrideBookingLimits?: Prisma.JsonValue | null;
+      overrideDurationLimits?: Prisma.JsonValue | null;
+      overridePeriodType?: PeriodType | null;
+      overridePeriodStartDate?: Date | null;
+      overridePeriodEndDate?: Date | null;
+      overridePeriodDays?: number | null;
+      overridePeriodCountCalendarDays?: boolean | null;
       user: GetAvailabilityUserWithDelegationCredentials;
     }[];
   }) {
-    return hosts.map(({ isFixed, groupId, user }) => ({ isFixed, groupId, ...user }));
+    return hosts.map(
+      ({
+        isFixed,
+        groupId,
+        overrideMinimumBookingNotice,
+        overrideBeforeEventBuffer,
+        overrideAfterEventBuffer,
+        overrideSlotInterval,
+        overrideBookingLimits,
+        overrideDurationLimits,
+        overridePeriodType,
+        overridePeriodStartDate,
+        overridePeriodEndDate,
+        overridePeriodDays,
+        overridePeriodCountCalendarDays,
+        user,
+      }) => ({
+        isFixed,
+        groupId,
+        overrideMinimumBookingNotice,
+        overrideBeforeEventBuffer,
+        overrideAfterEventBuffer,
+        overrideSlotInterval,
+        overrideBookingLimits,
+        overrideDurationLimits,
+        overridePeriodType,
+        overridePeriodStartDate,
+        overridePeriodEndDate,
+        overridePeriodDays,
+        overridePeriodCountCalendarDays,
+        ...user,
+      })
+    );
   }
 
   private getUsersWithCredentials = withReporting(
@@ -847,11 +1010,145 @@ export class AvailableSlotsService {
   );
 
   private getStartTime(startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) {
+    const resolvedTimeZone = timeZone ?? "UTC";
     const startTimeMin = dayjs.utc().add(minimumBookingNotice || 1, "minutes");
-    const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
+    const startTime =
+      resolvedTimeZone === "Etc/GMT"
+        ? dayjs.utc(startTimeInput)
+        : dayjs(startTimeInput).tz(resolvedTimeZone);
 
-    return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
+    return startTimeMin.isAfter(startTime) ? startTimeMin.tz(resolvedTimeZone) : startTime;
   }
+
+  private hasRoundRobinHostLimitOverrides(users: OverrideAwareAvailabilityUser[]) {
+    return (
+      users.length > 0 &&
+      users.some((user) => getRoundRobinHostLimitOverrides(user)) &&
+      users.some((user) => user.isFixed !== true)
+    );
+  }
+
+  private getEffectiveMinimumBookingNoticeForHosts({
+    eventType,
+    hosts,
+  }: {
+    eventType: AvailableSlotsEventType;
+    hosts: OverrideAwareHost[];
+  }) {
+    if (eventType.schedulingType !== SchedulingType.ROUND_ROBIN || hosts.length === 0) {
+      return eventType.minimumBookingNotice;
+    }
+
+    const eventLevelLimits = getEventLevelLimits(eventType);
+
+    return Math.min(
+      ...hosts.map((host) =>
+        resolveRoundRobinHostEffectiveLimits({
+          schedulingType: eventType.schedulingType,
+          eventLimits: eventLevelLimits,
+          hostOverrides: getRoundRobinHostLimitOverrides(host),
+        }).minimumBookingNotice
+      )
+    );
+  }
+
+  private getRoundRobinOverrideAwareSlots({
+    input,
+    eventType,
+    allUsersAvailability,
+    effectiveLimitsByUserId,
+    startTime,
+    eventTimeZone,
+  }: {
+    input: TGetScheduleInputSchema;
+    eventType: AvailableSlotsEventType;
+    allUsersAvailability: {
+      timeZone: string;
+      dateRanges: DateRange[];
+      oooExcludedDateRanges: DateRange[];
+      user: OverrideAwareAvailabilityUser;
+      datesOutOfOffice?: Record<string, unknown>;
+    }[];
+    effectiveLimitsByUserId: Map<number, EffectiveHostLimits>;
+    startTime: Dayjs;
+    eventTimeZone: string | undefined;
+  }) {
+    const eventLength = input.duration || eventType.length;
+    const bookerUtcOffset = input.timeZone ? (getUTCOffsetByTimezone(input.timeZone) ?? 0) : 0;
+
+    const slotMapsByUser = allUsersAvailability.map((availability) => {
+      const effectiveLimits = effectiveLimitsByUserId.get(availability.user.id) ?? getEventLevelLimits(eventType);
+      const userSlots = getSlots({
+        inviteeDate: startTime,
+        eventLength,
+        offsetStart: eventType.offsetStart,
+        dateRanges: availability.oooExcludedDateRanges,
+        minimumBookingNotice: effectiveLimits.minimumBookingNotice,
+        frequency: effectiveLimits.slotInterval || input.duration || eventType.length,
+        showOptimizedSlots: eventType.showOptimizedSlots,
+      });
+      const slotsMappedToDate = userSlots.reduce<Record<string, { isBookable: boolean }>>((acc, slot) => {
+        const dateString = slot.time.tz(input.timeZone ?? "UTC").format("YYYY-MM-DD");
+        acc[dateString] = { isBookable: true };
+        return acc;
+      }, {});
+      const allDatesWithBookabilityStatus = this.getAllDatesWithBookabilityStatus(
+        Object.keys(slotsMappedToDate)
+      );
+      const periodLimits = calculatePeriodLimits({
+        periodType: effectiveLimits.periodType,
+        periodDays: effectiveLimits.periodDays,
+        periodCountCalendarDays: effectiveLimits.periodCountCalendarDays,
+        periodStartDate: effectiveLimits.periodStartDate,
+        periodEndDate: effectiveLimits.periodEndDate,
+        allDatesWithBookabilityStatusInBookerTz: allDatesWithBookabilityStatus,
+        eventUtcOffset: getUTCOffsetByTimezone(eventTimeZone ?? "UTC") ?? 0,
+        bookerUtcOffset,
+      });
+      const filteredUserSlots = userSlots.filter(
+        (slot) =>
+          !isTimeViolatingFutureLimit({
+            time: slot.time.toISOString(),
+            periodLimits,
+          })
+      );
+
+      return {
+        isFixed: availability.user.isFixed === true,
+        groupId: availability.user.groupId ?? null,
+        slotMap: new Map(filteredUserSlots.map((slot) => [getSlotKey(slot), slot])),
+      };
+    });
+
+    const fixedSlotMaps = slotMapsByUser.filter((slotMap) => slotMap.isFixed).map((slotMap) => slotMap.slotMap);
+    const roundRobinSlotMapsByGroup = slotMapsByUser
+      .filter((slotMap) => !slotMap.isFixed)
+      .reduce(
+        (groupedSlotMaps, slotMap) => {
+          const groupId = slotMap.groupId ?? DEFAULT_GROUP_ID;
+          groupedSlotMaps[groupId] = groupedSlotMaps[groupId] ?? [];
+          groupedSlotMaps[groupId].push(slotMap.slotMap);
+          return groupedSlotMaps;
+        },
+        {} as Record<string, Map<string, SlotResult>[]>
+      );
+
+    let mergedSlotMap: Map<string, SlotResult> | null = null;
+
+    if (fixedSlotMaps.length > 0) {
+      mergedSlotMap = fixedSlotMaps.slice(1).reduce(intersectSlotMaps, fixedSlotMaps[0]);
+    }
+
+    Object.values(roundRobinSlotMapsByGroup).forEach((slotMaps) => {
+      const groupSlotMap = mergeSlotMaps(slotMaps);
+      mergedSlotMap = mergedSlotMap ? intersectSlotMaps(mergedSlotMap, groupSlotMap) : groupSlotMap;
+    });
+
+    return Array.from(mergedSlotMap?.values() ?? []).sort((leftSlot, rightSlot) => {
+      return leftSlot.time.valueOf() - rightSlot.time.valueOf();
+    });
+  }
+
   private async calculateHostsAndAvailabilities({
     input,
     eventType,
@@ -868,11 +1165,7 @@ export class AvailableSlotsService {
       Awaited<ReturnType<(typeof AvailableSlotsService)["prototype"]["getRegularOrDynamicEventType"]>>,
       null
     >;
-    hosts: {
-      isFixed?: boolean;
-      groupId?: string | null;
-      user: GetAvailabilityUserWithDelegationCredentials;
-    }[];
+    hosts: OverrideAwareHost[];
     loggerWithEventDetails: Logger<unknown>;
     startTime: ReturnType<(typeof AvailableSlotsService)["prototype"]["getStartTime"]>;
     endTime: Dayjs;
@@ -882,7 +1175,7 @@ export class AvailableSlotsService {
   }) {
     const usersWithCredentials = this.getUsersWithCredentials({
       hosts,
-    });
+    }) as OverrideAwareAvailabilityUser[];
 
     loggerWithEventDetails.debug("Using users", {
       usersWithCredentials: usersWithCredentials.map((user) => user.email),
@@ -927,12 +1220,14 @@ export class AvailableSlotsService {
       Object.keys(eventType?.durationLimits).length > 0
         ? parseDurationLimit(eventType?.durationLimits)
         : null;
+    const eventLevelLimits = getEventLevelLimits(eventType);
+    const hasRoundRobinHostLimitOverrides = this.hasRoundRobinHostLimitOverrides(usersWithCredentials);
 
     let busyTimesFromLimitsBookingsAllUsers: Awaited<
       ReturnType<typeof getBusyTimesService.prototype.getBusyTimesForLimitChecks>
     > = [];
 
-    if (eventType && (bookingLimits || durationLimits)) {
+    if (!hasRoundRobinHostLimitOverrides && eventType && (bookingLimits || durationLimits)) {
       busyTimesFromLimitsBookingsAllUsers =
         await this.dependencies.busyTimesService.getBusyTimesForLimitChecks({
           userIds: allUserIds,
@@ -946,7 +1241,7 @@ export class AvailableSlotsService {
     }
 
     let busyTimesFromLimitsMap: Map<number, EventBusyDetails[]> | undefined;
-    if (eventType && (bookingLimits || durationLimits)) {
+    if (!hasRoundRobinHostLimitOverrides && eventType && (bookingLimits || durationLimits)) {
       const usersForLimits = usersWithCredentials.map((user) => ({ id: user.id, email: user.email }));
       const eventTimeZone = eventType.schedule?.timeZone ?? usersWithCredentials[0]?.timeZone ?? "UTC";
       busyTimesFromLimitsMap = await this.getBusyTimesFromLimitsForUsers(
@@ -1002,32 +1297,112 @@ export class AvailableSlotsService {
     }
     const enrichUsersWithData = withReporting(_enrichUsersWithData.bind(this), "enrichUsersWithData");
     const users = enrichUsersWithData();
+    const effectiveLimitsByUserId = new Map<number, EffectiveHostLimits>(
+      users.map((user) => [user.id, eventLevelLimits])
+    );
 
-    const premappedUsersAvailability = await this.dependencies.userAvailabilityService.getUsersAvailability({
-      users,
-      query: {
-        dateFrom: startTime.format(),
-        dateTo: endTime.format(),
-        eventTypeId: eventType.id,
-        afterEventBuffer: eventType.afterEventBuffer,
-        beforeEventBuffer: eventType.beforeEventBuffer,
-        duration: input.duration || 0,
-        returnDateOverrides: false,
-        bypassBusyCalendarTimes,
-        silentlyHandleCalendarFailures: silentCalendarFailures,
-        mode,
-      },
-      initialData: {
-        eventType,
-        currentSeats,
-        rescheduleUid: input.rescheduleUid,
-        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
-        busyTimesFromLimits: busyTimesFromLimitsMap,
-        eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
-        teamBookingLimits: teamBookingLimitsMap,
-        teamForBookingLimits: teamForBookingLimits,
-      },
-    });
+    const premappedUsersAvailability = hasRoundRobinHostLimitOverrides
+      ? await (async () => {
+          const busyTimesFromLimitsByUserId = new Map<number, EventBusyDetails[]>();
+          const limitBuckets = groupRoundRobinHostsByEffectiveLimits({
+            schedulingType: eventType.schedulingType,
+            eventLimits: eventLevelLimits,
+            hosts: users,
+            getHostOverrides: getRoundRobinHostLimitOverrides,
+          });
+
+          for (const bucket of limitBuckets) {
+            const parsedBucketBookingLimits = parseBookingLimit(bucket.effectiveLimits.bookingLimits);
+            const parsedBucketDurationLimits = parseDurationLimit(bucket.effectiveLimits.durationLimits);
+
+            let bucketBookings: EventBusyDetails[] = [];
+            if (parsedBucketBookingLimits || parsedBucketDurationLimits) {
+              const { limitDateFrom, limitDateTo } =
+                this.dependencies.busyTimesService.getStartEndDateforLimitCheck(
+                  startTime.toISOString(),
+                  endTime.toISOString(),
+                  parsedBucketBookingLimits,
+                  parsedBucketDurationLimits
+                );
+
+              bucketBookings = await this.dependencies.busyTimesService.getBusyTimesForLimitChecks({
+                userIds: bucket.hosts.map((user) => user.id),
+                eventTypeId: eventType.id,
+                startDate: limitDateFrom.format(),
+                endDate: limitDateTo.format(),
+                rescheduleUid: input.rescheduleUid,
+                bookingLimits: parsedBucketBookingLimits,
+                durationLimits: parsedBucketDurationLimits,
+              });
+            }
+
+            bucket.hosts.forEach((user) => {
+              effectiveLimitsByUserId.set(user.id, bucket.effectiveLimits);
+              busyTimesFromLimitsByUserId.set(
+                user.id,
+                bucketBookings.filter((booking) => booking.userId === user.id)
+              );
+            });
+          }
+
+          return await Promise.all(
+            users.map(async (user) => {
+              const effectiveLimits = effectiveLimitsByUserId.get(user.id) ?? eventLevelLimits;
+
+              return await this.dependencies.userAvailabilityService.getUserAvailability(
+                {
+                  dateFrom: startTime,
+                  dateTo: endTime,
+                  eventTypeId: eventType.id,
+                  afterEventBuffer: effectiveLimits.afterEventBuffer,
+                  beforeEventBuffer: effectiveLimits.beforeEventBuffer,
+                  duration: input.duration || 0,
+                  returnDateOverrides: false,
+                  bypassBusyCalendarTimes,
+                  silentlyHandleCalendarFailures: silentCalendarFailures,
+                  mode,
+                },
+                {
+                  user,
+                  eventType: buildEventTypeWithEffectiveLimits({
+                    eventType,
+                    effectiveLimits,
+                  }),
+                  currentSeats,
+                  rescheduleUid: input.rescheduleUid,
+                  busyTimesFromLimitsBookings: busyTimesFromLimitsByUserId.get(user.id) ?? [],
+                  teamBookingLimits: teamBookingLimitsMap,
+                  teamForBookingLimits: teamForBookingLimits,
+                }
+              );
+            })
+          );
+        })()
+      : await this.dependencies.userAvailabilityService.getUsersAvailability({
+          users,
+          query: {
+            dateFrom: startTime.format(),
+            dateTo: endTime.format(),
+            eventTypeId: eventType.id,
+            afterEventBuffer: eventType.afterEventBuffer,
+            beforeEventBuffer: eventType.beforeEventBuffer,
+            duration: input.duration || 0,
+            returnDateOverrides: false,
+            bypassBusyCalendarTimes,
+            silentlyHandleCalendarFailures: silentCalendarFailures,
+            mode,
+          },
+          initialData: {
+            eventType,
+            currentSeats,
+            rescheduleUid: input.rescheduleUid,
+            busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
+            busyTimesFromLimits: busyTimesFromLimitsMap,
+            eventTypeForLimits: eventType && (bookingLimits || durationLimits) ? eventType : null,
+            teamBookingLimits: teamBookingLimitsMap,
+            teamForBookingLimits: teamForBookingLimits,
+          },
+        });
     /* We get all users working hours and busy slots */
     const allUsersAvailability = premappedUsersAvailability.map(
       (
@@ -1051,6 +1426,8 @@ export class AvailableSlotsService {
       allUsersAvailability,
       usersWithCredentials,
       currentSeats,
+      effectiveLimitsByUserId,
+      hasRoundRobinHostLimitOverrides,
     };
   }
 
@@ -1179,11 +1556,6 @@ export class AvailableSlotsService {
       prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
     });
 
-    const startTime = this.getStartTime(
-      startTimeAdjustedForRollingWindowComputation,
-      input.timeZone,
-      eventType.minimumBookingNotice
-    );
     const endTime =
       input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
     // when an empty array is given we should prefer to have it handled as if this wasn't given at all
@@ -1247,12 +1619,32 @@ export class AvailableSlotsService {
       };
     }
 
+    const getStartTimeForHosts = (
+      startTimeInput: string,
+      hostsForStartTime: typeof allHosts
+    ) =>
+      this.getStartTime(
+        startTimeInput,
+        input.timeZone,
+        this.getEffectiveMinimumBookingNoticeForHosts({
+          eventType,
+          hosts: hostsForStartTime,
+        })
+      );
+
+    const startTime = getStartTimeForHosts(startTimeAdjustedForRollingWindowComputation, allHosts);
     const twoWeeksFromNow = dayjs().add(2, "week");
 
     const hasFallbackRRHosts =
       eligibleFallbackRRHosts.length > 0 && eligibleFallbackRRHosts.length > eligibleQualifiedRRHosts.length;
 
-    let { allUsersAvailability, usersWithCredentials, currentSeats } =
+    let {
+      allUsersAvailability,
+      usersWithCredentials,
+      currentSeats,
+      effectiveLimitsByUserId,
+      hasRoundRobinHostLimitOverrides,
+    } =
       await this.calculateHostsAndAvailabilities({
         input,
         eventType,
@@ -1261,12 +1653,12 @@ export class AvailableSlotsService {
         // adjust start time so we can check for available slots in the first two weeks
         startTime:
           hasFallbackRRHosts && startTime.isBefore(twoWeeksFromNow)
-            ? this.getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
+            ? getStartTimeForHosts(dayjs().format(), allHosts)
             : startTime,
         // adjust end time so we can check for available slots in the first two weeks
         endTime:
           hasFallbackRRHosts && endTime.isBefore(twoWeeksFromNow)
-            ? this.getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
+            ? getStartTimeForHosts(twoWeeksFromNow.format(), allHosts)
             : endTime,
         bypassBusyCalendarTimes,
         silentCalendarFailures,
@@ -1274,6 +1666,38 @@ export class AvailableSlotsService {
       });
 
     let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
+    const eventTimeZone =
+      eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
+    let timeSlots = hasRoundRobinHostLimitOverrides
+      ? this.getRoundRobinOverrideAwareSlots({
+          input,
+          eventType,
+          allUsersAvailability,
+          effectiveLimitsByUserId,
+          startTime,
+          eventTimeZone,
+        })
+      : getSlots({
+          inviteeDate: startTime,
+          eventLength: input.duration || eventType.length,
+          offsetStart: eventType.offsetStart,
+          dateRanges: aggregatedAvailability,
+          minimumBookingNotice: eventType.minimumBookingNotice,
+          frequency: eventType.slotInterval || input.duration || eventType.length,
+          datesOutOfOffice:
+            eventType.schedulingType === SchedulingType.COLLECTIVE ||
+            eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+            allUsersAvailability.length > 1
+              ? undefined
+              : allUsersAvailability[0]?.datesOutOfOffice,
+          showOptimizedSlots: eventType.showOptimizedSlots,
+          datesOutOfOfficeTimeZone:
+            eventType.schedulingType === SchedulingType.COLLECTIVE ||
+            eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+            allUsersAvailability.length > 1
+              ? undefined
+              : allUsersAvailability[0]?.timeZone,
+        });
 
     // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
     if (hasFallbackRRHosts) {
@@ -1281,30 +1705,63 @@ export class AvailableSlotsService {
       if (startTime.isBefore(twoWeeksFromNow)) {
         //check if first two week have availability
         diff =
-          aggregatedAvailability.length > 0
-            ? aggregatedAvailability[0].start.diff(twoWeeksFromNow, "day")
+          timeSlots.length > 0
+            ? timeSlots[0].time.diff(twoWeeksFromNow, "day")
             : 1; // no aggregatedAvailability so we diff to +1
       } else {
         // if start time is not within first two weeks, check if there are any available slots
-        if (!aggregatedAvailability.length) {
+        if (!timeSlots.length) {
           // if no available slots check if first two weeks are available, otherwise fallback
           const firstTwoWeeksAvailabilities = await this.calculateHostsAndAvailabilities({
             input,
             eventType,
             hosts: [...eligibleQualifiedRRHosts, ...eligibleFixedHosts],
             loggerWithEventDetails,
-            startTime: dayjs(),
-            endTime: twoWeeksFromNow,
+            startTime: getStartTimeForHosts(dayjs().format(), [
+              ...eligibleQualifiedRRHosts,
+              ...eligibleFixedHosts,
+            ]),
+            endTime: getStartTimeForHosts(twoWeeksFromNow.format(), [
+              ...eligibleQualifiedRRHosts,
+              ...eligibleFixedHosts,
+            ]),
             bypassBusyCalendarTimes,
             silentCalendarFailures,
             mode,
           });
-          if (
-            !getAggregatedAvailability(
-              firstTwoWeeksAvailabilities.allUsersAvailability,
-              eventType.schedulingType
-            ).length
-          ) {
+          const firstTwoWeeksTimeSlots = firstTwoWeeksAvailabilities.hasRoundRobinHostLimitOverrides
+            ? this.getRoundRobinOverrideAwareSlots({
+                input,
+                eventType,
+                allUsersAvailability: firstTwoWeeksAvailabilities.allUsersAvailability,
+                effectiveLimitsByUserId: firstTwoWeeksAvailabilities.effectiveLimitsByUserId,
+                startTime: getStartTimeForHosts(dayjs().format(), [
+                  ...eligibleQualifiedRRHosts,
+                  ...eligibleFixedHosts,
+                ]),
+                eventTimeZone:
+                  eventType.timeZone ||
+                  eventType.schedule?.timeZone ||
+                  firstTwoWeeksAvailabilities.allUsersAvailability[0]?.timeZone,
+              })
+            : getSlots({
+                inviteeDate: getStartTimeForHosts(dayjs().format(), [
+                  ...eligibleQualifiedRRHosts,
+                  ...eligibleFixedHosts,
+                ]),
+                eventLength: input.duration || eventType.length,
+                offsetStart: eventType.offsetStart,
+                dateRanges: getAggregatedAvailability(
+                  firstTwoWeeksAvailabilities.allUsersAvailability,
+                  eventType.schedulingType
+                ),
+                minimumBookingNotice: eventType.minimumBookingNotice,
+                frequency: eventType.slotInterval || input.duration || eventType.length,
+                datesOutOfOffice: undefined,
+                showOptimizedSlots: eventType.showOptimizedSlots,
+                datesOutOfOfficeTimeZone: undefined,
+              });
+          if (!firstTwoWeeksTimeSlots.length) {
             diff = 1;
           }
         }
@@ -1323,38 +1780,54 @@ export class AvailableSlotsService {
 
       if (diff > 0) {
         // if the first available slot is more than 2 weeks from now, round robin as normal
-        ({ allUsersAvailability, usersWithCredentials, currentSeats } =
+        ({
+          allUsersAvailability,
+          usersWithCredentials,
+          currentSeats,
+          effectiveLimitsByUserId,
+          hasRoundRobinHostLimitOverrides,
+        } =
           await this.calculateHostsAndAvailabilities({
             input,
             eventType,
             hosts: [...eligibleFallbackRRHosts, ...eligibleFixedHosts],
             loggerWithEventDetails,
-            startTime,
+            startTime: getStartTimeForHosts(startTimeAdjustedForRollingWindowComputation, [
+              ...eligibleFallbackRRHosts,
+              ...eligibleFixedHosts,
+            ]),
             endTime,
             bypassBusyCalendarTimes,
             silentCalendarFailures,
             mode,
           }));
         aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
+        timeSlots = hasRoundRobinHostLimitOverrides
+          ? this.getRoundRobinOverrideAwareSlots({
+              input,
+              eventType,
+              allUsersAvailability,
+              effectiveLimitsByUserId,
+              startTime: getStartTimeForHosts(startTimeAdjustedForRollingWindowComputation, [
+                ...eligibleFallbackRRHosts,
+                ...eligibleFixedHosts,
+              ]),
+              eventTimeZone:
+                eventType.timeZone || eventType.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,
+            })
+          : getSlots({
+              inviteeDate: startTime,
+              eventLength: input.duration || eventType.length,
+              offsetStart: eventType.offsetStart,
+              dateRanges: aggregatedAvailability,
+              minimumBookingNotice: eventType.minimumBookingNotice,
+              frequency: eventType.slotInterval || input.duration || eventType.length,
+              datesOutOfOffice: undefined,
+              showOptimizedSlots: eventType.showOptimizedSlots,
+              datesOutOfOfficeTimeZone: undefined,
+            });
       }
     }
-
-    const isTeamEvent =
-      eventType.schedulingType === SchedulingType.COLLECTIVE ||
-      eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
-      allUsersAvailability.length > 1;
-
-    const timeSlots = getSlots({
-      inviteeDate: startTime,
-      eventLength: input.duration || eventType.length,
-      offsetStart: eventType.offsetStart,
-      dateRanges: aggregatedAvailability,
-      minimumBookingNotice: eventType.minimumBookingNotice,
-      frequency: eventType.slotInterval || input.duration || eventType.length,
-      datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
-      showOptimizedSlots: eventType.showOptimizedSlots,
-      datesOutOfOfficeTimeZone: !isTeamEvent ? allUsersAvailability[0]?.timeZone : undefined,
-    });
 
     let availableTimeSlots: typeof timeSlots = [];
     const bookerClientUid = ctx?.req?.cookies?.uid;
@@ -1553,86 +2026,75 @@ export class AvailableSlotsService {
     const mapSlotsToDate = withReporting(_mapSlotsToDate.bind(this), "mapSlotsToDate");
     const slotsMappedToDate = mapSlotsToDate();
 
-    const availableDates = Object.keys(slotsMappedToDate);
-    const allDatesWithBookabilityStatus = this.getAllDatesWithBookabilityStatus(availableDates);
-
-    // timeZone isn't directly set on eventType now(So, it is legacy)
-    // schedule is always expected to be set for an eventType now so it must never fallback to allUsersAvailability[0].timeZone(fallback is again legacy behavior)
-    // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
-    const eventTimeZone =
-      eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
-
-    const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
-    const bookerUtcOffset = input.timeZone ? (getUTCOffsetByTimezone(input.timeZone) ?? 0) : 0;
-    const periodLimits = calculatePeriodLimits({
-      periodType: eventType.periodType,
-      periodDays: eventType.periodDays,
-      periodCountCalendarDays: eventType.periodCountCalendarDays,
-      periodStartDate: eventType.periodStartDate,
-      periodEndDate: eventType.periodEndDate,
-      allDatesWithBookabilityStatusInBookerTz: allDatesWithBookabilityStatus,
-      eventUtcOffset,
-      bookerUtcOffset,
-    });
-
-    const _mapWithinBoundsSlotsToDate = () => {
-      let foundAFutureLimitViolation = false;
-      // This should never happen. Just for type safety, we already check in the upper scope
-      if (!eventType) throw new TRPCError({ code: "NOT_FOUND" });
-
-      const withinBoundsSlotsMappedToDate = {} as typeof slotsMappedToDate;
-      const doesStartFromToday = this.doesRangeStartFromToday(eventType.periodType);
-
-      for (const [date, slots] of Object.entries(slotsMappedToDate)) {
-        if (foundAFutureLimitViolation && doesStartFromToday) {
-          break; // Instead of continuing the loop, we can break since all future dates will be skipped
-        }
-
-        const filteredSlots = slots.filter((slot) => {
-          const isFutureLimitViolationForTheSlot = isTimeViolatingFutureLimit({
-            time: slot.time,
-            periodLimits,
+    const withinBoundsSlotsMappedToDate = hasRoundRobinHostLimitOverrides
+      ? slotsMappedToDate
+      : (() => {
+          const availableDates = Object.keys(slotsMappedToDate);
+          const allDatesWithBookabilityStatus = this.getAllDatesWithBookabilityStatus(availableDates);
+          const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
+          const bookerUtcOffset = input.timeZone ? (getUTCOffsetByTimezone(input.timeZone) ?? 0) : 0;
+          const periodLimits = calculatePeriodLimits({
+            periodType: eventType.periodType,
+            periodDays: eventType.periodDays,
+            periodCountCalendarDays: eventType.periodCountCalendarDays,
+            periodStartDate: eventType.periodStartDate,
+            periodEndDate: eventType.periodEndDate,
+            allDatesWithBookabilityStatusInBookerTz: allDatesWithBookabilityStatus,
+            eventUtcOffset,
+            bookerUtcOffset,
           });
 
-          let isOutOfBounds = false;
-          try {
-            isOutOfBounds = isTimeOutOfBounds({
-              time: slot.time,
-              minimumBookingNotice: eventType.minimumBookingNotice,
-            });
-          } catch (error) {
-            if (error instanceof BookingDateInPastError) {
-              throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: error.message,
+          const mapWithinBoundsSlotsToDate = withReporting(() => {
+            let foundAFutureLimitViolation = false;
+            const nextSlotsMappedToDate = {} as typeof slotsMappedToDate;
+            const doesStartFromToday = this.doesRangeStartFromToday(eventType.periodType);
+
+            for (const date of Object.keys(slotsMappedToDate)) {
+              const slots = slotsMappedToDate[date] ?? [];
+
+              if (foundAFutureLimitViolation && doesStartFromToday) {
+                break;
+              }
+
+              const filteredSlots = slots.filter((slot) => {
+                const isFutureLimitViolationForTheSlot = isTimeViolatingFutureLimit({
+                  time: slot.time,
+                  periodLimits,
+                });
+
+                let isOutOfBounds = false;
+                try {
+                  isOutOfBounds = isTimeOutOfBounds({
+                    time: slot.time,
+                    minimumBookingNotice: eventType.minimumBookingNotice,
+                  });
+                } catch (error) {
+                  if (error instanceof BookingDateInPastError) {
+                    throw new TRPCError({
+                      code: "BAD_REQUEST",
+                      message: error.message,
+                    });
+                  }
+                  throw error;
+                }
+
+                if (isFutureLimitViolationForTheSlot) {
+                  foundAFutureLimitViolation = true;
+                }
+
+                return !isFutureLimitViolationForTheSlot && !isOutOfBounds;
               });
+
+              if (filteredSlots.length) {
+                nextSlotsMappedToDate[date] = filteredSlots;
+              }
             }
-            throw error;
-          }
 
-          if (isFutureLimitViolationForTheSlot) {
-            foundAFutureLimitViolation = true;
-          }
+            return nextSlotsMappedToDate;
+          }, "mapWithinBoundsSlotsToDate");
 
-          return (
-            !isFutureLimitViolationForTheSlot &&
-            // TODO: Perf Optimization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
-            !isOutOfBounds
-          );
-        });
-
-        if (filteredSlots.length) {
-          withinBoundsSlotsMappedToDate[date] = filteredSlots;
-        }
-      }
-
-      return withinBoundsSlotsMappedToDate;
-    };
-    const mapWithinBoundsSlotsToDate = withReporting(
-      _mapWithinBoundsSlotsToDate.bind(this),
-      "mapWithinBoundsSlotsToDate"
-    );
-    const withinBoundsSlotsMappedToDate = mapWithinBoundsSlotsToDate();
+          return mapWithinBoundsSlotsToDate();
+        })();
 
     const filteredSlotsMappedToDate = this.filterSlotsByRequestedDateRange({
       slotsMappedToDate: withinBoundsSlotsMappedToDate,

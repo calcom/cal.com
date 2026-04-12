@@ -1,9 +1,14 @@
 import type { NextApiRequest } from "next";
 
+import {
+  getRoundRobinHostLimitOverrides,
+  resolveRoundRobinHostEffectiveLimits,
+} from "@calcom/features/bookings/lib/handleNewBooking/resolveRoundRobinHostEffectiveLimits";
 import { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import { PrismaSelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/PrismaSelectedSlotRepository";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPastTimeAndMinimumBookingNoticeBoundsStatus } from "@calcom/lib/isOutOfBounds";
+import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { PrismaClient } from "@calcom/prisma";
 
 import type { TIsAvailableInputSchema, TIsAvailableOutputSchema } from "./isAvailable.schema";
@@ -39,6 +44,31 @@ export const isAvailableHandler = async ({
     throw new HttpError({ statusCode: 404, message: "Event type not found" });
   }
 
+  const minimumBookingNotice =
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN && eventType.hosts.length > 0
+      ? Math.min(
+          ...eventType.hosts.map((host) =>
+            resolveRoundRobinHostEffectiveLimits({
+              schedulingType: eventType.schedulingType,
+              eventLimits: {
+                minimumBookingNotice: eventType.minimumBookingNotice,
+                beforeEventBuffer: 0,
+                afterEventBuffer: 0,
+                slotInterval: null,
+                bookingLimits: null,
+                durationLimits: null,
+                periodType: PeriodType.UNLIMITED,
+                periodDays: null,
+                periodCountCalendarDays: null,
+                periodStartDate: null,
+                periodEndDate: null,
+              },
+              hostOverrides: getRoundRobinHostLimitOverrides(host),
+            }).minimumBookingNotice
+          )
+        )
+      : eventType.minimumBookingNotice;
+
   // Check each slot's availability
   // Without uid, we must not check for reserved slots because if uuid isn't set in cookie yet, but it is going to be through reserveSlot request soon, we could consider the slot as reserved accidentally.
   const slotsRepo = new PrismaSelectedSlotRepository(ctx.prisma);
@@ -69,7 +99,7 @@ export const isAvailableHandler = async ({
     // Check time bounds
     const timeStatus = getPastTimeAndMinimumBookingNoticeBoundsStatus({
       time: slot.utcStartIso,
-      minimumBookingNotice: eventType.minimumBookingNotice,
+      minimumBookingNotice,
     });
 
     return {
