@@ -65,4 +65,49 @@ export class AccessCodeRepository {
       },
     });
   }
+
+  /**
+   * Atomically find a valid authorization code and delete it in one transaction.
+   * Prevents the race condition where two concurrent requests both find the same
+   * code valid before either deletes it (RFC 6749 Section 4.1.2: single-use codes).
+   */
+  async consumeCode(code: string, clientId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const accessCode = await tx.accessCode.findFirst({
+        where: {
+          code,
+          clientId,
+          expiresAt: {
+            gt: new Date(),
+          },
+        },
+        select: {
+          userId: true,
+          teamId: true,
+          scopes: true,
+          codeChallenge: true,
+          codeChallengeMethod: true,
+        },
+      });
+
+      // Delete the used code and any expired codes in the same transaction
+      await tx.accessCode.deleteMany({
+        where: {
+          OR: [
+            {
+              expiresAt: {
+                lt: new Date(),
+              },
+            },
+            {
+              code,
+              clientId,
+            },
+          ],
+        },
+      });
+
+      return accessCode;
+    });
+  }
 }

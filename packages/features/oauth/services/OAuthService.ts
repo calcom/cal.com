@@ -295,9 +295,9 @@ export class OAuthService {
       });
     }
 
-    const accessCode = await this.accessCodeRepository.findValidCode(code, clientId);
-
-    await this.accessCodeRepository.deleteExpiredAndUsedCodes(code, clientId);
+    // Atomically consume the authorization code to prevent race conditions
+    // where concurrent requests both find the same code valid (RFC 6749 §4.1.2)
+    const accessCode = await this.accessCodeRepository.consumeCode(code, clientId);
 
     if (!accessCode) {
       throw new ErrorWithCode(ErrorCode.BadRequest, "invalid_grant", { reason: "code_invalid_or_expired" });
