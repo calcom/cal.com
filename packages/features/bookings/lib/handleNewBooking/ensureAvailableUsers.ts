@@ -3,6 +3,10 @@ import type { Logger } from "tslog";
 import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
+import {
+  getRoundRobinHostLimitOverrides,
+  groupRoundRobinHostsByEffectiveLimits,
+} from "@calcom/features/bookings/lib/handleNewBooking/resolveRoundRobinHostEffectiveLimits";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
@@ -13,7 +17,9 @@ import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarFetchMode } from "@calcom/types/Calendar";
+import type { EventBusyDetails } from "@calcom/types/Calendar";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { BookingType } from "./originalRescheduledBookingUtils";
@@ -54,6 +60,58 @@ const hasDateRangeForBooking = (
   return dateRangeForBooking;
 };
 
+const getEventLevelLimits = (
+  eventType: Pick<
+    getEventTypeResponse,
+    | "minimumBookingNotice"
+    | "beforeEventBuffer"
+    | "afterEventBuffer"
+    | "slotInterval"
+    | "bookingLimits"
+    | "durationLimits"
+    | "periodType"
+    | "periodDays"
+    | "periodCountCalendarDays"
+    | "periodStartDate"
+    | "periodEndDate"
+  >
+) => ({
+  minimumBookingNotice: eventType.minimumBookingNotice,
+  beforeEventBuffer: eventType.beforeEventBuffer,
+  afterEventBuffer: eventType.afterEventBuffer,
+  slotInterval: eventType.slotInterval,
+  bookingLimits: eventType.bookingLimits,
+  durationLimits: eventType.durationLimits,
+  periodType: eventType.periodType,
+  periodDays: eventType.periodDays,
+  periodCountCalendarDays: eventType.periodCountCalendarDays,
+  periodStartDate: eventType.periodStartDate,
+  periodEndDate: eventType.periodEndDate,
+});
+
+const buildEventTypeWithEffectiveLimits = ({
+  eventType,
+  effectiveLimits,
+}: {
+  eventType: Omit<getEventTypeResponse, "users"> & {
+    users: IsFixedAwareUser[];
+  };
+  effectiveLimits: ReturnType<typeof getEventLevelLimits>;
+}) => ({
+  ...eventType,
+  minimumBookingNotice: effectiveLimits.minimumBookingNotice,
+  beforeEventBuffer: effectiveLimits.beforeEventBuffer,
+  afterEventBuffer: effectiveLimits.afterEventBuffer,
+  slotInterval: effectiveLimits.slotInterval,
+  bookingLimits: effectiveLimits.bookingLimits,
+  durationLimits: effectiveLimits.durationLimits,
+  periodType: effectiveLimits.periodType,
+  periodDays: effectiveLimits.periodDays,
+  periodCountCalendarDays: effectiveLimits.periodCountCalendarDays,
+  periodStartDate: effectiveLimits.periodStartDate,
+  periodEndDate: effectiveLimits.periodEndDate,
+});
+
 const _ensureAvailableUsers = async (
   eventType: Omit<getEventTypeResponse, "users"> & {
     users: IsFixedAwareUser[];
@@ -74,12 +132,15 @@ const _ensureAvailableUsers = async (
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
+  const hasRoundRobinHostLimitOverrides =
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    eventType.users.some((user) => getRoundRobinHostLimitOverrides(user));
 
   const busyTimesService = getBusyTimesService();
   const busyTimesFromLimitsBookingsAllUsers: Awaited<
     ReturnType<typeof busyTimesService.getBusyTimesForLimitChecks>
   > =
-    eventType && (bookingLimits || durationLimits)
+    !hasRoundRobinHostLimitOverrides && eventType && (bookingLimits || durationLimits)
       ? await busyTimesService.getBusyTimesForLimitChecks({
           userIds: eventType.users.map((u) => u.id),
           eventTypeId: eventType.id,
@@ -91,27 +152,99 @@ const _ensureAvailableUsers = async (
         })
       : [];
 
-  const usersAvailability = await userAvailabilityService.getUsersAvailability({
-    users: eventType.users,
-    query: {
-      ...input,
-      eventTypeId: eventType.id,
-      duration: originalBookingDuration,
-      returnDateOverrides: false,
-      dateFrom: startDateTimeUtc.format(),
-      dateTo: endDateTimeUtc.format(),
-      beforeEventBuffer: eventType.beforeEventBuffer,
-      afterEventBuffer: eventType.afterEventBuffer,
-      bypassBusyCalendarTimes: false,
-      mode,
-      withSource: true,
-    },
-    initialData: {
-      eventType,
-      rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
-      busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
-    },
-  });
+  const usersAvailability = hasRoundRobinHostLimitOverrides
+    ? await (async () => {
+        const eventLevelLimits = getEventLevelLimits(eventType);
+        const limitBuckets = groupRoundRobinHostsByEffectiveLimits({
+          schedulingType: eventType.schedulingType,
+          eventLimits: eventLevelLimits,
+          hosts: eventType.users,
+          getHostOverrides: getRoundRobinHostLimitOverrides,
+        });
+        const effectiveLimitsByUserId = new Map<number, typeof eventLevelLimits>();
+        const busyTimesFromLimitsByUserId = new Map<number, EventBusyDetails[]>();
+
+        for (const bucket of limitBuckets) {
+          const parsedBucketBookingLimits = parseBookingLimit(bucket.effectiveLimits.bookingLimits);
+          const parsedBucketDurationLimits = parseDurationLimit(bucket.effectiveLimits.durationLimits);
+
+          let bucketBookings: EventBusyDetails[] = [];
+          if (parsedBucketBookingLimits || parsedBucketDurationLimits) {
+            const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
+              startDateTimeUtc.toISOString(),
+              endDateTimeUtc.toISOString(),
+              parsedBucketBookingLimits,
+              parsedBucketDurationLimits
+            );
+
+            bucketBookings = await busyTimesService.getBusyTimesForLimitChecks({
+              userIds: bucket.hosts.map((user) => user.id),
+              eventTypeId: eventType.id,
+              startDate: limitDateFrom.format(),
+              endDate: limitDateTo.format(),
+              rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
+              bookingLimits: parsedBucketBookingLimits,
+              durationLimits: parsedBucketDurationLimits,
+            });
+          }
+
+          for (const user of bucket.hosts) {
+            effectiveLimitsByUserId.set(user.id, bucket.effectiveLimits);
+            busyTimesFromLimitsByUserId.set(
+              user.id,
+              bucketBookings.filter((booking) => booking.userId === user.id)
+            );
+          }
+        }
+
+        return await Promise.all(
+          eventType.users.map(async (user) => {
+            const effectiveLimits = effectiveLimitsByUserId.get(user.id) ?? eventLevelLimits;
+            return await userAvailabilityService.getUserAvailability(
+              {
+                ...input,
+                eventTypeId: eventType.id,
+                duration: originalBookingDuration,
+                returnDateOverrides: false,
+                dateFrom: startDateTimeUtc,
+                dateTo: endDateTimeUtc,
+                beforeEventBuffer: effectiveLimits.beforeEventBuffer,
+                afterEventBuffer: effectiveLimits.afterEventBuffer,
+                bypassBusyCalendarTimes: false,
+                mode,
+                withSource: true,
+              },
+              {
+                user,
+                eventType: buildEventTypeWithEffectiveLimits({ eventType, effectiveLimits }),
+                rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
+                busyTimesFromLimitsBookings: busyTimesFromLimitsByUserId.get(user.id) ?? [],
+              }
+            );
+          })
+        );
+      })()
+    : await userAvailabilityService.getUsersAvailability({
+        users: eventType.users,
+        query: {
+          ...input,
+          eventTypeId: eventType.id,
+          duration: originalBookingDuration,
+          returnDateOverrides: false,
+          dateFrom: startDateTimeUtc.format(),
+          dateTo: endDateTimeUtc.format(),
+          beforeEventBuffer: eventType.beforeEventBuffer,
+          afterEventBuffer: eventType.afterEventBuffer,
+          bypassBusyCalendarTimes: false,
+          mode,
+          withSource: true,
+        },
+        initialData: {
+          eventType,
+          rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
+          busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
+        },
+      });
 
   const piiFreeInputDataForLogging = safeStringify({
     startDateTimeUtc,

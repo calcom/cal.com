@@ -18,7 +18,7 @@ type BaseUser = {
 
 type BaseHost<User extends BaseUser> = {
   isFixed: boolean;
-  createdAt: Date;
+  createdAt: Date | null;
   priority?: number | null;
   weight?: number | null;
   weightAdjustment?: number | null;
@@ -35,6 +35,10 @@ type WeightedPerUserData = Omit<PerUserData, "weights" | "calibrations" | "booki
 };
 
 const log = logger.getSubLogger({ name: "filterHostsByLeadThreshold" });
+
+const hasCreatedAt = <T extends BaseHost<BaseUser>>(host: T): host is T & { createdAt: Date } => {
+  return host.createdAt !== null;
+};
 
 function filterHostsByLeadThresholdWithWeights(perUserData: WeightedPerUserData, maxLeadThreshold: number) {
   const filteredUserIds: number[] = [];
@@ -116,6 +120,12 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
     return hosts; // don't apply filter.
   }
 
+  const hostsWithCreatedAt = hosts.filter(hasCreatedAt);
+  if (hostsWithCreatedAt.length !== hosts.length) {
+    log.debug("Skipping lead-threshold filtering because one or more round-robin hosts have no createdAt");
+    return hosts;
+  }
+
   // this needs the routing forms response too, because it needs to know what queue we are in
   const luckyUserService = getLuckyUserService();
   const orderedLuckyUsers = await luckyUserService.getOrderedListOfLuckyUsers({
@@ -132,7 +142,7 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
       })),
     ],
     eventType,
-    allRRHosts: hosts,
+    allRRHosts: hostsWithCreatedAt,
     routingFormResponse,
   });
 
@@ -161,6 +171,6 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
     filteredUserIds = filterHostsByLeadThresholdWithoutWeights(perUserData, maxLeadThreshold);
   }
 
-  const filteredHosts = hosts.filter((host) => filteredUserIds.includes(host.user.id));
+  const filteredHosts = hostsWithCreatedAt.filter((host) => filteredUserIds.includes(host.user.id));
   return filteredHosts;
 };

@@ -6,7 +6,9 @@ import {
 } from "@calcom/features/users/lib/getRoutedUsers";
 import type { EventType } from "@calcom/features/users/lib/getRoutedUsers";
 import { withReporting } from "@calcom/lib/sentryWrapper";
+import type { Prisma } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";
+import type { PeriodType } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
@@ -20,12 +22,27 @@ export interface IQualifiedHostsService {
 
 type Host<T> = {
   isFixed: boolean;
-  createdAt: Date;
+  createdAt: Date | null;
   priority?: number | null;
   weight?: number | null;
   groupId: string | null;
+  overrideMinimumBookingNotice?: number | null;
+  overrideBeforeEventBuffer?: number | null;
+  overrideAfterEventBuffer?: number | null;
+  overrideSlotInterval?: number | null;
+  overrideBookingLimits?: Prisma.JsonValue | null;
+  overrideDurationLimits?: Prisma.JsonValue | null;
+  overridePeriodType?: PeriodType | null;
+  overridePeriodStartDate?: Date | null;
+  overridePeriodEndDate?: Date | null;
+  overridePeriodDays?: number | null;
+  overridePeriodCountCalendarDays?: boolean | null;
 } & {
   user: T;
+};
+
+type QualifiedHost<T> = Omit<Host<T>, "user"> & {
+  user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
 };
 
 // In case we don't have any matching team members, we return all the RR hosts, as we always want the team event to be bookable.
@@ -50,8 +67,8 @@ const isRoundRobinHost = <T extends { isFixed: boolean }>(host: T): host is T & 
   return host.isFixed === false;
 };
 
-const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isFixed: false } => {
-  return host.isFixed;
+const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isFixed: true } => {
+  return host.isFixed === true;
 };
 
 const isWithinRRHostSubset = <T extends { isFixed: boolean; user: { id: number } }>(
@@ -64,7 +81,7 @@ const isWithinRRHostSubset = <T extends { isFixed: boolean; user: { id: number }
     rrHostSubsetEnabled: false,
     schedulingType: undefined,
   }
-): host is T & { isFixed: false } => {
+): boolean => {
   if (rrHostSubsetIds.length === 0 || !rrHostSubsetEnabled || schedulingType !== SchedulingType.ROUND_ROBIN) {
     return true;
   }
@@ -107,28 +124,10 @@ export class QualifiedHostsService {
     routingFormResponse: RoutingFormResponse | null;
     rrHostSubsetIds?: number[];
   }): Promise<{
-    qualifiedRRHosts: {
-      isFixed: boolean;
-      createdAt: Date | null;
-      priority?: number | null;
-      weight?: number | null;
-      user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
-    }[];
-    fixedHosts: {
-      isFixed: boolean;
-      createdAt: Date | null;
-      priority?: number | null;
-      weight?: number | null;
-      user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
-    }[];
+    qualifiedRRHosts: QualifiedHost<T>[];
+    fixedHosts: QualifiedHost<T>[];
     // all hosts we want to fallback to including the qualifiedRRHosts (fairness + crm contact owner)
-    allFallbackRRHosts?: {
-      isFixed: boolean;
-      createdAt: Date | null;
-      priority?: number | null;
-      weight?: number | null;
-      user: Omit<T, "credentials"> & { credentials: CredentialForCalendarService[] };
-    }[];
+    allFallbackRRHosts?: QualifiedHost<T>[];
   }> {
     const { hosts: normalizedHosts, fallbackHosts: fallbackUsers } =
       await getNormalizedHostsWithDelegationCredentials({

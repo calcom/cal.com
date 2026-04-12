@@ -36,8 +36,10 @@ import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEvent
 import type { BookingEventHandlerService } from "@calcom/features/bookings/lib/onBookingEvents/BookingEventHandlerService";
 import type { BookingRescheduledPayload } from "@calcom/features/bookings/lib/onBookingEvents/types.d";
 import type { BookingEmailAndSmsTasker } from "@calcom/features/bookings/lib/tasker/BookingEmailAndSmsTasker";
+import { getBusyTimesFromLimits } from "@calcom/features/busyTimes/lib/getBusyTimesFromLimits";
 import type { BuiltCalendarEvent } from "@calcom/features/CalendarEventBuilder";
 import { CalendarEventBuilder } from "@calcom/features/CalendarEventBuilder";
+import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getSpamCheckService } from "@calcom/features/di/watchlist/containers/SpamCheckService.container";
 import { CreditService } from "@calcom/features/ee/billing/credit-service";
 import { getBookerBaseUrl } from "@calcom/features/ee/organizations/lib/getBookerUrlServer";
@@ -79,6 +81,8 @@ import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
+import { parseBookingLimit } from "@calcom/lib/intervalLimits/isBookingLimits";
+import { parseDurationLimit } from "@calcom/lib/intervalLimits/isDurationLimits";
 import { criticalLogger } from "@calcom/lib/logger.server";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -132,6 +136,7 @@ import { getRequiresConfirmationFlags } from "../handleNewBooking/getRequiresCon
 import {
   getRoundRobinHostLimitOverrides,
   groupRoundRobinHostsByEffectiveLimits,
+  resolveRoundRobinHostEffectiveLimits,
 } from "../handleNewBooking/resolveRoundRobinHostEffectiveLimits";
 import { getSeatedBooking } from "../handleNewBooking/getSeatedBooking";
 import { getVideoCallDetails } from "../handleNewBooking/getVideoCallDetails";
@@ -158,6 +163,77 @@ function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
     throw new Error("Array should have at least one item, but it's empty");
   }
 }
+
+type EventLimitFields = Pick<
+  getEventTypeResponse,
+  | "minimumBookingNotice"
+  | "beforeEventBuffer"
+  | "afterEventBuffer"
+  | "slotInterval"
+  | "bookingLimits"
+  | "durationLimits"
+  | "periodType"
+  | "periodDays"
+  | "periodCountCalendarDays"
+  | "periodStartDate"
+  | "periodEndDate"
+>;
+
+const getEventLevelLimits = (eventType: EventLimitFields) => ({
+  minimumBookingNotice: eventType.minimumBookingNotice,
+  beforeEventBuffer: eventType.beforeEventBuffer,
+  afterEventBuffer: eventType.afterEventBuffer,
+  slotInterval: eventType.slotInterval,
+  bookingLimits: eventType.bookingLimits,
+  durationLimits: eventType.durationLimits,
+  periodType: eventType.periodType,
+  periodDays: eventType.periodDays,
+  periodCountCalendarDays: eventType.periodCountCalendarDays,
+  periodStartDate: eventType.periodStartDate,
+  periodEndDate: eventType.periodEndDate,
+});
+
+const buildEventTypeWithEffectiveLimits = <T extends EventLimitFields>(params: {
+  eventType: T;
+  effectiveLimits: ReturnType<typeof getEventLevelLimits>;
+}) => {
+  const { eventType, effectiveLimits } = params;
+
+  return {
+    ...eventType,
+    minimumBookingNotice: effectiveLimits.minimumBookingNotice,
+    beforeEventBuffer: effectiveLimits.beforeEventBuffer,
+    afterEventBuffer: effectiveLimits.afterEventBuffer,
+    slotInterval: effectiveLimits.slotInterval,
+    bookingLimits: effectiveLimits.bookingLimits,
+    durationLimits: effectiveLimits.durationLimits,
+    periodType: effectiveLimits.periodType,
+    periodDays: effectiveLimits.periodDays,
+    periodCountCalendarDays: effectiveLimits.periodCountCalendarDays,
+    periodStartDate: effectiveLimits.periodStartDate,
+    periodEndDate: effectiveLimits.periodEndDate,
+  };
+};
+
+const doesBookingConflictWithBusyTimes = ({
+  start,
+  end,
+  busyTimes,
+}: {
+  start: string;
+  end: string;
+  busyTimes: { start: string | Date; end: string | Date; source?: string | null }[];
+}) => {
+  const bookingStart = dayjs(start);
+  const bookingEnd = dayjs(end);
+
+  return busyTimes.find((busyTime) => {
+    const busyStart = dayjs(busyTime.start);
+    const busyEnd = dayjs(busyTime.end);
+
+    return bookingStart.isBefore(busyEnd) && bookingEnd.isAfter(busyStart);
+  });
+};
 
 function getICalSequence(originalRescheduledBooking: BookingType | null) {
   // If new booking set the sequence to 0
@@ -839,14 +915,6 @@ async function handler(
   const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
   const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
 
-  await validateBookingTimeIsNotOutOfBounds<typeof eventType>(
-    reqBody.start,
-    reqBody.timeZone,
-    eventType,
-    eventTimeZone,
-    tracingLogger
-  );
-
   validateEventLength({
     reqBodyStart: reqBody.start,
     reqBodyEnd: reqBody.end,
@@ -910,6 +978,9 @@ async function handler(
 
   // We filter out users but ensure allHostUsers remain same.
   let users = [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers];
+  const hasRoundRobinHostLimitOverrides =
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    users.some((currentUser) => getRoundRobinHostLimitOverrides(currentUser));
 
   const firstUser = users[0];
 
@@ -919,7 +990,17 @@ async function handler(
     location,
   });
 
-  if (!skipEventLimitsCheck) {
+  if (!hasRoundRobinHostLimitOverrides) {
+    await validateBookingTimeIsNotOutOfBounds<typeof eventType>(
+      reqBody.start,
+      reqBody.timeZone,
+      eventType,
+      eventTimeZone,
+      tracingLogger
+    );
+  }
+
+  if (!skipEventLimitsCheck && !hasRoundRobinHostLimitOverrides) {
     await deps.checkBookingAndDurationLimitsService.checkBookingAndDurationLimits({
       eventType,
       reqBodyStart: reqBody.start,
@@ -1104,8 +1185,6 @@ async function handler(
         }
       });
 
-      // Foundation for per-host limits: currently no host-specific overrides are persisted,
-      // so this groups all hosts into a single bucket and preserves current behavior.
       const roundRobinLimitBuckets = groupRoundRobinHostsByEffectiveLimits({
         schedulingType: eventType.schedulingType,
         eventLimits: {
@@ -1293,6 +1372,90 @@ async function handler(
   if (users.length === 0 && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
     tracingLogger.error(`No available users found for round robin event.`);
     throw new Error(ErrorCode.RoundRobinHostsUnavailableForBooking);
+  }
+
+  if (hasRoundRobinHostLimitOverrides) {
+    const eventLevelLimits = getEventLevelLimits(eventType);
+    const busyTimesService = getBusyTimesService();
+    const bookingDuration = dayjs(reqBody.end).diff(dayjs(reqBody.start), "minute");
+
+    for (const selectedUser of users) {
+      const effectiveLimits = resolveRoundRobinHostEffectiveLimits({
+        schedulingType: eventType.schedulingType,
+        eventLimits: eventLevelLimits,
+        hostOverrides: getRoundRobinHostLimitOverrides(selectedUser),
+      });
+      const effectiveEventType = buildEventTypeWithEffectiveLimits({
+        eventType,
+        effectiveLimits,
+      });
+
+      await validateBookingTimeIsNotOutOfBounds<typeof effectiveEventType>(
+        reqBody.start,
+        reqBody.timeZone,
+        effectiveEventType,
+        eventTimeZone,
+        tracingLogger
+      );
+
+      if (skipEventLimitsCheck) {
+        continue;
+      }
+
+      const parsedBookingLimits = parseBookingLimit(effectiveLimits.bookingLimits);
+      const parsedDurationLimits = parseDurationLimit(effectiveLimits.durationLimits);
+
+      if (!parsedBookingLimits && !parsedDurationLimits) {
+        continue;
+      }
+
+      const limitTimeZone = effectiveEventType.schedule?.timeZone ?? selectedUser.timeZone ?? "UTC";
+      const bookingStart = dayjs(reqBody.start).tz(limitTimeZone);
+      const bookingEnd = dayjs(reqBody.end).tz(limitTimeZone);
+      const { limitDateFrom, limitDateTo } = busyTimesService.getStartEndDateforLimitCheck(
+        bookingStart.toISOString(),
+        bookingEnd.toISOString(),
+        parsedBookingLimits,
+        parsedDurationLimits
+      );
+      const busyTimesFromLimitsBookings = await busyTimesService.getBusyTimesForLimitChecks({
+        userIds: [selectedUser.id],
+        eventTypeId: eventType.id,
+        startDate: limitDateFrom.format(),
+        endDate: limitDateTo.format(),
+        rescheduleUid: reqBody.rescheduleUid,
+        bookingLimits: parsedBookingLimits,
+        durationLimits: parsedDurationLimits,
+      });
+      const busyTimesFromLimits = await getBusyTimesFromLimits(
+        parsedBookingLimits,
+        parsedDurationLimits,
+        bookingStart,
+        bookingEnd,
+        bookingDuration,
+        effectiveEventType,
+        busyTimesFromLimitsBookings,
+        limitTimeZone,
+        reqBody.rescheduleUid
+      );
+      const conflictingBusyTime = doesBookingConflictWithBusyTimes({
+        start: reqBody.start,
+        end: reqBody.end,
+        busyTimes: busyTimesFromLimits,
+      });
+
+      if (!conflictingBusyTime) {
+        continue;
+      }
+
+      throw new HttpError({
+        statusCode: 403,
+        message:
+          conflictingBusyTime.source?.includes("Duration") === true
+            ? "duration_limit_reached"
+            : "booking_limit_reached",
+      });
+    }
   }
 
   // If the team member is requested then they should be the organizer

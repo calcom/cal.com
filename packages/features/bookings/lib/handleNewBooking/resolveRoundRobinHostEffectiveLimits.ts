@@ -1,4 +1,4 @@
-import type { JsonValue } from "@calcom/prisma/client/runtime/library";
+import type { Prisma } from "@calcom/prisma/client";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 
 type EventLevelLimits = {
@@ -6,8 +6,8 @@ type EventLevelLimits = {
   beforeEventBuffer: number;
   afterEventBuffer: number;
   slotInterval: number | null;
-  bookingLimits: JsonValue | null;
-  durationLimits: JsonValue | null;
+  bookingLimits: Prisma.JsonValue | null;
+  durationLimits: Prisma.JsonValue | null;
   periodType: PeriodType;
   periodDays: number | null;
   periodCountCalendarDays: boolean | null;
@@ -20,8 +20,8 @@ export type RoundRobinHostLimitOverrides = {
   beforeEventBuffer?: number | null;
   afterEventBuffer?: number | null;
   slotInterval?: number | null;
-  bookingLimits?: JsonValue | null;
-  durationLimits?: JsonValue | null;
+  bookingLimits?: Prisma.JsonValue | null;
+  durationLimits?: Prisma.JsonValue | null;
   periodType?: PeriodType | null;
   periodDays?: number | null;
   periodCountCalendarDays?: boolean | null;
@@ -34,8 +34,8 @@ export type RoundRobinHostLimitOverrideSource = {
   overrideBeforeEventBuffer?: number | null;
   overrideAfterEventBuffer?: number | null;
   overrideSlotInterval?: number | null;
-  overrideBookingLimits?: JsonValue | null;
-  overrideDurationLimits?: JsonValue | null;
+  overrideBookingLimits?: Prisma.JsonValue | null;
+  overrideDurationLimits?: Prisma.JsonValue | null;
   overridePeriodType?: PeriodType | null;
   overridePeriodDays?: number | null;
   overridePeriodCountCalendarDays?: boolean | null;
@@ -130,6 +130,23 @@ export function groupRoundRobinHostsByEffectiveLimits<THost>({
   hosts: THost[];
   getHostOverrides: (host: THost) => RoundRobinHostLimitOverrides | null | undefined;
 }): EffectiveLimitBucket<THost>[] {
+  if (schedulingType !== SchedulingType.ROUND_ROBIN) {
+    const effectiveLimits = resolveRoundRobinHostEffectiveLimits({
+      schedulingType,
+      eventLimits,
+      hostOverrides: null,
+    });
+    const profileKey = buildEffectiveHostLimitsProfileKey(effectiveLimits);
+
+    return [
+      {
+        profileKey,
+        effectiveLimits,
+        hosts,
+      },
+    ];
+  }
+
   const bucketsByKey = new Map<string, EffectiveLimitBucket<THost>>();
 
   for (const host of hosts) {
@@ -154,5 +171,5 @@ export function groupRoundRobinHostsByEffectiveLimits<THost>({
     });
   }
 
-  return [...bucketsByKey.values()];
+  return Array.from(bucketsByKey.values());
 }
