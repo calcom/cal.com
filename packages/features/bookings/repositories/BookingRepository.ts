@@ -564,6 +564,60 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  async findBySeatReferenceUidIncludeEventType({ seatReferenceUid }: { seatReferenceUid: string }) {
+    const bookingSeat = await this.prismaClient.bookingSeat.findUnique({
+      where: {
+        referenceUid: seatReferenceUid,
+      },
+      select: {
+        booking: {
+          select: {
+            userId: true,
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+            attendees: {
+              select: {
+                email: true,
+              },
+            },
+            eventType: {
+              select: {
+                teamId: true,
+                parent: {
+                  select: {
+                    teamId: true,
+                  },
+                },
+                hosts: {
+                  select: {
+                    userId: true,
+                    user: {
+                      select: {
+                        email: true,
+                      },
+                    },
+                  },
+                },
+                users: {
+                  select: {
+                    id: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return bookingSeat?.booking ?? null;
+  }
+
   async findByIdIncludeEventType({ bookingId }: { bookingId: number }) {
     return await this.prismaClient.booking.findUnique({
       where: {

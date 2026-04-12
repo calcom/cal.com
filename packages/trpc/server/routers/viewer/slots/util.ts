@@ -9,6 +9,7 @@ import type {
   GetAvailabilityUser,
   UserAvailabilityService,
 } from "@calcom/features/availability/lib/getUserAvailability";
+import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 import type { CheckBookingLimitsService } from "@calcom/features/bookings/lib/checkBookingLimits";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import type { QualifiedHostsService } from "@calcom/features/bookings/lib/host-filtering/findQualifiedHostsWithDelegationCredentials";
@@ -16,12 +17,14 @@ import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEvent
 import type { BookingRepository } from "@calcom/features/bookings/repositories/BookingRepository";
 import type { BusyTimesService } from "@calcom/features/busyTimes/services/getBusyTimes";
 import type { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
+import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
 import type { TeamRepository } from "@calcom/features/ee/teams/repositories/TeamRepository";
 import { getDefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
 import type { EventTypeRepository } from "@calcom/features/eventtypes/repositories/eventTypeRepository";
 import type { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
+import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
 import getSlots from "@calcom/features/schedules/lib/slots";
 import type { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
@@ -48,7 +51,6 @@ import {
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
-import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { CalendarFetchMode, EventBusyDate, EventBusyDetails } from "@calcom/types/Calendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -57,8 +59,6 @@ import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import type { GetScheduleOptions } from "./types";
-import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
-import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
@@ -846,6 +846,77 @@ export class AvailableSlotsService {
     "getUsersWithCredentials"
   );
 
+  /**
+   * Finds the guest (first non-organizer attendee) and returns their availability.
+   * For seated events, rescheduleUid can be bookingSeat.referenceUid; this method
+   * resolves that to the underlying booking before applying guest enforcement.
+   * The reschedule booking is automatically excluded from availability calculations
+   * by the downstream calculateHostsAndAvailabilities method, so the current slot
+   * remains available for rescheduling.
+   */
+  private async _getRescheduleGuestUser({
+    rescheduleUid,
+    organizerEmails,
+    schedulingType,
+    rescheduledBy,
+  }: {
+    rescheduleUid?: string | null;
+    organizerEmails: string[];
+    schedulingType: SchedulingType | null;
+    rescheduledBy?: string | null;
+  }): Promise<GetAvailabilityUserWithDelegationCredentials | null> {
+    if (!rescheduleUid || schedulingType === SchedulingType.COLLECTIVE || !rescheduledBy) {
+      return null;
+    }
+
+    const bookingFromUid = await this.dependencies.bookingRepo.findByUidIncludeEventType({
+      bookingUid: rescheduleUid,
+    });
+
+    const booking =
+      bookingFromUid ??
+      (await this.dependencies.bookingRepo.findBySeatReferenceUidIncludeEventType({
+        seatReferenceUid: rescheduleUid,
+      }));
+
+    // `rescheduledBy` is a contextual hint from the reschedule flow, not an auth signal.
+    // Only apply guest constraint when the host/owner initiates reschedule so attendee-driven
+    // reschedules keep previous behavior.
+    if (!booking?.user?.email || booking.user.email.toLowerCase() !== rescheduledBy.toLowerCase()) {
+      return null;
+    }
+
+    const organizerEmailsSet = new Set(organizerEmails.map((email) => email.toLowerCase()));
+
+    const rescheduleGuestAttendee = booking.attendees.find((attendee) => {
+      return !organizerEmailsSet.has(attendee.email.toLowerCase());
+    });
+
+    if (!rescheduleGuestAttendee) {
+      return null;
+    }
+
+    const rescheduleGuestUser = await this.dependencies.userRepo.findAvailabilityUserByEmail({
+      email: rescheduleGuestAttendee.email,
+    });
+
+    if (!rescheduleGuestUser) {
+      return null;
+    }
+
+    // Preserve the attendee email used on the booking (including verified secondary aliases)
+    // so attendee-based busy booking lookups continue to match during slot calculation.
+    return {
+      ...rescheduleGuestUser,
+      email: rescheduleGuestAttendee.email,
+    };
+  }
+
+  private getRescheduleGuestUser = withReporting(
+    this._getRescheduleGuestUser.bind(this),
+    "getRescheduleGuestUser"
+  );
+
   private getStartTime(startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) {
     const startTimeMin = dayjs.utc().add(minimumBookingNotice || 1, "minutes");
     const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
@@ -1247,6 +1318,22 @@ export class AvailableSlotsService {
       };
     }
 
+    const organizerEmails = allHosts.map((host) => host.user.email);
+    const rescheduledGuestUser = await this.getRescheduleGuestUser({
+      rescheduleUid: input.rescheduleUid,
+      organizerEmails,
+      schedulingType: eventType.schedulingType,
+      rescheduledBy: input.rescheduledBy,
+    });
+
+    const rescheduleGuestHost = rescheduledGuestUser
+      ? {
+          isFixed: true,
+          groupId: null,
+          user: rescheduledGuestUser,
+        }
+      : null;
+
     const twoWeeksFromNow = dayjs().add(2, "week");
 
     const hasFallbackRRHosts =
@@ -1256,7 +1343,7 @@ export class AvailableSlotsService {
       await this.calculateHostsAndAvailabilities({
         input,
         eventType,
-        hosts: allHosts,
+        hosts: rescheduleGuestHost ? [...allHosts, rescheduleGuestHost] : allHosts,
         loggerWithEventDetails,
         // adjust start time so we can check for available slots in the first two weeks
         startTime:
@@ -1291,7 +1378,9 @@ export class AvailableSlotsService {
           const firstTwoWeeksAvailabilities = await this.calculateHostsAndAvailabilities({
             input,
             eventType,
-            hosts: [...eligibleQualifiedRRHosts, ...eligibleFixedHosts],
+            hosts: rescheduleGuestHost
+              ? [...eligibleQualifiedRRHosts, ...eligibleFixedHosts, rescheduleGuestHost]
+              : [...eligibleQualifiedRRHosts, ...eligibleFixedHosts],
             loggerWithEventDetails,
             startTime: dayjs(),
             endTime: twoWeeksFromNow,
@@ -1327,7 +1416,9 @@ export class AvailableSlotsService {
           await this.calculateHostsAndAvailabilities({
             input,
             eventType,
-            hosts: [...eligibleFallbackRRHosts, ...eligibleFixedHosts],
+            hosts: rescheduleGuestHost
+              ? [...eligibleFallbackRRHosts, ...eligibleFixedHosts, rescheduleGuestHost]
+              : [...eligibleFallbackRRHosts, ...eligibleFixedHosts],
             loggerWithEventDetails,
             startTime,
             endTime,
@@ -1339,10 +1430,16 @@ export class AvailableSlotsService {
       }
     }
 
+    // guest is injected as a host-equivalent participant for conflict enforcement only.
+    // it should not change team-event semantics for OOO/away slot annotations.
+    const effectiveHostAvailabilityCount = rescheduleGuestHost
+      ? allUsersAvailability.length - 1
+      : allUsersAvailability.length;
+
     const isTeamEvent =
       eventType.schedulingType === SchedulingType.COLLECTIVE ||
       eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
-      allUsersAvailability.length > 1;
+      effectiveHostAvailabilityCount > 1;
 
     const timeSlots = getSlots({
       inviteeDate: startTime,
