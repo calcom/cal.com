@@ -5,13 +5,13 @@ import { ProfileRepository } from "@calcom/features/profile/repositories/Profile
 import { withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
 import { sentrySpan } from "@calcom/features/watchlist/lib/telemetry";
 import { filterBlockedUsers } from "@calcom/features/watchlist/operations/filter-blocked-users.controller";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { withReporting } from "@calcom/lib/sentryWrapper";
 import prisma, { userSelect } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
@@ -19,21 +19,13 @@ import type { Logger } from "tslog";
 
 import type { NewBookingEventType } from "./getEventTypesFromDB";
 import { loadUsers } from "./loadUsers";
+import type { IsFixedAwareUser } from "./types";
 
-type Users = (Awaited<ReturnType<typeof loadUsers>>[number] & {
-  isFixed?: boolean;
-  metadata?: Prisma.JsonValue;
-  createdAt?: Date;
-})[];
+type Users = IsFixedAwareUser[];
 
-export type UsersWithDelegationCredentials = (Omit<
-  Awaited<ReturnType<typeof loadUsers>>[number],
-  "credentials"
-> & {
-  isFixed?: boolean;
-  metadata?: Prisma.JsonValue;
-  createdAt?: Date;
+export type UsersWithDelegationCredentials = (Omit<IsFixedAwareUser, "credentials"> & {
   credentials: CredentialForCalendarService[];
+  createdAt?: Date;
 })[];
 
 type EventType = Pick<
@@ -128,7 +120,13 @@ const _loadAndValidateUsers = async ({
       logger.warn({ message: "NewBooking: eventTypeUser.notFound" });
       throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
     }
-    users.push(withSelectedCalendars(eventTypeUser));
+    const eventTypeUserWithSelectedCalendars = withSelectedCalendars(eventTypeUser);
+    const { credentials, ...restEventTypeUser } = eventTypeUserWithSelectedCalendars;
+    users.push({
+      ...restEventTypeUser,
+      credentials: buildNonDelegationCredentials(credentials),
+      isFixed: eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
+    });
   }
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });

@@ -77,7 +77,7 @@ type BaseUser = {
 
 type BaseHost<User extends BaseUser> = {
   isFixed: boolean;
-  createdAt: Date;
+  createdAt: Date | null;
   priority?: number | null;
   weight?: number | null;
   weightAdjustment?: number | null;
@@ -96,7 +96,7 @@ type BaseHost<User extends BaseUser> = {
   groupId: string | null;
 };
 
-type NormalizedHost<User extends BaseUser> = {
+export type NormalizedHost<User extends BaseUser> = {
   isFixed: boolean;
   user: User;
   priority?: number | null;
@@ -196,7 +196,9 @@ export async function getNormalizedHostsWithDelegationCredentials<
   };
 }) {
   if (eventType.hosts?.length && eventType.schedulingType) {
-    const hostsWithoutDelegationCredential = eventType.hosts.map(normalizeHostProjection);
+    const hostsWithoutDelegationCredential: NormalizedHost<User>[] = eventType.hosts.map((host) =>
+      normalizeHostProjection<User, Host>(host)
+    );
     const firstHost = hostsWithoutDelegationCredential[0];
     const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
       memberId: firstHost?.user?.id ?? null,
@@ -211,12 +213,12 @@ export async function getNormalizedHostsWithDelegationCredentials<
       fallbackHosts: null,
     };
   } else {
-    const hostsWithoutDelegationCredential = eventType.users.map((user) => {
+    const hostsWithoutDelegationCredential: NormalizedHost<User>[] = eventType.users.map((user) => {
       return {
         isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
-        email: user.email,
-        user: user,
+        user,
         createdAt: null,
+        groupId: null,
       };
     });
     const firstHost = hostsWithoutDelegationCredential[0];

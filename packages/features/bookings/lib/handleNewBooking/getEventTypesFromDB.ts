@@ -87,6 +87,7 @@ const getEventTypesFromDBSelect = {
   seatsShowAvailabilityCount: true,
   bookingLimits: true,
   durationLimits: true,
+  slotInterval: true,
   rescheduleWithSameRoundRobinHost: true,
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,

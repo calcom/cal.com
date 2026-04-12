@@ -1,22 +1,28 @@
 import { getOrgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   findMatchingHostsWithEventSegment,
-  getNormalizedHosts,
   getRoutedUsersWithContactOwnerAndFixedUsers,
 } from "@calcom/features/users/lib/getRoutedUsers";
+import type { NormalizedHost } from "@calcom/features/users/lib/getRoutedUsers";
 import { UserRepository, withSelectedCalendars } from "@calcom/features/users/repositories/UserRepository";
+import type { DefaultEvent } from "@calcom/features/eventtypes/lib/defaultEvents";
+import { buildNonDelegationCredentials } from "@calcom/lib/delegationCredential";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getServerErrorFromUnknown } from "@calcom/lib/server/getServerErrorFromUnknown";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { NewBookingEventType } from "./getEventTypesFromDB";
+import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
+
+import type { getEventTypeResponse } from "./getEventTypesFromDB";
+import type { IsFixedAwareUser } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
-type EventType = Pick<
-  NewBookingEventType,
+type DynamicEventType = Pick<
+  DefaultEvent,
   | "hosts"
   | "users"
   | "id"
@@ -26,6 +32,29 @@ type EventType = Pick<
   | "assignRRMembersUsingSegment"
   | "rrSegmentQueryValue"
 >;
+
+type PersistedEventType = Pick<
+  getEventTypeResponse,
+  | "hosts"
+  | "users"
+  | "id"
+  | "schedulingType"
+  | "team"
+  | "assignAllTeamMembers"
+  | "assignRRMembersUsingSegment"
+  | "rrSegmentQueryValue"
+>;
+type EventType = DynamicEventType | PersistedEventType;
+
+export const withCalendarServiceCredentials = <TUser extends { credentials: CredentialPayload[] }>(
+  user: TUser
+): Omit<TUser, "credentials"> & { credentials: CredentialForCalendarService[] } => {
+  const { credentials, ...restUser } = user;
+  return {
+    ...restUser,
+    credentials: buildNonDelegationCredentials(credentials),
+  };
+};
 
 export const loadUsers = async ({
   eventType,
@@ -43,17 +72,23 @@ export const loadUsers = async ({
   hostname: string;
   forcedSlug: string | undefined;
   isPlatform: boolean;
-}) => {
+}): Promise<IsFixedAwareUser[]> => {
   try {
     const { currentOrgDomain } = getOrgDomainConfig({
       hostname,
       forcedSlug,
       isPlatform,
     });
+    const schedulingType = eventType.schedulingType;
 
-    const users = eventType.id
-      ? await loadUsersByEventType(eventType)
-      : await loadDynamicUsers(dynamicUserList, currentOrgDomain);
+    const users: IsFixedAwareUser[] =
+      eventType.id > 0
+        ? await loadUsersByEventType(eventType as PersistedEventType)
+        : await loadDynamicUsers({
+            dynamicUserList,
+            currentOrgDomain,
+            schedulingType,
+          });
 
     const routedUsers = getRoutedUsersWithContactOwnerAndFixedUsers({
       users,
@@ -73,13 +108,39 @@ export const loadUsers = async ({
   }
 };
 
-const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEventType["users"]> => {
-  const { hosts, fallbackHosts } = getNormalizedHosts({
-    eventType: { ...eventType, hosts: eventType.hosts.filter(Boolean) },
-  });
+const loadUsersByEventType = async (eventType: PersistedEventType): Promise<IsFixedAwareUser[]> => {
+  type PersistedUser = PersistedEventType["users"][number];
+  const normalizedHosts: NormalizedHost<PersistedUser>[] =
+    eventType.hosts.length && eventType.schedulingType
+      ? eventType.hosts.filter(Boolean).map((host) => ({
+          isFixed: host.isFixed,
+          user: host.user,
+          priority: host.priority,
+          weight: host.weight,
+          overrideMinimumBookingNotice: host.overrideMinimumBookingNotice,
+          overrideBeforeEventBuffer: host.overrideBeforeEventBuffer,
+          overrideAfterEventBuffer: host.overrideAfterEventBuffer,
+          overrideSlotInterval: host.overrideSlotInterval,
+          overrideBookingLimits: host.overrideBookingLimits,
+          overrideDurationLimits: host.overrideDurationLimits,
+          overridePeriodType: host.overridePeriodType,
+          overridePeriodStartDate: host.overridePeriodStartDate,
+          overridePeriodEndDate: host.overridePeriodEndDate,
+          overridePeriodDays: host.overridePeriodDays,
+          overridePeriodCountCalendarDays: host.overridePeriodCountCalendarDays,
+          createdAt: host.createdAt,
+          groupId: host.groupId,
+        }))
+      : eventType.users.map((user) => ({
+          isFixed: eventType.schedulingType === SchedulingType.COLLECTIVE,
+          user,
+          createdAt: null,
+          groupId: null,
+        }));
+
   const matchingHosts = await findMatchingHostsWithEventSegment({
     eventType,
-    hosts: hosts ?? fallbackHosts,
+    hosts: normalizedHosts,
   });
   return matchingHosts.map(
     ({
@@ -101,10 +162,10 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
       createdAt,
       groupId,
     }) => ({
-      ...user,
+      ...withCalendarServiceCredentials(user),
       isFixed,
-      priority,
-      weight,
+      priority: priority ?? undefined,
+      weight: weight ?? undefined,
       overrideMinimumBookingNotice,
       overrideBeforeEventBuffer,
       overrideAfterEventBuffer,
@@ -122,7 +183,15 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
   );
 };
 
-const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: string | null) => {
+const loadDynamicUsers = async ({
+  dynamicUserList,
+  currentOrgDomain,
+  schedulingType,
+}: {
+  dynamicUserList: string[];
+  currentOrgDomain: string | null;
+  schedulingType: EventType["schedulingType"];
+}): Promise<IsFixedAwareUser[]> => {
   if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
     throw new Error("dynamicUserList is not properly defined or empty.");
   }
@@ -134,11 +203,16 @@ const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: str
 
   // For dynamic group bookings: reorder users to match dynamicUserList order
   // to ensure the first user in the URL is the organizer/host
-  return users.sort((a, b) => {
-    const aIndex = dynamicUserList.indexOf(a.username!);
-    const bIndex = dynamicUserList.indexOf(b.username!);
-    return aIndex - bIndex;
-  });
+  return users
+    .sort((a, b) => {
+      const aIndex = dynamicUserList.indexOf(a.username!);
+      const bIndex = dynamicUserList.indexOf(b.username!);
+      return aIndex - bIndex;
+    })
+    .map((user) => ({
+      ...withCalendarServiceCredentials(user),
+      isFixed: schedulingType !== SchedulingType.ROUND_ROBIN,
+    }));
 };
 
 /**
@@ -151,32 +225,22 @@ export const findUsersByUsername = async ({
 }: {
   orgSlug: string | null;
   usernameList: string[];
-}) => {
+}): Promise<Omit<IsFixedAwareUser, "isFixed">[]> => {
   log.debug("findUsersByUsername", { usernameList, orgSlug });
-  const { where, profiles } = await new UserRepository(prisma)._getWhereClauseForFindingUsersByUsername({
+  const { where } = await new UserRepository(prisma)._getWhereClauseForFindingUsersByUsername({
     orgSlug,
     usernameList,
   });
-  return (
-    await prisma.user.findMany({
-      where,
-      select: {
-        ...userSelect,
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        },
-        metadata: true,
+  return (await prisma.user.findMany({
+    where,
+    select: {
+      ...userSelect,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
       },
-    })
-  ).map((_user) => {
-    const user = withSelectedCalendars(_user);
-    const profile = profiles?.find((profile) => profile.user.id === user.id) ?? null;
-    return {
-      ...user,
-      organizationId: profile?.organizationId ?? null,
-      profile,
-    };
-  });
+      metadata: true,
+    },
+  })).map((_user) => withCalendarServiceCredentials(withSelectedCalendars(_user)));
 };
 
 export type LoadedUsers = Awaited<ReturnType<typeof loadUsers>>;
