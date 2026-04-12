@@ -13,8 +13,7 @@ const RedirectPage = async () => {
   }
 
   // Check if user needs onboarding and redirect before going to event-types
-  const organizationId =
-    session.user.profile?.organizationId ?? null;
+  const organizationId = session.user.profile?.organizationId ?? null;
   const onboardingPath = await checkOnboardingRedirect(session.user.id, {
     checkEmailVerification: true,
     organizationId,
