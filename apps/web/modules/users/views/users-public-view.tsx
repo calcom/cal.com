@@ -6,6 +6,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { UserAvatar } from "@calcom/ui/components/avatar";
@@ -18,6 +19,7 @@ import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 import classNames from "classnames";
 import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Toaster } from "sonner";
 
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
@@ -100,15 +102,7 @@ export function UserPage(props: PageProps) {
                   />
                 )}
               </h1>
-              {!isBioEmpty && (
-                <>
-                  {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via safeBio */}
-                  <div
-                    className="text-default wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                    dangerouslySetInnerHTML={{ __html: props.safeBio }}
-                  />
-                </>
-              )}
+              {!isBioEmpty && <ProfileBio safeBio={props.safeBio} />}
             </div>
           </div>
 
@@ -152,6 +146,40 @@ export function UserPage(props: PageProps) {
         <Toaster position="bottom-right" />
       </div>
     </>
+  );
+}
+
+function ProfileBio({ safeBio }: { safeBio: string }) {
+  const { t } = useLocale();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isClamped, setIsClamped] = useState(false);
+
+  const checkClamped = useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      setIsClamped(node.scrollHeight > node.clientHeight);
+    }
+  }, []);
+
+  return (
+    <div>
+      {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via safeBio */}
+      <div
+        ref={checkClamped}
+        className={classNames(
+          "text-default break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
+          !isExpanded && "line-clamp-3"
+        )}
+        dangerouslySetInnerHTML={{ __html: safeBio }}
+      />
+      {(isClamped || isExpanded) && (
+        <button
+          type="button"
+          className="text-emphasis mt-1 text-sm font-medium hover:underline"
+          onClick={() => setIsExpanded((prev) => !prev)}>
+          {isExpanded ? t("show_less") : t("show_more")}
+        </button>
+      )}
+    </div>
   );
 }
 
