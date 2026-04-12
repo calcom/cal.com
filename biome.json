@@ -138,7 +138,8 @@
             "noSwitchDeclarations": "warn",
             "useHookAtTopLevel": "warn",
             "useJsxKeyInIterable": "warn",
-            "noUnsafeOptionalChaining": "warn"
+            "noUnsafeOptionalChaining": "warn",
+            "noUnusedFunctionParameters": "error"
           },
           "style": {
             "useExportsLast": "warn",
