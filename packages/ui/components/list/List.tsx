@@ -101,7 +101,7 @@ export function ListLinkItem(props: ListLinkItemProps) {
         passHref
         href={href}
         className={classNames(
-          "text-default grow truncate text-sm",
+          "text-default min-w-0 grow text-sm",
           disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
         )}>
         <div className="flex items-center">
@@ -112,9 +112,8 @@ export function ListLinkItem(props: ListLinkItemProps) {
             </Badge>
           )}
         </div>
-        <h2 className="min-h-4 mt-2 text-sm font-normal leading-none text-neutral-600">
-          {subHeading.substring(0, 100)}
-          {subHeading.length > 100 && "..."}
+        <h2 className="min-h-4 mt-2 text-sm font-normal leading-normal text-neutral-600 line-clamp-2 break-words">
+          {subHeading}
         </h2>
         <div className="mt-2">{children}</div>
       </Link>

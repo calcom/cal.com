@@ -90,6 +90,33 @@ describe("Tests for ListLinkItem component", () => {
     const action = screen.getByText("cta");
     expect(action).toBeInTheDocument();
   });
+
+  test("Should render full subHeading text without JavaScript truncation", () => {
+    const longText = "A".repeat(150);
+    render(
+      <ListLinkItem href="https://custom.link" heading="Go" subHeading={longText}>
+        Alright
+      </ListLinkItem>
+    );
+
+    const subHeading = screen.getByText(longText);
+    expect(subHeading).toBeInTheDocument();
+    expect(subHeading.tagName).toBe("H2");
+    expect(subHeading).toHaveClass("line-clamp-2");
+  });
+
+  test("Should not apply truncate class on the link wrapper", () => {
+    render(
+      <ListLinkItem href="https://custom.link" heading="Go" subHeading="There">
+        Alright
+      </ListLinkItem>
+    );
+
+    const listLinkItemElement = screen.getByTestId("list-link-item");
+    const link = listLinkItemElement.firstChild;
+    expect(link).not.toHaveClass("truncate");
+    expect(link).toHaveClass("min-w-0");
+  });
 });
 
 describe("Tests for ListItemTitle component", () => {
