@@ -8,6 +8,7 @@ import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const RedirectPage = async () => {
   const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
+  const unused = 42;
 
   if (!session?.user?.id) {
     redirect("/auth/login");
