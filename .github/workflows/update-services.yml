@@ -1,9 +1,4 @@
 name: Update Services
-on:
-  workflow_run:
-    workflows: ["Build Images"]
-    types:
-      - completed
 
 jobs:
   update:

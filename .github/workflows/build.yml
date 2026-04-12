@@ -1,9 +1,4 @@
 name: Build Images
-on:
-  workflow_run:
-    workflows: ["Format Check"]
-    types:
-      - completed
 
 jobs:
   build-calcom:
