@@ -123,7 +123,7 @@ function UsernameField({
   const debouncedUsername = useDebounce(username, 600);
 
   useEffect(() => {
-    if (formState.isSubmitting || formState.isSubmitSuccessful) return;
+    if (formState.isSubmitting) return;
 
     async function checkUsername() {
       // If the username can't be changed, there is no point in doing the username availability check
@@ -140,7 +140,7 @@ function UsernameField({
     }
     checkUsername();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedUsername, disabled, orgSlug, formState.isSubmitting, formState.isSubmitSuccessful]);
+  }, [debouncedUsername, disabled, orgSlug, formState.isSubmitting]);
 
   return (
     <div>
@@ -214,7 +214,7 @@ export default function Signup({
   const {
     register,
     watch,
-    formState: { isSubmitting, errors, isSubmitSuccessful },
+    formState: { isSubmitting, errors },
   } = formMethods;
 
   useEffect(() => {
@@ -229,7 +229,7 @@ export default function Signup({
     setUserConsentToCookie(!consent);
   }
 
-  const loadingSubmitState = isSubmitSuccessful || isSubmitting;
+  const loadingSubmitState = isSubmitting;
   const displayBackButton = token ? false : displayEmailForm;
 
   const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
