@@ -25,7 +25,7 @@ import type { FeaturesRepository } from "@calcom/features/flags/features.reposit
 import type { PrismaOOORepository } from "@calcom/features/ooo/repositories/PrismaOOORepository";
 import type { IRedisService } from "@calcom/features/redis/IRedisService";
 import type { RoutingFormResponseRepository } from "@calcom/features/routing-forms/repositories/RoutingFormResponseRepository";
-import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
+import { buildDateRanges, intersect } from "@calcom/features/schedules/lib/date-ranges";
 import getSlots from "@calcom/features/schedules/lib/slots";
 import type { ScheduleRepository } from "@calcom/features/schedules/repositories/ScheduleRepository";
 import type { ISelectedSlotRepository } from "@calcom/features/selectedSlots/repositories/ISelectedSlotRepository";
@@ -1125,6 +1125,36 @@ export class AvailableSlotsService {
     };
   }
 
+  private getAggregatedAvailabilityForEvent({
+    allUsersAvailability,
+    schedulingType,
+    hasInjectedRescheduleGuest,
+  }: {
+    allUsersAvailability: Parameters<typeof getAggregatedAvailability>[0];
+    schedulingType: SchedulingType | null;
+    hasInjectedRescheduleGuest: boolean;
+  }) {
+    const shouldPreserveSingleHostOOOSemantics = hasInjectedRescheduleGuest && schedulingType === null;
+
+    const availabilityForAggregation = shouldPreserveSingleHostOOOSemantics
+      ? allUsersAvailability.slice(0, -1)
+      : allUsersAvailability;
+
+    const aggregatedAvailability = getAggregatedAvailability(availabilityForAggregation, schedulingType);
+
+    if (!shouldPreserveSingleHostOOOSemantics) {
+      return aggregatedAvailability;
+    }
+
+    const rescheduleGuestAvailability = allUsersAvailability[allUsersAvailability.length - 1];
+
+    if (!rescheduleGuestAvailability) {
+      return aggregatedAvailability;
+    }
+
+    return intersect([aggregatedAvailability, rescheduleGuestAvailability.oooExcludedDateRanges]);
+  }
+
   private async checkRestrictionScheduleEnabled(teamId?: number): Promise<boolean> {
     if (!teamId) {
       return false;
@@ -1360,7 +1390,11 @@ export class AvailableSlotsService {
         mode,
       });
 
-    let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
+    let aggregatedAvailability = this.getAggregatedAvailabilityForEvent({
+      allUsersAvailability,
+      schedulingType: eventType.schedulingType,
+      hasInjectedRescheduleGuest: Boolean(rescheduleGuestHost),
+    });
 
     // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
     if (hasFallbackRRHosts) {
@@ -1426,7 +1460,11 @@ export class AvailableSlotsService {
             silentCalendarFailures,
             mode,
           }));
-        aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
+        aggregatedAvailability = this.getAggregatedAvailabilityForEvent({
+          allUsersAvailability,
+          schedulingType: eventType.schedulingType,
+          hasInjectedRescheduleGuest: Boolean(rescheduleGuestHost),
+        });
       }
     }
 

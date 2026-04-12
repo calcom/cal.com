@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { BookingDateInPastError, isTimeOutOfBounds } from "@calcom/lib/isOutOfBounds";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
@@ -49,7 +50,7 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
   const findBySeatReferenceUidIncludeEventType = vi.fn();
   const findAvailabilityUserByEmail = vi.fn();
 
-  const serviceDependencies: ConstructorParameters<typeof AvailableSlotsService>[0] = {
+  const serviceDependencies = {
     bookingRepo: {
       findByUidIncludeEventType,
       findBySeatReferenceUidIncludeEventType,
@@ -59,7 +60,9 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
     },
   };
 
-  const service = new AvailableSlotsService(serviceDependencies);
+  const service = new AvailableSlotsService(
+    serviceDependencies as unknown as ConstructorParameters<typeof AvailableSlotsService>[0]
+  );
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -330,5 +333,41 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
     expect(result).toBeNull();
     expect(findByUidIncludeEventType).not.toHaveBeenCalled();
     expect(findAvailabilityUserByEmail).not.toHaveBeenCalled();
+  });
+
+  it("preserves single-host OOO semantics when reschedule guest is injected", async () => {
+    const hostRangeStart = dayjs("2025-01-23T11:00:00.000Z");
+    const hostRangeEnd = dayjs("2025-01-23T11:30:00.000Z");
+
+    const aggregatedAvailability = (
+      service as unknown as {
+        getAggregatedAvailabilityForEvent: (args: {
+          allUsersAvailability: {
+            dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
+            oooExcludedDateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
+            user: { isFixed: boolean; groupId: string | null };
+          }[];
+          schedulingType: SchedulingType | null;
+          hasInjectedRescheduleGuest: boolean;
+        }) => { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
+      }
+    ).getAggregatedAvailabilityForEvent({
+      allUsersAvailability: [
+        {
+          dateRanges: [{ start: hostRangeStart, end: hostRangeEnd }],
+          oooExcludedDateRanges: [],
+          user: { isFixed: true, groupId: null },
+        },
+        {
+          dateRanges: [{ start: hostRangeStart, end: hostRangeEnd }],
+          oooExcludedDateRanges: [{ start: hostRangeStart, end: hostRangeEnd }],
+          user: { isFixed: true, groupId: null },
+        },
+      ],
+      schedulingType: null,
+      hasInjectedRescheduleGuest: true,
+    });
+
+    expect(aggregatedAvailability).toEqual([{ start: hostRangeStart, end: hostRangeEnd }]);
   });
 });
