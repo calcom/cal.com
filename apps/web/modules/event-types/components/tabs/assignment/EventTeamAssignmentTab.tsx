@@ -174,6 +174,17 @@ const FixedHosts = ({
           userId: parseInt(teamMember.value, 10),
           priority: host?.priority ?? 2,
           weight: host?.weight ?? 100,
+          overrideMinimumBookingNotice: host?.overrideMinimumBookingNotice,
+          overrideBeforeEventBuffer: host?.overrideBeforeEventBuffer,
+          overrideAfterEventBuffer: host?.overrideAfterEventBuffer,
+          overrideSlotInterval: host?.overrideSlotInterval,
+          overrideBookingLimits: host?.overrideBookingLimits,
+          overrideDurationLimits: host?.overrideDurationLimits,
+          overridePeriodType: host?.overridePeriodType,
+          overridePeriodStartDate: host?.overridePeriodStartDate,
+          overridePeriodEndDate: host?.overridePeriodEndDate,
+          overridePeriodDays: host?.overridePeriodDays,
+          overridePeriodCountCalendarDays: host?.overridePeriodCountCalendarDays,
           // if host was already added, retain scheduleId and groupId
           scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
           groupId: host?.groupId || null,
@@ -400,6 +411,17 @@ const RoundRobinHosts = ({
             userId: parseInt(teamMember.value, 10),
             priority: host?.priority ?? 2,
             weight: host?.weight ?? 100,
+            overrideMinimumBookingNotice: host?.overrideMinimumBookingNotice,
+            overrideBeforeEventBuffer: host?.overrideBeforeEventBuffer,
+            overrideAfterEventBuffer: host?.overrideAfterEventBuffer,
+            overrideSlotInterval: host?.overrideSlotInterval,
+            overrideBookingLimits: host?.overrideBookingLimits,
+            overrideDurationLimits: host?.overrideDurationLimits,
+            overridePeriodType: host?.overridePeriodType,
+            overridePeriodStartDate: host?.overridePeriodStartDate,
+            overridePeriodEndDate: host?.overridePeriodEndDate,
+            overridePeriodDays: host?.overridePeriodDays,
+            overridePeriodCountCalendarDays: host?.overridePeriodCountCalendarDays,
             // if host was already added, retain scheduleId and groupId
             scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
             groupId: host?.groupId || groupId,
@@ -668,6 +690,50 @@ const Hosts = ({
             ...newValue,
             scheduleId: existingHost.scheduleId,
             groupId: existingHost.groupId,
+            overrideMinimumBookingNotice:
+              newValue.overrideMinimumBookingNotice !== undefined
+                ? newValue.overrideMinimumBookingNotice
+                : existingHost.overrideMinimumBookingNotice,
+            overrideBeforeEventBuffer:
+              newValue.overrideBeforeEventBuffer !== undefined
+                ? newValue.overrideBeforeEventBuffer
+                : existingHost.overrideBeforeEventBuffer,
+            overrideAfterEventBuffer:
+              newValue.overrideAfterEventBuffer !== undefined
+                ? newValue.overrideAfterEventBuffer
+                : existingHost.overrideAfterEventBuffer,
+            overrideSlotInterval:
+              newValue.overrideSlotInterval !== undefined
+                ? newValue.overrideSlotInterval
+                : existingHost.overrideSlotInterval,
+            overrideBookingLimits:
+              newValue.overrideBookingLimits !== undefined
+                ? newValue.overrideBookingLimits
+                : existingHost.overrideBookingLimits,
+            overrideDurationLimits:
+              newValue.overrideDurationLimits !== undefined
+                ? newValue.overrideDurationLimits
+                : existingHost.overrideDurationLimits,
+            overridePeriodType:
+              newValue.overridePeriodType !== undefined
+                ? newValue.overridePeriodType
+                : existingHost.overridePeriodType,
+            overridePeriodStartDate:
+              newValue.overridePeriodStartDate !== undefined
+                ? newValue.overridePeriodStartDate
+                : existingHost.overridePeriodStartDate,
+            overridePeriodEndDate:
+              newValue.overridePeriodEndDate !== undefined
+                ? newValue.overridePeriodEndDate
+                : existingHost.overridePeriodEndDate,
+            overridePeriodDays:
+              newValue.overridePeriodDays !== undefined
+                ? newValue.overridePeriodDays
+                : existingHost.overridePeriodDays,
+            overridePeriodCountCalendarDays:
+              newValue.overridePeriodCountCalendarDays !== undefined
+                ? newValue.overridePeriodCountCalendarDays
+                : existingHost.overridePeriodCountCalendarDays,
           }
         : newValue;
     });

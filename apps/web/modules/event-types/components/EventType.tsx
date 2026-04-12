@@ -26,6 +26,17 @@ export type Host = {
   weight: number;
   scheduleId?: number | null;
   groupId: string | null;
+  overrideMinimumBookingNotice?: number | null;
+  overrideBeforeEventBuffer?: number | null;
+  overrideAfterEventBuffer?: number | null;
+  overrideSlotInterval?: number | null;
+  overrideBookingLimits?: Record<string, number> | null;
+  overrideDurationLimits?: Record<string, number> | null;
+  overridePeriodType?: "UNLIMITED" | "ROLLING" | "ROLLING_WINDOW" | "RANGE" | null;
+  overridePeriodStartDate?: Date | null;
+  overridePeriodEndDate?: Date | null;
+  overridePeriodDays?: number | null;
+  overridePeriodCountCalendarDays?: boolean | null;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;

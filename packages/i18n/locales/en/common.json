@@ -1270,6 +1270,8 @@
   "invitees_can_schedule": "Invitees can schedule",
   "date_range": "Date range",
   "calendar_days": "calendar days",
+  "rolling": "Rolling",
+  "rolling_window": "Rolling window",
   "nameless_calendar": "Nameless Calendar",
   "business_days": "business days",
   "set_address_place": "Set an address or place",

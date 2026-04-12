@@ -5,7 +5,7 @@ import { useState } from "react";
 import type { Options, Props } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/hooks/useIsPlatform";
-import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
+import type { Host, SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { getHostsFromOtherGroups } from "@calcom/lib/bookings/hostGroupUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import classNames from "@calcom/ui/classNames";
@@ -16,10 +16,30 @@ import { Icon } from "@calcom/ui/components/icon";
 import { Tooltip } from "@calcom/ui/components/tooltip";
 
 import type {
+  LimitOverridesDialogCustomClassNames,
   PriorityDialogCustomClassNames,
   WeightDialogCustomClassNames,
 } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
-import { PriorityDialog, WeightDialog } from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
+import {
+  LimitOverridesDialog,
+  PriorityDialog,
+  WeightDialog,
+} from "@calcom/features/eventtypes/components/dialogs/HostEditDialogs";
+
+type HostOverrideOptionFields = Pick<
+  Host,
+  | "overrideMinimumBookingNotice"
+  | "overrideBeforeEventBuffer"
+  | "overrideAfterEventBuffer"
+  | "overrideSlotInterval"
+  | "overrideBookingLimits"
+  | "overrideDurationLimits"
+  | "overridePeriodType"
+  | "overridePeriodStartDate"
+  | "overridePeriodEndDate"
+  | "overridePeriodDays"
+  | "overridePeriodCountCalendarDays"
+>;
 
 export type CheckedSelectOption = {
   avatar: string;
@@ -31,7 +51,7 @@ export type CheckedSelectOption = {
   disabled?: boolean;
   defaultScheduleId?: number | null;
   groupId: string | null;
-};
+} & HostOverrideOptionFields;
 
 export type CheckedTeamSelectCustomClassNames = {
   hostsSelect?: SelectClassNames;
@@ -43,11 +63,13 @@ export type CheckedTeamSelectCustomClassNames = {
       name?: string;
       changePriorityButton?: string;
       changeWeightButton?: string;
+      changeLimitsButton?: string;
       removeButton?: string;
     };
   };
   priorityDialog?: PriorityDialogCustomClassNames;
   weightDialog?: WeightDialogCustomClassNames;
+  limitsDialog?: LimitOverridesDialogCustomClassNames;
 };
 export const CheckedTeamSelect = ({
   options = [],
@@ -67,6 +89,7 @@ export const CheckedTeamSelect = ({
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
   const [weightDialogOpen, setWeightDialogOpen] = useState(false);
+  const [limitsDialogOpen, setLimitsDialogOpen] = useState(false);
 
   const [currentOption, setCurrentOption] = useState(value[0] ?? null);
 
@@ -167,6 +190,18 @@ export const CheckedTeamSelect = ({
                     ) : (
                       <></>
                     )}
+                    <Button
+                      color="minimal"
+                      className={classNames(
+                        "mr-6 h-2 p-0 text-sm hover:bg-transparent",
+                        customClassNames?.selectedHostList?.listItem?.changeLimitsButton
+                      )}
+                      onClick={() => {
+                        setLimitsDialogOpen(true);
+                        setCurrentOption(option);
+                      }}>
+                      {t("event_limit_tab_title")}
+                    </Button>
                   </>
                 ) : (
                   <></>
@@ -202,6 +237,14 @@ export const CheckedTeamSelect = ({
             options={options}
             onChange={props.onChange}
             customClassNames={customClassNames?.weightDialog}
+          />
+          <LimitOverridesDialog
+            isOpenDialog={limitsDialogOpen}
+            setIsOpenDialog={setLimitsDialogOpen}
+            option={currentOption}
+            options={options}
+            onChange={props.onChange}
+            customClassNames={customClassNames?.limitsDialog}
           />
         </>
       ) : (
