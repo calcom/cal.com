@@ -848,7 +848,9 @@ export class AvailableSlotsService {
 
   /**
    * Finds the guest (first non-organizer attendee) and returns their availability.
-   * The rescheduleUid booking is automatically excluded from availability calculations
+   * For seated events, rescheduleUid can be bookingSeat.referenceUid; this method
+   * resolves that to the underlying booking before applying guest enforcement.
+   * The reschedule booking is automatically excluded from availability calculations
    * by the downstream calculateHostsAndAvailabilities method, so the current slot
    * remains available for rescheduling.
    */
@@ -867,9 +869,15 @@ export class AvailableSlotsService {
       return null;
     }
 
-    const booking = await this.dependencies.bookingRepo.findByUidIncludeEventType({
+    const bookingFromUid = await this.dependencies.bookingRepo.findByUidIncludeEventType({
       bookingUid: rescheduleUid,
     });
+
+    const booking =
+      bookingFromUid ??
+      (await this.dependencies.bookingRepo.findBySeatReferenceUidIncludeEventType({
+        seatReferenceUid: rescheduleUid,
+      }));
 
     // `rescheduledBy` is a contextual hint from the reschedule flow, not an auth signal.
     // Only apply guest constraint when the host/owner initiates reschedule so attendee-driven
@@ -1422,10 +1430,16 @@ export class AvailableSlotsService {
       }
     }
 
+    // guest is injected as a host-equivalent participant for conflict enforcement only.
+    // it should not change team-event semantics for OOO/away slot annotations.
+    const effectiveHostAvailabilityCount = rescheduleGuestHost
+      ? allUsersAvailability.length - 1
+      : allUsersAvailability.length;
+
     const isTeamEvent =
       eventType.schedulingType === SchedulingType.COLLECTIVE ||
       eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
-      allUsersAvailability.length > 1;
+      effectiveHostAvailabilityCount > 1;
 
     const timeSlots = getSlots({
       inviteeDate: startTime,

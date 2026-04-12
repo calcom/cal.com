@@ -46,11 +46,13 @@ describe("BookingDateInPastError handling", () => {
 
 describe("AvailableSlotsService._getRescheduleGuestUser", () => {
   const findByUidIncludeEventType = vi.fn();
+  const findBySeatReferenceUidIncludeEventType = vi.fn();
   const findAvailabilityUserByEmail = vi.fn();
 
   const serviceDependencies: ConstructorParameters<typeof AvailableSlotsService>[0] = {
     bookingRepo: {
       findByUidIncludeEventType,
+      findBySeatReferenceUidIncludeEventType,
     },
     userRepo: {
       findAvailabilityUserByEmail,
@@ -116,10 +118,62 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
     expect(findByUidIncludeEventType).toHaveBeenCalledWith({
       bookingUid: "BOOKING_TO_RESCHEDULE_UID",
     });
+    expect(findBySeatReferenceUidIncludeEventType).not.toHaveBeenCalled();
     expect(findAvailabilityUserByEmail).toHaveBeenCalledWith({
       email: "guest@example.com",
     });
     expect(result).toEqual(expectedGuestUser);
+  });
+
+  it("resolves seat reference UID to booking for host-initiated reschedule", async () => {
+    findByUidIncludeEventType.mockResolvedValue(null);
+    findBySeatReferenceUidIncludeEventType.mockResolvedValue({
+      user: {
+        email: "host@example.com",
+      },
+      attendees: [
+        {
+          email: "host@example.com",
+        },
+        {
+          email: "guest@example.com",
+        },
+      ],
+    });
+    findAvailabilityUserByEmail.mockResolvedValue({
+      id: 102,
+      email: "guest@example.com",
+    });
+
+    const result = await (
+      service as unknown as {
+        _getRescheduleGuestUser: (args: {
+          rescheduleUid?: string | null;
+          organizerEmails: string[];
+          schedulingType: SchedulingType | null;
+          rescheduledBy?: string | null;
+        }) => Promise<unknown>;
+      }
+    )._getRescheduleGuestUser({
+      rescheduleUid: "SEAT_REFERENCE_UID",
+      organizerEmails: ["host@example.com"],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      rescheduledBy: "host@example.com",
+    });
+
+    expect(findByUidIncludeEventType).toHaveBeenCalledWith({
+      bookingUid: "SEAT_REFERENCE_UID",
+    });
+    expect(findBySeatReferenceUidIncludeEventType).toHaveBeenCalledWith({
+      seatReferenceUid: "SEAT_REFERENCE_UID",
+    });
+    expect(findAvailabilityUserByEmail).toHaveBeenCalledWith({
+      email: "guest@example.com",
+    });
+    expect(result).toEqual({
+      id: 102,
+      email: "guest@example.com",
+    });
   });
 
   it("preserves attendee alias email when resolved user has a different primary email", async () => {
