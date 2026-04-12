@@ -139,7 +139,7 @@
             "useHookAtTopLevel": "warn",
             "useJsxKeyInIterable": "warn",
             "noUnsafeOptionalChaining": "warn",
-            "noUnusedFunctionParameters": "error"
+            "noUnusedVariables": "error"
           },
           "style": {
             "useExportsLast": "warn",
