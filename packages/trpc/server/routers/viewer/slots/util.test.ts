@@ -63,6 +63,39 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
   const service = new AvailableSlotsService(
     serviceDependencies as unknown as ConstructorParameters<typeof AvailableSlotsService>[0]
   );
+
+  type GetRescheduleGuestUserArgs = {
+    rescheduleUid?: string | null;
+    organizerEmails: string[];
+    schedulingType: SchedulingType | null;
+    rescheduledBy?: string | null;
+  };
+
+  type GetAggregatedAvailabilityForEventArgs = {
+    allUsersAvailability: {
+      dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
+      oooExcludedDateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
+      user: { isFixed: boolean; groupId: string | null };
+    }[];
+    schedulingType: SchedulingType | null;
+    hasInjectedRescheduleGuest: boolean;
+  };
+
+  const typedService = service as unknown as {
+    _getRescheduleGuestUser: (args: GetRescheduleGuestUserArgs) => Promise<unknown>;
+    getAggregatedAvailabilityForEvent: (
+      args: GetAggregatedAvailabilityForEventArgs
+    ) => { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
+  };
+
+  const getRescheduleGuestUser = (args: GetRescheduleGuestUserArgs) => {
+    return typedService._getRescheduleGuestUser(args);
+  };
+
+  const getAggregatedAvailabilityForEvent = (args: GetAggregatedAvailabilityForEventArgs) => {
+    return typedService.getAggregatedAvailabilityForEvent(args);
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -102,16 +135,7 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
     };
     findAvailabilityUserByEmail.mockResolvedValue(expectedGuestUser);
 
-    const result = await (
-      service as unknown as {
-        _getRescheduleGuestUser: (args: {
-          rescheduleUid?: string | null;
-          organizerEmails: string[];
-          schedulingType: SchedulingType | null;
-          rescheduledBy?: string | null;
-        }) => Promise<unknown>;
-      }
-    )._getRescheduleGuestUser({
+    const result = await getRescheduleGuestUser({
       rescheduleUid: "BOOKING_TO_RESCHEDULE_UID",
       organizerEmails: ["host@example.com"],
       schedulingType: SchedulingType.ROUND_ROBIN,
@@ -148,16 +172,7 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
       email: "guest@example.com",
     });
 
-    const result = await (
-      service as unknown as {
-        _getRescheduleGuestUser: (args: {
-          rescheduleUid?: string | null;
-          organizerEmails: string[];
-          schedulingType: SchedulingType | null;
-          rescheduledBy?: string | null;
-        }) => Promise<unknown>;
-      }
-    )._getRescheduleGuestUser({
+    const result = await getRescheduleGuestUser({
       rescheduleUid: "SEAT_REFERENCE_UID",
       organizerEmails: ["host@example.com"],
       schedulingType: SchedulingType.ROUND_ROBIN,
@@ -199,16 +214,7 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
       email: "guest-primary@example.com",
     });
 
-    const result = await (
-      service as unknown as {
-        _getRescheduleGuestUser: (args: {
-          rescheduleUid?: string | null;
-          organizerEmails: string[];
-          schedulingType: SchedulingType | null;
-          rescheduledBy?: string | null;
-        }) => Promise<unknown>;
-      }
-    )._getRescheduleGuestUser({
+    const result = await getRescheduleGuestUser({
       rescheduleUid: "BOOKING_TO_RESCHEDULE_UID",
       organizerEmails: ["host@example.com"],
       schedulingType: SchedulingType.ROUND_ROBIN,
@@ -236,16 +242,7 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
       ],
     });
 
-    const result = await (
-      service as unknown as {
-        _getRescheduleGuestUser: (args: {
-          rescheduleUid?: string | null;
-          organizerEmails: string[];
-          schedulingType: SchedulingType | null;
-          rescheduledBy?: string | null;
-        }) => Promise<unknown>;
-      }
-    )._getRescheduleGuestUser({
+    const result = await getRescheduleGuestUser({
       rescheduleUid: "BOOKING_TO_RESCHEDULE_UID",
       organizerEmails: ["host@example.com"],
       schedulingType: SchedulingType.ROUND_ROBIN,
@@ -269,16 +266,7 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
     });
     findAvailabilityUserByEmail.mockResolvedValue(null);
 
-    const result = await (
-      service as unknown as {
-        _getRescheduleGuestUser: (args: {
-          rescheduleUid?: string | null;
-          organizerEmails: string[];
-          schedulingType: SchedulingType | null;
-          rescheduledBy?: string | null;
-        }) => Promise<unknown>;
-      }
-    )._getRescheduleGuestUser({
+    const result = await getRescheduleGuestUser({
       rescheduleUid: "BOOKING_TO_RESCHEDULE_UID",
       organizerEmails: ["host@example.com"],
       schedulingType: SchedulingType.ROUND_ROBIN,
@@ -292,16 +280,7 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
   });
 
   it("returns null for collective scheduling", async () => {
-    const result = await (
-      service as unknown as {
-        _getRescheduleGuestUser: (args: {
-          rescheduleUid?: string | null;
-          organizerEmails: string[];
-          schedulingType: SchedulingType | null;
-          rescheduledBy?: string | null;
-        }) => Promise<unknown>;
-      }
-    )._getRescheduleGuestUser({
+    const result = await getRescheduleGuestUser({
       rescheduleUid: "BOOKING_TO_RESCHEDULE_UID",
       organizerEmails: ["host@example.com"],
       schedulingType: SchedulingType.COLLECTIVE,
@@ -314,16 +293,7 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
   });
 
   it("returns null when rescheduledBy is missing", async () => {
-    const result = await (
-      service as unknown as {
-        _getRescheduleGuestUser: (args: {
-          rescheduleUid?: string | null;
-          organizerEmails: string[];
-          schedulingType: SchedulingType | null;
-          rescheduledBy?: string | null;
-        }) => Promise<unknown>;
-      }
-    )._getRescheduleGuestUser({
+    const result = await getRescheduleGuestUser({
       rescheduleUid: "BOOKING_TO_RESCHEDULE_UID",
       organizerEmails: ["host@example.com"],
       schedulingType: SchedulingType.ROUND_ROBIN,
@@ -339,19 +309,7 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
     const hostRangeStart = dayjs("2025-01-23T11:00:00.000Z");
     const hostRangeEnd = dayjs("2025-01-23T11:30:00.000Z");
 
-    const aggregatedAvailability = (
-      service as unknown as {
-        getAggregatedAvailabilityForEvent: (args: {
-          allUsersAvailability: {
-            dateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
-            oooExcludedDateRanges: { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
-            user: { isFixed: boolean; groupId: string | null };
-          }[];
-          schedulingType: SchedulingType | null;
-          hasInjectedRescheduleGuest: boolean;
-        }) => { start: dayjs.Dayjs; end: dayjs.Dayjs }[];
-      }
-    ).getAggregatedAvailabilityForEvent({
+    const aggregatedAvailability = getAggregatedAvailabilityForEvent({
       allUsersAvailability: [
         {
           dateRanges: [{ start: hostRangeStart, end: hostRangeEnd }],
