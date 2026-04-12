@@ -1,0 +1,17 @@
+name: Lint
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - uses: ./.github/actions/yarn-install
+
+      - name: Run Lint
+        run: yarn lint
