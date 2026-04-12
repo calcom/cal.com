@@ -28,6 +28,7 @@ jobs:
         with:
           context: .
           file: Dockerfile
+          # TODO: Replace both URLs with your domains
           build-args: |
             NEXT_PUBLIC_WEBAPP_URL=https://cal.starliner.app
             NEXT_PUBLIC_API_V2_URL=https://api.cal.starliner.app

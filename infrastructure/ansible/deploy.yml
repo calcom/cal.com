@@ -4,6 +4,7 @@
   tasks:
     - name: Clone repository
       git:
+        # TODO: Replace with your fork's URL
         repo: https://github.com/starlinerapp/cal.com.git
         dest: /home/ubuntu/cal.com
         update: yes

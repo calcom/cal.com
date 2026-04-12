@@ -1,7 +1,7 @@
 ## BUGS 
 - Test Attribute Edit. It seems to be doing weird things with the ids.
 
-## TODO
+
 - [x] Sync from Okta to user could be in core namespace urn:ietf:params:scim:schemas:core:2.0:User and we might need to ask for the namespace to sync from.
 - [x] Deleting a sub-option, should remove it from option-group?
 - [x] Locked attribute are free to have its options completely reset by SCIM

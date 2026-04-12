@@ -1,4 +1,4 @@
-## TODO - Routing
+## Routing
 - [ ] Switching from Select to MultiSelect in attribute 
     - [ ] It immediately makes the Routing logic to not work. Fix it.
     - [ ] It removes the selected option from Routing. Fix it.

@@ -22,6 +22,7 @@ services:
       - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      # TODO: Replace with your email address
       - "--certificatesresolvers.letsencrypt.acme.email=admin@starliner.app"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     ports:
@@ -58,6 +59,7 @@ services:
       - "${REDIS_PORT:-6379}:6379"
 
   calcom:
+    # TODO: Replace with your GHCR image path
     image: ghcr.io/starlinerapp/cal.com/calcom:latest
     restart: unless-stopped
     networks:
@@ -71,6 +73,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=stack"
+      # TODO: Replace with your app domain
       - "traefik.http.routers.calcom.rule=Host(`cal.starliner.app`)"
       - "traefik.http.routers.calcom.entrypoints=websecure"
       - "traefik.http.routers.calcom.tls.certresolver=letsencrypt"
@@ -78,6 +81,7 @@ services:
 
   calcom-api:
     container_name: calcom-api
+    # TODO: Replace with your GHCR image path
     image: ghcr.io/starlinerapp/cal.com/calcom-api:latest
     restart: unless-stopped
     networks:
@@ -123,6 +127,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=stack"
+      # TODO: Replace with your API domain
       - "traefik.http.routers.calcom-api.rule=Host(`api.cal.starliner.app`)"
       - "traefik.http.routers.calcom-api.entrypoints=websecure"
       - "traefik.http.routers.calcom-api.tls.certresolver=letsencrypt"
