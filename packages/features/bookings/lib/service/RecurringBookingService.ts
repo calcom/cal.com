@@ -126,7 +126,7 @@ export const handleNewRecurringBooking = async function (
       },
     });
 
-    const eachRecurringBooking= await promiseEachRecurringBooking;
+    const eachRecurringBooking = await promiseEachRecurringBooking;
 
     createdBookings.push(eachRecurringBooking);
 
@@ -167,7 +167,7 @@ export interface IRecurringBookingServiceDependencies {
  * Recurring Booking Service takes care of creating/rescheduling recurring bookings.
  */
 export class RecurringBookingService implements IBookingService {
-  constructor(private readonly deps: IRecurringBookingServiceDependencies) { }
+  constructor(private readonly deps: IRecurringBookingServiceDependencies) {}
 
   async fireBookingEvents({
     createdBookings,

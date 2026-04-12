@@ -125,7 +125,16 @@ const DuplicateDialog = () => {
   return (
     <Dialog
       name="duplicate"
-      clearQueryParamsOnClose={["description", "title", "length", "slug", "name", "id", "pageSlug", "schedulingType"]}>
+      clearQueryParamsOnClose={[
+        "description",
+        "title",
+        "length",
+        "slug",
+        "name",
+        "id",
+        "pageSlug",
+        "schedulingType",
+      ]}>
       <DialogContent type="creation" className="overflow-y-auto" title={t("duplicate_event_type")}>
         <Form
           form={form}
@@ -134,10 +143,7 @@ const DuplicateDialog = () => {
           }}>
           <div className="-mt-2 stack-y-5">
             {isManagedEventType && (
-              <Alert
-                severity="info"
-                message={t("managed_event_type_duplicate_disclaimer")}
-              />
+              <Alert severity="info" message={t("managed_event_type_duplicate_disclaimer")} />
             )}
             <TextField
               label={t("title")}

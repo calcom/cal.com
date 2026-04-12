@@ -119,7 +119,7 @@ export const EventTypeCalendarViewComponent = (
   const selectedEventDuration = useBookerStoreContext((state) => state.selectedDuration);
   const eventDuration = selectedEventDuration || event?.data?.length || 30;
 
-  const availableTimeSlots= useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
+  const availableTimeSlots = useAvailableTimeSlots({ schedule: schedule.data, eventDuration });
 
   return (
     <AtomsWrapper>

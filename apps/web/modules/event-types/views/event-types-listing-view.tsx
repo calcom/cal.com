@@ -432,15 +432,15 @@ export const InfiniteEventTypeList = ({
       if (value) newSearchParams.set(key, value.toString());
       if (value === null) newSearchParams.delete(key);
     }
-        setParamsIfDefined("dialog", "duplicate");
-        setParamsIfDefined("title", eventType.title);
-        setParamsIfDefined("description", eventType.description);
-        setParamsIfDefined("slug", eventType.slug);
-        setParamsIfDefined("id", eventType.id);
-        setParamsIfDefined("length", eventType.length);
-        setParamsIfDefined("pageSlug", group.profile.slug);
-        setParamsIfDefined("schedulingType", eventType.schedulingType);
-        router.push(`${pathname}?${newSearchParams.toString()}`);
+    setParamsIfDefined("dialog", "duplicate");
+    setParamsIfDefined("title", eventType.title);
+    setParamsIfDefined("description", eventType.description);
+    setParamsIfDefined("slug", eventType.slug);
+    setParamsIfDefined("id", eventType.id);
+    setParamsIfDefined("length", eventType.length);
+    setParamsIfDefined("pageSlug", group.profile.slug);
+    setParamsIfDefined("schedulingType", eventType.schedulingType);
+    router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
   const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({

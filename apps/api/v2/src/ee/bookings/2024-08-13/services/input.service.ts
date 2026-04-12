@@ -19,11 +19,7 @@ import { BookingSeatRepository } from "@/modules/booking-seat/booking-seat.repos
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { UsersRepository } from "@/modules/users/users.repository";
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { isURL, isPhoneNumber } from "class-validator";
@@ -68,13 +64,13 @@ type OAuthRequestParams = {
 };
 
 export enum Frequency {
-  "YEARLY",
-  "MONTHLY",
-  "WEEKLY",
-  "DAILY",
-  "HOURLY",
-  "MINUTELY",
-  "SECONDLY",
+  YEARLY,
+  MONTHLY,
+  WEEKLY,
+  DAILY,
+  HOURLY,
+  MINUTELY,
+  SECONDLY,
 }
 
 const recurringEventSchema = z.object({
@@ -106,10 +102,7 @@ export class InputBookingsService_2024_08_13 {
     body: CreateBookingInput_2024_08_13 | CreateInstantBookingInput_2024_08_13,
     eventType: EventTypeWithOwnerAndTeam
   ): Promise<BookingRequest> {
-    const oAuthClientParams =
-      await this.platformBookingsService.getOAuthClientParamsForEventType(
-        eventType
-      );
+    const oAuthClientParams = await this.platformBookingsService.getOAuthClientParamsForEventType(eventType);
     const bodyTransformed = await this.transformInputCreateBooking(
       body,
       eventType,
@@ -117,8 +110,7 @@ export class InputBookingsService_2024_08_13 {
     );
 
     const newRequest = { ...request };
-    const userId =
-      (await this.createBookingRequestOwnerId(request)) ?? undefined;
+    const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
 
     this.logger.log(`createBookingRequest_2024_08_13`, {
       requestId: request.get("X-Request-Id"),
@@ -160,10 +152,7 @@ export class InputBookingsService_2024_08_13 {
 
     const guests =
       inputBooking.guests && platformClientId
-        ? await this.platformBookingsService.getPlatformAttendeesEmails(
-            inputBooking.guests,
-            platformClientId
-          )
+        ? await this.platformBookingsService.getPlatformAttendeesEmails(inputBooking.guests, platformClientId)
         : inputBooking.guests;
     const attendeeEmail =
       inputBooking.attendee.email && platformClientId
@@ -175,9 +164,7 @@ export class InputBookingsService_2024_08_13 {
 
     const inputLocation = inputBooking.location || inputBooking.meetingUrl;
     this.isBookingLocationWithEventTypeLocations(inputLocation, eventType);
-    const location = inputLocation
-      ? this.transformLocation(inputLocation)
-      : undefined;
+    const location = inputLocation ? this.transformLocation(inputLocation) : undefined;
 
     const needsSmsReminderNumber = eventType.bookingFields
       ? eventTypeBookingFieldsSchema
@@ -204,9 +191,7 @@ export class InputBookingsService_2024_08_13 {
         name: inputBooking.attendee.name,
         email: attendeeEmail ?? "",
         attendeePhoneNumber: inputBooking.attendee.phoneNumber,
-        smsReminderNumber: needsSmsReminderNumber
-          ? inputBooking.attendee.phoneNumber
-          : undefined,
+        smsReminderNumber: needsSmsReminderNumber ? inputBooking.attendee.phoneNumber : undefined,
         guests,
         location,
       },
@@ -239,10 +224,7 @@ export class InputBookingsService_2024_08_13 {
     };
   }
 
-  validateBookingLengthInMinutes(
-    inputBooking: CreateBookingInput_2024_08_13,
-    eventType: EventType
-  ) {
+  validateBookingLengthInMinutes(inputBooking: CreateBookingInput_2024_08_13, eventType: EventType) {
     const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType.metadata);
     if (inputBooking.lengthInMinutes && !eventTypeMetadata?.multipleDuration) {
       throw new BadRequestException(
@@ -251,9 +233,7 @@ export class InputBookingsService_2024_08_13 {
     }
     if (
       inputBooking.lengthInMinutes &&
-      !eventTypeMetadata?.multipleDuration?.includes(
-        inputBooking.lengthInMinutes
-      )
+      !eventTypeMetadata?.multipleDuration?.includes(inputBooking.lengthInMinutes)
     ) {
       throw new BadRequestException(
         `Provided 'lengthInMinutes' is not one of the possible lengths for the event type. The possible lengths are: ${eventTypeMetadata?.multipleDuration?.join(
@@ -268,10 +248,7 @@ export class InputBookingsService_2024_08_13 {
     body: CreateRecurringBookingInput_2024_08_13,
     eventType: EventTypeWithOwnerAndTeam
   ): Promise<BookingRequest> {
-    const oAuthClientParams =
-      await this.platformBookingsService.getOAuthClientParamsForEventType(
-        eventType
-      );
+    const oAuthClientParams = await this.platformBookingsService.getOAuthClientParamsForEventType(eventType);
     // note(Lauris): update to this.transformInputCreate when rescheduling is implemented
     const bodyTransformed = await this.transformInputCreateRecurringBooking(
       body,
@@ -280,8 +257,7 @@ export class InputBookingsService_2024_08_13 {
     );
 
     const newRequest = { ...request };
-    const userId =
-      (await this.createBookingRequestOwnerId(request)) ?? undefined;
+    const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
 
     if (oAuthClientParams) {
       Object.assign(newRequest, {
@@ -307,7 +283,9 @@ export class InputBookingsService_2024_08_13 {
     } as unknown as BookingRequest;
   }
 
-  transformLocation(location: string | BookingInputLocation_2024_08_13 | UpdateBookingInputLocation_2024_08_13): {
+  transformLocation(
+    location: string | BookingInputLocation_2024_08_13 | UpdateBookingInputLocation_2024_08_13
+  ): {
     value: string;
     optionValue: string;
   } {
@@ -315,10 +293,7 @@ export class InputBookingsService_2024_08_13 {
       // note(Lauris): this is for backwards compatibility because before switching to booking location objects
       // we only received a string. If someone is complaining that their location is not displaying as a URL
       // or whatever check that they are not providing a string for bookign location but one of the input objects.
-      if (
-        isURL(location, { require_protocol: false }) ||
-        location.startsWith("www.")
-      ) {
+      if (isURL(location, { require_protocol: false }) || location.startsWith("www.")) {
         return {
           value: "link",
           optionValue: location,
@@ -339,12 +314,9 @@ export class InputBookingsService_2024_08_13 {
     }
 
     if (location.type === "integration") {
-      const integration =
-        apiToInternalintegrationsMapping[location.integration];
+      const integration = apiToInternalintegrationsMapping[location.integration];
       if (!integration) {
-        throw new BadRequestException(
-          `Invalid integration: ${location.integration}`
-        );
+        throw new BadRequestException(`Invalid integration: ${location.integration}`);
       }
       return {
         value: integration,
@@ -402,9 +374,7 @@ export class InputBookingsService_2024_08_13 {
     }
 
     throw new BadRequestException(
-      `Booking location with type ${
-        (location as BookingInputLocation_2024_08_13).type
-      } not valid.`
+      `Booking location with type ${(location as BookingInputLocation_2024_08_13).type} not valid.`
     );
   }
 
@@ -417,19 +387,13 @@ export class InputBookingsService_2024_08_13 {
       return true;
     }
 
-    const eventTypeLocations = this.outputEventTypesService.transformLocations(
-      dbEventType.locations
-    );
-    const allowedLocationTypes = eventTypeLocations.map(
-      (location) => location.type
-    );
+    const eventTypeLocations = this.outputEventTypesService.transformLocations(dbEventType.locations);
+    const allowedLocationTypes = eventTypeLocations.map((location) => location.type);
 
     const isAllowed = allowedLocationTypes.includes(inputBookingLocation.type);
     if (!isAllowed) {
       throw new BadRequestException(
-        `Booking location with type ${
-          inputBookingLocation.type
-        } not valid for event type with id=${
+        `Booking location with type ${inputBookingLocation.type} not valid for event type with id=${
           dbEventType.id
         }. The event type has following location types: ${allowedLocationTypes.join(
           ", "
@@ -437,17 +401,12 @@ export class InputBookingsService_2024_08_13 {
       );
     }
 
-    if (
-      inputBookingLocation.type === "integration" &&
-      "integration" in inputBookingLocation
-    ) {
+    if (inputBookingLocation.type === "integration" && "integration" in inputBookingLocation) {
       const allowedIntegrations = eventTypeLocations
         .filter((location) => location.type === "integration")
         .map((location) => location.integration);
 
-      const isAllowedIntegration = allowedIntegrations.includes(
-        inputBookingLocation.integration
-      );
+      const isAllowedIntegration = allowedIntegrations.includes(inputBookingLocation.integration);
       if (!isAllowedIntegration) {
         throw new BadRequestException(
           `Booking location with integration ${
@@ -470,9 +429,7 @@ export class InputBookingsService_2024_08_13 {
     platformClientId?: string
   ) {
     if (!eventType.recurringEvent) {
-      throw new NotFoundException(
-        `Event type with id=${inputBooking.eventTypeId} is not a recurring event`
-      );
+      throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} is not a recurring event`);
     }
 
     this.validateBookingLengthInMinutes(inputBooking, eventType);
@@ -481,10 +438,7 @@ export class InputBookingsService_2024_08_13 {
     const occurrence = recurringEventSchema.parse(eventType.recurringEvent);
     const repeatsEvery = occurrence.interval;
 
-    if (
-      inputBooking.recurrenceCount &&
-      inputBooking.recurrenceCount > occurrence.count
-    ) {
+    if (inputBooking.recurrenceCount && inputBooking.recurrenceCount > occurrence.count) {
       throw new BadRequestException(
         "Provided recurrence count is higher than the event type's recurring event count."
       );
@@ -502,10 +456,7 @@ export class InputBookingsService_2024_08_13 {
 
     const guests =
       inputBooking.guests && platformClientId
-        ? await this.platformBookingsService.getPlatformAttendeesEmails(
-            inputBooking.guests,
-            platformClientId
-          )
+        ? await this.platformBookingsService.getPlatformAttendeesEmails(inputBooking.guests, platformClientId)
         : inputBooking.guests;
     const attendeeEmail =
       inputBooking.attendee.email && platformClientId
@@ -517,9 +468,7 @@ export class InputBookingsService_2024_08_13 {
 
     const inputLocation = inputBooking.location || inputBooking.meetingUrl;
     this.isBookingLocationWithEventTypeLocations(inputLocation, eventType);
-    const location = inputLocation
-      ? this.transformLocation(inputLocation)
-      : undefined;
+    const location = inputLocation ? this.transformLocation(inputLocation) : undefined;
 
     for (let i = 0; i < repeatsTimes; i++) {
       const endTime = startTime.plus({ minutes: lengthInMinutes });
@@ -576,16 +525,11 @@ export class InputBookingsService_2024_08_13 {
     const bodyTransformed =
       isIndividualSeatReschedule && "seatUid" in body
         ? await this.transformInputRescheduleSeatedBooking(bookingUid, body)
-        : await this.transformInputRescheduleBooking(
-            bookingUid,
-            body,
-            isIndividualSeatReschedule
-          );
+        : await this.transformInputRescheduleBooking(bookingUid, body, isIndividualSeatReschedule);
 
-    const oAuthClientParams =
-      await this.platformBookingsService.getOAuthClientParams(
-        bodyTransformed.eventTypeId
-      );
+    const oAuthClientParams = await this.platformBookingsService.getOAuthClientParams(
+      bodyTransformed.eventTypeId
+    );
 
     const newRequest = { ...request };
     let userId: number | undefined = undefined;
@@ -603,9 +547,7 @@ export class InputBookingsService_2024_08_13 {
 
     if (request.body.rescheduledBy) {
       if (request.body.rescheduledBy !== bodyTransformed.responses.email) {
-        userId = (
-          await this.usersRepository.findByEmail(request.body.rescheduledBy)
-        )?.id;
+        userId = (await this.usersRepository.findByEmail(request.body.rescheduledBy))?.id;
       }
     }
 
@@ -635,9 +577,7 @@ export class InputBookingsService_2024_08_13 {
     return newRequest as unknown as BookingRequest;
   }
 
-  isRescheduleSeatedBody(
-    body: RescheduleBookingInput
-  ): body is RescheduleSeatedBookingInput_2024_08_13 {
+  isRescheduleSeatedBody(body: RescheduleBookingInput): body is RescheduleSeatedBookingInput_2024_08_13 {
     return Object.prototype.hasOwnProperty.call(body, "seatUid");
   }
 
@@ -645,44 +585,26 @@ export class InputBookingsService_2024_08_13 {
     bookingUid: string,
     inputBooking: RescheduleSeatedBookingInput_2024_08_13
   ) {
-    const booking =
-      await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(
-        bookingUid
-      );
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
     // todo create booking seat module, repository and fetch the seat to get info
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
     }
     if (!booking.eventTypeId) {
-      throw new NotFoundException(
-        `Booking with uid=${bookingUid} is missing event type`
-      );
+      throw new NotFoundException(`Booking with uid=${bookingUid} is missing event type`);
     }
-    const eventType =
-      await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
-        booking.eventTypeId
-      );
+    const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(booking.eventTypeId);
     if (!eventType) {
-      throw new NotFoundException(
-        `Event type with id=${booking.eventTypeId} not found`
-      );
+      throw new NotFoundException(`Event type with id=${booking.eventTypeId} not found`);
     }
 
-    const seat = await this.bookingSeatRepository.getByReferenceUid(
-      inputBooking.seatUid
-    );
+    const seat = await this.bookingSeatRepository.getByReferenceUid(inputBooking.seatUid);
     if (!seat) {
-      throw new NotFoundException(
-        `Seat with uid=${inputBooking.seatUid} does not exist.`
-      );
+      throw new NotFoundException(`Seat with uid=${inputBooking.seatUid} does not exist.`);
     }
 
-    const { responses: bookingResponses } = seatedBookingDataSchema.parse(
-      seat.data
-    );
-    const attendee = booking.attendees.find(
-      (attendee) => attendee.email === bookingResponses.email
-    );
+    const { responses: bookingResponses } = seatedBookingDataSchema.parse(seat.data);
+    const attendee = booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
 
     if (!attendee) {
       throw new NotFoundException(
@@ -692,10 +614,7 @@ export class InputBookingsService_2024_08_13 {
 
     // preserve the original booking duration instead of using the default event type length
     // this ensures that bookings with non-default durations (from multi-duration event types) are preserved on reschedule
-    const originalDurationInMinutes = this.getOriginalBookingDuration(
-      booking.startTime,
-      booking.endTime
-    );
+    const originalDurationInMinutes = this.getOriginalBookingDuration(booking.startTime, booking.endTime);
 
     const startTime = DateTime.fromISO(inputBooking.start, {
       zone: "utc",
@@ -722,26 +641,16 @@ export class InputBookingsService_2024_08_13 {
     inputBooking: RescheduleBookingInput_2024_08_13,
     isIndividualSeatReschedule: boolean
   ) {
-    const booking =
-      await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(
-        bookingUid
-      );
+    const booking = await this.bookingsRepository.getByUidWithAttendeesAndUserAndEvent(bookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
     }
     if (!booking.eventTypeId) {
-      throw new NotFoundException(
-        `Booking with uid=${bookingUid} is missing event type`
-      );
+      throw new NotFoundException(`Booking with uid=${bookingUid} is missing event type`);
     }
-    const eventType =
-      await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
-        booking.eventTypeId
-      );
+    const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(booking.eventTypeId);
     if (!eventType) {
-      throw new NotFoundException(
-        `Event type with id=${booking.eventTypeId} not found`
-      );
+      throw new NotFoundException(`Event type with id=${booking.eventTypeId} not found`);
     }
     if (eventType.seatsPerTimeSlot && !isIndividualSeatReschedule) {
       throw new BadRequestException(
@@ -761,9 +670,7 @@ export class InputBookingsService_2024_08_13 {
 
     const attendee = bookingResponsesMissing
       ? booking.attendees[0]
-      : booking.attendees.find(
-          (attendee) => attendee.email === bookingResponses.email
-        );
+      : booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
 
     if (!attendee) {
       throw new NotFoundException(
@@ -779,10 +686,7 @@ export class InputBookingsService_2024_08_13 {
 
     // preserve the original booking duration instead of using the default event type length
     // this ensures that bookings with non-default durations (from multi-duration event types) are preserved on reschedule
-    const originalDurationInMinutes = this.getOriginalBookingDuration(
-      booking.startTime,
-      booking.endTime
-    );
+    const originalDurationInMinutes = this.getOriginalBookingDuration(booking.startTime, booking.endTime);
 
     const startTime = DateTime.fromISO(inputBooking.start, {
       zone: "utc",
@@ -808,37 +712,21 @@ export class InputBookingsService_2024_08_13 {
   }
 
   async getRescheduleBookingLocation(rescheduleBookingUid: string) {
-    const booking = await this.bookingsRepository.getByUid(
-      rescheduleBookingUid
-    );
+    const booking = await this.bookingsRepository.getByUid(rescheduleBookingUid);
     if (!booking) {
-      throw new NotFoundException(
-        `Booking with uid=${rescheduleBookingUid} not found`
-      );
+      throw new NotFoundException(`Booking with uid=${rescheduleBookingUid} not found`);
     }
     return booking.location;
   }
 
-  private async createBookingRequestOwnerId(
-    req: Request
-  ): Promise<number | undefined> {
+  private async createBookingRequestOwnerId(req: Request): Promise<number | undefined> {
     try {
       const bearerToken = req.get("Authorization")?.replace("Bearer ", "");
       if (bearerToken) {
-        if (
-          isApiKey(
-            bearerToken,
-            this.config.get<string>("api.apiKeyPrefix") ?? "cal_"
-          )
-        ) {
-          const strippedApiKey = stripApiKey(
-            bearerToken,
-            this.config.get<string>("api.keyPrefix")
-          );
+        if (isApiKey(bearerToken, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")) {
+          const strippedApiKey = stripApiKey(bearerToken, this.config.get<string>("api.keyPrefix"));
           const apiKeyHash = sha256Hash(strippedApiKey);
-          const keyData = await this.apiKeyRepository.getApiKeyFromHash(
-            apiKeyHash
-          );
+          const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
           return keyData?.userId;
         } else {
           // Access Token
@@ -857,12 +745,9 @@ export class InputBookingsService_2024_08_13 {
       attendeeName: queryParams.attendeeName,
       afterStartDate: queryParams.afterStart,
       beforeEndDate: queryParams.beforeEnd,
-      teamIds:
-        queryParams.teamsIds ||
-        (queryParams.teamId ? [queryParams.teamId] : undefined),
+      teamIds: queryParams.teamsIds || (queryParams.teamId ? [queryParams.teamId] : undefined),
       eventTypeIds:
-        queryParams.eventTypeIds ||
-        (queryParams.eventTypeId ? [queryParams.eventTypeId] : undefined),
+        queryParams.eventTypeIds || (queryParams.eventTypeId ? [queryParams.eventTypeId] : undefined),
       afterUpdatedDate: queryParams.afterUpdatedAt,
       beforeUpdatedDate: queryParams.beforeUpdatedAt,
       afterCreatedDate: queryParams.afterCreatedAt,
@@ -910,14 +795,11 @@ export class InputBookingsService_2024_08_13 {
     }
 
     const oAuthClientParams = booking.eventTypeId
-      ? await this.platformBookingsService.getOAuthClientParams(
-          booking.eventTypeId
-        )
+      ? await this.platformBookingsService.getOAuthClientParams(booking.eventTypeId)
       : undefined;
 
     const newRequest = { ...request };
-    const userId =
-      (await this.createBookingRequestOwnerId(request)) ?? undefined;
+    const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
 
     if (oAuthClientParams) {
       Object.assign(newRequest, { userId, ...oAuthClientParams });
@@ -933,19 +815,12 @@ export class InputBookingsService_2024_08_13 {
     return newRequest as unknown as BookingRequest;
   }
 
-  isCancelSeatedBody(
-    body: CancelBookingInput
-  ): body is CancelSeatedBookingInput_2024_08_13 {
+  isCancelSeatedBody(body: CancelBookingInput): body is CancelSeatedBookingInput_2024_08_13 {
     return Object.prototype.hasOwnProperty.call(body, "seatUid");
   }
 
-  async transformInputCancelBooking(
-    bookingUid: string,
-    inputBooking: CancelBookingInput_2024_08_13
-  ) {
-    const recurringBooking = await this.bookingsRepository.getRecurringByUid(
-      bookingUid
-    );
+  async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
+    const recurringBooking = await this.bookingsRepository.getRecurringByUid(bookingUid);
     // note(Lauris): isRecurring means that recurringEventId was passed as uid. isRecurring does not refer to the uid of 1 individual booking within a recurring booking consisting of many bookings.
     // That is what recurringEventId refers to.
     const isRecurringUid = !!recurringBooking.length;
@@ -994,9 +869,7 @@ export class InputBookingsService_2024_08_13 {
     };
   }
 
-  transformInputMarkAbsentBooking(
-    inputBooking: MarkAbsentBookingInput_2024_08_13
-  ) {
+  transformInputMarkAbsentBooking(inputBooking: MarkAbsentBookingInput_2024_08_13) {
     return {
       noShowHost: inputBooking.host,
       attendees: inputBooking.attendees?.map((attendee) => ({
@@ -1007,7 +880,6 @@ export class InputBookingsService_2024_08_13 {
   }
 
   getOriginalBookingDuration(start: Date, end: Date) {
-    return DateTime.fromJSDate(end).diff(DateTime.fromJSDate(start), "minutes")
-      .minutes;
+    return DateTime.fromJSDate(end).diff(DateTime.fromJSDate(start), "minutes").minutes;
   }
 }

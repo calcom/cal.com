@@ -299,10 +299,10 @@ const BookerPlatformWrapperComponent = (
     teamMemberEmail: teamMemberEmail ?? undefined,
     ...(props.isTeamEvent
       ? {
-        isTeamEvent: props.isTeamEvent,
-        teamId: teamId,
-        rrHostSubsetIds: rrHostSubsetIds,
-      }
+          isTeamEvent: props.isTeamEvent,
+          teamId: teamId,
+          rrHostSubsetIds: rrHostSubsetIds,
+        }
       : {}),
     enabled:
       Boolean(teamId || username) &&
@@ -453,8 +453,8 @@ const BookerPlatformWrapperComponent = (
     isBookingDryRun: isBookingDryRun ?? routingParams?.isBookingDryRun,
     ...(props.isTeamEvent
       ? {
-        rrHostSubsetIds: rrHostSubsetIds,
-      }
+          rrHostSubsetIds: rrHostSubsetIds,
+        }
       : {}),
   });
 

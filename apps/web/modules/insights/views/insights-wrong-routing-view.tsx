@@ -8,7 +8,10 @@ import { InsightsOrgTeamsProvider } from "../components/context/InsightsOrgTeams
 
 export default function InsightsWrongRoutingPage({ timeZone }: { timeZone: string }) {
   return (
-    <DataTableProvider tableIdentifier="/insights/wrong-routing" useSegments={useSegments} timeZone={timeZone}>
+    <DataTableProvider
+      tableIdentifier="/insights/wrong-routing"
+      useSegments={useSegments}
+      timeZone={timeZone}>
       <InsightsOrgTeamsProvider>
         <WrongAssignmentReportsDashboard />
       </InsightsOrgTeamsProvider>

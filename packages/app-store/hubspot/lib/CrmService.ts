@@ -565,11 +565,11 @@ class HubspotCalendarService implements CRM {
         lastname,
         email: attendee.email,
       };
-      
+
       if (attendee.phone) {
         properties.phone = attendee.phone;
       }
-      
+
       return {
         properties,
       };

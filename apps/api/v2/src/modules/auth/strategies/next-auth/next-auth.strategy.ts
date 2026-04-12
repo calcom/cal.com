@@ -8,7 +8,10 @@ import { getToken } from "next-auth/jwt";
 
 @Injectable()
 export class NextAuthStrategy extends PassportStrategy(NextAuthPassportStrategy, "next-auth") {
-  constructor(private readonly userRepository: UsersRepository, private readonly config: ConfigService) {
+  constructor(
+    private readonly userRepository: UsersRepository,
+    private readonly config: ConfigService
+  ) {
     super();
   }
 

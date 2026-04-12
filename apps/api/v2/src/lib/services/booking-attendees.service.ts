@@ -15,6 +15,11 @@ export class BookingAttendeesService extends BaseBookingAttendeesService {
     bookingRepository: PrismaBookingRepository,
     bookingAttendeesRemoveService: BookingAttendeesRemoveService
   ) {
-    super({ bookingEventHandlerService, featuresRepository, bookingRepository, bookingAttendeesRemoveService });
+    super({
+      bookingEventHandlerService,
+      featuresRepository,
+      bookingRepository,
+      bookingAttendeesRemoveService,
+    });
   }
 }

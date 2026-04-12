@@ -6,9 +6,7 @@
   "logo": "icon.svg",
   "url": "https://clicis.vercel.app",
   "variant": "automation",
-  "categories": [
-    "automation"
-  ],
+  "categories": ["automation"],
   "publisher": "Chris Pacheco",
   "email": "chrispacheco430@gmail.com",
   "description": "Create, List and Interact with Your Cal.com links and connections easily.\r\r",

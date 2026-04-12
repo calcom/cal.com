@@ -6,7 +6,10 @@ import type { SortOrderType } from "@calcom/platform-types";
 
 @Injectable()
 export class TeamsEventTypesRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async getTeamEventType(teamId: number, eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({

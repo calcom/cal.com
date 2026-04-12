@@ -264,7 +264,7 @@ const TeamsVideoApiAdapter = (credential: CredentialForCalendarServiceWithTenant
         });
       }
     },
-    deleteMeeting:() => {
+    deleteMeeting: () => {
       return Promise.resolve([]);
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {

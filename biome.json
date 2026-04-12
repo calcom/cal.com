@@ -31,7 +31,8 @@
       "**/*",
       "!packages/ui/components/icon/dynamicIconImports.tsx",
       "!apps/api/v1/tests",
-      "!apps/api/v1/templates"
+      "!apps/api/v1/templates",
+      "!packages/config/theme"
     ],
     "lineWidth": 110,
     "indentStyle": "space",
@@ -222,7 +223,13 @@
       }
     },
     {
-      "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.e2e-spec.ts", "**/*.integration-test.ts"],
+      "includes": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.e2e-spec.ts",
+        "**/*.integration-test.ts"
+      ],
       "linter": {
         "rules": {
           "complexity": {

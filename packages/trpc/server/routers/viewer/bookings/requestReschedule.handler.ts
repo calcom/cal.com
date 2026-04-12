@@ -51,7 +51,12 @@ type RequestRescheduleOptions = {
   impersonatedByUserUuid: string | null;
 };
 const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
-export const requestRescheduleHandler = async ({ ctx, input, source, impersonatedByUserUuid }: RequestRescheduleOptions) => {
+export const requestRescheduleHandler = async ({
+  ctx,
+  input,
+  source,
+  impersonatedByUserUuid,
+}: RequestRescheduleOptions) => {
   const { user } = ctx;
   const { bookingUid, rescheduleReason: cancellationReason } = input;
   log.debug("Started", safeStringify({ bookingUid }));

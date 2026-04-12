@@ -578,9 +578,9 @@ describe("_onFormSubmission with fallbackAction", () => {
 
     await _onFormSubmission(mockForm, mockResponse, 123, undefined, mockFallbackAction);
 
-    const fallbackCalls = vi.mocked(sendGenericWebhookPayload).mock.calls.filter(
-      (call) => call[0].triggerEvent === "ROUTING_FORM_FALLBACK_HIT"
-    );
+    const fallbackCalls = vi
+      .mocked(sendGenericWebhookPayload)
+      .mock.calls.filter((call) => call[0].triggerEvent === "ROUTING_FORM_FALLBACK_HIT");
     expect(fallbackCalls).toHaveLength(2);
   });
 

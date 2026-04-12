@@ -1,6 +1,10 @@
 import { describe, expect, it, beforeEach } from "vitest";
 
-import { verifyDataRequirementsContract, createTrackingDbStore, createEmptyAccessedData } from "./contractVerification";
+import {
+  verifyDataRequirementsContract,
+  createTrackingDbStore,
+  createEmptyAccessedData,
+} from "./contractVerification";
 import { RescheduledAuditActionService } from "../RescheduledAuditActionService";
 
 describe("RescheduledAuditActionService - getDataRequirements contract", () => {
@@ -54,9 +58,7 @@ describe("RescheduledAuditActionService - getDisplayTitle", () => {
 
     expect(result.components).toBeDefined();
     expect(result.components).toHaveLength(1);
-        expect(result.components![0].href).toBe(
-          `/bookings?uid=${rescheduledToUid}&activeSegment=history`
-        );
+    expect(result.components![0].href).toBe(`/bookings?uid=${rescheduledToUid}&activeSegment=history`);
   });
 
   it("should not include components when rescheduledToUid is null", async () => {
@@ -104,11 +106,8 @@ describe("RescheduledAuditActionService - getDisplayTitleForRescheduledFromLog",
       storedData,
     });
 
-
     expect(result.components).toBeDefined();
     expect(result.components).toHaveLength(1);
-        expect(result.components![0].href).toBe(
-          `/bookings?uid=${fromRescheduleUid}&activeSegment=history`
-        );
+    expect(result.components![0].href).toBe(`/bookings?uid=${fromRescheduleUid}&activeSegment=history`);
   });
 });

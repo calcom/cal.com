@@ -46,7 +46,7 @@ export async function createUserAndEventType({
     completedOnboarding: user.completedOnboarding ?? true,
     locale: "en",
     schedules:
-      user.completedOnboarding ?? true
+      (user.completedOnboarding ?? true)
         ? {
             create: {
               name: "Working Hours",
@@ -199,7 +199,7 @@ type OAuthClientInput = {
 };
 
 export async function createOAuthClientForUser(userId: number, oAuthClient: OAuthClientInput) {
-  const {enablePkce, ...restOfOAuthClient} = oAuthClient;
+  const { enablePkce, ...restOfOAuthClient } = oAuthClient;
   await prisma.oAuthClient.create({
     data: {
       userId,

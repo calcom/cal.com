@@ -198,7 +198,8 @@ export function FullScreenUpgradeBanner({
           </div>
 
           {/* Image - mobile only, hidden when features are expanded */}
-          <div className={`${showFeatures ? "hidden" : ""} md:hidden my-4 flex items-center justify-center rounded-xl bg-subtle aspect-[3/4] overflow-hidden relative`}>
+          <div
+            className={`${showFeatures ? "hidden" : ""} md:hidden my-4 flex items-center justify-center rounded-xl bg-subtle aspect-[3/4] overflow-hidden relative`}>
             <BannerImage {...bannerImageProps} />
           </div>
 

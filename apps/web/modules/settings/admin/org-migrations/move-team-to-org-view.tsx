@@ -68,9 +68,7 @@ export default function MoveTeamToOrgView() {
             required
             placeholder={t("move_team_to_org_target_org_id_placeholder")}
           />
-          <div className="mt-2 text-gray-600 text-sm">
-            {t("organization_migration_move_team_footnote")}
-          </div>
+          <div className="mt-2 text-gray-600 text-sm">{t("organization_migration_move_team_footnote")}</div>
         </div>
         <Button type="submit" loading={moveTeamMutation.isPending}>
           {t("organization_migration_move_team")}

@@ -353,11 +353,10 @@ async function handler(req: NextRequest) {
           };
 
           const customReplyTo = reminder.booking?.eventType?.customReplyToEmail;
-              const fallbackReplyTo =
-                reminder.booking?.userPrimaryEmail ?? reminder.booking?.user?.email;
-              const replyTo = reminder.booking?.eventType?.hideOrganizerEmail
-                ? customReplyTo
-                : customReplyTo ?? fallbackReplyTo;
+          const fallbackReplyTo = reminder.booking?.userPrimaryEmail ?? reminder.booking?.user?.email;
+          const replyTo = reminder.booking?.eventType?.hideOrganizerEmail
+            ? customReplyTo
+            : (customReplyTo ?? fallbackReplyTo);
 
           const mailData = {
             subject: emailContent.emailSubject,
@@ -374,8 +373,8 @@ async function handler(req: NextRequest) {
                 ]
               : undefined,
             sender: reminder.workflowStep.sender,
-          ...(replyTo ? { replyTo } : {}),
-        };
+            ...(replyTo ? { replyTo } : {}),
+          };
 
           if (isSendgridEnabled) {
             sendEmailPromises.push(
@@ -451,8 +450,7 @@ async function handler(req: NextRequest) {
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = isSendgridEnabled ? await getBatchId() : undefined;
           const customReplyTo = reminder.booking?.eventType?.customReplyToEmail;
-          const fallbackReplyTo =
-            reminder.booking?.userPrimaryEmail || reminder.booking?.user?.email;
+          const fallbackReplyTo = reminder.booking?.userPrimaryEmail || reminder.booking?.user?.email;
           const replyTo = reminder.booking?.eventType?.hideOrganizerEmail
             ? customReplyTo
             : customReplyTo || fallbackReplyTo;

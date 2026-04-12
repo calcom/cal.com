@@ -6,9 +6,7 @@
   "logo": "icon.svg",
   "url": "https://go.cal.com/granola",
   "variant": "other",
-  "categories": [
-    "other"
-  ],
+  "categories": ["other"],
   "publisher": "Granola inc",
   "email": "hey@granola.so",
   "description": "The AI notepad for people in back-to-back meetings for MacOS",

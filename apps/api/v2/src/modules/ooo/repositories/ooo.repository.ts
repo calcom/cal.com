@@ -14,7 +14,10 @@ type OOOInputData = Omit<Prisma.OutOfOfficeEntryCreateInput, "user" | "toUser" |
 
 @Injectable()
 export class UserOOORepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async createUserOOO(data: OOOInputData) {
     const uuid = uuidv4();

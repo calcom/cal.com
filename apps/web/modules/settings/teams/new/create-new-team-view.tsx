@@ -30,7 +30,8 @@ export const CreateNewTeamView = ({ userEmail }: CreateNewTeamViewProps) => {
   const store = useOnboardingStore();
   const { teamDetails, teamBrand, setTeamDetails, setTeamBrand, resetOnboardingPreservingPlan } = store;
   const bpParam = searchParams?.get("bp");
-  const billingPeriod = bpParam === "a" ? ("ANNUALLY" as const) : bpParam === "m" ? ("MONTHLY" as const) : undefined;
+  const billingPeriod =
+    bpParam === "a" ? ("ANNUALLY" as const) : bpParam === "m" ? ("MONTHLY" as const) : undefined;
   const { createTeam, isSubmitting } = useCreateTeam({
     redirectBasePath: "/settings/teams/new",
     isOnboarding: false,

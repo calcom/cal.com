@@ -3,7 +3,11 @@ import { Badge } from "@coss/ui/components/badge";
 
 export function TeamBadge() {
   const { t } = useLocale();
-  return <Badge variant="warning" className="bg-orange-200! text-orange-900">{t("teams")}</Badge>;
+  return (
+    <Badge variant="warning" className="bg-orange-200! text-orange-900">
+      {t("teams")}
+    </Badge>
+  );
 }
 
 export function OrgBadge() {

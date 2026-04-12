@@ -111,13 +111,12 @@ export class EventTypeHostService implements IEventTypeHostService {
     limit: number;
     search?: string;
   }): Promise<PaginatedAssignmentChildrenResponse> {
-    const { items, nextCursor, hasMore } =
-      await this.hostRepository.findChildrenForAssignmentPaginated({
-        eventTypeId,
-        cursor,
-        limit,
-        search,
-      });
+    const { items, nextCursor, hasMore } = await this.hostRepository.findChildrenForAssignmentPaginated({
+      eventTypeId,
+      cursor,
+      limit,
+      search,
+    });
 
     const children: AssignmentChild[] = items
       .filter((item) => item.owner !== null)

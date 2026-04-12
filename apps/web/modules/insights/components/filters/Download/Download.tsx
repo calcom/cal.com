@@ -95,11 +95,7 @@ const Download = () => {
   return (
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button
-          EndIcon="file-down"
-          color="secondary"
-          loading={isDownloading}
-          className="h-full">
+        <Button EndIcon="file-down" color="secondary" loading={isDownloading} className="h-full">
           {t("download")}
         </Button>
       </DropdownMenuTrigger>

@@ -552,7 +552,9 @@ function BookingListItem(booking: BookingItemProps) {
         userTimeZone={userTimeZone}
         isRescheduled={isRescheduled}
         onAssignmentReasonClick={
-          booking.assignmentReasonSortedByCreatedAt.length > 0 ? () => setIsOpenRoutingTraceSheet(true) : undefined
+          booking.assignmentReasonSortedByCreatedAt.length > 0
+            ? () => setIsOpenRoutingTraceSheet(true)
+            : undefined
         }
       />
       {isBookingFromRoutingForm && (
@@ -613,7 +615,9 @@ const BookingItemBadges = ({
       )}
       {booking?.assignmentReasonSortedByCreatedAt.length > 0 && (
         <AssignmentReasonTooltip
-          assignmentReason={booking.assignmentReasonSortedByCreatedAt[booking.assignmentReasonSortedByCreatedAt.length - 1]}
+          assignmentReason={
+            booking.assignmentReasonSortedByCreatedAt[booking.assignmentReasonSortedByCreatedAt.length - 1]
+          }
           onClick={onAssignmentReasonClick}
         />
       )}

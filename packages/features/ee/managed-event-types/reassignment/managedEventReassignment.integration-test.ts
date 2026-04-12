@@ -147,11 +147,7 @@ afterEach(async () => {
   // We query by eventTypeId to catch both original bookings and reassignment-created bookings
   const testBookings = await prisma.booking.findMany({
     where: {
-      OR: [
-        { id: { in: bookingIds } },
-        { eventTypeId: { in: eventTypeIds } },
-        { userId: { in: userIds } },
-      ],
+      OR: [{ id: { in: bookingIds } }, { eventTypeId: { in: eventTypeIds } }, { userId: { in: userIds } }],
     },
     select: { id: true },
   });

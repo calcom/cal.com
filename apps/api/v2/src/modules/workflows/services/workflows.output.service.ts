@@ -188,7 +188,7 @@ export class WorkflowsOutputService {
       recipient: config.recipient,
       sender: step.sender ?? "Default Sender",
       includeCalendarEvent: step.includeCalendarEvent,
-      phoneRequired: config.requiresPhone ? step.numberRequired ?? false : undefined,
+      phoneRequired: config.requiresPhone ? (step.numberRequired ?? false) : undefined,
       email: config.recipient === EMAIL ? customRecipient : "",
       phone: config.recipient === PHONE_NUMBER ? customRecipient : "",
       message: {

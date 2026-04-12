@@ -263,7 +263,12 @@ export function getLocationForOrganizerDefaultConferencingAppInEvtFormat({
   return appLink;
 }
 
-export async function editLocationHandler({ ctx, input, actionSource, impersonatedByUserUuid }: EditLocationOptions) {
+export async function editLocationHandler({
+  ctx,
+  input,
+  actionSource,
+  impersonatedByUserUuid,
+}: EditLocationOptions) {
   const { newLocation, credentialId: conferenceCredentialId } = input;
   const { booking, user: loggedInUser } = ctx;
 

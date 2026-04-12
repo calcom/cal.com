@@ -3,11 +3,13 @@
 @plugin "@tailwindcss/typography";
 @plugin "tailwindcss-radix";
 
-@plugin 'tailwind-scrollbar' {
+@plugin "tailwind-scrollbar" {
   nocompatible: true;
 }
 
-@variant pwa (@media (display-mode: standalone));
+@variant pwa 
+(
+@media (display-mode: standalone));
 @variant todesktop (html.todesktop &);
 @variant mac (html.todesktop-platform-darwin &);
 @variant windows (html.todesktop-platform-win32 &);

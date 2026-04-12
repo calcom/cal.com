@@ -464,7 +464,10 @@ describe("EventTypeHostService", () => {
         { userId: 3, weight: 50, user: { name: "Charlie", email: "charlie@test.com", avatarUrl: null } },
       ]);
       vi.mocked(findTeamMembersMatchingAttributeLogic).mockResolvedValue({
-        teamMembersMatchingAttributeLogic: [{ odataUserId: 1, odataEmail: "alice@test.com", userId: 1 }, { odataUserId: 3, odataEmail: "charlie@test.com", userId: 3 }],
+        teamMembersMatchingAttributeLogic: [
+          { odataUserId: 1, odataEmail: "alice@test.com", userId: 1 },
+          { odataUserId: 3, odataEmail: "charlie@test.com", userId: 3 },
+        ],
         mainAttributeLogicBuildingWarnings: [],
         troubleshooter: null,
       } as never);

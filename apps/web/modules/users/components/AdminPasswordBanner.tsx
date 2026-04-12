@@ -18,7 +18,10 @@ function getBannerMessageKey(reason: "both" | "password" | "2fa" | undefined): s
   }
 }
 
-function getBannerAction(reason: "both" | "password" | "2fa" | undefined): { href: string; labelKey: string } {
+function getBannerAction(reason: "both" | "password" | "2fa" | undefined): {
+  href: string;
+  labelKey: string;
+} {
   switch (reason) {
     case "2fa":
       return { href: "/settings/security/two-factor-auth", labelKey: "enable_2fa" };

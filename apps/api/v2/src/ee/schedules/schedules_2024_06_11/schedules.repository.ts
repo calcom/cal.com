@@ -24,7 +24,10 @@ type InputScheduleTransformed = Omit<CreateScheduleInput_2024_06_11, "availabili
 
 @Injectable()
 export class SchedulesRepository_2024_06_11 {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async createSchedule(userId: number, schedule: Omit<InputScheduleTransformed, "isDefault">) {
     const { availability, overrides } = schedule;
@@ -266,7 +269,7 @@ export class SchedulesRepository_2024_06_11 {
           },
         },
       },
-      orderBy: { id: 'asc' },
+      orderBy: { id: "asc" },
       skip,
       take,
     });

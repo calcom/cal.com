@@ -6,7 +6,10 @@ import type { Prisma } from "@calcom/prisma/client";
 
 @Injectable()
 export class OrganizationsDelegationCredentialRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async findById(delegationCredentialId: string) {
     return this.dbRead.prisma.delegationCredential.findUnique({ where: { id: delegationCredentialId } });

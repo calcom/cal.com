@@ -69,7 +69,9 @@ const makeBooking = (overrides: Partial<BookingWithEventType> = {}): BookingWith
     ...overrides,
   }) as unknown as BookingWithEventType;
 
-const makeEvent = (overrides: Partial<CalendarSubscriptionEventItem> = {}): CalendarSubscriptionEventItem => ({
+const makeEvent = (
+  overrides: Partial<CalendarSubscriptionEventItem> = {}
+): CalendarSubscriptionEventItem => ({
   id: "gcal-event-1",
   iCalUID: "booking-uid-123@cal.com",
   start: new Date("2024-01-15T14:00:00Z"),

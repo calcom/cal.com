@@ -237,14 +237,12 @@ export const eventTypesRouter = router({
       });
     }),
 
-  searchTeamMembers: authedProcedure
-    .input(ZSearchTeamMembersInputSchema)
-    .query(async ({ ctx, input }) => {
-      const { searchTeamMembersHandler } = await import("./searchTeamMembers.handler");
+  searchTeamMembers: authedProcedure.input(ZSearchTeamMembersInputSchema).query(async ({ ctx, input }) => {
+    const { searchTeamMembersHandler } = await import("./searchTeamMembers.handler");
 
-      return searchTeamMembersHandler({
-        ctx,
-        input,
-      });
-    }),
+    return searchTeamMembersHandler({
+      ctx,
+      input,
+    });
+  }),
 });

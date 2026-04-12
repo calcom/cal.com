@@ -41,7 +41,10 @@ vi.mock("@calcom/i18n/server", () => ({
   getTranslation: vi.fn().mockResolvedValue((key: string) => key),
 }));
 
-function createMockNextRequest(): { headers: { get: (key: string) => string | null }; nextUrl: { searchParams: { get: (key: string) => string | null } } } {
+function createMockNextRequest(): {
+  headers: { get: (key: string) => string | null };
+  nextUrl: { searchParams: { get: (key: string) => string | null } };
+} {
   return {
     headers: {
       get: (key: string) => (key === "authorization" ? "test-api-key" : null),

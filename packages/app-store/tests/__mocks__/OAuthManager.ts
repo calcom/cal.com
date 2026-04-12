@@ -28,16 +28,16 @@ export default oAuthManagerMock;
 const setFullMockOAuthManagerRequest = () => {
   useFullMockOAuthManagerRequest = true;
 };
-const defaultMockOAuthManager = vi.fn().mockImplementation(function() {
+const defaultMockOAuthManager = vi.fn().mockImplementation(function () {
   return {
-    getTokenObjectOrFetch: vi.fn().mockImplementation(function() {
+    getTokenObjectOrFetch: vi.fn().mockImplementation(function () {
       return {
         token: {
           access_token: "FAKE_ACCESS_TOKEN",
         },
       };
     }),
-    request: vi.fn().mockImplementation(function(fn) {
+    request: vi.fn().mockImplementation(function (fn) {
       if (useFullMockOAuthManagerRequest) {
         console.log("OAuthManager.request full mock being used");
         return oAuthManagerRequestFullMock(fn);

@@ -47,7 +47,6 @@ import { WebhooksModule } from "./webhooks/webhooks.module";
   ],
 })
 export class EndpointsModule implements NestModule {
-   
   configure(_consumer: MiddlewareConsumer) {
     // TODO: apply ratelimits
   }

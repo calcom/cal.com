@@ -90,9 +90,7 @@ describe("NoShowUpdatedAuditActionService", () => {
       const storedData = {
         version: 1,
         fields: {
-          attendeesNoShow: [
-            { attendeeEmail: "bob@example.com", noShow: { old: true, new: false } },
-          ],
+          attendeesNoShow: [{ attendeeEmail: "bob@example.com", noShow: { old: true, new: false } }],
         },
       };
 
@@ -162,7 +160,9 @@ describe("NoShowUpdatedAuditActionService", () => {
 
       const dbStore = createMockEnrichmentDataStore(
         {
-          users: [{ id: 1, uuid: "host-uuid", name: "Host Name", email: "host@example.com", avatarUrl: null }],
+          users: [
+            { id: 1, uuid: "host-uuid", name: "Host Name", email: "host@example.com", avatarUrl: null },
+          ],
         },
         { userUuids: ["host-uuid"] }
       );
@@ -198,7 +198,9 @@ describe("NoShowUpdatedAuditActionService", () => {
 
       const dbStore = createMockEnrichmentDataStore(
         {
-          users: [{ id: 1, uuid: "host-uuid", name: "Host Name", email: "host@example.com", avatarUrl: null }],
+          users: [
+            { id: 1, uuid: "host-uuid", name: "Host Name", email: "host@example.com", avatarUrl: null },
+          ],
         },
         { userUuids: ["host-uuid"] }
       );
@@ -232,10 +234,7 @@ describe("NoShowUpdatedAuditActionService", () => {
         },
       };
 
-      const dbStore = createMockEnrichmentDataStore(
-        { users: [] },
-        { userUuids: ["missing-uuid"] }
-      );
+      const dbStore = createMockEnrichmentDataStore({ users: [] }, { userUuids: ["missing-uuid"] });
 
       const result = await service.getDisplayFields({ storedData, dbStore });
 
@@ -263,15 +262,15 @@ describe("NoShowUpdatedAuditActionService", () => {
             userUuid: "host-uuid",
             noShow: { old: null, new: true },
           },
-          attendeesNoShow: [
-            { attendeeEmail: "alice@example.com", noShow: { old: false, new: true } },
-          ],
+          attendeesNoShow: [{ attendeeEmail: "alice@example.com", noShow: { old: false, new: true } }],
         },
       };
 
       const dbStore = createMockEnrichmentDataStore(
         {
-          users: [{ id: 1, uuid: "host-uuid", name: "Host Name", email: "host@example.com", avatarUrl: null }],
+          users: [
+            { id: 1, uuid: "host-uuid", name: "Host Name", email: "host@example.com", avatarUrl: null },
+          ],
         },
         { userUuids: ["host-uuid"] }
       );

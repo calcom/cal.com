@@ -307,7 +307,9 @@ class SalesforceCRMService implements CRM {
   private getSalesforceUserFromUserId = async (userId: string) => {
     const conn = await this.conn;
 
-    return await conn.query(`SELECT Id, Email, Name FROM User WHERE Id = '${this.sanitizeSoqlValue(userId)}' AND IsActive = true`);
+    return await conn.query(
+      `SELECT Id, Email, Name FROM User WHERE Id = '${this.sanitizeSoqlValue(userId)}' AND IsActive = true`
+    );
   };
 
   private getSalesforceEventBody = (event: CalendarEvent): string => {
@@ -661,8 +663,9 @@ class SalesforceCRMService implements CRM {
 
       if (records.length === 0) {
         // Build extra SELECT fields from validated field rules so we don't need a second query
-        const extraFields =
-          validatedFieldRules?.length ? ", " + validatedFieldRules.map((r) => r.field).join(", ") : "";
+        const extraFields = validatedFieldRules?.length
+          ? ", " + validatedFieldRules.map((r) => r.field).join(", ")
+          : "";
 
         // Handle Account record type
         if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
@@ -672,9 +675,9 @@ class SalesforceCRMService implements CRM {
           soql = `SELECT Id, Email, OwnerId, AccountId, Account.OwnerId, Account.Owner.Email, Account.Website${extraFields} FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${this.sanitizeSoqlValue(attendeeEmail)}' AND AccountId != null`;
         } else {
           // Handle Contact/Lead record types
-          soql = `SELECT Id, Email, OwnerId, Owner.Email${extraFields} FROM ${recordToSearch} WHERE Email IN ('${emailArray.map((e) => this.sanitizeSoqlValue(e)).join(
-            "','"
-          )}')`;
+          soql = `SELECT Id, Email, OwnerId, Owner.Email${extraFields} FROM ${recordToSearch} WHERE Email IN ('${emailArray
+            .map((e) => this.sanitizeSoqlValue(e))
+            .join("','")}')`;
         }
 
         const results = await conn.query(soql);
@@ -981,7 +984,9 @@ class SalesforceCRMService implements CRM {
     }
 
     for (const event of salesforceEvents) {
-      const salesforceEvent = (await conn.query(`SELECT WhoId FROM Event WHERE Id = '${this.sanitizeSoqlValue(event.uid)}'`)) as {
+      const salesforceEvent = (await conn.query(
+        `SELECT WhoId FROM Event WHERE Id = '${this.sanitizeSoqlValue(event.uid)}'`
+      )) as {
         records: { WhoId: string }[];
       };
 

@@ -6,12 +6,7 @@ import { EventTypeSelect } from "./EventTypeSelect";
 
 const SidebarHeading = ({ name }: { name: string }): JSX.Element => {
   return (
-    <Skeleton
-      title={name}
-      as="p"
-      className="max-w-36 min-h-4 truncate font-semibold"
-      loadingClassName="ms-3"
-    >
+    <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate font-semibold" loadingClassName="ms-3">
       {name}
     </Skeleton>
   );

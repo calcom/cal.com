@@ -26,16 +26,14 @@ export default async function routerGetCrmContactOwnerEmail({
     for (const identifier of Object.keys(identifierKeyedResponse)) {
       const fieldResponse = identifierKeyedResponse[identifier];
       if (identifier === "email") {
-        prospectEmail =
-          fieldResponse instanceof Array ? fieldResponse[0] : fieldResponse;
+        prospectEmail = fieldResponse instanceof Array ? fieldResponse[0] : fieldResponse;
         break;
       }
     }
   }
   if (!prospectEmail) return null;
 
-  if (action.type !== "eventTypeRedirectUrl" || !action.eventTypeId)
-    return null;
+  if (action.type !== "eventTypeRedirectUrl" || !action.eventTypeId) return null;
 
   const eventTypeId = action.eventTypeId;
 
@@ -43,8 +41,7 @@ export default async function routerGetCrmContactOwnerEmail({
   const eventType = await eventTypeRepo.findByIdIncludeHostsAndTeam({
     id: action.eventTypeId,
   });
-  if (!eventType || eventType.schedulingType !== SchedulingType.ROUND_ROBIN)
-    return null;
+  if (!eventType || eventType.schedulingType !== SchedulingType.ROUND_ROBIN) return null;
 
   const eventTypeMetadata = eventType.metadata;
   if (!eventTypeMetadata) return null;
@@ -63,23 +60,16 @@ export default async function routerGetCrmContactOwnerEmail({
 
   const runCrmOperations = async () => {
     for (const appSlug of enabledAppSlugs) {
-      const routingOptions =
-        attributeRoutingConfig?.[appSlug as keyof typeof attributeRoutingConfig];
+      const routingOptions = attributeRoutingConfig?.[appSlug as keyof typeof attributeRoutingConfig];
 
       if (!routingOptions) continue;
 
       if (Object.values(routingOptions).some((option) => option === true)) {
-        const appBookingFormHandler = (
-          await import("@calcom/app-store/routing-forms/appBookingFormHandler")
-        ).default;
-        const appHandler =
-          appBookingFormHandler[appSlug as keyof typeof appBookingFormHandler];
+        const appBookingFormHandler = (await import("@calcom/app-store/routing-forms/appBookingFormHandler"))
+          .default;
+        const appHandler = appBookingFormHandler[appSlug as keyof typeof appBookingFormHandler];
 
-        const ownerQuery = await appHandler(
-          prospectEmail,
-          attributeRoutingConfig,
-          eventTypeId
-        );
+        const ownerQuery = await appHandler(prospectEmail, attributeRoutingConfig, eventTypeId);
 
         if (ownerQuery?.email) {
           contactOwner = { ...ownerQuery, crmAppSlug: appSlug };
@@ -89,10 +79,7 @@ export default async function routerGetCrmContactOwnerEmail({
     }
 
     if (!contactOwner || (!contactOwner.email && !contactOwner.recordType)) {
-      const ownerQuery = await getCRMContactOwnerForRRLeadSkip(
-        prospectEmail,
-        eventTypeMetadata
-      );
+      const ownerQuery = await getCRMContactOwnerForRRLeadSkip(prospectEmail, eventTypeMetadata);
       if (ownerQuery?.email) contactOwner = ownerQuery;
     }
   };
@@ -107,8 +94,7 @@ export default async function routerGetCrmContactOwnerEmail({
 
   if (!contactOwner) return null;
 
-  if (!eventType.hosts.some((host) => host.user.email === contactOwner.email))
-    return null;
+  if (!eventType.hosts.some((host) => host.user.email === contactOwner.email)) return null;
 
   if (routingTraceService && contactOwner.email && contactOwner.crmAppSlug) {
     const salesforceSettings = attributeRoutingConfig?.salesforce;

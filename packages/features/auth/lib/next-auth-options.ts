@@ -921,7 +921,10 @@ export const getOptions = ({
 
         const allProfiles = await ProfileRepository.findAllProfilesForUserIncludingMovedUser(existingUser);
         const { upId } = determineProfile({ profiles: allProfiles, token });
-        log.debug("callbacks:jwt:accountType:oauth:existingUser", safeStringify({ userId: existingUser.id, upId }));
+        log.debug(
+          "callbacks:jwt:accountType:oauth:existingUser",
+          safeStringify({ userId: existingUser.id, upId })
+        );
         return {
           ...token,
           upId,

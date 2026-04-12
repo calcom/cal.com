@@ -110,7 +110,12 @@ export class UnifiedCalendarService {
     return this.transformEvents(events);
   }
 
-  async createEvent(calendar: string, userId: number, calendarId: string, body: CreateUnifiedCalendarEventInput) {
+  async createEvent(
+    calendar: string,
+    userId: number,
+    calendarId: string,
+    body: CreateUnifiedCalendarEventInput
+  ) {
     this.ensureGoogleCalendar(calendar, "Create event");
     const event = await this.googleCalendarService.createEventForUser(userId, calendarId, body);
     return this.transformEvent(event);
@@ -161,7 +166,12 @@ export class UnifiedCalendarService {
   }
 
   async getConnectionEvent(userId: number, credentialId: number, calendarId: string, eventId: string) {
-    const event = await this.googleCalendarService.getEventByConnectionId(userId, credentialId, calendarId, eventId);
+    const event = await this.googleCalendarService.getEventByConnectionId(
+      userId,
+      credentialId,
+      calendarId,
+      eventId
+    );
     return this.transformEvent(event);
   }
 
@@ -183,10 +193,21 @@ export class UnifiedCalendarService {
   }
 
   async deleteConnectionEvent(userId: number, credentialId: number, calendarId: string, eventId: string) {
-    await this.googleCalendarService.deleteEventForUserByConnectionId(userId, credentialId, calendarId, eventId);
+    await this.googleCalendarService.deleteEventForUserByConnectionId(
+      userId,
+      credentialId,
+      calendarId,
+      eventId
+    );
   }
 
-  async getConnectionFreeBusy(userId: number, credentialId: number, from: string, to: string, timezone: string) {
+  async getConnectionFreeBusy(
+    userId: number,
+    credentialId: number,
+    from: string,
+    to: string,
+    timezone: string
+  ) {
     return this.freebusyService.getBusyTimesForConnection(userId, credentialId, from, to, timezone);
   }
 }

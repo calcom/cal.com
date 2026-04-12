@@ -1407,5 +1407,4 @@ describe("Azure AD JWT callback", () => {
       );
     });
   });
-
 });

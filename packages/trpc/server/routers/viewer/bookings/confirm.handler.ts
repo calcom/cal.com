@@ -52,7 +52,11 @@ type ConfirmOptions = {
     >;
     traceContext: TraceContext;
   };
-  input: TConfirmInputSchema & { actionSource: ValidActionSource; actor: Actor; impersonatedByUserUuid: string | null };
+  input: TConfirmInputSchema & {
+    actionSource: ValidActionSource;
+    actor: Actor;
+    impersonatedByUserUuid: string | null;
+  };
 };
 
 async function fireRejectionEvent({

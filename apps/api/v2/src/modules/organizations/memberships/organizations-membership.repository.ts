@@ -31,7 +31,10 @@ const attributeToUserSelect = {
 
 @Injectable()
 export class OrganizationsMembershipRepository {
-  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+  constructor(
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
+  ) {}
 
   async findOrgMembership(organizationId: number, membershipId: number) {
     return this.dbRead.prisma.membership.findUnique({

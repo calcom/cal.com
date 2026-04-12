@@ -94,9 +94,7 @@ export function WideUpgradeBanner({
         {size === "sm" ? (
           <div className="flex items-start gap-1.5">
             <h2 className="font-cal text-base font-semibold leading-none text-default">{title}</h2>
-            <div className="relative -top-1">
-              {target === "team" ? <TeamBadge /> : <OrgBadge />}
-            </div>
+            <div className="relative -top-1">{target === "team" ? <TeamBadge /> : <OrgBadge />}</div>
           </div>
         ) : (
           <div>
@@ -137,12 +135,7 @@ export function WideUpgradeBanner({
       {/* Right Content - Image */}
       <div
         className={`relative hidden w-1/2 overflow-hidden md:block${size === "sm" ? " max-w-64" : " max-w-[520px]"}`}>
-        <Image
-          src={image.src}
-          alt={title}
-          fill
-          className="object-cover object-left"
-        />
+        <Image src={image.src} alt={title} fill className="object-cover object-left" />
       </div>
     </div>
   );

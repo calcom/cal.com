@@ -23,7 +23,12 @@ type ReportBookingOptions = {
 
 const log = logger.getSubLogger({ prefix: ["reportBookingHandler"] });
 
-export const reportBookingHandler = async ({ ctx, input, impersonatedByUserUuid, actionSource }: ReportBookingOptions) => {
+export const reportBookingHandler = async ({
+  ctx,
+  input,
+  impersonatedByUserUuid,
+  actionSource,
+}: ReportBookingOptions) => {
   const { user } = ctx;
   const { bookingUid, reason, description } = input;
 

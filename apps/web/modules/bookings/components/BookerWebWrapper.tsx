@@ -42,11 +42,11 @@ const BookerWebWrapperComponent = (props: BookerWebWrapperAtomProps): JSX.Elemen
   });
   const event = props.eventData
     ? {
-      data: props.eventData,
-      isSuccess: true,
-      isError: false,
-      isPending: false,
-    }
+        data: props.eventData,
+        isSuccess: true,
+        isError: false,
+        isPending: false,
+      }
     : clientFetchedEvent;
 
   const bookerLayout = useBookerLayout(event.data?.profile?.bookerLayouts);

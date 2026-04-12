@@ -194,7 +194,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
   const importRef = useRef<HTMLInputElement | null>(null);
 
-const handleCopyInviteLink = useCallback(async () => {
+  const handleCopyInviteLink = useCallback(async () => {
     if (isCopying || createInviteMutation.isPending) return;
 
     setIsCopying(true);
@@ -206,10 +206,12 @@ const handleCopyInviteLink = useCallback(async () => {
           //eslint-disable-next-line no-async-promise-executor
           "text/plain": new Promise((resolve, reject) => {
             // Instead of doing async work and then writing to clipboard, do async work in clipboard API itself
-            createInviteMutation.mutateAsync({
+            createInviteMutation
+              .mutateAsync({
                 teamId: props.teamId,
                 token: props.token,
-              }).then(({ inviteLink }) => {
+              })
+              .then(({ inviteLink }) => {
                 resolve(new Blob([inviteLink], { type: "text/plain" }));
               })
               .catch((err) => {
@@ -220,7 +222,7 @@ const handleCopyInviteLink = useCallback(async () => {
         await navigator.clipboard.write([inviteLinkClipboardItem]);
         showToast(t("invite_link_copied"), "success");
       } else {
-        // Fallback for browsers that don't support ClipboardItem e.g. Firefox 
+        // Fallback for browsers that don't support ClipboardItem e.g. Firefox
         const { inviteLink } = await createInviteMutation.mutateAsync({
           teamId: props.teamId,
           token: props.token,
@@ -234,7 +236,7 @@ const handleCopyInviteLink = useCallback(async () => {
     } finally {
       setIsCopying(false);
     }
-    }, [isCopying, createInviteMutation, props.teamId, props.token, t]);
+  }, [isCopying, createInviteMutation, props.teamId, props.token, t]);
 
   return (
     <Dialog

@@ -666,9 +666,7 @@ export class MembershipRepository {
     }
 
     if (memberUserIds !== undefined && memberUserIds !== null) {
-      userFilter.id = cursor
-        ? { in: memberUserIds, gt: cursor }
-        : { in: memberUserIds };
+      userFilter.id = cursor ? { in: memberUserIds, gt: cursor } : { in: memberUserIds };
     } else if (cursor) {
       userFilter.id = { gt: cursor };
     }

@@ -154,10 +154,7 @@ describe("findMatchingRoute", () => {
     it("should use route id as name when route has no name", () => {
       vi.mocked(evaluateRaqbLogic).mockReturnValue(RaqbLogicResult.MATCH);
 
-      const form = createMockForm([
-        { id: "route-123" },
-        { id: "fallback", isFallback: true },
-      ]);
+      const form = createMockForm([{ id: "route-123" }, { id: "fallback", isFallback: true }]);
 
       const result = findMatchingRoute({
         form,

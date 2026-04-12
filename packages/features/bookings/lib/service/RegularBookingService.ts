@@ -2453,7 +2453,7 @@ async function handler(
     isBookingAuditEnabled,
   });
 
-  const webhookLocation= metadata?.videoCallUrl || evt.location;
+  const webhookLocation = metadata?.videoCallUrl || evt.location;
 
   const { assignmentReason: _emailAssignmentReason, ...evtWithoutAssignmentReason } = evt;
   const webhookData: EventPayloadType = {

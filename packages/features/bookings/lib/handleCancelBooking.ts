@@ -224,7 +224,12 @@ async function handler(input: CancelBookingInput, dependencies?: Dependencies) {
     isCancellationUserHost
   );
 
-  if (!platformClientId && !cancellationReason?.trim() && isReasonRequired && !skipCancellationReasonValidation) {
+  if (
+    !platformClientId &&
+    !cancellationReason?.trim() &&
+    isReasonRequired &&
+    !skipCancellationReasonValidation
+  ) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required",

@@ -1,11 +1,7 @@
 "use client";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  CardFrameDescription,
-  CardFrameHeader,
-  CardFrameTitle,
-} from "@coss/ui/components/card";
+import { CardFrameDescription, CardFrameHeader, CardFrameTitle } from "@coss/ui/components/card";
 import type { ReactNode } from "react";
 
 export function WebhookTestHeader({ actions }: { actions?: ReactNode }) {

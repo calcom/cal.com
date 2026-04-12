@@ -132,11 +132,7 @@ describe("ActiveUserBillingService Integration", () => {
   });
 
   it("counts hosts and attendees as active, excludes inactive members", async () => {
-    const count = await service.getActiveUserCountForOrg(
-      org.id,
-      periodStart,
-      periodEnd
-    );
+    const count = await service.getActiveUserCountForOrg(org.id, periodStart, periodEnd);
 
     // alice: host, bob: host, charlie: attendee of bob's booking
     // inactive: booking is outside the period
@@ -147,11 +143,7 @@ describe("ActiveUserBillingService Integration", () => {
     const emptyStart = new Date("2027-01-01T00:00:00Z");
     const emptyEnd = new Date("2027-02-01T00:00:00Z");
 
-    const count = await service.getActiveUserCountForOrg(
-      org.id,
-      emptyStart,
-      emptyEnd
-    );
+    const count = await service.getActiveUserCountForOrg(org.id, emptyStart, emptyEnd);
 
     expect(count).toBe(0);
   });
@@ -166,11 +158,7 @@ describe("ActiveUserBillingService Integration", () => {
     );
     bookingIds.push(id);
 
-    const count = await service.getActiveUserCountForOrg(
-      org.id,
-      periodStart,
-      periodEnd
-    );
+    const count = await service.getActiveUserCountForOrg(org.id, periodStart, periodEnd);
 
     // Still 3: alice (host), bob (host + attendee but counted once), charlie (attendee)
     expect(count).toBe(3);
@@ -185,11 +173,7 @@ describe("ActiveUserBillingService Integration", () => {
     );
     bookingIds.push(id);
 
-    const count = await service.getActiveUserCountForOrg(
-      org.id,
-      periodStart,
-      periodEnd
-    );
+    const count = await service.getActiveUserCountForOrg(org.id, periodStart, periodEnd);
 
     // Now all 4 are active
     expect(count).toBe(4);

@@ -1,6 +1,9 @@
 import { TRPCError } from "@trpc/server";
 
-import { sendOAuthClientApprovedNotification, sendOAuthClientRejectedNotification } from "@calcom/emails/oauth-email-service";
+import {
+  sendOAuthClientApprovedNotification,
+  sendOAuthClientRejectedNotification,
+} from "@calcom/emails/oauth-email-service";
 import { getTranslation } from "@calcom/i18n/server";
 import { OAuthClientRepository } from "@calcom/features/oauth/repositories/OAuthClientRepository";
 import type { PrismaClient } from "@calcom/prisma";

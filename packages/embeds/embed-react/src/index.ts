@@ -23,7 +23,9 @@ export function getCalApi(
     | string
 ): Promise<GlobalCal | GlobalCalWithoutNs> {
   const options =
-    typeof optionsOrEmbedJsUrl === "string" ? { embedJsUrl: optionsOrEmbedJsUrl } : optionsOrEmbedJsUrl ?? {};
+    typeof optionsOrEmbedJsUrl === "string"
+      ? { embedJsUrl: optionsOrEmbedJsUrl }
+      : (optionsOrEmbedJsUrl ?? {});
 
   const { namespace = "", embedJsUrl } = options;
   return new Promise(function tryReadingFromWindow(resolve) {

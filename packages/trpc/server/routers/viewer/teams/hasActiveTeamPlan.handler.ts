@@ -37,7 +37,11 @@ export const hasActiveTeamPlanHandler = async ({ ctx, input }: HasActiveTeamPlan
     if (team.isPlatform && team.isOrganization) {
       const platformBilling = await prisma.platformBilling.findUnique({ where: { id: team.id } });
       if (platformBilling && platformBilling.plan !== "none" && platformBilling.plan !== "FREE") {
-        return { isActive: true, isTrial: false, billingPeriod: await billingPeriodRepository.findBillingPeriodByTeamId(team.id) };
+        return {
+          isActive: true,
+          isTrial: false,
+          billingPeriod: await billingPeriodRepository.findBillingPeriodByTeamId(team.id),
+        };
       }
     }
 
@@ -50,7 +54,11 @@ export const hasActiveTeamPlanHandler = async ({ ctx, input }: HasActiveTeamPlan
       subscriptionStatus === SubscriptionStatus.ACTIVE ||
       subscriptionStatus === SubscriptionStatus.PAST_DUE
     ) {
-      return { isActive: true, isTrial: false, billingPeriod: await billingPeriodRepository.findBillingPeriodByTeamId(team.id) };
+      return {
+        isActive: true,
+        isTrial: false,
+        billingPeriod: await billingPeriodRepository.findBillingPeriodByTeamId(team.id),
+      };
     }
     if (subscriptionStatus === SubscriptionStatus.TRIALING) {
       isTrial = true;

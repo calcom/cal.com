@@ -6,10 +6,7 @@ import { cn } from "@coss/ui/lib/utils";
 
 function Meter({ className, children, ...props }: MeterPrimitive.Root.Props) {
   return (
-    <MeterPrimitive.Root
-      className={cn("flex w-full flex-col gap-2", className)}
-      {...props}
-    >
+    <MeterPrimitive.Root className={cn("flex w-full flex-col gap-2", className)} {...props}>
       {children ? (
         children
       ) : (
@@ -41,10 +38,7 @@ function MeterTrack({ className, ...props }: MeterPrimitive.Track.Props) {
   );
 }
 
-function MeterIndicator({
-  className,
-  ...props
-}: MeterPrimitive.Indicator.Props) {
+function MeterIndicator({ className, ...props }: MeterPrimitive.Indicator.Props) {
   return (
     <MeterPrimitive.Indicator
       className={cn("bg-primary transition-all duration-500", className)}
