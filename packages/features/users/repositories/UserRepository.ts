@@ -277,6 +277,77 @@ export class UserRepository {
     return user;
   }
 
+  async findAvailabilityUserByEmail({ email }: { email: string }) {
+    const normalizedEmail = email.toLowerCase();
+    const availabilityUserWithCredentialsSelect = {
+      locked: true,
+      ...availabilityUserSelect,
+      selectedCalendars: true,
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
+    } satisfies Prisma.UserSelect;
+
+    // Prefer primary-email matches first, then fall back to verified secondary emails.
+    let user = await this.prismaClient.user.findFirst({
+      where: {
+        email: {
+          equals: normalizedEmail,
+          mode: "insensitive",
+        },
+      },
+      select: availabilityUserWithCredentialsSelect,
+    });
+
+    if (!user) {
+      // Exact secondary-email match (works with test DB adapters that don't support `mode`).
+      user = await this.prismaClient.user.findFirst({
+        where: {
+          secondaryEmails: {
+            some: {
+              email: normalizedEmail,
+              emailVerified: {
+                not: null,
+              },
+            },
+          },
+        },
+        select: availabilityUserWithCredentialsSelect,
+      });
+    }
+
+    if (!user) {
+      // Case-insensitive fallback for mixed-case secondary emails.
+      user = await this.prismaClient.user.findFirst({
+        where: {
+          secondaryEmails: {
+            some: {
+              email: {
+                equals: normalizedEmail,
+                mode: "insensitive",
+              },
+              emailVerified: {
+                not: null,
+              },
+            },
+          },
+        },
+        select: availabilityUserWithCredentialsSelect,
+      });
+    }
+
+    if (!user || user.locked) {
+      return null;
+    }
+
+    const { locked: _locked, credentials, ...userWithSelectedCalendars } = withSelectedCalendars(user);
+
+    return {
+      ...userWithSelectedCalendars,
+      credentials: buildNonDelegationCredentials(credentials),
+    };
+  }
+
   async findManyByEmailsWithEmailVerificationSettings({ emails }: { emails: string[] }) {
     const normalizedEmails = emails.map((e) => e.toLowerCase());
 

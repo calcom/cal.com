@@ -1,5 +1,3 @@
-import { useSearchParams } from "next/navigation";
-
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -9,7 +7,7 @@ import { useTimesForSchedule } from "@calcom/features/schedules/hooks/useTimesFo
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
-
+import { useSearchParams } from "next/navigation";
 import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
 
 export type UseScheduleWithCacheArgs = {
@@ -91,6 +89,7 @@ export const useSchedule = ({
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
   const embedConnectVersion = searchParams?.get("cal.embed.connectVersion") || "0";
+  const rescheduledBy = searchParams?.get("rescheduledBy");
   const input = {
     isTeamEvent,
     usernameList: getUsernameList(username ?? ""),
@@ -114,6 +113,7 @@ export const useSchedule = ({
     skipContactOwner,
     ...(queuedFormResponseId ? { queuedFormResponseId } : { routingFormResponseId }),
     email,
+    rescheduledBy,
     // Ensures that connectVersion causes a refresh of the data
     ...(embedConnectVersion ? { embedConnectVersion } : {}),
     _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
