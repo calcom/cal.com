@@ -1,4 +1,4 @@
-name: Lint
+name: Format Check
 on:
   push:
     branches:
@@ -13,5 +13,5 @@ jobs:
 
       - uses: ./.github/actions/yarn-install
 
-      - name: Run Lint
-        run: yarn lint
+      - name: Run Format Check
+        run: yarn fmtcheck
