@@ -40,6 +40,9 @@ export const getScheduleSchemaObject = z.object({
   routingFormResponseId: z.number().optional(),
   queuedFormResponseId: z.string().nullish(),
   email: z.string().nullish(),
+  includeRankingHints: z.boolean().optional(),
+  preferredHourStart: z.coerce.number().int().min(0).max(23).optional(),
+  maxSlotsPerDay: z.coerce.number().int().min(1).max(96).optional(),
 });
 
 export const getScheduleSchema = getScheduleSchemaObject

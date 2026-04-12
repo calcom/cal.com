@@ -56,12 +56,33 @@ import { TRPCError } from "@trpc/server";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
+import { rankAndLimitSlotsByDay } from "./slot-ranking";
 import type { GetScheduleOptions } from "./types";
 import type { OrgMembershipLookup } from "@calcom/features/di/modules/OrgMembershipLookup";
 import type { IGetAvailableSlots } from "@calcom/features/bookings/Booker/hooks/useAvailableTimeSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
 const DEFAULT_SLOTS_CACHE_TTL = 2000;
+
+function buildSlotsCacheKeyInput(input: TGetScheduleInputSchema) {
+  const startTime = dayjs(input.startTime).startOf("day").toISOString();
+  const endTime = dayjs(input.endTime).endOf("day").toISOString();
+
+  return {
+    eventTypeId: input.eventTypeId ?? null,
+    eventTypeSlug: input.eventTypeSlug ?? null,
+    usernameList: input.usernameList ?? null,
+    startTime,
+    endTime,
+    timeZone: input.timeZone ?? "UTC",
+    duration: input.duration ?? null,
+    orgSlug: input.orgSlug ?? null,
+    teamMemberEmail: input.teamMemberEmail ?? null,
+    routedTeamMemberIds: input.routedTeamMemberIds ?? null,
+    includeRankingHints: input.includeRankingHints ?? false,
+    preferredHourStart: input.preferredHourStart ?? null,
+  };
+}
 
 type GetAvailabilityUserWithDelegationCredentials = Omit<NonNullable<GetAvailabilityUser>, "credentials"> & {
   credentials: CredentialForCalendarService[];
@@ -95,7 +116,7 @@ function withSlotsCache(
   func: (args: GetScheduleOptions) => Promise<IGetAvailableSlots>
 ) {
   return async (args: GetScheduleOptions): Promise<IGetAvailableSlots> => {
-    const cacheKey = `${JSON.stringify(args.input)}`;
+    const cacheKey = `${JSON.stringify(buildSlotsCacheKeyInput(args.input))}`;
     let success = false;
     let cachedResult: IGetAvailableSlots | null = null;
     const startTime = process.hrtime();
@@ -1641,6 +1662,13 @@ export class AvailableSlotsService {
       timeZone: input.timeZone,
     });
 
+    const rankedSlots = rankAndLimitSlotsByDay(filteredSlotsMappedToDate, {
+      preferredHourStart: input.preferredHourStart,
+      maxSlotsPerDay: input.maxSlotsPerDay,
+      timeZone: eventType.schedule?.timeZone ?? input.timeZone,
+      includeRankingHints: input.includeRankingHints,
+    });
+
     // We only want to run this on single targeted events and not dynamic
     if (!Object.keys(filteredSlotsMappedToDate).length && input.usernameList?.length === 1) {
       try {
@@ -1684,7 +1712,8 @@ export class AvailableSlotsService {
       : null;
 
     return {
-      slots: filteredSlotsMappedToDate,
+      slots: rankedSlots.slots,
+      rankingHints: rankedSlots.rankingHints,
       ...troubleshooterData,
     };
   }

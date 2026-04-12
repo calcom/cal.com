@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import dayjs from "@calcom/dayjs";
 import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
+import { applyClientSideRanking } from "./slot-ranking";
 
 export interface IGetAvailableSlots {
   slots: Record<
@@ -19,6 +20,10 @@ export interface IGetAvailableSlots {
       showNotePublicly?: boolean | undefined;
     }[]
   >;
+  rankingHints?: Record<
+    string,
+    Record<string, { score: number; reason: "capacity" | "proximity" | "recency" }>
+  >;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   troubleshooter?: any;
 }
@@ -32,9 +37,15 @@ export const useAvailableTimeSlots = ({ schedule, eventDuration }: UseAvailableT
   return useMemo(() => {
     const availableTimeslots: CalendarAvailableTimeslots = {};
     if (!schedule || !schedule.slots) return availableTimeslots;
+    const timezone = dayjs.tz.guess();
 
     for (const day in schedule.slots) {
-      availableTimeslots[day] = schedule.slots[day].map((slot) => {
+      const rankedSlots = applyClientSideRanking(
+        schedule.slots[day],
+        schedule.rankingHints?.[day],
+        timezone
+      );
+      availableTimeslots[day] = rankedSlots.map((slot) => {
         const { time, ...rest } = slot;
         return {
           start: dayjs(time).toDate(),
@@ -45,5 +56,5 @@ export const useAvailableTimeSlots = ({ schedule, eventDuration }: UseAvailableT
     }
 
     return availableTimeslots;
-  }, [schedule, eventDuration]);
+  }, [schedule?.slots, eventDuration]);
 };
