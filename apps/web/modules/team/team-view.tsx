@@ -8,6 +8,7 @@
 // 2. org/[orgSlug]/[user]/[type]
 import classNames from "classnames";
 import Link from "next/link";
+import { useCallback, useState } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import EventTypeDescription from "@calcom/web/modules/event-types/components/EventTypeDescription";
@@ -36,6 +37,13 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   const isEmbed = useIsEmbed();
   const teamName = team.name || t("nameless_team");
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
+  const [isBioClamped, setIsBioClamped] = useState(false);
+  const checkBioClamped = useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      setIsBioClamped(node.scrollHeight > node.clientHeight);
+    }
+  }, []);
   const metadata = teamMetadataSchema.parse(team.metadata);
 
   const teamOrOrgIsPrivate = team.isPrivate || (team?.parent?.isOrganization && team.parent?.isPrivate);
@@ -154,13 +162,25 @@ function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
             {teamName}
           </p>
           {!isBioEmpty && (
-            <>
+            <div>
               {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via safeBio */}
               <div
-                className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                ref={checkBioClamped}
+                className={classNames(
+                  "text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
+                  !isBioExpanded && "line-clamp-3"
+                )}
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
-            </>
+              {(isBioClamped || isBioExpanded) && (
+                <button
+                  type="button"
+                  className="text-emphasis mt-1 text-sm font-medium hover:underline"
+                  onClick={() => setIsBioExpanded((prev) => !prev)}>
+                  {isBioExpanded ? t("show_less") : t("show_more")}
+                </button>
+              )}
+            </div>
           )}
         </div>
         {team.isOrganization ? (
