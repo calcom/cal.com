@@ -165,7 +165,9 @@ const GeneralView = ({ currentOrg, permissions, localeProp }: GeneralViewProps) 
       timeZone: currentOrg.timeZone || "",
       timeFormat: {
         value: currentOrg.timeFormat || 12,
-        label: timeFormatOptions.find((option) => option.value === currentOrg.timeFormat)?.label || 12,
+        label:
+          timeFormatOptions.find((option) => option.value === currentOrg.timeFormat)?.label ??
+          t("12_hour"),
       },
       weekStart: {
         value: currentOrg.weekStart,
@@ -250,6 +252,7 @@ const GeneralView = ({ currentOrg, permissions, localeProp }: GeneralViewProps) 
                     <FieldLabel>{t("start_of_week")}</FieldLabel>
                     <Select
                       aria-label={t("start_of_week")}
+                      items={weekStartOptions}
                       value={value}
                       onValueChange={(val) => {
                         if (val) onChange(val);
@@ -279,6 +282,7 @@ const GeneralView = ({ currentOrg, permissions, localeProp }: GeneralViewProps) 
                     <FieldLabel>{t("time_format")}</FieldLabel>
                     <Select
                       aria-label={t("time_format")}
+                      items={timeFormatOptions}
                       value={value}
                       onValueChange={(val) => {
                         if (val) onChange(val);

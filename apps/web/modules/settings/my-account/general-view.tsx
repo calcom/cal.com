@@ -364,15 +364,14 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                                     schedule.startDate,
                                     { day: "numeric", month: "long" },
                                     language
-                                  )}${
-                                    schedule.endDate
-                                      ? ` - ${formatLocalizedDateTime(
-                                          schedule.endDate,
-                                          { day: "numeric", month: "long" },
-                                          language
-                                        )}`
-                                      : ""
-                                  }`}</div>
+                                  )}${schedule.endDate
+                                    ? ` - ${formatLocalizedDateTime(
+                                      schedule.endDate,
+                                      { day: "numeric", month: "long" },
+                                      language
+                                    )}`
+                                    : ""
+                                    }`}</div>
                                   <div className="text-muted-foreground text-sm">
                                     {schedule.timeZone.replace(/_/g, " ")}
                                   </div>
@@ -416,7 +415,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                           onOpenChange={(open) => {
                             if (!open) onBlur();
                           }}>
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectPopup>
@@ -448,7 +447,7 @@ const GeneralView = ({ user, travelSchedules }: GeneralViewProps) => {
                           onOpenChange={(open) => {
                             if (!open) onBlur();
                           }}>
-                          <SelectTrigger className="w-full capitalize">
+                          <SelectTrigger className="capitalize">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectPopup>
