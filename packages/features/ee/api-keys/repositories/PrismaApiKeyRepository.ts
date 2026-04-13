@@ -56,9 +56,13 @@ export class PrismaApiKeyRepository {
     });
   }
 
-  async updateLastUsedAt(id: string) {
-    return this.prismaClient.apiKey.update({
-      where: { id },
+  async updateLastUsedAt(id: string): Promise<void> {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    await this.prismaClient.apiKey.updateMany({
+      where: {
+        id,
+        OR: [{ lastUsedAt: null }, { lastUsedAt: { lt: oneHourAgo } }],
+      },
       data: { lastUsedAt: new Date() },
     });
   }
