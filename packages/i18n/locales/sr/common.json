@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} iz {{team}}",
   "preview": "Pregled",
   "link_copied": "Link kopiran!",
+  "copied_to_clipboard": "Kopirano u privremenu memoriju",
   "copied": "Kopirano!",
   "private_link_copied": "Privatni link kopiran!",
   "link_shared": "Link je podeljen!",

@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} do {{team}}",
   "preview": "Pré-visualizar",
   "link_copied": "Link copiado!",
+  "copied_to_clipboard": "Copiado para a área de transferência",
   "copied": "Copiado!",
   "private_link_copied": "Link privado copiado!",
   "link_shared": "Link compartilhado!",

@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} từ {{team}}",
   "preview": "Xem trước",
   "link_copied": "Đã sao chép liên kết!",
+  "copied_to_clipboard": "Đã sao chép vào clipboard",
   "copied": "Đã sao chép!",
   "private_link_copied": "Liên kết riêng đã được sao chép!",
   "link_shared": "Liên kết được chia sẻ!",

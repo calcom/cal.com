@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} из {{team}}",
   "preview": "Предпросмотр",
   "link_copied": "Ссылка скопирована!",
+  "copied_to_clipboard": "Скопировано в буфер обмена",
   "copied": "Скопировано!",
   "private_link_copied": "Защищенная ссылка скопирована!",
   "link_shared": "Ссылка отправлена!",

@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} meeskonnast {{team}}",
   "preview": "Eelvaade",
   "link_copied": "Link kopeeritud!",
+  "copied_to_clipboard": "Kopeeritud lõikelauale",
   "copied": "Kopeeritud!",
   "private_link_copied": "Privaatne link kopeeritud!",
   "link_shared": "Link jagatud!",

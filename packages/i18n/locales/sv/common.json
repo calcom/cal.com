@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} från {{team}}",
   "preview": "Förhandsgranska",
   "link_copied": "Länk kopierad!",
+  "copied_to_clipboard": "Kopierat till urklipp",
   "copied": "Kopierat!",
   "private_link_copied": "Privat länk kopierad!",
   "link_shared": "Länk delad!",

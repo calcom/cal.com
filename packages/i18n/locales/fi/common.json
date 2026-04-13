@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} tiimistä {{team}}",
   "preview": "Esikatselu",
   "link_copied": "Linkki kopioitu!",
+  "copied_to_clipboard": "Kopioitu leikepöydälle",
   "copied": "Kopioitu!",
   "private_link_copied": "Yksityinen linkki kopioitu!",
   "link_shared": "Linkki jaettu!",

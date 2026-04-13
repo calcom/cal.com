@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} van {{team}}",
   "preview": "Voorbeeld",
   "link_copied": "Link gekopieerd!",
+  "copied_to_clipboard": "Gekopieerd naar klembord",
   "copied": "Gekopieerd!",
   "private_link_copied": "Privélink gekopieerd!",
   "link_shared": "Link gedeeld!",

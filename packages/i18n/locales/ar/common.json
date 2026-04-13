@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} من {{team}}",
   "preview": "معاينة",
   "link_copied": "تم نسخ الرابط!",
+  "copied_to_clipboard": "تم النسخ إلى الحافظة",
   "copied": "تم النسخ!",
   "private_link_copied": "تم نسخ الرابط الخاص!",
   "link_shared": "تمت مشاركة الرابط!",

@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} {{team}} komandasında",
   "preview": "Önizləmə",
   "link_copied": "Link kopyalandı!",
+  "copied_to_clipboard": "Buferə kopyalandı",
   "copied": "Kopyalandı!",
   "private_link_copied": "Şəxsi link kopyalandı!",
   "link_shared": "Link paylaşıldı!",

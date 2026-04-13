@@ -929,6 +929,7 @@
   "user_from_team": "{{team}} ekibinden {{user}}",
   "preview": "Ön izle",
   "link_copied": "Bağlantı kopyalandı!",
+  "copied_to_clipboard": "Panoya kopyalandı",
   "copied": "Kopyalandı!",
   "private_link_copied": "Özel bağlantı kopyalandı!",
   "link_shared": "Bağlantı paylaşıldı!",

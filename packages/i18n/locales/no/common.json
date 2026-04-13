@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} fra {{team}}",
   "preview": "Forhåndsvisning",
   "link_copied": "Lenke kopiert!",
+  "copied_to_clipboard": "Kopiert til utklippstavlen",
   "copied": "Kopiert!",
   "private_link_copied": "Privat lenke kopiert!",
   "link_shared": "Lenke delt!",

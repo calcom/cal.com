@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} a következőtől: {{team}}",
   "preview": "Előnézet",
   "link_copied": "Link másolva!",
+  "copied_to_clipboard": "Vágólapra másolva",
   "copied": "Másolva!",
   "private_link_copied": "Privát link másolva!",
   "link_shared": "Link megosztva!",

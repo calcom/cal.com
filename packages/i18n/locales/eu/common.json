@@ -929,6 +929,7 @@
   "user_from_team": "{{team}} taldeko {{user}}",
   "preview": "Aurreikusi",
   "link_copied": "Esteka kopiatuta!",
+  "copied_to_clipboard": "Arbelera kopiatu da",
   "copied": "Kopiatuta!",
   "private_link_copied": "Esteka pribatua kopiatuta!",
   "link_shared": "Esteka partekatuta!",

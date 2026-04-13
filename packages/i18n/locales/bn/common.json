@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} থেকে {{team}}",
   "preview": "পূর্বরূপ",
   "link_copied": "লিঙ্ক অনুলিপি!",
+  "copied_to_clipboard": "ক্লিপবোর্ডে কপি করা হয়েছে",
   "copied": "অনুলিপি!",
   "private_link_copied": "ব্যক্তিগত লিঙ্ক অনুলিপি!",
   "link_shared": "লিঙ্ক ভাগ!",

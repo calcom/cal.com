@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} z {{team}}",
   "preview": "Náhľad",
   "link_copied": "Odkaz skopírovaný!",
+  "copied_to_clipboard": "Skopírované do schránky",
   "copied": "Skopírované!",
   "private_link_copied": "Súkromný odkaz skopírovaný!",
   "link_shared": "Odkaz zdieľaný!",

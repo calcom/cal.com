@@ -929,6 +929,7 @@
   "user_from_team": "{{team}}의 {{user}}",
   "preview": "미리보기",
   "link_copied": "링크가 복사되었습니다!",
+  "copied_to_clipboard": "클립보드에 복사됨",
   "copied": "복사됨!",
   "private_link_copied": "비공개 링크가 복사되었습니다!",
   "link_shared": "링크가 공유되었습니다!",

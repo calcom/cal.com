@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} от {{team}}",
   "preview": "Преглед",
   "link_copied": "Линкът е копиран!",
+  "copied_to_clipboard": "Копирано в клипборда",
   "copied": "Копирано!",
   "private_link_copied": "Личният линк е копиран!",
   "link_shared": "Линкът е споделен!",

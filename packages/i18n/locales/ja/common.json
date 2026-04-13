@@ -929,6 +929,7 @@
   "user_from_team": "{{team}} の {{user}}",
   "preview": "プレビュー",
   "link_copied": "リンクをコピーしました！",
+  "copied_to_clipboard": "クリップボードにコピーしました",
   "copied": "コピーしました！",
   "private_link_copied": "プライベートリンクをコピーしました！",
   "link_shared": "リンクを共有しました！",

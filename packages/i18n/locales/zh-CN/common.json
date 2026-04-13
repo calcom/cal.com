@@ -929,6 +929,7 @@
   "user_from_team": "来自 {{team}} 的 {{user}}",
   "preview": "预览",
   "link_copied": "链接已复制！",
+  "copied_to_clipboard": "已复制到剪贴板",
   "copied": "已复制！",
   "private_link_copied": "私有链接已复制！",
   "link_shared": "链接已分享!",

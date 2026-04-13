@@ -929,6 +929,7 @@
   "user_from_team": "{{user}} din {{team}}",
   "preview": "Previzualizează",
   "link_copied": "Link copiat!",
+  "copied_to_clipboard": "Copiat în clipboard",
   "copied": "Copiat!",
   "private_link_copied": "Link privat copiat!",
   "link_shared": "Link distribuit!",
