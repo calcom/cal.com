@@ -13,7 +13,7 @@ import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 
 import type { SortOrderType } from "@calcom/platform-types";
 
-import { createEventType, updateEventType } from "@calcom/platform-libraries/event-types";
+import { createEventType, ensureEmailOrPhoneNumberIsPresent, updateEventType } from "@calcom/platform-libraries/event-types";
 
 @Injectable()
 export class TeamsEventTypesService {
@@ -32,9 +32,8 @@ export class TeamsEventTypesService {
     teamId: number,
     body: TransformedCreateTeamEventTypeInput
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
-    // note(Lauris): once phone only event types / bookings are enabled for simple users remove checkHasUserAccessibleEmailBookingField check
     if (body.bookingFields) {
-      this.eventTypesService.checkHasUserAccessibleEmailBookingField(body.bookingFields);
+      ensureEmailOrPhoneNumberIsPresent(body.bookingFields);
     }
     const eventTypeUser = await this.getUserToCreateTeamEvent(user);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -116,8 +115,7 @@ export class TeamsEventTypesService {
     isOrg: boolean
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
     if (!isOrg && body.bookingFields) {
-      // note(Lauris): once phone only event types / bookings are enabled for simple users remove checkHasUserAccessibleEmailBookingField check
-      this.eventTypesService.checkHasUserAccessibleEmailBookingField(body.bookingFields);
+      ensureEmailOrPhoneNumberIsPresent(body.bookingFields);
     }
     await this.validateEventTypeExists(teamId, eventTypeId);
     const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(user);

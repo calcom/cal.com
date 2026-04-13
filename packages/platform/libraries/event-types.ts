@@ -1,5 +1,7 @@
 import EventManager from "@calcom/features/bookings/lib/EventManager";
 
+export { ensureEmailOrPhoneNumberIsPresent } from "@calcom/trpc/server/routers/viewer/eventTypes/util";
+
 export { getPublicEvent, type PublicEventType } from "@calcom/features/eventtypes/lib/getPublicEvent";
 
 export { getBulkUserEventTypes, getBulkTeamEventTypes } from "@calcom/app-store/_utils/getBulkEventTypes";

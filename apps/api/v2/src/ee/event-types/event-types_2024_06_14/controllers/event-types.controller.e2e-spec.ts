@@ -368,7 +368,7 @@ describe("Event types Endpoints", () => {
         .expect(404);
     });
 
-    it("should not be able to create phone-only event type", async () => {
+    it("should be able to create phone-only event type", async () => {
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Phone coding consultation",
         slug: "phone-coding-consultation",
@@ -397,6 +397,43 @@ describe("Event types Endpoints", () => {
         ],
       };
 
+      await request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .set("Authorization", `Bearer ${apiKeyString}`)
+        .send(body)
+        .expect(200);
+    });
+
+    it("should throw error while both email and phone are hidden", async () => {
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Phone coding consultation",
+        slug: "phone-coding-consultation",
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        bookingFields: [
+          {
+            type: "email",
+            required: false,
+            label: "Email",
+            hidden: true,
+          },
+          {
+            type: "phone",
+            slug: "attendeePhoneNumber",
+            required: false,
+            label: "Phone number",
+            hidden: true,
+          },
+        ],
+      };
+
       const response = await request(app.getHttpServer())
         .post("/api/v2/event-types")
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
@@ -405,7 +442,7 @@ describe("Event types Endpoints", () => {
         .expect(400);
 
       expect(response.body.error.message).toBe(
-        "checkIsEmailUserAccessible - Email booking field must be required and visible"
+        "Booking fields validation failed: visible and required email or visible and required attendee phone field is needed."
       );
     });
 
