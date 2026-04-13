@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Cap client OAuth",
   "no_oauth_clients_description": "Encara no heu creat cap client OAuth. Creeu-ne un per començar.",
   "no_oauth_clients_admin_description": "Encara no s'ha enviat cap client OAuth.",
+  "no_oauth_clients_matching_filter": "No hi ha cap client OAuth que coincideixi amb el filtre seleccionat.",
   "submit_for_approval": "Enviar per a aprovació",
   "client_name": "Nom",
   "client_name_placeholder": "La meva aplicació OAuth",

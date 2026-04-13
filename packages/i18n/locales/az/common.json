@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "OAuth müştəriləri yoxdur",
   "no_oauth_clients_description": "Hələ heç bir OAuth müştərisi yaratmamısınız. Başlamaq üçün bir müştəri yaradın.",
   "no_oauth_clients_admin_description": "Hələ heç bir OAuth müştərisi təqdim edilməyib.",
+  "no_oauth_clients_matching_filter": "Seçilmiş filtrə uyğun OAuth müştərisi yoxdur.",
   "submit_for_approval": "Təsdiqə göndər",
   "client_name": "Ad",
   "client_name_placeholder": "Mənim OAuth Tətbiqim",

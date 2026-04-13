@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Žádní OAuth klienti",
   "no_oauth_clients_description": "Zatím jste nevytvořili žádné OAuth klienty. Vytvořte jednoho a začněte.",
   "no_oauth_clients_admin_description": "Zatím nebyly odeslány žádné OAuth klienty.",
+  "no_oauth_clients_matching_filter": "Žádní OAuth klienti neodpovídají vybranému filtru.",
   "submit_for_approval": "Odeslat ke schválení",
   "client_name": "Jméno",
   "client_name_placeholder": "Moje OAuth aplikace",

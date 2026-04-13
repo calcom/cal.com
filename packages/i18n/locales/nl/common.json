@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Geen OAuth-clients",
   "no_oauth_clients_description": "Je hebt nog geen OAuth-clients aangemaakt. Maak er een aan om te beginnen.",
   "no_oauth_clients_admin_description": "Er zijn nog geen OAuth-clients ingediend.",
+  "no_oauth_clients_matching_filter": "Geen OAuth-clients komen overeen met het geselecteerde filter.",
   "submit_for_approval": "Indienen ter goedkeuring",
   "client_name": "Naam",
   "client_name_placeholder": "Mijn OAuth-app",

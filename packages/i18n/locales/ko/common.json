@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "OAuth 클라이언트 없음",
   "no_oauth_clients_description": "아직 생성된 OAuth 클라이언트가 없습니다. 시작하려면 하나를 생성하세요.",
   "no_oauth_clients_admin_description": "아직 제출된 OAuth 클라이언트가 없습니다.",
+  "no_oauth_clients_matching_filter": "선택한 필터와 일치하는 OAuth 클라이언트가 없습니다.",
   "submit_for_approval": "승인 요청",
   "client_name": "이름",
   "client_name_placeholder": "내 OAuth 앱",

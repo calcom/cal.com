@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Немає OAuth клієнтів",
   "no_oauth_clients_description": "Ви ще не створили жодного OAuth клієнта. Створіть його, щоб почати.",
   "no_oauth_clients_admin_description": "Ще не було подано жодного OAuth клієнта.",
+  "no_oauth_clients_matching_filter": "Жоден OAuth-клієнт не відповідає вибраному фільтру.",
   "submit_for_approval": "Подати на схвалення",
   "client_name": "Назва",
   "client_name_placeholder": "Мій OAuth додаток",

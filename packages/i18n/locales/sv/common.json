@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Inga OAuth-klienter",
   "no_oauth_clients_description": "Du har inte skapat några OAuth-klienter än. Skapa en för att komma igång.",
   "no_oauth_clients_admin_description": "Inga OAuth-klienter har skickats in än.",
+  "no_oauth_clients_matching_filter": "Inga OAuth-klienter matchar det valda filtret.",
   "submit_for_approval": "Skicka in för godkännande",
   "client_name": "Namn",
   "client_name_placeholder": "Min OAuth-app",

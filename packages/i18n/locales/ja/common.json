@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "OAuthクライアントがありません",
   "no_oauth_clients_description": "まだOAuthクライアントを作成していません。作成して開始しましょう。",
   "no_oauth_clients_admin_description": "まだOAuthクライアントは送信されていません。",
+  "no_oauth_clients_matching_filter": "選択したフィルターに一致するOAuthクライアントがありません。",
   "submit_for_approval": "承認申請を送信",
   "client_name": "名前",
   "client_name_placeholder": "私のOAuthアプリ",

@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Ingen OAuth-klienter",
   "no_oauth_clients_description": "Du har ikke opprettet noen OAuth-klienter ennå. Opprett en for å komme i gang.",
   "no_oauth_clients_admin_description": "Ingen OAuth-klienter har blitt sendt inn ennå.",
+  "no_oauth_clients_matching_filter": "Ingen OAuth-klienter samsvarer med det valgte filteret.",
   "submit_for_approval": "Send inn til godkjenning",
   "client_name": "Navn",
   "client_name_placeholder": "Min OAuth-app",

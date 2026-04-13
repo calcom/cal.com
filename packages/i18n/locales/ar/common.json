@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "لا يوجد عملاء OAuth",
   "no_oauth_clients_description": "لم تقم بإنشاء أي عملاء OAuth بعد. أنشئ واحداً للبدء.",
   "no_oauth_clients_admin_description": "لم يتم تقديم أي عملاء OAuth بعد.",
+  "no_oauth_clients_matching_filter": "لا يوجد عملاء OAuth مطابقون للفلتر المحدد.",
   "submit_for_approval": "إرسال للموافقة",
   "client_name": "الاسم",
   "client_name_placeholder": "تطبيق OAuth الخاص بي",

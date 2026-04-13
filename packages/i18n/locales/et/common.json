@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "OAuth kliente pole",
   "no_oauth_clients_description": "Sa ei ole veel ühtegi OAuth klienti loonud. Alustamiseks loo üks.",
   "no_oauth_clients_admin_description": "Ühtegi OAuth klienti pole veel esitatud.",
+  "no_oauth_clients_matching_filter": "Valitud filtrile ei vasta ükski OAuth klient.",
   "submit_for_approval": "Esita kinnitamiseks",
   "client_name": "Nimi",
   "client_name_placeholder": "Minu OAuth rakendus",

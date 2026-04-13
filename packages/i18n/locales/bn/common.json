@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "কোনো OAuth ক্লায়েন্ট নেই",
   "no_oauth_clients_description": "আপনি এখনও কোনো OAuth ক্লায়েন্ট তৈরি করেননি। শুরু করতে একটি তৈরি করুন।",
   "no_oauth_clients_admin_description": "এখনও কোনো OAuth ক্লায়েন্ট জমা দেওয়া হয়নি।",
+  "no_oauth_clients_matching_filter": "নির্বাচিত ফিল্টারের সাথে কোনো OAuth ক্লায়েন্ট মিলছে না।",
   "submit_for_approval": "অনুমোদনের জন্য জমা দিন",
   "client_name": "নাম",
   "client_name_placeholder": "আমার OAuth অ্যাপ",

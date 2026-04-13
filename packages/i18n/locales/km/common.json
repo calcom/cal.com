@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "គ្មានអតិថិជន OAuth",
   "no_oauth_clients_description": "អ្នកមិនទាន់បានបង្កើតអតិថិជន OAuth ណាមួយនៅឡើយទេ។ បង្កើតមួយដើម្បីចាប់ផ្តើម។",
   "no_oauth_clients_admin_description": "មិនទាន់មានអតិថិជន OAuth ណាមួយត្រូវបានដាក់ស្នើនៅឡើយទេ។",
+  "no_oauth_clients_matching_filter": "មិនមានអតិថិជន OAuth ណាមួយផ្គូផ្គងនឹងតម្រងដែលបានជ្រើសរើសទេ។",
   "submit_for_approval": "ដាក់ស្នើសម្រាប់ការអនុម័ត",
   "client_name": "ឈ្មោះ",
   "client_name_placeholder": "កម្មវិធី OAuth របស់ខ្ញុំ",

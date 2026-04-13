@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Ei OAuth-asiakkaita",
   "no_oauth_clients_description": "Et ole vielä luonut yhtään OAuth-asiakasta. Luo ensimmäinen aloittaaksesi.",
   "no_oauth_clients_admin_description": "Yhtään OAuth-asiakasta ei ole vielä lähetetty.",
+  "no_oauth_clients_matching_filter": "Valittuun suodattimeen ei löydy OAuth-asiakkaita.",
   "submit_for_approval": "Lähetä hyväksyttäväksi",
   "client_name": "Nimi",
   "client_name_placeholder": "Oma OAuth-sovellukseni",

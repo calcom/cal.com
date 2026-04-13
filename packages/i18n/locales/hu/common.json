@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Nincsenek OAuth kliensek",
   "no_oauth_clients_description": "Még nem hoztál létre OAuth klienst. Hozz létre egyet a kezdéshez.",
   "no_oauth_clients_admin_description": "Még nem nyújtottak be OAuth klienst.",
+  "no_oauth_clients_matching_filter": "Nincs a kiválasztott szűrőnek megfelelő OAuth kliens.",
   "submit_for_approval": "Beküldés jóváhagyásra",
   "client_name": "Név",
   "client_name_placeholder": "Saját OAuth alkalmazásom",

@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "אין לקוחות OAuth",
   "no_oauth_clients_description": "עדיין לא יצרת לקוחות OAuth. צור אחד כדי להתחיל.",
   "no_oauth_clients_admin_description": "עדיין לא הוגשו לקוחות OAuth.",
+  "no_oauth_clients_matching_filter": "לא נמצאו לקוחות OAuth התואמים את הסינון שנבחר.",
   "submit_for_approval": "שלח לאישור",
   "client_name": "שם",
   "client_name_placeholder": "אפליקציית OAuth שלי",

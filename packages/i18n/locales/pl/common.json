@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Brak klientów OAuth",
   "no_oauth_clients_description": "Nie utworzyłeś jeszcze żadnych klientów OAuth. Utwórz pierwszego, aby rozpocząć.",
   "no_oauth_clients_admin_description": "Nie zgłoszono jeszcze żadnych klientów OAuth.",
+  "no_oauth_clients_matching_filter": "Brak klientów OAuth pasujących do wybranego filtra.",
   "submit_for_approval": "Wyślij do zatwierdzenia",
   "client_name": "Nazwa",
   "client_name_placeholder": "Moja aplikacja OAuth",

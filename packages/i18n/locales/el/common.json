@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Δεν υπάρχουν πελάτες OAuth",
   "no_oauth_clients_description": "Δεν έχετε δημιουργήσει ακόμα κανέναν πελάτη OAuth. Δημιουργήστε έναν για να ξεκινήσετε.",
   "no_oauth_clients_admin_description": "Δεν έχουν υποβληθεί ακόμα πελάτες OAuth.",
+  "no_oauth_clients_matching_filter": "Δεν υπάρχουν OAuth clients που να ταιριάζουν με το επιλεγμένο φίλτρο.",
   "submit_for_approval": "Υποβολή προς έγκριση",
   "client_name": "Όνομα",
   "client_name_placeholder": "Η εφαρμογή μου OAuth",

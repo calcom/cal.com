@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Niciun client OAuth",
   "no_oauth_clients_description": "Nu ați creat încă niciun client OAuth. Creați unul pentru a începe.",
   "no_oauth_clients_admin_description": "Nu a fost trimis niciun client OAuth încă.",
+  "no_oauth_clients_matching_filter": "Nu există clienți OAuth care să corespundă filtrului selectat.",
   "submit_for_approval": "Trimite pentru aprobare",
   "client_name": "Nume",
   "client_name_placeholder": "Aplicația mea OAuth",

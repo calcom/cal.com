@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "尚無 OAuth 客戶端",
   "no_oauth_clients_description": "您尚未建立任何 OAuth 客戶端。請先建立一個以開始使用。",
   "no_oauth_clients_admin_description": "尚未有任何 OAuth 客戶端被提交。",
+  "no_oauth_clients_matching_filter": "沒有符合所選篩選條件的 OAuth 客戶端。",
   "submit_for_approval": "提交審核",
   "client_name": "名稱",
   "client_name_placeholder": "My OAuth App",

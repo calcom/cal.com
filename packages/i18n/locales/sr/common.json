@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Nema OAuth klijenata",
   "no_oauth_clients_description": "Još uvek niste kreirali nijednog OAuth klijenta. Kreirajte jednog da biste počeli.",
   "no_oauth_clients_admin_description": "Još uvek nije podnet nijedan OAuth klijent.",
+  "no_oauth_clients_matching_filter": "Nema OAuth klijenata koji odgovaraju izabranom filteru.",
   "submit_for_approval": "Pošalji na odobrenje",
   "client_name": "Ime",
   "client_name_placeholder": "Moja OAuth aplikacija",

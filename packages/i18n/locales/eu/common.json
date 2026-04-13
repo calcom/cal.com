@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Ez dago OAuth bezerorik",
   "no_oauth_clients_description": "Oraindik ez duzu OAuth bezerorik sortu. Sortu bat hasteko.",
   "no_oauth_clients_admin_description": "Oraindik ez da OAuth bezerorik bidali.",
+  "no_oauth_clients_matching_filter": "Ez dago hautatutako iragazkiarekin bat datorren OAuth bezerorik.",
   "submit_for_approval": "Bidali onarpenera",
   "client_name": "Izena",
   "client_name_placeholder": "Nire OAuth aplikazioa",

@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "暂无 OAuth 客户端",
   "no_oauth_clients_description": "您还没有创建任何 OAuth 客户端。请先创建一个以开始使用。",
   "no_oauth_clients_admin_description": "尚未提交任何 OAuth 客户端。",
+  "no_oauth_clients_matching_filter": "没有符合所选筛选条件的 OAuth 客户端。",
   "submit_for_approval": "提交审核",
   "client_name": "名称",
   "client_name_placeholder": "My OAuth App",

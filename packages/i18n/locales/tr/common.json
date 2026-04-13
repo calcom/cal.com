@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "OAuth istemcisi yok",
   "no_oauth_clients_description": "Henüz hiç OAuth istemcisi oluşturmadınız. Başlamak için bir tane oluşturun.",
   "no_oauth_clients_admin_description": "Henüz hiç OAuth istemcisi gönderilmedi.",
+  "no_oauth_clients_matching_filter": "Seçilen filtreyle eşleşen OAuth istemcisi yok.",
   "submit_for_approval": "Onay için gönder",
   "client_name": "Ad",
   "client_name_placeholder": "OAuth uygulamam",

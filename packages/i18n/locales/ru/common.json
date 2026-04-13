@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Нет OAuth-клиентов",
   "no_oauth_clients_description": "Вы ещё не создали ни одного OAuth-клиента. Создайте его, чтобы начать работу.",
   "no_oauth_clients_admin_description": "OAuth-клиенты ещё не были отправлены.",
+  "no_oauth_clients_matching_filter": "Нет OAuth-клиентов, соответствующих выбранному фильтру.",
   "submit_for_approval": "Отправить на одобрение",
   "client_name": "Имя",
   "client_name_placeholder": "Моё OAuth-приложение",

@@ -1148,6 +1148,7 @@
   "no_oauth_clients": "Không có ứng dụng OAuth",
   "no_oauth_clients_description": "Bạn chưa tạo ứng dụng OAuth nào. Tạo một ứng dụng để bắt đầu.",
   "no_oauth_clients_admin_description": "Chưa có ứng dụng OAuth nào được gửi.",
+  "no_oauth_clients_matching_filter": "Không có ứng dụng OAuth nào phù hợp với bộ lọc đã chọn.",
   "submit_for_approval": "Gửi để phê duyệt",
   "client_name": "Tên",
   "client_name_placeholder": "Ứng dụng OAuth của tôi",
