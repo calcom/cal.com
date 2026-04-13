@@ -1,4 +1,4 @@
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import PlansView from "~/settings/billing/plans/plans-view";
 
@@ -15,9 +15,14 @@ const Page = async () => {
   const t = await getTranslate();
 
   return (
-    <SettingsHeader title={t("plans")} description={t("plans_page_description")}>
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("plans")}>
+          <AppHeaderDescription>{t("plans_page_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
       <PlansView context="personal" />
-    </SettingsHeader>
+    </>
   );
 };
 

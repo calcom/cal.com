@@ -8,7 +8,6 @@ export type BillingPeriod = "annual" | "monthly";
 interface BillingPeriodToggleProps {
   billingPeriod: BillingPeriod;
   onBillingPeriodChange: (period: BillingPeriod) => void;
-  compact?: boolean;
   tracking?: {
     source: string;
     target: string;
@@ -18,7 +17,6 @@ interface BillingPeriodToggleProps {
 export function BillingPeriodToggle({
   billingPeriod,
   onBillingPeriodChange,
-  compact = false,
   tracking,
 }: BillingPeriodToggleProps): JSX.Element {
   const { t } = useLocale();
@@ -40,25 +38,15 @@ export function BillingPeriodToggle({
         }
       }}
     >
-      <TabsList
-        className={compact ? "rounded-md bg-muted p-0.5" : "rounded-lg bg-muted p-1"}
-      >
-        <TabsTab
-          value="monthly"
-          className={compact
-            ? "ml-0.5 rounded-[5px] px-2 py-1 text-xs"
-            : "ml-1 rounded-md"}
-        >
+      <TabsList>
+        <TabsTab value="monthly">
           {t("monthly")}
         </TabsTab>
         <TabsTab
           value="annual"
-          className={compact
-            ? "gap-1 rounded-[5px] px-2 py-1 text-xs"
-            : "gap-1 rounded-md"}
         >
           {t("upgrade_billing_annual")}
-          <Badge variant="info" size="sm" className={compact ? "text-[10px] px-1 py-0" : ""}>
+          <Badge variant="info" size="sm">
             {t("discount_25")}
           </Badge>
         </TabsTab>

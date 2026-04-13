@@ -129,24 +129,24 @@ export default function PlansView({
 
   const renewalDateFormatted = subscriptionEnd
     ? new Date(subscriptionEnd).toLocaleDateString(undefined, {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      })
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    })
     : null;
 
   const currentPlanName =
     context === "organization"
       ? t("organization")
       : context === "team"
-      ? t("team")
-      : t("individual");
+        ? t("team")
+        : t("individual");
   const currentPlanPrice =
     context === "organization"
       ? currentOrgPrice
       : context === "team"
-      ? currentTeamPrice
-      : t("free");
+        ? currentTeamPrice
+        : t("free");
 
   // Actions
   const handleSwitchPeriod = (targetPeriod: "MONTHLY" | "ANNUALLY") => {
@@ -216,7 +216,7 @@ export default function PlansView({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {/* Current plan */}
       <CurrentPlanSection
         context={context}
@@ -226,8 +226,8 @@ export default function PlansView({
           currentBillingPeriod === "ANNUALLY"
             ? t("upgrade_billing_annual")
             : currentBillingPeriod === "MONTHLY"
-            ? t("monthly")
-            : null
+              ? t("monthly")
+              : null
         }
         renewalDateFormatted={renewalDateFormatted}
         teamId={teamId}

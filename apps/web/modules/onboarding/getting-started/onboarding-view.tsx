@@ -164,7 +164,6 @@ export const OnboardingView = ({ userEmail }: OnboardingViewProps) => {
               <BillingPeriodToggle
                 billingPeriod={billingPeriod}
                 onBillingPeriodChange={handleBillingPeriodChange}
-                compact
                 tracking={{
                   source: "onboarding_getting_started",
                   target: selectedPlan,

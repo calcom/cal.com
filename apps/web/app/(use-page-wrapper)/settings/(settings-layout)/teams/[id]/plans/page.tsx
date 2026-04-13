@@ -1,6 +1,6 @@
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { BillingPeriodService } from "@calcom/features/ee/billing/service/billingPeriod/BillingPeriodService";
 import { prisma } from "@calcom/prisma";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { redirect } from "next/navigation";
 import PlansView from "~/settings/billing/plans/plans-view";
@@ -40,9 +40,19 @@ const Page = async ({ params }: { params: Promise<{ id: string }> }) => {
   }
 
   return (
-    <SettingsHeader title={t("plans")} description={t("plans_page_description")}>
-      <PlansView context="team" teamId={teamId} initialBillingPeriod={initialBillingPeriod} subscriptionEnd={subscriptionEnd} />
-    </SettingsHeader>
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("plans")}>
+          <AppHeaderDescription>{t("plans_page_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
+      <PlansView
+        context="team"
+        teamId={teamId}
+        initialBillingPeriod={initialBillingPeriod}
+        subscriptionEnd={subscriptionEnd}
+      />
+    </>
   );
 };
 
