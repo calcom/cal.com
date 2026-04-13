@@ -890,6 +890,7 @@ export class AvailableSlotsService {
     browsingWindowStart,
     browsingWindowEnd,
     bypassBusyCalendarTimes,
+    bypassBookingBusyTimes = false,
     silentCalendarFailures,
     mode,
   }: {
@@ -907,6 +908,7 @@ export class AvailableSlotsService {
     browsingWindowStart: ReturnType<(typeof AvailableSlotsService)["prototype"]["getStartTime"]>;
     browsingWindowEnd: Dayjs;
     bypassBusyCalendarTimes: boolean;
+    bypassBookingBusyTimes?: boolean;
     silentCalendarFailures: boolean;
     mode?: CalendarFetchMode;
   }) {
@@ -1064,6 +1066,16 @@ export class AvailableSlotsService {
 
     function enrichUsersWithData() {
       return usersWithCredentials.map((currentUser) => {
+        // When bypassing booking busy times (host reschedule on personal events),
+        // pass empty bookings so getBusyTimes won't generate booking-based busy entries.
+        if (bypassBookingBusyTimes) {
+          return {
+            ...currentUser,
+            currentBookings: [] as typeof currentBookingsAllUsers,
+            outOfOfficeDays: outOfOfficeDaysByUserId.get(currentUser.id) ?? [],
+          };
+        }
+
         const seenBookingIds = new Set<number>();
         const userCurrentBookings: typeof currentBookingsAllUsers = [];
 
@@ -1217,14 +1229,25 @@ export class AvailableSlotsService {
     "getAvailableSlots"
   );
 
+  /**
+   * Variant of getAvailableSlots that bypasses the Redis cache.
+   * Used for host reschedule requests where the response includes auth-dependent
+   * data (hostBusyTimes) that must not be cached or served to other users.
+   */
+  getAvailableSlotsWithoutCache = withReporting(
+    this._getAvailableSlots.bind(this),
+    "getAvailableSlotsWithoutCache"
+  );
+
   async _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
     const {
       _enableTroubleshooter: enableTroubleshooter = false,
-      _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
+      _bypassCalendarBusyTimes: bypassBusyCalendarTimesInput = false,
       _silentCalendarFailures: silentCalendarFailures = false,
       routingFormResponseId,
       queuedFormResponseId,
     } = input;
+    let bypassBusyCalendarTimes = bypassBusyCalendarTimesInput;
     const orgDetails = input?.orgSlug
       ? {
           currentOrgDomain: input.orgSlug,
@@ -1324,6 +1347,17 @@ export class AvailableSlotsService {
 
     const allHosts = [...eligibleQualifiedRRHosts, ...eligibleFixedHosts];
 
+    // Check if this is a host rescheduling their own booking.
+    // Requires server-side auth: the authenticated user's email (from session cookie)
+    // must match the rescheduledBy param AND be a host of the event type.
+    const authenticatedEmail = ctx?.authenticatedEmail;
+    const isHostReschedule =
+      !!input.rescheduledBy &&
+      !!input.rescheduleUid &&
+      !!authenticatedEmail &&
+      authenticatedEmail === input.rescheduledBy &&
+      allHosts.some((host) => host.user.email === input.rescheduledBy);
+
     // If all hosts are blocked, return empty slots
     if (allHosts.length === 0) {
       loggerWithEventDetails.info("All hosts are blocked by watchlist, returning empty slots");
@@ -1337,23 +1371,60 @@ export class AvailableSlotsService {
     const hasFallbackRRHosts =
       eligibleFallbackRRHosts.length > 0 && eligibleFallbackRRHosts.length > eligibleQualifiedRRHosts.length;
 
+    const adjustedBrowsingWindowStart =
+      hasFallbackRRHosts && browsingWindowStart.isBefore(twoWeeksFromNow)
+        ? this.getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
+        : browsingWindowStart;
+
+    const adjustedBrowsingWindowEnd =
+      hasFallbackRRHosts && browsingWindowEnd.isBefore(twoWeeksFromNow)
+        ? this.getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
+        : browsingWindowEnd;
+
+    const hostsAndAvailabilitiesArgs = {
+      input,
+      eventType,
+      hosts: allHosts,
+      loggerWithEventDetails,
+      browsingWindowStart: adjustedBrowsingWindowStart,
+      browsingWindowEnd: adjustedBrowsingWindowEnd,
+      silentCalendarFailures,
+      mode,
+    };
+
+    // For host reschedule: first fetch availability WITH calendar busy times to get accurate
+    // busy time data for the red dot indicators, then fetch again WITHOUT to get unfiltered slots.
+    let hostBusyTimesFromCalendars: { start: string; end: string }[] = [];
+    if (isHostReschedule) {
+      const fullAvailability = await this.calculateHostsAndAvailabilities({
+        ...hostsAndAvailabilitiesArgs,
+        bypassBusyCalendarTimes: false,
+      });
+      hostBusyTimesFromCalendars = fullAvailability.allUsersAvailability
+        .filter((availability) => availability.user?.email === input.rescheduledBy)
+        .flatMap((availability) =>
+          availability.busy.map((busyTime) => ({
+            start: new Date(busyTime.start).toISOString(),
+            end: new Date(busyTime.end).toISOString(),
+          }))
+        );
+      // Only bypass busy time filtering for personal events. For team events
+      // (collective/round-robin), other hosts' availability must still be respected.
+      const isPersonalEvent = !eventType.schedulingType && allHosts.length <= 1;
+      if (isPersonalEvent) {
+        bypassBusyCalendarTimes = true;
+      }
+    }
+
+    // bypassBookingBusyTimes is independent of bypassBusyCalendarTimes to avoid
+    // changing the behavior of the existing _bypassCalendarBusyTimes debug flag.
+    const shouldBypassBookingBusyTimes = isHostReschedule && !eventType.schedulingType && allHosts.length <= 1;
+
     let { allUsersAvailability, usersWithCredentials, currentSeats } =
       await this.calculateHostsAndAvailabilities({
-        input,
-        eventType,
-        hosts: allHosts,
-        loggerWithEventDetails,
-        browsingWindowStart:
-          hasFallbackRRHosts && browsingWindowStart.isBefore(twoWeeksFromNow)
-            ? this.getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
-            : browsingWindowStart,
-        browsingWindowEnd:
-          hasFallbackRRHosts && browsingWindowEnd.isBefore(twoWeeksFromNow)
-            ? this.getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
-            : browsingWindowEnd,
+        ...hostsAndAvailabilitiesArgs,
         bypassBusyCalendarTimes,
-        silentCalendarFailures,
-        mode,
+        bypassBookingBusyTimes: shouldBypassBookingBusyTimes,
       });
 
     let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
@@ -1738,9 +1809,16 @@ export class AvailableSlotsService {
         }
       : null;
 
+    // When host is rescheduling their own booking, include their busy times
+    // (fetched separately with calendar data) so the frontend can show red dot indicators
+    const hostBusyTimesData = isHostReschedule
+      ? { hostBusyTimes: hostBusyTimesFromCalendars }
+      : null;
+
     return {
       slots: filteredSlotsMappedToDate,
       ...troubleshooterData,
+      ...hostBusyTimesData,
     };
   }
 }

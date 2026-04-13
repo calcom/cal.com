@@ -751,6 +751,14 @@ export class BookingRepository implements IBookingRepository {
     });
   }
 
+  async findOrganizerEmailByUid({ uid }: { uid: string }) {
+    const booking = await this.prismaClient.booking.findFirst({
+      where: { uid },
+      select: { user: { select: { email: true } } },
+    });
+    return booking?.user?.email ?? null;
+  }
+
   async findByUidIncludeReport({ bookingUid }: { bookingUid: string }) {
     return await this.prismaClient.booking.findUnique({
       where: {

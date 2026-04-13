@@ -1,5 +1,3 @@
-import { useSearchParams } from "next/navigation";
-
 import { updateEmbedBookerState } from "@calcom/embed-core/src/embed-iframe";
 import { sdkActionManager } from "@calcom/embed-core/src/sdk-event";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -9,7 +7,7 @@ import { useTimesForSchedule } from "@calcom/features/schedules/hooks/useTimesFo
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { PUBLIC_QUERY_AVAILABLE_SLOTS_INTERVAL_SECONDS } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
-
+import { useSearchParams } from "next/navigation";
 import { useApiV2AvailableSlots } from "./useApiV2AvailableSlots";
 
 export type UseScheduleWithCacheArgs = {
@@ -86,6 +84,7 @@ export const useSchedule = ({
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
   const queuedFormResponseId = searchParams?.get("cal.queuedFormResponseId");
   const email = searchParams?.get("email");
+  const rescheduledBy = searchParams?.get("rescheduledBy");
   // We allow skipping the schedule fetch as a requirement for prerendering in iframe through embed as when the pre-rendered iframe is connected, then we would fetch the availability, which would be upto-date
   // Also, a reuse through Headless Router could completely change the availability as different team members are selected and thus it is unnecessary to fetch the schedule
   const skipGetSchedule = searchParams?.get("cal.skipSlotsFetch") === "true";
@@ -120,6 +119,7 @@ export const useSchedule = ({
     ...(embedConnectVersion ? { embedConnectVersion } : {}),
     _isDryRun: searchParams ? isBookingDryRun(searchParams) : false,
     ...(_calendarFetchMode ? { _calendarFetchMode } : {}),
+    ...(rescheduledBy ? { rescheduledBy } : {}),
   };
 
   const options = {
