@@ -152,6 +152,27 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
     expect(result).toEqual(expectedGuestUser);
   });
 
+  it("returns null when booking cannot be resolved by uid or seat reference", async () => {
+    findByUidIncludeEventType.mockResolvedValue(null);
+    findBySeatReferenceUidIncludeEventType.mockResolvedValue(null);
+
+    const result = await getRescheduleGuestUser({
+      rescheduleUid: "UNKNOWN_UID",
+      organizerEmails: ["host@example.com"],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      rescheduledBy: "host@example.com",
+    });
+
+    expect(findByUidIncludeEventType).toHaveBeenCalledWith({
+      bookingUid: "UNKNOWN_UID",
+    });
+    expect(findBySeatReferenceUidIncludeEventType).toHaveBeenCalledWith({
+      seatReferenceUid: "UNKNOWN_UID",
+    });
+    expect(findAvailabilityUserByEmail).not.toHaveBeenCalled();
+    expect(result).toBeNull();
+  });
+
   it("resolves seat reference UID to booking for host-initiated reschedule", async () => {
     findByUidIncludeEventType.mockResolvedValue(null);
     findBySeatReferenceUidIncludeEventType.mockResolvedValue({
@@ -227,6 +248,83 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
     expect(result).toEqual({
       id: 102,
       email: "guest-alias@example.com",
+    });
+  });
+
+  it("returns null when booking has no attendees", async () => {
+    findByUidIncludeEventType.mockResolvedValue({
+      user: {
+        email: "host@example.com",
+      },
+      attendees: [],
+    });
+
+    const result = await getRescheduleGuestUser({
+      rescheduleUid: "BOOKING_TO_RESCHEDULE_UID",
+      organizerEmails: ["host@example.com"],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      rescheduledBy: "host@example.com",
+    });
+
+    expect(result).toBeNull();
+    expect(findAvailabilityUserByEmail).not.toHaveBeenCalled();
+  });
+
+  it("filters organizer attendees case-insensitively", async () => {
+    findByUidIncludeEventType.mockResolvedValue({
+      user: {
+        email: "host@example.com",
+      },
+      attendees: [
+        {
+          email: "HOST@EXAMPLE.COM",
+        },
+      ],
+    });
+
+    const result = await getRescheduleGuestUser({
+      rescheduleUid: "BOOKING_TO_RESCHEDULE_UID",
+      organizerEmails: ["host@example.com"],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      rescheduledBy: "host@example.com",
+    });
+
+    expect(result).toBeNull();
+    expect(findAvailabilityUserByEmail).not.toHaveBeenCalled();
+  });
+
+  it("matches host-initiated reschedule case-insensitively", async () => {
+    findByUidIncludeEventType.mockResolvedValue({
+      user: {
+        email: "HOST@EXAMPLE.COM",
+      },
+      attendees: [
+        {
+          email: "host@example.com",
+        },
+        {
+          email: "guest@example.com",
+        },
+      ],
+    });
+    findAvailabilityUserByEmail.mockResolvedValue({
+      id: 102,
+      email: "guest@example.com",
+    });
+
+    const result = await getRescheduleGuestUser({
+      rescheduleUid: "BOOKING_TO_RESCHEDULE_UID",
+      organizerEmails: ["host@example.com"],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      rescheduledBy: "host@example.com",
+    });
+
+    expect(findAvailabilityUserByEmail).toHaveBeenCalledWith({
+      email: "guest@example.com",
+    });
+    expect(result).toEqual({
+      id: 102,
+      email: "guest@example.com",
     });
   });
 
@@ -327,5 +425,41 @@ describe("AvailableSlotsService._getRescheduleGuestUser", () => {
     });
 
     expect(aggregatedAvailability).toEqual([{ start: hostRangeStart, end: hostRangeEnd }]);
+  });
+
+  it("intersects single-host availability with injected guest availability windows", async () => {
+    const hostRangeStart = dayjs("2025-01-23T10:00:00.000Z");
+    const hostRangeEnd = dayjs("2025-01-23T12:00:00.000Z");
+    const guestWindowStart = dayjs("2025-01-23T10:30:00.000Z");
+    const guestWindowEnd = dayjs("2025-01-23T11:00:00.000Z");
+
+    const aggregatedAvailability = getAggregatedAvailabilityForEvent({
+      allUsersAvailability: [
+        {
+          dateRanges: [{ start: hostRangeStart, end: hostRangeEnd }],
+          oooExcludedDateRanges: [],
+          user: { isFixed: true, groupId: null },
+        },
+        {
+          dateRanges: [{ start: hostRangeStart, end: hostRangeEnd }],
+          oooExcludedDateRanges: [{ start: guestWindowStart, end: guestWindowEnd }],
+          user: { isFixed: true, groupId: null },
+        },
+      ],
+      schedulingType: null,
+      hasInjectedRescheduleGuest: true,
+    });
+
+    expect(
+      aggregatedAvailability.map((range) => ({
+        start: range.start.toISOString(),
+        end: range.end.toISOString(),
+      }))
+    ).toEqual([
+      {
+        start: "2025-01-23T10:30:00.000Z",
+        end: "2025-01-23T11:00:00.000Z",
+      },
+    ]);
   });
 });
