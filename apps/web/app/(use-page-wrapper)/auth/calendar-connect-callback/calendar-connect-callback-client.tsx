@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
-
+import { useOnMount } from "@calcom/lib/hooks/use-on-mount";
 import { notifyCalendarConnectWindowAndClose } from "~/auth/calendar-connect-window";
 
 export function CalendarConnectCallbackClient() {
-  useEffect(() => {
+  useOnMount(() => {
     notifyCalendarConnectWindowAndClose();
-  }, []);
+  });
 
   return null;
 }

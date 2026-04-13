@@ -1,20 +1,20 @@
-import { useState, useEffect } from "react";
-
+import { useOnMount } from "@calcom/lib/hooks/use-on-mount";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import classNames from "@calcom/ui/classNames";
+import { useEffect, useState } from "react";
 
 type LoginType = "saml" | "google" | "microsoft" | "credentials";
 
 export function useLastUsed() {
   const [lastUsed, setLastUsed] = useState<LoginType>();
 
-  useEffect(() => {
+  useOnMount(() => {
     const storedValue = localStorage.getItem("last_cal_login");
     if (storedValue) {
       setLastUsed(storedValue as LoginType);
     }
-  }, []);
+  });
 
   useEffect(() => {
     if (lastUsed) {

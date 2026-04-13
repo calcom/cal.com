@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect, useState } from "react";
-import type { GroupBase, Props, InputProps, SingleValue, MultiValue } from "react-select";
-import ReactSelect, { components } from "react-select";
-
+import { useOnMount } from "@calcom/lib/hooks/use-on-mount";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import classNames from "@calcom/ui/classNames";
+import React, { useCallback, useEffect, useState } from "react";
+import type { GroupBase, InputProps, MultiValue, Props, SingleValue } from "react-select";
+import ReactSelect, { components } from "react-select";
 
 export type SelectProps<
   Option,
@@ -74,9 +74,9 @@ function Select<
     /** Dark Theme ends */
   };
 
-  useEffect(() => {
+  useOnMount(() => {
     setMounted(true);
-  }, []);
+  });
 
   // Till we know in JS the theme is ready, we can't render react-select as it would render with light theme instead
   if (!mounted) {
