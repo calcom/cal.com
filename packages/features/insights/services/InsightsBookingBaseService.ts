@@ -248,6 +248,76 @@ export class InsightsBookingBaseService {
     }));
   }
 
+  async getAverageEventDurationStats({
+    timeZone,
+    dateRanges,
+    dateTarget = "createdAt",
+  }: {
+    timeZone: string;
+    dateRanges: DateRange[];
+    dateTarget?: "startTime" | "createdAt";
+  }) {
+    if (!dateRanges.length) {
+      return [];
+    }
+
+    const baseConditions = await this.getBaseConditions();
+    const dateColumn = dateTarget === "startTime" ? Prisma.sql`"startTime"` : Prisma.sql`"createdAt"`;
+
+    const query = Prisma.sql`
+      SELECT
+        DATE(${dateColumn} AT TIME ZONE ${timeZone}) as "date",
+        AVG("eventLength")::float as "avgDuration",
+        COUNT(*)::int as "count"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+      GROUP BY 1
+      ORDER BY 1
+    `;
+
+    const data =
+      await this.prisma.$queryRaw<
+        Array<{
+          date: Date;
+          avgDuration: number | null;
+          count: number;
+        }>
+      >(query);
+
+    // Aggregate by date ranges (same pattern as other *OverTime methods)
+    const aggregate: { [date: string]: { totalDuration: number; count: number } } = {};
+    dateRanges.forEach(({ formattedDate }) => {
+      aggregate[formattedDate] = { totalDuration: 0, count: 0 };
+    });
+
+    const rangesWithDateStr = dateRanges.map((range) => ({
+      ...range,
+      startStr: dayjs(range.startDate).tz(timeZone).format("YYYY-MM-DD"),
+      endStr: dayjs(range.endDate).tz(timeZone).format("YYYY-MM-DD"),
+    }));
+
+    data.forEach(({ date, avgDuration, count }) => {
+      const dateStr = dayjs.utc(date).format("YYYY-MM-DD");
+      const dateRange = rangesWithDateStr.find(
+        (range) => dateStr >= range.startStr && dateStr <= range.endStr
+      );
+      if (!dateRange) return;
+
+      const formattedDate = dateRange.formattedDate;
+      aggregate[formattedDate].totalDuration += (avgDuration || 0) * count;
+      aggregate[formattedDate].count += count;
+    });
+
+    // Use dayjs(startDate).format("ll") as the Date key to match the original
+    // client-side implementation which uses this format for the result map key.
+    return dateRanges.map(({ formattedDate, startDate }) => ({
+      Date: dayjs(startDate).format("ll"),
+      Average: aggregate[formattedDate].count > 0
+        ? aggregate[formattedDate].totalDuration / aggregate[formattedDate].count
+        : 0,
+    }));
+  }
+
   async findAll<TSelect extends BookingSelect | undefined = undefined>({
     select,
   }: {

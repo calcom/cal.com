@@ -290,41 +290,11 @@ export const insightsRouter = router({
           return [];
         }
 
-        const startOfEndOf = timeView === "year" ? "year" : timeView === "month" ? "month" : "week";
-
-        const allBookings = await insightsBookingService.findAll({
-          select: {
-            eventLength: true,
-            createdAt: true,
-            startTime: true,
-          },
+        return await insightsBookingService.getAverageEventDurationStats({
+          timeZone,
+          dateRanges,
+          dateTarget,
         });
-
-        const resultMap = new Map<string, { totalDuration: number; count: number }>();
-
-        // Initialize the map with all date ranges
-        for (const range of dateRanges) {
-          resultMap.set(dayjs(range.startDate).format("ll"), { totalDuration: 0, count: 0 });
-        }
-
-        for (const booking of allBookings) {
-          const periodStart = dayjs(dateTarget === "startTime" ? booking.startTime : booking.createdAt)
-            .startOf(startOfEndOf)
-            .format("ll");
-          if (resultMap.has(periodStart)) {
-            const current = resultMap.get(periodStart);
-            if (!current) continue;
-            current.totalDuration += booking.eventLength || 0;
-            current.count += 1;
-          }
-        }
-
-        const result = Array.from(resultMap.entries()).map(([date, { totalDuration, count }]) => ({
-          Date: date,
-          Average: count > 0 ? totalDuration / count : 0,
-        }));
-
-        return result;
       } catch {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
