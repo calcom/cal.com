@@ -873,6 +873,13 @@
                 ]
               },
               {
+                "group": "Security",
+                "icon": "shield-halved",
+                "pages": [
+                  "developing/guides/audit-logs"
+                ]
+              },
+              {
                 "group": "Automation",
                 "icon": "webhook",
                 "pages": [
@@ -923,7 +930,8 @@
               "self-hosting/sso-setup",
               "self-hosting/admin-security-requirements",
               "self-hosting/docker",
-              "self-hosting/license-key"
+              "self-hosting/license-key",
+              "self-hosting/troubleshooting"
             ]
           },
           {
@@ -993,27 +1001,12 @@
                   "self-hosting/guides/organization/organization-setup",
                   "self-hosting/guides/organization/understanding-organization-env-variables",
                   "self-hosting/guides/organization/single-organization-setup",
-                  "self-hosting/guides/organization/guest-notification-settings"
+                  "self-hosting/guides/organization/guest-notification-settings",
+                  "self-hosting/guides/organization/custom-domains",
+                  "self-hosting/guides/organization/custom-smtp-configuration",
+                  "self-hosting/guides/organization/notification-preferences"
                 ]
               }
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API v1 Reference [Shut Down]",
-        "openapi": {
-          "source": "/api-reference/v1/openapi-v1.json",
-          "directory": "api-reference/v1"
-        },
-        "groups": [
-          {
-            "group": "Getting Started",
-            "pages": [
-              "api-reference/v1/introduction",
-              "api-reference/v1/authentication",
-              "api-reference/v1/errors",
-              "api-reference/v1/rate-limit"
             ]
           }
         ]

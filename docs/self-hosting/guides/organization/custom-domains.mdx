@@ -1,0 +1,134 @@
+---
+title: "Custom domains"
+icon: "globe"
+description: "Configure a custom domain for your organization so booking pages and member links are served from your own branded URL."
+---
+
+Custom domains let you replace the default Cal.com subdomain with your own domain. Instead of `acme.cal.com`, your organization's booking pages can be served from `cal.acme.com` or any domain you own.
+
+## Prerequisites
+
+- An active Cal.com organization (see [Organization setup](./organization-setup))
+- **Owner** or **Admin** role in the organization
+- Access to your domain's DNS settings
+- A Cal.com instance deployed to Vercel (the domain provisioning uses Vercel's domain API)
+
+## How it works
+
+When you add a custom domain, Cal.com:
+
+1. Registers the domain with Vercel so traffic is routed to your Cal.com deployment
+2. Stores the domain record and marks it as **pending** verification
+3. Provides DNS records you need to configure with your DNS provider
+4. Verifies domain ownership and DNS configuration
+
+Once verified, all organization booking pages are accessible on your custom domain.
+
+## Add a custom domain
+
+<Steps>
+  <Step title="Open organization settings">
+    Navigate to **Settings** → **Organization** → **Custom Domain** in your Cal.com dashboard. You must be an organization Owner or Admin.
+  </Step>
+  <Step title="Enter your domain">
+    Type the domain you want to use (for example, `cal.acme.com` or `bookings.example.com`). The domain is automatically converted to lowercase and validated.
+
+    <Note>
+    Each organization can have one custom domain at a time, and each domain can only belong to one organization.
+    </Note>
+  </Step>
+  <Step title="Configure DNS records">
+    After adding the domain, configure DNS with your domain provider. Depending on your domain type, add one of these records:
+
+    | Record type | Name | Value |
+    |:------------|:-----|:------|
+    | **A** | `@` or subdomain | The IP address provided by Cal.com |
+    | **CNAME** | subdomain | The CNAME target provided by Cal.com |
+
+    <Warning>
+    If you are using the apex domain (e.g., `example.com` rather than a subdomain), you must use an A record. CNAME records are not valid at the zone apex for most DNS providers.
+    </Warning>
+  </Step>
+  <Step title="Verify the domain">
+    Return to the custom domain settings page and trigger verification. Cal.com checks that your DNS records are correctly configured and that the domain points to the right destination.
+
+    Verification can take a few minutes depending on DNS propagation times.
+  </Step>
+</Steps>
+
+## Verification statuses
+
+After adding a domain, it goes through a verification process. The possible statuses are:
+
+| Status | Meaning |
+|:-------|:--------|
+| **Pending** | DNS records have not yet been fully verified. Check your DNS configuration and wait for propagation. |
+| **Valid** | The domain is verified and active. Booking pages are served on this domain. |
+| **Invalid configuration** | DNS records exist but are not configured correctly. Double-check the record type, name, and value. |
+| **Conflicting DNS** | Existing DNS records conflict with the required configuration. Remove conflicting records before verifying. |
+| **Not found** | The domain is not registered with the hosting provider. Try removing and re-adding the domain. |
+
+## Replace a custom domain
+
+To change your organization's custom domain to a different one:
+
+1. Go to **Settings** → **Organization** → **Custom Domain**
+2. Enter the new domain to replace the existing one
+3. The old domain is automatically unregistered and the new domain is registered
+4. Configure DNS records for the new domain and verify it
+
+<Note>
+Replacing a domain resets the verification status to pending. Your old domain stops working once the replacement is saved.
+</Note>
+
+## Remove a custom domain
+
+To remove a custom domain and revert to the default Cal.com subdomain:
+
+1. Go to **Settings** → **Organization** → **Custom Domain**
+2. Remove the custom domain
+
+This unregisters the domain from the hosting provider and deletes the record. Booking pages revert to your organization's default Cal.com URL.
+
+## Domain requirements
+
+- Must be a valid domain name (e.g., `cal.acme.com`, `bookings.example.com`)
+- Maximum 253 characters
+- Only lowercase letters, numbers, hyphens, and dots are allowed
+- Cannot be a domain already in use by another organization
+
+## Required permissions
+
+| Action | Required role |
+|:-------|:-------------|
+| View custom domain | Owner, Admin, or Member |
+| Add custom domain | Owner or Admin |
+| Replace custom domain | Owner or Admin |
+| Remove custom domain | Owner or Admin |
+| Check domain availability | Owner or Admin |
+| Verify domain status | Owner, Admin, or Member |
+
+## Troubleshooting
+
+### Domain stuck in "pending" status
+
+DNS changes can take up to 48 hours to propagate, though most complete within a few minutes. If the domain remains pending:
+
+- Confirm the DNS records match exactly what Cal.com provided
+- Check for typos in the record value
+- Verify there are no conflicting DNS records for the same hostname
+- Try triggering verification again from the settings page
+
+### "Domain is already in use" error
+
+Each domain can only be assigned to one organization. If you see this error, the domain is registered to another organization. Contact your Cal.com administrator if you believe this is incorrect.
+
+### "Conflicting DNS" status
+
+This means existing DNS records interfere with the required configuration. Common causes:
+
+- An existing A record pointing to a different IP address
+- Multiple CNAME records for the same hostname
+- A CAA record blocking certificate issuance
+
+Remove the conflicting records from your DNS provider, then verify again.

@@ -100,6 +100,61 @@ A sales team wants to track when prospects cancel discovery calls:
 
 When a prospect cancels, their Salesforce contact record automatically updates with the cancellation status and date.
 
+### Record type filtering
+
+Salesforce objects can have multiple Record Types — for example, Contacts may include both "Business Contact" and "Person Account" types. You can exclude specific Record Types so that Cal.com only looks up or creates records of the types you want.
+
+<Steps>
+  <Step title="Open Salesforce settings">
+    Navigate to the event type's **Apps** tab and expand the Salesforce section.
+  </Step>
+  <Step title="Find the record type exclusion section">
+    Below the attendee record type selector, look for the **Exclude Record Types** setting.
+  </Step>
+  <Step title="Select record types to exclude">
+    Cal.com fetches the available Record Types from your Salesforce org. Select any Record Types you want to skip during contact or lead lookups. Records matching excluded types are filtered out of query results.
+  </Step>
+  <Step title="Save">
+    Save your event type. Future bookings will only match records whose Record Type is not in the exclusion list.
+  </Step>
+</Steps>
+
+<Note>
+  Record type matching is case-insensitive. This setting applies to both lookups and record creation — Cal.com will not create records with an excluded Record Type.
+</Note>
+
+### Field mapping validation
+
+Cal.com validates your field mappings when you save event type settings, catching configuration errors before they affect live bookings. Validation checks include:
+
+- **Checkbox fields** must map to a boolean value
+- **Date fields** must reference a valid date source (for example, `booking_start_date`, `booking_created_date`, or `booking_cancel_date`)
+- **Text, phone, picklist, and custom fields** must have a non-empty string value
+
+If a mapping is invalid, an inline error appears next to the field so you can correct it before saving.
+
+### Sync error notifications
+
+When a Salesforce sync fails at booking time — for example, due to a permission error or an invalid field — Cal.com stores the error and displays a diagnostic notification on the Salesforce settings tab. The notification includes:
+
+- The error code and message
+- Which fields were dropped from the sync
+- A timestamp of when the error occurred
+
+This helps you identify and fix integration issues without needing to check Salesforce logs.
+
+### Fuzzy domain matching
+
+By default, Cal.com matches attendee email domains to Salesforce Account `Website` fields using exact domain matching. When fuzzy domain matching is enabled, Cal.com also matches across top-level domain variants — for example, an attendee with an `@acme.com` email will match a Salesforce Account whose website is `acme.co.uk`.
+
+This is useful when your Salesforce Accounts use regional domains (`.co.uk`, `.de`, `.com.au`) but your contacts book meetings using a different TLD.
+
+Fuzzy domain matching is a per-credential toggle — enable it in your Salesforce connection settings, and it applies to all event types using that credential.
+
+<Note>
+  The fuzzy matching resolution follows a waterfall: exact domain match first, then normalized website comparison, then contact email domain lookup. This ensures precise matches are always preferred over fuzzy ones.
+</Note>
+
 ### Additional settings
 
 | Setting | Description |

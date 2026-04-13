@@ -704,6 +704,19 @@ export default function Booker( props : BookerProps ) {
 
 The booker atom also supports rescheduling a booking. To reschedule a booking, you need to pass in the `rescheduleUid` prop to the booker atom along with the other necessary props. This will allow the booker to display the reschedule form and handle the rescheduling process. The `rescheduleUid` is the booking uid you get when you create a booking.
 
+### Host busy slot indicators
+
+When a host reschedules their own booking while logged in, the booker displays all available time slots including ones that overlap with existing calendar events. To help the host make an informed decision, each slot shows a color-coded indicator:
+
+- **Green dot** — the slot is free on the host's calendar
+- **Red dot** — the slot conflicts with an existing event on the host's calendar
+
+This allows hosts to intentionally double-book when needed, such as when rearranging a low-priority meeting. Guests rescheduling the same booking only see genuinely available slots and do not have the ability to override busy times.
+
+<Note>
+For team events, the host can still see their own busy slot indicators, but other team members' availability constraints remain enforced. This means the host can override only their own calendar conflicts, not those of other assigned hosts.
+</Note>
+
 Here is an example of how to use the booker atom for rescheduling an individual event:
 
 ```js

@@ -1,0 +1,75 @@
+---
+title: "Notification preferences"
+description: "Configure organization-wide notification defaults and allow users to override them with hierarchical preference resolution."
+---
+
+Organizations can define default notification preferences that apply to all members. Individual users can then override these defaults for their own accounts. This hierarchical system follows an **organization → user** precedence model, so organization admins set the baseline and users customize from there.
+
+## How it works
+
+Notification preferences control which channels are used for each notification event. The supported channels are:
+
+- **Email** — standard email notifications
+- **In-app** — notifications within the Cal.com interface
+- **Push** — browser push notifications
+- **SMS** — text message notifications
+
+Each notification event (such as booking confirmations) can be independently enabled or disabled per channel.
+
+### Precedence rules
+
+When Cal.com determines how to notify a user, it resolves preferences using this order:
+
+1. **User preferences** — if the user has set a preference for a specific event and channel, that value is used
+2. **Organization preferences** — if the user has not set a preference, the organization default is used
+3. **System defaults** — if neither the user nor the organization has set a preference, the built-in system default applies
+
+<Note>
+Preferences are resolved per event and per channel. A user can override the email channel for booking confirmations while still inheriting the organization default for push notifications on the same event.
+</Note>
+
+## Setting organization defaults
+
+Organization admins can configure default notification preferences that apply to all members. These defaults act as the baseline configuration — any member who has not set their own preference inherits the organization-level setting.
+
+To configure organization notification defaults:
+
+<Steps>
+  <Step title="Navigate to organization settings">
+    Go to **Settings** → **Organization** → **Notification preferences**.
+  </Step>
+  <Step title="Configure channel defaults">
+    For each notification event, toggle the channels (email, in-app, push, SMS) on or off as needed.
+  </Step>
+  <Step title="Save changes">
+    Save your changes. The new defaults apply immediately to all members who have not set their own preferences.
+  </Step>
+</Steps>
+
+## User-level overrides
+
+Individual users can override organization defaults from their personal notification settings. When a user sets a preference, it takes priority over the organization default for that specific event and channel.
+
+Users who have not customized their preferences automatically inherit whatever the organization admin has configured.
+
+## Supported notification events
+
+Notification preferences can be configured for events such as:
+
+- **Booking confirmed** — when a booking is confirmed
+- **Booking cancelled** — when a booking is cancelled
+- **Booking rescheduled** — when a booking is rescheduled
+
+<Info>
+The list of supported notification events may expand over time. Check your notification settings page for the current set of configurable events.
+</Info>
+
+## Cleanup behavior
+
+Notification preferences are automatically removed when the associated entity is deleted:
+
+- Deleting a **user** removes all of that user's notification preferences
+- Deleting a **team** removes all team-level notification preferences
+- Deleting an **organization** removes all organization-level notification preferences
+
+No manual cleanup is required.

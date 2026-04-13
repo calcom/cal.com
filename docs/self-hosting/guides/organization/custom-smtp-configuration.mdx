@@ -1,0 +1,68 @@
+---
+title: "Custom SMTP configuration"
+description: "Configure a custom SMTP server for your organization's outgoing emails."
+---
+
+Organizations can use a custom SMTP server to send emails from their own domain instead of the default Cal.com email infrastructure. When configured, all outgoing emails for the organization (booking confirmations, reminders, and notifications) are routed through your SMTP server.
+
+## Prerequisites
+
+- A Cal.com organization (see [Organization setup](/self-hosting/guides/organization/organization-setup))
+- Organization admin access
+- The `custom-smtp-for-orgs` feature flag enabled for your organization
+- SMTP server credentials (host, port, username, and password)
+
+## Configure custom SMTP
+
+<Steps>
+  <Step title="Open organization settings">
+    Log in as an organization admin and navigate to your organization's settings.
+  </Step>
+  <Step title="Add your SMTP configuration">
+    Provide the following details:
+
+    | Field | Description |
+    | --- | --- |
+    | **From email** | The email address that appears as the sender (e.g., `notifications@yourcompany.com`). |
+    | **From name** | The display name shown alongside the from email (e.g., `Your Company`). |
+    | **SMTP host** | Your mail server hostname (e.g., `smtp.yourcompany.com`). Must be a publicly reachable address. |
+    | **SMTP port** | The port your SMTP server listens on. Common values: `587` (STARTTLS), `465` (SSL/TLS), or `25`. |
+    | **SMTP username** | The username for SMTP authentication. |
+    | **SMTP password** | The password for SMTP authentication. |
+    | **SMTP secure** | Whether to use a secure TLS connection. Defaults to `true`. |
+
+  </Step>
+  <Step title="Test the connection">
+    After entering your credentials, test the SMTP connection to verify that Cal.com can reach your mail server. This checks connectivity and authentication without sending an email.
+  </Step>
+  <Step title="Send a test email">
+    Send a test email to confirm that messages are delivered correctly through your SMTP server. Enter a recipient email address and check that the email arrives.
+  </Step>
+</Steps>
+
+## Update or delete a configuration
+
+You can update individual fields of your SMTP configuration at any time without re-entering all values. To stop using a custom SMTP server and revert to the default Cal.com email infrastructure, delete the configuration from your organization settings.
+
+<Note>
+Each organization can have only one SMTP configuration. To change SMTP providers, delete the existing configuration first, then create a new one.
+</Note>
+
+## Validation and security
+
+- **Host validation** — SMTP hosts must resolve to a public IP address. Private, loopback, and link-local addresses are blocked.
+- **Encrypted credentials** — SMTP usernames and passwords are encrypted at rest and are never exposed through the API.
+- **Input sanitization** — All inputs are sanitized to prevent CRLF injection attacks.
+
+<Warning>
+If your SMTP server uses a self-signed certificate, you may need to set the `NODE_EXTRA_CA_CERTS` environment variable to the path of your CA certificate so that Cal.com can establish a secure connection.
+</Warning>
+
+## Troubleshooting
+
+| Issue | Solution |
+| --- | --- |
+| Connection test fails | Verify that the SMTP host is publicly accessible and the port is open. Check that your firewall allows outbound connections on the configured port. |
+| Authentication error | Double-check your SMTP username and password. Some providers require app-specific passwords when two-factor authentication is enabled. |
+| Test email not received | Check spam/junk folders. Verify that your DNS records (SPF, DKIM, DMARC) are configured to authorize the SMTP server to send on behalf of your domain. |
+| "SMTP host must be a public address" | The hostname resolves to a private or reserved IP. Use a publicly routable SMTP server. |

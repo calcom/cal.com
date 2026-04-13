@@ -1,15 +1,15 @@
 ---
-title: "Migrating from v1 to v2"
-description: "A comprehensive guide to help you migrate from Cal.com API v1 to v2"
+title: "Migrating from V1 to V2"
+description: "A comprehensive guide to help you migrate from Cal.com API V1 to V2"
 ---
 
 <Warning>
-  **API v1 was shut down on April 8, 2026.** All v1 endpoints have been removed from the codebase. Use this guide to migrate any remaining v1 integrations to API v2.
+  **API v1 was shut down on April 8, 2026.** All v1 endpoints have been removed. Use this guide to migrate any remaining v1 integrations to API v2.
 </Warning>
 
-This guide will help you migrate your integration from Cal.com API v1 to v2. The v2 API offers improved performance, enhanced security, better response objects, and new features that make it easier to build powerful integrations.
+This guide will help you migrate your integration from Cal.com API V1 to V2. The V2 API offers improved performance, enhanced security, better response objects, and new features that make it easier to build powerful integrations.
 
-## Why migrate to v2?
+## Why migrate to V2?
 
 - **Better performance**: Optimized for speed and scalability
 - **Enhanced security**: Improved authentication methods and security measures
@@ -18,17 +18,17 @@ This guide will help you migrate your integration from Cal.com API v1 to v2. The
 
 ## Authentication changes
 
-### v1 authentication
+### V1 authentication
 
-In v1, you authenticated using an API key in the query string:
+In V1, you authenticated using an API key in the query string:
 
 ```bash
 curl https://api.cal.com/v1/event-types?apiKey=cal_test_xxxxxx
 ```
 
-### v2 authentication
+### V2 authentication
 
-In v2, authentication uses header-based API keys for improved security:
+In V2, authentication uses header-based API keys for improved security:
 
 ```bash
 curl https://api.cal.com/v2/event-types \
@@ -39,27 +39,27 @@ curl https://api.cal.com/v2/event-types \
 
 | Version | Base URL                 |
 | ------- | ------------------------ |
-| v1      | `https://api.cal.com/v1` |
-| v2      | `https://api.cal.com/v2` |
+| V1      | `https://api.cal.com/v1` |
+| V2      | `https://api.cal.com/v2` |
 
 ## Endpoint mapping
 
 ### Bookings
 
-| v1 Endpoint             | v2 Endpoint                          | Changes                                            |
+| V1 Endpoint             | V2 Endpoint                          | Changes                                            |
 | ----------------------- | ------------------------------------ | -------------------------------------------------- |
 | `POST /bookings`        | `POST /v2/bookings`                  | Enhanced response object with more booking details |
 | `GET /bookings/{id}`    | `GET /v2/bookings/{uid}`             | Returns richer booking information                 |
 | `DELETE /bookings/{id}` | `POST /v2/bookings/{uid}/cancel`     | Now uses POST with cancellation reason support     |
 | `PATCH /bookings/{id}`  | `POST /v2/bookings/{uid}/reschedule` | Rescheduling is now a dedicated endpoint           |
 
-**v1 example:**
+**V1 example:**
 
 ```bash
 DELETE /v1/bookings/123?apiKey=cal_test_xxx
 ```
 
-**v2 example:**
+**V2 example:**
 
 ```bash
 POST /v2/bookings/cal_abc123/cancel
@@ -73,7 +73,7 @@ Content-Type: application/json
 
 ### Event types
 
-| v1 Endpoint                | v2 Endpoint                   | Changes                           |
+| V1 Endpoint                | V2 Endpoint                   | Changes                           |
 | -------------------------- | ----------------------------- | --------------------------------- |
 | `GET /event-types`         | `GET /v2/event-types`         | Improved filtering and pagination |
 | `POST /event-types`        | `POST /v2/event-types`        | Enhanced configuration options    |
@@ -83,7 +83,7 @@ Content-Type: application/json
 
 ### Schedules
 
-| v1 Endpoint              | v2 Endpoint                 | Changes                       |
+| V1 Endpoint              | V2 Endpoint                 | Changes                       |
 | ------------------------ | --------------------------- | ----------------------------- |
 | `GET /schedules`         | `GET /v2/schedules`         | Better structured response    |
 | `POST /schedules`        | `POST /v2/schedules`        | Simplified schedule creation  |
@@ -93,7 +93,7 @@ Content-Type: application/json
 
 ### Users
 
-| v1 Endpoint         | v2 Endpoint    | Changes                                |
+| V1 Endpoint         | V2 Endpoint    | Changes                                |
 | ------------------- | -------------- | -------------------------------------- |
 | `GET /users`        | `GET /v2/me`   | Now returns authenticated user profile |
 | `GET /users/{id}`   | `GET /v2/me`   | User-specific endpoint for own profile |
@@ -101,7 +101,7 @@ Content-Type: application/json
 
 ### Teams
 
-| v1 Endpoint          | v2 Endpoint             | Changes                    |
+| V1 Endpoint          | V2 Endpoint             | Changes                    |
 | -------------------- | ----------------------- | -------------------------- |
 | `GET /teams`         | `GET /v2/teams`         | Enhanced team information  |
 | `POST /teams`        | `POST /v2/teams`        | More configuration options |
@@ -111,7 +111,7 @@ Content-Type: application/json
 
 ### Webhooks
 
-| v1 Endpoint             | v2 Endpoint                | Changes                    |
+| V1 Endpoint             | V2 Endpoint                | Changes                    |
 | ----------------------- | -------------------------- | -------------------------- |
 | `GET /webhooks`         | `GET /v2/webhooks`         | Better webhook management  |
 | `POST /webhooks`        | `POST /v2/webhooks`        | More event types available |
@@ -121,17 +121,17 @@ Content-Type: application/json
 
 ### Slots
 
-| v1 Endpoint            | v2 Endpoint                      | Changes                                       |
+| V1 Endpoint            | V2 Endpoint                      | Changes                                       |
 | ---------------------- | -------------------------------- | --------------------------------------------- |
 | `GET /slots/available` | `GET /v2/slots/available`        | Improved slot calculation and response format |
 | N/A                    | `POST /v2/slots/reserve`         | New: Reserve slots before booking             |
 | N/A                    | `DELETE /v2/slots/reserve/{uid}` | New: Release reserved slots                   |
 
-## New features in v2
+## New features in V2
 
 ### Organization management
 
-v2 introduces comprehensive organization endpoints for enterprise customers:
+V2 introduces comprehensive organization endpoints for enterprise customers:
 
 - `GET /v2/orgs/teams` - Manage organization teams
 - `GET /v2/orgs/users` - Manage organization users
@@ -162,7 +162,7 @@ v2 introduces comprehensive organization endpoints for enterprise customers:
 
 ## Response format changes
 
-### v1 response structure
+### V1 response structure
 
 ```json
 {
@@ -174,7 +174,7 @@ v2 introduces comprehensive organization endpoints for enterprise customers:
 }
 ```
 
-### v2 response structure
+### V2 response structure
 
 ```json
 {
@@ -201,7 +201,7 @@ Key improvements:
 
 ## Error handling
 
-### v1 errors
+### V1 errors
 
 ```json
 {
@@ -209,7 +209,7 @@ Key improvements:
 }
 ```
 
-### v2 errors
+### V2 errors
 
 ```json
 {
@@ -224,7 +224,7 @@ Key improvements:
 }
 ```
 
-v2 provides:
+V2 provides:
 
 - Structured error codes for programmatic handling
 - More descriptive error messages
@@ -233,7 +233,7 @@ v2 provides:
 
 ## Rate limits
 
-| Authentication Method | v1 Rate Limit | v2 Rate Limit |
+| Authentication Method | V1 Rate Limit | V2 Rate Limit |
 | --------------------- | ------------- | ------------- |
 | API Key               | 120 req/min   | 120 req/min   |
 
@@ -267,7 +267,7 @@ v2 provides:
 
 ### Creating a booking
 
-**v1:**
+**V1:**
 
 ```javascript
 const response = await fetch(
@@ -287,7 +287,7 @@ const response = await fetch(
 );
 ```
 
-**v2:**
+**V2:**
 
 ```javascript
 const response = await fetch(
@@ -318,7 +318,7 @@ if (data.status === 'success') {
 
 ### Fetching event types
 
-**v1:**
+**V1:**
 
 ```python
 import requests
@@ -330,7 +330,7 @@ response = requests.get(
 event_types = response.json()['event_types']
 ```
 
-**v2:**
+**V2:**
 
 ```python
 import requests
@@ -349,13 +349,13 @@ if data['status'] == 'success':
 
 If you encounter issues during migration:
 
-1. Check the [v2 API Reference](/docs/api-reference/v2/introduction) for detailed endpoint documentation
-2. Review the [differences between v1 and v2](/docs/api-reference/v2/v1-v2-differences)
+1. Check the [V2 API Reference](/docs/api-reference/v2/introduction) for detailed endpoint documentation
+2. Review the [differences between V1 and V2](/docs/api-reference/v2/v1-v2-differences)
 3. Contact [Cal.com support](https://go.cal.com/support) for migration assistance
 
 ## Timeline
 
-- **v2**: Available and required for all integrations
-- **April 8, 2026**: v1 was permanently shut down and removed
+- **Now**: V2 is available and recommended for all new integrations
+- **April 8, 2026**: V1 was permanently shut down
 
-If you still have v1 integrations, migrate them now using this guide to restore functionality.
+Start your migration today to ensure a smooth transition and take advantage of V2's enhanced capabilities.

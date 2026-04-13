@@ -1,0 +1,101 @@
+---
+title: "Audit logs"
+description: "Track security and access control events across your organization"
+---
+
+Audit logs record security-sensitive actions performed within your Cal.com organization. Each event captures who performed the action, what changed, and when it happened. Use audit logs to monitor access control changes, investigate security incidents, and satisfy compliance requirements.
+
+<Note>
+  Audit logs are an enterprise feature available to organizations on Cal.com. Events are recorded automatically — no configuration is required.
+</Note>
+
+## Tracked events
+
+Cal.com automatically records audit events across three categories: security, access control, and API credential lifecycle.
+
+### Security events
+
+| Event | Description |
+|-------|-------------|
+| `LOGIN` | A user logged in. Failed login attempts are recorded with a `FAILURE` result. |
+| `PASSWORD_CHANGED` | A user changed their password. |
+| `PASSWORD_RESET_REQUESTED` | A password reset was initiated. |
+| `TWO_FACTOR_ENABLED` | Two-factor authentication was turned on. |
+| `TWO_FACTOR_DISABLED` | Two-factor authentication was turned off. |
+| `IMPERSONATION_START` | An admin began impersonating another user. |
+| `IMPERSONATION_STOP` | An admin stopped impersonating another user. |
+| `EMAIL_CHANGED` | A user's email address was updated. |
+| `ACCOUNT_LOCKED` | A user account was locked. |
+| `ACCOUNT_UNLOCKED` | A user account was unlocked. |
+
+### Access control events
+
+These events are recorded when organization or team memberships change.
+
+| Event | Description | Data captured |
+|-------|-------------|---------------|
+| `MEMBER_ADDED` | A user was invited to join a team or organization. | Invited user and assigned role |
+| `MEMBER_REMOVED` | A user was removed from a team or organization. | Removed member and team IDs |
+| `ROLE_CHANGED` | A member's role was updated. | Previous role and new role |
+
+### API credential events
+
+| Event | Description |
+|-------|-------------|
+| `API_KEY_CREATED` | A new API key was generated. |
+| `API_KEY_REVOKED` | An existing API key was revoked. |
+
+## Event structure
+
+Each audit event captures a consistent set of fields:
+
+| Field | Description |
+|-------|-------------|
+| **Action** | The type of event (e.g., `ROLE_CHANGED`, `LOGIN`). |
+| **Actor** | The user who performed the action. |
+| **Result** | Whether the action succeeded (`SUCCESS`), failed (`FAILURE`), or was denied (`DENIED`). |
+| **Source** | Where the action originated (e.g., webapp, API v1, API v2, SAML, OAuth). |
+| **Target** | The resource affected by the action, identified by type and ID (e.g., a specific user, team, or membership). |
+| **Previous / new value** | For mutation events like `ROLE_CHANGED`, the value before and after the change. |
+| **Timestamp** | When the event occurred. |
+
+<Note>
+  IP addresses are stored as HMAC hashes for privacy. Raw IP addresses are never persisted in audit logs.
+</Note>
+
+## Access control event examples
+
+### Role change
+
+When an admin changes a team member's role, the audit log captures both the previous and new role values:
+
+- **Action**: `ROLE_CHANGED`
+- **Target type**: `membership`
+- **Previous value**: `MEMBER`
+- **New value**: `ADMIN`
+
+### Member removal
+
+When members are removed from a team, an audit event is recorded for each member and team combination:
+
+- **Action**: `MEMBER_REMOVED`
+- **Target type**: `membership`
+- **Target ID**: The affected member's ID
+
+### Member invitation
+
+When new members are invited, the audit log records the invitation details:
+
+- **Action**: `MEMBER_ADDED`
+- **Target type**: `membership`
+
+## PBAC permissions for audit logs
+
+If your organization uses [PBAC (Permission-Based Access Control)](/api-reference/v2/access-control#pbac-permission-based-access-control), audit log access is governed by dedicated permissions:
+
+| Permission | Scope |
+|------------|-------|
+| `booking.readOrgAuditLogs` | View audit logs across the entire organization |
+| `booking.readTeamAuditLogs` | View audit logs for a specific team |
+
+Assign these permissions to custom roles to control who can access audit log data.

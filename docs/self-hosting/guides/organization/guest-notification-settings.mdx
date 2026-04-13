@@ -1,42 +1,92 @@
 ---
 title: "Guest notification settings"
-description: "Control which Cal Video email notifications are sent to attendees across your organization."
+description: "Configure organization-level notification preferences for booking guests"
+icon: "bell"
 ---
 
-Organization admins can disable specific Cal Video email notifications for attendees (guests) across all bookings in the organization. When a notification type is disabled, attendees no longer receive that email, but organizers continue to receive it.
+Organization admins can control how and when booking guests receive notifications. These settings define the default notification behavior for all members in the organization, while individual users can still override preferences at their own level.
 
-## Available settings
+## How notification precedence works
 
-| Setting | Description | Default |
-| --- | --- | --- |
-| Disable recording emails to attendees | Prevents attendees from receiving Cal Video recording download emails after a meeting ends | Off |
-| Disable transcription emails to attendees | Prevents attendees from receiving Cal Video transcription emails after a meeting ends | Off |
+Cal.com resolves notification preferences using a hierarchical model:
 
-<Note>
-These settings only affect emails sent to attendees. The meeting organizer always receives recording and transcription emails regardless of these settings.
-</Note>
+1. **Organization defaults** — set by the org admin, applied to all members
+2. **User overrides** — individual members can override organization defaults
 
-## How to configure
+When a notification event occurs (for example, a booking confirmation), Cal.com checks whether the user has a personal preference set. If not, the organization default applies.
+
+## Supported notification events
+
+The following booking events can trigger guest notifications:
+
+| Event | Description |
+|---|---|
+| Booking confirmed | A new booking is confirmed |
+| Booking cancelled | An existing booking is cancelled |
+| Booking rescheduled | A booking is rescheduled to a new time |
+| Booking reminder | A reminder is sent before the booking |
+
+## Supported notification channels
+
+Organization admins can enable or disable notifications across these channels:
+
+- **Email** — standard email notifications to guests
+- **Web push** — browser push notifications for users with an active Cal.com session
+- **SMS** — text message notifications (when a phone number is available)
+
+## Configuring organization notification defaults
 
 <Steps>
-  <Step title="Go to organization settings">
-    Navigate to **Settings > Organization > Guest notifications**.
+  <Step title="Navigate to organization settings">
+    Go to **Settings** → **Organization** → **Notification preferences** in your Cal.com admin panel.
   </Step>
-  <Step title="Toggle the desired setting">
-    Enable or disable the notification types you want to control. Changes take effect immediately for all future Cal Video meetings in your organization.
+  <Step title="Set default preferences">
+    For each notification event, choose which channels should be enabled by default for all organization members.
+  </Step>
+  <Step title="Save changes">
+    Click **Save** to apply the new defaults. These settings take effect immediately for all members who have not set their own overrides.
   </Step>
 </Steps>
 
-## Prerequisites
+<Note>
+  By default, all notification channels are enabled for all events. Organization settings only need to be configured if you want to restrict or customize the default behavior.
+</Note>
 
-- You must be an organization admin to access these settings.
-- Cal Video (Daily) must be configured as a conferencing provider. For self-hosted instances, see the [Daily setup guide](/self-hosting/apps/install-apps/daily).
-- Video recording must be enabled on your Daily plan for recording and transcription emails to be sent.
+## User-level overrides
 
-## When to use this
+Individual organization members can override the organization defaults from their personal notification settings:
 
-These settings are useful when your organization:
+1. Go to **Settings** → **Notifications**
+2. Adjust preferences for specific events or channels
+3. Save changes
 
-- Has privacy or compliance requirements that restrict sharing recordings with external attendees
-- Wants to limit the distribution of meeting transcriptions
-- Prefers to share recordings manually through a controlled process rather than automatic emails
+User-level preferences always take priority over organization defaults.
+
+## API configuration
+
+You can also manage notification preferences programmatically using the Cal.com API. Organization notification preferences are managed through the organization settings endpoints.
+
+```bash
+# Example: Update organization notification preferences
+curl -X PATCH https://api.cal.com/v2/organizations/{orgId} \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "notificationPreferences": {
+      "bookingConfirmed": {
+        "email": true,
+        "webPush": true,
+        "sms": false
+      },
+      "bookingCancelled": {
+        "email": true,
+        "webPush": false,
+        "sms": false
+      }
+    }
+  }'
+```
+
+<Info>
+  Refer to the [API v2 Reference](/api-reference/v2/introduction) for full details on available endpoints and parameters.
+</Info>
