@@ -2,7 +2,7 @@ name: Format Check
 on:
   push:
     branches:
-      - main
+      - workshop
 
 jobs:
   lint:
