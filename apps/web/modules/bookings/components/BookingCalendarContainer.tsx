@@ -17,6 +17,7 @@ import { useCalendarAutoSelector } from "~/bookings/hooks/useCalendarAutoSelecto
 import { useCurrentWeekStart } from "~/bookings/hooks/useCurrentWeekStart";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import { DataTableFilters } from "~/data-table/components/filters";
+import { useDataTable } from "~/data-table/hooks/useDataTable";
 import { buildFilterColumns, getFilterColumnVisibility } from "../columns/filterColumns";
 import { getWeekStart } from "../lib/weekUtils";
 import { BookingDetailsSheetStoreProvider } from "../store/bookingDetailsSheetStore";
@@ -174,6 +175,7 @@ function BookingCalendarInner({
 
 export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
   const { canReadOthersBookings } = props.permissions;
+  const { isValidatorPending } = useDataTable();
   const { userIds } = useBookingFilters();
   const { currentWeekStart, setCurrentWeekStart, userWeekStart } = useCurrentWeekStart();
 
@@ -196,6 +198,7 @@ export function BookingCalendarContainer(props: BookingCalendarContainerProps) {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
       staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
       gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
+      enabled: !isValidatorPending, // Wait for segment filters (e.g. "my_bookings") to be applied before fetching
     }
   );
 
