@@ -97,6 +97,11 @@ describe("getSchedule uses CalendarCacheEvents as busy times when calendar-subsc
         restore: { syncedAt: FRESH_SYNC_DATE },
       },
       {
+        scenario: "syncedAt is null (never synced)",
+        update: { syncedAt: null as Date | null },
+        restore: { syncedAt: FRESH_SYNC_DATE },
+      },
+      {
         scenario: "syncToken is missing",
         update: { syncToken: null as string | null },
         restore: { syncToken: "test-sync-token" },
@@ -131,32 +136,6 @@ describe("getSchedule uses CalendarCacheEvents as busy times when calendar-subsc
       }
     });
 
-    test("cache is still trusted when syncedAt is null, as long as syncToken and syncSubscribedAt are present", async () => {
-      await Promise.all([
-        prisma.selectedCalendar.update({
-          where: { id: soloTestData.selectedCalendarId },
-          data: { syncedAt: null },
-        }),
-        seedCalendarCacheEvent({
-          selectedCalendarId: soloTestData.selectedCalendarId,
-          externalId: "busy-event-null-synced",
-          start: new Date(`${testDate}T10:00:00.000Z`),
-          end: new Date(`${testDate}T15:00:00.000Z`),
-        }),
-      ]);
-
-      try {
-        const result = await getSlotsForDate(soloTestData.eventType.id);
-        expect(result).toHaveTimeSlots(["09:00:00.000Z", "15:00:00.000Z", "16:00:00.000Z"], {
-          dateString: testDate,
-        });
-      } finally {
-        await prisma.selectedCalendar.update({
-          where: { id: soloTestData.selectedCalendarId },
-          data: { syncedAt: FRESH_SYNC_DATE },
-        });
-      }
-    });
   });
 
   describe("when the requested date is beyond the cache horizon", () => {

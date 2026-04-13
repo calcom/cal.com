@@ -66,7 +66,7 @@ export class CalendarCacheWrapper implements Calendar {
   }
 
   private isStale(calendar: IntegrationCalendar): boolean {
-    if (!calendar.syncedAt) return false;
+    if (!calendar.syncedAt) return true;
     const syncAge = Date.now() - new Date(calendar.syncedAt).getTime();
     return syncAge > CalendarCacheWrapper.STALE_SYNC_THRESHOLD_MS;
   }

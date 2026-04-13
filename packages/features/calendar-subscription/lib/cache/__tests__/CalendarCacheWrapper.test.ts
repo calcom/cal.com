@@ -59,6 +59,7 @@ describe("CalendarCacheWrapper", () => {
           integration: "google_calendar",
           syncToken: "token-1",
           syncSubscribedAt: new Date(),
+          syncedAt: new Date(),
         },
         {
           id: "cal-2",
@@ -66,6 +67,7 @@ describe("CalendarCacheWrapper", () => {
           integration: "google_calendar",
           syncToken: "token-2",
           syncSubscribedAt: new Date(),
+          syncedAt: new Date(),
         },
       ];
 
@@ -142,6 +144,7 @@ describe("CalendarCacheWrapper", () => {
           integration: "google_calendar",
           syncToken: "token-1",
           syncSubscribedAt: new Date(),
+          syncedAt: new Date(),
         },
         {
           id: "cal-2",
@@ -193,6 +196,7 @@ describe("CalendarCacheWrapper", () => {
           integration: "google_calendar",
           syncToken: "token-1",
           syncSubscribedAt: new Date(),
+          syncedAt: new Date(),
         },
         {
           id: null,
@@ -200,6 +204,7 @@ describe("CalendarCacheWrapper", () => {
           integration: "google_calendar",
           syncToken: "token-2",
           syncSubscribedAt: new Date(),
+          syncedAt: new Date(),
         },
       ];
 
@@ -240,6 +245,7 @@ describe("CalendarCacheWrapper", () => {
           integration: "google_calendar",
           syncToken: "token-1",
           syncSubscribedAt: new Date(),
+          syncedAt: new Date(),
         },
       ];
 
@@ -327,6 +333,7 @@ describe("CalendarCacheWrapper", () => {
           integration: "google_calendar",
           syncToken: "token-1",
           syncSubscribedAt: new Date(),
+          syncedAt: new Date(),
         },
         {
           id: "cal-2",
@@ -381,6 +388,7 @@ describe("CalendarCacheWrapper", () => {
           integration: "google_calendar",
           syncToken: "token-1",
           syncSubscribedAt: new Date(),
+          syncedAt: new Date(),
         },
         {
           id: "cal-2",
@@ -582,6 +590,36 @@ describe("CalendarCacheWrapper", () => {
       expect(mockOnDemandSync).toHaveBeenCalledWith("stale-cal");
     });
 
+    it("should treat synced calendar with null syncedAt as stale and fall back to original calendar", async () => {
+      const selectedCalendars: IntegrationCalendar[] = [
+        {
+          id: "never-synced-cal",
+          externalId: "ext-never-synced",
+          integration: "google_calendar",
+          syncToken: "token-1",
+          syncSubscribedAt: new Date(),
+          syncedAt: null,
+        },
+      ];
+
+      const originalEvents: EventBusyDate[] = [
+        { start: new Date("2025-01-01T10:00:00Z"), end: new Date("2025-01-01T11:00:00Z") },
+      ];
+
+      vi.mocked(mockOriginalCalendar.getAvailability).mockResolvedValue(originalEvents);
+
+      const result = await wrapper.getAvailability({
+        dateFrom: "2025-01-01",
+        dateTo: "2025-01-02",
+        selectedCalendars,
+        mode: "slots",
+      });
+
+      expect(result).toEqual(originalEvents);
+      expect(mockRepository.findAllBySelectedCalendarIdsBetween).not.toHaveBeenCalled();
+      expect(mockOriginalCalendar.getAvailability).toHaveBeenCalled();
+    });
+
     it("should handle stale detection in getAvailabilityWithTimeZones", async () => {
       const mockOnDemandSync = vi.fn().mockResolvedValue(undefined);
       const wrapperWithSync = new CalendarCacheWrapper({
@@ -672,6 +710,7 @@ describe("CalendarCacheWrapper", () => {
           integration: "google_calendar",
           syncToken: "token-1",
           syncSubscribedAt: new Date(),
+          syncedAt: new Date(),
         },
       ];
 
@@ -701,6 +740,7 @@ describe("CalendarCacheWrapper", () => {
           integration: "google_calendar",
           syncToken: "token-1",
           syncSubscribedAt: new Date(),
+          syncedAt: new Date(),
         },
       ];
 
