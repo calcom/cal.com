@@ -526,33 +526,14 @@ export class InsightsBookingBaseService {
   private async buildOrgAuthorizationCondition(
     options: Extract<InsightsBookingServiceOptions, { scope: "org" }>
   ): Promise<Prisma.Sql> {
-    // Get all teams from the organization
-    const teamRepo = getTeamRepository(this.prisma);
-    const teamsFromOrg = await teamRepo.findAllByParentId({
-      parentId: options.orgId,
-      select: { id: true },
-    });
-    const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)].sort((a, b) => a - b);
+    // Use SQL subqueries instead of fetching IDs into memory.
+    // This lets PostgreSQL resolve team/user membership with hash semi-joins
+    // instead of matching against massive literal arrays.
+    const orgId = options.orgId;
+    const teamSubquery = Prisma.sql`SELECT id FROM "Team" WHERE "parentId" = ${orgId} OR id = ${orgId}`;
+    const userSubquery = Prisma.sql`SELECT DISTINCT m."userId" FROM "Membership" m WHERE m."teamId" IN (${teamSubquery}) AND m."accepted" = true`;
 
-    // Get all users from the organization
-    const userIdsFromOrg =
-      teamsFromOrg.length > 0
-        ? (await getMembershipRepository().findAllByTeamIds({ teamIds, select: { userId: true } })).map(
-            (m) => m.userId
-          )
-        : [];
-
-    const conditions: Prisma.Sql[] = [Prisma.sql`("teamId" = ANY(${teamIds})) AND ("isTeamBooking" = true)`];
-
-    if (userIdsFromOrg.length > 0) {
-      const uniqueUserIds = Array.from(new Set(userIdsFromOrg)).sort((a, b) => a - b);
-      conditions.push(Prisma.sql`("userId" = ANY(${uniqueUserIds})) AND ("isTeamBooking" = false)`);
-    }
-
-    return conditions.reduce((acc, condition, index) => {
-      if (index === 0) return condition;
-      return Prisma.sql`(${acc}) OR (${condition})`;
-    });
+    return Prisma.sql`(("teamId" IN (${teamSubquery})) AND ("isTeamBooking" = true)) OR (("userId" IN (${userSubquery})) AND ("isTeamBooking" = false))`;
   }
 
   private async buildTeamAuthorizationCondition(
@@ -645,28 +626,17 @@ export class InsightsBookingBaseService {
       return null;
     }
 
-    const teamRepo = getTeamRepository(this.prisma);
-    const teamsFromOrg = await teamRepo.findAllByParentId({
-      parentId: options.orgId,
-      select: { id: true },
-    });
-    const teamIds = [options.orgId, ...teamsFromOrg.map((t) => t.id)].sort((a, b) => a - b);
+    // Use SQL subqueries instead of fetching IDs into memory.
+    // This lets PostgreSQL resolve team/user membership with hash semi-joins
+    // instead of matching against massive literal arrays.
+    const orgId = options.orgId;
+    const teamSubquery = Prisma.sql`SELECT id FROM "Team" WHERE "parentId" = ${orgId} OR id = ${orgId}`;
+    const userSubquery = Prisma.sql`SELECT DISTINCT m."userId" FROM "Membership" m WHERE m."teamId" IN (${teamSubquery}) AND m."accepted" = true`;
 
-    const userIdsFromOrg =
-      teamsFromOrg.length > 0
-        ? (await getMembershipRepository().findAllByTeamIds({ teamIds, select: { userId: true } })).map(
-            (m) => m.userId
-          )
-        : [];
-
-    const branches: Prisma.Sql[] = [Prisma.sql`("teamId" = ANY(${teamIds})) AND ("isTeamBooking" = true)`];
-
-    if (userIdsFromOrg.length > 0) {
-      const uniqueUserIds = Array.from(new Set(userIdsFromOrg)).sort((a, b) => a - b);
-      branches.push(Prisma.sql`("userId" = ANY(${uniqueUserIds})) AND ("isTeamBooking" = false)`);
-    }
-
-    return branches;
+    return [
+      Prisma.sql`("teamId" IN (${teamSubquery})) AND ("isTeamBooking" = true)`,
+      Prisma.sql`("userId" IN (${userSubquery})) AND ("isTeamBooking" = false)`,
+    ];
   }
 
   private async buildTeamAuthorizationBranches(
@@ -1045,8 +1015,8 @@ export class InsightsBookingBaseService {
     guest_noshow AS (
       SELECT a."bookingId", COUNT(*) as cnt
       FROM "Attendee" a
+      INNER JOIN filtered f ON a."bookingId" = f.id
       WHERE a."noShow" = true
-        AND a."bookingId" IN (SELECT id FROM filtered)
       GROUP BY a."bookingId"
     )
     SELECT
@@ -1487,18 +1457,36 @@ export class InsightsBookingBaseService {
     return Prisma.sql`
       WITH filtered AS MATERIALIZED (
         ${unionAll}
+      ),
+      booking_stats AS (
+        SELECT
+          COUNT(*) as total_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'completed' THEN 1 END) as completed_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'rescheduled' THEN 1 END) as rescheduled_bookings,
+          COUNT(CASE WHEN "timeStatus" = 'cancelled' THEN 1 END) as cancelled_bookings,
+          COUNT(CASE WHEN "noShowHost" = true THEN 1 END) as no_show_host_bookings,
+          AVG(CASE WHEN "rating" IS NOT NULL THEN "rating" END) as avg_rating,
+          COUNT(CASE WHEN "rating" IS NOT NULL THEN 1 END) as total_ratings,
+          COUNT(CASE WHEN "rating" > 3 THEN 1 END) as ratings_above_3
+        FROM filtered
+      ),
+      guest_stats AS (
+        SELECT COUNT(*) as no_show_guests
+        FROM "Attendee" a
+        INNER JOIN filtered f ON a."bookingId" = f.id
+        WHERE a."noShow" = true
       )
       SELECT
-        COUNT(*) as total_bookings,
-        COUNT(CASE WHEN "timeStatus" = 'completed' THEN 1 END) as completed_bookings,
-        COUNT(CASE WHEN "timeStatus" = 'rescheduled' THEN 1 END) as rescheduled_bookings,
-        COUNT(CASE WHEN "timeStatus" = 'cancelled' THEN 1 END) as cancelled_bookings,
-        COUNT(CASE WHEN "noShowHost" = true THEN 1 END) as no_show_host_bookings,
-        AVG(CASE WHEN "rating" IS NOT NULL THEN "rating" END) as avg_rating,
-        COUNT(CASE WHEN "rating" IS NOT NULL THEN 1 END) as total_ratings,
-        COUNT(CASE WHEN "rating" > 3 THEN 1 END) as ratings_above_3,
-        (SELECT COUNT(*) FROM "Attendee" a WHERE a."noShow" = true AND a."bookingId" IN (SELECT id FROM filtered)) as no_show_guests
-      FROM filtered
+        bs.total_bookings,
+        bs.completed_bookings,
+        bs.rescheduled_bookings,
+        bs.cancelled_bookings,
+        bs.no_show_host_bookings,
+        bs.avg_rating,
+        bs.total_ratings,
+        bs.ratings_above_3,
+        gs.no_show_guests
+      FROM booking_stats bs, guest_stats gs
     `;
   }
 
@@ -1589,7 +1577,7 @@ export class InsightsBookingBaseService {
           COUNT(*) as total,
           COUNT(*) FILTER (WHERE a."noShow" = true) as no_show
         FROM "Attendee" a
-        WHERE a."bookingId" IN (SELECT id FROM filtered)
+        INNER JOIN filtered f ON a."bookingId" = f.id
         GROUP BY a."bookingId"
         HAVING COUNT(*) > 0 AND COUNT(*) = COUNT(*) FILTER (WHERE a."noShow" = true)
       ),

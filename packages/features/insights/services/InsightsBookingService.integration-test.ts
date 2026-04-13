@@ -306,7 +306,7 @@ describe("InsightsBookingService Integration Tests", () => {
       await testData.cleanup();
     });
 
-    it("should build org scope conditions", async () => {
+    it("should build org scope conditions with SQL subqueries", async () => {
       const testData = await createTestData({
         teamRole: MembershipRole.OWNER,
         orgRole: MembershipRole.OWNER,
@@ -315,12 +315,6 @@ describe("InsightsBookingService Integration Tests", () => {
           [MembershipRole.MEMBER], // Team 3: 1 user with MEMBER role
         ],
       });
-
-      // Get references to additional data
-      const user2 = testData.additionalUsers[0]; // First user from first team
-      const user3 = testData.additionalUsers[1]; // First user from second team
-      const team2 = testData.additionalTeams[0]; // First additional team
-      const team3 = testData.additionalTeams[1]; // Second additional team
 
       const service = new InsightsBookingService({
         prisma,
@@ -333,17 +327,14 @@ describe("InsightsBookingService Integration Tests", () => {
 
       const conditions = await service.getAuthorizationConditions();
 
+      // The optimized implementation uses SQL subqueries instead of literal arrays.
+      // Verify the Prisma.sql template matches the subquery structure.
+      const orgId = testData.org.id;
+      const teamSubquery = Prisma.sql`SELECT id FROM "Team" WHERE "parentId" = ${orgId} OR id = ${orgId}`;
+      const userSubquery = Prisma.sql`SELECT DISTINCT m."userId" FROM "Membership" m WHERE m."teamId" IN (${teamSubquery}) AND m."accepted" = true`;
+
       expect(conditions).toEqual(
-        Prisma.sql`(("teamId" = ANY(${[
-          testData.org.id,
-          testData.team.id,
-          team2.id,
-          team3.id,
-        ]})) AND ("isTeamBooking" = true)) OR (("userId" = ANY(${[
-          testData.user.id,
-          user2.id,
-          user3.id,
-        ]})) AND ("isTeamBooking" = false))`
+        Prisma.sql`(("teamId" IN (${teamSubquery})) AND ("isTeamBooking" = true)) OR (("userId" IN (${userSubquery})) AND ("isTeamBooking" = false))`
       );
 
       await testData.cleanup();
