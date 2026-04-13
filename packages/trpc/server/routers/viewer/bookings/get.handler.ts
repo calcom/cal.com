@@ -301,10 +301,13 @@ export async function getBookings({
     "Booking.updatedAt",
   ] as const;
 
-  const isPastQuery =
-    bookingListingByStatus.length === 1 &&
-    (bookingListingByStatus[0] === "past" || bookingListingByStatus[0] === "cancelled") &&
-    orderBy.order === "desc";
+  // Bounded statuses (upcoming, recurring, unconfirmed) add a startTime >= now-1h
+  // lower bound that keeps CTE scans tight. Everything else — past, cancelled,
+  // empty (no status filter, common from API v2), or mixed — is unbounded and
+  // must use the UNION ALL path where per-branch indexes are more efficient.
+  const boundedStatuses = new Set<InputByStatus>(["upcoming", "recurring", "unconfirmed"]);
+  const isBoundedQuery =
+    bookingListingByStatus.length > 0 && bookingListingByStatus.every((s) => boundedStatuses.has(s));
 
   let bookingsFromUnion: Pick<Booking, "id" | "createdAt" | "updatedAt" | "startTime" | "endTime">[];
   let totalCount: number | null = null;
@@ -468,9 +471,20 @@ export async function getBookings({
     };
 
     // Fetch take+1 to determine hasMore without a COUNT query.
-    if (isPastQuery) {
+    if (isBoundedQuery) {
+      // Bounded: CTE path — startTime lower bound keeps scans tight.
+      bookingsFromUnion = await buildTeamCTEQuery()
+        .select(bookingColumns)
+        .orderBy(orderBy.key, orderBy.order)
+        .orderBy("Booking.id", orderBy.order)
+        .limit(take + 1)
+        .offset(skip)
+        .execute();
+      hasMore = bookingsFromUnion.length > take;
+      bookingsFromUnion = bookingsFromUnion.slice(0, take);
+    } else {
       // Unbounded: UNION ALL lets PG use per-branch indexes directly.
-      // No progressive window needed — each branch hits its own index.
+      // Each branch is narrow and hits its own optimal index.
       const branches = buildTeamUnionBranches();
       const union = branches.reduce((acc, q) => acc.unionAll(q));
       bookingsFromUnion = await kysely
@@ -479,16 +493,6 @@ export async function getBookings({
         .selectAll("union_subquery")
         .orderBy(orderBy.key, orderBy.order)
         .orderBy("id", orderBy.order)
-        .limit(take + 1)
-        .offset(skip)
-        .execute();
-      hasMore = bookingsFromUnion.length > take;
-      bookingsFromUnion = bookingsFromUnion.slice(0, take);
-    } else {
-      bookingsFromUnion = await buildTeamCTEQuery()
-        .select(bookingColumns)
-        .orderBy(orderBy.key, orderBy.order)
-        .orderBy("Booking.id", orderBy.order)
         .limit(take + 1)
         .offset(skip)
         .execute();
@@ -505,7 +509,7 @@ export async function getBookings({
     } else if (requireExactCount) {
       type PlanNode = { "Plan Rows": number; "Parent Relationship"?: string; Plans?: PlanNode[] };
       let countQueryBuilder;
-      if (isPastQuery) {
+      if (!isBoundedQuery) {
         // Use UNION ALL shape for EXPLAIN — matches the query that was actually executed
         const branches = buildTeamUnionBranches();
         const union = branches.reduce((acc, q) => acc.unionAll(q));
