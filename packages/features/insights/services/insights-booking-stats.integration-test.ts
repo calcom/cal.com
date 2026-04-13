@@ -873,6 +873,112 @@ describe("InsightsBookingService Stats Integration Tests", () => {
     });
   });
 
+  describe("createdAt filter does not cause ambiguous column error", () => {
+    // Regression tests: when baseConditions contain "createdAt" and the query
+    // JOINs Attendee (which also has "createdAt"), PostgreSQL must not raise
+    // error 42702 ("column reference is ambiguous").
+
+    function makeCreatedAtFilters() {
+      return {
+        columnFilters: [
+          {
+            id: "createdAt" as const,
+            value: {
+              type: ColumnFilterType.DATE_RANGE as const,
+              data: { startDate: testData.startDate, endDate: testData.endDate, preset: "custom" },
+            },
+          },
+        ],
+      };
+    }
+
+    it("getBookingStats with createdAt filter (single-query path)", async () => {
+      const service = new InsightsBookingService({
+        prisma,
+        options: { scope: "user", userId: testData.user1.id, orgId: testData.org.id },
+        filters: makeCreatedAtFilters(),
+      });
+
+      const stats = await service.getBookingStats();
+      expect(() => bookingStatsResultSchema.parse(stats)).not.toThrow();
+    });
+
+    it("getBookingStats with createdAt filter (UNION ALL path)", async () => {
+      const service = new InsightsBookingService({
+        prisma,
+        options: { scope: "org", userId: testData.user1.id, orgId: testData.org.id },
+        filters: makeCreatedAtFilters(),
+      });
+
+      const stats = await service.getBookingStats();
+      expect(() => bookingStatsResultSchema.parse(stats)).not.toThrow();
+    });
+
+    it("getEventTrendsStats with createdAt filter (single-query path)", async () => {
+      const timeZone = "UTC";
+      const timeView = getTimeView(testData.startDate, testData.endDate);
+      const dateRanges = getDateRanges({
+        startDate: testData.startDate,
+        endDate: testData.endDate,
+        timeZone,
+        timeView,
+        weekStart: "Monday",
+      });
+
+      const service = new InsightsBookingService({
+        prisma,
+        options: { scope: "user", userId: testData.user1.id, orgId: testData.org.id },
+        filters: makeCreatedAtFilters(),
+      });
+
+      const trends = await service.getEventTrendsStats({ timeZone, dateRanges });
+      expect(() => z.array(eventTrendsItemSchema).parse(trends)).not.toThrow();
+    });
+
+    it("getEventTrendsStats with createdAt filter (UNION ALL path)", async () => {
+      const timeZone = "UTC";
+      const timeView = getTimeView(testData.startDate, testData.endDate);
+      const dateRanges = getDateRanges({
+        startDate: testData.startDate,
+        endDate: testData.endDate,
+        timeZone,
+        timeView,
+        weekStart: "Monday",
+      });
+
+      const service = new InsightsBookingService({
+        prisma,
+        options: { scope: "org", userId: testData.user1.id, orgId: testData.org.id },
+        filters: makeCreatedAtFilters(),
+      });
+
+      const trends = await service.getEventTrendsStats({ timeZone, dateRanges });
+      expect(() => z.array(eventTrendsItemSchema).parse(trends)).not.toThrow();
+    });
+
+    it("getRecentNoShowGuests with createdAt filter (single-query path)", async () => {
+      const service = new InsightsBookingService({
+        prisma,
+        options: { scope: "user", userId: testData.user1.id, orgId: testData.org.id },
+        filters: makeCreatedAtFilters(),
+      });
+
+      const results = await service.getRecentNoShowGuests();
+      expect(() => z.array(recentNoShowGuestSchema).parse(results)).not.toThrow();
+    });
+
+    it("getRecentNoShowGuests with createdAt filter (UNION ALL path)", async () => {
+      const service = new InsightsBookingService({
+        prisma,
+        options: { scope: "org", userId: testData.user1.id, orgId: testData.org.id },
+        filters: makeCreatedAtFilters(),
+      });
+
+      const results = await service.getRecentNoShowGuests();
+      expect(() => z.array(recentNoShowGuestSchema).parse(results)).not.toThrow();
+    });
+  });
+
   describe("result schema validation", () => {
     function makeFilters() {
       return {

@@ -312,9 +312,10 @@ export class InsightsBookingBaseService {
     // client-side implementation which uses this format for the result map key.
     return dateRanges.map(({ formattedDate, startDate }) => ({
       Date: dayjs(startDate).format("ll"),
-      Average: aggregate[formattedDate].count > 0
-        ? aggregate[formattedDate].totalDuration / aggregate[formattedDate].count
-        : 0,
+      Average:
+        aggregate[formattedDate].count > 0
+          ? aggregate[formattedDate].totalDuration / aggregate[formattedDate].count
+          : 0,
     }));
   }
 
@@ -980,26 +981,29 @@ export class InsightsBookingBaseService {
     timeZone: string
   ): Prisma.Sql {
     return Prisma.sql`
-    WITH booking_stats AS (
+    WITH filtered AS (
+      SELECT id, ${dateColumn} as "dateCol", "timeStatus", "noShowHost"
+      FROM "BookingTimeStatusDenormalized"
+      WHERE ${baseConditions}
+    ),
+    booking_stats AS (
       SELECT
-        DATE(${dateColumn} AT TIME ZONE ${timeZone}) as "date",
+        DATE("dateCol" AT TIME ZONE ${timeZone}) as "date",
         "timeStatus",
         COALESCE("noShowHost", false) AS "noShowHost",
         COUNT(*) as "bookingsCount"
-      FROM "BookingTimeStatusDenormalized"
-      WHERE ${baseConditions}
+      FROM filtered
       GROUP BY
         1, 2, 3
     ),
     guest_stats AS (
       SELECT
-        DATE(b.${dateColumn} AT TIME ZONE ${timeZone}) as "date",
-        b."timeStatus",
-        COALESCE(b."noShowHost", false) AS "noShowHost",
+        DATE(f."dateCol" AT TIME ZONE ${timeZone}) as "date",
+        f."timeStatus",
+        COALESCE(f."noShowHost", false) AS "noShowHost",
         COUNT(CASE WHEN a."noShow" = true THEN 1 END) as "noShowGuests"
-      FROM "BookingTimeStatusDenormalized" b
-      INNER JOIN "Attendee" a ON a."bookingId" = b.id
-      WHERE ${baseConditions}
+      FROM filtered f
+      INNER JOIN "Attendee" a ON a."bookingId" = f.id
       GROUP BY
         1, 2, 3
     )
@@ -1450,8 +1454,8 @@ export class InsightsBookingBaseService {
       guest_stats AS (
         SELECT COUNT(*) as no_show_guests
         FROM "Attendee" a
-        INNER JOIN "BookingTimeStatusDenormalized" b ON a."bookingId" = b.id
-        WHERE ${baseConditions} AND a."noShow" = true
+        WHERE a."noShow" = true
+          AND a."bookingId" IN (SELECT id FROM "BookingTimeStatusDenormalized" WHERE ${baseConditions})
       )
       SELECT
         bs.total_bookings,
@@ -1520,17 +1524,21 @@ export class InsightsBookingBaseService {
 
   private buildRecentNoShowGuestsSingleQuery(baseConditions: Prisma.Sql): Prisma.Sql {
     return Prisma.sql`
-      WITH booking_attendee_stats AS (
+      WITH filtered AS (
+        SELECT id, "startTime", title, status
+        FROM "BookingTimeStatusDenormalized"
+        WHERE ${baseConditions} AND status = 'accepted'
+      ),
+      booking_attendee_stats AS (
         SELECT
-          b.id as booking_id,
-          b."startTime",
-          b.title as event_type_name,
+          f.id as booking_id,
+          f."startTime",
+          f.title as event_type_name,
           COUNT(a.id) as total_attendees,
           COUNT(CASE WHEN a."noShow" = true THEN 1 END) as no_show_attendees
-        FROM "BookingTimeStatusDenormalized" b
-        INNER JOIN "Attendee" a ON a."bookingId" = b.id
-        WHERE ${baseConditions} and b.status = 'accepted'
-        GROUP BY b.id, b."startTime", b.title
+        FROM filtered f
+        INNER JOIN "Attendee" a ON a."bookingId" = f.id
+        GROUP BY f.id, f."startTime", f.title
         HAVING COUNT(a.id) > 0 AND COUNT(a.id) = COUNT(CASE WHEN a."noShow" = true THEN 1 END)
       ),
       recent_no_shows AS (
