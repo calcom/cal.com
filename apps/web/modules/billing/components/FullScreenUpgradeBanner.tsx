@@ -49,6 +49,7 @@ export type FullScreenUpgradeBannerProps = {
     height: number;
   };
   youtubeId?: string;
+  imageLinksToUpgrade?: boolean;
 };
 
 function useResponsiveOffset(
@@ -123,6 +124,7 @@ export function FullScreenUpgradeBanner({
   extraOffset,
   image,
   youtubeId,
+  imageLinksToUpgrade,
 }: FullScreenUpgradeBannerProps): JSX.Element {
   const [videoOpen, setVideoOpen] = useState(false);
   const [showFeatures, setShowFeatures] = useState(false);
@@ -200,7 +202,23 @@ export function FullScreenUpgradeBanner({
           {/* Image - mobile only, hidden when features are expanded */}
           <div
             className={`${showFeatures ? "hidden" : ""} md:hidden my-4 flex items-center justify-center rounded-xl bg-subtle aspect-[3/4] overflow-hidden relative`}>
-            <BannerImage {...bannerImageProps} />
+            {imageLinksToUpgrade ? (
+              <UpgradePlanDialog
+                tracking={tracking}
+                info={{ title, description: subtitle }}
+                target={target}>
+                <button
+                  type="button"
+                  className="h-full w-full cursor-pointer"
+                  onClick={() =>
+                    posthog.capture("fullscreen_upgrade_banner_image_clicked", { source: tracking, target })
+                  }>
+                  <BannerImage {...bannerImageProps} />
+                </button>
+              </UpgradePlanDialog>
+            ) : (
+              <BannerImage {...bannerImageProps} />
+            )}
           </div>
 
           <div>
@@ -261,7 +279,23 @@ export function FullScreenUpgradeBanner({
 
         {/* Right Content - Image */}
         <div className="-my-2 hidden md:flex flex-1 items-center justify-center rounded-l-xl bg-subtle aspect-[3/4] overflow-hidden border border-muted border-r-0 relative">
-          <BannerImage {...bannerImageProps} />
+          {imageLinksToUpgrade ? (
+            <UpgradePlanDialog
+              tracking={tracking}
+              info={{ title, description: subtitle }}
+              target={target}>
+              <button
+                type="button"
+                className="h-full w-full cursor-pointer"
+                onClick={() =>
+                  posthog.capture("fullscreen_upgrade_banner_image_clicked", { source: tracking, target })
+                }>
+                <BannerImage {...bannerImageProps} />
+              </button>
+            </UpgradePlanDialog>
+          ) : (
+            <BannerImage {...bannerImageProps} />
+          )}
         </div>
       </div>
 

@@ -19,7 +19,7 @@ export function FullscreenUpgradeBannerForRolesAndPermissions() {
         width: 572,
         height: 744,
       }}
-      youtubeId="J8HsK-8W39U"
+      imageLinksToUpgrade
       learnMoreButton={{
         text: t("learn_more"),
         href: "https://cal.com/blog/role-based-access-control",
