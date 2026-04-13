@@ -2,47 +2,89 @@ import prismock from "@calcom/testing/lib/__mocks__/prisma";
 import "../__mocks__/features.repository";
 import "../__mocks__/getGoogleAppKeys";
 import {
-  setCredentialsMock,
+  adminMock,
   calendarListMock,
+  calendarMock,
   getLastCreatedJWT,
   getLastCreatedOAuth2Client,
-  setLastCreatedJWT,
-  setLastCreatedOAuth2Client,
-  calendarMock,
-  adminMock,
   MOCK_JWT_TOKEN,
   MOCK_OAUTH2_TOKEN,
+  setCredentialsMock,
+  setLastCreatedJWT,
+  setLastCreatedOAuth2Client,
 } from "../__mocks__/googleapis";
-
-import { expect, test, beforeEach, vi, describe } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
-
+import type { GaxiosError, RetryConfig } from "googleapis-common";
 import BuildCalendarService from "../CalendarService";
 import {
-  createMockJWTInstance,
-  createInMemoryDelegationCredentialForCalendarService as createInMemoryDelegationCredentialForBuildCalendarService,
-  defaultDelegatedCredential,
   createCredentialForCalendarService,
+  createInMemoryDelegationCredentialForCalendarService as createInMemoryDelegationCredentialForBuildCalendarService,
+  createMockJWTInstance,
+  defaultDelegatedCredential,
 } from "./utils";
 
-function expectJWTInstanceToBeCreated() {
+function expectJWTInstanceToBeCreated(): void {
   expect(getLastCreatedJWT()).toBeDefined();
   expect(setCredentialsMock).not.toHaveBeenCalled();
 }
 
-function expectOAuth2InstanceToBeCreated() {
+function expectOAuth2InstanceToBeCreated(): void {
   expect(setCredentialsMock).toHaveBeenCalled();
   expect(getLastCreatedJWT()).toBeNull();
 }
 
-function mockSuccessfulCalendarListFetch() {
+function mockSuccessfulCalendarListFetch(): void {
   calendarListMock.mockImplementation(() => {
     return {
       data: { items: [] },
     };
   });
+}
+
+function getCalendarRetryConfig(): RetryConfig {
+  const config = calendarMock.calendar_v3.Calendar.mock.calls.at(-1)?.[0]?.retryConfig as
+    | RetryConfig
+    | undefined;
+  expect(config).toBeDefined();
+  return config as RetryConfig;
+}
+
+function createGoogleApiError({
+  method,
+  status,
+  reason,
+}: {
+  method: "PATCH" | "POST" | "GET";
+  status: number;
+  reason?: string;
+}): GaxiosError {
+  const retryConfig = getCalendarRetryConfig();
+  let data: { error: { errors: Array<{ reason: string }> } } | undefined;
+
+  if (reason) {
+    data = {
+      error: {
+        errors: [{ reason }],
+      },
+    };
+  }
+
+  return Object.assign(new Error("Google Calendar request failed"), {
+    config: {
+      method,
+      retryConfig: {
+        ...retryConfig,
+        currentRetryAttempt: 0,
+      },
+    },
+    response: {
+      status,
+      data,
+    },
+  }) as GaxiosError;
 }
 
 beforeEach(() => {
@@ -56,12 +98,12 @@ beforeEach(() => {
   createMockJWTInstance({});
 });
 
-async function expectNoCredentialsInDb() {
+async function expectNoCredentialsInDb(): Promise<void> {
   const credentials = await prismock.credential.findMany({});
   expect(credentials).toHaveLength(0);
 }
 
-async function expectCredentialsInDb(credentials: CredentialForCalendarServiceWithEmail[]) {
+async function expectCredentialsInDb(credentials: CredentialForCalendarServiceWithEmail[]): Promise<void> {
   const credentialsInDb = await prismock.credential.findMany({});
   expect(credentialsInDb.length).toBe(credentials.length);
   expect(credentialsInDb).toEqual(expect.arrayContaining(credentials));
@@ -193,15 +235,84 @@ describe("GoogleCalendarService credential handling", () => {
 
       expectOAuth2InstanceToBeCreated();
 
-      expect(calendarMock.calendar_v3.Calendar).toHaveBeenCalledWith({
-        auth: getLastCreatedOAuth2Client(),
-      });
+      expect(calendarMock.calendar_v3.Calendar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          auth: getLastCreatedOAuth2Client(),
+        })
+      );
       await expectCredentialsInDb([
         expect.objectContaining({
           id: regularCredential.id,
           key: MOCK_OAUTH2_TOKEN,
         }),
       ]);
+    });
+
+    test("instantiates the calendar client with retry config for Google Calendar write requests", async () => {
+      const regularCredential = await createCredentialForCalendarService();
+      mockSuccessfulCalendarListFetch();
+      const calendarService = BuildCalendarService(regularCredential);
+
+      await calendarService.listCalendars();
+
+      expect(calendarMock.calendar_v3.Calendar).toHaveBeenCalledWith(
+        expect.objectContaining({
+          retryConfig: expect.objectContaining({
+            retry: 3,
+            noResponseRetries: 2,
+            httpMethodsToRetry: expect.arrayContaining(["PATCH", "POST"]),
+            statusCodesToRetry: expect.arrayContaining([
+              [403, 403],
+              [429, 429],
+              [500, 599],
+            ]),
+          }),
+        })
+      );
+    });
+
+    test("retries Google 403 rate limit errors for PATCH requests", async () => {
+      const regularCredential = await createCredentialForCalendarService();
+      mockSuccessfulCalendarListFetch();
+      const calendarService = BuildCalendarService(regularCredential);
+
+      await calendarService.listCalendars();
+
+      const retryConfig = getCalendarRetryConfig();
+      const shouldRetry = retryConfig.shouldRetry;
+
+      expect(shouldRetry).toBeDefined();
+      expect(
+        shouldRetry?.(
+          createGoogleApiError({
+            method: "PATCH",
+            status: 403,
+            reason: "rateLimitExceeded",
+          })
+        )
+      ).toBe(true);
+    });
+
+    test("does not retry non-rate-limit 403 errors for PATCH requests", async () => {
+      const regularCredential = await createCredentialForCalendarService();
+      mockSuccessfulCalendarListFetch();
+      const calendarService = BuildCalendarService(regularCredential);
+
+      await calendarService.listCalendars();
+
+      const retryConfig = getCalendarRetryConfig();
+      const shouldRetry = retryConfig.shouldRetry;
+
+      expect(shouldRetry).toBeDefined();
+      expect(
+        shouldRetry?.(
+          createGoogleApiError({
+            method: "PATCH",
+            status: 403,
+            reason: "forbidden",
+          })
+        )
+      ).toBe(false);
     });
   });
 

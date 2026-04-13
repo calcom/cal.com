@@ -1,11 +1,8 @@
-import { calendar_v3 } from "@googleapis/calendar";
-import { OAuth2Client, JWT } from "googleapis-common";
-
 import { triggerDelegationCredentialErrorWebhook } from "@calcom/features/webhooks/lib/triggerDelegationCredentialErrorWebhook";
 import {
   CalendarAppDelegationCredentialClientIdNotAuthorizedError,
-  CalendarAppDelegationCredentialInvalidGrantError,
   CalendarAppDelegationCredentialError,
+  CalendarAppDelegationCredentialInvalidGrantError,
 } from "@calcom/lib/CalendarAppError";
 import {
   APP_CREDENTIAL_SHARING_ENABLED,
@@ -16,7 +13,9 @@ import {
 import logger from "@calcom/lib/logger";
 import type { Prisma } from "@calcom/prisma/client";
 import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
-
+import { calendar_v3 } from "@googleapis/calendar";
+import type { GaxiosError, RetryConfig } from "googleapis-common";
+import { JWT, OAuth2Client } from "googleapis-common";
 import { invalidateCredential } from "../../_utils/invalidateCredential";
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { oAuthManagerHelper } from "../../_utils/oauth/oAuthManagerHelper";
@@ -25,7 +24,59 @@ import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 
 type DelegatedTo = NonNullable<CredentialForCalendarServiceWithEmail["delegatedTo"]>;
-const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarAuth"] });
+const log: typeof logger = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarAuth"] });
+
+const GOOGLE_CALENDAR_RETRY_CONFIG: RetryConfig = {
+  retry: 3,
+  noResponseRetries: 2,
+  httpMethodsToRetry: ["GET", "HEAD", "PUT", "OPTIONS", "DELETE", "PATCH", "POST"],
+  statusCodesToRetry: [
+    [100, 199],
+    [403, 403],
+    [429, 429],
+    [500, 599],
+  ],
+  shouldRetry: (error: GaxiosError): boolean => shouldRetryGoogleCalendarRequest(error),
+};
+
+function hasRetriesRemaining(retryConfig: RetryConfig): boolean {
+  const currentRetryAttempt = retryConfig.currentRetryAttempt ?? 0;
+  const maxRetries = retryConfig.retry ?? 0;
+  return currentRetryAttempt < maxRetries;
+}
+
+function isRetryableStatus(status: number, retryConfig: RetryConfig): boolean {
+  return retryConfig.statusCodesToRetry?.some(([min, max]) => status >= min && status <= max) ?? false;
+}
+
+function isGoogleRateLimitError(error: GaxiosError): boolean {
+  const reason = (error.response?.data as { error?: { errors?: Array<{ reason?: string }> } } | undefined)
+    ?.error?.errors?.[0]?.reason;
+
+  return reason === "rateLimitExceeded" || reason === "userRateLimitExceeded";
+}
+
+function shouldRetryGoogleCalendarRequest(error: GaxiosError): boolean {
+  const retryConfig = error.config.retryConfig;
+
+  if (!retryConfig || error.name === "AbortError") return false;
+  if (!hasRetriesRemaining(retryConfig)) return false;
+
+  if (!error.response) {
+    return (retryConfig.currentRetryAttempt ?? 0) < (retryConfig.noResponseRetries ?? 0);
+  }
+
+  const method = error.config.method?.toUpperCase();
+  if (!method || !retryConfig.httpMethodsToRetry?.includes(method)) return false;
+
+  if (!isRetryableStatus(error.response.status, retryConfig)) return false;
+
+  if (error.response.status === 403) {
+    return isGoogleRateLimitError(error);
+  }
+
+  return true;
+}
 
 class MyGoogleOAuth2Client extends OAuth2Client {
   constructor(client_id: string, client_secret: string, redirect_uri: string) {
@@ -216,7 +267,7 @@ export class CalendarAuth {
           statusText: result.statusText,
         });
       },
-      isTokenObjectUnusable: async function (response) {
+      isTokenObjectUnusable: async (response) => {
         // TODO: Confirm that if this logic should go to isAccessTokenUnusable
         if (!response.ok || (response.status < 200 && response.status >= 300)) {
           const responseBody = await response.json();
@@ -303,6 +354,7 @@ export class CalendarAuth {
 
     return new calendar_v3.Calendar({
       auth: googleAuthClient,
+      retryConfig: GOOGLE_CALENDAR_RETRY_CONFIG,
     });
   }
 }
