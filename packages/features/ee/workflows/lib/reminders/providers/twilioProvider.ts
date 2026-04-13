@@ -1,17 +1,22 @@
-import type { NextRequest } from "next/server";
-import TwilioClient from "twilio";
-import { v4 as uuidv4 } from "uuid";
-
 import { IS_API_V2_E2E, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { checkSMSRateLimit } from "@calcom/lib/smsLockState";
 import { setTestSMS } from "@calcom/lib/testSMS";
 import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
+import type { NextRequest } from "next/server";
+import TwilioClient from "twilio";
+import { v4 as uuidv4 } from "uuid";
 
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
 const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE || IS_API_V2_E2E;
+
+/** Twilio `scheduleType: fixed` requires `sendAt` between 300 s and 3060000 s (~35 days) after the API request (inclusive). */
+const TWILIO_SCHEDULE_MIN_SECONDS = 300;
+const TWILIO_SCHEDULE_MAX_SECONDS = 3060000;
+/** Margin so request latency and clock skew do not push `sendAt` below Twilio's minimum. */
+const TWILIO_SCHEDULE_MIN_LEEWAY_MS = 45000;
 
 function createTwilioClient() {
   if (process.env.TWILIO_SID && process.env.TWILIO_TOKEN && process.env.TWILIO_MESSAGING_SID) {
@@ -161,6 +166,58 @@ export const scheduleSMS = async ({
       "Skipped sending SMS because process.env.NEXT_PUBLIC_IS_E2E or process.env.INTEGRATION_TEST_MODE is set. SMS are available in globalThis.testSMS"
     );
     return { sid: uuidv4() };
+  }
+
+  const msUntilSend = scheduledDate.getTime() - Date.now();
+  const minScheduleMs = TWILIO_SCHEDULE_MIN_SECONDS * 1000 + TWILIO_SCHEDULE_MIN_LEEWAY_MS;
+  const maxScheduleMs = TWILIO_SCHEDULE_MAX_SECONDS * 1000;
+
+  if (msUntilSend < -minScheduleMs) {
+    log.warn("Scheduled SMS is too far in the past; skipping send entirely", { msUntilSend });
+    return;
+  }
+
+  if (msUntilSend <= 0) {
+    log.info(
+      "Scheduled SMS send time is in the past; sending immediately instead of using Twilio schedule API"
+    );
+    return sendSMS({
+      phoneNumber,
+      body,
+      sender,
+      bookingUid,
+      userId,
+      teamId,
+      isWhatsapp,
+      contentSid,
+      contentVariables,
+    });
+  }
+
+  if (msUntilSend < minScheduleMs) {
+    log.info(
+      "Scheduled SMS is inside Twilio minimum schedule window; sending immediately instead of schedule API",
+      { msUntilSend }
+    );
+    return sendSMS({
+      phoneNumber,
+      body,
+      sender,
+      bookingUid,
+      userId,
+      teamId,
+      isWhatsapp,
+      contentSid,
+      contentVariables,
+    });
+  }
+
+  if (msUntilSend > maxScheduleMs) {
+    log.error("Scheduled SMS exceeds Twilio maximum schedule window; refusing to schedule", {
+      msUntilSend,
+      maxScheduleMs,
+    });
+    return;
   }
 
   const twilio = createTwilioClient();
