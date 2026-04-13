@@ -1,7 +1,8 @@
-import dayjs from "@calcom/dayjs";
-import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
-import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
 import { useMemo } from "react";
+
+import dayjs from "@calcom/dayjs";
+import type { CalendarAvailableTimeslots } from "@calcom/features/calendars/weeklyview/types/state";
+import type { IFromUser, IToUser } from "@calcom/features/availability/lib/getUserAvailability";
 
 export interface IGetAvailableSlots {
   slots: Record<
@@ -20,7 +21,6 @@ export interface IGetAvailableSlots {
   >;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   troubleshooter?: any;
-  hostBusyTimes?: { start: string; end: string }[];
 }
 
 interface UseAvailableTimeSlotsProps {

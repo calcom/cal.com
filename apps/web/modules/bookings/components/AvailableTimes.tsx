@@ -49,7 +49,6 @@ export type AvailableTimesProps = {
   onTentativeTimeSelect?: TOnTentativeTimeSelect;
   unavailableTimeSlots?: string[];
   isPlatform?: boolean;
-  hostBusyTimes?: { start: string; end: string }[];
 } & Omit<SlotItemProps, "slot">;
 
 type SlotItemProps = {
@@ -75,7 +74,6 @@ type SlotItemProps = {
   unavailableTimeSlots?: string[];
   confirmButtonDisabled?: boolean;
   handleSlotClick?: (slot: Slot, isOverlapping: boolean) => void;
-  hostBusyTimes?: { start: string; end: string }[];
 };
 
 const SlotItem = ({
@@ -97,7 +95,6 @@ const SlotItem = ({
   unavailableTimeSlots = [],
   confirmButtonDisabled,
   confirmStepClassNames,
-  hostBusyTimes,
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -135,18 +132,6 @@ const SlotItem = ({
     selectedDuration: eventData?.length ?? 0,
     offset,
   });
-
-  const isHostReschedule = hostBusyTimes !== undefined;
-  const isSlotBusy = useMemo(() => {
-    if (!hostBusyTimes || hostBusyTimes.length === 0) return false;
-    const slotStart = dayjs.utc(slot.time);
-    const slotEnd = slotStart.add(eventData?.length ?? 0, "minute");
-    return hostBusyTimes.some((busyTime) => {
-      const busyStart = dayjs.utc(busyTime.start);
-      const busyEnd = dayjs.utc(busyTime.end);
-      return slotStart.isBefore(busyEnd) && slotEnd.isAfter(busyStart);
-    });
-  }, [hostBusyTimes, slot.time, eventData?.length]);
 
   const onButtonClick = () => {
     if (handleSlotClick) {
@@ -188,15 +173,7 @@ const SlotItem = ({
           )}
           color="secondary">
           <div className="flex items-center gap-2">
-            {!hasTimeSlots && isHostReschedule && (
-              <span
-                className={classNames(
-                  "inline-block h-2 w-2 rounded-full",
-                  isSlotBusy ? "bg-rose-600" : "bg-emerald-400"
-                )}
-              />
-            )}
-            {!hasTimeSlots && !isHostReschedule && overlayCalendarToggled && (
+            {!hasTimeSlots && overlayCalendarToggled && (
               <span
                 className={classNames(
                   "inline-block h-2 w-2 rounded-full",

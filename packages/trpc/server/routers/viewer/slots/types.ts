@@ -1,6 +1,7 @@
 import type { IncomingMessage } from "node:http";
-import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 import { z } from "zod";
+
+import { timeZoneSchema } from "@calcom/lib/dayjs/timeZone.schema";
 
 const isValidDateString = (val: string) => !isNaN(Date.parse(val));
 
@@ -40,7 +41,6 @@ export const getScheduleSchemaObject = z.object({
   routingFormResponseId: z.number().optional(),
   queuedFormResponseId: z.string().nullish(),
   email: z.string().nullish(),
-  rescheduledBy: z.string().nullish(),
 });
 
 export const getScheduleSchema = getScheduleSchemaObject
@@ -83,8 +83,6 @@ export const removeSelectedSlotSchema = z.object({
 
 export interface ContextForGetSchedule extends Record<string, unknown> {
   req?: (IncomingMessage & { cookies: Partial<{ [key: string]: string }> }) | undefined;
-  /** Email of the authenticated user (extracted from session cookie). Used to verify host identity for reschedule. */
-  authenticatedEmail?: string | null;
 }
 
 export type TGetScheduleInputSchema = z.infer<typeof getScheduleSchemaObject>;

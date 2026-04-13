@@ -113,7 +113,6 @@ export const AvailableTimeSlots = ({
   };
 
   const scheduleData = schedule?.data;
-  const hostBusyTimes = scheduleData?.hostBusyTimes;
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(scheduleData?.slots);
   const nonEmptyScheduleDaysFromSelectedDate = nonEmptyScheduleDays.filter(
@@ -254,7 +253,6 @@ export const AvailableTimeSlots = ({
                 handleSlotClick={handleSlotClick}
                 confirmButtonDisabled={confirmButtonDisabled}
                 confirmStepClassNames={confirmStepClassNames}
-                hostBusyTimes={hostBusyTimes}
                 {...props}
               />
             </div>
