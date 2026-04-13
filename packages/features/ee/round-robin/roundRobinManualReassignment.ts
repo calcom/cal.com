@@ -535,7 +535,7 @@ export async function handleWorkflowsUpdate({
       scheduled: true,
       OR: [{ cancelled: false }, { cancelled: null }],
       workflowStep: {
-        action: WorkflowActions.EMAIL_HOST,
+        action: { in: [WorkflowActions.EMAIL_HOST, WorkflowActions.EMAIL_ATTENDEE] },
         workflow: {
           trigger: {
             in: [
@@ -553,6 +553,7 @@ export async function handleWorkflowsUpdate({
       workflowStep: {
         select: {
           id: true,
+          action: true,
           template: true,
           workflow: {
             select: {
@@ -575,35 +576,41 @@ export async function handleWorkflowsUpdate({
 
   const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
   const bookerUrl = await getBookerBaseUrl(orgId);
+  const attendeeEmails = evt.attendees?.map((attendee) => attendee.email) ?? [];
 
   for (const workflowReminder of workflowReminders) {
     const workflowStep = workflowReminder.workflowStep;
 
     if (workflowStep) {
-      const workflow = workflowStep.workflow;
-      await scheduleEmailReminder({
-        evt: {
-          ...evt,
-          metadata: workflowEventMetadata,
-          eventType,
-          bookerUrl,
-        },
-        action: WorkflowActions.EMAIL_HOST,
-        triggerEvent: workflow.trigger,
-        timeSpan: {
-          time: workflow.time,
-          timeUnit: workflow.timeUnit,
-        },
-        sendTo: [newUser.email],
-        template: workflowStep.template,
-        emailSubject: workflowStep.emailSubject || undefined,
-        emailBody: workflowStep.reminderBody || undefined,
-        sender: workflowStep.sender || SENDER_NAME,
-        hideBranding: true,
-        includeCalendarEvent: workflowStep.includeCalendarEvent,
-        workflowStepId: workflowStep.id,
-        verifiedAt: workflowStep.verifiedAt,
-      });
+      const isAttendeeAction = workflowStep.action === WorkflowActions.EMAIL_ATTENDEE;
+      const sendTo = isAttendeeAction ? attendeeEmails : [newUser.email];
+
+      if (sendTo.length > 0) {
+        const workflow = workflowStep.workflow;
+        await scheduleEmailReminder({
+          evt: {
+            ...evt,
+            metadata: workflowEventMetadata,
+            eventType,
+            bookerUrl,
+          },
+          action: isAttendeeAction ? WorkflowActions.EMAIL_ATTENDEE : WorkflowActions.EMAIL_HOST,
+          triggerEvent: workflow.trigger,
+          timeSpan: {
+            time: workflow.time,
+            timeUnit: workflow.timeUnit,
+          },
+          sendTo,
+          template: workflowStep.template,
+          emailSubject: workflowStep.emailSubject || undefined,
+          emailBody: workflowStep.reminderBody || undefined,
+          sender: workflowStep.sender || SENDER_NAME,
+          hideBranding: true,
+          includeCalendarEvent: workflowStep.includeCalendarEvent,
+          workflowStepId: workflowStep.id,
+          verifiedAt: workflowStep.verifiedAt,
+        });
+      }
     }
 
     await deleteScheduledEmailReminder(workflowReminder.id);

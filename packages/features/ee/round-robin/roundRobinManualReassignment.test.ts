@@ -281,6 +281,13 @@ describe("roundRobinManualReassignment test", () => {
             template: "REMINDER",
             activeOn: [1],
           },
+          {
+            userId: originalHost.id,
+            trigger: "NEW_EVENT",
+            action: "EMAIL_ATTENDEE",
+            template: "REMINDER",
+            activeOn: [1],
+          },
         ],
         eventTypes: [
           createRoundRobinEventType({
@@ -310,6 +317,14 @@ describe("roundRobinManualReassignment test", () => {
         scheduled: true,
         workflowStepId: 1,
         workflowId: 1,
+      },
+      {
+        bookingUid: bookingToReassignUid,
+        method: WorkflowMethods.EMAIL,
+        scheduledDate: new Date(dateStringPlusTwo),
+        scheduled: true,
+        workflowStepId: 2,
+        workflowId: 2,
       },
     ]);
 
@@ -341,6 +356,7 @@ describe("roundRobinManualReassignment test", () => {
     });
 
     expectWorkflowToBeTriggered({ emailsToReceive: [newHost.email], emails });
+    expectWorkflowToBeTriggered({ emailsToReceive: ["attendee@test.com"], emails });
   });
 
   test("should include conferenceCredentialId when reassigning booking with with fixed host as organizer", async () => {
@@ -1314,7 +1330,10 @@ describe("roundRobinManualReassignment - organizationId propagation", () => {
     await mockEventManagerReschedule();
 
     const emailManager = await import("@calcom/emails/email-manager");
-    const sendReassignedScheduledEmailsAndSMSSpy = vi.spyOn(emailManager, "sendReassignedScheduledEmailsAndSMS");
+    const sendReassignedScheduledEmailsAndSMSSpy = vi.spyOn(
+      emailManager,
+      "sendReassignedScheduledEmailsAndSMS"
+    );
     sendReassignedScheduledEmailsAndSMSSpy.mockClear();
 
     const testDestinationCalendar = createTestDestinationCalendar();
