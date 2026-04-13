@@ -1,15 +1,28 @@
 "use client";
 
-import { useState } from "react";
-
 import { EmailType } from "@calcom/emails/email-types";
-import { Dialog } from "@calcom/features/components/controlled-dialog";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui/components/alert";
-import { ConfirmationDialogContent } from "@calcom/ui/components/dialog";
-import { Checkbox, SettingsToggle } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/components/toast";
+import { Alert, AlertDescription } from "@coss/ui/components/alert";
+import {
+  AlertDialog,
+  AlertDialogClose,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogPopup,
+  AlertDialogTitle,
+} from "@coss/ui/components/alert-dialog";
+import { Button } from "@coss/ui/components/button";
+import { CardFrame } from "@coss/ui/components/card";
+import { Checkbox } from "@coss/ui/components/checkbox";
+import { Label } from "@coss/ui/components/label";
+import { Skeleton } from "@coss/ui/components/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@coss/ui/components/table";
+import { toastManager } from "@coss/ui/components/toast";
+import { TriangleAlertIcon } from "@coss/ui/icons";
+import { SettingsToggle } from "@coss/ui/shared/settings-toggle";
+import { useState } from "react";
 
 const EMAIL_TYPE_TO_SETTING_KEY = {
   [EmailType.CONFIRMATION]: "disableAttendeeConfirmationEmail",
@@ -25,6 +38,8 @@ const EMAIL_TYPE_TO_SETTING_KEY = {
 
 type EmailSettings = Record<EmailType, boolean>;
 
+const checkboxSkeletonClassName = "inline-flex size-4.5 shrink-0 rounded-[.25rem] sm:size-4";
+
 interface EmailRowProps {
   emailType: EmailType;
   labelKey: string;
@@ -33,6 +48,7 @@ interface EmailRowProps {
   onToggle: (type: EmailType, disabled: boolean) => void;
   testId: string;
   disabled?: boolean;
+  isLoading?: boolean;
 }
 
 const EmailRow = ({
@@ -43,23 +59,34 @@ const EmailRow = ({
   onToggle,
   testId,
   disabled,
+  isLoading = false,
 }: EmailRowProps) => {
   const { t } = useLocale();
 
   return (
-    <tr>
-      <td className="text-default px-6 py-4 text-sm font-medium">{t(labelKey)}</td>
-      <td className="text-default px-6 py-4 text-sm">{t(descriptionKey)}</td>
-      <td className="px-6 py-4 text-center">
-        <Checkbox
-          checked={!isDisabled}
-          onCheckedChange={(checked) => onToggle(emailType, !checked)}
-          data-testid={testId}
-          disabled={disabled}
-          aria-label={t(labelKey)}
-        />
-      </td>
-    </tr>
+    <TableRow>
+      <TableCell className="font-medium">{t(labelKey)}</TableCell>
+      <TableCell className="whitespace-normal text-muted-foreground leading-tight">
+        {t(descriptionKey)}
+      </TableCell>
+      <TableCell className="text-right">
+        {isLoading ? (
+          <div className="flex justify-end">
+            <Skeleton aria-hidden="true" className={checkboxSkeletonClassName} />
+          </div>
+        ) : (
+          <Label>
+            <Checkbox
+              checked={!isDisabled}
+              onCheckedChange={(checked) => onToggle(emailType, checked !== true)}
+              aria-label={t(labelKey)}
+              data-testid={testId}
+              disabled={disabled}
+            />
+          </Label>
+        )}
+      </TableCell>
+    </TableRow>
   );
 };
 
@@ -78,7 +105,22 @@ interface IDisableGuestBookingEmailsSettingProps {
     disableAttendeeCalVideoRecordingEmail: boolean;
   };
   readOnly?: boolean;
+  /** When true, shows skeletons on the master toggle and row checkboxes only. */
+  isLoading?: boolean;
 }
+
+export const DEFAULT_GUEST_EMAIL_SETTINGS: IDisableGuestBookingEmailsSettingProps["settings"] = {
+  disableAttendeeConfirmationEmail: false,
+  disableAttendeeCancellationEmail: false,
+  disableAttendeeRescheduledEmail: false,
+  disableAttendeeRequestEmail: false,
+  disableAttendeeReassignedEmail: false,
+  disableAttendeeAwaitingPaymentEmail: false,
+  disableAttendeeRescheduleRequestEmail: false,
+  disableAttendeeLocationChangeEmail: false,
+  disableAttendeeNewEventEmail: false,
+  disableAttendeeCalVideoRecordingEmail: false,
+};
 
 const EMAIL_TYPE_LABELS: Record<EmailType, string> = {
   [EmailType.CONFIRMATION]: "confirmation",
@@ -93,7 +135,7 @@ const EMAIL_TYPE_LABELS: Record<EmailType, string> = {
 };
 
 const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSettingProps) => {
-  const { readOnly = false } = props;
+  const { readOnly = false, isLoading = false } = props;
   const utils = trpc.useUtils();
   const { t } = useLocale();
 
@@ -128,10 +170,10 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
 
   const mutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: async () => {
-      showToast(t("your_org_updated_successfully"), "success");
+      toastManager.add({ title: t("your_org_updated_successfully"), type: "success" });
     },
     onError: () => {
-      showToast(t("error_updating_settings"), "error");
+      toastManager.add({ title: t("error_updating_settings"), type: "error" });
     },
     onSettled: () => {
       utils.viewer.organizations.listCurrent.invalidate();
@@ -180,95 +222,107 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
     setPendingEmailType(null);
   };
 
+  let individualEmailLabel = "";
+  if (calVideoRecordingPending) {
+    individualEmailLabel = t("cal_video_recording");
+  } else if (pendingEmailType) {
+    individualEmailLabel = t(EMAIL_TYPE_LABELS[pendingEmailType]);
+  }
+
+  let confirmDialogTitle: string;
+  let confirmDialogDescription: string;
+  let confirmDialogActionLabel: string;
+
+  if (dialogMode === "all") {
+    if (dialogAction === "disable") {
+      confirmDialogTitle = t("disable_all_guest_booking_emails_confirm_title");
+      confirmDialogDescription = t("disable_all_guest_booking_emails_confirm_description");
+      confirmDialogActionLabel = t("disable_all");
+    } else {
+      confirmDialogTitle = t("enable_all_guest_booking_emails_confirm_title");
+      confirmDialogDescription = t("enable_all_guest_booking_emails_confirm_description");
+      confirmDialogActionLabel = t("enable_all");
+    }
+  } else {
+    confirmDialogTitle = t("disable_individual_guest_email_confirm_title", {
+      emailType: individualEmailLabel,
+    });
+    confirmDialogDescription = t("disable_individual_guest_email_confirm_description", {
+      emailType: individualEmailLabel,
+    });
+    confirmDialogActionLabel = t("disable_email");
+  }
+
+  const handleConfirmDialog = () => {
+    if (dialogMode === "all") {
+      handleDisableAll(dialogAction === "disable");
+    } else {
+      confirmIndividualToggle();
+    }
+    resetPendingDialogState();
+    setShowConfirmDialog(false);
+  };
+
   return (
-    <div className="space-y-6">
-      <Dialog
+    <div className="flex flex-col gap-6">
+      <AlertDialog
         open={showConfirmDialog}
-        onOpenChange={(open) => {
-          setShowConfirmDialog(open);
+        onOpenChange={setShowConfirmDialog}
+        onOpenChangeComplete={(open) => {
           if (!open) {
             resetPendingDialogState();
           }
         }}>
-        <ConfirmationDialogContent
-          variety={dialogAction === "disable" ? "danger" : "warning"}
-          title={
-            dialogMode === "all"
-              ? t(
-                  dialogAction === "disable"
-                    ? "disable_all_guest_booking_emails_confirm_title"
-                    : "enable_all_guest_booking_emails_confirm_title"
-                )
-              : t("disable_individual_guest_email_confirm_title", {
-                  emailType: calVideoRecordingPending
-                    ? t("cal_video_recording")
-                    : pendingEmailType
-                      ? t(EMAIL_TYPE_LABELS[pendingEmailType])
-                      : "",
-                })
-          }
-          confirmBtnText={t(
-            dialogMode === "all"
-              ? dialogAction === "disable"
-                ? "disable_all"
-                : "enable_all"
-              : "disable_email"
-          )}
-          onConfirm={() => {
-            if (dialogMode === "all") {
-              handleDisableAll(dialogAction === "disable");
-            } else {
-              confirmIndividualToggle();
-            }
-            resetPendingDialogState();
-            setShowConfirmDialog(false);
-          }}>
-          <p className="mt-2">
-            {dialogMode === "all"
-              ? t(
-                  dialogAction === "disable"
-                    ? "disable_all_guest_booking_emails_confirm_description"
-                    : "enable_all_guest_booking_emails_confirm_description"
-                )
-              : t("disable_individual_guest_email_confirm_description", {
-                  emailType: calVideoRecordingPending
-                    ? t("cal_video_recording")
-                    : pendingEmailType
-                      ? t(EMAIL_TYPE_LABELS[pendingEmailType])
-                      : "",
-                })}
-          </p>
-        </ConfirmationDialogContent>
-      </Dialog>
+        <AlertDialogPopup>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{confirmDialogTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{confirmDialogDescription}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogClose disabled={mutation.isPending} render={<Button variant="ghost" />}>
+              {t("cancel")}
+            </AlertDialogClose>
+            <Button
+              data-testid="dialog-confirmation"
+              loading={mutation.isPending}
+              variant={dialogAction === "disable" ? "destructive" : "default"}
+              onClick={handleConfirmDialog}>
+              {confirmDialogActionLabel}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogPopup>
+      </AlertDialog>
 
-      <Alert severity="warning" title={t("disable_guest_emails_warning")} />
+      <Alert variant="warning" data-testid="alert">
+        <TriangleAlertIcon aria-hidden="true" />
+        <AlertDescription>{t("disable_guest_emails_warning")}</AlertDescription>
+      </Alert>
 
-      <SettingsToggle
-        toggleSwitchAtTheEnd={true}
-        checked={allDisabled}
-        title={t("disable_all_booking_emails_to_guests")}
-        labelClassName="text-sm font-semibold"
-        description={t("disable_all_booking_emails_to_guests_description")}
-        switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-        data-testid="disable-all-guest-emails"
-        disabled={readOnly}
-        onCheckedChange={(checked) => {
-          setDialogAction(checked ? "disable" : "enable");
-          setDialogMode("all");
-          setShowConfirmDialog(true);
-        }}
-      />
+      <div data-testid="disable-all-guest-emails">
+        <SettingsToggle
+          checked={allDisabled}
+          description={t("disable_all_booking_emails_to_guests_description")}
+          disabled={readOnly || isLoading}
+          loading={isLoading}
+          title={t("disable_all_booking_emails_to_guests")}
+          onCheckedChange={(checked) => {
+            setDialogAction(checked ? "disable" : "enable");
+            setDialogMode("all");
+            setShowConfirmDialog(true);
+          }}
+        />
+      </div>
 
-      <div className="border-subtle overflow-hidden rounded-lg border">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-muted border-subtle border-b">
-              <th className="text-emphasis px-6 py-3 text-left text-sm font-medium">{t("email_type")}</th>
-              <th className="text-emphasis px-6 py-3 text-left text-sm font-medium">{t("description")}</th>
-              <th className="text-emphasis px-6 py-3 text-right text-sm font-medium">{t("enabled")}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-subtle divide-y">
+      <CardFrame>
+        <Table variant="card">
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead>{t("email_type")}</TableHead>
+              <TableHead>{t("description")}</TableHead>
+              <TableHead className="text-right">{t("enabled")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             <EmailRow
               emailType={EmailType.CONFIRMATION}
               labelKey="confirmation"
@@ -277,6 +331,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               onToggle={handleIndividualToggle}
               testId="disable-guest-confirmation-email"
               disabled={readOnly || allDisabled}
+              isLoading={isLoading}
             />
             <EmailRow
               emailType={EmailType.CANCELLATION}
@@ -286,6 +341,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               onToggle={handleIndividualToggle}
               testId="disable-guest-cancellation-email"
               disabled={readOnly || allDisabled}
+              isLoading={isLoading}
             />
             <EmailRow
               emailType={EmailType.RESCHEDULED}
@@ -295,6 +351,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               onToggle={handleIndividualToggle}
               testId="disable-guest-rescheduled-email"
               disabled={readOnly || allDisabled}
+              isLoading={isLoading}
             />
             <EmailRow
               emailType={EmailType.REQUEST}
@@ -304,6 +361,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               onToggle={handleIndividualToggle}
               testId="disable-attendee-request-email"
               disabled={readOnly || allDisabled}
+              isLoading={isLoading}
             />
             <EmailRow
               emailType={EmailType.REASSIGNED}
@@ -313,6 +371,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               onToggle={handleIndividualToggle}
               testId="disable-attendee-reassigned-email"
               disabled={readOnly || allDisabled}
+              isLoading={isLoading}
             />
             <EmailRow
               emailType={EmailType.AWAITING_PAYMENT}
@@ -322,6 +381,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               onToggle={handleIndividualToggle}
               testId="disable-attendee-awaiting-payment-email"
               disabled={readOnly || allDisabled}
+              isLoading={isLoading}
             />
             <EmailRow
               emailType={EmailType.RESCHEDULE_REQUEST}
@@ -331,6 +391,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               onToggle={handleIndividualToggle}
               testId="disable-attendee-reschedule-request-email"
               disabled={readOnly || allDisabled}
+              isLoading={isLoading}
             />
             <EmailRow
               emailType={EmailType.LOCATION_CHANGE}
@@ -340,6 +401,7 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               onToggle={handleIndividualToggle}
               testId="disable-attendee-location-change-email"
               disabled={readOnly || allDisabled}
+              isLoading={isLoading}
             />
             <EmailRow
               emailType={EmailType.NEW_EVENT}
@@ -349,40 +411,46 @@ const DisableGuestBookingEmailsSetting = (props: IDisableGuestBookingEmailsSetti
               onToggle={handleIndividualToggle}
               testId="disable-attendee-new-event-email"
               disabled={readOnly || allDisabled}
+              isLoading={isLoading}
             />
-            <tr>
-              <td className="text-default px-6 py-4 text-sm font-medium">
-                {t("cal_video_recording")}
-              </td>
-              <td className="text-default px-6 py-4 text-sm">
+            <TableRow>
+              <TableCell className="font-medium">{t("cal_video_recording")}</TableCell>
+              <TableCell className="whitespace-normal text-muted-foreground leading-tight">
                 {t("cal_video_recording_email_description")}
-              </td>
-              <td className="px-6 py-4 text-center">
-                <Checkbox
-                  checked={!calVideoRecordingEmailDisabled}
-                  onCheckedChange={(checked) => {
-                    const disable = !checked;
-                    if (disable) {
-                      setPendingEmailType(null);
-                      setDialogAction("disable");
-                      setDialogMode("individual");
-                      setShowConfirmDialog(true);
-                      // Store a flag to handle this in confirm
-                      setCalVideoRecordingPending(true);
-                    } else {
-                      mutation.mutate({ disableAttendeeCalVideoRecordingEmail: false });
-                      setCalVideoRecordingEmailDisabled(false);
-                    }
-                  }}
-                  data-testid="disable-cal-video-recording-email"
-                  disabled={readOnly || allDisabled}
-                  aria-label={t("cal_video_recording")}
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+              </TableCell>
+              <TableCell className="text-right">
+                {isLoading ? (
+                  <div className="flex justify-end">
+                    <Skeleton aria-hidden="true" className={checkboxSkeletonClassName} />
+                  </div>
+                ) : (
+                  <Label>
+                    <Checkbox
+                      checked={!calVideoRecordingEmailDisabled}
+                      onCheckedChange={(checked) => {
+                        const disable = checked !== true;
+                        if (disable) {
+                          setPendingEmailType(null);
+                          setDialogAction("disable");
+                          setDialogMode("individual");
+                          setShowConfirmDialog(true);
+                          setCalVideoRecordingPending(true);
+                        } else {
+                          mutation.mutate({ disableAttendeeCalVideoRecordingEmail: false });
+                          setCalVideoRecordingEmailDisabled(false);
+                        }
+                      }}
+                      aria-label={t("cal_video_recording")}
+                      data-testid="disable-cal-video-recording-email"
+                      disabled={readOnly || allDisabled}
+                    />
+                  </Label>
+                )}
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </CardFrame>
     </div>
   );
 };

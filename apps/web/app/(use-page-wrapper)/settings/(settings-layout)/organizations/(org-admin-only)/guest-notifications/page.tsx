@@ -1,12 +1,10 @@
-import { _generateMetadata, getTranslate } from "app/_utils";
-import { redirect } from "next/navigation";
-
-import GuestNotificationsView from "~/ee/organizations/guest-notifications";
 import { Resource } from "@calcom/features/pbac/domain/types/permission-registry";
 import { getResourcePermissions } from "@calcom/features/pbac/lib/resource-permissions";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { MembershipRole } from "@calcom/prisma/enums";
-
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
+import { _generateMetadata, getTranslate } from "app/_utils";
+import { redirect } from "next/navigation";
+import GuestNotificationsView from "~/ee/organizations/guest-notifications";
 import { validateUserHasOrg } from "../../actions/validateUserHasOrg";
 
 export const generateMetadata = async () =>
@@ -46,9 +44,14 @@ const Page = async () => {
   }
 
   return (
-    <SettingsHeader title={t("guest_notifications")} description={t("guest_notifications_description")}>
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("guest_notifications")}>
+          <AppHeaderDescription>{t("guest_notifications_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
       <GuestNotificationsView permissions={{ canRead, canEdit }} />
-    </SettingsHeader>
+    </>
   );
 };
 
