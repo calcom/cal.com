@@ -9,7 +9,7 @@ import Script from "next/script";
 import type React from "react";
 
 import "../styles/globals.css";
-import { I18nProvider } from "./I18nProvider";
+import { I18nProvider } from "./i18n-provider";
 import { Providers } from "./providers";
 import { SpeculationRules } from "./SpeculationRules";
 

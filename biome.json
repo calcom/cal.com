@@ -329,6 +329,14 @@
                   },
                   {
                     "group": [
+                      "@calcom/web",
+                      "@calcom/web/**",
+                      "../../apps/web/**"
+                    ],
+                    "message": "lib package should not import from apps/web to avoid circular dependencies."
+                  },
+                  {
+                    "group": [
                       "next/cache"
                     ],
                     "message": "lib package must not import next/cache. Use next/cache directly in apps/web instead."
@@ -501,6 +509,46 @@
                       "../features/**"
                     ],
                     "message": "testing package should not import from features to avoid circular dependencies."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "packages/i18n/**/*.{ts,tsx,js,jsx,mts,mjs,cjs,cts}"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@calcom/web",
+                      "@calcom/web/**",
+                      "../../apps/web/**",
+                      "@calcom/lib",
+                      "@calcom/lib/**",
+                      "@calcom/ui",
+                      "@calcom/ui/**",
+                      "@calcom/features",
+                      "@calcom/features/**",
+                      "@calcom/atoms",
+                      "@calcom/atoms/**",
+                      "@calcom/trpc",
+                      "@calcom/trpc/**",
+                      "@calcom/app-store",
+                      "@calcom/app-store/**",
+                      "@calcom/prisma",
+                      "@calcom/prisma/**"
+                    ],
+                    "message": "i18n package is a low-level leaf package and should not import from any other @calcom packages to avoid circular dependencies."
                   }
                 ]
               }

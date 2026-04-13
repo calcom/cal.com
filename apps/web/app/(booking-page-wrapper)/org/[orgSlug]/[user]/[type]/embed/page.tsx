@@ -1,4 +1,4 @@
-import { I18nProvider } from "app/I18nProvider";
+import { I18nOverride } from "app/i18n-override";
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { cookies, headers } from "next/headers";
@@ -36,18 +36,18 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
 
   if ((props as TeamTypePageProps)?.teamId) {
     return eventLocale ? (
-      <I18nProvider translations={translations} locale={eventLocale} ns={ns}>
+      <I18nOverride translations={translations} locale={eventLocale} ns={ns}>
         <TeamTypePage {...(props as TeamTypePageProps)} />
-      </I18nProvider>
+      </I18nOverride>
     ) : (
       <TeamTypePage {...(props as TeamTypePageProps)} />
     );
   }
 
   return eventLocale ? (
-    <I18nProvider translations={translations} locale={eventLocale} ns={ns}>
+    <I18nOverride translations={translations} locale={eventLocale} ns={ns}>
       <UserTypePage {...(props as UserTypePageProps)} />
-    </I18nProvider>
+    </I18nOverride>
   ) : (
     <UserTypePage {...(props as UserTypePageProps)} />
   );

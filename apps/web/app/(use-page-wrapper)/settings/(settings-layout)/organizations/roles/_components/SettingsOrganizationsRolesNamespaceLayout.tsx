@@ -1,7 +1,7 @@
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { loadTranslations } from "@calcom/i18n/server";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-import { I18nExtend } from "app/I18nProvider";
+import { I18nExtend } from "app/i18n-provider";
 import { cookies, headers } from "next/headers";
 
 /**

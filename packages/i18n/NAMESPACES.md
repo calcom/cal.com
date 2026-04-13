@@ -1,6 +1,6 @@
 # i18n Namespaces
 
-Translations are split into **namespaces** so that only the keys needed for a given set of pages are loaded. The default namespace is `common`; additional namespaces (e.g. `settings_organizations_roles`) are loaded on demand via `I18nExtend` in a route layout.
+Translations are split into **namespaces** so that only the keys needed for a given set of pages are loaded. The default namespace is `common`; additional namespaces (e.g. `settings_organizations_roles`) are loaded on demand via a nested `I18nProvider` in a route layout.
 
 ## Naming Convention
 
@@ -54,14 +54,14 @@ This file is the single source of truth for server-side English fallbacks. If a 
 
 ### 3. Add a route layout that loads the namespace
 
-Create a server component that uses `I18nExtend` to overlay the new namespace on top of the parent context:
+Create a server component that uses a nested `I18nProvider` to register the new namespace translations with react-i18next:
 
 ```tsx
 // app/.../example/_components/ExampleNamespaceLayout.tsx
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { loadTranslations } from "@calcom/i18n/server";
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
-import { I18nExtend } from "app/I18nProvider";
+import { I18nProvider } from "app/I18nProvider";
 import { cookies, headers } from "next/headers";
 
 export default async function ExampleNamespaceLayout({
@@ -75,9 +75,9 @@ export default async function ExampleNamespaceLayout({
   const translations = await loadTranslations(locale, "example");
 
   return (
-    <I18nExtend translations={translations} ns="example">
+    <I18nProvider translations={translations} ns="example" locale={locale}>
       {children}
-    </I18nExtend>
+    </I18nProvider>
   );
 }
 ```
@@ -111,7 +111,7 @@ In **`i18n.json`** (repo root), add the new namespace to the `buckets.json.inclu
 |------|---------|------|
 | 1 | `packages/i18n/locales/*/example.json` | Create JSON files for all locales |
 | 2 | `packages/i18n/englishTranslations.ts` | Register English fallback |
-| 3 | `app/**/layout.tsx` | Add `I18nExtend` layout for routes that use the namespace |
+| 3 | `app/**/layout.tsx` | Add nested `I18nProvider` layout for routes that use the namespace |
 | 4 | `i18n.json` | Add to Lingo.dev automated translations |
 
 ## Current namespaces
@@ -130,5 +130,5 @@ In **`i18n.json`** (repo root), add the new namespace to the `buckets.json.inclu
 1. The root layout loads `common` translations via `I18nProvider` (the default namespace).
 2. A nested route layout (e.g. `SettingsOrganizationsRolesNamespaceLayout`) calls `loadTranslations(locale, "settings_organizations_roles")` on the server.
 3. `loadTranslations` dynamically imports the locale's `settings_organizations_roles.json` and merges it with the English fallback (from `englishTranslations.ts`) so missing keys fall back to English.
-4. The layout passes the merged translations to `I18nExtend`, which merges them on top of the parent context's translations (`{ ...parent, ...namespace }`).
-5. Any component under that layout can use `useLocale()` and access both `common` and `settings_organizations_roles` keys transparently.
+4. The layout passes the translations to a nested `I18nProvider`, which calls `addResourceBundle` to register them with react-i18next globally.
+5. Any component under that layout can use `useLocale()` or `useTranslation("settings_organizations_roles")` to access the namespace keys.

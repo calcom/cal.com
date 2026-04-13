@@ -1,4 +1,4 @@
-import { I18nProvider } from "app/I18nProvider";
+import { I18nOverride } from "app/i18n-override";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
@@ -61,9 +61,9 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
     const ns = "common";
     const translations = await loadTranslations(locale, ns);
     return (
-      <I18nProvider translations={translations} locale={locale} ns={ns}>
+      <I18nOverride translations={translations} locale={locale} ns={ns}>
         <LegacyPage {...props} />
-      </I18nProvider>
+      </I18nOverride>
     );
   }
 

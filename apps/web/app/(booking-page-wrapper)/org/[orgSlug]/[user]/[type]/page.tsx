@@ -1,4 +1,4 @@
-import { I18nProvider } from "app/I18nProvider";
+import { I18nOverride } from "app/i18n-override";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
@@ -72,18 +72,18 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
 
   if ((props as TeamTypePageProps)?.teamId) {
     return eventLocale ? (
-      <I18nProvider translations={translations} locale={eventLocale} ns={ns}>
+      <I18nOverride translations={translations} locale={eventLocale} ns={ns}>
         <TeamTypePage {...(props as TeamTypePageProps)} />
-      </I18nProvider>
+      </I18nOverride>
     ) : (
       <TeamTypePage {...(props as TeamTypePageProps)} />
     );
   }
 
   return eventLocale ? (
-    <I18nProvider translations={translations} locale={eventLocale} ns={ns}>
+    <I18nOverride translations={translations} locale={eventLocale} ns={ns}>
       <UserTypePage {...(props as UserTypePageProps)} />
-    </I18nProvider>
+    </I18nOverride>
   ) : (
     <UserTypePage {...(props as UserTypePageProps)} />
   );

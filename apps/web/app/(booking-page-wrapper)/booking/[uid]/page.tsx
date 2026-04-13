@@ -1,4 +1,4 @@
-import { I18nProvider } from "app/I18nProvider";
+import { I18nOverride } from "app/i18n-override";
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
@@ -52,9 +52,9 @@ const ServerPage = async ({ params, searchParams }: _PageProps) => {
     const ns = "common";
     const translations = await loadTranslations(eventLocale, ns);
     return (
-      <I18nProvider translations={translations} locale={eventLocale} ns={ns}>
+      <I18nOverride translations={translations} locale={eventLocale} ns={ns}>
         <OldPage {...props} />
-      </I18nProvider>
+      </I18nOverride>
     );
   }
 

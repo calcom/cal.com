@@ -1,4 +1,4 @@
-import { I18nProvider } from "app/I18nProvider";
+import { I18nOverride } from "app/i18n-override";
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { cookies, headers } from "next/headers";
@@ -31,9 +31,9 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
     const ns = "common";
     const translations = await loadTranslations(locale, ns);
     return (
-      <I18nProvider translations={translations} locale={locale} ns={ns}>
+      <I18nOverride translations={translations} locale={locale} ns={ns}>
         <TypePage {...props} />
-      </I18nProvider>
+      </I18nOverride>
     );
   }
 

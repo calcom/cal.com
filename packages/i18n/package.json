@@ -9,10 +9,16 @@
   "exports": {
     "./server": "./server.ts",
     "./next-i18next.config": "./next-i18next.config.js",
-    "./locales/*": "./locales/*"
+    "./locales/*": "./locales/*",
+    "./useLocale": "./use-locale.ts",
+    "./use-locale": "./use-locale.ts"
   },
   "dependencies": {
     "i18next": "23.2.3"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-i18next": ">=13"
   },
   "devDependencies": {
     "@calcom/tsconfig": "workspace:*",

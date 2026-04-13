@@ -1,69 +1,29 @@
+/**
+ * Compatibility shim — re-exports useLocale from @calcom/i18n.
+ *
+ * The canonical implementation now lives in `packages/i18n/use-locale.ts`.
+ * This file keeps the old `@calcom/lib/hooks/useLocale` import path working
+ * while consumers are being migrated.  Once every consumer has been updated,
+ * this file can be deleted.
+ *
+ * Platform atoms still need the `useAtomsContext` override, so we preserve
+ * that check here until they migrate to `useAtomsLocale`.
+ */
 import { useAtomsContext } from "@calcom/atoms/hooks/useAtomsContext";
-import { I18nContext } from "@calcom/web/app/I18nProvider";
-import type { i18n, TFunction } from "i18next";
-import { createInstance } from "i18next";
-import { useContext } from "react";
-import { useTranslation } from "react-i18next";
+import type { useLocaleReturnType } from "@calcom/i18n/use-locale";
+import { useLocale as useBaseLocale } from "@calcom/i18n/use-locale";
 
-type useLocaleReturnType = {
-  i18n: i18n;
-  t: TFunction;
-  isLocaleReady: boolean;
-};
+export type { useLocaleReturnType } from "@calcom/i18n/use-locale";
 
-// @internal
-const useClientLocale = (namespace: Parameters<typeof useTranslation>[0] = "common"): useLocaleReturnType => {
+export const useLocale = (
+  namespace?: Parameters<typeof useBaseLocale>[0]
+): useLocaleReturnType => {
   const context = useAtomsContext();
-  const { i18n, t } = useTranslation(namespace);
-  const isLocaleReady = Object.keys(i18n).length > 0;
+  const base = useBaseLocale(namespace);
+
   if (context?.clientId) {
     return { i18n: context.i18n, t: context.t, isLocaleReady: true } as unknown as useLocaleReturnType;
   }
-  return {
-    i18n,
-    t,
-    isLocaleReady,
-  };
-};
 
-// @internal
-const serverI18nInstances = new Map();
-
-export const useLocale = (): useLocaleReturnType => {
-  const i18nContext = useContext(I18nContext);
-  const clientI18n = useClientLocale();
-
-  if (i18nContext) {
-    const { translations, locale, ns } = i18nContext;
-    const instanceKey = `${locale}-${ns}`;
-
-    if (!serverI18nInstances.has(instanceKey)) {
-      const i18n = createInstance();
-      i18n.init({
-        lng: locale,
-        resources: {
-          [locale]: {
-            [ns]: translations,
-          },
-        },
-      });
-
-      serverI18nInstances.set(instanceKey, {
-        t: i18n.getFixedT(locale, ns),
-        isLocaleReady: true,
-        i18n,
-      });
-    }
-
-    return serverI18nInstances.get(instanceKey);
-  }
-
-  console.warn(
-    "useLocale hook is being used outside of App Router - hence this hook will use a global, client-side i18n which can cause a small flicker"
-  );
-  return {
-    t: clientI18n.t,
-    isLocaleReady: clientI18n.isLocaleReady,
-    i18n: clientI18n.i18n,
-  };
+  return base;
 };
