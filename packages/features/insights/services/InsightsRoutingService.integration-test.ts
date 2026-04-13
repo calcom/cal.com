@@ -1669,6 +1669,196 @@ describe("InsightsRoutingService Integration Tests", () => {
     });
   });
 
+  describe("getFailedBookingsByFieldData", () => {
+    it("should return failed booking counts grouped by form field options", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const selectFieldId = `select-field-${randomUUID()}`;
+      const option1Id = `option-1-${randomUUID()}`;
+      const option2Id = `option-2-${randomUUID()}`;
+
+      // Update form to have a select field with options
+      await prisma.app_RoutingForms_Form.update({
+        where: { id: testData.form.id },
+        data: {
+          fields: [
+            {
+              id: selectFieldId,
+              type: "select",
+              label: "City",
+              required: true,
+              options: [
+                { id: option1Id, label: "New York" },
+                { id: option2Id, label: "London" },
+              ],
+            },
+          ],
+        },
+      });
+
+      // Create a response WITHOUT a booking (failed) that selected option1
+      const failedResponse = await prisma.app_RoutingForms_FormResponse.create({
+        data: {
+          formFillerId: `filler-failed-${randomUUID()}`,
+          formId: testData.form.id,
+          response: {
+            [selectFieldId]: { label: "City", value: option1Id },
+          },
+          // No routedToBookingUid — this is a "failed" response
+        },
+      });
+
+      // Create a response WITH a booking (successful) that selected option2
+      const successBooking = await prisma.booking.create({
+        data: {
+          uid: `booking-success-${randomUUID()}`,
+          title: "Success Booking",
+          startTime: new Date(),
+          endTime: new Date(Date.now() + 60 * 60 * 1000),
+          userId: testData.user.id,
+          eventTypeId: testData.eventType.id,
+          status: BookingStatus.ACCEPTED,
+        },
+      });
+      const successResponse = await prisma.app_RoutingForms_FormResponse.create({
+        data: {
+          formFillerId: `filler-success-${randomUUID()}`,
+          formId: testData.form.id,
+          response: {
+            [selectFieldId]: { label: "City", value: option2Id },
+          },
+          routedToBookingUid: successBooking.uid,
+        },
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "team",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: testData.team.id,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const result = await service.getFailedBookingsByFieldData();
+
+      // Should have data grouped by form name
+      const formData = result[testData.form.name];
+      expect(formData).toBeDefined();
+
+      // Should have the "City" field
+      const cityField = formData["City"];
+      expect(cityField).toBeDefined();
+
+      // option1 (New York) should have count=1 (1 failed response selected it)
+      const option1 = cityField.find((o) => o.optionId === option1Id);
+      expect(option1).toBeDefined();
+      expect(option1!.count).toBe(1);
+      expect(option1!.optionLabel).toBe("New York");
+
+      // option2 (London) should have count=0 (the response that selected it had a booking — not failed)
+      const option2 = cityField.find((o) => o.optionId === option2Id);
+      expect(option2).toBeDefined();
+      expect(option2!.count).toBe(0);
+
+      // Cleanup
+      await prisma.app_RoutingForms_FormResponse.deleteMany({
+        where: { id: { in: [failedResponse.id, successResponse.id] } },
+      });
+      await prisma.booking.deleteMany({
+        where: { id: successBooking.id },
+      });
+      await testData.cleanup();
+    });
+  });
+
+  describe("getRoutedToPerPeriodData", () => {
+    it("should return booking counts per user per period", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "team",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: testData.team.id,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const result = await service.getRoutedToPerPeriodData({
+        period: "perDay",
+      });
+
+      // Should have user data (the test booking was routed to testData.user)
+      expect(result.users.data.length).toBeGreaterThanOrEqual(1);
+
+      // The user who received the booking should appear
+      const routedUser = result.users.data.find((u) => u.id === testData.user.id);
+      expect(routedUser).toBeDefined();
+      expect(routedUser!.totalBookings).toBeGreaterThanOrEqual(1);
+
+      // Period stats should have entries
+      expect(result.periodStats.data.length).toBeGreaterThanOrEqual(1);
+
+      await testData.cleanup();
+    });
+
+    it("should not count responses without bookings", async () => {
+      const testData = await createTestData({
+        teamRole: MembershipRole.OWNER,
+        orgRole: MembershipRole.OWNER,
+      });
+
+      // Create a response WITHOUT a booking
+      const noBookingResponse = await prisma.app_RoutingForms_FormResponse.create({
+        data: {
+          formFillerId: `filler-nobooking-${randomUUID()}`,
+          formId: testData.form.id,
+          response: {},
+          // No routedToBookingUid
+        },
+      });
+
+      const service = new InsightsRoutingService({
+        prisma,
+        options: {
+          scope: "team",
+          userId: testData.user.id,
+          orgId: testData.org.id,
+          teamId: testData.team.id,
+        },
+        filters: createDefaultFilters(),
+      });
+
+      const result = await service.getRoutedToPerPeriodData({
+        period: "perDay",
+      });
+
+      // The user should still only have 1 booking (from createTestData),
+      // not 2 (the no-booking response should not be counted)
+      const routedUser = result.users.data.find((u) => u.id === testData.user.id);
+      if (routedUser) {
+        expect(routedUser.totalBookings).toBe(1);
+      }
+
+      // Cleanup
+      await prisma.app_RoutingForms_FormResponse.deleteMany({
+        where: { id: noBookingResponse.id },
+      });
+      await testData.cleanup();
+    });
+  });
+
   describe("getTableData", () => {
     it("should return data with default sorting (createdAt DESC) in org scope", async () => {
       const testData = await createTestData({

@@ -1197,22 +1197,27 @@ export class InsightsRoutingBaseService {
   > {
     const baseConditions = await this.getBaseConditions();
 
-    // Get failed bookings (responses without a successful booking) grouped by form, field, and option
+    // Get failed bookings (responses without a successful booking) grouped by form, field, and option.
+    // First find the distinct forms matching the conditions, then extract field/option metadata
+    // from the form definitions only — avoids joining 5M response rows with LATERAL jsonb expansion.
     const query = Prisma.sql`
-    WITH form_fields AS (
-      SELECT DISTINCT
-          rfrd."formId" as form_id,
-          rfrd."formName" as form_name,
+    WITH matching_forms AS (
+      SELECT DISTINCT rfrd."formId" as form_id, rfrd."formName" as form_name
+      FROM "RoutingFormResponseDenormalized" rfrd
+      WHERE ${baseConditions}
+    ),
+    form_fields AS (
+      SELECT
+          mf.form_id,
+          mf.form_name,
           field->>'id' as field_id,
           field->>'label' as field_label,
           opt->>'id' as option_id,
           opt->>'label' as option_label
-      FROM "RoutingFormResponseDenormalized" rfrd
-      JOIN "App_RoutingForms_Form" f ON rfrd."formId" = f.id,
+      FROM matching_forms mf
+      JOIN "App_RoutingForms_Form" f ON mf.form_id = f.id,
       LATERAL jsonb_array_elements(f.fields) as field
       LEFT JOIN LATERAL jsonb_array_elements(field->'options') as opt ON true
-      WHERE
-        ${baseConditions}
     ),
     response_stats AS (
       SELECT
