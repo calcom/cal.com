@@ -1,4 +1,6 @@
 name: Update Services
+on:
+  workflow_dispatch:
 
 jobs:
   update:
