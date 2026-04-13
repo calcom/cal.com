@@ -1,7 +1,7 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import LegacyPage from "@calcom/web/modules/ee/teams/views/team-profile-view";
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
   await _generateMetadata(
@@ -16,12 +16,14 @@ const Page = async () => {
   const t = await getTranslate();
 
   return (
-    <SettingsHeader
-      title={t("profile")}
-      description={t("profile_team_description")}
-      borderInShellHeader={true}>
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("profile")}>
+          <AppHeaderDescription>{t("profile_team_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
       <LegacyPage />
-    </SettingsHeader>
+    </>
   );
 };
 

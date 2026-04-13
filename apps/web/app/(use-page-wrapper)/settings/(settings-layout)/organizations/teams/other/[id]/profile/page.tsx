@@ -1,8 +1,6 @@
+import { AppHeader, AppHeaderContent, AppHeaderDescription } from "@coss/ui/shared/app-header";
 import { _generateMetadata, getTranslate } from "app/_utils";
-
 import LegacyPage from "~/ee/organizations/other-team-profile-view";
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-
 import { validateUserHasOrg } from "../../../../actions/validateUserHasOrg";
 
 export const generateMetadata = async ({ params }: { params: Promise<{ id: string }> }) =>
@@ -20,9 +18,14 @@ const Page = async () => {
   await validateUserHasOrg();
 
   return (
-    <SettingsHeader title={t("profile")} description={t("profile_team_description")}>
+    <>
+      <AppHeader>
+        <AppHeaderContent title={t("profile")}>
+          <AppHeaderDescription>{t("profile_team_description")}</AppHeaderDescription>
+        </AppHeaderContent>
+      </AppHeader>
       <LegacyPage />
-    </SettingsHeader>
+    </>
   );
 };
 

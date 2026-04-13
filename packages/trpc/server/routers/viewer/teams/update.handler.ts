@@ -142,10 +142,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  if (updatedTeam.parentId && prevTeam.slug) {
-    // No changes made lets skip this logic
-    if (updatedTeam.slug === prevTeam.slug) return;
-
+  if (updatedTeam.parentId && prevTeam.slug && updatedTeam.slug !== prevTeam.slug) {
     // Fetch parent team slug to construct toUrl
     const parentTeam = await prisma.team.findUnique({
       where: {

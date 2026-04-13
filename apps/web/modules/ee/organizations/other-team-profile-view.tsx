@@ -1,39 +1,40 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
-
-import { Dialog } from "@calcom/features/components/controlled-dialog";
-import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { trackFormbricksAction } from "@calcom/web/modules/formbricks/lib/trackFormbricksAction";
+import { getTeamUrlSync } from "@calcom/features/ee/organizations/lib/getTeamUrlSync";
 import { IS_TEAM_BILLING_ENABLED_CLIENT, WEBAPP_URL } from "@calcom/lib/constants";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { md } from "@calcom/lib/markdownIt";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import objectKeys from "@calcom/lib/objectKeys";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button, LinkIconButton } from "@calcom/ui/components/button";
-import { DialogTrigger, ConfirmationDialogContent } from "@calcom/ui/components/dialog";
 import { Editor } from "@calcom/ui/components/editor";
-import { Form } from "@calcom/ui/components/form";
-import { Label } from "@calcom/ui/components/form";
-import { TextField } from "@calcom/ui/components/form";
-import { ImageUploader } from "@calcom/ui/components/image-uploader";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui/components/skeleton";
-import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
+import { trackFormbricksAction } from "@calcom/web/modules/formbricks/lib/trackFormbricksAction";
+import { Button } from "@coss/ui/components/button";
+import { Card, CardFrame, CardFrameFooter, CardPanel } from "@coss/ui/components/card";
+import { Field, FieldError, FieldLabel } from "@coss/ui/components/field";
+import { Form } from "@coss/ui/components/form";
+import { Input } from "@coss/ui/components/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@coss/ui/components/input-group";
+import { toastManager } from "@coss/ui/components/toast";
+import { FieldGrid, FieldGridRow } from "@coss/ui/shared/field-grid";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useEffect, useLayoutEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
+import { TeamDangerZone } from "~/ee/teams/views/components/team-danger-zone";
+import { TeamProfilePageSkeleton } from "~/ee/teams/views/components/team-profile-page-skeleton";
 
-const regex = new RegExp("^[a-zA-Z0-9-]*$");
+const regex = /^[a-zA-Z0-9-]*$/;
 
 const teamProfileFormSchema = z.object({
   name: z.string(),
@@ -43,7 +44,6 @@ const teamProfileFormSchema = z.object({
       message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
     })
     .min(1, { message: "Url cannot be left empty" }),
-  logoUrl: z.string().nullable(),
   bio: z.string(),
 });
 
@@ -57,28 +57,9 @@ const OtherTeamProfileView = () => {
     document.body.focus();
   }, []);
 
-  const mutation = trpc.viewer.teams.update.useMutation({
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
-    async onSuccess() {
-      await utils.viewer.teams.get.invalidate();
-      if (team?.slug) {
-        // Org admins editing another team's profile should purge the cached team data
-        revalidateTeamDataCache({
-          teamSlug: team.slug,
-          orgSlug: team.parent?.slug ?? null,
-        });
-      }
-      showToast(t("your_team_updated_successfully"), "success");
-    },
-  });
-
-  const form = useForm({
-    resolver: zodResolver(teamProfileFormSchema),
-  });
   const params = useParamsWithFallback();
   const teamId = Number(params.id);
+
   const {
     data: team,
     isPending,
@@ -89,6 +70,46 @@ const OtherTeamProfileView = () => {
       enabled: !Number.isNaN(teamId),
     }
   );
+
+  const mutation = trpc.viewer.teams.update.useMutation({
+    onError: (err) => {
+      toastManager.add({ title: err.message, type: "error" });
+    },
+    async onSuccess() {
+      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.organizations.getOtherTeam.invalidate({ teamId });
+      if (team?.slug) {
+        // Org admins editing another team's profile should purge the cached team data
+        revalidateTeamDataCache({
+          teamSlug: team.slug,
+          orgSlug: team.parent?.slug ?? null,
+        });
+      }
+      toastManager.add({
+        title: t("your_team_updated_successfully"),
+        type: "success",
+      });
+    },
+  });
+
+  const defaultSlug = team?.slug || ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "";
+
+  const form = useForm({
+    resolver: zodResolver(teamProfileFormSchema),
+    defaultValues: {
+      name: team?.name || "",
+      slug: defaultSlug,
+      bio: team?.bio || "",
+    },
+    values: team
+      ? {
+          name: team.name || "",
+          slug: team.slug || ((team.metadata as Prisma.JsonObject)?.requestedSlug as string) || "",
+          bio: team.bio || "",
+        }
+      : undefined,
+  });
+
   useEffect(
     function refactorMeWithoutEffect() {
       if (teamError) {
@@ -98,32 +119,13 @@ const OtherTeamProfileView = () => {
     [teamError]
   );
 
-  useEffect(
-    function refactorMeWithoutEffect() {
-      if (team) {
-        form.setValue("name", team.name || "");
-        form.setValue("slug", team.slug || "");
-        form.setValue("logoUrl", team.logoUrl);
-        form.setValue("bio", team.bio || "");
-        if (team.slug === null && (team?.metadata as Prisma.JsonObject)?.requestedSlug) {
-          form.setValue("slug", ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "");
-        }
-      }
-    },
-    [team]
-  );
-
-  // This page can only be accessed by team admins (owner/admin)
-  const isAdmin = true;
-
-  const permalink = `${WEBAPP_URL}/team/${team?.slug}`;
-
-  const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
-
   const deleteTeamMutation = trpc.viewer.organizations.deleteTeam.useMutation({
     async onSuccess() {
       await utils.viewer.organizations.listOtherTeams.invalidate();
-      showToast(t("your_team_disbanded_successfully"), "success");
+      toastManager.add({
+        title: t("your_team_disbanded_successfully"),
+        type: "success",
+      });
       router.push(`${WEBAPP_URL}/teams`);
       trackFormbricksAction("team_disbanded");
     },
@@ -136,7 +138,7 @@ const OtherTeamProfileView = () => {
       }
     },
     async onError(err) {
-      showToast(err.message, "error");
+      toastManager.add({ title: err.message, type: "error" });
     },
   });
 
@@ -144,206 +146,148 @@ const OtherTeamProfileView = () => {
     if (team?.id) deleteTeamMutation.mutate({ teamId: team.id });
   }
 
+  const handleSubmitForm = (values: z.infer<typeof teamProfileFormSchema>) => {
+    if (!team) return;
+    const variables = {
+      name: values.name,
+      slug: values.slug,
+      bio: values.bio,
+    };
+    objectKeys(variables).forEach((key) => {
+      if (variables[key as keyof typeof variables] === team[key]) delete variables[key];
+    });
+    mutation.mutate({ id: team.id, ...variables });
+  };
+
+  if (isPending) {
+    return <TeamProfilePageSkeleton showLogoRow={false} variant="admin" />;
+  }
+
   if (!team) return null;
 
   return (
-    <>
-      {!isPending ? (
-        <>
-          {isAdmin ? (
-            <Form
-              form={form}
-              handleSubmit={(values) => {
-                if (team) {
-                  const variables = {
-                    logoUrl: values.logoUrl,
-                    name: values.name,
-                    slug: values.slug,
-                    bio: values.bio,
-                  };
-                  objectKeys(variables).forEach((key) => {
-                    if (variables[key as keyof typeof variables] === team?.[key]) delete variables[key];
-                  });
-                  mutation.mutate({ id: team.id, ...variables });
-                }
-              }}>
-              <div className="flex items-center">
-                <Controller
-                  control={form.control}
-                  name="logoUrl"
-                  render={({ field: { value, onChange } }) => (
-                    <>
-                      <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name)} size="lg" />
-                      <div className="ms-4">
-                        <ImageUploader
-                          target="logo"
-                          id="avatar-upload"
-                          buttonMsg={t("update")}
-                          handleAvatarChange={onChange}
-                          imageSrc={value}
+    <div className="flex flex-col gap-4">
+      <Form className="contents" onSubmit={form.handleSubmit(handleSubmitForm)}>
+        <CardFrame>
+          <Card>
+            <CardPanel>
+              <FieldGrid>
+                <FieldGridRow>
+                  <Controller
+                    control={form.control}
+                    name="name"
+                    render={({
+                      field: { ref, name, value, onBlur, onChange },
+                      fieldState: { invalid, isTouched, isDirty: fieldDirty, error },
+                    }) => (
+                      <Field name={name} invalid={invalid} touched={isTouched} dirty={fieldDirty}>
+                        <FieldLabel>{t("team_name")}</FieldLabel>
+                        <Input
+                          id={name}
+                          ref={ref}
+                          name={name}
+                          value={value ?? ""}
+                          onBlur={onBlur}
+                          onChange={(e) => onChange(e.target.value)}
                         />
-                      </div>
-                    </>
-                  )}
-                />
-              </div>
+                        <FieldError match={!!error}>{error?.message}</FieldError>
+                      </Field>
+                    )}
+                  />
+                </FieldGridRow>
 
-              <hr className="border-subtle my-8" />
+                <FieldGridRow>
+                  <Controller
+                    control={form.control}
+                    name="slug"
+                    render={({
+                      field: { ref, name, value, onBlur },
+                      fieldState: { invalid, isTouched, isDirty: fieldDirty, error },
+                    }) => (
+                      <Field name={name} invalid={invalid} touched={isTouched} dirty={fieldDirty}>
+                        <FieldLabel>{t("team_url")}</FieldLabel>
+                        <InputGroup>
+                          <InputGroupAddon>
+                            <InputGroupText data-testid="leading-text-team-url">
+                              {getTeamUrlSync(
+                                {
+                                  orgSlug: team.parent ? team.parent.slug : null,
+                                  teamSlug: null,
+                                },
+                                { protocol: false }
+                              )}
+                            </InputGroupText>
+                          </InputGroupAddon>
+                          <InputGroupInput
+                            ref={ref}
+                            className="*:[input]:ps-0!"
+                            name={name}
+                            value={value ?? ""}
+                            data-testid="team-url"
+                            onBlur={onBlur}
+                            onChange={(e) => {
+                              form.clearErrors("slug");
+                              form.setValue("slug", slugify(e?.target.value, true), {
+                                shouldDirty: true,
+                              });
+                            }}
+                          />
+                        </InputGroup>
+                        <FieldError match={!!error}>{error?.message}</FieldError>
+                      </Field>
+                    )}
+                  />
+                </FieldGridRow>
 
-              <Controller
-                control={form.control}
-                name="name"
-                render={({ field: { value, onChange } }) => (
-                  <div className="mt-8">
-                    <TextField
-                      name="name"
-                      label={t("team_name")}
-                      value={value}
-                      onChange={(e) => onChange(e?.target.value)}
-                    />
-                  </div>
-                )}
-              />
-              <Controller
-                control={form.control}
-                name="slug"
-                render={({ field: { value, onChange } }) => (
-                  <div className="mt-8">
-                    <TextField
-                      name="slug"
-                      label={t("team_url")}
-                      value={value}
-                      addOnLeading={
-                        team?.parent ? `${team.parent.slug}.${subdomainSuffix()}/` : `${WEBAPP_URL}/team/`
+                <FieldGridRow>
+                  <Field className="items-stretch">
+                    <FieldLabel>{t("about")}</FieldLabel>
+                    <Editor
+                      getText={() => md.render(form.getValues("bio") || "")}
+                      setText={(value: string) =>
+                        form.setValue("bio", turndown(value), {
+                          shouldDirty: true,
+                        })
                       }
-                      onChange={(e) => {
-                        form.clearErrors("slug");
-                        onChange(slugify(e?.target.value, true));
-                      }}
+                      excludedToolbarItems={["blockType"]}
+                      disableLists
+                      firstRender={firstRender}
+                      setFirstRender={setFirstRender}
+                      height="80px"
                     />
-                  </div>
-                )}
-              />
-              <div className="mt-8">
-                <Label>{t("about")}</Label>
-                <Editor
-                  getText={() => md.render(form.getValues("bio") || "")}
-                  setText={(value: string) => form.setValue("bio", turndown(value))}
-                  excludedToolbarItems={["blockType"]}
-                  disableLists
-                  firstRender={firstRender}
-                  setFirstRender={setFirstRender}
-                  height="80px"
-                />
-              </div>
-              <p className="text-default mt-2 text-sm">{t("team_description")}</p>
-              <Button color="primary" className="mt-8" type="submit" loading={mutation.isPending}>
-                {t("update")}
-              </Button>
-              {IS_TEAM_BILLING_ENABLED_CLIENT &&
-                team.slug === null &&
-                (team.metadata as Prisma.JsonObject)?.requestedSlug && (
-                  <Button
-                    color="secondary"
-                    className="ml-2 mt-8"
-                    type="button"
-                    onClick={() => {
-                      publishMutation.mutate({ teamId: team.id });
-                    }}>
-                    Publish
-                  </Button>
-                )}
-            </Form>
-          ) : (
-            <div className="flex">
-              <div className="grow">
-                <div>
-                  <Label className="text-emphasis">{t("team_name")}</Label>
-                  <p className="text-default text-sm">{team?.name}</p>
-                </div>
-                {team && !isBioEmpty && (
-                  <>
-                    <Label className="text-emphasis mt-5">{t("about")}</Label>
-                    {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized via markdownToSafeHTML */}
-                    <div
-                      className="  text-subtle wrap-break-word text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                      dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio) }}
-                    />
-                  </>
-                )}
-              </div>
-              <div className="">
-                <Link href={permalink} passHref={true} target="_blank">
-                  <LinkIconButton Icon="external-link">{t("preview")}</LinkIconButton>
-                </Link>
-                <LinkIconButton
-                  Icon="link"
+                    <p className="text-sm text-muted-foreground">{t("team_description")}</p>
+                  </Field>
+                </FieldGridRow>
+              </FieldGrid>
+            </CardPanel>
+          </Card>
+          <CardFrameFooter className="flex gap-2 justify-end">
+            <Button type="submit" loading={mutation.isPending} data-testid="update-team-profile">
+              {t("update")}
+            </Button>
+            {IS_TEAM_BILLING_ENABLED_CLIENT &&
+              team.slug === null &&
+              (team.metadata as Prisma.JsonObject)?.requestedSlug && (
+                <Button
+                  variant="outline"
+                  type="button"
                   onClick={() => {
-                    navigator.clipboard.writeText(permalink);
-                    showToast("Copied to clipboard", "success");
+                    publishMutation.mutate({ teamId: team.id });
                   }}>
-                  {t("copy_link_team")}
-                </LinkIconButton>
-              </div>
-            </div>
-          )}
-          <hr className="border-subtle my-8 border" />
+                  {t("team_publish")}
+                </Button>
+              )}
+          </CardFrameFooter>
+        </CardFrame>
+      </Form>
 
-          <div className="text-default mb-3 text-base font-semibold">{t("danger_zone")}</div>
-
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button color="destructive" className="border" StartIcon="trash-2">
-                {t("disband_team")}
-              </Button>
-            </DialogTrigger>
-            <ConfirmationDialogContent
-              variety="danger"
-              title={t("disband_team")}
-              confirmBtnText={t("confirm_disband_team")}
-              onConfirm={() => {
-                deleteTeam();
-              }}>
-              {t("disband_team_confirmation_message")}
-            </ConfirmationDialogContent>
-          </Dialog>
-        </>
-      ) : (
-        <>
-          <SkeletonContainer as="form">
-            <div className="flex items-center">
-              <div className="ms-4">
-                <SkeletonContainer>
-                  <div className="bg-emphasis h-16 w-16 rounded-full" />
-                </SkeletonContainer>
-              </div>
-            </div>
-            <hr className="border-subtle my-8" />
-            <SkeletonContainer>
-              <div className="mt-8">
-                <SkeletonText className="h-6 w-48" />
-              </div>
-            </SkeletonContainer>
-            <SkeletonContainer>
-              <div className="mt-8">
-                <SkeletonText className="h-6 w-48" />
-              </div>
-            </SkeletonContainer>
-            <div className="mt-8">
-              <SkeletonContainer>
-                <div className="bg-emphasis h-24 rounded-md" />
-              </SkeletonContainer>
-              <SkeletonText className="mt-4 h-12 w-32" />
-            </div>
-            <SkeletonContainer>
-              <div className="mt-8">
-                <SkeletonText className="h-9 w-24" />
-              </div>
-            </SkeletonContainer>
-          </SkeletonContainer>
-        </>
-      )}
-    </>
+      <TeamDangerZone
+        isOwner
+        onDisbandTeam={deleteTeam}
+        onLeaveTeam={() => {}}
+        isDisbanding={deleteTeamMutation.isPending}
+      />
+    </div>
   );
 };
 

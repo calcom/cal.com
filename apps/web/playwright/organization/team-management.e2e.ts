@@ -29,8 +29,8 @@ test.describe("Teams", () => {
     await page.goto("/teams");
 
     await test.step("Can create team", async () => {
-      // Click the new team button
-      await page.locator("[data-testid=new-team-btn]").click();
+      // Two FABs can exist (e.g. responsive layout); target one explicitly
+      await page.getByTestId("new-team-btn").first().click();
       await page.waitForLoadState("networkidle");
       // Fill team name input (new onboarding-v3 style flow)
       await page.locator('[data-testid="team-name-input"]').fill(`${user.username}'s Team`);
@@ -63,7 +63,8 @@ test.describe("Teams", () => {
 
     await test.step("Can disband team", async () => {
       await page.getByTestId("disband-team-button").click();
-      await page.getByTestId("dialog-confirmation").click();
+      // Confirm lives inside the coss AlertDialog (role=alertdialog), not the legacy Radix confirmation dialog
+      await page.getByRole("alertdialog").getByTestId("dialog-confirmation").click();
       await page.waitForURL("/teams");
       expect(await page.locator(`text=${user.username}'s Team`).count()).toEqual(0);
 

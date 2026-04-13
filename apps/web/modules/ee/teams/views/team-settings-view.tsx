@@ -1,28 +1,28 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
-
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
+import { IntervalLimitsManager } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
 import { AppearanceSkeletonLoader } from "~/settings/common/components/AppearanceSkeletonLoader";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { IntervalLimit } from "@calcom/lib/intervalLimits/intervalLimitSchema";
 import { validateIntervalLimitOrder } from "@calcom/lib/intervalLimits/validateIntervalLimitOrder";
-import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import classNames from "@calcom/ui/classNames";
 import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import { SettingsToggle } from "@calcom/ui/components/form";
-import { CheckboxField } from "@calcom/ui/components/form";
+import {
+  CheckboxField,
+  Form,
+  SettingsToggle,
+} from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/components/toast";
 import { revalidateTeamDataCache } from "@calcom/web/app/(booking-page-wrapper)/team/[slug]/[type]/actions";
-import { IntervalLimitsManager } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
-
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import { default as InternalNotePresetsView } from "../components/InternalNotePresetsView";
 import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
@@ -34,7 +34,10 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const form = useForm<{ bookingLimits?: IntervalLimit; includeManagedEventsInLimits: boolean }>({
+  const form = useForm<{
+    bookingLimits?: IntervalLimit;
+    includeManagedEventsInLimits: boolean;
+  }>({
     defaultValues: {
       bookingLimits: team?.bookingLimits || undefined,
       includeManagedEventsInLimits: team?.includeManagedEventsInLimits ?? false,
@@ -79,14 +82,17 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
             form={form}
             handleSubmit={(values) => {
               if (values.bookingLimits) {
-                const isValid = validateIntervalLimitOrder(values.bookingLimits);
+                const isValid = validateIntervalLimitOrder(
+                  values.bookingLimits
+                );
                 if (!isValid) {
                   reset();
                   throw new Error(t("event_setup_booking_limits_error"));
                 }
               }
               mutation.mutate({ ...values, id: team.id });
-            }}>
+            }}
+          >
             <Controller
               name="bookingLimits"
               render={({ field: { value } }) => {
@@ -108,16 +114,23 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
                         form.setValue("includeManagedEventsInLimits", false);
                       }
                       const bookingLimits = form.getValues("bookingLimits");
-                      const includeManagedEventsInLimits = form.getValues("includeManagedEventsInLimits");
+                      const includeManagedEventsInLimits = form.getValues(
+                        "includeManagedEventsInLimits"
+                      );
 
-                      mutation.mutate({ bookingLimits, includeManagedEventsInLimits, id: team.id });
+                      mutation.mutate({
+                        bookingLimits,
+                        includeManagedEventsInLimits,
+                        id: team.id,
+                      });
                     }}
                     switchContainerClassName={classNames(
                       "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
                       isChecked && "rounded-b-none"
                     )}
-                    childrenClassName="lg:ml-0">
-                    <div className="border-subtle border border-y-0 p-6">
+                    childrenClassName="lg:ml-0"
+                  >
+                    <div className="p-6 border border-subtle border-y-0">
                       <Controller
                         name="includeManagedEventsInLimits"
                         render={({ field: { value, onChange } }) => (
@@ -131,11 +144,19 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
                       />
 
                       <div className="pt-6">
-                        <IntervalLimitsManager propertyName="bookingLimits" defaultLimit={1} step={1} />
+                        <IntervalLimitsManager
+                          propertyName="bookingLimits"
+                          defaultLimit={1}
+                          step={1}
+                        />
                       </div>
                     </div>
                     <SectionBottomActions className="mb-6" align="end">
-                      <Button disabled={isSubmitting || !isDirty} type="submit" color="primary">
+                      <Button
+                        disabled={isSubmitting || !isDirty}
+                        type="submit"
+                        color="primary"
+                      >
                         {t("update")}
                       </Button>
                     </SectionBottomActions>
@@ -146,8 +167,8 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
           </Form>
         </>
       ) : (
-        <div className="border-subtle rounded-md border p-5">
-          <span className="text-default text-sm">{t("only_owner_change")}</span>
+        <div className="p-5 rounded-md border border-subtle">
+          <span className="text-sm text-default">{t("only_owner_change")}</span>
         </div>
       )}
     </>

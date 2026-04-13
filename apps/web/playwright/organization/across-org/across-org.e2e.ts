@@ -25,7 +25,9 @@ test.describe("user1NotMemberOfOrg1 is part of team1MemberOfOrg1", () => {
     await user1NotMemberOfOrg1.apiLogin();
 
     await page.goto(`/settings/teams/${team1MemberOfOrg1.id}/profile`);
-    const domain = await page.locator(".testid-leading-text-team-url").textContent();
+    const leadingTeamUrl = page.getByTestId("leading-text-team-url");
+    await expect(leadingTeamUrl).toBeVisible();
+    const domain = await leadingTeamUrl.textContent();
     expect(domain).toContain(org.slug);
   });
 

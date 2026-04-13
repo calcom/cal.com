@@ -163,7 +163,7 @@ const OrgProfileView = ({
                 Icon="link"
                 onClick={() => {
                   navigator.clipboard.writeText(orgBranding.fullDomain);
-                  showToast("Copied to clipboard", "success");
+                  showToast(t("copied_to_clipboard"), "success");
                 }}>
                 {t("copy_link_org")}
               </LinkIconButton>
