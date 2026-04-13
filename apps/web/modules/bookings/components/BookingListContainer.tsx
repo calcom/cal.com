@@ -18,6 +18,7 @@ import { useBookingListData } from "~/bookings/hooks/useBookingListData";
 import { useBookingStatusTab } from "~/bookings/hooks/useBookingStatusTab";
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
 import { useListAutoSelector } from "~/bookings/hooks/useListAutoSelector";
+import { usePastBookingsDefaultDateRange } from "~/bookings/hooks/use-past-bookings-default-date-range";
 import { useSwitchToCorrectStatusTab } from "~/bookings/hooks/useSwitchToCorrectStatusTab";
 import { DataTableFilters, DataTableSegment } from "~/data-table/components";
 import { useDataTable } from "~/data-table/hooks/useDataTable";
@@ -246,6 +247,23 @@ export function BookingListContainer(props: BookingListContainerProps) {
     defaultStatus: props.status,
   });
 
+  // Auto-apply default 7-day date range filter UI pill for past bookings.
+  // fallbackDateRange is a synchronous 7-day date range for the query
+  // before the async UI filter has been applied.
+  const { fallbackDateRange } = usePastBookingsDefaultDateRange(resolvedTabStatus);
+
+  const effectiveStartDate = dateRange?.startDate
+    ? dayjs(dateRange.startDate).startOf("day").toISOString()
+    : undefined;
+  const effectiveEndDate = dateRange?.endDate ? dayjs(dateRange.endDate).endOf("day").toISOString() : undefined;
+
+  // Use the synchronous fallback when on the past tab and no active
+  // date range filter. This ensures the query is always restricted on
+  // the past tab for performance, even before the hook's async effect
+  // has fired. Clearing the filter resets to this 7-day default —
+  // users who need a wider range select 30d/90d/custom via the dropdown.
+  const useFallback = !!fallbackDateRange && !effectiveStartDate;
+
   // Build query input once - shared between query and prefetching
   const queryInput = useMemo(
     () => ({
@@ -259,10 +277,8 @@ export function BookingListContainer(props: BookingListContainerProps) {
         attendeeName,
         attendeeEmail,
         bookingUid,
-        afterStartDate: dateRange?.startDate
-          ? dayjs(dateRange?.startDate).startOf("day").toISOString()
-          : undefined,
-        beforeEndDate: dateRange?.endDate ? dayjs(dateRange?.endDate).endOf("day").toISOString() : undefined,
+        afterStartDate: effectiveStartDate ?? (useFallback ? fallbackDateRange?.startDate : undefined),
+        beforeEndDate: effectiveEndDate ?? (useFallback ? fallbackDateRange?.endDate : undefined),
       },
     }),
     [
@@ -275,15 +291,17 @@ export function BookingListContainer(props: BookingListContainerProps) {
       attendeeName,
       attendeeEmail,
       bookingUid,
-      dateRange,
+      effectiveStartDate,
+      effectiveEndDate,
+      useFallback,
+      fallbackDateRange,
     ]
   );
 
   const query = trpc.viewer.bookings.get.useQuery(queryInput, {
     staleTime: 5 * 60 * 1000, // 5 minutes - data is considered fresh
     gcTime: 30 * 60 * 1000, // 30 minutes - cache retention time
-    // We wait for tab status to be resolved before fetching, so that we can fetch the correct bookings as per resolved tab status
-    enabled: !isValidatorPending && !isResolvingTabStatus, // Wait for validator to be ready before fetching
+    enabled: !isValidatorPending && !isResolvingTabStatus,
   });
 
   const bookings = query.data?.bookings ?? [];

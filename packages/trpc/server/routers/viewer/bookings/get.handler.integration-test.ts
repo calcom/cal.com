@@ -644,6 +644,180 @@ describe("getBookings - integration", () => {
   });
 
   // -----------------------------------------------------------------------
+  // Date range filter queries (simulating webapp default windows)
+  // -----------------------------------------------------------------------
+
+  describe("date range filter queries", () => {
+    it("should return all past bookings when no date range filters are provided (API behavior)", async () => {
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {},
+        take: 50,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+      // Without filters, all past bookings should be returned — no server-side default window
+      expect(ids).toContain(pastBookingRecent.id);
+      expect(ids).toContain(pastBooking2WeeksAgo.id);
+      expect(ids).toContain(pastBooking6WeeksAgo.id);
+      expect(ids).toContain(pastBooking6MonthsAgo.id);
+      expect(ids).toContain(pastBooking2YearsAgo.id);
+    });
+
+    it("should respect beforeEndDate filter to cap the end of the window", async () => {
+      // Set beforeEndDate to 10 days ago — should exclude the recent booking (2 days ago)
+      const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
+
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {
+          beforeEndDate: tenDaysAgo.toISOString(),
+        },
+        take: 50,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+      // Recent booking (2 days ago) should be excluded since its endTime > tenDaysAgo
+      expect(ids).not.toContain(pastBookingRecent.id);
+      // Older bookings should still be included
+      expect(ids).toContain(pastBooking2WeeksAgo.id);
+      expect(ids).toContain(pastBooking6WeeksAgo.id);
+    });
+
+    it("should filter to a 7-day window (simulating webapp default)", async () => {
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const now = new Date();
+
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {
+          afterStartDate: sevenDaysAgo.toISOString(),
+          beforeEndDate: now.toISOString(),
+        },
+        take: 50,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+      // Only the recent booking (2 days ago) is within the 7-day window
+      expect(ids).toContain(pastBookingRecent.id);
+      // All older bookings should be excluded
+      expect(ids).not.toContain(pastBooking2WeeksAgo.id);
+      expect(ids).not.toContain(pastBooking6WeeksAgo.id);
+      expect(ids).not.toContain(pastBooking6MonthsAgo.id);
+      expect(ids).not.toContain(pastBooking2YearsAgo.id);
+    });
+
+    it("should filter to a 30-day window", async () => {
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const now = new Date();
+
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {
+          afterStartDate: thirtyDaysAgo.toISOString(),
+          beforeEndDate: now.toISOString(),
+        },
+        take: 50,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+      // Recent (2 days) and 2-weeks-ago (14 days) are within 30-day window
+      expect(ids).toContain(pastBookingRecent.id);
+      expect(ids).toContain(pastBooking2WeeksAgo.id);
+      // 6 weeks (42 days) is outside the 30-day window
+      expect(ids).not.toContain(pastBooking6WeeksAgo.id);
+      expect(ids).not.toContain(pastBooking6MonthsAgo.id);
+      expect(ids).not.toContain(pastBooking2YearsAgo.id);
+    });
+
+    it("should filter to a 90-day window", async () => {
+      const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+      const now = new Date();
+
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {
+          afterStartDate: ninetyDaysAgo.toISOString(),
+          beforeEndDate: now.toISOString(),
+        },
+        take: 50,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+      // Recent (2d), 2-weeks (14d), and 6-weeks (42d) are within 90-day window
+      expect(ids).toContain(pastBookingRecent.id);
+      expect(ids).toContain(pastBooking2WeeksAgo.id);
+      expect(ids).toContain(pastBooking6WeeksAgo.id);
+      // 6 months (180d) and 2 years (730d) are outside the 90-day window
+      expect(ids).not.toContain(pastBooking6MonthsAgo.id);
+      expect(ids).not.toContain(pastBooking2YearsAgo.id);
+    });
+
+    it("should still exclude cancelled bookings when date range filters are applied", async () => {
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const now = new Date();
+
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {
+          afterStartDate: sevenDaysAgo.toISOString(),
+          beforeEndDate: now.toISOString(),
+        },
+        take: 50,
+        skip: 0,
+      });
+
+      const ids = result.bookings.map((b) => b.id);
+      // Cancelled booking (3 days ago) is within the 7-day window but should be excluded
+      expect(ids).not.toContain(pastBookingCancelled.id);
+    });
+
+    it("should return correct totalCount when date range filters narrow results", async () => {
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      const now = new Date();
+
+      const result = await getBookings({
+        user: { id: user1.id, email: user1.email, orgId: null },
+        prisma,
+        kysely,
+        bookingListingByStatus: ["past"],
+        filters: {
+          afterStartDate: sevenDaysAgo.toISOString(),
+          beforeEndDate: now.toISOString(),
+        },
+        take: 50,
+        skip: 0,
+      });
+
+      // totalCount should match returned bookings count when not paginated
+      expect(result.totalCount).toBe(result.bookings.length);
+    });
+  });
+
+  // -----------------------------------------------------------------------
   // Cross-team booking visibility (security)
   // -----------------------------------------------------------------------
 

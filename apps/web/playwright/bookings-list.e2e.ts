@@ -2,7 +2,7 @@ import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
-import { addFilter } from "./filter-helpers";
+import { addFilter, addOrOpenFilter } from "./filter-helpers";
 import { createTeamEventType } from "./fixtures/users";
 import type { Fixtures } from "./lib/fixtures";
 import { test } from "./lib/fixtures";
@@ -234,7 +234,8 @@ test.describe("Bookings", () => {
       await page.goto(`/bookings/past`);
       await bookingsGetResponse;
 
-      await addFilter(page, "dateRange");
+      // Use addOrOpenFilter because the past bookings page auto-applies a default date range filter
+      await addOrOpenFilter(page, "dateRange");
 
       await expect(page.locator('[data-testid="date-range-options-c"]')).toBeVisible();
       await expect(page.locator('[data-testid="date-range-options-w"]')).toBeVisible();
@@ -242,6 +243,7 @@ test.describe("Bookings", () => {
       await expect(page.locator('[data-testid="date-range-options-y"]')).toBeVisible();
       await expect(page.locator('[data-testid="date-range-options-t"]')).toBeVisible();
       await expect(page.locator('[data-testid="date-range-options-tdy"]')).toBeVisible();
+      await expect(page.locator('[data-testid="date-range-options-q"]')).toBeVisible();
 
       await expect(page.locator('[data-testid="date-range-calendar"]')).toBeHidden();
     });

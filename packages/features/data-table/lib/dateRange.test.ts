@@ -51,6 +51,12 @@ describe("getDateRangeFromPreset", () => {
     expect(dayjs).toHaveBeenCalled();
   });
 
+  it("should return last 90 days range for 'q' preset", () => {
+    const result = getDateRangeFromPreset("q");
+    expect(result.preset.value).toBe("q");
+    expect(dayjs).toHaveBeenCalled();
+  });
+
   it("should return month to date range for 'm' preset", () => {
     const result = getDateRangeFromPreset("m");
     expect(result.preset.value).toBe("m");
@@ -126,7 +132,7 @@ describe("recalculateDateRange", () => {
 
 describe("PRESET_OPTIONS", () => {
   it("should contain all expected preset options", () => {
-    const expectedValues = ["tdy", "w", "t", "m", "y", "c"];
+    const expectedValues = ["tdy", "w", "t", "q", "m", "y", "c"];
     expect(PRESET_OPTIONS.map((o) => o.value)).toEqual(expectedValues);
   });
 
@@ -144,9 +150,17 @@ describe("PRESET_OPTIONS", () => {
     expect(PRESET_OPTIONS[0].direction).toBe("past"); // Today
     expect(PRESET_OPTIONS[1].direction).toBe("past"); // Last 7 days
     expect(PRESET_OPTIONS[2].direction).toBe("past"); // Last 30 days
-    expect(PRESET_OPTIONS[3].direction).toBe("past"); // Month to date
-    expect(PRESET_OPTIONS[4].direction).toBe("past"); // Year to date
-    expect(PRESET_OPTIONS[5].direction).toBe("any"); // Custom
+    expect(PRESET_OPTIONS[3].direction).toBe("past"); // Last 90 days
+    expect(PRESET_OPTIONS[4].direction).toBe("past"); // Month to date
+    expect(PRESET_OPTIONS[5].direction).toBe("past"); // Year to date
+    expect(PRESET_OPTIONS[6].direction).toBe("any"); // Custom
+  });
+
+  it("should have 90-day preset with correct i18nOptions", () => {
+    const ninetyDayPreset = PRESET_OPTIONS.find((o) => o.value === "q");
+    expect(ninetyDayPreset).toBeDefined();
+    expect(ninetyDayPreset?.labelKey).toBe("last_number_of_days");
+    expect(ninetyDayPreset?.i18nOptions).toEqual({ count: 90 });
   });
 });
 
@@ -158,18 +172,18 @@ describe("getCompatiblePresets", () => {
 
   it("should return all presets for any range", () => {
     const result = getCompatiblePresets("any");
-    expect(result.length).toBe(6); // All 6 presets
-    expect(result.map((p) => p.value)).toEqual(["tdy", "w", "t", "m", "y", "c"]);
+    expect(result.length).toBe(7); // All 7 presets
+    expect(result.map((p) => p.value)).toEqual(["tdy", "w", "t", "q", "m", "y", "c"]);
   });
 
   it("should return all presets for past range (including direction:any)", () => {
     const result = getCompatiblePresets("past");
-    expect(result.length).toBe(6); // All 6 presets (5 past + 1 any)
+    expect(result.length).toBe(7); // All 7 presets (6 past + 1 any)
     // Should include both "past" direction and "any" direction presets
     const directions = result.map((p) => p.direction);
     expect(directions).toContain("past");
     expect(directions).toContain("any");
-    expect(result.map((p) => p.value)).toEqual(["tdy", "w", "t", "m", "y", "c"]);
+    expect(result.map((p) => p.value)).toEqual(["tdy", "w", "t", "q", "m", "y", "c"]);
   });
 
   it("should return only any-direction presets for future range", () => {
@@ -187,6 +201,7 @@ describe("getCompatiblePresets", () => {
     expect(values).not.toContain("tdy"); // Today (now past-direction)
     expect(values).not.toContain("w"); // Last 7 days
     expect(values).not.toContain("t"); // Last 30 days
+    expect(values).not.toContain("q"); // Last 90 days
     expect(values).not.toContain("m"); // Month to date
     expect(values).not.toContain("y"); // Year to date
   });

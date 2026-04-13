@@ -1,8 +1,7 @@
 import dayjs from "@calcom/dayjs";
-
 import { ColumnFilterType, type DateRangeFilterValue } from "./types";
 
-export type PresetOptionValue = "c" | "w" | "m" | "y" | "t" | "tdy";
+export type PresetOptionValue = "c" | "w" | "m" | "y" | "t" | "tdy" | "q";
 
 export type PresetDirection = "past" | "future" | "any";
 
@@ -31,6 +30,7 @@ export const PRESET_OPTIONS: PresetOption[] = [
   { labelKey: "today", value: "tdy", direction: "past" },
   DEFAULT_PRESET,
   { labelKey: "last_number_of_days", i18nOptions: { count: 30 }, value: "t", direction: "past" },
+  { labelKey: "last_number_of_days", i18nOptions: { count: 90 }, value: "q", direction: "past" },
   { labelKey: "month_to_date", value: "m", direction: "past" },
   { labelKey: "year_to_date", value: "y", direction: "past" },
   CUSTOM_PRESET,
@@ -70,6 +70,10 @@ export const getDateRangeFromPreset = (val: string | null) => {
       break;
     case "t": // Last 30 days
       startDate = dayjs().subtract(29, "day").startOf("day");
+      endDate = dayjs().endOf("day");
+      break;
+    case "q": // Last 90 days
+      startDate = dayjs().subtract(89, "day").startOf("day");
       endDate = dayjs().endOf("day");
       break;
     case "m": // Month to Date
