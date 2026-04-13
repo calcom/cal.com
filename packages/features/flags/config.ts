@@ -46,6 +46,7 @@ export type AppFlags = {
   "audit-log": boolean;
   "workflow-reminder-links": boolean;
   "enable-fuzzy-domain-matching": boolean;
+  "booking-window": boolean;
 };
 
 export type TeamFeatures = Record<keyof AppFlags, boolean>;

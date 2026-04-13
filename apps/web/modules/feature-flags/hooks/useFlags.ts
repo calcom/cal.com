@@ -44,6 +44,7 @@ const initialData: AppFlags = {
   "audit-log": false,
   "workflow-reminder-links": false,
   "enable-fuzzy-domain-matching": false,
+  "booking-window": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {
