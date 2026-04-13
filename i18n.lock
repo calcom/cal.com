@@ -8410,6 +8410,9 @@ checksums:
     system_blocklist_no_read_permission: aa8663cad8aba3f049558d05ee4d982b
     salesforce_route_to_owner: 39a88a7afb1c1e8fb9215e27ae7a7033
     salesforce_add_attendees_as: 134a1f412cb0287ab32ca3b690b959a8
+    salesforce_sync_failure: a55d76f8a6cc152224208ce21b4c4b14
+    salesforce_dropped_fields: 90706a6d6f30a520c66c2a689e7d8404
+    salesforce_enable_fuzzy_domain_matching: 5d99fde75260c8bc66d214fb50a0d7e6
     salesforce_do_not_route_to_owner: bcae6e5615c17b809c2334a541f75e78
     salesforce_route_to_custom_lookup_field: 672a24e4de55eb073559e94b9266da7d
     salesforce_option: 99f4ea74e38f7d2b2f83edd7601bb91e
@@ -8676,6 +8679,10 @@ checksums:
     salesforce_rr_skip_field_rule_ignore: 8edaf611ce4116a464a9faaa30ce8edd
     salesforce_rr_skip_field_rule_must_include: db36ce2971c41ab766ded8da11277b37
     salesforce_field_name_placeholder: ba852275f7e21e37b2866b1c096fb276
+    salesforce_legacy_event_fields_warning: 65eb836a7c9155663239c27edb31cb45
+    salesforce_field_validation_failed: d64b491ef5fe42c2c318cfb334890eeb
+    salesforce_exclude_record_types: 639a9d2a2581d0404911ab3cb3d37b58
+    salesforce_exclude_record_types_description: 4335d85796e8e7ae756e7186a7cf4538
     add_new_rule: 88f5ad1c1813ec4bdff6888de311d7f4
     report_issue: 5abe40470cb5476d6e4f49fe422bd438
     report_issue_description: 29a8d5e7c496ae75d95a06df636df77d
