@@ -399,6 +399,7 @@ test.describe("Event Types tests", () => {
       // Go to Advanced tab and enable offerSeats
       await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
       const offerSeatsToggle = page.locator("[data-testid=offer-seats-toggle]");
+      await expect(offerSeatsToggle).toBeVisible();
       await offerSeatsToggle.click();
 
       // Try enabling recurring - should be disabled
@@ -407,16 +408,20 @@ test.describe("Event Types tests", () => {
       await expect(recurringEventToggle).toBeDisabled();
 
       // Go back and disable offerSeats
+      // Wait for the tab transition animation to complete so only one toggle exists in the DOM
       await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+      await expect(offerSeatsToggle).toHaveCount(1);
       await offerSeatsToggle.click(); // turn it off
 
       // Enable recurring now
       await page.click("[data-testid=vertical-tab-recurring]");
+      await expect(recurringEventToggle).toHaveCount(1);
       await recurringEventToggle.click();
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeVisible();
 
       // After enabling recurring, offerSeats should now be disabled
       await page.click("[data-testid=vertical-tab-event_advanced_tab_title]");
+      await expect(offerSeatsToggle).toHaveCount(1);
       await expect(offerSeatsToggle).toBeDisabled();
     });
     test("should enable timezone lock in event advanced settings and verify disabled timezone selector on booking page", async ({
