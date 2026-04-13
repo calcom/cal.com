@@ -36,6 +36,10 @@ export function useTeamsUpgradeBanner(): UseTeamsUpgradeBannerResult {
   // Hide on the bookings page where the bookings-v3 opt-in banner is shown instead
   const isOnBookingsPage = pathname?.startsWith("/bookings") ?? false;
 
+  // Hide on pages that already have their own upgrade banners
+  const isOnExcludedPage =
+    pathname === "/settings/my-account/appearance" || pathname === "/settings/developer/webhooks/new";
+
   // Delay banner appearance so it doesn't compete with the timezone nudge dialog
   useEffect(() => {
     const timer = setTimeout(() => setIsDelayComplete(true), SHOW_DELAY_MS);
@@ -59,12 +63,21 @@ export function useTeamsUpgradeBanner(): UseTeamsUpgradeBannerResult {
     if (!isDelayComplete) return false;
     if (isDismissed) return false;
     if (isOnBookingsPage) return false;
+    if (isOnExcludedPage) return false;
     if (isTeamPlanLoading) return false;
     if (!teamPlanData) return false;
     // Only show for users without a team plan (individual/free users)
     if (teamPlanData.hasTeamPlan) return false;
     return true;
-  }, [isE2E, isDelayComplete, isDismissed, isOnBookingsPage, isTeamPlanLoading, teamPlanData]);
+  }, [
+    isE2E,
+    isDelayComplete,
+    isDismissed,
+    isOnBookingsPage,
+    isOnExcludedPage,
+    isTeamPlanLoading,
+    teamPlanData,
+  ]);
 
   useEffect(() => {
     if (shouldShow && !hasBannerShownBeenTracked.current) {
