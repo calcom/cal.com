@@ -1866,7 +1866,10 @@ async function handler(
   }
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
+  distributedTracing.setPhase(traceContext, "refreshCredentials");
+  let phaseStart = performance.now();
   const credentials = await refreshCredentials(allCredentials);
+  tracingLogger.info("Phase completed: refreshCredentials", { durationMs: Math.round(performance.now() - phaseStart) });
   const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const eventManager =
     !isDryRun && !skipCalendarSyncTaskCreation
@@ -1946,6 +1949,8 @@ async function handler(
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
 
+    distributedTracing.setPhase(traceContext, "eventManagerReschedule");
+    phaseStart = performance.now();
     const updateManager = !skipCalendarSyncTaskCreation
       ? await eventManager.reschedule(
           evt,
@@ -1957,6 +1962,7 @@ async function handler(
           skipDeleteEventsAndMeetings
         )
       : placeholderCreatedEvent;
+    tracingLogger.info("Phase completed: eventManagerReschedule", { durationMs: Math.round(performance.now() - phaseStart) });
 
     results = updateManager.results;
     referencesToCreate = updateManager.referencesToCreate;
@@ -2090,7 +2096,10 @@ async function handler(
     // Create a booking
   } else if (isConfirmedByDefault) {
     const shouldSkipCalendarEvents = !areCalendarEventsEnabled || skipCalendarSyncTaskCreation;
+    distributedTracing.setPhase(traceContext, "eventManagerCreate");
+    phaseStart = performance.now();
     const createManager = await eventManager.create(evt, { skipCalendarEvent: shouldSkipCalendarEvents });
+    tracingLogger.info("Phase completed: eventManagerCreate", { durationMs: Math.round(performance.now() - phaseStart) });
     if (evt.location) {
       booking.location = evt.location;
     }
@@ -2256,13 +2265,18 @@ async function handler(
 
   // Query feature flags in parallel before firing booking events
   // TODO: We should support checkIfOrgHasFeatures - Bulk plus orgId check, that would be more efficient.
+  distributedTracing.setPhase(traceContext, "checkTeamFeatures");
+  phaseStart = performance.now();
   const [isBookingEmailSmsTaskerEnabled, isBookingAuditEnabled] = orgId
     ? await Promise.all([
         deps.teamFeatureRepository.checkIfTeamHasFeature(orgId, "booking-email-sms-tasker"),
         deps.teamFeatureRepository.checkIfTeamHasFeature(orgId, "booking-audit"),
       ])
     : [false, false];
+  tracingLogger.info("Phase completed: checkTeamFeatures", { durationMs: Math.round(performance.now() - phaseStart) });
 
+  distributedTracing.setPhase(traceContext, "fireBookingEvents");
+  phaseStart = performance.now();
   await this.fireBookingEvents({
     booking: {
       ...booking,
@@ -2284,6 +2298,7 @@ async function handler(
     tracingLogger,
     isBookingAuditEnabled,
   });
+  tracingLogger.info("Phase completed: fireBookingEvents", { durationMs: Math.round(performance.now() - phaseStart) });
 
   const webhookLocation = metadata?.videoCallUrl || evt.location;
 
@@ -2491,7 +2506,10 @@ async function handler(
       );
     }
 
+    distributedTracing.setPhase(traceContext, "meetingWebhookTriggers");
+    phaseStart = performance.now();
     const scheduledTriggerResults = await Promise.allSettled(meetingWebhookPromises);
+    tracingLogger.info("Phase completed: meetingWebhookTriggers", { durationMs: Math.round(performance.now() - phaseStart) });
     const failures = scheduledTriggerResults.filter((result) => result.status === "rejected");
 
     if (failures.length > 0) {
@@ -2508,6 +2526,8 @@ async function handler(
 
   try {
     if (!isDryRun) {
+      distributedTracing.setPhase(traceContext, "bookingUpdateWithReferences");
+      phaseStart = performance.now();
       await deps.prismaClient.booking.update({
         where: {
           uid: booking.uid,
@@ -2522,6 +2542,7 @@ async function handler(
           },
         },
       });
+      tracingLogger.info("Phase completed: bookingUpdateWithReferences", { durationMs: Math.round(performance.now() - phaseStart) });
     }
   } catch (error) {
     tracingLogger.error("Error while creating booking references", JSON.stringify({ error }));
@@ -2542,6 +2563,8 @@ async function handler(
     bookerUrl,
   };
 
+  distributedTracing.setPhase(traceContext, "scheduleMandatoryReminder");
+  phaseStart = performance.now();
   if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
     await scheduleMandatoryReminder({
       evt: evtWithMetadata,
@@ -2554,8 +2577,11 @@ async function handler(
       traceContext,
     });
   }
+  tracingLogger.info("Phase completed: scheduleMandatoryReminder", { durationMs: Math.round(performance.now() - phaseStart) });
 
   try {
+    distributedTracing.setPhase(traceContext, "scheduleWorkflowReminders");
+    phaseStart = performance.now();
     const creditService = new CreditService();
 
     await WorkflowService.scheduleWorkflowsForNewBooking({
@@ -2570,7 +2596,9 @@ async function handler(
       isRescheduleEvent: !!rescheduleUid,
       creditCheckFn: creditService.hasAvailableCredits.bind(creditService),
     });
+    tracingLogger.info("Phase completed: scheduleWorkflowReminders", { durationMs: Math.round(performance.now() - phaseStart) });
   } catch (error) {
+    tracingLogger.info("Phase completed: scheduleWorkflowReminders", { durationMs: Math.round(performance.now() - phaseStart) });
     tracingLogger.error(
       "Error while scheduling workflow reminders",
       error instanceof Error ? error.message : error,
@@ -2580,6 +2608,8 @@ async function handler(
 
   try {
     if (isConfirmedByDefault) {
+      distributedTracing.setPhase(traceContext, "scheduleNoShowTriggers");
+      phaseStart = performance.now();
       await scheduleNoShowTriggers({
         booking: {
           startTime: booking.startTime,
@@ -2594,12 +2624,16 @@ async function handler(
         orgId,
         isDryRun,
       });
+      tracingLogger.info("Phase completed: scheduleNoShowTriggers", { durationMs: Math.round(performance.now() - phaseStart) });
     }
   } catch (error) {
+    tracingLogger.info("Phase completed: scheduleNoShowTriggers", { durationMs: Math.round(performance.now() - phaseStart) });
     tracingLogger.error("Error while scheduling no show triggers", JSON.stringify({ error }));
   }
 
   if (!isDryRun) {
+    distributedTracing.setPhase(traceContext, "handleAnalyticsEvents");
+    phaseStart = performance.now();
     await handleAnalyticsEvents({
       credentials: allCredentials,
       rawBookingData,
@@ -2610,6 +2644,7 @@ async function handler(
       },
       isTeamEventType,
     });
+    tracingLogger.info("Phase completed: handleAnalyticsEvents", { durationMs: Math.round(performance.now() - phaseStart) });
 
     // Unused until we deploy to trigger.dev production
     // for now we only enable for cal.com org and we keep our current email system
@@ -2636,6 +2671,8 @@ async function handler(
 
     if (webhookTriggerEvent && booking) {
       try {
+        distributedTracing.setPhase(traceContext, "queueBookingWebhook");
+        phaseStart = performance.now();
         await deps.webhookProducer.queueBookingWebhook(webhookTriggerEvent, {
           bookingUid: booking.uid,
           userId: subscriberOptions.userId ?? undefined,
@@ -2652,7 +2689,9 @@ async function handler(
           attendeeSeatId: evt.attendeeSeatId ?? undefined,
           hashedLink: hasHashedBookingLink ? (reqBody.hashedLink ?? null) : null,
         });
+        tracingLogger.info("Phase completed: queueBookingWebhook", { durationMs: Math.round(performance.now() - phaseStart) });
       } catch (webhookError) {
+        tracingLogger.info("Phase completed: queueBookingWebhook", { durationMs: Math.round(performance.now() - phaseStart) });
         tracingLogger.error(
           `Error queueing ${webhookTriggerEvent} webhook: bookingId: ${booking.id}, bookingUid: ${booking.uid}`,
           safeStringify(webhookError)
@@ -2671,6 +2710,8 @@ async function handler(
     },
     paymentRequired: false,
   };
+
+  distributedTracing.setPhase(traceContext, "completed");
 
   return {
     ...bookingResponse,

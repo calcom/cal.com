@@ -28,21 +28,24 @@ describe("safeStringify", () => {
     expect(result).toBe("[1,2,3]");
   });
 
-  it("extracts stack from Error objects", () => {
+  it("serializes Error objects with name, message, and stack", () => {
     const error = new Error("test error");
     const result = safeStringify(error);
-    // Should be a JSON string containing the stack trace
     expect(typeof result).toBe("string");
     const parsed = JSON.parse(result as string);
-    expect(parsed).toContain("test error");
+    expect(parsed.name).toBe("Error");
+    expect(parsed.message).toBe("test error");
+    expect(parsed.stack).toContain("test error");
   });
 
-  it("extracts message from Error when stack is undefined", () => {
+  it("serializes Error with undefined stack", () => {
     const error = new Error("no stack");
     error.stack = undefined;
     const result = safeStringify(error);
     const parsed = JSON.parse(result as string);
-    expect(parsed).toBe("no stack");
+    expect(parsed.name).toBe("Error");
+    expect(parsed.message).toBe("no stack");
+    expect(parsed.stack).toBeUndefined();
   });
 
   it("returns the original object on circular reference", () => {

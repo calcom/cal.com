@@ -7,6 +7,8 @@ export interface TraceContext {
   operation: string;
   // So that we don't violate open closed principle, we allow meta to be added to the trace context
   meta?: Record<string, string | number | boolean | null | undefined>;
+  // Mutable — tracks which operation is currently executing so error handlers know what failed
+  currentPhase?: string;
 }
 
 export interface IdGenerator {
@@ -107,5 +109,9 @@ export class DistributedTracing {
         ...additionalMeta,
       },
     };
+  }
+
+  setPhase(traceContext: TraceContext, phase: string): void {
+    traceContext.currentPhase = phase;
   }
 }

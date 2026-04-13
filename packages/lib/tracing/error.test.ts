@@ -110,6 +110,8 @@ describe("TracedError", () => {
         name: "Error",
         message: "json test",
         traceId: "trace_json",
+        currentPhase: undefined,
+        operation: "test-operation",
         data: { extra: 1 },
         stack: original.stack,
       });

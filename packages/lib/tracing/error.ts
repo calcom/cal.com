@@ -2,6 +2,8 @@ import type { TraceContext } from "./index";
 
 export class TracedError extends Error {
   public readonly traceId: string;
+  public readonly currentPhase?: string;
+  public readonly operation: string;
   public readonly data?: Record<string, unknown>;
   public readonly originalError: unknown;
 
@@ -11,10 +13,16 @@ export class TracedError extends Error {
 
     this.name = error instanceof Error ? error.name : "TracedError";
     this.traceId = traceContext.traceId;
+    this.currentPhase = traceContext.currentPhase;
+    this.operation = traceContext.operation;
     this.originalError = error;
 
-    if (error instanceof Error && error.stack) {
-      this.stack = error.stack;
+    if (error instanceof Error) {
+      // Set cause via defineProperty to avoid TS2550 in older ES targets
+      Object.defineProperty(this, "cause", { value: error, enumerable: false, writable: true });
+      if (error.stack) {
+        this.stack = error.stack;
+      }
     }
 
     if (error && typeof error === "object" && "data" in error) {
@@ -35,6 +43,8 @@ export class TracedError extends Error {
       name: this.name,
       message: this.message,
       traceId: this.traceId,
+      currentPhase: this.currentPhase,
+      operation: this.operation,
       data: this.data,
       stack: this.stack,
     };

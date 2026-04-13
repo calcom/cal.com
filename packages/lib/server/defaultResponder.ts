@@ -1,9 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-
-import { type TraceContext } from "@calcom/lib/tracing";
+import type { TraceContext } from "@calcom/lib/tracing";
 import { TracedError } from "@calcom/lib/tracing/error";
 import { distributedTracing } from "@calcom/lib/tracing/factory";
-
+import type { NextApiRequest, NextApiResponse } from "next";
 import { HttpError } from "../http-error";
 import { safeStringify } from "../safeStringify";
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
@@ -53,8 +51,8 @@ export function defaultResponder<T>(
         return res.json(result);
       }
     } catch (err) {
-      tracingLogger.error(`${operation} request failed`, safeStringify(err));
       const tracedError = TracedError.createFromError(err, traceContext);
+      tracingLogger.error(`${operation} request failed during phase: ${tracedError.currentPhase || "unknown"}`, safeStringify(tracedError));
       let error: HttpError;
       if (isTRPCErrorLike(err)) {
         const statusCode = getHTTPStatusCodeFromTRPCErrorLike(err);
