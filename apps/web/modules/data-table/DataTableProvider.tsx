@@ -134,6 +134,13 @@ function DataTableContextBridge({ children }: { children: React.ReactNode }) {
     [state, segment, filters]
   );
 
+  // Defer rendering children until segment initialization is complete.
+  // This prevents consumers from firing queries with stale/default filter
+  // values before system segments (e.g. "my_bookings") have been applied.
+  if (segment.isValidatorPending) {
+    return null;
+  }
+
   return <DataTableContext.Provider value={value}>{children}</DataTableContext.Provider>;
 }
 

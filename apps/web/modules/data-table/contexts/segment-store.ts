@@ -27,9 +27,9 @@ export interface SegmentStoreState {
 
 export type SegmentStoreApi = ReturnType<typeof createSegmentStore>;
 
-export function createSegmentStore() {
+export function createSegmentStore(initialPhase: SegmentPhase = "initializing") {
   return createStore<SegmentStoreState>((set) => ({
-    phase: "initializing",
+    phase: initialPhase,
     selectedSegment: undefined,
     pendingSegment: null,
 

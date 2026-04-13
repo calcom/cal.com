@@ -86,7 +86,8 @@ export function DataTableSegmentProvider({
     systemSegments,
   });
 
-  const [store] = useState<SegmentStoreApi>(() => createSegmentStore());
+  const isNoop = useSegments === useSegmentsNoop;
+  const [store] = useState<SegmentStoreApi>(() => createSegmentStore(isNoop ? "ready" : "initializing"));
 
   const phase = useStore(store, (s) => s.phase);
   const selectedSegment = useStore(store, (s) => s.selectedSegment);

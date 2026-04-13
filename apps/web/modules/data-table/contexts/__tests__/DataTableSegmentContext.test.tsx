@@ -60,11 +60,15 @@ vi.mock("../DataTableStateContext", () => ({
   }),
 }));
 
+const mockNoopIsSuccess = { value: false };
+
 vi.mock("../../hooks/useSegmentsNoop", () => ({
   useSegmentsNoop: () => ({
     segments: [],
     preferredSegmentId: null,
-    isSuccess: false,
+    get isSuccess() {
+      return mockNoopIsSuccess.value;
+    },
     setPreference: vi.fn(),
     isSegmentEnabled: false,
   }),
@@ -136,6 +140,7 @@ describe("DataTableSegmentContext", () => {
     mockState.segments = [];
     mockState.preferredSegmentId = null;
     mockState.isSegmentFetchedSuccessfully = false;
+    mockNoopIsSuccess.value = false;
   });
 
   afterEach(() => {
@@ -317,6 +322,21 @@ describe("DataTableSegmentContext", () => {
       expect(result.current.selectedSegment).toBeDefined();
       // setSegmentIdRaw should not have been called again
       expect(mockSetSegmentIdRaw).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("noop segments — immediate readiness", () => {
+    it("is immediately ready when useSegments is not provided (noop)", () => {
+      mockNoopIsSuccess.value = true;
+
+      function NoopWrapper({ children }: { children: React.ReactNode }) {
+        return <DataTableSegmentProvider>{children}</DataTableSegmentProvider>;
+      }
+
+      const { result } = renderHook(() => useDataTableSegment(), { wrapper: NoopWrapper });
+
+      // Should be ready on the very first render — no effect cycle needed
+      expect(result.current.isValidatorPending).toBe(false);
     });
   });
 

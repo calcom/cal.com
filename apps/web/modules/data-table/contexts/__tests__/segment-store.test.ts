@@ -43,6 +43,15 @@ describe("createSegmentStore", () => {
       expect(state.selectedSegment).toBeUndefined();
       expect(state.pendingSegment).toBeNull();
     });
+
+    it("starts in the provided initial phase when specified", () => {
+      const store = createSegmentStore("ready");
+      const state = store.getState();
+
+      expect(state.phase).toBe("ready");
+      expect(state.selectedSegment).toBeUndefined();
+      expect(state.pendingSegment).toBeNull();
+    });
   });
 
   describe("markReady", () => {
