@@ -139,6 +139,8 @@ export async function getCRMData(
   const crmLookupDone =
     (Array.isArray(crmLookupDoneParam) ? crmLookupDoneParam[0] : crmLookupDoneParam) === "true";
 
+  let pendingCrmTraceId: string | undefined;
+
   if (!crmLookupDone && (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug)) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
       "@calcom/features/ee/teams/lib/getTeamMemberEmailFromCrm"
@@ -148,6 +150,7 @@ export async function getCRMData(
       recordType,
       crmAppSlug: crmAppSlugQuery,
       recordId: crmRecordIdQuery,
+      pendingCrmTraceId: traceId,
     } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
       query,
       eventData,
@@ -157,6 +160,7 @@ export async function getCRMData(
     crmOwnerRecordType = recordType ?? undefined;
     crmAppSlug = crmAppSlugQuery ?? undefined;
     crmRecordId = crmRecordIdQuery ?? undefined;
+    pendingCrmTraceId = traceId ?? undefined;
   }
 
   return {
@@ -164,6 +168,7 @@ export async function getCRMData(
     crmOwnerRecordType,
     crmAppSlug,
     crmRecordId,
+    pendingCrmTraceId,
   };
 }
 

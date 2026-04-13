@@ -65,6 +65,7 @@ export const useHandleBookEvent = ({
   const crmOwnerRecordType = useBookerStoreContext((state) => state.crmOwnerRecordType);
   const crmAppSlug = useBookerStoreContext((state) => state.crmAppSlug);
   const crmRecordId = useBookerStoreContext((state) => state.crmRecordId);
+  const pendingCrmTraceId = useBookerStoreContext((state) => state.pendingCrmTraceId);
   const verificationCode = useBookerStoreContext((state) => state.verificationCode);
   const handleError = (err: unknown) => {
     const errorMessage = err instanceof Error ? t(err.message) : t("can_you_try_again");
@@ -113,6 +114,7 @@ export const useHandleBookEvent = ({
         crmOwnerRecordType,
         crmAppSlug,
         crmRecordId,
+        pendingCrmTraceId,
         orgSlug: orgSlug ? orgSlug : undefined,
         routingFormSearchParams,
         isDryRunProp: isBookingDryRun,

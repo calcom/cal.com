@@ -10,7 +10,7 @@ import { moduleLoader as routingTraceRepositoryModuleLoader } from "./RoutingTra
 
 const routingTraceContainer = createContainer();
 
-function getPendingRoutingTraceRepository(): IPendingRoutingTraceRepository {
+export function getPendingRoutingTraceRepository(): IPendingRoutingTraceRepository {
   pendingRoutingTraceRepositoryModuleLoader.loadModule(routingTraceContainer);
   return routingTraceContainer.get<IPendingRoutingTraceRepository>(
     pendingRoutingTraceRepositoryModuleLoader.token

@@ -54,7 +54,10 @@ import type { ITeamFeatureRepository } from "@calcom/features/flags/repositories
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { HashedLinkService } from "@calcom/features/hashedLink/lib/service/HashedLinkService";
 import type { IOrgMembershipRepository } from "@calcom/features/membership/repositories/PrismaOrgMembershipRepository";
-import { getRoutingTraceService } from "@calcom/features/routing-trace/di/RoutingTraceService.container";
+import {
+  getPendingRoutingTraceRepository,
+  getRoutingTraceService,
+} from "@calcom/features/routing-trace/di/RoutingTraceService.container";
 import { handleAnalyticsEvents } from "@calcom/features/tasker/tasks/analytics/handleAnalyticsEvents";
 import type { UserRepository } from "@calcom/features/users/repositories/UserRepository";
 import { UsersRepository } from "@calcom/features/users/users.repository";
@@ -1764,23 +1767,34 @@ async function handler(
         });
       }
 
-      // If it's a round robin event, record the reason for the host assignment
-      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && routingFormResponseId) {
-        try {
-          const routingTraceService = getRoutingTraceService();
-          const result = await routingTraceService.processForBooking({
-            formResponseId: routingFormResponseId,
-            bookingId: booking.id,
-            bookingUid: booking.uid,
-            organizerEmail: organizerUser.email,
-            isRerouting: !!reroutingFormResponses,
-            reroutedByEmail: reqBody.rescheduledBy,
-          });
-          if (result?.assignmentReason) {
-            assignmentReason = result.assignmentReason;
+      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+        if (routingFormResponseId) {
+          try {
+            const routingTraceService = getRoutingTraceService();
+            const result = await routingTraceService.processForBooking({
+              formResponseId: routingFormResponseId,
+              bookingId: booking.id,
+              bookingUid: booking.uid,
+              organizerEmail: organizerUser.email,
+              isRerouting: !!reroutingFormResponses,
+              reroutedByEmail: reqBody.rescheduledBy,
+            });
+            if (result?.assignmentReason) {
+              assignmentReason = result.assignmentReason;
+            }
+          } catch (error) {
+            criticalLogger.warn("Failed to process routing trace", { error });
           }
-        } catch (error) {
-          criticalLogger.warn("Failed to process routing trace", { error });
+        } else if (reqBody.pendingCrmTraceId) {
+          try {
+            const pendingTraceRepo = getPendingRoutingTraceRepository();
+            await pendingTraceRepo.promoteToBooking({
+              pendingTraceId: reqBody.pendingCrmTraceId,
+              bookingUid: booking.uid,
+            });
+          } catch (error) {
+            criticalLogger.warn("Failed to process direct-booking CRM trace", { error });
+          }
         }
       }
 

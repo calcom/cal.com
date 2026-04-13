@@ -291,6 +291,7 @@ export type StoreInitializeType = {
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
   crmRecordId?: string | null;
+  pendingCrmTraceId?: string | null;
   isPlatform?: boolean;
   allowUpdatingUrlParams?: boolean;
   defaultPhoneCountry?: CountryCode;
@@ -431,6 +432,7 @@ export type BookerStore = {
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
   crmRecordId?: string | null;
+  pendingCrmTraceId?: string | null;
   isPlatform?: boolean;
   allowUpdatingUrlParams?: boolean;
   defaultPhoneCountry?: CountryCode | null;
@@ -583,6 +585,7 @@ export const createBookerStore = () =>
       crmOwnerRecordType,
       crmAppSlug,
       crmRecordId,
+      pendingCrmTraceId,
       isPlatform = false,
       allowUpdatingUrlParams = true,
       defaultPhoneCountry,
@@ -603,7 +606,8 @@ export const createBookerStore = () =>
         get().teamMemberEmail === teamMemberEmail &&
         get().crmOwnerRecordType === crmOwnerRecordType &&
         get().crmAppSlug === crmAppSlug &&
-        get().crmRecordId === crmRecordId
+        get().crmRecordId === crmRecordId &&
+        get().pendingCrmTraceId === pendingCrmTraceId
       )
         return;
       let selectedDuration: number | null = get().selectedDuration;
@@ -640,6 +644,7 @@ export const createBookerStore = () =>
         crmOwnerRecordType,
         crmAppSlug,
         crmRecordId,
+        pendingCrmTraceId,
         isPlatform,
         allowUpdatingUrlParams,
         defaultPhoneCountry,
@@ -755,6 +760,7 @@ export const useInitializeBookerStore = ({
   crmOwnerRecordType,
   crmAppSlug,
   crmRecordId,
+  pendingCrmTraceId,
   isPlatform = false,
   allowUpdatingUrlParams = true,
   defaultPhoneCountry,
@@ -780,6 +786,7 @@ export const useInitializeBookerStore = ({
       crmOwnerRecordType,
       crmAppSlug,
       crmRecordId,
+      pendingCrmTraceId,
       isPlatform,
       allowUpdatingUrlParams,
       defaultPhoneCountry,
@@ -804,6 +811,7 @@ export const useInitializeBookerStore = ({
     crmOwnerRecordType,
     crmAppSlug,
     crmRecordId,
+    pendingCrmTraceId,
     isPlatform,
     allowUpdatingUrlParams,
     defaultPhoneCountry,

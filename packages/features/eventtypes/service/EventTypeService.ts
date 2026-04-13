@@ -619,7 +619,7 @@ export class EventTypeService {
       });
     }
 
-    await this.validateSalesforceFieldMappingsIfPresent(input.metadata);
+    await this.validateSalesforceFieldMappingsIfPresent(id, input.metadata);
 
     const updatedEventTypeSelect = {
       slug: true,
@@ -707,8 +707,13 @@ export class EventTypeService {
    * If the event type metadata contains Salesforce field mappings
    * (onBookingWriteToEventObjectMap), validates them against the actual
    * Salesforce org schema before allowing the save to proceed.
+   *
+   * Skips the network call when the mappings are unchanged from the DB.
+   * On transient connection/network errors, logs a warning and allows
+   * the save instead of blocking the user.
    */
   private async validateSalesforceFieldMappingsIfPresent(
+    eventTypeId: number,
     metadata: EventTypeUpdateInput["metadata"]
   ): Promise<void> {
     const sfApp = metadata?.apps?.salesforce;
@@ -721,6 +726,28 @@ export class EventTypeService {
 
     const hasTypedEntries = Object.values(eventObjectMap).some((v) => isWriteToBookingEntry(v));
     if (!hasTypedEntries) return;
+
+    const existing = await this.deps.eventTypeRepository.getMetadata(eventTypeId);
+    const existingMap = (existing as Record<string, unknown> | null)?.apps
+      ? ((existing as Record<string, Record<string, unknown>>).apps?.salesforce as Record<string, unknown>)
+          ?.onBookingWriteToEventObjectMap
+      : undefined;
+
+    const stableStringify = (obj: unknown): string => {
+      return JSON.stringify(obj, (_key, value) => {
+        if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+          const sorted: Record<string, unknown> = {};
+          for (const k of Object.keys(value).sort()) {
+            sorted[k] = (value as Record<string, unknown>)[k];
+          }
+          return sorted;
+        }
+        return value;
+      });
+    };
+    if (existingMap && stableStringify(existingMap) === stableStringify(eventObjectMap)) {
+      return;
+    }
 
     try {
       const conn = await createSalesforceConnection(credentialId);
@@ -735,7 +762,10 @@ export class EventTypeService {
       }
     } catch (err) {
       if (err instanceof TRPCError) throw err;
-      logger.warn("Salesforce field validation skipped due to connection error", { err });
+      logger.warn("Salesforce field validation skipped — connection error (token may need refresh)", {
+        credentialId,
+        err,
+      });
     }
   }
 

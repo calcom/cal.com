@@ -49,15 +49,14 @@ export const createSalesforceMock = () => {
     // Validated Query
     const query = composeQuery(parsedQuery);
 
-    // Simple SOQL parser
-    console.log({ query });
-    const fromMatch = query.match(/FROM\s+(\w+)/i);
+    // Use the parsed sObject directly — regex on the composed query can match
+    // subquery FROM clauses (e.g. "(SELECT Id FROM ChildAccounts)") instead of
+    // the main FROM clause.
+    const objectType = parsedQuery.sObject;
     const whereMatch = query.match(/WHERE\s+(.+?)(?:\s+LIMIT|\s+ORDER|\s*$)/i);
     const limitMatch = query.match(/LIMIT\s+(\d+)/i);
 
-    if (!fromMatch) return { records: [] };
-
-    const objectType = fromMatch[1];
+    if (!objectType) return { records: [] };
     const whereClause = whereMatch ? whereMatch[1] : null;
     const limit = limitMatch ? parseInt(limitMatch[1]) : Infinity;
 
@@ -83,7 +82,6 @@ export const createSalesforceMock = () => {
         return { records: [] };
     }
 
-    console.log({ whereClause });
     // Apply where clause filtering (basic implementation)
     if (whereClause) {
       if (whereClause.includes("Email =")) {

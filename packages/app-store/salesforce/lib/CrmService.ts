@@ -30,13 +30,11 @@ import type { Contact, CRM, CrmEvent } from "@calcom/types/CrmService";
 import type { Connection, Field, TokenResponse } from "@jsforce/jsforce-node";
 import jsforce from "@jsforce/jsforce-node";
 import { RRule } from "rrule";
-import { z } from "zod";
-import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
-import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
+import type { z } from "zod";
 import { findFieldValueByIdentifier } from "../../routing-forms/lib/findFieldValueByIdentifier";
 import { default as appMeta } from "../config.json";
 import type { appDataSchema, LastSyncError, RRSkipFieldRule, writeToRecordDataSchema } from "../zod";
-import { isWriteToBookingEntry, type WriteToBookingEntry, RRSkipFieldRuleActionEnum } from "../zod";
+import { isWriteToBookingEntry, RRSkipFieldRuleActionEnum, type WriteToBookingEntry } from "../zod";
 import {
   DateFieldTypeData,
   RoutingReasons,
@@ -44,9 +42,12 @@ import {
   SalesforceRecordEnum,
   WhenToWriteToRecord,
 } from "./enums";
+import { refreshSalesforceToken } from "./refresh-salesforce-token";
 import { PrismaAssignmentReasonRepository } from "./repositories/PrismaAssignmentReasonRepository";
 import { SalesforceRoutingTraceService } from "./tracing";
 import { extractBaseDomain } from "./utils/domain-normalization";
+import type { TiebreakerCandidate } from "./utils/tiebreaker";
+import { runTiebreakerWaterfall } from "./utils/tiebreaker";
 
 /**
  * Extended CRM interface with Salesforce-specific methods.
@@ -57,7 +58,8 @@ export interface SalesforceCRM extends CRM {
   findUserEmailFromLookupField(
     attendeeEmail: string,
     fieldName: string,
-    salesforceObject: SalesforceRecordEnum
+    salesforceObject: SalesforceRecordEnum,
+    hostFilterOptions?: { hostEmails?: Set<string>; eventTypeId?: number }
   ): Promise<{ email: string; recordType: RoutingReasons } | undefined>;
 
   incompleteBookingWriteToRecord(
@@ -69,7 +71,6 @@ export interface SalesforceCRM extends CRM {
 }
 
 import { getSalesforceAppKeys } from "./getSalesforceAppKeys";
-import { getSalesforceTokenLifetime } from "./getSalesforceTokenLifetime";
 import { SalesforceGraphQLClient } from "./graphql/SalesforceGraphQLClient";
 import { normalizeWebsiteUrl } from "./utils/domain-normalization";
 import getAllPossibleWebsiteValuesFromEmailDomain from "./utils/getAllPossibleWebsiteValuesFromEmailDomain";
@@ -87,6 +88,55 @@ type ExtendedTokenResponse = TokenResponse & {
 const sfApiErrors = {
   INVALID_EVENTWHOIDS: "INVALID_FIELD: No such column 'EventWhoIds' on sobject of type Event",
 };
+
+const ACCOUNT_BASE_FIELDS = [
+  "Id",
+  "Name",
+  "Website",
+  "RecordType.Name",
+  "OwnerId",
+  "Owner.Email",
+  "LastActivityDate",
+  "CreatedDate",
+  "(SELECT Id FROM ChildAccounts)",
+  "(SELECT Id FROM Opportunities)",
+  "(SELECT Id FROM Contacts)",
+].join(", ");
+
+type SalesforceSubQueryResult = {
+  totalSize: number;
+  done: boolean;
+  records: { Id: string }[];
+} | null;
+
+type AccountSoqlRecord = {
+  Id: string;
+  Name?: string;
+  Website?: string;
+  OwnerId?: string;
+  Owner?: { Email: string } | null;
+  RecordType: { Name: string } | null;
+  LastActivityDate?: string | null;
+  CreatedDate?: string | null;
+  ChildAccounts?: SalesforceSubQueryResult;
+  Opportunities?: SalesforceSubQueryResult;
+  Contacts?: SalesforceSubQueryResult;
+};
+
+function toTiebreakerCandidate(record: AccountSoqlRecord): TiebreakerCandidate {
+  return {
+    Id: record.Id,
+    Name: record.Name,
+    Website: record.Website,
+    OwnerId: record.OwnerId,
+    OwnerEmail: record.Owner?.Email,
+    ChildAccountCount: record.ChildAccounts?.totalSize ?? null,
+    OpportunityCount: record.Opportunities?.totalSize ?? null,
+    ContactCount: record.Contacts?.totalSize ?? null,
+    LastActivityDate: record.LastActivityDate ?? null,
+    CreatedDate: record.CreatedDate ?? null,
+  };
+}
 
 type ContactRecord = {
   Id?: string;
@@ -120,17 +170,6 @@ type SalesforceDuplicateError = {
 };
 
 type Attendee = { email: string; name: string };
-
-const salesforceTokenSchema = z.object({
-  id: z.string(),
-  issued_at: z.string(), // Salesforce returns this in milliseconds as a string
-  instance_url: z.string(),
-  signature: z.string(),
-  access_token: z.string(),
-  scope: z.string(),
-  token_type: z.string(),
-  token_lifetime: z.number().optional(), // Token lifetime in seconds (from introspection)
-});
 
 class SalesforceCRMService implements CRM {
   private integrationName = "";
@@ -209,56 +248,12 @@ class SalesforceCRMService implements CRM {
     forceIntrospection: boolean;
     existingTokenLifetime?: number;
   }) => {
-    const { consumer_key, consumer_secret } = await getSalesforceAppKeys();
-
-    const response = await fetch("https://login.salesforce.com/services/oauth2/token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        grant_type: "refresh_token",
-        client_id: consumer_key,
-        client_secret: consumer_secret,
-        refresh_token: refreshToken,
-      }),
+    return refreshSalesforceToken({
+      credentialId: this.credentialId,
+      refreshToken,
+      forceIntrospection,
+      existingTokenLifetime,
     });
-
-    if (!response.ok) {
-      const message = `${response.statusText}: ${JSON.stringify(await response.json())}`;
-      throw new Error(message);
-    }
-
-    const accessTokenJson = await response.json();
-    const accessTokenParsed = parseRefreshTokenResponse(accessTokenJson, salesforceTokenSchema);
-
-    // Introspect if forced or if we don't have a token_lifetime yet
-    let tokenLifetime = existingTokenLifetime;
-    if (forceIntrospection || !tokenLifetime) {
-      tokenLifetime = await getSalesforceTokenLifetime({
-        accessToken: accessTokenParsed.access_token,
-        instanceUrl: accessTokenParsed.instance_url,
-      });
-    }
-
-    // Update credential in database
-    const updatedKey = {
-      ...accessTokenParsed,
-      refresh_token: refreshToken,
-      token_lifetime: tokenLifetime,
-    };
-
-    await CredentialRepository.updateWhereId({
-      id: this.credentialId,
-      data: { key: updatedKey },
-    });
-
-    return {
-      accessToken: accessTokenParsed.access_token,
-      instanceUrl: accessTokenParsed.instance_url,
-      issuedAt: accessTokenParsed.issued_at,
-      tokenLifetime,
-    };
   };
 
   private getClient = async (credential: CredentialPayload) => {
@@ -490,6 +485,16 @@ class SalesforceCRMService implements CRM {
            "Setup > Feature Settings > Sales > Activity Settings" to be able to create events with
            multiple contact attendees.`
         );
+
+        if (hasCustomFields) {
+          SalesforceRoutingTraceService.syncError({
+            objectType: "Event",
+            operation: "create",
+            sfErrorCode: "INVALID_EVENTWHOIDS",
+            sfErrorMessage:
+              "Retrying with single WhoId — custom fields and OwnerId retained in retry payload",
+          });
+        }
 
         return await this.salesforceCreateEventApiCall(event, {
           WhoId: firstContact.id,
@@ -1202,13 +1207,14 @@ class SalesforceCRMService implements CRM {
     return this.doNotCreateEvent;
   }
 
-  private getAccountIdsByContactFrequency(contacts: { AccountId: string }[]): string[] {
+  private getContactFrequencyMap(contacts: { AccountId: string }[]): Map<string, number> {
     const counts = new Map<string, number>();
     for (const c of contacts) {
       counts.set(c.AccountId, (counts.get(c.AccountId) ?? 0) + 1);
     }
-    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).map(([id]) => id);
+    return counts;
   }
+
 
   private async createAttendeeRecord({
     attendee,
@@ -1478,11 +1484,9 @@ class SalesforceCRMService implements CRM {
     return websites.map((website) => `'${this.sanitizeSoqlValue(website)}'`).join(", ");
   }
 
-  private filterExcludedRecordTypes<T extends { Id: string; Name?: string; RecordType?: { Name: string } | null }>(
-    accounts: T[],
-    excludeRecordTypes: string[],
-    log: ReturnType<typeof logger.getSubLogger>
-  ): T[] {
+  private filterExcludedRecordTypes<
+    T extends { Id: string; Name?: string; RecordType?: { Name: string } | null },
+  >(accounts: T[], excludeRecordTypes: string[], log: ReturnType<typeof logger.getSubLogger>): T[] {
     if (excludeRecordTypes.length === 0) return accounts;
 
     const lowerExcluded = excludeRecordTypes.map((rt) => rt.toLowerCase());
@@ -1505,7 +1509,63 @@ class SalesforceCRMService implements CRM {
     });
   }
 
-  private async getAccountIdBasedOnEmailDomainOfContacts(email: string) {
+  /**
+   * Filters tiebreaker candidates to only those whose Salesforce owner is in the
+   * provided host email set, and deduplicates by owner email (keeps first account per owner).
+   * When hostEmails is empty/undefined, all candidates pass through (no filtering or dedup).
+   */
+  private filterAndDedupeByHostEligibility(
+    candidates: TiebreakerCandidate[],
+    hostEmails: Set<string> | undefined,
+    eventTypeId: number | undefined,
+    log: ReturnType<typeof logger.getSubLogger>
+  ): TiebreakerCandidate[] {
+    if (!hostEmails || hostEmails.size === 0) {
+      return candidates;
+    }
+
+    const eligible: TiebreakerCandidate[] = [];
+    const seen = new Set<string>();
+    const eligibleOwners: string[] = [];
+    const droppedCounts = new Map<string, number>();
+
+    for (const candidate of candidates) {
+      const ownerEmail = candidate.OwnerEmail?.toLowerCase() ?? "unknown";
+
+      if (ownerEmail === "unknown" || !hostEmails.has(ownerEmail)) {
+        if (ownerEmail !== "unknown") {
+          log.info("Candidate dropped — owner not a host", safeStringify({ accountId: candidate.Id, ownerEmail }));
+        }
+        droppedCounts.set(ownerEmail, (droppedCounts.get(ownerEmail) ?? 0) + 1);
+        continue;
+      }
+
+      if (seen.has(ownerEmail)) {
+        droppedCounts.set(`${ownerEmail} (dedup)`, (droppedCounts.get(`${ownerEmail} (dedup)`) ?? 0) + 1);
+        continue;
+      }
+      seen.add(ownerEmail);
+      eligibleOwners.push(ownerEmail);
+      eligible.push(candidate);
+    }
+
+    const totalDropped = candidates.length - eligible.length;
+    SalesforceRoutingTraceService.hostFilterSummary({
+      totalCandidates: candidates.length,
+      eligibleCount: eligible.length,
+      droppedCount: totalDropped,
+      eligibleOwners,
+      droppedOwners: Object.fromEntries(droppedCounts),
+      eventTypeId: eventTypeId ?? 0,
+    });
+
+    return eligible;
+  }
+
+  private async getAccountIdBasedOnEmailDomainOfContacts(
+    email: string,
+    options?: { hostEmails?: Set<string>; eventTypeId?: number }
+  ) {
     const conn = await this.conn;
     const emailDomain = email.split("@")[1]?.toLowerCase();
     if (!emailDomain) return undefined;
@@ -1524,37 +1584,53 @@ class SalesforceCRMService implements CRM {
 
     // Fast path: exact match against known URL variants of the email domain
     const accountQuery = await conn.query(
-      `SELECT Id, Name, Website, RecordType.Name FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
+      `SELECT ${ACCOUNT_BASE_FIELDS} FROM Account WHERE Website IN (${this.getAllPossibleAccountWebsiteFromEmailDomain(
         emailDomain
       )}) LIMIT 50`
     );
     if (accountQuery.records.length > 0) {
       const filtered = this.filterExcludedRecordTypes(
-        accountQuery.records as { Id: string; Name: string; Website: string; RecordType: { Name: string } | null }[],
+        accountQuery.records as AccountSoqlRecord[],
         excludeRecordTypes,
         log
       );
       if (filtered.length > 0) {
-        const account = filtered[0] as { Id: string; Website: string };
-        log.info(
-          "Found account based on email domain",
-          safeStringify({
-            emailDomain,
-            accountWebsite: account.Website,
-            accountId: account.Id,
-          })
-        );
-        SalesforceRoutingTraceService.accountFoundByWebsite({
-          accountId: account.Id,
-          website: account.Website,
-        });
-        return account.Id;
+        const mapped = filtered.map(toTiebreakerCandidate);
+        const eligible = this.filterAndDedupeByHostEligibility(mapped, options?.hostEmails, options?.eventTypeId, log);
+        if (eligible.length > 0) {
+          const { winner, decisiveRule } = runTiebreakerWaterfall(eligible, log);
+          log.info(
+            "Found account based on email domain",
+            safeStringify({
+              emailDomain,
+              accountWebsite: winner.Website,
+              accountId: winner.Id,
+            })
+          );
+          SalesforceRoutingTraceService.accountFoundByWebsite({
+            accountId: winner.Id,
+            website: winner.Website ?? "",
+          });
+          SalesforceRoutingTraceService.routingFinalSelection({
+            accountId: winner.Id,
+            ownerEmail: winner.OwnerEmail ?? "",
+            matchMethod: "exact_website",
+            decisiveRule,
+          });
+          return winner.Id;
+        }
       }
     }
 
     // Normalized fallback: catch Accounts with messy Website values (paths, ports, mixed case)
     // that the exact IN (...) query above missed.
-    const normalizedMatch = await this.findAccountByNormalizedWebsite(conn, emailDomain, excludeRecordTypes, log);
+    const normalizedMatch = await this.findAccountByNormalizedWebsite(
+      conn,
+      emailDomain,
+      excludeRecordTypes,
+      log,
+      options
+    );
     if (normalizedMatch) {
       return normalizedMatch;
     }
@@ -1572,51 +1648,117 @@ class SalesforceCRMService implements CRM {
     });
 
     const contactRecords = response.records as { AccountId: string }[];
-    const rankedAccountIds = this.getAccountIdsByContactFrequency(contactRecords);
+    const frequencyMap = this.getContactFrequencyMap(contactRecords);
+    const rankedAccountIds = Array.from(frequencyMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([id]) => id);
 
     if (rankedAccountIds.length > 0) {
       const excludedIds = new Set<string>();
 
-      if (excludeRecordTypes.length > 0) {
-        try {
-          const idList = rankedAccountIds.map((id) => `'${this.sanitizeSoqlValue(id)}'`).join(",");
-          const accountQuery = await conn.query(
-            `SELECT Id, Name, RecordType.Name FROM Account WHERE Id IN (${idList})`
-          );
-          const allAccounts = accountQuery.records as {
-            Id: string;
-            Name: string;
-            RecordType: { Name: string } | null;
-          }[];
-          const kept = this.filterExcludedRecordTypes(allAccounts, excludeRecordTypes, log);
-          const keptIds = new Set(kept.map((a) => a.Id));
-          for (const id of rankedAccountIds) {
-            if (!keptIds.has(id)) excludedIds.add(id);
-          }
-        } catch (error) {
-          log.error(
-            "Record type exclusion query failed for contact-domain accounts, skipping exclusion",
-            safeStringify({ error })
-          );
+      const idList = rankedAccountIds.map((id) => `'${this.sanitizeSoqlValue(id)}'`).join(",");
+      let soqlRecordsById: Map<string, AccountSoqlRecord>;
+      let batchQueryFailed = false;
+      try {
+        const accountQuery = await conn.query(
+          `SELECT ${ACCOUNT_BASE_FIELDS} FROM Account WHERE Id IN (${idList})`
+        );
+        const allAccounts = accountQuery.records as AccountSoqlRecord[];
+        soqlRecordsById = new Map(allAccounts.map((a) => [a.Id, a]));
+      } catch (error) {
+        log.error(
+          "Contact-domain account query failed, skipping tiebreaker enrichment",
+          safeStringify({ error })
+        );
+        soqlRecordsById = new Map();
+        batchQueryFailed = true;
+      }
+
+      if (excludeRecordTypes.length > 0 && !batchQueryFailed) {
+        const allAccounts = Array.from(soqlRecordsById.values());
+        const kept = this.filterExcludedRecordTypes(allAccounts, excludeRecordTypes, log);
+        const keptIds = new Set(kept.map((a) => a.Id));
+        for (const id of rankedAccountIds) {
+          if (!keptIds.has(id)) excludedIds.add(id);
         }
       }
 
+      const processedTierIds = new Set<string>();
+
       for (const candidateId of rankedAccountIds) {
-        if (excludedIds.has(candidateId)) {
-          log.info("Contact-domain account excluded by Record Type, trying next", safeStringify({ accountId: candidateId }));
+        if (excludedIds.has(candidateId) || processedTierIds.has(candidateId)) {
+          if (excludedIds.has(candidateId)) {
+            log.info(
+              "Contact-domain account excluded by Record Type, trying next",
+              safeStringify({ accountId: candidateId })
+            );
+          }
           continue;
         }
 
-        log.info("Found account based on other contacts", safeStringify({ accountId: candidateId }));
-        const contactsUnderAccount = contactRecords.filter((r) => r.AccountId === candidateId);
-        SalesforceRoutingTraceService.accountSelectedByMostContacts({
-          accountId: candidateId,
-          contactCount: contactsUnderAccount.length,
+        const soqlRecord = soqlRecordsById.get(candidateId);
+        const contactCount = frequencyMap.get(candidateId) ?? 0;
+
+        if (!soqlRecord) {
+          log.info("Found account based on other contacts", safeStringify({ accountId: candidateId }));
+          SalesforceRoutingTraceService.accountSelectedByMostContacts({
+            accountId: candidateId,
+            contactCount,
+          });
+          SalesforceRoutingTraceService.routingFinalSelection({
+            accountId: candidateId,
+            ownerEmail: "",
+            matchMethod: "contact_domain",
+            decisiveRule: "contact_frequency",
+          });
+          return candidateId;
+        }
+
+        const sameFrequency = rankedAccountIds.filter((id) => {
+          if (excludedIds.has(id)) return false;
+          return (frequencyMap.get(id) ?? 0) === contactCount;
         });
-        return candidateId;
+
+        // Mark all IDs in this frequency tier as processed so we don't
+        // reprocess them on subsequent iterations of the outer loop.
+        for (const id of sameFrequency) {
+          processedTierIds.add(id);
+        }
+
+        const allCandidates = (sameFrequency.length > 1 ? sameFrequency : [candidateId])
+          .map((id) => soqlRecordsById.get(id))
+          .filter((a): a is AccountSoqlRecord => a != null)
+          .map(toTiebreakerCandidate);
+
+        const eligible = this.filterAndDedupeByHostEligibility(
+          allCandidates,
+          options?.hostEmails,
+          options?.eventTypeId,
+          log
+        );
+
+        if (eligible.length > 0) {
+          const { winner, decisiveRule } = runTiebreakerWaterfall(eligible, log);
+          log.info("Found account based on other contacts", safeStringify({ accountId: winner.Id }));
+          SalesforceRoutingTraceService.accountSelectedByMostContacts({
+            accountId: winner.Id,
+            contactCount,
+          });
+          SalesforceRoutingTraceService.routingFinalSelection({
+            accountId: winner.Id,
+            ownerEmail: winner.OwnerEmail ?? "",
+            matchMethod: "contact_domain",
+            decisiveRule,
+          });
+          return winner.Id;
+        }
+
+        // Host filter dropped all candidates in this frequency tier;
+        // continue to the next lower-frequency tier instead of breaking.
       }
     }
 
+    // Cross-TLD fuzzy matching: "acme.co.uk" email matches Account with Website "acme.com"
     const perCredentialToggle = appOptions.enableFuzzyDomainMatching === true;
 
     let globalFlagEnabled = false;
@@ -1632,17 +1774,16 @@ class SalesforceCRMService implements CRM {
     const isFuzzyMatchingEnabled = globalFlagEnabled && perCredentialToggle;
 
     if (isFuzzyMatchingEnabled) {
-      const fuzzyMatch = await this.fuzzyMatchAccountByDomain(conn, email, excludeRecordTypes, log);
+      const fuzzyMatch = await this.fuzzyMatchAccountByDomain(conn, email, excludeRecordTypes, log, options);
       if (fuzzyMatch) return fuzzyMatch;
     }
 
     log.info("No account found");
-    SalesforceRoutingTraceService.noAccountFound({
-      email,
-      reason: isFuzzyMatchingEnabled
-        ? "No account found by website, contact domain, or fuzzy match"
-        : "No account found by website or contact domain",
-    });
+    const noMatchReason = isFuzzyMatchingEnabled
+      ? "No account found by website, contact domain, or fuzzy match"
+      : "No account found by website or contact domain";
+    SalesforceRoutingTraceService.noAccountFound({ email, reason: noMatchReason });
+    SalesforceRoutingTraceService.routingFallbackRoundRobin({ reason: noMatchReason });
 
     return undefined;
   }
@@ -1662,43 +1803,58 @@ class SalesforceCRMService implements CRM {
     conn: Connection,
     emailDomain: string,
     excludeRecordTypes: string[],
-    log: ReturnType<typeof logger.getSubLogger>
+    log: ReturnType<typeof logger.getSubLogger>,
+    hostFilterOptions?: { hostEmails?: Set<string>; eventTypeId?: number }
   ): Promise<string | undefined> {
     const sanitizedDomain = this.sanitizeSoqlLikeValue(emailDomain);
 
-    let candidates: { Id: string; Name?: string; Website: string; RecordType?: { Name: string } | null }[];
+    let soqlRecords: AccountSoqlRecord[];
     try {
       const broadQuery = await conn.query(
-        `SELECT Id, Name, Website, RecordType.Name FROM Account WHERE Website LIKE '%${sanitizedDomain}%' LIMIT 50`
+        `SELECT ${ACCOUNT_BASE_FIELDS} FROM Account WHERE Website LIKE '%${sanitizedDomain}%' LIMIT 50`
       );
       if (broadQuery.records.length === 0) return undefined;
-      candidates = broadQuery.records as typeof candidates;
+      soqlRecords = broadQuery.records as AccountSoqlRecord[];
     } catch (error) {
       log.error("Normalized website SOQL failed, falling through to next step", safeStringify({ error }));
       return undefined;
     }
 
-    const filtered = this.filterExcludedRecordTypes(candidates, excludeRecordTypes, log);
+    const filtered = this.filterExcludedRecordTypes(soqlRecords, excludeRecordTypes, log);
 
-    const match = filtered.find(
-      (account) => normalizeWebsiteUrl(account.Website) === emailDomain.toLowerCase()
+    const normalizedMapped = filtered
+      .filter((account) => normalizeWebsiteUrl(account.Website ?? "") === emailDomain.toLowerCase())
+      .map(toTiebreakerCandidate);
+
+    const normalizedMatches = this.filterAndDedupeByHostEligibility(
+      normalizedMapped,
+      hostFilterOptions?.hostEmails,
+      hostFilterOptions?.eventTypeId,
+      log
     );
 
-    if (match) {
+    if (normalizedMatches.length > 0) {
+      const { winner, decisiveRule } = runTiebreakerWaterfall(normalizedMatches, log);
       log.info(
         "Found account by normalized website",
         safeStringify({
           emailDomain,
-          rawWebsite: match.Website,
-          normalizedWebsite: normalizeWebsiteUrl(match.Website),
-          accountId: match.Id,
+          rawWebsite: winner.Website,
+          normalizedWebsite: normalizeWebsiteUrl(winner.Website ?? ""),
+          accountId: winner.Id,
         })
       );
       SalesforceRoutingTraceService.accountFoundByWebsite({
-        accountId: match.Id,
-        website: match.Website,
+        accountId: winner.Id,
+        website: winner.Website ?? "",
       });
-      return match.Id;
+      SalesforceRoutingTraceService.routingFinalSelection({
+        accountId: winner.Id,
+        ownerEmail: winner.OwnerEmail ?? "",
+        matchMethod: "normalized_website",
+        decisiveRule,
+      });
+      return winner.Id;
     }
 
     log.debug(
@@ -1721,7 +1877,8 @@ class SalesforceCRMService implements CRM {
     conn: Connection,
     email: string,
     excludeRecordTypes: string[],
-    log: ReturnType<typeof logger.getSubLogger>
+    log: ReturnType<typeof logger.getSubLogger>,
+    hostFilterOptions?: { hostEmails?: Set<string>; eventTypeId?: number }
   ): Promise<string | undefined> {
     try {
       const emailDomain = email.split("@")[1]?.toLowerCase();
@@ -1771,32 +1928,27 @@ class SalesforceCRMService implements CRM {
       }
 
       const sanitizedBase = this.sanitizeSoqlLikeValue(emailBaseDomain.baseDomain);
-      const soql = `SELECT Id, Name, Website, RecordType.Name FROM Account WHERE Website LIKE '%${sanitizedBase}%' LIMIT 100`;
+      const soql = `SELECT ${ACCOUNT_BASE_FIELDS} FROM Account WHERE Website LIKE '%${sanitizedBase}%' LIMIT 100`;
       log.info("Fuzzy match SOQL query", safeStringify({ baseDomain: emailBaseDomain.baseDomain }));
 
       const broadQuery = await conn.query(soql);
-      const rawCandidates = broadQuery.records as {
-        Id: string;
-        Name?: string;
-        Website: string;
-        RecordType?: { Name: string } | null;
-      }[];
+      const rawSoqlRecords = broadQuery.records as AccountSoqlRecord[];
 
-      const baseDomainMatches = rawCandidates.filter((account) => {
-        const accountBase = extractBaseDomain(account.Website);
+      const baseDomainMatches = rawSoqlRecords.filter((account) => {
+        const accountBase = extractBaseDomain(account.Website ?? "");
         return accountBase?.baseDomain === emailBaseDomain.baseDomain;
       });
 
-      const matches = this.filterExcludedRecordTypes(baseDomainMatches, excludeRecordTypes, log);
+      const afterExclusion = this.filterExcludedRecordTypes(baseDomainMatches, excludeRecordTypes, log);
 
       SalesforceRoutingTraceService.fuzzyMatchSoqlResults({
         baseDomain: emailBaseDomain.baseDomain,
-        rawCount: rawCandidates.length,
+        rawCount: rawSoqlRecords.length,
         baseDomainMatchCount: baseDomainMatches.length,
-        afterExclusionCount: matches.length,
+        afterExclusionCount: afterExclusion.length,
       });
 
-      if (matches.length === 0) {
+      if (afterExclusion.length === 0) {
         log.info("Fuzzy match — no accounts matched after base domain filter");
         SalesforceRoutingTraceService.fuzzyMatchNoResult({
           email,
@@ -1806,21 +1958,36 @@ class SalesforceCRMService implements CRM {
         return undefined;
       }
 
-      // Stable sort by Id so multi-match results are deterministic across invocations.
-      // Full tiebreaker waterfall (size, recency, geo) replaces this in PR 5.
-      matches.sort((a, b) => a.Id.localeCompare(b.Id));
+      const mapped = afterExclusion.map(toTiebreakerCandidate);
+      const candidates = this.filterAndDedupeByHostEligibility(
+        mapped,
+        hostFilterOptions?.hostEmails,
+        hostFilterOptions?.eventTypeId,
+        log
+      );
+
+      if (candidates.length === 0) {
+        log.info("Fuzzy match — all candidates dropped by host filter");
+        SalesforceRoutingTraceService.fuzzyMatchNoResult({
+          email,
+          baseDomain: emailBaseDomain.baseDomain,
+          reason: "All matching accounts dropped — owners are not event type hosts",
+        });
+        return undefined;
+      }
 
       const isExactRegistrableDomain =
-        matches.length === 1 &&
-        extractBaseDomain(matches[0].Website)?.registrableDomain === emailBaseDomain.registrableDomain;
+        candidates.length === 1 &&
+        extractBaseDomain(candidates[0].Website ?? "")?.registrableDomain ===
+          emailBaseDomain.registrableDomain;
 
       const confidence: "exact" | "fuzzy_single" | "fuzzy_tiebreak" = isExactRegistrableDomain
         ? "exact"
-        : matches.length === 1
+        : candidates.length === 1
           ? "fuzzy_single"
           : "fuzzy_tiebreak";
 
-      const winner = matches[0];
+      const { winner, decisiveRule } = runTiebreakerWaterfall(candidates, log);
 
       log.info(
         "Fuzzy match found",
@@ -1828,14 +1995,22 @@ class SalesforceCRMService implements CRM {
           accountId: winner.Id,
           accountWebsite: winner.Website,
           confidence,
-          candidateCount: matches.length,
+          candidateCount: candidates.length,
+          decisiveRule,
         })
       );
 
       SalesforceRoutingTraceService.fuzzyMatchResult({
         accountId: winner.Id,
-        accountWebsite: winner.Website,
+        accountWebsite: winner.Website ?? "",
         confidence,
+      });
+
+      SalesforceRoutingTraceService.routingFinalSelection({
+        accountId: winner.Id,
+        ownerEmail: winner.OwnerEmail ?? "",
+        matchMethod: "fuzzy_match",
+        decisiveRule,
       });
 
       return winner.Id;
@@ -2457,7 +2632,8 @@ class SalesforceCRMService implements CRM {
   async findUserEmailFromLookupField(
     attendeeEmail: string,
     fieldName: string,
-    salesforceObject: SalesforceRecordEnum
+    salesforceObject: SalesforceRecordEnum,
+    hostFilterOptions?: { hostEmails?: Set<string>; eventTypeId?: number }
   ) {
     const conn = await this.conn;
 
@@ -2469,7 +2645,7 @@ class SalesforceCRMService implements CRM {
     const lookupField = existingFields[0];
 
     if (salesforceObject === SalesforceRecordEnum.ACCOUNT) {
-      const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail);
+      const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail, hostFilterOptions);
 
       SalesforceRoutingTraceService.lookupFieldQuery({
         fieldName,

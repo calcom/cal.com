@@ -252,13 +252,51 @@ export class SalesforceRoutingTraceService {
     SalesforceRoutingTraceService.addStep("fuzzy_match_no_result", data);
   }
 
+  // ===== Host Filtering =====
+
+  static hostFilterSummary(data: {
+    totalCandidates: number;
+    eligibleCount: number;
+    droppedCount: number;
+    eligibleOwners: string[];
+    droppedOwners: Record<string, number>;
+    eventTypeId: number;
+  }): void {
+    SalesforceRoutingTraceService.addStep("host_filter_summary", data);
+  }
+
+  // ===== Tiebreaker Waterfall =====
+
+  static tiebreakerStarted(data: { candidateCount: number; candidateIds: string[] }): void {
+    SalesforceRoutingTraceService.addStep("tiebreaker_started", data);
+  }
+
+  static tiebreakerStep(data: { ruleName: string; candidatesBefore: number; candidatesAfter: number }): void {
+    SalesforceRoutingTraceService.addStep("tiebreaker_step", data);
+  }
+
+  static tiebreakerWinner(data: { accountId: string; accountName: string; decisiveRule: string }): void {
+    SalesforceRoutingTraceService.addStep("tiebreaker_winner", data);
+  }
+
+  // ===== Routing Decision =====
+
+  static routingFinalSelection(data: {
+    accountId: string;
+    ownerEmail: string;
+    matchMethod: string;
+    decisiveRule: string;
+  }): void {
+    SalesforceRoutingTraceService.addStep("routing_final_selection", data);
+  }
+
+  static routingFallbackRoundRobin(data: { reason: string }): void {
+    SalesforceRoutingTraceService.addStep("routing_fallback_round_robin", data);
+  }
+
   // ===== Record Type Exclusion =====
 
-  static recordTypeExcluded(data: {
-    accountId: string;
-    accountName: string;
-    recordType: string;
-  }): void {
+  static recordTypeExcluded(data: { accountId: string; accountName: string; recordType: string }): void {
     SalesforceRoutingTraceService.addStep("record_type_excluded", data);
   }
 

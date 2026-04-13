@@ -562,14 +562,15 @@ describe("SalesforceRoutingTraceService", () => {
           SalesforceRoutingTraceService.fuzzyMatchSoqlResults({
             baseDomain: "acme",
             rawCount: 12,
-            filteredCount: 3,
+            baseDomainMatchCount: 3,
+            afterExclusionCount: 2,
           });
         });
 
         expect(addStepSpy).toHaveBeenCalledWith({
           domain: "salesforce",
           step: "fuzzy_match_soql_results",
-          data: { baseDomain: "acme", rawCount: 12, filteredCount: 3 },
+          data: { baseDomain: "acme", rawCount: 12, baseDomainMatchCount: 3, afterExclusionCount: 2 },
         });
       });
 
@@ -578,14 +579,15 @@ describe("SalesforceRoutingTraceService", () => {
           SalesforceRoutingTraceService.fuzzyMatchSoqlResults({
             baseDomain: "unknown",
             rawCount: 0,
-            filteredCount: 0,
+            baseDomainMatchCount: 0,
+            afterExclusionCount: 0,
           });
         });
 
         expect(addStepSpy).toHaveBeenCalledWith({
           domain: "salesforce",
           step: "fuzzy_match_soql_results",
-          data: { baseDomain: "unknown", rawCount: 0, filteredCount: 0 },
+          data: { baseDomain: "unknown", rawCount: 0, baseDomainMatchCount: 0, afterExclusionCount: 0 },
         });
       });
     });

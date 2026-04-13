@@ -18,8 +18,12 @@ describe("RoutingTraceService", () => {
   function createMockPendingRoutingTraceRepository(): IPendingRoutingTraceRepository {
     return {
       create: vi.fn(),
+      findById: vi.fn(),
       findByFormResponseId: vi.fn(),
       findByQueuedFormResponseId: vi.fn(),
+      linkToFormResponse: vi.fn(),
+      appendSteps: vi.fn().mockResolvedValue(true),
+      promoteToBooking: vi.fn(),
     };
   }
 

@@ -90,9 +90,10 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
         result[key] = val;
       } else {
         legacyDetected = true;
+        const isBool = typeof val === "boolean";
         result[key] = {
-          value: typeof val === "boolean" ? val : String(val ?? ""),
-          fieldType: typeof val === "boolean" ? SalesforceFieldType.CHECKBOX : SalesforceFieldType.TEXT,
+          value: isBool ? val : String(val ?? ""),
+          fieldType: isBool ? SalesforceFieldType.CHECKBOX : SalesforceFieldType.TEXT,
           whenToWrite: WhenToWriteToRecord.EVERY_BOOKING,
         };
       }
@@ -371,6 +372,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({
             </div>
           </Section.SubSectionContent>
         </Section.SubSection>
+
 
         {eventType.schedulingType === SchedulingType.ROUND_ROBIN ? (
           <>

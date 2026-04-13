@@ -9,7 +9,8 @@ import { EventTypeService } from "./eventTypeService";
 const routingFormBookingFormHandler = async (
   attendeeEmail: string,
   attributeRoutingConfig: AttributeRoutingConfig,
-  eventTypeId: number
+  eventTypeId: number,
+  options?: { hostEmails?: Set<string> }
 ) => {
   const salesforceSettings = attributeRoutingConfig?.salesforce;
 
@@ -28,12 +29,13 @@ const routingFormBookingFormHandler = async (
 
   if (!credential) return { email: null, recordType: null, recordId: null };
 
-  const crm = createSalesforceCrmServiceWithSalesforceType(credential, {});
+  const crm = createSalesforceCrmServiceWithSalesforceType(credential, appData);
 
   const userLookupEmail = await crm.findUserEmailFromLookupField(
     attendeeEmail,
     salesforceSettings.rrSKipToAccountLookupFieldName,
-    SalesforceRecordEnum.ACCOUNT
+    SalesforceRecordEnum.ACCOUNT,
+    { hostEmails: options?.hostEmails, eventTypeId }
   );
 
   return {

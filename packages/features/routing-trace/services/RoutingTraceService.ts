@@ -61,6 +61,11 @@ export class RoutingTraceService {
     return this.routingTraceSteps.length;
   }
 
+  /** Get the collected trace steps (for direct-booking trace persistence) */
+  getCollectedSteps(): RoutingStep[] {
+    return [...this.routingTraceSteps];
+  }
+
   /** To be called by the domain specific routing trace services */
   addStep({ domain, step, data = {} }: { domain: string; step: string; data?: Record<string, unknown> }) {
     this.routingTraceSteps.push({ domain, step, timestamp: Date.now(), data });
@@ -72,6 +77,15 @@ export class RoutingTraceService {
       trace: this.routingTraceSteps,
       ...args,
     });
+  }
+
+  /** Append CRM trace steps to an existing pending trace (routing form → CRM lookup flow) */
+  async appendStepsToPendingTrace(
+    lookup: { formResponseId: number } | { queuedFormResponseId: string },
+    steps: RoutingStep[]
+  ): Promise<boolean> {
+    if (steps.length === 0) return false;
+    return this.deps.pendingRoutingTraceRepository.appendSteps(lookup, steps);
   }
 
   /**

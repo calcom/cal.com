@@ -34,7 +34,8 @@ export const getRoutingTraceHandler = async ({ ctx, input }: Options) => {
   const traceRecord = await repository.findByBookingUid(input.bookingUid);
 
   if (traceRecord) {
-    return { steps: RoutingTracePresenter.present(traceRecord.trace) };
+    const steps = RoutingTracePresenter.present(traceRecord.trace);
+    return { steps, groups: RoutingTracePresenter.groupByRound(steps) };
   }
 
   // Fall back to PendingRoutingTrace via the booking's form response
@@ -45,8 +46,9 @@ export const getRoutingTraceHandler = async ({ ctx, input }: Options) => {
 
   if (formResponse?.pendingRoutingTrace?.trace) {
     const trace = formResponse.pendingRoutingTrace.trace as unknown as RoutingTrace;
-    return { steps: RoutingTracePresenter.present(trace) };
+    const steps = RoutingTracePresenter.present(trace);
+    return { steps, groups: RoutingTracePresenter.groupByRound(steps) };
   }
 
-  return { steps: [] };
+  return { steps: [], groups: [] };
 };

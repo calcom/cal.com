@@ -98,7 +98,7 @@ const optionalBooleanOnlyRunTimeValidation = z
 export const lastSyncErrorSchema = z.object({
   timestamp: z.string(),
   errorCode: z.string(),
-  errorMessage: z.string(),
+  errorMessage: z.union([z.string(), z.record(z.unknown()).transform((obj) => JSON.stringify(obj))]),
   droppedFields: z.array(z.string()).optional(),
 });
 

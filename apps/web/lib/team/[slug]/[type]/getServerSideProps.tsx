@@ -179,6 +179,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const crmOwnerRecordType = crmResult?.recordType ?? crmOwnerRecordTypeStr;
   const crmAppSlug = crmResult?.crmAppSlug ?? crmAppSlugStr;
   const crmRecordId = crmResult?.recordId ?? crmRecordIdStr;
+  const pendingCrmTraceId = crmResult?.pendingCrmTraceId ?? undefined;
 
   const organizationSettings = getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
@@ -235,6 +236,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       crmOwnerRecordType,
       crmAppSlug,
       crmRecordId,
+      pendingCrmTraceId,
       isSEOIndexable: allowSEOIndexing,
     },
   };

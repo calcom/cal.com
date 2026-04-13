@@ -2062,6 +2062,14 @@ export class EventTypeRepository implements IEventTypesRepository {
     });
   }
 
+  async getMetadata(eventTypeId: number): Promise<Prisma.JsonValue> {
+    const result = await this.prismaClient.eventType.findUnique({
+      where: { id: eventTypeId },
+      select: { metadata: true },
+    });
+    return result?.metadata ?? null;
+  }
+
   async updateById({
     id,
     data,

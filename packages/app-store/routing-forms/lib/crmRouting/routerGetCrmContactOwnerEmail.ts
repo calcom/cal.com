@@ -70,10 +70,12 @@ export default async function routerGetCrmContactOwnerEmail({
         const appHandler =
           appBookingFormHandler[appSlug as keyof typeof appBookingFormHandler];
 
+        const hostEmails = new Set(eventType.hosts.map((h) => h.user.email.toLowerCase()));
         const ownerQuery = await appHandler(
           prospectEmail,
           attributeRoutingConfig,
-          eventTypeId
+          eventTypeId,
+          { hostEmails }
         );
 
         if (ownerQuery?.email) {

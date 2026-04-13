@@ -53,6 +53,7 @@ export const useInitializeBookerStoreContext = ({
   crmOwnerRecordType,
   crmAppSlug,
   crmRecordId,
+  pendingCrmTraceId,
   isPlatform = false,
   allowUpdatingUrlParams = true,
 }: StoreInitializeType) => {
@@ -84,6 +85,7 @@ export const useInitializeBookerStoreContext = ({
       crmOwnerRecordType,
       crmAppSlug,
       crmRecordId,
+      pendingCrmTraceId,
       isPlatform,
       allowUpdatingUrlParams,
     });
@@ -107,6 +109,7 @@ export const useInitializeBookerStoreContext = ({
     crmOwnerRecordType,
     crmAppSlug,
     crmRecordId,
+    pendingCrmTraceId,
     isPlatform,
     allowUpdatingUrlParams,
   ]);

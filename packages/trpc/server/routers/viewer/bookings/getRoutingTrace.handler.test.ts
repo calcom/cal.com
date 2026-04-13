@@ -108,7 +108,7 @@ describe("getRoutingTraceHandler", () => {
       });
       expect(mockRepository.findByBookingUid).toHaveBeenCalledWith("booking-uid-123");
       expect(RoutingTracePresenter.present).toHaveBeenCalledWith(trace);
-      expect(result).toEqual({ steps: presentedSteps });
+      expect(result).toEqual(expect.objectContaining({ steps: presentedSteps }));
       expect(prisma.app_RoutingForms_FormResponse.findFirst).not.toHaveBeenCalled();
     });
   });
@@ -157,7 +157,7 @@ describe("getRoutingTraceHandler", () => {
         include: { pendingRoutingTrace: true },
       });
       expect(RoutingTracePresenter.present).toHaveBeenCalledWith(pendingTrace);
-      expect(result).toEqual({ steps: presentedSteps });
+      expect(result).toEqual(expect.objectContaining({ steps: presentedSteps }));
     });
 
     it("should return empty steps when form response has no pending trace", async () => {
@@ -178,7 +178,7 @@ describe("getRoutingTraceHandler", () => {
       expect(mockRepository.findByBookingUid).toHaveBeenCalledWith("booking-uid-789");
       expect(prisma.app_RoutingForms_FormResponse.findFirst).toHaveBeenCalled();
       expect(RoutingTracePresenter.present).not.toHaveBeenCalled();
-      expect(result).toEqual({ steps: [] });
+      expect(result).toEqual({ steps: [], groups: [] });
     });
 
     it("should return empty steps when form response does not exist", async () => {
@@ -196,7 +196,7 @@ describe("getRoutingTraceHandler", () => {
         include: { pendingRoutingTrace: true },
       });
       expect(RoutingTracePresenter.present).not.toHaveBeenCalled();
-      expect(result).toEqual({ steps: [] });
+      expect(result).toEqual({ steps: [], groups: [] });
     });
 
     it("should return empty steps when pending trace has no trace data", async () => {
@@ -217,7 +217,7 @@ describe("getRoutingTraceHandler", () => {
         input: { bookingUid: "booking-uid-111" },
       });
 
-      expect(result).toEqual({ steps: [] });
+      expect(result).toEqual({ steps: [], groups: [] });
       expect(RoutingTracePresenter.present).not.toHaveBeenCalled();
     });
   });
@@ -243,7 +243,7 @@ describe("getRoutingTraceHandler", () => {
       });
 
       expect(RoutingTracePresenter.present).toHaveBeenCalledWith([]);
-      expect(result).toEqual({ steps: [] });
+      expect(result).toEqual(expect.objectContaining({ steps: [] }));
     });
   });
 });
