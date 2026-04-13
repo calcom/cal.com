@@ -12,12 +12,13 @@ import { ChartCard, ChartCardItem } from "../ChartCard";
 export const RecentNoShowGuestsChart = () => {
   const { t } = useLocale();
   const { copyToClipboard, isCopied } = useCopy();
-  const insightsBookingParams = useInsightsBookingParameters();
+  const { isReady, ...insightsBookingParams } = useInsightsBookingParameters();
   const timeZone = insightsBookingParams.timeZone;
 
   const { data, isSuccess, isPending, isError } = trpc.viewer.insights.recentNoShowGuests.useQuery(
     insightsBookingParams,
     {
+      enabled: isReady,
       staleTime: 180000,
       refetchOnWindowFocus: false,
       trpc: {

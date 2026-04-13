@@ -48,6 +48,7 @@ describe("useInsightsBookingParameters", () => {
     mockUseInsightsOrgTeams.mockReturnValue({
       scope: "user",
       selectedTeamId: undefined,
+      isSessionReady: true,
     });
     mockUseDataTable.mockReturnValue({ timeZone: "UTC" });
     mockUseColumnFilters.mockReturnValue([]);
@@ -102,6 +103,7 @@ describe("useInsightsBookingParameters", () => {
     mockUseInsightsOrgTeams.mockReturnValue({
       scope: "team",
       selectedTeamId: 42,
+      isSessionReady: true,
     });
     const { result } = renderHook(() => useInsightsBookingParameters());
     expect(result.current.scope).toBe("team");
@@ -118,5 +120,39 @@ describe("useInsightsBookingParameters", () => {
     mockUseDataTable.mockReturnValue({ timeZone: "" });
     const { result } = renderHook(() => useInsightsBookingParameters());
     expect(result.current.timeZone).toBe("America/New_York");
+  });
+
+  it("should return isReady=false when session is not ready", () => {
+    mockUseInsightsOrgTeams.mockReturnValue({
+      scope: "user",
+      selectedTeamId: undefined,
+      isSessionReady: false,
+    });
+    const { result } = renderHook(() => useInsightsBookingParameters());
+    expect(result.current.isReady).toBe(false);
+  });
+
+  it("should return isReady=false when no date range filter exists", () => {
+    mockUseColumnFilters.mockReturnValue([]);
+    const { result } = renderHook(() => useInsightsBookingParameters());
+    expect(result.current.isReady).toBe(false);
+  });
+
+  it("should return isReady=true when session is ready and date range filter exists", () => {
+    mockUseColumnFilters.mockReturnValue([
+      {
+        id: "startTime",
+        value: {
+          type: ColumnFilterType.DATE_RANGE,
+          data: {
+            startDate: "2025-06-01",
+            endDate: "2025-06-30",
+            preset: "custom",
+          },
+        },
+      },
+    ]);
+    const { result } = renderHook(() => useInsightsBookingParameters());
+    expect(result.current.isReady).toBe(true);
   });
 });

@@ -94,11 +94,12 @@ const CustomTooltip = ({
 
 export const BookingsByHourChart = () => {
   const { t } = useLocale();
-  const insightsBookingParams = useInsightsBookingParameters();
+  const { isReady, ...insightsBookingParams } = useInsightsBookingParameters();
 
   const { data, isSuccess, isPending, isError } = trpc.viewer.insights.bookingsByHourStats.useQuery(
     insightsBookingParams,
     {
+      enabled: isReady,
       staleTime: 180000,
       refetchOnWindowFocus: false,
       trpc: {

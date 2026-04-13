@@ -50,7 +50,7 @@ const CustomTooltip = ({
 
 export const CSATOverTimeChart = () => {
   const { t } = useLocale();
-  const insightsBookingParams = useInsightsBookingParameters();
+  const { isReady, ...insightsBookingParams } = useInsightsBookingParameters();
 
   const {
     data: csatData,
@@ -58,6 +58,7 @@ export const CSATOverTimeChart = () => {
     isPending,
     isError,
   } = trpc.viewer.insights.csatOverTime.useQuery(insightsBookingParams, {
+    enabled: isReady,
     staleTime: 180000,
     refetchOnWindowFocus: false,
     trpc: {

@@ -9,11 +9,12 @@ import { UserStatsTable } from "../UserStatsTable";
 
 export const LowestRatedMembersTable = () => {
   const { t } = useLocale();
-  const insightsBookingParams = useInsightsBookingParameters();
+  const { isReady, ...insightsBookingParams } = useInsightsBookingParameters();
 
   const { data, isSuccess, isPending, isError } = trpc.viewer.insights.membersWithLowestRatings.useQuery(
     insightsBookingParams,
     {
+      enabled: isReady,
       staleTime: 180000,
       refetchOnWindowFocus: false,
       trpc: {

@@ -9,10 +9,11 @@ import { UserStatsTable } from "../UserStatsTable";
 
 export const MostCompletedTeamMembersTable = () => {
   const { t } = useLocale();
-  const insightsBookingParams = useInsightsBookingParameters();
+  const { isReady, ...insightsBookingParams } = useInsightsBookingParameters();
 
   const { data, isSuccess, isPending, isError } =
     trpc.viewer.insights.membersWithMostCompletedBookings.useQuery(insightsBookingParams, {
+      enabled: isReady,
       staleTime: 180000,
       refetchOnWindowFocus: false,
       trpc: {

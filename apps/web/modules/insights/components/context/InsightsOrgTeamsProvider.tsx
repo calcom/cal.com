@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { createContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useState } from "react";
 
 import { checkAdminOrOwner } from "@calcom/features/auth/lib/checkAdminOrOwner";
 
@@ -21,25 +21,20 @@ export function InsightsOrgTeamsProvider({ children }: { children: React.ReactNo
   const currentOrgId = session.data?.user.org?.id;
   const isAdminOrOwner = checkAdminOrOwner(session.data?.user?.org?.role);
 
-  const [orgTeamsType, setOrgTeamsType] = useState<OrgTeamsType>(
-    isAdminOrOwner && currentOrgId ? "org" : "yours"
-  );
+  // Tracks the user's explicit selection. null = no explicit choice yet,
+  // so we derive the default from the current session state.
+  const [userOrgTeamsType, setUserOrgTeamsType] = useState<OrgTeamsType | null>(null);
   const [selectedTeamId, setSelectedTeamId] = useState<number | undefined>();
 
-  // Track whether the session has been loaded and initial state synced.
-  // useState's initial value is only used on the first render, so if the session
-  // isn't available yet (e.g. during SSR/hydration in production), orgTeamsType
-  // defaults to "yours". This effect corrects it once the session loads.
-  const isInitializedRef = useRef(false);
-  useEffect(() => {
-    if (!isInitializedRef.current && session.status === "authenticated") {
-      isInitializedRef.current = true;
-      const shouldBeOrg = isAdminOrOwner && currentOrgId;
-      if (shouldBeOrg) {
-        setOrgTeamsType("org");
-      }
-    }
-  }, [session.status, isAdminOrOwner, currentOrgId]);
+  // Derive orgTeamsType: user's explicit choice takes precedence,
+  // otherwise fall back to session-derived default.
+  // This avoids the old pattern of useState("yours") + useEffect correction,
+  // which caused a scope flip ("user" → "org") and duplicate queries.
+  const orgTeamsType = userOrgTeamsType ?? (isAdminOrOwner && currentOrgId ? "org" : "yours");
+
+  const setOrgTeamsType = useCallback((type: OrgTeamsType) => {
+    setUserOrgTeamsType(type);
+  }, []);
 
   return (
     <InsightsOrgTeamsContext.Provider

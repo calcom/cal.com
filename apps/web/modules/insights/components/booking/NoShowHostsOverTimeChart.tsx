@@ -51,7 +51,7 @@ const CustomTooltip = ({
 
 export const NoShowHostsOverTimeChart = () => {
   const { t } = useLocale();
-  const insightsBookingParams = useInsightsBookingParameters();
+  const { isReady, ...insightsBookingParams } = useInsightsBookingParameters();
 
   const {
     data: noShowHostsData,
@@ -59,6 +59,7 @@ export const NoShowHostsOverTimeChart = () => {
     isPending,
     isError,
   } = trpc.viewer.insights.noShowHostsOverTime.useQuery(insightsBookingParams, {
+    enabled: isReady,
     staleTime: 180000,
     refetchOnWindowFocus: false,
     trpc: {

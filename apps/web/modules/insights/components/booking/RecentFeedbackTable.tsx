@@ -9,11 +9,12 @@ import { RecentFeedbackTableContent } from "./RecentFeedbackTableContent";
 
 export const RecentFeedbackTable = () => {
   const { t } = useLocale();
-  const insightsBookingParams = useInsightsBookingParameters();
+  const { isReady, ...insightsBookingParams } = useInsightsBookingParameters();
 
   const { data, isSuccess, isPending, isError } = trpc.viewer.insights.recentRatings.useQuery(
     insightsBookingParams,
     {
+      enabled: isReady,
       staleTime: 180000,
       refetchOnWindowFocus: false,
       trpc: {

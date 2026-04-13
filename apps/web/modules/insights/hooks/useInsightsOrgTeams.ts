@@ -19,6 +19,11 @@ export function useInsightsOrgTeams() {
   // (renaming 'yours' to 'user')
   const scope: "org" | "team" | "user" = orgTeamsType === "yours" ? "user" : orgTeamsType;
 
+  // orgTeamsType is derived from the session in the provider, so once
+  // the session is authenticated the scope is already correct — no
+  // useEffect delay.
+  const isSessionReady = session.status === "authenticated";
+
   return {
     orgTeamsType,
     setOrgTeamsType,
@@ -28,5 +33,6 @@ export function useInsightsOrgTeams() {
     teamId,
     userId,
     scope,
+    isSessionReady,
   };
 }

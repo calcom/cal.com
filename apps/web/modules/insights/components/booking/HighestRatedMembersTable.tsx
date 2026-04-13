@@ -9,11 +9,12 @@ import { UserStatsTable } from "../UserStatsTable";
 
 export const HighestRatedMembersTable = () => {
   const { t } = useLocale();
-  const insightsBookingParams = useInsightsBookingParameters();
+  const { isReady, ...insightsBookingParams } = useInsightsBookingParameters();
 
   const { data, isSuccess, isPending, isError } = trpc.viewer.insights.membersWithHighestRatings.useQuery(
     insightsBookingParams,
     {
+      enabled: isReady,
       staleTime: 180000,
       refetchOnWindowFocus: false,
       trpc: {

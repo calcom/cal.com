@@ -76,4 +76,16 @@ describe("useInsightsOrgTeams", () => {
     const { result } = renderHook(() => useInsightsOrgTeams());
     expect(result.current.userId).toBeUndefined();
   });
+
+  it("should return isSessionReady=true when session is authenticated", () => {
+    Object.assign(mockSession, { status: "authenticated" });
+    const { result } = renderHook(() => useInsightsOrgTeams());
+    expect(result.current.isSessionReady).toBe(true);
+  });
+
+  it("should return isSessionReady=false when session is loading", () => {
+    Object.assign(mockSession, { status: "loading" });
+    const { result } = renderHook(() => useInsightsOrgTeams());
+    expect(result.current.isSessionReady).toBe(false);
+  });
 });

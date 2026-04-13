@@ -65,7 +65,7 @@ const CustomTooltip = ({
 
 export const EventTrendsChart = () => {
   const { t } = useLocale();
-  const insightsBookingParams = useInsightsBookingParameters();
+  const { isReady, ...insightsBookingParams } = useInsightsBookingParameters();
   const { enabledLegend, toggleSeries } = useToggleableLegend(legend);
 
   const {
@@ -74,6 +74,7 @@ export const EventTrendsChart = () => {
     isPending,
     isError,
   } = trpc.viewer.insights.eventTrends.useQuery(insightsBookingParams, {
+    enabled: isReady,
     staleTime: 180000,
     refetchOnWindowFocus: false,
     trpc: {

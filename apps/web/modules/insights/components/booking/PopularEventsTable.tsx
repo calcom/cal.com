@@ -8,11 +8,12 @@ import { ChartCard, ChartCardItem } from "../ChartCard";
 
 export const PopularEventsTable = () => {
   const { t } = useLocale();
-  const insightsBookingParams = useInsightsBookingParameters();
+  const { isReady, ...insightsBookingParams } = useInsightsBookingParameters();
 
   const { data, isSuccess, isPending, isError } = trpc.viewer.insights.popularEvents.useQuery(
     insightsBookingParams,
     {
+      enabled: isReady,
       staleTime: 180000,
       refetchOnWindowFocus: false,
       trpc: {

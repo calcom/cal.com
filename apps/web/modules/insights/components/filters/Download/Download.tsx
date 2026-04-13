@@ -24,7 +24,7 @@ const BATCH_SIZE = 100;
 
 const Download = () => {
   const { t } = useLocale();
-  const insightsBookingParams = useInsightsBookingParameters();
+  const { isReady: _, ...insightsBookingParams } = useInsightsBookingParameters();
   const { startDate, endDate } = extractDateRangeFromColumnFilters(insightsBookingParams.columnFilters);
   const [isDownloading, setIsDownloading] = useState(false);
   const utils = trpc.useUtils();
