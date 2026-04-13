@@ -46,7 +46,7 @@ export const isAvailableHandler = async ({
 
   const minimumBookingNotice =
     eventType.schedulingType === SchedulingType.ROUND_ROBIN && eventType.hosts.length > 0
-      ? Math.min(
+      ? Math.max(
           ...eventType.hosts.map((host) =>
             resolveRoundRobinHostEffectiveLimits({
               schedulingType: eventType.schedulingType,

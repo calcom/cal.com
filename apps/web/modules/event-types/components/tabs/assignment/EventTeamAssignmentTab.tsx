@@ -690,6 +690,7 @@ const Hosts = ({
             ...newValue,
             scheduleId: existingHost.scheduleId,
             groupId: existingHost.groupId,
+            location: newValue.location !== undefined ? newValue.location : existingHost.location,
             overrideMinimumBookingNotice:
               newValue.overrideMinimumBookingNotice !== undefined
                 ? newValue.overrideMinimumBookingNotice

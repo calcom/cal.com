@@ -144,6 +144,10 @@ import { handleAppsStatus } from "../handleNewBooking/handleAppsStatus";
 import { loadAndValidateUsers } from "../handleNewBooking/loadAndValidateUsers";
 import type { BookingType } from "../handleNewBooking/originalRescheduledBookingUtils";
 import { getOriginalRescheduledBooking } from "../handleNewBooking/originalRescheduledBookingUtils";
+import {
+  buildEventTypeWithEffectiveLimits,
+  getEventLevelLimits,
+} from "../handleNewBooking/eventTypeEffectiveLimits";
 import { scheduleNoShowTriggers } from "../handleNewBooking/scheduleNoShowTriggers";
 import type { IEventTypePaymentCredentialType, Invitee, IsFixedAwareUser } from "../handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "../handleNewBooking/validateBookingTimeIsNotOutOfBounds";
@@ -163,57 +167,6 @@ function assertNonEmptyArray<T>(arr: T[]): asserts arr is [T, ...T[]] {
     throw new Error("Array should have at least one item, but it's empty");
   }
 }
-
-type EventLimitFields = Pick<
-  getEventTypeResponse,
-  | "minimumBookingNotice"
-  | "beforeEventBuffer"
-  | "afterEventBuffer"
-  | "slotInterval"
-  | "bookingLimits"
-  | "durationLimits"
-  | "periodType"
-  | "periodDays"
-  | "periodCountCalendarDays"
-  | "periodStartDate"
-  | "periodEndDate"
->;
-
-const getEventLevelLimits = (eventType: EventLimitFields) => ({
-  minimumBookingNotice: eventType.minimumBookingNotice,
-  beforeEventBuffer: eventType.beforeEventBuffer,
-  afterEventBuffer: eventType.afterEventBuffer,
-  slotInterval: eventType.slotInterval,
-  bookingLimits: eventType.bookingLimits,
-  durationLimits: eventType.durationLimits,
-  periodType: eventType.periodType,
-  periodDays: eventType.periodDays,
-  periodCountCalendarDays: eventType.periodCountCalendarDays,
-  periodStartDate: eventType.periodStartDate,
-  periodEndDate: eventType.periodEndDate,
-});
-
-const buildEventTypeWithEffectiveLimits = <T extends EventLimitFields>(params: {
-  eventType: T;
-  effectiveLimits: ReturnType<typeof getEventLevelLimits>;
-}) => {
-  const { eventType, effectiveLimits } = params;
-
-  return {
-    ...eventType,
-    minimumBookingNotice: effectiveLimits.minimumBookingNotice,
-    beforeEventBuffer: effectiveLimits.beforeEventBuffer,
-    afterEventBuffer: effectiveLimits.afterEventBuffer,
-    slotInterval: effectiveLimits.slotInterval,
-    bookingLimits: effectiveLimits.bookingLimits,
-    durationLimits: effectiveLimits.durationLimits,
-    periodType: effectiveLimits.periodType,
-    periodDays: effectiveLimits.periodDays,
-    periodCountCalendarDays: effectiveLimits.periodCountCalendarDays,
-    periodStartDate: effectiveLimits.periodStartDate,
-    periodEndDate: effectiveLimits.periodEndDate,
-  };
-};
 
 const doesBookingConflictWithBusyTimes = ({
   start,

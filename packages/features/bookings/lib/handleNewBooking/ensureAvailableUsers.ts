@@ -7,6 +7,10 @@ import {
   getRoundRobinHostLimitOverrides,
   groupRoundRobinHostsByEffectiveLimits,
 } from "@calcom/features/bookings/lib/handleNewBooking/resolveRoundRobinHostEffectiveLimits";
+import {
+  buildEventTypeWithEffectiveLimits,
+  getEventLevelLimits,
+} from "@calcom/features/bookings/lib/handleNewBooking/eventTypeEffectiveLimits";
 import { getBusyTimesService } from "@calcom/features/di/containers/BusyTimes";
 import { getUserAvailabilityService } from "@calcom/features/di/containers/GetUserAvailability";
 import { buildDateRanges } from "@calcom/features/schedules/lib/date-ranges";
@@ -59,58 +63,6 @@ const hasDateRangeForBooking = (
 
   return dateRangeForBooking;
 };
-
-const getEventLevelLimits = (
-  eventType: Pick<
-    getEventTypeResponse,
-    | "minimumBookingNotice"
-    | "beforeEventBuffer"
-    | "afterEventBuffer"
-    | "slotInterval"
-    | "bookingLimits"
-    | "durationLimits"
-    | "periodType"
-    | "periodDays"
-    | "periodCountCalendarDays"
-    | "periodStartDate"
-    | "periodEndDate"
-  >
-) => ({
-  minimumBookingNotice: eventType.minimumBookingNotice,
-  beforeEventBuffer: eventType.beforeEventBuffer,
-  afterEventBuffer: eventType.afterEventBuffer,
-  slotInterval: eventType.slotInterval,
-  bookingLimits: eventType.bookingLimits,
-  durationLimits: eventType.durationLimits,
-  periodType: eventType.periodType,
-  periodDays: eventType.periodDays,
-  periodCountCalendarDays: eventType.periodCountCalendarDays,
-  periodStartDate: eventType.periodStartDate,
-  periodEndDate: eventType.periodEndDate,
-});
-
-const buildEventTypeWithEffectiveLimits = ({
-  eventType,
-  effectiveLimits,
-}: {
-  eventType: Omit<getEventTypeResponse, "users"> & {
-    users: IsFixedAwareUser[];
-  };
-  effectiveLimits: ReturnType<typeof getEventLevelLimits>;
-}) => ({
-  ...eventType,
-  minimumBookingNotice: effectiveLimits.minimumBookingNotice,
-  beforeEventBuffer: effectiveLimits.beforeEventBuffer,
-  afterEventBuffer: effectiveLimits.afterEventBuffer,
-  slotInterval: effectiveLimits.slotInterval,
-  bookingLimits: effectiveLimits.bookingLimits,
-  durationLimits: effectiveLimits.durationLimits,
-  periodType: effectiveLimits.periodType,
-  periodDays: effectiveLimits.periodDays,
-  periodCountCalendarDays: effectiveLimits.periodCountCalendarDays,
-  periodStartDate: effectiveLimits.periodStartDate,
-  periodEndDate: effectiveLimits.periodEndDate,
-});
 
 const _ensureAvailableUsers = async (
   eventType: Omit<getEventTypeResponse, "users"> & {

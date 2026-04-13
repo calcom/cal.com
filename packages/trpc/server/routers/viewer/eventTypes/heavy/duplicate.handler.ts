@@ -8,6 +8,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../../types";
 import { setDestinationCalendarHandler } from "../../../viewer/calendars/setDestinationCalendar.handler";
+import { mapHostCreateData } from "./hostDataMapping";
 import type { TDuplicateInputSchema } from "./duplicate.schema";
 
 type DuplicateOptions = {
@@ -122,30 +123,12 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       hosts: hosts
         ? {
             createMany: {
-              data: hosts.map((host) => ({
-                userId: host.userId,
-                createdAt: host.createdAt,
-                scheduleId: host.scheduleId,
-                isFixed: host.isFixed,
-                priority: host.priority,
-                weight: host.weight,
-                weightAdjustment: host.weightAdjustment,
-                overrideMinimumBookingNotice: host.overrideMinimumBookingNotice,
-                overrideBeforeEventBuffer: host.overrideBeforeEventBuffer,
-                overrideAfterEventBuffer: host.overrideAfterEventBuffer,
-                overrideSlotInterval: host.overrideSlotInterval,
-                overrideBookingLimits:
-                  host.overrideBookingLimits === null ? Prisma.JsonNull : host.overrideBookingLimits,
-                overrideDurationLimits:
-                  host.overrideDurationLimits === null ? Prisma.JsonNull : host.overrideDurationLimits,
-                overridePeriodType: host.overridePeriodType,
-                overridePeriodStartDate: host.overridePeriodStartDate,
-                overridePeriodEndDate: host.overridePeriodEndDate,
-                overridePeriodDays: host.overridePeriodDays,
-                overridePeriodCountCalendarDays: host.overridePeriodCountCalendarDays,
-                groupId: host.groupId,
-                memberId: host.memberId,
-              })),
+              data: hosts.map((host) =>
+                mapHostCreateData({
+                  host,
+                  schedulingType: eventType.schedulingType,
+                })
+              ),
             },
           }
         : undefined,

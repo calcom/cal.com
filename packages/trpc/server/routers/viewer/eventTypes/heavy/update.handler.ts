@@ -37,6 +37,7 @@ import {
   handleCustomInputs,
   handlePeriodType,
 } from "../util";
+import { mapHostCreateData, mapHostUpdateData } from "./hostDataMapping";
 import type { TUpdateInputSchema } from "./update.schema";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
@@ -61,111 +62,7 @@ type UpdateOptions = {
   };
   input: TUpdateInputSchema;
 };
-
-type HostWithOverridesInput = NonNullable<TUpdateInputSchema["hosts"]>[number];
-
-type HostCreateData = Prisma.HostUncheckedCreateWithoutEventTypeInput;
-type HostUpdateData = Prisma.HostUncheckedUpdateWithoutEventTypeInput;
-
-const toNullableJsonInput = (value: Prisma.InputJsonValue | null | undefined) => {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  return value === null ? Prisma.JsonNull : value;
-};
-
-export const mapHostCreateData = ({
-  host,
-  schedulingType,
-}: {
-  host: HostWithOverridesInput;
-  schedulingType: SchedulingType | null | undefined;
-}): HostCreateData => {
-  const hostData: HostCreateData = {
-    userId: host.userId,
-    isFixed: schedulingType === SchedulingType.COLLECTIVE || host.isFixed || false,
-    priority: host.priority ?? 2,
-    weight: host.weight ?? 100,
-    groupId: host.groupId,
-    scheduleId: host.scheduleId ?? null,
-    overrideMinimumBookingNotice: host.overrideMinimumBookingNotice,
-    overrideBeforeEventBuffer: host.overrideBeforeEventBuffer,
-    overrideAfterEventBuffer: host.overrideAfterEventBuffer,
-    overrideSlotInterval: host.overrideSlotInterval,
-    overrideBookingLimits: toNullableJsonInput(host.overrideBookingLimits),
-    overrideDurationLimits: toNullableJsonInput(host.overrideDurationLimits),
-    overridePeriodType: host.overridePeriodType,
-    overridePeriodStartDate: host.overridePeriodStartDate,
-    overridePeriodEndDate: host.overridePeriodEndDate,
-    overridePeriodDays: host.overridePeriodDays,
-    overridePeriodCountCalendarDays: host.overridePeriodCountCalendarDays,
-  };
-
-  if (host.location) {
-    hostData.location = {
-      create: {
-        type: host.location.type,
-        credentialId: host.location.credentialId,
-        link: host.location.link,
-        address: host.location.address,
-        phoneNumber: host.location.phoneNumber,
-      },
-    };
-  }
-
-  return hostData;
-};
-
-export const mapHostUpdateData = ({
-  host,
-  schedulingType,
-}: {
-  host: HostWithOverridesInput;
-  schedulingType: SchedulingType | null | undefined;
-}): HostUpdateData => {
-  const updateData: HostUpdateData = {
-    isFixed: schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-    priority: host.priority ?? 2,
-    weight: host.weight ?? 100,
-    scheduleId: host.scheduleId === undefined ? undefined : host.scheduleId,
-    groupId: host.groupId,
-    overrideMinimumBookingNotice: host.overrideMinimumBookingNotice,
-    overrideBeforeEventBuffer: host.overrideBeforeEventBuffer,
-    overrideAfterEventBuffer: host.overrideAfterEventBuffer,
-    overrideSlotInterval: host.overrideSlotInterval,
-    overrideBookingLimits: toNullableJsonInput(host.overrideBookingLimits),
-    overrideDurationLimits: toNullableJsonInput(host.overrideDurationLimits),
-    overridePeriodType: host.overridePeriodType,
-    overridePeriodStartDate: host.overridePeriodStartDate,
-    overridePeriodEndDate: host.overridePeriodEndDate,
-    overridePeriodDays: host.overridePeriodDays,
-    overridePeriodCountCalendarDays: host.overridePeriodCountCalendarDays,
-  };
-
-  if (host.location) {
-    updateData.location = {
-      upsert: {
-        create: {
-          type: host.location.type,
-          credentialId: host.location.credentialId,
-          link: host.location.link,
-          address: host.location.address,
-          phoneNumber: host.location.phoneNumber,
-        },
-        update: {
-          type: host.location.type,
-          credentialId: host.location.credentialId,
-          link: host.location.link,
-          address: host.location.address,
-          phoneNumber: host.location.phoneNumber,
-        },
-      },
-    };
-  }
-
-  return updateData;
-};
+export { mapHostCreateData, mapHostUpdateData } from "./hostDataMapping";
 
 export type UpdateEventTypeReturn = Awaited<ReturnType<typeof updateHandler>>;
 

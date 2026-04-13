@@ -1198,6 +1198,16 @@ export class EventTypeRepository implements IEventTypesRepository {
         hosts: {
           select: {
             overrideMinimumBookingNotice: true,
+            overrideBeforeEventBuffer: true,
+            overrideAfterEventBuffer: true,
+            overrideSlotInterval: true,
+            overrideBookingLimits: true,
+            overrideDurationLimits: true,
+            overridePeriodType: true,
+            overridePeriodDays: true,
+            overridePeriodCountCalendarDays: true,
+            overridePeriodStartDate: true,
+            overridePeriodEndDate: true,
           },
         },
       },

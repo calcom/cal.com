@@ -122,25 +122,24 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
 
   const hostsWithCreatedAt = hosts.filter(hasCreatedAt);
   if (hostsWithCreatedAt.length !== hosts.length) {
-    log.debug("Skipping lead-threshold filtering because one or more round-robin hosts have no createdAt");
-    return hosts;
+    log.debug(
+      "Filtering out round-robin hosts missing createdAt before lead-threshold computation to enforce maxLeadThreshold"
+    );
+  }
+
+  if (hostsWithCreatedAt.length === 0) {
+    log.debug("No round-robin hosts with createdAt available after lead-threshold pre-filtering");
+    return [];
   }
 
   // this needs the routing forms response too, because it needs to know what queue we are in
   const luckyUserService = getLuckyUserService();
   const orderedLuckyUsers = await luckyUserService.getOrderedListOfLuckyUsers({
-    availableUsers: [
-      {
-        ...hosts[0].user,
-        weight: hosts[0].weight ?? null,
-        priority: hosts[0].priority ?? null,
-      },
-      ...hosts.slice(1).map((host) => ({
+    availableUsers: hostsWithCreatedAt.map((host) => ({
         ...host.user,
         weight: host.weight ?? null,
         priority: host.priority ?? null,
       })),
-    ],
     eventType,
     allRRHosts: hostsWithCreatedAt,
     routingFormResponse,

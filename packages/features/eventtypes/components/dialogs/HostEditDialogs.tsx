@@ -332,13 +332,17 @@ const buildLimitOverrideDefaults = (option: CheckedSelectOption): Partial<FormVa
     option.overrideDurationLimits && Object.keys(option.overrideDurationLimits).length > 0
       ? option.overrideDurationLimits
       : undefined,
-  periodType: option.overridePeriodType ?? PeriodType.UNLIMITED,
-  periodDays: option.overridePeriodDays ?? 30,
-  periodCountCalendarDays: option.overridePeriodCountCalendarDays ?? true,
-  periodDates: {
-    startDate: option.overridePeriodStartDate ?? new Date(),
-    endDate: option.overridePeriodEndDate ?? new Date(),
-  },
+  periodType: option.overridePeriodType ?? undefined,
+  periodDays: option.overridePeriodDays ?? undefined,
+  periodCountCalendarDays: option.overridePeriodCountCalendarDays ?? undefined,
+  periodDates:
+    option.overridePeriodStartDate || option.overridePeriodEndDate
+      ? {
+          startDate:
+            option.overridePeriodStartDate ?? option.overridePeriodEndDate ?? new Date(),
+          endDate: option.overridePeriodEndDate ?? option.overridePeriodStartDate ?? new Date(),
+        }
+      : undefined,
 });
 
 export const LimitOverridesDialog = (
@@ -383,7 +387,7 @@ export const LimitOverridesDialog = (
     const hostGroupToSort = groupedHosts[option.groupId ?? DEFAULT_GROUP_ID];
     const bookingLimitsValue = limitForm.getValues("bookingLimits");
     const durationLimitsValue = limitForm.getValues("durationLimits");
-    const periodTypeValue = limitForm.getValues("periodType") ?? PeriodType.UNLIMITED;
+    const periodTypeValue = limitForm.getValues("periodType");
     const periodDatesValue = limitForm.getValues("periodDates");
     const periodDaysValue = limitForm.getValues("periodDays");
     const periodCountCalendarDaysValue = limitForm.getValues("periodCountCalendarDays");
@@ -392,7 +396,7 @@ export const LimitOverridesDialog = (
       bookingLimitsValue && Object.keys(bookingLimitsValue).length > 0 ? bookingLimitsValue : null;
     const nextDurationLimits =
       durationLimitsValue && Object.keys(durationLimitsValue).length > 0 ? durationLimitsValue : null;
-    const nextPeriodType = periodTypeValue === PeriodType.UNLIMITED ? null : periodTypeValue;
+    const nextPeriodType = periodTypeValue ?? null;
     const nextPeriodStartDate =
       nextPeriodType === PeriodType.RANGE ? toUtcMidnight(periodDatesValue?.startDate) : null;
     const nextPeriodEndDate =
@@ -613,7 +617,7 @@ export const LimitOverridesDialog = (
                     { label: t("rolling_window"), value: PeriodType.ROLLING_WINDOW },
                     { label: t("within_date_range"), value: PeriodType.RANGE },
                   ]}
-                  onChange={(selected) => onChange(selected?.value ?? PeriodType.UNLIMITED)}
+                  onChange={(selected) => onChange(selected?.value)}
                   value={
                     [
                       { label: t("unlimited"), value: PeriodType.UNLIMITED },
@@ -700,13 +704,10 @@ export const LimitOverridesDialog = (
               limitForm.reset({
                 bookingLimits: undefined,
                 durationLimits: undefined,
-                periodType: PeriodType.UNLIMITED,
-                periodDays: 30,
-                periodCountCalendarDays: true,
-                periodDates: {
-                  startDate: new Date(),
-                  endDate: new Date(),
-                },
+                periodType: undefined,
+                periodDays: undefined,
+                periodCountCalendarDays: undefined,
+                periodDates: undefined,
               });
               applyOverrides({
                 minimumBookingNoticeValue: null,

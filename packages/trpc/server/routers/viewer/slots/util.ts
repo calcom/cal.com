@@ -1665,39 +1665,75 @@ export class AvailableSlotsService {
         mode,
       });
 
-    let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
-    const eventTimeZone =
-      eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
-    let timeSlots = hasRoundRobinHostLimitOverrides
-      ? this.getRoundRobinOverrideAwareSlots({
-          input,
-          eventType,
-          allUsersAvailability,
-          effectiveLimitsByUserId,
-          startTime,
-          eventTimeZone,
-        })
-      : getSlots({
-          inviteeDate: startTime,
-          eventLength: input.duration || eventType.length,
-          offsetStart: eventType.offsetStart,
-          dateRanges: aggregatedAvailability,
-          minimumBookingNotice: eventType.minimumBookingNotice,
-          frequency: eventType.slotInterval || input.duration || eventType.length,
-          datesOutOfOffice:
-            eventType.schedulingType === SchedulingType.COLLECTIVE ||
-            eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
-            allUsersAvailability.length > 1
-              ? undefined
-              : allUsersAvailability[0]?.datesOutOfOffice,
-          showOptimizedSlots: eventType.showOptimizedSlots,
-          datesOutOfOfficeTimeZone:
-            eventType.schedulingType === SchedulingType.COLLECTIVE ||
-            eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
-            allUsersAvailability.length > 1
-              ? undefined
-              : allUsersAvailability[0]?.timeZone,
-        });
+    const generateSlotsForHosts = ({
+      allUsersAvailability: availabilityByHost,
+      effectiveLimitsByUserId: effectiveLimitsByHost,
+      hasRoundRobinHostLimitOverrides: hasOverrides,
+      slotsStartTime,
+      inviteeDateForStandardSlots = slotsStartTime,
+      includeSingleHostOutOfOffice = true,
+    }: {
+      allUsersAvailability: typeof allUsersAvailability;
+      effectiveLimitsByUserId: typeof effectiveLimitsByUserId;
+      hasRoundRobinHostLimitOverrides: boolean;
+      slotsStartTime: dayjs.Dayjs;
+      inviteeDateForStandardSlots?: dayjs.Dayjs;
+      includeSingleHostOutOfOffice?: boolean;
+    }) => {
+      const aggregatedAvailabilityForHosts = getAggregatedAvailability(
+        availabilityByHost,
+        eventType.schedulingType
+      );
+      const eventTimeZoneForHosts =
+        eventType.timeZone || eventType.schedule?.timeZone || availabilityByHost[0]?.timeZone;
+
+      const timeSlotsForHosts = hasOverrides
+        ? this.getRoundRobinOverrideAwareSlots({
+            input,
+            eventType,
+            allUsersAvailability: availabilityByHost,
+            effectiveLimitsByUserId: effectiveLimitsByHost,
+            startTime: slotsStartTime,
+            eventTimeZone: eventTimeZoneForHosts,
+          })
+        : getSlots({
+            inviteeDate: inviteeDateForStandardSlots,
+            eventLength: input.duration || eventType.length,
+            offsetStart: eventType.offsetStart,
+            dateRanges: aggregatedAvailabilityForHosts,
+            minimumBookingNotice: eventType.minimumBookingNotice,
+            frequency: eventType.slotInterval || input.duration || eventType.length,
+            datesOutOfOffice:
+              includeSingleHostOutOfOffice &&
+              eventType.schedulingType !== SchedulingType.COLLECTIVE &&
+              eventType.schedulingType !== SchedulingType.ROUND_ROBIN &&
+              availabilityByHost.length <= 1
+                ? availabilityByHost[0]?.datesOutOfOffice
+                : undefined,
+            showOptimizedSlots: eventType.showOptimizedSlots,
+            datesOutOfOfficeTimeZone:
+              includeSingleHostOutOfOffice &&
+              eventType.schedulingType !== SchedulingType.COLLECTIVE &&
+              eventType.schedulingType !== SchedulingType.ROUND_ROBIN &&
+              availabilityByHost.length <= 1
+                ? availabilityByHost[0]?.timeZone
+                : undefined,
+          });
+
+      return {
+        aggregatedAvailability: aggregatedAvailabilityForHosts,
+        timeSlots: timeSlotsForHosts,
+      };
+    };
+
+    let { aggregatedAvailability, timeSlots } = generateSlotsForHosts({
+      allUsersAvailability,
+      effectiveLimitsByUserId,
+      hasRoundRobinHostLimitOverrides,
+      slotsStartTime: startTime,
+      inviteeDateForStandardSlots: startTime,
+      includeSingleHostOutOfOffice: true,
+    });
 
     // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
     if (hasFallbackRRHosts) {
@@ -1712,55 +1748,28 @@ export class AvailableSlotsService {
         // if start time is not within first two weeks, check if there are any available slots
         if (!timeSlots.length) {
           // if no available slots check if first two weeks are available, otherwise fallback
+          const firstTwoWeeksHosts = [...eligibleQualifiedRRHosts, ...eligibleFixedHosts];
+          const firstTwoWeeksStartTime = getStartTimeForHosts(dayjs().format(), firstTwoWeeksHosts);
           const firstTwoWeeksAvailabilities = await this.calculateHostsAndAvailabilities({
             input,
             eventType,
-            hosts: [...eligibleQualifiedRRHosts, ...eligibleFixedHosts],
+            hosts: firstTwoWeeksHosts,
             loggerWithEventDetails,
-            startTime: getStartTimeForHosts(dayjs().format(), [
-              ...eligibleQualifiedRRHosts,
-              ...eligibleFixedHosts,
-            ]),
-            endTime: getStartTimeForHosts(twoWeeksFromNow.format(), [
-              ...eligibleQualifiedRRHosts,
-              ...eligibleFixedHosts,
-            ]),
+            startTime: firstTwoWeeksStartTime,
+            endTime: getStartTimeForHosts(twoWeeksFromNow.format(), firstTwoWeeksHosts),
             bypassBusyCalendarTimes,
             silentCalendarFailures,
             mode,
           });
-          const firstTwoWeeksTimeSlots = firstTwoWeeksAvailabilities.hasRoundRobinHostLimitOverrides
-            ? this.getRoundRobinOverrideAwareSlots({
-                input,
-                eventType,
-                allUsersAvailability: firstTwoWeeksAvailabilities.allUsersAvailability,
-                effectiveLimitsByUserId: firstTwoWeeksAvailabilities.effectiveLimitsByUserId,
-                startTime: getStartTimeForHosts(dayjs().format(), [
-                  ...eligibleQualifiedRRHosts,
-                  ...eligibleFixedHosts,
-                ]),
-                eventTimeZone:
-                  eventType.timeZone ||
-                  eventType.schedule?.timeZone ||
-                  firstTwoWeeksAvailabilities.allUsersAvailability[0]?.timeZone,
-              })
-            : getSlots({
-                inviteeDate: getStartTimeForHosts(dayjs().format(), [
-                  ...eligibleQualifiedRRHosts,
-                  ...eligibleFixedHosts,
-                ]),
-                eventLength: input.duration || eventType.length,
-                offsetStart: eventType.offsetStart,
-                dateRanges: getAggregatedAvailability(
-                  firstTwoWeeksAvailabilities.allUsersAvailability,
-                  eventType.schedulingType
-                ),
-                minimumBookingNotice: eventType.minimumBookingNotice,
-                frequency: eventType.slotInterval || input.duration || eventType.length,
-                datesOutOfOffice: undefined,
-                showOptimizedSlots: eventType.showOptimizedSlots,
-                datesOutOfOfficeTimeZone: undefined,
-              });
+          const { timeSlots: firstTwoWeeksTimeSlots } = generateSlotsForHosts({
+            allUsersAvailability: firstTwoWeeksAvailabilities.allUsersAvailability,
+            effectiveLimitsByUserId: firstTwoWeeksAvailabilities.effectiveLimitsByUserId,
+            hasRoundRobinHostLimitOverrides:
+              firstTwoWeeksAvailabilities.hasRoundRobinHostLimitOverrides,
+            slotsStartTime: firstTwoWeeksStartTime,
+            inviteeDateForStandardSlots: firstTwoWeeksStartTime,
+            includeSingleHostOutOfOffice: false,
+          });
           if (!firstTwoWeeksTimeSlots.length) {
             diff = 1;
           }
@@ -1780,6 +1789,11 @@ export class AvailableSlotsService {
 
       if (diff > 0) {
         // if the first available slot is more than 2 weeks from now, round robin as normal
+        const fallbackHosts = [...eligibleFallbackRRHosts, ...eligibleFixedHosts];
+        const fallbackSlotsStartTime = getStartTimeForHosts(
+          startTimeAdjustedForRollingWindowComputation,
+          fallbackHosts
+        );
         ({
           allUsersAvailability,
           usersWithCredentials,
@@ -1790,42 +1804,22 @@ export class AvailableSlotsService {
           await this.calculateHostsAndAvailabilities({
             input,
             eventType,
-            hosts: [...eligibleFallbackRRHosts, ...eligibleFixedHosts],
+            hosts: fallbackHosts,
             loggerWithEventDetails,
-            startTime: getStartTimeForHosts(startTimeAdjustedForRollingWindowComputation, [
-              ...eligibleFallbackRRHosts,
-              ...eligibleFixedHosts,
-            ]),
+            startTime: fallbackSlotsStartTime,
             endTime,
             bypassBusyCalendarTimes,
             silentCalendarFailures,
             mode,
           }));
-        aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
-        timeSlots = hasRoundRobinHostLimitOverrides
-          ? this.getRoundRobinOverrideAwareSlots({
-              input,
-              eventType,
-              allUsersAvailability,
-              effectiveLimitsByUserId,
-              startTime: getStartTimeForHosts(startTimeAdjustedForRollingWindowComputation, [
-                ...eligibleFallbackRRHosts,
-                ...eligibleFixedHosts,
-              ]),
-              eventTimeZone:
-                eventType.timeZone || eventType.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,
-            })
-          : getSlots({
-              inviteeDate: startTime,
-              eventLength: input.duration || eventType.length,
-              offsetStart: eventType.offsetStart,
-              dateRanges: aggregatedAvailability,
-              minimumBookingNotice: eventType.minimumBookingNotice,
-              frequency: eventType.slotInterval || input.duration || eventType.length,
-              datesOutOfOffice: undefined,
-              showOptimizedSlots: eventType.showOptimizedSlots,
-              datesOutOfOfficeTimeZone: undefined,
-            });
+        ({ aggregatedAvailability, timeSlots } = generateSlotsForHosts({
+          allUsersAvailability,
+          effectiveLimitsByUserId,
+          hasRoundRobinHostLimitOverrides,
+          slotsStartTime: fallbackSlotsStartTime,
+          inviteeDateForStandardSlots: startTime,
+          includeSingleHostOutOfOffice: false,
+        }));
       }
     }
 
